@@ -1,0 +1,244 @@
+
+example-approx-1.c,450
+static const char RCSId[RCSId41,1298
+#define DATAFILE 48,1457
+#define LEN_DATA 53,1517
+	int n;59,1638
+	double *y;y60,1646
+	double *d;d61,1658
+	GMRFLib_graph_tp *graph;graph62,1670
+} Global_tp;63,1696
+static Global_tp G;64,1709
+	double *log_kappa;log_kappa70,1810
+	double *nu;nu71,1830
+} Qfunc_args_tp;72,1843
+double trans_phi(74,1861
+int read_data_make_graph(82,1981
+double Qfunc(109,2478
+int loglik(132,2905
+int main(148,3381
+
+example-approx-2.c,584
+#define DATAFILE 51,1412
+#define LEN_DATA 56,1472
+#define PRIOR_A 61,1547
+#define PRIOR_B 62,1568
+#define PREC_PHI_TRANS 67,1621
+static const char RCSId[RCSId69,1650
+	int n;75,1841
+	double *y;y76,1849
+	double *d;d77,1861
+	GMRFLib_graph_tp *graph;graph78,1873
+} Global_tp;79,1899
+static Global_tp G;80,1912
+	double **log_kappa;log_kappa86,2013
+	double **nu;nu87,2034
+} Qfunc_args_tp;88,2048
+double trans_phi(90,2066
+int read_data_make_graph(98,2186
+double Qfunc(125,2683
+double log_prior(148,3152
+int loglik(156,3324
+double extra(172,3800
+int main(190,4191
+
+example-approx-3.c,584
+static const char RCSId[RCSId41,1298
+#define DATAFILE 48,1457
+#define LEN_DATA 53,1517
+#define PRIOR_A 58,1592
+#define PRIOR_B 59,1613
+#define PREC_PHI_TRANS 64,1666
+	int n;70,1791
+	double *y;y71,1799
+	double *d;d72,1811
+	GMRFLib_graph_tp *graph;graph73,1823
+} Global_tp;74,1849
+static Global_tp G;75,1862
+	double **log_kappa;log_kappa81,1963
+	double **nu;nu82,1984
+} Qfunc_args_tp;83,1998
+double trans_phi(85,2016
+int read_data_make_graph(93,2136
+double Qfunc(120,2633
+double log_prior(143,3102
+int loglik(151,3275
+double extra(167,3751
+int main(185,4142
+
+example-auxvar.c,361
+static const char RCSId[RCSId42,1318
+#define GRAPH 49,1482
+#define DATA 50,1512
+#define PRIOR_A 55,1593
+#define PRIOR_B 56,1614
+	double *y;y62,1717
+	double *E;E63,1729
+	GMRFLib_graph_tp *graph;graph64,1741
+} Global;65,1767
+static Global G;66,1777
+double eu_gamma(72,1920
+int read_graph_and_data(79,2091
+double Qfunc(109,2662
+int main(127,3118
+
+example-bitmap.c,57
+static const char RCSId[RCSId39,1262
+int main(44,1413
+
+example-blockupdate-2.c,403
+static const char RCSId[RCSId62,1855
+	double *y;y65,1970
+	double *E;E66,1982
+	int *g0idx;g0idx67,1994
+	int *g1idx;g1idx68,2007
+} Data_tp;69,2020
+static Data_tp D;71,2032
+#define NDATA 73,2051
+#define NG0 74,2069
+#define NG1 75,2084
+#define PREC_PRIOR_A 76,2099
+#define PREC_PRIOR_B 77,2124
+double log_gamma(79,2151
+int read_data(83,2242
+int loglikelihood(105,2707
+int main(124,3178
+
+example-blockupdate.c,382
+static const char RCSId[RCSId42,1323
+#define GRAPH 54,1608
+#define DATA 55,1638
+#define PRIOR_A 60,1719
+#define PRIOR_B 61,1740
+	double *y;y67,1843
+	double *E;E68,1855
+	GMRFLib_graph_tp *graph;graph69,1867
+} Global;70,1893
+static Global G;71,1903
+double eu_gamma(78,2126
+int read_graph_and_data(85,2297
+int loglik(110,2740
+double Qfunc(135,3231
+int main(153,3687
+
+example-blockupdate-with-error-control.c,424
+static const char RCSId[RCSId42,1342
+#define GRAPH 53,1633
+#define DATA 54,1663
+#define PRIOR_A 59,1744
+#define PRIOR_B 60,1765
+	double *y;y66,1868
+	double *E;E67,1880
+	GMRFLib_graph_tp *graph;graph68,1892
+} Global;69,1918
+static Global G;70,1928
+static double loglikelihood_sign 81,2405
+double eu_gamma(83,2446
+int read_graph_and_data(90,2617
+int loglik(115,3060
+double Qfunc(140,3574
+int main(158,4030
+
+example-error-handler.c,48
+double Qfunc_invalid(41,1315
+int main(48,1433
+
+example-geo.c,57
+static const char RCSId[RCSId42,1315
+int main(46,1439
+
+example-graph1.c,57
+static const char RCSId[RCSId38,1242
+int main(44,1395
+
+example-graph2.c,18
+int main(35,1179
+
+example-graph-edit.c,57
+static const char RCSId[RCSId39,1266
+int main(43,1391
+
+example-hgmrfm-1.c,477
+#define DATA_FILE 53,1814
+#define NROW 54,1856
+#define NCOL 55,1884
+#define AREA 56,1912
+#define LEN_DATA 58,1944
+#define PREC_PRIOR_A 60,1982
+#define PREC_PRIOR_B 61,2007
+static const char RCSId[RCSId63,2034
+	int ndata;66,2145
+	double *data;data67,2194
+	double *z1;z168,2209
+	double *z2;z269,2222
+} Data_tp;70,2235
+static Data_tp D;72,2247
+double log_gamma(74,2266
+int read_data(78,2355
+int loglikelihood(99,2733
+double extra(114,3117
+int main(125,3525
+
+example-hgmrfm-2.c,534
+static const char RCSId[RCSId41,1302
+#define DATA_FILE 50,1568
+#define NROW 51,1610
+#define NCOL 52,1638
+#define AREA 53,1666
+#define LEN_DATA 55,1698
+#define PREC_PRIOR_A 57,1736
+#define PREC_PRIOR_B 58,1761
+#define LEN_F 60,1788
+	int ndata;64,1825
+	double *data;data65,1874
+	double *z1;z166,1889
+	double *z2;z267,1902
+} Data_tp;68,1915
+static Data_tp D;70,1927
+double log_gamma(72,1946
+int read_data(76,2037
+int loglikelihood(97,2415
+double extra(112,2799
+double GMRFLib_rw_extra(133,3520
+int main(140,3725
+
+example-matern2d.c,57
+static const char RCSId[RCSId40,1303
+int main(42,1396
+
+example-qinv.c,158
+static const char RCSId[RCSId38,1240
+	double phi;43,1376
+	int n;44,1431
+} Global_tp;45,1475
+Global_tp G 47,1489
+double Qfunc(49,1517
+int main(64,1768
+
+example-rng.c,57
+static const char RCSId[RCSId40,1269
+int main(42,1358
+
+example-rw.c,128
+static const char RCSId[RCSId41,1296
+#define DATAFILE 45,1414
+#define N 46,1448
+#define NSAMPLES 47,1461
+int main(49,1482
+
+example-sample.c,79
+static const char RCSId[RCSId40,1281
+double Qfunc(52,1624
+int main(62,1797
+
+example-sphere.c,57
+static const char RCSId[RCSId41,1305
+int main(43,1397
+
+example-wa.c,151
+static const char RCSId[RCSId40,1276
+#define DATAFILE 44,1394
+#define N 45,1428
+#define NSAMPLES 46,1441
+double wafunc(50,1503
+int main(90,2085

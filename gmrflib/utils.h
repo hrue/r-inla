@@ -1,0 +1,112 @@
+
+/* utils.h
+ * 
+ * Copyright (C) 2006 Havard Rue
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * The author's contact information:
+ *
+ *       H{\aa}vard Rue
+ *       Department of Mathematical Sciences
+ *       The Norwegian University of Science and Technology
+ *       N-7491 Trondheim, Norway
+ *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
+ *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *
+ * RCSId: $Id: utils.h,v 1.40 2009/07/08 22:57:26 hrue Exp $
+ *
+ */
+
+/*!
+  \file utils.h
+  \brief Typedefs for \ref utils.c
+*/
+
+#ifndef __GMRFLib_UTILS_H__
+#define __GMRFLib_UTILS_H__
+
+#include <stdlib.h>
+#include <stddef.h>
+#include <math.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#ifdef __cplusplus
+# define __BEGIN_DECLS extern "C" {
+# define __END_DECLS }
+#else
+# define __BEGIN_DECLS					       /* empty */
+# define __END_DECLS					       /* empty */
+#endif
+
+__BEGIN_DECLS
+#include "GMRFLib/hashP.h"
+#include "GMRFLib/GMRFLibP.h"
+
+/*
+ */
+double GMRFLib_eps(double power);
+double GMRFLib_max_value(double *x, int n);
+double GMRFLib_min_value(double *x, int n);
+double GMRFLib_signed_pow(double x, double power);
+int GMRFLib_which(double val, double *array, int len);
+int GMRFLib_adjust_vector(double *x, int n);
+int GMRFLib_scale_vector(double *x, int n);
+int GMRFLib_dcmp(const void *a, const void *b);
+int GMRFLib_dcmp_abs(const void *a, const void *b);
+int GMRFLib_icmp(const void *a, const void *b);
+int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
+int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *));
+int GMRFLib_unique_additive(int *n, double *x, double eps);
+int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
+int GMRFLib_unique_relative(int *n, double *x, double eps);
+int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps);
+int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
+
+char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_memcheck_printf(FILE * fp);
+int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_is_int(char *str, int *value);
+void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_malloc__(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+
+char *GMRFLib_strdup(const char *ptr);
+char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
+int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format);
+
+mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
+mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
+map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
+map_id *GMRFLib_duplicate_map_id(map_id * hash);
+GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash);
+GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash);
+
+int GMRFLib_fpe(void);
+
+__END_DECLS
+#endif
