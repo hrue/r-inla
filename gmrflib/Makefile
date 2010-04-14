@@ -147,7 +147,14 @@ clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
 
 depend:; ($(CC) -c $(INCL) -MM *.c; $(FC) -c $(INCL) -MM *.F )  > dependencies
 
-.PHONY: depend clean uninstall install
+RCSId.all: RCSId
+RCSId:
+	-grep '$$Id:' *.h *.c | \
+	sed 's![^$$]*$$Id:\([^$$]*\)$$.*! "$$Id \1$$",!' | \
+	sed 's!:! !g' | \
+	sort > RCSId.all
+
+.PHONY: depend clean uninstall install RCSId
 
 include dependencies
 
