@@ -2,9 +2,12 @@
 syntax: glob
 
 *~
-gmrflib/doc/*
+*.o
+*.a
+gmrflib/RCSId.all
 gmrflib/examples/Makefile.in
 gmrflib/tutorial/Makefile.in
+gmrflib/doc
 
 # switch to regexp syntax.
 syntax: regexp
