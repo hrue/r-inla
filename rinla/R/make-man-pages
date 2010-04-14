@@ -1,0 +1,44 @@
+#! /bin/bash
+
+export MANDIR=../man
+
+function mmp ()
+{
+    awk '/:NAME:/{
+	name=$2
+	f=  MANDIR "/" name ".Rd"
+	print "Make make page", f >> "/dev/stderr"
+	print "" > f
+	print "\\name{" $2 "}" >> f
+	print "\\alias{" $2 "}" >> f
+	print "\\alias{inla." $2 "}" >> f
+	print "\\title{Control variables in " name "}" >> f
+	print "\\description{Control variables in \\code{" name "} for use in \\code{inla}}" >>f
+	print "\\usage{" >> f
+	print "inla(formula, ..., " name "=list( <arg>=<value>[, <arg>=<value>]))" >>f
+	print "}" >> f
+	print "\\arguments{" >> f
+	next;}
+    /:ARGUMENT:/{ arg=$2; $1="";$2=""; desc=$0;
+	print "\\item{" arg "}{" desc "}" >> f
+	next;}
+    /:SEEALSO:/ {
+	print "}" >> f
+	print "\\seealso{" >> f
+	print SEEALSO >> f
+	for(i=2;i<=NF-1;i++){
+	    print "\\code{\\link{" $i "}}," >> f
+	}
+	if (NF>1){
+	    print "\\code{\\link{" $NF "}}" >> f
+	}
+        print "}" >> f
+	next;
+    }' MANDIR=$MANDIR SEEALSO="$SEEALSO"
+}	    
+
+SEEALSO=$(grep :NAME: set.default.arguments.R|awk '{printf "\\\\code{\\\\link{%s}}, ",  $2}')
+for f in set.default.arguments.R; do
+    awk '/:[A-Z]+:/{print}' $f | mmp
+done
+    

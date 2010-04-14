@@ -1,0 +1,40 @@
+`inla.version` = function(details=FALSE, quiet =FALSE) {
+    if (!quiet) {
+        cat("\n\tINLA build date ...: Sat Apr 10 04:04:43 CEST 2010 \n")
+        cat("\tinla-program.......: $Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $ \n")
+        cat("\tMaintainer ........: Havard Rue <hrue@math.ntnu.no>\n\n")
+        if (details) {
+        cat("\t",    "$Id: binary.R,v 1.14 2010/01/25 08:49:08 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: collect.R,v 1.52 2010/03/19 20:45:12 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: create.data.file.R,v 1.41 2010/03/04 15:24:47 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: cygwin.R,v 1.9 2010/03/05 11:50:48 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: expand.dataframe.R,v 1.10 2010/03/23 10:56:35 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: f.R,v 1.71 2010/04/01 15:43:35 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: inla.collect.results.R,v 1.16 2010/03/19 20:45:45 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: inla.cpo.R,v 1.14 2010/01/25 08:56:38 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: inla.hyperpar.R,v 1.40 2010/02/19 19:24:49 hrue Exp hrue $" ,"\n")
+        cat("\t",    "$Id: inla.R,v 1.170 2010/04/01 16:07:44 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: interpret.formula.R,v 1.22 2010/04/09 21:20:36 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: marginal.R,v 1.17 2010/02/25 21:48:11 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: models.R,v 1.36 2010/02/09 10:15:49 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: options.R,v 1.17 2010/01/25 08:41:45 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: os.R,v 1.3 2010/01/27 17:57:26 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: plot.inla.R,v 1.38 2010/01/25 09:00:50 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: print.inla.R,v 1.16 2010/03/16 12:15:56 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: print.summary.inla.R,v 1.8 2010/03/16 12:15:48 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: sandbox.R,v 1.6 2010/01/25 09:02:21 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: sections.R,v 1.131 2010/04/03 12:33:22 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: set.default.arguments.R,v 1.95 2010/04/03 12:31:11 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: si.R,v 1.5 2010/03/10 19:21:17 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: summary.inla.R,v 1.11 2010/03/16 12:15:53 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: surv.R,v 1.8 2010/02/18 13:36:24 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: upgrade.R,v 1.9 2010/04/01 14:43:58 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: utils.R,v 1.154 2010/04/03 16:31:36 hrue Exp $" ,"\n")
+        cat("\t",    "$Id: xinla.R,v 1.17 2009/08/16 15:36:21 hrue Exp $" ,"\n")
+            cat("\n")
+        }
+        return (invisible())
+    } else {
+        return(201004100404)
+    }
+}
