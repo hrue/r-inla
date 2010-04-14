@@ -1,0 +1,60 @@
+VERSION=snapshot
+# $Id: inla-Makefile,v 1.21 2009/09/06 16:40:13 hrue Exp $
+
+# USER OPTIONS
+
+# the full path to where to install the library, headerfiles and docs.
+# if you use a relative path, you have to modify the Makefile in the
+# $(PREFIX)/doc/examples yourself.
+PREFIX = /usr/local
+
+# select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
+CC = gcc
+FC = gfortran
+FCEXTRAFLAGS = -fno-second-underscore
+FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
+LD = $(CC)
+
+# The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)
+LEXTPREFIX = $(PREFIX)
+
+# The external libraries to link with
+EXTLIBS = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lz -lgfortran -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
+
+################################################################################
+#
+# no changes usually needed below this point
+#
+################################################################################
+
+SHELL   = /bin/sh
+INCL    = -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+LDFLAGS = $(FLAGS) 
+FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
+CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include
+
+INLA = inla
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/sphere.o
+all: $(INLA)
+
+$(INLA) : $(OBJ)
+	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+
+install: $(INLA)
+	 @umask 022;\
+	 mode=644;\
+	 for dir in  " " bin doc doc/inla doc/inla/examples; do \
+	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
+	 done; \
+	 install -m755 $(INLA) $(PREFIX)/bin/$(INLA);\
+	 install -m755 $(INLA) $(PREFIX)/bin/$(INLA)-$(VERSION);\
+	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/inla; \
+	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/inla/examples; 
+
+clean:; -$(RM) $(OBJ) $(INLA)
+
+.PHONY: depend clean uninstall install
+
+
+
+

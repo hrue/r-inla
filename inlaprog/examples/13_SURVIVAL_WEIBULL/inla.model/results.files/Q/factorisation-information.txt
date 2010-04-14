@@ -1,0 +1,9 @@
+
+
+GMRFLib report on factorisation
+-------------------------------------------------------------------------
+Size ................................:      102
+Number of non-zeros in Q ............:      504  (In percentage 4.844291 )
+Number of non-zeros in L ............:      303  (In percentage 5.768132 )
+Number of fillins ...................:        0  (In percentage 0.000000 )
+Terms in L / Minimum terms in L .....:    1.000
