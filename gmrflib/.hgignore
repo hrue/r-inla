@@ -1,0 +1,11 @@
+# use glob syntax.
+syntax: glob
+
+*~
+doc/*
+examples/Makefile.in
+tutorial/Makefile.in
+
+# switch to regexp syntax.
+syntax: regexp
+# example from mercurial manual   ^\.pc/
