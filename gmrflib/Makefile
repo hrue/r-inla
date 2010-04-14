@@ -148,12 +148,12 @@ clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
 depend:; ($(CC) -c $(INCL) -MM *.c; $(FC) -c $(INCL) -MM *.F )  > dependencies
 
 RCSId.all: $(wildcard *.h) $(wildcard *.c)
-	-grep '$$Id:' *.h *.c | \
+	-grep '$$Id:.*$$' *.h *.c | \
 	sed 's![^$$]*$$Id:\([^$$]*\)$$.*! "$$Id \1$$",!' | \
 	sed 's!:! !g' | \
 	sort > RCSId.all
 
-.PHONY: depend clean uninstall install RCSId
+.PHONY: depend clean uninstall install
 
 include dependencies
 
