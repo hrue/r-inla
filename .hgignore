@@ -2,9 +2,9 @@
 syntax: glob
 
 *~
-doc/*
-examples/Makefile.in
-tutorial/Makefile.in
+gmrflib/doc/*
+gmrflib/examples/Makefile.in
+gmrflib/tutorial/Makefile.in
 
 # switch to regexp syntax.
 syntax: regexp
