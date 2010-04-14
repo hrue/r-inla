@@ -1,0 +1,15 @@
+\name{inla.changelog}
+\alias{inla.changelog}
+\alias{inla.changes}
+
+\title{inla.changelog}
+
+\description{List the recent changes in the inla-program and its R-interface}
+
+\usage{
+inla.changelog = function()
+}
+
+\author{Havard Rue \email{hrue@math.ntnu.no} }
+
+\seealso{\code{\link{inla}}}

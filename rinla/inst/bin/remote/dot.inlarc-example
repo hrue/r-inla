@@ -1,0 +1,15 @@
+### These are the variables to be set to define the remote host. Make
+### your changes and uncomment the required lines. The default values
+### are shown.
+
+### The name of the remote host.
+#RemoteHost="mc.math.ntnu.no"
+
+### The username on the remote host
+#RemoteUser="hrue"
+
+### Full path to the inla-program on the remote host
+#RemoteINLA="/usr/local/bin/inla"
+
+### Arguments to ssh. Usually no need to change this
+#sshArguments="-x -o BatchMode=yes"
