@@ -1,0 +1,25 @@
+Install the external libraries required:
+
+- GMRFLib (and the external libraries GMRFLib require...)
+
+edit Makefile, then type
+
+	make
+
+and then
+
+	make install
+
+you'll find worked out examples in
+
+       ./examples
+
+and the manual in
+
+    ./doc
+
+
+
+
+January, 2008, Håvard Rue
+

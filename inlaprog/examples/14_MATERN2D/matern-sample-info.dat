@@ -1,0 +1,8 @@
+nrow = 100;
+ncol = 100;
+nu = 1;
+cyclic = 0;
+prec = 1;
+range = 20;
+
+
