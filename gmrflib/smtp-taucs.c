@@ -47,7 +47,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */ 
 
 /* 
    if TRUE, then we use my modified routine to convert from supernodal_factor to ccs, which preserves zeros in L. this gives

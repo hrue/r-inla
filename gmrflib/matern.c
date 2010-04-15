@@ -33,7 +33,11 @@
   \brief Functions to define Matern models
 */
 
-static const char RCSId[] = "$Id: matern.c,v 1.10 2008/11/11 18:46:46 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: matern.c,v 1.10 2008/11/11 18:46:46 hrue Exp $ */ 
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"

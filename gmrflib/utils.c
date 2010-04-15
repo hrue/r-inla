@@ -33,7 +33,11 @@
   \brief Various simple utilities.
 */
 
-static const char RCSId[] = "$Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $ */ 
 
 #if !defined(__FreeBSD__)
 #include <stddef.h>

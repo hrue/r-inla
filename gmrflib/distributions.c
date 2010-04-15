@@ -45,7 +45,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: distributions.c,v 1.33 2009/08/26 06:12:46 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: distributions.c,v 1.33 2009/08/26 06:12:46 hrue Exp $ */ 
 
 double GMRFLib_stdnormal(void)
 {

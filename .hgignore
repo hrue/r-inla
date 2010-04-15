@@ -11,6 +11,7 @@ syntax: regexp
 # example from mercurial manual   ^\.pc/
 # Ignore these files:
 ^gmrflib/RCSId\.all$
+^gmrflib/hgstamp$
 ^gmrflib/examples/Makefile\.in$
 ^gmrflib/tutorial/Makefile\.in$
 ^gmrflib/doc/

@@ -36,7 +36,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: smtp-profile.c,v 1.10 2010/02/26 17:54:28 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: smtp-profile.c,v 1.10 2010/02/26 17:54:28 hrue Exp $ */ 
 
 int GMRFLib_compute_reordering_PROFILE(void)
 {
