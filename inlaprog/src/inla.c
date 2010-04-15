@@ -27,7 +27,11 @@
  *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
  *
  */
-static const char RCSId[] = "$Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $ */ 
 
 #if defined(__sun__)
 #include <stdlib.h>
