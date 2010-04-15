@@ -38,3 +38,4 @@ timer.o: timer.c
 utils.o: utils.c
 version.o: version.c RCSId.all
 wa.o: wa.c
+wa.o: hgstamp
