@@ -28,7 +28,8 @@
  *
  */
 
-static const char RCSId[] = "$Id: random.c,v 1.28 2008/09/18 07:31:07 hrue Exp $";
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: random.c,v 1.28 2008/09/18 07:31:07 hrue Exp $ */ 
 
 /*!
   \file random.c
