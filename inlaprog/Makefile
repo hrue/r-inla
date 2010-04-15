@@ -28,10 +28,18 @@ EXTLIBS = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib -lgsl -ltaucs -lmetis -l
 ################################################################################
 
 SHELL   = /bin/sh
+
+# Only try to update the hgstamp if hg is available.
+# Should also check if we are in a repository.
+# To use existing HG file, use "make HG= target"
+# Would be prettier and more robust with a mercurial update hook.
+HG:= $(shell which hg)
+HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+
 INCL    = -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
-CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include
+CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/sphere.o
