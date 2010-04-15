@@ -1,0 +1,290 @@
+diff -rc taucs/config/linux.mk taucs-bugfix//config/linux.mk
+*** taucs/config/linux.mk	2003-09-01 14:14:59.000000000 +0200
+--- taucs-bugfix//config/linux.mk	2010-04-12 13:36:37.000000000 +0200
+***************
+*** 8,14 ****
+  PATHSEP=/
+  DEFFLG=-D
+  
+! FC        = g77
+  FFLAGS    = -O3 -g -fno-second-underscore -Wall 
+  FOUTFLG   =-o 
+  
+--- 8,15 ----
+  PATHSEP=/
+  DEFFLG=-D
+  
+! #FC        = g77
+! FC        = gfortran
+  FFLAGS    = -O3 -g -fno-second-underscore -Wall 
+  FOUTFLG   =-o 
+  
+***************
+*** 41,47 ****
+  
+  LIBMETIS  = -L external/lib/linux -lmetis 
+  
+! LIBF77 = -lg2c  
+  LIBC   = -lm 
+  
+  #########################################################
+--- 42,49 ----
+  
+  LIBMETIS  = -L external/lib/linux -lmetis 
+  
+! #LIBF77 = -lg2c  
+! LIBF77 =   
+  LIBC   = -lm 
+  
+  #########################################################
+diff -rc taucs/src/taucs_ccs_generators.c taucs-bugfix//src/taucs_ccs_generators.c
+*** taucs/src/taucs_ccs_generators.c	2003-08-28 17:12:46.000000000 +0200
+--- taucs-bugfix//src/taucs_ccs_generators.c	2010-04-12 14:52:34.000000000 +0200
+***************
+*** 443,449 ****
+  	(m->values.d/*taucs_values*/)[ip]= D[j]; 
+  	ip++;
+  
+! 	if (jw != j != -1) {
+  	  if (jw > j) {
+  	    v = -1.0;
+  	    v = ((double)rand()/(double)RAND_MAX) > 0.99 ? -1.0 : -rmin;
+--- 443,449 ----
+  	(m->values.d/*taucs_values*/)[ip]= D[j]; 
+  	ip++;
+  
+! 	if ((jw != j) && (jw != -1)) {
+  	  if (jw > j) {
+  	    v = -1.0;
+  	    v = ((double)rand()/(double)RAND_MAX) > 0.99 ? -1.0 : -rmin;
+diff -rc taucs/src/taucs_ccs_ooc_llt.c taucs-bugfix//src/taucs_ccs_ooc_llt.c
+*** taucs/src/taucs_ccs_ooc_llt.c	2003-08-28 16:43:17.000000000 +0200
+--- taucs-bugfix//src/taucs_ccs_ooc_llt.c	2010-04-12 14:21:30.000000000 +0200
+***************
+*** 916,921 ****
+--- 916,922 ----
+    *sn_struct_ptr = NULL;
+  }
+  
++ #ifdef _UNUSED_FUNCTION
+  static void
+  recursive_leftlooking_supernodal_update_ooc(int J,int K,
+  					    int bitmap[],
+***************
+*** 1054,1059 ****
+--- 1055,1061 ----
+      L->sn_struct[K] = NULL;
+    }
+  }
++ #endif
+  
+  static int
+  recursive_append_L(int sn,   /* this supernode */
+***************
+*** 1092,1097 ****
+--- 1094,1100 ----
+    return 0;
+  }
+  
++ #ifdef _UNUSED_FUNCTION
+  static int
+  recursive_read_L(int sn,   /* this supernode */
+  		 int is_root,/* is v the root?*/
+***************
+*** 1129,1134 ****
+--- 1132,1138 ----
+  
+    return 0;
+  }
++ #endif
+  
+  static int
+  recursive_read_L_cols(int sn,   /* this supernode */
+***************
+*** 1157,1162 ****
+--- 1161,1167 ----
+    return 0;
+  }
+  
++ #ifdef _UNUSED_FUNCTION
+  static int
+  recursive_leftlooking_supernodal_factor_llt_ooc(int sn,    /* this supernode */
+  						int is_root,/* is v the root?*/
+***************
+*** 1254,1259 ****
+--- 1259,1265 ----
+  
+    return 0;
+  }
++ #endif
+  
+  static double
+  recursive_compute_supernodes_ll_in_core(int sn,       /* this supernode */
+***************
+*** 1304,1309 ****
+--- 1310,1316 ----
+    
+  }
+  
++ #ifdef _UNUSED_FUNCTION
+  static int
+  recursive_compute_supernodes_in_core_old(int sn,       /* this supernode */
+  				     int is_root,  /* is v the root? */
+***************
+*** 1333,1339 ****
+--- 1340,1348 ----
+    if (!is_root) catch_mem += (L->sn_size)[sn]*(L->sn_up_size)[sn]*sizeof(taucs_datatype);
+      return catch_mem;
+  }
++ #endif
+  
++ #ifdef _UNUSED_FUNCTION
+  static void
+  recursive_compute_supernodes_ipostorder(int sn,       /* this supernode */
+  					int is_root,  /* is v the root? */
+***************
+*** 1353,1359 ****
+    }
+    L->ipostorder[sn] = *current_index_ptr;
+    (*current_index_ptr)++;
+!  }
+  
+  /* no panelization */
+  #if 0
+--- 1362,1369 ----
+    }
+    L->ipostorder[sn] = *current_index_ptr;
+    (*current_index_ptr)++;
+! }
+! #endif
+  
+  /* no panelization */
+  #if 0
+diff -rc taucs/src/taucs_recvaidya.c taucs-bugfix//src/taucs_recvaidya.c
+*** taucs/src/taucs_recvaidya.c	2003-08-28 17:12:46.000000000 +0200
+--- taucs-bugfix//src/taucs_recvaidya.c	2010-04-12 14:50:36.000000000 +0200
+***************
+*** 251,257 ****
+      taucs_ccs_matrix* V;    /* a Vaidya preconditioner */
+      taucs_ccs_matrix* PVPT;
+      taucs_ccs_matrix* Ll;
+!     int     p;
+      int     n;
+      int rnd;
+      int seed = 123;
+--- 251,257 ----
+      taucs_ccs_matrix* V;    /* a Vaidya preconditioner */
+      taucs_ccs_matrix* PVPT;
+      taucs_ccs_matrix* Ll;
+!     int     p = nsmall;
+      int     n;
+      int rnd;
+      int seed = 123;
+diff -rc taucs/src/taucs_sn_llt.c taucs-bugfix//src/taucs_sn_llt.c
+*** taucs/src/taucs_sn_llt.c	2003-09-04 08:24:54.000000000 +0200
+--- taucs-bugfix//src/taucs_sn_llt.c	2010-04-12 14:15:10.000000000 +0200
+***************
+*** 1335,1340 ****
+--- 1335,1341 ----
+    }
+  }
+  
++ #ifdef GILBERT_NG_PEYTON_ANALYSIS_SUP
+  static void
+  tree_first_descendant(int j,
+  		      int isroot, 
+***************
+*** 1356,1361 ****
+--- 1357,1363 ----
+    }
+    if (!isroot) first_descendant[j] = fd;
+  }
++ #endif
+  
+  
+  int
+diff -rc taucs/src/taucs_vaidya.c taucs-bugfix//src/taucs_vaidya.c
+*** taucs/src/taucs_vaidya.c	2003-08-28 17:12:46.000000000 +0200
+--- taucs-bugfix//src/taucs_vaidya.c	2010-04-12 14:38:40.000000000 +0200
+***************
+*** 216,221 ****
+--- 216,222 ----
+  }
+  
+  
++ #ifdef _UNUSED_FUNCTION
+  static int partition(heap h, int p, int r)
+  {
+    int pivot;
+***************
+*** 272,277 ****
+--- 273,279 ----
+        return j;
+    }
+  }
++ #endif
+  
+  #if 0
+  static void insertion_sort(heap h, int p, int r)
+***************
+*** 293,298 ****
+--- 295,301 ----
+  }
+  #endif /* 0, we don't need insertion sort, heap sort */
+  
++ #ifdef _UNUSED_FUNCTION
+  static
+  void heapify_offset(heap A,int p,int r,int i)
+  {
+***************
+*** 316,323 ****
+--- 319,328 ----
+        heapify_offset(A,p,r,smallest);
+      }
+  }
++ #endif
+  
+  
++ #ifdef _UNUSED_FUNCTION
+  static void heapsort_sort(heap h, int p, int r)
+  {
+    int size = r-p+1;
+***************
+*** 332,338 ****
+--- 337,345 ----
+        heapify_offset(h,0,i,i);
+      }
+  }
++ #endif
+  
++ #ifdef _UNUSED_FUNCTION
+  static void quick_sort(heap h, int p, int r)
+  {
+    int q;
+***************
+*** 346,351 ****
+--- 353,359 ----
+    quick_sort(h,p,q);
+    quick_sort(h,q+1,r);
+  }
++ #endif
+  
+  #if 0
+  static
+***************
+*** 3664,3670 ****
+    int i,E=0;
+    double stretch=0,dummy;
+    linked *l;
+!   double dilation;
+    double *congestion,cong=0;
+    
+    congestion = (double *)taucs_calloc(mtxA->n,sizeof(double));
+--- 3672,3678 ----
+    int i,E=0;
+    double stretch=0,dummy;
+    linked *l;
+!   double dilation=0.0;
+    double *congestion,cong=0;
+    
+    congestion = (double *)taucs_calloc(mtxA->n,sizeof(double));
