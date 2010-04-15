@@ -13,5 +13,6 @@ syntax: regexp
 ^gmrflib/RCSId\.all$
 ^gmrflib/examples/Makefile\.in$
 ^gmrflib/tutorial/Makefile\.in$
-^gmrflib/doc$
+^gmrflib/doc/
 ^rinla/man/control\..*$
+^extlibs/
