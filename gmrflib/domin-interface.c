@@ -28,6 +28,9 @@
  *
  */
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: domin-interface.c,v 1.93 2010/04/08 05:09:40 hrue Exp $ */ 
 

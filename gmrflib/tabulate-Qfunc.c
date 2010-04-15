@@ -71,6 +71,9 @@
 #endif
 #include <stdlib.h>
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: tabulate-Qfunc.c,v 1.59 2009/12/15 12:26:03 hrue Exp $ */ 
 

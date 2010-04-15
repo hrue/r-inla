@@ -123,6 +123,9 @@
 
 */
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: graph-edit.c,v 1.41 2009/11/04 18:24:31 hrue Exp $ */ 
 

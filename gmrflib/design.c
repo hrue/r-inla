@@ -34,6 +34,9 @@
 
 */
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: design.c,v 1.18 2008/04/17 08:24:33 hrue Exp $ */ 
 

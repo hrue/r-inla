@@ -55,6 +55,9 @@
 
 #define TWODIVSQRTPI    1.1283791670955125738961589031215452   /* 2/sqrt(pi) */
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: gdens.c,v 1.30 2009/08/26 06:19:51 hrue Exp $ */ 
 
