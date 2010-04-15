@@ -33,7 +33,11 @@
   \brief Handy functions when using RW1, RW2, CRW1, CRW2 and approximate CRW2 models.
 */
 
-static const char RCSId[] = "$Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $ */ 
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"

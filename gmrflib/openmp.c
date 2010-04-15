@@ -28,7 +28,11 @@
  *
  */
 
-static const char RCSId[] = "$Id: openmp.c,v 1.7 2007/07/17 05:55:02 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: openmp.c,v 1.7 2007/07/17 05:55:02 hrue Exp $ */ 
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>

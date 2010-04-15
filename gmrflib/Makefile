@@ -28,10 +28,18 @@ IEXTLIBS = -I$(LEXTPREFIX)/include
 ################################################################################
 
 SHELL   = /bin/sh
+
+# Only try to update the hgstamp if hg is available.
+# Should also check if we are in a repository.
+# To use existing HG file, use "make HG= target"
+# Would be prettier and more robust with a mercurial update hook.
+HG:= $(shell which hg)
+HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+
 INCL    = -I.. -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
-CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS)
+CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DHGVERSION="\"${HGVERSION}\""
 LD      = $(FC)
 INSTALL = install
 LIBNAME = lib$(GMRFLibNAME).a
@@ -145,13 +153,28 @@ uninstall:
 
 clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
 
-depend:; ($(CC) -c $(INCL) -MM *.c; $(FC) -c $(INCL) -MM *.F )  > dependencies
+depend:
+	($(CC) -c $(INCL) -MM *.c; $(FC) -c $(INCL) -MM *.F )  > dependencies
+	for file in *.c ; do \
+          if [ -n "`grep HGVERSION $$file`" ]; then \
+	    echo $$file | \
+	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
+	      >> dependencies ; \
+	  fi \
+        done
 
-RCSId.all: $(wildcard *.h) $(wildcard *.c)
-	-grep '$$Id:.*$$' *.h *.c | \
-	sed 's![^$$]*$$Id:\([^$$]*\)$$.*! "$$Id \1$$",!' | \
-	sed 's!:! !g' | \
-	sort > RCSId.all
+#RCSId.all: $(wildcard *.h) $(wildcard *.c)
+#	-grep '$$Id:.*$$' *.h *.c | \
+#	sed 's![^$$]*$$Id:\([^$$]*\)$$.*! "$$Id \1$$",!' | \
+#	sed 's!:! !g' | \
+#	sort > RCSId.all
+RCSId.all: hgstamp
+	sed 's/\(.*\)/"\1",/' < hgstamp > RCSId.all
+
+hgstamp: versiondummy
+	[ -f $@ ] || touch $@
+	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
+versiondummy: ;
 
 .PHONY: depend clean uninstall install
 

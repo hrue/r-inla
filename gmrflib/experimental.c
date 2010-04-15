@@ -34,7 +34,11 @@
 
 */
 
-static const char RCSId[] = "$Id: experimental.c,v 1.16 2009/01/01 10:40:00 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: experimental.c,v 1.16 2009/01/01 10:40:00 hrue Exp $ */ 
 
 #include <float.h>
 #include <math.h>

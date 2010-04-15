@@ -59,7 +59,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: error-handler.c,v 1.49 2008/08/26 07:07:11 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: error-handler.c,v 1.49 2008/08/26 07:07:11 hrue Exp $ */ 
 static GMRFLib_error_handler_tp *handler = NULL;
 
 #pragma omp threadprivate(handler)

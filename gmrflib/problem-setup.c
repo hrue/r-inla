@@ -40,7 +40,11 @@
   structure is initialised by \ref GMRFLib_init_problem().
 
 */
-static const char RCSId[] = "$Id: problem-setup.c,v 1.166 2010/02/18 13:45:00 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: problem-setup.c,v 1.166 2010/02/18 13:45:00 hrue Exp $ */ 
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
