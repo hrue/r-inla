@@ -1,15 +1,17 @@
 # use glob syntax.
 syntax: glob
 
+# Ignore all files of these types:
 *~
 *.o
 *.a
-gmrflib/RCSId.all
-gmrflib/examples/Makefile.in
-gmrflib/tutorial/Makefile.in
-gmrflib/doc
-rinla/man/control.*
 
 # switch to regexp syntax.
 syntax: regexp
 # example from mercurial manual   ^\.pc/
+# Ignore these files:
+^gmrflib/RCSId\.all$
+^gmrflib/examples/Makefile\.in$
+^gmrflib/tutorial/Makefile\.in$
+^gmrflib/doc$
+^rinla/man/control\..*$
