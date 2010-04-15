@@ -87,7 +87,11 @@
 #include "GMRFLib/geo-coefs2.h"				       /* these contains the BIG tables */
 #include "GMRFLib/geo-coefs3.h"
 
-static const char RCSId[] = "$Id: geo.c,v 1.42 2008/08/26 07:07:12 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: geo.c,v 1.42 2008/08/26 07:07:12 hrue Exp $ */ 
 
 static GMRFLib_Global_geo_tp Geo_coef;			       /* hash-table for the coefficient lookup */
 

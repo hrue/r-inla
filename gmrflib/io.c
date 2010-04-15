@@ -43,7 +43,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: io.c,v 1.53 2009/05/23 06:16:16 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: io.c,v 1.53 2009/05/23 06:16:16 hrue Exp $ */ 
 
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 {

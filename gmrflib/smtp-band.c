@@ -36,7 +36,11 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char RCSId[] = "$Id: smtp-band.c,v 1.47 2010/02/26 17:55:22 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: smtp-band.c,v 1.47 2010/02/26 17:55:22 hrue Exp $ */ 
 
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 {

@@ -33,7 +33,11 @@
   \brief The hash-library used in GMRFLib, see \ref hashP.h if you want to use it.
 */
 
-static const char RCSId[] = "$Id: hash.c,v 1.13 2009/06/03 09:04:54 hrue Exp $";
+#ifndef HGVERSION
+#define HGVERSION
+#endif
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: hash.c,v 1.13 2009/06/03 09:04:54 hrue Exp $ */ 
 
 #include <string.h>
 #if !defined(__FreeBSD__)
