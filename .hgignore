@@ -16,4 +16,5 @@ syntax: regexp
 ^gmrflib/tutorial/Makefile\.in$
 ^gmrflib/doc/
 ^rinla/man/control\..*$
-^extlibs/
+^extlibs/metis-4.0.tgz$
+^extlibs/taucs-2.2.tgz$
