@@ -71,7 +71,8 @@
 #endif
 #include <stdlib.h>
 
-static const char RCSId[] = "$Id: tabulate-Qfunc.c,v 1.59 2009/12/15 12:26:03 hrue Exp $";
+static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
+/* Pre-hg-Id: $Id: tabulate-Qfunc.c,v 1.59 2009/12/15 12:26:03 hrue Exp $ */ 
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
