@@ -72,6 +72,9 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: bitmap.c,v 1.23 2008/12/28 19:43:43 hrue Exp $ */ 
 

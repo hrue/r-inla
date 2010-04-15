@@ -33,6 +33,9 @@
   \brief Various simple utilities.
 */
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $ */ 
 

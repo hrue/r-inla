@@ -47,6 +47,9 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */ 
 

@@ -32,6 +32,9 @@
   \file lapack-interface.c
   \brief The interface towards the LAPACK routines written in fortran.
 */
+#ifndef HGVERSION
+#define HGVERSION
+#endif
 static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
 /* Pre-hg-Id: $Id: lapack-interface.c,v 1.23 2009/05/02 16:54:04 hrue Exp $ */ 
 
