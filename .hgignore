@@ -12,6 +12,10 @@ syntax: regexp
 # Ignore these files:
 ^extlibs/metis-4.0.tgz$
 ^extlibs/taucs-2.2.tgz$
+^extlibs/metis-build/
+^extlibs/taucs-build/
+^extlibs/.patch-metis$
+^extlibs/.patch-taucs$
 ^gmrflib/RCSId\.all$
 ^gmrflib/hgstamp$
 ^gmrflib/examples/Makefile\.in$
