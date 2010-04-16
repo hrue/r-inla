@@ -10,11 +10,12 @@ syntax: glob
 syntax: regexp
 # example from mercurial manual   ^\.pc/
 # Ignore these files:
+^extlibs/metis-4.0.tgz$
+^extlibs/taucs-2.2.tgz$
 ^gmrflib/RCSId\.all$
 ^gmrflib/hgstamp$
 ^gmrflib/examples/Makefile\.in$
 ^gmrflib/tutorial/Makefile\.in$
 ^gmrflib/doc/
+^inlaprog/inla$
 ^rinla/man/control\..*$
-^extlibs/metis-4.0.tgz$
-^extlibs/taucs-2.2.tgz$
