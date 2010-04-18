@@ -1,0 +1,47 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{Tokyo rainfall data}
+ The number of occurrences of rainfall over 1 mm in the Tokyo area
+    for each calendar year during two years (1983-84) are
+    registered. It is of interest to estimate the underlying
+    probability $p_t$ of rainfall for calendar day $t$ which is,
+    apriori, assumed to change gradually over time. The likelihood
+    model is binomial
+    \[y_t|\eta_t\sim\text{Bin}(n_t,p_t)\] with logit link function
+    \[p_t=\frac{\exp(\eta_t)}{1+\exp(\eta_t)}.\] The model for the
+    latent variables can be written as
+    \[\eta_t=f(t)\]
+    where $t$ is the observed time whose effect is modelled as a
+    smooth function $f(\cdot)$. Following \cite{book80}, the random
+    vector $\mm{f}=\{f_0,\dots,f_{365}\}$ is assumed to have a {\it
+        circular} random walk of order 2 (RW2) prior with unknown
+    precision $\lambda_f$.
+
+    There is only one hyperparameter $\mm{\theta}=(\log\lambda_f)$
+    which we assign a $\text{LogGamma}(a,b)$ prior distribution with
+    $a=1$ and $b=0.0001$. The LogGamma distribution is defined such
+    that if $X\sim\text{LogGamma}(a,b)$, the
+    $Y=\exp(X)\sim\text{Gamma}(a,b)$ with $\text{E}(Y)=a/b$ and
+    $\text{Var}(Y)=a/b^2$.
+
+\small\bibliography{../mybib} \newpage
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

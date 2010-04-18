@@ -1,0 +1,79 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+\bibliographystyle{apalike}
+
+
+\section*{The Mat\'ern-model}
+\subsection*{Parametrisation}
+
+This model is the Gaussian field with Mat\'ern correlation function on
+a regular \verb|nrow x ncol| -lattice
+\begin{displaymath}
+    \text{Corr}(d)
+    \propto
+    \left(\kappa\, {d}\right)^{\nu}
+    \;
+    K_{\nu}( \kappa d), \qquad \alpha = \nu + \text{d}/2,
+\end{displaymath}
+where $K_{\nu}$ is the modified Bessel function. The range is
+\emph{defined} as
+\begin{displaymath}
+    r = {\sqrt{8}}/{\kappa}
+\end{displaymath}
+which about the distance where the covariance function becomes
+``small''.
+
+The boundary conditions are so that the values are taken to be $0$
+outside the lattice. No further boundary options are available at this
+time.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are the precision parameter $\tau$ and the range
+$r$,
+\begin{displaymath}
+    \theta = (\tau, r)
+\end{displaymath}
+The latent field has marginal variance $1/\tau$ and range (as defined
+above) $r$. Note that $\nu$ is fixed parameter and the model is
+available only for $\nu=1,2,3$ ($\nu=0$ is not yet ready).  The
+hyperparameters are represented internally as
+\begin{displaymath}
+    (\log\tau, \log r)
+\end{displaymath}
+the prior are assigned to these quantities.
+
+\subsection*{Specification}
+
+The {\tt matern2d} model is specified inside the {\tt f()} function as:
+\begin{verbatim}
+f(<whatever>, model="matern2d",nrow=<n.of rows>,ncol=<n.of columns>,
+              nu = <value for nu, one of 1,2 or 3>,          
+              prior=c(<prior.model.log.tau>, <prior.model.log.range>),
+              param=c(<prior.param.log.tau.1>, <prior.param.log.tau.2>, 
+                      <prior.param.log.range.1>, <prior.param.log.range.2>)
+\end{verbatim}
+
+\subsection*{Example}
+
+\verbatiminput{matern2d-example.R}
+
+\subsection*{Notes}
+All indexes in the R-INLA library are one-dimensional so an
+appropriate mapping is required to get it into the ordering defined
+internally in \verb|inla|; see \verb|?inla.matrix2vector|,
+\verb|?inla.vector2matrix|, \verb|?inla.node2lattice| and
+\verb|?inla.lattice2node|.
+
+This model has much similarity with \verb|rw2d|; please read the
+documentation for \verb|rw2d|.
+
+{\small\bibliography{../mybib}}
+
+
+\end{document}

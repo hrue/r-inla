@@ -1,0 +1,87 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{inla.surv}
+The routines in R-INLA work with objects of class "inla.surv", which is a data structure that combines times, censoring, truncation and subject number information. Such objects are constructed using the 'inla.surv' function. 'inla.surv' works for both 
+\begin{itemize}
+\item event time data(an event per subject)
+\item longitudinal data(multiple events per subject)
+\end{itemize}
+
+
+\textbf{For event time data}, it takes four arguments: \\
+an observation time, an event indicator(censoring indicator), an ending time for interval censored data and left  truncation time. This can be done using the following command:
+\small
+\begin{verbatim}
+inla.surv(time, event, time2, truncation)
+\end{verbatim}
+\small
+The observation time is the follow up time for right censored data and starting time for interval censored data. The event indicator can be coded as following: 
+\begin{description}
+\item$1$ for uncensored observation, 
+\item$0$ for right censored observation, 
+\item$2$ for left censored data and 
+\item$3$ for interval censored data. 
+\end{description}
+The left truncation time if missing is considered $0$.\\
+
+
+\textbf{For longitudinal data}, it takes three arguments: \\
+an observation time, an event indicator(censoring indicator) and subject indicator. This can be done using the following command:
+\small
+\begin{verbatim}
+inla.surv(time, event, subject=subject)
+\end{verbatim}
+\small
+The observation time is the time of detecting an event, event is a censoring indicator and subject is subject indicator. The event indicator can be coded as following: 
+\begin{description}
+\item$1$ if an event is detected, 
+\item$0$ if an event not detected 
+\end{description}
+
+
+
+The out put of 'inla.surv' is different for event time data(when there is one event per subject) and longitudinal data( multiple events per subject).
+\begin{itemize}
+\item event time data:\\
+For,  such data, the out put of 'inla.surv' is a data frame consisting of 5 columns, the names of which can be seen using the command,
+\small
+\begin{verbatim}
+names(inla.surv(time, event, time2, truncation))
+\end{verbatim}
+\small
+resulting in:
+\small
+\begin{verbatim}
+[1] "time"       "lower"      "upper"      "event"      "truncation"
+\end{verbatim}
+\small
+\item longitudinal data: \\
+For such data the out put of 'inla.surv' is a data frame consisting of 3 columns, the names of which can be seen using the command,
+\small
+\begin{verbatim}
+names(inla.surv(time, event, time2, truncation, subject=subject))
+\end{verbatim}
+\small
+resulting in:
+\small
+\begin{verbatim}
+[1] "time"         "event"      "subject"
+\end{verbatim}
+\small
+\end{itemize}
+A print method is associated with the 'inla.surv'object that displays the objects in special format, with a '$+$' marking censoring observations. 
+
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{Stochastic volatility models}
+
+ The data consist in 945 observed logarithms of the daily
+    difference of the dollar-pound exchange rate from October 1st, to
+    June 28th, 1985. 
+    We analyse this data set using a univariate stochastic volatility
+    model (\cite{book1000}).  The likelihood of the data, conditional
+    on the latent variables is:
+    \begin{equation}\label{vol_gaus}
+        y_t|\eta_t\sim\mathcal{N}(0,\exp(\eta_t)), \quad t=0,\dots,n_d-1
+    \end{equation}
+    and the model for the latent variables:
+    \begin{equation}\label{vol_latent}
+        \eta_t=\mu+f_t \quad t=0,\quad,n_{\eta}-1
+    \end{equation}
+    where $\mu$ is an unknown common mean with vague Gaussian prior
+    and $\mm{f}=(f_0,\dots,f_{n_{\eta}-1})$ is modelled as an auto
+    regressive process of order $1$ (AR1) with persistence parameter
+    $\phi\in(-1,1)$ to ensure stationarity, and precision parameter
+    $\lambda_f$.
+  The model has two hyperparameters, $(\log\lambda_f,\phi)$. We
+    re-parametrise the persistence parameter $\phi$ as
+    \[
+    \kappa=\text{logit}\left(\frac{\phi+1}{2}\right)
+    \]
+    and assign the following prior distributions
+    \[
+    \begin{array}{l}
+        \log\lambda_f\sim\text{LogGamma}(1,0.0005)\\
+        \kappa\sim\mathcal{N}(0,1/0.0001)\\
+    \end{array}
+    \]
+\subsection*{Student-$t$  distribution}
+An alternative model for the response variable $y_t$ is a
+Student-$t$. This allows heavier tail, a feature which is often
+observed in financial time series. The observation model in equation
+(\ref{vol_gaus}) then becomes
+\begin{equation}\label{vol_stud}
+    y_t = \exp(\eta_t/2)\ \mathcal{T}_t(\nu)\quad t=1,\dots,T
+\end{equation}
+where $\mathcal{T}_t(\nu)$ is a random variable having a Student-$t$
+distribution having $\nu$ degree of freedom and standardised so that
+its variance is $1$ for any value of $\nu>2$.
+\subsection*{Student-$t$  NIG distribution}
+
+Yet another model is the \emph{normal inverse Gaussian} (NIG)
+distribution, for which
+\begin{equation}\label{eq4}%
+    y_{t} = \exp(\eta_{t}/2)\; NIG, \quad t=1,\ldots, T
+\end{equation}
+where $NIG$ is a standardised NIG distribution with two parameters,
+which (essentially) are skewness and shape-parameters.
+
+\small\bibliography{../mybib} \newpage
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

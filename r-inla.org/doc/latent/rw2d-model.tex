@@ -1,0 +1,96 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+\bibliographystyle{apalike}
+
+
+\section*{The RW2d-model}
+\subsection*{Parametrization}
+
+The 2-dimensional random walk model is defined on a regular grid.  The
+full conditional distributions for the nodes in the interior of the
+grid are given by:
+\begin{eqnarray}\label{eq48}
+    \text{E}(x_{i} \mid \mathbf{x}_{-i}, \tau)
+    &=& \frac{1}{20}\Biggl( 8 \;
+    \begin{smallmatrix}
+        \circ & \circ & \circ & \circ & \circ
+        \\
+        \circ & \circ & \bullet & \circ & \circ
+        \\
+        \circ & \bullet & \circ & \bullet & \circ
+        \\
+        \circ & \circ & \bullet & \circ & \circ
+        \\
+        \circ & \circ & \circ & \circ & \circ
+        \\
+    \end{smallmatrix}
+    \; -2 \;
+    \begin{smallmatrix}
+        \circ & \circ & \circ & \circ & \circ
+        \\
+        \circ & \bullet & \circ & \bullet & \circ
+        \\
+        \circ & \circ & \circ & \circ & \circ
+        \\
+        \circ & \bullet & \circ & \bullet & \circ
+        \\
+        \circ & \circ & \circ & \circ & \circ
+        \\
+    \end{smallmatrix}
+    \; -1 \;
+    \begin{smallmatrix}
+        \circ & \circ & \bullet & \circ & \circ
+        \\
+        \circ & \circ & \circ & \circ & \circ
+        \\
+        \bullet & \circ & \circ & \circ & \bullet
+        \\
+        \circ & \circ & \circ & \circ & \circ
+        \\
+        \circ & \circ & \bullet & \circ & \circ
+        \\
+    \end{smallmatrix}
+    \Biggr), \\ \label{eq49}
+    \text{Prec}(x_{i}\mid \mathbf{x}_{-i},
+    \tau)
+    &=& 20\tau.
+\end{eqnarray}
+Necessary corrections to to equations (\ref{eq48}) and (\ref{eq49})
+near the boundary can be found using the stencils in~\cite{art398}.
+For a detailed description of this model
+see~\cite[Sec.~3.4.2]{book80}.
+
+\subsection*{Hyperparameters}
+
+The precision parameter $\tau$ is the only hyperparameter, $\theta =
+\tau$. It is represented internally as $\log\tau$ and the prior is
+assigned to $\log\tau$.
+
+\subsection*{Specification}
+
+The {\tt rw2d} model is specified insiede the {\tt f()} function as:
+\begin{verbatim}
+f(<whatever>,model="rw2d",nrow=<n.of rows>,ncol=<n.of columns>,
+             prior=<prior.model.theta>,
+             param=c(<param.prior.theta>))
+\end{verbatim}
+\subsection*{Example}
+
+\verbatiminput{rw2d-example.R}
+
+\subsection*{Notes}
+All indexes in the R-INLA library are one-dimensional so an
+appropriate mapping is required to get it into the ordering defined
+internally in \verb|inla|; see \verb|?inla.matrix2vector|,
+\verb|?inla.vector2matrix|, \verb|?inla.node2lattice| and
+\verb|?inla.lattice2node|.
+
+{\small\bibliography{../mybib}}
+
+
+\end{document}
