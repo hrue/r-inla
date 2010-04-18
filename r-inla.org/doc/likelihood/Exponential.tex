@@ -1,0 +1,60 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{ifpdf}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\begin{document}
+\section*{Exponential}
+
+\subsection*{Parametrisation}
+
+The Exponential distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \lambda \exp(-\lambda y)\qquad \lambda > 0
+\end{displaymath}
+for responses $y>0$.\\
+In survival analysis, models are generally specified through the hazard function. For exponential  model, the baseline hazard is constant over time and the hazard function is:
+\begin{displaymath}
+h(y)  = \lambda
+\end{displaymath}
+
+\subsection*{Link-function}
+The parameter $\lambda$ is linked to the linear predictor as:
+\[
+\lambda = \exp(\eta)
+\]
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{Exponential}$
+\item Required arguments: $y$ (to be given in a format by using $\texttt{inla.surv()}$ function )
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+case
+\verbatiminput{example-exponential.R}
+
+\subsection*{Notes}
+\begin{itemize}
+\item Exponential model can be used for right censored, left censored and interval censored data.\\
+\item A general frame work to represent time is given by $\texttt{inla.surv()}$  
+\end{itemize}
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

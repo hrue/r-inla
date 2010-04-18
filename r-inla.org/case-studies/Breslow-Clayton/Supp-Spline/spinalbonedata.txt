@@ -1,0 +1,1004 @@
+idnum ethnic age sex spnbmd
+  1      White    11.2     mal      0.719   
+  1      White    12.2     mal      0.732   
+  1      White    13.2     mal      0.776   
+  1      White    14.3     mal      0.781   
+  2      White    12.7     mal      0.620   
+  2      White    13.8     mal      0.627   
+  2      White    14.8     mal      0.759   
+  2      White    15.8     mal      0.790   
+  3      White    10.9     mal      0.641   
+  3      White    11.9     mal      0.622   
+  3      White    12.9     mal      0.618   
+  3      White    13.9     mal      0.653   
+  4      White    10.1     fem      0.833   
+  4      White    11.0     fem      0.914   
+  4      White    12.0     fem      1.115   
+  4      White    13.1     fem      1.209   
+  5      White    12.3     fem      0.945   
+  5      White    13.2     fem      1.027   
+  5      White    14.2     fem      1.072   
+  5      White    15.3     fem      1.128   
+  6      White    16.5     fem      1.028   
+  6      White    19.5     fem      1.046   
+  7      White    12.7     fem      0.729   
+  7      White    13.7     fem      0.807   
+  7      White    14.8     fem      0.891   
+  7      White    15.8     fem      0.904   
+  8      White    12.4     mal      0.762   
+  8      White    13.5     mal      0.925   
+  9      White     9.2     fem      0.797   
+  9      White    10.2     fem      0.822   
+ 10      White    15.7     fem      1.066   
+ 10      White    16.7     fem      1.085   
+ 10      White    17.7     fem      1.098   
+ 10      White    18.9     fem      1.067   
+ 11      White    12.6     mal      0.686   
+ 11      White    13.6     mal      0.699   
+ 11      White    14.6     mal      0.751   
+ 11      White    15.6     mal      0.794   
+ 12      White    15.7     fem      1.095   
+ 12      White    16.7     fem      1.135   
+ 12      White    18.8     fem      1.170   
+ 12      White    19.9     fem      1.179   
+ 13      White    12.1     fem      0.706   
+ 13      White    13.1     fem      0.830   
+ 13      White    15.2     fem      0.953   
+ 13      White    16.3     fem      0.961   
+ 14      Asian    15.2     fem      1.056   
+ 15      Asian    13.7     fem      0.961   
+ 16      Asian     9.6     mal      0.695   
+ 17      White    15.5     fem      0.982   
+ 17      White    16.5     fem      1.019   
+ 18      White    14.0     fem      0.946   
+ 18      White    15.0     fem      0.963   
+ 19      White    11.2     mal      0.656   
+ 19      White    12.2     mal      0.652   
+ 20      White    20.9     fem      1.109   
+ 20      White    21.9     fem      1.074   
+ 20      White    22.9     fem      1.081   
+ 21      White    17.2     fem      1.010   
+ 21      White    20.4     fem      1.045   
+ 22      White    14.5     fem      1.010   
+ 22      White    15.6     fem      1.048   
+ 22      White    17.2     fem      1.020   
+ 23      White    11.8     fem      0.720   
+ 23      White    13.5     fem      0.830   
+ 23      White    14.9     fem      0.884   
+ 24      White    14.7     mal      0.871   
+ 24      White    15.9     mal      0.933   
+ 24      White    16.5     mal      0.941   
+ 24      White    17.8     mal      0.993   
+ 25      White    10.4     fem      0.627   
+ 25      White    11.5     fem      0.647   
+ 25      White    12.5     fem      0.722   
+ 25      White    13.4     fem      0.788   
+ 26      White    12.8     mal      0.808   
+ 26      White    13.8     mal      0.919   
+ 26      White    14.8     mal      0.978   
+ 26      White    15.8     mal      0.964   
+ 27      White    11.8     mal      0.834   
+ 27      White    12.8     mal      0.890   
+ 27      White    13.8     mal      1.018   
+ 27      White    14.8     mal      1.086   
+ 28      White    19.2     fem      1.133   
+ 28      White    21.3     fem      1.142   
+ 29      White    23.7     fem      1.327   
+ 29      White    24.9     fem      1.300   
+ 29      White    26.2     fem      1.316   
+ 30      White    23.2     mal      1.140   
+ 30      White    24.6     mal      1.173   
+ 31      White    15.5     mal      1.036   
+ 31      White    16.7     mal      1.083   
+ 31      White    17.8     mal      1.036   
+ 31      White    18.8     mal      1.061   
+ 32      White    11.2     mal      0.783   
+ 32      White    12.5     mal      0.817   
+ 32      White    13.6     mal      0.885   
+ 32      White    14.5     mal      1.009   
+ 33      White    10.7     mal      0.721   
+ 33      White    11.6     mal      0.747   
+ 33      White    12.6     mal      0.791   
+ 33      White    13.6     mal      0.814   
+ 34      White    25.9     fem      1.014   
+ 35      White     9.8     mal      0.575   
+ 35      White    10.7     mal      0.576   
+ 35      White    11.7     mal      0.581   
+ 35      White    12.8     mal      0.599   
+ 36      Hispanic 10.9     mal      0.640   
+ 36      Hispanic 11.9     mal      0.669   
+ 36      Hispanic 13.1     mal      0.723   
+ 36      Hispanic 13.9     mal      0.816   
+ 37      White    10.6     fem      0.672   
+ 37      White    11.5     fem      0.648   
+ 37      White    12.4     fem      0.716   
+ 37      White    13.4     fem      0.811   
+ 39      White    24.2     fem      0.966   
+ 39      White    25.6     fem      0.960   
+ 40      Hispanic 18.6     fem      1.094   
+ 40      Hispanic 19.7     fem      1.126   
+ 40      Hispanic 20.8     fem      1.127   
+ 40      Hispanic 21.8     fem      1.139   
+ 43      White    15.2     mal      1.056   
+ 43      White    16.2     mal      1.100   
+ 43      White    17.2     mal      1.119   
+ 43      White    18.3     mal      1.079   
+ 44      Asian    24.5     fem      1.025   
+ 44      Asian    25.5     fem      1.082   
+ 45      White    24.2     fem      0.990   
+ 45      White    25.6     fem      0.999   
+ 46      White    24.2     mal      1.407   
+ 47      White    10.1     fem      0.805   
+ 47      White    11.2     fem      0.913   
+ 47      White    12.2     fem      1.067   
+ 47      White    13.2     fem      1.128   
+ 48      White    14.6     fem      1.184   
+ 48      White    15.6     fem      1.219   
+ 48      White    16.7     fem      1.207   
+ 48      White    17.6     fem      1.160   
+ 49      White    13.8     fem      1.065   
+ 49      White    14.9     fem      1.145   
+ 49      White    16.1     fem      1.182   
+ 49      White    17.0     fem      1.189   
+ 50      White    17.2     mal      1.064   
+ 50      White    18.1     mal      1.119   
+ 50      White    19.2     mal      1.203   
+ 50      White    20.2     mal      1.218   
+ 51      White    10.0     mal      0.674   
+ 51      White    11.2     mal      0.686   
+ 51      White    12.2     mal      0.708   
+ 51      White    13.3     mal      0.725   
+ 52      White    13.5     mal      0.701   
+ 52      White    14.5     mal      0.735   
+ 53      Asian     9.7     mal      0.576   
+ 53      Asian    10.6     mal      0.607   
+ 53      Asian    11.6     mal      0.679   
+ 53      Asian    12.6     mal      0.755   
+ 54      White    14.3     mal      0.931   
+ 54      White    15.5     mal      1.046   
+ 54      White    16.4     mal      1.174   
+ 54      White    17.9     mal      1.247   
+ 55      White    16.5     fem      1.104   
+ 55      White    17.9     fem      1.107   
+ 55      White    18.9     fem      1.105   
+ 55      White    20.0     fem      1.142   
+ 56      White    10.1     mal      0.752   
+ 56      White    11.2     mal      0.773   
+ 56      White    12.1     mal      0.786   
+ 56      White    13.1     mal      0.838   
+ 57      White    15.5     mal      0.646   
+ 57      White    16.5     mal      0.681   
+ 57      White    17.5     mal      0.750   
+ 57      White    18.5     mal      0.796   
+ 58      White    13.3     mal      0.673   
+ 58      White    14.5     mal      0.653   
+ 58      White    15.4     mal      0.666   
+ 58      White    16.4     mal      0.726   
+ 59      White    11.2     mal      0.564   
+ 59      White    12.2     mal      0.574   
+ 59      White    13.2     mal      0.567   
+ 59      White    14.3     mal      0.565   
+ 60      White    22.5     fem      1.145   
+ 60      White    24.1     fem      1.144   
+ 60      White    25.3     fem      1.154   
+ 61      White    12.6     fem      0.932   
+ 61      White    13.6     fem      0.972   
+ 62      White     9.3     mal      0.718   
+ 62      White    10.3     mal      0.765   
+ 62      White    11.4     mal      0.791   
+ 62      White    12.4     mal      0.867   
+ 63      Asian    10.5     fem      0.725   
+ 63      Asian    11.6     fem      0.808   
+ 63      Asian    12.7     fem      0.929   
+ 63      Asian    13.8     fem      0.983   
+ 64      Asian    13.7     fem      0.932   
+ 64      Asian    14.8     fem      0.995   
+ 64      Asian    16.0     fem      1.008   
+ 64      Asian    17.1     fem      1.040   
+ 65      Asian    15.9     mal      1.070   
+ 65      Asian    16.9     mal      1.067   
+ 65      Asian    18.2     mal      1.094   
+ 65      Asian    19.3     mal      1.088   
+ 66      White    20.1     mal      1.006   
+ 66      White    21.2     mal      1.030   
+ 66      White    22.8     mal      1.014   
+ 66      White    23.9     mal      1.015   
+ 67      White     9.4     fem      0.711   
+ 67      White    10.6     fem      0.766   
+ 67      White    11.7     fem      0.884   
+ 67      White    12.8     fem      1.051   
+ 68      White    14.7     fem      0.850   
+ 68      White    15.6     fem      0.900   
+ 68      White    16.6     fem      0.924   
+ 68      White    17.9     fem      0.913   
+ 69      White    12.7     mal      0.581   
+ 69      White    13.6     mal      0.605   
+ 69      White    14.6     mal      0.596   
+ 69      White    15.9     mal      0.677   
+ 70      White    14.6     fem      0.997   
+ 70      White    15.6     fem      1.007   
+ 71      White    12.6     mal      0.788   
+ 71      White    13.5     mal      0.861   
+ 71      White    14.6     mal      1.029   
+ 71      White    15.5     mal      1.086   
+ 72      White    10.7     mal      0.682   
+ 72      White    11.6     mal      0.711   
+ 72      White    12.6     mal      0.776   
+ 72      White    13.7     mal      0.922   
+ 73      Asian    11.2     mal      0.627   
+ 73      Asian    12.7     mal      0.788   
+ 73      Asian    13.8     mal      0.901   
+ 73      Asian    14.9     mal      0.943   
+ 74      Asian    18.1     mal      1.056   
+ 74      Asian    21.5     mal      0.990   
+ 75      Asian    18.5     mal      1.294   
+ 76      Hispanic 13.5     fem      0.906   
+ 77      Asian    22.6     fem      0.847   
+ 77      Asian    24.3     fem      0.832   
+ 78      White    15.1     fem      1.038   
+ 78      White    16.5     fem      1.033   
+ 78      White    17.6     fem      1.068   
+ 78      White    18.6     fem      1.066   
+ 79      White    14.2     fem      1.073   
+ 80      Hispanic 20.4     fem      1.007   
+ 81      White    15.2     mal      1.005   
+ 82      Asian    17.8     mal      0.951   
+ 82      Asian    19.5     mal      0.969   
+ 82      Asian    21.5     mal      0.992   
+ 83      White    25.8     fem      0.944   
+ 84      White    21.8     fem      0.972   
+ 84      White    22.7     fem      0.989   
+ 84      White    23.8     fem      0.996   
+ 84      White    24.8     fem      0.983   
+ 85      White    12.4     fem      0.981   
+ 85      White    13.9     fem      1.087   
+ 85      White    15.8     fem      1.171   
+ 86      White    17.6     mal      1.153   
+ 86      White    20.8     mal      1.251   
+ 87      White    11.9     fem      0.631   
+ 87      White    13.2     fem      0.749   
+ 87      White    14.4     fem      0.883   
+ 87      White    15.6     fem      0.933   
+ 88      White    21.8     fem      1.071   
+ 88      White    25.1     fem      1.107   
+ 89      White    18.9     mal      1.126   
+ 89      White    20.3     mal      1.118   
+ 89      White    21.3     mal      1.159   
+ 89      White    22.4     mal      1.180   
+ 90      White    17.6     fem      1.075   
+ 90      White    18.5     fem      1.090   
+ 90      White    20.6     fem      1.090   
+ 90      White    21.9     fem      1.144   
+ 91      White    13.8     mal      0.721   
+ 92      Asian    23.5     fem      0.954   
+ 92      Asian    24.5     fem      0.959   
+ 93      White    11.6     fem      0.694   
+ 93      White    12.5     fem      0.778   
+ 93      White    13.7     fem      0.927   
+ 93      White    14.8     fem      0.994   
+ 94      Hispanic 15.2     fem      1.010   
+ 94      Hispanic 16.3     fem      1.002   
+ 94      Hispanic 17.5     fem      0.991   
+ 94      Hispanic 18.4     fem      1.003   
+ 95      Hispanic 17.3     mal      0.916   
+ 95      Hispanic 18.5     mal      0.932   
+ 95      Hispanic 19.6     mal      0.911   
+ 95      Hispanic 20.5     mal      0.925   
+ 96      White    18.1     fem      1.269   
+ 96      White    19.4     fem      1.240   
+ 96      White    20.5     fem      1.277   
+ 96      White    21.5     fem      1.256   
+ 97      Asian    21.9     mal      1.104   
+ 98      Asian    24.7     fem      0.993   
+ 99      White    14.8     mal      1.107   
+ 99      White    15.6     mal      1.181   
+ 99      White    16.9     mal      1.256   
+ 99      White    17.9     mal      1.285   
+100      White    13.2     fem      0.964   
+100      White    14.3     fem      1.032   
+100      White    15.5     fem      1.103   
+100      White    17.4     fem      1.159   
+101      White    11.0     fem      0.751   
+101      White    12.0     fem      0.799   
+101      White    13.3     fem      0.937   
+101      White    14.3     fem      1.040   
+102      Hispanic 23.7     mal      0.841   
+103      White    11.6     mal      0.739   
+103      White    12.7     mal      0.761   
+103      White    14.1     mal      0.886   
+103      White    15.1     mal      0.955   
+104      White     9.1     fem      0.718   
+104      White    10.2     fem      0.797   
+104      White    11.6     fem      0.925   
+104      White    12.6     fem      0.934   
+105      Asian     9.6     mal      0.650   
+105      Asian    10.9     mal      0.715   
+105      Asian    12.2     mal      0.776   
+105      Asian    13.2     mal      0.839   
+106      White    15.9     mal      0.946   
+106      White    17.1     mal      0.971   
+106      White    18.2     mal      0.979   
+106      White    19.2     mal      0.986   
+107      White    13.8     fem      0.935   
+107      White    14.9     fem      1.011   
+107      White    16.1     fem      1.044   
+107      White    17.1     fem      1.056   
+108      White    18.2     fem      0.894   
+108      White    19.2     fem      0.894   
+108      White    21.3     fem      0.920   
+108      White    22.2     fem      0.913   
+109      White    11.7     fem      0.788   
+109      White    12.8     fem      0.851   
+109      White    13.9     fem      1.018   
+109      White    14.9     fem      1.029   
+110      White     9.6     fem      0.684   
+110      White    10.7     fem      0.691   
+110      White    11.8     fem      0.708   
+110      White    12.8     fem      0.722   
+111      White    21.5     mal      0.779   
+111      White    22.5     mal      0.806   
+111      White    23.6     mal      0.778   
+111      White    24.6     mal      0.771   
+112      Hispanic 17.2     fem      1.016   
+112      Hispanic 18.7     fem      1.042   
+112      Hispanic 19.9     fem      1.067   
+112      Hispanic 21.1     fem      1.059   
+113      White     9.6     fem      0.631   
+113      White    10.3     fem      0.638   
+113      White    11.9     fem      0.697   
+113      White    13.5     fem      0.870   
+114      Hispanic 14.2     mal      0.661   
+115      White    24.5     mal      0.986   
+116      White    15.2     mal      0.970   
+116      White    16.9     mal      1.081   
+116      White    17.1     mal      1.088   
+116      White    18.2     mal      1.179   
+117      White    16.2     mal      0.781   
+118      Hispanic 22.3     mal      1.050   
+118      Hispanic 23.5     mal      1.046   
+118      Hispanic 24.7     mal      1.020   
+118      Hispanic 25.7     mal      1.021   
+119      White     9.5     mal      0.722   
+119      White    10.7     mal      0.765   
+119      White    11.1     mal      0.791   
+119      White    13.0     mal      0.849   
+120      Hispanic 12.2     mal      0.740   
+120      Hispanic 13.8     mal      0.859   
+121      Hispanic  9.1     fem      0.560   
+121      Hispanic 10.5     fem      0.563   
+121      Hispanic 11.8     fem      0.585   
+121      Hispanic 12.5     fem      0.633   
+123      Asian    15.2     mal      0.858   
+123      Asian    16.5     mal      0.906   
+123      Asian    18.3     mal      0.993   
+124      Asian    16.6     mal      1.001   
+124      Asian    17.7     mal      1.005   
+124      Asian    18.8     mal      0.979   
+124      Asian    19.9     mal      1.003   
+125      Asian    16.1     fem      0.931   
+125      Asian    17.3     fem      0.909   
+125      Asian    18.6     fem      0.929   
+126      White    18.9     mal      1.239   
+126      White    19.9     mal      1.234   
+126      White    21.5     mal      1.224   
+127      White     9.7     mal      0.688   
+127      White    10.6     mal      0.713   
+128      White     9.7     mal      0.687   
+128      White    10.6     mal      0.723   
+129      White    24.2     fem      1.144   
+130      Asian    18.2     mal      0.988   
+130      Asian    19.3     mal      0.969   
+131      Asian    14.9     fem      1.105   
+132      Asian    17.1     mal      1.242   
+133      Asian    18.4     mal      0.802   
+134      Hispanic 10.1     fem      0.659   
+134      Hispanic 11.2     fem      0.628   
+134      Hispanic 12.3     fem      0.671   
+134      Hispanic 13.3     fem      0.718   
+135      Hispanic 11.0     mal      0.613   
+135      Hispanic 12.1     mal      0.643   
+135      Hispanic 13.1     mal      0.733   
+135      Hispanic 14.2     mal      0.854   
+136      Hispanic 17.8     mal      1.015   
+136      Hispanic 18.9     mal      1.011   
+136      Hispanic 19.9     mal      0.995   
+136      Hispanic 21.0     mal      1.039   
+137      Asian    17.8     fem      0.940   
+137      Asian    19.4     fem      0.965   
+137      Asian    20.5     fem      0.962   
+138      White    22.9     fem      1.046   
+139      Black    15.8     mal      0.963   
+140      Asian    17.6     fem      1.140   
+141      White    25.8     mal      1.013   
+142      Asian    16.6     fem      0.922   
+142      Asian    17.7     fem      0.971   
+142      Asian    19.3     fem      0.971   
+143      Asian    16.3     mal      1.047   
+143      Asian    17.6     mal      1.066   
+143      Asian    18.6     mal      1.055   
+143      Asian    19.7     mal      1.073   
+144      White    21.1     fem      1.074   
+144      White    21.9     fem      1.070   
+145      White    19.4     mal      1.035   
+146      Black    15.3     fem      1.092   
+146      Black    18.5     fem      1.109   
+146      Black    19.4     fem      1.126   
+147      Black    18.5     fem      1.133   
+147      Black    21.3     fem      1.173   
+148      White    21.3     mal      1.309   
+148      White    22.1     mal      1.284   
+149      Black    12.3     fem      1.043   
+149      Black    13.3     fem      1.127   
+149      Black    15.2     fem      1.158   
+149      Black    16.4     fem      1.173   
+150      Asian    18.4     fem      1.136   
+150      Asian    19.5     fem      1.121   
+150      Asian    20.4     fem      1.136   
+150      Asian    21.5     fem      1.145   
+151      Hispanic 18.4     mal      1.053   
+151      Hispanic 20.3     mal      1.066   
+151      Hispanic 21.4     mal      1.080   
+152      Black    15.1     fem      1.237   
+152      Black    16.1     fem      1.259   
+152      Black    18.2     fem      1.343   
+152      Black    19.1     fem      1.316   
+153      White    24.4     fem      0.971   
+154      Black    23.4     mal      1.005   
+154      Black    24.6     mal      1.037   
+154      Black    25.8     mal      1.039   
+155      Asian    19.2     fem      1.000   
+155      Asian    21.2     fem      1.003   
+155      Asian    22.3     fem      1.043   
+156      White    20.2     fem      0.962   
+156      White    21.1     fem      0.959   
+157      Hispanic 20.3     mal      1.135   
+158      Hispanic 19.4     mal      0.918   
+159      White    18.6     mal      1.065   
+159      White    19.7     mal      1.039   
+159      White    21.4     mal      1.080   
+160      Hispanic 19.2     fem      0.982   
+160      Hispanic 21.8     fem      1.002   
+160      Hispanic 23.0     fem      0.990   
+161      Asian    22.6     fem      1.200   
+162      Black    21.4     fem      1.145   
+163      Black    21.9     mal      1.033   
+164      Black    21.7     fem      1.311   
+166      Black    18.2     fem      1.220   
+166      Black    19.3     fem      1.262   
+166      Black    20.3     fem      1.264   
+167      Hispanic 21.5     fem      0.959   
+167      Hispanic 24.6     fem      0.928   
+168      Black    19.6     fem      1.161   
+168      Black    20.7     fem      1.151   
+168      Black    21.7     fem      1.140   
+168      Black    22.6     fem      1.157   
+169      Asian    21.2     mal      1.075   
+169      Asian    22.5     mal      1.082   
+170      Asian    21.8     fem      0.839   
+170      Asian    24.9     fem      0.839   
+171      Black    20.4     mal      1.206   
+171      Black    21.4     mal      1.200   
+171      Black    22.6     mal      1.225   
+172      Asian    19.3     fem      0.935   
+172      Asian    21.5     fem      0.948   
+173      Asian    12.9     fem      0.862   
+173      Asian    13.9     fem      0.903   
+173      Asian    14.8     fem      0.906   
+174      Hispanic 12.2     fem      0.894   
+175      Hispanic 12.2     fem      0.866   
+176      Asian    15.9     fem      1.109   
+177      Asian    20.4     fem      0.910   
+177      Asian    21.5     fem      0.922   
+177      Asian    22.9     fem      0.933   
+178      Asian    13.4     mal      0.849   
+178      Asian    14.4     mal      0.886   
+178      Asian    15.4     mal      0.976   
+178      Asian    16.4     mal      1.004   
+179      Asian    15.0     fem      1.146   
+179      Asian    16.0     fem      1.189   
+179      Asian    17.0     fem      1.187   
+179      Asian    18.0     fem      1.196   
+180      Asian    24.2     mal      1.344   
+180      Asian    25.2     mal      1.386   
+181      Asian    18.7     mal      0.924   
+181      Asian    19.6     mal      0.946   
+181      Asian    20.7     mal      0.936   
+181      Asian    21.8     mal      0.902   
+182      Asian    23.2     mal      1.045   
+182      Asian    24.2     mal      1.029   
+182      Asian    25.2     mal      1.032   
+183      Hispanic 22.4     fem      1.387   
+184      Hispanic 18.4     fem      1.227   
+184      Hispanic 19.6     fem      1.211   
+184      Hispanic 20.7     fem      1.229   
+184      Hispanic 21.7     fem      1.255   
+185      Asian    24.0     fem      1.161   
+185      Asian    25.0     fem      1.156   
+186      Hispanic 24.4     mal      1.202   
+187      Hispanic 19.3     fem      1.132   
+187      Hispanic 20.3     fem      1.155   
+188      Asian    13.2     fem      0.745   
+189      Black    13.6     fem      1.035   
+190      Hispanic 22.0     mal      1.195   
+191      Hispanic 20.4     fem      1.115   
+192      Hispanic 20.5     fem      0.880   
+193      Black    13.2     fem      0.690   
+193      Black    14.3     fem      0.793   
+193      Black    15.5     fem      0.831   
+194      Asian    23.3     fem      1.028   
+194      Asian    24.3     fem      1.066   
+194      Asian    25.3     fem      1.054   
+195      Black    22.7     fem      1.060   
+195      Black    23.8     fem      1.054   
+195      Black    24.7     fem      1.059   
+195      Black    25.8     fem      1.050   
+196      Asian    20.0     fem      0.969   
+197      Asian    20.8     fem      1.078   
+197      Asian    21.8     fem      1.076   
+198      Asian    21.3     fem      1.071   
+198      Asian    22.5     fem      1.045   
+198      Asian    23.4     fem      1.052   
+199      Black    21.9     fem      1.080   
+200      Asian    25.3     mal      0.993   
+201      Hispanic 13.4     fem      1.119   
+201      Hispanic 14.5     fem      1.145   
+202      Hispanic 21.2     fem      1.143   
+202      Hispanic 22.4     fem      1.167   
+202      Hispanic 23.3     fem      1.125   
+203      Black    19.8     mal      1.120   
+204      Asian    21.2     fem      0.988   
+205      Asian    25.2     fem      1.043   
+206      White    15.1     mal      0.793   
+206      White    16.2     mal      0.909   
+206      White    17.2     mal      1.006   
+206      White    18.2     mal      1.052   
+207      Black    10.2     mal      0.681   
+207      Black    11.3     mal      0.713   
+207      Black    12.5     mal      0.750   
+207      Black    13.5     mal      0.753   
+209      Black    14.8     mal      0.836   
+209      Black    15.9     mal      0.926   
+209      Black    17.0     mal      0.954   
+209      Black    18.0     mal      0.987   
+210      Hispanic 22.3     fem      1.180   
+210      Hispanic 23.6     fem      1.165   
+210      Hispanic 24.6     fem      1.169   
+211      Black    10.6     fem      0.905   
+211      Black    11.6     fem      1.014   
+211      Black    12.6     fem      1.030   
+211      Black    13.6     fem      1.057   
+212      Hispanic 22.6     fem      0.928   
+213      Asian    17.6     fem      1.003   
+213      Asian    18.6     fem      0.997   
+213      Asian    20.1     fem      0.974   
+214      Asian    11.9     fem      1.067   
+214      Asian    13.6     fem      1.182   
+214      Asian    15.0     fem      1.176   
+215      Asian    15.8     fem      1.091   
+215      Asian    17.5     fem      1.091   
+215      Asian    19.0     fem      1.054   
+216      Hispanic 23.2     fem      1.091   
+216      Hispanic 25.1     fem      1.017   
+217      Asian    21.3     mal      1.161   
+217      Asian    23.8     mal      1.155   
+218      Asian    21.4     fem      0.949   
+219      Hispanic 23.1     fem      1.157   
+220      Hispanic 23.2     fem      1.038   
+221      Asian    17.4     mal      1.065   
+221      Asian    18.5     mal      1.074   
+222      Asian    15.5     fem      1.016   
+222      Asian    16.6     fem      0.992   
+222      Asian    17.9     fem      0.979   
+223      Asian    22.8     fem      0.954   
+224      Asian    18.6     mal      1.017   
+224      Asian    19.9     mal      1.001   
+224      Asian    20.8     mal      1.046   
+224      Asian    21.9     mal      1.065   
+225      Asian    14.6     mal      0.838   
+225      Asian    15.8     mal      0.916   
+225      Asian    16.6     mal      0.960   
+225      Asian    17.8     mal      1.027   
+226      Asian    10.5     fem      0.617   
+226      Asian    11.7     fem      0.682   
+226      Asian    12.7     fem      0.738   
+226      Asian    13.6     fem      0.860   
+227      Hispanic 19.2     fem      1.145   
+228      Hispanic 19.3     fem      1.039   
+229      Black    12.6     fem      0.998   
+229      Black    13.8     fem      1.134   
+229      Black    14.9     fem      1.192   
+229      Black    16.0     fem      1.243   
+230      Black    24.6     mal      0.914   
+230      Black    25.7     mal      0.940   
+231      Black    15.6     fem      0.867   
+231      Black    16.7     fem      0.950   
+231      Black    17.8     fem      1.024   
+232      Black    14.3     fem      1.262   
+233      Black     9.7     fem      0.647   
+233      Black    12.6     fem      0.752   
+234      Black    18.2     mal      1.039   
+235      Asian    12.1     mal      0.670   
+236      Asian    13.6     fem      0.929   
+237      Black    25.2     fem      1.378   
+238      Black    15.6     fem      0.982   
+238      Black    16.7     fem      1.020   
+238      Black    18.5     fem      0.987   
+239      Black    13.4     mal      0.667   
+239      Black    14.6     mal      0.675   
+239      Black    15.7     mal      0.756   
+240      Asian    11.1     mal      0.702   
+240      Asian    12.2     mal      0.703   
+240      Asian    13.2     mal      0.734   
+240      Asian    14.2     mal      0.790   
+241      Asian    12.1     fem      0.776   
+241      Asian    13.2     fem      0.879   
+241      Asian    14.2     fem      0.937   
+241      Asian    15.2     fem      0.954   
+242      Black    11.5     fem      1.000   
+242      Black    12.6     fem      1.048   
+242      Black    13.7     fem      1.047   
+242      Black    14.7     fem      1.086   
+243      Asian    13.2     fem      0.938   
+243      Asian    14.3     fem      1.048   
+243      Asian    15.5     fem      1.049   
+243      Asian    16.5     fem      1.050   
+244      Asian     9.9     fem      0.678   
+244      Asian    11.1     fem      0.757   
+244      Asian    12.3     fem      0.833   
+244      Asian    13.2     fem      0.938   
+245      Asian    14.6     fem      0.888   
+245      Asian    15.8     fem      0.918   
+245      Asian    16.9     fem      0.924   
+245      Asian    18.0     fem      0.935   
+246      Hispanic 24.0     fem      0.935   
+247      Hispanic 10.0     fem      0.772   
+247      Hispanic 10.9     fem      0.888   
+247      Hispanic 11.9     fem      0.987   
+248      Black    15.4     mal      0.786   
+249      Asian    23.6     mal      1.066   
+250      Asian    17.3     mal      0.944   
+250      Asian    18.9     mal      0.977   
+251      Asian    19.2     mal      1.033   
+251      Asian    21.6     mal      1.051   
+252      Asian    19.8     mal      0.851   
+253      Asian    21.2     mal      0.940   
+253      Asian    22.9     mal      0.931   
+253      Asian    24.2     mal      0.914   
+254      Hispanic 12.6     mal      0.643   
+254      Hispanic 14.3     mal      0.738   
+254      Hispanic 15.4     mal      0.826   
+254      Hispanic 16.1     mal      0.910   
+255      Hispanic  9.5     fem      0.674   
+255      Hispanic 11.2     fem      0.707   
+255      Hispanic 12.2     fem      0.719   
+255      Hispanic 13.0     fem      0.806   
+256      Hispanic 14.2     fem      0.987   
+256      Hispanic 15.8     fem      1.027   
+256      Hispanic 16.9     fem      1.029   
+256      Hispanic 17.8     fem      1.052   
+257      Hispanic 10.1     fem      0.756   
+257      Hispanic 11.2     fem      0.796   
+257      Hispanic 12.3     fem      0.907   
+257      Hispanic 13.3     fem      0.965   
+258      Black     9.5     fem      0.806   
+258      Black    10.6     fem      0.906   
+258      Black    12.2     fem      1.121   
+259      White     9.3     fem      0.554   
+259      White    10.3     fem      0.608   
+259      White    11.4     fem      0.591   
+259      White    12.5     fem      0.595   
+260      Hispanic 13.7     fem      0.954   
+260      Hispanic 15.4     fem      0.940   
+260      Hispanic 16.6     fem      0.955   
+261      Black    23.1     fem      1.037   
+261      Black    24.8     fem      1.050   
+261      Black    25.8     fem      0.993   
+262      Black    11.0     mal      0.629   
+262      Black    12.9     mal      0.694   
+262      Black    13.9     mal      0.790   
+263      Asian    18.8     fem      1.031   
+264      Hispanic 24.2     mal      1.041   
+265      Hispanic 25.5     fem      1.069   
+266      Black    13.3     fem      0.990   
+266      Black    14.4     fem      1.027   
+266      Black    15.3     fem      1.058   
+267      Black    14.5     fem      1.363   
+267      Black    15.5     fem      1.398   
+267      Black    16.5     fem      1.415   
+268      Black    14.1     fem      0.967   
+269      Black    15.5     fem      0.967   
+269      Black    17.5     fem      0.971   
+270      Black    12.5     fem      0.966   
+270      Black    14.7     fem      1.104   
+271      Black    12.2     fem      0.824   
+271      Black    14.5     fem      0.902   
+272      Black    13.1     fem      1.163   
+273      Black    15.7     mal      0.856   
+274      Black     8.8     mal      0.797   
+274      Black    11.5     mal      0.891   
+275      Black    13.7     mal      0.961   
+275      Black    15.7     mal      1.074   
+276      Black    13.3     fem      0.931   
+276      Black    14.3     fem      0.981   
+276      Black    16.4     fem      0.966   
+277      Black     9.0     mal      0.754   
+277      Black    10.9     mal      0.777   
+277      Black    12.1     mal      0.810   
+277      Black    13.0     mal      0.806   
+278      Black    11.8     mal      0.722   
+278      Black    12.8     mal      0.738   
+278      Black    13.9     mal      0.754   
+279      Hispanic 14.9     mal      1.116   
+280      Black    10.6     fem      0.736   
+280      Black    11.6     fem      0.752   
+280      Black    12.8     fem      0.797   
+280      Black    13.7     fem      0.912   
+281      Black    10.1     fem      0.772   
+281      Black    11.1     fem      0.843   
+281      Black    12.3     fem      1.036   
+281      Black    13.2     fem      1.137   
+282      Black    13.6     fem      1.219   
+282      Black    14.4     fem      1.246   
+282      Black    15.5     fem      1.264   
+282      Black    16.5     fem      1.293   
+283      Black    10.3     mal      0.704   
+283      Black    11.2     mal      0.732   
+283      Black    12.3     mal      0.745   
+283      Black    13.6     mal      0.792   
+284      Black    15.1     fem      1.083   
+285      Black    16.6     mal      1.188   
+286      Black    13.6     mal      1.141   
+286      Black    16.4     mal      1.270   
+287      Black    15.2     fem      1.142   
+287      Black    17.3     fem      1.206   
+288      Hispanic 25.6     fem      1.076   
+289      Asian    14.7     mal      0.826   
+290      Black    18.5     fem      1.235   
+290      Black    19.2     fem      1.243   
+291      Black    16.5     mal      0.828   
+292      Black    15.2     fem      1.061   
+293      Asian    20.7     fem      1.018   
+294      Black    12.0     fem      0.746   
+294      Black    13.5     fem      0.911   
+294      Black    14.5     fem      0.953   
+295      Black     9.7     mal      0.793   
+295      Black    11.3     mal      0.808   
+295      Black    12.3     mal      0.842   
+296      Black    25.7     mal      1.273   
+297      Black    22.9     fem      0.917   
+298      Asian    22.7     mal      0.916   
+298      Asian    23.9     mal      0.935   
+298      Asian    25.1     mal      0.919   
+299      Black    15.9     mal      1.176   
+300      Hispanic 13.1     mal      0.694   
+301      Asian    11.8     mal      0.642   
+301      Asian    13.2     mal      0.787   
+302      Asian    21.0     mal      1.024   
+302      Asian    22.2     mal      1.033   
+303      Asian    20.2     mal      0.849   
+303      Asian    21.3     mal      0.815   
+303      Asian    22.7     mal      0.833   
+304      Black    14.2     fem      1.176   
+304      Black    15.3     fem      1.217   
+304      Black    16.4     fem      1.257   
+305      Black    10.6     fem      0.846   
+305      Black    12.7     fem      0.923   
+305      Black    13.7     fem      1.068   
+306      Black    14.3     mal      1.051   
+306      Black    15.6     mal      1.220   
+306      Black    16.6     mal      1.334   
+307      Black    11.6     fem      0.936   
+307      Black    12.8     fem      1.091   
+307      Black    13.0     fem      1.177   
+308      Hispanic 16.2     fem      0.999   
+308      Hispanic 18.3     fem      1.002   
+309      Black    12.2     fem      1.035   
+309      Black    13.8     fem      1.220   
+310      Black     9.5     mal      0.774   
+311      Hispanic 20.1     mal      0.983   
+311      Hispanic 21.1     mal      1.010   
+311      Hispanic 22.3     mal      0.969   
+312      Asian    19.8     mal      1.252   
+312      Asian    21.0     mal      1.205   
+313      Asian    19.4     mal      0.934   
+313      Asian    20.4     mal      0.967   
+313      Asian    21.5     mal      0.984   
+314      Asian    18.5     fem      0.942   
+314      Asian    19.6     fem      0.958   
+314      Asian    20.6     fem      0.952   
+314      Asian    21.6     fem      0.952   
+315      Hispanic 17.0     mal      0.886   
+315      Hispanic 18.2     mal      0.965   
+315      Hispanic 19.2     mal      0.990   
+316      Hispanic 18.7     fem      1.087   
+317      Hispanic 25.3     mal      0.982   
+318      Hispanic 17.1     fem      1.063   
+318      Hispanic 18.3     fem      1.062   
+318      Hispanic 19.5     fem      1.045   
+319      Hispanic 18.7     mal      0.834   
+319      Hispanic 19.8     mal      0.860   
+319      Hispanic 20.8     mal      0.822   
+320      Black    14.9     fem      1.004   
+320      Black    15.8     fem      1.068   
+320      Black    17.2     fem      1.067   
+321      Black    16.6     fem      1.057   
+322      Black    16.1     mal      0.744   
+322      Black    17.0     mal      0.815   
+322      Black    18.2     mal      0.934   
+323      Black    14.9     fem      0.903   
+323      Black    15.9     fem      0.893   
+323      Black    17.2     fem      0.909   
+324      Black    15.8     mal      0.866   
+324      Black    16.8     mal      0.897   
+325      Asian    20.9     mal      0.942   
+326      Black    17.5     mal      1.298   
+327      Black    10.2     fem      0.847   
+327      Black    11.1     fem      0.955   
+328      Black    12.2     fem      0.804   
+329      Black    19.5     fem      1.262   
+330      Black    10.6     fem      0.800   
+331      Hispanic 14.3     fem      1.017   
+331      Hispanic 15.4     fem      1.070   
+331      Hispanic 16.4     fem      1.080   
+331      Hispanic 17.3     fem      1.089   
+332      Hispanic 10.6     fem      0.775   
+332      Hispanic 11.8     fem      0.862   
+332      Hispanic 12.8     fem      0.960   
+333      Black    20.2     fem      1.172   
+334      Black    19.6     mal      1.067   
+335      Hispanic  9.6     fem      0.702   
+335      Hispanic 10.8     fem      0.761   
+335      Hispanic 11.9     fem      0.875   
+336      Hispanic 17.3     fem      1.208   
+336      Hispanic 18.3     fem      1.194   
+337      Black    11.9     mal      0.734   
+338      Black    13.2     mal      0.714   
+339      Black    10.6     mal      0.703   
+340      Black    23.4     fem      1.181   
+340      Black    24.4     fem      1.170   
+340      Black    25.3     fem      1.169   
+341      Hispanic 19.4     mal      1.426   
+341      Hispanic 20.4     mal      1.443   
+342      Hispanic 18.2     mal      0.872   
+342      Hispanic 19.1     mal      0.910   
+342      Hispanic 20.2     mal      0.964   
+343      Hispanic 19.8     fem      0.902   
+344      Hispanic 19.4     mal      0.789   
+344      Hispanic 21.4     mal      0.821   
+345      Black    19.3     mal      1.129   
+345      Black    20.4     mal      1.156   
+346      Asian    17.6     mal      1.032   
+347      Asian    14.4     mal      0.832   
+347      Asian    15.5     mal      0.969   
+348      Asian    11.3     mal      0.675   
+349      Asian     9.0     mal      0.642   
+350      Black    18.8     mal      1.194   
+350      Black    19.8     mal      1.224   
+350      Black    20.9     mal      1.203   
+351      Asian    15.1     mal      1.021   
+351      Asian    16.1     mal      1.046   
+351      Asian    17.1     mal      1.078   
+352      Asian    12.2     mal      0.859   
+352      Asian    13.3     mal      0.877   
+352      Asian    14.3     mal      0.928   
+353      Hispanic 21.6     mal      1.041   
+354      Hispanic 15.8     mal      0.860   
+354      Hispanic 16.9     mal      0.869   
+354      Hispanic 18.0     mal      0.859   
+355      Black    21.6     mal      1.005   
+356      Black    18.7     fem      1.073   
+357      Hispanic 10.9     fem      0.931   
+357      Hispanic 11.9     fem      1.048   
+358      Hispanic 16.0     mal      0.965   
+358      Hispanic 17.0     mal      1.026   
+359      Hispanic 15.6     mal      0.989   
+359      Hispanic 16.7     mal      1.039   
+360      Black    16.7     fem      0.979   
+361      Black     9.3     fem      0.769   
+361      Black    11.2     fem      0.898   
+362      Black    14.7     fem      1.026   
+363      Black    24.5     fem      1.247   
+363      Black    25.5     fem      1.258   
+364      Black     8.9     fem      0.707   
+364      Black     9.9     fem      0.712   
+364      Black    10.9     fem      0.775   
+365      Asian    14.7     mal      0.965   
+365      Asian    16.1     mal      1.014   
+366      Asian     9.2     mal      0.627   
+366      Asian    10.3     mal      0.642   
+366      Asian    11.5     mal      0.693   
+367      Black    13.9     mal      0.980   
+367      Black    15.4     mal      1.053   
+367      Black    16.4     mal      1.040   
+368      Black    11.6     fem      0.775   
+368      Black    12.8     fem      0.883   
+369      Hispanic 22.7     fem      1.119   
+369      Hispanic 23.8     fem      1.091   
+370      Black    12.9     mal      0.848   
+371      Black    11.6     fem      0.637   
+372      Black    17.6     fem      1.252   
+373      Black    17.1     mal      1.155   
+374      Asian    14.6     fem      1.081   
+374      Asian    15.7     fem      1.097   
+375      Asian    15.6     fem      1.031   
+375      Asian    16.8     fem      1.046   
+376      Asian    11.9     fem      0.787   
+377      Asian     9.1     mal      0.589   
+377      Asian    10.1     mal      0.599   
+378      Asian    10.2     fem      0.633   
+379      Asian    13.0     fem      1.199   
+379      Asian    14.2     fem      1.271   
+379      Asian    15.0     fem      1.275   
+380      Asian    11.1     mal      0.782   
+380      Asian    12.1     mal      0.873   
+380      Asian    13.1     mal      0.970   
+381      Asian     9.3     fem      0.715   
+381      Asian    10.3     fem      0.785   
+381      Asian    11.3     fem      0.933   
+382      Hispanic 11.4     mal      0.690   
+382      Hispanic 12.4     mal      0.710   
+382      Hispanic 13.4     mal      0.746   
+383      Hispanic 10.7     mal      0.624   
+383      Hispanic 11.7     mal      0.584   
+384      Hispanic  9.3     fem      0.541   
+384      Hispanic 10.3     fem      0.568   
+385      Hispanic 25.5     mal      0.995   
+386      Hispanic 10.7     mal      0.548   
+387      Hispanic 21.4     fem      1.205   
+388      Hispanic 16.0     mal      1.130   
+389      Hispanic 16.8     mal      1.004   
+390      Black    13.2     fem      0.957   
+391      Black    25.1     fem      1.229   
+392      Hispanic  9.8     mal      0.621   
+392      Hispanic 10.7     mal      0.627   
+393      Hispanic 11.2     mal      0.671   
+393      Hispanic 12.3     mal      0.669   
+394      Asian    10.9     fem      0.831   
+394      Asian    11.9     fem      0.910   
+395      Black     9.9     mal      0.705   
+396      Black    25.8     mal      0.937   
+397      Black    14.2     mal      0.826   
+398      Hispanic 16.9     mal      0.847   
+398      Hispanic 17.0     mal      0.848   
+399      Hispanic  9.8     mal      0.710   
+399      Hispanic 10.5     mal      0.711   
+400      Hispanic 16.8     mal      1.071   
+400      Hispanic 17.8     mal      1.057   
+401      Hispanic 14.3     mal      0.760   
+401      Hispanic 15.3     mal      0.863   
+402      Black    13.3     mal      0.782   
+402      Black    14.0     mal      0.837   
+403      Black    11.8     mal      0.700   
+403      Black    12.8     mal      0.762   
+404      Black    10.3     fem      0.829   
+404      Black    11.4     fem      0.942   
+405      Black     9.1     mal      0.657   
+405      Black    10.1     mal      0.649   
+406      Hispanic 23.3     fem      0.907   
+407      Hispanic 24.9     mal      0.910   
+408      Black     8.8     mal      0.601   
+408      Black     9.8     mal      0.611   
+409      Hispanic 15.8     fem      0.881   
+410      Hispanic 14.7     mal      0.690   
+411      Hispanic  9.2     fem      0.591   
+412      Black    17.4     fem      1.086   
+413      Black     9.6     fem      0.812   
+414      Hispanic 13.2     fem      0.961   
+415      Hispanic 12.2     mal      0.630   
+416      Hispanic 17.5     fem      0.906   
+417      Hispanic  9.7     mal      0.536   
+418      Hispanic 12.3     fem      0.621   
+419      Hispanic 11.3     mal      0.601   
+420      Hispanic 14.2     fem      0.885   
+421      Hispanic 14.5     mal      0.671   
+422      Hispanic  9.9     mal      0.627   
+423      Hispanic 10.1     fem      0.778   
+424      Hispanic 10.1     mal      0.678   
+425      Hispanic 15.5     fem      1.012   
+426      Hispanic 16.9     fem      0.785   
+427      Black    17.6     fem      1.239   
+427      Black    18.8     fem      1.210   
+428      Black    14.9     fem      1.253   
+428      Black    16.1     fem      1.251   
+429      Asian     9.1     fem      0.635   
+429      Asian    10.1     fem      0.653   

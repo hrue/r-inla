@@ -1,0 +1,57 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Random noise model}
+
+\subsection*{Parametrization}
+
+This model simply defines $\mathcal{x}$ to be a vector of independent and Gaussian distributed random variable with precision $\tau$:
+\[
+\pi(\mathbf{x}|\tau) \propto \tau^{n/2}\exp\left\{  -\frac{\tau}{2}\mathbf{x}^T\mathbf{I}\mathbf{x} \right\}
+\]
+where $\mathbf{I}$  is the identity matrix.
+\subsection*{Hyperparameters}
+
+The precision parameter $\tau$ is represented as
+\begin{displaymath}
+    \theta =\log \tau
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta}$. 
+
+\subsection*{Specification}
+
+The independent model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>,model="iid",prior=c(<prior.model.theta>),
+              param=c(<param.prior.theta>))
+\end{verbatim}
+\subsection*{Example}
+
+\begin{verbatim}
+n=12
+Ntrials = sample(c(80:100), size=n, replace=TRUE)
+eta = rnorm(n,0,0.5)
+prob = exp(eta)/(1 + exp(eta))
+y = rbinom(n, size=Ntrials, prob = prob)
+
+data=data.frame(y=y,z=1:n)
+
+formula=y~f(z,model="iid",prior="loggamma",param=c(1,0.01))
+result=inla(formula,data=data,family="binomial",Ntrials=Ntrials)
+\end{verbatim}
+
+
+\subsection*{Notes}
+
+None
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

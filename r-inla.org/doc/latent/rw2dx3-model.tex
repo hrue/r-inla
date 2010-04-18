@@ -1,0 +1,52 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+\section*{The RW2dX3-model}
+\subsection*{Parametrization}
+
+This is a specialised model for a certain application, for which the
+linear predictor require three different contributions from the RW2D
+model. Similar to the {\tt 2diidwishartpart0/1} and
+{\tt 3diidwishartpart0/1/2} models, this is also defined similarly.
+
+Let $\mathbf{z}_{0}$ be a RW2D model with precision $\kappa$, then define
+$\mathbf{z}_{1}$ and $\mathbf{z}_{2}$ conditionally on $\mathbf{z}_{0}$, as
+\begin{displaymath}
+    \mathbf{z}_{1} \mid \mathbf{z}_{0} \;\sim\; {\mathcal N}( \beta_{1}
+    \mathbf{z}_{0}, \kappa_{1}\mathbf{I})                                    
+\end{displaymath}
+and 
+\begin{displaymath}
+    \mathbf{z}_{2} \mid \mathbf{z}_{0} \;\sim\; {\mathcal N}( \beta_{2}
+    \mathbf{z}_{0}, \kappa_{2}\mathbf{I}).
+\end{displaymath}
+The joint density $\pi(\mathbf{z}_{0}, \mathbf{z}_{1}, \mathbf{z}_{2} \mid \kappa,
+\kappa_{1}, \kappa_{2}, \beta_{1}, \beta_{2})$ is then proportional to
+\begin{displaymath}
+    \exp\left(
+      -\frac{1}{2} \mathbf{z}_{0}^{T}\mathbf{Q}(\kappa) \mathbf{z}_{0}
+      -\frac{\kappa_{1}}{2} (\mathbf{z}_{1} - \beta_{1}\mathbf{z}_{0})^{T}
+      (\mathbf{z}_{1} - \beta_{1}\mathbf{z}_{0})
+      -\frac{\kappa_{2}}{2} (\mathbf{z}_{2} - \beta_{2}\mathbf{z}_{0})^{T}
+      (\mathbf{z}_{2} - \beta_{2}\mathbf{z}_{0})\right)
+\end{displaymath}
+where $\mathbf{Q}(\kappa)$ is the precision matrix for the RW2D model.
+
+The models components are named as {\tt rw2dx3part0} for
+$\mathbf{z}_{0}$, {\tt rw2dx3part1} for $\mathbf{z}_{1}$ and
+{\tt rw2dx3part2} for $\mathbf{z}_{2}$. 
+
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are
+\begin{displaymath}
+    \mathbf{\theta} = (\log \kappa, \log \kappa_{1}, \log \kappa_{2}, \beta_{1}, \beta_{2}).
+\end{displaymath}
+
+\subsection*{Specification}
+\subsection*{Example}
+\subsection*{Notes}
+\end{document}

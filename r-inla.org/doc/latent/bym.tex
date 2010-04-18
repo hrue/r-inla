@@ -1,0 +1,75 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Bym model for spatial effects}
+
+\subsection*{Parametrization}
+
+This model is simply the sum of a \lstinline$besag$ model and a
+\lstinline$iid$ model.
+ 
+The benefite is that this allows to get the posterior marginals of the
+sum of the spatial and iid model; otherwise it offers no advantages.
+
+\subsection*{Hyperparameters}
+The hyperparameters are the precision $\tau_1$ of the \lstinline$iid$
+model and the precision $\tau_2$ of the \lstinline$besag$ model.  The
+precision parameters are represented as
+\begin{displaymath}
+    \theta=(\theta_1,\theta_2) =(\log \tau_1,\log \tau_2)
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta}$.
+
+\subsection*{Specification}
+
+The bym model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>,model="bym",graph.file=<graph file name>
+              prior=c(<prior.model.theta1>,<prior.model.theta2>),
+              param=c(<param.prior.theta1>,<param.prior.theta1>,<param.prior.theta2>,<param.prior.theta2>,))
+\end{verbatim}
+
+The neighbourhood structure of $\mathbf{x}$ is passed to the program
+through the {\tt graph.file} argument.  The structure of this file is
+described below.
+
+\subsubsection*{Structure of the graph file}
+
+We describe the required format for the graph file using a small
+example. Let the file {\tt gra.dat}, relative to a small graph of only
+5 elements, be
+\begin{lstlisting}[basicstyle=\footnotesize]
+    5
+    1 1 2
+    2 2 1 3
+    3 3 2 4 5 
+    4 1 3
+    5 1 3
+\end{lstlisting}
+Line 1 declares the total number of nodes in the graph (5), then, in
+lines 2-6 each node is described. For example, line 4 states that node
+3 has 4 neighbours and these are nodes 2, 4 and 5.
+
+The graph file can either have nodes indexed from 1 to $n$, or from 0
+to $n-1$.
+
+\subsection*{Example}
+
+For examples of application of this model see the {\tt Bym} example in
+Volume I.
+
+\subsection*{Notes}
+
+None
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

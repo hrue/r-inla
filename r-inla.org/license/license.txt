@@ -1,0 +1,92 @@
+Most of the code is made available under the GNU General Public
+License, including R-INLA, the inla-program and GMRFLib. Some external
+libraries has different licenses as described below.
+
+
+
+
+TAUCS library:
+
+TAUCS Version 2.0, November 29, 2001. Copyright (c) 2001, 2002, 2003
+by Sivan Toledo, Tel-Aviv Univesity, stoledo@tau.ac.il. All Rights
+Reserved.
+
+TAUCS License:
+
+Your use or distribution of TAUCS or any derivative code implies that
+you agree to this License.
+
+THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
+OR IMPLIED. ANY USE IS AT YOUR OWN RISK.
+
+Permission is hereby granted to use or copy this program, provided
+that the Copyright, this License, and the Availability of the original
+version is retained on all copies. User documentation of any code that
+uses this code or any derivative code must cite the Copyright, this
+License, the Availability note, and "Used by permission." If this code
+or any derivative code is accessible from within MATLAB, then typing
+"help taucs" must cite the Copyright, and "type taucs" must also cite
+this License and the Availability note. Permission to modify the code
+and to distribute modified code is granted, provided the Copyright,
+this License, and the Availability note are retained, and a notice
+that the code was modified is included. This software is provided to
+you free of charge.
+
+
+
+METIS library:
+
+Can I distribute METIS with my application?
+
+Our policy regarding the distribution of METIS with third-party
+applications is as follows:
+
+Non-commercial applications
+    METIS can be freely distributed provided that:
+
+        * A reference to the following paper is included: “A Fast and
+        * Highly Quality Multilevel Scheme for Partitioning Irregular
+        * Graphs”. George Karypis and Vipin Kumar. SIAM Journal on
+        * Scientific Computing, Vol. 20, No. 1, pp. 359—392, 1999.
+        * The original documentation (PDF file of the manual) and
+        * copyright notice is included.
+
+Commercial applications
+    METIS can be freely distributed provided that:
+
+        * A reference to the following paper is included: “A Fast and
+        * Highly Quality Multilevel Scheme for Partitioning Irregular
+        * Graphs”. George Karypis and Vipin Kumar. SIAM Journal on
+        * Scientific Computing, Vol. 20, No. 1, pp. 359—392, 1999.
+        * The original documentation (PDF file of the manual) and
+        * copyright notice is included.  METIS is a relatively small
+        * portion of the overall application.
+
+In either case, permission to distribute/include METIS with your
+application must be obtained by sending email to metis@cs.umn.edu.
+
+
+
+hash.c in GMRFLib:
+
+Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

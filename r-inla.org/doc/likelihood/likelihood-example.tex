@@ -1,0 +1,90 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Negative Binomial}
+
+\subsection*{Parametrization}
+
+The negative Binomial distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\Gamma(y+n)}{\Gamma(n) \Gamma(y+1)} p^n (1-p)^y
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where:
+\begin{description}
+\item[$n$]: number of successful trials, or dispersion
+    parameter. Must be strictly positive, need not be integer.
+\item[$p$]: probability of success in each trial.
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu = n \frac{1-p}{p} \qquad\text{and}\qquad \sigma^{2} = \mu(1 + \frac{\mu}{n})
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = E \exp(\eta)
+\end{displaymath}
+where the hyperparameter $n$ (or the \emph{size}) plays the role of an
+overdispersion parameter. $E$ represents known constant and
+$\log(E)$ is the offset of $\eta$.
+
+\subsection*{Hyperparameters}
+
+The overdispersion parameter $n$ is represented as
+\begin{displaymath}
+    \theta = \log(n)
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{nbinomial}$
+\item Required argument: $y$ and $E$ (default $E=1$).
+\end{itemize}
+
+\subsection*{Example}
+In the following example we specify the likelihood to be negative binomial, and assign the hyperparameter $\theta$ a Gaussian prior with mean $0$ and standard deviation $0.01$
+ 
+\begin{verbatim}
+n=100
+a = 1
+b = 1
+E = rep(1,n)
+z = rnorm(n)
+eta = a + b*z
+mu = E*exp(eta)
+siz = 15
+p = siz/(siz + mu)
+y = rnbinom(n, size=siz, prob = p)
+
+data = list(y=y,z=z)
+formula = y ~ 1+z
+result = inla(formula, family = "nbinomial", data = data, E=E,
+              control.data = list(prior="gaussian", param = c(0,0.01)))
+summary(result)
+\end{verbatim}
+
+\subsection*{Notes}
+
+As $n\rightarrow\infty$, the negative Binomial converges to the
+Poisson distribution. For numerical reasons, if $n$ is too large:
+\begin{displaymath}
+    \frac{\mu}{n} < 10^{-4},
+\end{displaymath}
+then the Poisson limit is used.
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

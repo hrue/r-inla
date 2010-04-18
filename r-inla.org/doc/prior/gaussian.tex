@@ -1,0 +1,56 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Gaussian prior}
+
+\subsection*{Parametrisation}
+The normal/Gaussian distribution has density
+\begin{equation}
+    \pi(\theta)=\left(\frac{\tau}{2\pi}\right)^{1/2}
+    \exp\left(-\frac{\tau}{2}(\theta-\mu)^2\right)
+\end{equation}
+for continuous $\theta$ where
+\begin{description}
+\item[$\mu$:] is the mean
+\item[$\tau$:] is precision.
+\end{description}
+
+\subsection*{Specification}
+The Gaussian prior for the hyperparameters is specified inside the
+\texttt{f()} function as following:
+\begin{center}
+    \texttt{f( <whatever> , prior="normal", param=c(<mean>, <precision>) )}
+\end{center}
+or
+\begin{center}
+    \texttt{f( <whatever> , prior="gaussian", param=c(<mean>, <precision>) )}
+\end{center}
+in the case where there is one hyperparameter for that particular
+\texttt{f}-model. In the case where we want to specify the prior for
+the hyperparameter of an observation model, for example the negative
+Binomial, the the prior spesification will appear inside the
+\texttt{control.data()}-argument; see the following example for
+illustration.
+
+\subsection*{Example}
+In the following example we estimate the parameters in a simulated
+example with negative binomial responses and assign the hyperparameter
+$\theta$ (the dispersion parameter), a Gaussian prior with mean $0$
+and precision $0.01$.%%
+\verbatiminput{example-gaussian.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
