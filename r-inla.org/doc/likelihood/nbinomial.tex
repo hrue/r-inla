@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Negative Binomial}
+
+\subsection*{Parametrisation}
+
+The negative Binomial distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\Gamma(y+n)}{\Gamma(n) \Gamma(y+1)} p^n (1-p)^y
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where
+\begin{description}
+\item[$n$:] number of successful trials, or dispersion
+    parameter. Must be strictly positive, need not be integer.
+\item[$p$:] probability of success in each trial.
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu = n \frac{1-p}{p} \qquad\text{and}\qquad \sigma^{2} = \mu(1 + \frac{\mu}{n})
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = E \exp(\eta)
+\end{displaymath}
+where the hyperparameter $n$ (or the \emph{size}) plays the role of an
+overdispersion parameter. $E$ represents knows constant and $\log(E)$
+is the offset of $\eta$.
+
+\subsection*{Hyperparameters}
+
+The overdispersion parameter $n$ is represented as
+\begin{displaymath}
+    \theta = \log(n)
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{nbinomial}$
+\item Required arguments: $y$ and $E$ (default $E=1$).
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with negative binomial responses and assign the hyperparameter
+$\theta$ a Gaussian prior with mean $0$ and precision $0.01$
+\verbatiminput{example-nbinomial.R}
+
+\subsection*{Notes}
+
+As $n\rightarrow\infty$, the negative Binomial converges to the
+Poisson distribution. For numerical reasons, if $n$ is too large:
+\begin{displaymath}
+    \frac{\mu}{n} < 10^{-4},
+\end{displaymath}
+then the Poisson limit is used.
+
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

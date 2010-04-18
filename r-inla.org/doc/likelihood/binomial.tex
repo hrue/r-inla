@@ -1,0 +1,62 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Binomial}
+
+\subsection*{Parametrisation}
+
+The Binomial distribution is
+\begin{displaymath}
+    \text{Prob}(y) = {n \choose y} \ p^n (1-p)^{n-y}
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots,n$, where
+\begin{description}
+\item[$n$:] number of trials.
+\item[$p$:] probability of success in each trial.
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu = np \qquad\text{and}\qquad \sigma^{2} = np(1-p)
+\end{displaymath}
+and the probability $p$ is linked to the linear predictor by
+\begin{displaymath}
+    p(\eta) = \frac{\exp(\eta)}{1+\exp(\eta)}
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{binomial}$
+\item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with binomial responses.
+\verbatiminput{example-binomial.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

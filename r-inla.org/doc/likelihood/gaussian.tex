@@ -1,0 +1,71 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Gaussian}
+
+\subsection*{Parametrisation}
+
+The Gaussian distribution is
+\begin{displaymath}
+    f(y) = \frac{\sqrt{w\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
+      w\tau \left(y-\mu\right)^{2}\right)
+\end{displaymath}
+for continuously responses $y$ where
+\begin{description}
+\item[$\mu$:] is the the mean
+\item[$\tau$:] is the precision
+\item[$w$:] is a fixed weight, $w>0$.    
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu \quad\text{and}\qquad \sigma^{2} = \frac{1}{w\tau}
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The precision is represented as
+\begin{displaymath}
+    \theta = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gaussian}$
+\item Required arguments: $y$ and $w$ (keyword \texttt{weights})
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Gaussian responses, giving $\tau$ a Gamma-prior with
+parameters $(1, 0.01)$ and initial value (for the optimisations) of
+$\exp(2.0)$.
+%%
+\verbatiminput{example-gaussian.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

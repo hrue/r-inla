@@ -1,0 +1,199 @@
+
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath,amssymb}
+
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section{Introduction}
+
+The aim of this paper is to describe the class of models which can be implemented using the {\tt R inla} package.
+
+The {\tt R inla} packages solves models using 
+Integrated nested Laplace approximation (INLA) which is a new approach to
+statistical inference for latent Gaussian Markov random field (GMRF)
+models described in  \cite{art451}. 
+
+In short, a latent GMRF model is a hierarchical model where, at the
+first stage we find a distributional assumption for the observables
+$\mm{y}$ usually assumed to be conditionally independent given some
+latent parameters $\mm{\eta}$ and, possibly, some additional
+parameters $\mm{\theta}_1$
+\[
+\pi(\mm{y}|\mm{\eta},\mm{\theta}_1)=\prod_{j}\pi(y_j|\eta_j,\mm{\theta}_1).
+\]
+The third, and last, stage of the model consists of the prior
+distribution for the hyperparameters
+$\mm{\theta}=(\mm{\theta}_1,\mm{\theta}_2)$.
+The INLA approach provides a recipe for fast Bayesian inference using
+accurate approximations to $\pi(\mm{\theta}|\mm{y})$ and
+$\pi(x_i|\mm{y})$, $i=0,\dots,n-1$, i.e. the marginal posterior
+density for the hyperparameters and the posterior marginal densities
+for the latent variables.  Different types of approximations are
+available, see \cite{art451} for details. The approximate posterior
+marginals can then be used to compute summary statistics of interest,
+such as posterior means, variances or quantiles.
+
+Using the INLA approach it is also possible to challenge the model
+itself. The model can be assessed through cross-validation in a
+reasonable time. Moreover, Bayes factors and deviance information
+criterion (DIC) can be computed in an efficient way providing tools
+for model comparison.
+
+\section{Model description}
+
+
+The {\tt R inla} library supports hierarchical GMRF models of the
+following type
+\begin{eqnarray}\label{eq1}
+    y_j|\eta_j,\mm{\theta}_1\sim\pi(y_j|\eta_j,\mm{\theta}_1)\qquad
+    j\in J \\\label{eq2}
+    \eta_i=\mbox{Offset}_i+
+    \sum_{k=0}^{n_f-1} w_{ki}\ f_k( c_{ki}) + \mm{z}_i^T\mm{\beta}+\epsilon_i\qquad i=0,\dots,n_{\eta}-1
+\end{eqnarray}
+where
+\begin{itemize}
+\item $J$ is a subset of $\{0,1,\dots,n_{\eta}-1\}$, that is, not
+    necessarily all latent parameters $\mm{\eta}$ are observed through
+    the data $\mm{y}$.
+\item $\pi(y_j|\eta_j,\mm{\theta}_1)$ is the likelihood of the
+    observed data assumed to be conditional independent given the
+    latent parameters $\mm{\eta}$, and, possibly, some additional
+    parameters $\mm{\theta}_1$. The latent variable $\eta_i$ enters
+    the likelihood through a known link function.
+\item $\mm{\epsilon}$ is a vector of unstructured random effects of
+    length $n_{\eta}$ with i.i.d Gaussian priors with precision
+    $\lambda_{\eta}$:
+    \begin{equation}
+        \mm{\epsilon}|\lambda_{\eta}\sim\mathcal{N}(\mm{0},\lambda_{\eta}\mm{I})
+    \end{equation}
+\item $\mm{\eta}=(\eta_1,\eta_2,\dots)$ is a vector of predictors.
+\item{$\mbox{Offset}$} is an a priori known component to be
+    included in the linear predictor during fitting.
+\item$\mm{w}_k$ known weights defined for each observed data point.
+\item $f_k(c_{ki})$ is the effect of a generic covariate $k$ which
+    assumes value $c_{ki}$ for observation $i$.  The functions $f_k$,
+    $k=0,\dots,n_f-1$ comprise usual nonlinear effect of continuous
+    covariates, time trends and seasonal effects, two dimensional
+    surfaces, iid random intercepts and slopes and spatial random
+    effects. The unknown functions, or more exactly the corresponding
+    vector of function evaluations
+    $\mm{f}_k=(f_{0k},\dots,f_{(m_k-1)k})^T$, are modelled as GMRFs
+    given some parameters $\mm{\theta}_{f_k}$, that is
+    \begin{equation}
+        \mm{f}_k|\mm{\theta}_{f_k}\sim\mathcal{N}(\mm{0},\mm{Q}^{-1}_k)
+    \end{equation}
+\item $\mm{z}_i$ is a vector of $n_{\beta}$ covariates assumed to have
+    a linear effect, and is $\mm{\beta}$ the corresponding vector of
+    unknown parameters with independent zero-mean Gaussian prior with
+    fixed precisions.
+\end{itemize}
+The full latent field, of dimension
+$n=n_{\eta}+\sum_{j=0}^{n_f-1}m_j+n_{\beta}$, is then
+\[
+\mm{x}=(\mm{\eta}^T,\mm{f}^T_0,\dots,\mm{f}_{n_f-1}^T,\mm{\beta}^T).
+\]
+
+Note that  the latent field $\mm{x}$ is
+parametrised using the predictors $\mm{\eta}$ instead of the
+unstructured terms $\mm{\epsilon}$.
+
+All elements of vector $\mm{x}$ are defined as GMRFs, hence $\mm{x}$
+is itself a GMRF with density:
+\begin{equation}\label{eq3}
+    \pi(\mm{x}|\mm{\theta}_2)=
+    \prod_{i=0}^{n_{\eta}-1}\pi(\eta_i|\mm{f}_0,\dots,\mm{f}_{n_f-1},\mm{\beta},\lambda_{\eta})
+    \prod_{k=0}^{n_f-1}\pi(\mm{f}_k|\mm{\kappa}_{f_k})\prod_{m=0}^{n_{\beta}-1}\pi(\beta_m)
+\end{equation}
+where
+\begin{equation}\label{predictor}
+    \eta_i|\mm{f}_0,\dots,\mm{f}_{n_f-1},\mm{\beta}\sim\mathcal{N}(\sum_{k=0}^{n_f-1} f_k( c_{ki}) + \mm{z}_i^T\mm{\beta},\lambda_{\eta})
+\end{equation}
+and
+$\mm{\theta}_2=\{\log\lambda_{\eta},\mm{\theta}_{f_0},\dots,\mm{\theta}_{n_f-1}\}$
+is a vector of unknown hyperparameters. 
+
+The last element in the definition of our hierarchical model is a
+prior distribution for the hyperparameters
+$\mm{\theta}=(\mm{\theta}_1,\mm{\theta}_2)$. 
+
+\section{Examples}
+
+Many well known models from the literature can be written as special
+cases of (\ref{eq1}) and (\ref{eq2})
+\begin{itemize}
+\item {\it Time series models}
+
+    Time series models are obtained if $c_k=t$ represents time. The
+    functions $f_k$ can model nonlinear trends or seasonal effects
+    \[\eta_t=f_{trend}(t)+f_{seasonal}(t)+\mm{z}_t^T\mm{\beta}\]
+  
+\item {\it Generalised additive models (GAM)}
+    
+    A GAM model is obtained if $\pi(y_i|\eta_i,\mm{\theta}_l)$ belongs
+    to an exponential family, $c_k$ are univariate, continuous
+    covariates and $f_k$ are smooth functions.
+    
+\item {\it Generalised additive mixed models (GAMM) for longitudinal
+        data}
+
+    Consider longitudinal data for individuals $i=0,\dots,n_i-1$,
+    observed at time points $t_0,t_1,\dots$. A GAMM model extends a
+    GAM by introducing individual specific random effects, i.e.
+    \[\eta_{it}=f_0(c_{it0})+\dots,+f_{n_f-1}(c_{it(n_f-1))})+b_{0i}w_{it0}+\dots+b_{(n_b-1)i}w_{it(n_b-1)}\]
+    where $\eta_{it}$ is the predictor for individual $i$ at time $t$,
+    $x_{itk}$, $k=0,\dots,n_f-1$,$w_{itq}$, $q=0,\dots,n_b-1$ are
+    covariate values for individual $i$ at time $t$, and
+    $b_{0i},\dots,b_{(n_b-1)i}$ is a vector of $n_b$ individual
+    specific random intercepts (if $w_{itq}=1$) or slopes. The above
+    model can be written in the general form in equation (\ref{eq2}) by
+    defining $r=(i,t)$, $c_{rj}=c_{itj}$ for $j=0,\dots,n_f-1$ and
+    $c_{r,(n_f-1)+q}=w_{itq}$,
+    $f_{(n_f-1)+q}(c_{r,(n_f-1)+q})=b_{qi}w_{itq}$ for
+    $q=0,\dots,n_b$. In the same way GAMM's for cluster data can be
+    written in the general form (\ref{eq2}).
+    
+\item {\it Geoadditive models}
+
+    If geographical information for the observations in the data set
+    are available, they might be included in the model as
+    \[\eta_i=f_1(c_{0i})+\dots+f_{n_f-1}(c_{(n_f-1)i})+f_{spat}(s_i)+\mm{z}_i^T\mm{\beta}\]
+    where $s_i$ indicates the location of observation $i$ and
+    $f_{spat}$ is a spatially correlated effect. Models where one of
+    the covariate represent the spatial effect have recently been
+    coined geoadditive by \cite{art270}.
+    
+\item {\it ANOVA type interaction model}
+
+    The effect of two continuous covariate $w$ and $v$ can be modelled
+    as
+    \[
+    \eta_i=f_1(w_i)+f_2(v_i)+f_{1|2}(w_i,v_i)+\dots
+    \]
+    where $f_1$ and $f_2$ are the main effects of the two covariates
+    and $f_{1|2}$ is a two dimensional interaction surface. The above
+    model can be written in the general form (\ref{eq2}) simply by
+    defining $c_{1i}=w_i$, $c_{2i}=v_i$, $c_{3i}=(w_i,v_i)$,
+
+\item {\it Univariate stochastic volatility model}
+
+    Stochastic volatility models are time series models with Gaussian
+    likelihood where it is the variance, and not the mean of the
+    observed data, to be part of the latent GMRF model. That is
+    \[
+    y_i|\eta_i\sim\mathcal{N}(0,\exp(\eta_i))
+    \]
+    The latent field is then typically modelled as a autoregressive
+    model of order 1.
+\end{itemize}
+
+\small\bibliography{mybib} \newpage
+
+
+\end{document}

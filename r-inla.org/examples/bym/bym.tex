@@ -1,0 +1,77 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{Bym: An example of disease mapping with covariate }
+
+Larynx cancer mortality counts are observed in the 544 district of
+    Germany from 1986 to 1990. We assume
+    the data to be conditionally independent Poisson random variables
+    with mean $E_i \exp(\eta_i)$, where $E_i$ is fixed and accounts
+    for demographic variation, and $\eta_i$ is the log-relative
+    risk. Together with the counts, for each district, the level of
+    smoking consumption $c$ is registered.
+
+    The model for $\eta_i$ takes the following form
+    \begin{equation}
+        \label{eq10}
+        \eta_i=\mu + f_s(s_i)+f(c_i)+u_i
+    \end{equation}
+    where  $f_s(\cdot)$ is the spatial effect and $u_i$ is the
+    unstructured random effect. 
+    
+    The prior model for
+    $\mm{f}_s=(f(0),\dots,f(s),\dots,f(S-1))$ implemented in the {\tt
+      inla} program is a simple (but most often used) intrinsic GMRF
+    model, see \cite[Ch. 3]{book80}, defined as:
+    \begin{equation}\label{eq.besag}
+      f_s(s)|f_s(s'),s\neq s',\lambda_s\sim\mathcal{N}(\frac{1}{n_s}\sum_{s\sim s'}f_s(s'),\frac{1}{n_s\lambda_s})
+    \end{equation}
+    where $n_s$ is the number of neighbours of site $s$, $s\sim s'$
+    indicates that the two sites $s$ and $s'$ are neighbours.  $\lambda_s$
+    is the unknown precision parameter.
+    
+    The remaining term in (\ref{eq10}),
+    $f(c_i)$, is the unknown effect of of the exposure covariate which
+    assumes value $c_i$ for observation $i$. The effect of covariate
+    $c$ is modelled as a smooth function $f(\cdot)$ parametrised as
+    unknown values $\mm{f}=(f_0,\dots,f_{m-1})^T$ at $m=100$
+    equidistant values of $c_i$.  We have scaled the covariate values
+    so that they belong to the interval $[0,10]$. The vector $\mm{f}$
+    is modelled with a second-order random walk (RW2) prior with
+    unknown precision $\lambda_f$. A sum-to-zero constraint is imposed
+    on $\mm{f}_s$ and $\mm{f}$ separate out the spatial effect and the
+    effect of the covariate from the common mean $\mu$.
+
+    The model has three hyperparameters
+    $\mm{\theta}=(\log\lambda_s,\log\lambda_f,\log\lambda_{\eta})$. Following
+    \cite{tech80} we assign a vague LogGamma prior to each element of
+    $\mm{\theta}$.
+
+\subsection*{Linear effect for the covariate}
+An alternative model is to assume a linear effect for the covariate $c$:
+\begin{equation}\label{eq10-lin}
+    \eta_i=\mu+f_s(s_i)+\beta c_i+u_i
+\end{equation}
+In this case the numer of hyperparameters is reduced to  tw, namely 
+ $\mm{\theta}=(\log\lambda_s,\log\lambda_{\eta})$
+
+\small\bibliography{../mybib} \newpage
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

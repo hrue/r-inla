@@ -1,0 +1,71 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Gaussian model for Stochastic volatility}
+
+\subsection*{Parametrization}
+
+The Gaussian likelihood for stochastic volatility models is defined as:
+\[
+\pi(y |\eta )=\sigma \epsilon 
+\]
+where
+\[
+\epsilon \sim\mathcal{N}(0,1)
+\]
+
+\subsection*{Link-function}
+
+The scale parameter $\sigma $ is linked to the linear predictor $\eta $ as:
+\[
+\sigma =\exp(\eta /2)
+\]
+
+
+\subsection*{Hyperparameters}
+
+None
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{stochvol}$
+\item Required argument: $y$.
+\end{itemize}
+
+\subsection*{Example}
+In the following example we specify the likelihood for the stochastic volatility model to be Gaussian 
+ 
+\begin{verbatim}
+#simulated data
+n=500
+phi=0.53
+eta=rep(0.1,n)
+for(i in 2:n)
+  eta[i]=0.1+phi*(eta[i-1]-0.1)+rnorm(1,0,0.6)
+y=exp(eta/2)*rnorm(n)
+time=1:n
+data=list(ret=y,time=time)
+
+#fit the model
+formula=ret~f(time,model="ar1",param=c(1,0.001,0,0.4))
+result=inla(formula,family="stochvol",data=data)
+
+\end{verbatim}
+
+\subsection*{Notes}
+
+None
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
