@@ -29,7 +29,9 @@ EXAMPLES_MANUAL = ../example_doxygen_geo.txt ../example_doxygen_block_1.txt \
 		../example_doxygen_approx_1.txt ../example_doxygen_approx_2.txt ../example_doxygen_approx_3.txt \
 		../example_hgmrfm_1.txt ../example_hgmrfm_2.txt ../example_doxygen_block_2.txt ../example_doxygen_matern2d.txt
 
-all : $(PROGS) $(EXAMPLES_MANUAL)
+all : $(PROGS) examples-manual
+
+examples-manual: $(EXAMPLES_MANUAL)
 
 ../example_auxvar.txt : example-auxvar.c
 	expand $< > $@

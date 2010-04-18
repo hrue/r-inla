@@ -55,9 +55,11 @@ EXTLIBS_INSTALL_ALL = $(EXTLIBS_INSTALL) $(patsubst T-%,install-%,$(EXTLIBS_TARG
 all: build
 
 get: $(EXTLIBS_GET)
+unpack: $(EXTLIBS_PATCH)
 build: $(EXTLIBS_BUILD)
 install: $(EXTLIBS_INSTALL)
 get-all: $(EXTLIBS_GET_ALL)
+unpack-all: $(EXTLIBS_PATCH_ALL)
 build-all: $(EXTLIBS_BUILD_ALL)
 install-all: $(EXTLIBS_INSTALL_ALL)
 
@@ -138,9 +140,9 @@ clean:
 	-rm .patch-taucs
 
 clean-files:
-#	-rm $(FILE_METIS) $(FILE_TAUCS)
+	-rm $(FILE_METIS) $(FILE_TAUCS)
 
-.PHONY: get build get-all build-all clean patch-metis $(EXTLIBS_GET_ALL) $(EXTLIBS_BUILD_ALL) 
+.PHONY: get build get-all build-all clean $(EXTLIBS_GET_ALL) $(EXTLIBS_PATCH_ALL) $(EXTLIBS_BUILD_ALL)  $(EXTLIBS_INSTALL_ALL) 
 
 #$(INLA) : $(OBJ)
 #	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)

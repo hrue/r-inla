@@ -92,6 +92,22 @@ $(LIBNAME): $(LIBNAME)($(LIBOBJ))
 $(LIBNAMEG): $(LIBNAMEG)($(LIBOBJG))
 	ranlib $@
 
+DEPDIR = .deps/.dummy
+$(DEPDIR):
+	-mkdir $(dir $(DEPDIR))
+	touch $(DEPDIR)
+%.o: %.c $(DEPDIR)
+	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))/$*.d -o $@ $<
+	sed -i -e ':more;/\\$$/N;s/[ ]*\\\n[ ]*/ /;tmore' \
+	       -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
+	  $(dir $(DEPDIR))/$*.d
+%.o: %.F $(DEPDIR)
+	$(COMPILE.F) -o $@ $<
+	-rm $(dir $(DEPDIR))/$*.d
+	grep -E '^#include' < $< \
+	  | sed 's!#include "\([^"]*\)"!$@ : $$\(wildcard \1\)!' \
+	  > $(dir $(DEPDIR))/$*.d
+
 examples/Makefile.in : $(LIBNAME)
 	 ( \
 	   echo SHELL=$(SHELL); \
@@ -115,6 +131,17 @@ tutorial/Makefile.in : $(LIBNAME)
 	   echo LEXTLIBS=$(LEXTLIBS); \
 	   echo IEXTLIBS=$(IEXTLIBS); \
 	 ) > $@
+
+doc:
+	@ ./make-doxyfile < GMRFLib-Doxyfile > tt.tmp
+	umask 0022
+	doxygen tt.tmp
+#	mkdir -p doc/html/figs
+#	mkdir -p doc/tutorial
+#	cp -fv figs/*.gif doc/html/figs
+#	( cd gmrf_tutorial; doxygen )
+#	rsync -auv --delete gmrf_tutorial/doxydoc/ doc/tutorial
+
 
 install: $(ALL)
 	 @umask 022;\
@@ -152,9 +179,14 @@ uninstall:
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
 clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
+clean-deps:
+	-$(RM) dependencies
+	-$(RM) -r $(dir $(DEPDIR))
 
-depend:
-	($(CC) -c $(INCL) -MM *.c; $(FC) -c $(INCL) -MM *.F )  > dependencies
+depend: dependencies
+dependencies: $(wildcard *.c)
+	-rm dependencies
+	touch dependencies
 	for file in *.c ; do \
           if [ -n "`grep HGVERSION $$file`" ]; then \
 	    echo $$file | \
@@ -163,21 +195,14 @@ depend:
 	  fi \
         done
 
-#RCSId.all: $(wildcard *.h) $(wildcard *.c)
-#	-grep '$$Id:.*$$' *.h *.c | \
-#	sed 's![^$$]*$$Id:\([^$$]*\)$$.*! "$$Id \1$$",!' | \
-#	sed 's!:! !g' | \
-#	sort > RCSId.all
 RCSId.all: hgstamp
 	sed 's/\(.*\)/"\1",/' < hgstamp > RCSId.all
 
-hgstamp: versiondummy
+hgstamp: dummytarget
 	[ -f $@ ] || touch $@
 	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
-versiondummy: ;
+dummytarget: ;
 
-.PHONY: depend clean uninstall install
+.PHONY: depend clean clean-deps uninstall install doc dummytarget
 
-include dependencies
-
-
+include dependencies $(wildcard $(dir $(DEPDIR))/*.d)
