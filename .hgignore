@@ -5,6 +5,13 @@ syntax: glob
 *~
 *.o
 *.a
+## these are temporary files for pdflatex compile
+*_latexmk
+*.log
+*.aux
+*.dvi
+*.bbl
+*.blg
 
 # switch to regexp syntax.
 syntax: regexp
