@@ -1,0 +1,70 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Student-$t$}
+
+\subsection*{Parametrization}
+
+The Student-$t$ likelihood is defined so that 
+\[
+\sqrt{w\ \tau}(y - \eta)\sim T_{\nu}
+\]
+for continuous response $y$ where
+\begin{itemize}
+\item[$\tau$]: is the precision parameter
+\item[$w$]: is a foxed weight $w>0$
+\item[$\eta$]: is the linear predictor
+\item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of freedom such that its variace is $1$ for any value of $\nu$.
+\end{itemize}
+\subsection*{Link-function}
+
+Identity
+
+\subsection*{Hyperparameters}
+
+This likelihood has to hyperparameters
+\begin{eqnarray*}
+    \theta_1 &=& \log(\tau)\\
+    \theta_2&=&\log(\nu-2)
+\end{eqnarray*}
+and the prior is defined on $\theta=(\theta_1,\theta_2)$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{T}$
+\item Required argument: $y$ and $w$ (keyword {\tt weights}, default to 1).
+\end{itemize}
+
+\subsection*{Example}
+\begin{verbatim}
+#simulate data
+n=100
+phi=0.85
+mu=0.5
+eta=rep(0,n)
+for(i in 2:n)
+eta[i]=mu+phi*(eta[i-1]-mu)+rnorm(1)
+nu=3
+t=rt(n,df=nu)
+y=eta+t/(sqrt(nu/(nu-2)))
+data=list(y=y,z=seq(1:n))
+#define the model and fit
+formula=y~f(z,model="ar1")
+result=inla(formula,family="T",data=data)
+\end{verbatim}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

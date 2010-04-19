@@ -1,0 +1,62 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Poisson}
+
+\subsection*{Parametrisation}
+
+The Poisson distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where
+\begin{description}
+\item[$\lambda$:] the expected value.
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu = \lambda \qquad\text{and}\qquad \sigma^{2} = \lambda
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \lambda(\eta) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{poisson}$
+\item Required arguments: $y$ and $E$
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+\verbatiminput{example-poisson.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials poisson
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

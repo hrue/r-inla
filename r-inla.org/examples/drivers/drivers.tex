@@ -1,0 +1,69 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{A time series with seasonal component: the drivers data}
+This example is  taken from \cite[Sec 4.4.2]{book80}. 
+
+    The data consist in monthly counts of car drivers in Great Britain
+    killed or seriously injured in car accidents from January 1969 to
+    December 1984. The time series has $n_d=192$ data points and
+    exhibits a strong seasonal pattern. One of our goals is to predict
+    the pattern of counts in the 12 month following the last
+    observation.
+
+    We assume the squared root of the counts $y_t$ to be conditionally
+    independent Gaussian random variables:
+    \[
+    y_t|\eta_t,\lambda_y\sim\mathcal{N}(\eta_t,1/\lambda_y),\quad
+    t=0,\dots,n_d-1
+    \]
+    The conditional mean $\eta_t$ is then a sum of a smooth trend and
+    a seasonal component:
+    \begin{equation}
+        \eta_t=\text{season}_t+\text{trend}_t,\quad t=0,\dots,n_{\eta}-1
+    \end{equation}
+    We assume the vector
+    $\textbf{season}=(\text{season}_0,\dots,\text{season}_{n_{\eta}-1})$
+    to follow the seasonal model in (3.58) of \cite{book80}, with
+    length 12 and unknown precision $\lambda_{\textbf{season}}$, and
+    the vector
+    $\textbf{trend}=(\text{trend}_0,\dots,\text{trend}_{n_{\eta}-1})$
+    to follow a RW2 with unknown precision $\lambda_{\textbf{trend}}$.
+
+    Note that we have that $n_{\eta}=n_d+12=204$, since no
+    observations $y_t$ are available for
+    $t=n_d,n_d+1,\dots,n_d+11$. For prediction we are interested in
+    the posterior marginals of $(\eta_{n_d},\dots,\eta_{n_d+11})$.
+
+    There are three hyperparameters in the model
+    $\mm{\theta}=(\log\lambda_y,\log\lambda_{\textbf{season}},\log\lambda_{\textbf{trend}})$
+    for which we choose the following prior distributions:
+    \[
+    \begin{array}{lcl}
+        \lambda_y&\sim&\text{LogGamma}(4,4)\\
+        \lambda_{\textbf{season}}&\sim&\text{LogGamma}(1,0.1)\\
+        \lambda_{\textbf{trend}}&\sim&\text{LogGamma}(1,0.0005)\\
+    \end{array}
+    \]
+    See \cite{book80} for more details.
+
+\small\bibliography{../mybib} \newpage
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

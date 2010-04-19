@@ -1,0 +1,117 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Generic 1 model}
+
+\subsection*{Parametrization}
+
+The Type 1 generic model implements the following precision matrix
+\[
+\mathbf{Q}=\tau(\mathbf{I}-\frac{\beta}{\lambda_{max}}\mathbf{C})
+\]
+where $\mathbf{C}$ is the structure matrix. The parameter
+$\lambda_{max}$ is the maximum eigenvalue of $\mathbf{C}$, which
+allows $\beta$ to be in the range $\beta\in[0,1)$
+\subsection*{Hyperparameters}
+
+The two parameters of the generic1 model are represented as
+\begin{eqnarray*}
+    \theta_1 &= & \log(\tau)\\
+    \theta_2 &=&\text{logit}(\beta)
+\end{eqnarray*}
+and priors are assigned to $(\theta_1,\theta_2)$
+
+\subsection*{Specification}
+
+The generic1 model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>,model="generic1",Cmatrix = <Cmat>,
+              prior=c(<prior.model.theta1>,<prior.model.theta2>),
+              param=c(<param.prior.theta1>,<param.prior.theta1>,
+                      <param.prior.theta2>,<param.prior.theta2>))
+\end{verbatim}
+where {\tt <Cmat>} can be given in two different ways:
+\begin{itemize}
+\item a list of type {\tt Cmatrix = list(i = c(), j = c(), Cij =
+        c())}, where {\tt i}, {\tt j} and {\tt Cij} are vectors of the
+    non-zero elements of $\mathbf{C}$. Note that {\tt i} and {\tt j}
+    start from 1, and only the upper or lower part of $\mathbf{C}$ has
+    to be given.
+\item the name of a file giving the structure matrix. The file should
+    have the following format
+    \[
+    i\quad j\quad \mathbf{C}_{ij}
+    \]
+    where $i$ and $j$ are the row and column index and
+    $\mathbf{C}_{ij}$ is the corresponding element of the precision
+    matrix. Only the non-zero elements of the precision matrix need to
+    be stored in the file. {\bf NOTE:} the indexes for $i$ and $j$
+    start from 0, as this matrix is passed directly into the
+    \texttt{inla}-program.
+\end{itemize}
+
+\subsection*{Example}
+\begin{verbatim}
+
+n = 10
+
+#build a structure matrix
+Cm = matrix(runif(n^2,min=-1,max=1),n,n)
+diag(Cm) = 0
+Cm = 0.5*(Cm + t(Cm))
+lambda.max = max(eigen(Cm)$values)
+
+#define the precision matrix
+beta = 0.5
+Q = diag(rep(1,n)) - beta/lambda.max * Cm
+Sigma = solve(Q)
+
+#simulate data
+require(mvtnorm)
+sd = 0.001
+z = rnorm(n)
+eta = rmvnorm(n=1,sigma = Sigma)
+y = c(eta) + sd*rnorm(n) + z
+
+#print the file containing the C matrix
+file = "Cmatrix.dat"
+cat("",file=file, append = FALSE)
+for(i in 1:n)
+{
+    j = i
+    cat(i-1,j-1,Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
+    if (i < n)
+    {
+        for(j in (i+1):n)
+        {
+            cat(i-1,j-1,Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
+        }
+    }
+}
+
+
+idx = 1:n
+formula = y ~ f(idx, model = "generic1", Cmatrix = file, initial=c(0,0),fixed=c(F,F) ) + z
+
+d = list(y=y,idx=idx,z=z)
+result = inla(formula, data=d,family="gaussian",
+              control.data = list(initial = log(1/sd^2), fixed=TRUE))
+
+
+
+\end{verbatim}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

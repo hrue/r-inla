@@ -1,0 +1,91 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{ Normal Inverse Gaussian (NIG) model for Stochastic volatility}
+
+\subsection*{Parametrization}
+
+The NIG likelihood for stochastic volatility models is defined as:
+\[
+\pi(y |\eta )=\sigma \epsilon 
+\]
+where
+\[
+\epsilon \sim\mbox{NIG}(\beta,\psi)
+\]
+and $\mbox{NIG}(\beta,\psi)$ is a standardised NIG distribution with density
+\begin{displaymath}
+    \pi(\cdot|\beta,\psi)=\frac{\gamma\psi}{\pi} \sqrt{ \frac{\beta^{2} +
+            \psi^{2}}{(\gamma x + \beta)^{2} + \psi^{2}}}
+    \;
+    \exp\left(\psi^{2} + \beta(\gamma x + \beta)\right)
+    \;
+    K_{1}\left(\sqrt{ \left(\beta^{2}+\psi^{2}\right)\left((\gamma x
+            + \beta)^{2}+\psi^{2}\right)}\right)
+\end{displaymath}
+where $\gamma^{2} = 1 + \beta^{2}/\psi^{2}$.
+
+
+\subsection*{Link-function}
+
+The scale parameter $\sigma $ is linked to the linear predictor $\eta $ as:
+\[
+\sigma =\exp(\eta /2)
+\]
+
+
+\subsection*{Hyperparameters}
+
+The skewness parameter $\beta$ is represented as:
+\[
+\theta_1 = \beta
+\]
+and the shape parameter $\psi$ as
+\[
+\theta_2 = \log(\psi-1)
+\]
+as the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{stochvol.nig}$
+\item Required argument: $y$.
+\end{itemize}
+
+\subsection*{Example}
+In the following example we specify the likelihood for the stochastic volatility model to be NIG 
+ 
+\begin{verbatim}
+#simulated data
+n=500
+phi=0.53
+eta=rep(0.1,n)
+for(i in 2:n)
+  eta[i]=0.1+phi*(eta[i-1]-0.1)+rnorm(1,0,0.6)
+y=exp(eta/2)*rnorm(n)
+time=1:n
+data=list(ret=y,time=time)
+
+#fit the model
+formula=ret~f(time,model="ar1",param=c(1,0.001,0,0.4))
+result=inla(formula,family="stochvol.nig",data=data)
+
+\end{verbatim}
+
+\subsection*{Notes}
+
+None
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

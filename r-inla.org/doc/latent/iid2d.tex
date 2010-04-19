@@ -1,0 +1,253 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{block}
+\begin{document}
+
+\section*{Correlated random effects: \texttt{iid1d}, \texttt{iid2d},
+    \texttt{iid3d}}
+
+This model is available for dimensions $p=1$, $2$ and $3$. We describe
+in detail the case for $p=2$, and then the changes required for $p=1$
+and $p=3$.
+
+\subsection*{Parametrization}
+
+The 2-dimensional Normal-Wishard model is used if one want to define
+two vectors of ``random effects'', $u$ and $v$, say, for which
+$(u_{i}, v_{i})$ are iid bivariate Normals
+\begin{displaymath}
+    \left(
+      \begin{array}{c}
+          u_{i}\\
+          v_{i}
+      \end{array}\right)
+    \sim \mathcal{N}\left(\mathbf{0}, \mathbf{W}^{-1}\right)
+\end{displaymath}
+where the  covariance matrix $\mathbf{W}^{-1}$ is
+\begin{equation}
+    \label{precision}
+    \mathbf{W}^{-1} = \left(\begin{array}{cc}
+          1/\tau_a & \rho \sqrt{\tau_a\tau_b}\\
+          \rho\sqrt{\tau_a\tau_b}&  1/\tau_b
+      \end{array}\right)
+\end{equation}
+and $\tau_{a}$, $\tau_{b}$ and $\rho$ are the hyperparameters. For
+these models the precision matrix $\mathbf{W}$ is Wishart distributed
+\begin{displaymath}
+    \mathbf{W}
+    \;\sim\;\text{Wishart}_{p}(r, \mathbf{R}^{-1}), \quad p=2
+\end{displaymath}
+with density
+\begin{displaymath}
+    \pi(\mathbf{W}) = c^{-1} |\mathbf{W}|^{(r-(p+1))/2} \exp\left\{
+      -\frac{1}{2}\text{Trace}(\mathbf{W}\mathbf{R})\right\}, \quad r > p+1
+\end{displaymath}
+and
+\begin{displaymath}
+    c = 2^{(rp)/2} |\mathbf{R}|^{-r/2} \pi^{(p(p-1))/4}\prod_{j=1}^{p}
+    \Gamma((r+1-j)/2).
+\end{displaymath}
+Then,
+\begin{displaymath}
+    \text{E}(\mathbf{W}) = r\mathbf{R}^{-1}, \quad\text{and}\quad
+    \text{E}(\mathbf{W}^{-1}) = \mathbf{R}/(r-(p+1)).
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are
+\begin{displaymath}
+    \theta = (\log\tau_{a}, \log\tau_{b}, \tilde\rho)
+\end{displaymath}
+where
+\begin{displaymath}
+    \rho =
+    2\frac{\exp(\tilde\rho)}{\exp(\tilde{\rho})+1} -1
+\end{displaymath}
+
+The prior-parameters are
+\begin{displaymath}
+    (r,R_{11},R_{22},R_{12})
+\end{displaymath}
+where
+\begin{displaymath}
+    \mathbf{R}= \left(\begin{array}{cc}
+          R_{11} &R_{12}\\
+          R_{21} & R_{22}
+      \end{array}\right)
+\end{displaymath}
+and $r_{12}=R_{21}$ due to symmetry.
+
+The {\tt inla} function reports posterior distribution for the
+hyperparameters $\tau_a,\tau_b,\rho$ in equation (\ref{precision}).
+
+The prior for $\theta$ is {\bf fixed} to be {\tt wishart2d}
+
+
+\subsection*{Specification}
+
+The model \texttt{iid2d}
+is specified as
+\begin{verbatim}
+    y ~ f(i, model="iid2d",n = <length>, param=<param.vector(4 elements)>) + ...
+\end{verbatim}
+and the \texttt{iid2d} model is represented internally as one vector
+of length $n$,
+\begin{displaymath}
+    (u_{1}, u_{2}, \ldots, u_{m}, v_{1}, v_{2}, \ldots, v_{m})
+\end{displaymath}
+where $n = 2m$, and $n$ is the (required) argument in
+\texttt{f()}.
+
+For this model the argument \texttt{constr=TRUE} is interpreted as
+\begin{displaymath}
+    \sum u_{i} = 0, \qquad\text{and}\qquad \sum v_{i} = 0.
+\end{displaymath}
+
+\subsection*{Example}
+In this example we implement the model
+\begin{displaymath}
+    y|\eta\sim\mbox{Pois}(\exp(\eta))
+\end{displaymath}
+where
+\begin{displaymath}
+    \eta=a+b+1
+\end{displaymath}
+and $a$ and $b$ are correlated as described above.
+
+\begin{verbatim}
+n = 1000
+N = 2*n
+rho = 0.5
+## set variances
+Sigma = matrix(c(1/1, NA, NA, 1/2), 2, 2)
+## and the correlation
+Sigma[1,2] = Sigma[2,1] = rho*sqrt(Sigma[1,1]*Sigma[2,2])
+
+## need it to simulate data
+library(mvtnorm)
+
+if (TRUE)
+{
+    ## first example
+    
+    y = yy = rmvnorm(n, sigma=Sigma)
+    y = c(y[,1], y[,2])
+
+    i = 1:N
+    formula = y ~ f(i, model="iid2d", n=N)
+
+    r = inla(formula, data = data.frame(i,y),
+            control.data=list(initial=10,fixed=TRUE))
+    print(summary(r))
+
+    print(1/diag(cov(yy)))
+    print(cor(yy)[1,2])
+}
+
+if (TRUE)
+{
+    ## second example
+
+    y = yy = rmvnorm(n, sigma=Sigma)
+    z = rnorm(n)
+    zz = rnorm(n)
+    y = y[,1] + z*y[,2] + zz
+    i = 1:n
+    j = n + 1:n
+    formula = y ~ f(i, model="iid2d", n=N) + f(j,z,copy="i") + zz 
+
+    r = inla(formula, data = data.frame(i,j,y,z,zz),
+            control.data=list(initial=10,fixed=TRUE))
+    print(summary(r))
+    print(1/diag(cov(yy)))
+    print(cor(yy)[1,2])
+}
+\end{verbatim}
+
+\subsection*{The case $p=1$}
+
+For $p=1$ the
+hyperparameter is the marginal precision
+\begin{displaymath}
+    \theta = \log \tau_{1}
+\end{displaymath}
+The prior is fixed to be \texttt{wishart1d} with parameters
+\begin{quote}
+    \emph{param = } $r\;R_{11}$
+\end{quote}
+where
+\begin{displaymath}
+    \mathbf{R} =
+    \left[\begin{array}{c}
+        R_{11}
+    \end{array}\right]
+\end{displaymath}
+
+\subsection*{The case $p=3$}
+
+For $p=3$ the
+hyperparameters are
+\begin{displaymath}
+    \theta = (\log \tau_{1}, \log \tau_{2}, \log \tau_{3},
+    \tilde\rho_{12},
+    \tilde\rho_{13},
+    \tilde\rho_{23})
+\end{displaymath}
+The prior is fixed to be \texttt{wishart3d} with parameters
+\begin{quote}
+    \emph{param = } $r\;R_{11}\;R_{22}\;R_{33}\; R_{12}\;
+    R_{13}\; R_{23}$
+\end{quote}
+where
+\begin{displaymath}
+    \mathbf{R} =
+    \left[\begin{array}{ccc}
+        R_{11} &R_{12} & R_{13}\\
+        R_{12} & R_{22} & R_{23}\\
+        R_{13} & R_{23} & R_{33}
+    \end{array}\right]
+\end{displaymath}
+The reported hyperparameters are the marginal precisions $\tau_{1}$,
+$\tau_{2}$ and $\tau_{3}$ and the correlations $\rho_{12}$,
+$\rho_{13}$ and $\rho_{23}$.
+
+In this case, the internal representation is given as
+\begin{displaymath}
+    (u_{1}, u_{2}, \ldots, u_{m}, v_{1}, v_{2}, \ldots, v_{m},
+    w_{1}, w_{2}, \ldots, w_{m})
+\end{displaymath}
+where $n=3m$ is a required argument, and where $(u_{i}, v_{i}, w_{i})$
+are trivariate iid Normal.
+
+
+\subsection*{Notes}
+
+The model \texttt{iid1d} is similar to the model \texttt{iid} (and
+included for completeness only). The prior for \texttt{iid1d} is fixed
+to be Wishart-distributed, which reduces to a Gamma-distribution for
+the precision with parameters
+\begin{displaymath}
+    a = r/2 \qquad\text{and}\qquad b = R_{11}/2
+\end{displaymath}
+hence
+\begin{verbatim}
+    y ~ f(i, model="iid1d", param=c(3, 4))
+\end{verbatim}
+is equivalent to
+\begin{verbatim}
+    y ~ f(i, model="iid", param=c(1.5, 2), prior="loggamma")
+\end{verbatim}
+
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

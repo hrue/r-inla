@@ -1,0 +1,214 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{block}
+\begin{document}
+
+\section*{The Wishart model for correlated effects}
+
+This model is availabe for dimensions $p=2,3$, we describe in detail
+the case for $p=2$ and the the case for $p=3$.
+
+\subsection*{Parametrization}
+
+The 2-dimesional Wishard model is used if one want to define the model
+for the linear predictor $\eta$ as:
+\[
+\eta=a+b
+\]
+where $a$ and $b$ are correlated
+\[
+\left(
+  \begin{array}{c}
+      a\\
+      b
+  \end{array}\right)
+\sim \mathcal{N}\left(\mathbf{0}, \mathbf{W}^{-1}\right)
+\]
+with covariance matrix $\mathbf{W}^{-1}$
+\begin{equation}
+    \label{precision}
+    \mathbf{W}^{-1} = \left(\begin{array}{cc}
+          1/\tau_a & \rho \sqrt{\tau_a\tau_b}\\
+          \rho\sqrt{\tau_a\tau_b}&  1/\tau_b
+      \end{array}\right)
+\end{equation}
+and $\tau_{a}$, $\tau_{b}$ and $\rho$ are the hyperparameters. In this
+case the following model is implemented for the precision matrix
+$\mathbf{W}$
+\begin{displaymath}
+    \mathbf{W}
+    \;\sim\;\text{Wishart}_{p}(r, \mathbf{R}^{-1}), \quad p=2
+\end{displaymath}
+where the Wishart distribution has density
+\begin{displaymath}
+    \pi(\mathbf{W}) = c^{-1} |\mathbf{W}|^{(r-(p+1))/2} \exp\left\{
+      -\frac{1}{2}\text{Trace}(\mathbf{W}\mathbf{R})\right\}, \quad r > p+1
+\end{displaymath}
+and
+\begin{displaymath}
+    c = 2^{(rp)/2} |\mathbf{R}|^{-r/2} \pi^{(p(p-1))/4}\prod_{j=1}^{p} \Gamma((r+1-j)/2).
+\end{displaymath}
+Then,
+\begin{displaymath}
+    \text{E}(\mathbf{W}) = r\mathbf{R}^{-1}, \quad\text{and}\quad
+    \text{E}(\mathbf{W}^{-1}) = \mathbf{R}/(r-(p+1)).
+\end{displaymath}
+\subsection*{Hyperparameters}
+
+The hyperparameters are
+\begin{displaymath}
+    \theta = (\log\tau_{a}, \log\tau_{b}, \tilde\rho)
+\end{displaymath}
+where
+\begin{displaymath}
+    \rho =
+    2\frac{\exp(\tilde\rho)}{\exp(\tilde{\rho})+1} -1
+\end{displaymath}
+
+The prior-parameters are
+\[
+(r,R_{11},R_{22},R_{12})
+\]
+where
+\[
+\mathbf{R}= \left(\begin{array}{cc}
+      R_{11} &R_{12}\\
+      R_{21} & R_{22}
+  \end{array}\right)
+\]
+and $r_{12}=R_{21}$ due to symmetry.
+
+The {\tt inla} function reports posterior distribution for the
+hyperparameters $\tau_a,\tau_b,\rho$ in equation (\ref{precision}).
+
+The prior for $\theta$ is {\bf fixed} to be {\tt wishart}
+
+
+\subsection*{Specification}
+
+The model 2d wishart for
+\[
+\eta=a+b
+\]
+is specified as
+\begin{verbatim}
+y~f(a,model="2diidwishartp1",param=<param.vector(4 elements)>) 
+  +f(b,model="2diidwishartp2")
+\end{verbatim}
+The parameters for the Wishart distribution are specified {\it only}
+for {\tt 2diidwishartp1}
+
+
+
+\subsection*{Example}
+In this example we implement the model
+\[
+y|\eta\sim\mbox{Pois}(\exp(\eta))
+\]
+where
+\[
+\eta=a+b+c
+\]
+and $b$ and $c$ are correlated as described above.
+
+\begin{verbatim}
+
+n=100
+#set hyperparameters
+r=4
+R11=1
+R22=2
+R12=0.1
+R=matrix(c(R11,R12,R12,R22),2,2)
+S=solve(R)
+#these are needed to simulate from a wishart prior
+# and sample from a multivariate normal
+library(MCMCpack)
+library(mvtnorm)
+W=rwish(r, S)
+cc=rmvnorm(n, mean=c(0,0), sigma=solve(W))
+a=cc[,1]
+b=cc[,2]
+#simulate data
+x1=1:n
+x2=1:n
+eta=0.1+a+b
+y=rpois(n,exp(eta))
+data=data.frame(y=y,x1=1:n,x2=1:n)
+#fit the model
+formula=y~f(x1,model="2diidwishartp1",param=c(4,1,2,0.1))+f(x2,model="2diidwishartp2")
+result=inla(formula,family="poisson",data=data)
+
+\end{verbatim}
+
+\subsection*{Notes}
+If more than one pair of {\tt 2diidwishartp1/2} is defined, the
+following rule is used to determine the match between {\tt p(art)1}
+and {\tt p(art)2}.
+\begin{quote}
+    The first occurrence of {\tt 2diidwishartp1} belongs with the
+    first occurrence of {\tt 2diidwishartp2}.  The second occurrence
+    of {\tt 2diidwishartp1} belongs with the second occurrence of {\tt
+        2diidwishartp2} and so on.
+\end{quote}
+
+
+\subsection*{Three dimensional case}
+
+
+The previous formulation is also available for 3D. In this case the
+hyperparameters are
+\begin{displaymath}
+    \theta = (\log \tau_{1}, \log \tau_{2}, \log \tau_{3},
+    \tilde\rho_{12},
+    \tilde\rho_{13},
+    \tilde\rho_{23})
+\end{displaymath}
+In this case the
+name the prior is \textbf{fixed} to be \texttt{Wishart3d}. The
+parameters in the prior are
+\begin{quote}
+    \emph{parameters = } $r\;R_{11}\;R_{22}\;R_{33}\; R_{12}\;
+    R_{13}\; R_{23}$
+\end{quote}
+where
+\begin{displaymath}
+    \mathbf{R} =
+    \left[\begin{array}{ccc}
+        R_{11} &R_{12} & R_{13}\\
+        R_{12} & R_{22} & R_{23}\\
+        R_{13} & R_{23} & R_{33}
+    \end{array}\right]
+\end{displaymath}
+The reported hyperparameters are the marginal precisions $\tau_{1}$,
+$\tau_{2}$ and $\tau_{3}$ and the correlations $\rho_{12}$,
+$\rho_{13}$ and $\rho_{23}$. The model names are as given in the
+following example.
+\begin{verbatim}
+formula2 <- Y ~ f(diid.part0,model="3diidwishartp1",
+                  param=c(7,1,2,3,0.1,0.2,0.3))
+                f(diid.part1,model="3diidwishartp2") +
+                f(diid.part2,model="3diidwishartp3") +
+\end{verbatim}
+
+If more than one pair of {\tt 3diidwishartp1/2/3} is defined, the
+following rule is used to determine the match between \emph{p(art)1,
+    p(art)2} and \emph{p(art)3}.
+\begin{quote}
+    The first occurrence of {\tt 3diidwishartp1} belongs with the
+    first occurrence of {\tt 3diidwishartp2} and {\tt 3diidwishartp3}.
+    The second occurrence of {\tt 3diidwishartp1} belongs with the
+    second occurrence of {\tt 3diidwishartp2} and the second
+    occurrence of {\tt 3diidwishartp3} , and so on.
+\end{quote}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
