@@ -196,6 +196,7 @@ typedef enum {
 	L_LAPLACE,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
+	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGMOD,
 	F_SEASONAL,
 	F_IID,
@@ -551,6 +552,12 @@ typedef struct {
 	double **log_prec;
 } inla_besag_Qfunc_arg_tp;
 
+typedef struct {
+	GMRFLib_graph_tp *graph;
+	double **log_prec;
+	double **log_a;					       /* the parameter a */
+	double precision;				       /* the copy precision */
+} inla_besag2_Qfunc_arg_tp;
 
 typedef struct {
 	int n;
@@ -679,6 +686,7 @@ double Qfunc_3diid_wishart_part12(int i, int j, void *arg);
 double Qfunc_3diid_wishart_part22(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
+double Qfunc_besag2(int i, int j, void *arg);
 double Qfunc_besagmod(int i, int j, void *arg);
 double Qfunc_bym(int i, int j, void *arg);
 double Qfunc_copy_part00(int i, int j, void *arg);
@@ -762,6 +770,7 @@ int inla_make_3diid_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
+int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp *graph);
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
