@@ -144,8 +144,8 @@ doc:
 	mkdir -p doc/html/figs
 	mkdir -p doc/tutorial
 	cp -fv figs/*.gif doc/html/figs
-	( cd gmrf_tutorial; doxygen )
-	rsync -auv --delete gmrf_tutorial/doxydoc/ doc/tutorial
+#	( cd gmrf_tutorial; doxygen )
+#	rsync -auv --delete gmrf_tutorial/doxydoc/ doc/tutorial
 
 
 install: $(ALL)
