@@ -119,7 +119,7 @@
   as node \a n will be empty  and removed when `building' the new graph using GMRFLib_ged_build().
 
   \par Yet another example:
-  \verbinclude example_doxygen_graph_edit.txt
+  \verbinclude example-doxygen-graph-edit.txt
 
 */
 

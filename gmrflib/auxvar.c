@@ -59,7 +59,7 @@
   - Call \c GMRFLib_aux_free_all() to free the auxiliary variables workspace
 
   Here is a simple example how to use auxiliary variables with Poisson observations:
-  \verbinclude example_auxvar.txt
+  \verbinclude example-doxygen-auxvar.txt
 
 */
 

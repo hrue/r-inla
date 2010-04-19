@@ -1,0 +1,27 @@
+Reading a graph from the file 'graph1.dat':
+
+graph has 10 nodes
+node 0 has 4 neighbors: 0 1 2 5
+node 1 has 3 neighbors: 0 2 3
+node 2 has 5 neighbors: 0 1 3 4 5
+node 3 has 3 neighbors: 0 1 2
+node 4 has 3 neighbors: 2 5 7
+node 5 has 5 neighbors: 0 2 4 6 7
+node 6 has 2 neighbors: 5 7
+node 7 has 4 neighbors: 4 5 6 8
+node 8 has 2 neighbors: 7 9
+node 9 has 1 neighbors: 8
+
+Computing subgraph:
+
+graph has 5 nodes
+node 0 has 2 neighbors: 1 2
+node 1 has 2 neighbors: 0 2
+node 2 has 3 neighbors: 0 1 3
+node 3 has 2 neighbors: 2 4
+node 4 has 1 neighbors: 3
+node 0 corresponds to mother-node 5
+node 1 corresponds to mother-node 6
+node 2 corresponds to mother-node 7
+node 3 corresponds to mother-node 8
+node 4 corresponds to mother-node 9

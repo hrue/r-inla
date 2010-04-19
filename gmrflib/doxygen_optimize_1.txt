@@ -1,0 +1,20 @@
+int loglik(double *logll, double *x, int m, int idx, double *x_vec, void *arg) 
+{ 
+    int i; 
+    double *y, *E; 
+    void **args;
+    
+    /* 
+       the data y and E come through the arg-pointer
+     */
+    args  = (void **)arg;
+    y     = (double *)args[0];
+    E     = (double *)args[1];
+
+    /* 
+       compute the log-likelihood
+     */
+    for(i=0;i<m;i++) logll[i] = y[idx]*x[i]-E[idx]*exp(x[i]);
+
+    return 0;
+}

@@ -44,7 +44,7 @@
   \sa GMRFLib_init_problem
 
   \par Example:
-  \verbinclude example_doxygen_bitmap.txt
+  \verbinclude example-doxygen-bitmap.txt
 
   which produce the following bitmaps
   \htmlonly

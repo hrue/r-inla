@@ -906,6 +906,6 @@ Solve the same problem as in \ref ex_wa, now using the routines in rw.c
 
 \par Program code:
 
-\verbinclude example_doxygen_rw_1.txt
+\verbinclude example-doxygen-rw.txt
 
 */

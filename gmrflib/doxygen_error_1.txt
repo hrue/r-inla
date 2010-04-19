@@ -1,0 +1,8 @@
+    GMRFLib has recived error no [9] 
+    Reason    : Invalid value of parameter 
+    Caused by : if (!(argc>1)) error_handler() 
+    Function  : main File : test-graph.c 
+    Line      : 25 
+    RCSId     : $Id: example_doxygen_error_1.txt,v 1.1 2004/10/04 09:18:06 hrue Exp $
+
+Abort trap (core dumped)
