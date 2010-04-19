@@ -91,7 +91,7 @@ typedef struct {
   \f[ \pi(\bf{x}) \propto \exp(-\frac{1}{2}\sum_{i \sim j}(x_i -
       x_j)^2) = \exp(-\frac{1}{2}\bf{x}^T\bf{Q}\bf{x}) \f]
   A function of type \c GMRFLib_Qfunc_tp() implementing this precision matrix is
-  \verbinclude example_doxygen_Qfunc_tp.txt	
+  \verbinclude doxygen_Qfunc_tp.txt	
   In this case, the problem specific \em void* argument is a \em graph-pointer, and the function uses a cast from \em void* to
   \em graph* to access the \em graph -object. Note that the function requires nodes \em node and \em nnode to be neighbours or
   equal!

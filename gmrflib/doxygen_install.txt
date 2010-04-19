@@ -1,0 +1,20 @@
+# USER OPTIONS
+
+# the full path to where to install the library, headerfiles and docs.
+# if you use a relative path, you have to modify the Makefile in the
+# $(PREFIX)/doc/examples yourself.
+PREFIX = /usr/local
+
+# what to call the library
+GMRFLibNAME = GMRFLib
+
+# select compilers and optimized compiler-options. add -march=.... yourself
+CC = gcc
+FC = gfortran
+FLAGS= -O3 -funroll-all-loops -fomit-frame-pointer
+
+# Path to the external libraries: metis, taucs, lapack, blas, zlib and gsl.
+LEXTPREFIX = /usr/local
+LEXTLIBS = -L$(LEXTPREFIX)/lib 
+IEXTLIBS = -I$(LEXTPREFIX)/include
+

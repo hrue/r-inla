@@ -445,17 +445,17 @@ int GMRFLib_blockupdate(double *laccept,
   
   This is the third example from Appendix 2 in the GMRF-book, analysing the simple Tokyo rainfall data.
   
-  \verbinclude example-3.txt
+  \verbinclude doxygen-example-3.txt
   
   The changes to use \c store at level 1 is simple.
   
-  \verbinclude example-3-level-1.txt
+  \verbinclude doxygen-example-3-level-1.txt
   
   Going to level 2 require a little bit more, first it must be activated, then also the information
   about the decision must be given. Be aware the assuptions needed for level 2 to give correct
   results. If unsure, then check either with level 1 or no store, the result should be the same.
   
-  \verbinclude example-3-level-2.txt
+  \verbinclude doxygen-example-3-level-2.txt
 
 */
 int GMRFLib_blockupdate_store(double *laccept,
@@ -1679,11 +1679,11 @@ The program runs on a 650MHz-laptop, doing about 11 iterations per second on the
 
 \par Program code:
 
-\verbinclude example_doxygen_block_1.txt
+\verbinclude example-doxygen-blockupdate.txt
 
 \par Here is yet another example,here using the tools in \file hgmrfm.c together with the blockupdate routine with storage. 
 
-\verbinclude example_doxygen_block_2.txt
+\verbinclude example-doxygen-blockupdate-2.txt
 
 
 */

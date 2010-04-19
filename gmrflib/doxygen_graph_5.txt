@@ -1,0 +1,75 @@
+Creating a lattice graph:
+
+graph has 42 nodes
+node 0 has 3 neighbors: 1 7 8
+node 1 has 5 neighbors: 0 2 7 8 9
+node 2 has 5 neighbors: 1 3 8 9 10
+node 3 has 5 neighbors: 2 4 9 10 11
+node 4 has 5 neighbors: 3 5 10 11 12
+node 5 has 5 neighbors: 4 6 11 12 13
+node 6 has 3 neighbors: 5 12 13
+node 7 has 5 neighbors: 0 1 8 14 15
+node 8 has 8 neighbors: 0 1 2 7 9 14 15 16
+node 9 has 8 neighbors: 1 2 3 8 10 15 16 17
+  .
+  .
+  .
+
+Extracting node indices:
+
+Lattice indices (0,0) correspond to node no. 0
+Lattice indices (0,1) correspond to node no. 1
+Lattice indices (0,2) correspond to node no. 2
+Lattice indices (0,3) correspond to node no. 3
+Lattice indices (0,4) correspond to node no. 4
+Lattice indices (0,5) correspond to node no. 5
+Lattice indices (0,6) correspond to node no. 6
+Lattice indices (1,0) correspond to node no. 7
+Lattice indices (1,1) correspond to node no. 8
+  .
+  .
+  .
+
+Extracting lattice indices:
+
+Node no. 0 corresponds to lattice indices (0,0)
+Node no. 1 corresponds to lattice indices (0,1)
+Node no. 2 corresponds to lattice indices (0,2)
+Node no. 3 corresponds to lattice indices (0,3)
+Node no. 4 corresponds to lattice indices (0,4)
+Node no. 5 corresponds to lattice indices (0,5)
+Node no. 6 corresponds to lattice indices (0,6)
+Node no. 7 corresponds to lattice indices (1,0)
+Node no. 8 corresponds to lattice indices (1,1)
+  .
+  .
+  .
+
+
+Creating a linear graph:
+
+graph has 10 nodes 
+node 0 has 2 neighbors: 1 9
+node 1 has 2 neighbors: 0 2
+node 2 has 2 neighbors: 1 3
+node 3 has 2 neighbors: 2 4
+node 4 has 2 neighbors: 3 5
+node 5 has 2 neighbors: 4 6
+node 6 has 2 neighbors: 5 7
+node 7 has 2 neighbors: 6 8
+node 8 has 2 neighbors: 7 9
+node 9 has 2 neighbors: 0 8
+
+Creating a folded graph:
+
+graph has 10 nodes 
+node 0 has 4 neighbors: 1 2 8 9
+node 1 has 4 neighbors: 0 2 3 9
+node 2 has 4 neighbors: 0 1 3 4
+node 3 has 4 neighbors: 1 2 4 5
+node 4 has 4 neighbors: 2 3 5 6
+node 5 has 4 neighbors: 3 4 6 7
+node 6 has 4 neighbors: 4 5 7 8
+node 7 has 4 neighbors: 5 6 8 9
+node 8 has 4 neighbors: 0 6 7 9
+node 9 has 4 neighbors: 0 1 7 8

@@ -1,0 +1,18 @@
+int main(int argc, char **argv) 
+{ 
+    GMRFLib_graph_tp *graph; /* Graph object */ 
+    int i, j, isn;
+
+    /* create a non-cyclic graph on a lattice */
+    GMRFLib_make_lattice_graph(&graph, 10, 10, 1, 1, 0); 
+
+    /* check for neighbors */
+    for(i=0;i<graph->n;i++)
+        for(j=0;j<graph->n;j++)
+        {
+            isn = GMRFLib_is_neighb(i, j, graph);
+            printf("%d and %d: %d\n", i, j, isn);
+        }
+    
+    return 0;
+}
