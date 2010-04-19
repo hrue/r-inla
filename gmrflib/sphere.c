@@ -77,7 +77,7 @@ log_scale_omp[GMRFLib_thread_id] is used, otherwise the \c scale is set to 1.
   
   \par Program code:
 
-  \verbinclude example_doxygen_sphere.txt
+  \verbinclude example-doxygen-sphere.txt
 
 */
 int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, double *scale, double *log_scale, double **log_scale_omp)

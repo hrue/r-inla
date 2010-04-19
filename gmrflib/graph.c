@@ -133,7 +133,7 @@ int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
   below, containing the specification of the graph.
 
   \remarks The file is assumed to be of the format
-  \verbinclude example_doxygen_file_format.txt
+  \verbinclude doxygen_file_format.txt
   Here, \em n, \em nbs and \em nnbs refer to the members of 
   \c GMRFLib_graph_tp, and <em>nn[i]</em> is the node number
   of the node with index \em i, running from \em 0 to <em>n-1</em>.  
@@ -533,7 +533,7 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
   \return Returns \c GMRFLib_TRUE if the nodes \em node and \em nnode are neighbours, 
           otherwise it returns \c GMRFLib_FALSE.
   \par Example:
-  \verbinclude example_doxygen_is_neighbour.txt
+  \verbinclude doxygen_is_neighbour.txt
  */
 int GMRFLib_is_neighb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
@@ -1911,7 +1911,7 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
   - Reads a graph from the file \c graph1.dat, given below,
   of the form required by the function \c GMRFLib_read_graph(). 
   The specified graph has 10 nodes, with each of them having between 1 and 5 neighbours. 
-  \verbinclude example_doxygen_graph_2.txt
+  \verbinclude doxygen_graph_2.txt
   
   - Prints the graph specification to standard output.
 
@@ -1924,11 +1924,11 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 
   \par Program code:
 
-  \verbinclude example_doxygen_graph_1.txt
+  \verbinclude example-doxygen-graph1.txt
 
   \par Output:
 
-  \verbinclude example_doxygen_graph_3.txt
+  \verbinclude doxygen_graph_3.txt
 
   \section ex_graph_sec2 Creating lattice graphs, linear graphs and folded graphs 
 
@@ -1946,10 +1946,10 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 
   \par Program code:
 
-  \verbinclude example_doxygen_graph_4.txt
+  \verbinclude example-doxygen-graph1.txt
 
   \par Output:
 
-  \verbinclude example_doxygen_graph_5.txt
+  \verbinclude doxygen_graph_5.txt
 
 */

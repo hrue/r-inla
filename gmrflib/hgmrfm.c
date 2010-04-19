@@ -77,9 +77,9 @@ static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION;
  * in section 5.5 in Rue, Martino and Chopin (2007). In the first example, we use linear covariates. In the second example, we
  * replace two of the linear covariates with smooth functions.
  * 
- *  \verbinclude example_hgmrfm_1.txt
+ *  \verbinclude example-doxygen-hgmrfm-1.txt
  *
- *  \verbinclude example_hgmrfm_2.txt
+ *  \verbinclude example-doxygen-hgmrfm-2.txt
  */
 
 /**

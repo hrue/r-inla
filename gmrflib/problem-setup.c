@@ -2555,10 +2555,10 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 
   \par Program code:
 
-  \verbinclude example_doxygen_problem_1.txt
+  \verbinclude example-doxygen-sample.txt
 
   \par Output: for <tt> method = 3 </tt>
 
-  \verbinclude example_doxygen_problem_2.txt
+  \verbinclude doxygen_problem_2.txt
 
 */

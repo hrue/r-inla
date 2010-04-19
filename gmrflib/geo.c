@@ -67,7 +67,7 @@
   See Rue and Held (2005), Ch. 5, for further details.
 
   \par Example:
-  \verbinclude example_doxygen_geo.txt
+  \verbinclude example-doxygen-geo.txt
 
 */
 
@@ -580,6 +580,6 @@ int GMRFLib_print_geo_coefs(FILE * fp)
   
   \par Program code:
  
-  \verbinclude example_doxygen_geo.txt
+  \verbinclude example-doxygen-geo.txt
  
 */
