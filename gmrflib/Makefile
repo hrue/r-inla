@@ -36,7 +36,7 @@ SHELL   = /bin/sh
 HG:= $(shell which hg)
 HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
-INCL    = -I.. -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
 CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DHGVERSION="\"${HGVERSION}\""
