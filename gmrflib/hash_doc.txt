@@ -1,0 +1,141 @@
+# MAPKIT, Version 1.4
+# Copyright J.S. Roy (js@jeannot.org), 2002-2004
+# See the LICENSE file for copyright information.
+# @(#) $Jeannot: README,v 1.32 2004/04/16 13:48:50 js Exp $
+
+Mapkit is a simple set of C functions to create and access maps (aka
+dictionnaries, hash tables) and sparse structures (vectors, matrices).
+The last version (and other software) is available at the URL :
+http://www.jeannot.org/~js/code/index.en.html
+
+This version provide the following maps :
+map_ii     : int -> int (default value = 0)
+map_id     : int -> double (default value = 0.0)
+map_ivp    : int -> void * (default value = NULL)
+
+map_vpi     : void* -> int (default value = 0)
+map_vpd     : void* -> double (default value = 0.0)
+map_vpvp    : void* -> void * (default value = NULL)
+
+map_h_* : ditto, with a different hash function, 
+useful when lots of collisions occurs when using the previous maps.
+
+map_stri   : string -> int (default value = 0)
+map_strd   : string -> double (default value = 0.0)
+map_strvp  : string -> void * (default value = NULL)
+map_strstr : string -> string (default value = "")
+(strings are '\0' terminated char arrays).
+
+spvector   : int(>0) -> double (default value = 0.0)
+spmatrix   : int*int -> double (default value = 0.0)
+By default, these two maps do not store elements whose value is the default
+value, and always return the default value when an non existent key is queried.
+(ie, the alwaysdefault field of the map is set. See below.)
+
+For each map, the following basic functions are provided:
+(prefix the function with the name of the map)
+ _init(&map) : initialize the map (returns an error code)
+ _(&map, key) : macro that returns *(a pointer to the value stored at 'key'
+                (insert key if key is missing)). Can be used for reading
+                and writing. May fail if there is not enough memory.
+ _remove(&map, key) : remove key (key must exists. returns an error code)
+ _free(&map) : free the map
+
+The following functions are provided to tune the performance :
+ _init_hint(&map, used) : initialize the map for 'used' elements
+ _ensurecapacity(&map, used) : ensure at least 'used' elements can be stored
+                               in the map
+ _adjustcapacity(&map) : shrink the map to its smallest size
+ _printstats(&map) : print statistics about the map's usage, and collisions 
+                     if MAPKIT_COLLISIONS is defined during compilation.
+
+Functions for more specific operations:
+ _ptr(&map, key) : returns a pointer to the value stored at 'key'
+                   or NULL if key is missing.
+ _insertptr(&map, key) : returns a pointer to the value stored at 'key'
+                         (insert if key is missing,
+                         May return NULL if there is not enough memory.)
+ _removeptr(&map, ptr) : remove the key pointing to value *ptr
+ _value(&map, key) : returns the value at key. Fails if key is missing.
+
+Iterators:
+ _next(&map, index) : returns the next index to a full slot
+ Typical use to scan all full slots of a map:
+ for (i = -1 ; (i = map_next(&map, i)) != -1 ; )
+ map.contents[i].key contains the key,
+    map.contents[i].value contains the value 
+
+ _nextptr(&map, ptr) : returns the next pointer to a full slot
+ Typical use to scan all full slots of a map:
+ for (ptr = NULL ; (ptr = map_nextptr(&map, ptr)) != NULL ; )
+ ptr->key contains the key, ptr->value contains the value 
+
+Query functions that return an error code:
+ _set(&map, key, value) : sets the value at key
+                          (insert as needed, returns an error code)
+ _get(&map, key, &value) : returns the value at key (returns an error code)
+
+Functions the manipulate the whole map:
+ _copy : copy a map into a new uninitialized map
+ _getall : allocate an array with all the map (key, value) pairs
+ _getall_sorted : ditto, sorted.
+ _setall : insert in a map all elements of an array with (key, value) pairs
+ _removeall : remove from a map all keys from a key array
+ _clean : remove all values equal to the defaultvalue.
+(see mapkit.h for prototypes)
+
+More advanced functions are also provided : see mapkit.h for the detailled list
+of available functions, and mapkit_generic.h for the definition of error codes.
+
+The default value of a map can be changed by setting the defaultvalue field of
+the map. The behavior of the map in the case of missing keys can be changed by
+setting the alwaysdefault field of the map to 1. In this case, functions never
+fail even if the key is missing, and values equal to the defaultvalue are not
+stored in the map. Queries return the defaultvalue when the key is missing.
+
+Performance is optimized for large structures and consecutive keys. 
+Resizing the hash table is costly, so using hints about its size is encouraged
+(e.g. map_init_hint, map_setall and map_removeall functions).
+Moreover, like most hash tables, the worst-case behavior (all keys having the
+same hash) results in a very low performance (statistics (_printstats) should
+be used to detect this behavior). In this case, the hash function should be
+changed to a more robust one.
+
+The maps are implemented using open-addressing and double hashing.
+Feeback on design and implementation is welcome !
+
+Adjust the Makefile to reflect the correct options for your setup.
+
+Macro definitions:
+  MAPKIT_EXITONERROR : if defined, will exit upon failure.
+    The return code is the MAPKIT error number.
+  MAPKIT_DEBUG : if defined, will print information about errors
+    and various events. Messages get printed on stderr.
+  MAPKIT_COLLISIONS : if defined, statistics about hash collisions will be
+    gathered.
+
+The following targets are provided :
+ all     : compiles everything
+ test    : test the library performs correcly on your setup
+ bench   : benchmark the library
+           !! may take a long time and require large amounts of memory !!
+           (you should unset MAPKIT_DEBUG before benchmarking.)
+ example : an example which counts the occurences of the lines of a file.
+
+If your compiler does not support the C99 'inline' keyword (rare)
+define an empty inline macro (eg. -Dinline= ).  (Under Visual C inline
+is defined to __inline) If your system does not conform to Single UNIX
+v3 (rare) and lacks the random() call, define the NO_RANDOM macro
+(-DNO_RANDOM). (This is the default on Windows) Simple example:
+
+  spvector v;
+  double a, b;
+  
+  spvector_init(&v);
+  spvector_set(&v, 4, 7.0);
+  spvector_(&v, 4) = 7.0; 
+  a = spvector_value(&v, 4);
+  a = spvector_(&v, 4); 
+  b = spvector_value(&v, 12);
+  spvector_free(&v);
+  

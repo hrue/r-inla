@@ -1,0 +1,66 @@
+#include <stdio.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
+
+#include "GMRFLib/GMRFLib.h"
+
+int main(int argc, char **argv)
+{
+    int i, j, jj;
+    double scale;
+
+    GMRFLib_graph_tp *graph = NULL;
+    GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+    
+    /* 
+       read graph
+    */
+    GMRFLib_read_graph(&graph, "Qfunc-tabulate-example.graph");
+
+    /* 
+       read the Qfunction
+    */
+    GMRFLib_tabulate_Qfunc_from_file(&tab, graph, "Qfunc-tabulate-example.dat", NULL);
+
+    /* 
+       print it
+    */
+    for(i=0;i<graph->n;i++)
+    {
+        printf("Q(%1d,%1d) = %f\n", i, i, tab->Qfunc(i, i, tab->Qfunc_arg));
+        for(jj=0;jj<graph->nnbs[i];jj++)
+        {
+            j = graph->nbs[i][jj];
+            printf("Q(%1d,%1d) = %f\n", i, j, tab->Qfunc(i, j, tab->Qfunc_arg));
+        }
+    }
+
+    /* 
+       free it
+    */
+    GMRFLib_free_tabulate_Qfunc(tab);
+    
+    /* 
+       read the Qfunction, but with scale=10
+    */
+    
+    GMRFLib_tabulate_Qfunc_from_file(&tab, graph, "Qfunc-tabulate-example.dat", &scale);
+    scale = 10.0;
+    
+    /* 
+       print it
+    */
+    for(i=0;i<graph->n;i++)
+    {
+        printf("Q(%1d,%1d) = %f\n", i, i, tab->Qfunc(i, i, tab->Qfunc_arg));
+        for(jj=0;jj<graph->nnbs[i];jj++)
+        {
+            j = graph->nbs[i][jj];
+            printf("Q(%1d,%1d) = %f\n", i, j, tab->Qfunc(i, j, tab->Qfunc_arg));
+        }
+    }
+
+    return 0;
+}

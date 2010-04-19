@@ -113,7 +113,7 @@ __BEGIN_DECLS
   The function \c loglik() computes the Poisson log-likelihood 
   \f$ y_{\mbox{\small\tt idx}} \sim \mbox{Pois}(E_{\mbox{\small\tt idx}} 
   \exp(x_{\mbox{\small\tt idx}})) \f$.
-  \verbinclude example_doxygen_optimize_1.txt
+  \verbinclude doxygen_optimize_1.txt
 
   It is \b optional to let these functions also compute the exact first and second order derivaties
   (wrt \b x_i), in which case the following procedure must be adopted.

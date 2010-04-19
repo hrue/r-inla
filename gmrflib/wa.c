@@ -709,7 +709,7 @@ double GMRFLib_nwaQfunc(int node, int nnode, void *arg)
 
   \par Program code:
 
-  \verbinclude example_doxygen_wa_1.txt
+  \verbinclude example-doxygen-wa.txt
 
   The program provides the output in the figures below, for order=1 and <em>h=50</em>, and order=2
   and <em>h=100</em>.
