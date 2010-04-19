@@ -379,14 +379,14 @@
         stop("This function is for developers only.")
     return (invisible())
 }
-`inla.my.update` = function(dir = "~/p/gmrf/src/inla/R-inla/INLA.experimental/R")
+`inla.my.update` = function(dir = "~/p/inla/google-code/inla/rinla/R")
 {
     inla.only.for.developers()
 
     files = dir(dir, pattern = "[.][Rr]$")
     for (f in files)
         source(paste(dir, "/", f, sep=""))
-    cat("Source in ", dir, "loaded (", length(files), " files)\n", sep="")
+    cat("Source in ", dir, " loaded (", length(files), " files)\n", sep="")
 
     return (invisible())
 }
