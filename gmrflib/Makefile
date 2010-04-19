@@ -100,13 +100,13 @@ $(DEPDIR):
 	touch $(DEPDIR)
 %.o: %.c $(DEPDIR)
 	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))/$*.d -o $@ $<
-	sed -i -e ':more;/\\$$/N;s/[ ]*\\\n[ ]*/ /;tmore' \
+	-@sed -i -e ':more;/\\$$/N;s/[ ]*\\\n[ ]*/ /;tmore' \
 	       -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
 	  $(dir $(DEPDIR))/$*.d
 %.o: %.F $(DEPDIR)
 	$(COMPILE.F) -o $@ $<
-	-rm $(dir $(DEPDIR))/$*.d
-	grep -E '^#include' < $< \
+	-$(RM) $(dir $(DEPDIR))/$*.d
+	-@grep -E '^#include' < $< \
 	  | sed 's!#include "\([^"]*\)"!$@ : $$\(wildcard \1\)!' \
 	  > $(dir $(DEPDIR))/$*.d
 
@@ -182,11 +182,11 @@ uninstall:
 
 clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
 clean-deps:
-	-$(RM) -r $(dir $(DEPDIR))
+	-$(RMR) $(dir $(DEPDIR))
 
 depend: $(dir $(DEPDIR))/dependencies.d
 $(dir $(DEPDIR))/dependencies.d: $(DEPDIR) $(wildcard *.c)
-	-rm $(dir $(DEPDIR))/dependencies.d
+	-$(RM) $(dir $(DEPDIR))/dependencies.d
 	touch $(dir $(DEPDIR))/dependencies.d
 	for file in *.c ; do \
           if [ -n "`grep HGVERSION $$file`" ]; then \

@@ -1,0 +1,44 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Truncated Gaussian prior}
+
+\subsection*{Parametrization}
+This is a prior for a precision $\tau$ and defined as follows.  The
+standard deviation $\sigma = 1/\sqrt{\tau}$ is Gaussian distributed
+with mean $\mu$ and precision $\kappa$ but truncated to be positive.
+
+\subsection*{Specification}
+This prior for the hyperparameters is specified inside the {\tt
+    f()} function as The following:
+\begin{center}
+{\tt f(<whatever>, prior="logtnormal", param=c(<mean $\mu$>, <precision $\kappa$>))}
+\end{center}
+or ``logtgaussian''.
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with gaussian responses and assign for the precision
+$\tau$, the above prior.
+\begin{verbatim}
+n=100
+z=rnorm(n)
+y=rnorm(n,z,1)
+data=list(y=y,z=z)
+formula=y~1+z
+result=inla(formula, family="gaussian", data=data,
+            control.data=list(prior="logtnormal", param = c(0, 0.01)))
+\end{verbatim}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

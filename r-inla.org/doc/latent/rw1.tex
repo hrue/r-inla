@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Random walk model of order $1$ (RW1)}
+
+\subsection*{Parametrization}
+
+The random walk model of order $1$ (RW1) for the Gaussian vector $\mathbf{x}=(x_1,\dots,x_n)$ is constructed assuming independent increments:
+\[
+\Delta x_i = x_i-x_{i+1}\sim\mathcal{N}(0,\tau^{-1})
+\]
+The density for $\mathbf{x}$ is derived from its $n-1$ increments as
+\begin{eqnarray}
+\pi(\mathbf{x}|\tau) &\propto& \tau^{(n-1)/2} \exp\left\{-\frac{\tau}{2}\sum (\Delta x_i)^2\right\}\\
+& = &\tau^{(n-1)/2}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
+\end{eqnarray}
+where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure matrix reflecting the neighbourhood structure of the model.
+
+It is also possible to define a {\it cyclic} version of the RW1 model, in this case the graph is modified so that last node $x_n$ 
+is neighbour of $x_{n-1}$ and $x_1$. 
+\subsection*{Hyperparameters}
+
+The precision parameter $\tau$ is represented as
+\begin{displaymath}
+    \theta =\log \tau
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta}$. 
+
+\subsection*{Specification}
+
+The RW1 model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>,model="rw1",values=<values>,cyclic=<TRUE,FALSE>,
+              prior=c(<prior.model.theta>),
+              param=c(<param.prior.theta1>))
+\end{verbatim}
+The (optional) argument {\tt values } is a numeric or factor vector giving the values assumed by the covariate for
+ which we want the effect to be estimated. See next example for an application. 
+ 
+\subsection*{Example}
+
+\begin{verbatim}
+
+n=100
+z=seq(0,6,length.out=n)
+y=sin(z)+rnorm(n,mean=0,sd=0.5)
+data=data.frame(y=y,z=z)
+
+formula=y~f(z,model="rw1",prior="loggamma",param=c(1,0.01))
+result=inla(formula,data=data,family="gaussian")
+
+#here we estimate the effect only for some of the values in z
+formula1=y~f(z,model="rw1",prior="loggamma",param=c(1,0.01),values=z[seq(1,length(z),2)])
+result1=inla(formula1,data=data,family="gaussian")
+
+\end{verbatim}
+
+
+\subsection*{Notes}
+
+The RW1 is a intrinsic random field with rank deficiency of 1.
+
+There exist also support to define irregular RW1 models. 
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
