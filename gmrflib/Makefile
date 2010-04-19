@@ -82,7 +82,7 @@ EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-hgmrfm-1.c examples/data_small.dat \
 	examples/example-hgmrfm-2.c
 
-ALL = hgstamp $(LIBNAME) $(LIBNAMEG) examples/Makefile.in  tutorial/Makefile.in
+ALL = RCSId.all $(LIBNAME) $(LIBNAMEG) examples/Makefile.in  tutorial/Makefile.in
 
 all : $(ALL)
 
