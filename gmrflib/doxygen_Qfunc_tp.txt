@@ -1,0 +1,9 @@
+double Q_func(int node, int nnode, void *arg) 
+{ 
+    GMRFLib_graph_tp *graph = (GMRFLib_graph_tp *) arg;
+    
+    if (node != nnode)
+        return -1.0;
+    else
+        return graph->nnbs[node];
+}
