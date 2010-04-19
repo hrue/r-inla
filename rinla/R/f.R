@@ -140,6 +140,19 @@ function(...,
             stop(paste("Argument 'n' and 'n from graph.file' does not match", n, n.from.graph))
         n = n.from.graph
     }
+    if(inla.one.of(model, c("besag2"))) {
+        if (is.null(graph.file))
+            stop(paste("The graph.file has to be provided for model", model))
+        if (!file.exists(graph.file))
+            stop(paste("Cannot find graph.file", graph.file))
+        ## read n from the graph
+        n.from.graph = 2*scan(graph.file, n=1, what = integer(0), comment.char = "#")
+        if (n.from.graph <= 0)
+            stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
+        if (!is.null(n) && n != n.from.graph)
+            stop(paste("Argument 'n' and 2*'n from graph.file' does not match", n, n.from.graph))
+        n = n.from.graph
+    }
 
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model)$n.required) && inla.model.properties(model)$n.required)) {
