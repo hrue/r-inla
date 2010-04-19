@@ -1,0 +1,135 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{ifpdf}
+
+\ifpdf
+    \pdfadjustspacing=1
+    \usepackage[compat2,pdftex]{geometry}
+    %%To get a better output for pdf files substitute the fonts with
+    %% \usepackage{lmodern}
+    %%or, if you do not have the lm fonts installed:
+    \usepackage{times}
+    %%\usepackage{mathptmx}
+    %%\usepackage[scaled=0.92]{helvet} % or [scaled=0.92], if you like
+    %%\usepackage{courier}
+
+    %% faar ikke colorlinks av....
+    %%\usepackage[colorlinks=false,pdftex,
+    %%    pdftitle={},%%
+    %%    pdfauthor={},%%
+    %%    baseurl={http://www.math.ntnu.no/~hrue}]{hyperref}
+\else
+    \usepackage[compat2,dvips]{geometry}
+    \usepackage{times}
+    %%\usepackage[colorlinks=false,dvips]{hyperref}
+\fi
+
+
+%%\usepackage[dvips]{graphicx}
+\usepackage{pgf}
+\usepackage{subfigure}
+
+
+
+
+\usepackage{amsmath,amssymb}
+\usepackage[active]{srcltx}
+
+
+%%\usepackage{block}
+%%\usepackage{my-showkeys}
+
+\usepackage[colon,longnamesfirst]{natbib}
+
+%%% columns centered by the `.' see the latex-companion page 129.
+\usepackage{dcolumn}\newcolumntype{d}[1]{D{.}{.}{#1}}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corrolary}{Corrolary}
+\newtheorem{example}{Example}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+\def\qedbox{\ifvmode\else\unskip\fi~\penalty10000%%
+    \hfill{\large$\blacksquare$}}
+
+\def\Fig#1{Figure~\ref{#1}}
+\def\Tab#1{Table~\ref{#1}}
+\def\Thm#1{Theorem~\ref{#1}}
+\def\Cor#1{Corrolary~\ref{#1}}
+\def\Sec#1{Section~\ref{#1}}
+\def\eref#1{(\ref{#1})}
+\def\Eref#1{Eq.~(\ref{#1})}
+\def\miscinfo#1#2{{\footnotesize\indent\textsc{#1: }\ignorespaces #2}}   
+\def\R{\mathbb{R}}
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\def\Var{\text{Var}}
+\def\E{\text{E}}
+\def\Prec{\text{Prec}}
+
+\linespread{1.2}
+
+\begin{document}
+\bibliographystyle{apalike}
+{\Large Exponential  and Weibull Models}\\
+\vspace{0.5cm}\\
+We consider the  data of times to infection of kidney dialysis patients.
+In a study \cite{art504}, (given in the book by \cite{book501})  designed to assess 
+the time to first exitsite
+infection (in months) in patients with renal insufficiency, 43 patients
+utilized a surgically placed catheter (Group 1), and 76 patients utilized
+a percutaneous placement of their catheter (Group 2), a total of 119 patients.\\
+The variables represented in the data set are $\tt{time}$ to infection in months/$10$
+denoted by $t$, infection indicator or $\tt{event}$ ($0$=no, $1$=yes) denoted by  $\delta$ and
+ catheter $\tt{placement}$ (1=surgically, 2=percutaneously) denoted by  $trt$. We analyse the data set using exponential model and Weibull model.\\
+The \textbf{exponential model} for this example can be specified as:
+\begin{displaymath}
+t_{i}\sim \mathit{E}(\lambda_{i})
+\end{displaymath}
+Where each survival time follows an exponential distribution with parameter $\lambda_{i}$  and  $i$ is from $1$ to $119$. 
+For this example we have only one covariate, catheter placement ($trt$) 
+and therefore $ \vect{\beta} = (\beta_{0},\beta_{1})^{'} $, where $\beta_{0}$ denotes the
+intercept term and $\beta_{1}$ denotes the coefficient for the placement covariate ($trt$). Here, the latent field is
+\begin{displaymath}
+\lambda_{i}= \exp(\eta_{i}) 
+\end{displaymath}
+with
+\begin{displaymath} 
+\eta_{i}= \beta_{0}+ trt_{i}\beta_{1} 
+\end{displaymath}
+where both $\beta_{0}$ and $\beta_{1}$ are assign the following priors distributions
+\begin{displaymath}
+\beta_{0}\sim N(0,0.001)
+\end{displaymath}
+\begin{displaymath}
+\beta_{1}\sim N(0,0.001)
+\end{displaymath} 
+There is no hyperparameter used in this model.\\
+\\
+The \textbf{Weibull model} for this example can be specified as:
+\begin{displaymath}
+t_{i}\sim \text{Weibull}(\alpha,\lambda_{i})
+\end{displaymath}
+Here also , the latent field is
+\begin{displaymath}
+\lambda_{i}= \exp(\eta_{i}) 
+\end{displaymath}
+with
+\begin{displaymath} 
+\eta_{i}= \beta_{0}+ trt_{i}\beta_{1} 
+\end{displaymath}
+where $\beta_{0}$ and $\beta_{1}$ are assign the following priors distributions
+\begin{displaymath}
+\beta_{0}\sim N(0,0.001)
+\end{displaymath}
+\begin{displaymath}
+\beta_{1}\sim N(0,0.001)
+\end{displaymath} 
+The model has one hyperparameter, $\alpha$ , we assign the following  prior distribution
+\begin{displaymath}
+\alpha \sim \text{Gamma}(1, 0.001)
+\end{displaymath} 
+ 
+ 
+ 
+\bibliography{rupalibib} 
+\end{document}

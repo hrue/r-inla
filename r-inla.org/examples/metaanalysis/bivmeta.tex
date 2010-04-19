@@ -1,0 +1,105 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{Bivariate meta-analysis of sensitivity and specificity}
+{\small{[This example was kindly
+        provided by Andrea Riebler and Michaela Paul, from the
+        University of Zurich. Thanks!]}}
+
+The bivariate model is a model for meta-analysing diagnostic studies
+reporting pairs of sensitivity and specificity (\cite{bivariate2}).
+Preserving the bivariate structure of the data, pairs of sensitivity
+(Se) and specificity (Sp) are jointly analysed. Any existing
+correlation between these two measures is taken into account via
+random effects. Covariates can be added to the bivariate model and
+have a separate effect on sensitivity and specificity.
+
+ Data are taken from a meta-analysis conducted by \cite{bivariate3}
+    to compare the utility of three types of diagnostic imaging -
+    lymphangiography (LAG), computed tomography (CT) and magnetic
+    resonance (MR) - to detect lymph node metastases in patients with
+    cervical cancer. The dataset consists of a total of $46$ studies:
+    the first $17$ for LAG, the following $19$ for CT and the last
+    $10$ for $MR$. We analyse this data set using a generalised linear
+    mixed model approach (\cite{bivariate1}).
+    \begin{align}
+        \text{TN}{^i}|\mu_i &\sim \text{Bin}(\text{TN}{^i} +
+        \text{FP}{^i}, \text{Sp}{^i}),&
+        \text{logit}(\text{Sp}{^i}) &= \mm{X}_i \mm{\alpha} + \mu_i,\\
+        \text{TP}{^i}|\nu_i &\sim \text{Bin}(\text{TP}{^i} +
+        \text{FN}{^i}, \text{Se}{^i}),&
+        \text{logit}(\text{Se}{^i}) &= \mm{Z}_i \mm{\beta} + \nu_i,\\[0.3cm]
+        {\mu_i \choose \nu_i} &\sim \mathcal{N} \left[ {0 \choose 0},
+          \begin{pmatrix} 1/\tau_\mu & \rho/\sqrt{\tau_\mu \tau_\nu} \\
+              \rho/\sqrt{\tau_\mu \tau_\nu} & 1/\tau_\nu
+          \end{pmatrix}
+        \right], \label{eq:biv}
+    \end{align}
+    where TN, FP, TP and FN represent the number of true negatives,
+    false positives, true positives, and false negatives, respectively
+    and $\mm{X}_i, \mm{Z}_i$ are (possibly overlapping) vectors of
+    covariates related to $\text{Sp} = \tfrac{\text{TN}}{\text{TN} +
+        \text{FP}}$ and $\text{Se} = \tfrac{\text{TP}}{\text{TP} +
+        \text{FN}}$.  The index $i$ represents study $i$ in the
+    meta-analysis.  Here, $\mm{X}_i \mm{\alpha} =
+    \alpha_{\text{LAG}}\cdot \text{LAG}_i + \alpha_{\text{CT}} \cdot
+    \text{CT}_i + \alpha_{\text{MR}} \cdot \text{MR}_i$ and $\mm{Z}_i
+    \mm{\beta} = \beta_{\text{LAG}} \cdot \text{LAG}_i +
+    \beta_{\text{CT}} \cdot \text{CT}_i + \beta_{\text{MR}} \cdot
+    \text{MR}_i$ whereby
+    \begin{align*}
+        \text{LAG}_i &=
+        \begin{cases}
+            1 \quad \text{if} \quad i = 0, \ldots, 16\\
+            0 \quad \text{else}
+        \end{cases}
+        \text{CT}_i &=
+        \begin{cases}
+            1 \quad \text{if} \quad i = 17, \ldots, 35\\
+            0 \quad \text{else}
+        \end{cases}
+        \text{MR}_i &=
+        \begin{cases}
+            1 \quad \text{if} \quad i = 36, \ldots, 45\\
+            0 \quad \text{else}
+        \end{cases}
+    \end{align*}
+    The model has three hyperparameters $\mm{\theta} = (\log
+    \tau_\mu,\log \tau_\nu, \rho)$. The correlation parameter is
+    constrained to $[-1,1]$.  We reparameterise the correlation
+    parameter $\rho$ using Fisher's z-transformation as
+    \begin{equation*}
+        \rho^\star = \text{logit}\left(\frac{\rho+1}{2} \right)
+    \end{equation*}
+    which assumes values over the whole real line and assign the
+    following prior distribution to $\rho^\star$
+    \begin{align*}
+        \rho^\star &\sim \mathcal{N}(0,1/0.4) \intertext{The prior
+            precision of $0.4$ corresponds, roughly, to a uniform
+            prior on $[-1,1]$ for $\rho$.  For the other
+            hyperparameters we assign the following prior
+            distributions}
+        \log\tau_\mu &\sim \text{LogGamma}(0.25, 0.025)\\
+        \log\tau_\nu &\sim \text{LogGamma}(0.25, 0.025)\\
+    \end{align*}
+
+\small\bibliography{../mybib} \newpage
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

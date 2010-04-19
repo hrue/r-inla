@@ -1,0 +1,113 @@
+	I gave up the ChangeLog; will come back to a better system later...
+	
+	
+2009-10-26 Havard Rue
+
+        * This is a major upgrade; we have added support for grouping
+          of models, removed many '*x2' and '*x3' models and replaced
+          them with a 'copy' feature. Plus a lot of other changes
+          which I have forgotten. Hopefully, the help pages at
+          r-inla.org will soon be updated to explain these new
+          features.
+
+2009-08-21 Havard Rue
+
+        * The argument `Qmatrix' in the generic model has change name
+          to `Cmatrix'. Model `generic' has changed name to
+          `generic0'.
+
+        * Added support for replications of models.
+
+        * Added support for different likelihood-families models
+          within the same model.
+
+        * Added improved names for argument `strategy' in
+          `control.inla()' statement: gaussian, simplified.laplace and
+          laplace.
+
+2009-08-13 Havard Rue
+
+        * The inla-program is now compiled using a version of gcc for
+          Windows from www.equation.com where the big change is that
+          `...the library to support parallel processing has been
+          replaced'.  Further, version gcc-4.5 is now used for both
+          Windows and Mac, and version 4.4 for Linux.  OpenMP is now
+          enabled by default for Windows; fingers crossed!
+
+2009-08-08 Havard Rue
+
+        * Added negative binomial likelihood; see the inla-manual for
+          details. It is similar to the Poission with an extra
+          overdispersion hyperparameter.
+
+        * The family and model names, now ignore `.' and `_' and is
+          invariant for case. For example, the negative binomial model
+          can be specified as `n_binomial' or `n.binomial' or
+          `nbinomial'.
+
+2009-07-10 Havard Rue
+
+        * Added utility for upgrading INLA: ?inla.upgrade
+
+        * Added help-page for global options: ?inla.options
+
+2009-07-09 Havard Rue
+
+        * The CPO calculations int the inla-program have been
+          rewritten, with improved detection of imperfect tail
+          behaviour.
+
+2009-07-07 Havard Rue
+
+        * Added a tweak to the inla-program so if its detect a better
+          mode while computing the Hessian, then it will restart
+          computing the Hessian around that point. In effect, this is
+          a simple and stupid local search algorithm. For some models
+          where the posterior is really flat (and where the default
+          optimisation algorithms fails to locate the mode due to
+          inaccurate function evalutations), this simple trick solves
+          it and locate the mode. Well, at least for my
+          test-examples...
+
+2009-07-03 Havard Rue
+
+        * Added help-page for the routines to compute with marginals;
+          see ?marginal
+
+2009-06-29 Havard Rue
+
+        * Added new model=BYM; see the manual for details and
+          demo(Bym) for an example.
+
+2009-06-18 Havard Rue
+
+        * Added new model=GENERIC1; see the manual for details.
+        
+        * Renamed model=GENERIC to GENERIC0, but the old name is still
+          valid.
+
+2009-06-03 Havard Rue
+
+        * The constr=TRUE|FALSE argument now works for the CRW2
+          model. OOPS: The default behaviour has now changed to
+          constr=TRUE, which impose a sum-to-zero constraint as it
+          should.
+
+        * Added the function inla.group(), which can group covariates,
+          like
+                 f(inla.group(x), model=\"rw2\")
+
+          Options are number of groups and method; see the help-page
+          for details.
+
+2009-05-31 Havard Rue 
+
+        * Make num.threads default to 1 for Windows; the OpenMP
+        behaviour is reported to be unstable and sometimes the program
+        `just stops'. It's known that the OpenMP for gcc-4.x under
+        mingw is `unstable' and kind of `experimental'. If anyone has
+        some good ideas how to resolve this issue, please let me know.
+
+        * Added some tests about a valid Qmatrix for model = generic.
+
+END

@@ -1,0 +1,53 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{ Flat prior}
+
+\subsection*{Parametrization}
+The flat prior has density
+\begin{equation}
+\pi(\theta)\propto 1
+\end{equation}
+for continuous $\theta$.
+ 
+\subsection*{Specification}
+The flat prior for the hyperparameters is specified inside the {\tt f()} function as The following:
+\begin{center}
+{\tt f(<whatever>,prior=flat)}
+\end{center}
+ In the case where there is one hyperparameter for that particular f-model. In the case where we want
+to specify the prior for the hyperparameter of an observation model, for example the negative Bino-
+mial, the the prior spesification will appear inside the control.data()-argument; see the following
+example for illustration.
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with gaussian responses and assign for the log-precision
+$\log\tau$, a flat prior; see the Notes.
+\begin{verbatim}
+n=100
+z=rnorm(n)
+y=rnorm(n,z,1)
+data=list(y=y,z=z)
+formula=y~1+z
+result=inla(formula,family="gaussian",data=data,control.data=list(prior="flat"))
+\end{verbatim}
+
+\subsection*{Notes}
+
+The {\tt inla} program uses $\pi(\theta)=1$ for computations.  Note
+that for precision $\tau$, a flat prior for $\log\tau$ corresponds to
+the prior $1/\tau$ for $\tau$.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
