@@ -92,7 +92,9 @@ $(LIBNAME): $(LIBNAME)($(LIBOBJ))
 $(LIBNAMEG): $(LIBNAMEG)($(LIBOBJG))
 	ranlib $@
 
+# !!! Do not change! /FL
 DEPDIR = .deps/.dummy
+
 $(DEPDIR):
 	-mkdir $(dir $(DEPDIR))
 	touch $(DEPDIR)
@@ -180,18 +182,17 @@ uninstall:
 
 clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
 clean-deps:
-	-$(RM) dependencies
 	-$(RM) -r $(dir $(DEPDIR))
 
-depend: dependencies
-dependencies: $(wildcard *.c)
-	-rm dependencies
-	touch dependencies
+depend: $(dir $(DEPDIR))/dependencies.d
+$(dir $(DEPDIR))/dependencies.d: $(DEPDIR) $(wildcard *.c)
+	-rm $(dir $(DEPDIR))/dependencies.d
+	touch $(dir $(DEPDIR))/dependencies.d
 	for file in *.c ; do \
           if [ -n "`grep HGVERSION $$file`" ]; then \
 	    echo $$file | \
 	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
-	      >> dependencies ; \
+	      >> $(dir $(DEPDIR))/dependencies.d ; \
 	  fi \
         done
 
@@ -205,4 +206,4 @@ dummytarget: ;
 
 .PHONY: depend clean clean-deps uninstall install doc dummytarget
 
-include dependencies $(wildcard $(dir $(DEPDIR))/*.d)
+include $(dir $(DEPDIR))/dependencies.d $(wildcard $(dir $(DEPDIR))/*.d)
