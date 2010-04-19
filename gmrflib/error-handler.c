@@ -45,7 +45,7 @@
    hope to fix this in later releases.
 
   Example
-  \verbinclude example_doxygen_error_handler.txt
+  \verbinclude example-doxygen-error-handler.txt
   
 */
 
@@ -161,7 +161,7 @@ const char *GMRFLib_error_reason(int errorno)
 
   \remarks This is the default error handling function integrated in the library routines.  It is
   called by the function \c GMRFLib_handle_error(). When an error occurs, the function prints an
-  error message of the form \verbinclude example_doxygen_error_1.txt and the program is aborted,
+  error message of the form \verbinclude doxygen_error_1.txt and the program is aborted,
   with a core dump. In the example above, the error message states that the command line arguments
   of the main program on the file \c test-graph.c is missing. To avoid aborting the program, a new
   error handling function can be defined, returning the error code without aborting. To turn off or

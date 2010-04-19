@@ -57,7 +57,7 @@ static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION;
   \sa GMRFLib_uniform, GMRFLib_uniform_init, GMRFLib_uniform_getstate, GMRFLib_uniform_setstate
   
   Example:
-  \verbinclude example_doxygen_rng.txt
+  \verbinclude example-doxygen-rng.txt
 */
 
 #include <time.h>

@@ -6546,14 +6546,14 @@ for the hyperparameter \f$\mbox{\boldmath$\theta$}\f$
 
 \par Program code:
 
-\verbinclude example_doxygen_approx_1.txt
+\verbinclude example-doxygen-approx-1.txt
 
 - The next task it to compute an approximation to the posterior marginal for the nodes in the hidden field when we integrate out
 the hyperparameters
 
 \par Program code:
 
-\verbinclude example_doxygen_approx_2.txt
+\verbinclude example-doxygen-approx-2.txt
 
 - Finally, we compute an approximate density for the posterior of the hyperparameters \f[
 \widetilde{\pi}(\mbox{\boldmath$\theta$} \mid \mbox{\boldmath$y$}) \propto
@@ -6568,7 +6568,7 @@ computes the first term in <b>(INLA-1)</b>, <em>except</em> for any term wich is
 
 \par Program code:
 
-\verbinclude example_doxygen_approx_3.txt
+\verbinclude example-doxygen-approx-3.txt
 
 */
 

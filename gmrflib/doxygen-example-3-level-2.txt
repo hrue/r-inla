@@ -1,0 +1,30 @@
+    GMRFLib_store_tp *store = NULL;               /* use store */
+    store = calloc(1, sizeof(GMRFLib_store_tp));  /* initialize */
+    store->store_problems = GMRFLib_TRUE;
+
+    while(1)
+    {                                             /* just keep on until the process is killed */
+        kappa_new = GMRFLib_scale_proposal(6.0)*kappa_old;
+        double log_accept;                        /* GMRFLib_blockupdate does all the job... */
+        GMRFLib_blockupdate_store(&log_accept, x_new,  x_old, b, b, c, c, mean, mean, d, d,
+                                  gi, (void *) &data, gi, (void *) &data, 
+                                  fixed, graph, Qfunc, (void *)&kappa_new, Qfunc, (void *)&kappa_old, NULL, NULL, NULL, NULL, 
+                                  constr, constr, NULL, NULL, store);
+
+        double A = 1.0,  B = 0.000289;            /* prior parameters for kappa */
+        /* add terms to the acceptance probability not computed by GMRFLib_blockupdate: prior for
+         * kappa and the normalising constant. */ 
+        log_accept += ((n-1.0)/2.0*log(kappa_new) + log_gamma(kappa_new, A,  B))
+            - ((n-1.0)/2.0*log(kappa_old) + log_gamma(kappa_old, A,  B));
+        
+        static double p_acc = 0.0;           /* sum of the accept probabilities */
+        double acc_prob = exp(MIN(log_accept, 0.0));
+        p_acc += acc_prob;
+        if (Uniform() < acc_prob)
+        {                                         /* accept the proposal */
+            memcpy(x_old, x_new, n*sizeof(double));
+            kappa_old = kappa_new;
+            store->decision = GMRFLib_STORE_ACCEPT;
+        }
+        else
+            store->decision = GMRFLib_STORE_REJECT;

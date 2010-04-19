@@ -81,8 +81,9 @@ EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-approx-3.c examples/poisson.data \
 	examples/example-hgmrfm-1.c examples/data_small.dat \
 	examples/example-hgmrfm-2.c
+MAKEFILESIN = examples/Makefile.in tutorial/Makefile.in
 
-ALL = RCSId.all $(LIBNAME) $(LIBNAMEG) examples/Makefile.in  tutorial/Makefile.in
+ALL = $(LIBNAME) $(LIBNAMEG) $(MAKEFILESIN)
 
 all : $(ALL)
 
@@ -94,21 +95,22 @@ $(LIBNAMEG): $(LIBNAMEG)($(LIBOBJG))
 
 # !!! Do not change! /FL
 DEPDIR = .deps/.dummy
-
 $(DEPDIR):
 	-mkdir $(dir $(DEPDIR))
 	touch $(DEPDIR)
+
 %.o: %.c $(DEPDIR)
-	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))/$*.d -o $@ $<
+	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d -o $@ $<
 	-@sed -i -e ':more;/\\$$/N;s/[ ]*\\\n[ ]*/ /;tmore' \
 	       -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
-	  $(dir $(DEPDIR))/$*.d
+	  $(dir $(DEPDIR))$*.d
+
 %.o: %.F $(DEPDIR)
 	$(COMPILE.F) -o $@ $<
-	-$(RM) $(dir $(DEPDIR))/$*.d
+	-$(RM) $(dir $(DEPDIR))$*.d
 	-@grep -E '^#include' < $< \
 	  | sed 's!#include "\([^"]*\)"!$@ : $$\(wildcard \1\)!' \
-	  > $(dir $(DEPDIR))/$*.d
+	  > $(dir $(DEPDIR))$*.d
 
 examples/Makefile.in : $(LIBNAME)
 	 ( \
@@ -135,14 +137,15 @@ tutorial/Makefile.in : $(LIBNAME)
 	 ) > $@
 
 doc:
-	@ ./make-doxyfile < GMRFLib-Doxyfile > tt.tmp
-	umask 0022
-	doxygen tt.tmp
-#	mkdir -p doc/html/figs
-#	mkdir -p doc/tutorial
-#	cp -fv figs/*.gif doc/html/figs
-#	( cd gmrf_tutorial; doxygen )
-#	rsync -auv --delete gmrf_tutorial/doxydoc/ doc/tutorial
+	(cd examples ; make doc )
+	sed 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
+	  < GMRFLib-Doxyfile \
+	  | doxygen -
+	mkdir -p doc/html/figs
+	mkdir -p doc/tutorial
+	cp -fv figs/*.gif doc/html/figs
+	( cd gmrf_tutorial; doxygen )
+	rsync -auv --delete gmrf_tutorial/doxydoc/ doc/tutorial
 
 
 install: $(ALL)
@@ -180,19 +183,27 @@ uninstall:
 	-for ex     in $(EXAMPLES); do $(RM) $(PREFIX)/doc/GMRFLib/$$ex; done
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
-clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG)
+clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG) $(MAKEFILESIN)
+clean-doc:
+	-$(RMR) doc/
+	-$(RM) example-doxygen-*.txt
 clean-deps:
 	-$(RMR) $(dir $(DEPDIR))
 
-depend: $(dir $(DEPDIR))/dependencies.d
-$(dir $(DEPDIR))/dependencies.d: $(DEPDIR) $(wildcard *.c)
-	-$(RM) $(dir $(DEPDIR))/dependencies.d
-	touch $(dir $(DEPDIR))/dependencies.d
-	for file in *.c ; do \
+depend: $(dir $(DEPDIR))dependencies.d
+$(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
+	-$(RM) $(dir $(DEPDIR))dependencies.d
+	touch $(dir $(DEPDIR))dependencies.d
+	for file in *.c *.h ; do \
           if [ -n "`grep HGVERSION $$file`" ]; then \
 	    echo $$file | \
 	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
-	      >> $(dir $(DEPDIR))/dependencies.d ; \
+	      >> $(dir $(DEPDIR))dependencies.d ; \
+	  fi ; \
+          if [ -n "`grep RCSId.all $$file`" ]; then \
+	    echo $$file | \
+	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: RCSId.all/' \
+	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi \
         done
 
@@ -206,4 +217,4 @@ dummytarget: ;
 
 .PHONY: depend clean clean-deps uninstall install doc dummytarget
 
-include $(dir $(DEPDIR))/dependencies.d $(wildcard $(dir $(DEPDIR))/*.d)
+include $(dir $(DEPDIR))dependencies.d $(wildcard $(dir $(DEPDIR))*.d)

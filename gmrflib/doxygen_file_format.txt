@@ -1,0 +1,7 @@
+N
+node[0]    nnbs[0]    nbs[node[0]][0]    nbs[node[0]][1]   ... nbs[node[0]][nnbs[0]-1] 
+node[1]    nnbs[1]    nbs[node[1]][0]    nbs[node[1]][1]   ... nbs[node[1]][nnbs[1]-1] 
+
+  :           :              :                  :                         :
+
+node[N-1]  nnbs[N-1]  nbs[node[N-1]][0]  nbs[node[N-1]][1] ... nbs[node[N-1]][nnbs[N-1]-1] 

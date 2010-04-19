@@ -1,0 +1,10 @@
+    GMRFLib_store_tp *store = NULL;               /* use store */
+    store = calloc(1, sizeof(GMRFLib_store_tp));  /* initialize */
+    while(1)
+    {                                             /* just keep on until the process is killed */
+        kappa_new = GMRFLib_scale_proposal(6.0)*kappa_old;
+        double log_accept;                        /* GMRFLib_blockupdate does all the job... */
+        GMRFLib_blockupdate_store(&log_accept, x_new,  x_old, b, b, c, c, mean, mean, d, d,
+                                  gi, (void *) &data, gi, (void *) &data, 
+                                  fixed, graph, Qfunc, (void *)&kappa_new, Qfunc, (void *)&kappa_old, NULL, NULL, NULL, NULL, 
+                                  constr, constr, NULL, NULL, store);

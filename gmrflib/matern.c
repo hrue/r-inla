@@ -223,6 +223,6 @@ int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_t
   
 \par Program code:
 
-\verbinclude example_doxygen_matern2d.txt
+\verbinclude example-doxygen-matern2d.txt
 
 */
