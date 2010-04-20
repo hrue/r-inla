@@ -29,6 +29,14 @@ LD = $(CC)
 #
 ################################################################################
 
+RM    = rm
+RMR   = rm r-f
+RMDIR = rmdir
+MKDIR = mkdir
+MV    = mv
+SED   = sed
+WGET  = wget
+
 SHELL   = /bin/sh
 TMPFILE:= /tmp/$(shell whoami)-inla-extlibs-build.tmp
 
@@ -67,23 +75,23 @@ get-metis: $(FILE_METIS)
 get-taucs: $(FILE_TAUCS)
 $(FILE_METIS):
 	if [ ! -f $(FILE_METIS) ]; then \
-		wget -O - $(URL_METIS) > $(FILE_METIS); \
+		$(WGET) -O - $(URL_METIS) > $(FILE_METIS); \
 	fi
 $(FILE_TAUCS):
 	if [ ! -f $(FILE_TAUCS) ]; then \
-		wget -O - $(URL_TAUCS) > $(FILE_TAUCS); \
+		$(WGET) -O - $(URL_TAUCS) > $(FILE_TAUCS); \
 	fi
 
 patch-metis: $(FILE_METIS)
-	rm -rf metis-build ; \
+	$(RMR) metis-build ; \
 	mkdir metis-build ; \
 	cd metis-build ; \
 	tar -zxf ../$(FILE_METIS) ; \
 	cd metis-4.0 ; \
 	for file in Lib/proto.h Lib/util.c Lib/kmetis.c Lib/kvmetis.c Lib/mkmetis.c ; do \
-	  sed 's/log2/log2i/' < $$file | \
-	  sed 's/__log2i/metis_log2i/' > $(TMPFILE) ; \
-	  mv $(TMPFILE) $$file ; \
+	  $(SED) 's/log2/log2i/' < $$file | \
+	  $(SED) 's/__log2i/metis_log2i/' > $(TMPFILE) ; \
+	  $(MV) $(TMPFILE) $$file ; \
 	done; \
 	cd ../..
 	rsync -av --exclude '*~' metis-patch/ metis-build/metis-4.0/
@@ -96,7 +104,7 @@ build-metis: .patch-metis
 	cd ../..
 
 patch-taucs: $(FILE_TAUCS)
-	rm -rf taucs-build ; \
+	$(RMR) taucs-build ; \
 	mkdir taucs-build ; \
 	cd taucs-build ; \
 	tar -zxf ../$(FILE_TAUCS) ; \
@@ -134,13 +142,13 @@ install-taucs: build-taucs
 	cd ..
 
 clean:
-	-rm -r metis-build
-	-rm -r taucs-build
-	-rm .patch-metis
-	-rm .patch-taucs
+	-$(RMR) metis-build
+	-$(RMR) taucs-build
+	-$(RM) .patch-metis
+	-$(RM) .patch-taucs
 
 clean-files:
-	-rm $(FILE_METIS) $(FILE_TAUCS)
+	-$(RM) $(FILE_METIS) $(FILE_TAUCS)
 
 .PHONY: get build get-all build-all clean $(EXTLIBS_GET_ALL) $(EXTLIBS_PATCH_ALL) $(EXTLIBS_BUILD_ALL)  $(EXTLIBS_INSTALL_ALL) 
 
