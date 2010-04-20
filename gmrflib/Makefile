@@ -101,7 +101,7 @@ $(DEPDIR):
 
 %.o: %.c $(DEPDIR)
 	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d -o $@ $<
-	-@sed -i -e ':more;/\\$$/N;s/[ ]*\\\n[ ]*/ /;tmore' \
+	-@sed -i -e ':more;/\\$$/N;s/[ ]*\\[\r\n]*[ ]*/ /;tmore' \
 	       -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
 	  $(dir $(DEPDIR))$*.d
 
