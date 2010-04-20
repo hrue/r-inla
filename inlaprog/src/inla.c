@@ -60,8 +60,8 @@ static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION;
 #include <sys/types.h>
 
 #if defined(__APPLE__)
-#import <sys/types.h>
-#import <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 #include "GMRFLib/GMRFLib.h"
