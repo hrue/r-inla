@@ -1,4 +1,6 @@
-include $(wildcard Makefile.in)
+Makefile.in :
+	( cd .. ; make examples/Makefile.in )
+include Makefile.in
 
 INCL    = -I$(PREFIX)/include $(IEXTLIBS)
 LDFLAGS = $(FLAGS) $(INCL)
