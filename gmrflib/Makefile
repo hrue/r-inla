@@ -100,10 +100,11 @@ $(DEPDIR):
 	touch $(DEPDIR)
 
 %.o: %.c $(DEPDIR)
-	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d -o $@ $<
-	-@sed -i -e ':more;/\\/N;s/[ ]*\\[\r\n]*[ ]*/ /;tmore' \
-	       -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
-	  $(dir $(DEPDIR))$*.d
+	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d.tmp -o $@ $<
+	-@sed -e ':more;/\\/N;s/[ ]*\\[\r\n]*[ ]*/ /;tmore' \
+	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
+	  < $(dir $(DEPDIR))$*.d.tmp > $(dir $(DEPDIR))$*.d
+	-rm $(dir $(DEPDIR))$*.d.tmp
 
 %.o: %.F $(DEPDIR)
 	$(COMPILE.F) -o $@ $<
