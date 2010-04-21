@@ -49,6 +49,7 @@ LIBNAMEG = lib$(GMRFLibNAME)-geo.a
 RM    = rm -f
 RMR   = rm -rf
 RMDIR = rmdir
+SED   = sed
 
 LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	GMRFLib-fortran.o optimize.o blockupdate.o gdens.o hidden-approx.o \
@@ -101,16 +102,16 @@ $(DEPDIR):
 
 %.o: %.c $(DEPDIR)
 	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d.tmp -o $@ $<
-	-@sed -e ':more;/\\/N;s/[ ]*\\[\r\n]*[ ]*/ /;tmore' \
+	-@$(SED) -e ':more;/\\/N;s/[ ]*\\\r*\n[ ]*/ /;tmore' \
 	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
 	  < $(dir $(DEPDIR))$*.d.tmp > $(dir $(DEPDIR))$*.d
-	-rm $(dir $(DEPDIR))$*.d.tmp
+	-$(RM) $(dir $(DEPDIR))$*.d.tmp
 
 %.o: %.F $(DEPDIR)
 	$(COMPILE.F) -o $@ $<
 	-$(RM) $(dir $(DEPDIR))$*.d
 	-@grep -E '^#include' < $< \
-	  | sed 's!#include "\([^"]*\)"!$@ : $$\(wildcard \1\)!' \
+	  | $(SED) 's!#include "\([^"]*\)"!$@ : $$\(wildcard \1\)!' \
 	  > $(dir $(DEPDIR))$*.d
 
 examples/Makefile.in : $(LIBNAME)
@@ -139,7 +140,7 @@ tutorial/Makefile.in : $(LIBNAME)
 
 doc:
 	(cd examples ; make doc )
-	sed 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
+	$(SED) 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
 	  < GMRFLib-Doxyfile \
 	  | doxygen -
 	mkdir -p doc/html/figs
@@ -198,18 +199,18 @@ $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
 	for file in *.c *.h ; do \
           if [ -n "`grep HGVERSION $$file`" ]; then \
 	    echo $$file | \
-	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi ; \
           if [ -n "`grep RCSId.all $$file`" ]; then \
 	    echo $$file | \
-	      sed 's/\(.*\)\(\.[hc]\)$$/\1\.o: RCSId.all/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: RCSId.all/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi \
         done
 
 RCSId.all: hgstamp
-	sed 's/\(.*\)/"\1",/' < hgstamp > RCSId.all
+	$(SED) 's/\(.*\)/"\1",/' < hgstamp > RCSId.all
 
 hgstamp: dummytarget
 	[ -f $@ ] || touch $@
