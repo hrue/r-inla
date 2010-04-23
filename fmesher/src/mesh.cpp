@@ -583,6 +583,112 @@ namespace fmesh {
 
 
 
+
+  Dart Mesh::locatePoint(const Dart& d, const Point s) const
+  {
+    return Dart();
+  }
+
+
+  bool circumcircleTest(const Dart& d)
+  {
+    /* TODO: implement circle-test using predicates::incircle */
+    return false;
+  }
+
+  /*! Alg 9.4 */
+  void MeshConstructor::recSwapDelaunay(const Dart& d0)
+  {
+    Dart d1, d2;
+
+    if (circumcircleTest(d0))
+      return;
+
+    /* Get opposing darts. */
+    d1 = d0;
+    d1.alpha1();
+    if (!d1.onBoundary()) d1.alpha2();
+    d2 = d0;
+    d2.orbit2rev().alpha1(); 
+    if (d2.onBoundary()) d2.alpha2();
+    
+    swapEdge(d0);
+
+    if (!d1.onBoundary()) recSwapDelaunay(d1);
+    if (!d2.onBoundary()) recSwapDelaunay(d2);
+  }
+
+
+  /*! Alg 9.3 */
+  void MeshConstructor::insertNode(int v)
+  {
+    Dart td, d, d0, d1, d2;
+
+    td = M_->locatePoint(Dart(*M_,0),M_->S()[v]);
+    if (td.isnull()) { return; }; /* ERROR, not found! */
+    
+    /* Get opposing darts. */
+    d = td;
+    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();} 
+    d.orbit2(); 
+    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();} 
+    d.orbit2(); 
+    if (d.onBoundary()) d2 = Dart(); else {d2 = d; d1.orbit1();} 
+    
+    td = splitTriangle(td,v);
+    
+    recSwapDelaunay(d0);
+    recSwapDelaunay(d1);
+    recSwapDelaunay(d2);
+  }
+
+  void MeshConstructor::DT(const std::vector<int> v_set)
+  {
+    if (state_ > State_DT)
+      return;
+
+    int v;
+    std::vector<int>::const_iterator v_iter;
+    Dart td, d, d0, d1, d2;
+
+    for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
+      v = *v_iter;
+      insertNode(v);
+    }
+  }
+
+
+  Dart MeshConstructor::swapEdge(const Dart& d)
+  {
+    if (state_ < State_CDT_prepared) {
+      return M_->swapEdge(d);
+    }
+
+    /* TODO: implement. */
+  }
+
+  Dart MeshConstructor::splitEdge(const Dart& d, int v)
+  {
+    if (state_ < State_CDT_prepared) {
+      return M_->splitEdge(d,v);
+    }
+
+    /* TODO: implement. */
+  }
+
+  Dart MeshConstructor::splitTriangle(const Dart& d, int v)
+  {
+    if (state_ < State_CDT_prepared) {
+      return M_->splitTriangle(d,v);
+    }
+
+    /* TODO: implement. */
+  }
+
+
+
+
+
   /*
 
 int point_in_dart_lefthalfplane(const trimesh_t* M,

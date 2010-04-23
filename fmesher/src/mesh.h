@@ -79,6 +79,8 @@ namespace fmesh {
     Mesh& TV_set(const int (*TV)[3], int nT); 
     Mesh& S_append(const double (*S)[3], int nV);
     Mesh& TV_append(const int (*TV)[3], int nT); 
+
+    Dart locatePoint(const Dart& d, const Point s) const;
     
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
@@ -90,9 +92,9 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const Dart& d);
   private:
     const Mesh *M_;
-    int vi_;
+    size_t vi_;
     int edir_;
-    size_t t_;
+    int t_;
     
   public:
     /*! Test 1 */
@@ -168,7 +170,11 @@ namespace fmesh {
   */
   class MeshConstructor {
   private:
-    enum State {State_noT, State_DT, State_CDT, State_refinedCDT};
+    enum State {State_noT=0,
+		State_DT,
+		State_CDT_prepared,
+		State_CDT,
+		State_refinedCDT};
     Mesh *M_;
     MCdvMap segm_; /*!< Segment darts, mapped to metadata */
     MCdvSet segm_encr_; /*!< Set of encroached segment darts */
@@ -180,16 +186,18 @@ namespace fmesh {
     double big_limit_;
     State state_;
 
+    void recSwapDelaunay(const Dart& d0);
+    void insertNode(int v);
+
   public:
     MeshConstructor() : M_(NULL), state_(State_noT) {};
 
-    Dart locatePoint(const Dart& d, const Point s) {return Dart();};
     /*!
       \brief Append vertices
 
       Return index of the first of the added points.
     */
-    int addVertices(const Dart& d, const double (*S)[3], int nV)
+    int addVertices(const double (*S)[3], int nV)
     {
       M_->S_append(S,nV);
       return M_->nV()-nV;
@@ -207,7 +215,11 @@ namespace fmesh {
       If PruneExterior is to be used later, any exterior points must
       be at the end of the vertex list.
      */
-    void DT() {};
+    void DT(const std::vector<int> v_set);
+    /*!
+      \brief Prepare for running CDT algorithms.
+    */
+    void prepareCDT();
     /*!
       \brief Add segments to constraint list, preparing for CDT
     */
