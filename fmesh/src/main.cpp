@@ -51,18 +51,28 @@ int mesh_test()
 
   Mesh M(0,false);
 
-  M.useTTi(true);
+  M.useTTi(false);
   M.S_set(S,4);
   M.TV_set(TV,2);
 
   Mesh M2 = M;
   M2.useTTi(false);
 
+  Dart d = Dart(M,0,1,0);
+  cout << d.onBoundary();
+  cout << d.orbit2().onBoundary();
   cout << M;
-  cout << M2;
+  d = M.swapEdge(Dart(M,0,1,1));
+  d = M.swapEdge(Dart(M,0,1,1));
+  cout << M;
+  Point s = {0.2,0.2,0.0};
+  M.S_append(&s,1);
+  cout << M;
+  d = M.splitTriangle(Dart(M,1,1,0),M.nV()-1);
+  cout << M;
+  cout << d;
 
-  /*
-  Dart d(M);
+    /*
   cout << "d  :" << d << "\n";
   cout << "a0 :" << d.alpha0() << "\n";
   cout << "a0 :" << d.alpha0() << "\n";

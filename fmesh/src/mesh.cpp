@@ -5,8 +5,6 @@
 
 #include "mesh.h"
 
-#define Mesh_V_capacity_step_size 128
-
 namespace fmesh {
 
   
@@ -211,25 +209,251 @@ namespace fmesh {
 
 
 
-  Mesh& Mesh::S_set(double (*S)[3], int nV)
+  Mesh& Mesh::S_set(const double (*S)[3], int nV)
   {
     nV_ = 0; /* Avoid possible unnecessary copy. */
-    check_capacity(nV,0);
-    nV_ = nV;
-    memcpy(S_,S,sizeof(double)*nV_*3);
+    S_append(S,nV);
     return *this;
   }
   
-  Mesh& Mesh::TV_set(int (*TV)[3], int nT)
+  Mesh& Mesh::TV_set(const int (*TV)[3], int nT)
   {
     nT_ = 0; /* Avoid possible unnecessary copy. */
-    check_capacity(0,nT);
-    nT_ = nT;
-    memcpy(TV_,TV,sizeof(int)*nT_*3);
+    TV_append(TV,nT);
+    return *this;
+  }
+
+  Mesh& Mesh::S_append(const double (*S)[3], int nV)
+  {
+    check_capacity(nV_+nV,0);
+    memcpy(S_+nV_,S,sizeof(double)*nV*3);
+    nV_ += nV;
+    return *this;
+  }
+  
+  Mesh& Mesh::TV_append(const int (*TV)[3], int nT)
+  {
+    check_capacity(0,nT_+nT);
+    memcpy(TV_+nT_,TV,sizeof(int)*nT*3);
+    nT_ += nT;
     rebuildTT();
     rebuildTTi();
     return *this;
   }
+
+
+
+  /*! \brief Swap an edge
+
+
+     \verbatim
+       2         2
+      /0\       /|\
+     0---1 --> 00|11
+      \1/       \|/
+       3         3
+     \endverbatim
+     Dart 0-1 --> 3-2
+    
+  */
+  Dart Mesh::swapEdge(const Dart& d)
+  {
+    Dart dhelper = d;
+    int t, vi;
+    int v_list[4];
+    int t0, t1;
+    int tt_list[4];
+    int tti_list[4];
+    if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
+
+    /* Step 1: Store geometry information. */
+    t0 = dhelper.t();
+    vi = dhelper.vi();
+    v_list[0] = TV_[t0][vi];
+    tt_list[0] = TT_[t0][vi];
+    if (use_TTi_) tti_list[0] = TTi_[t0][vi];
+    dhelper.orbit2();
+    vi = dhelper.vi();
+    v_list[1] = TV_[t0][vi];
+    tt_list[1] = TT_[t0][vi];
+    if (use_TTi_) tti_list[1] = TTi_[t0][vi];
+    dhelper.orbit2();
+    v_list[2] = TV_[t0][dhelper.vi()];
+    dhelper.orbit2rev().orbit0();
+    t1 = dhelper.t();
+    if (t0 == t1) { dhelper = d; return dhelper; } /* ERROR: Boundary edge */
+    vi = dhelper.vi();
+    tt_list[2] = TT_[t1][vi];
+    if (use_TTi_) tti_list[2] = TTi_[t1][vi];
+    dhelper.orbit2();
+    vi = dhelper.vi();
+    tt_list[3] = TT_[t1][vi];
+    if (use_TTi_) tti_list[3] = TTi_[t1][vi];
+    dhelper.orbit2();
+    v_list[3] = TV_[t1][dhelper.vi()];
+
+    /* Step 2: Overwrite with new triangles. */
+    TV_[t0][0] = v_list[0];
+    TV_[t0][1] = v_list[3];
+    TV_[t0][2] = v_list[2];
+    TT_[t0][0] = t1;
+    TT_[t0][1] = tt_list[1];
+    TT_[t0][2] = tt_list[2];
+    if (use_TTi_) {
+      TTi_[t0][0] = 0;
+      TTi_[t0][1] = tti_list[1];
+      TTi_[t0][2] = tti_list[2];
+    }
+    TV_[t1][0] = v_list[1];
+    TV_[t1][1] = v_list[2];
+    TV_[t1][2] = v_list[3];
+    TT_[t1][0] = t0;
+    TT_[t1][1] = tt_list[3];
+    TT_[t1][2] = tt_list[0];
+    if (use_TTi_) {
+      TTi_[t1][0] = 0;
+      TTi_[t1][1] = tti_list[3];
+      TTi_[t1][2] = tti_list[0];
+    }
+
+    /* Step 3: Relink neighbouring triangles. */
+    if (use_TTi_) {
+      if (TT_[t0][1]>=0) TT_[TT_[t0][1]][TTi_[t0][1]] = t0;
+      if (TT_[t0][2]>=0) TT_[TT_[t0][2]][TTi_[t0][2]] = t0;
+      if (TT_[t1][1]>=0) TT_[TT_[t1][1]][TTi_[t1][1]] = t1;
+      if (TT_[t1][2]>=0) TT_[TT_[t1][2]][TTi_[t1][2]] = t1;
+    } else {
+      if (TT_[t0][1]>=0) {
+	dhelper = Dart(*this,t0,1,2).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t0;
+      }
+      if (TT_[t0][2]>=0) {
+	dhelper = Dart(*this,t0,1,0).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t0;
+      }
+      if (TT_[t1][1]>=0) {
+	dhelper = Dart(*this,t1,1,2).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t1;
+      }
+      if (TT_[t1][2]>=0) {
+	dhelper = Dart(*this,t1,1,0).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t1;
+      }
+    }
+
+    return Dart(*this,t0,1,1);
+  }
+  
+  Dart Mesh::splitEdge(const Dart& d, int v)
+  {
+  }
+
+  Dart Mesh::splitTriangle(const Dart& d, int v)
+  /**
+   *   2          2
+   *  |  \       |\ \
+   *  |   \      | \ \
+   *  |    1 --> | vd-1
+   *  |   /      | / /
+   *  | d/       |/ /
+   *   0          0
+   *
+   *  Dart 0-1 --> 3-1
+   * 
+   */
+  {
+    Dart dhelper = d;
+    int t, vi, i;
+    int v_list[3];
+    int t0, t1, t2;
+    int tt_list[3];
+    int tti_list[3];
+    if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
+
+    /* Step 1: Store geometry information. */
+    t = dhelper.t();
+    for (i=0;i<3;i++) {
+      vi = dhelper.vi();
+      v_list[i] = TV_[t][vi];
+      tt_list[i] = TT_[t][vi];
+      if (use_TTi_) tti_list[i] = TTi_[t][vi];
+      dhelper.orbit2();
+    }
+
+    /* Step 2: Overwrite one triangles, create two new. */
+    t0 = t;
+    t1 = nT_;
+    t2 = nT_+1;
+    check_capacity(0,nT_+2);
+    TV_[t0][0] = v;
+    TV_[t0][1] = v_list[1];
+    TV_[t0][2] = v_list[2];
+    TT_[t0][0] = tt_list[0];
+    TT_[t0][1] = t1;
+    TT_[t0][2] = t2;
+    if (use_TTi_) {
+      TTi_[t0][0] = tti_list[0];
+      TTi_[t0][1] = 1;
+      TTi_[t0][2] = 2;
+    }
+    TV_[t1][0] = v;
+    TV_[t1][1] = v_list[2];
+    TV_[t1][2] = v_list[0];
+    TT_[t1][0] = tt_list[1];
+    TT_[t1][1] = t2;
+    TT_[t1][2] = t0;
+    if (use_TTi_) {
+      TTi_[t1][0] = tti_list[1];
+      TTi_[t1][1] = 2;
+      TTi_[t1][2] = 0;
+    }
+    TV_[t2][0] = v;
+    TV_[t2][1] = v_list[0];
+    TV_[t2][2] = v_list[1];
+    TT_[t2][0] = tt_list[2];
+    TT_[t2][1] = t0;
+    TT_[t2][2] = t1;
+    if (use_TTi_) {
+      TTi_[t2][0] = tti_list[2];
+      TTi_[t2][1] = 0;
+      TTi_[t2][2] = 1;
+    }
+
+    /* Step 3: Relink neighbouring triangles. */
+    if (use_TTi_) {
+      if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
+      if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
+      if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
+    } else {
+      if (TT_[t0][0]>=0) {
+	dhelper = Dart(*this,t0,1,1).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t0;
+      }
+      if (TT_[t1][0]>=0) {
+	dhelper = Dart(*this,t1,1,1).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t1;
+      }
+      if (TT_[t2][0]>=0) {
+	dhelper = Dart(*this,t2,1,1).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t2;
+      }
+    }
+
+    /* Step 4: Update triangle count. */
+    nT_ = nT_+2;
+
+    return Dart(*this,t0,1,0);
+  }
+
+
+
 
 
   std::ostream& operator<<(std::ostream& output, const Mesh& M)
@@ -340,12 +564,12 @@ namespace fmesh {
 
   Dart& Dart::orbit2()
   {
-    /* "alpha1(); alpha0();" would be less efficient. */
+    /* "alpha0(); alpha1();" would be less efficient. */
     vi_ = (vi_+(3+edir_))%3;
     return *this;
   }
 
-  Dart& Dart::orbit0cw()
+  Dart& Dart::orbit0rev()
   {
     int t = t_;
     alpha2();
@@ -353,15 +577,15 @@ namespace fmesh {
     return *this;
   }
 
-  Dart& Dart::orbit1cw() /* Equivalent to orbit1() */
+  Dart& Dart::orbit1rev() /* Equivalent to orbit1() */
   {
     orbit1();
     return *this;
   }
 
-  Dart& Dart::orbit2cw()
+  Dart& Dart::orbit2rev()
   {
-    /* "alpha0(); alpha1();" would be less efficient. */
+    /* "alpha1(); alpha0();" would be less efficient. */
     vi_ = (vi_+(3-edir_))%3;
     return *this;
   }
