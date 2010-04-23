@@ -9,24 +9,15 @@ namespace fmesh {
 
   
 
-  /*  
-  bool isBoundaryEdge(const Dart& d)
-  {
-    Dart d2 = d;
-    return (d2.alpha2() == d);
-  }
-  */
-
-
 
   /*
     T-E+V=2
     
-    closed mesh in R3:
+    closed 2-manifold triangulation:
     E = T*3/2
     T = 2*V-4
 
-    simple mesh in R2:
+    simply connected 2-manifold triangulation:
     T <= 2*V-5
 
   */
