@@ -131,7 +131,7 @@ namespace fmesh {
     };
 
     bool onBoundary() const {
-      return (M_->TT_[t_][(vi_+2)%3] < 0);
+      return (M_->TT_[t_][(vi_+(3-edir_))%3] < 0);
     }
 
     /* Graph traversal algebra. */
