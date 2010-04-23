@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 #include <set>
 #include <map>
 
@@ -34,8 +35,6 @@ namespace fmesh {
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
     double (*S_)[3];
     
-    Mesh& check_capacity(int nVc, int nTc);
-
   private:
     Mesh& rebuildTT();
     Mesh& rebuildTTi();
@@ -43,7 +42,7 @@ namespace fmesh {
   public:
     Mesh(void) : Vcap_(0), Tcap_(0), nV_(0), nT_(0), use_TTi_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {};
-    Mesh(size_t Vcapacity, bool use_TTi);
+    Mesh(size_t Vcapacity, bool use_TTi=false);
     Mesh(const Mesh& M) : Vcap_(0), Tcap_(0), nV_(0), nT_(0), use_TTi_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {
       *this = M;
@@ -56,6 +55,11 @@ namespace fmesh {
     };
     ~Mesh();
     Mesh& clear();
+
+    /*!
+      \brief Check the storage capacity, and increase if necessary
+    */
+    Mesh& check_capacity(int nVc, int nTc);
 
     bool useTTi() const { return use_TTi_; }
     Mesh& useTTi(bool use_TTi);
@@ -71,15 +75,17 @@ namespace fmesh {
     M3intO TTiO() const;
     M3doubleO SO() const;
     
-    Mesh& S_set(double (*S)[3], int nV);
-    Mesh& TV_set(int (*TV)[3], int nT); 
+    Mesh& S_set(const double (*S)[3], int nV);
+    Mesh& TV_set(const int (*TV)[3], int nT); 
+    Mesh& S_append(const double (*S)[3], int nV);
+    Mesh& TV_append(const int (*TV)[3], int nT); 
     
-    void swapEdge(Dart& d);
-    void splitEdge(Dart& d, const Point& p);
-    void splitTriangle(Dart& d);
+    Dart swapEdge(const Dart& d);
+    Dart splitEdge(const Dart& d, int v);
+    Dart splitTriangle(const Dart& d, int v);
   };
   
-  
+  /*! \breif Darts */
   class Dart {
     friend std::ostream& operator<<(std::ostream& output, const Dart& d);
   private:
@@ -89,10 +95,14 @@ namespace fmesh {
     size_t t_;
     
   public:
-    Dart(const Mesh& M, int t=0)
-      : M_(&M), vi_(0), edir_(1), t_(t) {};
+    /*! Test 1 */
+    Dart(void)
+      : M_(NULL), vi_(0), edir_(1), t_(0) {};
+    Dart(const Mesh& M, int t=0, int edir=1, size_t vi=0)
+      : M_(&M), vi_(vi), edir_(edir), t_(t) {};/*!< Test 2 */
     Dart(const Dart& d) : M_(d.M_), vi_(d.vi_),
 			  edir_(d.edir_), t_(d.t_) {};
+    /*!< Test 3 */
     int vi() const { return vi_; };
     int edir() const { return edir_; };
     int t() const { return t_; };
@@ -102,12 +112,14 @@ namespace fmesh {
       edir_ = d.edir_;
       t_ = d.t_;
     };
+    bool isnull() const { return (!M_) || (edir_==0); };
     bool operator==(const Dart& d) const {
       return ((d.t_ == t_) &&
 	      (d.vi_ == vi_) &&
 	      (d.edir_ == edir_));
     };
     bool operator<(const Dart& d) const {
+      /* TODO: Add debug check for M_==d.M_ */
       return ((d.t_ < t_) ||
 	      ((d.t_ == t_) &&
 	       ((d.edir_ < edir_) ||
@@ -118,6 +130,10 @@ namespace fmesh {
       return !(d == *this);
     };
 
+    bool onBoundary() const {
+      return (M_->TT_[t_][(vi_+2)%3] < 0);
+    }
+
     /* Graph traversal algebra. */
     Dart& alpha0(void);
     Dart& alpha1(void);
@@ -125,33 +141,89 @@ namespace fmesh {
     Dart& orbit0(void);
     Dart& orbit1(void);
     Dart& orbit2(void);
-    Dart& orbit0cw(void);
-    Dart& orbit1cw(void);
-    Dart& orbit2cw(void);
+    Dart& orbit0rev(void);
+    Dart& orbit1rev(void);
+    Dart& orbit2rev(void);
 
   };
 
-  class MCtri {
+  class MCdv {
   public:
     Dart d_;
     double value_;
-    MCtri(Dart d, double value) : d_(d), value_(value) {};
-    MCtri(const MCtri &T) : d_(T.d_), value_(T.value_) {};
-    bool operator<(const MCtri& tb) {
+    MCdv(Dart d, double value) : d_(d), value_(value) {};
+    MCdv(const MCdv &T) : d_(T.d_), value_(T.value_) {};
+    bool operator<(const MCdv& tb) {
       return ((value_ < tb.value_) ||
 	      ((value_ == tb.value_) &&
 	       (d_ < tb.d_)));
     }
   };
 
-  typedef std::multiset<MCtri> MCtriSet;
+  typedef std::set<MCdv> MCdvSet;
+  typedef std::set<Dart,double> MCdvMap;
 
+  /*!
+    \brief Class for constructing Delaunay triangulations
+  */
   class MeshConstructor {
   private:
+    enum State {State_noT, State_DT, State_CDT, State_refinedCDT};
     Mesh *M_;
-    MCtriSet Tset;
+    MCdvMap segm_; /*!< Segment darts, mapped to metadata */
+    MCdvSet segm_encr_; /*!< Set of encroached segment darts */
+    MCdvMap skinny_; /*!< Skinny triangles, mapped to metadata */
+    MCdvSet skinny_sorted_;
+    MCdvMap big_;
+    MCdvSet big_sorted_;
+    double skinny_limit_;
+    double big_limit_;
+    State state_;
 
   public:
+    MeshConstructor() : M_(NULL), state_(State_noT) {};
+
+    Dart locatePoint(const Dart& d, const Point s) {return Dart();};
+    /*!
+      \brief Append vertices
+
+      Return index of the first of the added points.
+    */
+    int addVertices(const Dart& d, const double (*S)[3], int nV)
+    {
+      M_->S_append(S,nV);
+      return M_->nV()-nV;
+    };
+    Dart swapEdge(const Dart& d);
+    Dart splitEdge(const Dart& d, int v);
+    Dart splitTriangle(const Dart& d, int v);
+
+    /*!
+      \brief Build Delaunay triangulation (DT)
+
+      If the input mesh contains triangles, it is assumed to be a DT
+      including at least the boundary vertices of the convex hull.
+
+      If PruneExterior is to be used later, any exterior points must
+      be at the end of the vertex list.
+     */
+    void DT() {};
+    /*!
+      \brief Add segments to constraint list, preparing for CDT
+    */
+    void addSegments() {};
+    /*!
+      \brief Build constrained Delaunay triangulation (CDT)
+    */
+    void CDT() {};
+    /*!
+      \brief Remove exterior triangles from a CDT
+    */
+    void PruneExterior() {};
+    /*!
+      \brief Refine a CDT
+    */
+    void RefineCDT() {};
   };
 
 
