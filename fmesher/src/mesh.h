@@ -92,6 +92,7 @@ namespace fmesh {
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
     Dart locatePoint(const Dart& d0, const Point s, double& delta_min) const;
+    Dart locateVertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
@@ -181,23 +182,27 @@ namespace fmesh {
 
   class DartQualitySet {
   private:
-    typedef std::map<Dart,double>::value_type map_key_type;
-    std::map<Dart,double> darts_; /*!< Darts, mapped to quality */
-    std::set<MCdv> darts_quality_; /*!< Set of "bad quality" segment darts */
+    typedef std::set<MCdv> set_type;
+    typedef std::map<Dart,double> map_type;
+    typedef map_type::value_type map_key_type;
+    map_type darts_; /*!< Darts, mapped to quality */
+    set_type darts_quality_; /*!< Set of "bad quality" segment darts */
     double quality_limit_; /*!< Large quality values are included in the set */
   public:
     DartQualitySet() : quality_limit_(0.0) {};
     DartQualitySet(double quality_limit) : quality_limit_(quality_limit) {};
-    void clear();
+    void clear() {
+      darts_.clear();
+      darts_quality_.clear();
+    };
     void insert(const Dart& d, double quality);
-    void remove(const Dart& d, double quality);
-    void remove(const Dart& d);
-    Dart quality(const Dart& d);
+    void erase(const Dart& d);
     bool empty() const {return darts_.empty();};
     bool empty_quality() const {return darts_quality_.empty();};
     bool found(const Dart& d) const;
     bool found_quality(const Dart& d) const;
-    Dart get_quality() const;
+    const double quality(const Dart& d) const;
+    Dart quality_dart() const;
   };
 
   class SegmSet {
@@ -207,19 +212,17 @@ namespace fmesh {
   public:
     SegmSet() : M_(NULL) {};
     SegmSet(const Mesh& M) : M_(&M), segm_(10*MESH_EPSILON) {};
-    void clear();
+    void clear() { segm_.clear(); };
     void insert(const Dart& d) {
       double quality = M_->encroachedQuality(d);
       segm_.insert(d,quality);
     };
-    void remove(const Dart& d) {
-      segm_.remove(d);
-    };
+    void erase(const Dart& d) { segm_.erase(d); };
     bool empty() const {return segm_.empty();};
     bool empty_encroached() const {return segm_.empty_quality();};
     bool found(const Dart& d) const {return segm_.found(d);};
     bool found_encroached(const Dart& d) const {return segm_.found_quality(d);};
-    Dart get_encroached() const {return segm_.get_quality();};
+    Dart get_encroached() const {return segm_.quality_dart();};
   };
 
 
