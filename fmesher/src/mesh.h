@@ -9,8 +9,10 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <list>
 
 #define Mesh_V_capacity_step_size 128
+#define MESH_EPSILON 1e-18
 
 namespace fmesh {
 
@@ -23,7 +25,12 @@ namespace fmesh {
   class Mesh {
     friend class Dart;
     friend std::ostream& operator<<(std::ostream& output, const Mesh& M);
+  public:
+    enum Mtype {Mtype_manifold=0,
+		Mtype_plane,
+		Mtype_sphere};
   private:
+    Mtype type_;
     size_t Vcap_;
     size_t Tcap_;
     size_t nV_;
@@ -40,15 +47,18 @@ namespace fmesh {
     Mesh& rebuildTTi();
     
   public:
-    Mesh(void) : Vcap_(0), Tcap_(0), nV_(0), nT_(0), use_TTi_(false),
+    Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
+      nV_(0), nT_(0), use_TTi_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {};
-    Mesh(size_t Vcapacity, bool use_TTi=false);
-    Mesh(const Mesh& M) : Vcap_(0), Tcap_(0), nV_(0), nT_(0), use_TTi_(false),
+    Mesh(Mtype manifold_type, size_t Vcapacity, bool use_TTi=false);
+    Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
+      nV_(0), nT_(0), use_TTi_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {
       *this = M;
     };
     Mesh& operator=(const Mesh& M) {
       clear();
+      type_ = M.type_;
       useTTi(M.use_TTi_);
       S_set(M.S_,M.nV_);
       TV_set(M.TV_,M.nT_);
@@ -64,8 +74,9 @@ namespace fmesh {
     bool useTTi() const { return use_TTi_; }
     Mesh& useTTi(bool use_TTi);
 
-    const size_t nV() { return nV_; };
-    const size_t nT() { return nT_; };
+    Mtype type() const { return type_; };
+    size_t nV() const { return nV_; };
+    size_t nT() const { return nT_; };
     const int (*TV() const)[3] { return TV_; };
     const int (*TT() const)[3] { return TT_; };
     const int (*TTi() const)[3] { return TTi_; };
@@ -80,11 +91,15 @@ namespace fmesh {
     Mesh& S_append(const double (*S)[3], int nV);
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
-    Dart locatePoint(const Dart& d, const Point s) const;
+    Dart locatePoint(const Dart& d0, const Point s, double& delta_min) const;
     
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
+
+    double encroachedQuality(const Dart& d) const;
+    double skinnyQuality(int t) const;
+    double bigQuality(int t) const;
   };
   
   /*! \breif Darts */
@@ -97,23 +112,24 @@ namespace fmesh {
     int t_;
     
   public:
-    /*! Test 1 */
     Dart(void)
       : M_(NULL), vi_(0), edir_(1), t_(0) {};
     Dart(const Mesh& M, int t=0, int edir=1, size_t vi=0)
       : M_(&M), vi_(vi), edir_(edir), t_(t) {};/*!< Test 2 */
     Dart(const Dart& d) : M_(d.M_), vi_(d.vi_),
 			  edir_(d.edir_), t_(d.t_) {};
-    /*!< Test 3 */
-    int vi() const { return vi_; };
-    int edir() const { return edir_; };
-    int t() const { return t_; };
     Dart& operator=(const Dart& d) {
       M_ = d.M_ ;
       vi_ = d.vi_;
       edir_ = d.edir_;
       t_ = d.t_;
     };
+
+    const Mesh* M() const { return M_; };
+    int vi() const { return vi_; };
+    int edir() const { return edir_; };
+    int t() const { return t_; };
+
     bool isnull() const { return (!M_) || (edir_==0); };
     bool operator==(const Dart& d) const {
       return ((d.t_ == t_) &&
@@ -155,42 +171,133 @@ namespace fmesh {
     double value_;
     MCdv(Dart d, double value) : d_(d), value_(value) {};
     MCdv(const MCdv &T) : d_(T.d_), value_(T.value_) {};
-    bool operator<(const MCdv& tb) {
+    bool operator<(const MCdv& tb) const {
       return ((value_ < tb.value_) ||
 	      ((value_ == tb.value_) &&
 	       (d_ < tb.d_)));
     }
   };
 
-  typedef std::set<MCdv> MCdvSet;
-  typedef std::set<Dart,double> MCdvMap;
+
+  class DartQualitySet {
+  private:
+    typedef std::map<Dart,double>::value_type map_key_type;
+    std::map<Dart,double> darts_; /*!< Darts, mapped to quality */
+    std::set<MCdv> darts_quality_; /*!< Set of "bad quality" segment darts */
+    double quality_limit_; /*!< Large quality values are included in the set */
+  public:
+    DartQualitySet() : quality_limit_(0.0) {};
+    DartQualitySet(double quality_limit) : quality_limit_(quality_limit) {};
+    void clear();
+    void insert(const Dart& d, double quality);
+    void remove(const Dart& d, double quality);
+    void remove(const Dart& d);
+    Dart quality(const Dart& d);
+    bool empty() const {return darts_.empty();};
+    bool empty_quality() const {return darts_quality_.empty();};
+    bool found(const Dart& d) const;
+    bool found_quality(const Dart& d) const;
+    Dart get_quality() const;
+  };
+
+  class SegmSet {
+  private:
+    const Mesh *M_;
+    DartQualitySet segm_;
+  public:
+    SegmSet() : M_(NULL) {};
+    SegmSet(const Mesh& M) : M_(&M), segm_(10*MESH_EPSILON) {};
+    void clear();
+    void insert(const Dart& d) {
+      double quality = M_->encroachedQuality(d);
+      segm_.insert(d,quality);
+    };
+    void remove(const Dart& d) {
+      segm_.remove(d);
+    };
+    bool empty() const {return segm_.empty();};
+    bool empty_encroached() const {return segm_.empty_quality();};
+    bool found(const Dart& d) const {return segm_.found(d);};
+    bool found_encroached(const Dart& d) const {return segm_.found_quality(d);};
+    Dart get_encroached() const {return segm_.get_quality();};
+  };
+
 
   /*!
     \brief Class for constructing Delaunay triangulations
   */
   class MeshConstructor {
+  public:
+    enum State {State_noT=0, /*!< No triangulation present */
+		State_CHT, /*!< Convex hull triangulation */
+		State_DT, /*!< Delaunay triangulation */
+		State_CDT, /*!< Constrained DT,
+			     segment data structures active. */
+		State_RCDT /*!< Refined CDT, triangle quality
+                                    data structures active. */
+    }; /*!< The current triangulation and data structure state. */
+    typedef std::list<int> vertex_input_type;
+    typedef std::list<int> triangle_input_type;
+    typedef std::pair<int,int> constraint_type;
+    typedef std::list<constraint_type> constraint_input_type;
+    typedef std::list<constraint_type> constraint_list_type;
   private:
-    enum State {State_noT=0,
-		State_DT,
-		State_CDT_prepared,
-		State_CDT,
-		State_refinedCDT};
     Mesh *M_;
-    MCdvMap segm_; /*!< Segment darts, mapped to metadata */
-    MCdvSet segm_encr_; /*!< Set of encroached segment darts */
-    MCdvMap skinny_; /*!< Skinny triangles, mapped to metadata */
-    MCdvSet skinny_sorted_;
-    MCdvMap big_;
-    MCdvSet big_sorted_;
+    /* CDT Constraint and segment data structures: */
+    constraint_list_type constr_boundary_; /*! Boundary edge
+                                              constraints not yet
+                                              added as segments. */
+    constraint_list_type constr_interior_; /*! Interior edge
+                                              constraints not yet
+                                              added as segments. */
+    SegmSet boundary_; /*!< Boundary segment */
+    SegmSet interior_; /*!< Interior segment */
+    /* RCDT triangle quality data structures: */
+    DartQualitySet skinny_; /*!< Skinny triangles */
+    DartQualitySet big_;
     double skinny_limit_;
     double big_limit_;
+    /* State variables: */
     State state_;
+    bool is_pruned_;
 
-    void recSwapDelaunay(const Dart& d0);
-    void insertNode(int v);
+    bool recSwapDelaunay(const Dart& d0);
+    Dart splitTriangleDelaunay(const Dart& td, int v);
+    Dart splitEdgeDelaunay(const Dart& ed, int v);
+    bool insertNode(int v, const Dart& ed);
+
+    bool isSegmentDart(const Dart& d) const;
+
+    /*!
+      \brief Make a DT from a CHT, calling LOP.
+    */
+    bool prepareDT();
+    /*!
+      \brief Initialise the CDT data structures, and add the
+      boundaries as constraint segments.
+    */
+    bool prepareCDT();
+    /*!
+      \brief Build a CDT from constraint edge lists. Called by prepareCDT,
+      CDTBoundary and CDTInterior.
+    */
+    bool buildCDT();
+    /*!
+      \brief Initialise the RCDT data structures.
+    */
+    bool prepareRCDT(double skinny_limit, double big_limit);
+    /*!
+      \brief Build a RCDT.
+    */
+    bool buildRCDT();
 
   public:
     MeshConstructor() : M_(NULL), state_(State_noT) {};
+    MeshConstructor(Mesh* M, bool with_conv_hull)
+      : M_(M), state_(State_noT), is_pruned_(false) {
+      if (with_conv_hull)
+	state_ = State_CHT;
+    };
 
     /*!
       \brief Append vertices
@@ -207,36 +314,63 @@ namespace fmesh {
     Dart splitTriangle(const Dart& d, int v);
 
     /*!
+      \brief Local Optimisation Procedure (LOP)
+
+      Perform LOP to make the input triangulation Delaunay.
+     */
+    bool LOP(const triangle_input_type& t_set);
+    /*!
       \brief Build Delaunay triangulation (DT)
 
-      If the input mesh contains triangles, it is assumed to be a DT
-      including at least the boundary vertices of the convex hull.
-
-      If PruneExterior is to be used later, any exterior points must
-      be at the end of the vertex list.
+      The vertices must be covered by the input triangulation, which
+      must be convex.  LOP is called to make sure it is Delaunay, if
+      not already known by the MeshConstructor to be Delaunay.
      */
-    void DT(const std::vector<int> v_set);
+    bool DT(const vertex_input_type& v_set);
     /*!
-      \brief Prepare for running CDT algorithms.
+      \brief Build boundary edge constrained Delaunay triangulation (CDT)
+      
+      The boundary edge constraints define what regions should be
+      removed by a later call to PruneExterior.
     */
-    void prepareCDT();
+    bool CDTBoundary(const constraint_input_type& constr);
     /*!
-      \brief Add segments to constraint list, preparing for CDT
+      \brief Build interior edge constrained Delaunay triangulation (CDT)
     */
-    void addSegments() {};
+    bool CDTInterior(const constraint_input_type& constr);
     /*!
-      \brief Build constrained Delaunay triangulation (CDT)
+      \brief Alias to CDTInterior
     */
-    void CDT() {};
+    bool CDT(const constraint_input_type& constr) {
+      CDTInterior(constr);
+    };
     /*!
       \brief Remove exterior triangles from a CDT
+
+      Exterior points at the end of the vertex list are removed.
+
+      TODO: allow optional vertex reordering.
     */
-    void PruneExterior() {};
+    bool PruneExterior();
     /*!
       \brief Refine a CDT
     */
-    void RefineCDT() {};
+    bool RCDT(double skinny_limit, double big_limit);
   };
+
+
+
+  struct Traits {
+    /*!
+      Compute dart half-space test for a point.
+      positive if s is to the left of the edge defined by d.
+     */
+    static double inLeftHalfspace(const Dart& d, const double s[3]);
+    static double inCircumcircle(const Dart& d, const double s[3]);
+    static bool circumcircleTest(const Dart& d);
+  };
+
+
 
 
   class M3intO {

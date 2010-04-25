@@ -3,7 +3,12 @@
 #include <set>
 #include <map>
 
+#include "predicates.h"
+
 #include "mesh.h"
+
+#define NOT_IMPLEMENTED std::cout << "Not implemented: \"" \
+  << __PRETTY_FUNCTION__ << std::endl;
 
 namespace fmesh {
 
@@ -22,9 +27,10 @@ namespace fmesh {
 
   */
 
-  Mesh::Mesh(size_t V_capacity,
-	     bool use_TTi) : Vcap_(V_capacity),
-			     Tcap_(2*V_capacity),
+  Mesh::Mesh(Mtype manifold_type,
+	     size_t V_capacity,
+	     bool use_TTi) : type_(manifold_type),
+			     Vcap_(V_capacity), Tcap_(2*V_capacity),
 			     nV_(0), nT_(0), use_TTi_(use_TTi)
   {
     if (Vcap_ > 0) {
@@ -233,9 +239,99 @@ namespace fmesh {
   }
 
 
+  double Mesh::encroachedQuality(const Dart& d) const
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return -1.0; /* <=0 --> not encroached */
+  }
+
+  double Mesh::skinnyQuality(int t) const
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return 0.0;
+  }
+
+  double Mesh::bigQuality(int t) const
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return 0.0;
+  }
+
+
+  double Traits::inLeftHalfspace(const Dart& d, const double s[3])
+  {
+    Dart dhelper = d;
+    const Mesh *M = d.M();
+    int v0, v1;
+    if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
+    const int* tp = M->TV()[dhelper.t()];
+    v0 = tp[dhelper.vi()];
+    dhelper.orbit2();
+    v1 = tp[dhelper.vi()];
+    switch (M->type()) {
+    case Mesh::Mtype_manifold:
+      //	return predicates::orient3d(M_->S[]);
+      break;
+    case Mesh::Mtype_plane:
+      return predicates::orient2d(M->S()[v0],M->S()[v1],s);
+      break;
+    case Mesh::Mtype_sphere:
+      Point zero = {0.,0.,0.};
+      return predicates::orient3d(M->S()[v0],M->S()[v1],zero,s);
+      break;
+    }
+    /* This should never be reached. */
+    return 0.0;
+  }
+
+  double Traits::inCircumcircle(const Dart& d, const double s[3])
+  {
+    Dart dhelper = d;
+    const Mesh *M = d.M();
+    int v0, v1, v2;
+    if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
+    const int* tp = M->TV()[dhelper.t()];
+    v0 = tp[dhelper.vi()];
+    dhelper.orbit2();
+    v1 = tp[dhelper.vi()];
+    dhelper.orbit2();
+    v2 = tp[dhelper.vi()];
+    switch (M->type()) {
+    case Mesh::Mtype_manifold:
+      //	return predicates::orient3d(M_->S[]);
+      break;
+    case Mesh::Mtype_plane:
+      return predicates::incircle(M->S()[v0],M->S()[v1],M->S()[v2],s);
+      break;
+    case Mesh::Mtype_sphere:
+      return predicates::orient3d(M->S()[v0],M->S()[v1],M->S()[v2],s);
+      break;
+    }
+    /* This should never be reached. */
+    return 0.0;
+  }
+
+  bool Traits::circumcircleTest(const Dart& d)
+  {
+    Dart dhelper = d;
+    const Mesh *M = d.M();
+    int v;
+    if (d.isnull()) return true; /* TODO: should show a warning somewhere... */
+    if (d.onBoundary()) return true; /* Locally optimal, OK. */
+    dhelper.alpha2().alpha0();
+    const int* tp = M->TV()[dhelper.t()];
+    v = tp[dhelper.vi()];
+    return (Traits::inCircumcircle(d,M->S()[v]) <= MESH_EPSILON);
+  }
+
 
   /*! \brief Swap an edge
-
 
      \verbatim
        2         2
@@ -339,28 +435,201 @@ namespace fmesh {
     return Dart(*this,t0,1,1);
   }
   
+  /*!
+     \verbatim
+     2           2
+    /|\         /|\
+   / | \       /1d2\
+  1 0|1 3 --> 1--v--3
+   \ | /       \0|3/
+    \d/         \|/
+     0           0
+     \endverbatim
+   
+     Dart 0-2 --> v-2
+  */
   Dart Mesh::splitEdge(const Dart& d, int v)
-  {
-  }
-
-  Dart Mesh::splitTriangle(const Dart& d, int v)
-  /**
-   *   2          2
-   *  |  \       |\ \
-   *  |   \      | \ \
-   *  |    1 --> | vd-1
-   *  |   /      | / /
-   *  | d/       |/ /
-   *   0          0
-   *
-   *  Dart 0-1 --> 3-1
-   * 
-   */
   {
     Dart dhelper = d;
     int t, vi, i;
-    int v_list[3];
+    int v0, v1, v2, v3;
+    int t0, t1, t2, t3;
+    int tt_list[4];
+    int tti_list[4];
+    if (d.edir()<0) dhelper.alpha0(); /* Correct dart orientation */
+
+    /* Step 1: Store geometry information. */
+    /* Go through t0: */
+    t0 = dhelper.t();
+    vi = dhelper.vi();
+    v0 = TV_[t0][vi];
+    tt_list[1] = TT_[t0][vi];
+    if (use_TTi_) tti_list[1] = TTi_[t0][vi];
+    dhelper.orbit2();
+    vi = dhelper.vi();
+    v2 = TV_[t0][vi];
+    tt_list[0] = TT_[t0][vi];
+    if (use_TTi_) tti_list[0] = TTi_[t0][vi];
+    dhelper.orbit2();
+    vi = dhelper.vi();
+    v1 = TV_[t0][vi];
+    dhelper.orbit2();
+
+    bool on_boundary = dhelper.onBoundary();
+    if (!on_boundary) {
+      /* Go through t1: */
+      dhelper.orbit1();
+      t1 = dhelper.t();
+      vi = dhelper.vi();
+      tt_list[3] = TT_[t1][vi];
+      if (use_TTi_) tti_list[3] = TTi_[t1][vi];
+      dhelper.orbit2();
+      vi = dhelper.vi();
+      tt_list[2] = TT_[t1][vi];
+      if (use_TTi_) tti_list[2] = TTi_[t1][vi];
+      dhelper.orbit2();
+      vi = dhelper.vi();
+      v3 = TV_[t1][vi];
+    } else {
+      v3 = -1;
+      tt_list[2] = -1;
+      tt_list[3] = -1;
+      if (use_TTi_) {
+	tti_list[2] = -1;
+	tti_list[3] = -1;
+      }
+    }
+
+    /* Step 2: Overwrite one/two triangles, create two/four new. */
+    /* t0 = t0; */
+    if (on_boundary) {
+      t1 = nT_;
+      check_capacity(0,nT_+1);
+      t2 = -1;
+      t3 = -1;
+    } else {
+      /* t1 = t1; */
+      t2 = nT_;
+      t3 = nT_+1;
+      check_capacity(0,nT_+2);
+    }
+    /* t0 */
+    t = t0;
+    TV_[t][0] = v;
+    TV_[t][1] = v1;
+    TV_[t][2] = v0;
+    TT_[t][0] = tt_list[0];
+    TT_[t][1] = t3;
+    TT_[t][2] = t1;
+    if (use_TTi_) {
+      TTi_[t][0] = tti_list[0];
+      TTi_[t][1] = 2;
+      TTi_[t][2] = 1;
+    }
+    /* t1 */
+    t = t1;
+    TV_[t][0] = v;
+    TV_[t][1] = v2;
+    TV_[t][2] = v1;
+    TT_[t][0] = tt_list[1];
+    TT_[t][1] = t0;
+    TT_[t][2] = t2;
+    if (use_TTi_) {
+      TTi_[t][0] = tti_list[1];
+      TTi_[t][1] = 2;
+      TTi_[t][2] = 1;
+    }
+    if (!on_boundary) {
+      /* t2 */
+      t = t2;
+      TV_[t][0] = v;
+      TV_[t][1] = v3;
+      TV_[t][2] = v2;
+      TT_[t][0] = tt_list[2];
+      TT_[t][1] = t1;
+      TT_[t][2] = t3;
+      if (use_TTi_) {
+	TTi_[t][0] = tti_list[2];
+	TTi_[t][1] = 2;
+	TTi_[t][2] = 1;
+      }
+      /* t3 */
+      t = t3;
+      TV_[t][0] = v;
+      TV_[t][1] = v0;
+      TV_[t][2] = v3;
+      TT_[t][0] = tt_list[3];
+      TT_[t][1] = t2;
+      TT_[t][2] = t0;
+      if (use_TTi_) {
+	TTi_[t][0] = tti_list[3];
+	TTi_[t][1] = 2;
+	TTi_[t][2] = 1;
+      }
+    }
+
+    /* Step 3: Relink neighbouring triangles. */
+    if (use_TTi_) {
+      if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
+      if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
+      if (!on_boundary) {
+	if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
+	if (TT_[t3][0]>=0) TT_[TT_[t3][0]][TTi_[t3][0]] = t3;
+      }
+    } else {
+      if (TT_[t0][0]>=0) {
+	dhelper = Dart(*this,t0,1,1).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t0;
+      }
+      if (TT_[t1][0]>=0) {
+	dhelper = Dart(*this,t1,1,1).orbit0rev();
+	dhelper.orbit2();
+	TT_[dhelper.t()][dhelper.vi()] = t1;
+      }
+      if (!on_boundary) {
+	if (TT_[t2][0]>=0) {
+	  dhelper = Dart(*this,t2,1,1).orbit0rev();
+	  dhelper.orbit2();
+	  TT_[dhelper.t()][dhelper.vi()] = t2;
+	}
+	if (TT_[t3][0]>=0) {
+	  dhelper = Dart(*this,t3,1,1).orbit0rev();
+	  dhelper.orbit2();
+	  TT_[dhelper.t()][dhelper.vi()] = t3;
+	}
+      }
+    }
+
+    /* Step 4: Update triangle count. */
+    if (on_boundary)
+      nT_ = nT_+1;
+    else
+      nT_ = nT_+2;
+  
+    return Dart(*this,t1,1,0);
+  }
+
+  /*!
+     \verbatim
+      2          2
+     |  \       |\ \
+     |   \      |2\1\
+     |    1 --> | v--1
+     |   /      | d0/
+     | d/       |/ /
+      0          0
+     \endverbatim
+   
+     Dart 0-1 --> v-1
+  */
+  Dart Mesh::splitTriangle(const Dart& d, int v)
+  {
+    Dart dhelper = d;
+    int t, vi, i;
+    //    int v0, v1, v2;
     int t0, t1, t2;
+    int v_list[3];
     int tt_list[3];
     int tti_list[3];
     if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
@@ -470,7 +739,7 @@ namespace fmesh {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(4)
 	       << MO.M_[i][j];
-      std::cout << '\n';
+      std::cout << std::endl;
     }
     return output;
   }
@@ -481,7 +750,7 @@ namespace fmesh {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(10) << std::scientific
 	       << MO.M_[i][j];
-      std::cout << '\n';
+      std::cout << std::endl;
     }
     return output;
   }
@@ -584,156 +853,430 @@ namespace fmesh {
 
 
 
-  Dart Mesh::locatePoint(const Dart& d, const Point s) const
+  /*!
+    Alg 9.1
+
+    If the point is located within the triangulation domain,
+    delta_min and the returned Dart correspond to the triangle edge
+    with smallest distance, as measured by inLeftHalfspace.
+
+    If the point is not found, a null Dart is returned.
+   */
+  Dart Mesh::locatePoint(const Dart& d0,
+			 const Point s,
+			 double& delta_min) const
   {
+    int t;
+    Dart dart = Dart(*this,d0.t(),1,d0.vi());
+    Dart dart_start = dart;
+    double delta;
+    Dart dart_min = Dart();
+    while (1) {
+      std::cout << dart_start << ' '
+		<< dart << ' '
+		<< Traits::inLeftHalfspace(dart,s)
+		<< std::endl;
+      delta = Traits::inLeftHalfspace(dart,s);
+      if (dart_min.isnull() || (delta<delta_min)) {
+	dart_min = dart;
+	delta_min = delta;
+      }
+      if (delta >= -MESH_EPSILON) {
+	dart.orbit2();
+	if (dart==dart_start)
+	  return dart_min;
+      } else {
+	if (dart.onBoundary())
+	  return Dart();
+	dart.alpha2();
+	dart_start = dart;
+	dart_start.alpha0();
+	dart.alpha1();
+	dart_min = dart_start;
+	delta_min = -delta;
+      }
+    }
+
     return Dart();
   }
 
 
-  bool circumcircleTest(const Dart& d)
-  {
-    /* TODO: implement circle-test using predicates::incircle */
-    return false;
-  }
 
-  /*! Alg 9.4 */
-  void MeshConstructor::recSwapDelaunay(const Dart& d0)
+  /*! Alg 4.3 */
+  bool MeshConstructor::recSwapDelaunay(const Dart& d0)
   {
     Dart d1, d2;
 
-    if (circumcircleTest(d0))
-      return;
+    if (d0.isnull() or d0.onBoundary())
+      return true; /* OK. Not allowed to swap. */
+    if (isSegmentDart(d0))
+      return true ; /* OK. Not allowed to swap. */
+    if (Traits::circumcircleTest(d0))
+      return true; /* OK. Need not swap. */
+
+    std::cout << "Swap " << d0 << std::endl;
 
     /* Get opposing darts. */
     d1 = d0;
     d1.alpha1();
-    if (!d1.onBoundary()) d1.alpha2();
+    if (d1.onBoundary()) d1 = Dart(); else d1.alpha2();
     d2 = d0;
     d2.orbit2rev().alpha1(); 
-    if (d2.onBoundary()) d2.alpha2();
+    if (d2.onBoundary()) d2 = Dart(); else d2.alpha2();
     
     swapEdge(d0);
 
-    if (!d1.onBoundary()) recSwapDelaunay(d1);
-    if (!d2.onBoundary()) recSwapDelaunay(d2);
+    if (!d1.isnull()) recSwapDelaunay(d1);
+    if (!d2.isnull()) recSwapDelaunay(d2);
+    return true;
   }
 
 
   /*! Alg 9.3 */
-  void MeshConstructor::insertNode(int v)
+  Dart MeshConstructor::splitTriangleDelaunay(const Dart& td, int v)
   {
-    Dart td, d, d0, d1, d2;
+    Dart d, d0, d1, d2;
 
-    td = M_->locatePoint(Dart(*M_,0),M_->S()[v]);
-    if (td.isnull()) { return; }; /* ERROR, not found! */
-    
+    if (td.isnull()) { return Dart(); }; /* ERROR */
     /* Get opposing darts. */
     d = td;
     if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();} 
-    d.orbit2(); 
+    d.orbit2();
     if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();} 
-    d.orbit2(); 
-    if (d.onBoundary()) d2 = Dart(); else {d2 = d; d1.orbit1();} 
+    d.orbit2();
+    if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
+
+    std::cout << "TV = " << std::endl << M_->TVO();
+    std::cout << "Split triangle with vertex " << v << std::endl;
+    d = splitTriangle(td,v);
     
-    td = splitTriangle(td,v);
+    if (!d0.isnull()) recSwapDelaunay(d0);
+    if (!d1.isnull()) recSwapDelaunay(d1);
+    if (!d2.isnull()) recSwapDelaunay(d2);
+
+    std::cout << "TV = " << std::endl << M_->TVO();
     
-    recSwapDelaunay(d0);
-    recSwapDelaunay(d1);
-    recSwapDelaunay(d2);
+    return d;
   }
 
-  void MeshConstructor::DT(const std::vector<int> v_set)
+  /*! Modified Alg 9.3 */
+  Dart MeshConstructor::splitEdgeDelaunay(const Dart& ed, int v)
   {
-    if (state_ > State_DT)
-      return;
+    Dart d, d0, d1, d2, d3;
+
+    if (ed.isnull()) { return Dart(); }; /* ERROR */
+    /* Get opposing darts. */
+    d = ed;
+    d.orbit2();
+    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();} 
+    d.orbit2();
+    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();} 
+    d = ed;
+    if (d.onBoundary()) {
+      d2 = Dart();
+      d3 = Dart();
+    } else {
+      d.orbit0rev();
+      if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
+      d.orbit2();
+      if (d.onBoundary()) d3 = Dart(); else {d3 = d; d3.orbit1();} 
+    }
+
+    std::cout << "TV = " << std::endl << M_->TVO();
+    std::cout << "Split edge with vertex " << v << std::endl;
+    d = splitEdge(ed,v);
+    
+    if (!d0.isnull()) recSwapDelaunay(d0);
+    if (!d1.isnull()) recSwapDelaunay(d1);
+    if (!d2.isnull()) recSwapDelaunay(d2);
+    if (!d3.isnull()) recSwapDelaunay(d3);
+
+    std::cout << "TV = " << std::endl << M_->TVO();
+    
+    return d;
+  }
+
+  /*! Alg 9.3 */
+  bool MeshConstructor::insertNode(int v, const Dart& ed)
+  {
+    Dart td;
+    double delta;
+
+    std::cout << "Locating node " << v << std::endl;
+    td = M_->locatePoint(ed,M_->S()[v],delta);
+    if (td.isnull()) { return false; }; /* ERROR, not found! */
+    std::cout << "Closest dart " << td
+	      << ' ' << delta << std::endl;
+
+    if (delta>10*MESH_EPSILON) { /* Split triangle */
+      splitTriangleDelaunay(td,v);
+    } else { /* Split edge */
+      splitEdgeDelaunay(td,v);
+    }
+    return true;
+  }
+
+  bool MeshConstructor::DT(const vertex_input_type& v_set)
+  {
+    if (is_pruned_) 
+      return false; /* ERROR, cannot safely insert nodes into a pruned
+		       triangulation. Call insertNode directly if known to
+		       be visible/reachable from a given edge.  */
+
+    if (state_ < State_CHT)
+      return false; /* TODO: Add convex enclosure? */
+
+    if (state_ < State_DT)
+      if (!prepareDT()) /* Make sure we have a DT. */
+	return false;
 
     int v;
-    std::vector<int>::const_iterator v_iter;
+    vertex_input_type::const_iterator v_iter;
     Dart td, d, d0, d1, d2;
 
     for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
       v = *v_iter;
-      insertNode(v);
+      insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
     }
+
+    state_ = State_DT;
+    return true;
   }
+
+
+  bool MeshConstructor::prepareDT()
+  {
+    if (state_<State_DT) {
+      /* We need to build a DT first. */
+      triangle_input_type t_set;
+      for (int t=0;t<M_->nT();t++)
+	t_set.push_back(t);
+      if (LOP(t_set))
+	state_ = State_DT;
+    }
+    return (state_>=State_DT) && (!is_pruned_);
+  }
+
+
+  bool MeshConstructor::prepareCDT()
+  {
+    if (!prepareDT()) return false; /* Make sure we have a DT. */
+    if (state_>=State_CDT)
+      return true; /* Nothing to do. Data structures already active. */
+
+    const int* tt;
+    int vi;
+    Dart d;
+    for (int t=0;t<M_->nT();t++) {
+      tt = M_->TT()[t];
+      for (vi=0;vi<3;vi++)
+	if (tt[vi]<0) {
+	  d = Dart(*M_,t,1,(vi+1)%3);
+	  boundary_.insert(d);
+	}
+    }
+
+    state_ = State_CDT;
+    return true;
+  }
+
+  bool MeshConstructor::prepareRCDT(double skinny_limit, double big_limit)
+  {
+    if (!prepareCDT()) return false; /* Make sure we have a CDT. */
+
+    skinny_limit_ = skinny_limit;
+    big_limit_ = big_limit;
+
+    skinny_ = DartQualitySet(skinny_limit_);
+    big_ = DartQualitySet(big_limit_);
+
+    double quality;
+    for (int t=0;t<M_->nT();t++) {
+      quality = M_->skinnyQuality(t);
+      if (quality>skinny_limit_)
+	skinny_.insert(Dart(*M_,t),quality);
+      quality = M_->bigQuality(t);
+      if (quality>big_limit_)
+	big_.insert(Dart(*M_,t),quality);
+    }
+
+    state_ = State_RCDT;
+    return true;
+  }
+
+
+
+  bool MeshConstructor::CDTBoundary(const constraint_input_type& constr)
+  {
+    if (!prepareCDT()) return false;
+
+    constr_boundary_ = constraint_list_type(constr.begin(),constr.end());
+    
+    return buildCDT();
+  };
+
+  bool MeshConstructor::CDTInterior(const constraint_input_type& constr)
+  {
+    if (!prepareCDT()) return false;
+
+    constr_interior_ = constraint_list_type(constr.begin(),constr.end());
+    
+    return buildCDT();
+  };
+
+
+
+
+
+
+  bool MeshConstructor::LOP(const triangle_input_type& t_set)
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return true;
+  }
+
+
+  bool MeshConstructor::buildCDT()
+  {
+    if (!prepareCDT()) return false;
+
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    for (constraint_list_type::iterator ci = constr_boundary_.begin();
+	 ci != constr_boundary_.end(); ci++) {
+      if (true)
+	ci = constr_boundary_.erase(ci);
+    }
+    for (constraint_list_type::iterator ci = constr_interior_.begin();
+	 ci != constr_interior_.end(); ci++) {
+      if (true)
+	ci = constr_interior_.erase(ci);
+    }
+
+    return (constr_boundary_.empty() && constr_interior_.empty());
+  };
+
+  bool MeshConstructor::buildRCDT()
+  {
+    if (state_<State_RCDT)
+      return false; /* ERROR: RCDT not initialised. */
+
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return true;
+  };
+
+  bool MeshConstructor::RCDT(double skinny_limit, double big_limit)
+  {
+    if (!prepareRCDT(skinny_limit,big_limit)) return false;
+    return buildRCDT();
+  };
+
+
+  bool MeshConstructor::PruneExterior()
+  {
+    if (state_ < State_CDT) {
+      /* Since there are no constraints at this state, no exterior
+	 needs to be pruned, but add the boundary to the constraint
+	 set anyway, to get to state State_CDT. */
+      prepareCDT();
+      is_pruned_ = true;
+      return true;
+    }
+    is_pruned_ = true;
+    
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return true;
+  };
+
+
+
 
 
   Dart MeshConstructor::swapEdge(const Dart& d)
   {
-    if (state_ < State_CDT_prepared) {
+    if (state_ < State_CDT) {
       return M_->swapEdge(d);
     }
 
     /* TODO: implement. */
+    NOT_IMPLEMENTED;
+    return Dart(d);
   }
 
   Dart MeshConstructor::splitEdge(const Dart& d, int v)
   {
-    if (state_ < State_CDT_prepared) {
+    if (state_ < State_CDT) {
       return M_->splitEdge(d,v);
     }
 
     /* TODO: implement. */
+    NOT_IMPLEMENTED;
+
+    return Dart(d);
   }
 
   Dart MeshConstructor::splitTriangle(const Dart& d, int v)
   {
-    if (state_ < State_CDT_prepared) {
+    if (state_ < State_CDT) {
       return M_->splitTriangle(d,v);
     }
 
     /* TODO: implement. */
+    NOT_IMPLEMENTED;
+    return Dart(d);
+  }
+
+
+
+
+  bool MeshConstructor::isSegmentDart(const Dart& d) const
+  {
+    if (state_<State_CDT) /* No segments */
+      return false;
+
+    return (boundary_.found(d) || interior_.found(d));
   }
 
 
 
 
 
-  /*
-
-int point_in_dart_lefthalfplane(const trimesh_t* M,
-				point_t* p,
-				const dart_t* dart)
-{
-  return ( ((*p)[0]-(*p)[2])*
-	   (trimesh_S((*M),dart->f,dart->vi,1)-
-	    trimesh_S((*M),dart->f,dart->vi,2)) -
-	   ((*p)[1]-(*p)[2])*
-	   (trimesh_S((*M),dart->f,dart->vi,0)-
-	    trimesh_S((*M),dart->f,dart->vi,2)) ) >= 0;
-}
 
 
-int locate_triangle(const trimesh_t* M,
-		    point_t* p,
-		    const dart_t* dart_init)
-//
-//  Algorithm from Hjelle & Daehlen, p. 209
-//
-{
-  int f;
-  dart_t dart_start;
-  dart_t dart;
-  dart_copy(dart_init,&dart);
-  dart.edir = 1;
-  dart_copy(&dart,&dart_start);
-  while (1) {
-    if (point_in_dart_lefthalfplane(M,p,&dart)) {
-      dart_alpha1(M,dart_alpha0(M,&dart));
-      if (dart_equal(M,&dart,&dart_start)) {
-	return dart.f;
-      }
-    } else {
-      dart_alpha2(M,dart_copy(&dart,&dart_start));
-      if (dart_equal(M,&dart,&dart_start)) {
-	return -1;
-      }
-      dart_alpha1(M,dart_copy(&dart_start,&dart));
-      dart_alpha0(M,&dart_start);
-    }
+  bool DartQualitySet::found(const Dart& d) const
+  {
+    return false;
   }
-}
 
-  */
+  bool DartQualitySet::found_quality(const Dart& d) const
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return false;
+  }
+
+  Dart DartQualitySet::get_quality() const
+  {
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return Dart();
+  }
+
+  void DartQualitySet::insert(const Dart& d, double quality)
+  {
+    darts_.insert(map_key_type(d,quality));
+    if (quality>=quality_limit_)
+      darts_quality_.insert(MCdv(d,quality));
+  }
+
 
 } /* namespace fmesh */
