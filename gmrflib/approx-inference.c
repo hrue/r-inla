@@ -1342,6 +1342,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		} else {
 			// optpar->fp = stdout;
 			optpar->opt_type = GMRFLib_OPTTYPE_SAFENR;
+			optpar->opt_type = GMRFLib_OPTTYPE_NR; /* ok with the new version */
 		}
 
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern(&ai_store->problem,
@@ -2446,6 +2447,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * this is the old version 
 		 */
 
+		FIXME("OLD VERSION");
+		
 		if (!blockupdate_par) {
 			GMRFLib_default_blockupdate_param(&blockupdate_par);
 			free_blockpar = 1;
