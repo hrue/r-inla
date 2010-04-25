@@ -900,6 +900,62 @@ namespace fmesh {
     return Dart();
   }
 
+  /*!
+    Alg 9.1 modified to locate a pre-existing vertex.
+
+    If the vertex is not found, a null Dart is returned.
+   */
+  Dart Mesh::locateVertex(const Dart& d0,
+			  const int v) const
+  {
+    int t,i;
+    Dart dart = Dart(*this,d0.t(),1,d0.vi());
+    Dart dart_start = dart;
+    double delta;
+    Dart dart_min = Dart();
+    double* s = &(S_[v][0]);
+    double delta_min = 0.0;
+    while (1) {
+      std::cout << dart_start << ' '
+		<< dart << ' '
+		<< Traits::inLeftHalfspace(dart,s)
+		<< std::endl;
+      for (i=0;i<3;i++) {
+	if (TV_[dart.t()][dart.vi()] == v)
+	  return dart;
+	dart.orbit2();
+      }
+
+      delta = Traits::inLeftHalfspace(dart,s);
+      if (dart_min.isnull() || (delta<delta_min)) {
+	dart_min = dart;
+	delta_min = delta;
+      }
+      if (delta >= -MESH_EPSILON) {
+	dart.orbit2();
+	if (dart==dart_start) {
+	  for (i=0;i<3;i++) {
+	    if (TV_[dart.t()][dart.vi()] == v)
+	      return dart;
+	    dart.orbit2();
+	  }
+	  return Dart(); /* ERROR: Point located, but not the vertex itself. */
+	}
+      } else {
+	if (dart.onBoundary())
+	  return Dart();
+	dart.alpha2();
+	dart_start = dart;
+	dart_start.alpha0();
+	dart.alpha1();
+	dart_min = dart_start;
+	delta_min = -delta;
+      }
+    }
+
+    return Dart();
+  }
+
 
 
   /*! Alg 4.3 */
@@ -1252,23 +1308,30 @@ namespace fmesh {
 
   bool DartQualitySet::found(const Dart& d) const
   {
-    return false;
+    return (darts_.find(d) != darts_.end());
   }
 
   bool DartQualitySet::found_quality(const Dart& d) const
   {
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
-
-    return false;
+    map_type::const_iterator i = darts_.find(d);
+    if (i == darts_.end())
+      return false;
+    return (darts_quality_.find(MCdv(i->first,i->second)) !=
+	    darts_quality_.end());
   }
 
-  Dart DartQualitySet::get_quality() const
+  const double DartQualitySet::quality(const Dart& d) const
   {
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    if (empty())
+      return 0.0;
+    return darts_.find(d)->second;
+  }
 
-    return Dart();
+  Dart DartQualitySet::quality_dart() const
+  {
+    if (empty_quality())
+      return Dart();
+    return darts_quality_.begin()->d_;
   }
 
   void DartQualitySet::insert(const Dart& d, double quality)
@@ -1276,6 +1339,19 @@ namespace fmesh {
     darts_.insert(map_key_type(d,quality));
     if (quality>=quality_limit_)
       darts_quality_.insert(MCdv(d,quality));
+  }
+
+  void DartQualitySet::erase(const Dart& d)
+  {
+    double quality;
+    map_type::iterator i = darts_.find(d);
+    if (i != darts_.end()) {
+      quality = i->second;
+      darts_.erase(i);
+      set_type::iterator j = darts_quality_.find(MCdv(d,quality));
+      if (j != darts_quality_.end())
+	darts_quality_.erase(j);
+    }
   }
 
 
