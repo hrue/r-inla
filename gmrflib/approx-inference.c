@@ -506,14 +506,11 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		 * Use the tabulated Qfunc here 
 		 */
 		if (ai_store->mode) {
-			optpar->opt_type = GMRFLib_OPTTYPE_NR;
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
 					constr, optpar, blockpar, ai_store->store, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
 		} else {
-			optpar->opt_type = GMRFLib_OPTTYPE_SAFENR;
-			optpar->opt_type = GMRFLib_OPTTYPE_NR; /* yes, try to use this one, which has a builtin safety-net */
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
@@ -525,13 +522,10 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		 * old version! 
 		 */
 		if (ai_store->mode) {
-			optpar->opt_type = GMRFLib_OPTTYPE_NR;
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 					Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
 		} else {
-			optpar->opt_type = GMRFLib_OPTTYPE_SAFENR;
-			optpar->opt_type = GMRFLib_OPTTYPE_NR; /* yes, try to use this one, which has a builtin safety-net */
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
 					constr, optpar, blockpar, ai_store->store, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
@@ -1336,14 +1330,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		Free(ai_store->cc);
 		ai_store->bb = Calloc(n, double);
 		ai_store->cc = Calloc(n, double);
-
-		if (ai_store->mode) {
-			optpar->opt_type = GMRFLib_OPTTYPE_NR;
-		} else {
-			// optpar->fp = stdout;
-			optpar->opt_type = GMRFLib_OPTTYPE_SAFENR;
-			optpar->opt_type = GMRFLib_OPTTYPE_NR; /* ok with the new version */
-		}
 
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern(&ai_store->problem,
 									     (ai_store->mode ? ai_store->mode : x),
