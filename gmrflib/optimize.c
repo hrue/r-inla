@@ -112,7 +112,7 @@ int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 
 	(*optpar)->fp = NULL;
 	// (*optpar)->fp = stdout;FIXME("set fp=stdout");
-	(*optpar)->opt_type = GMRFLib_OPTTYPE_SAFENR;
+	(*optpar)->opt_type = GMRFLib_OPTTYPE_NR;
 	(*optpar)->nr_step_factor = 1.0;
 	(*optpar)->nsearch_dir = 1;
 	(*optpar)->restart_interval = 10;
