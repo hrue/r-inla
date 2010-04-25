@@ -648,19 +648,26 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	Free(perm);
 
 	if (0) {
-		FILE *fp = fopen("sparse-matrix.txt", "w");
-		fprintf(stderr, "write sparse-matrix.txt file\n");
-		for (i = 0; i < n; i++) {
-			double qq = Qfunc(i, i, Qfunc_arg);
-			fprintf(fp, "%d %d %.12g\n", i, i, qq);
-			for (k = 0; k < graph->nnbs[i]; k++) {
-				j = graph->nbs[i][k];
-				if (i < j) {
-					fprintf(fp, "%d %d %.12g\n", i, j, Qfunc(i, j, Qfunc_arg));
+		static int count = 0;
+		char *fnm;
+#pragma omp critical
+		{
+			GMRFLib_sprintf(&fnm,  "sparse-matrix-%1d-thread-%1d.txt",  count++,  omp_get_thread_num());
+			FILE *fp = fopen(fnm, "w");
+			fprintf(stderr, "write %s\n", fnm);
+			for (i = 0; i < n; i++) {
+				double qq = Qfunc(i, i, Qfunc_arg);
+				fprintf(fp, "%d %d %.16g\n", i, i, qq);
+				for (k = 0; k < graph->nnbs[i]; k++) {
+					j = graph->nbs[i][k];
+					if (i < j) {
+						fprintf(fp, "%d %d %.12g\n", i, j, Qfunc(i, j, Qfunc_arg));
+					}
 				}
 			}
+			fclose(fp);
+			Free(fnm);
 		}
-		fclose(fp);
 	}
 
 	return GMRFLib_SUCCESS;
