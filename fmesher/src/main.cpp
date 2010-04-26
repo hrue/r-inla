@@ -13,6 +13,7 @@ using std::endl;
 using fmesh::Point;
 using fmesh::Mesh;
 using fmesh::Dart;
+using fmesh::MeshConstructor;
 
 int predicates_test()
 {
@@ -38,18 +39,18 @@ int predicates_test()
 
 int mesh_test()
 {
-  double S[4][3] = {0.,0.,0.,
-		    1.,0.,0.,
-		    0.,1.,0.,
-		    1.,1.,0.};
-  int TV[2][3] = {0,1,2,
-		  3,2,1};
+  double S[4][3] = {{0.,0.,0.},
+		    {1.,0.,0.},
+		    {0.,1.,0.},
+		    {1.,1.,0.}};
+  int TV[2][3] = {{0,1,2},
+		  {3,2,1}};
   // -std=c++0x
   //  S[0] = {1.,2.,3.};
   //  S[1] = {1.,2.,3.};
   //std::sqrt(2.0);
 
-  Mesh M(0,false);
+  Mesh M(Mesh::Mtype_plane,0,true,false);
 
   M.useTTi(false);
   M.S_set(S,4);
@@ -70,7 +71,7 @@ int mesh_test()
   cout << M;
   d = M.splitTriangle(Dart(M,1,1,0),M.nV()-1);
   cout << M;
-  cout << d;
+  cout << d << endl;
 
     /*
   cout << "d  :" << d << "\n";
@@ -94,10 +95,120 @@ int mesh_test()
 }
 
 
+int DT2D_test()
+{
+  int n = 10;
+  double S[10][3] = {{0.50,0.5,0},
+		     {0.5,0.6,0},
+		     {0.3,0.2,0},
+		     {0.4,0.6,0},
+		     {0.5,0.3,0},
+		     {0.6,0.7,0},
+		     {0.7,0.4,0},
+		     {0.8,0.8,0},
+		     {0.9,0.5,0},
+		     {0.1,0.1,0}};
+  double Sb[4][3] = {{0.,0.,0.},
+		     {1.,0.,0.},
+		     {0.,1.,0.},
+		     {1.,1.,0.}};
+  int TVb[2][3] = {{0,1,2},
+		   {3,2,1}};
+  Mesh M(Mesh::Mtype_plane,0,true,false);
+  int t,vi,v;
+
+  M.useX11(true);
+  M.X11()->reopen(1000,600);
+
+  M.S_set(S,n);
+  M.S_append(Sb,4);
+  for (t=0;t<2;t++)
+    for (vi=0;vi<3;vi++)
+      TVb[t][vi] += n; 
+  M.TV_set(TVb,2);
+
+  MeshConstructor MC(&M,true);
+  MeshConstructor::vertex_input_type vertices;
+    for (v=0;v<n;v++)
+    vertices.push_back(v);
+  MC.DT(vertices);
+
+  cout << M;
+
+
+  MC.CDT(MeshConstructor::constraint_input_type());
+  MC.RCDT(1.5,0.1);
+
+  return 0;
+}
+
+
+int DTsphere_test()
+{
+  int n = 10;
+  double S[11][3] = {{0.7,0.4,0.41},
+		     {-0.1,0.1,0.1},
+		     {-0.2,0.5,0.10},
+		     {0.3,-0.2,0.2},
+		     {0.4,0.6,0.2},
+		     {-0.5,0.3,0.3},
+		     {-0.6,0.7,0.3},
+		     {0.7,0.4,0.4},
+		     {-0.8,-0.8,0.4},
+		     {-0.9,0.5,0.5},
+		     {0.2,0.5,0.5}};
+  double Sb[4][3] = {{1.,0.,-0.5},
+		     {-0.7,0.7,-0.5},
+		     {-0.7,-0.7,-0.5},
+		     {0.,0.,1.}};
+  int TVb[4][3] = {{2,1,0},
+		   {0,1,3},
+		   {1,2,3},
+		   {2,0,3}};
+  Mesh M(Mesh::Mtype_sphere,0,true,false);
+  int t,vi,v,i;
+  double l;
+  
+  M.useX11(true);
+  M.X11()->reopen(1000,600);
+  M.X11()->setAxis(-1.05,1.05,-1.05,1.05);
+
+  for (v=0;v<n;v++) {
+    l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
+    for (i=0;i<3;i++)
+      S[v][i] = S[v][i]/l;
+  }
+  for (v=0;v<4;v++) {
+    l = std::sqrt(Sb[v][0]*Sb[v][0]+Sb[v][1]*Sb[v][1]+Sb[v][2]*Sb[v][2]);
+    for (i=0;i<3;i++)
+      Sb[v][i] = Sb[v][i]/l;
+  }
+
+  M.S_set(S,n);
+  M.S_append(Sb,4);
+  for (t=0;t<4;t++)
+    for (vi=0;vi<3;vi++)
+      TVb[t][vi] += n; 
+  M.TV_set(TVb,4);
+
+  cout << M;
+
+  MeshConstructor MC(&M,true);
+  MeshConstructor::vertex_input_type vertices;
+    for (v=0;v<n;v++)
+    vertices.push_back(v);
+  MC.DT(vertices);
+
+  cout << M;
+
+  return 0;
+}
+
+
 int main()
 {
-  predicates_test();
-  mesh_test();
+  DT2D_test();
+  DTsphere_test();
 
   return 0;
 }
