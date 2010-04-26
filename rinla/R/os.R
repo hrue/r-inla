@@ -1,4 +1,3 @@
-### RCSId = "$Id: os.R,v 1.3 2010/01/27 17:57:26 hrue Exp $"
 
 `inla.os` = function(type = c("linux", "mac", "windows", "else"))
 {

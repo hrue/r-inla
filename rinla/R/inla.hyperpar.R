@@ -1,4 +1,3 @@
-### RCSId = "$Id: inla.hyperpar.R,v 1.40 2010/02/19 19:24:49 hrue Exp hrue $"
 
 `hyperpar.inla` =
 function(...)

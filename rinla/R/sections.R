@@ -1,4 +1,3 @@
-### RCSId = "$Id: sections.R,v 1.131 2010/04/03 12:33:22 hrue Exp $"
 ### Functions to write the different sections in the .ini-file
 
 `inla.write.boolean.field` =

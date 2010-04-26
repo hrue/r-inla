@@ -1,4 +1,3 @@
-### RCSId = "$Id: sandbox.R,v 1.6 2010/01/25 09:02:21 hrue Exp $"
 
 
 inla.sb.1 = function()

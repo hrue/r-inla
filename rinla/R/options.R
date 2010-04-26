@@ -1,4 +1,3 @@
-### RCSId = "$Id: options.R,v 1.17 2010/01/25 08:41:45 hrue Exp $"
 
 ### Functions to deal with `inla.options'
 

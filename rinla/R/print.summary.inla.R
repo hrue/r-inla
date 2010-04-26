@@ -1,4 +1,3 @@
-### RCSId = "$Id: print.summary.inla.R,v 1.8 2010/03/16 12:15:48 hrue Exp $"
 
 `print.summary.inla` <-
 function(x,...)

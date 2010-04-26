@@ -1,4 +1,3 @@
-### RCSId = "$Id: interpret.formula.R,v 1.22 2010/04/09 21:20:36 hrue Exp $"
 
 `inla.interpret.formula` =
     function (gf, debug=FALSE, data=NULL) 
