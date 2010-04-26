@@ -2,6 +2,7 @@
 #include <cstring>
 #include <set>
 #include <map>
+#include <sstream>
 
 #include "predicates.h"
 
@@ -29,13 +30,19 @@ namespace fmesh {
 
   Mesh::Mesh(Mtype manifold_type,
 	     size_t V_capacity,
+	     bool use_VT,
 	     bool use_TTi) : type_(manifold_type),
 			     Vcap_(V_capacity), Tcap_(2*V_capacity),
-			     nV_(0), nT_(0), use_TTi_(use_TTi)
+			     nV_(0), nT_(0),
+			     use_VT_(use_VT), use_TTi_(use_TTi)
   {
     if (Vcap_ > 0) {
       TV_ = new int[Vcap_][3];
       TT_ = new int[Tcap_][3];
+      if (use_VT_)
+	VT_ = new int[Vcap_];
+      else
+	VT_ = NULL;
       if (use_TTi_)
 	TTi_ = new int[Tcap_][3];
       else
@@ -44,6 +51,7 @@ namespace fmesh {
     } else {
       TV_ = NULL;
       TT_ = NULL;
+      VT_ = NULL;
       TTi_ = NULL;
       S_ = NULL;
     }
@@ -51,17 +59,16 @@ namespace fmesh {
 
   Mesh::~Mesh()
   {
-    if (TV_) delete[] TV_;
-    if (TT_) delete[] TT_;
-    if (TTi_) delete[] TTi_;
-    if (S_) delete[] S_;
+    clear();
   }
+
   Mesh& Mesh::clear()
   {
     Vcap_ = 0;
     Tcap_ = 0;
     nV_ = 0;
     nT_ = 0;
+    use_VT_ = false;
     use_TTi_ = false;
     if (TV_) { delete[] TV_; TV_ = NULL; }
     if (TT_) { delete[] TT_; TT_ = NULL; }
@@ -70,7 +77,7 @@ namespace fmesh {
     return *this;
   }
 
-  Mesh& Mesh::check_capacity(int nVc, int nTc)
+  Mesh& Mesh::check_capacity(size_t nVc, size_t nTc)
   {
     if ((nVc <= Vcap_) && (nTc <= Tcap_))
       return *this;
@@ -81,6 +88,8 @@ namespace fmesh {
 
     int (*TV)[3] = new int[Vcap_][3];
     int (*TT)[3] = new int[Tcap_][3];
+    int (*VT) = NULL;
+    if (use_VT_) VT = new int[Vcap_];
     int (*TTi)[3] = NULL;
     if (use_TTi_) TTi = new int[Tcap_][3];
     double (*S)[3] = new double[Vcap_][3];
@@ -88,16 +97,19 @@ namespace fmesh {
     if (TV_) {
       if (TV_) memcpy(TV,TV_,sizeof(int)*nV_*3);
       if (TT_) memcpy(TT,TT_,sizeof(int)*nT_*3);
+      if (VT_) memcpy(VT,VT_,sizeof(int)*nV_);
       if (TTi_) memcpy(TTi,TTi_,sizeof(int)*nT_*3);
       if (S_) memcpy(S,S_,sizeof(double)*nV_*3);
       if (TV_) delete[] TV_;
       if (TT_) delete[] TT_;
+      if (VT_) delete[] VT_;
       if (TTi_) delete[] TTi_;
       if (S_) delete[] S_;
     }
 
     TV_ = TV;
     TT_ = TT;
+    VT_ = VT;
     TTi_ = TTi;
     S_ = S;
     return *this;
@@ -115,7 +127,7 @@ namespace fmesh {
     ET_Type::const_iterator Ei;
     ET_Type ET;
     /* Pass 1: */
-    for (t=0; t<nT_; t++) {
+    for (t=0; t<(int)nT_; t++) {
       TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
 	E0 = std::pair<int,int>(TVt[(vi+1)%3],TVt[(vi+2)%3]);
@@ -139,7 +151,7 @@ namespace fmesh {
     */
 
     /* Pass 2: */
-    for (t=0; t<nT_; t++) {
+    for (t=0; t<(int)nT_; t++) {
       TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
 	if (TT_[t][vi]>=0) continue;
@@ -156,6 +168,79 @@ namespace fmesh {
 
 
 
+  Mesh& Mesh::updateVT(const int v, const int t)
+  {
+    if ((!use_VT_) || (v>=(int)nV_) || (t>=(int)nT_) || (VT_[v]<0))
+      return *this;
+    VT_[v] = t;
+    return *this;
+  }
+
+  Mesh& Mesh::setVT(const int v, const int t)
+  {
+    if ((!use_VT_) || (v>=(int)nV_) || (t>=(int)nT_))
+      return *this;
+    VT_[v] = t;
+    return *this;
+  }
+
+  Mesh& Mesh::updateVTtri(const int t)
+  {
+    int vi;
+    if ((!use_VT_) || (t>=(int)nT_) || (t<0))
+      return *this;
+    for (vi=0; vi<3; vi++)
+      updateVT(TV_[t][vi],t);
+    return *this;
+  }
+
+  Mesh& Mesh::setVTtri(const int t)
+  {
+    int vi;
+    if ((!use_VT_) || (t>=(int)nT_) || (t<0))
+      return *this;
+    for (vi=0; vi<3; vi++)
+      setVT(TV_[t][vi],t);
+    return *this;
+  }
+
+  Mesh& Mesh::updateVTtri_private(const int t0)
+  {
+    if (!use_VT_) return *this;
+    int t, vi;
+    for (t=t0; t<(int)nT_; t++)
+      for (vi=0; vi<3; vi++)
+	updateVT(TV_[t][vi],t);
+    return *this;
+  }
+
+  Mesh& Mesh::setVTv_private(const int v0)
+  {
+    if (!use_VT_) return *this;
+    int v;
+    for (v=v0; v<(int)nV_; v++)
+      setVT(v,-1);
+    return *this;
+  }
+
+  Mesh& Mesh::rebuildVT()
+  {
+    if (!use_VT_) {
+      if (VT_) {
+	delete[] VT_;
+	VT_ = NULL;
+      }
+      return *this;
+    }
+    if (!Vcap_)
+      return *this;
+    if (!VT_)
+      VT_ = new int[Vcap_];
+    setVTv_private(0);
+    updateVTtri_private(0);
+    return *this;
+  }
+
   Mesh& Mesh::rebuildTTi()
   {
     int t, vi, v, t2, vi2;
@@ -170,7 +255,7 @@ namespace fmesh {
       return *this;
     if (!TTi_)
       TTi_ = new int[Tcap_][3];
-    for (t=0; t<nT_; t++) {
+    for (t=0; t<(int)nT_; t++) {
       for (vi=0; vi<3; vi++) {
 	v = TV_[t][vi];
 	t2 = TT_[t][(vi+2)%3];
@@ -190,6 +275,21 @@ namespace fmesh {
     return *this;
   }
 
+
+  Mesh& Mesh::useVT(bool use_VT)
+  {
+    if (use_VT_ != use_VT) {
+      if ((!use_VT_) && (VT_)) {
+	/* This shouldn't happen. */
+	delete[] VT_;
+	VT_ = NULL;
+      }
+      use_VT_ = use_VT;
+      rebuildVT();
+    }
+    return *this;
+  }
+
   Mesh& Mesh::useTTi(bool use_TTi)
   {
     if (use_TTi_ != use_TTi) {
@@ -200,6 +300,21 @@ namespace fmesh {
       }
       use_TTi_ = use_TTi;
       rebuildTTi();
+    }
+    return *this;
+  }
+
+  Mesh& Mesh::useX11(bool use_X11)
+  {
+    if (use_X11_ != use_X11) {
+      if (use_X11) { /* Init. */
+	X11_ = new Xtmpl;
+	X11_->open("fmesher::Mesh",500,500);
+	use_X11_ = true;
+      } else { /* Destroy. */
+	X11_->close();
+	use_X11_ = false;
+      }
     }
     return *this;
   }
@@ -225,7 +340,67 @@ namespace fmesh {
     check_capacity(nV_+nV,0);
     memcpy(S_+nV_,S,sizeof(double)*nV*3);
     nV_ += nV;
+    if (use_VT_)
+      setVTv_private(nV_-nV);
     return *this;
+  }
+
+  void Mesh::redrawX11()
+  {
+    if (!use_X11_) return;
+
+    int v0, v1, v;
+    double s[3][3];
+    double s0[3];
+
+    X11_->clear();
+    for (int t=0;t<(int)nT_;t++) {
+      s0[0] = 0.0;
+      s0[1] = 0.0;
+      s0[2] = 0.0;
+      for (int vi=0;vi<3;vi++) {
+	v = TV_[t][vi];
+	for (int dim=0;dim<3;dim++) {
+	  s[vi][dim] = S_[v][dim];
+	  s0[dim] += s[vi][dim]/3;
+	}
+      }
+      if (type_==Mtype_sphere) {
+	double r0[3];
+	double r1[3];
+	double n[3];
+	for (int dim=0;dim<3;dim++) {
+	  r0[dim] = s[1][dim]-s[0][dim];
+	  r1[dim] = s[2][dim]-s[0][dim];
+	}
+	n[0] = r0[1]*r1[2]-r0[2]*r1[1];
+	n[1] = r0[2]*r1[0]-r0[0]*r1[2];
+	n[2] = r0[0]*r1[1]-r0[1]*r1[0];
+	if (n[2]<0) continue;
+      }
+      /* Draw triangle slightly closer to center. */
+      for (int vi=0;vi<3;vi++)
+	for (int dim=0;dim<3;dim++)
+	  s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
+      X11_->lineFG(s[0],s[1]);
+      X11_->lineFG(s[1],s[2]);
+      X11_->lineFG(s[2],s[0]);
+      /* Draw vertex indices even closer to center. */
+      for (int vi=0;vi<3;vi++)
+	for (int dim=0;dim<3;dim++)
+	  s[vi][dim] = (s[vi][dim]-s0[dim])*0.8+s0[dim];
+      for (int vi=0;vi<3;vi++) {
+	std::ostringstream ss;
+	ss << "(" << TV_[t][vi] << "," << TT_[t][vi] << ")";
+	X11_->text(s[vi],ss.str());
+      }
+      /* Draw triangle indices at center. */
+      {
+	std::ostringstream ss;
+	ss << "(" << t << ")";
+	X11_->text(s0,ss.str());
+      }
+    }
   }
   
   Mesh& Mesh::TV_append(const int (*TV)[3], int nT)
@@ -233,8 +408,13 @@ namespace fmesh {
     check_capacity(0,nT_+nT);
     memcpy(TV_+nT_,TV,sizeof(int)*nT*3);
     nT_ += nT;
+    if (use_VT_)
+      updateVTtri_private(nT_-nT);
     rebuildTT();
     rebuildTTi();
+    if (use_X11_)
+      redrawX11();
+    xtmpl_press_ret("TV appended");
     return *this;
   }
 
@@ -283,7 +463,7 @@ namespace fmesh {
       break;
     case Mesh::Mtype_sphere:
       Point zero = {0.,0.,0.};
-      return predicates::orient3d(M->S()[v0],M->S()[v1],zero,s);
+      return -predicates::orient3d(M->S()[v0],M->S()[v1],zero,s);
       break;
     }
     /* This should never be reached. */
@@ -310,24 +490,44 @@ namespace fmesh {
       return predicates::incircle(M->S()[v0],M->S()[v1],M->S()[v2],s);
       break;
     case Mesh::Mtype_sphere:
-      return predicates::orient3d(M->S()[v0],M->S()[v1],M->S()[v2],s);
+      return -predicates::orient3d(M->S()[v0],M->S()[v1],M->S()[v2],s);
       break;
     }
     /* This should never be reached. */
     return 0.0;
   }
 
-  bool Traits::circumcircleTest(const Dart& d)
+  bool Traits::circumcircleOK(const Dart& d)
   {
     Dart dhelper = d;
     const Mesh *M = d.M();
     int v;
+    double result;
     if (d.isnull()) return true; /* TODO: should show a warning somewhere... */
     if (d.onBoundary()) return true; /* Locally optimal, OK. */
-    dhelper.alpha2().alpha0();
-    const int* tp = M->TV()[dhelper.t()];
-    v = tp[dhelper.vi()];
-    return (Traits::inCircumcircle(d,M->S()[v]) <= MESH_EPSILON);
+    dhelper.orbit0rev().alpha0();
+    v = M->TV()[dhelper.t()][dhelper.vi()];
+    result = Traits::inCircumcircle(d,M->S()[v]);
+    std::cout << "Dart=" << d
+	      << " Node=" << v
+	      << std::scientific << " result=" << result
+	      << std::endl;
+    if  (result > MESH_EPSILON)
+      return false;
+    /* For robusness, check with the reverse dart as well: */
+    dhelper = d;
+    dhelper.orbit2rev();
+    v = M->TV()[dhelper.t()][dhelper.vi()];
+    dhelper.orbit2();
+    dhelper.orbit1();
+    result = Traits::inCircumcircle(dhelper,M->S()[v]);
+    std::cout << "Dart=" << dhelper
+	      << " Node=" << v
+	      << std::scientific << " result=" << result
+	      << std::endl;
+    if  (result > MESH_EPSILON)
+      return false;
+    return true;
   }
 
 
@@ -346,7 +546,7 @@ namespace fmesh {
   Dart Mesh::swapEdge(const Dart& d)
   {
     Dart dhelper = d;
-    int t, vi;
+    int vi;
     int v_list[4];
     int t0, t1;
     int tt_list[4];
@@ -432,6 +632,21 @@ namespace fmesh {
       }
     }
 
+    /* Link vertices to triangles */
+    if (use_VT_) {
+      setVTtri(t1);
+      setVTtri(t0);
+    }
+
+    std::cout << "TT is \n" << TTO();
+    rebuildTT();
+    std::cout << "TT should be \n" << TTO();
+    if (use_TTi_) {
+      std::cout << "TTi is \n" << TTiO();
+      rebuildTTi();
+      std::cout << "TTi should be \n" << TTiO();
+    }
+    
     return Dart(*this,t0,1,1);
   }
   
@@ -451,7 +666,7 @@ namespace fmesh {
   Dart Mesh::splitEdge(const Dart& d, int v)
   {
     Dart dhelper = d;
-    int t, vi, i;
+    int t, vi;
     int v0, v1, v2, v3;
     int t0, t1, t2, t3;
     int tt_list[4];
@@ -607,6 +822,25 @@ namespace fmesh {
     else
       nT_ = nT_+2;
   
+    /* Link vertices to triangles */
+    if (use_VT_) {
+      if (!on_boundary) {
+	setVTtri(t3);
+	setVTtri(t2);
+      }
+      setVTtri(t1);
+      setVTtri(t0);
+    }
+
+    std::cout << "TT is \n" << TTO();
+    rebuildTT();
+    std::cout << "TT should be \n" << TTO();
+    if (use_TTi_) {
+      std::cout << "TTi is \n" << TTiO();
+      rebuildTTi();
+      std::cout << "TTi should be \n" << TTiO();
+    }
+    
     return Dart(*this,t1,1,0);
   }
 
@@ -709,6 +943,22 @@ namespace fmesh {
     /* Step 4: Update triangle count. */
     nT_ = nT_+2;
 
+    /* Link vertices to triangles */
+    if (use_VT_) {
+      setVTtri(t2);
+      setVTtri(t1);
+      setVTtri(t0);
+    }
+
+    std::cout << "TT is \n" << TTO();
+    rebuildTT();
+    std::cout << "TT should be \n" << TTO();
+    if (use_TTi_) {
+      std::cout << "TTi is \n" << TTiO();
+      rebuildTTi();
+      std::cout << "TTi should be \n" << TTiO();
+    }
+    
     return Dart(*this,t0,1,0);
   }
 
@@ -718,9 +968,11 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Mesh& M)
   {
-    output << "S =\n" << M.SO();
+    //    output << "S =\n" << M.SO();
     output << "TV =\n" << M.TVO();
     output << "TT =\n" << M.TTO();
+    if (M.useVT())
+      output << "VT =\n" << M.VTO();
     if (M.useTTi())
       output << "TTi =\n" << M.TTiO();
     return output;
@@ -729,24 +981,38 @@ namespace fmesh {
 
   M3intO Mesh::TVO() const { return M3intO(TV_,nT_); };
   M3intO Mesh::TTO() const { return M3intO(TT_,nT_); };
+  MintO Mesh::VTO() const { return MintO(VT_,nV_); };
   M3intO Mesh::TTiO() const { return M3intO(TTi_,nT_); };
   M3doubleO Mesh::SO() const { return M3doubleO(S_,nV_); };
+
+  std::ostream& operator<<(std::ostream& output, const MintO& MO)
+  {
+    if (!MO.M_) return output;
+    for (int i = 0; i < (int)MO.n_; i++) {
+      output << ' ' << std::right << std::setw(4)
+	     << MO.M_[i];
+    }
+    std::cout << std::endl;
+    return output;
+  }
 
   std::ostream& operator<<(std::ostream& output, const M3intO& MO)
   {
     if (!MO.M_) return output;
-    for (int i = 0; i < MO.n_; i++) {
-      for (int j = 0; j<3; j++)
+    for (int j = 0; j<3; j++) {
+      for (int i = 0; i < (int)MO.n_; i++) {
 	output << ' ' << std::right << std::setw(4)
 	       << MO.M_[i][j];
+      }
       std::cout << std::endl;
     }
     return output;
   }
+
   std::ostream& operator<<(std::ostream& output, const M3doubleO& MO)
   {
     if (!MO.M_) return output;
-    for (int i = 0; i < MO.n_; i++) {
+    for (int i = 0; i < (int)MO.n_; i++) {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(10) << std::scientific
 	       << MO.M_[i][j];
@@ -762,9 +1028,17 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Dart& d)
   {
-    output << std::right << std::setw(5) << d.t_
+    output << std::right << std::setw(1) << d.t_
 	   << std::right << std::setw(3) << d.edir_
 	   << std::right << std::setw(2) << d.vi_;
+    if ((!d.isnull()) && (d.t_<(int)d.M()->nV())) {
+      output << " ("
+	     << d.M()->TV()[d.t_][d.vi_]
+	     << ","
+	     << d.M()->TV()[d.t_][(d.vi_+(3+d.edir_))%3]
+	     << ")";
+    }
+      
     return output;
   }
 
@@ -864,10 +1138,13 @@ namespace fmesh {
    */
   Dart Mesh::locatePoint(const Dart& d0,
 			 const Point s,
-			 double& delta_min) const
+			 double* delta_min) const
   {
-    int t;
-    Dart dart = Dart(*this,d0.t(),1,d0.vi());
+    Dart dart;
+    if (d0.isnull())
+      dart = Dart(*this,0);
+    else
+      dart = Dart(*this,d0.t(),1,d0.vi());
     Dart dart_start = dart;
     double delta;
     Dart dart_min = Dart();
@@ -877,9 +1154,9 @@ namespace fmesh {
 		<< Traits::inLeftHalfspace(dart,s)
 		<< std::endl;
       delta = Traits::inLeftHalfspace(dart,s);
-      if (dart_min.isnull() || (delta<delta_min)) {
+      if (dart_min.isnull() || (delta<*delta_min)) {
 	dart_min = dart;
-	delta_min = delta;
+	*delta_min = delta;
       }
       if (delta >= -MESH_EPSILON) {
 	dart.orbit2();
@@ -893,7 +1170,7 @@ namespace fmesh {
 	dart_start.alpha0();
 	dart.alpha1();
 	dart_min = dart_start;
-	delta_min = -delta;
+	*delta_min = -delta;
       }
     }
 
@@ -908,8 +1185,26 @@ namespace fmesh {
   Dart Mesh::locateVertex(const Dart& d0,
 			  const int v) const
   {
-    int t,i;
-    Dart dart = Dart(*this,d0.t(),1,d0.vi());
+    if (use_VT_) {
+      int t;
+      t = VT_[v];
+      if (t<0) /* Vertex not connected to any triangles. */
+	return Dart();
+      if (TV_[t][0] == v)
+	return Dart(*this,t,1,0);
+      if (TV_[t][1] == v)
+	return Dart(*this,t,1,1);
+      if (TV_[t][2] == v)
+	return Dart(*this,t,1,2);
+      return Dart(); /* ERROR: Inconsistent data structures! */
+    }
+
+    int i;
+    Dart dart;
+    if (d0.isnull())
+      dart = Dart(*this,0);
+    else
+      dart = Dart(*this,d0.t(),1,d0.vi());
     Dart dart_start = dart;
     double delta;
     Dart dart_min = Dart();
@@ -963,14 +1258,17 @@ namespace fmesh {
   {
     Dart d1, d2;
 
+    std::cout << "Trying to swap " << d0 << std::endl;
+
     if (d0.isnull() or d0.onBoundary())
       return true; /* OK. Not allowed to swap. */
     if (isSegmentDart(d0))
       return true ; /* OK. Not allowed to swap. */
-    if (Traits::circumcircleTest(d0))
+    if (Traits::circumcircleOK(d0))
       return true; /* OK. Need not swap. */
 
     std::cout << "Swap " << d0 << std::endl;
+    xtmpl_press_ret("swap edge");
 
     /* Get opposing darts. */
     d1 = d0;
@@ -980,10 +1278,19 @@ namespace fmesh {
     d2.orbit2rev().alpha1(); 
     if (d2.onBoundary()) d2 = Dart(); else d2.alpha2();
     
+    std::cout << "TVpre  = " << std::endl << M_->TVO();
     swapEdge(d0);
+    std::cout << "TVpost = " << std::endl << M_->TVO();
+    std::cout << "TTpost = " << std::endl << M_->TTO();
+    M_->redrawX11();
+    xtmpl_press_ret("edge swapped, next recSwapDelaunay");
 
     if (!d1.isnull()) recSwapDelaunay(d1);
+    M_->redrawX11();
+    xtmpl_press_ret("After d1-recSwapDelaunay");
     if (!d2.isnull()) recSwapDelaunay(d2);
+    M_->redrawX11();
+    xtmpl_press_ret("After d2-recSwapDelaunay");
     return true;
   }
 
@@ -1006,9 +1313,18 @@ namespace fmesh {
     std::cout << "Split triangle with vertex " << v << std::endl;
     d = splitTriangle(td,v);
     
+    M_->redrawX11();
+    xtmpl_press_ret("triangle split, next recSwapDelaunay");
+
     if (!d0.isnull()) recSwapDelaunay(d0);
+    M_->redrawX11();
+    xtmpl_press_ret("After d0-recSwapDelaunay");
     if (!d1.isnull()) recSwapDelaunay(d1);
+    M_->redrawX11();
+    xtmpl_press_ret("After d1-recSwapDelaunay");
     if (!d2.isnull()) recSwapDelaunay(d2);
+    M_->redrawX11();
+    xtmpl_press_ret("After d2-recSwapDelaunay");
 
     std::cout << "TV = " << std::endl << M_->TVO();
     
@@ -1059,7 +1375,7 @@ namespace fmesh {
     double delta;
 
     std::cout << "Locating node " << v << std::endl;
-    td = M_->locatePoint(ed,M_->S()[v],delta);
+    td = M_->locatePoint(ed,M_->S()[v],&delta);
     if (td.isnull()) { return false; }; /* ERROR, not found! */
     std::cout << "Closest dart " << td
 	      << ' ' << delta << std::endl;
@@ -1069,6 +1385,7 @@ namespace fmesh {
     } else { /* Split edge */
       splitEdgeDelaunay(td,v);
     }
+
     return true;
   }
 
@@ -1093,6 +1410,10 @@ namespace fmesh {
     for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
       v = *v_iter;
       insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
+      std::cout << M_->VTO();
+      
+      M_->redrawX11();
+      xtmpl_press_ret("next node insert");
     }
 
     state_ = State_DT;
@@ -1105,7 +1426,7 @@ namespace fmesh {
     if (state_<State_DT) {
       /* We need to build a DT first. */
       triangle_input_type t_set;
-      for (int t=0;t<M_->nT();t++)
+      for (int t=0;t<(int)M_->nT();t++)
 	t_set.push_back(t);
       if (LOP(t_set))
 	state_ = State_DT;
@@ -1123,7 +1444,7 @@ namespace fmesh {
     const int* tt;
     int vi;
     Dart d;
-    for (int t=0;t<M_->nT();t++) {
+    for (int t=0;t<(int)M_->nT();t++) {
       tt = M_->TT()[t];
       for (vi=0;vi<3;vi++)
 	if (tt[vi]<0) {
@@ -1147,7 +1468,7 @@ namespace fmesh {
     big_ = DartQualitySet(big_limit_);
 
     double quality;
-    for (int t=0;t<M_->nT();t++) {
+    for (int t=0;t<(int)M_->nT();t++) {
       quality = M_->skinnyQuality(t);
       if (quality>skinny_limit_)
 	skinny_.insert(Dart(*M_,t),quality);
