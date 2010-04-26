@@ -860,14 +860,11 @@
         
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
-    }
-    else if(inla.os("windows")) {
-        if (!remote) {
-            s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
-        }
-    }
-    else
+    } else if(inla.os("windows")) {
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
+    } else {
         stop("\n\tNot supported architecture.")
+    }
 
     unlink(qinv.file)
 
