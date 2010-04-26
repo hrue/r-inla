@@ -3,6 +3,7 @@
 #include <set>
 #include <map>
 #include <sstream>
+#include <cmath>
 
 #include "predicates.h"
 
@@ -34,8 +35,7 @@ namespace fmesh {
 	     bool use_TTi) : type_(manifold_type),
 			     Vcap_(V_capacity), Tcap_(2*V_capacity),
 			     nV_(0), nT_(0),
-			     use_VT_(use_VT), use_TTi_(use_TTi),
-			     use_X11_(false)
+			     use_VT_(use_VT), use_TTi_(use_TTi)
   {
     if (Vcap_ > 0) {
       TV_ = new int[Vcap_][3];
@@ -74,9 +74,26 @@ namespace fmesh {
     use_TTi_ = false;
     if (TV_) { delete[] TV_; TV_ = NULL; }
     if (TT_) { delete[] TT_; TT_ = NULL; }
+    if (VT_) { delete[] VT_; VT_ = NULL; }
     if (TTi_) { delete[] TTi_; TTi_ = NULL; }
     if (S_) { delete[] S_; S_ = NULL; }
     if (X11_) { delete X11_; X11_ = NULL; }
+    return *this;
+  }
+
+  Mesh& Mesh::operator=(const Mesh& M)
+  {
+    clear();
+    type_ = M.type_;
+    useVT(M.use_VT_);
+    useTTi(M.use_TTi_);
+    if (M.X11_) {
+      X11_ = new Xtmpl(*M.X11_);
+    } else {
+      X11_ = NULL;
+    }
+    S_set(M.S_,M.nV_);
+    TV_set(M.TV_,M.nT_);
     return *this;
   }
 
@@ -307,16 +324,27 @@ namespace fmesh {
     return *this;
   }
 
-  Mesh& Mesh::useX11(bool use_X11)
+  Mesh& Mesh::useX11(bool use_X11,
+		     int sx, int sy,
+		     double minx,
+		     double maxx,
+		     double miny,
+		     double maxy,
+		     std::string name)
   {
-    if (use_X11_ != use_X11) {
-      if (use_X11) { /* Init. */
-	X11_ = new Xtmpl;
-	X11_->open("fmesher::Mesh",500,500);
-	use_X11_ = true;
-      } else { /* Destroy. */
-	X11_->close();
-	use_X11_ = false;
+    if (use_X11) {
+      if (!X11_) { /* Init. */
+	X11_ = new Xtmpl(sx,sy,minx,maxx,miny,maxy,name);
+	redrawX11("");
+      } else {
+	X11_->reopen(sx,sy);
+	X11_->setAxis(minx,maxx,miny,maxy);
+	redrawX11("");
+      }
+    } else { /* Destroy. */
+      if (X11_) { /* Destroy. */
+	delete X11_;
+	X11_ = NULL;
       }
     }
     return *this;
@@ -348,11 +376,11 @@ namespace fmesh {
     return *this;
   }
 
-  void Mesh::redrawX11()
+  void Mesh::redrawX11(std::string str)
   {
-    if (!use_X11_) return;
+    if (!X11_) return;
 
-    int v0, v1, v;
+    int v;
     double s[3][3];
     double s0[3];
 
@@ -369,6 +397,14 @@ namespace fmesh {
 	}
       }
       if (type_==Mtype_sphere) {
+	{
+	  double l = 0;
+	  for (int dim=0;dim<3;dim++)
+	    l += s0[dim]*s0[dim];
+	  l = std::sqrt(l);
+	  for (int dim=0;dim<3;dim++)
+	    s0[dim] = s0[dim]/l;
+	}
 	double r0[3];
 	double r1[3];
 	double n[3];
@@ -382,12 +418,28 @@ namespace fmesh {
 	if (n[2]<0) continue;
       }
       /* Draw triangle slightly closer to center. */
-      for (int vi=0;vi<3;vi++)
-	for (int dim=0;dim<3;dim++)
-	  s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
-      X11_->lineFG(s[0],s[1]);
-      X11_->lineFG(s[1],s[2]);
-      X11_->lineFG(s[2],s[0]);
+      if (type_==Mtype_sphere) {
+	for (int vi=0;vi<3;vi++) {
+	  for (int dim=0;dim<3;dim++)
+	    s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
+	  double l = 0;
+	  for (int dim=0;dim<3;dim++)
+	    l += s[vi][dim]*s[vi][dim];
+	  l = std::sqrt(l);
+	  for (int dim=0;dim<3;dim++)
+	    s[vi][dim] = s[vi][dim]/l;
+	}
+	X11_->arc(s[0],s[1]);
+	X11_->arc(s[1],s[2]);
+	X11_->arc(s[2],s[0]);
+      } else {
+	for (int vi=0;vi<3;vi++)
+	  for (int dim=0;dim<3;dim++)
+	    s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
+	X11_->line(s[0],s[1]);
+	X11_->line(s[1],s[2]);
+	X11_->line(s[2],s[0]);
+      }
       /* Draw vertex indices even closer to center. */
       for (int vi=0;vi<3;vi++)
 	for (int dim=0;dim<3;dim++)
@@ -404,6 +456,16 @@ namespace fmesh {
 	X11_->text(s0,ss.str());
       }
     }
+
+    {
+      std::string str0 = str;
+      str0 += std::string(", continue");
+      char* str_ = new char[str0.length()+1];
+      str0.copy(str_,str0.length(),0);
+      str_[str0.length()] = '\0';
+      xtmpl_press_ret(str_);
+      delete[] str_;
+    }
   }
   
   Mesh& Mesh::TV_append(const int (*TV)[3], int nT)
@@ -415,9 +477,7 @@ namespace fmesh {
       updateVTtri_private(nT_-nT);
     rebuildTT();
     rebuildTTi();
-    if (use_X11_)
-      redrawX11();
-    xtmpl_press_ret("TV appended");
+    redrawX11(std::string("TV appended"));
     return *this;
   }
 
@@ -641,6 +701,8 @@ namespace fmesh {
       setVTtri(t0);
     }
 
+    /* Debug code: */
+    /* 
     std::cout << "TT is \n" << TTO();
     rebuildTT();
     std::cout << "TT should be \n" << TTO();
@@ -649,6 +711,9 @@ namespace fmesh {
       rebuildTTi();
       std::cout << "TTi should be \n" << TTiO();
     }
+    */
+
+    redrawX11("Edge swapped");
     
     return Dart(*this,t0,1,1);
   }
@@ -835,6 +900,8 @@ namespace fmesh {
       setVTtri(t0);
     }
 
+    /* Debug code: */
+    /*
     std::cout << "TT is \n" << TTO();
     rebuildTT();
     std::cout << "TT should be \n" << TTO();
@@ -843,6 +910,9 @@ namespace fmesh {
       rebuildTTi();
       std::cout << "TTi should be \n" << TTiO();
     }
+    */
+
+    redrawX11("Edge split");
     
     return Dart(*this,t1,1,0);
   }
@@ -953,6 +1023,8 @@ namespace fmesh {
       setVTtri(t0);
     }
 
+    /* Debug code: */
+    /*
     std::cout << "TT is \n" << TTO();
     rebuildTT();
     std::cout << "TT should be \n" << TTO();
@@ -961,7 +1033,10 @@ namespace fmesh {
       rebuildTTi();
       std::cout << "TTi should be \n" << TTiO();
     }
+    */
     
+    redrawX11("Triangle split");
+
     return Dart(*this,t0,1,0);
   }
 
@@ -1271,7 +1346,6 @@ namespace fmesh {
       return true; /* OK. Need not swap. */
 
     std::cout << "Swap " << d0 << std::endl;
-    xtmpl_press_ret("swap edge");
 
     /* Get opposing darts. */
     d1 = d0;
@@ -1285,15 +1359,9 @@ namespace fmesh {
     swapEdge(d0);
     std::cout << "TVpost = " << std::endl << M_->TVO();
     std::cout << "TTpost = " << std::endl << M_->TTO();
-    M_->redrawX11();
-    xtmpl_press_ret("edge swapped, next recSwapDelaunay");
 
     if (!d1.isnull()) recSwapDelaunay(d1);
-    M_->redrawX11();
-    xtmpl_press_ret("After d1-recSwapDelaunay");
     if (!d2.isnull()) recSwapDelaunay(d2);
-    M_->redrawX11();
-    xtmpl_press_ret("After d2-recSwapDelaunay");
     return true;
   }
 
@@ -1316,18 +1384,9 @@ namespace fmesh {
     std::cout << "Split triangle with vertex " << v << std::endl;
     d = splitTriangle(td,v);
     
-    M_->redrawX11();
-    xtmpl_press_ret("triangle split, next recSwapDelaunay");
-
     if (!d0.isnull()) recSwapDelaunay(d0);
-    M_->redrawX11();
-    xtmpl_press_ret("After d0-recSwapDelaunay");
     if (!d1.isnull()) recSwapDelaunay(d1);
-    M_->redrawX11();
-    xtmpl_press_ret("After d1-recSwapDelaunay");
     if (!d2.isnull()) recSwapDelaunay(d2);
-    M_->redrawX11();
-    xtmpl_press_ret("After d2-recSwapDelaunay");
 
     std::cout << "TV = " << std::endl << M_->TVO();
     
@@ -1414,10 +1473,9 @@ namespace fmesh {
       v = *v_iter;
       insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
       std::cout << M_->VTO();
-      
-      M_->redrawX11();
-      xtmpl_press_ret("next node insert");
     }
+      
+    xtmpl_press_ret("nodes inserted");
 
     state_ = State_DT;
     return true;
@@ -1677,6 +1735,59 @@ namespace fmesh {
 	darts_quality_.erase(j);
     }
   }
+
+
+
+
+  void Xtmpl::arc(const double* s0, const double* s1)
+  {
+    int n = 10;
+    xtmpl_window = window_;
+    double p0[2];
+    double p1[2];
+    double s[3];
+    double l;
+    int dim;
+    p1[0] = s0[0];
+    p1[1] = s0[1];
+    for (int i=1;i<=n;i++) {
+      l = 0.0;
+      p0[0] = p1[0]; p0[1] = p1[1];
+      for (dim=0;dim<3;dim++) {
+	s[dim] = ((n-i)*s0[dim]+i*s1[dim])/n;
+	l += s[dim]*s[dim];
+      }
+      l = std::sqrt(l);
+      for (int dim=0;dim<2;dim++)
+	p1[dim] = s[dim]/l;
+      
+      xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
+		      (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
+    }
+  };
+  void Xtmpl::line(const double* s0, const double* s1)
+  {
+    xtmpl_window = window_;
+    xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		    (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		    (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
+		    (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+  };
+  void Xtmpl::text(const double* s0, std::string str)
+  {
+    char* str_ = new char[str.length()+1];
+    str.copy(str_,str.length(),0);
+    str_[str.length()] = '\0';
+    xtmpl_window = window_;
+    xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+	       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+	       str_,str.length());
+    delete[] str_;
+  };
+  
+  
 
 
 } /* namespace fmesh */
