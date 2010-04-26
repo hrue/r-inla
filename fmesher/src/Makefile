@@ -1,6 +1,6 @@
 OBJ = mesh.o predicates.o main.o xtmpl.o
 FLAGS = -g -Wall
-CXXFLAGS = -g -Weffc++ -Wall
+CXXFLAGS = -g -Wall
 LDFLAGS = -lX11
 
 all: main
