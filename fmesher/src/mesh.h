@@ -73,11 +73,11 @@ namespace fmesh {
   public:
     Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
       nV_(0), nT_(0), use_VT_(false), use_TTi_(true), use_X11_(false),
-      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {};
+		 TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {};
     Mesh(Mtype manifold_type, size_t Vcapacity, bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
       nV_(0), nT_(0), use_VT_(true), use_TTi_(false), use_X11_(false),
-      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {
+      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {
       *this = M;
     };
     Mesh& operator=(const Mesh& M) {
