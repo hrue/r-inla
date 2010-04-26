@@ -143,6 +143,69 @@ int DT2D_test()
 }
 
 
+int DT2D_test2()
+{
+  int n = 25;
+  double S[25][3] = {{0.1,0.1,0},
+		     {0.3,0.1,0},
+		     {0.5,0.1,0},
+		     {0.7,0.1,0},
+		     {0.9,0.1,0},
+		     {0.1,0.3,0},
+		     {0.3,0.3,0},
+		     {0.5,0.3,0},
+		     {0.7,0.3,0},
+		     {0.9,0.3,0},
+		     {0.1,0.5,0},
+		     {0.3,0.5,0},
+		     {0.5,0.5,0},
+		     {0.7,0.5,0},
+		     {0.9,0.5,0},
+		     {0.1,0.7,0},
+		     {0.3,0.7,0},
+		     {0.5,0.7,0},
+		     {0.7,0.7,0},
+		     {0.9,0.7,0},
+		     {0.1,0.9,0},
+		     {0.3,0.9,0},
+		     {0.5,0.9,0},
+		     {0.7,0.9,0},
+		     {0.9,0.9,0}};
+  double Sb[4][3] = {{0.,0.,0.},
+		     {1.,0.,0.},
+		     {0.,1.,0.},
+		     {1.,1.,0.}};
+  int TVb[2][3] = {{0,1,2},
+		   {3,2,1}};
+  Mesh M(Mesh::Mtype_plane,0,true,false);
+  int t,vi,v;
+
+  M.useX11(true);
+  M.X11()->reopen(1000,600);
+
+  M.S_set(S,n);
+  M.S_append(Sb,4);
+  for (t=0;t<2;t++)
+    for (vi=0;vi<3;vi++)
+      TVb[t][vi] += n; 
+  M.TV_set(TVb,2);
+
+  MeshConstructor MC(&M,true);
+  MeshConstructor::vertex_input_type vertices;
+    for (v=0;v<n;v++)
+    vertices.push_back(v);
+  MC.DT(vertices);
+
+  cout << M;
+
+
+  MC.CDT(MeshConstructor::constraint_input_type());
+  MC.RCDT(1.5,0.1);
+
+  return 0;
+}
+
+
 int DTsphere_test()
 {
   int n = 10;
@@ -208,6 +271,7 @@ int DTsphere_test()
 int main()
 {
   DT2D_test();
+  DT2D_test2();
   DTsphere_test();
 
   return 0;
