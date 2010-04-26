@@ -1,4 +1,3 @@
-### RCSId = "$Id: marginal.R,v 1.17 2010/02/25 21:48:11 hrue Exp $"
 
 ### functions to work with the marginal, either defined as a matrix
 ### x[2,n], or a list(x=, y=).  NOTE:: there are NO EXTRAPOLATION, so

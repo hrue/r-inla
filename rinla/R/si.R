@@ -1,4 +1,3 @@
-### RCSId = "$Id: si.R,v 1.5 2010/03/10 19:21:17 hrue Exp $"
 
 `inla.si` = function(result, quantiles = c(0.05), n.samples = 10000, debug = FALSE)
 {

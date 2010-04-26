@@ -1,4 +1,3 @@
-### RCSId = "$Id: upgrade.R,v 1.10 2010/04/14 16:39:01 hrue Exp $"
 ### The upgrade utility
 
 `inla.update` = function(...)
@@ -17,9 +16,9 @@
     }
 
     if (testing)
-        www = "http://www.math.ntnu.no/~hrue/inla/R-INLA/testing"
+        www = "http://www.math.ntnu.no/inla/binaries/testing"
     else 
-        www = "http://www.math.ntnu.no/~hrue/inla/R-INLA"
+        www = "http://www.math.ntnu.no/inla/binaries"
 
     b.date = scan(paste(www,"/build.date", sep=""), quiet=TRUE, what = character(0))
     bb.date = try(inla.version(quiet = TRUE), silent =TRUE)

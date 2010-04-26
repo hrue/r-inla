@@ -1,4 +1,3 @@
-### RCSId = "$Id: utils.R,v 1.154 2010/04/03 16:31:36 hrue Exp $"
 ### Various utility functions
 
 `inla.graph.convert.1` = function(in.file, graph.file = "graph.txt", c.indexing = FALSE)

@@ -1,4 +1,3 @@
-### RCSId = "$Id: binary.R,v 1.14 2010/01/25 08:49:08 hrue Exp $"
 ### Binary I/O and interpretation of vectors
 
 `inla.interpret.vector` =

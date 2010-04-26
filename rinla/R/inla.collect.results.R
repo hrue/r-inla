@@ -1,4 +1,3 @@
-### RCSId = "$Id: inla.collect.results.R,v 1.16 2010/03/19 20:45:45 hrue Exp $"
 
 `inla.collect.results` =
     function(results.dir, control.results = inla.set.control.results.default(),
