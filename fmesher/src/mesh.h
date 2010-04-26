@@ -44,7 +44,6 @@ namespace fmesh {
     size_t nT_;
     bool use_VT_;
     bool use_TTi_;
-    bool use_X11_;
     int (*TV_)[3];  /* TV[t]  : {v1,v2,v3} */
     int (*TT_)[3];  /* TT[t]  : {t1,t2,t3} */
     int (*VT_);     /* VT[v]  : t,
@@ -69,27 +68,19 @@ namespace fmesh {
     Mesh& rebuildVT();
     Mesh& rebuildTTi();
 
+    void redrawX11(std::string str);
     
   public:
     Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_VT_(false), use_TTi_(true), use_X11_(false),
+      nV_(0), nT_(0), use_VT_(false), use_TTi_(true),
 		 TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {};
     Mesh(Mtype manifold_type, size_t Vcapacity, bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_VT_(true), use_TTi_(false), use_X11_(false),
+      nV_(0), nT_(0), use_VT_(true), use_TTi_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {
       *this = M;
     };
-    Mesh& operator=(const Mesh& M) {
-      clear();
-      type_ = M.type_;
-      useVT(M.use_VT_);
-      useTTi(M.use_TTi_);
-      useX11(M.use_X11_);
-      S_set(M.S_,M.nV_);
-      TV_set(M.TV_,M.nT_);
-      return *this;
-    };
+    Mesh& operator=(const Mesh& M);
     ~Mesh();
     Mesh& clear();
 
@@ -98,14 +89,19 @@ namespace fmesh {
     */
     Mesh& check_capacity(size_t nVc, size_t nTc);
 
-    bool useVT() const { return use_VT_; }
+    bool useVT() const { return use_VT_; };
     Mesh& useVT(bool use_VT);
-    bool useTTi() const { return use_TTi_; }
+    bool useTTi() const { return use_TTi_; };
     Mesh& useTTi(bool use_TTi);
 
-    bool useX11() const { return use_X11_; }
-    Mesh& useX11(bool use_X11);
-    void redrawX11();
+    bool useX11() const { return (X11_!=NULL); };
+    Mesh& useX11(bool use_X11,
+		 int sx = 500, int sy = 500,
+		 double minx = -0.05,
+		 double maxx = 1.05,
+		 double miny = -0.05,
+		 double maxy = 1.05,
+		 std::string name = "fmesher::Mesh");
 
     Mtype type() const { return type_; };
     size_t nV() const { return nV_; };
@@ -455,7 +451,27 @@ namespace fmesh {
     int sx_, sy_;
     double minx_, maxx_, miny_, maxy_;
   public:
-    Xtmpl() : window_(-1), name_char_(NULL) {};
+    Xtmpl(const Xtmpl& X)
+      : window_(X.window_+1), name_char_(NULL),
+	sx_(X.sx_), sy_(X.sy_),
+	minx_(X.minx_), maxx_(X.maxx_),
+	miny_(X.miny_), maxy_(X.maxy_) {
+      open(std::string(X.name_char_),X.sx_,X.sy_);
+      setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
+    };
+    Xtmpl(int sx, int sy,
+	  double minx,
+	  double maxx,
+	  double miny,
+	  double maxy,
+	  std::string name = "fmesher::Mesh")
+      : window_(-1), name_char_(NULL),
+	sx_(sx), sy_(sy),
+	minx_(minx), maxx_(maxx),
+	miny_(miny), maxy_(maxy) {
+      open(name,sx_,sy_);
+      setAxis(minx, maxx, miny, maxy);
+    };
     void reopen(int sx, int sy) {
       if (!(window_<0))
 	close();
@@ -485,6 +501,7 @@ namespace fmesh {
 	return;
       xtmpl_window = window_;
       xtmpl_close();
+      window_ = -1;
     };
     ~Xtmpl() {
       close();
@@ -508,25 +525,9 @@ namespace fmesh {
       maxy_ = maxy;
     };
 
-    void lineFG(const double* s0, const double* s1)
-    {
-      xtmpl_window = window_;
-      xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		      (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
-    };
-    void text(const double* s0, std::string str)
-    {
-      char* str_ = new char[str.length()+1];
-      str.copy(str_,str.length(),0);
-      str_[str.length()] = '\0';
-      xtmpl_window = window_;
-      xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		 (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		 str_,str.length());
-      delete[] str_;
-    };
+    void arc(const double* s0, const double* s1);
+    void line(const double* s0, const double* s1);
+    void text(const double* s0, std::string str);
 
   };
 
