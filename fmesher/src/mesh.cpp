@@ -9,8 +9,8 @@
 
 #include "mesh.h"
 
-#define NOT_IMPLEMENTED std::cout << "Not implemented: \"" \
-  << __PRETTY_FUNCTION__ << std::endl;
+#define NOT_IMPLEMENTED (std::cout << "Not implemented: \""	\
+			 << __PRETTY_FUNCTION__ << std::endl);
 
 namespace fmesh {
 
@@ -1601,17 +1601,22 @@ namespace fmesh {
     if (!prepareCDT()) return false;
 
     /* TODO: Implement. */
-    NOT_IMPLEMENTED;
 
     for (constraint_list_type::iterator ci = constr_boundary_.begin();
-	 ci != constr_boundary_.end(); ci++) {
-      if (true)
+	 ci != constr_boundary_.end(); ) {
+      NOT_IMPLEMENTED;
+      if (true) {
 	ci = constr_boundary_.erase(ci);
+      } else
+	ci++;
     }
     for (constraint_list_type::iterator ci = constr_interior_.begin();
-	 ci != constr_interior_.end(); ci++) {
-      if (true)
+	 ci != constr_interior_.end(); ) {
+      NOT_IMPLEMENTED;
+      if (true) {
 	ci = constr_interior_.erase(ci);
+      } else
+	ci++;
     }
 
     return (constr_boundary_.empty() && constr_interior_.empty());
