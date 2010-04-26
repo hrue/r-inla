@@ -93,7 +93,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { -1, 0, 1, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL };
+G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL };
 
 /* 
    default values for priors
@@ -13764,6 +13764,27 @@ int inla_divisible(int n, int by)
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
+int inla_qinv(const char *filename)
+{
+	/* 
+	   Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances
+	*/
+	int i;
+	GMRFLib_tabulate_Qfunc_tp *tab;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_problem_tp *problem;
+
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, NULL, NULL, NULL);
+	GMRFLib_optimize_reorder(graph, NULL);
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	for (i = 0; i < graph->n; i++) {
+		printf("%.20g\n", *GMRFLib_Qinv_get(problem, i, i));
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 #define USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
@@ -13848,6 +13869,8 @@ int main(int argc, char **argv)
 				G.mcmc_mode = 1;
 			} else if (!strncasecmp(optarg, "HYPER", 5)) {
 				G.hyper_mode = 1;
+			} else if (!strncasecmp(optarg, "QINV", 4)) {
+				G.qinv_mode = 1;
 			} else {
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
 				exit(1);
@@ -13922,6 +13945,15 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	/* 
+	   this one does not belong here, but it makes all easier... and its undocumented
+	 */
+	if (G.qinv_mode){
+		inla_qinv(argv[optind]);
+		exit(0);
+	}
+
 	if (!silent || verbose) {
 		fprintf(stderr, "\n\t%s\n", RCSId);
 	}
