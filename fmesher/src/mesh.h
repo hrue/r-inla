@@ -3,13 +3,16 @@
 
 #include <cstddef>
 #include <cstddef>
-#include <cstring>
+//#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <set>
 #include <map>
 #include <list>
+#include <string>
+
+#include "xtmpl.h"
 
 #define Mesh_V_capacity_step_size 128
 #define MESH_EPSILON 1e-18
@@ -18,7 +21,11 @@ namespace fmesh {
 
   typedef double Point[3];
 
+  class Xtmpl;
   class Dart;
+  class Mesh;
+  class MeshConstructor;
+  class MintO;
   class M3intO;
   class M3doubleO;
   
@@ -35,33 +42,53 @@ namespace fmesh {
     size_t Tcap_;
     size_t nV_;
     size_t nT_;
+    bool use_VT_;
     bool use_TTi_;
+    bool use_X11_;
     int (*TV_)[3];  /* TV[t]  : {v1,v2,v3} */
     int (*TT_)[3];  /* TT[t]  : {t1,t2,t3} */
+    int (*VT_);     /* VT[v]  : t,
+		       v == TV[t][vi]  for some vi=0,1,2 */
     int (*TTi_)[3]; /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
     double (*S_)[3];
+    Xtmpl (*X11_);
     
   private:
     Mesh& rebuildTT();
+
+    Mesh& updateVT(const int v, const int t);
+    /*!< Change VT[v] only if not linked to a triangle */
+    Mesh& setVT(const int v, const int t);
+    /* Overwerite current VT[v] info */
+    Mesh& updateVTtri(const int t);
+    Mesh& setVTtri(const int t);
+    Mesh& updateVTtri_private(const int t0);
+    Mesh& setVTv_private(const int t0);
+
+    Mesh& rebuildVT();
     Mesh& rebuildTTi();
+
     
   public:
     Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_TTi_(false),
+      nV_(0), nT_(0), use_VT_(false), use_TTi_(true), use_X11_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {};
-    Mesh(Mtype manifold_type, size_t Vcapacity, bool use_TTi=false);
+    Mesh(Mtype manifold_type, size_t Vcapacity, bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_TTi_(false),
+      nV_(0), nT_(0), use_VT_(true), use_TTi_(false), use_X11_(false),
       TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL) {
       *this = M;
     };
     Mesh& operator=(const Mesh& M) {
       clear();
       type_ = M.type_;
+      useVT(M.use_VT_);
       useTTi(M.use_TTi_);
+      useX11(M.use_X11_);
       S_set(M.S_,M.nV_);
       TV_set(M.TV_,M.nT_);
+      return *this;
     };
     ~Mesh();
     Mesh& clear();
@@ -69,20 +96,29 @@ namespace fmesh {
     /*!
       \brief Check the storage capacity, and increase if necessary
     */
-    Mesh& check_capacity(int nVc, int nTc);
+    Mesh& check_capacity(size_t nVc, size_t nTc);
 
+    bool useVT() const { return use_VT_; }
+    Mesh& useVT(bool use_VT);
     bool useTTi() const { return use_TTi_; }
     Mesh& useTTi(bool use_TTi);
+
+    bool useX11() const { return use_X11_; }
+    Mesh& useX11(bool use_X11);
+    void redrawX11();
 
     Mtype type() const { return type_; };
     size_t nV() const { return nV_; };
     size_t nT() const { return nT_; };
     const int (*TV() const)[3] { return TV_; };
     const int (*TT() const)[3] { return TT_; };
+    const int (*VT() const) { return VT_; };
     const int (*TTi() const)[3] { return TTi_; };
     const double (*S() const)[3] { return S_; };
+    Xtmpl *X11() { return X11_; };
     M3intO TVO() const;
     M3intO TTO() const;
+    MintO VTO() const;
     M3intO TTiO() const;
     M3doubleO SO() const;
     
@@ -91,7 +127,7 @@ namespace fmesh {
     Mesh& S_append(const double (*S)[3], int nV);
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
-    Dart locatePoint(const Dart& d0, const Point s, double& delta_min) const;
+    Dart locatePoint(const Dart& d0, const Point s, double* delta_min) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
@@ -124,6 +160,7 @@ namespace fmesh {
       vi_ = d.vi_;
       edir_ = d.edir_;
       t_ = d.t_;
+      return *this;
     };
 
     const Mesh* M() const { return M_; };
@@ -345,7 +382,7 @@ namespace fmesh {
       \brief Alias to CDTInterior
     */
     bool CDT(const constraint_input_type& constr) {
-      CDTInterior(constr);
+      return CDTInterior(constr);
     };
     /*!
       \brief Remove exterior triangles from a CDT
@@ -370,11 +407,20 @@ namespace fmesh {
      */
     static double inLeftHalfspace(const Dart& d, const double s[3]);
     static double inCircumcircle(const Dart& d, const double s[3]);
-    static bool circumcircleTest(const Dart& d);
+    static bool circumcircleOK(const Dart& d);
   };
 
 
 
+
+  class MintO {
+    friend std::ostream& operator<<(std::ostream& output, const MintO& MO);
+  private:
+    size_t n_;
+    const int (*M_);
+  public:
+    MintO(const int (*M),size_t n) : n_(n), M_(M) {};
+  };
 
   class M3intO {
     friend std::ostream& operator<<(std::ostream& output, const M3intO& MO);
@@ -382,7 +428,7 @@ namespace fmesh {
     size_t n_;
     const int (*M_)[3];
   public:
-    M3intO(const int (*M)[3],size_t n) : M_(M), n_(n) {};
+    M3intO(const int (*M)[3],size_t n) : n_(n), M_(M) {};
   };
 
   class M3doubleO {
@@ -391,8 +437,103 @@ namespace fmesh {
     size_t n_;
     const double (*M_)[3];
   public:
-    M3doubleO(const double (*M)[3],size_t n) : M_(M), n_(n) {};
+   M3doubleO(const double (*M)[3],size_t n) : n_(n), M_(M) {};
   };
+
+
+
+
+
+
+
+
+
+  class Xtmpl {
+  private:
+    int window_;
+    char* name_char_;
+    int sx_, sy_;
+    double minx_, maxx_, miny_, maxy_;
+  public:
+    Xtmpl() : window_(-1), name_char_(NULL) {};
+    void reopen(int sx, int sy) {
+      if (!(window_<0))
+	close();
+      window_ = 0;
+      sx_ = sx;
+      sy_ = sy;
+      xtmpl_window = window_;
+      xtmpl_open(sx_,sy_,name_char_);
+    };
+    void open(std::string name,
+	      int sx, int sy) {
+      if (!(window_<0))
+	close();
+      window_ = 0;
+      sx_ = sx;
+      sy_ = sy;
+      if (name_char_) delete[] name_char_;
+      name_char_ = new char[name.length()+1];
+      name.copy(name_char_,name.length(),0);
+      name_char_[name.length()] = '\0';
+      xtmpl_window = window_;
+      xtmpl_open(sx,sy,name_char_);
+      setAxis(-0.05,1.05,-0.05,1.05);
+    };
+    void close() {
+      if (window_<0)
+	return;
+      xtmpl_window = window_;
+      xtmpl_close();
+    };
+    ~Xtmpl() {
+      close();
+      if (name_char_) delete[] name_char_;
+    };
+
+    void clear() {
+      xtmpl_window = window_;
+      xtmpl_clear();
+    }
+
+    void setSize(int sx, int sy) {
+      reopen(sx,sy);
+    };
+    void setAxis(double minx, double maxx,
+		 double miny, double maxy) {
+      clear();
+      minx_ = minx;
+      maxx_ = maxx;
+      miny_ = miny;
+      maxy_ = maxy;
+    };
+
+    void lineFG(const double* s0, const double* s1)
+    {
+      xtmpl_window = window_;
+      xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		      (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+    };
+    void text(const double* s0, std::string str)
+    {
+      char* str_ = new char[str.length()+1];
+      str.copy(str_,str.length(),0);
+      str_[str.length()] = '\0';
+      xtmpl_window = window_;
+      xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		 (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		 str_,str.length());
+      delete[] str_;
+    };
+
+  };
+
+
+
+
+
 
 } /* namespace fmesh */
 
