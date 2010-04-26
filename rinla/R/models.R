@@ -1,4 +1,3 @@
-### RCSId = "$Id: models.R,v 1.36 2010/02/09 10:15:49 hrue Exp $"
 
 inla.models = function()
 {

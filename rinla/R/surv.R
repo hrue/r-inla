@@ -1,4 +1,3 @@
-## RCSId = "$Id: surv.R,v 1.8 2010/02/18 13:36:24 hrue Exp $"
 
 `inla.surv` = function(time, event, time2, truncation, subject)
 {

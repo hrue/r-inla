@@ -1,4 +1,3 @@
-### RCSId = "$Id: cygwin.R,v 1.9 2010/03/05 11:50:48 hrue Exp $"
 
 
 `inla.cygwin.check.path` = function(path = inla.getOption("cygwin"))

@@ -1,4 +1,3 @@
-### RCSId = "$Id: summary.inla.R,v 1.11 2010/03/16 12:15:53 hrue Exp $"
 
 
 `summary.inla` <-

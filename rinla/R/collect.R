@@ -1,4 +1,3 @@
-### RCSId = "$Id: collect.R,v 1.52 2010/03/19 20:45:12 hrue Exp $"
 
 ### AUXILIARY FUNCTIONS TO COLLECT RESULTS FROM THE DIRECTORY
 ### "inla/results.files" or any directory where the results from a

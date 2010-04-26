@@ -1,4 +1,3 @@
-### RCSId = "$Id: inla.cpo.R,v 1.14 2010/01/25 08:56:38 hrue Exp $"
 
 inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute.mode = TRUE)
 {

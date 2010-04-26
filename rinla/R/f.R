@@ -1,4 +1,3 @@
-### RCSId = "$Id: f.R,v 1.71 2010/04/01 15:43:35 hrue Exp $"
 
 `f` =
 function(...,

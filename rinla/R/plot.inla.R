@@ -1,4 +1,3 @@
-### RCSId = "$Id: plot.inla.R,v 1.38 2010/01/25 09:00:50 hrue Exp $"
 
 `plot.inla` =
     function(x,

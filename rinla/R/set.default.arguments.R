@@ -1,4 +1,3 @@
-### RCSId = "$Id: set.default.arguments.R,v 1.95 2010/04/03 12:31:11 hrue Exp $"
 ### Defines default arguments
 
 `inla.set.control.lincomb.default` =

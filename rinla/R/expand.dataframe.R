@@ -1,4 +1,3 @@
-##  RCSId = "$Id: expand.dataframe.R,v 1.10 2010/03/23 10:56:35 hrue Exp $"
 
 `inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
 {

@@ -1,4 +1,3 @@
-### RCSId = "$Id: create.data.file.R,v 1.41 2010/03/04 15:24:47 hrue Exp $"
 
 `inla.create.data.file` =
     function(y.orig = NULL,

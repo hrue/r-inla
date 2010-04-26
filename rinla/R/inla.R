@@ -1,4 +1,3 @@
-### RCSId = "$Id: inla.R,v 1.170 2010/04/01 16:07:44 hrue Exp $"
 
 `inla` =
     function (formula,
