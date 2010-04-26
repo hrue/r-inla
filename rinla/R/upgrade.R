@@ -1,4 +1,4 @@
-### RCSId = "$Id: upgrade.R,v 1.9 2010/04/01 14:43:58 hrue Exp $"
+### RCSId = "$Id: upgrade.R,v 1.10 2010/04/14 16:39:01 hrue Exp $"
 ### The upgrade utility
 
 `inla.update` = function(...)
@@ -8,11 +8,11 @@
 
 `inla.upgrade` = function(lib = NULL, testing = FALSE, force = FALSE)
 {
-    ## include required packages here
+    ## include suggested packages here
     for(p in c("pixmap", "mvtnorm")) {
         if (length(grep(paste("^package:", p, "$", sep=""), search())) == 0) {
             if (!require(p, quietly = TRUE, lib.loc = lib, character.only=TRUE))
-                stop(paste("INLA need package `", p, "'; please install", sep=""))
+                warning(paste("INLA need package `", p, "' to be fully functional; please install", sep=""))
         }
     }
 
