@@ -74,6 +74,7 @@ namespace fmesh {
     if (TT_) { delete[] TT_; TT_ = NULL; }
     if (TTi_) { delete[] TTi_; TTi_ = NULL; }
     if (S_) { delete[] S_; S_ = NULL; }
+    if (X11_) { delete X11_; X11_ = NULL; }
     return *this;
   }
 
