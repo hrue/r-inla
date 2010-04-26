@@ -801,6 +801,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
 int inla_print_sha1(FILE * fp, unsigned char *md);
+int inla_qinv(const char *filename);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
@@ -868,6 +869,7 @@ typedef struct {
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	int hyper_mode;					       /* enable accurate computations of the hyperparameters */
 	int mcmc_mode;					       /* enable MCMC mode */
+	int qinv_mode;					       /* (expert) just compute marginal variance... */
 	double log_prec_initial;			       /* inititial value for log-precisions */
 	double dof_max;					       /* max dof for (additive) student-t */
 	double mcmc_scale;				       /* scaling */

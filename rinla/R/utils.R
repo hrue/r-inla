@@ -131,6 +131,16 @@
     return (list(i=ii, j=jj, Cij = Cij))
 }
 
+`inla.Cmatrix2file` = function(Cmatrix, filename = NULL) {
+    if (is.null(filename)) {
+        filename = tempfile()
+    }
+    write(t(cbind(Cmatrix$i-1, Cmatrix$j-1, Cmatrix$Cij)), ncolumns=3, file = filename)
+
+    return (filename)
+}
+
+
 `inla.matrix2graph` = function(Q, graph.file = "graph.txt", c.indexing = FALSE)
 {
     if (c.indexing)
@@ -840,4 +850,26 @@
     return (gsub("[(][)]$","", inla.paste(deparse(formula))))
 }
 
-    
+`inla.qinv` = function(Cmatrix) {
+
+    if (is.matrix(Cmatrix)) {
+        qinv.file = inla.Cmatrix2file(inla.matrix2Cmatrix(Cmatrix))
+    } else {
+        qinv.file = inla.Cmatrix2file(Cmatrix)
+    }
+        
+    if (inla.os("linux") || inla.os("mac")) {
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
+    }
+    else if(inla.os("windows")) {
+        if (!remote) {
+            s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
+        }
+    }
+    else
+        stop("\n\tNot supported architecture.")
+
+    unlink(qinv.file)
+
+    return (s)
+}
