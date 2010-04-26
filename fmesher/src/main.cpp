@@ -117,7 +117,7 @@ int DT2D_test()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
-  M.useX11(true,500,500);
+  //  M.useX11(true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -179,7 +179,7 @@ int DT2D_test2()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
-  M.useX11(true,500,500);
+  //  M.useX11(true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -230,7 +230,7 @@ int DTsphere_test()
   int t,vi,v,i;
   double l;
 
-  M.useX11(true,500,500,-1.05,1.05,-1.05,1.05);
+  //  M.useX11(true,500,500,-1.05,1.05,-1.05,1.05);
 
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
@@ -266,9 +266,11 @@ int DTsphere_test()
 
 int main()
 {
-  DT2D_test();
-  DT2D_test2();
-  DTsphere_test();
+  for (int i=0;i<100;i++) {
+    DT2D_test();
+    DT2D_test2();
+    DTsphere_test();
+  }
 
   return 0;
 }

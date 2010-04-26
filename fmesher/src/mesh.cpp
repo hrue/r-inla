@@ -668,6 +668,10 @@ namespace fmesh {
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
+      if (TT_[t0][1]>=0) TTi_[TT_[t0][1]][TTi_[t0][1]] = 1;
+      if (TT_[t0][2]>=0) TTi_[TT_[t0][2]][TTi_[t0][2]] = 2;
+      if (TT_[t1][1]>=0) TTi_[TT_[t1][1]][TTi_[t1][1]] = 1;
+      if (TT_[t1][2]>=0) TTi_[TT_[t1][2]][TTi_[t1][2]] = 2;
       if (TT_[t0][1]>=0) TT_[TT_[t0][1]][TTi_[t0][1]] = t0;
       if (TT_[t0][2]>=0) TT_[TT_[t0][2]][TTi_[t0][2]] = t0;
       if (TT_[t1][1]>=0) TT_[TT_[t1][1]][TTi_[t1][1]] = t1;
@@ -853,9 +857,13 @@ namespace fmesh {
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
+      if (TT_[t0][0]>=0) TTi_[TT_[t0][0]][TTi_[t0][0]] = 0;
+      if (TT_[t1][0]>=0) TTi_[TT_[t1][0]][TTi_[t1][0]] = 0;
       if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
       if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
       if (!on_boundary) {
+	if (TT_[t2][0]>=0) TTi_[TT_[t2][0]][TTi_[t2][0]] = 0;
+	if (TT_[t3][0]>=0) TTi_[TT_[t3][0]][TTi_[t3][0]] = 0;
 	if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
 	if (TT_[t3][0]>=0) TT_[TT_[t3][0]][TTi_[t3][0]] = t3;
       }
@@ -933,65 +941,77 @@ namespace fmesh {
   Dart Mesh::splitTriangle(const Dart& d, int v)
   {
     Dart dhelper = d;
-    int t, vi, i;
-    //    int v0, v1, v2;
+    int t, vi;
+    int v0, v1, v2;
     int t0, t1, t2;
-    int v_list[3];
     int tt_list[3];
     int tti_list[3];
     if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
     t = dhelper.t();
-    for (i=0;i<3;i++) {
-      vi = dhelper.vi();
-      v_list[i] = TV_[t][vi];
-      tt_list[i] = TT_[t][vi];
-      if (use_TTi_) tti_list[i] = TTi_[t][vi];
-      dhelper.orbit2();
-    }
+    vi = dhelper.vi();
+    v0 = TV_[t][vi];
+    tt_list[1] = TT_[t][vi];
+    if (use_TTi_) tti_list[1] = TTi_[t][vi];
+    dhelper.orbit2();
+    t = dhelper.t();
+    vi = dhelper.vi();
+    v1 = TV_[t][vi];
+    tt_list[2] = TT_[t][vi];
+    if (use_TTi_) tti_list[2] = TTi_[t][vi];
+    dhelper.orbit2();
+    t = dhelper.t();
+    vi = dhelper.vi();
+    v2 = TV_[t][vi];
+    tt_list[0] = TT_[t][vi];
+    if (use_TTi_) tti_list[0] = TTi_[t][vi];
+    dhelper.orbit2();
 
-    /* Step 2: Overwrite one triangles, create two new. */
+    /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
     t1 = nT_;
     t2 = nT_+1;
     check_capacity(0,nT_+2);
     TV_[t0][0] = v;
-    TV_[t0][1] = v_list[1];
-    TV_[t0][2] = v_list[2];
+    TV_[t0][1] = v0;
+    TV_[t0][2] = v1;
     TT_[t0][0] = tt_list[0];
     TT_[t0][1] = t1;
     TT_[t0][2] = t2;
     if (use_TTi_) {
       TTi_[t0][0] = tti_list[0];
-      TTi_[t0][1] = 1;
-      TTi_[t0][2] = 2;
+      TTi_[t0][1] = 2;
+      TTi_[t0][2] = 1;
     }
     TV_[t1][0] = v;
-    TV_[t1][1] = v_list[2];
-    TV_[t1][2] = v_list[0];
+    TV_[t1][1] = v1;
+    TV_[t1][2] = v2;
     TT_[t1][0] = tt_list[1];
     TT_[t1][1] = t2;
     TT_[t1][2] = t0;
     if (use_TTi_) {
       TTi_[t1][0] = tti_list[1];
       TTi_[t1][1] = 2;
-      TTi_[t1][2] = 0;
+      TTi_[t1][2] = 1;
     }
     TV_[t2][0] = v;
-    TV_[t2][1] = v_list[0];
-    TV_[t2][2] = v_list[1];
+    TV_[t2][1] = v2;
+    TV_[t2][2] = v0;
     TT_[t2][0] = tt_list[2];
     TT_[t2][1] = t0;
     TT_[t2][2] = t1;
     if (use_TTi_) {
       TTi_[t2][0] = tti_list[2];
-      TTi_[t2][1] = 0;
+      TTi_[t2][1] = 2;
       TTi_[t2][2] = 1;
     }
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
+      if (TT_[t0][0]>=0) TTi_[TT_[t0][0]][TTi_[t0][0]] = 0;
+      if (TT_[t1][0]>=0) TTi_[TT_[t1][0]][TTi_[t1][0]] = 0;
+      if (TT_[t2][0]>=0) TTi_[TT_[t2][0]][TTi_[t2][0]] = 0;
       if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
       if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
       if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
@@ -1475,7 +1495,7 @@ namespace fmesh {
       std::cout << M_->VTO();
     }
       
-    xtmpl_press_ret("nodes inserted");
+    //    xtmpl_press_ret("nodes inserted");
 
     state_ = State_DT;
     return true;
