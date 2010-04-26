@@ -34,7 +34,8 @@ namespace fmesh {
 	     bool use_TTi) : type_(manifold_type),
 			     Vcap_(V_capacity), Tcap_(2*V_capacity),
 			     nV_(0), nT_(0),
-			     use_VT_(use_VT), use_TTi_(use_TTi)
+			     use_VT_(use_VT), use_TTi_(use_TTi),
+			     use_X11_(false)
   {
     if (Vcap_ > 0) {
       TV_ = new int[Vcap_][3];
@@ -55,6 +56,7 @@ namespace fmesh {
       TTi_ = NULL;
       S_ = NULL;
     }
+    X11_ = NULL;
   };
 
   Mesh::~Mesh()
