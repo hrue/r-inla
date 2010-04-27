@@ -17,6 +17,9 @@
 #define Mesh_V_capacity_step_size 128
 #define MESH_EPSILON 1e-18
 
+#define NOT_IMPLEMENTED (std::cout << "Not implemented: \""	\
+			 << __PRETTY_FUNCTION__ << std::endl);
+
 namespace fmesh {
 
   typedef double Point[3];
@@ -134,9 +137,25 @@ namespace fmesh {
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
 
+    /* Traits: */
+    double edgeLength(const Dart& d) const;
+    double triangleArea(int t) const;
+    double triangleCircumcircleRadius(int t) const;
+    double triangleShortestEdge(int t) const;
+    double triangleLongestEdge(int t) const;
+    double edgeEncroached(const Dart& d, const double s[3]) const;
+    
     double encroachedQuality(const Dart& d) const;
     double skinnyQuality(int t) const;
     double bigQuality(int t) const;
+
+    /*!
+      Compute dart half-space test for a point.
+      positive if s is to the left of the edge defined by d.
+     */
+    double inLeftHalfspace(const Dart& d, const double s[3]) const;
+    double inCircumcircle(const Dart& d, const double s[3]) const;
+    bool circumcircleOK(const Dart& d) const;
   };
   
   /*! \breif Darts */
@@ -203,13 +222,13 @@ namespace fmesh {
 
   };
 
-  class MCdv {
+  class MCQdv {
   public:
     Dart d_;
     double value_;
-    MCdv(Dart d, double value) : d_(d), value_(value) {};
-    MCdv(const MCdv &T) : d_(T.d_), value_(T.value_) {};
-    bool operator<(const MCdv& tb) const {
+    MCQdv(Dart d, double value) : d_(d), value_(value) {};
+    MCQdv(const MCQdv &T) : d_(T.d_), value_(T.value_) {};
+    bool operator<(const MCQdv& tb) const {
       return ((value_ < tb.value_) ||
 	      ((value_ == tb.value_) &&
 	       (d_ < tb.d_)));
@@ -217,49 +236,91 @@ namespace fmesh {
   };
 
 
-  class DartQualitySet {
-  private:
-    typedef std::set<MCdv> set_type;
+  class MCQ {
+  protected:
     typedef std::map<Dart,double> map_type;
     typedef map_type::value_type map_key_type;
+    typedef std::set<MCQdv> set_type;
     map_type darts_; /*!< Darts, mapped to quality */
-    set_type darts_quality_; /*!< Set of "bad quality" segment darts */
-    double quality_limit_; /*!< Large quality values are included in the set */
+    set_type darts_quality_;
+    /*!< Set of "bad quality" (calcQ>0.0) segment darts */
+    bool only_quality_;
+    /*!< If true, only store darts that are of bad quality */
   public:
-    DartQualitySet() : quality_limit_(0.0) {};
-    DartQualitySet(double quality_limit) : quality_limit_(quality_limit) {};
+    MCQ(bool only_quality) : darts_(), darts_quality_(),
+			     only_quality_(only_quality) {};
+    virtual double calcQ(const Dart& d) const = 0;
     void clear() {
       darts_.clear();
       darts_quality_.clear();
     };
-    void insert(const Dart& d, double quality);
-    void erase(const Dart& d);
-    bool empty() const {return darts_.empty();};
-    bool empty_quality() const {return darts_quality_.empty();};
+    void insert(const Dart& d); /*!< Insert dart if not existing. */
+    void erase(const Dart& d); /*!< Remove dart if existing. */
+    int count() const { return darts_.size(); };
+    int countQ() const { return darts_quality_.size(); };
+    bool empty() const { return darts_.empty(); };
+    bool emptyQ() const { return darts_quality_.empty(); };
     bool found(const Dart& d) const;
-    bool found_quality(const Dart& d) const;
+    bool foundQ(const Dart& d) const;
     const double quality(const Dart& d) const;
-    Dart quality_dart() const;
+    Dart quality() const;
+
+    friend std::ostream& operator<<(std::ostream& output, const MCQ& Q);
   };
 
-  class SegmSet {
-  private:
-    const Mesh *M_;
-    DartQualitySet segm_;
+  class triMCQ : public MCQ {
+  protected:
+    double quality_limit_;
+    /*!< Larger values are included in the quality set */
+    virtual double calcQtri(const Dart& d) const = 0;
   public:
-    SegmSet() : M_(NULL) {};
-    SegmSet(const Mesh& M) : M_(&M), segm_(10*MESH_EPSILON) {};
-    void clear() { segm_.clear(); };
+    triMCQ(bool only_quality, double quality_limit);
+    void setQ(double quality_limit);
     void insert(const Dart& d) {
-      double quality = M_->encroachedQuality(d);
-      segm_.insert(d,quality);
+      MCQ::insert(Dart(*d.M(),d.t()));
     };
-    void erase(const Dart& d) { segm_.erase(d); };
-    bool empty() const {return segm_.empty();};
-    bool empty_encroached() const {return segm_.empty_quality();};
-    bool found(const Dart& d) const {return segm_.found(d);};
-    bool found_encroached(const Dart& d) const {return segm_.found_quality(d);};
-    Dart get_encroached() const {return segm_.quality_dart();};
+    void erase(const Dart& d) {
+      MCQ::erase(Dart(*d.M(),d.t()));
+    };
+    bool found(const Dart& d) const {
+      return MCQ::found(Dart(*d.M(),d.t()));
+    };
+    bool foundQ(const Dart& d) const {
+      return MCQ::foundQ(Dart(*d.M(),d.t()));
+    };
+    const double quality(const Dart& d) const {
+      return MCQ::quality(Dart(*d.M(),d.t()));
+    };
+    Dart quality() const {
+      return MCQ::quality();
+    };
+
+    virtual double calcQ(const Dart& d) const;
+  };
+
+
+  class skinnyMCQ : public triMCQ {
+  private:
+  public:
+    skinnyMCQ() : triMCQ(true,1.42) {};
+    virtual double calcQtri(const Dart& d) const;
+  };
+
+  class bigMCQ : public triMCQ {
+  private:
+  public:
+    bigMCQ() : triMCQ(true,1.0) {};
+    virtual double calcQtri(const Dart& d) const;
+  };
+
+  class segmMCQ : public MCQ {
+  private:
+    double encroached_limit_;
+    /*!< Larger values are included in the quality set */
+  public:
+    segmMCQ() : MCQ(false), encroached_limit_(10*MESH_EPSILON) {};
+    double calcQ(const Dart& d) const;
+    bool segm(const Dart& d) const; /*! true if d or d.orbit1() is found */
   };
 
 
@@ -285,13 +346,11 @@ namespace fmesh {
     constrListT constr_interior_; /*! Interior edge
 				    constraints not yet
 				    added as segments. */
-    SegmSet boundary_; /*!< Boundary segment */
-    SegmSet interior_; /*!< Interior segment */
+    segmMCQ boundary_; /*!< Boundary segment */
+    segmMCQ interior_; /*!< Interior segment */
     /* RCDT triangle quality data structures: */
-    DartQualitySet skinny_; /*!< Skinny triangles */
-    DartQualitySet big_;
-    double skinny_limit_;
-    double big_limit_;
+    skinnyMCQ skinny_; /*!< Skinny triangles */
+    bigMCQ big_;
     /* State variables: */
     State state_;
     bool is_pruned_;
@@ -301,7 +360,7 @@ namespace fmesh {
     Dart splitEdgeDelaunay(const Dart& ed, int v);
     bool insertNode(int v, const Dart& ed);
 
-    bool isSegmentDart(const Dart& d) const;
+    bool isSegment(const Dart& d) const;
 
     /*!
       \brief Make a DT from a CHT, calling LOP.
@@ -394,16 +453,6 @@ namespace fmesh {
   };
 
 
-
-  struct Traits {
-    /*!
-      Compute dart half-space test for a point.
-      positive if s is to the left of the edge defined by d.
-     */
-    static double inLeftHalfspace(const Dart& d, const double s[3]);
-    static double inCircumcircle(const Dart& d, const double s[3]);
-    static bool circumcircleOK(const Dart& d);
-  };
 
 
 

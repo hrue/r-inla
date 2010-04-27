@@ -139,6 +139,7 @@ int DT2D_test()
   fmesh::vertexListT vertices;
     for (v=0;v<n;v++)
     vertices.push_back(v);
+
   MC.DT(vertices);
 
   cout << M;
@@ -149,10 +150,11 @@ int DT2D_test()
   cinp.push_back(fmesh::constrT(12,13));
   cinp.push_back(fmesh::constrT(13,10));
   MC.CDTBoundary(cinp);
+
   cinp.clear();
   cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
-  MC.RCDT(1.5,0.1);
+  MC.RCDT(1.5,0.5);
 
   return 0;
 }
