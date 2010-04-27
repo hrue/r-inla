@@ -97,8 +97,8 @@ int mesh_test()
 
 int DT2D_test()
 {
-  int n = 10;
-  double S[10][3] = {{0.50,0.5,0},
+  int n = 14;
+  double S[14][3] = {{0.50,0.5,0},
 		     {0.5,0.6,0},
 		     {0.3,0.2,0},
 		     {0.4,0.6,0},
@@ -107,7 +107,11 @@ int DT2D_test()
 		     {0.7,0.4,0},
 		     {0.8,0.8,0},
 		     {0.9,0.5,0},
-		     {0.1,0.1,0}};
+		     {0.1,0.1,0},
+		     {0.05,0.05,0},
+		     {0.95,0.05,0},
+		     {0.95,0.95,0},
+		     {0.05,0.95,0}};
   double Sb[4][3] = {{0.,0.,0.},
 		     {1.,0.,0.},
 		     {0.,1.,0.},
@@ -134,8 +138,15 @@ int DT2D_test()
 
   cout << M;
 
-
-  MC.CDT(MeshConstructor::constraint_input_type());
+  MeshConstructor::constraint_input_type cinp;
+  cinp.push_back(MeshConstructor::constraint_type(10,11));
+  cinp.push_back(MeshConstructor::constraint_type(11,12));
+  cinp.push_back(MeshConstructor::constraint_type(12,13));
+  cinp.push_back(MeshConstructor::constraint_type(13,10));
+  MC.CDTBoundary(cinp);
+  cinp.clear();
+  cinp.push_back(MeshConstructor::constraint_type(10,12));
+  MC.CDTInterior(cinp);
   MC.RCDT(1.5,0.1);
 
   return 0;
@@ -266,11 +277,14 @@ int DTsphere_test()
 
 int main()
 {
+  DT2D_test();
+  /*
   for (int i=0;i<100;i++) {
     DT2D_test();
     DT2D_test2();
     DTsphere_test();
   }
+  */
 
   return 0;
 }
