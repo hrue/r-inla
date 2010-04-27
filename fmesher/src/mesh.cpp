@@ -9,8 +9,6 @@
 
 #include "mesh.h"
 
-#define NOT_IMPLEMENTED (std::cout << "Not implemented: \""	\
-			 << __PRETTY_FUNCTION__ << std::endl);
 
 namespace fmesh {
 
@@ -482,95 +480,246 @@ namespace fmesh {
   }
 
 
-  double Mesh::encroachedQuality(const Dart& d) const
+
+
+  double Mesh::edgeLength(const Dart& d) const
   {
+    int t(d.t());
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
+    double len;
+    double s0[3];
+    double s1[3];
+
+    int v0 = TV_[d.t()][d.vi()];
+    Dart dhelper(d);
+    dhelper.alpha0();
+    int v1 = TV_[dhelper.t()][dhelper.vi()];
+    for (int dim=0;dim<3;dim++) {
+      s0[dim] = S_[v0][dim];
+      s1[dim] = S_[v1][dim];
+    }
+
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      len = 1.0;
+      break;
+    case Mesh::Mtype_plane:
+      double e[3];
+      e[0] = s1[0]-s0[0];
+      e[1] = s1[1]-s0[1];
+      e[2] = s1[2]-s0[2];
+      len = std::sqrt(e[0]*e[0]+e[1]*e[1]+e[2]*e[2]);
+      break;
+    case Mesh::Mtype_sphere:
+      len = s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2];
+      len = std::acos(std::min(1.0,std::max(-1.0,len)));
+      break;
+    }
+
+    return len;
+  }
+
+  double Mesh::triangleArea(int t) const
+  {
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
 
-    return -1.0; /* <=0 --> not encroached */
+    return 1.0;
+  }
+
+  double Mesh::triangleCircumcircleRadius(int t) const
+  {
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    return 1.0;
+  }
+
+  double Mesh::triangleShortestEdge(int t) const
+  {
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
+    double len;
+    Dart d(*this,t);
+    double len_min = edgeLength(d);
+    d.orbit2();
+    len = edgeLength(d);
+    if (len < len_min)
+      len_min = len;
+    d.orbit2();
+    len = edgeLength(d);
+    if (len < len_min)
+      len_min = len;
+
+    return len_min;
+  }
+
+  double Mesh::triangleLongestEdge(int t) const
+  {
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
+    double len;
+    Dart d(*this,t);
+    double len_max = edgeLength(d);
+    d.orbit2();
+    len = edgeLength(d);
+    if (len > len_max)
+      len_max = len;
+    d.orbit2();
+    len = edgeLength(d);
+    if (len > len_max)
+      len_max = len;
+
+    return len_max;
+  }
+
+
+  double Mesh::edgeEncroached(const Dart& d, const double s[3]) const
+  /* > --> encroached */
+  {
+    int t(d.t());
+    if ((t<0) || (t>=(int)nT_)) return -1.0;
+
+    /* TODO: Implement. */
+    NOT_IMPLEMENTED;
+
+    Dart dhelper(d);
+    int v0 = TV_[t][dhelper.vi()];
+    dhelper.orbit2();
+    int v1 = TV_[t][dhelper.vi()];
+    /* Construct a mirror of s reflected in v0-->v1 */
+    double sm[3]; 
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      //	return predicates::orient3d(M_->S[]);
+      NOT_IMPLEMENTED;
+      sm[0] = 0.0;
+      sm[1] = 0.0;
+      sm[2] = 0.0;
+      break;
+    case Mesh::Mtype_plane:
+      NOT_IMPLEMENTED;
+      sm[0] = 0.0;
+      sm[1] = 0.0;
+      sm[2] = 0.0;
+      break;
+    case Mesh::Mtype_sphere:
+      NOT_IMPLEMENTED;
+      /*      Point zero = {0.,0.,0.}; */
+      sm[0] = 0.0;
+      sm[1] = 0.0;
+      sm[2] = 0.0;
+      break;
+    }
+    
+    return inCircumcircle(d,sm);
+  }
+
+  double Mesh::encroachedQuality(const Dart& d) const
+  /* > --> encroached */
+  {
+    int t(d.t());
+    if ((t<0) || (t>=(int)nT_)) return -1.0;
+
+    Dart dhelper(d);
+    dhelper.orbit2rev();
+    
+    double encr = edgeEncroached(d,S_[TV_[t][dhelper.vi()]]);
+
+    std::cout << "encroachedQ(" << t << ") = " << encr << std::endl;
+
+    return encr;
   }
 
   double Mesh::skinnyQuality(int t) const
   {
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
 
-    return 0.0;
+    double skinny = (triangleCircumcircleRadius(t) / 
+		     triangleShortestEdge(t));
+
+    std::cout << "skinnyQ(" << t << ") = " << skinny << std::endl;
+
+    return skinny;
   }
 
   double Mesh::bigQuality(int t) const
   {
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
-
-    return 0.0;
+    return triangleLongestEdge(t);
   }
 
 
-  double Traits::inLeftHalfspace(const Dart& d, const double s[3])
+
+
+  double Mesh::inLeftHalfspace(const Dart& d, const double s[3]) const
   {
     Dart dhelper = d;
-    const Mesh *M = d.M();
     int v0, v1;
     if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    const int* tp = M->TV()[dhelper.t()];
+    const int* tp = TV_[dhelper.t()];
     v0 = tp[dhelper.vi()];
     dhelper.orbit2();
     v1 = tp[dhelper.vi()];
-    switch (M->type()) {
+    switch (type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
+      NOT_IMPLEMENTED;
       break;
     case Mesh::Mtype_plane:
-      return predicates::orient2d(M->S()[v0],M->S()[v1],s);
+      return predicates::orient2d(S_[v0],S_[v1],s);
       break;
     case Mesh::Mtype_sphere:
       Point zero = {0.,0.,0.};
-      return -predicates::orient3d(M->S()[v0],M->S()[v1],zero,s);
+      return -predicates::orient3d(S_[v0],S_[v1],zero,s);
       break;
     }
     /* This should never be reached. */
     return 0.0;
   }
 
-  double Traits::inCircumcircle(const Dart& d, const double s[3])
+  double Mesh::inCircumcircle(const Dart& d, const double s[3]) const
   {
     Dart dhelper = d;
-    const Mesh *M = d.M();
     int v0, v1, v2;
     if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    const int* tp = M->TV()[dhelper.t()];
+    const int* tp = TV_[dhelper.t()];
     v0 = tp[dhelper.vi()];
     dhelper.orbit2();
     v1 = tp[dhelper.vi()];
     dhelper.orbit2();
     v2 = tp[dhelper.vi()];
-    switch (M->type()) {
+    switch (type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
       break;
     case Mesh::Mtype_plane:
-      return predicates::incircle(M->S()[v0],M->S()[v1],M->S()[v2],s);
+      return predicates::incircle(S_[v0],S_[v1],S_[v2],s);
       break;
     case Mesh::Mtype_sphere:
-      return -predicates::orient3d(M->S()[v0],M->S()[v1],M->S()[v2],s);
+      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
       break;
     }
     /* This should never be reached. */
     return 0.0;
   }
 
-  bool Traits::circumcircleOK(const Dart& d)
+  bool Mesh::circumcircleOK(const Dart& d) const
   {
     Dart dhelper = d;
-    const Mesh *M = d.M();
     int v;
     double result;
     if (d.isnull()) return true; /* TODO: should show a warning somewhere... */
     if (d.onBoundary()) return true; /* Locally optimal, OK. */
-    dhelper.orbit0rev().alpha0();
-    v = M->TV()[dhelper.t()][dhelper.vi()];
-    result = Traits::inCircumcircle(d,M->S()[v]);
+    dhelper.orbit0rev().orbit2();
+    v = TV_[dhelper.t()][dhelper.vi()];
+    result = inCircumcircle(d,S_[v]);
     std::cout << "Dart=" << d
 	      << " Node=" << v
 	      << std::scientific << " result=" << result
@@ -580,10 +729,10 @@ namespace fmesh {
     /* For robusness, check with the reverse dart as well: */
     dhelper = d;
     dhelper.orbit2rev();
-    v = M->TV()[dhelper.t()][dhelper.vi()];
+    v = TV_[dhelper.t()][dhelper.vi()];
     dhelper.orbit2();
     dhelper.orbit1();
-    result = Traits::inCircumcircle(dhelper,M->S()[v]);
+    result = inCircumcircle(dhelper,S_[v]);
     std::cout << "Dart=" << dhelper
 	      << " Node=" << v
 	      << std::scientific << " result=" << result
@@ -1129,7 +1278,7 @@ namespace fmesh {
     output << std::right << std::setw(1) << d.t_
 	   << std::right << std::setw(3) << d.edir_
 	   << std::right << std::setw(2) << d.vi_;
-    if ((!d.isnull()) && (d.t_<(int)d.M()->nV())) {
+    if ((!d.isnull()) && (d.t_<(int)d.M()->nT())) {
       output << " ("
 	     << d.M()->TV()[d.t_][d.vi_]
 	     << ","
@@ -1249,9 +1398,9 @@ namespace fmesh {
     while (1) {
       std::cout << dart_start << ' '
 		<< dart << ' '
-		<< Traits::inLeftHalfspace(dart,s)
+		<< inLeftHalfspace(dart,s)
 		<< std::endl;
-      delta = Traits::inLeftHalfspace(dart,s);
+      delta = inLeftHalfspace(dart,s);
       if (dart_min.isnull() || (delta<*delta_min)) {
 	dart_min = dart;
 	*delta_min = delta;
@@ -1311,7 +1460,7 @@ namespace fmesh {
     while (1) {
       std::cout << dart_start << ' '
 		<< dart << ' '
-		<< Traits::inLeftHalfspace(dart,s)
+		<< inLeftHalfspace(dart,s)
 		<< std::endl;
       for (i=0;i<3;i++) {
 	if (TV_[dart.t()][dart.vi()] == v)
@@ -1319,7 +1468,7 @@ namespace fmesh {
 	dart.orbit2();
       }
 
-      delta = Traits::inLeftHalfspace(dart,s);
+      delta = inLeftHalfspace(dart,s);
       if (dart_min.isnull() || (delta<delta_min)) {
 	dart_min = dart;
 	delta_min = delta;
@@ -1360,9 +1509,9 @@ namespace fmesh {
 
     if (d0.isnull() or d0.onBoundary())
       return true; /* OK. Not allowed to swap. */
-    if (isSegmentDart(d0))
+    if (isSegment(d0))
       return true ; /* OK. Not allowed to swap. */
-    if (Traits::circumcircleOK(d0))
+    if (M_->circumcircleOK(d0))
       return true; /* OK. Need not swap. */
 
     std::cout << "Swap " << d0 << std::endl;
@@ -1471,7 +1620,7 @@ namespace fmesh {
     return true;
   }
 
-  bool MeshC::DT(const vertex_input_type& v_set)
+  bool MeshC::DT(const vertexListT& v_set)
   {
     if (is_pruned_) 
       return false; /* ERROR, cannot safely insert nodes into a pruned
@@ -1486,7 +1635,7 @@ namespace fmesh {
 	return false;
 
     int v;
-    vertex_input_type::const_iterator v_iter;
+    vertexListT::const_iterator v_iter;
     Dart td, d, d0, d1, d2;
 
     for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
@@ -1506,7 +1655,7 @@ namespace fmesh {
   {
     if (state_<State_DT) {
       /* We need to build a DT first. */
-      triangle_input_type t_set;
+      triangleListT t_set;
       for (int t=0;t<(int)M_->nT();t++)
 	t_set.push_back(t);
       if (LOP(t_set))
@@ -1542,20 +1691,14 @@ namespace fmesh {
   {
     if (!prepareCDT()) return false; /* Make sure we have a CDT. */
 
-    skinny_limit_ = skinny_limit;
-    big_limit_ = big_limit;
+    skinny_.clear();
+    big_.clear();
+    skinny_.setQ(skinny_limit);
+    big_.setQ(big_limit);
 
-    skinny_ = DartQualitySet(skinny_limit_);
-    big_ = DartQualitySet(big_limit_);
-
-    double quality;
     for (int t=0;t<(int)M_->nT();t++) {
-      quality = M_->skinnyQuality(t);
-      if (quality>skinny_limit_)
-	skinny_.insert(Dart(*M_,t),quality);
-      quality = M_->bigQuality(t);
-      if (quality>big_limit_)
-	big_.insert(Dart(*M_,t),quality);
+      skinny_.insert(Dart(*M_,t));
+      big_.insert(Dart(*M_,t));
     }
 
     state_ = State_RCDT;
@@ -1587,7 +1730,7 @@ namespace fmesh {
 
 
 
-  bool MeshC::LOP(const triangle_input_type& t_set)
+  bool MeshC::LOP(const triangleListT& t_set)
   {
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
@@ -1602,11 +1745,15 @@ namespace fmesh {
 
     /* TODO: Implement. */
 
+    constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
       NOT_IMPLEMENTED;
       if (true) {
+	ci_next = ci;
+	ci_next++;
 	ci = constr_boundary_.erase(ci);
+	ci = ci_next;
       } else
 	ci++;
     }
@@ -1614,10 +1761,16 @@ namespace fmesh {
 	 ci != constr_interior_.end(); ) {
       NOT_IMPLEMENTED;
       if (true) {
+	ci_next = ci;
+	ci_next++;
 	ci = constr_interior_.erase(ci);
+	ci = ci_next;
       } else
 	ci++;
     }
+
+    std::cout << "Boundary segments after CDT:" << std::endl << boundary_;
+    std::cout << "Interior segments after CDT:" << std::endl << interior_;
 
     return (constr_boundary_.empty() && constr_interior_.empty());
   };
@@ -1626,6 +1779,13 @@ namespace fmesh {
   {
     if (state_<State_RCDT)
       return false; /* ERROR: RCDT not initialised. */
+
+    std::cout << "Encroached boundary segments before RCDT:" << std::endl
+	      << boundary_;
+    std::cout << "Encroached interior segments before RCDT:" << std::endl
+	      << interior_;
+    std::cout << "Skinny triangles before RCDT:" << std::endl << skinny_;
+    std::cout << "Big triangles before RCDT:" << std::endl << big_;
 
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
@@ -1699,12 +1859,12 @@ namespace fmesh {
 
 
 
-  bool MeshC::isSegmentDart(const Dart& d) const
+  bool MeshC::isSegment(const Dart& d) const
   {
     if (state_<State_CDT) /* No segments */
       return false;
 
-    return (boundary_.found(d) || interior_.found(d));
+    return (boundary_.segm(d) || interior_.segm(d));
   }
 
 
@@ -1713,53 +1873,157 @@ namespace fmesh {
 
 
 
-  bool DartQualitySet::found(const Dart& d) const
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  bool MCQ::found(const Dart& d) const
   {
     return (darts_.find(d) != darts_.end());
   }
 
-  bool DartQualitySet::found_quality(const Dart& d) const
+  bool MCQ::foundQ(const Dart& d) const
   {
     map_type::const_iterator i = darts_.find(d);
     if (i == darts_.end())
       return false;
-    return (darts_quality_.find(MCdv(i->first,i->second)) !=
+    return (darts_quality_.find(MCQdv(i->first,i->second)) !=
 	    darts_quality_.end());
   }
 
-  const double DartQualitySet::quality(const Dart& d) const
+  const double MCQ::quality(const Dart& d) const
   {
     if (empty())
       return 0.0;
     return darts_.find(d)->second;
   }
 
-  Dart DartQualitySet::quality_dart() const
+  Dart MCQ::quality() const
   {
-    if (empty_quality())
+    if (emptyQ())
       return Dart();
     return darts_quality_.begin()->d_;
   }
 
-  void DartQualitySet::insert(const Dart& d, double quality)
+  void MCQ::insert(const Dart& d)
   {
-    darts_.insert(map_key_type(d,quality));
-    if (quality>=quality_limit_)
-      darts_quality_.insert(MCdv(d,quality));
+    double quality_ = calcQ(d);
+    if (quality_>0.0) {
+      darts_.insert(map_key_type(d,quality_));
+      darts_quality_.insert(MCQdv(d,quality_));
+    } else if (!only_quality_)
+      darts_.insert(map_key_type(d,quality_));
   }
 
-  void DartQualitySet::erase(const Dart& d)
+  void MCQ::erase(const Dart& d)
   {
-    double quality;
+    double quality_;
     map_type::iterator i = darts_.find(d);
     if (i != darts_.end()) {
-      quality = i->second;
+      quality_ = i->second;
       darts_.erase(i);
-      set_type::iterator j = darts_quality_.find(MCdv(d,quality));
+      set_type::iterator j = darts_quality_.find(MCQdv(d,quality_));
       if (j != darts_quality_.end())
 	darts_quality_.erase(j);
     }
   }
+
+  std::ostream& operator<<(std::ostream& output, const MCQ& Q)
+  {
+    if (Q.empty()) return output;
+    output << "N,n = " << Q.count() << "," << Q.countQ() << std::endl;
+    for (MCQ::map_type::const_iterator qi = Q.darts_.begin();
+	 qi != Q.darts_.end(); qi++) {
+      output << ' ' << qi->first
+	     << ' ' << std::scientific << qi->second
+	     << ' ' << Q.foundQ(qi->first)
+	     << std::endl;
+    }
+    return output;
+  }
+
+
+
+
+
+
+  triMCQ::triMCQ(bool only_quality, double quality_limit)
+    : MCQ(only_quality), quality_limit_(quality_limit)
+  {
+    setQ(quality_limit);
+  }
+
+  void triMCQ::setQ(double quality_limit)
+  {
+    quality_limit_ = quality_limit;
+    /* TODO: Implement updating the sets. */
+    NOT_IMPLEMENTED;
+  }
+
+  double triMCQ::calcQ(const Dart& d) const {
+    double quality_lim_ = quality_limit_; /* TODO: min_vi ql[t][vi] */
+    return (calcQtri(d) - quality_lim_);
+  };
+
+  double skinnyMCQ::calcQtri(const Dart& d) const
+  {
+    double quality_ = d.M()->skinnyQuality(d.t());
+    return quality_;
+  }
+  
+  double bigMCQ::calcQtri(const Dart& d) const
+  {
+    double quality_ = d.M()->bigQuality(d.t());
+    return quality_;
+  }
+  
+  double segmMCQ::calcQ(const Dart& d) const
+  {
+    double quality_ = d.M()->encroachedQuality(d);
+    Dart dhelper(d);
+    dhelper.orbit1();
+    if (d.t() != dhelper.t()) {
+      double quality1_ = d.M()->encroachedQuality(dhelper);
+      if (quality1_>quality_)
+	quality_ = quality1_;
+    }
+    return (quality_-encroached_limit_);
+  }
+
+  bool segmMCQ::segm(const Dart& d) const
+  {
+    if (found(d)) return true;
+    Dart dhelper(d);
+    dhelper.orbit1();
+    return ((dhelper.t() != d.t()) && found(dhelper));
+  }
+
+
+
+
+
 
 
 
