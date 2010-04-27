@@ -587,9 +587,6 @@ namespace fmesh {
     int t(d.t());
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
-
     Dart dhelper(d);
     int v0 = TV_[t][dhelper.vi()];
     dhelper.orbit2();
@@ -599,18 +596,40 @@ namespace fmesh {
     switch (type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
+    /* TODO: Implement. */
       NOT_IMPLEMENTED;
       sm[0] = 0.0;
       sm[1] = 0.0;
       sm[2] = 0.0;
       break;
     case Mesh::Mtype_plane:
-      NOT_IMPLEMENTED;
-      sm[0] = 0.0;
-      sm[1] = 0.0;
-      sm[2] = 0.0;
+      /* e = s1-s0
+         sv = s-s0
+         sm = s0 + (2*e*e'*sv/elen2 - sv)
+            = s0 + (2*e*se - sv)
+       */
+      {
+	double s0[3];
+	s0[0] = S_[v0][0];
+	s0[1] = S_[v0][1];
+	s0[2] = S_[v0][2];
+	double e[3];
+	e[0] = S_[v1][0]-s0[0];
+	e[1] = S_[v1][1]-s0[1];
+	e[2] = S_[v1][2]-s0[2];
+	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
+	double sv[3];
+	sv[0] = s[0]-s0[0];
+	sv[1] = s[1]-s0[1];
+	sv[2] = s[2]-s0[2];
+	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
+	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
+	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
+	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
+      }
       break;
     case Mesh::Mtype_sphere:
+      /* TODO: Implement. */
       NOT_IMPLEMENTED;
       /*      Point zero = {0.,0.,0.}; */
       sm[0] = 0.0;
@@ -619,7 +638,23 @@ namespace fmesh {
       break;
     }
     
-    return inCircumcircle(d,sm);
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      //	return predicates::orient3d(M_->S[]);
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      break;
+    case Mesh::Mtype_plane:
+      return predicates::incircle(S_[v0],S_[v1],s,sm);
+      break;
+    case Mesh::Mtype_sphere:
+      //      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      break;
+    }
+    /* This should never be reached. */
+    return 0.0;
   }
 
   double Mesh::encroachedQuality(const Dart& d) const
@@ -633,7 +668,10 @@ namespace fmesh {
     
     double encr = edgeEncroached(d,S_[TV_[t][dhelper.vi()]]);
 
-    std::cout << "encroachedQ(" << t << ") = " << encr << std::endl;
+    dhelper.orbit2rev();
+    std::cout << "encroachedQ("
+	      << TV_[t][d.vi()] << "," << TV_[t][dhelper.vi()]
+	      << ") = " << encr << std::endl;
 
     return encr;
   }
@@ -748,8 +786,8 @@ namespace fmesh {
      \verbatim
        2         2
       /0\       /|\
-     0---1 --> 00|11
-      \1/       \|/
+     0d--1 --> 00|11
+      \1/       \d/
        3         3
      \endverbatim
      Dart 0-1 --> 3-2
@@ -1634,6 +1672,9 @@ namespace fmesh {
       if (!prepareDT()) /* Make sure we have a DT. */
 	return false;
 
+    if (state_>=State_CDT)
+      std::cout << "Boundary segments before DT:" << std::endl << boundary_;
+
     int v;
     vertexListT::const_iterator v_iter;
     Dart td, d, d0, d1, d2;
@@ -1642,6 +1683,10 @@ namespace fmesh {
       v = *v_iter;
       insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
       std::cout << M_->VTO();
+
+      if (state_>=State_CDT)
+	std::cout << "Boundary segments after DT:" << std::endl << boundary_;
+
     }
       
     //    xtmpl_press_ret("nodes inserted");
@@ -1828,9 +1873,61 @@ namespace fmesh {
       return M_->swapEdge(d);
     }
 
-    /* TODO: implement. */
-    NOT_IMPLEMENTED;
-    return Dart(d);
+    if (boundary_.segm(d) || interior_.segm(d)) {
+      /* ERROR: Not allowed to swap. */
+      std::cout << "ERROR: Not allowed to swap dart " << std::endl
+		<< d << std::endl;
+      return d;
+    }
+
+    /* Collect CDT data */
+    bool segm_b[4];
+    bool segm_i[4];
+    Dart dh(d);
+    dh.orbit2rev();
+    if ((segm_b[1] = boundary_.found(dh))) boundary_.erase(dh);
+    if ((segm_i[1] = interior_.found(dh))) interior_.erase(dh);
+    dh.orbit2rev();
+    if ((segm_b[2] = boundary_.found(dh))) boundary_.erase(dh);
+    if ((segm_i[2] = interior_.found(dh))) interior_.erase(dh);
+    dh.orbit0().orbit2rev();
+    if ((segm_b[3] = boundary_.found(dh))) boundary_.erase(dh);
+    if ((segm_i[3] = interior_.found(dh))) interior_.erase(dh);
+    dh.orbit2rev();
+    if ((segm_b[0] = boundary_.found(dh))) boundary_.erase(dh);
+    if ((segm_i[0] = interior_.found(dh))) interior_.erase(dh);
+
+    if (state_>=State_RCDT) {
+      /* TODO: Collect RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    Dart dnew(M_->swapEdge(d));
+
+    /* Reassemble CDT data */
+    dh = dnew;
+    dh.orbit2();
+    if (segm_b[1]) boundary_.insert(dh);
+    if (segm_i[1]) interior_.insert(dh);
+    dh.orbit2();
+    if (segm_b[0]) boundary_.insert(dh);
+    if (segm_i[0]) interior_.insert(dh);
+    dh.orbit2().orbit0rev();
+    if (segm_b[3]) boundary_.insert(dh);
+    if (segm_i[3]) interior_.insert(dh);
+    dh.orbit2();
+    if (segm_b[2]) boundary_.insert(dh);
+    if (segm_i[2]) interior_.insert(dh);
+
+    if (state_>=State_RCDT) {
+      /* TODO: Reassemble RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    std::cout << "Edge swapped, boundary segments:" << std::endl
+	      << boundary_;
+
+    return dnew;
   }
 
   Dart MeshC::splitEdge(const Dart& d, int v)
@@ -1839,10 +1936,70 @@ namespace fmesh {
       return M_->splitEdge(d,v);
     }
 
-    /* TODO: implement. */
-    NOT_IMPLEMENTED;
+    /* Collect CDT data */
+    Dart dh(d);
+    bool segm_b[6];
+    bool segm_i[6];
+    for (int i=0;i<3;i++) {
+      if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
+      if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
+      dh.orbit2();
+    }
+    if (!dh.onBoundary()) {
+      dh.orbit1();
+      for (int i=3;i<6;i++) {
+	if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
+	if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
+	dh.orbit2();
+      }
+    }
 
-    return Dart(d);
+    if (state_>=State_RCDT) {
+      /* TODO: Collect RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    Dart dnew(M_->splitEdge(d,v));
+
+    /* Reassemble CDT data */
+    dh = dnew;
+    if (segm_b[0]) boundary_.insert(dh);
+    if (segm_i[0]) interior_.insert(dh);
+    dh.orbit2();
+    if (segm_b[1]) boundary_.insert(dh);
+    if (segm_i[1]) interior_.insert(dh);
+    dh.orbit2().orbit0rev();
+    if (segm_b[2]) boundary_.insert(dh);
+    if (segm_i[2]) interior_.insert(dh);
+    dh.orbit2();
+    if (segm_b[0]) boundary_.insert(dh);
+    if (segm_i[0]) interior_.insert(dh);
+    if (!dh.onBoundary()) {
+      dh.orbit1();
+      if (segm_b[3]) boundary_.insert(dh);
+      if (segm_i[3]) interior_.insert(dh);
+      dh.orbit2();
+      if (segm_b[4]) boundary_.insert(dh);
+      if (segm_i[4]) interior_.insert(dh);
+      dh.orbit2().orbit0rev();
+      if (segm_b[5]) boundary_.insert(dh);
+      if (segm_i[5]) interior_.insert(dh);
+      dh.orbit2();
+      if (segm_b[3]) boundary_.insert(dh);
+      if (segm_i[3]) interior_.insert(dh);
+    }
+
+    if (state_>=State_RCDT) {
+      /* TODO: Reassemble RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    std::cout << "Edge split, boundary segments:" << std::endl
+	      << boundary_;
+
+    xtmpl_press_ret("Edge has been split");
+
+    return dnew;
   }
 
   Dart MeshC::splitTriangle(const Dart& d, int v)
@@ -1851,9 +2008,41 @@ namespace fmesh {
       return M_->splitTriangle(d,v);
     }
 
-    /* TODO: implement. */
-    NOT_IMPLEMENTED;
-    return Dart(d);
+    /* Collect CDT data */
+    Dart dh(d);
+    bool segm_b[3];
+    bool segm_i[3];
+    for (int i=0;i<3;i++) {
+      if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
+      if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
+      dh.orbit2();
+    }
+
+    if (state_>=State_RCDT) {
+      /* TODO: Collect RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    Dart dnew(M_->splitTriangle(d,v));
+
+    /* Reassebmle CDT data */
+    dh = dnew;
+    for (int i=0;i<3;i++) {
+      dh.orbit2();
+      if (segm_b[i]) boundary_.insert(dh);
+      if (segm_i[i]) interior_.insert(dh);
+      dh.orbit2rev().orbit0();
+    }
+
+    if (state_>=State_RCDT) {
+      /* TODO: Reassemble RCDT data */
+      NOT_IMPLEMENTED;
+    }
+
+    std::cout << "Triangle split, boundary segments:" << std::endl
+	      << boundary_;
+
+    return dnew;
   }
 
 
@@ -1978,8 +2167,10 @@ namespace fmesh {
   void triMCQ::setQ(double quality_limit)
   {
     quality_limit_ = quality_limit;
-    /* TODO: Implement updating the sets. */
-    NOT_IMPLEMENTED;
+    if (!empty()) {
+      /* TODO: Implement updating the sets. */
+      NOT_IMPLEMENTED;
+    }
   }
 
   double triMCQ::calcQ(const Dart& d) const {
