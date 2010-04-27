@@ -15,6 +15,10 @@ using fmesh::Mesh;
 using fmesh::Dart;
 using fmesh::MeshConstructor;
 
+
+bool useX11 = true;
+
+
 int predicates_test()
 {
   vector< Point* > S1;
@@ -98,14 +102,14 @@ int mesh_test()
 int DT2D_test()
 {
   int n = 14;
-  double S[14][3] = {{0.50,0.5,0},
+  double S[14][3] = {{0.5,0.5,0},
 		     {0.5,0.6,0},
 		     {0.3,0.2,0},
-		     {0.4,0.6,0},
+		     {0.3,0.6,0},
 		     {0.5,0.3,0},
 		     {0.6,0.7,0},
-		     {0.7,0.4,0},
-		     {0.8,0.8,0},
+		     {0.7,0.3,0},
+		     {0.2,0.8,0},
 		     {0.9,0.5,0},
 		     {0.1,0.1,0},
 		     {0.05,0.05,0},
@@ -121,7 +125,8 @@ int DT2D_test()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
-  //  M.useX11(true,500,500);
+  if (useX11)
+    M.useX11(true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -190,7 +195,8 @@ int DT2D_test2()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
-  //  M.useX11(true,500,500);
+  if (useX11)
+    M.useX11(true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -241,7 +247,8 @@ int DTsphere_test()
   int t,vi,v,i;
   double l;
 
-  //  M.useX11(true,500,500,-1.05,1.05,-1.05,1.05);
+  if (useX11)
+    M.useX11(true,500,500,-1.05,1.05,-1.05,1.05);
 
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
