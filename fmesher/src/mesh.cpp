@@ -1352,7 +1352,7 @@ namespace fmesh {
 
 
   /*! Alg 4.3 */
-  bool MeshConstructor::recSwapDelaunay(const Dart& d0)
+  bool MeshC::recSwapDelaunay(const Dart& d0)
   {
     Dart d1, d2;
 
@@ -1387,7 +1387,7 @@ namespace fmesh {
 
 
   /*! Alg 9.3 */
-  Dart MeshConstructor::splitTriangleDelaunay(const Dart& td, int v)
+  Dart MeshC::splitTriangleDelaunay(const Dart& td, int v)
   {
     Dart d, d0, d1, d2;
 
@@ -1414,7 +1414,7 @@ namespace fmesh {
   }
 
   /*! Modified Alg 9.3 */
-  Dart MeshConstructor::splitEdgeDelaunay(const Dart& ed, int v)
+  Dart MeshC::splitEdgeDelaunay(const Dart& ed, int v)
   {
     Dart d, d0, d1, d2, d3;
 
@@ -1451,7 +1451,7 @@ namespace fmesh {
   }
 
   /*! Alg 9.3 */
-  bool MeshConstructor::insertNode(int v, const Dart& ed)
+  bool MeshC::insertNode(int v, const Dart& ed)
   {
     Dart td;
     double delta;
@@ -1471,7 +1471,7 @@ namespace fmesh {
     return true;
   }
 
-  bool MeshConstructor::DT(const vertex_input_type& v_set)
+  bool MeshC::DT(const vertex_input_type& v_set)
   {
     if (is_pruned_) 
       return false; /* ERROR, cannot safely insert nodes into a pruned
@@ -1502,7 +1502,7 @@ namespace fmesh {
   }
 
 
-  bool MeshConstructor::prepareDT()
+  bool MeshC::prepareDT()
   {
     if (state_<State_DT) {
       /* We need to build a DT first. */
@@ -1516,7 +1516,7 @@ namespace fmesh {
   }
 
 
-  bool MeshConstructor::prepareCDT()
+  bool MeshC::prepareCDT()
   {
     if (!prepareDT()) return false; /* Make sure we have a DT. */
     if (state_>=State_CDT)
@@ -1538,7 +1538,7 @@ namespace fmesh {
     return true;
   }
 
-  bool MeshConstructor::prepareRCDT(double skinny_limit, double big_limit)
+  bool MeshC::prepareRCDT(double skinny_limit, double big_limit)
   {
     if (!prepareCDT()) return false; /* Make sure we have a CDT. */
 
@@ -1564,20 +1564,20 @@ namespace fmesh {
 
 
 
-  bool MeshConstructor::CDTBoundary(const constraint_input_type& constr)
+  bool MeshC::CDTBoundary(const constrListT& constr)
   {
     if (!prepareCDT()) return false;
 
-    constr_boundary_ = constraint_list_type(constr.begin(),constr.end());
+    constr_boundary_ = constrListT(constr.begin(),constr.end());
     
     return buildCDT();
   };
 
-  bool MeshConstructor::CDTInterior(const constraint_input_type& constr)
+  bool MeshC::CDTInterior(const constrListT& constr)
   {
     if (!prepareCDT()) return false;
 
-    constr_interior_ = constraint_list_type(constr.begin(),constr.end());
+    constr_interior_ = constrListT(constr.begin(),constr.end());
     
     return buildCDT();
   };
@@ -1587,7 +1587,7 @@ namespace fmesh {
 
 
 
-  bool MeshConstructor::LOP(const triangle_input_type& t_set)
+  bool MeshC::LOP(const triangle_input_type& t_set)
   {
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
@@ -1596,13 +1596,13 @@ namespace fmesh {
   }
 
 
-  bool MeshConstructor::buildCDT()
+  bool MeshC::buildCDT()
   {
     if (!prepareCDT()) return false;
 
     /* TODO: Implement. */
 
-    for (constraint_list_type::iterator ci = constr_boundary_.begin();
+    for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
       NOT_IMPLEMENTED;
       if (true) {
@@ -1610,7 +1610,7 @@ namespace fmesh {
       } else
 	ci++;
     }
-    for (constraint_list_type::iterator ci = constr_interior_.begin();
+    for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
       NOT_IMPLEMENTED;
       if (true) {
@@ -1622,7 +1622,7 @@ namespace fmesh {
     return (constr_boundary_.empty() && constr_interior_.empty());
   };
 
-  bool MeshConstructor::buildRCDT()
+  bool MeshC::buildRCDT()
   {
     if (state_<State_RCDT)
       return false; /* ERROR: RCDT not initialised. */
@@ -1633,14 +1633,14 @@ namespace fmesh {
     return true;
   };
 
-  bool MeshConstructor::RCDT(double skinny_limit, double big_limit)
+  bool MeshC::RCDT(double skinny_limit, double big_limit)
   {
     if (!prepareRCDT(skinny_limit,big_limit)) return false;
     return buildRCDT();
   };
 
 
-  bool MeshConstructor::PruneExterior()
+  bool MeshC::PruneExterior()
   {
     if (state_ < State_CDT) {
       /* Since there are no constraints at this state, no exterior
@@ -1662,7 +1662,7 @@ namespace fmesh {
 
 
 
-  Dart MeshConstructor::swapEdge(const Dart& d)
+  Dart MeshC::swapEdge(const Dart& d)
   {
     if (state_ < State_CDT) {
       return M_->swapEdge(d);
@@ -1673,7 +1673,7 @@ namespace fmesh {
     return Dart(d);
   }
 
-  Dart MeshConstructor::splitEdge(const Dart& d, int v)
+  Dart MeshC::splitEdge(const Dart& d, int v)
   {
     if (state_ < State_CDT) {
       return M_->splitEdge(d,v);
@@ -1685,7 +1685,7 @@ namespace fmesh {
     return Dart(d);
   }
 
-  Dart MeshConstructor::splitTriangle(const Dart& d, int v)
+  Dart MeshC::splitTriangle(const Dart& d, int v)
   {
     if (state_ < State_CDT) {
       return M_->splitTriangle(d,v);
@@ -1699,7 +1699,7 @@ namespace fmesh {
 
 
 
-  bool MeshConstructor::isSegmentDart(const Dart& d) const
+  bool MeshC::isSegmentDart(const Dart& d) const
   {
     if (state_<State_CDT) /* No segments */
       return false;

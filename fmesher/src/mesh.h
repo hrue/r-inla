@@ -20,11 +20,15 @@
 namespace fmesh {
 
   typedef double Point[3];
+  typedef std::list<int> vertexListT;
+  typedef std::list<int> triangleListT;
+  typedef std::pair<int,int> constrT;
+  typedef std::list<constrT> constrListT;
 
   class Xtmpl;
   class Dart;
   class Mesh;
-  class MeshConstructor;
+  class MeshC;
   class MintO;
   class M3intO;
   class M3doubleO;
@@ -262,7 +266,7 @@ namespace fmesh {
   /*!
     \brief Class for constructing Delaunay triangulations
   */
-  class MeshConstructor {
+  class MeshC {
   public:
     enum State {State_noT=0, /*!< No triangulation present */
 		State_CHT, /*!< Convex hull triangulation */
@@ -272,20 +276,15 @@ namespace fmesh {
 		State_RCDT /*!< Refined CDT, triangle quality
                                     data structures active. */
     }; /*!< The current triangulation and data structure state. */
-    typedef std::list<int> vertex_input_type;
-    typedef std::list<int> triangle_input_type;
-    typedef std::pair<int,int> constraint_type;
-    typedef std::list<constraint_type> constraint_input_type;
-    typedef std::list<constraint_type> constraint_list_type;
   private:
     Mesh *M_;
     /* CDT Constraint and segment data structures: */
-    constraint_list_type constr_boundary_; /*! Boundary edge
-                                              constraints not yet
-                                              added as segments. */
-    constraint_list_type constr_interior_; /*! Interior edge
-                                              constraints not yet
-                                              added as segments. */
+    constrListT constr_boundary_; /*! Boundary edge
+				    constraints not yet
+				    added as segments. */
+    constrListT constr_interior_; /*! Interior edge
+				    constraints not yet
+				    added as segments. */
     SegmSet boundary_; /*!< Boundary segment */
     SegmSet interior_; /*!< Interior segment */
     /* RCDT triangle quality data structures: */
@@ -328,8 +327,8 @@ namespace fmesh {
     bool buildRCDT();
 
   public:
-    MeshConstructor() : M_(NULL), state_(State_noT) {};
-    MeshConstructor(Mesh* M, bool with_conv_hull)
+    MeshC() : M_(NULL), state_(State_noT) {};
+    MeshC(Mesh* M, bool with_conv_hull)
       : M_(M), state_(State_noT), is_pruned_(false) {
       if (with_conv_hull)
 	state_ = State_CHT;
@@ -354,30 +353,30 @@ namespace fmesh {
 
       Perform LOP to make the input triangulation Delaunay.
      */
-    bool LOP(const triangle_input_type& t_set);
+    bool LOP(const triangleListT& t_set);
     /*!
       \brief Build Delaunay triangulation (DT)
 
       The vertices must be covered by the input triangulation, which
       must be convex.  LOP is called to make sure it is Delaunay, if
-      not already known by the MeshConstructor to be Delaunay.
+      not already known by the MeshC to be Delaunay.
      */
-    bool DT(const vertex_input_type& v_set);
+    bool DT(const vertexListT& v_set);
     /*!
       \brief Build boundary edge constrained Delaunay triangulation (CDT)
       
       The boundary edge constraints define what regions should be
       removed by a later call to PruneExterior.
     */
-    bool CDTBoundary(const constraint_input_type& constr);
+    bool CDTBoundary(const constrListT& constr);
     /*!
       \brief Build interior edge constrained Delaunay triangulation (CDT)
     */
-    bool CDTInterior(const constraint_input_type& constr);
+    bool CDTInterior(const constrListT& constr);
     /*!
       \brief Alias to CDTInterior
     */
-    bool CDT(const constraint_input_type& constr) {
+    bool CDT(const constrListT& constr) {
       return CDTInterior(constr);
     };
     /*!

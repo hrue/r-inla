@@ -13,7 +13,7 @@ using std::endl;
 using fmesh::Point;
 using fmesh::Mesh;
 using fmesh::Dart;
-using fmesh::MeshConstructor;
+using fmesh::MeshC;
 
 
 bool useX11 = true;
@@ -135,22 +135,22 @@ int DT2D_test()
       TVb[t][vi] += n; 
   M.TV_set(TVb,2);
 
-  MeshConstructor MC(&M,true);
-  MeshConstructor::vertex_input_type vertices;
+  MeshC MC(&M,true);
+  fmesh::vertexListT vertices;
     for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
 
   cout << M;
 
-  MeshConstructor::constraint_input_type cinp;
-  cinp.push_back(MeshConstructor::constraint_type(10,11));
-  cinp.push_back(MeshConstructor::constraint_type(11,12));
-  cinp.push_back(MeshConstructor::constraint_type(12,13));
-  cinp.push_back(MeshConstructor::constraint_type(13,10));
+  fmesh::constrListT cinp;
+  cinp.push_back(fmesh::constrT(10,11));
+  cinp.push_back(fmesh::constrT(11,12));
+  cinp.push_back(fmesh::constrT(12,13));
+  cinp.push_back(fmesh::constrT(13,10));
   MC.CDTBoundary(cinp);
   cinp.clear();
-  cinp.push_back(MeshConstructor::constraint_type(10,12));
+  cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
   MC.RCDT(1.5,0.1);
 
@@ -205,8 +205,8 @@ int DT2D_test2()
       TVb[t][vi] += n; 
   M.TV_set(TVb,2);
 
-  MeshConstructor MC(&M,true);
-  MeshConstructor::vertex_input_type vertices;
+  MeshC MC(&M,true);
+  fmesh::vertexListT vertices;
     for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
@@ -214,7 +214,7 @@ int DT2D_test2()
   cout << M;
 
 
-  MC.CDT(MeshConstructor::constraint_input_type());
+  MC.CDT(fmesh::constrListT());
   MC.RCDT(1.5,0.1);
 
   return 0;
@@ -270,9 +270,9 @@ int DTsphere_test()
 
   cout << M;
 
-  MeshConstructor MC(&M,true);
-  MeshConstructor::vertex_input_type vertices;
-    for (v=0;v<n;v++)
+  MeshC MC(&M,true);
+  fmesh::vertexListT vertices;
+  for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
 
