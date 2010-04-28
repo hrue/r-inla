@@ -663,38 +663,194 @@ namespace fmesh {
   {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
-    /*
-      l'Huilier's Theorem:
-      a,b,c edge lengths
-      s = (a+b+c)/2
-      tan(E / 4) = sqrt(tan(s / 2) 
-                        tan((s - a) / 2)
-			tan((s - b) / 2)
-			tan((s - c) / 2))
-      Area = E  (E = spherical excess)
-    */
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      return 1.0;
+      break;
+    case Mesh::Mtype_plane:
+      {
+	/*
+	  Heron's formula:
+	  a,b,c edge lengths
+	  s = (a+b+c)/2
+	  Area = sqrt(s(s-a)(s-b)(s-c)) 
 
-    Dart dh(*this,t);
-    double a(edgeLength(dh));
-    dh.orbit2();
-    double b(edgeLength(dh));
-    dh.orbit2();
-    double c(edgeLength(dh));
-    double s((a+b+c)/2.0);
-    double tanE4(std::sqrt(std::tan(s/2.0)*
-			   std::tan((s-a)/2.0)*
-			   std::tan((s-b)/2.0)*
-			   std::tan((s-c)/2.0)));
+	  Numerically stable version from
+	  http://www.eecs.berkeley.edu/~wkahan/Triangle.pdf
+  	  a >= b >= c
+	  Area = sqrt( (a+(b+c)) (c-(a-b)) (c+(a-b)) (a+(b-c)) )/4
 
-    return (4.0*std::atan(tanE4));
+	  TODO: Compare with simple cross-product length.
+	*/
+
+	Dart dh(*this,t);
+	double a(edgeLength(dh));
+	dh.orbit2();
+	double l(edgeLength(dh));
+	if (a<l) {
+	  b = a; a = l;
+	} else
+	  b = l;
+	dh.orbit2();
+	double c;
+	l = edgeLength(dh);
+	if (b<l) {
+	  if (a<l) {
+	    c = b; b = a; a = l;
+	  } else {
+	    c = b; b = l;
+	  }
+	} else
+	  c = l;
+	return (0.25*std::sqrt((a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c)));
+      }
+      break;
+    case Mesh::Mtype_sphere:
+      {
+	/*
+	  l'Huilier's Theorem:
+	  a,b,c edge lengths
+	  s = (a+b+c)/2
+	  tan(E / 4) = sqrt(tan(s / 2) 
+	                    tan((s - a) / 2)
+			    tan((s - b) / 2)
+			    tan((s - c) / 2))
+	  Area = E  (E = spherical excess)
+	*/
+	
+	Dart dh(*this,t);
+	double a(edgeLength(dh));
+	dh.orbit2();
+	double b(edgeLength(dh));
+	dh.orbit2();
+	double c(edgeLength(dh));
+	double s((a+b+c)/2.0);
+	double tanE4(std::sqrt(std::tan(s/2.0)*
+			       std::tan((s-a)/2.0)*
+			       std::tan((s-b)/2.0)*
+			       std::tan((s-c)/2.0)));
+	
+	return (4.0*std::atan(tanE4));
+      }
+      break;
+    }
+
+    return 1.0;
+  }
+
+  void Mesh::triangleCircumcentre(int t, double* c) const
+  {
+    if ((t<0) || (t>=(int)nT_)) {
+      c[0] = 0.0;
+      c[1] = 0.0;
+      c[2] = 0.0;
+      return;
+    }
+
+    int v0 = TV_[t][0];
+    int v1 = TV_[t][1];
+    int v2 = TV_[t][2];
+
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      c[0] = 0.0;
+      c[1] = 0.0;
+      c[2] = 0.0;
+      return;
+      break;
+    case Mesh::Mtype_plane:
+      /* e = ?
+         sv = ?
+         sm = ?
+       */
+      {
+	c[0] = 0.0;
+	c[1] = 0.0;
+	c[2] = 0.0;
+	/*
+	double s0[3];
+	s0[0] = S_[v0][0];
+	s0[1] = S_[v0][1];
+	s0[2] = S_[v0][2];
+	double e[3];
+	e[0] = S_[v1][0]-s0[0];
+	e[1] = S_[v1][1]-s0[1];
+	e[2] = S_[v1][2]-s0[2];
+	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
+	double sv[3];
+	sv[0] = s[0]-s0[0];
+	sv[1] = s[1]-s0[1];
+	sv[2] = s[2]-s0[2];
+	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
+	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
+	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
+	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
+	*/
+      }
+      return;
+      break;
+    case Mesh::Mtype_sphere:
+      {
+	double e1[3];
+	double e2[3];
+	Vec::copy(c,S_[v0]);
+	Vec::diff(e1,S_[v1],c);
+	Vec::diff(e2,S_[v2],c);
+	Vec::cross(c,e1,e2);
+	Vec::rescale(c,1/Vec::length(c));
+	return;
+      }
+      break;
+    }
+
+    return;
   }
 
   double Mesh::triangleCircumcircleRadius(int t) const
   {
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
+    if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    switch (type_) {
+    case Mesh::Mtype_manifold:
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      return 1.0;
+      break;
+    case Mesh::Mtype_plane:
+      /* e = ?
+         sv = ?
+         sm = ?
+       */
+      {
+	Dart dh(*this,t);
+	double l0 = edgeLength(dh);
+	dh.orbit2();
+	double l1 = edgeLength(dh);
+	dh.orbit2();
+	double l2 = edgeLength(dh);
+	return ((l0*l1*l2)/
+		std::sqrt((l0+l1+l2)*
+			  (l1+l2-l0)*
+			  (l2+l0-l1)*
+			  (l0+l1-l2)));
+      }
+      break;
+    case Mesh::Mtype_sphere:
+      {
+	int v0 = TV_[t][0];
+	double p0[3];
+	double c[3];
+	Vec::copy(p0,S_[v0]);
+	triangleCircumcentre(t,c);
+	Vec::accum(p0,c,-Vec::scalar(c,p0));
+	return Vec::length(p0);
+      }
+      break;
+    }
 
     return 1.0;
   }
@@ -748,6 +904,7 @@ namespace fmesh {
     int v0 = TV_[t][dh.vi()];
     dh.orbit2();
     int v1 = TV_[t][dh.vi()];
+
     /* Construct a mirror of s reflected in v0-->v1 */
     double sm[3]; 
     switch (type_) {
@@ -840,7 +997,7 @@ namespace fmesh {
     double skinny = (triangleCircumcircleRadius(t) / 
 		     triangleShortestEdge(t));
 
-    std::cout << "skinnyQ(" << t << ") = " << skinny << std::endl;
+    //    std::cout << "skinnyQ(" << t << ") = " << skinny << std::endl;
 
     return skinny;
   }
