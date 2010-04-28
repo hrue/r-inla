@@ -15,7 +15,8 @@
 #include "mesh.h"
 
 #ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout << "Not implemented: \""	\
+#define NOT_IMPLEMENTED (std::cout << "Not implemented: "	\
+			 << __FILE__ << "(" << __LINE__ << ") "	\
 			 << __PRETTY_FUNCTION__ << std::endl);
 #endif
 
@@ -158,6 +159,7 @@ namespace fmesh {
     bool recSwapDelaunay(const Dart& d0);
     Dart splitTriangleDelaunay(const Dart& td, int v);
     Dart splitEdgeDelaunay(const Dart& ed, int v);
+    Dart bisectEdgeDelaunay(const Dart& d);
     bool insertNode(int v, const Dart& ed);
 
     bool isSegment(const Dart& d) const;
