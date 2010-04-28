@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-FLAGS = -std=gnu99 -m32 -mtune=generic -mfpmath=sse -msse2 -O3 -ftracer -pipe -DWINDOWS -DOSTYPE_win32
+FLAGS = -std=gnu99 -m32 -mtune=generic -mfpmath=sse -msse -O3 -ftracer -pipe -DWINDOWS -DOSTYPE_win32
 PREFIX = $(PWD)/local
 PATH := $(PWD)/bin:$(PATH)
 ARGS = 
@@ -58,7 +58,9 @@ gsl :
 	$(MAKE) $(ARGS) -k clean;\
 	export CFLAGS="$(FLAGS)";\
 	./configure --prefix=$(PREFIX); \
-	$(MAKE) $(ARGS); \
+	find . -name \*.Po | while read f; do rm -f $$f; touch $$f; done;\
+	find . -name \*.Plo | while read f; do rm -f $$f; touch $$f; done;\
+	$(MAKE) $(ARGS);\
 	$(MAKE) $(ARGS) install
 
 inla :
