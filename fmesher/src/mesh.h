@@ -18,7 +18,8 @@
 #define MESH_EPSILON 1e-18
 
 #ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout << "Not implemented: \""	\
+#define NOT_IMPLEMENTED (std::cout << "Not implemented: "	\
+			 << __FILE__ << "(" << __LINE__ << ") "	\
 			 << __PRETTY_FUNCTION__ << std::endl);
 #endif
 
@@ -37,7 +38,62 @@ namespace fmesh {
   class MOAint3;
   class MOAdouble3;
   class MeshC;
-  
+
+
+  struct Vec {  
+    static void copy(double* s, const Point s0)
+    {
+      s[0] = s0[0];
+      s[1] = s0[1];
+      s[2] = s0[2];
+    };
+    static void rescale(double* s, double s1)
+    {
+      s[0] *= s1;
+      s[1] *= s1;
+      s[2] *= s1;
+    };
+    static void scale(double* s, const Point s0, double s1)
+    {
+      s[0] = s0[0]*s1;
+      s[1] = s0[1]*s1;
+      s[2] = s0[2]*s1;
+    };
+    static void diff(double* s,const Point s0, const Point s1)
+    {
+      s[0] = s0[0]-s1[0];
+      s[1] = s0[1]-s1[1];
+      s[2] = s0[2]-s1[2];
+    };
+    static void sum(double* s,const Point s0, const Point s1)
+    {
+      s[0] = s0[0]+s1[0];
+      s[1] = s0[1]+s1[1];
+      s[2] = s0[2]+s1[2];
+    };
+    static void accum(double* s, const Point s0, double s1 = 1.0)
+    {
+      s[0] += s0[0]*s1;
+      s[1] += s0[1]*s1;
+      s[2] += s0[2]*s1;
+    };
+    static double scalar(const Point s0, const Point s1)
+    {
+      return (s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2]);
+    };
+    static double length(const Point s0)
+    {
+      return (std::sqrt(s0[0]*s0[0]+s0[1]*s0[1]+s0[2]*s0[2]));
+    };
+    static void cross(double* s, const Point s0, const Point s1)
+    {
+      s[0] = s0[1]*s1[2]-s0[2]*s1[1];
+      s[1] = s0[2]*s1[0]-s0[0]*s1[2];
+      s[2] = s0[0]*s1[1]-s0[1]*s1[0];
+    };
+  };
+
+
   class Mesh {
     friend class Dart;
     friend std::ostream& operator<<(std::ostream& output, const Mesh& M);
@@ -104,7 +160,7 @@ namespace fmesh {
     Mesh& useTTi(bool use_TTi);
 
     bool useX11() const { return (X11_!=NULL); };
-    Mesh& useX11(bool use_X11,
+    Mesh& useX11(bool use_X11, bool draw_text,
 		 int sx = 500, int sy = 500,
 		 double minx = -0.05,
 		 double maxx = 1.05,
@@ -220,8 +276,9 @@ namespace fmesh {
     int vi() const { return vi_; };
     int edir() const { return edir_; };
     int t() const { return t_; };
+    int v() const { return M_->TV_[t_][vi_]; };
 
-    bool isnull() const { return (!M_) || (edir_==0); };
+    bool isnull() const { return (!M_); };
     bool operator==(const Dart& d) const {
       return ((d.t_ == t_) &&
 	      (d.vi_ == vi_) &&
