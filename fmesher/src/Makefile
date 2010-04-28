@@ -5,5 +5,8 @@ LDFLAGS = -lX11
 
 all: main
 
-main: $(OBJ) mesh.h Makefile
+mesh.o: mesh.h Makefile
+main.o: mesh.h Makefile
+
+main: $(OBJ) Makefile
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o main

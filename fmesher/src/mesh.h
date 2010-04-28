@@ -29,12 +29,12 @@ namespace fmesh {
   typedef std::list<constrT> constrListT;
 
   class Xtmpl;
-  class Dart;
   class Mesh;
+  class Dart;
+  class MOAint;
+  class MOAint3;
+  class MOAdouble3;
   class MeshC;
-  class MintO;
-  class M3intO;
-  class M3doubleO;
   
   class Mesh {
     friend class Dart;
@@ -119,11 +119,11 @@ namespace fmesh {
     const int (*TTi() const)[3] { return TTi_; };
     const double (*S() const)[3] { return S_; };
     Xtmpl *X11() { return X11_; };
-    M3intO TVO() const;
-    M3intO TTO() const;
-    MintO VTO() const;
-    M3intO TTiO() const;
-    M3doubleO SO() const;
+    MOAint3 TVO() const;
+    MOAint3 TTO() const;
+    MOAint VTO() const;
+    MOAint3 TTiO() const;
+    MOAdouble3 SO() const;
     
     Mesh& S_set(const double (*S)[3], int nV);
     Mesh& TV_set(const int (*TV)[3], int nT); 
@@ -157,6 +157,38 @@ namespace fmesh {
     double inCircumcircle(const Dart& d, const double s[3]) const;
     bool circumcircleOK(const Dart& d) const;
   };
+
+
+
+  class MOAint {
+    friend std::ostream& operator<<(std::ostream& output, const MOAint& MO);
+  private:
+    size_t n_;
+    const int (*M_);
+  public:
+    MOAint(const int (*M),size_t n) : n_(n), M_(M) {};
+  };
+
+  class MOAint3 {
+    friend std::ostream& operator<<(std::ostream& output, const MOAint3& MO);
+  private:
+    size_t n_;
+    const int (*M_)[3];
+  public:
+    MOAint3(const int (*M)[3],size_t n) : n_(n), M_(M) {};
+  };
+
+  class MOAdouble3 {
+    friend std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO);
+  private:
+    size_t n_;
+    const double (*M_)[3];
+  public:
+   MOAdouble3(const double (*M)[3],size_t n) : n_(n), M_(M) {};
+  };
+
+
+
   
   /*! \breif Darts */
   class Dart {
@@ -222,6 +254,19 @@ namespace fmesh {
 
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
   class MCQdv {
   public:
     Dart d_;
@@ -234,7 +279,6 @@ namespace fmesh {
 	       (d_ < tb.d_)));
     }
   };
-
 
   class MCQ {
   protected:
@@ -268,13 +312,13 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const MCQ& Q);
   };
 
-  class triMCQ : public MCQ {
+  class MCQtri : public MCQ {
   protected:
     double quality_limit_;
     /*!< Larger values are included in the quality set */
     virtual double calcQtri(const Dart& d) const = 0;
   public:
-    triMCQ(bool only_quality, double quality_limit);
+    MCQtri(bool only_quality, double quality_limit);
     void setQ(double quality_limit);
     void insert(const Dart& d) {
       MCQ::insert(Dart(*d.M(),d.t()));
@@ -299,26 +343,26 @@ namespace fmesh {
   };
 
 
-  class skinnyMCQ : public triMCQ {
+  class MCQskinny : public MCQtri {
   private:
   public:
-    skinnyMCQ() : triMCQ(true,1.42) {};
+    MCQskinny() : MCQtri(true,1.42) {};
     virtual double calcQtri(const Dart& d) const;
   };
 
-  class bigMCQ : public triMCQ {
+  class MCQbig : public MCQtri {
   private:
   public:
-    bigMCQ() : triMCQ(true,1.0) {};
+    MCQbig() : MCQtri(true,1.0) {};
     virtual double calcQtri(const Dart& d) const;
   };
 
-  class segmMCQ : public MCQ {
+  class MCQsegm : public MCQ {
   private:
     double encroached_limit_;
     /*!< Larger values are included in the quality set */
   public:
-    segmMCQ() : MCQ(false), encroached_limit_(10*MESH_EPSILON) {};
+    MCQsegm() : MCQ(false), encroached_limit_(10*MESH_EPSILON) {};
     double calcQ(const Dart& d) const;
     bool segm(const Dart& d) const; /*! true if d or d.orbit1() is found */
   };
@@ -346,11 +390,11 @@ namespace fmesh {
     constrListT constr_interior_; /*! Interior edge
 				    constraints not yet
 				    added as segments. */
-    segmMCQ boundary_; /*!< Boundary segment */
-    segmMCQ interior_; /*!< Interior segment */
+    MCQsegm boundary_; /*!< Boundary segment */
+    MCQsegm interior_; /*!< Interior segment */
     /* RCDT triangle quality data structures: */
-    skinnyMCQ skinny_; /*!< Skinny triangles */
-    bigMCQ big_;
+    MCQskinny skinny_; /*!< Skinny triangles */
+    MCQbig big_;
     /* State variables: */
     State state_;
     bool is_pruned_;
@@ -451,137 +495,6 @@ namespace fmesh {
     */
     bool RCDT(double skinny_limit, double big_limit);
   };
-
-
-
-
-
-
-  class MintO {
-    friend std::ostream& operator<<(std::ostream& output, const MintO& MO);
-  private:
-    size_t n_;
-    const int (*M_);
-  public:
-    MintO(const int (*M),size_t n) : n_(n), M_(M) {};
-  };
-
-  class M3intO {
-    friend std::ostream& operator<<(std::ostream& output, const M3intO& MO);
-  private:
-    size_t n_;
-    const int (*M_)[3];
-  public:
-    M3intO(const int (*M)[3],size_t n) : n_(n), M_(M) {};
-  };
-
-  class M3doubleO {
-    friend std::ostream& operator<<(std::ostream& output, const M3doubleO& MO);
-  private:
-    size_t n_;
-    const double (*M_)[3];
-  public:
-   M3doubleO(const double (*M)[3],size_t n) : n_(n), M_(M) {};
-  };
-
-
-
-
-
-
-
-
-
-  class Xtmpl {
-  private:
-    int window_;
-    char* name_char_;
-    int sx_, sy_;
-    double minx_, maxx_, miny_, maxy_;
-  public:
-    Xtmpl(const Xtmpl& X)
-      : window_(X.window_+1), name_char_(NULL),
-	sx_(X.sx_), sy_(X.sy_),
-	minx_(X.minx_), maxx_(X.maxx_),
-	miny_(X.miny_), maxy_(X.maxy_) {
-      open(std::string(X.name_char_),X.sx_,X.sy_);
-      setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
-    };
-    Xtmpl(int sx, int sy,
-	  double minx,
-	  double maxx,
-	  double miny,
-	  double maxy,
-	  std::string name = "fmesher::Mesh")
-      : window_(-1), name_char_(NULL),
-	sx_(sx), sy_(sy),
-	minx_(minx), maxx_(maxx),
-	miny_(miny), maxy_(maxy) {
-      open(name,sx_,sy_);
-      setAxis(minx, maxx, miny, maxy);
-    };
-    void reopen(int sx, int sy) {
-      if (!(window_<0))
-	close();
-      window_ = 0;
-      sx_ = sx;
-      sy_ = sy;
-      xtmpl_window = window_;
-      xtmpl_open(sx_,sy_,name_char_);
-    };
-    void open(std::string name,
-	      int sx, int sy) {
-      if (!(window_<0))
-	close();
-      window_ = 0;
-      sx_ = sx;
-      sy_ = sy;
-      if (name_char_) delete[] name_char_;
-      name_char_ = new char[name.length()+1];
-      name.copy(name_char_,name.length(),0);
-      name_char_[name.length()] = '\0';
-      xtmpl_window = window_;
-      xtmpl_open(sx,sy,name_char_);
-      setAxis(-0.05,1.05,-0.05,1.05);
-    };
-    void close() {
-      if (window_<0)
-	return;
-      xtmpl_window = window_;
-      xtmpl_close();
-      window_ = -1;
-    };
-    ~Xtmpl() {
-      close();
-      if (name_char_) delete[] name_char_;
-    };
-
-    void clear() {
-      xtmpl_window = window_;
-      xtmpl_clear();
-    }
-
-    void setSize(int sx, int sy) {
-      reopen(sx,sy);
-    };
-    void setAxis(double minx, double maxx,
-		 double miny, double maxy) {
-      clear();
-      minx_ = minx;
-      maxx_ = maxx;
-      miny_ = miny;
-      maxy_ = maxy;
-    };
-
-    void arc(const double* s0, const double* s1);
-    void line(const double* s0, const double* s1);
-    void text(const double* s0, std::string str);
-
-  };
-
-
-
-
 
 
 } /* namespace fmesh */
