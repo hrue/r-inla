@@ -126,7 +126,7 @@ int DT2D_test()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,true,500,500);
+    M.useX11(true,false,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -200,7 +200,7 @@ int DT2D_test2()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,true,500,500);
+    M.useX11(true,false,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -232,13 +232,13 @@ int DTsphere_test()
   int n = 10;
   double S[11][3] = {{0.2,0.2,0.8},
 		     {-0.1,0.1,0.1},
-		     {-0.2,0.5,0.10},
+		     {-0.2,0.5,-0.10},
 		     {0.3,-0.2,0.2},
 		     {0.4,0.6,0.2},
-		     {-0.5,0.3,0.3},
+		     {-0.5,0.3,-0.3},
 		     {-0.6,0.7,0.3},
 		     {0.2,0.3,2.0},
-		     {-0.8,-0.8,0.4},
+		     {-0.8,-0.8,-0.4},
 		     {-0.9,0.5,0.5},
 		     {0.2,0.5,0.5}};
   double Sb[4][3] = {{1.,0.,-0.5},
@@ -254,7 +254,7 @@ int DTsphere_test()
   double l;
 
   if (useX11)
-    M.useX11(true,true,500,500,-1.05,1.05,-1.05,1.05);
+    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
 
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
@@ -286,7 +286,7 @@ int DTsphere_test()
 
   if (useX11)
     M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-  MC.RCDT(1.5,0.1);
+  MC.RCDT(1500,0.01);
 
   return 0;
 }
@@ -294,13 +294,13 @@ int DTsphere_test()
 
 int main()
 {
-  //  DT2D_test();
+  DTsphere_test();
   //  /*
-  for (int i=0;i<1;i++) {
-    DT2D_test();
-    DT2D_test2();
-    DTsphere_test();
-  }
+  //  for (int i=0;i<1;i++) {
+  //    DT2D_test();
+  //    DT2D_test2();
+  //    DTsphere_test();
+  //  }
   //  */
 
   return 0;

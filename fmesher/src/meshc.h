@@ -160,6 +160,7 @@ namespace fmesh {
     Dart splitTriangleDelaunay(const Dart& td, int v);
     Dart splitEdgeDelaunay(const Dart& ed, int v);
     Dart bisectEdgeDelaunay(const Dart& d);
+    bool killTriangle(const Dart& d);
     bool insertNode(int v, const Dart& ed);
 
     bool isSegment(const Dart& d) const;
