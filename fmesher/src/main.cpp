@@ -16,7 +16,7 @@ using fmesh::Dart;
 using fmesh::MeshC;
 
 
-bool useX11 = false;
+bool useX11 = true;
 
 
 int predicates_test()
@@ -126,7 +126,7 @@ int DT2D_test()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,500,500);
+    M.useX11(true,true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -154,6 +154,8 @@ int DT2D_test()
   cinp.clear();
   cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
+
+  M.useX11(useX11,false);
   MC.RCDT(1.5,0.5);
 
   return 0;
@@ -198,7 +200,7 @@ int DT2D_test2()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,500,500);
+    M.useX11(true,true,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -215,8 +217,10 @@ int DT2D_test2()
 
   cout << M;
 
-
   MC.CDT(fmesh::constrListT());
+
+  if (useX11)
+    M.useX11(true,false);
   MC.RCDT(1.5,0.1);
 
   return 0;
@@ -250,7 +254,7 @@ int DTsphere_test()
   double l;
 
   if (useX11)
-    M.useX11(true,500,500,-1.05,1.05,-1.05,1.05);
+    M.useX11(true,true,500,500,-1.05,1.05,-1.05,1.05);
 
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
@@ -280,6 +284,10 @@ int DTsphere_test()
 
   cout << M;
 
+  if (useX11)
+    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
+  MC.RCDT(1.5,0.1);
+
   return 0;
 }
 
@@ -288,10 +296,10 @@ int main()
 {
   //  DT2D_test();
   //  /*
-  for (int i=0;i<100;i++) {
+  for (int i=0;i<1;i++) {
     DT2D_test();
-    //    DT2D_test2();
-    //    DTsphere_test();
+    DT2D_test2();
+    DTsphere_test();
   }
   //  */
 

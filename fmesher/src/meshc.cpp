@@ -36,7 +36,7 @@ namespace fmesh {
   {
     if (emptyQ())
       return Dart();
-    return darts_quality_.begin()->d_;
+    return darts_quality_.rbegin()->d_;
   }
 
   void MCQ::insert(const Dart& d)
@@ -152,10 +152,10 @@ namespace fmesh {
     d2.orbit2rev().alpha1(); 
     if (d2.onBoundary()) d2 = Dart(); else d2.alpha2();
     
-    std::cout << "TVpre  = " << std::endl << M_->TVO();
+    //    std::cout << "TVpre  = " << std::endl << M_->TVO();
     swapEdge(d0);
-    std::cout << "TVpost = " << std::endl << M_->TVO();
-    std::cout << "TTpost = " << std::endl << M_->TTO();
+    //    std::cout << "TVpost = " << std::endl << M_->TVO();
+    //    std::cout << "TTpost = " << std::endl << M_->TTO();
 
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
@@ -177,15 +177,15 @@ namespace fmesh {
     d.orbit2();
     if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
 
-    std::cout << "TV = " << std::endl << M_->TVO();
-    std::cout << "Split triangle with vertex " << v << std::endl;
+    //    std::cout << "TV = " << std::endl << M_->TVO();
+    std::cout << "Split triangle " << td << " with vertex " << v << std::endl;
     d = splitTriangle(td,v);
     
     if (!d0.isnull()) recSwapDelaunay(d0);
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
 
-    std::cout << "TV = " << std::endl << M_->TVO();
+    //    std::cout << "TV = " << std::endl << M_->TVO();
     
     return d;
   }
@@ -213,8 +213,8 @@ namespace fmesh {
       if (d.onBoundary()) d3 = Dart(); else {d3 = d; d3.orbit1();} 
     }
 
-    std::cout << "TV = " << std::endl << M_->TVO();
-    std::cout << "Split edge with vertex " << v << std::endl;
+    //    std::cout << "TV = " << std::endl << M_->TVO();
+    std::cout << "Split edge " << d << " with vertex " << v << std::endl;
     d = splitEdge(ed,v);
     
     if (!d0.isnull()) recSwapDelaunay(d0);
@@ -222,10 +222,39 @@ namespace fmesh {
     if (!d2.isnull()) recSwapDelaunay(d2);
     if (!d3.isnull()) recSwapDelaunay(d3);
 
-    std::cout << "TV = " << std::endl << M_->TVO();
+    //    std::cout << "TV = " << std::endl << M_->TVO();
     
     return d;
   }
+
+  Dart MeshC::bisectEdgeDelaunay(const Dart& d)
+  {
+    Dart dh(d);
+    int v0(dh.v());
+    dh.alpha0();
+    int v1(dh.v());
+
+    double s[3];
+    Vec::sum(s,M_->S()[v0],M_->S()[v1]);
+    Vec::rescale(s,0.5);
+
+    switch (M_->type()) {
+    case Mesh::Mtype_manifold:
+      /* TODO: Implement. */
+      NOT_IMPLEMENTED;
+      /* break; For now, fall through to Mtype_plane behaviour! */
+    case Mesh::Mtype_plane:
+      /* Nothing to do! */
+      break;
+    case Mesh::Mtype_sphere:
+      Vec::rescale(s,1./Vec::length(s));
+      break;
+    }
+
+    return splitEdgeDelaunay(d,addVertices(&s,1));
+  }
+
+
 
   /*! Alg 9.3 */
   bool MeshC::insertNode(int v, const Dart& ed)
@@ -272,7 +301,6 @@ namespace fmesh {
     for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
       v = *v_iter;
       insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
-      std::cout << M_->VTO();
 
       if (state_>=State_CDT)
 	std::cout << "Boundary segments after DT:" << std::endl << boundary_;
@@ -410,6 +438,7 @@ namespace fmesh {
     return (constr_boundary_.empty() && constr_interior_.empty());
   };
 
+
   bool MeshC::buildRCDT()
   {
     if (state_<State_RCDT)
@@ -424,6 +453,28 @@ namespace fmesh {
 
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
+
+    Dart dh;
+
+    int loop = 0;
+    while (!(boundary_.emptyQ() && interior_.emptyQ() &&
+	     skinny_.emptyQ() && big_.emptyQ())) {
+      /* Temporary failsafe exit: */
+      loop++;
+      if (loop>100) return false;
+
+      std::cout << "RCDT(" << loop << "): (Bo,In,Sk,Bi) = ("
+		<< boundary_.countQ() << ","
+		<< interior_.countQ() << ","
+		<< skinny_.countQ() << ","
+		<< big_.countQ() << ")" << std::endl;
+
+      dh = boundary_.quality();
+      if (!dh.isnull()) {
+	bisectEdgeDelaunay(dh);
+      }
+      
+    }
 
     return true;
   };
@@ -452,6 +503,9 @@ namespace fmesh {
 
     return true;
   };
+
+
+
 
 
 
@@ -488,8 +542,13 @@ namespace fmesh {
     if ((segm_i[0] = interior_.found(dh))) interior_.erase(dh);
 
     if (state_>=State_RCDT) {
-      /* TODO: Collect RCDT data */
-      NOT_IMPLEMENTED;
+      /* Collect RCDT data */
+      dh = d;
+      skinny_.erase(dh);
+      big_.erase(dh);
+      dh.orbit1();
+      skinny_.erase(dh);
+      big_.erase(dh);
     }
 
     Dart dnew(M_->swapEdge(d));
@@ -510,8 +569,13 @@ namespace fmesh {
     if (segm_i[2]) interior_.insert(dh);
 
     if (state_>=State_RCDT) {
-      /* TODO: Reassemble RCDT data */
-      NOT_IMPLEMENTED;
+      /* Reassemble RCDT data */
+      dh = dnew;
+      skinny_.insert(dh);
+      big_.insert(dh);
+      dh.orbit1();
+      skinny_.insert(dh);
+      big_.insert(dh);
     }
 
     std::cout << "Edge swapped, boundary segments:" << std::endl
@@ -545,8 +609,15 @@ namespace fmesh {
     }
 
     if (state_>=State_RCDT) {
-      /* TODO: Collect RCDT data */
-      NOT_IMPLEMENTED;
+      /* Collect RCDT data */
+      dh = d;
+      skinny_.erase(dh);
+      big_.erase(dh);
+      if (!dh.onBoundary()) {
+	dh.orbit1();
+	skinny_.erase(dh);
+	big_.erase(dh);
+      }
     }
 
     Dart dnew(M_->splitEdge(d,v));
@@ -580,8 +651,21 @@ namespace fmesh {
     }
 
     if (state_>=State_RCDT) {
-      /* TODO: Reassemble RCDT data */
-      NOT_IMPLEMENTED;
+      /* Reassemble RCDT data */
+      dh = dnew;
+      skinny_.insert(dh);
+      big_.insert(dh);
+      dh.orbit0();
+      skinny_.insert(dh);
+      big_.insert(dh);
+      if (!dnew.onBoundary()) {
+	dh.orbit0();
+	skinny_.insert(dh);
+	big_.insert(dh);
+	dh.orbit0();
+	skinny_.insert(dh);
+	big_.insert(dh);
+      }
     }
 
     std::cout << "Edge split, boundary segments:" << std::endl
@@ -609,8 +693,9 @@ namespace fmesh {
     }
 
     if (state_>=State_RCDT) {
-      /* TODO: Collect RCDT data */
-      NOT_IMPLEMENTED;
+      /* Collect RCDT data */
+      skinny_.erase(d);
+      big_.erase(d);
     }
 
     Dart dnew(M_->splitTriangle(d,v));
@@ -625,8 +710,16 @@ namespace fmesh {
     }
 
     if (state_>=State_RCDT) {
-      /* TODO: Reassemble RCDT data */
-      NOT_IMPLEMENTED;
+      /* Reassemble RCDT data */
+      dh = dnew;
+      skinny_.insert(dh);
+      big_.insert(dh);
+      dh.orbit0();
+      skinny_.insert(dh);
+      big_.insert(dh);
+      dh.orbit0();
+      skinny_.insert(dh);
+      big_.insert(dh);
     }
 
     std::cout << "Triangle split, boundary segments:" << std::endl
@@ -634,6 +727,9 @@ namespace fmesh {
 
     return dnew;
   }
+
+
+
 
 
 

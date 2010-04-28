@@ -21,16 +21,17 @@ namespace fmesh {
     char* name_char_;
     int sx_, sy_;
     double minx_, maxx_, miny_, maxy_;
+    bool draw_text_;
   public:
     Xtmpl(const Xtmpl& X)
       : window_(X.window_+1), name_char_(NULL),
 	sx_(X.sx_), sy_(X.sy_),
 	minx_(X.minx_), maxx_(X.maxx_),
-	miny_(X.miny_), maxy_(X.maxy_) {
+	miny_(X.miny_), maxy_(X.maxy_), draw_text_(true) {
       open(std::string(X.name_char_),X.sx_,X.sy_);
       setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
     };
-    Xtmpl(int sx, int sy,
+    Xtmpl(bool draw_text, int sx, int sy,
 	  double minx,
 	  double maxx,
 	  double miny,
@@ -39,7 +40,7 @@ namespace fmesh {
       : window_(-1), name_char_(NULL),
 	sx_(sx), sy_(sy),
 	minx_(minx), maxx_(maxx),
-	miny_(miny), maxy_(maxy) {
+	miny_(miny), maxy_(maxy), draw_text_(draw_text) {
       open(name,sx_,sy_);
       setAxis(minx, maxx, miny, maxy);
     };
@@ -51,6 +52,10 @@ namespace fmesh {
       sy_ = sy;
       xtmpl_window = window_;
       xtmpl_open(sx_,sy_,name_char_);
+    };
+    void reopen(int sx, int sy, bool draw_text) {
+      reopen(sx,sy);
+      draw_text_ = draw_text;
     };
     void open(std::string name,
 	      int sx, int sy) {
@@ -121,7 +126,7 @@ namespace fmesh {
 	l += s[dim]*s[dim];
       }
       l = std::sqrt(l);
-      for (int dim=0;dim<2;dim++)
+      for (dim=0;dim<2;dim++)
 	p1[dim] = s[dim]/l;
       
       xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
@@ -140,6 +145,7 @@ namespace fmesh {
   };
   void Xtmpl::text(const double* s0, std::string str)
   {
+    if (!draw_text_) return;
     char* str_ = new char[str.length()+1];
     str.copy(str_,str.length(),0);
     str_[str.length()] = '\0';
@@ -465,6 +471,7 @@ namespace fmesh {
   }
 
   Mesh& Mesh::useX11(bool use_X11,
+		     bool draw_text,
 		     int sx, int sy,
 		     double minx,
 		     double maxx,
@@ -474,10 +481,10 @@ namespace fmesh {
   {
     if (use_X11) {
       if (!X11_) { /* Init. */
-	X11_ = new Xtmpl(sx,sy,minx,maxx,miny,maxy,name);
+	X11_ = new Xtmpl(draw_text,sx,sy,minx,maxx,miny,maxy,name);
 	redrawX11("");
       } else {
-	X11_->reopen(sx,sy);
+	X11_->reopen(sx,sy,draw_text);
 	X11_->setAxis(minx,maxx,miny,maxy);
 	redrawX11("");
       }
@@ -531,59 +538,47 @@ namespace fmesh {
       s0[2] = 0.0;
       for (int vi=0;vi<3;vi++) {
 	v = TV_[t][vi];
-	for (int dim=0;dim<3;dim++) {
-	  s[vi][dim] = S_[v][dim];
-	  s0[dim] += s[vi][dim]/3;
-	}
+	Vec::copy(s[vi],S_[v]);
+	Vec::accum(s0,s[vi],1.0/3.0);
       }
       if (type_==Mtype_sphere) {
-	{
-	  double l = 0;
-	  for (int dim=0;dim<3;dim++)
-	    l += s0[dim]*s0[dim];
-	  l = std::sqrt(l);
-	  for (int dim=0;dim<3;dim++)
-	    s0[dim] = s0[dim]/l;
-	}
+	double l = std::sqrt(Vec::scalar(s0,s0));
+	Vec::rescale(s0,l);
 	double r0[3];
 	double r1[3];
 	double n[3];
-	for (int dim=0;dim<3;dim++) {
-	  r0[dim] = s[1][dim]-s[0][dim];
-	  r1[dim] = s[2][dim]-s[0][dim];
-	}
-	n[0] = r0[1]*r1[2]-r0[2]*r1[1];
-	n[1] = r0[2]*r1[0]-r0[0]*r1[2];
-	n[2] = r0[0]*r1[1]-r0[1]*r1[0];
+	Vec::diff(r0,s[1],s[0]);
+	Vec::diff(r1,s[2],s[0]);
+	Vec::cross(n,r0,r1);
 	if (n[2]<0) continue;
       }
       /* Draw triangle slightly closer to center. */
       if (type_==Mtype_sphere) {
 	for (int vi=0;vi<3;vi++) {
-	  for (int dim=0;dim<3;dim++)
-	    s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
-	  double l = 0;
-	  for (int dim=0;dim<3;dim++)
-	    l += s[vi][dim]*s[vi][dim];
-	  l = std::sqrt(l);
-	  for (int dim=0;dim<3;dim++)
-	    s[vi][dim] = s[vi][dim]/l;
+	  Vec::diff(s[vi],s[vi],s0);
+	  Vec::rescale(s[vi],0.975);
+	  Vec::accum(s[vi],s0);
+	  Vec::rescale(s[vi],1./Vec::length(s[vi]));
 	}
 	X11_->arc(s[0],s[1]);
 	X11_->arc(s[1],s[2]);
 	X11_->arc(s[2],s[0]);
       } else {
-	for (int vi=0;vi<3;vi++)
-	  for (int dim=0;dim<3;dim++)
-	    s[vi][dim] = (s[vi][dim]-s0[dim])*0.975+s0[dim];
+	for (int vi=0;vi<3;vi++) {
+	  Vec::diff(s[vi],s[vi],s0);
+	  Vec::rescale(s[vi],0.975);
+	  Vec::accum(s[vi],s0);
+	}
 	X11_->line(s[0],s[1]);
 	X11_->line(s[1],s[2]);
 	X11_->line(s[2],s[0]);
       }
       /* Draw vertex indices even closer to center. */
-      for (int vi=0;vi<3;vi++)
-	for (int dim=0;dim<3;dim++)
-	  s[vi][dim] = (s[vi][dim]-s0[dim])*0.8+s0[dim];
+      for (int vi=0;vi<3;vi++) {
+	  Vec::diff(s[vi],s[vi],s0);
+	  Vec::rescale(s[vi],0.8);
+	  Vec::accum(s[vi],s0);
+      }
       for (int vi=0;vi<3;vi++) {
 	std::ostringstream ss;
 	ss << "(" << TV_[t][vi] << "," << TT_[t][vi] << ")";
@@ -634,9 +629,9 @@ namespace fmesh {
     double s1[3];
 
     int v0 = TV_[d.t()][d.vi()];
-    Dart dhelper(d);
-    dhelper.alpha0();
-    int v1 = TV_[dhelper.t()][dhelper.vi()];
+    Dart dh(d);
+    dh.alpha0();
+    int v1 = TV_[dh.t()][dh.vi()];
     for (int dim=0;dim<3;dim++) {
       s0[dim] = S_[v0][dim];
       s1[dim] = S_[v1][dim];
@@ -668,10 +663,30 @@ namespace fmesh {
   {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    /*
+      l'Huilier's Theorem:
+      a,b,c edge lengths
+      s = (a+b+c)/2
+      tan(E / 4) = sqrt(tan(s / 2) 
+                        tan((s - a) / 2)
+			tan((s - b) / 2)
+			tan((s - c) / 2))
+      Area = E  (E = spherical excess)
+    */
 
-    return 1.0;
+    Dart dh(*this,t);
+    double a(edgeLength(dh));
+    dh.orbit2();
+    double b(edgeLength(dh));
+    dh.orbit2();
+    double c(edgeLength(dh));
+    double s((a+b+c)/2.0);
+    double tanE4(std::sqrt(std::tan(s/2.0)*
+			   std::tan((s-a)/2.0)*
+			   std::tan((s-b)/2.0)*
+			   std::tan((s-c)/2.0)));
+
+    return (4.0*std::atan(tanE4));
   }
 
   double Mesh::triangleCircumcircleRadius(int t) const
@@ -689,14 +704,14 @@ namespace fmesh {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
     double len;
-    Dart d(*this,t);
-    double len_min = edgeLength(d);
-    d.orbit2();
-    len = edgeLength(d);
+    Dart dh(*this,t);
+    double len_min = edgeLength(dh);
+    dh.orbit2();
+    len = edgeLength(dh);
     if (len < len_min)
       len_min = len;
-    d.orbit2();
-    len = edgeLength(d);
+    dh.orbit2();
+    len = edgeLength(dh);
     if (len < len_min)
       len_min = len;
 
@@ -708,14 +723,14 @@ namespace fmesh {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
     double len;
-    Dart d(*this,t);
-    double len_max = edgeLength(d);
-    d.orbit2();
-    len = edgeLength(d);
+    Dart dh(*this,t);
+    double len_max = edgeLength(dh);
+    dh.orbit2();
+    len = edgeLength(dh);
     if (len > len_max)
       len_max = len;
-    d.orbit2();
-    len = edgeLength(d);
+    dh.orbit2();
+    len = edgeLength(dh);
     if (len > len_max)
       len_max = len;
 
@@ -729,10 +744,10 @@ namespace fmesh {
     int t(d.t());
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    Dart dhelper(d);
-    int v0 = TV_[t][dhelper.vi()];
-    dhelper.orbit2();
-    int v1 = TV_[t][dhelper.vi()];
+    Dart dh(d);
+    int v0 = TV_[t][dh.vi()];
+    dh.orbit2();
+    int v1 = TV_[t][dh.vi()];
     /* Construct a mirror of s reflected in v0-->v1 */
     double sm[3]; 
     switch (type_) {
@@ -805,14 +820,14 @@ namespace fmesh {
     int t(d.t());
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    Dart dhelper(d);
-    dhelper.orbit2rev();
+    Dart dh(d);
+    dh.orbit2rev();
     
-    double encr = edgeEncroached(d,S_[TV_[t][dhelper.vi()]]);
+    double encr = edgeEncroached(d,S_[TV_[t][dh.vi()]]);
 
-    dhelper.orbit2rev();
+    dh.orbit2rev();
     std::cout << "encroachedQ("
-	      << TV_[t][d.vi()] << "," << TV_[t][dhelper.vi()]
+	      << TV_[t][d.vi()] << "," << TV_[t][dh.vi()]
 	      << ") = " << encr << std::endl;
 
     return encr;
@@ -840,13 +855,13 @@ namespace fmesh {
 
   double Mesh::inLeftHalfspace(const Dart& d, const double s[3]) const
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int v0, v1;
     if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    const int* tp = TV_[dhelper.t()];
-    v0 = tp[dhelper.vi()];
-    dhelper.orbit2();
-    v1 = tp[dhelper.vi()];
+    const int* tp = TV_[dh.t()];
+    v0 = tp[dh.vi()];
+    dh.orbit2();
+    v1 = tp[dh.vi()];
     switch (type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
@@ -866,15 +881,15 @@ namespace fmesh {
 
   double Mesh::inCircumcircle(const Dart& d, const double s[3]) const
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int v0, v1, v2;
     if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    const int* tp = TV_[dhelper.t()];
-    v0 = tp[dhelper.vi()];
-    dhelper.orbit2();
-    v1 = tp[dhelper.vi()];
-    dhelper.orbit2();
-    v2 = tp[dhelper.vi()];
+    const int* tp = TV_[dh.t()];
+    v0 = tp[dh.vi()];
+    dh.orbit2();
+    v1 = tp[dh.vi()];
+    dh.orbit2();
+    v2 = tp[dh.vi()];
     switch (type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
@@ -892,13 +907,13 @@ namespace fmesh {
 
   bool Mesh::circumcircleOK(const Dart& d) const
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int v;
     double result;
     if (d.isnull()) return true; /* TODO: should show a warning somewhere... */
     if (d.onBoundary()) return true; /* Locally optimal, OK. */
-    dhelper.orbit0rev().orbit2();
-    v = TV_[dhelper.t()][dhelper.vi()];
+    dh.orbit0rev().orbit2();
+    v = TV_[dh.t()][dh.vi()];
     result = inCircumcircle(d,S_[v]);
     std::cout << "Dart=" << d
 	      << " Node=" << v
@@ -907,13 +922,13 @@ namespace fmesh {
     if  (result > MESH_EPSILON)
       return false;
     /* For robusness, check with the reverse dart as well: */
-    dhelper = d;
-    dhelper.orbit2rev();
-    v = TV_[dhelper.t()][dhelper.vi()];
-    dhelper.orbit2();
-    dhelper.orbit1();
-    result = inCircumcircle(dhelper,S_[v]);
-    std::cout << "Dart=" << dhelper
+    dh = d;
+    dh.orbit2rev();
+    v = TV_[dh.t()][dh.vi()];
+    dh.orbit2();
+    dh.orbit1();
+    result = inCircumcircle(dh,S_[v]);
+    std::cout << "Dart=" << dh
 	      << " Node=" << v
 	      << std::scientific << " result=" << result
 	      << std::endl;
@@ -937,39 +952,39 @@ namespace fmesh {
   */
   Dart Mesh::swapEdge(const Dart& d)
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int vi;
     int v_list[4];
     int t0, t1;
     int tt_list[4];
     int tti_list[4];
-    if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
+    if (d.edir()<0) dh.alpha1(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
-    t0 = dhelper.t();
-    vi = dhelper.vi();
+    t0 = dh.t();
+    vi = dh.vi();
     v_list[0] = TV_[t0][vi];
     tt_list[0] = TT_[t0][vi];
     if (use_TTi_) tti_list[0] = TTi_[t0][vi];
-    dhelper.orbit2();
-    vi = dhelper.vi();
+    dh.orbit2();
+    vi = dh.vi();
     v_list[1] = TV_[t0][vi];
     tt_list[1] = TT_[t0][vi];
     if (use_TTi_) tti_list[1] = TTi_[t0][vi];
-    dhelper.orbit2();
-    v_list[2] = TV_[t0][dhelper.vi()];
-    dhelper.orbit2rev().orbit0();
-    t1 = dhelper.t();
-    if (t0 == t1) { dhelper = d; return dhelper; } /* ERROR: Boundary edge */
-    vi = dhelper.vi();
+    dh.orbit2();
+    v_list[2] = TV_[t0][dh.vi()];
+    dh.orbit2rev().orbit0();
+    t1 = dh.t();
+    if (t0 == t1) { dh = d; return dh; } /* ERROR: Boundary edge */
+    vi = dh.vi();
     tt_list[2] = TT_[t1][vi];
     if (use_TTi_) tti_list[2] = TTi_[t1][vi];
-    dhelper.orbit2();
-    vi = dhelper.vi();
+    dh.orbit2();
+    vi = dh.vi();
     tt_list[3] = TT_[t1][vi];
     if (use_TTi_) tti_list[3] = TTi_[t1][vi];
-    dhelper.orbit2();
-    v_list[3] = TV_[t1][dhelper.vi()];
+    dh.orbit2();
+    v_list[3] = TV_[t1][dh.vi()];
 
     /* Step 2: Overwrite with new triangles. */
     TV_[t0][0] = v_list[0];
@@ -1007,24 +1022,24 @@ namespace fmesh {
       if (TT_[t1][2]>=0) TT_[TT_[t1][2]][TTi_[t1][2]] = t1;
     } else {
       if (TT_[t0][1]>=0) {
-	dhelper = Dart(*this,t0,1,2).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t0;
+	dh = Dart(*this,t0,1,2).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t0;
       }
       if (TT_[t0][2]>=0) {
-	dhelper = Dart(*this,t0,1,0).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t0;
+	dh = Dart(*this,t0,1,0).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t0;
       }
       if (TT_[t1][1]>=0) {
-	dhelper = Dart(*this,t1,1,2).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t1;
+	dh = Dart(*this,t1,1,2).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t1;
       }
       if (TT_[t1][2]>=0) {
-	dhelper = Dart(*this,t1,1,0).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t1;
+	dh = Dart(*this,t1,1,0).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t1;
       }
     }
 
@@ -1066,45 +1081,45 @@ namespace fmesh {
   */
   Dart Mesh::splitEdge(const Dart& d, int v)
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int t, vi;
     int v0, v1, v2, v3;
     int t0, t1, t2, t3;
     int tt_list[4];
     int tti_list[4];
-    if (d.edir()<0) dhelper.alpha0(); /* Correct dart orientation */
+    if (d.edir()<0) dh.alpha0(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
     /* Go through t0: */
-    t0 = dhelper.t();
-    vi = dhelper.vi();
+    t0 = dh.t();
+    vi = dh.vi();
     v0 = TV_[t0][vi];
     tt_list[1] = TT_[t0][vi];
     if (use_TTi_) tti_list[1] = TTi_[t0][vi];
-    dhelper.orbit2();
-    vi = dhelper.vi();
+    dh.orbit2();
+    vi = dh.vi();
     v2 = TV_[t0][vi];
     tt_list[0] = TT_[t0][vi];
     if (use_TTi_) tti_list[0] = TTi_[t0][vi];
-    dhelper.orbit2();
-    vi = dhelper.vi();
+    dh.orbit2();
+    vi = dh.vi();
     v1 = TV_[t0][vi];
-    dhelper.orbit2();
+    dh.orbit2();
 
-    bool on_boundary = dhelper.onBoundary();
+    bool on_boundary = dh.onBoundary();
     if (!on_boundary) {
       /* Go through t1: */
-      dhelper.orbit1();
-      t1 = dhelper.t();
-      vi = dhelper.vi();
+      dh.orbit1();
+      t1 = dh.t();
+      vi = dh.vi();
       tt_list[3] = TT_[t1][vi];
       if (use_TTi_) tti_list[3] = TTi_[t1][vi];
-      dhelper.orbit2();
-      vi = dhelper.vi();
+      dh.orbit2();
+      vi = dh.vi();
       tt_list[2] = TT_[t1][vi];
       if (use_TTi_) tti_list[2] = TTi_[t1][vi];
-      dhelper.orbit2();
-      vi = dhelper.vi();
+      dh.orbit2();
+      vi = dh.vi();
       v3 = TV_[t1][vi];
     } else {
       v3 = -1;
@@ -1198,25 +1213,25 @@ namespace fmesh {
       }
     } else {
       if (TT_[t0][0]>=0) {
-	dhelper = Dart(*this,t0,1,1).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t0;
+	dh = Dart(*this,t0,1,1).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t0;
       }
       if (TT_[t1][0]>=0) {
-	dhelper = Dart(*this,t1,1,1).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t1;
+	dh = Dart(*this,t1,1,1).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t1;
       }
       if (!on_boundary) {
 	if (TT_[t2][0]>=0) {
-	  dhelper = Dart(*this,t2,1,1).orbit0rev();
-	  dhelper.orbit2();
-	  TT_[dhelper.t()][dhelper.vi()] = t2;
+	  dh = Dart(*this,t2,1,1).orbit0rev();
+	  dh.orbit2();
+	  TT_[dh.t()][dh.vi()] = t2;
 	}
 	if (TT_[t3][0]>=0) {
-	  dhelper = Dart(*this,t3,1,1).orbit0rev();
-	  dhelper.orbit2();
-	  TT_[dhelper.t()][dhelper.vi()] = t3;
+	  dh = Dart(*this,t3,1,1).orbit0rev();
+	  dh.orbit2();
+	  TT_[dh.t()][dh.vi()] = t3;
 	}
       }
     }
@@ -1269,33 +1284,33 @@ namespace fmesh {
   */
   Dart Mesh::splitTriangle(const Dart& d, int v)
   {
-    Dart dhelper = d;
+    Dart dh(d);
     int t, vi;
     int v0, v1, v2;
     int t0, t1, t2;
     int tt_list[3];
     int tti_list[3];
-    if (d.edir()<0) dhelper.alpha1(); /* Correct dart orientation */
+    if (d.edir()<0) dh.alpha1(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
-    t = dhelper.t();
-    vi = dhelper.vi();
+    t = dh.t();
+    vi = dh.vi();
     v0 = TV_[t][vi];
     tt_list[1] = TT_[t][vi];
     if (use_TTi_) tti_list[1] = TTi_[t][vi];
-    dhelper.orbit2();
-    t = dhelper.t();
-    vi = dhelper.vi();
+    dh.orbit2();
+    t = dh.t();
+    vi = dh.vi();
     v1 = TV_[t][vi];
     tt_list[2] = TT_[t][vi];
     if (use_TTi_) tti_list[2] = TTi_[t][vi];
-    dhelper.orbit2();
-    t = dhelper.t();
-    vi = dhelper.vi();
+    dh.orbit2();
+    t = dh.t();
+    vi = dh.vi();
     v2 = TV_[t][vi];
     tt_list[0] = TT_[t][vi];
     if (use_TTi_) tti_list[0] = TTi_[t][vi];
-    dhelper.orbit2();
+    dh.orbit2();
 
     /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
@@ -1346,19 +1361,19 @@ namespace fmesh {
       if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
     } else {
       if (TT_[t0][0]>=0) {
-	dhelper = Dart(*this,t0,1,1).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t0;
+	dh = Dart(*this,t0,1,1).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t0;
       }
       if (TT_[t1][0]>=0) {
-	dhelper = Dart(*this,t1,1,1).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t1;
+	dh = Dart(*this,t1,1,1).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t1;
       }
       if (TT_[t2][0]>=0) {
-	dhelper = Dart(*this,t2,1,1).orbit0rev();
-	dhelper.orbit2();
-	TT_[dhelper.t()][dhelper.vi()] = t2;
+	dh = Dart(*this,t2,1,1).orbit0rev();
+	dh.orbit2();
+	TT_[dh.t()][dh.vi()] = t2;
       }
     }
 
@@ -1409,7 +1424,7 @@ namespace fmesh {
       dart = Dart(*this,0);
     else
       dart = Dart(*this,d0.t(),1,d0.vi());
-    Dart dart_start = dart;
+    Dart dart_start(dart);
     double delta;
     Dart dart_min = Dart();
     while (1) {
@@ -1469,7 +1484,7 @@ namespace fmesh {
       dart = Dart(*this,0);
     else
       dart = Dart(*this,d0.t(),1,d0.vi());
-    Dart dart_start = dart;
+    Dart dart_start(dart);
     double delta;
     Dart dart_min = Dart();
     double* s = &(S_[v][0]);
