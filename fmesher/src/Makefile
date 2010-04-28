@@ -1,12 +1,14 @@
-OBJ = mesh.o predicates.o main.o xtmpl.o
+OBJ = xtmpl.o predicates.o mesh.o meshc.o main.o
 FLAGS = -g -pg -Wall
 CXXFLAGS = -g -pg -Wall
 LDFLAGS = -lX11
 
 all: main
 
-mesh.o: mesh.h Makefile
-main.o: mesh.h Makefile
+%.o: Makefile
+mesh.o: mesh.h
+meshc.o: meshc.h mesh.h
+main.o: fmesher.h mesh.h meshc.h
 
 main: $(OBJ) Makefile
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o main
