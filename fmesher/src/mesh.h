@@ -198,6 +198,7 @@ namespace fmesh {
     /* Traits: */
     double edgeLength(const Dart& d) const;
     double triangleArea(int t) const;
+    void triangleCircumcentre(int t, double* c) const;
     double triangleCircumcircleRadius(int t) const;
     double triangleShortestEdge(int t) const;
     double triangleLongestEdge(int t) const;

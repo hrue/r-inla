@@ -256,6 +256,16 @@ namespace fmesh {
 
 
 
+  bool MeshC::killTriangle(const Dart& d)
+  {
+    double c[3];
+    M_->triangleCircumcentre(d.t(),c);
+
+    return insertNode(addVertices(&c,1),d);
+  }
+
+
+
   /*! Alg 9.3 */
   bool MeshC::insertNode(int v, const Dart& ed)
   {
@@ -471,7 +481,40 @@ namespace fmesh {
 
       dh = boundary_.quality();
       if (!dh.isnull()) {
+	std::cout << "Encroached boundary segment: "
+		  << dh << " "
+		  << big_.quality(dh) << std::endl;
 	bisectEdgeDelaunay(dh);
+	continue;
+      }
+      
+      dh = interior_.quality();
+      if (!dh.isnull()) {
+	std::cout << "Encroached interior segment: "
+		  << dh << " "
+		  << big_.quality(dh) << std::endl;
+	bisectEdgeDelaunay(dh);
+	continue;
+      }
+      
+      /* TODO: proper look-ahead algorithm. */
+
+      dh = skinny_.quality();
+      if (!dh.isnull()) {
+	std::cout << "Skinny triangle: "
+		  << dh << " "
+		  << skinny_.quality(dh) << std::endl;
+	killTriangle(dh);
+	continue;
+      }
+      
+      dh = big_.quality();
+      if (!dh.isnull()) {
+	std::cout << "Big triangle: "
+		  << dh << " "
+		  << big_.quality(dh) << std::endl;
+	killTriangle(dh);
+	continue;
       }
       
     }
