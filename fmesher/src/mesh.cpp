@@ -12,6 +12,148 @@
 
 namespace fmesh {
 
+
+
+
+  class Xtmpl {
+  private:
+    int window_;
+    char* name_char_;
+    int sx_, sy_;
+    double minx_, maxx_, miny_, maxy_;
+  public:
+    Xtmpl(const Xtmpl& X)
+      : window_(X.window_+1), name_char_(NULL),
+	sx_(X.sx_), sy_(X.sy_),
+	minx_(X.minx_), maxx_(X.maxx_),
+	miny_(X.miny_), maxy_(X.maxy_) {
+      open(std::string(X.name_char_),X.sx_,X.sy_);
+      setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
+    };
+    Xtmpl(int sx, int sy,
+	  double minx,
+	  double maxx,
+	  double miny,
+	  double maxy,
+	  std::string name = "fmesher::Mesh")
+      : window_(-1), name_char_(NULL),
+	sx_(sx), sy_(sy),
+	minx_(minx), maxx_(maxx),
+	miny_(miny), maxy_(maxy) {
+      open(name,sx_,sy_);
+      setAxis(minx, maxx, miny, maxy);
+    };
+    void reopen(int sx, int sy) {
+      if (!(window_<0))
+	close();
+      window_ = 0;
+      sx_ = sx;
+      sy_ = sy;
+      xtmpl_window = window_;
+      xtmpl_open(sx_,sy_,name_char_);
+    };
+    void open(std::string name,
+	      int sx, int sy) {
+      if (!(window_<0))
+	close();
+      window_ = 0;
+      sx_ = sx;
+      sy_ = sy;
+      if (name_char_) delete[] name_char_;
+      name_char_ = new char[name.length()+1];
+      name.copy(name_char_,name.length(),0);
+      name_char_[name.length()] = '\0';
+      xtmpl_window = window_;
+      xtmpl_open(sx,sy,name_char_);
+      setAxis(-0.05,1.05,-0.05,1.05);
+    };
+    void close() {
+      if (window_<0)
+	return;
+      xtmpl_window = window_;
+      xtmpl_close();
+      window_ = -1;
+    };
+    ~Xtmpl() {
+      close();
+      if (name_char_) delete[] name_char_;
+    };
+
+    void clear() {
+      xtmpl_window = window_;
+      xtmpl_clear();
+    }
+
+    void setSize(int sx, int sy) {
+      reopen(sx,sy);
+    };
+    void setAxis(double minx, double maxx,
+		 double miny, double maxy) {
+      clear();
+      minx_ = minx;
+      maxx_ = maxx;
+      miny_ = miny;
+      maxy_ = maxy;
+    };
+
+    void arc(const double* s0, const double* s1);
+    void line(const double* s0, const double* s1);
+    void text(const double* s0, std::string str);
+
+  };
+
+  void Xtmpl::arc(const double* s0, const double* s1)
+  {
+    int n = 10;
+    xtmpl_window = window_;
+    double p0[2];
+    double p1[2];
+    double s[3];
+    double l;
+    int dim;
+    p1[0] = s0[0];
+    p1[1] = s0[1];
+    for (int i=1;i<=n;i++) {
+      l = 0.0;
+      p0[0] = p1[0]; p0[1] = p1[1];
+      for (dim=0;dim<3;dim++) {
+	s[dim] = ((n-i)*s0[dim]+i*s1[dim])/n;
+	l += s[dim]*s[dim];
+      }
+      l = std::sqrt(l);
+      for (int dim=0;dim<2;dim++)
+	p1[dim] = s[dim]/l;
+      
+      xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
+		      (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
+    }
+  };
+  void Xtmpl::line(const double* s0, const double* s1)
+  {
+    xtmpl_window = window_;
+    xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		    (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		    (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
+		    (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+  };
+  void Xtmpl::text(const double* s0, std::string str)
+  {
+    char* str_ = new char[str.length()+1];
+    str.copy(str_,str.length(),0);
+    str_[str.length()] = '\0';
+    xtmpl_window = window_;
+    xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+	       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+	       str_,str.length());
+    delete[] str_;
+  };
+
+
+
+
+
   
 
 
@@ -1249,169 +1391,6 @@ namespace fmesh {
 
 
 
-
-
-  std::ostream& operator<<(std::ostream& output, const Mesh& M)
-  {
-    //    output << "S =\n" << M.SO();
-    output << "TV =\n" << M.TVO();
-    output << "TT =\n" << M.TTO();
-    if (M.useVT())
-      output << "VT =\n" << M.VTO();
-    if (M.useTTi())
-      output << "TTi =\n" << M.TTiO();
-    return output;
-  }
-
-
-  M3intO Mesh::TVO() const { return M3intO(TV_,nT_); };
-  M3intO Mesh::TTO() const { return M3intO(TT_,nT_); };
-  MintO Mesh::VTO() const { return MintO(VT_,nV_); };
-  M3intO Mesh::TTiO() const { return M3intO(TTi_,nT_); };
-  M3doubleO Mesh::SO() const { return M3doubleO(S_,nV_); };
-
-  std::ostream& operator<<(std::ostream& output, const MintO& MO)
-  {
-    if (!MO.M_) return output;
-    for (int i = 0; i < (int)MO.n_; i++) {
-      output << ' ' << std::right << std::setw(4)
-	     << MO.M_[i];
-    }
-    std::cout << std::endl;
-    return output;
-  }
-
-  std::ostream& operator<<(std::ostream& output, const M3intO& MO)
-  {
-    if (!MO.M_) return output;
-    for (int j = 0; j<3; j++) {
-      for (int i = 0; i < (int)MO.n_; i++) {
-	output << ' ' << std::right << std::setw(4)
-	       << MO.M_[i][j];
-      }
-      std::cout << std::endl;
-    }
-    return output;
-  }
-
-  std::ostream& operator<<(std::ostream& output, const M3doubleO& MO)
-  {
-    if (!MO.M_) return output;
-    for (int i = 0; i < (int)MO.n_; i++) {
-      for (int j = 0; j<3; j++)
-	output << ' ' << std::right << std::setw(10) << std::scientific
-	       << MO.M_[i][j];
-      std::cout << std::endl;
-    }
-    return output;
-  }
-
-
-
-
-
-
-  std::ostream& operator<<(std::ostream& output, const Dart& d)
-  {
-    output << std::right << std::setw(1) << d.t_
-	   << std::right << std::setw(3) << d.edir_
-	   << std::right << std::setw(2) << d.vi_;
-    if ((!d.isnull()) && (d.t_<(int)d.M()->nT())) {
-      output << " ("
-	     << d.M()->TV()[d.t_][d.vi_]
-	     << ","
-	     << d.M()->TV()[d.t_][(d.vi_+(3+d.edir_))%3]
-	     << ")";
-    }
-      
-    return output;
-  }
-
-
-  Dart& Dart::alpha0()
-  {
-    vi_ = (vi_ + (3+edir_) ) % 3;
-    edir_ = -edir_;
-    return *this;
-  }
-
-  Dart& Dart::alpha1()
-  {
-    edir_ = -edir_;
-    return *this;
-  }
-
-  Dart& Dart::alpha2()
-  {
-    if (!M_->use_TTi_) {
-      int vi;
-      int v = M_->TV_[t_][vi_];
-      int t = M_->TT_[t_][(vi_+(3-edir_))%3];
-      if (t<0) return *this;
-      for (vi = 0; (vi<3) && (M_->TV_[t][vi] != v); vi++) { }
-      if (vi>=3) return *this; /* Error! This should never happen! */
-      vi_ = vi;
-      edir_ = -edir_;
-      t_ = t;
-    } else {
-      int vi = (vi_+(3-edir_))%3;
-      int t = M_->TT_[t_][vi];
-      if (t<0) return *this;
-      vi_ = (M_->TTi_[t_][vi]+(3-edir_))%3;
-      edir_ = -edir_;
-      t_ = t;
-    }
-    return *this;
-  }
-
-  Dart& Dart::orbit0()
-  {
-    int t = t_;
-    alpha1();
-    alpha2();
-    if (t == t_) alpha1(); /* Undo; boundary. */
-    return *this;
-  }
-
-  Dart& Dart::orbit1()
-  {
-    int t = t_;
-    alpha2();
-    if (t != t_) alpha0(); /* Do only if not at boundary. */
-    return *this;
-  }
-
-  Dart& Dart::orbit2()
-  {
-    /* "alpha0(); alpha1();" would be less efficient. */
-    vi_ = (vi_+(3+edir_))%3;
-    return *this;
-  }
-
-  Dart& Dart::orbit0rev()
-  {
-    int t = t_;
-    alpha2();
-    if (t != t_) alpha1(); /* Do only if not at boundary. */
-    return *this;
-  }
-
-  Dart& Dart::orbit1rev() /* Equivalent to orbit1() */
-  {
-    orbit1();
-    return *this;
-  }
-
-  Dart& Dart::orbit2rev()
-  {
-    /* "alpha1(); alpha0();" would be less efficient. */
-    vi_ = (vi_+(3-edir_))%3;
-    return *this;
-  }
-
-
-
-
   /*!
     Alg 9.1
 
@@ -1538,6 +1517,295 @@ namespace fmesh {
 
 
 
+
+  MOAint3 Mesh::TVO() const { return MOAint3(TV_,nT_); };
+  MOAint3 Mesh::TTO() const { return MOAint3(TT_,nT_); };
+  MOAint Mesh::VTO() const { return MOAint(VT_,nV_); };
+  MOAint3 Mesh::TTiO() const { return MOAint3(TTi_,nT_); };
+  MOAdouble3 Mesh::SO() const { return MOAdouble3(S_,nV_); };
+
+
+
+
+
+
+
+  Dart& Dart::alpha0()
+  {
+    vi_ = (vi_ + (3+edir_) ) % 3;
+    edir_ = -edir_;
+    return *this;
+  }
+
+  Dart& Dart::alpha1()
+  {
+    edir_ = -edir_;
+    return *this;
+  }
+
+  Dart& Dart::alpha2()
+  {
+    if (!M_->use_TTi_) {
+      int vi;
+      int v = M_->TV_[t_][vi_];
+      int t = M_->TT_[t_][(vi_+(3-edir_))%3];
+      if (t<0) return *this;
+      for (vi = 0; (vi<3) && (M_->TV_[t][vi] != v); vi++) { }
+      if (vi>=3) return *this; /* Error! This should never happen! */
+      vi_ = vi;
+      edir_ = -edir_;
+      t_ = t;
+    } else {
+      int vi = (vi_+(3-edir_))%3;
+      int t = M_->TT_[t_][vi];
+      if (t<0) return *this;
+      vi_ = (M_->TTi_[t_][vi]+(3-edir_))%3;
+      edir_ = -edir_;
+      t_ = t;
+    }
+    return *this;
+  }
+
+  Dart& Dart::orbit0()
+  {
+    int t = t_;
+    alpha1();
+    alpha2();
+    if (t == t_) alpha1(); /* Undo; boundary. */
+    return *this;
+  }
+
+  Dart& Dart::orbit1()
+  {
+    int t = t_;
+    alpha2();
+    if (t != t_) alpha0(); /* Do only if not at boundary. */
+    return *this;
+  }
+
+  Dart& Dart::orbit2()
+  {
+    /* "alpha0(); alpha1();" would be less efficient. */
+    vi_ = (vi_+(3+edir_))%3;
+    return *this;
+  }
+
+  Dart& Dart::orbit0rev()
+  {
+    int t = t_;
+    alpha2();
+    if (t != t_) alpha1(); /* Do only if not at boundary. */
+    return *this;
+  }
+
+  Dart& Dart::orbit1rev() /* Equivalent to orbit1() */
+  {
+    orbit1();
+    return *this;
+  }
+
+  Dart& Dart::orbit2rev()
+  {
+    /* "alpha1(); alpha0();" would be less efficient. */
+    vi_ = (vi_+(3-edir_))%3;
+    return *this;
+  }
+
+
+  std::ostream& operator<<(std::ostream& output, const Mesh& M)
+  {
+    //    output << "S =\n" << M.SO();
+    output << "TV =\n" << M.TVO();
+    output << "TT =\n" << M.TTO();
+    if (M.useVT())
+      output << "VT =\n" << M.VTO();
+    if (M.useTTi())
+      output << "TTi =\n" << M.TTiO();
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const MOAint& MO)
+  {
+    if (!MO.M_) return output;
+    for (int i = 0; i < (int)MO.n_; i++) {
+      output << ' ' << std::right << std::setw(4)
+	     << MO.M_[i];
+    }
+    std::cout << std::endl;
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const MOAint3& MO)
+  {
+    if (!MO.M_) return output;
+    for (int j = 0; j<3; j++) {
+      for (int i = 0; i < (int)MO.n_; i++) {
+	output << ' ' << std::right << std::setw(4)
+	       << MO.M_[i][j];
+      }
+      std::cout << std::endl;
+    }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO)
+  {
+    if (!MO.M_) return output;
+    for (int i = 0; i < (int)MO.n_; i++) {
+      for (int j = 0; j<3; j++)
+	output << ' ' << std::right << std::setw(10) << std::scientific
+	       << MO.M_[i][j];
+      std::cout << std::endl;
+    }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const Dart& d)
+  {
+    output << std::right << std::setw(1) << d.t_
+	   << std::right << std::setw(3) << d.edir_
+	   << std::right << std::setw(2) << d.vi_;
+    if ((!d.isnull()) && (d.t_<(int)d.M()->nT())) {
+      output << " ("
+	     << d.M()->TV()[d.t_][d.vi_]
+	     << ","
+	     << d.M()->TV()[d.t_][(d.vi_+(3+d.edir_))%3]
+	     << ")";
+    }
+      
+    return output;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  bool MCQ::found(const Dart& d) const
+  {
+    return (darts_.find(d) != darts_.end());
+  }
+
+  bool MCQ::foundQ(const Dart& d) const
+  {
+    map_type::const_iterator i = darts_.find(d);
+    if (i == darts_.end())
+      return false;
+    return (darts_quality_.find(MCQdv(i->first,i->second)) !=
+	    darts_quality_.end());
+  }
+
+  const double MCQ::quality(const Dart& d) const
+  {
+    if (empty())
+      return 0.0;
+    return darts_.find(d)->second;
+  }
+
+  Dart MCQ::quality() const
+  {
+    if (emptyQ())
+      return Dart();
+    return darts_quality_.begin()->d_;
+  }
+
+  void MCQ::insert(const Dart& d)
+  {
+    double quality_ = calcQ(d);
+    if (quality_>0.0) {
+      darts_.insert(map_key_type(d,quality_));
+      darts_quality_.insert(MCQdv(d,quality_));
+    } else if (!only_quality_)
+      darts_.insert(map_key_type(d,quality_));
+  }
+
+  void MCQ::erase(const Dart& d)
+  {
+    double quality_;
+    map_type::iterator i = darts_.find(d);
+    if (i != darts_.end()) {
+      quality_ = i->second;
+      darts_.erase(i);
+      set_type::iterator j = darts_quality_.find(MCQdv(d,quality_));
+      if (j != darts_quality_.end())
+	darts_quality_.erase(j);
+    }
+  }
+
+
+
+
+
+
+
+  MCQtri::MCQtri(bool only_quality, double quality_limit)
+    : MCQ(only_quality), quality_limit_(quality_limit)
+  {
+    setQ(quality_limit);
+  }
+
+  void MCQtri::setQ(double quality_limit)
+  {
+    quality_limit_ = quality_limit;
+    if (!empty()) {
+      /* TODO: Implement updating the sets. */
+      NOT_IMPLEMENTED;
+    }
+  }
+
+  double MCQtri::calcQ(const Dart& d) const {
+    double quality_lim_ = quality_limit_; /* TODO: min_vi ql[t][vi] */
+    return (calcQtri(d) - quality_lim_);
+  };
+
+  double MCQskinny::calcQtri(const Dart& d) const
+  {
+    double quality_ = d.M()->skinnyQuality(d.t());
+    return quality_;
+  }
+  
+  double MCQbig::calcQtri(const Dart& d) const
+  {
+    double quality_ = d.M()->bigQuality(d.t());
+    return quality_;
+  }
+  
+  double MCQsegm::calcQ(const Dart& d) const
+  {
+    double quality_ = d.M()->encroachedQuality(d);
+    Dart dhelper(d);
+    dhelper.orbit1();
+    if (d.t() != dhelper.t()) {
+      double quality1_ = d.M()->encroachedQuality(dhelper);
+      if (quality1_>quality_)
+	quality_ = quality1_;
+    }
+    return (quality_-encroached_limit_);
+  }
+
+  bool MCQsegm::segm(const Dart& d) const
+  {
+    if (found(d)) return true;
+    Dart dhelper(d);
+    dhelper.orbit1();
+    return ((dhelper.t() != d.t()) && found(dhelper));
+  }
+
+
+
+
+
+
+
+
   /*! Alg 4.3 */
   bool MeshC::recSwapDelaunay(const Dart& d0)
   {
@@ -1649,7 +1917,7 @@ namespace fmesh {
     std::cout << "Closest dart " << td
 	      << ' ' << delta << std::endl;
 
-    if (delta>10*MESH_EPSILON) { /* Split triangle */
+    if (delta>1.0e3*MESH_EPSILON) { /* Split triangle */
       splitTriangleDelaunay(td,v);
     } else { /* Split edge */
       splitEdgeDelaunay(td,v);
@@ -1997,7 +2265,7 @@ namespace fmesh {
     std::cout << "Edge split, boundary segments:" << std::endl
 	      << boundary_;
 
-    xtmpl_press_ret("Edge has been split");
+    //    xtmpl_press_ret("Edge has been split");
 
     return dnew;
   }
@@ -2062,83 +2330,6 @@ namespace fmesh {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  bool MCQ::found(const Dart& d) const
-  {
-    return (darts_.find(d) != darts_.end());
-  }
-
-  bool MCQ::foundQ(const Dart& d) const
-  {
-    map_type::const_iterator i = darts_.find(d);
-    if (i == darts_.end())
-      return false;
-    return (darts_quality_.find(MCQdv(i->first,i->second)) !=
-	    darts_quality_.end());
-  }
-
-  const double MCQ::quality(const Dart& d) const
-  {
-    if (empty())
-      return 0.0;
-    return darts_.find(d)->second;
-  }
-
-  Dart MCQ::quality() const
-  {
-    if (emptyQ())
-      return Dart();
-    return darts_quality_.begin()->d_;
-  }
-
-  void MCQ::insert(const Dart& d)
-  {
-    double quality_ = calcQ(d);
-    if (quality_>0.0) {
-      darts_.insert(map_key_type(d,quality_));
-      darts_quality_.insert(MCQdv(d,quality_));
-    } else if (!only_quality_)
-      darts_.insert(map_key_type(d,quality_));
-  }
-
-  void MCQ::erase(const Dart& d)
-  {
-    double quality_;
-    map_type::iterator i = darts_.find(d);
-    if (i != darts_.end()) {
-      quality_ = i->second;
-      darts_.erase(i);
-      set_type::iterator j = darts_quality_.find(MCQdv(d,quality_));
-      if (j != darts_quality_.end())
-	darts_quality_.erase(j);
-    }
-  }
-
   std::ostream& operator<<(std::ostream& output, const MCQ& Q)
   {
     if (Q.empty()) return output;
@@ -2158,58 +2349,6 @@ namespace fmesh {
 
 
 
-  triMCQ::triMCQ(bool only_quality, double quality_limit)
-    : MCQ(only_quality), quality_limit_(quality_limit)
-  {
-    setQ(quality_limit);
-  }
-
-  void triMCQ::setQ(double quality_limit)
-  {
-    quality_limit_ = quality_limit;
-    if (!empty()) {
-      /* TODO: Implement updating the sets. */
-      NOT_IMPLEMENTED;
-    }
-  }
-
-  double triMCQ::calcQ(const Dart& d) const {
-    double quality_lim_ = quality_limit_; /* TODO: min_vi ql[t][vi] */
-    return (calcQtri(d) - quality_lim_);
-  };
-
-  double skinnyMCQ::calcQtri(const Dart& d) const
-  {
-    double quality_ = d.M()->skinnyQuality(d.t());
-    return quality_;
-  }
-  
-  double bigMCQ::calcQtri(const Dart& d) const
-  {
-    double quality_ = d.M()->bigQuality(d.t());
-    return quality_;
-  }
-  
-  double segmMCQ::calcQ(const Dart& d) const
-  {
-    double quality_ = d.M()->encroachedQuality(d);
-    Dart dhelper(d);
-    dhelper.orbit1();
-    if (d.t() != dhelper.t()) {
-      double quality1_ = d.M()->encroachedQuality(dhelper);
-      if (quality1_>quality_)
-	quality_ = quality1_;
-    }
-    return (quality_-encroached_limit_);
-  }
-
-  bool segmMCQ::segm(const Dart& d) const
-  {
-    if (found(d)) return true;
-    Dart dhelper(d);
-    dhelper.orbit1();
-    return ((dhelper.t() != d.t()) && found(dhelper));
-  }
 
 
 
@@ -2219,53 +2358,24 @@ namespace fmesh {
 
 
 
-  void Xtmpl::arc(const double* s0, const double* s1)
-  {
-    int n = 10;
-    xtmpl_window = window_;
-    double p0[2];
-    double p1[2];
-    double s[3];
-    double l;
-    int dim;
-    p1[0] = s0[0];
-    p1[1] = s0[1];
-    for (int i=1;i<=n;i++) {
-      l = 0.0;
-      p0[0] = p1[0]; p0[1] = p1[1];
-      for (dim=0;dim<3;dim++) {
-	s[dim] = ((n-i)*s0[dim]+i*s1[dim])/n;
-	l += s[dim]*s[dim];
-      }
-      l = std::sqrt(l);
-      for (int dim=0;dim<2;dim++)
-	p1[dim] = s[dim]/l;
-      
-      xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-		      (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
-    }
-  };
-  void Xtmpl::line(const double* s0, const double* s1)
-  {
-    xtmpl_window = window_;
-    xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		    (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		    (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		    (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
-  };
-  void Xtmpl::text(const double* s0, std::string str)
-  {
-    char* str_ = new char[str.length()+1];
-    str.copy(str_,str.length(),0);
-    str_[str.length()] = '\0';
-    xtmpl_window = window_;
-    xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-	       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	       str_,str.length());
-    delete[] str_;
-  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
   
 

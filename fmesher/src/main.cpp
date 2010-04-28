@@ -16,7 +16,7 @@ using fmesh::Dart;
 using fmesh::MeshC;
 
 
-bool useX11 = true;
+bool useX11 = false;
 
 
 int predicates_test()
@@ -140,6 +140,8 @@ int DT2D_test()
     for (v=0;v<n;v++)
     vertices.push_back(v);
 
+  MC.DT(vertices);
+
   cout << M;
 
   fmesh::constrListT cinp;
@@ -148,8 +150,6 @@ int DT2D_test()
   cinp.push_back(fmesh::constrT(12,13));
   cinp.push_back(fmesh::constrT(13,10));
   MC.CDTBoundary(cinp);
-
-  MC.DT(vertices);
 
   cinp.clear();
   cinp.push_back(fmesh::constrT(10,12));
@@ -286,14 +286,14 @@ int DTsphere_test()
 
 int main()
 {
-  DT2D_test();
-  /*
+  //  DT2D_test();
+  //  /*
   for (int i=0;i<100;i++) {
     DT2D_test();
-    DT2D_test2();
-    DTsphere_test();
+    //    DT2D_test2();
+    //    DTsphere_test();
   }
-  */
+  //  */
 
   return 0;
 }
