@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "predicates.h"
-#include "mesh.h"
+#include "fmesher.h"
 
 using std::vector;
 using std::cout;
