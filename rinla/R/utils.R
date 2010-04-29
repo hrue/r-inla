@@ -131,11 +131,17 @@
     return (list(i=ii, j=jj, Cij = Cij))
 }
 
-`inla.Cmatrix2file` = function(Cmatrix, filename = NULL) {
+`inla.Cmatrix2file` = function(Cmatrix, filename = NULL, c.indexing = FALSE)
+{
+    if (c.indexing)
+        off = 1
+    else
+        off = 0
+    
     if (is.null(filename)) {
         filename = tempfile()
     }
-    write(t(cbind(Cmatrix$i-1, Cmatrix$j-1, Cmatrix$Cij)), ncolumns=3, file = filename)
+    write(t(cbind(Cmatrix$i-off, Cmatrix$j-off, Cmatrix$Cij)), ncolumns=3, file = filename)
 
     return (filename)
 }
@@ -853,9 +859,9 @@
 `inla.qinv` = function(Cmatrix) {
 
     if (is.matrix(Cmatrix)) {
-        qinv.file = inla.Cmatrix2file(inla.matrix2Cmatrix(Cmatrix))
+        qinv.file = inla.Cmatrix2file(inla.matrix2Cmatrix(Cmatrix), c.indexing = TRUE)
     } else {
-        qinv.file = inla.Cmatrix2file(Cmatrix)
+        qinv.file = inla.Cmatrix2file(Cmatrix, c.indexing = TRUE)
     }
         
     if (inla.os("linux") || inla.os("mac")) {
