@@ -68,8 +68,8 @@ namespace fmesh {
 
 
 
-  MCQtri::MCQtri(bool only_quality, double quality_limit)
-    : MCQ(only_quality), quality_limit_(quality_limit)
+  MCQtri::MCQtri(MeshC* MC, bool only_quality, double quality_limit)
+    : MCQ(MC, only_quality), quality_limit_(quality_limit)
   {
     setQ(quality_limit);
   }
@@ -90,23 +90,23 @@ namespace fmesh {
 
   double MCQskinny::calcQtri(const Dart& d) const
   {
-    double quality_ = d.M()->skinnyQuality(d.t());
+    double quality_ = MC_->skinnyQuality(d.t());
     return quality_;
   }
   
   double MCQbig::calcQtri(const Dart& d) const
   {
-    double quality_ = d.M()->bigQuality(d.t());
+    double quality_ = MC_->bigQuality(d.t());
     return quality_;
   }
   
   double MCQsegm::calcQ(const Dart& d) const
   {
-    double quality_ = d.M()->encroachedQuality(d);
+    double quality_ = MC_->encroachedQuality(d);
     Dart dhelper(d);
     dhelper.orbit1();
     if (d.t() != dhelper.t()) {
-      double quality1_ = d.M()->encroachedQuality(dhelper);
+      double quality1_ = MC_->encroachedQuality(dhelper);
       if (quality1_>quality_)
 	quality_ = quality1_;
     }
@@ -123,6 +123,42 @@ namespace fmesh {
 
 
 
+  double MeshC::encroachedQuality(const Dart& d) const
+  /* > --> encroached */
+  {
+    int t(d.t());
+    if ((t<0) || (t>=(int)M_->nT())) return -1.0;
+
+    Dart dh(d);
+    dh.orbit2rev();
+    
+    double encr = M_->edgeEncroached(d,M_->S()[M_->TV()[t][dh.vi()]]);
+
+    dh.orbit2rev();
+    std::cout << "encroachedQ("
+	      << M_->TV()[t][d.vi()] << "," << M_->TV()[t][dh.vi()]
+	      << ") = " << encr << std::endl;
+
+    return encr;
+  }
+
+  double MeshC::skinnyQuality(int t) const
+  {
+    if ((t<0) || (t>=(int)M_->nT())) return 0.0;
+
+    double skinny = (M_->triangleCircumcircleRadius(t) / 
+		     M_->triangleShortestEdge(t));
+
+    //    std::cout << "skinnyQ(" << t << ") = " << skinny << std::endl;
+
+    return skinny;
+  }
+
+  double MeshC::bigQuality(int t) const
+  {
+    //    return M_->triangleLongestEdge(t);
+    return M_->triangleArea(t);
+  }
 
 
 
@@ -258,8 +294,13 @@ namespace fmesh {
 
   bool MeshC::killTriangle(const Dart& d)
   {
-    double c[3];
-    M_->triangleCircumcentre(d.t(),c);
+    Point c;
+    M_->triangleCircumcenter(d.t(),c);
+
+    std::cout << "Center: ("
+	      << c[0] << ","
+	      << c[1] << ","
+	      << c[2] << ")" << std::endl;
 
     return insertNode(addVertices(&c,1),d);
   }
@@ -471,7 +512,7 @@ namespace fmesh {
 	     skinny_.emptyQ() && big_.emptyQ())) {
       /* Temporary failsafe exit: */
       loop++;
-      if (loop>100) return false;
+      if (loop>500) return false;
 
       std::cout << "RCDT(" << loop << "): (Bo,In,Sk,Bi) = ("
 		<< boundary_.countQ() << ","
@@ -621,8 +662,8 @@ namespace fmesh {
       big_.insert(dh);
     }
 
-    std::cout << "Edge swapped, boundary segments:" << std::endl
-	      << boundary_;
+    //    std::cout << "Edge swapped, boundary segments:" << std::endl
+    //	      << boundary_;
 
     return dnew;
   }
@@ -711,8 +752,8 @@ namespace fmesh {
       }
     }
 
-    std::cout << "Edge split, boundary segments:" << std::endl
-	      << boundary_;
+    //    std::cout << "Edge split, boundary segments:" << std::endl
+    //	      << boundary_;
 
     //    xtmpl_press_ret("Edge has been split");
 
@@ -765,8 +806,8 @@ namespace fmesh {
       big_.insert(dh);
     }
 
-    std::cout << "Triangle split, boundary segments:" << std::endl
-	      << boundary_;
+    //    std::cout << "Triangle split, boundary segments:" << std::endl
+    //	      << boundary_;
 
     return dnew;
   }
