@@ -536,7 +536,7 @@
     } else {
         file.offset = NULL
     }
-    inla.predictor.section(file=file.ini, n=tot.data,predictor.spec=cont.pred, file.offset=file.offset)
+    inla.predictor.section(file=file.ini, n=tot.data,predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
 
     ##
     all.labels = character(0)
