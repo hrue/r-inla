@@ -675,7 +675,7 @@ namespace fmesh {
     For manifolds, calculate the absolute area, from
     \f$A=\|n_0+n_1+n_3\|/6\f$.\n
     For spheres, calculate the CCW interior geodesic triangle area,
-    with range \f$[0,2\pi)\f$.
+    with range \f$[0,4\pi)\f$.
 
     The spherical geodesic triangle area is given by the spherical
     excess formula \f$A = \theta_0+\theta_1+\theta_2-\pi\f$, where
@@ -705,7 +705,11 @@ namespace fmesh {
    If two of the vertices are antipodes, say \f$s_1=-s_0\f$, the
    formula breaks down, with both arguments to \p atan2 equal to zero.
    Such triangles are not uniquely defined, since the geodesic between
-   \f$s_0\f$ and \f$s_1\f$ is not unique.
+   \f$s_0\f$ and \f$-s_0\f$ is not unique.
+
+   If \f$s_0\cdot(e_1\times e_2)\f$ is negative, the triangle covers
+   more than a hemisphere, and is non-convex (its complement is
+   convex), with area \f$>2\pi\f$.
 
   */
   /*
