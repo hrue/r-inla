@@ -66,8 +66,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: auxvar.c,v 1.8 2009/08/26 06:12:47 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: auxvar.c,v 1.8 2009/08/26 06:12:47 hrue Exp $ */
 
 #include <math.h>
 #include <stdio.h>

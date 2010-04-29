@@ -83,8 +83,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: graph.c,v 1.102 2010/02/15 08:26:37 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: graph.c,v 1.102 2010/02/15 08:26:37 hrue Exp $ */
 
 /*!
   \brief Creates an empty graph

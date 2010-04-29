@@ -36,8 +36,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $ */
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -758,7 +759,7 @@ double GMRFLib_rw2d(int node, int nnode, void *def)
 */
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
 {
-	if (def->si){
+	if (def->si) {
 		GMRFLib_make_linear_graph(graph, def->n, def->n, 0);
 	} else {
 		GMRFLib_make_linear_graph(graph, def->n, def->order, def->cyclic);

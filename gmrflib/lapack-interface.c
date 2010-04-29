@@ -35,8 +35,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: lapack-interface.c,v 1.23 2009/05/02 16:54:04 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: lapack-interface.c,v 1.23 2009/05/02 16:54:04 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>

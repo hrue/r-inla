@@ -7,8 +7,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: bfgs3.c,v 1.8 2009/12/15 12:26:03 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: bfgs3.c,v 1.8 2009/12/15 12:26:03 hrue Exp $ */
 
 
 /* multimin/vector_bfgs2.c

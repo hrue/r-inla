@@ -36,8 +36,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: hash.c,v 1.13 2009/06/03 09:04:54 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: hash.c,v 1.13 2009/06/03 09:04:54 hrue Exp $ */
 
 #include <string.h>
 #if !defined(__FreeBSD__)
@@ -800,7 +801,7 @@ mapkit_error map_ii_get_s(map_ii * spm, int key, int *value)
 	iindex = map_ii_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
 		} else {
@@ -853,8 +854,7 @@ int *map_ii_insertptr_s(map_ii * spm, int key)
 	else {
 		map_ii_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -946,8 +946,7 @@ mapkit_size_t map_ii_keyindex(map_ii * spm, int key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -999,7 +998,7 @@ mapkit_size_t map_ii_insertionindex(map_ii * spm, int key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -1183,11 +1182,8 @@ void map_ii_printstats(map_ii * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -1425,7 +1421,7 @@ mapkit_error map_id_get_s(map_id * spm, int key, double *value)
 	iindex = map_id_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
 		} else {
@@ -1478,8 +1474,7 @@ double *map_id_insertptr_s(map_id * spm, int key)
 	else {
 		map_id_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -1571,8 +1566,7 @@ mapkit_size_t map_id_keyindex(map_id * spm, int key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -1624,7 +1618,7 @@ mapkit_size_t map_id_insertionindex(map_id * spm, int key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -1808,11 +1802,8 @@ void map_id_printstats(map_id * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -2050,11 +2041,10 @@ mapkit_error map_ivp_get_s(map_ivp * spm, int key, void **value)
 	iindex = map_ivp_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -2103,8 +2093,7 @@ void **map_ivp_insertptr_s(map_ivp * spm, int key)
 	else {
 		map_ivp_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -2196,8 +2185,7 @@ mapkit_size_t map_ivp_keyindex(map_ivp * spm, int key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -2249,7 +2237,7 @@ mapkit_size_t map_ivp_insertionindex(map_ivp * spm, int key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -2433,11 +2421,8 @@ void map_ivp_printstats(map_ivp * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -2676,11 +2661,10 @@ mapkit_error map_h_ii_get_s(map_h_ii * spm, int key, int *value, mapkit_hash_t h
 	iindex = map_h_ii_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -2729,8 +2713,7 @@ int *map_h_ii_insertptr_s(map_h_ii * spm, int key, mapkit_hash_t hash)
 	else {
 		map_h_ii_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -2822,8 +2805,7 @@ mapkit_size_t map_h_ii_keyindex(map_h_ii * spm, int key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -2875,7 +2857,7 @@ mapkit_size_t map_h_ii_insertionindex(map_h_ii * spm, int key, mapkit_hash_t has
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -3059,11 +3041,8 @@ void map_h_ii_printstats(map_h_ii * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -3302,11 +3281,10 @@ mapkit_error map_h_id_get_s(map_h_id * spm, int key, double *value, mapkit_hash_
 	iindex = map_h_id_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -3355,8 +3333,7 @@ double *map_h_id_insertptr_s(map_h_id * spm, int key, mapkit_hash_t hash)
 	else {
 		map_h_id_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -3448,8 +3425,7 @@ mapkit_size_t map_h_id_keyindex(map_h_id * spm, int key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -3501,7 +3477,7 @@ mapkit_size_t map_h_id_insertionindex(map_h_id * spm, int key, mapkit_hash_t has
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -3685,11 +3661,8 @@ void map_h_id_printstats(map_h_id * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -3928,11 +3901,10 @@ mapkit_error map_h_ivp_get_s(map_h_ivp * spm, int key, void **value, mapkit_hash
 	iindex = map_h_ivp_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -3981,8 +3953,7 @@ void **map_h_ivp_insertptr_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	else {
 		map_h_ivp_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -4074,8 +4045,7 @@ mapkit_size_t map_h_ivp_keyindex(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -4127,7 +4097,7 @@ mapkit_size_t map_h_ivp_insertionindex(map_h_ivp * spm, int key, mapkit_hash_t h
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -4311,11 +4281,8 @@ void map_h_ivp_printstats(map_h_ivp * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -4553,11 +4520,10 @@ mapkit_error map_vpi_get_s(map_vpi * spm, void *key, int *value)
 	iindex = map_vpi_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -4606,8 +4572,7 @@ int *map_vpi_insertptr_s(map_vpi * spm, void *key)
 	else {
 		map_vpi_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -4699,8 +4664,7 @@ mapkit_size_t map_vpi_keyindex(map_vpi * spm, void *key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -4752,7 +4716,7 @@ mapkit_size_t map_vpi_insertionindex(map_vpi * spm, void *key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -4936,11 +4900,8 @@ void map_vpi_printstats(map_vpi * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -5178,11 +5139,10 @@ mapkit_error map_vpd_get_s(map_vpd * spm, void *key, double *value)
 	iindex = map_vpd_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -5231,8 +5191,7 @@ double *map_vpd_insertptr_s(map_vpd * spm, void *key)
 	else {
 		map_vpd_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -5324,8 +5283,7 @@ mapkit_size_t map_vpd_keyindex(map_vpd * spm, void *key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -5377,7 +5335,7 @@ mapkit_size_t map_vpd_insertionindex(map_vpd * spm, void *key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -5561,11 +5519,8 @@ void map_vpd_printstats(map_vpd * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -5803,11 +5758,10 @@ mapkit_error map_vpvp_get_s(map_vpvp * spm, void *key, void **value)
 	iindex = map_vpvp_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -5856,8 +5810,7 @@ void **map_vpvp_insertptr_s(map_vpvp * spm, void *key)
 	else {
 		map_vpvp_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -5949,8 +5902,7 @@ mapkit_size_t map_vpvp_keyindex(map_vpvp * spm, void *key)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -6002,7 +5954,7 @@ mapkit_size_t map_vpvp_insertionindex(map_vpvp * spm, void *key)
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -6186,11 +6138,8 @@ void map_vpvp_printstats(map_vpvp * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -6429,11 +6378,10 @@ mapkit_error map_h_vpi_get_s(map_h_vpi * spm, void *key, int *value, mapkit_hash
 	iindex = map_h_vpi_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -6482,8 +6430,7 @@ int *map_h_vpi_insertptr_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	else {
 		map_h_vpi_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -6575,8 +6522,7 @@ mapkit_size_t map_h_vpi_keyindex(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -6628,7 +6574,7 @@ mapkit_size_t map_h_vpi_insertionindex(map_h_vpi * spm, void *key, mapkit_hash_t
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -6812,11 +6758,8 @@ void map_h_vpi_printstats(map_h_vpi * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -7055,11 +6998,10 @@ mapkit_error map_h_vpd_get_s(map_h_vpd * spm, void *key, double *value, mapkit_h
 	iindex = map_h_vpd_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -7108,8 +7050,7 @@ double *map_h_vpd_insertptr_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	else {
 		map_h_vpd_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -7201,8 +7142,7 @@ mapkit_size_t map_h_vpd_keyindex(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -7254,7 +7194,7 @@ mapkit_size_t map_h_vpd_insertionindex(map_h_vpd * spm, void *key, mapkit_hash_t
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -7438,11 +7378,8 @@ void map_h_vpd_printstats(map_h_vpd * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -7681,11 +7618,10 @@ mapkit_error map_h_vpvp_get_s(map_h_vpvp * spm, void *key, void **value, mapkit_
 	iindex = map_h_vpvp_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -7734,8 +7670,7 @@ void **map_h_vpvp_insertptr_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
 	else {
 		map_h_vpvp_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -7827,8 +7762,7 @@ mapkit_size_t map_h_vpvp_keyindex(map_h_vpvp * spm, void *key, mapkit_hash_t has
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!((spm->contents[iindex].key) == (key))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -7880,7 +7814,7 @@ mapkit_size_t map_h_vpvp_insertionindex(map_h_vpvp * spm, void *key, mapkit_hash
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!((spm->contents[iindex].key) == (key))))) {
+										    || (!((spm->contents[iindex].key) == (key))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -8064,11 +7998,8 @@ void map_h_vpvp_printstats(map_h_vpvp * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -8307,11 +8238,10 @@ mapkit_error map_stri_get_s(map_stri * spm, char *key, int *value, mapkit_hash_t
 	iindex = map_stri_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -8360,8 +8290,7 @@ int *map_stri_insertptr_s(map_stri * spm, char *key, mapkit_hash_t hash)
 	else {
 		map_stri_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -8453,8 +8382,7 @@ mapkit_size_t map_stri_keyindex(map_stri * spm, char *key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -8506,7 +8434,7 @@ mapkit_size_t map_stri_insertionindex(map_stri * spm, char *key, mapkit_hash_t h
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+										    || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -8690,11 +8618,8 @@ void map_stri_printstats(map_stri * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -8933,11 +8858,10 @@ mapkit_error map_strd_get_s(map_strd * spm, char *key, double *value, mapkit_has
 	iindex = map_strd_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -8986,8 +8910,7 @@ double *map_strd_insertptr_s(map_strd * spm, char *key, mapkit_hash_t hash)
 	else {
 		map_strd_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -9079,8 +9002,7 @@ mapkit_size_t map_strd_keyindex(map_strd * spm, char *key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -9132,7 +9054,7 @@ mapkit_size_t map_strd_insertionindex(map_strd * spm, char *key, mapkit_hash_t h
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+										    || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -9316,11 +9238,8 @@ void map_strd_printstats(map_strd * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -9559,11 +9478,10 @@ mapkit_error map_strvp_get_s(map_strvp * spm, char *key, void **value, mapkit_ha
 	iindex = map_strvp_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -9612,8 +9530,7 @@ void **map_strvp_insertptr_s(map_strvp * spm, char *key, mapkit_hash_t hash)
 	else {
 		map_strvp_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -9705,8 +9622,7 @@ mapkit_size_t map_strvp_keyindex(map_strvp * spm, char *key, mapkit_hash_t hash)
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -9758,7 +9674,7 @@ mapkit_size_t map_strvp_insertionindex(map_strvp * spm, char *key, mapkit_hash_t
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+										    || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -9942,11 +9858,8 @@ void map_strvp_printstats(map_strvp * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -10185,11 +10098,10 @@ mapkit_error map_strstr_get_s(map_strstr * spm, char *key, char **value, mapkit_
 	iindex = map_strstr_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -10238,8 +10150,7 @@ char **map_strstr_insertptr_s(map_strstr * spm, char *key, mapkit_hash_t hash)
 	else {
 		map_strstr_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -10331,8 +10242,7 @@ mapkit_size_t map_strstr_keyindex(map_strstr * spm, char *key, mapkit_hash_t has
 	spm->keyindexs++;
 #endif
 
-	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && (state == MAPKIT_DELETEDSLOT || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -10384,7 +10294,7 @@ mapkit_size_t map_strstr_insertionindex(map_strstr * spm, char *key, mapkit_hash
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
+										    || (!(strcmp(spm->contents[iindex].key, key) == 0)))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -10568,11 +10478,8 @@ void map_strstr_printstats(map_strstr * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -10809,11 +10716,10 @@ mapkit_error spvector_get_s(spvector * spm, int key, double *value)
 	iindex = spvector_keyindex(spm, key);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
-		}
-		else
+		} else
 			MAPKIT_ERROR(MAPKIT_EKEYNOTFOUND);
 	}
 
@@ -10861,8 +10767,7 @@ double *spvector_insertptr_s(spvector * spm, int key)
 	else {
 		spvector_storage *element = &(spm->contents[iindex]);
 
-		if (element->key == MAPKIT_FREESLOT)
-		{
+		if (element->key == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -11205,11 +11110,8 @@ void spvector_printstats(spvector * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -11449,7 +11351,7 @@ mapkit_error _spmatrix_get_s(_spmatrix * spm, spmatrix_key_pair key, double *val
 	iindex = _spmatrix_keyindex(spm, key, hash);
 
 	if (iindex < 0) {
-		if (spm->alwaysdefault){
+		if (spm->alwaysdefault) {
 			*value = spm->defaultvalue;
 			return MAPKIT_OK;
 		} else {
@@ -11501,8 +11403,7 @@ double *_spmatrix_insertptr_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_has
 	else {
 		_spmatrix_storage *element = &(spm->contents[iindex]);
 
-		if (element->state == MAPKIT_FREESLOT)
-		{
+		if (element->state == MAPKIT_FREESLOT) {
 			/*
 			 * FREESLOT 
 			 */
@@ -11595,8 +11496,7 @@ mapkit_size_t _spmatrix_keyindex(_spmatrix * spm, spmatrix_key_pair key, mapkit_
 #endif
 
 	while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT
-	       && (state == MAPKIT_DELETEDSLOT ||
-		   (!(((spm->contents[iindex].key).key1 == (key).key1) && ((spm->contents[iindex].key).key2 == (key).key2))))) {
+	       && (state == MAPKIT_DELETEDSLOT || (!(((spm->contents[iindex].key).key1 == (key).key1) && ((spm->contents[iindex].key).key2 == (key).key2))))) {
 #ifdef MAPKIT_COLLISIONS
 		spm->keyindex_collisions++;
 #endif
@@ -11648,8 +11548,8 @@ mapkit_size_t _spmatrix_insertionindex(_spmatrix * spm, spmatrix_key_pair key, m
 		mapkit_size_t index2 = iindex;
 
 		while ((state = spm->contents[iindex].state) != MAPKIT_FREESLOT && ((state == MAPKIT_DELETEDSLOT)
-										   || (!(((spm->contents[iindex].key).key1 == (key).key1)
-											 && ((spm->contents[iindex].key).key2 == (key).key2))))) {
+										    || (!(((spm->contents[iindex].key).key1 == (key).key1)
+											  && ((spm->contents[iindex].key).key2 == (key).key2))))) {
 			iindex -= decrement;
 			if (iindex < 0)
 				iindex += spm->size;
@@ -11762,8 +11662,7 @@ int _spmatrix_compare(const void *e1, const void *e2)
 	spmatrix_key_pair key1 = ((const _spmatrix_element *) e1)->key;
 	spmatrix_key_pair key2 = ((const _spmatrix_element *) e2)->key;
 
-	return (((key1).key1 < (key2).key1) ? -1 : (((key1).key1 > (key2).key1) ? 1 :
-						    (((key1).key2 < (key2).key2) ? -1 : (((key1).key2 == (key2).key2) ? 0 : 1))));
+	return (((key1).key1 < (key2).key1) ? -1 : (((key1).key1 > (key2).key1) ? 1 : (((key1).key2 < (key2).key2) ? -1 : (((key1).key2 == (key2).key2) ? 0 : 1))));
 }
 
 mapkit_error _spmatrix_getall_sorted(_spmatrix * spm, _spmatrix_element ** array, mapkit_size_t * count)
@@ -11834,11 +11733,8 @@ void _spmatrix_printstats(_spmatrix * spm)
 	fprintf(stderr, "MAPKIT: minused = %ld, maxfill = %ld\n", (long) spm->minused, (long) spm->maxfill);
 	fprintf(stderr, "MAPKIT: minusedfactor = %g, maxfillfactor = %g\n", spm->minusedfactor, spm->maxfillfactor);
 #ifdef MAPKIT_COLLISIONS
-	fprintf(stderr,
-		"MAPKIT: insertionindexs = %lu, collisions = %lu\n",
-		(unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
-	fprintf(stderr,
-		"MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
+	fprintf(stderr, "MAPKIT: insertionindexs = %lu, collisions = %lu\n", (unsigned long) spm->insertionindexs, (unsigned long) spm->insertionindex_collisions);
+	fprintf(stderr, "MAPKIT: keyindexs = %lu, collisions = %lu\n", (unsigned long) spm->keyindexs, (unsigned long) spm->keyindex_collisions);
 #endif
 }
 
@@ -12030,4 +11926,3 @@ void spmatrix_printstats(spmatrix * spm)
 }
 
 #endif							       /* MAPKIT_spmatrix */
-

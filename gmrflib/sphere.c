@@ -37,8 +37,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: sphere.c,v 1.29 2008/09/10 09:07:08 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: sphere.c,v 1.29 2008/09/10 09:07:08 hrue Exp $ */
 
 #include <string.h>
 #include <stdio.h>

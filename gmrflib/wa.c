@@ -71,8 +71,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: wa.c,v 1.23 2008/08/26 07:07:13 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: wa.c,v 1.23 2008/08/26 07:07:13 hrue Exp $ */
 
 /*!
   \brief Deallocates a \c GMRFLib_wa_problem_tp -object and it's members, allocated by 

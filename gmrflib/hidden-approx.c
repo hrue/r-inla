@@ -52,8 +52,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: hidden-approx.c,v 1.48 2010/01/16 12:31:52 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: hidden-approx.c,v 1.48 2010/01/16 12:31:52 hrue Exp $ */
 
 #include <assert.h>
 #include <float.h>
