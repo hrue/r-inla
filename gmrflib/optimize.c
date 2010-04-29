@@ -36,8 +36,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: optimize.c,v 1.65 2010/04/08 03:18:30 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: optimize.c,v 1.65 2010/04/08 03:18:30 hrue Exp $ */
 
 #include <stdio.h>
 #if !defined(__FreeBSD__)

@@ -856,8 +856,8 @@
     return (gsub("[(][)]$","", inla.paste(deparse(formula))))
 }
 
-`inla.qinv` = function(Cmatrix) {
-
+`inla.qinv` = function(Cmatrix)
+{
     if (is.matrix(Cmatrix)) {
         qinv.file = inla.Cmatrix2file(inla.matrix2Cmatrix(Cmatrix), c.indexing = TRUE)
     } else {

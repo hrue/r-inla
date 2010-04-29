@@ -50,8 +50,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */
 
 /* 
    if TRUE, then we use my modified routine to convert from supernodal_factor to ccs, which preserves zeros in L. this gives
@@ -652,7 +653,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		char *fnm;
 #pragma omp critical
 		{
-			GMRFLib_sprintf(&fnm,  "sparse-matrix-%1d-thread-%1d.txt",  count++,  omp_get_thread_num());
+			GMRFLib_sprintf(&fnm, "sparse-matrix-%1d-thread-%1d.txt", count++, omp_get_thread_num());
 			FILE *fp = fopen(fnm, "w");
 			fprintf(stderr, "write %s\n", fnm);
 			for (i = 0; i < n; i++) {

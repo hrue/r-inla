@@ -31,8 +31,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: domin-interface.c,v 1.93 2010/04/08 05:09:40 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: domin-interface.c,v 1.93 2010/04/08 05:09:40 hrue Exp $ */
 
 #include <float.h>
 #include <math.h>
@@ -51,14 +52,12 @@ int domin_setup_1_(int *nhyper, double *theta);
 
 static GMRFLib_domin_arg_tp G;				       /* hold arguments */
 
-typedef struct
-{
+typedef struct {
 	double f_best;
 	double *f_best_x;
 	int f_busy;
 	int f_first;
-}
-	Best_tp;
+} Best_tp;
 
 static Best_tp B = {
 	0.0,
@@ -149,7 +148,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	/*
 	 * this version controls AI_STORE 
 	 */
-	int i, debug=0;
+	int i, debug = 0;
 	double ffx, fx_local;
 
 #pragma omp parallel sections if(G.ai_par->huge)
@@ -183,8 +182,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	fx_local = *fx;
 
 	if (debug)
-		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n",  omp_get_thread_num(), fx_local, B.f_best,
-		       (fx_local < B.f_best ? "BETTER!" : ""));
+		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best, (fx_local < B.f_best ? "BETTER!" : ""));
 
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
@@ -202,9 +200,10 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 				memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
 
 				if (debug)
-					printf("\t%d: set: B.f_best %.12g fx %.12g\n",  omp_get_thread_num(), B.f_best,  fx_local);
+					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "Max.post.marg(theta): log(dens) = %.6f fn = %1d theta = ", -fx_local, GMRFLib_domin_get_f_count());
+					fprintf(G.ai_par->fp_log, "Max.post.marg(theta): log(dens) = %.6f fn = %1d theta = ", -fx_local,
+						GMRFLib_domin_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
 						fprintf(G.ai_par->fp_log, " %.6f", x[i]);
 					}

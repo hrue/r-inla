@@ -96,8 +96,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: blockupdate.c,v 1.76 2009/08/26 06:12:46 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: blockupdate.c,v 1.76 2009/08/26 06:12:46 hrue Exp $ */
 
 #include <stdio.h>
 #include <assert.h>

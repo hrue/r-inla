@@ -55,8 +55,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: approx-inference.c,v 1.713 2010/04/10 20:07:01 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: approx-inference.c,v 1.713 2010/04/10 20:07:01 hrue Exp $ */
 
 #include <assert.h>
 #include <time.h>
@@ -376,10 +377,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	if (ai_par->si_idx) {
 		fprintf(fp, "\tDump information\n");
-		fprintf(fp, "\t\tnd = %1d\n",  ai_par->si_idx->nd);
-		for(i=0; i<ai_par->si_idx->nd; i++){
-			fprintf(fp, "\t\t block %1d: start=%1d len=%1d tag=[%s]\n", i, ai_par->si_idx->start[i],
-				ai_par->si_idx->len[i], ai_par->si_idx->tag[i]);
+		fprintf(fp, "\t\tnd = %1d\n", ai_par->si_idx->nd);
+		for (i = 0; i < ai_par->si_idx->nd; i++) {
+			fprintf(fp, "\t\t block %1d: start=%1d len=%1d tag=[%s]\n", i, ai_par->si_idx->start[i], ai_par->si_idx->len[i], ai_par->si_idx->tag[i]);
 		}
 	}
 	fprintf(fp, "\n");
@@ -558,8 +558,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_ai_log_posterior(&ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr);
 	}
 
-	//printf("ai_marginal_hyper thread_id %d ldens %.12f sub_logdens %.12f\n", GMRFLib_thread_id, ldens, problem->sub_logdens);
-	
+	// printf("ai_marginal_hyper thread_id %d ldens %.12f sub_logdens %.12f\n", GMRFLib_thread_id, ldens, problem->sub_logdens);
+
 	/*
 	 * End of tabulate_Qfunc 
 	 */
@@ -2434,7 +2434,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 */
 
 		FIXME("OLD VERSION");
-		
+
 		if (!blockupdate_par) {
 			GMRFLib_default_blockupdate_param(&blockupdate_par);
 			free_blockpar = 1;
@@ -2849,7 +2849,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, double *Alin, GMRFLib_density_tp *** dlin,
-		    GMRFLib_ai_misc_output_tp **misc_output)
+		    GMRFLib_ai_misc_output_tp ** misc_output)
 {
 	/*
 	 * 
@@ -3041,7 +3041,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	GMRFLib_ENTER_ROUTINE;
 
-	if (misc_output){
+	if (misc_output) {
 		*misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	}
 
@@ -3245,7 +3245,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		double log_dens_mode_save = log_dens_mode;
 		int count_log_dens_mode_fail = 0;
 		int count_log_dens_mode_fail_max = ai_par->adaptive_hessian_max_trials;
-		
+
 		hessian = Calloc(ISQR(nhyper), double);
 		while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, hess_count) != GMRFLib_SUCCESS) {
 			if (!hess_count) {
@@ -3255,15 +3255,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			hess_count++;
 
 			count_log_dens_mode_fail += (log_dens_mode_save > log_dens_mode ? 1 : 0);
-			if (log_dens_mode_save > log_dens_mode && count_log_dens_mode_fail > count_log_dens_mode_fail_max){
-				if (ai_par->fp_log){
+			if (log_dens_mode_save > log_dens_mode && count_log_dens_mode_fail > count_log_dens_mode_fail_max) {
+				if (ai_par->fp_log) {
 					fprintf(stderr, "\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
 				}
 				break;
 			}
-			//printf("%.12g %.12g\n",  log_dens_mode_save,  log_dens_mode);
+			// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 			log_dens_mode_save = log_dens_mode;
-			
+
 			if (GMRFLib_request_optimiser_to_stop) {
 				fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
 				break;
@@ -3376,7 +3376,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		memcpy(inverse_hessian, hessian, ISQR(nhyper) * sizeof(double));
 		GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
 
-		if (misc_output){
+		if (misc_output) {
 			(*misc_output)->nhyper = nhyper;
 			(*misc_output)->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy((*misc_output)->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
@@ -5249,7 +5249,7 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 	char *fnm;
 	FILE *fp;
 
-	if (!d || d->nd <= 0){
+	if (!d || d->nd <= 0) {
 		return GMRFLib_SUCCESS;
 	}
 
@@ -5318,66 +5318,66 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 		fprintf(fp, " %.6g),\n", theta[nhyper - 1]);
 
 		fprintf(fp, "tags=c(");
-		for(k=0; k < d->nd; k++){
+		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "\"%s\",", d->tag[k]);
 		}
-		fseek(fp, (long)-1, SEEK_CUR);
+		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "start=c(");
-		for(k=0; k < d->nd; k++){
+		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "%1d,", d->start[k]);
 		}
-		fseek(fp, (long)-1, SEEK_CUR);
+		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "len=c(");
-		for(k=0; k < d->nd; k++){
+		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "%1d,", d->len[k]);
 		}
-		fseek(fp, (long)-1, SEEK_CUR);
+		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "mean=list(");
-		for(k=0; k < d->nd; k++){
-			fprintf(fp, "\"%s\" = c(",  d->tag[k]);
-			for(i = d->start[k]; i<d->start[k] + d->len[k]; i++){
+		for (k = 0; k < d->nd; k++) {
+			fprintf(fp, "\"%s\" = c(", d->tag[k]);
+			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				fprintf(fp, " %.6g,", ai_store->problem->mean_constr[i]);
 			}
-			fseek(fp, (long)-1, SEEK_CUR);
+			fseek(fp, (long) -1, SEEK_CUR);
 			fprintf(fp, "),\n");
 		}
-		fseek(fp, (long)-2, SEEK_CUR);		       /* yes, need also the newline */
+		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "sd=list(");
-		for(k=0; k < d->nd; k++){
-			fprintf(fp, "\"%s\" = c(",  d->tag[k]);
-			for(i = d->start[k]; i<d->start[k] + d->len[k]; i++){
+		for (k = 0; k < d->nd; k++) {
+			fprintf(fp, "\"%s\" = c(", d->tag[k]);
+			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
 				fprintf(fp, " %.6g,", (p ? sqrt(*p) : 0.0));
 			}
-			fseek(fp, (long)-1, SEEK_CUR);
+			fseek(fp, (long) -1, SEEK_CUR);
 			fprintf(fp, "),\n");
 		}
-		fseek(fp, (long)-2, SEEK_CUR);		       /* yes, need also the newline */
+		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "cor=list(");
-		for(k=0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\" = c(",  d->tag[k]);
-			for(i = d->start[k]; i<d->start[k] + d->len[k]; i++) {
+		for (k = 0; k < d->nd; k++) {
+			fprintf(fp, "\"%s\" = c(", d->tag[k]);
+			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				pi = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				for(j = d->start[k]; j<d->start[k] + d->len[k]; j++){
+				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
 					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
 					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					fprintf(fp, "%.6g,", (p ? *p/sqrt(*pi * *pj) : 0.0));
+					fprintf(fp, "%.6g,", (p ? *p / sqrt(*pi * *pj) : 0.0));
 				}
 			}
-			fseek(fp, (long)-1, SEEK_CUR);
+			fseek(fp, (long) -1, SEEK_CUR);
 			fprintf(fp, "),\n");
 		}
-		fseek(fp, (long)-2, SEEK_CUR);		       /* yes, need also the newline */
+		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "))\n");
 		fclose(fp);
 	}

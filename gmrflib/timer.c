@@ -58,8 +58,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: timer.c,v 1.58 2010/03/16 22:39:25 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: timer.c,v 1.58 2010/03/16 22:39:25 hrue Exp $ */
 
 static map_strvp *GMRFLib_timer_hashtable;
 
@@ -141,17 +142,17 @@ int GMRFLib_timer_enter(const char *name)
 		void *vpp;
 		char *cname;
 		int tp;
-	
+
 		cname = GMRFLib_strdup(name);
 
 		if (!GMRFLib_timer_hashtable) {
 			{
-				if (!GMRFLib_timer_hashtable){
+				if (!GMRFLib_timer_hashtable) {
 					int i;
 					map_strvp *tmp;
 
 					tmp = Calloc(omp_get_max_threads(), map_strvp);
-					for(i=0; i< omp_get_max_threads(); i++){
+					for (i = 0; i < omp_get_max_threads(); i++) {
 						map_strvp_init_hint(&tmp[i], 30);	/* about the number of elmements in the hash-table */
 					}
 					GMRFLib_timer_hashtable = tmp;
@@ -191,7 +192,7 @@ int GMRFLib_timer_leave(const char *name)
 		double used;
 		char *cname;
 		int ret = 0;
-		
+
 		cname = GMRFLib_strdup(name);
 
 		if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
@@ -205,7 +206,7 @@ int GMRFLib_timer_leave(const char *name)
 			ret = 1;
 		}
 
-		if (!ret){
+		if (!ret) {
 			if (p->ctime_ref < 0.0) {
 				/*
 				 * this is an ``illegal instruction''. _timer_leave is called without a corresponding call to _timer_enter.
@@ -213,7 +214,7 @@ int GMRFLib_timer_leave(const char *name)
 				 */
 			} else {
 				used = GMRFLib_cpu() - p->ctime_ref;
-				used = DMAX(0.0, used);				       /* yes */
+				used = DMAX(0.0, used);	       /* yes */
 				p->ctime_acc += used;
 				p->ctime_acc2 += SQR(used);
 				if (p->ntimes) {
@@ -223,7 +224,7 @@ int GMRFLib_timer_leave(const char *name)
 					p->ctime_min = p->ctime_max = used;
 				}
 
-				p->ctime_ref = -1.0;				       /* flag it specially */
+				p->ctime_ref = -1.0;	       /* flag it specially */
 				p->ntimes++;
 			}
 		}
@@ -336,13 +337,13 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 	const char *sep = "-------------------------------------------------------------------------------------------------------";
 	char *cname;
 	int k;
-	
+
 	if (!GMRFLib_timer_hashtable) {
 		return GMRFLib_SUCCESS;
 	}
 	ffp = (fp ? fp : stdout);
 
-	for(k=0; k<omp_get_max_threads(); k++) {
+	for (k = 0; k < omp_get_max_threads(); k++) {
 		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-41s %10s %6s %10s %10s %10s %10s\n%s\n",
 			k, "Function", "Mean", "N", "Total", "Stdev", "Min", "Max", sep);
 		if (name) {
