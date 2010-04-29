@@ -15,7 +15,7 @@
 #include "xtmpl.h"
 
 #define Mesh_V_capacity_step_size 128
-#define MESH_EPSILON 1e-18
+#define MESH_EPSILON 1e-10
 
 #ifndef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED (std::cout << "Not implemented: "	\
