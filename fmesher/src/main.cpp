@@ -156,7 +156,7 @@ int DT2D_test()
   MC.CDTInterior(cinp);
 
   M.useX11(useX11,false);
-  MC.RCDT(1.5,0.5);
+  MC.RCDT(150,0.1);
 
   return 0;
 }
@@ -294,7 +294,8 @@ int DTsphere_test()
 
 int main()
 {
-  DTsphere_test();
+  DT2D_test();
+  //  DTsphere_test();
   //  /*
   //  for (int i=0;i<1;i++) {
   //    DT2D_test();
