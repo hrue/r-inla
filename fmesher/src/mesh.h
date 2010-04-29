@@ -91,6 +91,10 @@ namespace fmesh {
       s[1] = s0[2]*s1[0]-s0[0]*s1[2];
       s[2] = s0[0]*s1[1]-s0[1]*s1[0];
     };
+    static double cross2(const Point s0, const Point s1)
+    {
+      return (s0[0]*s1[1]-s0[1]*s1[0]);
+    };
   };
 
 
@@ -198,16 +202,12 @@ namespace fmesh {
     /* Traits: */
     double edgeLength(const Dart& d) const;
     double triangleArea(int t) const;
-    void triangleCircumcentre(int t, double* c) const;
+    void triangleCircumcenter(int t, double* c) const;
     double triangleCircumcircleRadius(int t) const;
     double triangleShortestEdge(int t) const;
     double triangleLongestEdge(int t) const;
     double edgeEncroached(const Dart& d, const double s[3]) const;
     
-    double encroachedQuality(const Dart& d) const;
-    double skinnyQuality(int t) const;
-    double bigQuality(int t) const;
-
     /*!
       Compute dart half-space test for a point.
       positive if s is to the left of the edge defined by d.
