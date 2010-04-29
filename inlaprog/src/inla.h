@@ -385,6 +385,7 @@ struct inla_tp_struct {
 	char *predictor_dir;				       /* the directory */
 	double **predictor_log_prec;
 	Prior_tp predictor_prior;
+	int *predictor_cross_sumzero;
 	int predictor_compute;
 	int predictor_fixed;
 	int predictor_user_scale;

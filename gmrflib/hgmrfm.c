@@ -298,7 +298,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		nfidx = Calloc(nf, int *);
 		lfidx = Calloc(nf, int *);
 		for (k = 0; k < nf; k++) {
-g			fidx[k] = Calloc(f_graph[k]->n, int *);
+			fidx[k] = Calloc(f_graph[k]->n, int *);
 			nfidx[k] = Calloc(f_graph[k]->n, int);
 			lfidx[k] = Calloc(f_graph[k]->n, int);
 			for (m = 0; m < f_graph[k]->n; m++) {
