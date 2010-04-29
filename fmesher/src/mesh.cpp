@@ -529,7 +529,7 @@ namespace fmesh {
 
     int v;
     double s[3][3];
-    double s0[3];
+    Point s0;
 
     X11_->clear();
     for (int t=0;t<(int)nT_;t++) {
@@ -544,9 +544,9 @@ namespace fmesh {
       if (type_==Mtype_sphere) {
 	double l = std::sqrt(Vec::scalar(s0,s0));
 	Vec::rescale(s0,l);
-	double r0[3];
-	double r1[3];
-	double n[3];
+	Point r0;
+	Point r1;
+	Point n;
 	Vec::diff(r0,s[1],s[0]);
 	Vec::diff(r1,s[2],s[0]);
 	Vec::cross(n,r0,r1);
@@ -621,143 +621,228 @@ namespace fmesh {
 
   /*!
    \brief Calculate the length of an edge. 
+
+   For planes and triangular manifolds, the edge length is
+   \f$L=\|s_1-s_0\|\f$.
+
+   On the sphere, the "obvious" arccos-formula for the length of a
+   geodesic may be numerically unstable for short and long edges.  Use
+   the arctan-formula instead, that should handle all cases
+   \f$L\in[0,\pi]\f$.
+   \f{align*}{
+   L &= acos((s_0 \cdot s_1)) \\
+   \sin(L/2) &= \|s_1-s_0\|/2 \\
+   \cos(L/2) &= \|s_0+s_1\|/2 \\
+   L &= 2 \cdot atan2(\|s_1-s_0\|,\|s_0+s_1\|)
+   \f}
    */
   double Mesh::edgeLength(const Dart& d) const
   {
     int t(d.t());
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
-    double len;
-    double s0[3];
-    double s1[3];
-
     int v0 = TV_[d.t()][d.vi()];
     Dart dh(d);
     dh.alpha0();
     int v1 = TV_[dh.t()][dh.vi()];
-    for (int dim=0;dim<3;dim++) {
-      s0[dim] = S_[v0][dim];
-      s1[dim] = S_[v1][dim];
-    }
+    const double* s0 = S_[v0];
+    const double* s1 = S_[v1];
+    Point e;
+    Vec::diff(e,s1,s0);
+    double len = Vec::length(e);
 
-    switch (type_) {
-    case Mesh::Mtype_manifold:
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      len = 1.0;
-      break;
-    case Mesh::Mtype_plane:
-      double e[3];
-      e[0] = s1[0]-s0[0];
-      e[1] = s1[1]-s0[1];
-      e[2] = s1[2]-s0[2];
-      len = std::sqrt(e[0]*e[0]+e[1]*e[1]+e[2]*e[2]);
-      break;
-    case Mesh::Mtype_sphere:
-      /*!
-	\f{align*}{
-	L &= acos((s_0 \cdot s_1)) \\
-	L &= 2 \cdot asin(\|s_1-s_0\|/2) \\
-	L &= 2 \cdot acos(\|s_1+s_0\|/2) \\
-	L &= 2 \cdot atan2(\|s_1-s_0\|,\|s_0+s_1\|)
-	\f}
-       */
-      /*
-      cosangle = Vec::scalar(s0,s1);
-      double s01[3];
-      Vec::cross(s01,s0,s1);
-      sinangle = Vec::scalar(s0,s1);
-      len = std::acos(std::min(1.0,std::max(-1.0,len)));
-      */
-      break;
+    if (type_==Mesh::Mtype_sphere) {
+      Point ssum;
+      Vec::sum(ssum,s1,s0);
+      len = 2.0*std::atan2(len,Vec::length(ssum));
     }
 
     return len;
   }
 
+  /*!
+    \brief Calculate a triangle area.
+
+    Notation:\n
+    \f$s_k\f$ are the cartesian coordinates of vertex \f$k\f$.\n
+    \f$e_0=s_2-s_1\f$ is the CCW edge vector opposite node 0,
+    and similarly for the other nodes.\n
+    \f$n_0=e_2\times(-e_1)=e_1\times e_2\f$ is an unnormalised
+    outwards triangle normal vector.
+
+    For planes, calculate the signed area, from the z-component of
+    \f$(n_0+n_1+n_2)/6\f$.\n
+    For manifolds, calculate the absolute area, from
+    \f$A=\|n_0+n_1+n_3\|/6\f$.\n
+    For spheres, calculate the CCW interior geodesic triangle area,
+    with range \f$[0,2\pi)\f$.
+
+    The spherical geodesic triangle area is given by the spherical
+    excess formula \f$A = \theta_0+\theta_1+\theta_2-\pi\f$, where
+    \f$\theta_i\f$ is the interior angle at node i.
+   \f{align*}{
+   d_1 &= e_1-s_0(s_0\cdot e_1) \\
+   d_2 &= e_2-s_0(s_0\cdot e_2) \\
+   \|d_1\| \|d_2\| \sin \theta_0 &= s_0\cdot(d_1\times d_2) \\
+   \|d_1\| \|d_2\| \cos \theta_0 &= - (d_1 \cdot d_2) \\
+   \theta_0 &= \mbox{atan2}(s_0\cdot(d_1\times d_2),- (d_1 \cdot d_2))
+               \mod [0,2\pi)
+   \f}
+   Rewrite in terms of the original edge vectors:
+   \f{align*}{
+   s_0\cdot(d_1\times d_2) &= s_0\cdot(e_1\times e_2
+                             - (e_1\times s_0)(s_0\cdot e_2)
+                             - (e_2\times s_0)(s_0\cdot e_1))
+                       = s_0\cdot(e_1\times e_2) \\
+   (d_1\cdot d_2) &= (e_1\cdot e_2) - (s_0\cdot e_1)(s_0\cdot e_2) \\
+   \theta_0 &= atan2(s_0\cdot(e_1\times e_2),
+                      (s_0\cdot e_1)(s_0\cdot e_2) - (e_1 \cdot e_2))
+	       \mod [0,2\pi)
+   \f}
+   The two remaining angles, \f$\theta_1\f$ and \f$\theta_2\f$, are
+   obtained by permuting indices.
+
+   If two of the vertices are antipodes, say \f$s_1=-s_0\f$, the
+   formula breaks down, with both arguments to \p atan2 equal to zero.
+   Such triangles are not uniquely defined, since the geodesic between
+   \f$s_0\f$ and \f$s_1\f$ is not unique.
+
+  */
+  /*
+    Don't use the following, since they rely on the edge lengths to be known.
+
+    Heron's formula:
+    a,b,c edge lengths
+    s = (a+b+c)/2
+    Area = sqrt(s(s-a)(s-b)(s-c)) 
+    
+    Numerically stable version from
+    http://www.eecs.berkeley.edu/~wkahan/Triangle.pdf
+    a >= b >= c
+    Area = sqrt( (a+(b+c)) (c-(a-b)) (c+(a-b)) (a+(b-c)) )/4
+
+    l'Huilier's Theorem for spherical triangle areas:
+    a,b,c edge lengths
+    s = (a+b+c)/2
+    tan(E / 4) = sqrt(tan(s / 2) 
+                      tan((s - a) / 2)
+		      tan((s - b) / 2)
+		      tan((s - c) / 2))
+    Area = E  (E = spherical excess)
+  */
   double Mesh::triangleArea(int t) const
   {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
+    Dart dh(Dart(*this,t));
+    int v0 = TV_[dh.t()][dh.vi()];
+    dh.orbit2();
+    int v1 = TV_[dh.t()][dh.vi()];
+    dh.orbit2();
+    int v2 = TV_[dh.t()][dh.vi()];
+    const double* s0 = S_[v0];
+    const double* s1 = S_[v1];
+    const double* s2 = S_[v2];
+    Point e0, e1, e2;
+    Vec::diff(e0,s2,s1);
+    Vec::diff(e1,s0,s2);
+    Vec::diff(e2,s1,s0);
+
+    double area;
+
     switch (type_) {
     case Mesh::Mtype_manifold:
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      return 1.0;
+      {
+	/* Calculate the upwards unscaled normal(s), calculate length. */
+	Point n0, n1, n2;
+	Vec::cross(n0,e1,e2);
+	Vec::cross(n1,e2,e0);
+	Vec::cross(n2,e0,e1);
+	Vec::accum(n0,n1);
+	Vec::accum(n0,n2);
+	area = Vec::length(n0)/6.0;
+      }
       break;
     case Mesh::Mtype_plane:
       {
-	/*
-	  Heron's formula:
-	  a,b,c edge lengths
-	  s = (a+b+c)/2
-	  Area = sqrt(s(s-a)(s-b)(s-c)) 
-
-	  Numerically stable version from
-	  http://www.eecs.berkeley.edu/~wkahan/Triangle.pdf
-  	  a >= b >= c
-	  Area = sqrt( (a+(b+c)) (c-(a-b)) (c+(a-b)) (a+(b-c)) )/4
-
-	  TODO: Compare with simple cross-product length.
-	*/
-
-	Dart dh(*this,t);
-	double a(edgeLength(dh));
-	double b;
-	double c;
-	dh.orbit2();
-	double l(edgeLength(dh));
-	if (a<l) {
-	  b = a; a = l;
-	} else
-	  b = l;
-	dh.orbit2();
-	l = edgeLength(dh);
-	if (b<l) {
-	  if (a<l) {
-	    c = b; b = a; a = l;
-	  } else {
-	    c = b; b = l;
-	  }
-	} else
-	  c = l;
-	return (0.25*std::sqrt((a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c))));
+	/* Calculate the upwards unscaled normal(s), extract z-component. */
+	area = (Vec::cross2(e1,e2)+
+		Vec::cross2(e2,e0)+
+		Vec::cross2(e0,e1))/6.0;
       }
       break;
     case Mesh::Mtype_sphere:
       {
+	/* Calculate the spherical excess. */
+	Point n0, n1, n2;
+	Vec::cross(n0,e1,e2);
+	Vec::cross(n1,e2,e0);
+	Vec::cross(n2,e0,e1);
+	/* Note: std::fmod calculates signed modulus, so use other trick. */
+	int nneg = 0;
+	double theta0 = std::atan2(Vec::scalar(s0,n0),
+				   Vec::scalar(s0,e1)
+				   *Vec::scalar(s0,e2)
+				   -Vec::scalar(e1,e2));
+	if (theta0<0) nneg++;
+	double theta1 = std::atan2(Vec::scalar(s1,n1),
+				   Vec::scalar(s1,e2)
+				   *Vec::scalar(s1,e0)
+				   -Vec::scalar(e2,e0));
+	if (theta1<0) nneg++;
+	double theta2 = std::atan2(Vec::scalar(s2,n2),
+				   Vec::scalar(s2,e0)
+				   *Vec::scalar(s2,e1)
+				   -Vec::scalar(e0,e1));
+	if (theta2<0) nneg++;
+	area = theta0+theta1+theta2+static_cast<double>(2*nneg-1)*M_PI;
 	/*
-	  l'Huilier's Theorem:
-	  a,b,c edge lengths
-	  s = (a+b+c)/2
-	  tan(E / 4) = sqrt(tan(s / 2) 
-	                    tan((s - a) / 2)
-			    tan((s - b) / 2)
-			    tan((s - c) / 2))
-	  Area = E  (E = spherical excess)
+	  // L'Huilier code, don't use:
+	  Dart dh(*this,t);
+	  double a(edgeLength(dh));
+	  dh.orbit2();
+	  double b(edgeLength(dh));
+	  dh.orbit2();
+	  double c(edgeLength(dh));
+	  double s((a+b+c)/2.0);
+	  double tanE4(std::sqrt(std::tan(s/2.0)*
+	                         std::tan((s-a)/2.0)*
+				 std::tan((s-b)/2.0)*
+				 std::tan((s-c)/2.0)));
+          area = 4.0*std::atan(tanE4);
 	*/
-	
-	Dart dh(*this,t);
-	double a(edgeLength(dh));
-	dh.orbit2();
-	double b(edgeLength(dh));
-	dh.orbit2();
-	double c(edgeLength(dh));
-	double s((a+b+c)/2.0);
-	double tanE4(std::sqrt(std::tan(s/2.0)*
-			       std::tan((s-a)/2.0)*
-			       std::tan((s-b)/2.0)*
-			       std::tan((s-c)/2.0)));
-	
-	return (4.0*std::atan(tanE4));
       }
       break;
+    default:
+      /* ERROR: This should never be reached. */
+      NOT_IMPLEMENTED;
+      area = 0.0;
     }
 
-    return 1.0;
+    return area;
   }
 
-  void Mesh::triangleCircumcentre(int t, double* c) const
+  /*!
+    Calculate triangle circumcenter
+
+    For planes, we use a linear combination of the vertices, with
+    weights obtained from
+    http://wapedia.mobi/en/Circumscribed_circle#2. \n
+    Rewriting in our notation, the weights and circumcenter are given by
+    \f{align*}{
+    a_0  &= - \frac{\|e_0\|^2 (e_1\cdot e_2)}{2\|e_1\times e_2\|^2}
+    = \frac{\|e_0\|^2}{4 A \tan(\theta_0)} \\
+    c &= a_0s_0+a_1s_1+a_2s_2
+    \f}
+    where formulas for \f$a_1\f$ and \f$a_2\f$ are given by index
+    permutation.
+    
+    On the sphere, the normalised flat triangle normal is the circumcenter.
+    
+    \see Mesh::triangleArea
+    \see Mesh::triangleCircumcircleRadius
+  */
+  void Mesh::triangleCircumcenter(int t, double* c) const
   {
     if ((t<0) || (t>=(int)nT_)) {
       c[0] = 0.0;
@@ -769,40 +854,50 @@ namespace fmesh {
     int v0 = TV_[t][0];
     int v1 = TV_[t][1];
     int v2 = TV_[t][2];
+    const double* s0 = S_[v0];
+    const double* s1 = S_[v1];
+    const double* s2 = S_[v2];
+    Point e0, e1, e2;
+    Vec::diff(e0,s2,s1);
+    Vec::diff(e1,s0,s2);
+    Vec::diff(e2,s1,s0);
 
     switch (type_) {
     case Mesh::Mtype_manifold:
-      /* TODO: Implement. */
+      /* TODO: Implement? Need more manifold theory for that! */
       NOT_IMPLEMENTED;
-      c[0] = 0.0;
-      c[1] = 0.0;
-      c[2] = 0.0;
-      return;
+      {
+	/* Calculate centroid instead of circumcenter. */
+	Vec::copy(c,s0);
+	Vec::rescale(c,1.0/3.0);
+	Vec::accum(c,s1,1/3.0);
+	Vec::accum(c,s2,1/3.0);
+      }
       break;
     case Mesh::Mtype_plane:
-      /* e = ?
-         sv = ?
-         sm = ?
-       */
       {
-	/* TODO: actually compute the circumcentre. ;-) */
-	Vec::copy(c,S_[v0]);
-	Vec::rescale(c,1/3.0);
-	Vec::accum(c,S_[v1],1/3.0);
-	Vec::accum(c,S_[v2],1/3.0);
-	return;
+	Point n0, n1, n2;
+	Vec::cross(n0,e1,e2);
+	Vec::cross(n1,e2,e0);
+	Vec::cross(n2,e0,e1);
+	Vec::accum(n0,n1);
+	Vec::accum(n0,n2);
+	double scale(-4.5/Vec::scalar(n0,n0));
+	Vec::scale(c,s0,scale*Vec::scalar(e0,e0)*Vec::scalar(e1,e2));
+	Vec::accum(c,s1,scale*Vec::scalar(e1,e1)*Vec::scalar(e2,e0));
+	Vec::accum(c,s2,scale*Vec::scalar(e2,e2)*Vec::scalar(e0,e1));
       }
       break;
     case Mesh::Mtype_sphere:
       {
-	double e1[3];
-	double e2[3];
-	Vec::copy(c,S_[v0]);
-	Vec::diff(e1,S_[v1],c);
-	Vec::diff(e2,S_[v2],c);
+	/* The triangle normal is equal to the circumcenter. */
+	Point tmp;
 	Vec::cross(c,e1,e2);
-	Vec::rescale(c,1/Vec::length(c));
-	return;
+	Vec::cross(tmp,e2,e0);
+	Vec::accum(c,tmp);
+	Vec::cross(tmp,e0,e1);
+	Vec::accum(c,tmp);
+	Vec::rescale(c,1.0/Vec::length(c));
       }
       break;
     }
@@ -810,49 +905,46 @@ namespace fmesh {
     return;
   }
 
+  /*!
+    \brief Calculate the radius of the triangle circumcircle
+
+    We use the formula given at
+    http://wapedia.mobi/en/Circumscribed_circle#2. \n
+    Rewriting in our notation, the radius of the circumcircle
+    is given by
+    \f{align*}{
+    r  &= \frac{3\|e_0\| \|e_1\| \|e_2\|}{2\|n_0+n_1+n_2\|}
+   \f}
+
+    \see Mesh::triangleArea
+    \see Mesh::triangleCircumcenter
+   */
   double Mesh::triangleCircumcircleRadius(int t) const
   {
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    switch (type_) {
-    case Mesh::Mtype_manifold:
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      return 1.0;
-      break;
-    case Mesh::Mtype_plane:
-      /* e = ?
-         sv = ?
-         sm = ?
-       */
-      {
-	Dart dh(*this,t);
-	double l0 = edgeLength(dh);
-	dh.orbit2();
-	double l1 = edgeLength(dh);
-	dh.orbit2();
-	double l2 = edgeLength(dh);
-	return ((l0*l1*l2)/
-		std::sqrt((l0+l1+l2)*
-			  (l1+l2-l0)*
-			  (l2+l0-l1)*
-			  (l0+l1-l2)));
-      }
-      break;
-    case Mesh::Mtype_sphere:
-      {
-	int v0 = TV_[t][0];
-	double p0[3];
-	double c[3];
-	Vec::copy(p0,S_[v0]);
-	triangleCircumcentre(t,c);
-	Vec::accum(p0,c,-Vec::scalar(c,p0));
-	return Vec::length(p0);
-      }
-      break;
-    }
+    int v0 = TV_[t][0];
+    int v1 = TV_[t][1];
+    int v2 = TV_[t][2];
+    const double* s0 = S_[v0];
+    const double* s1 = S_[v1];
+    const double* s2 = S_[v2];
+    Point e0, e1, e2;
+    Vec::diff(e0,s2,s1);
+    Vec::diff(e1,s0,s2);
+    Vec::diff(e2,s1,s0);
 
-    return 1.0;
+    Point n0, n1, n2;
+    Vec::cross(n0,e1,e2);
+    Vec::cross(n1,e2,e0);
+    Vec::cross(n2,e0,e1);
+    Vec::accum(n0,n1);
+    Vec::accum(n0,n2);
+
+    return ((3.0
+	     *Vec::length(e0)*Vec::length(e1)
+	     *Vec::length(e2))
+	    /(2.0*Vec::length(n0)));
   }
 
   double Mesh::triangleShortestEdge(int t) const
@@ -971,41 +1063,6 @@ namespace fmesh {
     return 0.0;
   }
 
-  double Mesh::encroachedQuality(const Dart& d) const
-  /* > --> encroached */
-  {
-    int t(d.t());
-    if ((t<0) || (t>=(int)nT_)) return -1.0;
-
-    Dart dh(d);
-    dh.orbit2rev();
-    
-    double encr = edgeEncroached(d,S_[TV_[t][dh.vi()]]);
-
-    dh.orbit2rev();
-    std::cout << "encroachedQ("
-	      << TV_[t][d.vi()] << "," << TV_[t][dh.vi()]
-	      << ") = " << encr << std::endl;
-
-    return encr;
-  }
-
-  double Mesh::skinnyQuality(int t) const
-  {
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
-
-    double skinny = (triangleCircumcircleRadius(t) / 
-		     triangleShortestEdge(t));
-
-    //    std::cout << "skinnyQ(" << t << ") = " << skinny << std::endl;
-
-    return skinny;
-  }
-
-  double Mesh::bigQuality(int t) const
-  {
-    return triangleLongestEdge(t);
-  }
 
 
 

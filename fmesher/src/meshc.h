@@ -42,14 +42,16 @@ namespace fmesh {
     typedef std::map<Dart,double> map_type;
     typedef map_type::value_type map_key_type;
     typedef std::set<MCQdv> set_type;
+    MeshC* MC_;
     map_type darts_; /*!< Darts, mapped to quality */
     set_type darts_quality_;
     /*!< Set of "bad quality" (calcQ>0.0) segment darts */
     bool only_quality_;
     /*!< If true, only store darts that are of bad quality */
   public:
-    MCQ(bool only_quality) : darts_(), darts_quality_(),
-			     only_quality_(only_quality) {};
+    MCQ(MeshC* MC, bool only_quality) : MC_(MC),
+					darts_(), darts_quality_(),
+					only_quality_(only_quality) {};
     virtual double calcQ(const Dart& d) const = 0;
     void clear() {
       darts_.clear();
@@ -75,7 +77,7 @@ namespace fmesh {
     /*!< Larger values are included in the quality set */
     virtual double calcQtri(const Dart& d) const = 0;
   public:
-    MCQtri(bool only_quality, double quality_limit);
+    MCQtri(MeshC* MC, bool only_quality, double quality_limit);
     void setQ(double quality_limit);
     void insert(const Dart& d) {
       MCQ::insert(Dart(*d.M(),d.t()));
@@ -103,14 +105,14 @@ namespace fmesh {
   class MCQskinny : public MCQtri {
   private:
   public:
-    MCQskinny() : MCQtri(true,1.42) {};
+    MCQskinny(MeshC* MC) : MCQtri(MC,true,1.42) {};
     virtual double calcQtri(const Dart& d) const;
   };
 
   class MCQbig : public MCQtri {
   private:
   public:
-    MCQbig() : MCQtri(true,1.0) {};
+    MCQbig(MeshC* MC) : MCQtri(MC,true,1.0) {};
     virtual double calcQtri(const Dart& d) const;
   };
 
@@ -119,7 +121,7 @@ namespace fmesh {
     double encroached_limit_;
     /*!< Larger values are included in the quality set */
   public:
-    MCQsegm() : MCQ(false), encroached_limit_(10*MESH_EPSILON) {};
+    MCQsegm(MeshC* MC) : MCQ(MC,false), encroached_limit_(10*MESH_EPSILON) {};
     double calcQ(const Dart& d) const;
     bool segm(const Dart& d) const; /*! true if d or d.orbit1() is found */
   };
@@ -189,9 +191,13 @@ namespace fmesh {
     bool buildRCDT();
 
   public:
-    MeshC() : M_(NULL), state_(State_noT) {};
+    MeshC() : M_(NULL), boundary_(this), interior_(this),
+	      skinny_(this), big_(this), state_(State_noT),
+	      is_pruned_(false) {};
     MeshC(Mesh* M, bool with_conv_hull)
-      : M_(M), state_(State_noT), is_pruned_(false) {
+      : M_(M), boundary_(this), interior_(this),
+	skinny_(this), big_(this), state_(State_noT),
+	is_pruned_(false) {
       if (with_conv_hull)
 	state_ = State_CHT;
     };
@@ -209,6 +215,10 @@ namespace fmesh {
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
+
+    double encroachedQuality(const Dart& d) const;
+    double skinnyQuality(int t) const;
+    double bigQuality(int t) const;
 
     /*!
       \brief Local Optimisation Procedure (LOP)
