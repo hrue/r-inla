@@ -61,31 +61,42 @@ __BEGIN_DECLS
 
 /*
  */
+
+GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash);
+GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash);
+char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+char *GMRFLib_strdup(const char *ptr);
+char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 double GMRFLib_eps(double power);
 double GMRFLib_max_value(double *x, int n);
 double GMRFLib_min_value(double *x, int n);
 double GMRFLib_signed_pow(double x, double power);
-int GMRFLib_which(double val, double *array, int len);
+int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
-int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
 int GMRFLib_dcmp_abs(const void *a, const void *b);
+int GMRFLib_fpe(void);
+int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format);
 int GMRFLib_icmp(const void *a, const void *b);
-int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
-int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *));
-int GMRFLib_unique_additive(int *n, double *x, double eps);
-int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
-int GMRFLib_unique_relative(int *n, double *x, double eps);
-int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps);
-int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
-
-char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_is_int(char *str, int *value);
+int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
-int GMRFLib_is_int(char *str, int *value);
+int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
+int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *));
+int GMRFLib_scale_vector(double *x, int n);
+int GMRFLib_unique_additive(int *n, double *x, double eps);
+int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
+int GMRFLib_unique_relative(int *n, double *x, double eps);
+int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps);
+int GMRFLib_which(double val, double *array, int len);
+map_id *GMRFLib_duplicate_map_id(map_id * hash);
+map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
+mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
+mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
@@ -94,19 +105,6 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
-
-char *GMRFLib_strdup(const char *ptr);
-char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
-int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format);
-
-mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
-mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
-map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
-map_id *GMRFLib_duplicate_map_id(map_id * hash);
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash);
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash);
-
-int GMRFLib_fpe(void);
 
 __END_DECLS
 #endif

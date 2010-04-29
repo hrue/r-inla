@@ -120,7 +120,7 @@ static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION;
  *
  * \sa \c GMRFLib_free_hgmrfm()
  */
-int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unstruct, double **logprec_unstruct_omp,
+int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *cross_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
@@ -174,6 +174,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unst
 
 	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, *ilist = NULL, *jlist = NULL, ntriples = 0, ntriples_max = 0, *idxs = NULL,
 	    *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
+	int nu=0, *uniq = NULL;
 	double *Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -503,6 +504,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unst
 			nconstr += (f_sumzero[k] ? 1 : 0);
 		}
 	}
+
+	GMRFLib_iuniques(&nu, &uniq, cross_sumzero, n);
+	nconstr += nu;
+
 	if (nf && f_constr) {
 		for (k = 0; k < nf; k++) {
 			fc = f_constr[k];
@@ -547,6 +552,18 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unst
 				}
 			}
 		}
+
+		if (nu){
+			for(k = 0; k<nu; k++){
+				ii = uniq[k];
+				for (i = 0; i < n; i++){
+					constr->a_matrix[i * constr->nc + constr_no] = (cross_sumzero[i] == ii ? 1.0 : 0.0);
+				}
+				constr->e_vector[constr_no] = 0.0;
+				constr_no++;
+			}
+		}
+
 		GMRFLib_ASSERT(constr_no == constr->nc, GMRFLib_ESNH);
 		GMRFLib_prepare_constr(constr, (*hgmrfm)->graph, 0);
 		(*hgmrfm)->constr = constr;
@@ -561,6 +578,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unst
 	Free(ilist);
 	Free(jlist);
 	Free(Qijlist);
+	Free(uniq);
 	if (nf) {
 		for (k = 0; k < nf; k++) {
 			for (m = 0; m < f_graph[k]->n; m++) {
