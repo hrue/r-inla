@@ -377,7 +377,7 @@
 }
 
 `inla.predictor.section` =
-    function(file, n, predictor.spec, file.offset)
+    function(file, n, predictor.spec, file.offset, data.dir)
 {
     cat("[Predictor]\n", sep = " ", file = file,  append = TRUE)
     cat("type = predictor\n", sep = " ", file = file,  append = TRUE)
@@ -404,6 +404,15 @@
     if(!is.null(predictor.spec$predictor.usermap)){
         cat("predictor.usermap=", predictor.spec$predictor.usermap, "\n", sep=" ", file = file, append = TRUE)
     }
+    if (!is.null(predictor.spec$cross) && length(predictor.spec$cross) > 0) {
+        if (length(predictor.spec$cross) != n)
+            stop(paste("Length of cross does not match length of predictor", length(predictor.spec$cross), "!=", n))
+        file.cross = inla.tempfile(tmpdir=data.dir)
+        write(predictor.spec$cross, ncol=1, file=file.cross)
+        fnm = gsub(data.dir, "$DATADIR", file.cross, fixed=TRUE)
+        cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
+    }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

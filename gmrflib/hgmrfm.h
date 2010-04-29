@@ -127,8 +127,9 @@ typedef struct {
 	int tp_idx;
 } GMRFLib_hgmrfm_type_tp;
 
-int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, double *logprec_unstruct, double **logprec_unstruct_omp,
-			int nf, int **c, double **w, GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
+int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
+			int nf, int **c, double **w,
+			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, int nlc, double **lc_w, double *lc_precision);
