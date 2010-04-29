@@ -915,8 +915,8 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx)
 	}
 	
 	ixx = Calloc(nx, int);
-	memcpy(ixx, ix, n*sizeof(int));
-	qsort((void *)ixx, (size_t) n, sizeof(int),  GMRFLib_icmp);
+	memcpy(ixx, ix, nx*sizeof(int));
+	qsort((void *)ixx, (size_t) nx, sizeof(int),  GMRFLib_icmp);
 
 	for(j = nu = i = 0; i<nx; i++){
 		if (ixx[i] && (!i || ixx[i] != ixx[j])){
@@ -924,12 +924,12 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx)
 			j = i;
 		}
 	}
-	printf("nu %d\n",  nu);
+	//printf("nu %d\n",  nu);
 	un = Calloc(nu, int);
 
 	for(j = nu = i = 0; i<nx; i++){
 		if (ixx[i] && (!i || ixx[i] != ixx[j])){
-			printf("\t un[%1d] = %d\n",  nu, ixx[i]);
+			//printf("\t un[%1d] = %d\n",  nu, ixx[i]);
 			un[nu++] = ixx[i];
 			j = i;
 		}

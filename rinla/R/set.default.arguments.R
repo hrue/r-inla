@@ -258,6 +258,9 @@
          ##:ARGUMENT: initial The value of the log precision of the artificial noise
          initial=NULL,
 
+         ##:ARGUMENT: cross Cross-sum-to-zero constraints
+         cross=NULL,
+         
          ##:ARGUMENT: predictor.usermap One of the predfined mappings to compute new marginals for
          predictor.usermap=NULL)
     ##:SEEALSO: inla
