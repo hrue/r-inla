@@ -4793,7 +4793,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = PREDICTOR 
 	 */
 	char *secname = NULL, *msg = NULL, *filename;
-	int noffsets;
+	int i, noffsets;
 	double tmp;
 	map_table_tp *um;
 
@@ -4811,6 +4811,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->predictor_dir);
 	}
+
 	inla_read_prior(mb, ini, sec, &(mb->predictor_prior), "LOGGAMMA");
 
 	mb->predictor_usermap = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "PREDICTOR.USERMAP"), NULL));
@@ -4868,6 +4869,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tn=[%1d]\n", mb->predictor_n);
 	}
+
 	mb->predictor_compute = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);	// mb->output->cpo || mb->output->dic
 	if (G.hyper_mode) {
 		if (mb->predictor_compute) {
@@ -4891,6 +4893,36 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_n, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->offset = Calloc(mb->predictor_n, double);
+	}
+
+	mb->predictor_cross_sumzero = NULL;
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS_CONSTRAINT"), NULL));
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS.CONSTRAINT"), filename));
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSSCONSTRAINT"), filename));
+
+	double *dcross = NULL;
+	int *icross = NULL, len_cross=0, nu=0;
+	
+	if (filename) {
+		inla_read_data_all(&dcross, &len_cross, filename);
+		if (len_cross > 0){
+			if (len_cross != mb->predictor_n){
+				GMRFLib_sprintf(&msg, "Length of cross-sum-to-zero is not equal to the length of the linear predictor: %1d != %1d\n",
+						len_cross, mb->predictor_n);
+			}
+			icross = Calloc(len_cross, int);
+			for(i=0; i<len_cross; i++)
+				icross[i] = (int) dcross[i];
+			Free(dcross);
+			mb->predictor_cross_sumzero = icross;
+		}
+	}
+	if (mb->verbose && mb->predictor_cross_sumzero) {
+		GMRFLib_iuniques(&nu, NULL, mb->predictor_cross_sumzero, mb->predictor_n);
+		printf("\t\tRead cross-sum-to-zero from file[%s]: %1d constraints\n", filename, nu);
+		for (i = 0; i < IMIN(PREVIEW, mb->predictor_n); i++) {
+			printf("\t\t\t%1d %1d\n", i, mb->predictor_cross_sumzero[i]);
+		}
 	}
 
 	inla_parse_output(mb, ini, sec, &(mb->predictor_output));
@@ -11313,7 +11345,7 @@ int inla_INLA(inla_tp * mb)
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
-	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, NULL, mb->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
 			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_w, mb->lc_prec);
@@ -11507,11 +11539,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d]\n", __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter);
 	}
-	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, NULL, mb_old->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, mb_old->predictor_cross_sumzero, NULL, mb_old->predictor_log_prec,
 			    mb_old->nf, mb_old->f_c, mb_old->f_weights, mb_old->f_graph, mb_old->f_Qfunc, mb_old->f_Qfunc_arg, mb_old->f_sumzero, mb_old->f_constr,
 			    mb_old->ff_Qfunc, mb_old->ff_Qfunc_arg,
 			    mb_old->nlinear, mb_old->linear_covariate, mb_old->linear_precision, mb_old->nlc, mb_old->lc_w, mb_old->lc_prec);
-	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, NULL, mb_new->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, mb_new->predictor_cross_sumzero, NULL, mb_new->predictor_log_prec,
 			    mb_new->nf, mb_new->f_c, mb_new->f_weights, mb_new->f_graph, mb_new->f_Qfunc, mb_new->f_Qfunc_arg, mb_new->f_sumzero, mb_new->f_constr,
 			    mb_new->ff_Qfunc, mb_new->ff_Qfunc_arg,
 			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision, mb_new->nlc, mb_new->lc_w, mb_new->lc_prec);
