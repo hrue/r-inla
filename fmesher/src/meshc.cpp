@@ -124,7 +124,7 @@ namespace fmesh {
 
 
   double MeshC::encroachedQuality(const Dart& d) const
-  /* > --> encroached */
+  /* >0 --> encroached */
   {
     int t(d.t());
     if ((t<0) || (t>=(int)M_->nT())) return -1.0;
@@ -156,8 +156,8 @@ namespace fmesh {
 
   double MeshC::bigQuality(int t) const
   {
-    //    return M_->triangleLongestEdge(t);
-    return M_->triangleArea(t);
+    return M_->triangleLongestEdge(t);
+    //return M_->triangleArea(t);
   }
 
 
@@ -490,6 +490,32 @@ namespace fmesh {
   };
 
 
+
+
+
+
+
+
+
+  bool MeshC::buildRCDTlookahead(MCQsegm* segm, const double* c)
+  {
+    for (MCQ::const_iterator ci = segm->begin();
+	 ci != segm->end(); ci++) {
+      Dart dhc(ci->first);
+      double encr = M_->edgeEncroached(dhc,c);
+      if (encr>0.0) {
+	std::cout << "Potentially encroached segment: "
+		  << dhc << " "
+		  << encr << std::endl;
+	bisectEdgeDelaunay(dhc);
+	return false;
+      }
+    }
+    return true;
+  }
+
+
+
   bool MeshC::buildRCDT()
   {
     if (state_<State_RCDT)
@@ -537,23 +563,33 @@ namespace fmesh {
 	bisectEdgeDelaunay(dh);
 	continue;
       }
-      
-      /* TODO: proper look-ahead algorithm. */
 
+      /*      
       dh = skinny_.quality();
       if (!dh.isnull()) {
 	std::cout << "Skinny triangle: "
 		  << dh << " "
 		  << skinny_.quality(dh) << std::endl;
+	Point c;
+	M_->triangleCircumcenter(dh.t(),c);
+	if ((!buildRCDTlookahead(&boundary_,c)) ||
+	    (!buildRCDTlookahead(&interior_,c)))
+	  continue;
 	killTriangle(dh);
 	continue;
       }
+      */
       
       dh = big_.quality();
       if (!dh.isnull()) {
 	std::cout << "Big triangle: "
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
+	Point c;
+	M_->triangleCircumcenter(dh.t(),c);
+	if ((!buildRCDTlookahead(&boundary_,c)) ||
+	    (!buildRCDTlookahead(&interior_,c)))
+	  continue;
 	killTriangle(dh);
 	continue;
       }
