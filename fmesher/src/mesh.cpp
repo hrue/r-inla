@@ -619,6 +619,9 @@ namespace fmesh {
 
 
 
+  /*!
+   \brief Calculate the length of an edge. 
+   */
   double Mesh::edgeLength(const Dart& d) const
   {
     int t(d.t());
@@ -651,8 +654,21 @@ namespace fmesh {
       len = std::sqrt(e[0]*e[0]+e[1]*e[1]+e[2]*e[2]);
       break;
     case Mesh::Mtype_sphere:
-      len = s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2];
+      /*!
+	\f{align*}{
+	L &= acos((s_0 \cdot s_1)) \\
+	L &= 2 \cdot asin(\|s_1-s_0\|/2) \\
+	L &= 2 \cdot acos(\|s_1+s_0\|/2) \\
+	L &= 2 \cdot atan2(\|s_1-s_0\|,\|s_0+s_1\|)
+	\f}
+       */
+      /*
+      cosangle = Vec::scalar(s0,s1);
+      double s01[3];
+      Vec::cross(s01,s0,s1);
+      sinangle = Vec::scalar(s0,s1);
       len = std::acos(std::min(1.0,std::max(-1.0,len)));
+      */
       break;
     }
 
@@ -687,6 +703,8 @@ namespace fmesh {
 
 	Dart dh(*this,t);
 	double a(edgeLength(dh));
+	double b;
+	double c;
 	dh.orbit2();
 	double l(edgeLength(dh));
 	if (a<l) {
@@ -694,7 +712,6 @@ namespace fmesh {
 	} else
 	  b = l;
 	dh.orbit2();
-	double c;
 	l = edgeLength(dh);
 	if (b<l) {
 	  if (a<l) {
@@ -704,7 +721,7 @@ namespace fmesh {
 	  }
 	} else
 	  c = l;
-	return (0.25*std::sqrt((a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c)));
+	return (0.25*std::sqrt((a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c))));
       }
       break;
     case Mesh::Mtype_sphere:
@@ -768,30 +785,13 @@ namespace fmesh {
          sm = ?
        */
       {
-	c[0] = 0.0;
-	c[1] = 0.0;
-	c[2] = 0.0;
-	/*
-	double s0[3];
-	s0[0] = S_[v0][0];
-	s0[1] = S_[v0][1];
-	s0[2] = S_[v0][2];
-	double e[3];
-	e[0] = S_[v1][0]-s0[0];
-	e[1] = S_[v1][1]-s0[1];
-	e[2] = S_[v1][2]-s0[2];
-	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
-	double sv[3];
-	sv[0] = s[0]-s0[0];
-	sv[1] = s[1]-s0[1];
-	sv[2] = s[2]-s0[2];
-	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
-	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
-	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
-	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
-	*/
+	/* TODO: actually compute the circumcentre. ;-) */
+	Vec::copy(c,S_[v0]);
+	Vec::rescale(c,1/3.0);
+	Vec::accum(c,S_[v1],1/3.0);
+	Vec::accum(c,S_[v2],1/3.0);
+	return;
       }
-      return;
       break;
     case Mesh::Mtype_sphere:
       {
