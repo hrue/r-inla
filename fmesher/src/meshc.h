@@ -38,10 +38,13 @@ namespace fmesh {
   };
 
   class MCQ {
-  protected:
+  public:
     typedef std::map<Dart,double> map_type;
     typedef map_type::value_type map_key_type;
     typedef std::set<MCQdv> set_type;
+    typedef map_type::const_iterator const_iterator;
+    typedef set_type::const_iterator const_iteratorQ;
+  protected:
     MeshC* MC_;
     map_type darts_; /*!< Darts, mapped to quality */
     set_type darts_quality_;
@@ -67,6 +70,10 @@ namespace fmesh {
     bool foundQ(const Dart& d) const;
     const double quality(const Dart& d) const;
     Dart quality() const;
+    const_iterator begin() { return darts_.begin(); };
+    const_iterator end() { return darts_.end(); };
+    const_iteratorQ beginQ() { return darts_quality_.begin(); };
+    const_iteratorQ endQ() { return darts_quality_.end(); };
 
     friend std::ostream& operator<<(std::ostream& output, const MCQ& Q);
   };
@@ -166,6 +173,7 @@ namespace fmesh {
     bool insertNode(int v, const Dart& ed);
 
     bool isSegment(const Dart& d) const;
+    bool buildRCDTlookahead(MCQsegm* segm, const double* c);
 
     /*!
       \brief Make a DT from a CHT, calling LOP.

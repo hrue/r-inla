@@ -630,10 +630,10 @@ namespace fmesh {
    the arctan-formula instead, that should handle all cases
    \f$L\in[0,\pi]\f$.
    \f{align*}{
-   L &= acos((s_0 \cdot s_1)) \\
+   L &= \operatorname{acos}((s_0 \cdot s_1)) \\
    \sin(L/2) &= \|s_1-s_0\|/2 \\
    \cos(L/2) &= \|s_0+s_1\|/2 \\
-   L &= 2 \cdot atan2(\|s_1-s_0\|,\|s_0+s_1\|)
+   L &= 2 \cdot \operatorname{atan2}(\|s_1-s_0\|,\|s_0+s_1\|)
    \f}
    */
   double Mesh::edgeLength(const Dart& d) const
@@ -685,7 +685,7 @@ namespace fmesh {
    d_2 &= e_2-s_0(s_0\cdot e_2) \\
    \|d_1\| \|d_2\| \sin \theta_0 &= s_0\cdot(d_1\times d_2) \\
    \|d_1\| \|d_2\| \cos \theta_0 &= - (d_1 \cdot d_2) \\
-   \theta_0 &= \mbox{atan2}(s_0\cdot(d_1\times d_2),- (d_1 \cdot d_2))
+   \theta_0 &= \operatorname{atan2}(s_0\cdot(d_1\times d_2),- (d_1 \cdot d_2))
                \mod [0,2\pi)
    \f}
    Rewrite in terms of the original edge vectors:
@@ -695,21 +695,34 @@ namespace fmesh {
                              - (e_2\times s_0)(s_0\cdot e_1))
                        = s_0\cdot(e_1\times e_2) \\
    (d_1\cdot d_2) &= (e_1\cdot e_2) - (s_0\cdot e_1)(s_0\cdot e_2) \\
-   \theta_0 &= atan2(s_0\cdot(e_1\times e_2),
+   \theta_0 &= \operatorname{atan2}(s_0\cdot(e_1\times e_2),
                       (s_0\cdot e_1)(s_0\cdot e_2) - (e_1 \cdot e_2))
 	       \mod [0,2\pi)
    \f}
    The two remaining angles, \f$\theta_1\f$ and \f$\theta_2\f$, are
    obtained by permuting indices.
 
-   If two of the vertices are antipodes, say \f$s_1=-s_0\f$, the
-   formula breaks down, with both arguments to \p atan2 equal to zero.
-   Such triangles are not uniquely defined, since the geodesic between
-   \f$s_0\f$ and \f$-s_0\f$ is not unique.
-
    If \f$s_0\cdot(e_1\times e_2)\f$ is negative, the triangle covers
    more than a hemisphere, and is non-convex (its complement is
-   convex), with area \f$>2\pi\f$.
+   convex), with area \f$>2\pi\f$.  Since the total area of the sphere
+   is \f$4\pi\f$, a geodesic triangulation can have at most one
+   triangle of this type.
+
+   If the vertices are co-planar with the origin, some special cases
+   need to be analysed.  If the flat triangle spanned by the vertices
+   contains the origin, the geodesic triangle covers a complete
+   hemisphere with are \f$2\pi\f$, which is also calculated by the
+   formula.  If the origin lies on the boundary of the flat triangle,
+   two of the vertices are antipodes, say \f$s_1=-s_0\f$, and the
+   formula breaks down, with both arguments to \p atan2 equal to zero.
+   Such triangles are not uniquely defined, since the geodesic between
+   \f$s_0\f$ and \f$-s_0\f$ is not unique.  For the other co-planar
+   cases, the geodesic triangle is degenerate, and the exact result of
+   the formula is \f$\pi+\pi-\pi-\pi=0\f$, reflecting the different
+   signs of the second parameter to \p atan2.  In practice, the
+   vertices may not be numerically co-planar, and the calculated area
+   may become \f$4\pi\f$ instead.
+
 
   */
   /*
@@ -1693,6 +1706,7 @@ namespace fmesh {
 	return Dart(*this,t,1,1);
       if (TV_[t][2] == v)
 	return Dart(*this,t,1,2);
+      std::cout << "ERROR: Inconsistent data structures!" << std::endl;
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
