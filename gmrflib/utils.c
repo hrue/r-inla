@@ -36,8 +36,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <stddef.h>
@@ -899,44 +900,44 @@ int GMRFLib_fpe(void)
 {
 	return fpe();
 }
-int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx)
+int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
-	/* 
-	   return in number of unique entries in ix != 0 and list them in `uniques'
-	*/
+	/*
+	 * return in number of unique entries in ix != 0 and list them in `uniques' 
+	 */
 
-	int nu,  *un = NULL, i, j, *ixx;
+	int nu, *un = NULL, i, j, *ixx;
 
-	if (nx <= 0 || !ix){
+	if (nx <= 0 || !ix) {
 		*nuniques = 0;
 		if (uniques)
 			*uniques = NULL;
 		return GMRFLib_SUCCESS;
 	}
-	
-	ixx = Calloc(nx, int);
-	memcpy(ixx, ix, nx*sizeof(int));
-	qsort((void *)ixx, (size_t) nx, sizeof(int),  GMRFLib_icmp);
 
-	for(j = nu = i = 0; i<nx; i++){
-		if (ixx[i] && (!i || ixx[i] != ixx[j])){
+	ixx = Calloc(nx, int);
+	memcpy(ixx, ix, nx * sizeof(int));
+	qsort((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
+
+	for (j = nu = i = 0; i < nx; i++) {
+		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
 			nu++;
 			j = i;
 		}
 	}
-	//printf("nu %d\n",  nu);
+	// printf("nu %d\n", nu);
 	un = Calloc(nu, int);
 
-	for(j = nu = i = 0; i<nx; i++){
-		if (ixx[i] && (!i || ixx[i] != ixx[j])){
-			//printf("\t un[%1d] = %d\n",  nu, ixx[i]);
+	for (j = nu = i = 0; i < nx; i++) {
+		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
+			// printf("\t un[%1d] = %d\n", nu, ixx[i]);
 			un[nu++] = ixx[i];
 			j = i;
 		}
 	}
 
 	*nuniques = nu;
-	if (uniques){
+	if (uniques) {
 		*uniques = un;
 	} else {
 		Free(un);
@@ -945,5 +946,3 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx)
 
 	return GMRFLib_SUCCESS;
 }
-
-	

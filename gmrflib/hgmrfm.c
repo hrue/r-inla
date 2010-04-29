@@ -30,8 +30,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: hgmrfm.c,v 1.73 2009/05/23 06:16:16 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: hgmrfm.c,v 1.73 2009/05/23 06:16:16 hrue Exp $ */
 #include <time.h>
 #include <strings.h>
 #if !defined(__FreeBSD__)
@@ -174,8 +175,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	}
 
 	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, *ilist = NULL, *jlist = NULL, ntriples = 0, ntriples_max = 0, *idxs = NULL,
-		*idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
-	int nu=0, *uniq = NULL;
+	    *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
+	int nu = 0, *uniq = NULL;
 	double *Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -554,10 +555,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 
-		if (nu){
-			for(k = 0; k<nu; k++){
+		if (nu) {
+			for (k = 0; k < nu; k++) {
 				ii = uniq[k];
-				for (i = 0; i < n; i++){
+				for (i = 0; i < n; i++) {
 					constr->a_matrix[i * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
 				}
 				constr->e_vector[constr_no] = 0.0;

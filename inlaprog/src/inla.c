@@ -30,8 +30,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $ */
 
 #if defined(__sun__)
 #include <stdlib.h>
@@ -717,7 +718,7 @@ double link_logit(double x, map_arg_tp typ)
 {
 	return map_invlogit(x, typ);
 }
-int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp *graph)
+int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
 {
 	int i;
 	GMRFLib_ged_tp *ged = NULL;
@@ -868,7 +869,7 @@ double Qfunc_group(int i, int j, void *arg)
 	double rho, val, fac, ngroup;
 	int igroup, irem, jgroup, jrem, n;
 
-	if (a->type == G_EXCHANGEABLE){
+	if (a->type == G_EXCHANGEABLE) {
 		rho = map_probability(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD);
 	} else if (a->type == G_AR1) {
 		rho = map_rho(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD);
@@ -876,7 +877,7 @@ double Qfunc_group(int i, int j, void *arg)
 		inla_error_general("This should not happen.");
 		abort();
 	}
-		
+
 	n = a->N;					       /* this is the size before group */
 	ngroup = a->ngroup;
 
@@ -887,13 +888,13 @@ double Qfunc_group(int i, int j, void *arg)
 
 	if (igroup == jgroup) {
 
-		if (a->type == G_EXCHANGEABLE){
+		if (a->type == G_EXCHANGEABLE) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else if (a->type == G_AR1) {
-			if (igroup == 0 || igroup == ngroup-1) {
-				fac = 1.0 / (1.0-SQR(rho));
+			if (igroup == 0 || igroup == ngroup - 1) {
+				fac = 1.0 / (1.0 - SQR(rho));
 			} else {
-				fac = (1.0 + SQR(rho)) / (1.0-SQR(rho));
+				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
 			}
 		} else {
 			inla_error_general("This should not happen.");
@@ -902,7 +903,7 @@ double Qfunc_group(int i, int j, void *arg)
 
 		val = a->Qfunc(irem, jrem, a->Qfunc_arg) * fac;
 	} else {
-		if (a->type == G_EXCHANGEABLE){
+		if (a->type == G_EXCHANGEABLE) {
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else if (a->type == G_AR1) {
 			fac = -rho / (1.0 - SQR(rho));
@@ -910,7 +911,7 @@ double Qfunc_group(int i, int j, void *arg)
 			inla_error_general("This should not happen.");
 			abort();
 		}
-			
+
 		val = a->Qfunc(irem, jrem, a->Qfunc_arg) * fac;
 	}
 
@@ -935,15 +936,15 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		GMRFLib_ged_append_graph(ged, graph);
 	}
 
-	if (type == G_EXCHANGEABLE){
+	if (type == G_EXCHANGEABLE) {
 		for (i = 0; i < ngroup; i++) {
 			for (j = i + 1; j < ngroup; j++) {
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 			}
 		}
 	} else if (type == G_AR1) {
-		for (i = 0; i < ngroup-1; i++) {
-			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i+1) * n);
+		for (i = 0; i < ngroup - 1; i++) {
+			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 		}
 	} else {
 		inla_error_general("This should not happen");
@@ -1700,7 +1701,7 @@ double Qfunc_besag(int i, int j, void *arg)
 	}
 
 	if (a->si) {
-		if (i == j){
+		if (i == j) {
 			return prec * a->graph->nnbs[i];
 		}
 		if (GMRFLib_is_neighb(i, j, a->graph))
@@ -1715,7 +1716,7 @@ double Qfunc_besag2(int i, int j, void *arg)
 {
 	inla_besag2_Qfunc_arg_tp *aa;
 	double prec, a;
-	
+
 	aa = (inla_besag2_Qfunc_arg_tp *) arg;
 
 	if (aa->log_prec) {
@@ -1730,15 +1731,15 @@ double Qfunc_besag2(int i, int j, void *arg)
 	}
 
 	if (IMAX(i, j) < aa->graph->n) {
-		if (i == j){
+		if (i == j) {
 			return (prec * aa->graph->nnbs[i] + aa->precision) / SQR(a);
 		} else {
-			return - prec / SQR(a);
+			return -prec / SQR(a);
 		}
 	} else if (IMIN(i, j) >= aa->graph->n) {
 		return aa->precision * SQR(a);
 	} else {
-		return - aa->precision;
+		return -aa->precision;
 	}
 }
 double Qfunc_besagmod(int i, int j, void *arg)
@@ -4901,17 +4902,17 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSSCONSTRAINT"), filename));
 
 	double *dcross = NULL;
-	int *icross = NULL, len_cross=0, nu=0;
-	
+	int *icross = NULL, len_cross = 0, nu = 0;
+
 	if (filename) {
 		inla_read_data_all(&dcross, &len_cross, filename);
-		if (len_cross > 0){
-			if (len_cross != mb->predictor_n){
+		if (len_cross > 0) {
+			if (len_cross != mb->predictor_n) {
 				GMRFLib_sprintf(&msg, "Length of cross-sum-to-zero is not equal to the length of the linear predictor: %1d != %1d\n",
 						len_cross, mb->predictor_n);
 			}
 			icross = Calloc(len_cross, int);
-			for(i=0; i<len_cross; i++)
+			for (i = 0; i < len_cross; i++)
 				icross[i] = (int) dcross[i];
 			Free(dcross);
 			mb->predictor_cross_sumzero = icross;
@@ -6121,7 +6122,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-		**log_positive = NULL, **h2_intern = NULL, **sphere_oc = NULL, **a_intern = NULL;
+	    **log_positive = NULL, **h2_intern = NULL, **sphere_oc = NULL, **a_intern = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	map_table_tp *um, *um0, *um1, *um2, *um3, *um4, *um5;
@@ -6222,8 +6223,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(precision, 1.0e9);
 	SET(nrep, 1);
 	SET(ngroup, 1);
-	SET(group_model,  G_EXCHANGEABLE);
-	
+	SET(group_model, G_EXCHANGEABLE);
+
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
 	mb->f_dir[mb->nf] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->f_tag[mb->nf]))));
@@ -6418,7 +6419,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// kappa
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL-a");	// a
 		break;
-		
+
 	case F_SPHERE:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// T[0]
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// K[0]
@@ -6489,7 +6490,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR1:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho"); /* phi */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi */
 		break;
 
 	case F_GENERIC1:
@@ -6505,7 +6506,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_2DIID:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* precision1 */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN-rho"); /* rho */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN-rho");	/* rho */
 		break;
 
 	case F_MATERN2D:
@@ -6904,13 +6905,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
 				inla_error_general(msg);
 			}
-			mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"),
-								      mb->f_precision[mb->nf]); 
+			mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 			if (mb->verbose) {
 				printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
 			}
 			mb->f_locations[mb->nf] = NULL;
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = 2*mb->f_graph[mb->nf]->n; /* YES */
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = 2 * mb->f_graph[mb->nf]->n;	/* YES */
 		} else if (mb->f_id[mb->nf] == F_BESAGMOD) {
 			/*
 			 * use field: GRAPH. use this to set field N 
@@ -8415,7 +8415,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_BESAG;
 	} else if (mb->f_id[mb->nf] == F_BESAG2) {
 		inla_besag2_Qfunc_arg_tp *arg = NULL;
-		
+
 		mb->f_Qfunc[mb->nf] = Qfunc_besag2;
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
 		arg->graph = mb->f_graph[mb->nf];
@@ -8927,11 +8927,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			} else if (!strcasecmp(ptmp, "AR1")) {
 				mb->f_group_model[mb->nf] = G_AR1;
 			} else {
-				GMRFLib_sprintf(&msg, "%s: Unknown GROUP.TYPE: %s\n",  secname,  ptmp);
+				GMRFLib_sprintf(&msg, "%s: Unknown GROUP.TYPE: %s\n", secname, ptmp);
 				inla_error_general(msg);
 				abort();
 			}
-			if (mb->verbose){
+			if (mb->verbose) {
 				printf("\t\tgroup.type = %s\n", ptmp);
 			}
 
@@ -8964,7 +8964,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			} else {
 				abort();
 			}
-			
+
 			mb->f_ntheta[mb->nf]++;
 			if (!fixed) {
 				/*
@@ -8978,12 +8978,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag[mb->ntheta] = msg;
 				GMRFLib_sprintf(&msg, "GroupRho for %s", (secname ? secname : mb->f_tag[mb->nf]));
 				mb->theta_tag_userscale[mb->ntheta] = msg;
-				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf],  mb->f_ntheta[mb->nf]-1);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], mb->f_ntheta[mb->nf] - 1);
 				mb->theta_dir[mb->ntheta] = msg;
 				mb->theta[mb->ntheta] = group_rho_intern;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
-				if (mb->f_group_model[mb->nf] == G_EXCHANGEABLE){
+				if (mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
 					mb->theta_map[mb->ntheta] = map_probability;
 				} else if (mb->f_group_model[mb->nf] == G_AR1) {
 					mb->theta_map[mb->ntheta] = map_rho;
@@ -9890,21 +9890,22 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
-	
+
 	if (make_dir) {
 		char *fnm;
 
 		k = 0;
 		for (i = 0; i < mb->idx_tot; i++) {
-			j = find_tag(mb,  mb->idx_tag[i]);
-			if (j >= 0 && mb->f_si[j]) k++;
+			j = find_tag(mb, mb->idx_tag[i]);
+			if (j >= 0 && mb->f_si[j])
+				k++;
 		}
 		if (k) {
 			GMRFLib_sprintf(&fnm, "%s/%s", mb->dir, "si");
 			mb->ai_par->si_directory = fnm;
 			inla_mkdir(fnm);
 
-			mb->ai_par->si_idx = Calloc(1,  GMRFLib_ai_si_tp);
+			mb->ai_par->si_idx = Calloc(1, GMRFLib_ai_si_tp);
 			mb->ai_par->si_idx->nd = k;
 			mb->ai_par->si_idx->start = Calloc(k, int);
 			mb->ai_par->si_idx->len = Calloc(k, int);
@@ -9913,8 +9914,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			if (mb->ai_par->si_idx) {
 				k = 0;
 				for (i = 0; i < mb->idx_tot; i++) {
-					j = find_tag(mb,  mb->idx_tag[i]);
-					if (j >= 0 && mb->f_si[j]){
+					j = find_tag(mb, mb->idx_tag[i]);
+					if (j >= 0 && mb->f_si[j]) {
 						mb->ai_par->si_idx->start[k] = mb->idx_start[i];
 						mb->ai_par->si_idx->len[k] = mb->idx_n[i];
 						mb->ai_par->si_idx->tag[k] = GMRFLib_strdup(mb->idx_tag[i]);
@@ -9948,11 +9949,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->expert_diagonal_emergencey = 0.0;
 	mb->expert_diagonal_emergencey = iniparser_getdouble(ini, inla_string_join(secname, "DIAGONAL"), mb->expert_diagonal_emergencey);
-	mb->expert_diagonal_emergencey = DMAX(0.0,  mb->expert_diagonal_emergencey);
-	if (mb->expert_diagonal_emergencey && mb->verbose){
-		printf("\tdiagonal (expert emergency) = %g\n",  mb->expert_diagonal_emergencey);
+	mb->expert_diagonal_emergencey = DMAX(0.0, mb->expert_diagonal_emergencey);
+	if (mb->expert_diagonal_emergencey && mb->verbose) {
+		printf("\tdiagonal (expert emergency) = %g\n", mb->expert_diagonal_emergencey);
 	}
-	
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -9997,9 +9998,9 @@ double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
 	double val = 0.0, log_precision, log_precision0, log_precision1, log_precision2, precision0, precision1, precision2,
-		rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
-		group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-		h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }, log_positive;
+	    rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
+	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
+	    h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }, log_positive;
 
 
 	inla_tp *mb = NULL;
@@ -10395,7 +10396,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 				sphere = (inla_sphere_tp *) mb->f_model[i];
 				assert(sphere->Qfunc_arg == sphere);
-				
+
 				nT = (sphere->Tmodel ? sphere->Tmodel->ntheta : 0);
 				nK = (sphere->Kmodel ? sphere->Kmodel->ntheta : 0);
 				nt = mb->f_ntheta[i];
@@ -10468,7 +10469,7 @@ double extra(double *theta, int ntheta, void *argument)
 				} else {
 					sphere->oc[GMRFLib_thread_id][0] = theta[count + Koffset + Toffset];
 				}
-				
+
 				if (0) {
 					printf("call extra() with\n");
 					for (k = 0; k < nT; k++) {
@@ -10715,8 +10716,8 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				SET_GROUP_RHO(2);
 				// N is 2*graph->n here. 
-				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i]/2.0 - mb->f_rankdef[i])
-							+ (mb->f_N[i]/2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0*a_intern));
+				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
+							+ (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern));
 				if (!mb->f_fixed[i][0]) {
 					val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
 				}
@@ -10848,9 +10849,9 @@ double extra(double *theta, int ntheta, void *argument)
 				 * log_precision1, rho_intern). 
 				 */
 				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-					+ log(map_precision(log_precision0, MAP_DFORWARD))
-					+ log(map_precision(log_precision1, MAP_DFORWARD))
-					+ log(map_rho(rho_intern, MAP_DFORWARD));
+				    + log(map_precision(log_precision0, MAP_DFORWARD))
+				    + log(map_precision(log_precision1, MAP_DFORWARD))
+				    + log(map_rho(rho_intern, MAP_DFORWARD));
 				break;
 			}
 
@@ -10905,9 +10906,9 @@ double extra(double *theta, int ntheta, void *argument)
 				 * log_precision1, rho_intern). 
 				 */
 				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-					+ log(map_precision(log_precision0, MAP_DFORWARD))
-					+ log(map_precision(log_precision1, MAP_DFORWARD))
-					+ log(map_rho(rho_intern, MAP_DFORWARD));
+				    + log(map_precision(log_precision0, MAP_DFORWARD))
+				    + log(map_precision(log_precision1, MAP_DFORWARD))
+				    + log(map_rho(rho_intern, MAP_DFORWARD));
 				break;
 			}
 
@@ -11011,12 +11012,12 @@ double extra(double *theta, int ntheta, void *argument)
 				 * log_precision1, rho_intern). 
 				 */
 				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-					+ log(map_precision(log_precision0, MAP_DFORWARD))
-					+ log(map_precision(log_precision1, MAP_DFORWARD))
-					+ log(map_precision(log_precision2, MAP_DFORWARD))
-					+ log(map_rho(rho_intern01, MAP_DFORWARD))
-					+ log(map_rho(rho_intern02, MAP_DFORWARD))
-					+ log(map_rho(rho_intern12, MAP_DFORWARD));
+				    + log(map_precision(log_precision0, MAP_DFORWARD))
+				    + log(map_precision(log_precision1, MAP_DFORWARD))
+				    + log(map_precision(log_precision2, MAP_DFORWARD))
+				    + log(map_rho(rho_intern01, MAP_DFORWARD))
+				    + log(map_rho(rho_intern02, MAP_DFORWARD))
+				    + log(map_rho(rho_intern12, MAP_DFORWARD));
 				break;
 			}
 
@@ -11128,12 +11129,12 @@ double extra(double *theta, int ntheta, void *argument)
 				 * log_precision1, rho_intern). 
 				 */
 				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-					+ log(map_precision(log_precision0, MAP_DFORWARD))
-					+ log(map_precision(log_precision1, MAP_DFORWARD))
-					+ log(map_precision(log_precision2, MAP_DFORWARD))
-					+ log(map_rho(rho_intern01, MAP_DFORWARD))
-					+ log(map_rho(rho_intern02, MAP_DFORWARD))
-					+ log(map_rho(rho_intern12, MAP_DFORWARD));
+				    + log(map_precision(log_precision0, MAP_DFORWARD))
+				    + log(map_precision(log_precision1, MAP_DFORWARD))
+				    + log(map_precision(log_precision2, MAP_DFORWARD))
+				    + log(map_rho(rho_intern01, MAP_DFORWARD))
+				    + log(map_rho(rho_intern02, MAP_DFORWARD))
+				    + log(map_rho(rho_intern12, MAP_DFORWARD));
 				break;
 			}
 
@@ -11375,14 +11376,14 @@ int inla_INLA(inla_tp * mb)
 		count += mb->f_Ntotal[i];		       /* yes; this is correct */
 	}
 
-	/* 
-	   this is an emergency option to prevent singular matrices (and is known to be >= 0)
+	/*
+	 * this is an emergency option to prevent singular matrices (and is known to be >= 0) 
 	 */
-	if (mb->expert_diagonal_emergencey){
-		for(i=mb->predictor_n;  i<N; i++)
+	if (mb->expert_diagonal_emergencey) {
+		for (i = mb->predictor_n; i < N; i++)
 			c[i] += mb->expert_diagonal_emergencey;
 	}
-	
+
 	if (0) {
 		for (i = 0; i < N; i++)
 			printf("c[%d]=%g\n", i, c[i]);
@@ -11516,7 +11517,7 @@ int inla_INLA(inla_tp * mb)
 			x, b, c, NULL, mb->d,
 			loglikelihood_inla, (void *) mb, NULL,
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store, inla_all_offset, (void *) mb,
-			mb->nlc, Alc, &(mb->density_lin),  &(mb->misc_output));
+			mb->nlc, Alc, &(mb->density_lin), &(mb->misc_output));
 
 	GMRFLib_free_ai_store(ai_store);
 	Free(Alc);
@@ -11580,11 +11581,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		count += mb_new->f_Ntotal[i];		       /* yes; this is correct */
 	}
 
-	/* 
-	   this is an emergency option to prevent singular matrices (and is known to be >= 0).
+	/*
+	 * this is an emergency option to prevent singular matrices (and is known to be >= 0). 
 	 */
-	if (mb_new->expert_diagonal_emergencey){
-		for(i=mb_new->predictor_n;  i<N; i++)
+	if (mb_new->expert_diagonal_emergencey) {
+		for (i = mb_new->predictor_n; i < N; i++)
 			c[i] += mb_new->expert_diagonal_emergencey;
 	}
 
@@ -12364,7 +12365,7 @@ int inla_output(inla_tp * mb)
 				Free(gd);
 			}
 
-			if (mb->misc_output){
+			if (mb->misc_output) {
 				inla_output_misc(mb->dir, mb->misc_output, local_verbose);
 			}
 			if (mb->cpo) {
@@ -12618,7 +12619,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int verbos
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	int i, j;
-	
+
 	if (!mo) {
 		return INLA_OK;
 	}
@@ -12642,14 +12643,14 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int verbos
 	}
 	if (G.binary) {
 		DW(mo->nhyper);
-		for(i=0; i<ISQR(mo->nhyper); i++){
+		for (i = 0; i < ISQR(mo->nhyper); i++) {
 			DW(mo->cov_m[i]);
 		}
 	} else {
 		fprintf(fp, "%d\n", mo->nhyper);
-		for(i=0; i<mo->nhyper; i++){
-			for(j=0; j<mo->nhyper; j++){
-				fprintf(fp, " %.12g", mo->cov_m[i + j*mo->nhyper]);
+		for (i = 0; i < mo->nhyper; i++) {
+			for (j = 0; j < mo->nhyper; j++) {
+				fprintf(fp, " %.12g", mo->cov_m[i + j * mo->nhyper]);
 			}
 			fprintf(fp, "\n");
 		}
@@ -13798,9 +13799,9 @@ int inla_divisible(int n, int by)
 
 int inla_qinv(const char *filename)
 {
-	/* 
-	   Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances
-	*/
+	/*
+	 * Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances 
+	 */
 	int i;
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
@@ -13978,10 +13979,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* 
-	   this one does not belong here, but it makes all easier... and its undocumented
+	/*
+	 * this one does not belong here, but it makes all easier... and its undocumented 
 	 */
-	if (G.qinv_mode){
+	if (G.qinv_mode) {
 		inla_qinv(argv[optind]);
 		exit(0);
 	}

@@ -30,8 +30,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: sphere.c,v 1.41 2010/03/01 17:43:07 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: sphere.c,v 1.41 2010/03/01 17:43:07 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -254,7 +255,7 @@ double inla_sphere_Qfunction(int node, int nnode, void *arg)
 		a->theta = model->oc[GMRFLib_thread_id][0];
 		a->oc = cos(M_PI * map_probability(a->theta, MAP_FORWARD));
 	}
-	
+
 	if (node == nnode) {
 		double Gii, G2ii, K, T;
 
@@ -351,7 +352,7 @@ double inla_KT_model_eval(inla_theta_tp * theta_model, int idx)
 		/*
 		 * use the one from extra 
 		 */
-		//printf("From extra %g\n", theta_model->theta_extra[GMRFLib_thread_id][0]);
+		// printf("From extra %g\n", theta_model->theta_extra[GMRFLib_thread_id][0]);
 		for (i = 0, value = 0.0; i < theta_model->ntheta; i++) {
 			value += theta_model->theta_extra[GMRFLib_thread_id][i] * theta_model->basis[idx][i];
 		}
@@ -359,7 +360,7 @@ double inla_KT_model_eval(inla_theta_tp * theta_model, int idx)
 		/*
 		 * use the common one 
 		 */
-		//printf("From general %g\n", theta_model->theta[0][GMRFLib_thread_id][0]);
+		// printf("From general %g\n", theta_model->theta[0][GMRFLib_thread_id][0]);
 		for (i = 0, value = 0.0; i < theta_model->ntheta; i++) {
 			value += theta_model->theta[i][GMRFLib_thread_id][0] * theta_model->basis[idx][i];
 		}

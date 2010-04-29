@@ -90,8 +90,9 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] =  "file: " __FILE__ "  " HGVERSION; 
-/* Pre-hg-Id: $Id: geo.c,v 1.42 2008/08/26 07:07:12 hrue Exp $ */ 
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+
+/* Pre-hg-Id: $Id: geo.c,v 1.42 2008/08/26 07:07:12 hrue Exp $ */
 
 static GMRFLib_Global_geo_tp Geo_coef;			       /* hash-table for the coefficient lookup */
 
