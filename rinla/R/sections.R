@@ -408,6 +408,7 @@
         if (length(predictor.spec$cross) != n)
             stop(paste("Length of cross does not match length of predictor", length(predictor.spec$cross), "!=", n))
         file.cross = inla.tempfile(tmpdir=data.dir)
+        predictor.spec$cross[is.na(predictor.spec$cross)] = 0
         write(predictor.spec$cross, ncol=1, file=file.cross)
         fnm = gsub(data.dir, "$DATADIR", file.cross, fixed=TRUE)
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
