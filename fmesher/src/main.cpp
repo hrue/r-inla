@@ -156,8 +156,8 @@ int DT2D_test()
   MC.CDTInterior(cinp);
 
   //  M.useX11(useX11,false);
-  MC.RCDT(1.5,100);
-  MC.RCDT(1.5,0.05);
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.05);
 
   return 0;
 }
@@ -222,8 +222,8 @@ int DT2D_test2()
 
   //  if (useX11)
   //    M.useX11(true,false);
-  MC.RCDT(1.5,100);
-  MC.RCDT(1.5,0.05);
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.05);
 
   return 0;
 }
@@ -288,8 +288,8 @@ int DTsphere_test()
 
   //  if (useX11)
   //    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-  MC.RCDT(1.5,100);
-  MC.RCDT(1.5,0.15);
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.15);
 
   return 0;
 }
