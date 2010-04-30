@@ -313,7 +313,11 @@ namespace fmesh {
     Dart td;
     double delta;
 
-    std::cout << "Locating node " << v << std::endl;
+    std::cout << "Locating node " << v
+	      << " (" << M_->S()[v][0]
+	      << " (" << M_->S()[v][1]
+	      << " (" << M_->S()[v][2] << ")" << std::endl;
+
     td = M_->locatePoint(ed,M_->S()[v],&delta);
     if (td.isnull()) { return false; }; /* ERROR, not found! */
     std::cout << "Closest dart " << td
