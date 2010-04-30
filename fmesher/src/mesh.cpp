@@ -264,10 +264,17 @@ namespace fmesh {
   {
     if ((nVc <= Vcap_) && (nTc <= Tcap_))
       return *this;
+    std::cout << "Increasing V-capacity from " << Vcap_;
     while ((nVc > Vcap_) || (nTc > Tcap_)) {
-      Vcap_ = Vcap_+Mesh_V_capacity_step_size;
+      if (Vcap_==0)
+	Vcap_ = Mesh_V_capacity_step_size;
+      else if (Vcap_<Mesh_V_capacity_doubling_limit)
+	Vcap_ *= 2;
+      else
+	Vcap_ += Mesh_V_capacity_step_size;
       Tcap_ = 2*Vcap_;
     }
+    std::cout << " to " << Vcap_ << std::endl;
 
     int (*TV)[3] = new int[Tcap_][3];
     int (*TT)[3] = new int[Tcap_][3];
@@ -616,7 +623,7 @@ namespace fmesh {
     for (int t=0;t<(int)nT_;t++)
       drawX11triangle(t,true);
 
-    {
+    if (true) {
       std::string str0 = str;
       str0 += std::string(", continue");
       char* str_ = new char[str0.length()+1];
@@ -1695,7 +1702,7 @@ namespace fmesh {
     drawX11triangle(t0,true);
     drawX11triangle(t1,true);
     drawX11triangle(t2,true);
-    std::cout << "Triangle split" << std::cout;
+    std::cout << "Triangle split" << std::endl;
 
     return Dart(*this,t0,1,0);
   }

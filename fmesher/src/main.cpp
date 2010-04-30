@@ -17,7 +17,7 @@ using fmesh::MeshC;
 
 
 bool useX11 = true;
-
+int maxiter = 1;
 
 int predicates_test()
 {
@@ -156,7 +156,8 @@ int DT2D_test()
   MC.CDTInterior(cinp);
 
   //  M.useX11(useX11,false);
-  MC.RCDT(1.5,0.02);
+  MC.RCDT(1.5,100);
+  MC.RCDT(1.5,0.05);
 
   return 0;
 }
@@ -221,7 +222,8 @@ int DT2D_test2()
 
   //  if (useX11)
   //    M.useX11(true,false);
-  MC.RCDT(1.5,0.02);
+  MC.RCDT(1.5,100);
+  MC.RCDT(1.5,0.05);
 
   return 0;
 }
@@ -286,7 +288,8 @@ int DTsphere_test()
 
   //  if (useX11)
   //    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-  MC.RCDT(1.5,0.02);
+  MC.RCDT(1.5,100);
+  MC.RCDT(1.5,0.15);
 
   return 0;
 }
@@ -294,16 +297,11 @@ int DTsphere_test()
 
 int main()
 {
-      DT2D_test();
-      DT2D_test2();
-   DTsphere_test();
-  //  /*
-  //  for (int i=0;i<1;i++) {
-  //    DT2D_test();
-  //    DT2D_test2();
-  //    DTsphere_test();
-  //  }
-  //  */
+  for (int i=0;i<maxiter;i++) {
+    DT2D_test();
+    DT2D_test2();
+    DTsphere_test();
+  }
 
   return 0;
 }
