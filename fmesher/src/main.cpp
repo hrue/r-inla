@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 #include "predicates.h"
 #include "fmesher.h"
@@ -229,6 +230,52 @@ int DT2D_test2()
 }
 
 
+
+int DT2D_test3() /* Random points */
+{
+  int n = 400;
+  fmesh::Point S[400];
+  double Sb[4][3] = {{0.,0.,0.},
+		     {1.,0.,0.},
+		     {0.,1.,0.},
+		     {1.,1.,0.}};
+  int TVb[2][3] = {{0,1,2},
+		   {3,2,1}};
+  Mesh M(Mesh::Mtype_plane,0,true,false);
+  int t,vi,v;
+
+  if (useX11)
+    M.useX11(true,false,500,500);
+
+  for (v=0;v<n;v++) {
+    S[v][0] = double(std::rand())/RAND_MAX*0.9+0.05;
+    S[v][1] = double(std::rand())/RAND_MAX*0.9+0.05;
+    S[v][2] = 0.0;
+  }
+
+  M.S_set(S,n);
+  M.S_append(Sb,4);
+  for (t=0;t<2;t++)
+    for (vi=0;vi<3;vi++)
+      TVb[t][vi] += n; 
+  M.TV_set(TVb,2);
+
+  MeshC MC(&M,true);
+  fmesh::vertexListT vertices;
+  for (v=0;v<n;v++)
+    vertices.push_back(v);
+
+  MC.DT(vertices);
+
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.05);
+
+  return 0;
+}
+
+
+
+
 int DTsphere_test()
 {
   int n = 10;
@@ -286,8 +333,6 @@ int DTsphere_test()
 
   cout << M;
 
-  //  if (useX11)
-  //    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.15);
 
@@ -300,6 +345,7 @@ int main()
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();
+    DT2D_test3();
     DTsphere_test();
   }
 
