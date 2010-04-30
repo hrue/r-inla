@@ -155,8 +155,8 @@ int DT2D_test()
   cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
 
-  M.useX11(useX11,false);
-  MC.RCDT(1.5,0.01);
+  //  M.useX11(useX11,false);
+  MC.RCDT(1.5,0.02);
 
   return 0;
 }
@@ -219,9 +219,9 @@ int DT2D_test2()
 
   MC.CDT(fmesh::constrListT());
 
-  if (useX11)
-    M.useX11(true,false);
-  MC.RCDT(1.5,0.01);
+  //  if (useX11)
+  //    M.useX11(true,false);
+  MC.RCDT(1.5,0.02);
 
   return 0;
 }
@@ -284,9 +284,9 @@ int DTsphere_test()
 
   cout << M;
 
-  if (useX11)
-    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-  MC.RCDT(1.5,0.01);
+  //  if (useX11)
+  //    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
+  MC.RCDT(1.5,0.02);
 
   return 0;
 }
@@ -294,7 +294,7 @@ int DTsphere_test()
 
 int main()
 {
-  //  DT2D_test();
+      DT2D_test();
       DT2D_test2();
    DTsphere_test();
   //  /*

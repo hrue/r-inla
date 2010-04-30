@@ -41,37 +41,37 @@ namespace fmesh {
 
 
   struct Vec {  
-    static void copy(double* s, const Point s0)
+    static void copy(Point& s, const Point s0)
     {
       s[0] = s0[0];
       s[1] = s0[1];
       s[2] = s0[2];
     };
-    static void rescale(double* s, double s1)
+    static void rescale(Point& s, double s1)
     {
       s[0] *= s1;
       s[1] *= s1;
       s[2] *= s1;
     };
-    static void scale(double* s, const Point s0, double s1)
+    static void scale(Point& s, const Point s0, double s1)
     {
       s[0] = s0[0]*s1;
       s[1] = s0[1]*s1;
       s[2] = s0[2]*s1;
     };
-    static void diff(double* s,const Point s0, const Point s1)
+    static void diff(Point& s,const Point s0, const Point s1)
     {
       s[0] = s0[0]-s1[0];
       s[1] = s0[1]-s1[1];
       s[2] = s0[2]-s1[2];
     };
-    static void sum(double* s,const Point s0, const Point s1)
+    static void sum(Point& s,const Point s0, const Point s1)
     {
       s[0] = s0[0]+s1[0];
       s[1] = s0[1]+s1[1];
       s[2] = s0[2]+s1[2];
     };
-    static void accum(double* s, const Point s0, double s1 = 1.0)
+    static void accum(Point& s, const Point s0, double s1 = 1.0)
     {
       s[0] += s0[0]*s1;
       s[1] += s0[1]*s1;
@@ -85,7 +85,7 @@ namespace fmesh {
     {
       return (std::sqrt(s0[0]*s0[0]+s0[1]*s0[1]+s0[2]*s0[2]));
     };
-    static void cross(double* s, const Point s0, const Point s1)
+    static void cross(Point& s, const Point s0, const Point s1)
     {
       s[0] = s0[1]*s1[2]-s0[2]*s1[1];
       s[1] = s0[2]*s1[0]-s0[0]*s1[2];
@@ -137,6 +137,7 @@ namespace fmesh {
     Mesh& rebuildVT();
     Mesh& rebuildTTi();
 
+    void drawX11triangle(int t, bool fg);
     void redrawX11(std::string str);
     
   public:
@@ -202,7 +203,7 @@ namespace fmesh {
     /* Traits: */
     double edgeLength(const Dart& d) const;
     double triangleArea(int t) const;
-    void triangleCircumcenter(int t, double* c) const;
+    void triangleCircumcenter(int t, Point& c) const;
     double triangleCircumcircleRadius(int t) const;
     double triangleShortestEdge(int t) const;
     double triangleLongestEdge(int t) const;
