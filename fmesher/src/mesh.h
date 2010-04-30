@@ -120,7 +120,8 @@ namespace fmesh {
 		       v == TV[t][vi]  for some vi=0,1,2 */
     int (*TTi_)[3]; /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
-    double (*S_)[3];
+    //    double (*S_)[3];
+    Point (*S_);
     Xtmpl (*X11_);
     
   private:
