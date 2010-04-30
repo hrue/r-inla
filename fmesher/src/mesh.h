@@ -14,7 +14,8 @@
 
 #include "xtmpl.h"
 
-#define Mesh_V_capacity_step_size 128
+#define Mesh_V_capacity_doubling_limit 8192
+#define Mesh_V_capacity_step_size 1024
 #define MESH_EPSILON 1e-10
 
 #ifndef NOT_IMPLEMENTED
@@ -138,6 +139,7 @@ namespace fmesh {
     Mesh& rebuildTTi();
 
     void drawX11triangle(int t, bool fg);
+  public:
     void redrawX11(std::string str);
     
   public:

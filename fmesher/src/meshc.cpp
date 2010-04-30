@@ -358,7 +358,7 @@ namespace fmesh {
 
     }
       
-    //    xtmpl_press_ret("nodes inserted");
+    M_->redrawX11("DT finished");
 
     state_ = State_DT;
     return true;
@@ -530,17 +530,16 @@ namespace fmesh {
     std::cout << "Skinny triangles before RCDT:" << std::endl << skinny_;
     std::cout << "Big triangles before RCDT:" << std::endl << big_;
 
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
-
     Dart dh;
 
     int loop = 0;
     while (!(boundary_.emptyQ() && interior_.emptyQ() &&
 	     skinny_.emptyQ() && big_.emptyQ())) {
       /* Temporary failsafe exit: */
+      /*
       loop++;
       if (loop>50000) return false;
+      */
 
       std::cout << "RCDT(" << loop << "): (Bo,In,Sk,Bi) = ("
 		<< boundary_.countQ() << ","
@@ -566,7 +565,6 @@ namespace fmesh {
 	continue;
       }
 
-      /*      
       dh = skinny_.quality();
       if (!dh.isnull()) {
 	std::cout << "Skinny triangle: "
@@ -580,7 +578,6 @@ namespace fmesh {
 	killTriangle(dh);
 	continue;
       }
-      */
       
       dh = big_.quality();
       if (!dh.isnull()) {
@@ -597,6 +594,8 @@ namespace fmesh {
       }
       
     }
+
+    M_->redrawX11("RCDT finished");
 
     return true;
   };
