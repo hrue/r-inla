@@ -499,6 +499,8 @@ namespace fmesh {
 
   bool MeshC::buildRCDTlookahead(MCQsegm* segm, const double* c)
   {
+    std::cout << "Checking for potentially encroached segments at ("
+	      << c[0] << ',' << c[1] << ',' << c[2] << ")" << std::endl;
     for (MCQ::const_iterator ci = segm->begin();
 	 ci != segm->end(); ci++) {
       Dart dhc(ci->first);
@@ -538,7 +540,7 @@ namespace fmesh {
 	     skinny_.emptyQ() && big_.emptyQ())) {
       /* Temporary failsafe exit: */
       loop++;
-      if (loop>500) return false;
+      if (loop>50000) return false;
 
       std::cout << "RCDT(" << loop << "): (Bo,In,Sk,Bi) = ("
 		<< boundary_.countQ() << ","
