@@ -153,10 +153,16 @@ int xtmpl_draw_a_text(int x0, int y0, char* str, int nstr, GC gc)
     else
 	return XTMPL_ERR;
 }
-int xtmpl_text(int x0, int y0, char * str, int nstr)
+int xtmpl_draw_text(int x0, int y0, char * str, int nstr)
 {
-  int fg;
-  fg = 1;
+  return xtmpl_draw_a_text(x0,y0,str,nstr,WIN(draw_gc));
+}
+int xtmpl_erase_text(int x0, int y0, char * str, int nstr)
+{
+  return xtmpl_draw_a_text(x0,y0,str,nstr,WIN(erase_gc));
+}
+int xtmpl_text(int fg, int x0, int y0, char * str, int nstr)
+{
   return xtmpl_draw_a_text(x0,y0,str,nstr,(fg ? WIN(draw_gc) : WIN(erase_gc)));
 }
 int xtmpl_line(int fg, int x0, int y0, int x1, int y1)

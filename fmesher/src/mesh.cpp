@@ -101,13 +101,13 @@ namespace fmesh {
       maxy_ = maxy;
     };
 
-    void arc(const double* s0, const double* s1);
-    void line(const double* s0, const double* s1);
-    void text(const double* s0, std::string str);
+    void arc(bool fg, const Point& s0, const Point& s1);
+    void line(bool fg, const Point& s0, const Point& s1);
+    void text(bool fg, const Point& s0, std::string str);
 
   };
 
-  void Xtmpl::arc(const double* s0, const double* s1)
+  void Xtmpl::arc(bool fg, const Point& s0, const Point& s1)
   {
     int n = 10;
     xtmpl_window = window_;
@@ -129,30 +129,47 @@ namespace fmesh {
       for (dim=0;dim<2;dim++)
 	p1[dim] = s[dim]/l;
       
-      xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-		      (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
+      if (fg)
+	xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+			(int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
+			(int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+			(int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
+      else
+	xtmpl_erase_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+			 (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
+			 (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+			 (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
     }
   };
-  void Xtmpl::line(const double* s0, const double* s1)
+  void Xtmpl::line(bool fg, const Point& s0, const Point& s1)
   {
     xtmpl_window = window_;
-    xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		    (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		    (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		    (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+    if (fg)
+      xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		      (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+    else
+      xtmpl_erase_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		       (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
+		       (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
   };
-  void Xtmpl::text(const double* s0, std::string str)
+  void Xtmpl::text(bool fg, const Point& s0, std::string str)
   {
     if (!draw_text_) return;
     char* str_ = new char[str.length()+1];
     str.copy(str_,str.length(),0);
     str_[str.length()] = '\0';
     xtmpl_window = window_;
-    xtmpl_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-	       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	       str_,str.length());
+    if (fg)
+      xtmpl_draw_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		      str_,str.length());
+    else
+      xtmpl_erase_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+		       str_,str.length());
     delete[] str_;
   };
 
@@ -252,7 +269,7 @@ namespace fmesh {
       Tcap_ = 2*Vcap_;
     }
 
-    int (*TV)[3] = new int[Vcap_][3];
+    int (*TV)[3] = new int[Tcap_][3];
     int (*TT)[3] = new int[Tcap_][3];
     int (*VT) = NULL;
     if (use_VT_) VT = new int[Vcap_];
@@ -261,7 +278,7 @@ namespace fmesh {
     double (*S)[3] = new double[Vcap_][3];
 
     if (TV_) {
-      if (TV_) memcpy(TV,TV_,sizeof(int)*nV_*3);
+      if (TV_) memcpy(TV,TV_,sizeof(int)*nT_*3);
       if (TT_) memcpy(TT,TT_,sizeof(int)*nT_*3);
       if (VT_) memcpy(VT,VT_,sizeof(int)*nV_);
       if (TTi_) memcpy(TTi,TTi_,sizeof(int)*nT_*3);
@@ -278,6 +295,7 @@ namespace fmesh {
     VT_ = VT;
     TTi_ = TTi;
     S_ = S;
+
     return *this;
   };
 
@@ -523,74 +541,80 @@ namespace fmesh {
     return *this;
   }
 
-  void Mesh::redrawX11(std::string str)
+  void Mesh::drawX11triangle(int t, bool fg)
   {
     if (!X11_) return;
 
     int v;
-    double s[3][3];
+    Point s[3];
     Point s0;
 
-    X11_->clear();
-    for (int t=0;t<(int)nT_;t++) {
-      s0[0] = 0.0;
-      s0[1] = 0.0;
-      s0[2] = 0.0;
-      for (int vi=0;vi<3;vi++) {
-	v = TV_[t][vi];
-	Vec::copy(s[vi],S_[v]);
-	Vec::accum(s0,s[vi],1.0/3.0);
-      }
-      if (type_==Mtype_sphere) {
-	double l = std::sqrt(Vec::scalar(s0,s0));
-	Vec::rescale(s0,l);
-	Point r0;
-	Point r1;
-	Point n;
-	Vec::diff(r0,s[1],s[0]);
-	Vec::diff(r1,s[2],s[0]);
-	Vec::cross(n,r0,r1);
-	if (n[2]<0) continue;
-      }
-      /* Draw triangle slightly closer to center. */
-      if (type_==Mtype_sphere) {
-	for (int vi=0;vi<3;vi++) {
-	  Vec::diff(s[vi],s[vi],s0);
-	  Vec::rescale(s[vi],0.975);
-	  Vec::accum(s[vi],s0);
-	  Vec::rescale(s[vi],1./Vec::length(s[vi]));
-	}
-	X11_->arc(s[0],s[1]);
-	X11_->arc(s[1],s[2]);
-	X11_->arc(s[2],s[0]);
-      } else {
-	for (int vi=0;vi<3;vi++) {
-	  Vec::diff(s[vi],s[vi],s0);
-	  Vec::rescale(s[vi],0.975);
-	  Vec::accum(s[vi],s0);
-	}
-	X11_->line(s[0],s[1]);
-	X11_->line(s[1],s[2]);
-	X11_->line(s[2],s[0]);
-      }
-      /* Draw vertex indices even closer to center. */
-      for (int vi=0;vi<3;vi++) {
-	  Vec::diff(s[vi],s[vi],s0);
-	  Vec::rescale(s[vi],0.8);
-	  Vec::accum(s[vi],s0);
-      }
-      for (int vi=0;vi<3;vi++) {
-	std::ostringstream ss;
-	ss << "(" << TV_[t][vi] << "," << TT_[t][vi] << ")";
-	X11_->text(s[vi],ss.str());
-      }
-      /* Draw triangle indices at center. */
-      {
-	std::ostringstream ss;
-	ss << "(" << t << ")";
-	X11_->text(s0,ss.str());
-      }
+    s0[0] = 0.0;
+    s0[1] = 0.0;
+    s0[2] = 0.0;
+    for (int vi=0;vi<3;vi++) {
+      v = TV_[t][vi];
+      Vec::copy(s[vi],S_[v]);
+      Vec::accum(s0,s[vi],1.0/3.0);
     }
+    if (type_==Mtype_sphere) {
+      double l = std::sqrt(Vec::scalar(s0,s0));
+      Vec::rescale(s0,l);
+      Point r0;
+      Point r1;
+      Point n;
+      Vec::diff(r0,s[1],s[0]);
+      Vec::diff(r1,s[2],s[0]);
+      Vec::cross(n,r0,r1);
+      if (n[2]<0) return;
+    }
+    /* Draw triangle slightly closer to center. */
+    if (type_==Mtype_sphere) {
+      for (int vi=0;vi<3;vi++) {
+	Vec::diff(s[vi],s[vi],s0);
+	Vec::rescale(s[vi],0.975);
+	Vec::accum(s[vi],s0);
+	Vec::rescale(s[vi],1./Vec::length(s[vi]));
+      }
+      X11_->arc(fg,s[0],s[1]);
+      X11_->arc(fg,s[1],s[2]);
+      X11_->arc(fg,s[2],s[0]);
+    } else {
+      for (int vi=0;vi<3;vi++) {
+	Vec::diff(s[vi],s[vi],s0);
+	Vec::rescale(s[vi],0.975);
+	Vec::accum(s[vi],s0);
+      }
+      X11_->line(fg,s[0],s[1]);
+      X11_->line(fg,s[1],s[2]);
+      X11_->line(fg,s[2],s[0]);
+    }
+    /* Draw vertex indices even closer to center. */
+    for (int vi=0;vi<3;vi++) {
+      Vec::diff(s[vi],s[vi],s0);
+      Vec::rescale(s[vi],0.8);
+      Vec::accum(s[vi],s0);
+    }
+    for (int vi=0;vi<3;vi++) {
+      std::ostringstream ss;
+      ss << "(" << TV_[t][vi] << "," << TT_[t][vi] << ")";
+      X11_->text(fg,s[vi],ss.str());
+    }
+    /* Draw triangle indices at center. */
+    {
+      std::ostringstream ss;
+      ss << "(" << t << ")";
+      X11_->text(fg,s0,ss.str());
+    }
+  }
+
+  void Mesh::redrawX11(std::string str)
+  {
+    if (!X11_) return;
+
+    X11_->clear();
+    for (int t=0;t<(int)nT_;t++)
+      drawX11triangle(t,true);
 
     {
       std::string str0 = str;
@@ -645,8 +669,8 @@ namespace fmesh {
     Dart dh(d);
     dh.alpha0();
     int v1 = TV_[dh.t()][dh.vi()];
-    const double* s0 = S_[v0];
-    const double* s1 = S_[v1];
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
     Point e;
     Vec::diff(e,s1,s0);
     double len = Vec::length(e);
@@ -703,15 +727,15 @@ namespace fmesh {
    obtained by permuting indices.
 
    If \f$s_0\cdot(e_1\times e_2)\f$ is negative, the triangle covers
-   more than a hemisphere, and is non-convex (its complement is
-   convex), with area \f$>2\pi\f$.  Since the total area of the sphere
-   is \f$4\pi\f$, a geodesic triangulation can have at most one
+   more than a hemisphere, and is non-convex (all interior angles are
+   \f$>\pi\f$), with area \f$>2\pi\f$.  Since the total area of the
+   sphere is \f$4\pi\f$, a geodesic triangulation can have at most one
    triangle of this type.
 
    If the vertices are co-planar with the origin, some special cases
    need to be analysed.  If the flat triangle spanned by the vertices
    contains the origin, the geodesic triangle covers a complete
-   hemisphere with are \f$2\pi\f$, which is also calculated by the
+   hemisphere with area \f$2\pi\f$, which is also calculated by the
    formula.  If the origin lies on the boundary of the flat triangle,
    two of the vertices are antipodes, say \f$s_1=-s_0\f$, and the
    formula breaks down, with both arguments to \p atan2 equal to zero.
@@ -757,9 +781,9 @@ namespace fmesh {
     int v1 = TV_[dh.t()][dh.vi()];
     dh.orbit2();
     int v2 = TV_[dh.t()][dh.vi()];
-    const double* s0 = S_[v0];
-    const double* s1 = S_[v1];
-    const double* s2 = S_[v2];
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
+    const Point& s2 = S_[v2];
     Point e0, e1, e2;
     Vec::diff(e0,s2,s1);
     Vec::diff(e1,s0,s2);
@@ -859,7 +883,7 @@ namespace fmesh {
     \see Mesh::triangleArea
     \see Mesh::triangleCircumcircleRadius
   */
-  void Mesh::triangleCircumcenter(int t, double* c) const
+  void Mesh::triangleCircumcenter(int t, Point& c) const
   {
     if ((t<0) || (t>=(int)nT_)) {
       c[0] = 0.0;
@@ -871,9 +895,9 @@ namespace fmesh {
     int v0 = TV_[t][0];
     int v1 = TV_[t][1];
     int v2 = TV_[t][2];
-    const double* s0 = S_[v0];
-    const double* s1 = S_[v1];
-    const double* s2 = S_[v2];
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
+    const Point& s2 = S_[v2];
     Point e0, e1, e2;
     Vec::diff(e0,s2,s1);
     Vec::diff(e1,s0,s2);
@@ -943,9 +967,9 @@ namespace fmesh {
     int v0 = TV_[t][0];
     int v1 = TV_[t][1];
     int v2 = TV_[t][2];
-    const double* s0 = S_[v0];
-    const double* s1 = S_[v1];
-    const double* s2 = S_[v2];
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
+    const Point& s2 = S_[v2];
     Point e0, e1, e2;
     Vec::diff(e0,s2,s1);
     Vec::diff(e1,s0,s2);
@@ -1010,74 +1034,90 @@ namespace fmesh {
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
     Dart dh(d);
-    int v0 = TV_[t][dh.vi()];
+    const Point& s0 = S_[TV_[t][dh.vi()]];
     dh.orbit2();
-    int v1 = TV_[t][dh.vi()];
+    const Point& s1 = S_[TV_[t][dh.vi()]];
 
-    /* Construct a mirror of s reflected in v0-->v1 */
-    double sm[3]; 
-    switch (type_) {
-    case Mesh::Mtype_manifold:
-      //	return predicates::orient3d(M_->S[]);
-    /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      sm[0] = 0.0;
-      sm[1] = 0.0;
-      sm[2] = 0.0;
-      break;
-    case Mesh::Mtype_plane:
-      /* e = s1-s0
-         sv = s-s0
-         sm = s0 + (2*e*e'*sv/elen2 - sv)
-            = s0 + (2*e*se - sv)
-       */
-      {
-	double s0[3];
-	s0[0] = S_[v0][0];
-	s0[1] = S_[v0][1];
-	s0[2] = S_[v0][2];
-	double e[3];
-	e[0] = S_[v1][0]-s0[0];
-	e[1] = S_[v1][1]-s0[1];
-	e[2] = S_[v1][2]-s0[2];
-	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
-	double sv[3];
-	sv[0] = s[0]-s0[0];
-	sv[1] = s[1]-s0[1];
-	sv[2] = s[2]-s0[2];
-	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
-	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
-	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
-	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
-      }
-      break;
-    case Mesh::Mtype_sphere:
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      /*      Point zero = {0.,0.,0.}; */
-      sm[0] = 0.0;
-      sm[1] = 0.0;
-      sm[2] = 0.0;
-      break;
-    }
-    
-    switch (type_) {
-    case Mesh::Mtype_manifold:
-      //	return predicates::orient3d(M_->S[]);
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      break;
-    case Mesh::Mtype_plane:
-      return predicates::incircle(S_[v0],S_[v1],s,sm);
-      break;
-    case Mesh::Mtype_sphere:
-      //      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      break;
-    }
-    /* This should never be reached. */
-    return 0.0;
+    /* Edge is encorached if the distance to the midpoint is smaller
+       than half the straight edge length. */
+    Point e;
+    Vec::diff(e,s1,s0);
+    Point mid;
+    Vec::copy(mid,s0);
+    Vec::accum(mid,s1);
+    Vec::rescale(mid,0.5);
+    Point smid;
+    Vec::diff(smid,s,mid);
+    return (Vec::length(e)/2.0-Vec::length(smid));
+
+    //    /* Normalise with the edge length. */
+    //    return (1.0-Vec::length(smid)/Vec::length(e));
+
+    /* Old algorithm, don't use: */
+    // /* Construct a mirror of s reflected in v0-->v1 */
+    // double sm[3]; 
+    // switch (type_) {
+    // case Mesh::Mtype_manifold:
+    //   //	return predicates::orient3d(M_->S[]);
+    // /* TODO: Implement. */
+    //   NOT_IMPLEMENTED;
+    //   sm[0] = 0.0;
+    //   sm[1] = 0.0;
+    //   sm[2] = 0.0;
+    //   break;
+    // case Mesh::Mtype_plane:
+    //   /* e = s1-s0
+    //      sv = s-s0
+    //      sm = s0 + (2*e*e'*sv/elen2 - sv)
+    //         = s0 + (2*e*se - sv)
+    //    */
+    //   {
+    // 	double s0[3];
+    // 	s0[0] = S_[v0][0];
+    // 	s0[1] = S_[v0][1];
+    // 	s0[2] = S_[v0][2];
+    // 	double e[3];
+    // 	e[0] = S_[v1][0]-s0[0];
+    // 	e[1] = S_[v1][1]-s0[1];
+    // 	e[2] = S_[v1][2]-s0[2];
+    // 	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
+    // 	double sv[3];
+    // 	sv[0] = s[0]-s0[0];
+    // 	sv[1] = s[1]-s0[1];
+    // 	sv[2] = s[2]-s0[2];
+    // 	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
+    // 	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
+    // 	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
+    // 	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
+    //   }
+    //   break;
+    // case Mesh::Mtype_sphere:
+    //   /* TODO: Implement. */
+    //   NOT_IMPLEMENTED;
+    //   /*      Point zero = {0.,0.,0.}; */
+    //   sm[0] = 0.0;
+    //   sm[1] = 0.0;
+    //   sm[2] = 0.0;
+    //   break;
+    // }
+    //
+    // switch (type_) {
+    // case Mesh::Mtype_manifold:
+    //   //	return predicates::orient3d(M_->S[]);
+    //   /* TODO: Implement. */
+    //   NOT_IMPLEMENTED;
+    //   break;
+    // case Mesh::Mtype_plane:
+    //   return predicates::incircle(S_[v0],S_[v1],s,sm);
+    //   break;
+    // case Mesh::Mtype_sphere:
+    //   //      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
+    //   /* TODO: Implement. */
+    //   NOT_IMPLEMENTED;
+    //   break;
+    // }
+    // /* This should never be reached. */
+    // return 0.0;
   }
 
 
@@ -1217,6 +1257,9 @@ namespace fmesh {
     dh.orbit2();
     v_list[3] = TV_[t1][dh.vi()];
 
+    drawX11triangle(t0,false);
+    drawX11triangle(t1,false);
+
     /* Step 2: Overwrite with new triangles. */
     TV_[t0][0] = v_list[0];
     TV_[t0][1] = v_list[3];
@@ -1292,7 +1335,9 @@ namespace fmesh {
     }
     */
 
-    redrawX11("Edge swapped");
+    drawX11triangle(t0,true);
+    drawX11triangle(t1,true);
+    std::cout << "Edge swapped" << std::endl;
     
     return Dart(*this,t0,1,1);
   }
@@ -1337,6 +1382,8 @@ namespace fmesh {
     v1 = TV_[t0][vi];
     dh.orbit2();
 
+    drawX11triangle(t0,false);
+
     bool on_boundary = dh.onBoundary();
     if (!on_boundary) {
       /* Go through t1: */
@@ -1352,6 +1399,8 @@ namespace fmesh {
       dh.orbit2();
       vi = dh.vi();
       v3 = TV_[t1][vi];
+
+      drawX11triangle(t1,false);
     } else {
       v3 = -1;
       tt_list[2] = -1;
@@ -1362,18 +1411,18 @@ namespace fmesh {
       }
     }
 
-    /* Step 2: Overwrite one/two triangles, create two/four new. */
+    /* Step 2: Overwrite two/one triangles, create four/two new. */
     /* t0 = t0; */
-    if (on_boundary) {
-      t1 = nT_;
-      check_capacity(0,nT_+1);
-      t2 = -1;
-      t3 = -1;
-    } else {
+    if (!on_boundary) {
       /* t1 = t1; */
       t2 = nT_;
       t3 = nT_+1;
       check_capacity(0,nT_+2);
+    } else {
+      t1 = nT_;
+      check_capacity(0,nT_+1);
+      t2 = -1;
+      t3 = -1;
     }
     /* t0 */
     t = t0;
@@ -1495,7 +1544,13 @@ namespace fmesh {
     }
     */
 
-    redrawX11("Edge split");
+    if (!on_boundary) {
+      drawX11triangle(t3,true);
+      drawX11triangle(t2,true);
+    }
+    drawX11triangle(t1,true);
+    drawX11triangle(t0,true);
+    std::cout << "Edge swapped" << std::endl;
     
     return Dart(*this,t1,1,0);
   }
@@ -1543,11 +1598,18 @@ namespace fmesh {
     if (use_TTi_) tti_list[0] = TTi_[t][vi];
     dh.orbit2();
 
+    drawX11triangle(t,false);
+
     /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
     t1 = nT_;
     t2 = nT_+1;
     check_capacity(0,nT_+2);
+    
+    std::cout << "Capacity (V,T) = ("
+	      << Vcap_ << "," << Tcap_ << "), T-indices = ("
+	      << t0 << "," << t1 << "," << t2 << ")" << std::endl;
+
     TV_[t0][0] = v;
     TV_[t0][1] = v0;
     TV_[t0][2] = v1;
@@ -1630,7 +1692,10 @@ namespace fmesh {
     }
     */
     
-    redrawX11("Triangle split");
+    drawX11triangle(t0,true);
+    drawX11triangle(t1,true);
+    drawX11triangle(t2,true);
+    std::cout << "Triangle split" << std::cout;
 
     return Dart(*this,t0,1,0);
   }
@@ -1719,7 +1784,7 @@ namespace fmesh {
     Dart dart_start(dart);
     double delta;
     Dart dart_min = Dart();
-    double* s = &(S_[v][0]);
+    const Point& s = S_[v];
     double delta_min = 0.0;
     while (1) {
       std::cout << dart_start << ' '
