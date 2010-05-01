@@ -421,8 +421,8 @@ int DTsphere_test()
 
 int main()
 {
-  LOP_test();
-  return 0;
+  //  LOP_test();
+  //  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();

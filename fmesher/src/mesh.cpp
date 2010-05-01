@@ -9,6 +9,7 @@
 
 #include "mesh.h"
 
+#define WHEREAMI __FILE__ << "(" << __LINE__ << ") "
 
 namespace fmesh {
 
@@ -109,7 +110,7 @@ namespace fmesh {
 
   void Xtmpl::arc(bool fg, const Point& s0, const Point& s1)
   {
-    int n = 10;
+    int n = 8;
     xtmpl_window = window_;
     double p0[2];
     double p1[2];
@@ -264,7 +265,7 @@ namespace fmesh {
   {
     if ((nVc <= Vcap_) && (nTc <= Tcap_))
       return *this;
-    std::cout << "Increasing V-capacity from " << Vcap_;
+    std::cout << WHEREAMI << "Increasing V-capacity from " << Vcap_;
     while ((nVc > Vcap_) || (nTc > Tcap_)) {
       if (Vcap_==0)
 	Vcap_ = Mesh_V_capacity_step_size;
@@ -333,9 +334,9 @@ namespace fmesh {
       }
     }
     /*
-    std::cout << TTO() << std::endl;
+    std::cout << WHEREAMI << TTO() << std::endl;
     for (Ei=ET.begin();Ei!=ET.end();Ei++) {
-      std::cout << Ei->first.first << ' '
+      std::cout << WHEREAMI << Ei->first.first << ' '
 		<< Ei->first.second << ' '
 		<< Ei->second << std::endl;
     }
@@ -456,7 +457,7 @@ namespace fmesh {
 	    TTi_[t][(vi+2)%3] = (vi2+1)%3;
 	  } else {
 	    /* Error! This should never happen! */
-	    std::cout << "ERROR\n";
+	    std::cout << WHEREAMI << "ERROR\n";
 	  }
 	} else {
 	  TTi_[t][(vi+2)%3] = -1;
@@ -1193,13 +1194,13 @@ namespace fmesh {
     dh.orbit0rev().orbit2();
     v = TV_[dh.t()][dh.vi()];
     result = inCircumcircle(d,S_[v]);
-    std::cout << "Dart=" << d
-	      << " Node=" << v
-	      << std::scientific << " result=" << result
-	      << " (" << S_[v][0]
-	      << "," << S_[v][1]
-	      << "," << S_[v][2] << ")"
-	      << std::endl;
+    // std::cout << WHEREAMI << "Dart=" << d
+    // 	      << " Node=" << v
+    // 	      << std::scientific << " result=" << result
+    // 	      << " (" << S_[v][0]
+    // 	      << "," << S_[v][1]
+    // 	      << "," << S_[v][2] << ")"
+    // 	      << std::endl;
     if  (result > MESH_EPSILON)
       return false;
     /* For robusness, check with the reverse dart as well: */
@@ -1209,13 +1210,13 @@ namespace fmesh {
     dh.orbit2();
     dh.orbit1();
     result = inCircumcircle(dh,S_[v]);
-    std::cout << "Dart=" << dh
-	      << " Node=" << v
-	      << std::scientific << " result=" << result
-	      << " (" << S_[v][0]
-	      << "," << S_[v][1]
-	      << "," << S_[v][2] << ")"
-	      << std::endl;
+    // std::cout << WHEREAMI << "Dart=" << dh
+    // 	      << " Node=" << v
+    // 	      << std::scientific << " result=" << result
+    // 	      << " (" << S_[v][0]
+    // 	      << "," << S_[v][1]
+    // 	      << "," << S_[v][2] << ")"
+    // 	      << std::endl;
     if  (result > MESH_EPSILON)
       return false;
     return true;
@@ -1338,19 +1339,19 @@ namespace fmesh {
 
     /* Debug code: */
     /* 
-    std::cout << "TT is \n" << TTO();
+    std::cout << WHEREAMI << "TT is \n" << TTO();
     rebuildTT();
-    std::cout << "TT should be \n" << TTO();
+    std::cout << WHEREAMI << "TT should be \n" << TTO();
     if (use_TTi_) {
-      std::cout << "TTi is \n" << TTiO();
+      std::cout << WHEREAMI << "TTi is \n" << TTiO();
       rebuildTTi();
-      std::cout << "TTi should be \n" << TTiO();
+      std::cout << WHEREAMI << "TTi should be \n" << TTiO();
     }
     */
 
     drawX11triangle(t0,true);
     drawX11triangle(t1,true);
-    std::cout << "Edge swapped" << std::endl;
+    std::cout << WHEREAMI << "Edge swapped" << std::endl;
     
     return Dart(*this,t0,1,1);
   }
@@ -1547,13 +1548,13 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    std::cout << "TT is \n" << TTO();
+    std::cout << WHEREAMI << "TT is \n" << TTO();
     rebuildTT();
-    std::cout << "TT should be \n" << TTO();
+    std::cout << WHEREAMI << "TT should be \n" << TTO();
     if (use_TTi_) {
-      std::cout << "TTi is \n" << TTiO();
+      std::cout << WHEREAMI << "TTi is \n" << TTiO();
       rebuildTTi();
-      std::cout << "TTi should be \n" << TTiO();
+      std::cout << WHEREAMI << "TTi should be \n" << TTiO();
     }
     */
 
@@ -1563,7 +1564,7 @@ namespace fmesh {
     }
     drawX11triangle(t1,true);
     drawX11triangle(t0,true);
-    std::cout << "Edge swapped" << std::endl;
+    std::cout << WHEREAMI << "Edge swapped" << std::endl;
     
     return Dart(*this,t1,1,0);
   }
@@ -1619,7 +1620,7 @@ namespace fmesh {
     t2 = nT_+1;
     check_capacity(0,nT_+2);
     
-    std::cout << "Capacity (V,T) = ("
+    std::cout << WHEREAMI << "Capacity (V,T) = ("
 	      << Vcap_ << "," << Tcap_ << "), T-indices = ("
 	      << t0 << "," << t1 << "," << t2 << ")" << std::endl;
 
@@ -1695,20 +1696,20 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    std::cout << "TT is \n" << TTO();
+    std::cout << WHEREAMI << "TT is \n" << TTO();
     rebuildTT();
-    std::cout << "TT should be \n" << TTO();
+    std::cout << WHEREAMI << "TT should be \n" << TTO();
     if (use_TTi_) {
-      std::cout << "TTi is \n" << TTiO();
+      std::cout << WHEREAMI << "TTi is \n" << TTiO();
       rebuildTTi();
-      std::cout << "TTi should be \n" << TTiO();
+      std::cout << WHEREAMI << "TTi should be \n" << TTiO();
     }
     */
     
     drawX11triangle(t0,true);
     drawX11triangle(t1,true);
     drawX11triangle(t2,true);
-    std::cout << "Triangle split" << std::endl;
+    std::cout << WHEREAMI << "Triangle split" << std::endl;
 
     return Dart(*this,t0,1,0);
   }
@@ -1737,7 +1738,7 @@ namespace fmesh {
     double delta;
     Dart dart_min = Dart();
     while (1) {
-      std::cout << dart_start << ' '
+      std::cout << WHEREAMI << dart_start << ' '
 		<< dart << ' '
 		<< inLeftHalfspace(dart,s)
 		<< std::endl;
@@ -1784,7 +1785,7 @@ namespace fmesh {
 	return Dart(*this,t,1,1);
       if (TV_[t][2] == v)
 	return Dart(*this,t,1,2);
-      std::cout << "ERROR: Inconsistent data structures!" << std::endl;
+      std::cout << WHEREAMI << "ERROR: Inconsistent data structures!" << std::endl;
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
@@ -1800,7 +1801,7 @@ namespace fmesh {
     const Point& s = S_[v];
     double delta_min = 0.0;
     while (1) {
-      std::cout << dart_start << ' '
+      std::cout << WHEREAMI << dart_start << ' '
 		<< dart << ' '
 		<< inLeftHalfspace(dart,s)
 		<< std::endl;
@@ -1956,7 +1957,7 @@ namespace fmesh {
       output << ' ' << std::right << std::setw(4)
 	     << MO.M_[i];
     }
-    std::cout << std::endl;
+    output << std::endl;
     return output;
   }
 
@@ -1968,7 +1969,7 @@ namespace fmesh {
 	output << ' ' << std::right << std::setw(4)
 	       << MO.M_[i][j];
       }
-      std::cout << std::endl;
+      output << std::endl;
     }
     return output;
   }
@@ -1980,7 +1981,7 @@ namespace fmesh {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(10) << std::scientific
 	       << MO.M_[i][j];
-      std::cout << std::endl;
+      output << std::endl;
     }
     return output;
   }
