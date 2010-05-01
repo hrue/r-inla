@@ -100,6 +100,85 @@ int mesh_test()
 }
 
 
+int LOP_test()
+{
+  int n = 0;
+  double S[14][3] = {{0.5,0.5,0},
+		     {0.5,0.6,0},
+		     {0.3,0.2,0},
+		     {0.3,0.6,0},
+		     {0.5,0.3,0},
+		     {0.6,0.7,0},
+		     {0.7,0.3,0},
+		     {0.2,0.8,0},
+		     {0.9,0.5,0},
+		     {0.1,0.1,0},
+		     {0.05,0.05,0},
+		     {0.95,0.05,0},
+		     {0.95,0.95,0},
+		     {0.05,0.95,0}};
+  double Sb[6][3] = {{0.,0.,0.},
+		     {1.,0.,0.},
+		     {0.,1.,0.},
+		     {1.0,1.,0.},
+		     {0.6,0.7,0.},
+		     {0.7,0.6,0.}};
+  int TVb[6][3] = {{0,1,2},
+		   {1,5,4},
+		   {1,4,2},
+		   {3,2,4},
+		   {3,4,5},
+		   {3,5,1}};
+  Mesh M(Mesh::Mtype_plane,0,true,false);
+  int t,vi,v;
+
+  if (useX11)
+    M.useX11(true,false,500,500);
+
+  M.S_set(S,n);
+  M.S_append(Sb,6);
+  for (t=0;t<6;t++)
+    for (vi=0;vi<3;vi++)
+      TVb[t][vi] += n; 
+  M.TV_set(TVb,6);
+
+  MeshC MC(&M,true);
+
+  fmesh::triangleSetT triangles;
+  for (t=0;t<(int)M.nT();t++)
+    triangles.insert(t);
+  MC.LOP(triangles);
+  MC.LOP(triangles);
+
+  return 0;
+
+  fmesh::vertexListT vertices;
+  for (v=0;v<n;v++)
+    vertices.push_back(v);
+
+  MC.DT(vertices);
+
+  cout << M;
+
+  fmesh::constrListT cinp;
+  cinp.push_back(fmesh::constrT(10,11));
+  cinp.push_back(fmesh::constrT(11,12));
+  cinp.push_back(fmesh::constrT(12,13));
+  cinp.push_back(fmesh::constrT(13,10));
+  MC.CDTBoundary(cinp);
+
+  cinp.clear();
+  cinp.push_back(fmesh::constrT(10,12));
+  MC.CDTInterior(cinp);
+
+  //  M.useX11(useX11,false);
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.05);
+
+  return 0;
+}
+
+
 int DT2D_test()
 {
   int n = 14;
@@ -342,6 +421,8 @@ int DTsphere_test()
 
 int main()
 {
+  LOP_test();
+  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();

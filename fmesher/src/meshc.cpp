@@ -103,10 +103,10 @@ namespace fmesh {
   double MCQsegm::calcQ(const Dart& d) const
   {
     double quality_ = MC_->encroachedQuality(d);
-    Dart dhelper(d);
-    dhelper.orbit1();
-    if (d.t() != dhelper.t()) {
-      double quality1_ = MC_->encroachedQuality(dhelper);
+    Dart dh(d);
+    dh.orbit1();
+    if (d.t() != dh.t()) {
+      double quality1_ = MC_->encroachedQuality(dh);
       if (quality1_>quality_)
 	quality_ = quality1_;
     }
@@ -116,9 +116,47 @@ namespace fmesh {
   bool MCQsegm::segm(const Dart& d) const
   {
     if (found(d)) return true;
-    Dart dhelper(d);
-    dhelper.orbit1();
-    return ((dhelper.t() != d.t()) && found(dhelper));
+    Dart dh(d);
+    dh.orbit1();
+    return ((dh.t() != d.t()) && found(dh));
+  }
+
+  double MCQswapable::calcQ(const Dart& d) const
+  {
+    if (MC_->M_->circumcircleOK(d))
+      return -1.0; /* Not swapable. */
+    else
+      return 1.0; /* Swapable. */
+  }
+
+  void MCQswapable::insert(const Dart& d)
+  {
+    if (found(d)) return;  /* Don't add duplicates. */
+    Dart dh(d);
+    dh.orbit1();
+    if (dh.t() != d.t()) {
+      if (found(dh)) return;  /* Don't add duplicates. */
+      MCQ::insert(d);
+    }
+  }
+
+  void MCQswapable::erase(const Dart& d)
+  {
+    MCQ::erase(d);
+    Dart dh(d);
+    dh.orbit1();
+    if (dh.t() != d.t())
+      MCQ::erase(dh);
+  }
+
+  bool MCQswapable::swapable(const Dart& d) const
+  {
+    if (foundQ(d)) return true;
+    Dart dh(d);
+    dh.orbit1();
+    /* Boundary edges should never be in the set, but check
+       for safety, and then check if found. */
+    return ((dh.t() != d.t()) && foundQ(dh));
   }
 
 
@@ -373,9 +411,9 @@ namespace fmesh {
   {
     if (state_<State_DT) {
       /* We need to build a DT first. */
-      triangleListT t_set;
+      triangleSetT t_set;
       for (int t=0;t<(int)M_->nT();t++)
-	t_set.push_back(t);
+	t_set.insert(t);
       if (LOP(t_set))
 	state_ = State_DT;
     }
@@ -448,10 +486,39 @@ namespace fmesh {
 
 
 
-  bool MeshC::LOP(const triangleListT& t_set)
+  bool MeshC::LOP(const triangleSetT& t_set)
   {
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    /* Locate interior edges */
+    Dart dh, dh2;
+    MCQswapable swapable(this);
+    for (triangleSetT::const_iterator ci=t_set.begin();
+	 ci != t_set.end(); ci++) {
+      dh = Dart(*M_,(*ci));
+      for (int vi=0; vi<3; vi++) {
+	dh2 = dh;
+	dh2.orbit1();
+	
+	std::cout << "LOP dart+mirror: " << dh << ", " << dh2 << std::endl;
+	
+	if ((dh.t() != dh2.t()) /* Only add if not on boundary */
+	    && (t_set.find(dh2.t()) != t_set.end())
+	    /* Only add if the neighbouring triangle is also in the set. */
+	    && ((state_<State_CDT)
+		|| (!boundary_.segm(dh))
+		|| (!interior_.segm(dh)))) /* Don't add CDT segments. */
+	  swapable.insert(dh); /* MCQswapable takes care of duplicates. */
+	dh.orbit2();
+      }
+    }
+    std::cout << "LOP initially swapable: " << swapable;
+
+    /* Swap edges, until none are swapable. */
+    while (!swapable.emptyQ()) {
+      swapEdgeLOP(swapable.beginQ()->d_,swapable);
+      std::cout << "LOP swapable: " << swapable;
+    }
+
+    M_->redrawX11("LOP finished");
 
     return true;
   }
@@ -635,6 +702,58 @@ namespace fmesh {
 
 
 
+
+  Dart MeshC::swapEdgeLOP(const Dart& d, MCQswapable& swapable)
+  {
+    if (!swapable.swapable(d)) {
+      /* Not allowed to swap. */
+      std::cout << "LOP: Not allowed to swap dart " << std::endl
+		<< d << std::endl;
+      return d;
+    }
+    
+    /* Collect swapable data */
+    bool edge_list[4];
+    Dart dh(d);
+    swapable.erase(dh);
+    dh.orbit2rev();
+    if ((edge_list[1] = swapable.found(dh))) swapable.erase(dh);
+    dh.orbit2rev();
+    if ((edge_list[2] = swapable.found(dh))) swapable.erase(dh);
+    dh.orbit0().orbit2rev();
+    if ((edge_list[3] = swapable.found(dh))) swapable.erase(dh);
+    dh.orbit2rev();
+    if ((edge_list[0] = swapable.found(dh))) swapable.erase(dh);
+
+    std::cout << "LOP edge list: ("
+	      << edge_list[0] << ","
+	      << edge_list[1] << ","
+	      << edge_list[2] << ","
+	      << edge_list[3] << ")" << std::endl;
+    
+    Dart dnew(swapEdge(d));
+    if (dh == dnew) {
+      /* ERROR: this should not happen. */
+      std::cout << "Edge swap appears to have failed!" << std::endl;
+      return dnew;
+    }
+    
+    /* Reassemble swapable data */
+    dh = dnew;
+    swapable.insert(dh);
+    dh.orbit2();
+    if (edge_list[1]) swapable.insert(dh);
+    dh.orbit2();
+    if (edge_list[0]) swapable.insert(dh);
+    dh.orbit2().orbit0rev();
+    if (edge_list[3]) swapable.insert(dh);
+    dh.orbit2();
+    if (edge_list[2]) swapable.insert(dh);
+
+    //    std::cout << "Edge swapped:" << std::endl;
+
+    return dnew;
+  }
 
   Dart MeshC::swapEdge(const Dart& d)
   {

@@ -28,7 +28,7 @@ namespace fmesh {
 
   typedef double Point[3];
   typedef std::list<int> vertexListT;
-  typedef std::list<int> triangleListT;
+  typedef std::set<int> triangleSetT;
   typedef std::pair<int,int> constrT;
   typedef std::list<constrT> constrListT;
 
