@@ -138,6 +138,9 @@ namespace fmesh {
     /* No private data. */
   public:
     MCQswapable(MeshC* MC) : MCQ(MC,false) {};
+    bool found(const Dart& d) const;
+    bool foundQ(const Dart& d) const;
+    const double quality(const Dart& d) const;
     void insert(const Dart& d); /*!< Insert dart if not existing. */
     void erase(const Dart& d); /*!< Remove dart if existing. */
     double calcQ(const Dart& d) const;
@@ -247,6 +250,7 @@ namespace fmesh {
 
       Perform LOP to make the input triangulation Delaunay.
      */
+    bool LOP(MCQswapable& swapable);
     bool LOP(const triangleSetT& t_set);
     /*!
       \brief Build Delaunay triangulation (DT)
