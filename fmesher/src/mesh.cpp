@@ -1196,6 +1196,9 @@ namespace fmesh {
     std::cout << "Dart=" << d
 	      << " Node=" << v
 	      << std::scientific << " result=" << result
+	      << " (" << S_[v][0]
+	      << "," << S_[v][1]
+	      << "," << S_[v][2] << ")"
 	      << std::endl;
     if  (result > MESH_EPSILON)
       return false;
@@ -1209,6 +1212,9 @@ namespace fmesh {
     std::cout << "Dart=" << dh
 	      << " Node=" << v
 	      << std::scientific << " result=" << result
+	      << " (" << S_[v][0]
+	      << "," << S_[v][1]
+	      << "," << S_[v][2] << ")"
 	      << std::endl;
     if  (result > MESH_EPSILON)
       return false;

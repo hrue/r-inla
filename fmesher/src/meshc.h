@@ -130,7 +130,18 @@ namespace fmesh {
   public:
     MCQsegm(MeshC* MC) : MCQ(MC,false), encroached_limit_(10*MESH_EPSILON) {};
     double calcQ(const Dart& d) const;
-    bool segm(const Dart& d) const; /*! true if d or d.orbit1() is found */
+    bool segm(const Dart& d) const; /*!< true if d or d.orbit1() is found */
+  };
+
+  class MCQswapable : public MCQ {
+  private:
+    /* No private data. */
+  public:
+    MCQswapable(MeshC* MC) : MCQ(MC,false) {};
+    void insert(const Dart& d); /*!< Insert dart if not existing. */
+    void erase(const Dart& d); /*!< Remove dart if existing. */
+    double calcQ(const Dart& d) const;
+    bool swapable(const Dart& d) const; /*!< true if d or d.orbit1() is found */
   };
 
 
@@ -138,6 +149,7 @@ namespace fmesh {
     \brief Class for constructing Delaunay triangulations
   */
   class MeshC {
+    friend class MCQswapable;
   public:
     enum State {State_noT=0, /*!< No triangulation present */
 		State_CHT, /*!< Convex hull triangulation */
@@ -220,6 +232,8 @@ namespace fmesh {
       M_->S_append(S,nV);
       return M_->nV()-nV;
     };
+
+    Dart swapEdgeLOP(const Dart& d, MCQswapable& swapable);
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
@@ -233,7 +247,7 @@ namespace fmesh {
 
       Perform LOP to make the input triangulation Delaunay.
      */
-    bool LOP(const triangleListT& t_set);
+    bool LOP(const triangleSetT& t_set);
     /*!
       \brief Build Delaunay triangulation (DT)
 
