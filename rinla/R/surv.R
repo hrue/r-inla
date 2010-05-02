@@ -148,9 +148,9 @@
     xmax = max(time,upper,lower,event)
     xax = c(0,xmax+xmax/8)
     yax = c(0, nn)
-    plot(xax,yax,type="n",xlab="time",ylab="",axes=F)
+    plot(xax,yax,type="n",xlab="time",ylab="",axes=FALSE)
     axis(1)
-    axis(2,label=F,tick=F)
+    axis(2,label=F,tick=FALSE)
     for(i in 1:nn)
     {
         if (event[i]==1)
@@ -317,9 +317,9 @@
     xmin = min(time)
     xax = c(xmin,xmax+xmax/8)
     yax = c(0, nn+0.5)
-    plot(xax,yax,type="n",xlab="time",ylab="",axes=F)
+    plot(xax,yax,type="n",xlab="time",ylab="",axes=FALSE)
     axis(1)
-    axis(2,label=F,tick=F)
+    axis(2,label=F,tick=FALSE)
      
     for(i in 1 :nn)
     {

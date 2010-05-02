@@ -21,16 +21,16 @@ indicates that the two nodes $i$ and $j$ are neighbours.
 
 The precision parameter $\tau$ is represented as
 \begin{displaymath}
-    \theta =\log \tau
+    \theta_{1} =\log \tau
 \end{displaymath}
-and the prior is defined on $\mathbf{\theta}$. 
+and the prior is defined on $\theta_{1}$. 
 
 \subsection*{Specification}
 
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="besag",graph.file=<graph file name>
-              prior=c(<prior.model.theta>),
+              prior=c(<prior.model.theta1>),
               param=c(<param.prior.theta1>))
 \end{verbatim}
 
@@ -55,7 +55,8 @@ lines 2-6 each node is described. For example, line 4 states that node
 3 has 4 neighbours and these are nodes 2, 4 and 5.
 
 The graph file can either have nodes indexed from 1 to $n$, or from 0
-to $n-1$.
+to $n-1$. Note that in the latter case, node $i$ seen from R
+corresponds to node $i-1$ in the 0-indexed graph.
 
 
 
