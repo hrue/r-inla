@@ -580,38 +580,56 @@ namespace fmesh {
   }
 
 
+  Dart MeshC::CDTinsert(const int v0, const int v1)
+  {
+    if (!prepareCDT()) return Dart();
+
+    DartOrderedSet trace;
+    Dart dh0(M_->locateVertex(Dart(),v0));
+    Dart dh1(M_->tracePath(dh0,M_->S()[v1],v1,&trace));
+
+    NOT_IMPLEMENTED;
+
+    return Dart();
+  }
+
+
   bool MeshC::buildCDT()
   {
     if (!prepareCDT()) return false;
 
-    /* TODO: Implement. */
+    Dart dh;
 
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
-      NOT_IMPLEMENTED;
-      if (true) {
+      dh = CDTinsert(ci->first,ci->second);
+      if (!dh.isnull()) {
 	ci_next = ci;
 	ci_next++;
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
+	boundary_.insert(dh);
       } else
 	ci++;
     }
     for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
-      NOT_IMPLEMENTED;
-      if (true) {
+      dh = CDTinsert(ci->first,ci->second);
+      if (!dh.isnull()) {
 	ci_next = ci;
 	ci_next++;
 	ci = constr_interior_.erase(ci);
 	ci = ci_next;
+	interior_.insert(dh);
       } else
 	ci++;
     }
 
     std::cout << WHEREAMI << "Boundary segments after CDT:" << std::endl << boundary_;
     std::cout << WHEREAMI << "Interior segments after CDT:" << std::endl << interior_;
+
+    M_->redrawX11("CDT finished");
 
     return (constr_boundary_.empty() && constr_interior_.empty());
   };
