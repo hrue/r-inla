@@ -479,6 +479,8 @@ namespace fmesh {
     if (state_>=State_CDT)
       return true; /* Nothing to do. Data structures already active. */
 
+    M_->setX11VBigLimit((int)M_->nV());
+
     const int* tt;
     int vi;
     Dart d;
@@ -583,10 +585,28 @@ namespace fmesh {
   Dart MeshC::CDTinsert(const int v0, const int v1)
   {
     if (!prepareCDT()) return Dart();
+    if (v0 == v1) return Dart();
 
     DartOrderedSet trace;
     Dart dh0(M_->locateVertex(Dart(),v0));
+    if (dh0.isnull()) return Dart();
     Dart dh1(M_->tracePath(dh0,M_->S()[v1],v1,&trace));
+    if (dh1.isnull()) return Dart();
+
+    std::cout << WHEREAMI << trace;
+
+    if (dh0.t() == dh1.t()) {
+      std::cout << WHEREAMI << "Segment already an edge. Darts: "
+		<< dh0 << " " << dh1 << std::endl;
+      dh0.alpha0();
+      if (v1 == dh0.v()) {
+	dh0.alpha0();
+	return dh0;
+      } else {
+	dh1.orbit1();
+	return dh1;
+      }
+    }
 
     NOT_IMPLEMENTED;
 
@@ -1080,40 +1100,18 @@ namespace fmesh {
     return output;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
+  std::ostream& operator<<(std::ostream& output, const DartOrderedSet& ds)
+  {
+    output << "n = " << ds.size() << std::endl;
+    if (ds.empty()) return output;
+    for (DartOrderedSet::const_iterator di = ds.begin();
+	 di != ds.end(); di++) {
+      output << ' ' << di->first
+	     << ' ' << di->second
+	     << std::endl;
+    }
+    return output;
+  }
 
 
 } /* namespace fmesh */

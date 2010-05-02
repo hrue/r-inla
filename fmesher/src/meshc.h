@@ -15,8 +15,9 @@
 #include "mesh.h"
 
 #ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout << "Not implemented: "	\
+#define NOT_IMPLEMENTED (std::cout				\
 			 << __FILE__ << "(" << __LINE__ << ") "	\
+			 << "NOT IMPLEMENTED: "			\
 			 << __PRETTY_FUNCTION__ << std::endl);
 #endif
 
@@ -306,6 +307,7 @@ namespace fmesh {
     bool RCDT(double skinny_limit, double big_limit);
   };
 
+  std::ostream& operator<<(std::ostream& output, const DartOrderedSet& ds);
 
 } /* namespace fmesh */
 

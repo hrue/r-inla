@@ -22,22 +22,22 @@ extern int xtmpl_window;
 extern int xtmpl_view;
 #endif
 
-extern int xtmpl_clear(void);
-extern int xtmpl_close(void);
-extern int xtmpl_draw_line(int  , int  , int  , int );
-extern int xtmpl_erase_line(int  , int  , int  , int );
-extern int xtmpl_line(int  , int  , int  , int  , int );
-extern int xtmpl_draw_text(int  , int  , char *, int );
-extern int xtmpl_erase_text(int  , int  , char *, int );
-extern int xtmpl_text(int, int  , int  , char *, int );
-extern int xtmpl_line_width(int );
-extern int xtmpl_open(int  , int  , char * );
-extern int xtmpl_record(char *, char *);
-extern int xtmpl_record_end(void);
-extern int xtmpl_record_event(int, char *, char *, char *, char *);
-extern int xtmpl_playback(char *, char *, double );
-extern int xtmpl_dot(int, int, int, int);
-extern int xtmpl_box(int, int, int, double, int);
+extern int xtmpl_open(int nx, int ny, char *title);
+extern int xtmpl_line_width(int lw);
+extern int xtmpl_clear();
+extern int xtmpl_draw_text(int x0, int y0, char * str, int nstr);
+extern int xtmpl_erase_text(int x0, int y0, char * str, int nstr);
+extern int xtmpl_text(int fg, int x0, int y0, char * str, int nstr);
+extern int xtmpl_line(int fg, int x0, int y0, int x1, int y1);
+extern int xtmpl_draw_line(int x0, int y0, int x1, int y1);
+extern int xtmpl_erase_line(int x0, int y0, int x1, int y1);
+extern int xtmpl_dot(int x0, int y0, int width, int fg);
+extern int xtmpl_box(int x0, int y0, int width, double yoffset, int fg);
+extern int xtmpl_close();
+extern int xtmpl_record(char *filename,  char *channels);
+extern int xtmpl_record_end();
+extern int xtmpl_record_event(int type, char *a0, char *a1, char *a2, char *a3);
 extern int xtmpl_press_ret(char *do_what);
+extern int xtmpl_playback(char *filename, char *channels, double magnify);
 
 __END_DECLS

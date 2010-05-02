@@ -106,12 +106,31 @@ namespace fmesh {
     };
     double width() const { return (maxx_-minx_); };
 
+    void dot(bool fg, const Point& s0, int sz);
+    void dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset);
     void arc(bool fg, const Point& s0, const Point& s1, double xoffset);
     void line(bool fg, const Point& s0, const Point& s1);
     void text(bool fg, const Point& s0, std::string str);
-
   };
   int Xtmpl::window_next_ = 0;
+
+  void Xtmpl::dot(bool fg, const Point& s0, int sz)
+  {
+    xtmpl_window = window_;
+    xtmpl_dot((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
+	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+	      sz,
+	      (int)fg);
+  };
+
+  void Xtmpl::dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset)
+  {
+    xtmpl_window = window_;
+    xtmpl_dot((int)(sx_*(s0[0]+xoffset-minx_)/(maxx_-minx_)),
+	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
+	      sz,
+	      (int)fg);
+  };
 
   void Xtmpl::arc(bool fg, const Point& s0, const Point& s1, double xoffset)
   {
@@ -147,6 +166,7 @@ namespace fmesh {
 			 (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
     }
   };
+
   void Xtmpl::line(bool fg, const Point& s0, const Point& s1)
   {
     xtmpl_window = window_;
@@ -161,6 +181,7 @@ namespace fmesh {
 		       (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
 		       (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
   };
+
   void Xtmpl::text(bool fg, const Point& s0, std::string str)
   {
     if (!draw_text_) return;
@@ -261,6 +282,7 @@ namespace fmesh {
     } else {
       X11_ = NULL;
     }
+    X11_v_big_limit_ = M.X11_v_big_limit_;
     S_set(M.S_,M.nV_);
     TV_set(M.TV_,M.nT_);
     return *this;
@@ -566,7 +588,10 @@ namespace fmesh {
   {
     if (!X11_) return;
 
-    int v;
+    int szbig = 5;
+    int szsmall = 1;
+
+    int* v;
     Point s[3];
     Point s0;
     bool otherside = false;
@@ -574,9 +599,9 @@ namespace fmesh {
     s0[0] = 0.0;
     s0[1] = 0.0;
     s0[2] = 0.0;
+    v = TV_[t];
     for (int vi=0;vi<3;vi++) {
-      v = TV_[t][vi];
-      Vec::copy(s[vi],S_[v]);
+      Vec::copy(s[vi],S_[v[vi]]);
       Vec::accum(s0,s[vi],1.0/3.0);
     }
     if (type_==Mtype_sphere) {
@@ -592,22 +617,34 @@ namespace fmesh {
     }
     /* Draw triangle slightly closer to center. */
     if (type_==Mtype_sphere) {
-      for (int vi=0;vi<3;vi++) {
-	Vec::diff(s[vi],s[vi],s0);
-	Vec::rescale(s[vi],0.975);
-	Vec::accum(s[vi],s0);
-	Vec::rescale(s[vi],1./Vec::length(s[vi]));
-      }
+      // for (int vi=0;vi<3;vi++) {
+      // 	Vec::diff(s[vi],s[vi],s0);
+      // 	Vec::rescale(s[vi],0.975);
+      // 	Vec::accum(s[vi],s0);
+      // 	Vec::rescale(s[vi],1./Vec::length(s[vi]));
+      // }
       double offset(otherside ? X11_->width()/2.0 : 0.0);
+      int sz = ((v[0]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot_on_sphere(fg,s[0],sz,offset);
+      sz = ((v[1]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot_on_sphere(fg,s[1],sz,offset);
+      sz = ((v[2]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot_on_sphere(fg,s[2],sz,offset);
       X11_->arc(fg,s[0],s[1],offset);
       X11_->arc(fg,s[1],s[2],offset);
       X11_->arc(fg,s[2],s[0],offset);
     } else {
-      for (int vi=0;vi<3;vi++) {
-	Vec::diff(s[vi],s[vi],s0);
-	Vec::rescale(s[vi],0.975);
-	Vec::accum(s[vi],s0);
-      }
+      // for (int vi=0;vi<3;vi++) {
+      // 	Vec::diff(s[vi],s[vi],s0);
+      // 	Vec::rescale(s[vi],0.975);
+      // 	Vec::accum(s[vi],s0);
+      // }
+      int sz = ((v[0]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot(fg,s[0],sz);
+      sz = ((v[1]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot(fg,s[1],sz);
+      sz = ((v[2]<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot(fg,s[2],sz);
       X11_->line(fg,s[0],s[1]);
       X11_->line(fg,s[1],s[2]);
       X11_->line(fg,s[2],s[0]);
@@ -1896,7 +1933,10 @@ namespace fmesh {
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
     int v0(dh.v());
-    std::cout << WHEREAMI << "Locating point " << s1 << std::endl;
+    std::cout << WHEREAMI << "Locating point " << s1
+	      << " v0=" << v0
+	      << " v1=" << v1
+	      << std::endl;
     Dart d(findPathDirection(dh,s1,v1));
     std::cout << WHEREAMI << "Path-direction " << d << std::endl;
     if (d.isnull()) {
