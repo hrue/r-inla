@@ -448,10 +448,8 @@ namespace fmesh {
       insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
 
       if (state_>=State_CDT)
-	std::cout << WHEREAMI << "Boundary segments after DT:" << std::endl << boundary_;
-
-    M_->redrawX11("Node inserted");
-
+	std::cout << WHEREAMI << "Boundary segments after DT:"
+		  << std::endl << boundary_;
     }
       
     M_->redrawX11("DT finished");
