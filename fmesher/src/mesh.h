@@ -42,7 +42,7 @@ namespace fmesh {
 
 
   struct Vec {  
-    static void copy(Point& s, const Point s0)
+    static void copy(Point& s, const Point& s0)
     {
       s[0] = s0[0];
       s[1] = s0[1];
@@ -54,45 +54,45 @@ namespace fmesh {
       s[1] *= s1;
       s[2] *= s1;
     };
-    static void scale(Point& s, const Point s0, double s1)
+    static void scale(Point& s, const Point& s0, double s1)
     {
       s[0] = s0[0]*s1;
       s[1] = s0[1]*s1;
       s[2] = s0[2]*s1;
     };
-    static void diff(Point& s,const Point s0, const Point s1)
+    static void diff(Point& s,const Point& s0, const Point& s1)
     {
       s[0] = s0[0]-s1[0];
       s[1] = s0[1]-s1[1];
       s[2] = s0[2]-s1[2];
     };
-    static void sum(Point& s,const Point s0, const Point s1)
+    static void sum(Point& s,const Point& s0, const Point& s1)
     {
       s[0] = s0[0]+s1[0];
       s[1] = s0[1]+s1[1];
       s[2] = s0[2]+s1[2];
     };
-    static void accum(Point& s, const Point s0, double s1 = 1.0)
+    static void accum(Point& s, const Point& s0, double s1 = 1.0)
     {
       s[0] += s0[0]*s1;
       s[1] += s0[1]*s1;
       s[2] += s0[2]*s1;
     };
-    static double scalar(const Point s0, const Point s1)
+    static double scalar(const Point& s0, const Point& s1)
     {
       return (s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2]);
     };
-    static double length(const Point s0)
+    static double length(const Point& s0)
     {
       return (std::sqrt(s0[0]*s0[0]+s0[1]*s0[1]+s0[2]*s0[2]));
     };
-    static void cross(Point& s, const Point s0, const Point s1)
+    static void cross(Point& s, const Point& s0, const Point& s1)
     {
       s[0] = s0[1]*s1[2]-s0[2]*s1[1];
       s[1] = s0[2]*s1[0]-s0[0]*s1[2];
       s[2] = s0[0]*s1[1]-s0[1]*s1[0];
     };
-    static double cross2(const Point s0, const Point s1)
+    static double cross2(const Point& s0, const Point& s1)
     {
       return (s0[0]*s1[1]-s0[1]*s1[0]);
     };
@@ -196,7 +196,8 @@ namespace fmesh {
     Mesh& S_append(const double (*S)[3], int nV);
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
-    Dart locatePoint(const Dart& d0, const Point s, double* delta_min) const;
+    Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
+    Dart locatePoint(const Dart& d0, const Point& s, const int v = -1) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
@@ -205,19 +206,24 @@ namespace fmesh {
 
     /* Traits: */
     double edgeLength(const Dart& d) const;
+    void barycentric(const Dart& d, const Point& s, Point& bary) const;
+    double triangleArea(const Point& s0, const Point& s1, const Point& s2) const;
     double triangleArea(int t) const;
     void triangleCircumcenter(int t, Point& c) const;
     double triangleCircumcircleRadius(int t) const;
     double triangleShortestEdge(int t) const;
     double triangleLongestEdge(int t) const;
-    double edgeEncroached(const Dart& d, const double s[3]) const;
+    double edgeEncroached(const Dart& d, const Point& s) const;
     
     /*!
       Compute dart half-space test for a point.
       positive if s is to the left of the edge defined by d.
      */
-    double inLeftHalfspace(const Dart& d, const double s[3]) const;
-    double inCircumcircle(const Dart& d, const double s[3]) const;
+    double inLeftHalfspace(const Point& s0,
+			   const Point& s1,
+			   const Point& s) const;
+    double inLeftHalfspace(const Dart& d, const Point& s) const;
+    double inCircumcircle(const Dart& d, const Point& s) const;
     bool circumcircleOK(const Dart& d) const;
   };
 
@@ -250,6 +256,7 @@ namespace fmesh {
    MOAdouble3(const double (*M)[3],size_t n) : n_(n), M_(M) {};
   };
 
+  std::ostream& operator<<(std::ostream& output, const Point& MO);
 
 
   
@@ -281,7 +288,7 @@ namespace fmesh {
     int vi() const { return vi_; };
     int edir() const { return edir_; };
     int t() const { return t_; };
-    int v() const { return M_->TV_[t_][vi_]; };
+    int v() const { if (t_<0) return -1; else return M_->TV_[t_][vi_]; };
 
     bool isnull() const { return (!M_); };
     bool operator==(const Dart& d) const {

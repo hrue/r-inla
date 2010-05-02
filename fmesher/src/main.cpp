@@ -18,6 +18,7 @@ using fmesh::MeshC;
 
 
 bool useX11 = true;
+bool useX11text = false;
 int maxiter = 1;
 
 int predicates_test()
@@ -133,7 +134,7 @@ int LOP_test()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,false,500,500);
+    M.useX11(true,useX11text,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,6);
@@ -147,7 +148,6 @@ int LOP_test()
   fmesh::triangleSetT triangles;
   for (t=0;t<(int)M.nT();t++)
     triangles.insert(t);
-  MC.LOP(triangles);
   MC.LOP(triangles);
 
   return 0;
@@ -171,7 +171,6 @@ int LOP_test()
   cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
 
-  //  M.useX11(useX11,false);
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -206,7 +205,7 @@ int DT2D_test()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,false,500,500);
+    M.useX11(true,useX11text,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -235,7 +234,6 @@ int DT2D_test()
   cinp.push_back(fmesh::constrT(10,12));
   MC.CDTInterior(cinp);
 
-  //  M.useX11(useX11,false);
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -281,7 +279,7 @@ int DT2D_test2()
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,false,500,500);
+    M.useX11(true,useX11text,500,500);
 
   M.S_set(S,n);
   M.S_append(Sb,4);
@@ -300,8 +298,6 @@ int DT2D_test2()
 
   MC.CDT(fmesh::constrListT());
 
-  //  if (useX11)
-  //    M.useX11(true,false);
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -324,7 +320,7 @@ int DT2D_test3() /* Random points */
   int t,vi,v;
 
   if (useX11)
-    M.useX11(true,false,500,500);
+    M.useX11(true,useX11text,500,500);
 
   for (v=0;v<n;v++) {
     S[v][0] = double(std::rand())/RAND_MAX*0.9+0.05;
@@ -382,7 +378,7 @@ int DTsphere_test()
   double l;
 
   if (useX11)
-    M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
+    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);

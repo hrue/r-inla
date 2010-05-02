@@ -188,7 +188,7 @@ namespace fmesh {
     bool insertNode(int v, const Dart& ed);
 
     bool isSegment(const Dart& d) const;
-    bool buildRCDTlookahead(MCQsegm* segm, const double* c);
+    bool buildRCDTlookahead(MCQsegm* segm, const Point& c);
 
     /*!
       \brief Make a DT from a CHT, calling LOP.
@@ -249,8 +249,19 @@ namespace fmesh {
       \brief Local Optimisation Procedure (LOP)
 
       Perform LOP to make the input triangulation Delaunay.
+      
+      \param swapable The triangulation part to be LOPed, as a set of
+      swappable darts.
      */
     bool LOP(MCQswapable& swapable);
+    /*!
+      \brief Local Optimisation Procedure (LOP)
+
+      Perform LOP to make the input triangulation Delaunay.
+      
+      \param t_set The triangulation part to be LOPed, as a set
+      triangle indices.
+     */
     bool LOP(const triangleSetT& t_set);
     /*!
       \brief Build Delaunay triangulation (DT)
