@@ -200,6 +200,10 @@ namespace fmesh {
     */
     bool prepareCDT();
     /*!
+      \brief Insert a constraint edge into a CDT.
+    */
+    Dart CDTinsert(const int v0, const int v1);
+    /*!
       \brief Build a CDT from constraint edge lists. Called by prepareCDT,
       CDTBoundary and CDTInterior.
     */

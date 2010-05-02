@@ -1853,13 +1853,18 @@ namespace fmesh {
 
 
   /*!
-    Locate a point in the triangulation, tracing a straight path.
+    Trace the geodesic path from a vertex to a point ar another vertex.
+
+    Return a dart identifying the point containing triangle, or a dart
+    originating at the vertex.  If the point/vertex is not found, a
+    null Dart is returned.  Priority is given to finding the vertex;
+    if found, the point is disregarded.  The trace only includes darts
+    strictly intersected, i.e. not the initial and final darts.
 
     Alg 9.1 is non-robust, and does not take the shortest route.  This
     algorithm finds and follows the straight-line intersected edges
-    instead.
-
-    If the point is not found, a null Dart is returned.
+    instead, making it suitable for use in CDT segment insertion
+    algorithms.
 
     \verbatim
     tracePath:
@@ -1867,19 +1872,25 @@ namespace fmesh {
      2. d = findPathDirection(d0,s) // d is now opposite v0
      3. if inLeftHalfspace(d,s) return d
      4. while !d.onBoundary
-     5.   d.orbit1.orbit2rev
-     6.   if inLeftHalfspace(S(v0),s,S(d.v))
-     7.     d.orbit2rev
-     8.   if inLeftHalfspace(d,s) return d
-    10. return null
+     5.   store d in path-trace
+     6.   d1 = d.orbit1.orbit2rev
+     7.   found1 = inLeftHalfspace(d1,s)
+     8.   leavethrough2 = inLeftHalfspace(S(v0),s,S(d.v))
+     9.   d2 = d1.orbit2rev
+    10.   found2 = inLeftHalfspace(d2,s)
+    11.   if found1 & found2 return d2
+    12.   if leavethrough2, d=d2, else d=d1
+    13. return null
     \endverbatim
    */
-  Dart Mesh::locatePoint(const Dart& d0,
-			 const Point& s1,
-			 const int v1) const
+  Dart Mesh::tracePath(const Dart& d0,
+		       const Point& s1,
+		       const int v1,
+		       DartOrderedSet* trace) const
   {
     Dart dh;
     bool found, other;
+    int trace_index = 0;
     if (d0.isnull())
       dh = Dart(*this,0);
     else
@@ -1897,6 +1908,8 @@ namespace fmesh {
       return d;
     }
     while (!d.onBoundary()) {
+      if (trace)
+	trace->insert(DartOrderedSet::value_type(trace_index++,d));
       d.orbit1().orbit2rev();
       std::cout << WHEREAMI << "In triangle " << d << std::endl;
       if (d.v() == v1) {
@@ -1917,58 +1930,29 @@ namespace fmesh {
     return Dart();
   }
 
-  // /*!
-  //   Alg 9.1
-
-  //   If the point is located within the triangulation domain,
-  //   delta_min and the returned Dart correspond to the triangle edge
-  //   with smallest distance, as measured by inLeftHalfspace.
-
-  //   If the point is not found, a null Dart is returned.
-  //  */
-  // Dart Mesh::locatePoint(const Dart& d0,
-  // 			 const Point& s,
-  // 			 double* delta_min) const
-  // {
-  //   Dart dart;
-  //   if (d0.isnull())
-  //     dart = Dart(*this,0);
-  //   else
-  //     dart = Dart(*this,d0.t(),1,d0.vi());
-  //   Dart dart_start(dart);
-  //   double delta;
-  //   Dart dart_min = Dart();
-  //   while (1) {
-  //     std::cout << WHEREAMI << dart_start << ' '
-  // 		<< dart << ' '
-  // 		<< inLeftHalfspace(dart,s)
-  // 		<< std::endl;
-  //     delta = inLeftHalfspace(dart,s);
-  //     if (dart_min.isnull() || (delta<*delta_min)) {
-  // 	dart_min = dart;
-  // 	*delta_min = delta;
-  //     }
-  //     if (delta >= -MESH_EPSILON) {
-  // 	dart.orbit2();
-  // 	if (dart==dart_start)
-  // 	  return dart_min;
-  //     } else {
-  // 	if (dart.onBoundary())
-  // 	  return Dart();
-  // 	dart.alpha2();
-  // 	dart_start = dart;
-  // 	dart_start.alpha0();
-  // 	dart.alpha1();
-  // 	dart_min = dart_start;
-  // 	*delta_min = -delta;
-  //     }
-  //   }
-
-  //   return Dart();
-  // }
 
   /*!
-    Alg 9.1 modified to locate a pre-existing vertex.
+    Locate a point in the graph.
+
+    Return a dart identifying the containing triangle.
+
+    If the point is not found, a null Dart is returned.
+   */
+  Dart Mesh::locatePoint(const Dart& d0, const Point& s) const
+  {
+    Dart dh;
+    if (d0.isnull())
+      dh = Dart(*this,0);
+    else
+      dh = Dart(*this,d0.t(),1,d0.vi());
+    return tracePath(dh,s);
+  }
+
+
+  /*!
+    Locate an existing vertex in the graph.
+
+    Return a dart originating at the vertex.
 
     If the vertex is not found, a null Dart is returned.
    */
@@ -1990,56 +1974,15 @@ namespace fmesh {
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
-    int i;
-    Dart dart;
+    Dart dh;
     if (d0.isnull())
-      dart = Dart(*this,0);
+      dh = Dart(*this,0);
     else
-      dart = Dart(*this,d0.t(),1,d0.vi());
-    Dart dart_start(dart);
-    double delta;
-    Dart dart_min = Dart();
-    const Point& s = S_[v];
-    double delta_min = 0.0;
-    while (1) {
-      std::cout << WHEREAMI << dart_start << ' '
-		<< dart << ' '
-		<< inLeftHalfspace(dart,s)
-		<< std::endl;
-      for (i=0;i<3;i++) {
-	if (dart.v() == v)
-	  return dart;
-	dart.orbit2();
-      }
-
-      delta = inLeftHalfspace(dart,s);
-      if (dart_min.isnull() || (delta<delta_min)) {
-	dart_min = dart;
-	delta_min = delta;
-      }
-      if (delta >= -MESH_EPSILON) {
-	dart.orbit2();
-	if (dart==dart_start) {
-	  for (i=0;i<3;i++) {
-	    if (dart.v() == v)
-	      return dart;
-	    dart.orbit2();
-	  }
-	  return Dart(); /* ERROR: Point located, but not the vertex itself. */
-	}
-      } else {
-	if (dart.onBoundary())
-	  return Dart();
-	dart.alpha2();
-	dart_start = dart;
-	dart_start.alpha0();
-	dart.alpha1();
-	dart_min = dart_start;
-	delta_min = -delta;
-      }
-    }
-
-    return Dart();
+      dh = Dart(*this,d0.t(),1,d0.vi());
+    dh = tracePath(dh,S_[v],v);
+    if (dh.v() != v) /* Point may be found, but not the actual vertex. */
+      return Dart();
+    return dh;
   }
 
 
