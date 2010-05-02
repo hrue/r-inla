@@ -23,7 +23,7 @@ inla.node2lattice.mapping(nrow, ncol)
 inla.lattice2node(irow, icol, nrow, ncol)
 inla.node2lattice(node, nrow, ncol)
 inla.matrix2vector(a.matrix)
-inla.vector2matrix(a.vector)
+inla.vector2matrix(a.vector, nrow, ncol)
 
 The mapping from node to lattice follows the default R behaviour (which
 is column based storage), and \code{as.vector(A)} and \code{matrix(a,
