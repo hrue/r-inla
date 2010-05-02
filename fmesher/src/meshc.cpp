@@ -8,7 +8,7 @@
 #include "predicates.h"
 #include "meshc.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ") "
+#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
 namespace fmesh {
 
@@ -197,11 +197,11 @@ namespace fmesh {
     Dart dh(d);
     dh.orbit2rev();
     
-    double encr = M_->edgeEncroached(d,M_->S()[M_->TV()[t][dh.vi()]]);
+    double encr = M_->edgeEncroached(d,M_->S()[dh.v()]);
 
     dh.orbit2rev();
     std::cout << WHEREAMI << "encroachedQ("
-	      << M_->TV()[t][d.vi()] << "," << M_->TV()[t][dh.vi()]
+	      << d.v() << "," << dh.v()
 	      << ") = " << encr << std::endl;
 
     return encr;
@@ -315,7 +315,7 @@ namespace fmesh {
     }
 
     //    std::cout << WHEREAMI << "TV = " << std::endl << M_->TVO();
-    std::cout << WHEREAMI << "Split edge " << d << " with vertex " << v << std::endl;
+    std::cout << WHEREAMI << "Split edge " << ed << " with vertex " << v << std::endl;
     d = splitEdge(ed,v);
     
     if (!d0.isnull()) recSwapDelaunay(d0);
@@ -376,22 +376,47 @@ namespace fmesh {
   bool MeshC::insertNode(int v, const Dart& ed)
   {
     Dart td;
-    double delta;
 
     std::cout << WHEREAMI << "Locating node " << v
-	      << " (" << M_->S()[v][0]
-	      << " (" << M_->S()[v][1]
-	      << " (" << M_->S()[v][2] << ")" << std::endl;
+	      << " " << M_->S()[v] << std::endl;
 
-    td = M_->locatePoint(ed,M_->S()[v],&delta);
+    td = M_->locatePoint(ed,M_->S()[v]);
     if (td.isnull()) { return false; }; /* ERROR, not found! */
-    std::cout << WHEREAMI << "Closest dart " << td
-	      << ' ' << delta << std::endl;
-
-    if (delta>1.0e3*MESH_EPSILON) { /* Split triangle */
+    td = Dart(*M_,td.t());
+    Point bary;
+    M_->barycentric(td,M_->S()[v],bary);
+    size_t pattern(size_t(bary[0]>MESH_EPSILON)*1+
+		   size_t(bary[1]>MESH_EPSILON)*2+
+		   size_t(bary[2]>MESH_EPSILON)*4);
+    std::cout << WHEREAMI << "Triangle dart " << td
+	      << " bary=" << bary
+	      << " pattern=" << pattern << std::endl;
+    switch (pattern) {
+    case 7: // +++
       splitTriangleDelaunay(td,v);
-    } else { /* Split edge */
+      break;
+    case 6: // -++ Split e0
+      td.orbit2();
+      std::cout << WHEREAMI << "Edge dart " << td << std::endl;
       splitEdgeDelaunay(td,v);
+      break;
+    case 5: // +-+ Split e1
+      td.orbit2rev();
+      std::cout << WHEREAMI << "Edge dart " << td << std::endl;
+      splitEdgeDelaunay(td,v);
+      break;
+    case 3: // ++- Split e2
+      std::cout << WHEREAMI << "Edge dart " << td << std::endl;
+      splitEdgeDelaunay(td,v);
+      break;
+    case 1: // +-- Close to node 0, not allowed
+    case 2: // -+- Close to node 1, not allowed
+    case 4: // --+ Close to node 2, not allowed
+      return false;
+      break;
+    case 0: // --- Close to all nodes, should not happen!
+      return false;
+      break;
     }
 
     return true;
@@ -424,6 +449,8 @@ namespace fmesh {
 
       if (state_>=State_CDT)
 	std::cout << WHEREAMI << "Boundary segments after DT:" << std::endl << boundary_;
+
+    M_->redrawX11("Node inserted");
 
     }
       
@@ -599,7 +626,7 @@ namespace fmesh {
 
 
 
-  bool MeshC::buildRCDTlookahead(MCQsegm* segm, const double* c)
+  bool MeshC::buildRCDTlookahead(MCQsegm* segm, const Point& c)
   {
     std::cout << WHEREAMI << "Checking for potentially encroached segments at ("
 	      << c[0] << ',' << c[1] << ',' << c[2] << ")" << std::endl;
