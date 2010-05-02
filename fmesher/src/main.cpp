@@ -342,6 +342,11 @@ int DT2D_test3() /* Random points */
 
   MC.DT(vertices);
 
+  fmesh::triangleSetT triangles;
+  for (t=0;t<(int)M.nT();t++)
+    triangles.insert(t);
+  MC.LOP(triangles);
+
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -420,9 +425,9 @@ int main()
   //  LOP_test();
   //  return 0;
   for (int i=0;i<maxiter;i++) {
-    DT2D_test();
-    DT2D_test2();
-    DT2D_test3();
+    //    DT2D_test();
+    //DT2D_test2();
+    //DT2D_test3();
     DTsphere_test();
   }
 
