@@ -5,7 +5,7 @@ LDFLAGS = -lX11
 
 all: main
 
-%.o: Makefile
+%.o: Makefile $(wildcard *.h)
 mesh.o: mesh.h
 meshc.o: meshc.h mesh.h
 main.o: fmesher.h mesh.h meshc.h
