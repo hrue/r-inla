@@ -18,6 +18,7 @@ namespace fmesh {
 
   class Xtmpl {
   private:
+    static int window_next_;
     int window_;
     char* name_char_;
     int sx_, sy_;
@@ -48,7 +49,8 @@ namespace fmesh {
     void reopen(int sx, int sy) {
       if (!(window_<0))
 	close();
-      window_ = 0;
+      else
+	window_ = window_next_++;
       sx_ = sx;
       sy_ = sy;
       xtmpl_window = window_;
@@ -62,7 +64,8 @@ namespace fmesh {
 	      int sx, int sy) {
       if (!(window_<0))
 	close();
-      window_ = 0;
+      else
+	window_ = window_next_++;
       sx_ = sx;
       sy_ = sy;
       if (name_char_) delete[] name_char_;
@@ -101,14 +104,16 @@ namespace fmesh {
       miny_ = miny;
       maxy_ = maxy;
     };
+    double width() const { return (maxx_-minx_); };
 
-    void arc(bool fg, const Point& s0, const Point& s1);
+    void arc(bool fg, const Point& s0, const Point& s1, double xoffset);
     void line(bool fg, const Point& s0, const Point& s1);
     void text(bool fg, const Point& s0, std::string str);
 
   };
+  int Xtmpl::window_next_ = 0;
 
-  void Xtmpl::arc(bool fg, const Point& s0, const Point& s1)
+  void Xtmpl::arc(bool fg, const Point& s0, const Point& s1, double xoffset)
   {
     int n = 8;
     xtmpl_window = window_;
@@ -131,14 +136,14 @@ namespace fmesh {
 	p1[dim] = s[dim]/l;
       
       if (fg)
-	xtmpl_draw_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+	xtmpl_draw_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
 			(int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			(int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+			(int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
 			(int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
       else
-	xtmpl_erase_line((int)(sx_*(p0[0]-minx_)/(maxx_-minx_)),
+	xtmpl_erase_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
 			 (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			 (int)(sx_*(p1[0]-minx_)/(maxx_-minx_)),
+			 (int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
 			 (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
     }
   };
@@ -507,11 +512,19 @@ namespace fmesh {
   {
     if (use_X11) {
       if (!X11_) { /* Init. */
-	X11_ = new Xtmpl(draw_text,sx,sy,minx,maxx,miny,maxy,name);
+	if (type_ == Mtype_sphere)
+	  X11_ = new Xtmpl(draw_text,sx*2,sy,minx,2*maxx-minx,miny,maxy,name);
+	else
+	  X11_ = new Xtmpl(draw_text,sx,sy,minx,maxx,miny,maxy,name);
 	redrawX11("");
       } else {
-	X11_->reopen(sx,sy,draw_text);
-	X11_->setAxis(minx,maxx,miny,maxy);
+	if (type_ == Mtype_sphere) {
+	  X11_->reopen(sx*2,sy,draw_text);
+	  X11_->setAxis(minx,2*maxx-minx,miny,maxy);
+	} else {
+	  X11_->reopen(sx,sy,draw_text);
+	  X11_->setAxis(minx,maxx,miny,maxy);
+	}
 	redrawX11("");
       }
     } else { /* Destroy. */
@@ -556,6 +569,7 @@ namespace fmesh {
     int v;
     Point s[3];
     Point s0;
+    bool otherside = false;
 
     s0[0] = 0.0;
     s0[1] = 0.0;
@@ -574,7 +588,7 @@ namespace fmesh {
       Vec::diff(r0,s[1],s[0]);
       Vec::diff(r1,s[2],s[0]);
       Vec::cross(n,r0,r1);
-      if (n[2]<0) return;
+      otherside = (n[2]<0);
     }
     /* Draw triangle slightly closer to center. */
     if (type_==Mtype_sphere) {
@@ -584,9 +598,10 @@ namespace fmesh {
 	Vec::accum(s[vi],s0);
 	Vec::rescale(s[vi],1./Vec::length(s[vi]));
       }
-      X11_->arc(fg,s[0],s[1]);
-      X11_->arc(fg,s[1],s[2]);
-      X11_->arc(fg,s[2],s[0]);
+      double offset(otherside ? X11_->width()/2.0 : 0.0);
+      X11_->arc(fg,s[0],s[1],offset);
+      X11_->arc(fg,s[1],s[2],offset);
+      X11_->arc(fg,s[2],s[0],offset);
     } else {
       for (int vi=0;vi<3;vi++) {
 	Vec::diff(s[vi],s[vi],s0);
