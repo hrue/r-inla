@@ -19,8 +19,9 @@
 #define MESH_EPSILON 1e-10
 
 #ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout << "Not implemented: "	\
-			 << __FILE__ << "(" << __LINE__ << ") "	\
+#define NOT_IMPLEMENTED (std::cout					\
+			 << __FILE__ << "(" << __LINE__ << ")\t"	\
+			 << "NOT IMPLEMENTED: "				\
 			 << __PRETTY_FUNCTION__ << std::endl);
 #endif
 
@@ -124,6 +125,7 @@ namespace fmesh {
     //    double (*S_)[3];
     Point (*S_);
     Xtmpl (*X11_);
+    int X11_v_big_limit_;
     
   private:
     Mesh& rebuildTT();
@@ -147,11 +149,13 @@ namespace fmesh {
   public:
     Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
       nV_(0), nT_(0), use_VT_(false), use_TTi_(true),
-		 TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {};
+      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL),
+      X11_(NULL), X11_v_big_limit_(0) {};
     Mesh(Mtype manifold_type, size_t Vcapacity, bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
       nV_(0), nT_(0), use_VT_(true), use_TTi_(false),
-      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL), X11_(NULL) {
+      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL),
+      X11_(NULL), X11_v_big_limit_(0) {
       *this = M;
     };
     Mesh& operator=(const Mesh& M);
@@ -169,6 +173,7 @@ namespace fmesh {
     Mesh& useTTi(bool use_TTi);
 
     bool useX11() const { return (X11_!=NULL); };
+    void setX11VBigLimit(int lim) { X11_v_big_limit_ = lim; };
     Mesh& useX11(bool use_X11, bool draw_text,
 		 int sx = 500, int sy = 500,
 		 double minx = -0.05,
