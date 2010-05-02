@@ -26,12 +26,6 @@
 
 namespace fmesh {
 
-  typedef double Point[3];
-  typedef std::list<int> vertexListT;
-  typedef std::set<int> triangleSetT;
-  typedef std::pair<int,int> constrT;
-  typedef std::list<constrT> constrListT;
-
   class Xtmpl;
   class Mesh;
   class Dart;
@@ -40,6 +34,13 @@ namespace fmesh {
   class MOAdouble3;
   class MeshC;
 
+  typedef double Point[3];
+  typedef std::list<int> vertexListT;
+  typedef std::set<int> triangleSetT;
+  typedef std::pair<int,int> constrT;
+  typedef std::list<constrT> constrListT;
+  typedef std::set<Dart> DartSet;
+  typedef std::map<int,Dart> DartOrderedSet;
 
   struct Vec {  
     static void copy(Point& s, const Point& s0)
@@ -197,7 +198,9 @@ namespace fmesh {
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
     Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
-    Dart locatePoint(const Dart& d0, const Point& s, const int v = -1) const;
+    Dart tracePath(const Dart& d0, const Point& s,
+		   const int v = -1, DartOrderedSet* trace = NULL) const;
+    Dart locatePoint(const Dart& d0, const Point& s) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
