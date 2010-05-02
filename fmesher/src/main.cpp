@@ -151,30 +151,6 @@ int LOP_test()
   MC.LOP(triangles);
 
   return 0;
-
-  fmesh::vertexListT vertices;
-  for (v=0;v<n;v++)
-    vertices.push_back(v);
-
-  MC.DT(vertices);
-
-  cout << M;
-
-  fmesh::constrListT cinp;
-  cinp.push_back(fmesh::constrT(10,11));
-  cinp.push_back(fmesh::constrT(11,12));
-  cinp.push_back(fmesh::constrT(12,13));
-  cinp.push_back(fmesh::constrT(13,10));
-  MC.CDTBoundary(cinp);
-
-  cinp.clear();
-  cinp.push_back(fmesh::constrT(10,12));
-  MC.CDTInterior(cinp);
-
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,0.05);
-
-  return 0;
 }
 
 
@@ -182,8 +158,8 @@ int CDT_test()
 {
   int n = 3;
   double S[3][3] = {{0.3,0.6,0},
-		    {0.2,0.2,0},
-		     {0.8,0.8,0}};
+		    {0.25,0.2,0},
+		     {0.85,0.75,0}};
   double Sb[4][3] = {{0.,0.,0.},
 		     {1.,0.,0.},
 		     {0.,1.,0.},
@@ -214,10 +190,11 @@ int CDT_test()
 
   fmesh::constrListT cinp;
   cinp.push_back(fmesh::constrT(1,2));
+  cinp.push_back(fmesh::constrT(3,6));
   MC.CDTInterior(cinp);
 
-  //  MC.RCDT(1.415,100);
-  //  MC.RCDT(1.415,0.05);
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,0.05);
 
   return 0;
 }
@@ -268,16 +245,16 @@ int DT2D_test()
 
   cout << M;
 
-  fmesh::constrListT cinp;
-  cinp.push_back(fmesh::constrT(10,11));
-  cinp.push_back(fmesh::constrT(11,12));
-  cinp.push_back(fmesh::constrT(12,13));
-  cinp.push_back(fmesh::constrT(13,10));
-  MC.CDTBoundary(cinp);
+  // fmesh::constrListT cinp;
+  // cinp.push_back(fmesh::constrT(10,11));
+  // cinp.push_back(fmesh::constrT(11,12));
+  // cinp.push_back(fmesh::constrT(12,13));
+  // cinp.push_back(fmesh::constrT(13,10));
+  // MC.CDTBoundary(cinp);
 
-  cinp.clear();
-  cinp.push_back(fmesh::constrT(10,12));
-  MC.CDTInterior(cinp);
+  // cinp.clear();
+  // cinp.push_back(fmesh::constrT(10,12));
+  // MC.CDTInterior(cinp);
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
@@ -387,10 +364,10 @@ int DT2D_test3() /* Random points */
 
   MC.DT(vertices);
 
-  fmesh::triangleSetT triangles;
-  for (t=0;t<(int)M.nT();t++)
-    triangles.insert(t);
-  MC.LOP(triangles);
+  // fmesh::triangleSetT triangles;
+  // for (t=0;t<(int)M.nT();t++)
+  //   triangles.insert(t);
+  // MC.LOP(triangles);
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
@@ -467,12 +444,11 @@ int DTsphere_test()
 
 int main()
 {
-  CDT_test();
-  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();
     DT2D_test3();
+    CDT_test();
     DTsphere_test();
   }
 
