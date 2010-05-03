@@ -1961,6 +1961,11 @@ namespace fmesh {
 	      << std::endl;
     Dart d(findPathDirection(dh,s1,v1));
     std::cout << WHEREAMI << "Path-direction " << d << std::endl;
+    std::cout << WHEREAMI << "Starting triangle " << d.t() << " ("
+	      << TV_[d.t()][0] << ","
+	      << TV_[d.t()][1] << ","
+	      << TV_[d.t()][2] << ")"
+	      << std::endl;
     if (d.isnull()) {
       std::cout << WHEREAMI << "Not found" << std::endl;
       return DartPair(Dart(),Dart());
@@ -1968,7 +1973,7 @@ namespace fmesh {
     Dart dstart = d;
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
-    dstart = dh;
+    std::cout << WHEREAMI << "Starting dart " << dstart << std::endl;
     if ((d.v() == v1) || (inLeftHalfspace(d,s1) >= -MESH_EPSILON)) {
       std::cout << WHEREAMI << "Found " << d << std::endl;
       return DartPair(dstart,d);
