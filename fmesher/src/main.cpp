@@ -16,10 +16,11 @@ using fmesh::Mesh;
 using fmesh::Dart;
 using fmesh::MeshC;
 
-
+bool useTV = true;
+bool useTTi = false;
 bool useX11 = true;
 bool useX11text = false;
-int maxiter = 1;
+int maxiter = 2;
 
 int predicates_test()
 {
@@ -56,14 +57,12 @@ int mesh_test()
   //  S[1] = {1.,2.,3.};
   //std::sqrt(2.0);
 
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
 
-  M.useTTi(false);
   M.S_set(S,4);
   M.TV_set(TV,2);
 
   Mesh M2 = M;
-  M2.useTTi(false);
 
   Dart d = Dart(M,0,1,0);
   cout << d.onBoundary();
@@ -130,7 +129,7 @@ int LOP_test()
 		   {3,2,4},
 		   {3,4,5},
 		   {3,5,1}};
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
   M.S_set(S,n);
@@ -168,7 +167,7 @@ int CDT_test()
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
   M.S_set(S,n);
@@ -227,7 +226,7 @@ int DT2D_test()
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
   M.S_set(S,n);
@@ -303,7 +302,7 @@ int DT2D_test2()
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
   M.S_set(S,n);
@@ -346,7 +345,7 @@ int DT2D_test3() /* Random points */
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,true,false);
+  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
   for (v=0;v<n;v++) {
@@ -410,7 +409,7 @@ int DTsphere_test()
 		   {0,1,3},
 		   {1,2,3},
 		   {2,0,3}};
-  Mesh M(Mesh::Mtype_sphere,0,true,false);
+  Mesh M(Mesh::Mtype_sphere,0,useTV,useTTi);
   int t,vi,v,i;
   double l;
 
