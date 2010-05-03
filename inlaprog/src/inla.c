@@ -10380,6 +10380,7 @@ double extra(double *theta, int ntheta, void *argument)
 					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				}
 				SET_GROUP_RHO(1);
+
 				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i]) + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
 				if (!mb->f_fixed[i][0]) {
 					val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
