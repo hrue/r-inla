@@ -75,8 +75,8 @@ function(...,
     ## then we compare these with the legal ones in INLA::f(), and
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
-    ## Cmatrix argument as well.
-    arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "Cij")
+    ## Cmatrix argument, and inla.group() as well.
+    arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "Cij", "method")
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
         if (!is.element(elm, arguments)) {
