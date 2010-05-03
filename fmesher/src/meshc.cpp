@@ -616,8 +616,6 @@ namespace fmesh {
     Dart dh0(dhp.first);
     Dart dh1(dhp.second);
 
-    std::cout << WHEREAMI << trace;
-
     if (dh0.t() == dh1.t()) {
       std::cout << WHEREAMI << "Segment already an edge. Darts: "
 		<< dh0 << " " << dh1 << std::endl;
@@ -631,7 +629,12 @@ namespace fmesh {
       }
     }
 
+    std::cout << WHEREAMI << dhp;
+    std::cout << WHEREAMI << trace;
+
     NOT_IMPLEMENTED;
+
+    xtmpl_press_ret("Tried to insert segment.");
 
     return Dart();
   }
@@ -1164,6 +1167,13 @@ namespace fmesh {
 	     << ' ' << Q.foundQ(qi->first)
 	     << std::endl;
     }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const DartPair& dp)
+  {
+    output << "d0=(" << dp.first << ") d1=("
+	   << dp.second << ")" << std::endl;
     return output;
   }
 
