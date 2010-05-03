@@ -931,7 +931,7 @@ namespace fmesh {
       break;
     default:
       /* ERROR: This should never be reached. */
-      NOT_IMPLEMENTED;
+      std::cout << WHEREAMI << "ERROR: unhandled mesh type.";
       area = 0.0;
     }
 
@@ -996,11 +996,11 @@ namespace fmesh {
       /* TODO: Implement? Need more manifold theory for that! */
       NOT_IMPLEMENTED;
       {
-	/* Calculate centroid instead of circumcenter. */
+	/* Calculate centroid instead of circumcenter. Not useful for RCDT. */
 	Vec::copy(c,s0);
 	Vec::rescale(c,1.0/3.0);
-	Vec::accum(c,s1,1/3.0);
-	Vec::accum(c,s2,1/3.0);
+	Vec::accum(c,s1,1.0/3.0);
+	Vec::accum(c,s2,1.0/3.0);
       }
       break;
     case Mesh::Mtype_plane:
@@ -1148,7 +1148,6 @@ namespace fmesh {
     // case Mesh::Mtype_manifold:
     //   //	return predicates::orient3d(M_->S[]);
     // /* TODO: Implement. */
-    //   NOT_IMPLEMENTED;
     //   sm[0] = 0.0;
     //   sm[1] = 0.0;
     //   sm[2] = 0.0;
@@ -1181,7 +1180,6 @@ namespace fmesh {
     //   break;
     // case Mesh::Mtype_sphere:
     //   /* TODO: Implement. */
-    //   NOT_IMPLEMENTED;
     //   /*      Point zero = {0.,0.,0.}; */
     //   sm[0] = 0.0;
     //   sm[1] = 0.0;
@@ -1193,7 +1191,6 @@ namespace fmesh {
     // case Mesh::Mtype_manifold:
     //   //	return predicates::orient3d(M_->S[]);
     //   /* TODO: Implement. */
-    //   NOT_IMPLEMENTED;
     //   break;
     // case Mesh::Mtype_plane:
     //   return predicates::incircle(S_[v0],S_[v1],s,sm);
@@ -1201,7 +1198,6 @@ namespace fmesh {
     // case Mesh::Mtype_sphere:
     //   //      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
     //   /* TODO: Implement. */
-    //   NOT_IMPLEMENTED;
     //   break;
     // }
     // /* This should never be reached. */
