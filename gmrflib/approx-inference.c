@@ -234,8 +234,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	/*
 	 * parameters for the Gaussian approximations 
 	 */
-	(*ai_par)->optpar_abserr_func = 1e-2;
-	(*ai_par)->optpar_abserr_step = 1e-2;
+	(*ai_par)->optpar_abserr_func = 0.5e-2;
+	(*ai_par)->optpar_abserr_step = 0.5e-2;
 	(*ai_par)->optpar_fp = NULL;
 
 	(*ai_par)->cpo_req_diff_logdens = 3.0;
