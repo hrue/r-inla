@@ -78,10 +78,6 @@ namespace fmesh {
   void MCQtri::setQ(double quality_limit)
   {
     quality_limit_ = quality_limit;
-    if (!empty()) {
-      /* TODO: Implement updating the sets. */
-      NOT_IMPLEMENTED;
-    }
   }
 
   double MCQtri::calcQ(const Dart& d) const {
@@ -355,9 +351,8 @@ namespace fmesh {
 
     switch (M_->type()) {
     case Mesh::Mtype_manifold:
-      /* TODO: Implement. */
-      NOT_IMPLEMENTED;
-      /* break; For now, fall through to Mtype_plane behaviour! */
+      /* Fall through to Mtype_plane behaviour; we have no
+	 manifold-specific algorithm. */
     case Mesh::Mtype_plane:
       /* Nothing to do! */
       break;
