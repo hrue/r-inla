@@ -225,7 +225,8 @@ namespace fmesh {
 	     bool use_TTi) : type_(manifold_type),
 			     Vcap_(V_capacity), Tcap_(2*V_capacity),
 			     nV_(0), nT_(0),
-			     use_VT_(use_VT), use_TTi_(use_TTi)
+			     use_VT_(use_VT), use_TTi_(use_TTi),
+			     X11_v_big_limit_(0)
   {
     if (Vcap_ > 0) {
       TV_ = new int[Vcap_][3];
@@ -584,6 +585,28 @@ namespace fmesh {
     return *this;
   }
 
+  void Mesh::drawX11point(int v, bool fg)
+  {
+    if (!X11_) return;
+
+    int szbig = 5;
+    int szsmall = 1;
+
+    Point& s = S_[v];
+
+    bool otherside = (s[2]<0);
+
+    Vec::copy(s,S_[v]);
+    if (type_==Mtype_sphere) {
+      double offset(otherside ? X11_->width()/2.0 : 0.0);
+      int sz = ((v<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot_on_sphere(fg,s,sz,offset);
+    } else {
+      int sz = ((v<X11_v_big_limit_) ? szbig : szsmall);
+      X11_->dot(fg,s,sz);
+    }
+  }
+
   void Mesh::drawX11triangle(int t, bool fg)
   {
     if (!X11_) return;
@@ -674,6 +697,8 @@ namespace fmesh {
     if (!X11_) return;
 
     X11_->clear();
+    for (int v=0;v<(int)nV_;v++)
+      drawX11point(v,true);
     for (int t=0;t<(int)nT_;t++)
       drawX11triangle(t,true);
 

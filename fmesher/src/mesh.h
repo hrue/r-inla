@@ -142,6 +142,7 @@ namespace fmesh {
     Mesh& rebuildVT();
     Mesh& rebuildTTi();
 
+    void drawX11point(int v, bool fg);
     void drawX11triangle(int t, bool fg);
   public:
     void redrawX11(std::string str);
