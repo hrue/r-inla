@@ -308,6 +308,7 @@ namespace fmesh {
     bool RCDT(double skinny_limit, double big_limit);
   };
 
+  std::ostream& operator<<(std::ostream& output, const DartPair& dp);
   std::ostream& operator<<(std::ostream& output, const DartOrderedSet& ds);
 
 } /* namespace fmesh */
