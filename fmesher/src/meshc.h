@@ -132,6 +132,7 @@ namespace fmesh {
     MCQsegm(MeshC* MC) : MCQ(MC,false), encroached_limit_(10*MESH_EPSILON) {};
     double calcQ(const Dart& d) const;
     bool segm(const Dart& d) const; /*!< true if d or d.orbit1() is found */
+    void update(const Dart& d); /*!< Update quality, don't insert new */
   };
 
   class MCQswapable : public MCQ {
