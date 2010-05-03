@@ -42,6 +42,7 @@ namespace fmesh {
   typedef std::list<constrT> constrListT;
   typedef std::set<Dart> DartSet;
   typedef std::map<int,Dart> DartOrderedSet;
+  typedef std::pair<Dart,Dart> DartPair;
 
   struct Vec {  
     static void copy(Point& s, const Point& s0)
@@ -204,8 +205,8 @@ namespace fmesh {
     Mesh& TV_append(const int (*TV)[3], int nT); 
 
     Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
-    Dart tracePath(const Dart& d0, const Point& s,
-		   const int v = -1, DartOrderedSet* trace = NULL) const;
+    DartPair tracePath(const Dart& d0, const Point& s,
+		       const int v = -1, DartOrderedSet* trace = NULL) const;
     Dart locatePoint(const Dart& d0, const Point& s) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
