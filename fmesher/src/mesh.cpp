@@ -687,7 +687,7 @@ namespace fmesh {
     /* Draw triangle indices at center. */
     {
       std::ostringstream ss;
-      ss << "(" << t << ")";
+      ss << "t" << t << "";
       X11_->text(fg,s0,ss.str());
     }
   }
@@ -1917,11 +1917,12 @@ namespace fmesh {
   /*!
     Trace the geodesic path from a vertex to a point ar another vertex.
 
-    Return a dart identifying the point containing triangle, or a dart
-    originating at the vertex.  If the point/vertex is not found, a
-    null Dart is returned.  Priority is given to finding the vertex;
-    if found, the point is disregarded.  The trace only includes darts
-    strictly intersected, i.e. not the initial and final darts.
+    Return a pair of darts identifying the starting vertex, together
+    with the point containing triangle, or a dart originating at the
+    endpoint vertex.  If the point/vertex is not found, a null Dart is
+    returned.  Priority is given to finding the vertex; if found, the
+    point is disregarded.  The trace only includes darts strictly
+    intersected, i.e. not the initial and final darts.
 
     Alg 9.1 is non-robust, and does not take the shortest route.  This
     algorithm finds and follows the straight-line intersected edges
@@ -1945,7 +1946,7 @@ namespace fmesh {
     13. return null
     \endverbatim
    */
-  Dart Mesh::tracePath(const Dart& d0,
+  DartPair Mesh::tracePath(const Dart& d0,
 		       const Point& s1,
 		       const int v1,
 		       DartOrderedSet* trace) const
@@ -1966,11 +1967,15 @@ namespace fmesh {
     std::cout << WHEREAMI << "Path-direction " << d << std::endl;
     if (d.isnull()) {
       std::cout << WHEREAMI << "Not found" << std::endl;
-      return Dart();
+      return DartPair(Dart(),Dart());
     }
+    Dart dstart = d;
+    while (dstart.v() != d0.v())
+      dstart.orbit2rev();
+    dstart = dh;
     if ((d.v() == v1) || (inLeftHalfspace(d,s1) >= -MESH_EPSILON)) {
       std::cout << WHEREAMI << "Found " << d << std::endl;
-      return d;
+      return DartPair(dstart,d);
     }
     while (!d.onBoundary()) {
       if (trace)
@@ -1979,20 +1984,22 @@ namespace fmesh {
       std::cout << WHEREAMI << "In triangle " << d << std::endl;
       if (d.v() == v1) {
 	std::cout << WHEREAMI << "Found vertex at " << d << std::endl;
-	return d;
+	return DartPair(dstart,d);
       }
       found = (inLeftHalfspace(d,s1) >= -MESH_EPSILON);
       other = (inLeftHalfspace(S_[v0],s1,S_[d.v()]) > 0.0);
       d.orbit2rev();
       if (found && (inLeftHalfspace(d,s1) >= -MESH_EPSILON))
-	return d;
+	return DartPair(dstart,d);
       else
 	found = false;
       if (!other)
 	d.orbit2();
       std::cout << WHEREAMI << "Go to next triangle, from " << d << std::endl;
     }
-    return Dart();
+    std::cout << WHEREAMI << "Endpoint not found "
+	      << dstart << " " << d << std::endl;
+    return DartPair(dstart,Dart());
   }
 
 
@@ -2010,7 +2017,7 @@ namespace fmesh {
       dh = Dart(*this,0);
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
-    return tracePath(dh,s);
+    return tracePath(dh,s).second;
   }
 
 
@@ -2044,7 +2051,7 @@ namespace fmesh {
       dh = Dart(*this,0);
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
-    dh = tracePath(dh,S_[v],v);
+    dh = tracePath(dh,S_[v],v).second;
     if (dh.v() != v) /* Point may be found, but not the actual vertex. */
       return Dart();
     return dh;

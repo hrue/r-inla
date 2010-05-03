@@ -122,6 +122,20 @@ namespace fmesh {
     return ((dh.t() != d.t()) && found(dh));
   }
 
+  void MCQsegm::update(const Dart& d)
+  {
+    if (found(d)){
+      erase(d);
+      insert(d);
+    }
+    Dart dh(d);
+    dh.orbit1();
+    if ((dh.t() != d.t()) && found(dh)) {
+      erase(dh);
+      insert(dh);
+    }
+  }
+
   double MCQswapable::calcQ(const Dart& d) const
   {
     if (MC_->M_->circumcircleOK(d))
@@ -585,13 +599,27 @@ namespace fmesh {
   Dart MeshC::CDTinsert(const int v0, const int v1)
   {
     if (!prepareCDT()) return Dart();
+    std::cout << WHEREAMI << "Inserting segment ("
+	      << v0 << "," << v1 << ")" << std::endl;
     if (v0 == v1) return Dart();
 
     DartOrderedSet trace;
-    Dart dh0(M_->locateVertex(Dart(),v0));
-    if (dh0.isnull()) return Dart();
-    Dart dh1(M_->tracePath(dh0,M_->S()[v1],v1,&trace));
-    if (dh1.isnull()) return Dart();
+    Dart dh(M_->locateVertex(Dart(),v0));
+    if (dh.isnull()) {
+      std::cout << WHEREAMI << "Originating vertex not found "
+		<< v0 << std::endl;
+      return Dart();
+    }
+    DartPair dhp(M_->tracePath(dh,M_->S()[v1],v1,&trace));
+    if (dhp.second.isnull()) {
+      std::cout << WHEREAMI << "Endpoint vertex not found ("
+		<< v0 << "," << v1 << ") "
+		<< M_->S()[v0] << ", " << M_->S()[v0] << std::endl;
+      return Dart();
+    }
+
+    Dart dh0(dhp.first);
+    Dart dh1(dhp.second);
 
     std::cout << WHEREAMI << trace;
 
@@ -630,8 +658,13 @@ namespace fmesh {
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
 	boundary_.insert(dh);
-      } else
+	std::cout << WHEREAMI << "Boundary segment inserted "
+		  << dh << std::endl;
+      } else{
+	std::cout << WHEREAMI << "Boundary segment not inserted ("
+		  << ci->first << "," << ci->second << ")" << std::endl;
 	ci++;
+    }
     }
     for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
@@ -642,8 +675,13 @@ namespace fmesh {
 	ci = constr_interior_.erase(ci);
 	ci = ci_next;
 	interior_.insert(dh);
-      } else
+	std::cout << WHEREAMI << "Interior segment inserted "
+		  << dh << std::endl;
+      } else {
+	std::cout << WHEREAMI << "Interior segment not inserted ("
+		  << ci->first << "," << ci->second << ")" << std::endl;
 	ci++;
+      }
     }
 
     std::cout << WHEREAMI << "Boundary segments after CDT:" << std::endl << boundary_;
@@ -675,6 +713,10 @@ namespace fmesh {
 		  << dhc << " "
 		  << encr << std::endl;
 	bisectEdgeDelaunay(dhc);
+	// if (!bisectEdgeDelaunay(dhc).isnull())
+	//   xtmpl_press_ret("Potentialy encroached segment split.");
+	// else
+	//   xtmpl_press_ret("Failed to split potentialy encroached segment.");
 	return false;
       }
     }
@@ -718,6 +760,10 @@ namespace fmesh {
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
 	bisectEdgeDelaunay(dh);
+	// if (!bisectEdgeDelaunay(dh).isnull())
+	//   xtmpl_press_ret("Boundary segment has been split");
+	// else
+	//   xtmpl_press_ret("Boundary segment split failed");
 	continue;
       }
       
@@ -727,8 +773,15 @@ namespace fmesh {
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
 	bisectEdgeDelaunay(dh);
+	// if (!bisectEdgeDelaunay(dh).isnull())
+	//   xtmpl_press_ret("Interior segment has been split");
+	// else
+	//   xtmpl_press_ret("Interior segment split failed");
 	continue;
       }
+
+      std::cout << WHEREAMI << boundary_;
+      //      xtmpl_press_ret("No segments need splitting.");
 
       dh = skinny_.quality();
       if (!dh.isnull()) {
@@ -741,6 +794,10 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	killTriangle(dh);
+	// if (killTriangle(dh))
+	//   xtmpl_press_ret("Skinny triangle has been eliminated");
+	// else
+	//   xtmpl_press_ret("Skinny triangle elimination failed");
 	continue;
       }
       
@@ -755,6 +812,10 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	killTriangle(dh);
+	// if (killTriangle(dh))
+	//   xtmpl_press_ret("Big triangle has been eliminated");
+	// else
+	//   xtmpl_press_ret("Big triangle elimination failed");
 	continue;
       }
       
@@ -866,6 +927,7 @@ namespace fmesh {
     bool segm_b[4];
     bool segm_i[4];
     Dart dh(d);
+    if (state_>=State_CDT) {
     dh.orbit2rev();
     if ((segm_b[1] = boundary_.found(dh))) boundary_.erase(dh);
     if ((segm_i[1] = interior_.found(dh))) interior_.erase(dh);
@@ -878,6 +940,7 @@ namespace fmesh {
     dh.orbit2rev();
     if ((segm_b[0] = boundary_.found(dh))) boundary_.erase(dh);
     if ((segm_i[0] = interior_.found(dh))) interior_.erase(dh);
+    }
 
     if (state_>=State_RCDT) {
       /* Collect RCDT data */
@@ -891,20 +954,22 @@ namespace fmesh {
 
     Dart dnew(M_->swapEdge(d));
 
+    if (state_>=State_CDT) {
     /* Reassemble CDT data */
     dh = dnew;
     dh.orbit2();
-    if (segm_b[1]) boundary_.insert(dh);
-    if (segm_i[1]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[1]) interior_.insert(dh);
     dh.orbit2();
-    if (segm_b[0]) boundary_.insert(dh);
-    if (segm_i[0]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
     dh.orbit2().orbit0rev();
-    if (segm_b[3]) boundary_.insert(dh);
-    if (segm_i[3]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
     dh.orbit2();
-    if (segm_b[2]) boundary_.insert(dh);
-    if (segm_i[2]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[2]) interior_.insert(dh);
+    }
 
     if (state_>=State_RCDT) {
       /* Reassemble RCDT data */
@@ -932,6 +997,7 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[6];
     bool segm_i[6];
+    if (state_>=State_CDT) {
     for (int i=0;i<3;i++) {
       if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
       if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
@@ -944,6 +1010,7 @@ namespace fmesh {
 	if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
 	dh.orbit2();
       }
+    }
     }
 
     if (state_>=State_RCDT) {
@@ -960,32 +1027,34 @@ namespace fmesh {
 
     Dart dnew(M_->splitEdge(d,v));
 
+    if (state_>=State_CDT) {
     /* Reassemble CDT data */
     dh = dnew;
-    if (segm_b[0]) boundary_.insert(dh);
-    if (segm_i[0]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
     dh.orbit2();
-    if (segm_b[1]) boundary_.insert(dh);
-    if (segm_i[1]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[1]) interior_.insert(dh);
     dh.orbit2().orbit0rev();
-    if (segm_b[2]) boundary_.insert(dh);
-    if (segm_i[2]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[2]) interior_.insert(dh);
     dh.orbit2();
-    if (segm_b[0]) boundary_.insert(dh);
-    if (segm_i[0]) interior_.insert(dh);
+    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
+    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
     if (!dh.onBoundary()) {
       dh.orbit1();
-      if (segm_b[3]) boundary_.insert(dh);
-      if (segm_i[3]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
+      interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
       dh.orbit2();
-      if (segm_b[4]) boundary_.insert(dh);
-      if (segm_i[4]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[4]) boundary_.insert(dh);
+      interior_.update(dh); if (segm_i[4]) interior_.insert(dh);
       dh.orbit2().orbit0rev();
-      if (segm_b[5]) boundary_.insert(dh);
-      if (segm_i[5]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[5]) boundary_.insert(dh);
+      interior_.update(dh); if (segm_i[5]) interior_.insert(dh);
       dh.orbit2();
-      if (segm_b[3]) boundary_.insert(dh);
-      if (segm_i[3]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
+      interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
+    }
     }
 
     if (state_>=State_RCDT) {
@@ -1024,10 +1093,12 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[3];
     bool segm_i[3];
+    if (state_>=State_CDT) {
     for (int i=0;i<3;i++) {
       if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
       if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
       dh.orbit2();
+    }
     }
 
     if (state_>=State_RCDT) {
@@ -1039,12 +1110,14 @@ namespace fmesh {
     Dart dnew(M_->splitTriangle(d,v));
 
     /* Reassebmle CDT data */
+    if (state_>=State_CDT) {
     dh = dnew;
     for (int i=0;i<3;i++) {
       dh.orbit2();
-      if (segm_b[i]) boundary_.insert(dh);
-      if (segm_i[i]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[i]) boundary_.insert(dh);
+      interior_.update(dh); if (segm_i[i]) interior_.insert(dh);
       dh.orbit2rev().orbit0();
+    }
     }
 
     if (state_>=State_RCDT) {

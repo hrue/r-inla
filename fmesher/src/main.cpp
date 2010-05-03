@@ -251,12 +251,12 @@ int DT2D_test()
 
   cout << M;
 
-  // fmesh::constrListT cinp;
-  // cinp.push_back(fmesh::constrT(10,11));
-  // cinp.push_back(fmesh::constrT(11,12));
-  // cinp.push_back(fmesh::constrT(12,13));
-  // cinp.push_back(fmesh::constrT(13,10));
-  // MC.CDTBoundary(cinp);
+  fmesh::constrListT cinp;
+  cinp.push_back(fmesh::constrT(10,11));
+  cinp.push_back(fmesh::constrT(11,12));
+  cinp.push_back(fmesh::constrT(12,13));
+  cinp.push_back(fmesh::constrT(13,10));
+  MC.CDTBoundary(cinp);
 
   // cinp.clear();
   // cinp.push_back(fmesh::constrT(10,12));
