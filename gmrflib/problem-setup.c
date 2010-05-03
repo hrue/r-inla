@@ -688,26 +688,28 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * as usual 
 					 */
+#pragma omp parallel for private(k, kk, i)
 					for (k = 0; k < nc; k++) {
 						kk = k * sub_n;
 						for (i = 0; i < sub_n; i++) {
 							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 						}
-						GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-							       (&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+						GMRFLib_solve_llt_sparse_matrix
+							(&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 				} else {
 					/*
 					 * reuse 
 					 */
 					memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+//#pragma omp parallel for private(k, kk, i)
 					for (k = nc - 2; k < nc; k++) {
 						kk = k * sub_n;
 						for (i = 0; i < sub_n; i++) {
 							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 						}
-						GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-							       (&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+						GMRFLib_solve_llt_sparse_matrix
+							(&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 					Free(qi_at_m_store);
 				}
@@ -1707,12 +1709,15 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 	 * 
 	 */
 
+	GMRFLib_ENTER_ROUTINE;
+
 	int i, ii, j, k, kk, n, ns, *in_use = NULL, *cmap = NULL, nc = 0;
 
 	if (!constr) {
 		if (new_constr) {
 			*new_constr = NULL;
 		}
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1748,6 +1753,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		 */
 		GMRFLib_prepare_constr(*new_constr, graph, 0);
 
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1902,6 +1908,8 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 
 	Free(in_use);
 	Free(cmap);
+	GMRFLib_LEAVE_ROUTINE;
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem)
