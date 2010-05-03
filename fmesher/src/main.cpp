@@ -133,10 +133,12 @@ int LOP_test()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
+  M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_set(S,n);
   M.S_append(Sb,6);
   for (t=0;t<6;t++)
     for (vi=0;vi<3;vi++)
@@ -169,10 +171,12 @@ int CDT_test()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
+  M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_set(S,n);
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
@@ -226,10 +230,12 @@ int DT2D_test()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
+  M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_set(S,n);
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
@@ -300,10 +306,12 @@ int DT2D_test2()
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
+  M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_set(S,n);
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
@@ -341,9 +349,6 @@ int DT2D_test3() /* Random points */
   Mesh M(Mesh::Mtype_plane,0,true,false);
   int t,vi,v;
 
-  if (useX11)
-    M.useX11(true,useX11text,500,500);
-
   for (v=0;v<n;v++) {
     S[v][0] = double(std::rand())/RAND_MAX*0.9+0.05;
     S[v][1] = double(std::rand())/RAND_MAX*0.9+0.05;
@@ -351,6 +356,11 @@ int DT2D_test3() /* Random points */
   }
 
   M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
+  if (useX11)
+    M.useX11(true,useX11text,500,500);
+
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
@@ -404,9 +414,6 @@ int DTsphere_test()
   int t,vi,v,i;
   double l;
 
-  if (useX11)
-    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
-
   for (v=0;v<n;v++) {
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
     for (i=0;i<3;i++)
@@ -419,6 +426,11 @@ int DTsphere_test()
   }
 
   M.S_set(S,n);
+
+  M.setX11VBigLimit(n);
+  if (useX11)
+    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+
   M.S_append(Sb,4);
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
