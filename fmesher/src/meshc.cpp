@@ -775,7 +775,6 @@ namespace fmesh {
 	continue;
       }
 
-      std::cout << WHEREAMI << boundary_;
       //      xtmpl_press_ret("No segments need splitting.");
 
       dh = skinny_.quality();
