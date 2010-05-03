@@ -421,6 +421,7 @@ namespace fmesh {
     case 1: // +-- Close to node 0, not allowed
     case 2: // -+- Close to node 1, not allowed
     case 4: // --+ Close to node 2, not allowed
+      std::cout << WHEREAMI << "ERROR: Attempt to add a duplicate point in triangle " << td << std::endl;
       return false;
       break;
     case 0: // --- Close to all nodes, should not happen!
@@ -618,7 +619,7 @@ namespace fmesh {
 
     if (dh0.t() == dh1.t()) {
       std::cout << WHEREAMI << "Segment already an edge. Darts: "
-		<< dh0 << " " << dh1 << std::endl;
+		<< dhp;
       dh0.alpha0();
       if (v1 == dh0.v()) {
 	dh0.alpha0();
@@ -634,7 +635,8 @@ namespace fmesh {
 
     NOT_IMPLEMENTED;
 
-    xtmpl_press_ret("Tried to insert segment.");
+    if (M_->useX11())
+      xtmpl_press_ret("Tried to insert segment.");
 
     return Dart();
   }
@@ -758,10 +760,10 @@ namespace fmesh {
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
 	bisectEdgeDelaunay(dh);
-	// if (!bisectEdgeDelaunay(dh).isnull())
-	//   xtmpl_press_ret("Boundary segment has been split");
-	// else
-	//   xtmpl_press_ret("Boundary segment split failed");
+	//	if (!bisectEdgeDelaunay(dh).isnull())
+	//	  xtmpl_press_ret("Boundary segment has been split");
+	//	else
+	//	  xtmpl_press_ret("Boundary segment split failed");
 	continue;
       }
       
@@ -790,11 +792,11 @@ namespace fmesh {
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	killTriangle(dh);
+	if (!killTriangle(dh))
 	// if (killTriangle(dh))
 	//   xtmpl_press_ret("Skinny triangle has been eliminated");
 	// else
-	//   xtmpl_press_ret("Skinny triangle elimination failed");
+	  xtmpl_press_ret("Skinny triangle elimination failed");
 	continue;
       }
       
