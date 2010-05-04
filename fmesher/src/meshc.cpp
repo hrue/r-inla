@@ -246,12 +246,30 @@ namespace fmesh {
 
     std::cout << WHEREAMI << "Trying to swap " << d0 << std::endl;
 
-    if (d0.isnull() or d0.onBoundary())
+    if (d0.isnull() or d0.onBoundary()) {
+      std::cout << WHEREAMI << "Not allowed to swap, boundary" << std::endl;
       return true; /* OK. Not allowed to swap. */
-    if (isSegment(d0))
+    }
+    if (isSegment(d0)) {
+      std::cout << WHEREAMI << "Not allowed to swap, segment" << std::endl;
       return true ; /* OK. Not allowed to swap. */
-    if (M_->circumcircleOK(d0))
+    }
+    if (M_->circumcircleOK(d0)) {
+      Dart dh(d0);
+      dh.orbit0rev().orbit2();
+      int v = dh.v();
+      double result0 = M_->inCircumcircle(d0,M_->S()[v]);
+      dh = d0;
+      dh.orbit2rev();
+      v = dh.v();
+      dh.orbit2();
+      dh.orbit1();
+      double result1 = M_->inCircumcircle(dh,M_->S()[v]);
+      std::cout << WHEREAMI << "Not need to swap, circumcircle OK, ("
+		<< result0 << "," << result1 << ")"
+		<< std::endl;
       return true; /* OK. Need not swap. */
+    }
 
     std::cout << WHEREAMI << "Swap " << d0 << std::endl;
 
@@ -398,8 +416,14 @@ namespace fmesh {
 		   size_t(bary[1]>MESH_EPSILON)*2+
 		   size_t(bary[2]>MESH_EPSILON)*4);
     std::cout << WHEREAMI << "Triangle dart " << td
-	      << " bary=" << bary
-	      << " pattern=" << pattern << std::endl;
+	      << "\n\t S[t]=("
+	      << M_->S()[M_->TV()[td.t()][0]] << ",\n\t       "
+	      << M_->S()[M_->TV()[td.t()][1]] << ",\n\t       "
+	      << M_->S()[M_->TV()[td.t()][2]] << ")"
+	      << "\n\t bary=" << bary
+	      << "\n\t pattern=" << pattern
+	      << "\n\t S[v]=" << M_->S()[v]
+	      << std::endl;
     switch (pattern) {
     case 7: // +++
       splitTriangleDelaunay(td,v);
@@ -792,11 +816,15 @@ namespace fmesh {
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (!killTriangle(dh))
+	if (!killTriangle(dh)) {
 	// if (killTriangle(dh))
 	//   xtmpl_press_ret("Skinny triangle has been eliminated");
 	// else
 	  xtmpl_press_ret("Skinny triangle elimination failed");
+	} else {
+	  //	  if (M_->nV()>811)
+	  //	    xtmpl_press_ret("Skinny triangle elimination succeeded");
+	}
 	continue;
       }
       
