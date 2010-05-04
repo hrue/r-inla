@@ -283,7 +283,7 @@ namespace fmesh {
     Dart(void)
       : M_(NULL), vi_(0), edir_(1), t_(0) {};
     Dart(const Mesh& M, int t=0, int edir=1, size_t vi=0)
-      : M_(&M), vi_(vi), edir_(edir), t_(t) {};/*!< Test 2 */
+      : M_(&M), vi_(vi), edir_(edir), t_(t) {};
     Dart(const Dart& d) : M_(d.M_), vi_(d.vi_),
 			  edir_(d.edir_), t_(d.t_) {};
     Dart& operator=(const Dart& d) {
