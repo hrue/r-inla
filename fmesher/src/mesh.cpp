@@ -657,11 +657,11 @@ namespace fmesh {
       X11_->arc(fg,s[1],s[2],offset);
       X11_->arc(fg,s[2],s[0],offset);
     } else {
-      // for (int vi=0;vi<3;vi++) {
-      // 	Vec::diff(s[vi],s[vi],s0);
-      // 	Vec::rescale(s[vi],0.975);
-      // 	Vec::accum(s[vi],s0);
-      // }
+      //      for (int vi=0;vi<3;vi++) {
+      //       	Vec::diff(s[vi],s[vi],s0);
+      //       	Vec::rescale(s[vi],0.975);
+      //       	Vec::accum(s[vi],s0);
+      //      }
       int sz = ((v[0]<X11_v_big_limit_) ? szbig : szsmall);
       X11_->dot(fg,s[0],sz);
       sz = ((v[1]<X11_v_big_limit_) ? szbig : szsmall);
@@ -1282,7 +1282,7 @@ namespace fmesh {
     // 	      << "," << S_[v][1]
     // 	      << "," << S_[v][2] << ")"
     // 	      << std::endl;
-    if  (result > MESH_EPSILON)
+    if  (result > 0.0)
       return false;
     /* For robusness, check with the reverse dart as well: */
     dh = d;
@@ -1298,7 +1298,7 @@ namespace fmesh {
     // 	      << "," << S_[v][1]
     // 	      << "," << S_[v][2] << ")"
     // 	      << std::endl;
-    if  (result > MESH_EPSILON)
+    if  (result > 0.0)
       return false;
     return true;
   }
@@ -2217,14 +2217,23 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Dart& d)
   {
-    output << std::right << std::setw(1) << d.t_
-	   << std::right << std::setw(3) << d.edir_
-	   << std::right << std::setw(2) << d.vi_;
+    output << "D=("
+	   <<std::right << std::setw(1) << d.t_
+	   << std::right << std::setw(2) << d.edir_
+	   << std::right << std::setw(2) << d.vi_
+	   << ")";
     if ((!d.isnull()) && (d.t_<(int)d.M()->nT())) {
-      output << " ("
+      output << " EV=("
 	     << d.M()->TV()[d.t_][d.vi_]
 	     << ","
 	     << d.M()->TV()[d.t_][(d.vi_+(3+d.edir_))%3]
+	     << ")";
+      output << " TV=("
+	     << d.M()->TV()[d.t_][0]
+	     << ","
+	     << d.M()->TV()[d.t_][1]
+	     << ","
+	     << d.M()->TV()[d.t_][2]
 	     << ")";
     }
       

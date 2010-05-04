@@ -17,7 +17,7 @@ using fmesh::Dart;
 using fmesh::MeshC;
 
 bool useTV = true;
-bool useTTi = false;
+bool useTTi = true;
 bool useX11 = true;
 bool useX11text = false;
 int maxiter = 2;
@@ -337,8 +337,8 @@ int DT2D_test2()
 
 int DT2D_test3() /* Random points */
 {
-  int n = 400;
-  fmesh::Point S[400];
+  int n = 800;
+  fmesh::Point S[1024];
   double Sb[4][3] = {{0.,0.,0.},
 		     {1.,0.,0.},
 		     {0.,1.,0.},
@@ -359,6 +359,7 @@ int DT2D_test3() /* Random points */
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
+  //    M.useX11(true,useX11text,500,500,0.72,0.82,0.35,0.45);
 
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
@@ -372,11 +373,11 @@ int DT2D_test3() /* Random points */
     vertices.push_back(v);
 
   MC.DT(vertices);
-
-  // fmesh::triangleSetT triangles;
-  // for (t=0;t<(int)M.nT();t++)
-  //   triangles.insert(t);
-  // MC.LOP(triangles);
+  
+  fmesh::triangleSetT triangles;
+  for (t=0;t<(int)M.nT();t++)
+    triangles.insert(t);
+  MC.LOP(triangles);
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
