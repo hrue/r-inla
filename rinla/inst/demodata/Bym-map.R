@@ -12,11 +12,11 @@ germany.make.graph <- function(filename)
     jj = 2
     for(i in 1:graph$n)
     {
-        idx = xx[jj]+1
-        nnbs = xx[jj+1]
+        idx = xx[jj]
+        nnbs = xx[jj]
         if (nnbs)
         {
-            nbs = xx[(jj+2):(jj+1+nnbs)]+1
+            nbs = xx[(jj+2):(jj+1+nnbs)]
         }
         else
         {
