@@ -2217,6 +2217,7 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Dart& d)
   {
+    return output;
     output << "D=("
 	   <<std::right << std::setw(1) << d.t_
 	   << std::right << std::setw(2) << d.edir_
