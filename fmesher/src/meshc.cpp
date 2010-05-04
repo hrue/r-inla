@@ -384,17 +384,13 @@ namespace fmesh {
 
 
 
-  bool MeshC::killTriangle(const Dart& d)
+  void MeshC::calcSteinerPoint(const Dart& d, Point& c)
   {
-    Point c;
     M_->triangleCircumcenter(d.t(),c);
-
-    std::cout << WHEREAMI << "Center: ("
+    std::cout << WHEREAMI << "Steiner point: ("
 	      << c[0] << ","
 	      << c[1] << ","
 	      << c[2] << ")" << std::endl;
-
-    return insertNode(addVertices(&c,1),d);
   }
 
 
@@ -812,11 +808,11 @@ namespace fmesh {
 		  << dh << " "
 		  << skinny_.quality(dh) << std::endl;
 	Point c;
-	M_->triangleCircumcenter(dh.t(),c);
+	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (!killTriangle(dh)) {
+	if (!insertNode(addVertices(&c,1),dh)) {
 	// if (killTriangle(dh))
 	//   xtmpl_press_ret("Skinny triangle has been eliminated");
 	// else
@@ -834,12 +830,12 @@ namespace fmesh {
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
 	Point c;
-	M_->triangleCircumcenter(dh.t(),c);
+	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	killTriangle(dh);
-	// if (killTriangle(dh))
+	insertNode(addVertices(&c,1),dh);
+	// if (insertNode(addVertices(&c,1),dh))
 	//   xtmpl_press_ret("Big triangle has been eliminated");
 	// else
 	//   xtmpl_press_ret("Big triangle elimination failed");

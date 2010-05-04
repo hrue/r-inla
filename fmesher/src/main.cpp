@@ -17,10 +17,10 @@ using fmesh::Dart;
 using fmesh::MeshC;
 
 bool useTV = true;
-bool useTTi = false;
+bool useTTi = true;
 bool useX11 = true;
 bool useX11text = false;
-int maxiter = 1;
+int maxiter = 10;
 
 int predicates_test()
 {
@@ -158,13 +158,13 @@ int LOP_test()
 int CDT_test()
 {
   int n = 3;
-  double S[3][3] = {{0.3,0.6,0},
-		    {0.25,0.2,0},
-		     {0.85,0.75,0}};
-  double Sb[4][3] = {{0.,0.,0.},
-		     {1.,0.,0.},
-		     {0.,1.,0.},
-		     {1.,1.,0.}};
+  Point S[3] = {{0.3,0.6,0},
+		{0.25,0.2,0},
+		{0.85,0.75,0}};
+  Point Sb[4] = {{0.,0.,0.},
+		 {1.,0.,0.},
+		 {0.,1.,0.},
+		 {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
   Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
@@ -456,11 +456,13 @@ int DTsphere_test()
 
 int main()
 {
+  CDT_test();
+  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();
     DT2D_test3();
-    //    CDT_test();
+    CDT_test();
     DTsphere_test();
   }
 
