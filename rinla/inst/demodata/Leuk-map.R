@@ -1,12 +1,13 @@
 rr = scan(system.file("demodata/Leuk.map", package="INLA"))
 Leuk.newengland=vector("list",24)
 idx=1
-for(i in 1:51526)
+for(i in 1:51526) {
     if(is.na(rr[i]))
     {
         Leuk.newengland[[idx]]=matrix(rr[(i+2):((i+2)+2*rr[i+1]-1)],rr[i+1],2,byrow=T)
         idx=idx+1
     }
+}
 
 Leuk.names.region=scan(system.file("demodata/Leuk.names.regions", package="INLA"))
 
