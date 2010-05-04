@@ -571,51 +571,66 @@
     }
 }
 
-`inla.group` = function(x, n = 25, method = c("cut", "quantile"))
-{
-    ## group covariates into N groups using method "quantile" or
-    ## "cut", i.e., the functions quantile() or cut().  the cut use
-    ## 'even length' wheras the 'quantile' use even length quantiles.
+`inla.group` = function(x, n = 25, method = c("cut", "quantile")) {
 
-    ## I make the "cut" default, as then we have control over the
-    ## minimum distance between each cell, whereas the "quantile"
-    ## approach, we do not have a such control.
+    `inla.group.core` = function(x, n = 25, method = c("cut", "quantile"))
+    {
+        ## group covariates into N groups using method "quantile" or
+        ## "cut", i.e., the functions quantile() or cut().  the cut use
+        ## 'even length' wheras the 'quantile' use even length quantiles.
 
-    if (n < 1)
-        stop("Number of groups must be > 0")
+        ## I make the "cut" default, as then we have control over the
+        ## minimum distance between each cell, whereas the "quantile"
+        ## approach, we do not have a such control.
+
+        if (n < 1)
+            stop("Number of groups must be > 0")
     
-    if (n == 1)
-        return (rep(median(x), length(x)))
+        if (n == 1)
+            return (rep(median(x), length(x)))
     
-    method = match.arg(method)
-    if (method == "cut") {
-        ## use equal length
-        a = cut(x, n)
+        method = match.arg(method)
+        if (method == "cut") {
+            ## use equal length
+            a = cut(x, n)
+        } else {
+            ## use break-points corresponding to the quantiles
+            aq = quantile(x, probs = c(0, ppoints(n-1),1))
+            a = cut(x, breaks = as.numeric(aq), include.lowest=TRUE)
+        }
+        ## the rest is then the same
+        nlev = nlevels(a)
+        xx = list()
+        for(i in 1:nlev)
+            xx[[i]] = list()
+    
+        for(i in 1:length(x))
+            xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]),x[i])
+        values = numeric(nlev)
+    
+        ff.local = function(xx) {
+            if (length(xx) > 0)
+                return (median(xx))
+            else
+                return (NA)
+        }
+        values = unlist(sapply(xx, ff.local))
+        x.group = as.numeric(values[as.numeric(a)])
+
+        return (x.group)
+    }
+
+    if (missing(x))
+        return (NULL)
+    
+    if (any(is.na(x))) {
+        idx.ok = !is.na(x)
+        x[idx.ok] = inla.group.core(x[idx.ok], n, method)
+
+        return (x)
     } else {
-        ## use break-points corresponding to the quantiles
-        aq = quantile(x, probs = c(0, ppoints(n-1),1))
-        a = cut(x, breaks = as.numeric(aq), include.lowest=TRUE)
+        return (inla.group.core(x, n, method))
     }
-    ## the rest is then the same
-    nlev = nlevels(a)
-    xx = list()
-    for(i in 1:nlev)
-        xx[[i]] = list()
-    
-    for(i in 1:length(x))
-        xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]),x[i])
-    values = numeric(nlev)
-    
-    ff.local = function(xx) {
-        if (length(xx) > 0)
-            return (median(xx))
-        else
-            return (NA)
-    }
-    values = unlist(sapply(xx, ff.local))
-    x.group = as.numeric(values[as.numeric(a)])
-
-    return (x.group)
 }
 
 `inla.group.old` = function(x,n)
