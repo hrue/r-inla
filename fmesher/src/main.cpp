@@ -17,10 +17,10 @@ using fmesh::Dart;
 using fmesh::MeshC;
 
 bool useTV = true;
-bool useTTi = true;
+bool useTTi = false;
 bool useX11 = true;
 bool useX11text = false;
-int maxiter = 2;
+int maxiter = 1;
 
 int predicates_test()
 {
@@ -337,8 +337,8 @@ int DT2D_test2()
 
 int DT2D_test3() /* Random points */
 {
-  int n = 800;
-  fmesh::Point S[1024];
+  int n = 200;
+  fmesh::Point S[200];
   double Sb[4][3] = {{0.,0.,0.},
 		     {1.,0.,0.},
 		     {0.,1.,0.},
@@ -460,7 +460,7 @@ int main()
     DT2D_test();
     DT2D_test2();
     DT2D_test3();
-    CDT_test();
+    //    CDT_test();
     DTsphere_test();
   }
 
