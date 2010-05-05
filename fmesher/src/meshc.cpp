@@ -134,10 +134,12 @@ namespace fmesh {
 
   double MCQswapable::calcQ(const Dart& d) const
   {
-    if (MC_->M_->circumcircleOK(d))
-      return -1.0; /* Not swapable. */
-    else
-      return 1.0; /* Swapable. */
+    return (d.isSwapable() ? 1.0 : -1.0);
+  }
+
+  double MCQswapableD::calcQ(const Dart& d) const
+  {
+    return (d.isSwapableD() ? 1.0 : -1.0);
   }
 
   bool MCQswapable::found(const Dart& d) const
@@ -207,7 +209,7 @@ namespace fmesh {
     Dart dh(d);
     dh.orbit2rev();
     
-    double encr = M_->edgeEncroached(d,M_->S()[dh.v()]);
+    double encr = M_->edgeEncroached(d,M_->S(dh.v()));
 
     dh.orbit2rev();
     std::cout << WHEREAMI << "encroachedQ("
@@ -254,18 +256,18 @@ namespace fmesh {
       std::cout << WHEREAMI << "Not allowed to swap, segment" << std::endl;
       return true ; /* OK. Not allowed to swap. */
     }
-    if (M_->circumcircleOK(d0)) {
+    if (d0.circumcircleOK()) {
       Dart dh(d0);
       dh.orbit0rev().orbit2();
       int v = dh.v();
-      double result0 = M_->inCircumcircle(d0,M_->S()[v]);
+      double result0(d0.inCircumcircle(M_->S(v)));
       dh = d0;
       dh.orbit2rev();
       v = dh.v();
       dh.orbit2();
       dh.orbit1();
-      double result1 = M_->inCircumcircle(dh,M_->S()[v]);
-      std::cout << WHEREAMI << "Not need to swap, circumcircle OK, ("
+      double result1(dh.inCircumcircle(M_->S(v)));
+      std::cout << WHEREAMI << "No need to swap, circumcircle OK, ("
 		<< result0 << "," << result1 << ")"
 		<< std::endl;
       return true; /* OK. Need not swap. */
@@ -364,7 +366,7 @@ namespace fmesh {
     int v1(dh.v());
 
     double s[3];
-    Vec::sum(s,M_->S()[v0],M_->S()[v1]);
+    Vec::sum(s,M_->S(v0),M_->S(v1));
     Vec::rescale(s,0.5);
 
     switch (M_->type()) {
@@ -384,17 +386,13 @@ namespace fmesh {
 
 
 
-  bool MeshC::killTriangle(const Dart& d)
+  void MeshC::calcSteinerPoint(const Dart& d, Point& c)
   {
-    Point c;
     M_->triangleCircumcenter(d.t(),c);
-
-    std::cout << WHEREAMI << "Center: ("
+    std::cout << WHEREAMI << "Steiner point: ("
 	      << c[0] << ","
 	      << c[1] << ","
 	      << c[2] << ")" << std::endl;
-
-    return insertNode(addVertices(&c,1),d);
   }
 
 
@@ -405,24 +403,24 @@ namespace fmesh {
     Dart td;
 
     std::cout << WHEREAMI << "Locating node " << v
-	      << " " << M_->S()[v] << std::endl;
+	      << " " << M_->S(v) << std::endl;
 
-    td = M_->locatePoint(ed,M_->S()[v]);
+    td = M_->locatePoint(ed,M_->S(v));
     if (td.isnull()) { return false; }; /* ERROR, not found! */
     td = Dart(*M_,td.t());
     Point bary;
-    M_->barycentric(td,M_->S()[v],bary);
+    M_->barycentric(td,M_->S(v),bary);
     size_t pattern(size_t(bary[0]>MESH_EPSILON)*1+
 		   size_t(bary[1]>MESH_EPSILON)*2+
 		   size_t(bary[2]>MESH_EPSILON)*4);
     std::cout << WHEREAMI << "Triangle dart " << td
 	      << "\n\t S[t]=("
-	      << M_->S()[M_->TV()[td.t()][0]] << ",\n\t       "
-	      << M_->S()[M_->TV()[td.t()][1]] << ",\n\t       "
-	      << M_->S()[M_->TV()[td.t()][2]] << ")"
+	      << M_->S(M_->TV(td.t())[0]) << ",\n\t       "
+	      << M_->S(M_->TV(td.t())[1]) << ",\n\t       "
+	      << M_->S(M_->TV(td.t())[2]) << ")"
 	      << "\n\t bary=" << bary
 	      << "\n\t pattern=" << pattern
-	      << "\n\t S[v]=" << M_->S()[v]
+	      << "\n\t S[v]=" << M_->S(v)
 	      << std::endl;
     switch (pattern) {
     case 7: // +++
@@ -569,23 +567,33 @@ namespace fmesh {
     return buildCDT();
   };
 
+  bool MeshC::CDT(const constrListT& boundary, const constrListT& interior)
+  {
+    if (!prepareCDT()) return false;
+
+    constr_boundary_ = constrListT(boundary.begin(),boundary.end());
+    constr_interior_ = constrListT(interior.begin(),interior.end());
+    
+    return buildCDT();
+  };
 
 
 
 
 
-  bool MeshC::LOP(MCQswapable& swapable)
+
+  bool MeshC::LOP(MCQswapableD& swapable)
   {
     std::cout << WHEREAMI << "LOP swapable: "
 	      << swapable.countQ() << "/" << swapable.count() << std::endl;
     /* Swap edges, until none are swapable. */
     while (!swapable.emptyQ()) {
-      swapEdgeLOP(swapable.beginQ()->d_,swapable);
+      swapEdge(swapable.beginQ()->d_,swapable);
       std::cout << WHEREAMI << "LOP swapable: "
 		<< swapable.countQ() << "/" << swapable.count() << std::endl;
     }
 
-    M_->redrawX11("LOP finished");
+    //    M_->redrawX11("LOP finished");
 
     return true;
   }
@@ -594,7 +602,7 @@ namespace fmesh {
   {
     /* Locate interior edges */
     Dart dh, dh2;
-    MCQswapable swapable(this);
+    MCQswapableD swapable(this);
     for (triangleSetT::const_iterator ci=t_set.begin();
 	 ci != t_set.end(); ci++) {
       dh = Dart(*M_,(*ci));
@@ -605,9 +613,9 @@ namespace fmesh {
 	    && (t_set.find(dh2.t()) != t_set.end())
 	    /* Only add if the neighbouring triangle is also in the set. */
 	    && ((state_<State_CDT)
-		|| (!boundary_.segm(dh))
-		|| (!interior_.segm(dh)))) /* Don't add CDT segments. */
-	  swapable.insert(dh); /* MCQswapable takes care of duplicates. */
+		|| ((!boundary_.segm(dh))
+		    && (!interior_.segm(dh))))) /* Don't add CDT segments. */
+	  swapable.insert(dh); /* MCQswapableD takes care of duplicates. */
 	dh.orbit2();
       }
     }
@@ -616,31 +624,347 @@ namespace fmesh {
   }
 
 
-  Dart MeshC::CDTinsert(const int v0, const int v1)
+
+  typedef std::list<IntPair> BoundaryList;
+  
+  void prevnext(BoundaryList::iterator& prev,
+		BoundaryList::iterator& curr,
+		BoundaryList::iterator& next)
+  {
+    for (curr--; curr->second == 0; curr--) {};
+    for (curr++; curr->second == 0; curr++) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
+  void prev(BoundaryList::iterator& prev,
+	    BoundaryList::iterator& curr,
+	    BoundaryList::iterator& next)
+  {
+    for (curr--; curr->second == 0; curr--) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
+  void next(BoundaryList::iterator& prev,
+	    BoundaryList::iterator& curr,
+	    BoundaryList::iterator& next)
+  {
+    for (curr++; curr->second == 0; curr++) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
+  void prev(BoundaryList::reverse_iterator& prev,
+	    BoundaryList::reverse_iterator& curr,
+	    BoundaryList::reverse_iterator& next)
+  {
+    for (curr--; curr->second == 0; curr--) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
+  void next(BoundaryList::reverse_iterator& prev,
+	    BoundaryList::reverse_iterator& curr,
+	    BoundaryList::reverse_iterator& next)
+  {
+    for (curr++; curr->second == 0; curr++) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
+
+
+  /*! Alg. 6.2+6.1 */
+  Dart MeshC::CDTInsertSegment(const DartPair& dp,
+			       const DartList& trace,
+			       triangleSetT& triangles)
+  {
+    if (!prepareCDT()) return Dart();
+
+    Dart dc;
+
+    std::cout << WHEREAMI << dp;
+    std::cout << WHEREAMI << trace;
+
+    std::cout << WHEREAMI
+	      << "Segment crosses " << trace.size()
+	      << " edges." << std::endl;
+
+    if (trace.size()<=1) {
+      std::cout << WHEREAMI
+		<< "Too short trace (" << trace.size() << ")."
+		<< " Should have been handled by caller."
+		<< std::endl;
+      return Dart();
+    }
+
+    Dart dh;
+    Dart d0(dp.first);
+    Dart d1(dp.second);
+    BoundaryList boundary0;
+    BoundaryList boundary1;
+
+    int v0(d0.v());
+    int v1(d1.v());
+    for (DartList::const_iterator i(trace.begin());
+	 i != trace.end(); i++) {
+      dh = *i;
+      triangles.insert(dh.t());
+
+      if (M_->useX11())
+	M_->drawX11triangle(dh.t(),true);
+
+      if (v0 == dh.v()) {
+	boundary0.rbegin()->second++;
+      } else {
+	v0 = dh.v();
+	boundary0.push_back(IntPair(v0,1));
+      }
+      if (v1 == dh.vo()) {
+	boundary1.begin()->second++;
+      } else {
+	v1 = dh.vo();
+	boundary1.push_front(IntPair(v1,1));
+      }
+    }
+    dh.alpha2();
+    triangles.insert(dh.t());
+
+    if (M_->useX11())
+      M_->drawX11triangle(dh.t(),true);
+
+    v0 = d0.v();
+    v1 = d1.v();
+
+    std::cout << WHEREAMI << M_->S(v0) << std::endl;
+    std::cout << WHEREAMI << M_->S(v1) << std::endl;
+
+    boundary0.push_front(IntPair(v0,-1));
+    boundary0.push_back(IntPair(v1,-1));
+    boundary1.push_back(IntPair(v0,-1));
+    boundary1.push_front(IntPair(v1,-1));
+
+    std::cout << WHEREAMI << "T:  " << triangles << std::endl;
+    std::cout << WHEREAMI << "B1: " << boundary1 << std::endl;
+    std::cout << WHEREAMI << "B0: " << boundary0 << std::endl;
+
+    //    if (M_->useX11()) {
+    //      char msg[] = "Starting segment insertion.";
+    //      xtmpl_press_ret(msg);
+    //    }
+
+    NOT_IMPLEMENTED;
+
+    BoundaryList::iterator i0, i0_prev, i0_next;
+    BoundaryList::reverse_iterator i1, i1_prev, i1_next;
+
+#define	CDTMSG(msg)				\
+    std::cout << WHEREAMI << msg << std::endl;				\
+    std::cout << WHEREAMI << "B1: " << boundary1 << std::endl;		\
+    std::cout << WHEREAMI << "B0: " << boundary0 << std::endl;		\
+    std::cout << WHEREAMI << "I1: "					\
+	      << *i1_prev << *i1 << *i1_next << std::endl;		\
+    std::cout << WHEREAMI << "I0: "					\
+	      << *i0_prev << *i0 << *i0_next << std::endl;		\
+    std::cout << WHEREAMI << "d0: " << d0 << std::endl;			\
+    std::cout << WHEREAMI << "vd0: " << vd0 << std::endl;		\
+    std::cout << WHEREAMI << "dh: " << dh << std::endl;
+
+    /* Initialise */
+    i0 = boundary0.begin(); i0_prev = i0; i0_next = i0;
+    i1 = boundary1.rbegin(); i1_prev = i1; i1_next = i1;
+    next(i0_prev,i0,i0_next);
+    next(i1_prev,i1,i1_next);
+
+    /* Go to first edge */
+    Dart vd0(d0); /* First dart in edge bundle from current vertex. */
+    vd0.orbit2();
+    while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
+
+    dh = vd0;
+
+    while (true) {
+      bool swapable = true;
+      while (swapable) {
+	CDTMSG("");
+	/* Find swapable edge */
+	dh = vd0;
+	for (swapable = dh.isSwapable();
+	     (dh.vo() != i0_next->first) && (!swapable);
+	     swapable = dh.isSwapable()) {
+	  dh.orbit0rev();
+	  if (dh.vo() != i0_next->first)
+	    while (i1->first != dh.vo()) next(i1_prev,i1,i1_next);
+	  CDTMSG("Looking for swapable");
+	  std::cout << WHEREAMI << "swapable=" << swapable << std::endl;
+	};
+	swapable = swapable && (dh.vo() != i0_next->first);
+	if (swapable) {
+	  /* Swap the edge */
+	  bool vd0affected = (dh==vd0); /* vd0 must be updated? */
+	  
+	  i0->second--;
+	  i1->second--;
+	  dh = swapEdge(dh);
+	  std::cout << WHEREAMI << "dh: " << dh << std::endl;
+
+	  if (dh.vo() != v0) {
+	    if (i0_prev->first == dh.vo()) i0_prev->second++;
+	    if (i1_prev->first == dh.vo()) i1_prev->second++;
+	  }
+	  if (dh.v() != v1) {
+	    if (i0_next->first == dh.v()) i0_next->second++;
+	    if (i1_next->first == dh.v()) i1_next->second++;
+	  }
+
+	  if (dh.vo() == v0) {
+	    /* Triangle is linked to v0, needs to regenerate d0. */
+	    d0 = dh;
+	    d0.orbit2();
+	    std::cout << WHEREAMI << "d0: " << d0 << std::endl;
+	  }
+
+	  CDTMSG("Have swapped, and adjusted counters");
+
+	  if (dh.v() == i0_next->first) {
+	    if (dh.vo() == v0) {
+	      /* Vertex has been eliminated, and is linked to v0 */
+	      i0_next->second--;
+	      d0.orbit0();
+	      std::cout << WHEREAMI << "d0: " << d0 << std::endl;
+	    } else if (dh.vo() == i0_prev->first) {
+	      /* Vertex has been eliminated */
+	      i0_next->second--;
+	      i0_prev->second--;
+	    }
+	  } else if (dh.vo() == i0_prev->first) {
+	    if (dh.v() == v1) {
+	      /* Vertex has been eliminated, and is linked to v1 */
+	      i1_prev->second--;
+	    } else if (dh.v() == i0_next->first) { /* Will not be reached. */
+	      /* Vertex has been eliminated */
+	      i0_next->second--;
+	      i0_prev->second--;
+	    }
+	  }
+	  if ((dh.vo() == i1_prev->first) && (dh.v() == i1_next->first)) {
+	    /* Vertex has been eliminated */
+	    i1->second = 0;
+	    if (i1_next->second >= 0) i1_next->second--;
+	    if (i1_prev->second >= 0) i1_prev->second--;
+	  }
+	  dh.orbit2rev();
+	  if (vd0affected)
+	    vd0 = dh;
+	  swapable = (vd0.vo() != i0_next->first);
+
+	  CDTMSG("Have swapped, and detected parial successes");
+
+	  if (swapable && (i1_next->second >= 0)) {
+	    while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
+	  }
+	  if ((i0->second > 0) && (i0_prev->second >= 0)) {
+	    prevnext(i0_prev,i0,i0_next);
+	  }
+
+	  CDTMSG("Have swapped, and tried to update location");
+	  std::cout << WHEREAMI
+		    << (swapable ? "(Restart this vertex)" :
+			"(Leave vertex)") << std::endl;
+
+	  //	  if (M_->useX11()) {
+	  //  char msg[] = "Swapped away an edge.";
+	  //  xtmpl_press_ret(msg);
+	  // }
+      	}
+      }
+
+      CDTMSG("Done with vertex, trying to move on.");
+
+      if (d0.vo() == v1) /* Segment has been inserted */
+	break; /* This is the only way out of the loop! */
+
+      if (i0->second==0) {
+	/* The vertex was eliminated, start from beginning. */
+	i0 = boundary0.begin(); i0_prev = i0; i0_next = i0;
+	i1 = boundary1.rbegin(); i1_prev = i1; i1_next = i1;
+	next(i0_prev,i0,i0_next);
+	next(i1_prev,i1,i1_next);
+	
+	/* Go to first edge */
+	vd0 = d0; /* First dart in edge bundle from current vertex. */
+	vd0.orbit2();
+	while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
+
+	CDTMSG("Vertex eliminated, start from beginning:");
+      } else { /* The vertex was not eliminated, go to next. */
+	next(i0_prev,i0,i0_next);
+	dh.orbit2(); /* First dart in edge bundle from current vertex. */
+	vd0 = dh;
+	while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
+	CDTMSG("Vertex not eliminated, go to next:");
+      }
+
+      //      if (M_->useX11()) {
+      //	char msg[] = "Tried to eliminate vertex.";
+      //	xtmpl_press_ret(msg);
+      // }
+      
+    }
+
+    std::cout << "Segment inserted:" << std::endl;
+    std::cout << WHEREAMI << "B1: " << boundary1 << std::endl;
+    std::cout << WHEREAMI << "B0: " << boundary0 << std::endl;
+    std::cout << WHEREAMI << "d0: " << d0 << std::endl;
+
+    dc = d0;
+
+    std::cout << WHEREAMI
+	      << "Segment dart " << dc << std::endl;
+
+    return dc;
+  }
+
+
+
+  Dart MeshC::CDTInsertSegment(const int v0, const int v1,
+			       triangleSetT& triangles)
   {
     if (!prepareCDT()) return Dart();
     std::cout << WHEREAMI << "Inserting segment ("
 	      << v0 << "," << v1 << ")" << std::endl;
     if (v0 == v1) return Dart();
 
-    DartOrderedSet trace;
+    DartList trace;
     Dart dh(M_->locateVertex(Dart(),v0));
     if (dh.isnull()) {
       std::cout << WHEREAMI << "Originating vertex not found "
 		<< v0 << std::endl;
       return Dart();
     }
-    DartPair dhp(M_->tracePath(dh,M_->S()[v1],v1,&trace));
+    DartPair dhp(M_->tracePath(dh,M_->S(v1),v1,&trace));
     if (dhp.second.isnull()) {
       std::cout << WHEREAMI << "Endpoint vertex not found ("
 		<< v0 << "," << v1 << ") "
-		<< M_->S()[v0] << ", " << M_->S()[v0] << std::endl;
+		<< M_->S(v0) << ", " << M_->S(v0) << std::endl;
       return Dart();
     }
 
     Dart dh0(dhp.first);
     Dart dh1(dhp.second);
 
+    /* Already an edge? */
     if (dh0.t() == dh1.t()) {
       std::cout << WHEREAMI << "Segment already an edge. Darts: "
 		<< dhp;
@@ -654,15 +978,49 @@ namespace fmesh {
       }
     }
 
-    std::cout << WHEREAMI << dhp;
-    std::cout << WHEREAMI << trace;
+    /* Only one crossing edge, swap directly. */
+    if (trace.size()==1) {
+      Dart ds = swapEdge(*trace.begin());
+      if (ds.v() == v1) ds.orbit1();
+      if (ds.v() != v0) ds = Dart();
 
-    NOT_IMPLEMENTED;
+      std::cout << WHEREAMI
+		<< "Segment dart " << ds << std::endl;
 
-    if (M_->useX11())
-      xtmpl_press_ret("Tried to insert segment.");
+      return ds;
+    }
 
-    return Dart();
+    return CDTInsertSegment(dhp,trace,triangles);
+  }
+
+
+
+
+
+
+
+
+  Dart MeshC::CDTSegment(const bool boundary, const int v0, const int v1)
+  {
+    if (!prepareCDT()) return Dart();
+
+    triangleSetT triangles;
+    Dart ds(CDTInsertSegment(v0,v1,triangles));
+    if (ds.isnull()) {
+      std::cout << WHEREAMI << (boundary ? "Boundary" : "Interior")
+		<< " segment not inserted ("
+		<< v0 << "," << v1 << ")" << std::endl;
+      return ds;
+    }
+    if (boundary)
+      boundary_.insert(ds);
+    else
+      interior_.insert(ds);
+    LOP(triangles);
+    std::cout << WHEREAMI << (boundary ? "Boundary" : "Interior")
+	      << " segment inserted "
+	      << ds << std::endl;
+    return ds;
   }
 
 
@@ -670,40 +1028,26 @@ namespace fmesh {
   {
     if (!prepareCDT()) return false;
 
-    Dart dh;
-
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
-      dh = CDTinsert(ci->first,ci->second);
-      if (!dh.isnull()) {
+      if (!CDTSegment(true,ci->first,ci->second).isnull()) {
 	ci_next = ci;
 	ci_next++;
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
-	boundary_.insert(dh);
-	std::cout << WHEREAMI << "Boundary segment inserted "
-		  << dh << std::endl;
-      } else{
-	std::cout << WHEREAMI << "Boundary segment not inserted ("
-		  << ci->first << "," << ci->second << ")" << std::endl;
+      } else {
 	ci++;
-    }
+      }
     }
     for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
-      dh = CDTinsert(ci->first,ci->second);
-      if (!dh.isnull()) {
+      if (!CDTSegment(false,ci->first,ci->second).isnull()) {
 	ci_next = ci;
 	ci_next++;
 	ci = constr_interior_.erase(ci);
 	ci = ci_next;
-	interior_.insert(dh);
-	std::cout << WHEREAMI << "Interior segment inserted "
-		  << dh << std::endl;
       } else {
-	std::cout << WHEREAMI << "Interior segment not inserted ("
-		  << ci->first << "," << ci->second << ")" << std::endl;
 	ci++;
       }
     }
@@ -812,15 +1156,16 @@ namespace fmesh {
 		  << dh << " "
 		  << skinny_.quality(dh) << std::endl;
 	Point c;
-	M_->triangleCircumcenter(dh.t(),c);
+	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (!killTriangle(dh)) {
+	if (!insertNode(addVertices(&c,1),dh)) {
 	// if (killTriangle(dh))
 	//   xtmpl_press_ret("Skinny triangle has been eliminated");
 	// else
-	  xtmpl_press_ret("Skinny triangle elimination failed");
+	  char msg[] = "Skinny triangle elimination failed";
+	  xtmpl_press_ret(msg);
 	} else {
 	  //	  if (M_->nV()>811)
 	  //	    xtmpl_press_ret("Skinny triangle elimination succeeded");
@@ -834,12 +1179,12 @@ namespace fmesh {
 		  << dh << " "
 		  << big_.quality(dh) << std::endl;
 	Point c;
-	M_->triangleCircumcenter(dh.t(),c);
+	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	killTriangle(dh);
-	// if (killTriangle(dh))
+	insertNode(addVertices(&c,1),dh);
+	// if (insertNode(addVertices(&c,1),dh))
 	//   xtmpl_press_ret("Big triangle has been eliminated");
 	// else
 	//   xtmpl_press_ret("Big triangle elimination failed");
@@ -885,11 +1230,11 @@ namespace fmesh {
 
 
 
-  Dart MeshC::swapEdgeLOP(const Dart& d, MCQswapable& swapable)
+  Dart MeshC::swapEdge(const Dart& d, MCQswapable& swapable)
   {
     if (!swapable.swapable(d)) {
       /* Not allowed to swap. */
-      std::cout << WHEREAMI << "LOP: Not allowed to swap dart " << std::endl
+      std::cout << WHEREAMI << "Not allowed to swap dart " << std::endl
 		<< d << std::endl;
       return d;
     }
@@ -1207,15 +1552,54 @@ namespace fmesh {
     return output;
   }
 
-  std::ostream& operator<<(std::ostream& output, const DartOrderedSet& ds)
+  std::ostream& operator<<(std::ostream& output, const DartList& ds)
   {
     output << "n = " << ds.size() << std::endl;
     if (ds.empty()) return output;
-    for (DartOrderedSet::const_iterator di = ds.begin();
+    for (DartList::const_iterator di = ds.begin();
 	 di != ds.end(); di++) {
-      output << ' ' << di->first
-	     << ' ' << di->second
-	     << std::endl;
+      output << ' ' << *di << std::endl;
+    }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const std::set<int>& il)
+  {
+    output << "(n = " << il.size() << ")";
+    if (il.empty()) return output;
+    for (std::set<int>::const_iterator i = il.begin();
+	 i != il.end(); i++) {
+      output << ' ' << *i;
+    }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output, const std::list<int>& il)
+  {
+    output << "(n = " << il.size() << ")";
+    if (il.empty()) return output;
+    for (std::list<int>::const_iterator i = il.begin();
+	 i != il.end(); i++) {
+      output << ' ' << *i;
+    }
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output,
+			   const IntPair& p)
+  {
+    output << "(" << p.first << "," << p.second << ")";
+    return output;
+  }
+
+  std::ostream& operator<<(std::ostream& output,
+			   const std::list<IntPair>& il)
+  {
+    output << "(n = " << il.size() << ")";
+    if (il.empty()) return output;
+    for (std::list<IntPair>::const_iterator i = il.begin();
+	 i != il.end(); i++) {
+      output << " " << *i;
     }
     return output;
   }

@@ -339,7 +339,7 @@ namespace fmesh {
 
   Mesh& Mesh::rebuildTT()
   {
-    typedef std::pair<int,int> E_Type;
+    typedef IntPair E_Type;
     typedef std::map<E_Type,int> ET_Type;
     int t, vi;
     int* TVt;
@@ -350,8 +350,8 @@ namespace fmesh {
     for (t=0; t<(int)nT_; t++) {
       TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
-	E0 = std::pair<int,int>(TVt[(vi+1)%3],TVt[(vi+2)%3]);
-	E1 = std::pair<int,int>(TVt[(vi+2)%3],TVt[(vi+1)%3]);
+	E0 = IntPair(TVt[(vi+1)%3],TVt[(vi+2)%3]);
+	E1 = IntPair(TVt[(vi+2)%3],TVt[(vi+1)%3]);
 	Ei = ET.find(E1);
 	if (Ei != ET.end()) { /* Found neighbour */
 	  TT_[t][vi] = Ei->second;
@@ -375,7 +375,7 @@ namespace fmesh {
       TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
 	if (TT_[t][vi]>=0) continue;
-	E1 = std::pair<int,int>(TVt[(vi+2)%3],TVt[(vi+1)%3]);
+	E1 = IntPair(TVt[(vi+2)%3],TVt[(vi+1)%3]);
 	Ei = ET.find(E1);
 	if (Ei != ET.end()) { /* Found neighbour */
 	  TT_[t][vi] = Ei->second;
@@ -1229,78 +1229,62 @@ namespace fmesh {
     return 0.0;
   }
 
-  double Mesh::inLeftHalfspace(const Dart& d, const Point& s) const
+  double Dart::inLeftHalfspace(const Point& s) const
   {
-    Dart dh(d);
-    int v0, v1;
-    if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    v0 = dh.v();
+    if (isnull()) return 0.0; /* TODO: should show a warning somewhere... */
+    Dart dh(*this);
+    int v0(dh.v());
     dh.orbit2();
-    v1 = dh.v();
-    return inLeftHalfspace(S_[v0],S_[v1],s);
+    int v1(dh.v());
+    return M_->inLeftHalfspace(M_->S_[v0],M_->S_[v1],s);
   }
 
-  double Mesh::inCircumcircle(const Dart& d, const Point& s) const
+  double Dart::inCircumcircle(const Point& s) const
   {
-    Dart dh(d);
-    int v0, v1, v2;
-    if (d.isnull()) return 0.0; /* TODO: should show a warning somewhere... */
-    v0 = dh.v();
+    if (isnull()) return 0.0; /* TODO: should show a warning somewhere... */
+    Dart dh(*this);
+    int v0(dh.v());
     dh.orbit2();
-    v1 = dh.v();
+    int v1(dh.v());
     dh.orbit2();
-    v2 = dh.v();
-    switch (type_) {
+    int v2(dh.v());
+    switch (M_->type_) {
     case Mesh::Mtype_manifold:
       //	return predicates::orient3d(M_->S[]);
       break;
     case Mesh::Mtype_plane:
-      return predicates::incircle(S_[v0],S_[v1],S_[v2],s);
+      return predicates::incircle(M_->S_[v0],M_->S_[v1],M_->S_[v2],s);
       break;
     case Mesh::Mtype_sphere:
-      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
+      return -predicates::orient3d(M_->S_[v0],M_->S_[v1],M_->S_[v2],s);
       break;
     }
     /* This should never be reached. */
     return 0.0;
   }
 
-  bool Mesh::circumcircleOK(const Dart& d) const
+  bool Dart::circumcircleOK(void) const
   {
-    Dart dh(d);
-    int v;
-    double result;
-    if (d.isnull()) return true; /* TODO: should show a warning somewhere... */
-    if (d.onBoundary()) return true; /* Locally optimal, OK. */
+    Dart dh(*this);
+    if (isnull()) return true; /* TODO: should show a warning somewhere... */
+    if (onBoundary()) return true; /* Locally optimal, OK. */
     dh.orbit0rev().orbit2();
-    v = dh.v();
-    result = inCircumcircle(d,S_[v]);
-    // std::cout << WHEREAMI << "Dart=" << d
-    // 	      << " Node=" << v
-    // 	      << std::scientific << " result=" << result
-    // 	      << " (" << S_[v][0]
-    // 	      << "," << S_[v][1]
-    // 	      << "," << S_[v][2] << ")"
-    // 	      << std::endl;
-    if  (result > 0.0)
-      return false;
-    /* For robusness, check with the reverse dart as well: */
-    dh = d;
+    int v(dh.v());
+    double result0 = inCircumcircle(M_->S_[v]);
+    //    std::cout << WHEREAMI << "circumcircleOK? " << *this << std::endl;
+    //    std::cout << WHEREAMI << "  result0 = "
+    //	      << std::scientific << result0 << std::endl;
+    if (result0 <= MESH_EPSILON) return true;
+    /* For symmetric robusness, check with the reverse dart as well: */
+    dh = *this;
     dh.orbit2rev();
     v = dh.v();
     dh.orbit2();
     dh.orbit1();
-    result = inCircumcircle(dh,S_[v]);
-    // std::cout << WHEREAMI << "Dart=" << dh
-    // 	      << " Node=" << v
-    // 	      << std::scientific << " result=" << result
-    // 	      << " (" << S_[v][0]
-    // 	      << "," << S_[v][1]
-    // 	      << "," << S_[v][2] << ")"
-    // 	      << std::endl;
-    if  (result > 0.0)
-      return false;
-    return true;
+    double result1 = dh.inCircumcircle(M_->S_[v]);
+    //    std::cout << WHEREAMI << "  result1 = "
+    //	      << std::scientific << result1 << std::endl;
+    return (result1 <= MESH_EPSILON);
   }
 
 
@@ -1945,7 +1929,7 @@ namespace fmesh {
   DartPair Mesh::tracePath(const Dart& d0,
 		       const Point& s1,
 		       const int v1,
-		       DartOrderedSet* trace) const
+		       DartList* trace) const
   {
     Dart dh;
     bool found, other;
@@ -1974,23 +1958,25 @@ namespace fmesh {
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
     std::cout << WHEREAMI << "Starting dart " << dstart << std::endl;
-    if ((d.v() == v1) || (inLeftHalfspace(d,s1) >= -MESH_EPSILON)) {
+    if ((d.v() == v1) || (d.inLeftHalfspace(s1) >= -MESH_EPSILON)) {
       std::cout << WHEREAMI << "Found " << d << std::endl;
       return DartPair(dstart,d);
     }
     while (!d.onBoundary()) {
-      if (trace)
-	trace->insert(DartOrderedSet::value_type(trace_index++,d));
+      if (trace) {
+	trace->push_back(d);
+	trace_index++;
+      }
       d.orbit1().orbit2rev();
       std::cout << WHEREAMI << "In triangle " << d << std::endl;
       if (d.v() == v1) {
 	std::cout << WHEREAMI << "Found vertex at " << d << std::endl;
 	return DartPair(dstart,d);
       }
-      found = (inLeftHalfspace(d,s1) >= -MESH_EPSILON);
+      found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
       other = (inLeftHalfspace(S_[v0],s1,S_[d.v()]) > 0.0);
       d.orbit2rev();
-      if (found && (inLeftHalfspace(d,s1) >= -MESH_EPSILON))
+      if (found && (d.inLeftHalfspace(s1) >= -MESH_EPSILON))
 	return DartPair(dstart,d);
       else
 	found = false;
@@ -2217,7 +2203,6 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Dart& d)
   {
-    return output;
     output << "D=("
 	   <<std::right << std::setw(1) << d.t_
 	   << std::right << std::setw(2) << d.edir_
@@ -2225,16 +2210,16 @@ namespace fmesh {
 	   << ")";
     if ((!d.isnull()) && (d.t_<(int)d.M()->nT())) {
       output << " EV=("
-	     << d.M()->TV()[d.t_][d.vi_]
+	     << d.M()->TV(d.t_)[d.vi_]
 	     << ","
-	     << d.M()->TV()[d.t_][(d.vi_+(3+d.edir_))%3]
+	     << d.M()->TV(d.t_)[(d.vi_+(3+d.edir_))%3]
 	     << ")";
       output << " TV=("
-	     << d.M()->TV()[d.t_][0]
+	     << d.M()->TV(d.t_)[0]
 	     << ","
-	     << d.M()->TV()[d.t_][1]
+	     << d.M()->TV(d.t_)[1]
 	     << ","
-	     << d.M()->TV()[d.t_][2]
+	     << d.M()->TV(d.t_)[2]
 	     << ")";
     }
       
