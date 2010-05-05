@@ -326,10 +326,6 @@ namespace fmesh {
     bool CDT(const constrListT& boundary, const constrListT& interior);
     /*!
       \brief Remove exterior triangles from a CDT
-
-      Exterior points at the end of the vertex list are removed.
-
-      TODO: allow optional vertex reordering.
     */
     bool PruneExterior();
     /*!
