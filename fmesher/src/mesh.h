@@ -16,7 +16,7 @@
 
 #define Mesh_V_capacity_doubling_limit 8192
 #define Mesh_V_capacity_step_size 1024
-#define MESH_EPSILON 1e-10
+#define MESH_EPSILON 1e-15
 
 #ifndef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED (std::cout					\
@@ -36,12 +36,13 @@ namespace fmesh {
   class MeshC;
 
   typedef double Point[3];
+  typedef int Int3[3];
+  typedef std::pair<int,int> IntPair;
   typedef std::list<int> vertexListT;
   typedef std::set<int> triangleSetT;
-  typedef std::pair<int,int> constrT;
+  typedef IntPair constrT;
   typedef std::list<constrT> constrListT;
-  typedef std::set<Dart> DartSet;
-  typedef std::map<int,Dart> DartOrderedSet;
+  typedef std::list<Dart> DartList;
   typedef std::pair<Dart,Dart> DartPair;
 
   struct Vec {  
@@ -117,11 +118,11 @@ namespace fmesh {
     size_t nT_;
     bool use_VT_;
     bool use_TTi_;
-    int (*TV_)[3];  /* TV[t]  : {v1,v2,v3} */
-    int (*TT_)[3];  /* TT[t]  : {t1,t2,t3} */
-    int (*VT_);     /* VT[v]  : t,
-		       v == TV[t][vi]  for some vi=0,1,2 */
-    int (*TTi_)[3]; /* TTi[t] : {vi1,vi2,vi3},
+    Int3 (*TV_);  /* TV[t]  : {v1,v2,v3} */
+    Int3 (*TT_);  /* TT[t]  : {t1,t2,t3} */
+    int (*VT_);   /* VT[v]  : t,
+		     v == TV[t][vi]  for some vi=0,1,2 */
+    Int3 (*TTi_); /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
     //    double (*S_)[3];
     Point (*S_);
@@ -144,6 +145,7 @@ namespace fmesh {
     Mesh& rebuildTTi();
 
     void drawX11point(int v, bool fg);
+  public:
     void drawX11triangle(int t, bool fg);
   public:
     void redrawX11(std::string str);
@@ -187,11 +189,16 @@ namespace fmesh {
     Mtype type() const { return type_; };
     size_t nV() const { return nV_; };
     size_t nT() const { return nT_; };
-    const int (*TV() const)[3] { return TV_; };
-    const int (*TT() const)[3] { return TT_; };
+    const Int3 (*TV() const) { return TV_; };
+    const Int3 (*TT() const) { return TT_; };
     const int (*VT() const) { return VT_; };
-    const int (*TTi() const)[3] { return TTi_; };
-    const double (*S() const)[3] { return S_; };
+    const Int3 (*TTi() const) { return TTi_; };
+    const Point (*S() const) { return S_; };
+    const Int3& TV(int t) const { return TV_[t]; };
+    const Int3& TT(int t) const { return TT_[t]; };
+    const int& VT(int v) const { return VT_[v]; };
+    const Int3& TTi(int t) const { return TTi_[t]; };
+    const Point& S(int v) const { return S_[v]; };
     Xtmpl *X11() { return X11_; };
     MOAint3 TVO() const;
     MOAint3 TTO() const;
@@ -206,7 +213,7 @@ namespace fmesh {
 
     Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
     DartPair tracePath(const Dart& d0, const Point& s,
-		       const int v = -1, DartOrderedSet* trace = NULL) const;
+		       const int v = -1, DartList* trace = NULL) const;
     Dart locatePoint(const Dart& d0, const Point& s) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
@@ -232,9 +239,6 @@ namespace fmesh {
     double inLeftHalfspace(const Point& s0,
 			   const Point& s1,
 			   const Point& s) const;
-    double inLeftHalfspace(const Dart& d, const Point& s) const;
-    double inCircumcircle(const Dart& d, const Point& s) const;
-    bool circumcircleOK(const Dart& d) const;
   };
 
 
@@ -298,7 +302,11 @@ namespace fmesh {
     int vi() const { return vi_; };
     int edir() const { return edir_; };
     int t() const { return t_; };
-    int v() const { if (t_<0) return -1; else return M_->TV_[t_][vi_]; };
+    int v() const { if (!M_) return -1; else return M_->TV_[t_][vi_]; };
+    int vo() const {
+      if (!M_) return -1;
+      else return M_->TV_[t_][(vi_+(3+edir_))%3];
+    };
 
     bool isnull() const { return (!M_); };
     bool operator==(const Dart& d) const {
@@ -321,6 +329,34 @@ namespace fmesh {
     bool onBoundary() const {
       return (M_->TT_[t_][(vi_+(3-edir_))%3] < 0);
     }
+
+    double inLeftHalfspace(const Point& s) const;
+    double inCircumcircle(const Point& s) const;
+    bool circumcircleOK(void) const;
+
+    bool isSwapable() const
+    {
+      if (onBoundary())
+	return false; /* Not swapable. */
+      Dart dh(*this);
+      const Point& s00 = M_->S_[dh.v()];
+      dh.orbit2();
+      const Point& s01 = M_->S_[dh.v()];
+      dh.orbit2();
+      const Point& s10 = M_->S_[dh.v()];
+      dh.orbit2().orbit0rev().orbit2();
+      const Point& s11 = M_->S_[dh.v()];
+      /* Do both diagonals cross? Swapable. */
+      return (((M_->inLeftHalfspace(s00,s01,s10)*
+		M_->inLeftHalfspace(s00,s01,s11)) < 0.0) &&
+	      ((M_->inLeftHalfspace(s10,s11,s00)*
+		M_->inLeftHalfspace(s10,s11,s01)) < 0.0));
+    };
+
+    bool isSwapableD() const
+    {
+      return (!circumcircleOK());
+    };
 
     /* Graph traversal algebra. */
     Dart& alpha0(void);
