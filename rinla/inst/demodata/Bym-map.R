@@ -13,7 +13,7 @@ germany.make.graph <- function(filename)
     for(i in 1:graph$n)
     {
         idx = xx[jj]
-        nnbs = xx[jj]
+        nnbs = xx[jj+1]
         if (nnbs)
         {
             nbs = xx[(jj+2):(jj+1+nnbs)]
