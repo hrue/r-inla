@@ -157,14 +157,18 @@ int LOP_test()
 
 int CDT_test()
 {
-  int n = 3;
-  Point S[3] = {{0.3,0.6,0},
-		{0.25,0.2,0},
-		{0.85,0.75,0}};
+  int n = 7;
+  Point S[7] = {{0.3,0.6,0},
+		{0.35,0.1,0},
+		{0.85,0.7,0},
+		{0.7,0.1,0},
+		{0.8,0.3,0},
+		{0.9,0.3,0},
+		{0.95,0.3,0}};
   Point Sb[4] = {{0.,0.,0.},
 		 {1.,0.,0.},
 		 {0.,1.,0.},
-		 {1.,1.,0.}};
+		 {0.99,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
   Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
@@ -179,24 +183,32 @@ int CDT_test()
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
+      TVb[t][vi] += n;
   M.TV_set(TVb,2);
 
   MeshC MC(&M,true);
 
   fmesh::vertexListT vertices;
-  for (v=0;v<n;v++)
-    vertices.push_back(v);
+  vertices.push_back(0);
+  vertices.push_back(1);
+  vertices.push_back(2);
+  vertices.push_back(3);
+  vertices.push_back(4);
+  vertices.push_back(5);
+  vertices.push_back(6);
   MC.DT(vertices);
 
   cout << M;
 
+  MC.RCDT(1.415,100);
+
   fmesh::constrListT cinp;
-  cinp.push_back(fmesh::constrT(1,2));
-  cinp.push_back(fmesh::constrT(3,6));
+  //  cinp.push_back(fmesh::constrT(1,2));
+  cinp.push_back(fmesh::constrT(9,6));
   MC.CDTInterior(cinp);
 
   MC.RCDT(1.415,100);
+
   MC.RCDT(1.415,0.05);
 
   return 0;
@@ -305,6 +317,13 @@ int DT2D_test2()
   Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
 
+  /*
+  for (int v=0;v<n;v++) {
+    S[v][0] = S[v][0]+double(v)/1000.0;
+    S[v][1] = S[v][1]+double(v)/1001.0;
+  }
+  */
+
   M.S_set(S,n);
 
   M.setX11VBigLimit(n);
@@ -325,7 +344,7 @@ int DT2D_test2()
 
   cout << M;
 
-  MC.CDT(fmesh::constrListT());
+  MC.CDT(fmesh::constrListT(),fmesh::constrListT());
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
@@ -359,7 +378,7 @@ int DT2D_test3() /* Random points */
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
-  //    M.useX11(true,useX11text,500,500,0.72,0.82,0.35,0.45);
+  //    M.useX11(true,useX11text,500,500,0.7,0.9,0.4,0.85);
 
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
@@ -373,11 +392,15 @@ int DT2D_test3() /* Random points */
     vertices.push_back(v);
 
   MC.DT(vertices);
-  
+
+  /*  
   fmesh::triangleSetT triangles;
   for (t=0;t<(int)M.nT();t++)
     triangles.insert(t);
   MC.LOP(triangles);
+  */
+
+  MC.CDTSegment(false,0,1);
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
@@ -440,12 +463,22 @@ int DTsphere_test()
   cout << M;
 
   MeshC MC(&M,true);
+
   fmesh::vertexListT vertices;
-  for (v=0;v<n;v++)
+  vertices.push_back(4);
+  vertices.push_back(8);
+  MC.DT(vertices);
+  MC.CDTSegment(false,4,8);
+
+  vertices.clear();
+  for (v=0;v<n;v++) {
+    if ((v!=4) && (v!=8))
     vertices.push_back(v);
+  }
   MC.DT(vertices);
 
   cout << M;
+
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.15);
@@ -456,8 +489,6 @@ int DTsphere_test()
 
 int main()
 {
-  CDT_test();
-  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();
