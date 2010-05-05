@@ -5,10 +5,11 @@ LDFLAGS = -lX11
 
 all: main
 
-$(OBJ): Makefile $(wildcard *.h)
+$(OBJ): Makefile
 mesh.o: mesh.h
 meshc.o: meshc.h mesh.h
-main.o: fmesher.h mesh.h meshc.h
+main.o: fmesher.h mesh.h meshc.h predicates.h
+predicates.o: predicates.h
 
 main: $(OBJ) Makefile
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o main
