@@ -1205,12 +1205,29 @@ namespace fmesh {
   };
 
 
+  /*!
+    Flood-fill algorithm for exterior triangle removal:
+    \verbatim
+    1. For each boundary segment
+    2.   Add the exterior triangle to the "exterior set" Ext.
+    3.   Make sure that VT for the boundary vertices indicate the
+         remaining triangle.
+    4.   Unlink the exterior triangle, relocate to triangle list end,
+         and delete.
+    5. While Ext is not empty, let t in Ext
+    6.   Add any triangle linked to t to Ext.
+    7.   Unlink t, relocate to triangle list end, and delete.
+    \endverbatim
+
+    TODO: Remove exterior points at the end of the vertex list.\n
+
+    TODO: Allow optional vertex reordering.
+   */
   bool MeshC::PruneExterior()
   {
     if (state_ < State_CDT) {
       /* Since there are no constraints at this state, no exterior
-	 needs to be pruned, but add the boundary to the constraint
-	 set anyway, to get to state State_CDT. */
+	 needs to be pruned, but go to state State_CDT anyway. */
       prepareCDT();
       is_pruned_ = true;
       return true;
@@ -1219,6 +1236,7 @@ namespace fmesh {
     
     /* TODO: Implement. */
     NOT_IMPLEMENTED;
+
 
     return true;
   };
