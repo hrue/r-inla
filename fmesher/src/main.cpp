@@ -488,7 +488,7 @@ int DTsphere_test()
   MC.PruneExterior();
 
   MC.RCDT(1.415,100);
-  MC.RCDT(1.415,0.15);
+  MC.RCDT(1.415,M_PI/20.0);
 
   return 0;
 }
@@ -609,7 +609,7 @@ int koala_test()
 
   MC.RCDT(1.415,10000);
 
-  MC.RCDT(1.415,500);
+  MC.RCDT(1.415,100);
 
   return 0;
 }
@@ -624,6 +624,7 @@ int main()
     koala_test();
     DT2D_test();
     DT2D_test2();
+    DT2D_test3();
     CDT_test();
     DTsphere_test();
   }

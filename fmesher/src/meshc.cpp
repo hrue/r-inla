@@ -762,12 +762,6 @@ namespace fmesh {
     std::cout << WHEREAMI << "B1: " << boundary1 << std::endl;
     std::cout << WHEREAMI << "B0: " << boundary0 << std::endl;
 
-    //    if (M_->useX11()) {
-    //      char msg[] = "Starting segment insertion.";
-    //      xtmpl_press_ret(msg);
-    //    }
-
-    NOT_IMPLEMENTED;
 
     BoundaryList::iterator i0, i0_prev, i0_next;
     BoundaryList::reverse_iterator i1, i1_prev, i1_next;
@@ -797,6 +791,12 @@ namespace fmesh {
 
     dh = vd0;
 
+    //    CDTMSG("");
+    //    if (M_->useX11()) {
+    //  char msg[] = "Starting segment insertion.";
+    //  xtmpl_press_ret(msg);
+    // }
+
     while (true) {
       bool swapable = true;
       int v10 = vd0.vo(); /* The first opposite vertex. */
@@ -808,8 +808,6 @@ namespace fmesh {
 	     (dh.vo() != i0_next->first) && (!swapable);
 	     swapable = dh.isSwapable()) {
 	  dh.orbit0rev();
-	  if (dh.vo() != i0_next->first)
-	    while (i1->first != dh.vo()) next(i1_prev,i1,i1_next);
 	  CDTMSG("Looking for swapable");
 	  std::cout << WHEREAMI << "swapable=" << swapable << std::endl;
 	};
@@ -817,6 +815,8 @@ namespace fmesh {
 	if (swapable) {
 	  /* Swap the edge */
 	  bool vd0affected = (dh==vd0); /* vd0 must be updated? */
+
+	  while (i1->first != dh.vo()) next(i1_prev,i1,i1_next);
 	  
 	  CDTMSG("Before edge swap");
 
@@ -890,10 +890,10 @@ namespace fmesh {
 		    << (swapable ? "(Restart this vertex)" :
 			"(Leave vertex)") << std::endl;
 
-	  //	  if (M_->useX11()) {
-	  //	    char msg[] = "Swapped away an edge.";
-	  //	    xtmpl_press_ret(msg);
-	  //	  }
+	  // if (M_->useX11()) {
+	  //  char msg[] = "Swapped away an edge.";
+	  //  xtmpl_press_ret(msg);
+	  // }
       	}
       }
 
@@ -912,6 +912,9 @@ namespace fmesh {
 	/* Go to first edge */
 	vd0 = d0; /* First dart in edge bundle from current vertex. */
 	vd0.orbit2();
+
+	CDTMSG("Trying to find opposite vertex.");
+
 	while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
 
 	CDTMSG("Vertex eliminated, start from beginning:");
@@ -923,10 +926,10 @@ namespace fmesh {
 	CDTMSG("Vertex not eliminated, go to next:");
       }
 
-      //      if (M_->useX11()) {
-      //      	char msg[] = "Tried to eliminate vertex.";
-      //      	xtmpl_press_ret(msg);
-      //      }
+      // if (M_->useX11()) {
+      //	char msg[] = "Tried to eliminate vertex.";
+      //	xtmpl_press_ret(msg);
+      // }
       
     }
 
