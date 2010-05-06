@@ -620,8 +620,8 @@ int koala_test()
 
 int main()
 {
-  koala_test();
-  return 0;
+    koala_test();
+  //  return 0;
   for (int i=0;i<maxiter;i++) {
     DT2D_test();
     DT2D_test2();
