@@ -175,7 +175,7 @@ namespace fmesh {
     friend class MCQswapableD;
   public:
     enum State {State_noT=0, /*!< No triangulation present */
-		State_CHT, /*!< Convex hull triangulation */
+		State_CET, /*!< Convex enclosure triangulation */
 		State_DT, /*!< Delaunay triangulation */
 		State_CDT, /*!< Constrained DT,
 			     segment data structures active. */
@@ -185,20 +185,20 @@ namespace fmesh {
   private:
     Mesh *M_;
     /* CDT Constraint and segment data structures: */
-    constrListT constr_boundary_; /*! Boundary edge
+    constrListT constr_boundary_; /*!< Boundary edge
 				    constraints not yet
 				    added as segments. */
-    constrListT constr_interior_; /*! Interior edge
+    constrListT constr_interior_; /*!< Interior edge
 				    constraints not yet
 				    added as segments. */
-    MCQsegm boundary_; /*!< Boundary segment */
-    MCQsegm interior_; /*!< Interior segment */
+    MCQsegm boundary_; /*!< Boundary segments */
+    MCQsegm interior_; /*!< Interior segments. */
     /* RCDT triangle quality data structures: */
-    MCQskinny skinny_; /*!< Skinny triangles */
-    MCQbig big_;
+    MCQskinny skinny_; /*!< Skinny triangles. */
+    MCQbig big_; /*!< Big triangles. */
     /* State variables: */
-    State state_;
-    bool is_pruned_;
+    State state_; /*!< The current MeshC::State */
+    bool is_pruned_; /*!< True if the mesh is a pruned mesh. */
 
     bool recSwapDelaunay(const Dart& d0);
     Dart splitTriangleDelaunay(const Dart& td, int v);
@@ -211,7 +211,7 @@ namespace fmesh {
     bool buildRCDTlookahead(MCQsegm* segm, const Point& c);
 
     /*!
-      \brief Make a DT from a CHT, calling LOP.
+      \brief Make a DT from a CET, calling LOP.
     */
     bool prepareDT();
     /*!
@@ -247,12 +247,12 @@ namespace fmesh {
     MeshC() : M_(NULL), boundary_(this), interior_(this),
 	      skinny_(this), big_(this), state_(State_noT),
 	      is_pruned_(false) {};
-    MeshC(Mesh* M, bool with_conv_hull)
+    MeshC(Mesh* M, bool with_convex_enclosure=false)
       : M_(M), boundary_(this), interior_(this),
 	skinny_(this), big_(this), state_(State_noT),
 	is_pruned_(false) {
-      if (with_conv_hull)
-	state_ = State_CHT;
+      if (with_convex_enclosure)
+	state_ = State_CET;
     };
 
     /*!
@@ -260,7 +260,7 @@ namespace fmesh {
 
       Return index of the first of the added points.
     */
-    int addVertices(const double (*S)[3], int nV)
+    int addVertices(const Point (*S), int nV)
     {
       M_->S_append(S,nV);
       return M_->nV()-nV;
@@ -285,6 +285,15 @@ namespace fmesh {
     double skinnyQuality(int t) const;
     double bigQuality(int t) const;
 
+    /*!
+      \brief Build a convex enclosure triangulation (CET).
+
+      \param sides The number of sides for the enclosure
+      \param margin The absolute margin for the enclosure.  If
+      negative, the margin is set to -margin multiplied by the
+      approximate diameter.
+    */
+    bool CET(int sides, double margin=-0.05);
     /*!
       \brief Local Optimisation Procedure (LOP)
 
