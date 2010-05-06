@@ -71,10 +71,11 @@ namespace fmesh {
     bool foundQ(const Dart& d) const;
     const double quality(const Dart& d) const;
     Dart quality() const;
-    const_iterator begin() { return darts_.begin(); };
-    const_iterator end() { return darts_.end(); };
-    const_iteratorQ beginQ() { return darts_quality_.begin(); };
-    const_iteratorQ endQ() { return darts_quality_.end(); };
+    const_iterator find(const Dart& d) const { return darts_.find(d); };
+    const_iterator begin() const { return darts_.begin(); };
+    const_iterator end() const { return darts_.end(); };
+    const_iteratorQ beginQ() const { return darts_quality_.begin(); };
+    const_iteratorQ endQ() const { return darts_quality_.end(); };
 
     friend std::ostream& operator<<(std::ostream& output, const MCQ& Q);
   };
@@ -204,7 +205,7 @@ namespace fmesh {
     Dart splitEdgeDelaunay(const Dart& ed, int v);
     Dart bisectEdgeDelaunay(const Dart& d);
     void calcSteinerPoint(const Dart& d, Point& c);
-    bool insertNode(int v, const Dart& ed);
+    Dart insertNode(int v, const Dart& ed);
 
     bool isSegment(const Dart& d) const;
     bool buildRCDTlookahead(MCQsegm* segm, const Point& c);
@@ -273,6 +274,12 @@ namespace fmesh {
     Dart splitEdge(const Dart& d, int v);
     /*! Split a triangle in three. */
     Dart splitTriangle(const Dart& d, int v);
+
+    /*! Unlink an edge, keeping track of possible segments. */
+    void unlinkEdge(Dart& d);
+    /*! Remove a triangle, keeping track of possible segments.
+      Returns index of relocated triangle. */
+    int removeTriangle(Dart& d);
 
     double encroachedQuality(const Dart& d) const;
     double skinnyQuality(int t) const;
