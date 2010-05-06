@@ -652,6 +652,18 @@ namespace fmesh {
     for (prev--; prev->second == 0; prev--) {};
   }
 
+  void prevnext(BoundaryList::reverse_iterator& prev,
+		BoundaryList::reverse_iterator& curr,
+		BoundaryList::reverse_iterator& next)
+  {
+    for (curr--; curr->second == 0; curr--) {};
+    for (curr++; curr->second == 0; curr++) {};
+    next = curr;
+    for (next++; next->second == 0; next++) {};
+    prev = curr;
+    for (prev--; prev->second == 0; prev--) {};
+  }
+
   void prev(BoundaryList::reverse_iterator& prev,
 	    BoundaryList::reverse_iterator& curr,
 	    BoundaryList::reverse_iterator& next)
@@ -787,6 +799,7 @@ namespace fmesh {
 
     while (true) {
       bool swapable = true;
+      int v10 = vd0.vo(); /* The first opposite vertex. */
       while (swapable) {
 	CDTMSG("");
 	/* Find swapable edge */
@@ -805,6 +818,8 @@ namespace fmesh {
 	  /* Swap the edge */
 	  bool vd0affected = (dh==vd0); /* vd0 must be updated? */
 	  
+	  CDTMSG("Before edge swap");
+
 	  i0->second--;
 	  i1->second--;
 	  dh = swapEdge(dh);
@@ -829,44 +844,45 @@ namespace fmesh {
 	  CDTMSG("Have swapped, and adjusted counters");
 
 	  if (dh.v() == i0_next->first) {
-	    if (dh.vo() == v0) {
-	      /* Vertex has been eliminated, and is linked to v0 */
-	      i0_next->second--;
-	      d0.orbit0();
-	      std::cout << WHEREAMI << "d0: " << d0 << std::endl;
-	    } else if (dh.vo() == i0_prev->first) {
-	      /* Vertex has been eliminated */
-	      i0_next->second--;
-	      i0_prev->second--;
+	    if (dh.vo() == i0_prev->first) {
+	      /* Case: i0_next --> i0_prev */
+	      /* I0 has been eliminated */
+	      if (dh.vo() == v0) {
+		/* i0_prev == v0 */
+		d0.orbit0();
+		std::cout << WHEREAMI << "d0: " << d0 << std::endl;
+	      }
+	      if (i0_prev->first != v0) i0_prev->second--;
+	      if (i0_next->first != v1) i0_next->second--;
+	    } else if (dh.vo() == i1_prev->first) {
+	      /* Case: i0_next --> i1_prev */
+	      /* Nothing to do. */
 	    }
-	  } else if (dh.vo() == i0_prev->first) {
-	    if (dh.v() == v1) {
-	      /* Vertex has been eliminated, and is linked to v1 */
-	      i1_prev->second--;
-	    } else if (dh.v() == i0_next->first) { /* Will not be reached. */
-	      /* Vertex has been eliminated */
-	      i0_next->second--;
-	      i0_prev->second--;
+	  } else if (dh.v() == i1_next->first) {
+	    if (dh.vo() == i1_prev->first) {
+	      /* Case: i1_next --> i1_prev */
+	      /* I1 has been eliminated */
+	      if (i1_prev->first != v0) i1_prev->second--;
+	      if (i1_next->first != v1) i1_next->second--;
+	    } else if (dh.vo() == i1_prev->first) {
+	      /* Case: i1_next --> i0_prev */
+	      /* Nothing to do. */
 	    }
 	  }
-	  if ((dh.vo() == i1_prev->first) && (dh.v() == i1_next->first)) {
-	    /* Vertex has been eliminated */
-	    i1->second = 0;
-	    if (i1_next->second >= 0) i1_next->second--;
-	    if (i1_prev->second >= 0) i1_prev->second--;
-	  }
+
+	  CDTMSG("Have swapped, and possibly eliminated vertices");
+
 	  dh.orbit2rev();
-	  if (vd0affected)
+	  if (vd0affected) {
 	    vd0 = dh;
-	  swapable = (vd0.vo() != i0_next->first);
-
-	  CDTMSG("Have swapped, and detected parial successes");
-
-	  if (swapable && (i1_next->second >= 0)) {
-	    while (i1->first != vd0.vo()) next(i1_prev,i1,i1_next);
+	    v10 = vd0.vo();
 	  }
-	  if ((i0->second > 0) && (i0_prev->second >= 0)) {
-	    prevnext(i0_prev,i0,i0_next);
+	  swapable = (vd0.vo() != i0_next->first);
+	  
+	  if (swapable && (i0->second>=0)) {
+	    prevnext(i1_prev,i1,i1_next);
+	    while ((i1_prev->second >= 0) && (i1->first != v10))
+	      prev(i1_prev,i1,i1_next);
 	  }
 
 	  CDTMSG("Have swapped, and tried to update location");
@@ -875,9 +891,9 @@ namespace fmesh {
 			"(Leave vertex)") << std::endl;
 
 	  //	  if (M_->useX11()) {
-	  //  char msg[] = "Swapped away an edge.";
-	  //  xtmpl_press_ret(msg);
-	  // }
+	  //	    char msg[] = "Swapped away an edge.";
+	  //	    xtmpl_press_ret(msg);
+	  //	  }
       	}
       }
 
@@ -908,9 +924,9 @@ namespace fmesh {
       }
 
       //      if (M_->useX11()) {
-      //	char msg[] = "Tried to eliminate vertex.";
-      //	xtmpl_press_ret(msg);
-      // }
+      //      	char msg[] = "Tried to eliminate vertex.";
+      //      	xtmpl_press_ret(msg);
+      //      }
       
     }
 
