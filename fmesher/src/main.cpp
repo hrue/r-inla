@@ -20,7 +20,7 @@ bool useTV = true;
 bool useTTi = true;
 bool useX11 = true;
 bool useX11text = false;
-int maxiter = 10;
+int maxiter = 1;
 
 int predicates_test()
 {
@@ -100,61 +100,6 @@ int mesh_test()
 }
 
 
-int LOP_test()
-{
-  int n = 0;
-  double S[14][3] = {{0.5,0.5,0},
-		     {0.5,0.6,0},
-		     {0.3,0.2,0},
-		     {0.3,0.6,0},
-		     {0.5,0.3,0},
-		     {0.6,0.7,0},
-		     {0.7,0.3,0},
-		     {0.2,0.8,0},
-		     {0.9,0.5,0},
-		     {0.1,0.1,0},
-		     {0.05,0.05,0},
-		     {0.95,0.05,0},
-		     {0.95,0.95,0},
-		     {0.05,0.95,0}};
-  double Sb[6][3] = {{0.,0.,0.},
-		     {1.,0.,0.},
-		     {0.,1.,0.},
-		     {1.0,1.,0.},
-		     {0.6,0.7,0.},
-		     {0.7,0.6,0.}};
-  int TVb[6][3] = {{0,1,2},
-		   {1,5,4},
-		   {1,4,2},
-		   {3,2,4},
-		   {3,4,5},
-		   {3,5,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
-  int t,vi,v;
-
-  M.S_set(S,n);
-
-  M.setX11VBigLimit(n);
-  if (useX11)
-    M.useX11(true,useX11text,500,500);
-
-  M.S_append(Sb,6);
-  for (t=0;t<6;t++)
-    for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
-  M.TV_set(TVb,6);
-
-  MeshC MC(&M,true);
-
-  fmesh::triangleSetT triangles;
-  for (t=0;t<(int)M.nT();t++)
-    triangles.insert(t);
-  MC.LOP(triangles);
-
-  return 0;
-}
-
-
 int CDT_test()
 {
   int n = 7;
@@ -172,7 +117,7 @@ int CDT_test()
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
   Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
-  int t,vi,v;
+  int t,vi;
 
   M.S_set(S,n);
 
@@ -197,8 +142,6 @@ int CDT_test()
   vertices.push_back(5);
   vertices.push_back(6);
   MC.DT(vertices);
-
-  cout << M;
 
   MC.RCDT(1.415,100);
 
@@ -259,8 +202,6 @@ int DT2D_test()
     vertices.push_back(v);
 
   MC.DT(vertices);
-
-  cout << M;
 
   fmesh::constrListT cinp;
   cinp.push_back(fmesh::constrT(10,11));
@@ -343,8 +284,6 @@ int DT2D_test2()
     for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
-
-  cout << M;
 
   MC.CDT(fmesh::constrListT(),fmesh::constrListT());
 
@@ -466,8 +405,6 @@ int DTsphere_test()
       TVb[t][vi] += n; 
   M.TV_set(TVb,4);
 
-  cout << M;
-
   MeshC MC(&M,true);
 
   fmesh::vertexListT vertices;
@@ -482,8 +419,6 @@ int DTsphere_test()
     vertices.push_back(v);
   }
   MC.DT(vertices);
-
-  cout << M;
 
   MC.PruneExterior();
 
@@ -576,18 +511,23 @@ int koala_test()
 
   M.setX11VBigLimit(n);
   if (useX11)
-    M.useX11(true,useX11text,500,500,-10,5010,-10,5010);
+    M.useX11(true,useX11text,500,500,-440,4400+440,-400-240,4000+400+240);
 
   M.S_set(S,n);
   M.S_append(Sb,nb);
-  M.S_append(Se,ne);
 
+
+  /*
+  M.S_append(Se,ne);
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
       TVe[t][vi] += n+nb;
   M.TV_set(TVe,2);
-
   MeshC MC(&M,true);
+  */
+
+  MeshC MC(&M,false);
+  MC.CET(20,-0.05);
 
   fmesh::vertexListT vertices;
   for (v=0;v<nb;v++)
