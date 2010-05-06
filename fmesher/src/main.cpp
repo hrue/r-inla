@@ -381,8 +381,8 @@ int DT2D_test3() /* Random points */
 
   M.setX11VBigLimit(n);
   if (useX11)
-    M.useX11(true,useX11text,500,500);
-  //    M.useX11(true,useX11text,500,500,0.7,0.9,0.4,0.85);
+        M.useX11(true,useX11text,500,500);
+  //      M.useX11(true,useX11text,500,500,0.7,0.9,0.4,0.85);
 
   M.S_append(Sb,4);
   for (t=0;t<2;t++)
@@ -620,12 +620,10 @@ int koala_test()
 
 int main()
 {
-    koala_test();
-  //  return 0;
   for (int i=0;i<maxiter;i++) {
+    koala_test();
     DT2D_test();
     DT2D_test2();
-    DT2D_test3();
     CDT_test();
     DTsphere_test();
   }
