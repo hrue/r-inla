@@ -221,6 +221,10 @@ namespace fmesh {
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
 
+    Mesh& unlinkTriangle(const int t); 
+    Mesh& relocateTriangle(const int t_source, const int t_target); 
+    int removeTriangle(const int t); 
+
     /* Traits: */
     double edgeLength(const Dart& d) const;
     void barycentric(const Dart& d, const Point& s, Point& bary) const;
@@ -303,9 +307,15 @@ namespace fmesh {
     int edir() const { return edir_; };
     int t() const { return t_; };
     int v() const { if (!M_) return -1; else return M_->TV_[t_][vi_]; };
+    /* Opposite vertex; alpha0().v() */
     int vo() const {
       if (!M_) return -1;
       else return M_->TV_[t_][(vi_+(3+edir_))%3];
+    };
+    /* Adjacent triangle; alpha2().t() */
+    int tadj() const {
+      if (!M_) return -1;
+      else return M_->TT_[t_][(vi_+(3-edir_))%3];
     };
 
     bool isnull() const { return (!M_); };
@@ -357,6 +367,8 @@ namespace fmesh {
     {
       return (!circumcircleOK());
     };
+
+    Dart& unlinkEdge(); 
 
     /* Graph traversal algebra. */
     Dart& alpha0(void);

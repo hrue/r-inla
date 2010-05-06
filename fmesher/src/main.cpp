@@ -273,6 +273,8 @@ int DT2D_test()
   // cinp.push_back(fmesh::constrT(10,12));
   // MC.CDTInterior(cinp);
 
+  MC.PruneExterior();
+
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -346,6 +348,8 @@ int DT2D_test2()
 
   MC.CDT(fmesh::constrListT(),fmesh::constrListT());
 
+  MC.PruneExterior();
+
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
 
@@ -401,6 +405,8 @@ int DT2D_test3() /* Random points */
   */
 
   MC.CDTSegment(false,0,1);
+
+  MC.PruneExterior();
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.05);
@@ -479,6 +485,7 @@ int DTsphere_test()
 
   cout << M;
 
+  MC.PruneExterior();
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,0.15);
@@ -489,8 +496,27 @@ int DTsphere_test()
 
 int koala_test()
 {
-  int n = 45;
-  Point S[45] = {{
+  int n = 15;
+  Point S[15] = {
+    {585.6,3553.4,0.},
+    {537.6,3497.6,0.},
+    {1078.8,3825.8,0.},
+    {2414.4,3303.2,0.},
+    {1604.4,3957.2,0.},
+    {581.4,3515.6,0.},
+    {677.4,3312.2,0.},
+    {483.6,3516.8,0.},
+    {1531.2,3923.6,0.},
+    {548.4,3573.2,0.},
+    {1647.6,3907.4,0.},
+    {1713.6,3915.8,0.},
+    {2238,1925,0.},
+    {2085,2151.2,0.},
+    {1570.8,2448.2,0.}
+  };
+
+  int nb = 45;
+  Point Sb[45] = {{
 2125,4011.1,0.},{
 4.5,3975.8,0.},{
 3192.8,16.9,0.},{
@@ -538,47 +564,52 @@ int koala_test()
 2225.7,3784.4,0.}
 		 //,{2125,4011.1,0.}
 };
-  Point Sb[4] = {{0.,0.,0.},
+  int ne = 4;
+  Point Se[4] = {{0.,0.,0.},
 		 {5000.,0.,0.},
 		 {0.,5000.,0.},
 		 {5000.,5000.,0.}};
-  int TVb[2][3] = {{0,1,2},
+  int TVe[2][3] = {{0,1,2},
 		   {3,2,1}};
   Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
   int t,vi,v;
-
-  M.S_set(S,n);
 
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500,-10,5010,-10,5010);
 
-  M.S_append(Sb,4);
+  M.S_set(S,n);
+  M.S_append(Sb,nb);
+  M.S_append(Se,ne);
+
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n;
-  M.TV_set(TVb,2);
+      TVe[t][vi] += n+nb;
+  M.TV_set(TVe,2);
 
   MeshC MC(&M,true);
 
   fmesh::vertexListT vertices;
+  for (v=0;v<nb;v++)
+    vertices.push_back(n+v);
+  MC.DT(vertices);
+
+  fmesh::constrListT cinp;
+  for (v=0;v<nb-1;v++)
+    cinp.push_back(fmesh::constrT(n+v,n+v+1));
+  cinp.push_back(fmesh::constrT(n+nb-1,n+0));
+  MC.CDTBoundary(cinp);
+
+  vertices.clear();
   for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
 
-  cout << M;
+  MC.PruneExterior();
 
-  //  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,10000);
 
-  fmesh::constrListT cinp;
-  for (v=0;v<n-1;v++)
-    cinp.push_back(fmesh::constrT(v,v+1));
-  cinp.push_back(fmesh::constrT(n-1,0));
-  MC.CDTInterior(cinp);
-
-  //MC.RCDT(1.415,100);
-
-    MC.RCDT(1.415,0.05);
+  MC.RCDT(1.415,500);
 
   return 0;
 }

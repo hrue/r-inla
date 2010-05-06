@@ -398,7 +398,7 @@ namespace fmesh {
 
 
   /*! Alg 9.3 */
-  bool MeshC::insertNode(int v, const Dart& ed)
+  Dart MeshC::insertNode(int v, const Dart& ed)
   {
     Dart td;
 
@@ -406,7 +406,7 @@ namespace fmesh {
 	      << " " << M_->S(v) << std::endl;
 
     td = M_->locatePoint(ed,M_->S(v));
-    if (td.isnull()) { return false; }; /* ERROR, not found! */
+    if (td.isnull()) { return Dart(); }; /* ERROR, not found! */
     td = Dart(*M_,td.t());
     Point bary;
     M_->barycentric(td,M_->S(v),bary);
@@ -424,34 +424,32 @@ namespace fmesh {
 	      << std::endl;
     switch (pattern) {
     case 7: // +++
-      splitTriangleDelaunay(td,v);
+      return splitTriangleDelaunay(td,v);
       break;
     case 6: // -++ Split e0
       td.orbit2();
       std::cout << WHEREAMI << "Edge dart " << td << std::endl;
-      splitEdgeDelaunay(td,v);
+      return splitEdgeDelaunay(td,v);
       break;
     case 5: // +-+ Split e1
       td.orbit2rev();
       std::cout << WHEREAMI << "Edge dart " << td << std::endl;
-      splitEdgeDelaunay(td,v);
+      return splitEdgeDelaunay(td,v);
       break;
     case 3: // ++- Split e2
       std::cout << WHEREAMI << "Edge dart " << td << std::endl;
-      splitEdgeDelaunay(td,v);
+      return splitEdgeDelaunay(td,v);
       break;
     case 1: // +-- Close to node 0, not allowed
     case 2: // -+- Close to node 1, not allowed
     case 4: // --+ Close to node 2, not allowed
       std::cout << WHEREAMI << "ERROR: Attempt to add a duplicate point in triangle " << td << std::endl;
-      return false;
       break;
     case 0: // --- Close to all nodes, should not happen!
-      return false;
       break;
     }
 
-    return true;
+    return Dart();
   }
 
   bool MeshC::DT(const vertexListT& v_set)
@@ -468,25 +466,20 @@ namespace fmesh {
       if (!prepareDT()) /* Make sure we have a DT. */
 	return false;
 
-    if (state_>=State_CDT)
-      std::cout << WHEREAMI << "Boundary segments before DT:" << std::endl << boundary_;
-
     int v;
     vertexListT::const_iterator v_iter;
-    Dart td, d, d0, d1, d2;
+    Dart dh;
 
+    dh = Dart();
     for (v_iter = v_set.begin(); v_iter != v_set.end(); v_iter++) {
       v = *v_iter;
-      insertNode(v,Dart(*M_,0)); /* TODO: More clever starting edge? */
-
-      if (state_>=State_CDT)
-	std::cout << WHEREAMI << "Boundary segments after DT:"
-		  << std::endl << boundary_;
+      if (dh.isnull()) dh = Dart(*M_,0);
+      dh = insertNode(v,dh); /* Start looking where the previous
+				point was found. */
     }
       
     M_->redrawX11("DT finished");
 
-    state_ = State_DT;
     return true;
   }
 
@@ -501,7 +494,7 @@ namespace fmesh {
       if (LOP(t_set))
 	state_ = State_DT;
     }
-    return (state_>=State_DT) && (!is_pruned_);
+    return (state_>=State_DT);
   }
 
 
@@ -510,8 +503,6 @@ namespace fmesh {
     if (!prepareDT()) return false; /* Make sure we have a DT. */
     if (state_>=State_CDT)
       return true; /* Nothing to do. Data structures already active. */
-
-    M_->setX11VBigLimit((int)M_->nV());
 
     const int* tt;
     int vi;
@@ -1160,7 +1151,7 @@ namespace fmesh {
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (!insertNode(addVertices(&c,1),dh)) {
+	if (insertNode(addVertices(&c,1),dh).isnull()) {
 	// if (killTriangle(dh))
 	//   xtmpl_press_ret("Skinny triangle has been eliminated");
 	// else
@@ -1184,7 +1175,7 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	insertNode(addVertices(&c,1),dh);
-	// if (insertNode(addVertices(&c,1),dh))
+	// if (!insertNode(addVertices(&c,1),dh).isnull())
 	//   xtmpl_press_ret("Big triangle has been eliminated");
 	// else
 	//   xtmpl_press_ret("Big triangle elimination failed");
@@ -1209,15 +1200,16 @@ namespace fmesh {
     Flood-fill algorithm for exterior triangle removal:
     \verbatim
     1. For each boundary segment
-    2.   Add the exterior triangle to the "exterior set" Ext.
-    3.   Make sure that VT for the boundary vertices indicate the
-         remaining triangle.
-    4.   Unlink the exterior triangle, relocate to triangle list end,
-         and delete.
-    5. While Ext is not empty, let t in Ext
-    6.   Add any triangle linked to t to Ext.
-    7.   Unlink t, relocate to triangle list end, and delete.
+    2.   Add a possible exterior triangle to the "exterior set" Ext.
+    3.   Unlink the edge.
+    4. While Ext is not empty, let t in Ext
+    5.   Add any triangle linked to t to Ext.
+    6.   Remove t.
     \endverbatim
+
+    Step 1. is delicate, since boundary segments will be added and
+    removed in step 3.  Solved by finding the previous segment again,
+    and then moving to the next.
 
     TODO: Remove exterior points at the end of the vertex list.\n
 
@@ -1234,9 +1226,54 @@ namespace fmesh {
     }
     is_pruned_ = true;
     
-    /* TODO: Implement. */
-    NOT_IMPLEMENTED;
+    Dart d0, dh;
+    triangleSetT ext;
 
+    /* Unlink the exterior. */
+    for (MCQsegm::const_iterator boundary_segm_i = boundary_.begin();
+	 boundary_segm_i != boundary_.end();
+	 boundary_segm_i = ++boundary_.find(d0)) {
+      d0 = boundary_segm_i->first;
+      if (!d0.onBoundary()) {
+	dh = d0;
+	dh.orbit1();
+	ext.insert(dh.t());
+	unlinkEdge(d0);
+      }
+    }
+
+    /* Make sure useVT is off: */
+    bool M_useVT = M_->useVT();
+    M_->useVT(false);
+
+    /* Remove exterior triangles. */
+    int t_relocated;
+    triangleSetT::iterator ext_j;
+    for (triangleSetT::iterator ext_i = ext.begin();
+	 ext_i != ext.end();
+	 ext_i = ext.begin()) {
+      dh = Dart(*M_,*ext_i);
+      if (!dh.onBoundary()) ext.insert(dh.tadj());
+      dh.orbit2();
+      if (!dh.onBoundary()) ext.insert(dh.tadj());
+      dh.orbit2();
+      if (!dh.onBoundary()) ext.insert(dh.tadj());
+      t_relocated = removeTriangle(dh);
+      if ((ext_j = ext.find(t_relocated)) != ext.end())
+	ext.erase(ext_j);
+      else
+	ext.erase(ext_i);
+
+      std::cout << WHEREAMI << ext << std::endl;
+    }
+
+    /* Restore useVT-state: */
+    M_->useVT(M_useVT);
+
+    std::cout << WHEREAMI << "Boundary segments after pruning: "
+	      << boundary_;
+
+    M_->redrawX11("PruneExterior finished");
 
     return true;
   };
@@ -1527,6 +1564,101 @@ namespace fmesh {
     //	      << boundary_;
 
     return dnew;
+  }
+
+
+
+
+  /*!  */
+  void MeshC::unlinkEdge(Dart& d)
+  {
+    if (state_<State_CDT) {
+      d.unlinkEdge();
+      return;
+    }
+
+    Dart dh(d);
+    bool onboundary = d.onBoundary();
+    if (!onboundary) {
+      dh.orbit1();
+      if (interior_.found(dh)) interior_.erase(dh);
+    }
+    if (interior_.found(d)) interior_.erase(d);
+    
+    d.unlinkEdge();
+        
+    if (!onboundary) {
+      boundary_.erase(dh);
+      boundary_.insert(dh);
+    }
+    boundary_.erase(d);
+    boundary_.insert(d);
+
+    return;
+  }
+
+  /*!  */
+  int MeshC::removeTriangle(Dart& d)
+  {
+    if (state_ < State_CDT) {
+      return M_->removeTriangle(d.t());
+    }
+
+    Dart dh(d);
+    interior_.erase(dh);
+    boundary_.erase(dh);
+    if (!dh.onBoundary()) {
+      dh.orbit1();
+      interior_.erase(dh);
+      boundary_.insert(dh);
+      dh.orbit1();
+    }
+    dh.orbit2();
+    interior_.erase(dh);
+    boundary_.erase(dh);
+    if (!dh.onBoundary()) {
+      dh.orbit1();
+      interior_.erase(dh);
+      boundary_.insert(dh);
+      dh.orbit1();
+    }
+    dh.orbit2();
+    interior_.erase(dh);
+    boundary_.erase(dh);
+    if (!dh.onBoundary()) {
+      dh.orbit1();
+      interior_.erase(dh);
+      boundary_.insert(dh);
+      dh.orbit1();
+    }
+
+    int t_removed = d.t();
+    int t_relocated = M_->removeTriangle(t_removed);
+    
+    dh = Dart(*M_,t_removed,1,0);
+    Dart dh_old = Dart(*M_,t_relocated,1,0);
+    if (boundary_.found(dh_old)) {
+      boundary_.erase(dh_old); boundary_.insert(dh);
+    }
+    if (interior_.found(dh_old)) {
+      interior_.erase(dh_old); interior_.insert(dh);
+    }
+    dh.orbit2(); dh_old.orbit2();
+    if (boundary_.found(dh_old)) {
+      boundary_.erase(dh_old); boundary_.insert(dh);
+    }
+    if (interior_.found(dh_old)) {
+      interior_.erase(dh_old); interior_.insert(dh);
+    }
+    dh.orbit2(); dh_old.orbit2();
+    if (boundary_.found(dh_old)) {
+      boundary_.erase(dh_old); boundary_.insert(dh);
+    }
+    if (interior_.found(dh_old)) {
+      interior_.erase(dh_old); interior_.insert(dh);
+    }
+    
+    return t_relocated;
   }
 
 
