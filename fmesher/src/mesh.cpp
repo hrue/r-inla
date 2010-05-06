@@ -1781,6 +1781,118 @@ namespace fmesh {
 
 
 
+
+
+  Dart& Dart::unlinkEdge()
+  {
+    Dart dh(*this);
+    if (!onBoundary()) {
+      dh.orbit0rev().orbit2();
+      M_->TT_[dh.t()][dh.vi()] = -1;
+      if (M_->use_TTi_)
+	M_->TTi_[dh.t()][dh.vi()] = -1;
+    }
+    dh = *this;
+    dh.orbit2rev();
+    M_->TT_[dh.t()][dh.vi()] = -1;
+    if (M_->use_TTi_)
+      M_->TTi_[dh.t()][dh.vi()] = -1;
+    
+    return *this;
+  }
+  
+  /*!
+    Unlink a triangle
+   */
+  Mesh& Mesh::unlinkTriangle(const int t)
+  {
+    Dart(*this,t).unlinkEdge().orbit2().unlinkEdge().orbit2().unlinkEdge();
+    return *this;
+  }
+
+  Mesh& Mesh::relocateTriangle(const int t_source, const int t_target)
+  {
+    if (t_target == t_source)
+      return *this;
+    if (t_target>t_source)
+      check_capacity(0,t_target+1);
+    TV_[t_target][0] = TV_[t_source][0];
+    TV_[t_target][1] = TV_[t_source][1];
+    TV_[t_target][2] = TV_[t_source][2];
+    TT_[t_target][0] = TT_[t_source][0];
+    TT_[t_target][1] = TT_[t_source][1];
+    TT_[t_target][2] = TT_[t_source][2];
+    if (use_VT_) {
+      if (VT_[TV_[t_target][0]] == t_source)
+	VT_[TV_[t_target][0]] = t_target;
+      if (VT_[TV_[t_target][1]] == t_source)
+	VT_[TV_[t_target][1]] = t_target;
+      if (VT_[TV_[t_target][2]] == t_source)
+	VT_[TV_[t_target][2]] = t_target;
+    }
+    if (use_TTi_) {
+      TTi_[t_target][0] = TTi_[t_source][0];
+      TTi_[t_target][1] = TTi_[t_source][1];
+      TTi_[t_target][2] = TTi_[t_source][2];
+    }
+    /* Relink neighbouring TT:s. TTi is not affected by the relocation. */
+    Dart dh(*this,t_target,1,0);
+    if (!dh.onBoundary()) {
+      dh.orbit0rev().orbit2();
+      TT_[dh.t()][dh.vi()] = t_target;
+    }
+    dh = Dart(*this,t_target,1,1);
+    if (!dh.onBoundary()) {
+      dh.orbit0rev().orbit2();
+      TT_[dh.t()][dh.vi()] = t_target;
+    }
+    dh = Dart(*this,t_target,1,2);
+    if (!dh.onBoundary()) {
+      dh.orbit0rev().orbit2();
+      TT_[dh.t()][dh.vi()] = t_target;
+    }
+    
+    return *this;
+  }
+
+  /*!
+    Remove a triangle.
+
+    The current implementation is slow when useVT is true.  For better
+    performance when removing many triangles, set to false while
+    removing.
+   */
+  int Mesh::removeTriangle(const int t)
+  {
+    if ((t<0) || (t>=(int)nT_))
+      return -1;
+
+    if (X11_) {
+      drawX11triangle(t,false);
+      if (!(TT_[t][0]<0)) drawX11triangle(TT_[t][0],true);
+      if (!(TT_[t][1]<0)) drawX11triangle(TT_[t][1],true);
+      if (!(TT_[t][2]<0)) drawX11triangle(TT_[t][2],true);
+    }
+
+    unlinkTriangle(t);
+    relocateTriangle(nT_-1,t);
+    nT_--;
+    if (use_VT_)
+      rebuildVT();
+    return nT_;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
   /*!
     Calculate barycentric coordinates.
 
@@ -2220,6 +2332,13 @@ namespace fmesh {
 	     << d.M()->TV(d.t_)[1]
 	     << ","
 	     << d.M()->TV(d.t_)[2]
+	     << ")";
+      output << " TT=("
+	     << d.M()->TT(d.t_)[0]
+	     << ","
+	     << d.M()->TT(d.t_)[1]
+	     << ","
+	     << d.M()->TT(d.t_)[2]
 	     << ")";
     }
       
