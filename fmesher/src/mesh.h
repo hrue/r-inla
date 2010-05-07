@@ -100,6 +100,31 @@ namespace fmesh {
     {
       return (s0[0]*s1[1]-s0[1]*s1[0]);
     };
+    /*!
+      Calculate an arbitrary perpendicular vector.
+
+      Michael M. Stark, Efficient Construction of Perpendicular
+      Vectors without Branching, Journal of graphics, gpu, and game
+      tools, Vol. 14, No. 1: 55-62, 2009
+    */
+#define ABS(X) std::fabs(X)
+    // #define SIGNBIT(X) (((union { double x; unsigned long n; }(X)).n >> 31))
+      // WIll not work: #define SIGNBIT(X) std::signbit(X)
+#define SIGNBIT(X) (X < 0)
+    static void arbitrary_perpendicular(Point& n, const Point& v)
+    {
+      const unsigned int uyx = SIGNBIT(ABS(v[0]) - ABS(v[1]));
+      const unsigned int uzx = SIGNBIT(ABS(v[0]) - ABS(v[2]));
+      const unsigned int uzy = SIGNBIT(ABS(v[1]) - ABS(v[2]));
+      const unsigned int xm = uyx & uzx;
+      const unsigned int ym = (1^xm) & uzy;
+      const unsigned int zm = 1^(xm & ym);
+      std::cout << uyx << ' ' << uzx << ' ' << uzy << std::endl;
+      std::cout << xm << ' ' << ym << ' ' << zm << std::endl;
+      n[0] =  zm*v[1] - ym*v[2];
+      n[1] =  xm*v[2] - zm*v[0];
+      n[2] =  ym*v[0] - xm*v[1];
+    };
   };
 
 

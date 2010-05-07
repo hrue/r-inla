@@ -399,13 +399,15 @@ int DTsphere_test()
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
+  /*
   M.S_append(Sb,4);
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
   M.TV_set(TVb,4);
-
   MeshC MC(&M,true);
+  */
+  MeshC MC(&M,false);
 
   fmesh::vertexListT vertices;
   vertices.push_back(4);
@@ -416,6 +418,58 @@ int DTsphere_test()
   vertices.clear();
   for (v=0;v<n;v++) {
     if ((v!=4) && (v!=8))
+    vertices.push_back(v);
+  }
+  MC.DT(vertices);
+
+  MC.PruneExterior();
+
+  MC.RCDT(1.415,100);
+  MC.RCDT(1.415,M_PI/20.0);
+
+  return 0;
+}
+
+
+int DTsphere_test2()
+{
+  int n = 4;
+  double S[4][3] = {{0.2,0.2,0.8},
+		    {-0.2,0.2,0.8},
+		    {0.2,-0.2,0.8},
+		    {-0.2,-0.2,0.8}};
+
+  Mesh M(Mesh::Mtype_sphere,0,useTV,useTTi);
+  int t,vi,v,i;
+  double l;
+
+  for (v=0;v<n;v++) {
+    l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
+    for (i=0;i<3;i++)
+      S[v][i] = S[v][i]/l;
+  }
+
+  M.S_set(S,n);
+
+  M.setX11VBigLimit(n+20);
+  if (useX11)
+    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+
+  MeshC MC(&M,false);
+
+  MC.CET(20,-0.001);
+
+  fmesh::vertexListT vertices;
+  /*
+  vertices.push_back(4);
+  vertices.push_back(8);
+  MC.DT(vertices);
+  MC.CDTSegment(false,4,8);
+  */
+
+  vertices.clear();
+  for (v=0;v<n;v++) {
+    //    if ((v!=4) && (v!=8))
     vertices.push_back(v);
   }
   MC.DT(vertices);
@@ -527,7 +581,7 @@ int koala_test()
   */
 
   MeshC MC(&M,false);
-  MC.CET(20,-0.05);
+  MC.CETplane(20,-0.05);
 
   fmesh::vertexListT vertices;
   for (v=0;v<nb;v++)
@@ -560,6 +614,7 @@ int koala_test()
 
 int main()
 {
+  DTsphere_test2();
   for (int i=0;i<maxiter;i++) {
     koala_test();
     DT2D_test();
