@@ -532,8 +532,8 @@ int inla_sphere_userfunc1(double *theta, int nhyper, double *covmat)
 	assert(func_smodel->Tmodel->theta_extra[GMRFLib_thread_id] == NULL);
 	assert(func_smodel->Kmodel->theta_extra[GMRFLib_thread_id] == NULL);
 
-	int idx, i, j, n = func_smodel->n, debug = 0, where_to_start;
-	double mean, var, sum;
+	int idx, i, j, n = func_smodel->n, where_to_start;
+	double mean, var;
 
 	where_to_start = GMRFLib_ai_INLA_userfunc1_dim;
 	P(where_to_start);

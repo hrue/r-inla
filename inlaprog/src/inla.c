@@ -5318,7 +5318,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the Skew-Normal
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0); /* YES! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
