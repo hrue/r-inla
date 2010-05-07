@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Skew-Normal}
+
+\subsection*{Parametrisation}
+
+The Skew-Normal distribution is
+\begin{displaymath}
+    f(y) = 2\frac{\sqrt{w\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
+      w\tau \left(y-\mu\right)^{2}\right) \; \Phi(a \left[w\tau \left(y-\mu\right)\right])
+\end{displaymath}
+for continuously responses $y$ where $\Phi(\cdot)$ is the cummulative
+distribution function for a standard Normal, and
+\begin{description}
+\item[$\mu$:] is the the location parameter
+\item[$\tau$:] is the inverse scale
+\item[$w$:] is a fixed weight, $w>0$,
+\item[$a$:] is the skewness parameter
+\end{description}
+
+\subsection*{Link-function}
+
+The location parameter is linked to the linear predictor by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The inverse scale is represented as
+\begin{displaymath}
+    \theta_{1} = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta_{1}$. 
+
+The skewness parameter is 
+\begin{displaymath}
+    \theta_{2} = a
+\end{displaymath}
+and the prior is defined on $\theta_{2}$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{sn}$
+\item Required arguments: $y$ and $w$ (keyword \texttt{weights})
+\end{itemize}
+The weights has default value 1.
+
+\subsection*{Example}
+
+This is a simulated example requiring the package \verb@sn@.
+\verbatiminput{example-sn.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
