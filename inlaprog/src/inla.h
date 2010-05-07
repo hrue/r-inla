@@ -166,6 +166,14 @@ typedef struct {
 	double alpha_laplace;
 	double epsilon_laplace;
 	double gamma_laplace;
+
+	/* 
+	 * Skew-Normal
+	 */
+	double **a_skew_normal;
+	double **log_prec_skew_normal;
+	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
+	
 } Data_tp;
 
 /* 
@@ -174,6 +182,7 @@ typedef struct {
 typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
+	L_SKEWNORMAL, 
 	L_T,
 	L_POISSON,
 	L_BINOMIAL,
@@ -856,6 +865,9 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
+
+double inla_log_Phi(double x);
+int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
 
 /* 
