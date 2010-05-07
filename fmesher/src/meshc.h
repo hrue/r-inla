@@ -287,6 +287,14 @@ namespace fmesh {
 
     /*!
       \brief Build a convex enclosure triangulation (CET).
+    */
+    bool CETsphere(int sides, double margin=-0.05);
+    /*!
+      \brief Build a convex enclosure triangulation (CET).
+    */
+    bool CETplane(int sides, double margin=-0.05);
+    /*!
+      \brief Build a convex enclosure triangulation (CET).
 
       \param sides The number of sides for the enclosure
       \param margin The absolute margin for the enclosure.  If
