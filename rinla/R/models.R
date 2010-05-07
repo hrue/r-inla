@@ -127,8 +127,13 @@ inla.models = function()
                          exponential = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = FALSE),
                          piecewiseconstant = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = TRUE),
                          piecewiselinear = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = TRUE),
+                         ## the same
                          gaussian = list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
-                         normal = list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
+                         normal =   list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
+                         ## the same
+                         skewnormal = list(ntheta = 2, theta = c("inverse.scale", "skewness"), nparameters = 4, npriors = 2, survival = FALSE, discrete = FALSE),
+                         sn         = list(ntheta = 2, theta = c("inverse.scale", "skewness"), nparameters = 4, npriors = 2, survival = FALSE, discrete = FALSE),
+                         ##
                          laplace = list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
                          weibull = list(ntheta = 1, theta = "alpha", nparameters = 2, npriors = 1, survival = TRUE, survival = TRUE, discrete = FALSE),
                          weibullcure = list(ntheta = 2, theta = c("alpha", "prob"), nparameters = 4, npriors = 2, survival = TRUE, discrete = FALSE),
