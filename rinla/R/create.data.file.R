@@ -29,7 +29,7 @@
         cat("inla.create.data.file: n.data = ", n.data, "\n")
 
     ##RESPONSE (gaussian and T can have the weights for the precision: y.i\sim N(\eta,prec\w.i))
-    if (inla.one.of(family, c("gaussian", "normal", "t", "laplace"))) {
+    if (inla.one.of(family, c("gaussian", "normal", "t", "laplace", "sn", "skewnormal"))) {
         if(is.null(scale)) {
             response=cbind(ind,rep(1,n.data), y.orig)
             null.dat = is.na(response[,3])
@@ -52,13 +52,13 @@
                 response=cbind(response[,1],scale,response[,2])
         }   
     } else if (inla.one.of(family, c("poisson",
-                                   "zeroinflatedpoisson0",
-                                   "zeroinflatedpoisson1", 
-                                   "zeroinflatedpoisson2", 
-                                   "nbinomial",
-                                   "zeroinflatednbinomial0",
-                                   "zeroinflatednbinomial1",
-                                   "zeroinflatednbinomial2"))) {
+                                     "zeroinflatedpoisson0",
+                                     "zeroinflatedpoisson1", 
+                                     "zeroinflatedpoisson2", 
+                                     "nbinomial",
+                                     "zeroinflatednbinomial0",
+                                     "zeroinflatednbinomial1",
+                                     "zeroinflatednbinomial2"))) {
         ## Poisson/nbinomial family has the E field
         if(is.null(E)) {
             response=cbind(ind,rep(1,n.data),y.orig)
@@ -129,7 +129,7 @@
     } else {
         file.remove(file)
         file.remove(data.dir)
-        stop("response family not recognised")
+        stop(paste("response family:", family, ", not recognised"))
     }
     ##create the DATA file
     file.data = inla.tempfile(tmpdir=data.dir)
