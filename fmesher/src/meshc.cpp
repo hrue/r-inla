@@ -448,17 +448,323 @@ namespace fmesh {
 
 
 
+  /*!  Calculate a convex covering of the convex hull of the points,
+    as a convex geodesic polygon.  If the covering is larger than a
+    hemisphere, the whole spere is used as cover.  The algorithm may
+    overestimate the size of the convex hull.
+    
+    Let \f$(n,d)\f$ denote a plane with normal vector \f$n\f$ at
+    (signed) distance \f$d\f$ from the origin.
+    
+    CET algorithm:
+    \verbatim
+    1. Find an enclosing circle defined by a plane (n,d).
+    2. If d<=0
+    3.   Find an enclosing geodesic polygon with  n  as reference point.
+    4. else (enclosure may be more than a hemisphere)
+    5.   Cover the whole sphere.
+    \endverbatim
+
+    Find an enclosing circle:
+    \verbatim
+    1. Set (n_0,d_0)=(s_0,1)
+    2. For each point s_k, k=1,...,V-1
+    3.   If n_{k-1}*s_k >= d_{k-1}
+    4.     Set (n_k,d_k) = (n_{k-1},d_{k-1})
+    5.   else
+    6.     Calculate the plane (n_k,d_k) that covers both
+           s_k and the circle defined by (n_{k-1},d_{k-1})
+    \endverbatim
+
+    Find plane \f$(n_1,d_1)\f$ that covers \f$s_1\f$ and the circle
+    defined by \f$(n_0,d_0)\f$, given that \f$n_0\cdot s_1 < d_0\f$:
+    \f{align*}{
+    c &= n_0\cdot s_1 \\
+    1-c^2 &= \|n_0\times s_1\|^2 \\
+    s'_1 &= n_0d_0 -(s_1-n_0 c) b, \quad 0\leq b\leq 1 \\
+    1 &= d_0^2 + (1-c^2) b^2 \\
+    b &= \sqrt{1-d_0^2}/\|n_0\times s_1\| \\
+    n'_1 &= (s_1-s'_1)\times (n_0\times s_1) \\
+    n_1 &= n'_1/\|n'_1\| \\
+    d_1 &= \min( n_1 \cdot s_1, n_1 \cdot s'_1 )
+    \f}
+    Since \f$n_0\cdot s_1 < d_0\f$, only the case \f$s_1=-n_0\f$ is
+    degenerate, in which case \f$s'_1\f$ is set to
+    \f$n_0d_0+n'_0\sqrt{1-d_0^2}\f$, where \f$n'_0\f$ is an arbitrary
+    perpendicular point to \f$n_0\f$.
+
+    \see MeshC::CET
+  */
+  bool MeshC::CETsphere(int sides, double margin)
+  {
+    if (state_ != State_noT)
+      return false; /* Cannot TODO: Add convex enclosure? */
+
+    if (M_->type() != Mesh::Mtype_sphere) {
+      MESHC_LOG("Mesh type mismatch: "
+		<< M_->type << " should be "
+		<< "Mesh::Mtype_sphere" << std::endl);
+      return false;
+    }
+
+    int nV = (int)M_->nV();
+
+    if (nV<1) {
+      MESHC_LOG("Need at least one vertex to calculate enclosure.");
+      return false;
+    }
+
+    if (sides<3)
+      sides = 3;
+
+    int i;
+
+    /* Calculate a covering circle. */
+    MESHC_LOG("Calculate a covering circle.");
+
+    Point n0, n0s1, s1prime, sh;
+    Vec::copy(n0,M_->S(0));
+    double d0 = 1.0;
+    double nc,ns,b;
+    
+    for (i=1;i<nV;i++) {
+      nc = Vec::scalar(n0,M_->S(i));
+      Vec::cross(n0s1,n0,M_->S(i));
+      ns = Vec::length(n0s1);
+      if (nc < d0) {
+	if (ns > 0.0) {
+	  b = std::sqrt(1.0-d0*d0)/ns;
+	  Vec::scale(s1prime,n0,d0+nc*b);
+	  Vec::accum(s1prime,M_->S(i),-b);
+	} else {
+	  Point n0prime;
+	  Vec::arbitrary_perpendicular(n0prime,n0);
+	  Vec::scale(s1prime,n0,d0);
+	  Vec::accum(s1prime,n0prime,std::sqrt(1.0-d0*d0));
+	}
+	Vec::diff(sh,M_->S(i),s1prime);
+	Vec::cross(n0,sh,n0s1);
+	Vec::rescale(n0,1.0/Vec::length(n0));
+	d0 = Vec::scalar(n0,M_->S(i));
+	/* For robustness, check s1prime as well: */
+	b = Vec::scalar(n0,s1prime);
+	if (b<d0) {
+	  std::cout << WHEREAMI
+	    "min(" << d0 << ", " << b << ")" << std::endl;
+	  d0 = b;
+	}
+
+	std::cout << WHEREAMI
+		  << n0 << ", " << d0 << std::endl;
+      }
+    }
+
+    if (d0<0) { /* TODO: take the margin into account! */
+      /* The whole sphere needs to be covered. */
+      MESHC_LOG("Cover the whole sphere.");
+      NOT_IMPLEMENTED;
+      return false;
+    } else {
+      /* Calculate tight enclosure. */
+      MESHC_LOG("Calculate tight enclosure.");
+
+      /* Construct interior boundary normals. */
+      /* This initialises the enclosure. */
+      Point n1, n2;
+      Vec::arbitrary_perpendicular(n1,n0);
+      Vec::cross(n2,n0,n1);
+
+      std::cout << WHEREAMI << "(n0,n1,n2) = " << std::endl;
+      std::cout << WHEREAMI << n0 << std::endl;
+      std::cout << WHEREAMI << n1 << std::endl;
+      std::cout << WHEREAMI << n2 << std::endl;
+      // /* When something is wrong, temp.fix: */
+      // n2[0] = 1.0;
+      // n2[1] = 0.0;
+      // n2[2] = 0.0;
+      // Vec::cross(n1,n2,n0);
+      // Vec::cross(n2,n0,n1);
+      // Vec::rescale(n1,1.0/Vec::length(n1));
+      // Vec::rescale(n2,1.0/Vec::length(n2));
+      // std::cout << WHEREAMI << "(n0,n1,n2) = " << std::endl;
+      // std::cout << WHEREAMI << n0 << std::endl;
+      // std::cout << WHEREAMI << n1 << std::endl;
+      // std::cout << WHEREAMI << n2 << std::endl;
+
+      Point* n = new Point[sides]; /* Normal vectors. */
+      double th;
+      for (i=0;i<sides;i++) {
+	th = 2.0*M_PI*double(i)/double(sides);
+	n[i][0] = 0.0; n[i][1] = 0.0; n[i][2] = 0.0;
+	Vec::scale(n[i],n1,-std::sin(th));
+	Vec::accum(n[i],n2,std::cos(th));
+	std::cout << WHEREAMI
+		  << n[i] << std::endl;
+      }
+      
+      double dist;
+      for (int v=0;v<nV;v++) {
+	for (i=0;i<sides;i++) {
+	  dist = Vec::scalar(n[i],M_->S(v));
+	  if (dist < 0.0) { /* Update enclosure. */
+	    std::cout << WHEREAMI
+		      << dist << ", " << n[i] << std::endl;
+	    Vec::cross(sh,n0,n[i]);
+	    Vec::cross(n[i],sh,M_->S(v));
+	    Vec::rescale(n[i],1.0/Vec::length(n[i]));
+	    std::cout << WHEREAMI
+		      << Vec::scalar(n[i],M_->S(v)) << ", "
+		      << n[i] << std::endl;
+	  }
+	}
+      }
+
+      /* Check validity: */
+      for (i=0;i<sides;i++) {
+	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+		  << ", dist = ";
+	for (int v=0;v<nV;v++) {
+	  dist = Vec::scalar(n[i],M_->S(v));
+	  std::cout << " " << dist;
+	}
+	std::cout << std::endl;
+      }
+
+      /* Calculate margin */    
+      if (margin<0.0) {
+	double diameter(0.0);
+	double diam;
+	if ((sides%2) == 0) { /* Each side has an opposite. */
+	  for (i=0;i<sides/2;i++) {
+	    nc = Vec::scalar(n[i],n[(i+sides/2)%sides]);
+	    Vec::cross(sh,n[i],n[(i+sides/2)%sides]);
+	    ns = Vec::length(sh);
+	    diam = M_PI-std::atan2(ns,nc);
+	    if (diam>diameter)
+	      diameter = diam;
+	  }
+	  margin = -diameter*margin;
+	} else {
+	  MESHC_LOG("Calculate margin.");
+	  NOT_IMPLEMENTED;
+	  margin = 1.0;
+	}
+      }
+      
+      std::cout << WHEREAMI << "margin = " << margin <<std::endl;
+
+      MESHC_LOG("Add margin.");
+      {
+	double th;
+	for (i=0;i<sides;i++) {
+	  nc = Vec::scalar(n0,n[i]);
+	  Vec::cross(sh,n0,n[i]);
+	  ns = Vec::length(sh);
+	  th = std::atan2(ns,nc);
+	  if (th+margin < M_PI/2.0) {
+	    nc = std::cos(th-margin);
+	    ns = std::sin(th-margin);
+	  } else {
+	    nc = 1.0;
+	    ns = 0.0;
+	  }
+	  Vec::cross(n[i],sh,n0);
+	  Vec::rescale(n[i],ns);
+	  Vec::accum(n[i],n0,nc);
+	  Vec::rescale(n[i],1.0/Vec::length(n[i]));
+	}
+      }
+
+      /* Check validity: */
+      for (i=0;i<sides;i++) {
+	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+		  << ", dist = ";
+	for (int v=0;v<nV;v++) {
+	  dist = Vec::scalar(n[i],M_->S(v));
+	  std::cout << " " << dist;
+	}
+	std::cout << std::endl;
+      }
+      
+
+      /* Calculate intersections. */
+      MESHC_LOG("Calculate enclosure boundary.");
+      Point* S = new Point[sides];
+      {
+	Point nip, nipp;
+	double nip_nj, nipp_nj;
+	double bi;
+	int j;
+	for (i=0;i<sides;i++) {
+	  j = (i+1)%sides;
+	  Vec::cross(nip,n[i],n0);
+	  Vec::rescale(nip,1.0/Vec::length(nip));
+	  Vec::cross(nipp,nip,n[i]);
+	  Vec::rescale(nipp,1.0/Vec::length(nipp));
+	  nip_nj = Vec::scalar(nip,n[j]);
+	  nipp_nj = Vec::scalar(nipp,n[j]);
+	  bi = std::sqrt(1.0/(1.0+(nip_nj*nip_nj)/(nipp_nj*nipp_nj)));
+	  Vec::scale(S[j],nip,bi);
+	  Vec::accum(S[j],nipp,std::sqrt(1.0-bi*bi));
+	}
+      }
+
+      /* Construct enclosure triangles. */
+      MESHC_LOG("Construct enclosure triangles.");
+      Int3* TV = new Int3[sides-2];
+      for (i=0;i<sides-2;i++) {
+	TV[i][0] = nV+(0);
+	TV[i][1] = nV+(i+1);
+	TV[i][2] = nV+((i+2)%sides);
+      }
+
+      M_->S_append(S,sides);
+      M_->TV_append(TV,sides-2);
+
+      delete[] TV;
+      delete[] S;
+      delete[] n;
+    }
+    
+    MESHC_LOG("CET finished" << std::endl);
+    M_->redrawX11("CET finished");
+    
+    state_ = State_CET;
+    return true;
+  }
 
 
+  /*!
+    Calculate a convex covering of the convex hull of the points, as a
+    convex polygon.
 
-  bool MeshC::CET(int sides, double margin)
+    Let \f$(n,d)\f$ denote a line with normal vector \f$n\f$ at
+    (signed) distance \f$d\f$ from the origin.
+    
+    Intersection \f$s_{01}\f$ between two planes \f$(n_0,d_0)\f$ and
+    \f$(n_1,d_1)\f$:
+    \f{align*}{
+    s_{01} &= n_0a_0+n_1a_1 \\
+    n_0\cdot s_{01} &= d_0 \\
+    n_1\cdot s_{01} &= d_1 \\
+    n_{01} &= n_0\cdot n_1 \\
+    a_0+n_{01}a_1 &= d_0 \\
+    n_{01}a_0+a_1 &= d_1 \\
+    a_0 &= (d_0-d_1 n_{01})/(1-n_{01}^2) \\
+    a_1 &= (d_1-d_0 n_{01})/(1-n_{01}^2)
+    \f}
+
+    \see MeshC::CET
+  */
+  bool MeshC::CETplane(int sides, double margin)
   {
     if (state_ != State_noT)
       return false; /* Cannot TODO: Add convex enclosure? */
 
     if (M_->type() != Mesh::Mtype_plane) {
-      MESHC_LOG("Only planar enclosures implemented yet.");
-      NOT_IMPLEMENTED;
+      MESHC_LOG("Mesh type mismatch: "
+		<< M_->type << " should be "
+		<< "Mesh::Mtype_plane" << std::endl);
       return false;
     }
 
@@ -474,7 +780,6 @@ namespace fmesh {
 
     /* Calculate tight enclosure. */
     MESHC_LOG("Calculate tight enclosure.");
-    NOT_IMPLEMENTED;
 
     int i;
 
@@ -515,8 +820,8 @@ namespace fmesh {
 	}
 	margin = -diameter*margin;
       } else {
-      MESHC_LOG("Calculate margin.");
-      NOT_IMPLEMENTED;
+	MESHC_LOG("Calculate margin.");
+	NOT_IMPLEMENTED;
 	margin = 1.0;
       }
     }
@@ -529,7 +834,6 @@ namespace fmesh {
     }
 
     MESHC_LOG("Calculate enclosure boundary.");
-    NOT_IMPLEMENTED;
 
     Point* S = new Point[sides];
     double a0, a1, n01;
@@ -565,6 +869,25 @@ namespace fmesh {
 
     state_ = State_CET;
     return true;
+  }
+
+  bool MeshC::CET(int sides, double margin)
+  {
+    if (state_ != State_noT)
+      return false; /* Cannot add enclosure to an existing triangulation. */
+
+    switch (M_->type()) {
+    case Mesh::Mtype_plane:
+      return CETplane(sides,margin);
+      break;
+    case Mesh::Mtype_sphere:
+      return CETsphere(sides,margin);
+      break;
+    default:
+      MESHC_LOG("Only planar enclosures implemented yet.");
+      NOT_IMPLEMENTED;
+      return false;
+    }
   }
 
 
