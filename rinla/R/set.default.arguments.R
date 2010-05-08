@@ -113,7 +113,10 @@
          epsilon = 0.01,
 
          ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
-         gamma = 1.0
+         gamma = 1.0,
+
+         ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
+         sn.shape.max = 5.0
          )
 
     ##:SEEALSO: inla
