@@ -11,10 +11,13 @@
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
 #ifdef DEBUG
-#define MESHC_LOG(msg) std::cout << WHEREAMI << msg;
+#define MESHC_LOG(msg) cout << WHEREAMI << msg;
 #else
 #define MESHC_LOG(msg)
 #endif
+
+using std::cout;
+using std::endl;
 
 namespace fmesh {
 
@@ -220,7 +223,7 @@ namespace fmesh {
     dh.orbit2rev();
     MESHC_LOG("encroachedQ("
 	      << d.v() << "," << dh.v()
-	      << ") = " << encr << std::endl);
+	      << ") = " << encr << endl);
 
     return encr;
   }
@@ -229,10 +232,29 @@ namespace fmesh {
   {
     if ((t<0) || (t>=(int)M_->nT())) return 0.0;
 
-    double skinny = (M_->triangleCircumcircleRadius(t) / 
-		     M_->triangleShortestEdge(t));
+    double skinny;
+    Point len;
+    int argmin = M_->triangleEdgeLengthsArgMin(t,len);
+    bool ok = true;
 
-    //    MESHC_LOG("skinnyQ(" << t << ") = " << skinny << std::endl);
+    if (state_>=State_CDT) {
+      Dart dh(*M_,t,1,(argmin+2)%3);
+      ok = (!boundary_.found(dh) && !interior_.found(dh));
+      if (!ok) {
+	dh.orbit2();
+	ok = (!boundary_.found(dh) && !interior_.found(dh));
+      }
+    } else
+      ok = !((M_->TT(t)[(argmin+1)%3] < 0) &&
+	     (M_->TT(t)[(argmin+2)%3] < 0));
+
+    if (ok)
+      skinny = (M_->triangleCircumcircleRadius(t) / 
+		len[argmin]);
+    else
+      skinny = 0.0;
+
+    //    MESHC_LOG("skinnyQ(" << t << ") = " << skinny << endl);
 
     return skinny;
   }
@@ -252,22 +274,22 @@ namespace fmesh {
   {
     Dart d1, d2;
 
-    MESHC_LOG("Trying to swap " << d0 << std::endl);
+    MESHC_LOG("Trying to swap " << d0 << endl);
 
     if (d0.isnull() or d0.onBoundary()) {
-      MESHC_LOG("Not allowed to swap, boundary" << std::endl);
+      MESHC_LOG("Not allowed to swap, boundary" << endl);
       return true; /* OK. Not allowed to swap. */
     }
     if (isSegment(d0)) {
-      MESHC_LOG("Not allowed to swap, segment" << std::endl);
+      MESHC_LOG("Not allowed to swap, segment" << endl);
       return true ; /* OK. Not allowed to swap. */
     }
     if (d0.circumcircleOK()) {
-      MESHC_LOG("No need to swap, circumcircle OK" << std::endl);
+      MESHC_LOG("No need to swap, circumcircle OK" << endl);
       return true; /* OK. Need not swap. */
     }
 
-    MESHC_LOG("Swap " << d0 << std::endl);
+    MESHC_LOG("Swap " << d0 << endl);
 
     /* Get opposing darts. */
     d1 = d0;
@@ -277,10 +299,10 @@ namespace fmesh {
     d2.orbit2rev().alpha1(); 
     if (d2.onBoundary()) d2 = Dart(); else d2.alpha2();
     
-    //    MESHC_LOG("TVpre  = " << std::endl << M_->TVO());
+    //    MESHC_LOG("TVpre  = " << endl << M_->TVO());
     swapEdge(d0);
-    //    MESHC_LOG("TVpost = " << std::endl << M_->TVO());
-    //    MESHC_LOG("TTpost = " << std::endl << M_->TTO());
+    //    MESHC_LOG("TVpost = " << endl << M_->TVO());
+    //    MESHC_LOG("TTpost = " << endl << M_->TTO());
 
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
@@ -302,15 +324,15 @@ namespace fmesh {
     d.orbit2();
     if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
 
-    //    MESHC_LOG("TV = " << std::endl << M_->TVO());
-    MESHC_LOG("Split triangle " << td << " with vertex " << v << std::endl);
+    //    MESHC_LOG("TV = " << endl << M_->TVO());
+    MESHC_LOG("Split triangle " << td << " with vertex " << v << endl);
     d = splitTriangle(td,v);
     
     if (!d0.isnull()) recSwapDelaunay(d0);
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
 
-    //    MESHC_LOG("TV = " << std::endl << M_->TVO());
+    //    MESHC_LOG("TV = " << endl << M_->TVO());
     
     return d;
   }
@@ -338,8 +360,8 @@ namespace fmesh {
       if (d.onBoundary()) d3 = Dart(); else {d3 = d; d3.orbit1();} 
     }
 
-    //    MESHC_LOG("TV = " << std::endl << M_->TVO());
-    MESHC_LOG("Split edge " << ed << " with vertex " << v << std::endl);
+    //    MESHC_LOG("TV = " << endl << M_->TVO());
+    MESHC_LOG("Split edge " << ed << " with vertex " << v << endl);
     d = splitEdge(ed,v);
     
     if (!d0.isnull()) recSwapDelaunay(d0);
@@ -347,32 +369,103 @@ namespace fmesh {
     if (!d2.isnull()) recSwapDelaunay(d2);
     if (!d3.isnull()) recSwapDelaunay(d3);
 
-    //    MESHC_LOG("TV = " << std::endl << M_->TVO());
+    //    MESHC_LOG("TV = " << endl << M_->TVO());
     
     return d;
   }
 
   Dart MeshC::bisectEdgeDelaunay(const Dart& d)
   {
+    Point s;
     Dart dh(d);
-    int v0(dh.v());
-    dh.alpha0();
-    int v1(dh.v());
+    int v0(d.v());
+    int v1(d.vo());
+    int v2;
+    bool segments(false);
+    bool boundary(d.onBoundary());
 
-    double s[3];
-    Vec::sum(s,M_->S(v0),M_->S(v1));
-    Vec::rescale(s,0.5);
+    if (boundary ||
+	((state_>=State_CDT) &&
+	 (boundary_.segm(d) || interior_.segm(d)))) {
+      dh.orbit2();
+      v2 = dh.vo();
+      if (M_->edgeEncroached(d,M_->S(v2))) {
+	if (dh.onBoundary() ||
+	    ((state_>=State_CDT) &&
+	     (boundary_.segm(dh) || interior_.segm(dh)))) {
+	  segments = true;
+	  v0 = d.vo();
+	  v1 = d.v();
+	} else {
+	  dh.orbit2();
+	  segments = (dh.onBoundary() ||
+		      ((state_>=State_CDT) &&
+		       (boundary_.segm(dh) || interior_.segm(dh))));
+	}
+      }
+      if ((!segments) && (!boundary)) {
+	dh = d;
+	dh.orbit0rev();
+	v2 = dh.vo();
+	if (M_->edgeEncroached(d,M_->S(v2))) {
+	  dh.orbit2();
+	  if (dh.onBoundary() ||
+	      ((state_>=State_CDT) &&
+	       (boundary_.segm(dh) || interior_.segm(dh)))) {
+	    segments = true;
+	    v0 = d.vo();
+	    v1 = d.v();
+	  } else {
+	    dh.orbit2rev();
+	    segments =  (dh.onBoundary() ||
+			 ((state_>=State_CDT) &&
+			  (boundary_.segm(dh) || interior_.segm(dh))));
+	  }
+	}
+      }
+    }
 
-    switch (M_->type()) {
-    case Mesh::Mtype_manifold:
-      /* Fall through to Mtype_plane behaviour; we have no
-	 manifold-specific algorithm. */
-    case Mesh::Mtype_plane:
-      /* Nothing to do! */
-      break;
-    case Mesh::Mtype_sphere:
-      Vec::rescale(s,1./Vec::length(s));
-      break;
+    if (segments) {
+      const Point& s0(M_->S(v0));
+      const Point& s1(M_->S(v1));
+      const Point& s2(M_->S(v2));
+      double l01 = M_->edgeLength(s0,s1);
+      double l02 = M_->edgeLength(s0,s2);
+      double beta = l02/l01;
+      if (beta>1./3.)
+	while (beta>2./3.) beta *= 0.5;
+      else if (beta<2./3.)
+	while (beta<1./3.) beta *= 2.0;
+
+      switch (M_->type()) {
+      case Mesh::Mtype_manifold:
+	/* Fall through to Mtype_plane behaviour; we have no
+	   manifold-specific algorithm. */
+      case Mesh::Mtype_plane:
+	Vec::scale(s,s0,1.-beta);
+	Vec::accum(s,s1,beta);
+	break;
+      case Mesh::Mtype_sphere:
+	Vec::scale(s,s0,std::sin((1.-beta)*l01)/l01);
+	Vec::accum(s,s1,std::sin(beta*l01)/l01);
+	Vec::rescale(s,1./Vec::length(s));
+	break;
+      }
+    } else {
+      Vec::sum(s,M_->S(v0),M_->S(v1));
+      Vec::rescale(s,0.5);
+      
+      switch (M_->type()) {
+      case Mesh::Mtype_manifold:
+	/* Fall through to Mtype_plane behaviour; we have no
+	   manifold-specific algorithm. */
+      case Mesh::Mtype_plane:
+	/* Nothing to do! */
+	break;
+      case Mesh::Mtype_sphere:
+	Vec::rescale(s,1./Vec::length(s));
+	break;
+      }
     }
 
     return splitEdgeDelaunay(d,addVertices(&s,1));
@@ -386,7 +479,7 @@ namespace fmesh {
     MESHC_LOG("Steiner point: ("
 	      << c[0] << ","
 	      << c[1] << ","
-	      << c[2] << ")" << std::endl);
+	      << c[2] << ")" << endl);
   }
 
 
@@ -397,7 +490,7 @@ namespace fmesh {
     Dart td;
 
     MESHC_LOG("Locating node " << v
-	      << " " << M_->S(v) << std::endl);
+	      << " " << M_->S(v) << endl);
 
     td = M_->locatePoint(ed,M_->S(v));
     if (td.isnull()) { return Dart(); }; /* ERROR, not found! */
@@ -415,29 +508,29 @@ namespace fmesh {
 	      << "\n\t bary=" << bary
 	      << "\n\t pattern=" << pattern
 	      << "\n\t S[v]=" << M_->S(v)
-	      << std::endl);
+	      << endl);
     switch (pattern) {
     case 7: // +++
       return splitTriangleDelaunay(td,v);
       break;
     case 6: // -++ Split e0
       td.orbit2();
-      MESHC_LOG("Edge dart " << td << std::endl);
+      MESHC_LOG("Edge dart " << td << endl);
       return splitEdgeDelaunay(td,v);
       break;
     case 5: // +-+ Split e1
       td.orbit2rev();
-      MESHC_LOG("Edge dart " << td << std::endl);
+      MESHC_LOG("Edge dart " << td << endl);
       return splitEdgeDelaunay(td,v);
       break;
     case 3: // ++- Split e2
-      MESHC_LOG("Edge dart " << td << std::endl);
+      MESHC_LOG("Edge dart " << td << endl);
       return splitEdgeDelaunay(td,v);
       break;
     case 1: // +-- Close to node 0, not allowed
     case 2: // -+- Close to node 1, not allowed
     case 4: // --+ Close to node 2, not allowed
-      MESHC_LOG("ERROR: Attempt to add a duplicate point in triangle " << td << std::endl);
+      MESHC_LOG("ERROR: Attempt to add a duplicate point in triangle " << td << endl);
       break;
     case 0: // --- Close to all nodes, should not happen!
       break;
@@ -503,7 +596,7 @@ namespace fmesh {
     if (M_->type() != Mesh::Mtype_sphere) {
       MESHC_LOG("Mesh type mismatch: "
 		<< M_->type << " should be "
-		<< "Mesh::Mtype_sphere" << std::endl);
+		<< "Mesh::Mtype_sphere" << endl);
       return false;
     }
 
@@ -549,13 +642,13 @@ namespace fmesh {
 	/* For robustness, check s1prime as well: */
 	b = Vec::scalar(n0,s1prime);
 	if (b<d0) {
-	  std::cout << WHEREAMI
-	    "min(" << d0 << ", " << b << ")" << std::endl;
+	  cout << WHEREAMI
+	    "min(" << d0 << ", " << b << ")" << endl;
 	  d0 = b;
 	}
 
-	std::cout << WHEREAMI
-		  << n0 << ", " << d0 << std::endl;
+	cout << WHEREAMI
+		  << n0 << ", " << d0 << endl;
       }
     }
 
@@ -565,8 +658,8 @@ namespace fmesh {
       margin = -diameter*margin;
     }
     
-    std::cout << WHEREAMI << "diameter = " << diameter <<std::endl;
-    std::cout << WHEREAMI << "margin = " << margin <<std::endl;
+    cout << WHEREAMI << "diameter = " << diameter <<endl;
+    cout << WHEREAMI << "margin = " << margin <<endl;
 
     if (diameter+2*margin>=M_PI) {
       /* The whole sphere needs to be covered. */
@@ -614,36 +707,36 @@ namespace fmesh {
 	th = 2.0*M_PI*double(i)/double(sides);
 	Vec::scale(n[i],n1,-std::sin(th));
 	Vec::accum(n[i],n2,std::cos(th));
-	//	std::cout << WHEREAMI
-	//		  << n[i] << std::endl;
+	//	cout << WHEREAMI
+	//		  << n[i] << endl;
       }
       
       double dist;
       for (int v=0;v<nV;v++) {
 	for (i=0;i<sides;i++) {
 	  dist = Vec::scalar(n[i],M_->S(v));
-	    //	  std::cout << WHEREAMI << "From "
-	  //		    << dist << ", " << n[i] << std::endl;
+	    //	  cout << WHEREAMI << "From "
+	  //		    << dist << ", " << n[i] << endl;
 	  if (dist < 0.0) { /* Update enclosure. */
 	    Vec::cross(sh,n0,n[i]);
 	    Vec::cross(n[i],sh,M_->S(v));
 	    Vec::rescale(n[i],1.0/Vec::length(n[i]));
-	    //	    std::cout << WHEREAMI << "To   "
+	    //	    cout << WHEREAMI << "To   "
 	    //		      << Vec::scalar(n[i],M_->S(v)) << ", "
-	    //		      << n[i] << std::endl;
+	    //		      << n[i] << endl;
 	  }
 	}
       }
 
       /* Check validity: */
       //      for (i=0;i<sides;i++) {
-      //	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+      //	cout << WHEREAMI << "n-length = " << Vec::length(n[i])
       //		  << ", dist = ";
       //	for (int v=0;v<nV;v++) {
       //	  dist = Vec::scalar(n[i],M_->S(v));
-      //	  std::cout << " " << dist;
+      //	  cout << " " << dist;
       //	}
-      //	std::cout << std::endl;
+      //	cout << endl;
       //  }
 
       MESHC_LOG("Add margin.");
@@ -661,7 +754,7 @@ namespace fmesh {
 	    nc = std::cos(th-margini);
 	    ns = std::sin(th-margini);
 	  } else {
-	    std::cout << WHEREAMI << "Oops!" << std::endl;
+	    cout << WHEREAMI << "Oops!" << endl;
 	    nc = 1.0;
 	    ns = 0.0;
 	  }
@@ -674,13 +767,13 @@ namespace fmesh {
 
       /* Check validity: */
       // for (i=0;i<sides;i++) {
-      //	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+      //	cout << WHEREAMI << "n-length = " << Vec::length(n[i])
       //		  << ", dist = ";
       //	for (int v=0;v<nV;v++) {
       //	  dist = Vec::scalar(n[i],M_->S(v));
-      //	  std::cout << " " << dist;
+      //	  cout << " " << dist;
       //	}
-      //	std::cout << std::endl;
+      //	cout << endl;
       //      }
       
 
@@ -704,15 +797,15 @@ namespace fmesh {
 	  Vec::scale(S[j],nip,nipp_nj/bi);
 	  Vec::accum(S[j],nipp,-nip_nj/bi);
 
-	  //	  std::cout << WHEREAMI
+	  //	  cout << WHEREAMI
 	  //		    << "nip_nj=" << nip_nj
 	  //		    << "\tnipp_nj=" << nipp_nj
 	  //		    << "\tbi=" << bi
-	  //		    << std::endl;
-	  //	  std::cout << WHEREAMI
+	  //		    << endl;
+	  //	  cout << WHEREAMI
 	  //		    << "n["<<i<<"]*S["<<j<<"] = " << Vec::scalar(n[i],S[j])
 	  //		    << "\tn["<<j<<"]*S["<<j<<"] = " << Vec::scalar(n[j],S[j])
-	  //		    << std::endl;
+	  //		    << endl;
 	}
       }
 
@@ -733,7 +826,7 @@ namespace fmesh {
       delete[] n;
     }
     
-    MESHC_LOG("CET finished" << std::endl);
+    MESHC_LOG("CET finished" << endl << *this);
     M_->redrawX11("CET finished");
     
     state_ = State_CET;
@@ -771,7 +864,7 @@ namespace fmesh {
     if (M_->type() != Mesh::Mtype_plane) {
       MESHC_LOG("Mesh type mismatch: "
 		<< M_->type << " should be "
-		<< "Mesh::Mtype_plane" << std::endl);
+		<< "Mesh::Mtype_plane" << endl);
       return false;
     }
 
@@ -833,7 +926,7 @@ namespace fmesh {
       }
     }
     
-    std::cout << WHEREAMI << "margin = " << margin <<std::endl;
+    cout << WHEREAMI << "margin = " << margin <<endl;
 
     MESHC_LOG("Add margin.");
     for (i=0;i<sides;i++) {
@@ -867,7 +960,7 @@ namespace fmesh {
     M_->S_append(S,sides);
     M_->TV_append(TV,sides-2);
 
-    MESHC_LOG("CET finished" << std::endl);
+    MESHC_LOG("CET finished" << endl << *this);
     M_->redrawX11("CET finished");
 
     delete[] TV;
@@ -927,7 +1020,7 @@ namespace fmesh {
 				point was found. */
     }
       
-    MESHC_LOG("DT finished" << std::endl);
+    MESHC_LOG("DT finished" << endl << *this);
     M_->redrawX11("DT finished");
 
     return true;
@@ -947,9 +1040,6 @@ namespace fmesh {
 	t_set.insert(t);
       if (LOP(t_set))
 	state_ = State_DT;
-
-      if (M_->useX11())
-	M_->redrawX11("LOP finished");
     }
     return (state_>=State_DT);
   }
@@ -1033,18 +1123,17 @@ namespace fmesh {
   bool MeshC::LOP(MCQswapableD& swapable)
   {
     MESHC_LOG("LOP swapable: "
-	      << swapable.countQ() << "/" << swapable.count() << std::endl);
+	      << swapable.countQ() << "/" << swapable.count() << endl);
     /* Swap edges, until none are swapable. */
     Dart dh;
     while (!swapable.emptyQ()) {
       dh = swapable.beginQ()->d_; /* d_ may get erased in swapEdge! */
       swapEdge(dh,swapable);
       MESHC_LOG("LOP swapable: "
-		<< swapable.countQ() << "/" << swapable.count() << std::endl);
+		<< swapable.countQ() << "/" << swapable.count() << endl);
     }
 
-    MESHC_LOG("LOP finished" << std::endl);
-    //    M_->redrawX11("LOP finished");
+    MESHC_LOG("LOP finished" << endl << *this);
 
     return true;
   }
@@ -1161,12 +1250,12 @@ namespace fmesh {
     MESHC_LOG(trace);
 
     MESHC_LOG("Segment crosses " << trace.size()
-	      << " edges." << std::endl);
+	      << " edges." << endl);
 
     if (trace.size()<=1) {
       MESHC_LOG("Too short trace (" << trace.size() << ")."
 		<< " Should have been handled by caller."
-		<< std::endl);
+		<< endl);
       return Dart();
     }
 
@@ -1208,30 +1297,30 @@ namespace fmesh {
     v0 = d0.v();
     v1 = d1.v();
 
-    MESHC_LOG(M_->S(v0) << std::endl);
-    MESHC_LOG(M_->S(v1) << std::endl);
+    MESHC_LOG(M_->S(v0) << endl);
+    MESHC_LOG(M_->S(v1) << endl);
 
     boundary0.push_front(IntPair(v0,-1));
     boundary0.push_back(IntPair(v1,-1));
     boundary1.push_back(IntPair(v0,-1));
     boundary1.push_front(IntPair(v1,-1));
 
-    MESHC_LOG("T:  " << triangles << std::endl);
+    MESHC_LOG("T:  " << triangles << endl);
 
     BoundaryList::iterator i0, i0_prev, i0_next;
     BoundaryList::reverse_iterator i1, i1_prev, i1_next;
 
 #define	CDTMSG(msg)						\
-    MESHC_LOG(msg << std::endl);				\
-    MESHC_LOG("B1: " << boundary1 << std::endl);		\
-    MESHC_LOG("B0: " << boundary0 << std::endl);		\
+    MESHC_LOG(msg << endl);				\
+    MESHC_LOG("B1: " << boundary1 << endl);		\
+    MESHC_LOG("B0: " << boundary0 << endl);		\
     MESHC_LOG("I1: "						\
-	      << *i1_prev << *i1 << *i1_next << std::endl);	\
+	      << *i1_prev << *i1 << *i1_next << endl);	\
     MESHC_LOG("I0: "						\
-	      << *i0_prev << *i0 << *i0_next << std::endl);	\
-    MESHC_LOG("d0: " << d0 << std::endl);			\
-    MESHC_LOG("vd0: " << vd0 << std::endl);			\
-    MESHC_LOG("dh: " << dh << std::endl);
+	      << *i0_prev << *i0 << *i0_next << endl);	\
+    MESHC_LOG("d0: " << d0 << endl);			\
+    MESHC_LOG("vd0: " << vd0 << endl);			\
+    MESHC_LOG("dh: " << dh << endl);
 
     /* Initialise */
     i0 = boundary0.begin(); i0_prev = i0; i0_next = i0;
@@ -1264,7 +1353,7 @@ namespace fmesh {
 	     swapable = dh.isSwapable()) {
 	  dh.orbit0rev();
 	  CDTMSG("Looking for swapable");
-	  MESHC_LOG("swapable=" << swapable << std::endl);
+	  MESHC_LOG("swapable=" << swapable << endl);
 	};
 	swapable = swapable && (dh.vo() != i0_next->first);
 	if (swapable) {
@@ -1278,7 +1367,7 @@ namespace fmesh {
 	  i0->second--;
 	  i1->second--;
 	  dh = swapEdge(dh);
-	  MESHC_LOG("dh: " << dh << std::endl);
+	  MESHC_LOG("dh: " << dh << endl);
 
 	  if (dh.vo() != v0) {
 	    if (i0_prev->first == dh.vo()) i0_prev->second++;
@@ -1293,7 +1382,7 @@ namespace fmesh {
 	    /* Triangle is linked to v0, needs to regenerate d0. */
 	    d0 = dh;
 	    d0.orbit2();
-	    MESHC_LOG("d0: " << d0 << std::endl);
+	    MESHC_LOG("d0: " << d0 << endl);
 	  }
 
 	  CDTMSG("Have swapped, and adjusted counters");
@@ -1305,7 +1394,7 @@ namespace fmesh {
 	      if (dh.vo() == v0) {
 		/* i0_prev == v0 */
 		d0.orbit0();
-		MESHC_LOG("d0: " << d0 << std::endl);
+		MESHC_LOG("d0: " << d0 << endl);
 	      }
 	      if (i0_prev->first != v0) i0_prev->second--;
 	      if (i0_next->first != v1) i0_next->second--;
@@ -1343,7 +1432,7 @@ namespace fmesh {
 	  CDTMSG("Have swapped, and tried to update location");
 	  MESHC_LOG((swapable ?
 		    "(Restart this vertex)" :
-		    "(Leave vertex)") << std::endl);
+		    "(Leave vertex)") << endl);
 
 	  // if (M_->useX11()) {
 	  //  char msg[] = "Swapped away an edge.";
@@ -1388,14 +1477,14 @@ namespace fmesh {
       
     }
 
-    MESHC_LOG("Segment inserted:" << std::endl);
-    MESHC_LOG("B1: " << boundary1 << std::endl);
-    MESHC_LOG("B0: " << boundary0 << std::endl);
-    MESHC_LOG("d0: " << d0 << std::endl);
+    MESHC_LOG("Segment inserted:" << endl);
+    MESHC_LOG("B1: " << boundary1 << endl);
+    MESHC_LOG("B0: " << boundary0 << endl);
+    MESHC_LOG("d0: " << d0 << endl);
 
     dc = d0;
 
-    MESHC_LOG("Segment dart " << dc << std::endl);
+    MESHC_LOG("Segment dart " << dc << endl);
 
     return dc;
   }
@@ -1407,21 +1496,21 @@ namespace fmesh {
   {
     if (!prepareCDT()) return Dart();
     MESHC_LOG("Inserting segment ("
-	      << v0 << "," << v1 << ")" << std::endl);
+	      << v0 << "," << v1 << ")" << endl);
     if (v0 == v1) return Dart();
 
     DartList trace;
     Dart dh(M_->locateVertex(Dart(),v0));
     if (dh.isnull()) {
       MESHC_LOG("Originating vertex not found "
-		<< v0 << std::endl);
+		<< v0 << endl);
       return Dart();
     }
     DartPair dhp(M_->tracePath(dh,M_->S(v1),v1,&trace));
     if (dhp.second.isnull()) {
       MESHC_LOG("Endpoint vertex not found ("
 		<< v0 << "," << v1 << ") "
-		<< M_->S(v0) << ", " << M_->S(v0) << std::endl);
+		<< M_->S(v0) << ", " << M_->S(v0) << endl);
       return Dart();
     }
 
@@ -1448,7 +1537,7 @@ namespace fmesh {
       if (ds.v() == v1) ds.orbit1();
       if (ds.v() != v0) ds = Dart();
 
-      MESHC_LOG("Segment dart " << ds << std::endl);
+      MESHC_LOG("Segment dart " << ds << endl);
 
       return ds;
     }
@@ -1472,7 +1561,7 @@ namespace fmesh {
     if (ds.isnull()) {
       MESHC_LOG((boundary ? "Boundary" : "Interior")
 		<< " segment not inserted ("
-		<< v0 << "," << v1 << ")" << std::endl);
+		<< v0 << "," << v1 << ")" << endl);
       return ds;
     }
     if (boundary)
@@ -1482,7 +1571,7 @@ namespace fmesh {
     LOP(triangles);
     MESHC_LOG((boundary ? "Boundary" : "Interior")
 	      << " segment inserted "
-	      << ds << std::endl);
+	      << ds << endl);
     return ds;
   }
 
@@ -1515,10 +1604,10 @@ namespace fmesh {
       }
     }
 
-    MESHC_LOG("Boundary segments after CDT:" << std::endl << boundary_);
-    MESHC_LOG("Interior segments after CDT:" << std::endl << interior_);
+    MESHC_LOG("Boundary segments after CDT:" << endl << boundary_);
+    MESHC_LOG("Interior segments after CDT:" << endl << interior_);
 
-    MESHC_LOG("CDT finished" << std::endl);
+    MESHC_LOG("CDT finished" << endl << *this);
     M_->redrawX11("CDT finished");
 
     return (constr_boundary_.empty() && constr_interior_.empty());
@@ -1535,7 +1624,7 @@ namespace fmesh {
   bool MeshC::buildRCDTlookahead(MCQsegm* segm, const Point& c)
   {
     MESHC_LOG("Checking for potentially encroached segments at ("
-	      << c[0] << ',' << c[1] << ',' << c[2] << ")" << std::endl);
+	      << c[0] << ',' << c[1] << ',' << c[2] << ")" << endl);
     for (MCQ::const_iterator ci = segm->begin();
 	 ci != segm->end(); ci++) {
       Dart dhc(ci->first);
@@ -1543,12 +1632,12 @@ namespace fmesh {
       if (encr>0.0) {
 	MESHC_LOG("Potentially encroached segment: "
 		  << dhc << " "
-		  << encr << std::endl);
+		  << encr << endl);
 	bisectEdgeDelaunay(dhc);
 	// if (!bisectEdgeDelaunay(dhc).isnull())
-	//   xtmpl_press_ret("Potentialy encroached segment split.");
-	// else
-	//   xtmpl_press_ret("Failed to split potentialy encroached segment.");
+	//  xtmpl_press_ret("Potentialy encroached segment split.");
+	//else
+	//  xtmpl_press_ret("Failed to split potentialy encroached segment.");
 	return false;
       }
     }
@@ -1562,12 +1651,12 @@ namespace fmesh {
     if (state_<State_RCDT)
       return false; /* ERROR: RCDT not initialised. */
 
-    MESHC_LOG("Encroached boundary segments before RCDT:" << std::endl
+    MESHC_LOG("Encroached boundary segments before RCDT:" << endl
 	      << boundary_);
-    MESHC_LOG("Encroached interior segments before RCDT:" << std::endl
+    MESHC_LOG("Encroached interior segments before RCDT:" << endl
 	      << interior_);
-    MESHC_LOG("Skinny triangles before RCDT:" << std::endl << skinny_);
-    MESHC_LOG("Big triangles before RCDT:" << std::endl << big_);
+    MESHC_LOG("Skinny triangles before RCDT:" << endl << skinny_);
+    MESHC_LOG("Big triangles before RCDT:" << endl << big_);
 
     Dart dh;
 
@@ -1578,18 +1667,18 @@ namespace fmesh {
 		<< boundary_.countQ() << ","
 		<< interior_.countQ() << ","
 		<< skinny_.countQ() << ","
-		<< big_.countQ() << ")" << std::endl);
+		<< big_.countQ() << ")" << endl);
 
       dh = boundary_.quality();
       if (!dh.isnull()) {
 	MESHC_LOG("Encroached boundary segment: "
 		  << dh << " "
-		  << big_.quality(dh) << std::endl);
+		  << big_.quality(dh) << endl);
 	bisectEdgeDelaunay(dh);
-	//	if (!bisectEdgeDelaunay(dh).isnull())
-	//	  xtmpl_press_ret("Boundary segment has been split");
-	//	else
-	//	  xtmpl_press_ret("Boundary segment split failed");
+	//if (!bisectEdgeDelaunay(dh).isnull())
+	//  xtmpl_press_ret("Boundary segment has been split");
+	//else
+	//  xtmpl_press_ret("Boundary segment split failed");
 	continue;
       }
       
@@ -1597,12 +1686,12 @@ namespace fmesh {
       if (!dh.isnull()) {
 	MESHC_LOG("Encroached interior segment: "
 		  << dh << " "
-		  << big_.quality(dh) << std::endl);
+		  << big_.quality(dh) << endl);
 	bisectEdgeDelaunay(dh);
-	// if (!bisectEdgeDelaunay(dh).isnull())
-	//   xtmpl_press_ret("Interior segment has been split");
-	// else
-	//   xtmpl_press_ret("Interior segment split failed");
+	//if (!bisectEdgeDelaunay(dh).isnull())
+	//  xtmpl_press_ret("Interior segment has been split");
+	//else
+	//  xtmpl_press_ret("Interior segment split failed");
 	continue;
       }
 
@@ -1612,14 +1701,14 @@ namespace fmesh {
       if (!dh.isnull()) {
 	MESHC_LOG("Skinny triangle: "
 		  << dh << " "
-		  << skinny_.quality(dh) << std::endl);
+		  << skinny_.quality(dh) << endl);
 	Point c;
 	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertices(&c,1),dh).isnull()) {
-	  MESHC_LOG("Skinny triangle elimination failed" << std::endl);
+	  MESHC_LOG("Skinny triangle elimination failed" << endl);
 	  if (M_->useX11()) {
 	    char msg[] = "Skinny triangle elimination failed";
 	    xtmpl_press_ret(msg);
@@ -1633,14 +1722,14 @@ namespace fmesh {
       if (!dh.isnull()) {
 	MESHC_LOG("Big triangle: "
 		  << dh << " "
-		  << big_.quality(dh) << std::endl);
+		  << big_.quality(dh) << endl);
 	Point c;
 	calcSteinerPoint(dh,c);
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertices(&c,1),dh).isnull()) {
-	  MESHC_LOG("Big triangle elimination failed failed" << std::endl);
+	  MESHC_LOG("Big triangle elimination failed failed" << endl);
 	  if (M_->useX11()) {
 	    char msg[] = "Big triangle elimination failed failed";
 	    xtmpl_press_ret(msg);
@@ -1652,7 +1741,7 @@ namespace fmesh {
       
     }
 
-    MESHC_LOG("RCDT finished" << std::endl);
+    MESHC_LOG("RCDT finished" << endl << *this);
     M_->redrawX11("RCDT finished");
 
     return true;
@@ -1706,7 +1795,8 @@ namespace fmesh {
       if (!d0.onBoundary()) {
 	dh = d0;
 	dh.orbit1();
-	ext.insert(dh.t());
+	if (!boundary_.found(dh))
+	  ext.insert(dh.t());
 	unlinkEdge(d0);
       }
     }
@@ -1733,7 +1823,7 @@ namespace fmesh {
       else
 	ext.erase(ext_i);
 
-      MESHC_LOG(ext << std::endl);
+      MESHC_LOG(ext << endl);
     }
 
     /* Restore useVT-state: */
@@ -1742,7 +1832,7 @@ namespace fmesh {
     MESHC_LOG("Boundary segments after pruning: "
 	      << boundary_);
 
-    MESHC_LOG("PruneExterior finished" << std::endl);
+    MESHC_LOG("PruneExterior finished" << endl << *this);
     M_->redrawX11("PruneExterior finished");
 
     return true;
@@ -1759,8 +1849,8 @@ namespace fmesh {
   {
     if (!swapable.swapable(d)) {
       /* Not allowed to swap. */
-      MESHC_LOG("Not allowed to swap dart " << std::endl
-		<< d << std::endl);
+      MESHC_LOG("Not allowed to swap dart " << endl
+		<< d << endl);
       return d;
     }
     
@@ -1781,12 +1871,12 @@ namespace fmesh {
     // 	      << edge_list[0] << ","
     // 	      << edge_list[1] << ","
     // 	      << edge_list[2] << ","
-    // 	      << edge_list[3] << ")" << std::endl);
+    // 	      << edge_list[3] << ")" << endl);
     
     Dart dnew(swapEdge(d));
     if (dh == dnew) {
       /* ERROR: this should not happen. */
-      MESHC_LOG("Edge swap appears to have failed!" << std::endl);
+      MESHC_LOG("Edge swap appears to have failed!" << endl);
       return dnew;
     }
 
@@ -1802,7 +1892,7 @@ namespace fmesh {
     dh.orbit2();
     if (edge_list[2]) swapable.insert(dh);
 
-    //    MESHC_LOG("Edge swapped:" << std::endl);
+    //    MESHC_LOG("Edge swapped:" << endl);
 
     return dnew;
   }
@@ -1816,7 +1906,7 @@ namespace fmesh {
     if (boundary_.segm(d) || interior_.segm(d)) {
       /* ERROR: Not allowed to swap. */
       MESHC_LOG("ERROR: Not allowed to swap dart "
-		<< d << std::endl);
+		<< d << endl);
       return d;
     }
 
@@ -1878,7 +1968,7 @@ namespace fmesh {
       big_.insert(dh);
     }
 
-    //    MESHC_LOG("Edge swapped, boundary segments:" << std::endl
+    //    MESHC_LOG("Edge swapped, boundary segments:" << endl
     //	      << boundary_);
 
     return dnew;
@@ -1972,7 +2062,7 @@ namespace fmesh {
       }
     }
 
-    //    MESHC_LOG("Edge split, boundary segments:" << std::endl
+    //    MESHC_LOG("Edge split, boundary segments:" << endl
     //	      << boundary_);
 
     return dnew;
@@ -2028,7 +2118,7 @@ namespace fmesh {
       big_.insert(dh);
     }
 
-    //    MESHC_LOG("Triangle split, boundary segments:" << std::endl
+    //    MESHC_LOG("Triangle split, boundary segments:" << endl
     //	      << boundary_);
 
     return dnew;
@@ -2152,13 +2242,13 @@ namespace fmesh {
   std::ostream& operator<<(std::ostream& output, const MCQ& Q)
   {
     if (Q.empty()) return output;
-    output << "N,n = " << Q.count() << "," << Q.countQ() << std::endl;
+    output << "N,n = " << Q.count() << "," << Q.countQ() << endl;
     for (MCQ::map_type::const_iterator qi = Q.darts_.begin();
 	 qi != Q.darts_.end(); qi++) {
       output << ' ' << qi->first
 	     << ' ' << std::scientific << qi->second
 	     << ' ' << Q.foundQ(qi->first)
-	     << std::endl;
+	     << endl;
     }
     return output;
   }
@@ -2166,17 +2256,17 @@ namespace fmesh {
   std::ostream& operator<<(std::ostream& output, const DartPair& dp)
   {
     output << "d0=(" << dp.first << ") d1=("
-	   << dp.second << ")" << std::endl;
+	   << dp.second << ")" << endl;
     return output;
   }
 
   std::ostream& operator<<(std::ostream& output, const DartList& ds)
   {
-    output << "n = " << ds.size() << std::endl;
+    output << "n = " << ds.size() << endl;
     if (ds.empty()) return output;
     for (DartList::const_iterator di = ds.begin();
 	 di != ds.end(); di++) {
-      output << ' ' << *di << std::endl;
+      output << ' ' << *di << endl;
     }
     return output;
   }
@@ -2218,6 +2308,37 @@ namespace fmesh {
     for (std::list<IntPair>::const_iterator i = il.begin();
 	 i != il.end(); i++) {
       output << " " << *i;
+    }
+    return output;
+  }
+
+
+
+  std::ostream& operator<<(std::ostream& output,
+			   const MeshC& MC)
+  {
+    output << *MC.M_;
+    output << "Construction state:\t"
+	   << (MC.state_==MeshC::State_noT ? "No triangles" :
+	       (MC.state_==MeshC::State_CET ? "CET (Convex enclosure triangulation)" :
+		(MC.state_==MeshC::State_DT ? "DT (Delaunay triangulation)" :
+		 (MC.state_==MeshC::State_CDT ? "CDT (Constrained DT)" :
+		  (MC.state_==MeshC::State_RCDT ? "RCDT (Refined CDT)" : ""
+		   )))))
+	   << (MC.is_pruned_ ? ", exterior pruned" : "") << endl;
+    if (MC.state_>=MeshC::State_CDT) {
+      output << "Boundary segments:\t" << MC.boundary_.count();
+      if (MC.boundary_.countQ() > 0)
+	output << "(" << MC.boundary_.countQ() << " encroached)";
+      output << endl;
+      output << "Interior segments:\t" << MC.interior_.count();
+      if (MC.interior_.countQ() > 0)
+	output << "(" << MC.interior_.countQ() << " encroached)";
+      output << endl;
+    }
+    if (MC.state_>=MeshC::State_RCDT) {
+      output << "Skinny triangles:\t" << MC.skinny_.countQ() << endl;
+      output << "Big triangles:\t\t" << MC.big_.countQ() << endl;
     }
     return output;
   }
