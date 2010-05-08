@@ -22,24 +22,29 @@
 
     if (inla.one.of(family,"laplace")) {
         ## two parameters, alpha and epsilon is require for LAPLACE
-        cat("alpha = ", ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
+        cat("alpha = ", inla.ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
             sep="", file=file, append=TRUE)
-        cat("epsilon = ", ifelse(is.null(control$epsilon), 0.01, control$epsilon), "\n",
+        cat("epsilon = ", inla.ifelse(is.null(control$epsilon), 0.01, control$epsilon), "\n",
             sep="", file=file, append=TRUE)
-        cat("gamma = ", ifelse(is.null(control$gamma), 1.0, control$gamma), "\n",
+        cat("gamma = ", inla.ifelse(is.null(control$gamma), 1.0, control$gamma), "\n",
             sep="", file=file, append=TRUE)
     }
 
+    if (inla.one.of(family,c("sn", "skewnormal"))) {
+        cat("sn.shape.max = ", inla.ifelse(is.null(control$sn.shape.max), 5.0, control$sn.shape.max), "\n",
+            sep="", file=file, append=TRUE)
+    }
+    
     prop = inla.lmodel.properties(family)
     if (prop$ntheta > 0) {
         k = 1
         for(j in 1:prop$ntheta) {
             jj = j-1
             if (!is.null(control$fixed[j]))
-                cat("fixed", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    ifelse(control$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
+                cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                    inla.ifelse(control$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
             if (!is.null(control$initial[j]))
-                cat("initial", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
                     control$initial[j],"\n", sep = "", file = file,  append = TRUE)
         }
     }
@@ -48,10 +53,10 @@
         for(j in 1:prop$npriors) {
             jj = j-1
             if (!is.null(control$prior) && !is.null(control$prior[j]))
-                cat("prior", ifelse(prop$npriors==1, "", as.character(jj)), " = ",
+                cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
                     control$prior[j],"\n", sep = "", file = file,  append = TRUE)
             if(!is.null(control$param)) {
-                cat("parameters", ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
+                cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
                 ## divide equally
                 for(k in 1:as.integer(round(prop$nparameters/prop$npriors))) {
                     cat(" ", control$param[k], sep = " ", file = file,  append = TRUE)
@@ -118,10 +123,10 @@
             for(j in 1:prop$ntheta) {
                 jj = j-1
                 if (!is.null(random.spec$fixed[j]))
-                    cat("fixed", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                        ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
+                    cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                        inla.ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
                 if (!is.null(random.spec$initial[j]))
-                    cat("initial", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                    cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
                         random.spec$initial[j],"\n", sep = "", file = file,  append = TRUE)
             }
         }
@@ -130,10 +135,10 @@
             for(j in 1:prop$npriors) {
                 jj = j-1
                 if (!is.null(random.spec$prior) && !is.null(random.spec$prior[j]))
-                    cat("prior", ifelse(prop$npriors==1, "", as.character(jj)), " = ",
+                    cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
                         random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
                 if(!is.null(random.spec$param)) {
-                    cat("parameters", ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
+                    cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
                     ## divide equally
                     for(kk in 1:as.integer(round(prop$nparameters/prop$npriors))) {
                         cat(" ", random.spec$param[k], sep = " ", file = file,  append = TRUE)
@@ -255,10 +260,10 @@
         for(j in 1:prop$ntheta) {
             jj = j-1
             if (!is.null(random.spec$fixed[j]))
-                cat("fixed", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
+                cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                    inla.ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
             if (!is.null(random.spec$initial[j]))
-                cat("initial", ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
+                cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
                     random.spec$initial[j],"\n", sep = "", file = file,  append = TRUE)
         }
     }
@@ -268,10 +273,10 @@
          
             jj = j-1
         if (!is.null(random.spec$prior) && !is.null(random.spec$prior[j]))
-            cat("prior", ifelse(prop$npriors==1, "", as.character(jj)), " = ",
+            cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
                 random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
         if(!is.null(random.spec$param)) {
-            cat("parameters", ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
+            cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
             ## divide equally
             for(kk in 1:as.integer(round(prop$nparameters/prop$npriors))) {
                 cat(" ", random.spec$param[k], sep = " ", file = file,  append = TRUE)
@@ -599,7 +604,7 @@
         cat("[",label,".", k, "]\n", sep = "", file = file,  append = TRUE)
         cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
         cat("dir = ", "random.effect", inla.num(kk), "\n", sep = "", file = file, append = TRUE)
-        cat("model = ", ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
+        cat("model = ", inla.ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
         cat("n = 1\n", file=file, append = TRUE)
         if (k == 1) {
             if(!is.null(random.spec$param))
