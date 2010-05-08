@@ -18,6 +18,9 @@
 #endif
 
 
+using std::cout;
+using std::endl;
+
 namespace fmesh {
 
 
@@ -300,7 +303,7 @@ namespace fmesh {
   {
     if ((nVc <= Vcap_) && (nTc <= Tcap_))
       return *this;
-    MESH_LOG("Increasing V-capacity from " << Vcap_ << std::endl)
+    MESH_LOG("Increasing V-capacity from " << Vcap_ << endl)
     while ((nVc > Vcap_) || (nTc > Tcap_)) {
       if (Vcap_==0)
 	Vcap_ = Mesh_V_capacity_step_size;
@@ -310,7 +313,7 @@ namespace fmesh {
 	Vcap_ += Mesh_V_capacity_step_size;
       Tcap_ = 2*Vcap_;
     }
-    MESH_LOG("V-capacity set to " << Vcap_ << std::endl)
+    MESH_LOG("V-capacity set to " << Vcap_ << endl)
 
     int (*TV)[3] = new Int3[Tcap_];
     int (*TT)[3] = new Int3[Tcap_];
@@ -745,17 +748,8 @@ namespace fmesh {
    L &= 2 \cdot \operatorname{atan2}(\|s_1-s_0\|,\|s_0+s_1\|)
    \f}
    */
-  double Mesh::edgeLength(const Dart& d) const
+  double Mesh::edgeLength(const Point& s0, const Point& s1) const
   {
-    int t(d.t());
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
-
-    int v0 = d.v();
-    Dart dh(d);
-    dh.alpha0();
-    int v1 = dh.v();
-    const Point& s0 = S_[v0];
-    const Point& s1 = S_[v1];
     Point e;
     Vec::diff(e,s1,s0);
     double len = Vec::length(e);
@@ -767,6 +761,18 @@ namespace fmesh {
     }
 
     return len;
+  }
+
+  /*!
+    
+    \see Mesh::edgeLength(const Dart& d)
+  */
+  double Mesh::edgeLength(const Dart& d) const
+  {
+    int t(d.t());
+    if ((t<0) || (t>=(int)nT_)) return 0.0;
+
+    return edgeLength(S_[d.v()],S_[d.vo()]);
   }
 
   /*!
@@ -1081,42 +1087,56 @@ namespace fmesh {
     return radius;
   }
 
-  double Mesh::triangleShortestEdge(int t) const
+  bool Mesh::triangleEdgeLengths(int t, Point& len) const
   {
     if ((t<0) || (t>=(int)nT_)) return 0.0;
 
-    double len;
     Dart dh(*this,t);
-    double len_min = edgeLength(dh);
+    len[2] = edgeLength(dh);
     dh.orbit2();
-    len = edgeLength(dh);
-    if (len < len_min)
-      len_min = len;
+    len[0] = edgeLength(dh);
     dh.orbit2();
-    len = edgeLength(dh);
-    if (len < len_min)
-      len_min = len;
+    len[1] = edgeLength(dh);
 
-    return len_min;
+    return true;
+  }
+
+  int Mesh::triangleEdgeLengthsArgMin(int t, Point& len) const
+  {
+    if (!Mesh::triangleEdgeLengths(t,len)) return -1;
+
+    return (len[0]<len[1] ?
+	    (len[0]<len[2] ? 0 : 2) :
+	    (len[1]<len[2] ? 1 : 2));
+  }
+
+  int Mesh::triangleEdgeLengthsArgMax(int t, Point& len) const
+  {
+    if (!Mesh::triangleEdgeLengths(t,len)) return -1;
+
+    return (len[0]>len[1] ?
+	    (len[0]>len[2] ? 0 : 2) :
+	    (len[1]>len[2] ? 1 : 2));
+  }
+
+  double Mesh::triangleShortestEdge(int t) const
+  {
+    Point len;
+    if (!Mesh::triangleEdgeLengths(t,len)) return -1;
+
+    return (len[0]<len[1] ?
+	    (len[0]<len[2] ? len[0] : len[2]) :
+	    (len[1]<len[2] ? len[1] : len[2]));
   }
 
   double Mesh::triangleLongestEdge(int t) const
   {
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
+    Point len;
+    if (!Mesh::triangleEdgeLengths(t,len)) return -1;
 
-    double len;
-    Dart dh(*this,t);
-    double len_max = edgeLength(dh);
-    dh.orbit2();
-    len = edgeLength(dh);
-    if (len > len_max)
-      len_max = len;
-    dh.orbit2();
-    len = edgeLength(dh);
-    if (len > len_max)
-      len_max = len;
-
-    return len_max;
+    return (len[0]>len[1] ?
+	    (len[0]>len[2] ? len[0] : len[2]) :
+	    (len[1]>len[2] ? len[1] : len[2]));
   }
 
 
@@ -1126,10 +1146,8 @@ namespace fmesh {
     int t(d.t());
     if ((t<0) || (t>=(int)nT_)) return -1.0;
 
-    Dart dh(d);
-    const Point& s0 = S_[dh.v()];
-    dh.orbit2();
-    const Point& s1 = S_[dh.v()];
+    const Point& s0 = S_[d.v()];
+    const Point& s1 = S_[d.vo()];
 
     /* Edge is encorached if the distance to the midpoint is smaller
        than half the straight edge length. */
@@ -1142,71 +1160,6 @@ namespace fmesh {
     Point smid;
     Vec::diff(smid,s,mid);
     return (Vec::length(e)/2.0-Vec::length(smid));
-
-    //    /* Normalise with the edge length. */
-    //    return (1.0-Vec::length(smid)/Vec::length(e));
-
-    /* Old algorithm, don't use: */
-    // /* Construct a mirror of s reflected in v0-->v1 */
-    // double sm[3]; 
-    // switch (type_) {
-    // case Mesh::Mtype_manifold:
-    //   //	return predicates::orient3d(M_->S[]);
-    // /* TODO: Implement. */
-    //   sm[0] = 0.0;
-    //   sm[1] = 0.0;
-    //   sm[2] = 0.0;
-    //   break;
-    // case Mesh::Mtype_plane:
-    //   /* e = s1-s0
-    //      sv = s-s0
-    //      sm = s0 + (2*e*e'*sv/elen2 - sv)
-    //         = s0 + (2*e*se - sv)
-    //    */
-    //   {
-    // 	double s0[3];
-    // 	s0[0] = S_[v0][0];
-    // 	s0[1] = S_[v0][1];
-    // 	s0[2] = S_[v0][2];
-    // 	double e[3];
-    // 	e[0] = S_[v1][0]-s0[0];
-    // 	e[1] = S_[v1][1]-s0[1];
-    // 	e[2] = S_[v1][2]-s0[2];
-    // 	double elen2 = e[0]*e[0]+e[1]*e[1]+e[2]*e[2];
-    // 	double sv[3];
-    // 	sv[0] = s[0]-s0[0];
-    // 	sv[1] = s[1]-s0[1];
-    // 	sv[2] = s[2]-s0[2];
-    // 	double se = (sv[0]*e[0]+sv[1]*e[1]+sv[2]*e[2])/elen2;
-    // 	sm[0] = s0[0] + (2*se*e[0] - sv[0]);
-    // 	sm[1] = s0[1] + (2*se*e[1] - sv[1]);
-    // 	sm[2] = s0[2] + (2*se*e[2] - sv[2]);
-    //   }
-    //   break;
-    // case Mesh::Mtype_sphere:
-    //   /* TODO: Implement. */
-    //   /*      Point zero = {0.,0.,0.}; */
-    //   sm[0] = 0.0;
-    //   sm[1] = 0.0;
-    //   sm[2] = 0.0;
-    //   break;
-    // }
-    //
-    // switch (type_) {
-    // case Mesh::Mtype_manifold:
-    //   //	return predicates::orient3d(M_->S[]);
-    //   /* TODO: Implement. */
-    //   break;
-    // case Mesh::Mtype_plane:
-    //   return predicates::incircle(S_[v0],S_[v1],s,sm);
-    //   break;
-    // case Mesh::Mtype_sphere:
-    //   //      return -predicates::orient3d(S_[v0],S_[v1],S_[v2],s);
-    //   /* TODO: Implement. */
-    //   break;
-    // }
-    // /* This should never be reached. */
-    // return 0.0;
   }
 
 
@@ -1275,9 +1228,9 @@ namespace fmesh {
     if (onBoundary()) return true; /* Locally optimal, OK. */
     dh.orbit0rev().orbit2();
     int v(dh.v());
-    //    MESH_LOG("circumcircleOK? " << *this << std::endl);
+    //    MESH_LOG("circumcircleOK? " << *this << endl);
     //    MESH_LOG("  result0 = "
-    //	      << std::scientific << inCircumcircle(M_->S_[v]) << std::endl);
+    //	      << std::scientific << inCircumcircle(M_->S_[v]) << endl);
     if (inCircumcircle(M_->S_[v]) <= MESH_EPSILON) return true;
     /* For symmetric robusness, check with the reverse dart as well: */
     dh = *this;
@@ -1286,7 +1239,7 @@ namespace fmesh {
     dh.orbit2();
     dh.orbit1();
     //    MESH_LOG("  result1 = "
-    //	      << std::scientific << dh.inCircumcircle(M_->S_[v]) << std::endl);
+    //	      << std::scientific << dh.inCircumcircle(M_->S_[v]) << endl);
     return (dh.inCircumcircle(M_->S_[v]) <= MESH_EPSILON);
   }
 
@@ -1419,7 +1372,7 @@ namespace fmesh {
 
     drawX11triangle(t0,true);
     drawX11triangle(t1,true);
-    MESH_LOG("Edge swapped" << std::endl);
+    MESH_LOG("Edge swapped" << endl);
     
     return Dart(*this,t0,1,1);
   }
@@ -1632,7 +1585,7 @@ namespace fmesh {
     }
     drawX11triangle(t1,true);
     drawX11triangle(t0,true);
-    MESH_LOG("Edge split" << std::endl);
+    MESH_LOG("Edge split" << endl);
     
     return Dart(*this,t1,1,0);
   }
@@ -1690,7 +1643,7 @@ namespace fmesh {
     
     MESH_LOG("Capacity (V,T) = ("
 	     << Vcap_ << "," << Tcap_ << "), T-indices = ("
-	     << t0 << "," << t1 << "," << t2 << ")" << std::endl);
+	     << t0 << "," << t1 << "," << t2 << ")" << endl);
 
     TV_[t0][0] = v;
     TV_[t0][1] = v0;
@@ -1777,7 +1730,7 @@ namespace fmesh {
     drawX11triangle(t0,true);
     drawX11triangle(t1,true);
     drawX11triangle(t2,true);
-    MESH_LOG("Triangle split" << std::endl);
+    MESH_LOG("Triangle split" << endl);
 
     return Dart(*this,t0,1,0);
   }
@@ -1987,7 +1940,7 @@ namespace fmesh {
       return d;
     bool onleft1(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
     MESH_LOG("Locating direction "
-	     << onleft0 << onleft1 << std::endl);
+	     << onleft0 << onleft1 << endl);
     while (!(!onleft0 && onleft1) && (!d.onBoundary())) {
       d.orbit0rev();
       if (d==d0)
@@ -1998,7 +1951,7 @@ namespace fmesh {
       if (d.v() == v) // Have we found a preexisting vertex?
 	return d;
       MESH_LOG("Locating direction "
-	       << onleft0 << onleft1 << std::endl);
+	       << onleft0 << onleft1 << endl);
     }
     if (!onleft0 && onleft1) {
       d.orbit2rev();
@@ -2057,24 +2010,24 @@ namespace fmesh {
     MESH_LOG("Locating point " << s1
 	     << " v0=" << v0
 	     << " v1=" << v1
-	     << std::endl);
+	     << endl);
     Dart d(findPathDirection(dh,s1,v1));
-    MESH_LOG("Path-direction " << d << std::endl);
+    MESH_LOG("Path-direction " << d << endl);
     MESH_LOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
-	     << std::endl);
+	     << endl);
     if (d.isnull()) {
-      MESH_LOG("Not found" << std::endl);
+      MESH_LOG("Not found" << endl);
       return DartPair(Dart(),Dart());
     }
     Dart dstart = d;
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
-    MESH_LOG("Starting dart " << dstart << std::endl);
+    MESH_LOG("Starting dart " << dstart << endl);
     if ((d.v() == v1) || (d.inLeftHalfspace(s1) >= -MESH_EPSILON)) {
-      MESH_LOG("Found " << d << std::endl);
+      MESH_LOG("Found " << d << endl);
       return DartPair(dstart,d);
     }
     while (!d.onBoundary()) {
@@ -2083,9 +2036,9 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      MESH_LOG("In triangle " << d << std::endl);
+      MESH_LOG("In triangle " << d << endl);
       if (d.v() == v1) {
-	MESH_LOG("Found vertex at " << d << std::endl);
+	MESH_LOG("Found vertex at " << d << endl);
 	return DartPair(dstart,d);
       }
       found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
@@ -2097,10 +2050,10 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      MESH_LOG("Go to next triangle, from " << d << std::endl);
+      MESH_LOG("Go to next triangle, from " << d << endl);
     }
     MESH_LOG("Endpoint not found "
-	     << dstart << " " << d << std::endl);
+	     << dstart << " " << d << endl);
     return DartPair(dstart,Dart());
   }
 
@@ -2144,7 +2097,7 @@ namespace fmesh {
 	return Dart(*this,t,1,1);
       if (TV_[t][2] == v)
 	return Dart(*this,t,1,2);
-      MESH_LOG("ERROR: Inconsistent data structures!" << std::endl);
+      MESH_LOG("ERROR: Inconsistent data structures!" << endl);
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
@@ -2258,13 +2211,26 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const Mesh& M)
   {
-    //    output << "S =\n" << M.SO();
-    output << "TV =\n" << M.TVO();
-    output << "TT =\n" << M.TTO();
-    if (M.useVT())
-      output << "VT =\n" << M.VTO();
-    if (M.useTTi())
-      output << "TTi =\n" << M.TTiO();
+    output << "Mesh type:\t";
+    switch (M.type()) {
+    case Mesh::Mtype_manifold:
+      output << "Manifold (Rd)";
+      break;
+    case Mesh::Mtype_plane:
+      output << "Plane (R2)";
+      break;
+    case Mesh::Mtype_sphere:
+      output << "Sphere (S2)";
+      break;
+    }
+    output << endl;
+    output << "Vertices:\t" << M.nV() << endl;
+    output << "Triangles:\t" << M.nT() << endl;
+    output << "Options:\t"
+	   << (M.useVT() ? "VT " : "")
+	   << (M.useTTi() ? "TTi " : "")
+	   << (M.useX11() ? "X11 " : "")
+	   << endl;
     return output;
   }
 
@@ -2275,7 +2241,7 @@ namespace fmesh {
       output << ' ' << std::right << std::setw(4)
 	     << MO.M_[i];
     }
-    output << std::endl;
+    output << endl;
     return output;
   }
 
@@ -2287,7 +2253,7 @@ namespace fmesh {
 	output << ' ' << std::right << std::setw(4)
 	       << MO.M_[i][j];
       }
-      output << std::endl;
+      output << endl;
     }
     return output;
   }
@@ -2299,7 +2265,7 @@ namespace fmesh {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(10) << std::scientific
 	       << MO.M_[i][j];
-      output << std::endl;
+      output << endl;
     }
     return output;
   }

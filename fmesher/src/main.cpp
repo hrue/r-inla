@@ -16,11 +16,11 @@ using fmesh::Mesh;
 using fmesh::Dart;
 using fmesh::MeshC;
 
-bool useTV = true;
+bool useVT = true;
 bool useTTi = true;
-bool useX11 = true;
+bool useX11 = false;
 bool useX11text = false;
-int maxiter = 1;
+int maxiter = 10;
 
 int predicates_test()
 {
@@ -57,7 +57,7 @@ int mesh_test()
   //  S[1] = {1.,2.,3.};
   //std::sqrt(2.0);
 
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
   M.S_set(S,4);
   M.TV_set(TV,2);
@@ -109,14 +109,14 @@ int CDT_test()
 		{0.7,0.1,0},
 		{0.8,0.3,0},
 		{0.9,0.3,0},
-		{0.95,0.3,0}};
+		{0.95,0.8,0}};
   Point Sb[4] = {{0.,0.,0.},
 		 {1.,0.,0.},
 		 {0.,1.,0.},
 		 {0.99,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi;
 
   M.S_set(S,n);
@@ -181,7 +181,7 @@ int DT2D_test()
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
   M.S_set(S,n);
@@ -257,7 +257,7 @@ int DT2D_test2()
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
   /*
@@ -307,7 +307,7 @@ int DT2D_test3() /* Random points */
 		     {1.,1.,0.}};
   int TVb[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
   for (v=0;v<n;v++) {
@@ -343,7 +343,9 @@ int DT2D_test3() /* Random points */
   MC.LOP(triangles);
   */
 
-  MC.CDTSegment(false,0,1);
+  //  MC.CDTSegment(false,0,1);
+  MC.CDTSegment(true,0,1); // Make an interior cut in the manifold.
+  MC.CDTSegment(true,1,0);
 
   MC.PruneExterior();
 
@@ -378,7 +380,7 @@ int DTsphere_test()
 		   {0,1,3},
 		   {1,2,3},
 		   {2,0,3}};
-  Mesh M(Mesh::Mtype_sphere,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_sphere,0,useVT,useTTi);
   int t,vi,v,i;
   double l;
 
@@ -447,7 +449,7 @@ int DTsphere_test2()
 		    {-0.4,0.2,0.8},
 		    {-0.4,-0.2,0.8}};
 
-  Mesh M(Mesh::Mtype_sphere,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_sphere,0,useVT,useTTi);
   int t,vi,v,i;
   double l;
 
@@ -486,6 +488,8 @@ int DTsphere_test2()
 
   MC.RCDT(1.415,100);
   MC.RCDT(1.415,M_PI/20.0);
+
+  cout << MC;
 
   return 0;
 }
@@ -568,7 +572,7 @@ int koala_test()
 		 {5000.,5000.,0.}};
   int TVe[2][3] = {{0,1,2},
 		   {3,2,1}};
-  Mesh M(Mesh::Mtype_plane,0,useTV,useTTi);
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
   M.setX11VBigLimit(n);
@@ -595,23 +599,31 @@ int koala_test()
   for (v=0;v<nb;v++)
     vertices.push_back(n+v);
   MC.DT(vertices);
+  cout << MC;
 
   fmesh::constrListT cinp;
   for (v=0;v<nb-1;v++)
     cinp.push_back(fmesh::constrT(n+v,n+v+1));
   cinp.push_back(fmesh::constrT(n+nb-1,n+0));
+  M.useVT(true);
   MC.CDTBoundary(cinp);
+  M.useVT(useVT);
+  cout << MC;
 
   vertices.clear();
   for (v=0;v<n;v++)
     vertices.push_back(v);
   MC.DT(vertices);
+  cout << MC;
 
-  MC.PruneExterior();
+  //  MC.PruneExterior();
+  //  cout << MC;
 
   MC.RCDT(1.415,10000);
+  cout << MC;
 
   MC.RCDT(1.415,100);
+  cout << MC;
 
   return 0;
 }
@@ -622,7 +634,6 @@ int koala_test()
 
 int main()
 {
-  DTsphere_test2();
   for (int i=0;i<maxiter;i++) {
     koala_test();
     DT2D_test();
@@ -630,6 +641,7 @@ int main()
     DT2D_test3();
     CDT_test();
     DTsphere_test();
+    DTsphere_test2();
   }
 
   return 0;
