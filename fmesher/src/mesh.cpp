@@ -1069,10 +1069,16 @@ namespace fmesh {
     Vec::accum(n0,n1);
     Vec::accum(n0,n2);
 
-    return ((3.0
-	     *Vec::length(e0)*Vec::length(e1)
-	     *Vec::length(e2))
-	    /(2.0*Vec::length(n0)));
+    double radius = ((3.0
+		      *Vec::length(e0)*Vec::length(e1)
+		      *Vec::length(e2))
+		     /(2.0*Vec::length(n0)));
+
+    if (type_==Mesh::Mtype_sphere) {
+      radius = std::asin(radius);
+    }
+
+    return radius;
   }
 
   double Mesh::triangleShortestEdge(int t) const
