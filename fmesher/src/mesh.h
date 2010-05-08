@@ -100,6 +100,12 @@ namespace fmesh {
     {
       return (s0[0]*s1[1]-s0[1]*s1[0]);
     };
+    static double angle(const Point& s0, const Point& s1)
+    {
+      Point s0xs1;
+      cross(s0xs1,s0,s1);
+      return std::atan2(length(s0xs1),scalar(s0,s1));
+    };
     /*!
       Calculate an arbitrary perpendicular vector.
 
@@ -249,14 +255,18 @@ namespace fmesh {
     int removeTriangle(const int t); 
 
     /* Traits: */
+    double edgeLength(const Point& s0, const Point& s1) const;
     double edgeLength(const Dart& d) const;
     void barycentric(const Dart& d, const Point& s, Point& bary) const;
     double triangleArea(const Point& s0, const Point& s1, const Point& s2) const;
     double triangleArea(int t) const;
     void triangleCircumcenter(int t, Point& c) const;
     double triangleCircumcircleRadius(int t) const;
-    double triangleShortestEdge(int t) const;
+    bool triangleEdgeLengths(int t, Point& len) const;
+    int triangleEdgeLengthsArgMin(int t, Point& len) const;
+    int triangleEdgeLengthsArgMax(int t, Point& len) const;
     double triangleLongestEdge(int t) const;
+    double triangleShortestEdge(int t) const;
     double edgeEncroached(const Dart& d, const Point& s) const;
     
     /*!

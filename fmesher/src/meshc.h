@@ -356,8 +356,11 @@ namespace fmesh {
       \brief Refine a CDT
     */
     bool RCDT(double skinny_limit, double big_limit);
+
+    friend std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   };
 
+  std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   std::ostream& operator<<(std::ostream& output, const IntPair& p);
   std::ostream& operator<<(std::ostream& output, const DartPair& dp);
   std::ostream& operator<<(std::ostream& output, const DartList& ds);
