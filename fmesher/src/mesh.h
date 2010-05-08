@@ -108,9 +108,7 @@ namespace fmesh {
       tools, Vol. 14, No. 1: 55-62, 2009
     */
 #define ABS(X) std::fabs(X)
-    // #define SIGNBIT(X) (((union { double x; unsigned long n; }(X)).n >> 31))
-      // WIll not work: #define SIGNBIT(X) std::signbit(X)
-#define SIGNBIT(X) (X < 0)
+#define SIGNBIT(X) ((unsigned int)(std::signbit(X) != 0))
     static void arbitrary_perpendicular(Point& n, const Point& v)
     {
       const unsigned int uyx = SIGNBIT(ABS(v[0]) - ABS(v[1]));

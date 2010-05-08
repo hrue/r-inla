@@ -399,15 +399,15 @@ int DTsphere_test()
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
-  /*
   M.S_append(Sb,4);
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
   M.TV_set(TVb,4);
   MeshC MC(&M,true);
-  */
+  /*
   MeshC MC(&M,false);
+  */
 
   fmesh::vertexListT vertices;
   vertices.push_back(4);
@@ -434,10 +434,18 @@ int DTsphere_test()
 int DTsphere_test2()
 {
   int n = 4;
-  double S[4][3] = {{0.2,0.2,0.8},
-		    {-0.2,0.2,0.8},
-		    {0.2,-0.2,0.8},
-		    {-0.2,-0.2,0.8}};
+  //  double S[4][3] = {{0.8,0.3,0.3},
+  //		    {0.8,-0.4,0.2},
+  //		    {0.8,0.4,-0.2},
+  //		    {0.8,-0.4,-0.2}};
+  //double S[4][3] = {{0.3,0.8,0.3},
+  //		    {0.2,0.8,-0.4},
+  //		    {-0.2,0.8,0.4},
+  //		    {-0.2,0.8,-0.4}};
+  double S[4][3] = {{0.4,0.2,0.8},
+		    {0.4,-0.2,0.8},
+		    {-0.4,0.2,0.8},
+		    {-0.4,-0.2,0.8}};
 
   Mesh M(Mesh::Mtype_sphere,0,useTV,useTTi);
   int t,vi,v,i;
@@ -451,13 +459,13 @@ int DTsphere_test2()
 
   M.S_set(S,n);
 
-  M.setX11VBigLimit(n+20);
+  M.setX11VBigLimit(n+8);
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
   MeshC MC(&M,false);
 
-  MC.CET(20,-0.001);
+  MC.CET(32,0.2);
 
   fmesh::vertexListT vertices;
   /*
