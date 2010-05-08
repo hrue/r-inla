@@ -559,7 +559,16 @@ namespace fmesh {
       }
     }
 
-    if (d0<0) { /* TODO: take the margin into account! */
+    /* Calculate margin */    
+    double diameter = 2.0*std::acos(d0);
+    if (margin<0.0) {
+      margin = -diameter*margin;
+    }
+    
+    std::cout << WHEREAMI << "diameter = " << diameter <<std::endl;
+    std::cout << WHEREAMI << "margin = " << margin <<std::endl;
+
+    if (diameter+2*margin>=M_PI) {
       /* The whole sphere needs to be covered. */
       MESHC_LOG("Cover the whole sphere.");
       NOT_IMPLEMENTED;
@@ -571,100 +580,88 @@ namespace fmesh {
       /* Construct interior boundary normals. */
       /* This initialises the enclosure. */
       Point n1, n2;
-      Vec::arbitrary_perpendicular(n1,n0);
-      Vec::cross(n2,n0,n1);
-
-      std::cout << WHEREAMI << "(n0,n1,n2) = " << std::endl;
-      std::cout << WHEREAMI << n0 << std::endl;
-      std::cout << WHEREAMI << n1 << std::endl;
-      std::cout << WHEREAMI << n2 << std::endl;
-      // /* When something is wrong, temp.fix: */
-      // n2[0] = 1.0;
-      // n2[1] = 0.0;
-      // n2[2] = 0.0;
-      // Vec::cross(n1,n2,n0);
-      // Vec::cross(n2,n0,n1);
-      // Vec::rescale(n1,1.0/Vec::length(n1));
-      // Vec::rescale(n2,1.0/Vec::length(n2));
-      // std::cout << WHEREAMI << "(n0,n1,n2) = " << std::endl;
-      // std::cout << WHEREAMI << n0 << std::endl;
-      // std::cout << WHEREAMI << n1 << std::endl;
-      // std::cout << WHEREAMI << n2 << std::endl;
+      //      Vec::arbitrary_perpendicular(n1,n0);
+      //     Vec::cross(n2,n0,n1);
+      if (n0[3]>0.9) {
+	n1[0] = 0.;
+	n1[1] = 1.;
+	n1[2] = 0.;
+	Vec::cross(n2,n0,n1);
+	Vec::rescale(n2,1.0/Vec::length(n2));
+	Vec::cross(n1,n2,n0);
+	Vec::rescale(n1,1.0/Vec::length(n1));
+      } else if (n0[3]<-0.9) {
+	n1[0] = 0.;
+	n1[1] = 1.;
+	n1[2] = 0.;
+	Vec::cross(n2,n0,n1);
+	Vec::rescale(n2,1.0/Vec::length(n2));
+	Vec::cross(n1,n2,n0);
+	Vec::rescale(n1,1.0/Vec::length(n1));
+      } else {
+	n2[0] = 0.;
+	n2[1] = 0.;
+	n2[2] = 1.;
+	Vec::cross(n1,n2,n0);
+	Vec::rescale(n1,1.0/Vec::length(n1));
+	Vec::cross(n2,n0,n1);
+	Vec::rescale(n2,1.0/Vec::length(n2));
+      }
 
       Point* n = new Point[sides]; /* Normal vectors. */
       double th;
       for (i=0;i<sides;i++) {
 	th = 2.0*M_PI*double(i)/double(sides);
-	n[i][0] = 0.0; n[i][1] = 0.0; n[i][2] = 0.0;
 	Vec::scale(n[i],n1,-std::sin(th));
 	Vec::accum(n[i],n2,std::cos(th));
-	std::cout << WHEREAMI
-		  << n[i] << std::endl;
+	//	std::cout << WHEREAMI
+	//		  << n[i] << std::endl;
       }
       
       double dist;
       for (int v=0;v<nV;v++) {
 	for (i=0;i<sides;i++) {
 	  dist = Vec::scalar(n[i],M_->S(v));
+	    //	  std::cout << WHEREAMI << "From "
+	  //		    << dist << ", " << n[i] << std::endl;
 	  if (dist < 0.0) { /* Update enclosure. */
-	    std::cout << WHEREAMI
-		      << dist << ", " << n[i] << std::endl;
 	    Vec::cross(sh,n0,n[i]);
 	    Vec::cross(n[i],sh,M_->S(v));
 	    Vec::rescale(n[i],1.0/Vec::length(n[i]));
-	    std::cout << WHEREAMI
-		      << Vec::scalar(n[i],M_->S(v)) << ", "
-		      << n[i] << std::endl;
+	    //	    std::cout << WHEREAMI << "To   "
+	    //		      << Vec::scalar(n[i],M_->S(v)) << ", "
+	    //		      << n[i] << std::endl;
 	  }
 	}
       }
 
       /* Check validity: */
-      for (i=0;i<sides;i++) {
-	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
-		  << ", dist = ";
-	for (int v=0;v<nV;v++) {
-	  dist = Vec::scalar(n[i],M_->S(v));
-	  std::cout << " " << dist;
-	}
-	std::cout << std::endl;
-      }
-
-      /* Calculate margin */    
-      if (margin<0.0) {
-	double diameter(0.0);
-	double diam;
-	if ((sides%2) == 0) { /* Each side has an opposite. */
-	  for (i=0;i<sides/2;i++) {
-	    nc = Vec::scalar(n[i],n[(i+sides/2)%sides]);
-	    Vec::cross(sh,n[i],n[(i+sides/2)%sides]);
-	    ns = Vec::length(sh);
-	    diam = M_PI-std::atan2(ns,nc);
-	    if (diam>diameter)
-	      diameter = diam;
-	  }
-	  margin = -diameter*margin;
-	} else {
-	  MESHC_LOG("Calculate margin.");
-	  NOT_IMPLEMENTED;
-	  margin = 1.0;
-	}
-      }
-      
-      std::cout << WHEREAMI << "margin = " << margin <<std::endl;
+      //      for (i=0;i<sides;i++) {
+      //	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+      //		  << ", dist = ";
+      //	for (int v=0;v<nV;v++) {
+      //	  dist = Vec::scalar(n[i],M_->S(v));
+      //	  std::cout << " " << dist;
+      //	}
+      //	std::cout << std::endl;
+      //  }
 
       MESHC_LOG("Add margin.");
       {
 	double th;
+	double margini;
 	for (i=0;i<sides;i++) {
 	  nc = Vec::scalar(n0,n[i]);
 	  Vec::cross(sh,n0,n[i]);
 	  ns = Vec::length(sh);
+	  Vec::rescale(sh,1.0/ns);
 	  th = std::atan2(ns,nc);
-	  if (th+margin < M_PI/2.0) {
-	    nc = std::cos(th-margin);
-	    ns = std::sin(th-margin);
+	  margini = margin*ns/d0;
+	  if (th-margini > 0.0) {
+	    nc = std::cos(th-margini);
+	    ns = std::sin(th-margini);
 	  } else {
+	    std::cout << WHEREAMI << "Oops!" << std::endl;
 	    nc = 1.0;
 	    ns = 0.0;
 	  }
@@ -676,15 +673,15 @@ namespace fmesh {
       }
 
       /* Check validity: */
-      for (i=0;i<sides;i++) {
-	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
-		  << ", dist = ";
-	for (int v=0;v<nV;v++) {
-	  dist = Vec::scalar(n[i],M_->S(v));
-	  std::cout << " " << dist;
-	}
-	std::cout << std::endl;
-      }
+      // for (i=0;i<sides;i++) {
+      //	std::cout << WHEREAMI << "n-length = " << Vec::length(n[i])
+      //		  << ", dist = ";
+      //	for (int v=0;v<nV;v++) {
+      //	  dist = Vec::scalar(n[i],M_->S(v));
+      //	  std::cout << " " << dist;
+      //	}
+      //	std::cout << std::endl;
+      //      }
       
 
       /* Calculate intersections. */
@@ -703,9 +700,19 @@ namespace fmesh {
 	  Vec::rescale(nipp,1.0/Vec::length(nipp));
 	  nip_nj = Vec::scalar(nip,n[j]);
 	  nipp_nj = Vec::scalar(nipp,n[j]);
-	  bi = std::sqrt(1.0/(1.0+(nip_nj*nip_nj)/(nipp_nj*nipp_nj)));
-	  Vec::scale(S[j],nip,bi);
-	  Vec::accum(S[j],nipp,std::sqrt(1.0-bi*bi));
+	  bi = std::sqrt(nip_nj*nip_nj+nipp_nj*nipp_nj);
+	  Vec::scale(S[j],nip,nipp_nj/bi);
+	  Vec::accum(S[j],nipp,-nip_nj/bi);
+
+	  //	  std::cout << WHEREAMI
+	  //		    << "nip_nj=" << nip_nj
+	  //		    << "\tnipp_nj=" << nipp_nj
+	  //		    << "\tbi=" << bi
+	  //		    << std::endl;
+	  //	  std::cout << WHEREAMI
+	  //		    << "n["<<i<<"]*S["<<j<<"] = " << Vec::scalar(n[i],S[j])
+	  //		    << "\tn["<<j<<"]*S["<<j<<"] = " << Vec::scalar(n[j],S[j])
+	  //		    << std::endl;
 	}
       }
 
