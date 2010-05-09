@@ -18,7 +18,7 @@ using fmesh::MeshC;
 
 bool useVT = true;
 bool useTTi = true;
-bool useX11 = false;
+bool useX11 = true;
 bool useX11text = false;
 int maxiter = 10;
 
@@ -142,8 +142,6 @@ int CDT_test()
   vertices.push_back(5);
   vertices.push_back(6);
   MC.DT(vertices);
-
-  MC.RCDT(1.415,100);
 
   fmesh::constrListT cinp;
   //  cinp.push_back(fmesh::constrT(1,2));
@@ -360,8 +358,8 @@ int DT2D_test3() /* Random points */
 
 int DTsphere_test()
 {
-  int n = 10;
-  double S[11][3] = {{0.2,0.2,0.8},
+  int n = 12;
+  double S[12][3] = {{0.2,0.2,0.8},
 		     {-0.1,0.1,0.1},
 		     {-0.2,0.5,-0.10},
 		     {0.3,-0.2,0.2},
@@ -371,7 +369,8 @@ int DTsphere_test()
 		     {0.2,0.3,2.0},
 		     {-0.8,-0.8,-0.4},
 		     {-0.9,0.5,0.5},
-		     {0.2,0.5,0.5}};
+		     {-0.1,0.0,1.0},
+		     {0.0,7.0,7.0}};
   double Sb[4][3] = {{1.,0.,-0.5},
 		     {-0.7,0.7,-0.5},
 		     {-0.7,-0.7,-0.5},
@@ -399,7 +398,8 @@ int DTsphere_test()
 
   M.setX11VBigLimit(n);
   if (useX11)
-    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+    //   M.useX11(true,useX11text,500,500,-0.1,0.1,0.6,0.8);
+      M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
   M.S_append(Sb,4);
   for (t=0;t<4;t++)
@@ -412,17 +412,20 @@ int DTsphere_test()
   */
 
   fmesh::vertexListT vertices;
-  vertices.push_back(4);
-  vertices.push_back(8);
-  MC.DT(vertices);
-  MC.CDTSegment(false,4,8);
 
   vertices.clear();
   for (v=0;v<n;v++) {
-    if ((v!=4) && (v!=8))
+    //    if ((v!=11) && (v!=12))
     vertices.push_back(v);
   }
   MC.DT(vertices);
+
+  //  vertices.clear();
+  // vertices.push_back(11);
+  //vertices.push_back(12);
+  // MC.DT(vertices);
+  MC.CDTSegment(false,7,11);
+  MC.CDTSegment(false,10,11);
 
   MC.PruneExterior();
 
@@ -616,9 +619,8 @@ int koala_test()
   MC.DT(vertices);
   cout << MC;
 
-  //  MC.PruneExterior();
-  //  cout << MC;
-
+  MC.PruneExterior();
+  cout << MC;
   MC.RCDT(1.415,10000);
   cout << MC;
 
