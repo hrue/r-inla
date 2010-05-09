@@ -239,10 +239,10 @@ namespace fmesh {
 
     if (state_>=State_CDT) {
       Dart dh(*M_,t,1,(argmin+2)%3);
-      ok = (!boundary_.found(dh) && !interior_.found(dh));
+      ok = ((!boundary_.segm(dh)) && (!interior_.segm(dh)));
       if (!ok) {
 	dh.orbit2();
-	ok = (!boundary_.found(dh) && !interior_.found(dh));
+	ok = ((!boundary_.segm(dh)) && (!interior_.segm(dh)));
       }
     } else
       ok = !((M_->TT(t)[(argmin+1)%3] < 0) &&
@@ -389,7 +389,9 @@ namespace fmesh {
 	 (boundary_.segm(d) || interior_.segm(d)))) {
       dh.orbit2();
       v2 = dh.vo();
-      if (M_->edgeEncroached(d,M_->S(v2))) {
+      MESHC_LOG("Bisect, enchroached 0: "
+		<< M_->edgeEncroached(d,M_->S(v2)) << endl);
+      if (M_->edgeEncroached(d,M_->S(v2))>0.0) {
 	if (dh.onBoundary() ||
 	    ((state_>=State_CDT) &&
 	     (boundary_.segm(dh) || interior_.segm(dh)))) {
@@ -407,7 +409,9 @@ namespace fmesh {
 	dh = d;
 	dh.orbit0rev();
 	v2 = dh.vo();
-	if (M_->edgeEncroached(d,M_->S(v2))) {
+	MESHC_LOG("Bisect, enchroached 1: "
+		  << M_->edgeEncroached(dh,M_->S(v2)) << endl);
+	if (M_->edgeEncroached(d,M_->S(v2))>0.0) {
 	  dh.orbit2();
 	  if (dh.onBoundary() ||
 	      ((state_>=State_CDT) &&
@@ -426,6 +430,7 @@ namespace fmesh {
     }
 
     if (segments) {
+      MESHC_LOG("Adjacent segments, bisect at offcenter point.");
       const Point& s0(M_->S(v0));
       const Point& s1(M_->S(v1));
       const Point& s2(M_->S(v2));
@@ -468,7 +473,9 @@ namespace fmesh {
       }
     }
 
-    return splitEdgeDelaunay(d,addVertices(&s,1));
+    dh = splitEdgeDelaunay(d,addVertices(&s,1));
+    //    xtmpl_press_ret("bisectEdgeDelaunay finished");
+    return dh;
   }
 
 
@@ -595,7 +602,7 @@ namespace fmesh {
 
     if (M_->type() != Mesh::Mtype_sphere) {
       MESHC_LOG("Mesh type mismatch: "
-		<< M_->type << " should be "
+		<< M_->type() << " should be "
 		<< "Mesh::Mtype_sphere" << endl);
       return false;
     }
@@ -863,7 +870,7 @@ namespace fmesh {
 
     if (M_->type() != Mesh::Mtype_plane) {
       MESHC_LOG("Mesh type mismatch: "
-		<< M_->type << " should be "
+		<< M_->type() << " should be "
 		<< "Mesh::Mtype_plane" << endl);
       return false;
     }
@@ -1562,6 +1569,7 @@ namespace fmesh {
       MESHC_LOG((boundary ? "Boundary" : "Interior")
 		<< " segment not inserted ("
 		<< v0 << "," << v1 << ")" << endl);
+      xtmpl_press_ret("Segment not inserted");
       return ds;
     }
     if (boundary)
