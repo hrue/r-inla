@@ -20,7 +20,7 @@ bool useVT = true;
 bool useTTi = true;
 bool useX11 = true;
 bool useX11text = false;
-int maxiter = 10;
+int maxiter = 1;
 
 int predicates_test()
 {
@@ -102,22 +102,14 @@ int mesh_test()
 
 int CDT_test()
 {
-  int n = 7;
-  Point S[7] = {{0.3,0.6,0},
-		{0.35,0.1,0},
-		{0.85,0.7,0},
-		{0.7,0.1,0},
-		{0.8,0.3,0},
-		{0.9,0.3,0},
-		{0.95,0.8,0}};
-  Point Sb[4] = {{0.,0.,0.},
-		 {1.,0.,0.},
-		 {0.,1.,0.},
-		 {0.99,1.,0.}};
-  int TVb[2][3] = {{0,1,2},
-		   {3,2,1}};
+  int n = 5;
+  Point S[5] = {{0.3,0.5,0},
+		{0.6,0.6,0},
+		{0.7,0.5,0},
+		{0.7,0.4,0},
+		{0.5,0.4,0}};
+
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
-  int t,vi;
 
   M.S_set(S,n);
 
@@ -125,32 +117,30 @@ int CDT_test()
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_append(Sb,4);
-  for (t=0;t<2;t++)
-    for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n;
-  M.TV_set(TVb,2);
-
-  MeshC MC(&M,true);
+  MeshC MC(&M);
+  MC.CETplane(8,0.1);
 
   fmesh::vertexListT vertices;
-  vertices.push_back(0);
-  vertices.push_back(1);
-  vertices.push_back(2);
-  vertices.push_back(3);
-  vertices.push_back(4);
-  vertices.push_back(5);
-  vertices.push_back(6);
+  MC.DT(vertices);
+  for (int v=0;v<n;v++)
+    vertices.push_back(v);
   MC.DT(vertices);
 
   fmesh::constrListT cinp;
-  //  cinp.push_back(fmesh::constrT(1,2));
-  cinp.push_back(fmesh::constrT(9,6));
+  cinp.push_back(fmesh::constrT(0,1));
+  cinp.push_back(fmesh::constrT(0,2));
+  cinp.push_back(fmesh::constrT(0,3));
+  cinp.push_back(fmesh::constrT(0,4));
+  cinp.push_back(fmesh::constrT(1,2));
+  cinp.push_back(fmesh::constrT(2,3));
+  cinp.push_back(fmesh::constrT(3,4));
   MC.CDTInterior(cinp);
 
   MC.RCDT(1.415,100);
 
   MC.RCDT(1.415,0.05);
+
+  cout << MC;
 
   return 0;
 }
@@ -194,7 +184,7 @@ int DT2D_test()
       TVb[t][vi] += n; 
   M.TV_set(TVb,2);
 
-  MeshC MC(&M,true);
+  MeshC MC(&M);
   fmesh::vertexListT vertices;
   for (v=0;v<n;v++)
     vertices.push_back(v);
@@ -277,7 +267,7 @@ int DT2D_test2()
       TVb[t][vi] += n; 
   M.TV_set(TVb,2);
 
-  MeshC MC(&M,true);
+  MeshC MC(&M);
   fmesh::vertexListT vertices;
     for (v=0;v<n;v++)
     vertices.push_back(v);
@@ -327,7 +317,7 @@ int DT2D_test3() /* Random points */
       TVb[t][vi] += n; 
   M.TV_set(TVb,2);
 
-  MeshC MC(&M,true);
+  MeshC MC(&M);
   fmesh::vertexListT vertices;
   for (v=0;v<n;v++)
     vertices.push_back(v);
@@ -406,10 +396,7 @@ int DTsphere_test()
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
   M.TV_set(TVb,4);
-  MeshC MC(&M,true);
-  /*
-  MeshC MC(&M,false);
-  */
+  MeshC MC(&M);
 
   fmesh::vertexListT vertices;
 
@@ -468,7 +455,7 @@ int DTsphere_test2()
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
-  MeshC MC(&M,false);
+  MeshC MC(&M);
 
   MC.CET(32,0.2);
 
@@ -592,10 +579,10 @@ int koala_test()
     for (vi=0;vi<3;vi++)
       TVe[t][vi] += n+nb;
   M.TV_set(TVe,2);
-  MeshC MC(&M,true);
+  MeshC MC(&M);
   */
 
-  MeshC MC(&M,false);
+  MeshC MC(&M);
   MC.CETplane(20,-0.05);
 
   fmesh::vertexListT vertices;
@@ -637,11 +624,11 @@ int koala_test()
 int main()
 {
   for (int i=0;i<maxiter;i++) {
+    CDT_test();
     koala_test();
     DT2D_test();
     DT2D_test2();
     DT2D_test3();
-    CDT_test();
     DTsphere_test();
     DTsphere_test2();
   }
