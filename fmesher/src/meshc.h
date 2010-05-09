@@ -247,11 +247,11 @@ namespace fmesh {
     MeshC() : M_(NULL), boundary_(this), interior_(this),
 	      skinny_(this), big_(this), state_(State_noT),
 	      is_pruned_(false) {};
-    MeshC(Mesh* M, bool with_convex_enclosure=false)
+    MeshC(Mesh* M)
       : M_(M), boundary_(this), interior_(this),
 	skinny_(this), big_(this), state_(State_noT),
 	is_pruned_(false) {
-      if (with_convex_enclosure)
+      if (M_->nT()>0)
 	state_ = State_CET;
     };
 
