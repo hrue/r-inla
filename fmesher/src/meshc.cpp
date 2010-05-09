@@ -649,13 +649,11 @@ namespace fmesh {
 	/* For robustness, check s1prime as well: */
 	b = Vec::scalar(n0,s1prime);
 	if (b<d0) {
-	  cout << WHEREAMI
-	    "min(" << d0 << ", " << b << ")" << endl;
+	  MESHC_LOG("min(" << d0 << ", " << b << ")" << endl);
 	  d0 = b;
 	}
 
-	cout << WHEREAMI
-		  << n0 << ", " << d0 << endl;
+	MESHC_LOG("n0: " << n0 << ", " << d0 << endl);
       }
     }
 
@@ -665,8 +663,8 @@ namespace fmesh {
       margin = -diameter*margin;
     }
     
-    cout << WHEREAMI << "diameter = " << diameter <<endl;
-    cout << WHEREAMI << "margin = " << margin <<endl;
+    MESHC_LOG("diameter = " << diameter << endl);
+    MESHC_LOG("margin = " << margin <<endl);
 
     if (diameter+2*margin>=M_PI) {
       /* The whole sphere needs to be covered. */
@@ -714,37 +712,19 @@ namespace fmesh {
 	th = 2.0*M_PI*double(i)/double(sides);
 	Vec::scale(n[i],n1,-std::sin(th));
 	Vec::accum(n[i],n2,std::cos(th));
-	//	cout << WHEREAMI
-	//		  << n[i] << endl;
       }
       
       double dist;
       for (int v=0;v<nV;v++) {
 	for (i=0;i<sides;i++) {
 	  dist = Vec::scalar(n[i],M_->S(v));
-	    //	  cout << WHEREAMI << "From "
-	  //		    << dist << ", " << n[i] << endl;
 	  if (dist < 0.0) { /* Update enclosure. */
 	    Vec::cross(sh,n0,n[i]);
 	    Vec::cross(n[i],sh,M_->S(v));
 	    Vec::rescale(n[i],1.0/Vec::length(n[i]));
-	    //	    cout << WHEREAMI << "To   "
-	    //		      << Vec::scalar(n[i],M_->S(v)) << ", "
-	    //		      << n[i] << endl;
 	  }
 	}
       }
-
-      /* Check validity: */
-      //      for (i=0;i<sides;i++) {
-      //	cout << WHEREAMI << "n-length = " << Vec::length(n[i])
-      //		  << ", dist = ";
-      //	for (int v=0;v<nV;v++) {
-      //	  dist = Vec::scalar(n[i],M_->S(v));
-      //	  cout << " " << dist;
-      //	}
-      //	cout << endl;
-      //  }
 
       MESHC_LOG("Add margin.");
       {
@@ -772,18 +752,6 @@ namespace fmesh {
 	}
       }
 
-      /* Check validity: */
-      // for (i=0;i<sides;i++) {
-      //	cout << WHEREAMI << "n-length = " << Vec::length(n[i])
-      //		  << ", dist = ";
-      //	for (int v=0;v<nV;v++) {
-      //	  dist = Vec::scalar(n[i],M_->S(v));
-      //	  cout << " " << dist;
-      //	}
-      //	cout << endl;
-      //      }
-      
-
       /* Calculate intersections. */
       MESHC_LOG("Calculate enclosure boundary.");
       Point* S = new Point[sides];
@@ -803,16 +771,6 @@ namespace fmesh {
 	  bi = std::sqrt(nip_nj*nip_nj+nipp_nj*nipp_nj);
 	  Vec::scale(S[j],nip,nipp_nj/bi);
 	  Vec::accum(S[j],nipp,-nip_nj/bi);
-
-	  //	  cout << WHEREAMI
-	  //		    << "nip_nj=" << nip_nj
-	  //		    << "\tnipp_nj=" << nipp_nj
-	  //		    << "\tbi=" << bi
-	  //		    << endl;
-	  //	  cout << WHEREAMI
-	  //		    << "n["<<i<<"]*S["<<j<<"] = " << Vec::scalar(n[i],S[j])
-	  //		    << "\tn["<<j<<"]*S["<<j<<"] = " << Vec::scalar(n[j],S[j])
-	  //		    << endl;
 	}
       }
 
@@ -933,7 +891,7 @@ namespace fmesh {
       }
     }
     
-    cout << WHEREAMI << "margin = " << margin <<endl;
+    MESHC_LOG("margin = " << margin << endl);
 
     MESHC_LOG("Add margin.");
     for (i=0;i<sides;i++) {
