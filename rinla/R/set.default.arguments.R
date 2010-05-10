@@ -331,6 +331,9 @@
          ##:ARGUMENT: cutpoints The cutpoints to use. If not specified the they are compute from 'n.intervals' and the maximum length of the interval. (Default NULL)
          cutpoints = NULL,
 
+         ##:ARGUMENT: strata The stratefication for the baseline hazard
+         strata = NULL,
+         
          ##:ARGUMENT: si A boolean variable; should all the Gaussian approximations configurations be written to files?
          si = FALSE)
     ##:SEEALSO: inla

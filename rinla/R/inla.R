@@ -109,6 +109,33 @@
         if (cont.hazard$model != "rw1" && cont.hazard$model != "rw2")
             stop(paste("Valid models for the hazard is `rw1' and `rw2'; you have", cont.hazard$model))
         
+        ## This is the strata-part, making the baseline hazard
+        ## replicates according to the strata.
+        strata.var = NULL
+        if (is.character(cont.hazard$strata) && length(cont.hazard$strata)==1) {
+            ## strata = "x"
+            strata.var = cont.hazard$strata
+        } else {
+            ## strata = x ## Here, `x' must exists but also must be in
+            ## the data.frame to be expanded correctly.
+            tt = as.character(substitute(substitute(control.hazard)))[2]  ## must be a better way to do this...
+            if (debug) print(tt)
+            if (grep("strata = ([^),]+)", tt) == 1) {
+                strata.var = gsub("^.*strata = ([^),]+).*$", "\\1", tt)
+            } 
+        }
+        if (debug)
+            print(paste("strata.var", strata.var))
+        if (!is.null(strata.var)) {
+            if (!is.element(strata.var, names(new.data))) {
+                stop(inla.paste(c("Variable `", strata.var,
+                                  "' in control.hazard=list(strata=...) needs to be in the data.frame:",
+                                  names(new.data))))
+            }
+            if (debug) print("apply inla.strata() on strata.var")
+            inla.eval(paste("new.data$", strata.var, " = inla.strata(new.data$", strata.var, ")", sep=""))
+        }
+        
         f.hazard = paste(
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
                 ", fixed = ", cont.hazard$fixed,
@@ -116,14 +143,16 @@
                 ", constr = ", cont.hazard$constr,
                 inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "\"TRUE\"", "\"FALSE\""),
+                inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
         
-
-        ##print(f.hazard)
-        ##print(inla.formula2character(surv.formula[3]))
-        ##print(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
-        ##
         inla.eval(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
+
+        if (debug) {
+            print(f.hazard)
+            print(inla.formula2character(surv.formula[3]))
+            print(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
+        }
 
         return (inla(surv.formula,
                      family = "poisson",
@@ -773,6 +802,8 @@
                 if (debug) {
                     print(paste("n", n))
                     print(paste("nrep", nrep))
+                    print("replicate:")
+                    print(replicate)
                 }
 
                 n.div.by = inla.model.properties(gp$random.spec[[r]]$model)$n.div.by
