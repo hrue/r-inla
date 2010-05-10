@@ -391,5 +391,5 @@
     }
     z[ is.na(z) ] = 1
     
-    return (as.factor(z))
+    return (z)
 }
