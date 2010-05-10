@@ -451,13 +451,13 @@ int DTsphere_test2()
 
   M.S_set(S,n);
 
-  M.setX11VBigLimit(n+8);
+  M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
   MeshC MC(&M);
 
-  MC.CET(32,0.2);
+  MC.CET(8,0.2);
 
   fmesh::vertexListT vertices;
   /*
@@ -625,12 +625,12 @@ int main()
 {
   for (int i=0;i<maxiter;i++) {
     CDT_test();
+    DTsphere_test2();
     koala_test();
     DT2D_test();
     DT2D_test2();
     DT2D_test3();
     DTsphere_test();
-    DTsphere_test2();
   }
 
   return 0;
