@@ -170,7 +170,8 @@ typedef struct {
 	/* 
 	 * Skew-Normal
 	 */
-	double **a_skew_normal;
+	double **shape_skew_normal;
+	double shape_max_skew_normal;			       /* maximum value for |shape| allowed */
 	double **log_prec_skew_normal;
 	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
 	
