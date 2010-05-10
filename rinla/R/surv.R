@@ -1,4 +1,3 @@
-
 `inla.surv` = function(time, event, time2, truncation, subject)
 {
     ret = NULL
@@ -257,13 +256,11 @@
         idx = is.na(time)
         if (!missing(event))
             event[idx] = 0
-        
     }
 
     ##check that no time varible is negative
     if (sum(time[!is.na(time)]<0)>0) 
         stop("Negative times are not allowed")
-    
     
     ## here event is multiple events
     ##if event is totally missing assume that no tumor/event is found
@@ -380,6 +377,19 @@
     stop("Argument must be a list or a data.frame")
 }
 
+`inla.strata` = function(x)
+{
+    ## similar to survival::strata but with levels = 1, 2, ...  for
+    ## NA's then level = 1 is chosen as it does not make sense to have
+    ## replicate = NA.
 
-
-
+    y = interaction(x)
+    z = numeric(length(y))
+    z[] = NA
+    for (i in 1:nlevels(y)) {
+        z[ y == levels(y)[i] ] = i
+    }
+    z[ is.na(z) ] = 1
+    
+    return (as.factor(z))
+}
