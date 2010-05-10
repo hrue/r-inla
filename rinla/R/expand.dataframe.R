@@ -1,4 +1,3 @@
-
 `inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
 {
     n.intervals = control.hazard$n.intervals
@@ -62,13 +61,13 @@
             if(end[i]>1)
                 dc = cbind(ds[1:(end[i]-1)],rep(0,(end[i]-1)),rep(i,(end[i]-1)),c(1:(end[i]-1)))
             else dc = numeric(0)
-            dc = rbind(dc,cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i]))
+            dc = rbind(dc, cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i]))
             data.new = rbind(data.new,dc)
         }
         else {
             if(start[i]<end[i]) {
                 dc = cbind((truncation[i]-cutpoints[start[i]]),0,i,start[i])
-                dc = rbind(dc,cbind(ds[(start[i]+1):(end[i]-1)],rep(0,(end[i]-start[i])),
+                dc = rbind(dc, cbind(ds[(start[i]+1):(end[i]-1)],rep(0,(end[i]-start[i])),
                         rep(i,(end[i]-start[i])),c((start[i]+1):(end[i])-1)))
                 dc = rbind(dc,cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i]))
             } else if(start[i]==end[i]) {
@@ -132,7 +131,6 @@
 
     return (res)
 }
-  
 
 `inla.get.poisson.data.2` = function( subject,time, event, cutpoints)
 {
