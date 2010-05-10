@@ -12,7 +12,7 @@
 The Skew-Normal distribution is
 \begin{displaymath}
     f(y) = 2\frac{\sqrt{w\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
-      w\tau \left(y-\mu\right)^{2}\right) \; \Phi(a \left[w\tau \left(y-\mu\right)\right])
+      w\tau \left(y-\mu\right)^{2}\right) \; \Phi(a\; a_{\text{max}} \left[w\tau \left(y-\mu\right)\right])
 \end{displaymath}
 for continuously responses $y$ where $\Phi(\cdot)$ is the cummulative
 distribution function for a standard Normal, and
@@ -20,7 +20,9 @@ distribution function for a standard Normal, and
 \item[$\mu$:] is the the location parameter
 \item[$\tau$:] is the inverse scale
 \item[$w$:] is a fixed weight, $w>0$,
-\item[$a$:] is the skewness parameter
+\item[$a$:] is the shape parameter
+\item[$a_{\text{max}}$:] is the (fixed) maximum value of the shape
+    paramter (added for stability reasons). Default value is $5$.
 \end{description}
 
 \subsection*{Link-function}
@@ -38,9 +40,9 @@ The inverse scale is represented as
 \end{displaymath}
 and the prior is defined on $\theta_{1}$. 
 
-The skewness parameter is 
+The shape parameter is 
 \begin{displaymath}
-    \theta_{2} = a
+    a = 2 \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}-1
 \end{displaymath}
 and the prior is defined on $\theta_{2}$. 
 
@@ -48,9 +50,12 @@ and the prior is defined on $\theta_{2}$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{sn}$
-\item Required arguments: $y$ and $w$ (keyword \texttt{weights})
+\item Required arguments: $y$ and $w$ (keyword \texttt{weights}). The
+    weights has default value 1.
+\item Optional control arguments: \texttt{sn.shape.max}. Default value is
+    $5.0$.
 \end{itemize}
-The weights has default value 1.
+
 
 \subsection*{Example}
 

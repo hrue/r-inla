@@ -2153,18 +2153,19 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, a, xarg;
+	double y, lprec, sprec, w, shape, shape_max, xarg;
 
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_skew_normal[idx];
 	lprec = ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0] + log(w);
 	sprec = sqrt(map_precision(ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD) * w);
-	a = ds->data_observations.a_skew_normal[GMRFLib_thread_id][0]; /* mapping is the identity */
+	shape_max = ds->data_observations.shape_max_skew_normal;
+	shape = map_rho(ds->data_observations.shape_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD) * shape_max;
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			xarg = (y- (x[i] + OFFSET(idx))) * sprec;
-			logll[i] = M_LOG2E -0.9189385332046726 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi(a*xarg);
+			logll[i] = M_LOG2E -0.9189385332046726 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi(shape*xarg);
 		}
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -5357,21 +5358,29 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * the 'a' parameter/ the skewness parameter
+		 * the 'shape' parameter/ the skewness parameter
 		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "SN.SHAPE.MAX"), 5.0);
+		ds->data_observations.shape_max_skew_normal = iniparser_getdouble(ini, inla_string_join(secname, "SNSHAPEMAX"), tmp);
+		ds->data_observations.shape_max_skew_normal = ABS(ds->data_observations.shape_max_skew_normal);
+		if (mb->verbose) {
+			printf("\t\tshape.max[%g]\n", ds->data_observations.shape_max_skew_normal);
+		}
+		
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.a_skew_normal, tmp);
+		HYPER_NEW(ds->data_observations.shape_skew_normal, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise a[%g]\n", ds->data_observations.a_skew_normal[0][0]);
+			printf("\t\tinitialise shape[%g]\n", ds->data_observations.shape_skew_normal[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 
 		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
+
 		if (mb->verbose && um1) {
 			printf("\t\tusermap=[%s]\n", um1->name);
 		}
@@ -5384,13 +5393,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Skewness parameter for Skew-Normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness parameter for Skew-Normal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern shape parameter for Skew-Normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape parameter for Skew-Normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.a_skew_normal;
+			mb->theta[mb->ntheta] = ds->data_observations.shape_skew_normal;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
 			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
@@ -10276,11 +10285,11 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				if (!ds->data_fixed1) {
 					/*
-					 * this is the skewness parameter
+					 * this is the shape-parameter
 					 */
-					double a = theta[count];
+					double shape = theta[count];
 
-					val += ds->data_prior1.priorfunc(&a, ds->data_prior1.parameters);
+					val += ds->data_prior1.priorfunc(&shape, ds->data_prior1.parameters);
 					count++;
 				}
 			} else if (ds->data_id == L_NBINOMIAL) {
