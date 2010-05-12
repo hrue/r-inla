@@ -120,7 +120,7 @@
             ## the data.frame to be expanded correctly.
             tt = as.character(substitute(substitute(control.hazard)))[2]  ## must be a better way to do this...
             if (debug) print(tt)
-            if (grep("strata = ([^),]+)", tt) == 1) {
+            if (length(grep("strata = ([^),]+)", tt)) == 1) {
                 strata.var = gsub("^.*strata = ([^),]+).*$", "\\1", tt)
             } 
         }
