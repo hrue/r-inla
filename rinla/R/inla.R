@@ -112,24 +112,18 @@
         ## This is the strata-part, making the baseline hazard
         ## replicates according to the strata.
         strata.var = NULL
-        if (is.character(cont.hazard$strata) && length(cont.hazard$strata)==1) {
+        if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
             ## strata = "x"
             strata.var = cont.hazard$strata
         } else {
-            ## strata = x ## Here, `x' must exists but also must be in
-            ## the data.frame to be expanded correctly.
-            tt = as.character(substitute(substitute(control.hazard)))[2]  ## must be a better way to do this...
-            if (debug) print(tt)
-            if (length(grep("strata = ([^),]+)", tt)) == 1) {
-                strata.var = gsub("^.*strata = ([^),]+).*$", "\\1", tt)
-            } 
+            stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
         }
         if (debug)
             print(paste("strata.var", strata.var))
         if (!is.null(strata.var)) {
             if (!is.element(strata.var, names(new.data))) {
                 stop(inla.paste(c("Variable `", strata.var,
-                                  "' in control.hazard=list(strata=...) needs to be in the data.frame:",
+                                  "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
                                   names(new.data))))
             }
             if (debug) print("apply inla.strata() on strata.var")
