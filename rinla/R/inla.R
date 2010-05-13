@@ -1,4 +1,3 @@
-
 `inla` =
     function (formula,
               family = "gaussian", 
@@ -30,7 +29,11 @@
               silent = inla.getOption("silent"),
               debug = inla.getOption("debug"),
               user.hook = NULL,
-              user.hook.arg = NULL
+              user.hook.arg = NULL,
+              ##
+              ## these are ``internal'' options, used to transfer info from expansions
+              ##
+              .internal = list()
               )
 {
     my.time.used = numeric(4)
@@ -98,9 +101,13 @@
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
         if (inla.one.of(family, "piecewise.constant")) {
-            new.data = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            res = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            new.data = res$data
+            .internal$baseline.hazard.cutpoints = res$cutpoints
         } else if (inla.one.of(family, "nhpp")) {
-            new.data = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            res = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            new.data = res$data
+            .internal$baseline.hazard.cutpoints = res$cutpoints
         } else {
             stop("This should not happen...")
         }
@@ -112,11 +119,13 @@
         ## This is the strata-part, making the baseline hazard
         ## replicates according to the strata.
         strata.var = NULL
-        if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
-            ## strata = "x"
-            strata.var = cont.hazard$strata
-        } else {
-            stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
+        if (!is.null(cont.hazard$strata.name)) {
+            if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
+                ## strata = "x"
+                strata.var = cont.hazard$strata
+            } else {
+                stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
+            }
         }
         if (debug)
             print(paste("strata.var", strata.var))
@@ -177,7 +186,9 @@
                      silent = silent,
                      debug = debug,
                      user.hook = user.hook,
-                     user.hook.arg = user.hook.arg))
+                     user.hook.arg = user.hook.arg,
+                     ## internal options used to transfer data after expansions
+                     .internal = .internal))
     }
 
     ## this is nice hack ;-) we keep the original response. then we
@@ -397,6 +408,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; 
     mf$user.hook = NULL; mf$user.hook.arg = NULL; mf$inla.arg = NULL; mf$lincomb=NULL;
+    mf$.internal = NULL;
     mf$data = data
 
     if (gp$n.fix > 0)
@@ -1089,6 +1101,9 @@
             ret$model.matrix = gp$model.matrix
             ret$user.hook = user.hook
             ret$user.hook.arg = user.hook.arg
+            ##
+            ret$.internal = .internal
+            ##
             class(ret) = "inla"
         } else {
             ret = NULL

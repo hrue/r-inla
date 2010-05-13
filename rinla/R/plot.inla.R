@@ -124,9 +124,20 @@
                             
                                 ## if the dimension is > 1, then plot the means++
                                 ##
-                                plot(rr[, colnames(rr)=="ID"][idx], rr[,colnames(rr)=="mean"][idx],
-                                     ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                     axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
+                                if (tp == "s")  ## baseline.hazard
+                                {
+                                    print("plot.inla.R: FIXME HERE!")
+                                    print(paste("length(x$.intern$baseline.hazard.cutpoints)",  length(x$.intern$baseline.hazard.cutpoints)))
+                                    print(paste('rr[,colnames(rr)=="mean"][idx]', length(rr[,colnames(rr)=="mean"][idx])))
+                                    ##xlim=range(x$.intern$baseline.hazard.cutpoints),
+                                    plot(rr[, colnames(rr)=="ID"][idx], rr[,colnames(rr)=="mean"][idx],
+                                         ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                         axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
+                                } else {
+                                    plot(rr[, colnames(rr)=="ID"][idx], rr[,colnames(rr)=="mean"][idx],
+                                         ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                         axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
+                                }
                                 axis(1)
                                 axis(2)
                                 box()

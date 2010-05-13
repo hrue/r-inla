@@ -9,11 +9,6 @@
     event = response$event
     nn = length(event)
     
-    ## piecewiselinear and piecewiseconstant models do not work for
-    ## interval censoring
-    if(sum(event==3)>0 || sum(event==2)>0)
-        stop("Piecewise-linear models for the hazard only work for right censored data")
-
     time = numeric(nn)
     time[response$event==1] = response$time[response$event==1]
     time[response$event==0] = response$lower[response$event==0]
@@ -45,7 +40,7 @@
             dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
 
-    return (res)
+    return (list(data = res, cutpoints = cutpoints))
 }
 
 `inla.get.poisson.data.1` = function(time, truncation, event, cutpoints)
@@ -88,8 +83,8 @@
     n.intervals = control.hazard$n.intervals
     cutpoints = control.hazard$cutpoints
 
-    if(class(response) != "inla.surv.nhpp")
-        stop("Response has to be an object of class `inla.surv.nhpp'")
+    if(class(response) != "inla.surv")
+        stop("Response has to be an object of class `inla.surv'")
     class(response) = NULL
     event = response$event
     nn = length(event)
@@ -101,6 +96,7 @@
 
     time = numeric(nn)
     time[response$event==1] = response$time[response$event==1]
+    ## RUPALI: this must be wrong? there is no element 'lower' for this case!
     time[response$event==0] = response$lower[response$event==0]
     
     ##create cutpoints if not provided
@@ -129,7 +125,7 @@
             baseline.hazard=new.data$baseline.hazard, dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
 
-    return (res)
+    return (list(data = res, cutpoints = cutpoints))
 }
 
 `inla.get.poisson.data.2` = function( subject,time, event, cutpoints)
