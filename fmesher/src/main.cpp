@@ -16,11 +16,12 @@ using fmesh::Mesh;
 using fmesh::Dart;
 using fmesh::MeshC;
 
-bool useVT = true;
-bool useTTi = true;
-bool useX11 = true;
-bool useX11text = false;
-int maxiter = 1;
+const bool useVT = true;
+const bool useTTi = true;
+const bool useX11 = true;
+const bool useX11text = false;
+const int maxiter = 1;
+
 
 int predicates_test()
 {
@@ -136,9 +137,16 @@ int CDT_test()
   cinp.push_back(fmesh::constrT(3,4));
   MC.CDTInterior(cinp);
 
-  MC.RCDT(1.415,100);
+  cinp.clear();
+  cinp.push_back(fmesh::constrT(0,3));
+  cinp.push_back(fmesh::constrT(3,4));
+  cinp.push_back(fmesh::constrT(4,0));
+  MC.CDTBoundary(cinp);
 
-  MC.RCDT(1.415,0.05);
+  MC.PruneExterior();
+
+  MC.RCDT(25,100);
+  MC.RCDT(25,0.05);
 
   cout << MC;
 
@@ -204,8 +212,8 @@ int DT2D_test()
 
   MC.PruneExterior();
 
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,0.05);
+  MC.RCDT(25,100);
+  MC.RCDT(25,0.05);
 
   return 0;
 }
@@ -277,8 +285,8 @@ int DT2D_test2()
 
   MC.PruneExterior();
 
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,0.05);
+  MC.RCDT(25,100);
+  MC.RCDT(25,0.05);
 
   return 0;
 }
@@ -337,8 +345,16 @@ int DT2D_test3() /* Random points */
 
   MC.PruneExterior();
 
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,0.05);
+  double* biglim = new double[n];
+  for (v=0;v<n;v++)
+    biglim[v] = 0.5;
+
+  MC.RCDT(30,1.0,biglim,n);
+  cout << MC;
+
+  delete[] biglim;
+
+  cout << MC;
 
   return 0;
 }
@@ -359,7 +375,7 @@ int DTsphere_test()
 		     {0.2,0.3,2.0},
 		     {-0.8,-0.8,-0.4},
 		     {-0.9,0.5,0.5},
-		     {-0.1,0.0,1.0},
+		     {-0.1,0.1,1.0},
 		     {0.0,7.0,7.0}};
   double Sb[4][3] = {{1.,0.,-0.5},
 		     {-0.7,0.7,-0.5},
@@ -416,8 +432,7 @@ int DTsphere_test()
 
   MC.PruneExterior();
 
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,M_PI/20.0);
+  MC.RCDT(20,M_PI/20.0);
 
   return 0;
 }
@@ -476,8 +491,8 @@ int DTsphere_test2()
 
   MC.PruneExterior();
 
-  MC.RCDT(1.415,100);
-  MC.RCDT(1.415,M_PI/20.0);
+  MC.RCDT(30,100);
+  MC.RCDT(25,M_PI/20.0);
 
   cout << MC;
 
@@ -608,11 +623,17 @@ int koala_test()
 
   MC.PruneExterior();
   cout << MC;
-  MC.RCDT(1.415,10000);
+
+  //  MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
+
+  double* biglim = new double[n];
+  for (v=0;v<n;v++)
+    biglim[v] = 100;
+
+  MC.RCDT(25,2000,biglim,n);
   cout << MC;
 
-  MC.RCDT(1.415,100);
-  cout << MC;
+       delete[] biglim;
 
   return 0;
 }

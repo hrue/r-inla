@@ -83,11 +83,29 @@ namespace fmesh {
   class MCQtri : public MCQ {
   protected:
     double quality_limit_;
+    double* quality_limits_;
+    size_t quality_limits_cap_;
     /*!< Larger values are included in the quality set */
     virtual double calcQtri(const Dart& d) const = 0;
   public:
-    MCQtri(MeshC* MC, bool only_quality, double quality_limit);
-    void setQ(double quality_limit);
+    MCQtri(MeshC* MC, bool only_quality,
+	   double quality_limit, const double* quality_limits = NULL,
+	   size_t nQL = 0);
+    ~MCQtri() { if (quality_limits_) delete[] quality_limits_; }
+
+    void setQ(double quality_limit, const double* quality_limits = NULL,
+	      size_t nQL = 0);
+    void setQv(int v, double quality_limit);
+    bool usingQv() const { return (quality_limits_ != NULL); };
+    double getQv(int v) const {
+      if (quality_limits_ == NULL)
+	return quality_limit_;
+      else {
+	return quality_limits_[v];
+      }
+    }
+    double getQ() const { return quality_limit_; };
+    double getQ(int t) const;
     void insert(const Dart& d) {
       MCQ::insert(Dart(*d.M(),d.t()));
     };
@@ -171,6 +189,7 @@ namespace fmesh {
     \brief Class for constructing Delaunay triangulations
   */
   class MeshC {
+    friend class MCQtri;
     friend class MCQswapable;
     friend class MCQswapableD;
   public:
@@ -182,6 +201,9 @@ namespace fmesh {
 		State_RCDT /*!< Refined CDT, triangle quality
                                     data structures active. */
     }; /*!< The current triangulation and data structure state. */
+    enum Option {Option_null=0, /*!< No options */
+		 Option_offcenter_steiner=1 /*!< Use offcenter steiner points */
+    }; /*!< Currently active options. */
   private:
     Mesh *M_;
     /* CDT Constraint and segment data structures: */
@@ -196,9 +218,11 @@ namespace fmesh {
     /* RCDT triangle quality data structures: */
     MCQskinny skinny_; /*!< Skinny triangles. */
     MCQbig big_; /*!< Big triangles. */
+    double* big_limits_; /*!< Big triangle limits. */
     /* State variables: */
     State state_; /*!< The current MeshC::State */
     bool is_pruned_; /*!< True if the mesh is a pruned mesh. */
+    unsigned int options_;
 
     bool recSwapDelaunay(const Dart& d0);
     Dart splitTriangleDelaunay(const Dart& td, int v);
@@ -237,7 +261,10 @@ namespace fmesh {
     /*!
       \brief Initialise the RCDT data structures.
     */
-    bool prepareRCDT(double skinny_limit, double big_limit);
+    bool prepareRCDT(double skinny_limit,
+		     double big_limit,
+		     const double* big_limits = NULL,
+		     size_t nQL = 0);
     /*!
       \brief Build a RCDT.
     */
@@ -245,26 +272,29 @@ namespace fmesh {
 
   public:
     MeshC() : M_(NULL), boundary_(this), interior_(this),
-	      skinny_(this), big_(this), state_(State_noT),
-	      is_pruned_(false) {};
+	      skinny_(this), big_(this), big_limits_(NULL),
+	      state_(State_noT), is_pruned_(false),
+	      options_(Option_null) {};
     MeshC(Mesh* M)
       : M_(M), boundary_(this), interior_(this),
-	skinny_(this), big_(this), state_(State_noT),
-	is_pruned_(false) {
+	skinny_(this), big_(this), big_limits_(NULL),
+	state_(State_noT), is_pruned_(false),
+	options_(Option_null) {
       if (M_->nT()>0)
 	state_ = State_CET;
     };
+
+    unsigned int getOptions() const { return options_; };
+    unsigned int setOptions(unsigned int options) {
+      return (options_ = options);
+    }
 
     /*!
       \brief Append vertices
 
       Return index of the first of the added points.
     */
-    int addVertices(const Point (*S), int nV)
-    {
-      M_->S_append(S,nV);
-      return M_->nV()-nV;
-    };
+    int addVertices(const Point (*S), int nV);
 
     /*! Swap an edge, keeping track of extra swapable darts information. */
     Dart swapEdge(const Dart& d, MCQswapable& swapable);
@@ -355,7 +385,10 @@ namespace fmesh {
     /*!
       \brief Refine a CDT
     */
-    bool RCDT(double skinny_limit, double big_limit);
+    bool RCDT(double angle_limit,
+	      double big_limit,
+	      const double* big_limits = NULL,
+	      size_t nQL = 0);
 
     friend std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   };

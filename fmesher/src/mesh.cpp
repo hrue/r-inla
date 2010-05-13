@@ -841,7 +841,7 @@ namespace fmesh {
 
   */
   /*
-    Don't use the following, since they rely on the edge lengths to be known.
+    Don't use the following, since they rely on the edge lengths being known.
 
     Heron's formula:
     a,b,c edge lengths
@@ -1053,16 +1053,10 @@ namespace fmesh {
     \see Mesh::triangleArea
     \see Mesh::triangleCircumcenter
    */
-  double Mesh::triangleCircumcircleRadius(int t) const
+  double Mesh::triangleCircumcircleRadius(const Point& s0,
+					  const Point& s1,
+					  const Point& s2) const
   {
-    if ((t<0) || (t>=(int)nT_)) return -1.0;
-
-    int v0 = TV_[t][0];
-    int v1 = TV_[t][1];
-    int v2 = TV_[t][2];
-    const Point& s0 = S_[v0];
-    const Point& s1 = S_[v1];
-    const Point& s2 = S_[v2];
     Point e0, e1, e2;
     Vec::diff(e0,s2,s1);
     Vec::diff(e1,s0,s2);
@@ -1085,6 +1079,23 @@ namespace fmesh {
     }
 
     return radius;
+  }
+
+  /*!
+    \brief Calculate the radius of the triangle circumcircle
+   */
+  double Mesh::triangleCircumcircleRadius(int t) const
+  {
+    if ((t<0) || (t>=(int)nT_)) return -1.0;
+
+    int v0 = TV_[t][0];
+    int v1 = TV_[t][1];
+    int v2 = TV_[t][2];
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
+    const Point& s2 = S_[v2];
+
+    return triangleCircumcircleRadius(s0,s1,s2);
   }
 
   bool Mesh::triangleEdgeLengths(int t, Point& len) const
