@@ -10,8 +10,9 @@
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
+#define MESHC_LOG_(msg) cout << WHEREAMI << msg;
 #ifdef DEBUG
-#define MESHC_LOG(msg) cout << WHEREAMI << msg;
+#define MESHC_LOG(msg) MESHC_LOG_(msg)
 #else
 #define MESHC_LOG(msg)
 #endif
@@ -78,32 +79,86 @@ namespace fmesh {
 
 
 
-  MCQtri::MCQtri(MeshC* MC, bool only_quality, double quality_limit)
-    : MCQ(MC, only_quality), quality_limit_(quality_limit)
+  MCQtri::MCQtri(MeshC* MC, bool only_quality,
+		 double quality_limit,
+		 const double* quality_limits,
+		 size_t nQL)
+    : MCQ(MC, only_quality),
+      quality_limit_(quality_limit),
+      quality_limits_(NULL),
+      quality_limits_cap_(0)
   {
-    setQ(quality_limit);
+    setQ(quality_limit,quality_limits);
   }
 
-  void MCQtri::setQ(double quality_limit)
-  { /* TODO: quality_limit_[v] */
+  void MCQtri::setQ(double quality_limit,
+		    const double* quality_limits,
+		    size_t nQL)
+  {
     quality_limit_ = quality_limit;
+    if (quality_limits) {
+      if (quality_limits_cap_ < MC_->M_->Vcap()) {
+	if (quality_limits_) {
+	  delete[] quality_limits_;
+	}
+	quality_limits_cap_ = MC_->M_->Vcap();
+	quality_limits_ = new double[quality_limits_cap_];
+      }
+      if (nQL>=MC_->M_->nV())
+	memcpy(quality_limits_,quality_limits,sizeof(double)*MC_->M_->nV());
+      else {
+	memcpy(quality_limits_,quality_limits,sizeof(double)*nQL);
+	for (int v=nQL; v<(int)MC_->M_->nV(); v++)
+	  quality_limits_[v] = quality_limit_;
+      }
+    } else {
+      if (quality_limits_) {
+	delete[] quality_limits_;
+	quality_limits_ = NULL;
+      }
+    }
+  }
+
+  void MCQtri::setQv(int v, double quality_limit)
+  {
+    if (quality_limits_cap_ < MC_->M_->Vcap()) {
+      quality_limits_cap_ = MC_->M_->Vcap();
+      double* ql = new double[quality_limits_cap_];
+      if (quality_limits_) {
+	memcpy(ql,quality_limits_,sizeof(double)*MC_->M_->nV());
+	delete[] quality_limits_;
+      }
+      quality_limits_ = ql;
+    }
+    quality_limits_[v] = quality_limit;
+  }
+
+  double MCQtri::getQ(int t) const
+  {
+    if (quality_limits_ == NULL)
+      return quality_limit_;
+    else {
+      double lim = quality_limits_[MC_->M_->TV(t)[0]];
+      if (lim > quality_limits_[MC_->M_->TV(t)[1]])
+	lim = quality_limits_[MC_->M_->TV(t)[1]];
+      if (lim > quality_limits_[MC_->M_->TV(t)[2]])
+	lim = quality_limits_[MC_->M_->TV(t)[2]];
+      return lim;
+    }
   }
 
   double MCQtri::calcQ(const Dart& d) const {
-    double quality_lim = quality_limit_; /* TODO: min_vi ql[TV[t][vi]] */
-    return (calcQtri(d) - quality_lim);
+    return (calcQtri(d) - getQ(d.t()));
   };
 
   double MCQskinny::calcQtri(const Dart& d) const
   {
-    double quality_ = MC_->skinnyQuality(d.t());
-    return quality_;
+    return MC_->skinnyQuality(d.t());
   }
   
   double MCQbig::calcQtri(const Dart& d) const
   {
-    double quality_ = MC_->bigQuality(d.t());
-    return quality_;
+    return MC_->bigQuality(d.t());
   }
   
   double MCQsegm::calcQ(const Dart& d) const
@@ -429,6 +484,7 @@ namespace fmesh {
       }
     }
 
+    double beta = 0.5;
     if (segments) {
       MESHC_LOG("Adjacent segments, bisect at offcenter point.");
       const Point& s0(M_->S(v0));
@@ -436,7 +492,7 @@ namespace fmesh {
       const Point& s2(M_->S(v2));
       double l01 = M_->edgeLength(s0,s1);
       double l02 = M_->edgeLength(s0,s2);
-      double beta = l02/l01;
+      beta = l02/l01;
       if (beta>1./3.)
 	while (beta>2./3.) beta *= 0.5;
       else if (beta<2./3.)
@@ -473,20 +529,54 @@ namespace fmesh {
       }
     }
 
-    dh = splitEdgeDelaunay(d,addVertices(&s,1));
+    int v = addVertices(&s,1);
+    if ((state_>=State_RCDT) && big_.usingQv())
+      big_.setQv(v,std::exp(std::log(big_.getQv(v0))*(1.-beta)+
+			    std::log(big_.getQv(v1))*beta));
+    dh = splitEdgeDelaunay(d,v);
     //    xtmpl_press_ret("bisectEdgeDelaunay finished");
     return dh;
   }
 
 
-
+  /*!
+    \f{align*}{
+    r &= CR(s_0,s_1,c)
+    r/\|s1-s0\| &> \beta \\
+    }
+  */
   void MeshC::calcSteinerPoint(const Dart& d, Point& c)
   {
     M_->triangleCircumcenter(d.t(),c);
-    MESHC_LOG("Steiner point: ("
-	      << c[0] << ","
-	      << c[1] << ","
-	      << c[2] << ")" << endl);
+    if ((M_->type() != Mesh::Mtype_sphere) &&
+	(options_ & Option_offcenter_steiner)) {
+      const double beta = ((state_>=State_RCDT) ?
+			   skinny_.getQ(d.t()) :
+			   std::sqrt(2.));
+      Point len;
+      const int argmin = M_->triangleEdgeLengthsArgMin(d.t(),len);
+      const Point& s0 = M_->S(M_->TV(d.t())[(argmin+1)%3]);
+      const Point& s1 = M_->S(M_->TV(d.t())[(argmin+2)%3]);
+      const double radius = M_->triangleCircumcircleRadius(s0,s1,c);
+      if (radius/len[argmin] <= beta) {
+	MESHC_LOG("Steiner point (offcenter=circumcenter): " << c << endl);
+      } else {
+	MESHC_LOG("Steiner point could have been " << c << endl);
+	MESHC_LOG("r/l = " << radius/len[argmin] << endl);
+	Point s01;
+	Vec::scale(s01,s0,0.5);
+	Vec::accum(s01,s1,0.5);
+	Vec::accum(c,s01,-1.0);
+	MESHC_LOG("Distance before move: " << Vec::length(c) << endl);
+	Vec::rescale(c,(len[argmin]*(beta+std::sqrt(beta*beta-0.25))
+			/Vec::length(c)));
+	MESHC_LOG("Distance after move: " << Vec::length(c) << endl);
+	Vec::accum(c,s01);
+	MESHC_LOG("Steiner point (offcenter): " << c << endl);
+      }
+    } else {
+      MESHC_LOG("Steiner point (circumcenter): " << c << endl);
+    }
   }
 
 
@@ -517,19 +607,25 @@ namespace fmesh {
 	      << "\n\t S[v]=" << M_->S(v)
 	      << endl);
     switch (pattern) {
+    case 6: // -++ Split e0
+      td.orbit2();
+      break;
+    case 5: // +-+ Split e1
+      td.orbit2rev();
+      break;
+    case 3: // ++- Split e2
+      break;
+    }
+    if ((state_>=State_RCDT) && big_.usingQv())
+      big_.setQv(v,std::exp(std::log(big_.getQv(M_->TV(td.t())[0]))*bary[0]+
+		 std::log(big_.getQv(M_->TV(td.t())[1]))*bary[1]+
+		 std::log(big_.getQv(M_->TV(td.t())[2]))*bary[2]));
+    switch (pattern) {
     case 7: // +++
       return splitTriangleDelaunay(td,v);
       break;
     case 6: // -++ Split e0
-      td.orbit2();
-      MESHC_LOG("Edge dart " << td << endl);
-      return splitEdgeDelaunay(td,v);
-      break;
     case 5: // +-+ Split e1
-      td.orbit2rev();
-      MESHC_LOG("Edge dart " << td << endl);
-      return splitEdgeDelaunay(td,v);
-      break;
     case 3: // ++- Split e2
       MESHC_LOG("Edge dart " << td << endl);
       return splitEdgeDelaunay(td,v);
@@ -1032,14 +1128,17 @@ namespace fmesh {
     return true;
   }
 
-  bool MeshC::prepareRCDT(double skinny_limit, double big_limit)
+  bool MeshC::prepareRCDT(double skinny_limit,
+			  double big_limit,
+			  const double* big_limits,
+			  size_t nQL)
   {
     if (!prepareCDT()) return false; /* Make sure we have a CDT. */
 
     skinny_.clear();
     big_.clear();
     skinny_.setQ(skinny_limit);
-    big_.setQ(big_limit);
+    big_.setQ(big_limit,big_limits,nQL);
 
     for (int t=0;t<(int)M_->nT();t++) {
       skinny_.insert(Dart(*M_,t));
@@ -1713,9 +1812,13 @@ namespace fmesh {
     return true;
   };
 
-  bool MeshC::RCDT(double skinny_limit, double big_limit)
+  bool MeshC::RCDT(double angle_limit,
+		   double big_limit,
+		   const double* big_limits,
+		   size_t nQL)
   {
-    if (!prepareRCDT(skinny_limit,big_limit)) return false;
+    if (!prepareRCDT(1./std::sin(M_PI/180.*angle_limit)/2.,
+		     big_limit,big_limits,nQL)) return false;
     return buildRCDT();
   };
 
@@ -1809,6 +1912,16 @@ namespace fmesh {
 
 
 
+  int MeshC::addVertices(const Point (*S), int nV)
+  {
+    int nVorig = (int)M_->nV();
+    M_->S_append(S,nV);
+    if ((state_>=State_RCDT) && big_.usingQv()) {
+      for (int v=nVorig;v<nVorig+nV;v++)
+	big_.setQv(v,big_.getQ());
+    }
+    return M_->nV()-nV;
+  };
 
 
   Dart MeshC::swapEdge(const Dart& d, MCQswapable& swapable)

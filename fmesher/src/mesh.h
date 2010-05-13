@@ -199,6 +199,7 @@ namespace fmesh {
       \brief Check the storage capacity, and increase if necessary
     */
     Mesh& check_capacity(size_t nVc, size_t nTc);
+    size_t Vcap() const { return Vcap_; }
 
     bool useVT() const { return use_VT_; };
     Mesh& useVT(bool use_VT);
@@ -259,6 +260,10 @@ namespace fmesh {
     double edgeLength(const Dart& d) const;
     void barycentric(const Dart& d, const Point& s, Point& bary) const;
     double triangleArea(const Point& s0, const Point& s1, const Point& s2) const;
+    double triangleCircumcircleRadius(const Point& s0,
+				      const Point& s1,
+				      const Point& s2) const;
+
     double triangleArea(int t) const;
     void triangleCircumcenter(int t, Point& c) const;
     double triangleCircumcircleRadius(int t) const;
