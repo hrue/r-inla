@@ -126,8 +126,9 @@ function(...)
                working.directory = NULL,
                silent = silent,
                user.hook = inla.ifelse(exists("user.hook"), user.hook, NULL),
-               user.hook.arg = inla.ifelse(exists("user.hook.arg"), user.hook.arg, NULL)
+               user.hook.arg = inla.ifelse(exists("user.hook.arg"), user.hook.arg, NULL),
                ##
+               .internal = .internal
                )
 
     ret = list(summary = rr$summary.hyperpar, marginals = rr$marginals.hyperpar, 

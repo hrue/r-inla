@@ -126,7 +126,7 @@ inla.models = function()
                          nbinomial = list(ntheta = 1, theta = "size", nparameters = 2, npriors = 1, survival = FALSE, discrete = TRUE),
                          exponential = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = FALSE),
                          piecewiseconstant = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = TRUE),
-                         piecewiselinear = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = TRUE),
+                         nhpp = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = TRUE),
                          ## the same
                          gaussian = list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
                          normal =   list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1, survival = FALSE, discrete = FALSE),
