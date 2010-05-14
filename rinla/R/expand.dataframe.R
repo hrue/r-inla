@@ -94,11 +94,14 @@
     if(sum(event==3)>0 || sum(event==2)>0)
         stop("nhpp model does not work for other event type")
 
+    ## with some changes
     time = numeric(nn)
     time[response$event==1] = response$time[response$event==1]
-    ## RUPALI: this must be wrong? there is no element 'lower' for this case!
-    time[response$event==0] = response$lower[response$event==0]
+    time[response$event==0] = response$time[response$event==0]
     
+
+    subject = response$subject
+
     ##create cutpoints if not provided
     if(is.null(cutpoints))
     {
