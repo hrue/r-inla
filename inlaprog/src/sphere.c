@@ -253,7 +253,7 @@ double inla_sphere_Qfunction(int node, int nnode, void *arg)
 	// argument is cos(theta*PI)
 	if (a->theta != model->oc[GMRFLib_thread_id][0]) {
 		a->theta = model->oc[GMRFLib_thread_id][0];
-		a->oc = cos(M_PI * map_probability(a->theta, MAP_FORWARD));
+		a->oc = cos(M_PI * map_probability(a->theta, MAP_FORWARD, NULL));
 	}
 
 	if (node == nnode) {
