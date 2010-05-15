@@ -16,10 +16,8 @@
     truncation = response$truncation
     
     ##create cutpoints if not provided
-    if(is.null(cutpoints)) {
-        dt = (1.1*max(time))/n.intervals
-        cutpoints = seq(0,max(time)*1.1,dt) 
-    }
+    if(is.null(cutpoints)) 
+        cutpoints = seq(0,max(time), length = n.intervals+1)
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation,
             event=event, cutpoints=cutpoints)
@@ -35,7 +33,7 @@
     }
     else
         new.dataframe=NULL
-
+    
     res = data.frame(y.surv=new.data$y, E=new.data$E, baseline.hazard=new.data$baseline.hazard,
             dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
@@ -104,10 +102,7 @@
 
     ##create cutpoints if not provided
     if(is.null(cutpoints))
-    {
-        dt = max(time)/n.intervals
-        cutpoints = seq(0,max(time),dt) 
-    }
+        cutpoints = seq(0, max(time), len = n.intervals + 1) 
 
     new.data = inla.get.poisson.data.2(time=time, subject=subject, event=event, cutpoints=cutpoints)
    
