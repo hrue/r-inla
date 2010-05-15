@@ -124,18 +124,21 @@
                             
                                 ## if the dimension is > 1, then plot the means++
                                 ##
+                                xval = NULL
                                 if (tp == "s")  ## baseline.hazard
                                 {
-                                    print("plot.inla.R: FIXME HERE!")
-                                    print(paste("length(x$.intern$baseline.hazard.cutpoints)",  length(x$.intern$baseline.hazard.cutpoints)))
-                                    print(paste('rr[,colnames(rr)=="mean"][idx]', length(rr[,colnames(rr)=="mean"][idx])))
-                                    ##xlim=range(x$.intern$baseline.hazard.cutpoints),
-                                    plot(rr[, colnames(rr)=="ID"][idx], rr[,colnames(rr)=="mean"][idx],
+                                    xval= x$.intern$baseline.hazard.cutpoints
+                                    yval = rr[,colnames(rr)=="mean"][idx]
+                                    yval = c(yval, yval[length(yval)])
+                                    plot(xval, yval,
                                          ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                         xlim=range(xval),
                                          axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
                                 } else {
-                                    plot(rr[, colnames(rr)=="ID"][idx], rr[,colnames(rr)=="mean"][idx],
+                                    xval = rr[, colnames(rr)=="ID"][idx]
+                                    plot(xval, rr[,colnames(rr)=="mean"][idx],
                                          ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                         xlim=range(xval),
                                          axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
                                 }
                                 axis(1)
@@ -150,7 +153,11 @@
                                     dq = dim(qq)[2]
                                     sub = paste("PostMean ")
                                     for(j in 1:dq) {
-                                        points(rr[,colnames(rr)=="ID"][idx],qq[,j][idx],type=tp,lty=2)
+                                        yval = qq[,j][idx]
+                                        ## this is the baseline.hazard case
+                                        if (length(yval)+1 == length(xval))
+                                            yval = c(yval, yval[ length(yval) ])
+                                        points(xval, yval,type=tp,lty=2)
                                         sub = gsub("quant", "%", paste(sub,colnames(qq)[j]))
                                     }
                                     title(main=inla.nameunfix(main),sub=paste(inla.nameunfix(sub), rep.txt))
