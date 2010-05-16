@@ -9280,7 +9280,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				if (mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
 					mb->theta_map[mb->ntheta] = map_group_rho;
-					mb->theta_map_arg[mb->ntheta] = (void *) &(mb->f_ngroup[mb->nf]);
+
+					// need to add a pointer that stays fixed, mb->theta_map_arg[mb->nf] does not!
+					int *ngp = NULL;
+					ngp = Calloc(1, int);
+					*ngp = mb->f_ngroup[mb->nf];
+					mb->theta_map_arg[mb->ntheta] = (void *) ngp;
+
 				} else if (mb->f_group_model[mb->nf] == G_AR1) {
 					mb->theta_map[mb->ntheta] = map_rho;
 					mb->theta_map_arg[mb->ntheta] = NULL;
