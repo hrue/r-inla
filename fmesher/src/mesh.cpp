@@ -917,6 +917,22 @@ namespace fmesh {
 				   -Vec::scalar(e0,e1));
 	if (theta2<0) nneg++;
 	area = theta0+theta1+theta2+static_cast<double>(2*nneg-1)*M_PI;
+
+	/*
+	  New formula, not correct yet...
+	*/
+	/*
+	double costh =
+	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
+	Point tmp1;
+	Vec::cross(tmp1,s0,s1);
+	double sinth = 2.*Vec::scalar(tmp1,s2)/Vec::length(e2);
+	double area2 = 2.*std::atan2(sinth,costh);
+	
+	cout << WHEREAMI << "Areas: (" << area << "," << area2
+	     << ") a2/a1 = " << area2/area << endl;
+	*/
+
 	/*
 	  // L'Huilier code, don't use:
 	  Dart dh(*this,t);
