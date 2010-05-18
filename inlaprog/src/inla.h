@@ -91,7 +91,8 @@ typedef enum {
 	 */
 	MAP_INCREASING = 4
 } map_arg_tp;
-typedef double map_func_tp(double arg, map_arg_tp typ);
+
+typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
 
 typedef struct {
 	const char *name;
@@ -167,14 +168,14 @@ typedef struct {
 	double epsilon_laplace;
 	double gamma_laplace;
 
-	/* 
+	/*
 	 * Skew-Normal
 	 */
 	double **shape_skew_normal;
 	double shape_max_skew_normal;			       /* maximum value for |shape| allowed */
 	double **log_prec_skew_normal;
 	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
-	
+
 } Data_tp;
 
 /* 
@@ -183,7 +184,7 @@ typedef struct {
 typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
-	L_SKEWNORMAL, 
+	L_SKEWNORMAL,
 	L_T,
 	L_POISSON,
 	L_BINOMIAL,
@@ -242,7 +243,7 @@ typedef enum {
 	P_WISHART1D,
 	P_WISHART2D,
 	P_WISHART3D,
-	O_POSITIVE					       /* offset-functions */,
+	O_POSITIVE /* offset-functions */ ,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -520,6 +521,7 @@ struct inla_tp_struct {
 	char **theta_tag_userscale;
 	char **theta_dir;
 	map_func_tp **theta_map;
+	void **theta_map_arg;
 	map_table_tp **theta_usermap;
 	int *off_compute;
 	char **off_modelname;
@@ -551,8 +553,8 @@ struct inla_tp_struct {
 	int *idx_n;					       /* the length */
 	map_stri idx_hash;				       /* the hash-table */
 
-	/* 
-	   misc output from INLA()
+	/*
+	 * misc output from INLA() 
 	 */
 	GMRFLib_ai_misc_output_tp *misc_output;
 };
@@ -717,25 +719,26 @@ double extra(double *theta, int ntheta, void *argument);
 double inla_all_offset(int idx, void *arg);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
-double link_log(double x, map_arg_tp typ);
-double link_logit(double x, map_arg_tp typ);
+double link_log(double x, map_arg_tp typ, void *param);
+double link_logit(double x, map_arg_tp typ, void *param);
 double log_apbex(double a, double b);
-double map_1exp(double arg, map_arg_tp typ);
-double map_alpha_weibull(double arg, map_arg_tp typ);
-double map_alpha_weibull_cure(double arg, map_arg_tp typ);
-double map_dof(double arg, map_arg_tp typ);
-double map_exp(double arg, map_arg_tp typ);
-double map_identity(double arg, map_arg_tp typ);
-double map_invlogit(double x, map_arg_tp typ);
-double map_p_weibull_cure(double arg, map_arg_tp typ);
-double map_phi(double arg, map_arg_tp typ);
-double map_precision(double arg, map_arg_tp typ);
-double map_probability(double x, map_arg_tp typ);
-double map_range(double arg, map_arg_tp typ);
-double map_rho(double arg, map_arg_tp typ);
-double map_shape_svnig(double arg, map_arg_tp typ);
-double map_sqrt1exp(double arg, map_arg_tp typ);
-double map_tau_laplace(double arg, map_arg_tp typ);
+double map_1exp(double arg, map_arg_tp typ, void *param);
+double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
+double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param);
+double map_dof(double arg, map_arg_tp typ, void *param);
+double map_exp(double arg, map_arg_tp typ, void *param);
+double map_group_rho(double x, map_arg_tp typ, void *param);
+double map_identity(double arg, map_arg_tp typ, void *param);
+double map_invlogit(double x, map_arg_tp typ, void *param);
+double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
+double map_phi(double arg, map_arg_tp typ, void *param);
+double map_precision(double arg, map_arg_tp typ, void *param);
+double map_probability(double x, map_arg_tp typ, void *param);
+double map_range(double arg, map_arg_tp typ, void *param);
+double map_rho(double arg, map_arg_tp typ, void *param);
+double map_shape_svnig(double arg, map_arg_tp typ, void *param);
+double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
+double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double offset_positive_func(int idx, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
@@ -772,7 +775,7 @@ int inla_error_missing_required_field(const char *funcname, const char *secname,
 int inla_error_open_file(const char *msg);
 int inla_iid3d_adjust(double *rho);
 int inla_initial_setup(inla_tp * mb);
-int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func);
+int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg);
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x(double **x, int *n, double xmin, double xmax, double mean);
 int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg);
@@ -781,7 +784,7 @@ int inla_make_3diid_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp *graph);
+int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
@@ -790,7 +793,7 @@ int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
-		       const char *sdir, map_func_tp * func, map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose);
+		       const char *sdir, map_func_tp * func, void *func_arg, map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);

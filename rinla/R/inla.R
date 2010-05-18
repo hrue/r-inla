@@ -1,4 +1,3 @@
-
 `inla` =
     function (formula,
               family = "gaussian", 
@@ -30,7 +29,11 @@
               silent = inla.getOption("silent"),
               debug = inla.getOption("debug"),
               user.hook = NULL,
-              user.hook.arg = NULL
+              user.hook.arg = NULL,
+              ##
+              ## these are ``internal'' options, used to transfer info from expansions
+              ##
+              .internal = list()
               )
 {
     my.time.used = numeric(4)
@@ -85,7 +88,7 @@
     for(i in 1:n.family)
         have.surv = have.surv || inla.lmodel.properties(family[i])$survival
 
-    if (have.surv && (inla.one.of(family,c("piecewise.constant", "nhpp")))) {
+    if (have.surv && (inla.one.of(family,c("piecewise.constant", "nhpp", "coxph")))) {
         ## in this case, we expand the data-frame into a sequence of
         ## Poisson observations, and call inla() again.
 
@@ -97,10 +100,14 @@
             stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `", class(y.surv), "'", sep=""))
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
-        if (inla.one.of(family, "piecewise.constant")) {
-            new.data = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
-        } else if (inla.one.of(family, "nhpp")) {
-            new.data = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+        if (inla.one.of(family, "piecewise.constant") || is.null(y.surv$subject)) {
+            res = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            new.data = res$data
+            .internal$baseline.hazard.cutpoints = res$cutpoints
+        } else if (inla.one.of(family, "nhpp") || !is.null(y.surv$subject)) {
+            res = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            new.data = res$data
+            .internal$baseline.hazard.cutpoints = res$cutpoints
         } else {
             stop("This should not happen...")
         }
@@ -112,24 +119,20 @@
         ## This is the strata-part, making the baseline hazard
         ## replicates according to the strata.
         strata.var = NULL
-        if (is.character(cont.hazard$strata) && length(cont.hazard$strata)==1) {
-            ## strata = "x"
-            strata.var = cont.hazard$strata
-        } else {
-            ## strata = x ## Here, `x' must exists but also must be in
-            ## the data.frame to be expanded correctly.
-            tt = as.character(substitute(substitute(control.hazard)))[2]  ## must be a better way to do this...
-            if (debug) print(tt)
-            if (grep("strata = ([^),]+)", tt) == 1) {
-                strata.var = gsub("^.*strata = ([^),]+).*$", "\\1", tt)
-            } 
+        if (!is.null(cont.hazard$strata.name)) {
+            if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
+                ## strata = "x"
+                strata.var = cont.hazard$strata
+            } else {
+                stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
+            }
         }
         if (debug)
             print(paste("strata.var", strata.var))
         if (!is.null(strata.var)) {
             if (!is.element(strata.var, names(new.data))) {
                 stop(inla.paste(c("Variable `", strata.var,
-                                  "' in control.hazard=list(strata=...) needs to be in the data.frame:",
+                                  "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
                                   names(new.data))))
             }
             if (debug) print("apply inla.strata() on strata.var")
@@ -183,7 +186,9 @@
                      silent = silent,
                      debug = debug,
                      user.hook = user.hook,
-                     user.hook.arg = user.hook.arg))
+                     user.hook.arg = user.hook.arg,
+                     ## internal options used to transfer data after expansions
+                     .internal = .internal))
     }
 
     ## this is nice hack ;-) we keep the original response. then we
@@ -403,6 +408,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; 
     mf$user.hook = NULL; mf$user.hook.arg = NULL; mf$inla.arg = NULL; mf$lincomb=NULL;
+    mf$.internal = NULL;
     mf$data = data
 
     if (gp$n.fix > 0)
@@ -802,8 +808,6 @@
                 if (debug) {
                     print(paste("n", n))
                     print(paste("nrep", nrep))
-                    print("replicate:")
-                    print(replicate)
                 }
 
                 n.div.by = inla.model.properties(gp$random.spec[[r]]$model)$n.div.by
@@ -1095,6 +1099,9 @@
             ret$model.matrix = gp$model.matrix
             ret$user.hook = user.hook
             ret$user.hook.arg = user.hook.arg
+            ##
+            ret$.internal = .internal
+            ##
             class(ret) = "inla"
         } else {
             ret = NULL
