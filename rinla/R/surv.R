@@ -267,14 +267,14 @@
     if (missing(event))
     {
         event = rep(0,nn)
-        warning("'event' is missing: assuming no event")
+        warning("'event' is missing: assuming no events")
     }
     else if (sum(is.na(event))>0)
     {
         ##if some of the element in event are missing assume that they're
         ##no event observed (give a warning)
         event[is.na(event)] = 0
-        warning("Some elements in `event' are missing: assuming no event detected")
+        warning("Some elements in `event' are missing: assuming no event detected for these cases.")
     }
       
     

@@ -9,11 +9,6 @@
     event = response$event
     nn = length(event)
     
-    ## piecewiselinear and piecewiseconstant models do not work for
-    ## interval censoring
-    if(sum(event==3)>0 || sum(event==2)>0)
-        stop("Piecewise-linear models for the hazard only work for right censored data")
-
     time = numeric(nn)
     time[response$event==1] = response$time[response$event==1]
     time[response$event==0] = response$lower[response$event==0]
@@ -21,10 +16,8 @@
     truncation = response$truncation
     
     ##create cutpoints if not provided
-    if(is.null(cutpoints)) {
-        dt = (1.1*max(time))/n.intervals
-        cutpoints = seq(0,max(time)*1.1,dt) 
-    }
+    if(is.null(cutpoints)) 
+        cutpoints = seq(0,max(time), length = n.intervals+1)
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation,
             event=event, cutpoints=cutpoints)
@@ -40,12 +33,12 @@
     }
     else
         new.dataframe=NULL
-
+    
     res = data.frame(y.surv=new.data$y, E=new.data$E, baseline.hazard=new.data$baseline.hazard,
             dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
 
-    return (res)
+    return (list(data = res, cutpoints = cutpoints))
 }
 
 `inla.get.poisson.data.1` = function(time, truncation, event, cutpoints)
@@ -83,53 +76,59 @@
     return(data.new)
 }
 
-`inla.expand.dataframe.2` =function(response, dataframe, control.hazard = inla.set.control.hazard.default())
+`inla.expand.dataframe.2` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
 {
+    stop("this is not working yet")
+
     n.intervals = control.hazard$n.intervals
     cutpoints = control.hazard$cutpoints
 
-    if(class(response) != "inla.surv.nhpp")
-        stop("Response has to be an object of class `inla.surv.nhpp'")
+    if(class(response) != "inla.surv")
+        stop("Response has to be an object of class `inla.surv'")
     class(response) = NULL
     event = response$event
     nn = length(event)
     
-    ##nhpp models do not work
-    ##for interval censoring
+    ## nhpp models do not work for interval censoring
     if(sum(event==3)>0 || sum(event==2)>0)
         stop("nhpp model does not work for other event type")
 
+    ## with some changes
     time = numeric(nn)
     time[response$event==1] = response$time[response$event==1]
-    time[response$event==0] = response$lower[response$event==0]
-    
+    time[response$event==0] = response$time[response$event==0]
+
+    subject = response$subject
+
     ##create cutpoints if not provided
     if(is.null(cutpoints))
-    {
-        dt = max(time)/n.intervals
-        cutpoints = seq(0,max(time),dt) 
-    }
+        cutpoints = seq(0, max(time), len = n.intervals + 1) 
 
     new.data = inla.get.poisson.data.2(time=time, subject=subject, event=event, cutpoints=cutpoints)
    
-    expand = table(new.data$indicator)
+    ## RUPALI: THIS IS WRONG, 'new.data' has no entry called 'indicator', 
+    print(table(new.data$index))
+    expand = table(new.data$index)
+
     if(!missing(dataframe))
     {
-        new.dataframe = matrix(0,max(subject)*(length(cutpoints)-1),dim(dataframe)[2])
+        ### this must also be wrong. 
+        ###new.dataframe = matrix(0, max(subject)*(length(cutpoints)-1),dim(dataframe)[2])
+        new.dataframe = matrix(0, dim(new.data)[1], dim(dataframe)[2])
         for(i in 1:dim(dataframe)[2])
             new.dataframe[,i] = rep(dataframe[,i],expand)
         new.dataframe = as.data.frame(new.dataframe)
         ## just give some name that we are able to recognise afterwards
-        names(new.dataframe) = paste("fake.dataframe.names",1:dim(new.dataframe)[2])
+        names(new.dataframe) = paste("fake.dataframe.names", 1:dim(new.dataframe)[2])
     }
     else
         new.dataframe=NULL
      
-    res = data.frame(new.event=new,data$event, E=new.data$E, subject=new.data$subject ,     
+    res = data.frame(y = new.data$event, E=new.data$E, 
             baseline.hazard=new.data$baseline.hazard, dataframe=new.dataframe)
-    names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
+    names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
-    return (res)
+    return (list(data = res, cutpoints = cutpoints))
 }
 
 `inla.get.poisson.data.2` = function( subject,time, event, cutpoints)
@@ -152,7 +151,7 @@
     totevent = 0
     length(totevent) = 0
     for(i in 1:nn)
-        totevent = c(totevent,ris[i,])
+        totevent = c(totevent, ris[i,])
     E=numeric(0)
     length(E)=0
     for(i in 1: nn)
@@ -168,8 +167,8 @@
     index = rep(1:nn,each=length(cutpoints)-1)
     baseline.haz=rep(1:(length(cutpoints)-1), nn)
     dc=cbind(index,E,totevent,baseline.haz)
-    data.new=data.frame(index=dc[,1], E=dc[,2],event=dc[,3],baseline.haz=dc[,4])   
-    data.new=data.new[data.new[,2]!=0,]
+    data.new = data.frame(index=dc[,1], E=dc[,2], event=dc[,3], baseline.hazard=dc[,4])   
+    data.new = data.new[ data.new[,2] != 0, ]
 
     return(data.new)
 }
