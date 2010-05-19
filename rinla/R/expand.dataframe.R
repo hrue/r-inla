@@ -17,7 +17,7 @@
     
     ##create cutpoints if not provided
     if(is.null(cutpoints)) 
-        cutpoints = seq(0,max(time), n.intervals + 1)
+        cutpoints = seq(0,max(time), len = n.intervals + 1)
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation,
             event=event, cutpoints=cutpoints)
