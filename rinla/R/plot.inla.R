@@ -127,13 +127,16 @@
                                 xval = NULL
                                 if (tp == "s")  ## baseline.hazard
                                 {
-                                    xval= x$.intern$baseline.hazard.cutpoints
+                                    xval= x$.internal$baseline.hazard.cutpoints
                                     yval = rr[,colnames(rr)=="mean"][idx]
                                     yval = c(yval, yval[length(yval)])
                                     plot(xval, yval,
                                          ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
                                          xlim=range(xval),
                                          axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
+                                    if (!is.null(x$.internal$baseline.hazard.strata.coding))
+                                        rep.txt = inla.paste(c(rep.txt, "[",
+                                                x$.internal$baseline.hazard.strata.coding[r.rep], "]"), sep="")
                                 } else {
                                     xval = rr[, colnames(rr)=="ID"][idx]
                                     plot(xval, rr[,colnames(rr)=="mean"][idx],

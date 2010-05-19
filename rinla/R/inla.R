@@ -134,7 +134,9 @@
                                   names(new.data))))
             }
             if (debug) print("apply inla.strata() on strata.var")
-            inla.eval(paste("new.data$", strata.var, " = inla.strata(new.data$", strata.var, ")", sep=""))
+            inla.eval(paste("strata.tmp = inla.strata(new.data$", strata.var, ")", sep=""))
+            inla.eval(paste("new.data$", strata.var, " = strata.tmp$strata"))
+            inla.eval(paste(".internal$baseline.hazard.strata.coding = strata.tmp$coding"))
         }
         
         f.hazard = paste(

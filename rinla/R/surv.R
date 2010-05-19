@@ -386,10 +386,15 @@
     y = interaction(x)
     z = numeric(length(y))
     z[] = NA
+    nm = c()
     for (i in 1:nlevels(y)) {
-        z[ y == levels(y)[i] ] = i
+        idx = (y == levels(y)[i])
+        z[ idx ] = i
+        ## need the name/value for the first one only
+        nm = c(nm, as.character( y[ which(idx)[1] ] ))
     }
+
     z[ is.na(z) ] = 1
     
-    return (z)
+    return (list(strata=z, coding = nm))
 }
