@@ -88,7 +88,7 @@
     for(i in 1:n.family)
         have.surv = have.surv || inla.lmodel.properties(family[i])$survival
 
-    if (have.surv && (inla.one.of(family,c("piecewise.constant", "nhpp", "coxph")))) {
+    if (have.surv && (inla.one.of(family,c("coxph")))) {
         ## in this case, we expand the data-frame into a sequence of
         ## Poisson observations, and call inla() again.
 
@@ -100,16 +100,14 @@
             stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `", class(y.surv), "'", sep=""))
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
-        if (inla.one.of(family, "piecewise.constant") || is.null(y.surv$subject)) {
+        if (is.null(y.surv$subject)) {
             res = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
             new.data = res$data
             .internal$baseline.hazard.cutpoints = res$cutpoints
-        } else if (inla.one.of(family, "nhpp") || !is.null(y.surv$subject)) {
+        } else {
             res = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
             new.data = res$data
             .internal$baseline.hazard.cutpoints = res$cutpoints
-        } else {
-            stop("This should not happen...")
         }
         data = data.orig
         
