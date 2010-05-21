@@ -133,6 +133,7 @@
                                   "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
                                   names(new.data))))
             }
+
             if (debug) print("apply inla.strata() on strata.var")
             inla.eval(paste("strata.tmp = inla.strata(new.data$", strata.var, ")", sep=""))
             inla.eval(paste("new.data$", strata.var, " = strata.tmp$strata"))
@@ -151,7 +152,7 @@
         
         f.hazard = paste(
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
-                inla.ifelse(baseline.hazard.values,
+                inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
                 ", fixed = ", cont.hazard$fixed,
                 inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", prior = ", cont.hazard$initial, "", sep="")),
