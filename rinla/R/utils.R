@@ -419,6 +419,9 @@
 
 `inla.ifelse` = function(test, yes, no)
 {
+    if (length(test) > 1) 
+        stop("oops: len(test) > 1")
+    
     if (test)
         return (yes)
     else
@@ -622,7 +625,7 @@
 
     if (missing(x))
         return (NULL)
-    
+
     if (any(is.na(x))) {
         idx.ok = !is.na(x)
         x[idx.ok] = inla.group.core(x[idx.ok], n, method)
