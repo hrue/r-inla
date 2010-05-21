@@ -139,13 +139,25 @@
             inla.eval(paste(".internal$baseline.hazard.strata.coding = strata.tmp$coding"))
         }
         
+        ## make sure that the dimension of the baseline-hazard is
+        ## correct, but setting 'values' correct.
+        if (!is.null(cont.hazard$cutpoints)) {
+            baseline.hazard.values = seq(1, length(cont.hazard$cutpoints)-1)
+        } else if (!is.null(cont.hazard$n.intervals)) {
+            baseline.hazard.values = seq(1, cont.hazard$n.intervals)
+        } else {
+            baseline.hazard.values = NULL
+        }
+        
         f.hazard = paste(
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
+                inla.ifelse(baseline.hazard.values,
+                            inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
                 ", fixed = ", cont.hazard$fixed,
                 inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", prior = ", cont.hazard$initial, "", sep="")),
                 ", constr = ", cont.hazard$constr,
                 inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
-                ", si = ", inla.ifelse(cont.hazard$si, "\"TRUE\"", "\"FALSE\""),
+                ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
         
