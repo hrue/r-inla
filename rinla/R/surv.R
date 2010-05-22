@@ -379,22 +379,8 @@
 
 `inla.strata` = function(x)
 {
-    ## similar to survival::strata but with levels = 1, 2, ...  for
-    ## NA's then level = 1 is chosen as it does not make sense to have
-    ## replicate = NA.
+    ## similar to survival::strata but with levels = 1, 2, ... 
 
-    y = interaction(x)
-    z = numeric(length(y))
-    z[] = NA
-    nm = c()
-    for (i in 1:nlevels(y)) {
-        idx = (y == levels(y)[i])
-        z[ idx ] = i
-        ## need the name/value for the first one only
-        nm = c(nm, as.character( y[ which(idx)[1] ] ))
-    }
-
-    z[ is.na(z) ] = 1
-    
-    return (list(strata=z, coding = nm))
+    xf = as.factor(x)
+    return (list(strata=as.numeric(xf), coding = levels(xf)))
 }
