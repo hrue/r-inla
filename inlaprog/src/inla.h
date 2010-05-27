@@ -211,14 +211,7 @@ typedef enum {
 	F_BESAGMOD,
 	F_SEASONAL,
 	F_IID,
-	F_2DIIDWISHARTPART0,				       /* a special construct... */
-	F_2DIIDWISHARTPART1,				       /* a special construct... */
 	F_2DIID,
-	F_2DIIDWISHART,
-	F_3DIIDWISHART,
-	F_3DIIDWISHARTPART0,
-	F_3DIIDWISHARTPART1,
-	F_3DIIDWISHARTPART2,
 	F_IID1D,
 	F_IID2D,
 	F_IID3D,
@@ -752,8 +745,6 @@ double priorfunc_wishart2d(double *x, double *parameters);
 double priorfunc_wishart3d(double *x, double *parameters);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
-int add_interactions_2diid(inla_tp * mb);
-int add_interactions_3diid(inla_tp * mb);
 int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);

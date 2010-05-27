@@ -241,9 +241,9 @@ int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Q
 /*!
   \brief Read a tabulated Qfunction from a file.
 
-  This function reads a tabulated Qfunction from a ascii file, and setup a Qfunction and its
-  arguments which return these elements. A further argument can scale each element, just like a
-  precision. It also computes the corresponding graph. 
+  This function reads a tabulated Qfunction from a ascii file, and setup a Qfunction and its arguments which return these elements. A further argument can scale
+  each element, just like a precision. It also computes the corresponding graph. The indexing can be either zero or one-based. If one-based, then its converted to
+  zero-based.
 
   \param[out] tabulate_Qfunc \a tabulate_Qfunc is a ** of type \a GMRFLib_tabulate_Qfunc_arg_tp, see
   the example.
@@ -275,7 +275,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * 
 	 */
 
-	int i, j, ii, jj, count, k, ntriples, err, debug = 0;
+	int i, j, ii, jj, count, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off;
 	double value;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	GMRFLib_io_tp *io = NULL;
@@ -288,6 +288,32 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
+
+	/* 
+	   read it first to determine if this is a zero-based or one-based graph
+	*/
+	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
+	while (1) {
+		old_handler = GMRFLib_set_error_handler_off();
+		err = GMRFLib_io_read_next(io, &i, "%d");
+		GMRFLib_set_error_handler(old_handler);
+
+		if (err == GMRFLib_SUCCESS) {
+			/*
+			 * then the rest must be present to 
+			 */
+			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
+			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
+			imin = IMIN(imin, i);
+			jmin = IMIN(jmin, j);
+		} else {
+			break;
+		}
+	}
+	GMRFLib_EWRAP0(GMRFLib_io_close(io));
+
+	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)),  GMRFLib_ESNH);
+	off = (imin == 1 ? 1 : 0);
 
 	ntriples = 0;
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
@@ -302,11 +328,10 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 			 */
 			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-			GMRFLib_ged_add(ged, i, j);
+			GMRFLib_ged_add(ged, i-off, j-off);
 
 			if (debug)
 				printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
-
 			ntriples++;
 		} else {
 			break;
@@ -378,6 +403,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &i, "%d"));
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
+		i = i -off;
+		j = j -off;
 		ii = IMIN(i, j);
 		jj = IMAX(i, j);
 		map_id_set(arg->values[ii], jj, value);
@@ -398,7 +425,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
   This function tabulate a Qfunction defined in a list of (i,j,Qij), and setup a Qfunction and its arguments which return these elements. A further argument can
   scale each element, just like a precision. It also computes the corresponding graph. This function is similar to \c GMRFLib_tabulate_Qfunc_from_file() but the
   triplets are now given as arguments in the call to the function instead of defined in a file. Entries not given in the list, have default value zero. If the same
-  element (i,j,Qij) is given more than once, then the last element is used.
+  element (i,j,Qij) is given more than once, then the last element is used.  The indexing can be either zero or one-based. If one-based, then its converted to
+  zero-based.
 
   \param[out] tabulate_Qfunc \a tabulate_Qfunc is a ** of type \a GMRFLib_tabulate_Qfunc_arg_tp, see
   the example.
@@ -435,7 +463,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * 
 	 */
 
-	int i;
+	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
 	/*
@@ -446,7 +474,14 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	GMRFLib_ged_init(&ged, NULL);
 
 	for (i = 0; i < ntriples; i++) {
-		GMRFLib_ged_add(ged, ilist[i], jlist[i]);
+		imin = IMIN(imin,  ilist[i]);
+		jmin = IMIN(jmin,  jlist[i]);
+	}
+	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)),  GMRFLib_ESNH);
+	off = (imin == 1 ? 1 : 0);
+
+	for (i = 0; i < ntriples; i++) {
+		GMRFLib_ged_add(ged, ilist[i]-off, jlist[i]-off);
 	}
 
 	/*
@@ -504,8 +539,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	for (i = 0; i < ntriples; i++) {
 		int ii, jj;
 
-		ii = IMIN(ilist[i], jlist[i]);
-		jj = IMAX(ilist[i], jlist[i]);
+		ii = IMIN(ilist[i]-off, jlist[i]-off);
+		jj = IMAX(ilist[i]-off, jlist[i]-off);
 		map_id_set(arg->values[ii], jj, Qijlist[i]);
 	}
 

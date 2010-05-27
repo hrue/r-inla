@@ -58,8 +58,8 @@ In the example below we define a RW1 model first using the {\tt
 
 #simulate data
 n=50
-z=seq(0,6,length.out=n)
-y=sin(z)+rnorm(n,mean=0,sd=0.5)
+z=seq(1,n,length.out=n)
+y=sin(z/n*2*pi)+rnorm(n,mean=0,sd=0.5)
 data=data.frame(y=y,z=z)
 
 #specify Cmatrix
@@ -68,17 +68,17 @@ j=c(1:n,2:n)
 values=c(1,rep(2,n-2),1,rep(-1,n-1))
 
 #pass the C matrix as a list
-
 #note that for the generic0 model constraints and diagonal have to be defined by the user
 formula= y~f(z,model="generic0",Cmatrix=list(i = i, j = j, values = values),
              rankdef=1,constr=TRUE,diagonal=1e-05)
 result=inla(formula,data=data,family="gaussian")
 
 #pass the C matrix as a file
-file.name="Cmatrix.dat"
-write.table(cbind(i,j,values),file=file.name,col.name=F,row.name=F)
-formula1= y~f(z,model="generic0",Cmatrix=file.name,rankdef=1,rankdef=1,constr=TRUE,diagonal=1e-05)
+filename= inla.sparse2file(list(i=i,j=j,values=values))
+formula1= y~f(z,model="generic0",Cmatrix=filename,
+              rankdef=1,constr=TRUE,diagonal=1e-05)
 result1=inla(formula1,data=data,family="gaussian")
+unlink(filename)
 
 #this is the same model defined using the rw1 model
 formula2=y~f(z,model="rw1")
