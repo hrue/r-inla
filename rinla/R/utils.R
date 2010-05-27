@@ -74,12 +74,13 @@
     return (graph.file)
 }
 
-`inla.Cmatrix2matrix` = function(C, symmetric = TRUE)
+`inla.sparse2matrix` = function(C, symmetric = TRUE)
 {
-    ## convert a Cij matrix into a matrix.
+    ## convert a sparse-matrix into a matrix.
     
+    inla.check.sparse.matrix(C)
     stopifnot(length(C$i) == length(C$j))
-    stopifnot(length(C$i) == length(C$Cij))
+    stopifnot(length(C$i) == length(C$values))
 
     n = max(c(C$i, C$j))
     A = matrix(0,n,n)
@@ -87,7 +88,7 @@
         ## this could be vectorised with more work...
         i = C$i[k]
         j = C$j[k]
-        v = C$Cij[k]
+        v = C$values[k]
         A[i,j] = v
         if (symmetric)
             A[j,i] = v
@@ -95,10 +96,10 @@
     return (A)
 }
 
-`inla.matrix2Cmatrix` = function(Q, symmetric = TRUE)
+`inla.matrix2sparse` = function(Q, symmetric = TRUE)
 {
     ## convert a symmetric(if TRUE) matrix into the form:
-    ## list(i=,j=,Cij=)
+    ## list(i=,j=,values=)
 
     if (!is.matrix(Q))
         stop("Argument must be a matrix")
@@ -110,7 +111,7 @@
     n = n[1]
     ii = c()
     jj = c()
-    Cij = c()
+    values = c()
 
     for(i in 1:n) {
         if (symmetric){
@@ -124,14 +125,14 @@
             idx = idx + offset
             ii = c(ii, rep(i, length(idx)))
             jj = c(jj, idx)
-            Cij = c(Cij, Q[i, idx])
+            values = c(values, Q[i, idx])
         }
     }
 
-    return (list(i=ii, j=jj, Cij = Cij))
+    return (list(i=ii, j=jj, values = values))
 }
 
-`inla.Cmatrix2file` = function(Cmatrix, filename = NULL, c.indexing = FALSE)
+`inla.sparse2file` = function(C, filename = NULL, c.indexing = FALSE)
 {
     if (c.indexing)
         off = 1
@@ -141,7 +142,7 @@
     if (is.null(filename)) {
         filename = tempfile()
     }
-    write(t(cbind(Cmatrix$i-off, Cmatrix$j-off, Cmatrix$Cij)), ncolumns=3, file = filename)
+    write(t(cbind(C$i-off, C$j-off, C$values)), ncolumns=3, file = filename)
 
     return (filename)
 }
@@ -874,12 +875,12 @@
     return (gsub("[(][)]$","", inla.paste(deparse(formula))))
 }
 
-`inla.qinv` = function(Cmatrix)
+`inla.qinv` = function(C)
 {
-    if (is.matrix(Cmatrix)) {
-        qinv.file = inla.Cmatrix2file(inla.matrix2Cmatrix(Cmatrix), c.indexing = TRUE)
+    if (is.matrix(C)) {
+        qinv.file = inla.sparse2file(inla.matrix2sparse(C), c.indexing = TRUE)
     } else {
-        qinv.file = inla.Cmatrix2file(Cmatrix, c.indexing = TRUE)
+        qinv.file = inla.sparse2file(C, c.indexing = TRUE)
     }
         
     if (inla.os("linux") || inla.os("mac")) {
