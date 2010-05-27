@@ -3960,8 +3960,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 
 	inla_add_copyof(mb);
-	add_interactions_2diid(mb);
-	add_interactions_3diid(mb);
 
 	/*
 	 * fixup z/zadd terms 
@@ -4201,239 +4199,6 @@ int fixup_zadd(inla_tp * mb)
 			if (debug) {
 				printf("n = %d\n", a->n);
 			}
-		}
-	}
-
-	return GMRFLib_SUCCESS;
-}
-int add_interactions_2diid(inla_tp * mb)
-{
-	/*
-	 * add interactions between the ffields, if any. This is for the Wishart-prior for the moment 
-	 */
-	int k, kk, i, nf, debug = 0, nk, nkk;
-	char *msg;
-	inla_iarray_tp *ka, *kka;
-	nf = mb->nf;
-
-	ka = find_all_f(mb, F_2DIIDWISHARTPART0);
-	kka = find_all_f(mb, F_2DIIDWISHARTPART1);
-	nk = ka->n;
-	nkk = kka->n;
-
-	if (debug) {
-		for (i = 0; i < ka->n; i++) {
-			printf("PART0 %d %s\n", ka->array[i], mb->f_tag[ka->array[i]]);
-		}
-		for (i = 0; i < kka->n; i++) {
-			printf("PART1 %d %s\n", kka->array[i], mb->f_tag[kka->array[i]]);
-		}
-	}
-
-	if (nk == 0 && nkk == 0) {
-		/*
-		 * no such terms 
-		 */
-		return !GMRFLib_SUCCESS;		       /* yes, return this */
-	}
-
-	if (nk != nkk) {
-		GMRFLib_sprintf(&msg, "model=[2DIIDWISHARTPART0] defined %d times but, model=[2DIIDWISHARTPART1] is defined %d times!\n", nk, nkk);
-		inla_error_general(msg);
-		return !GMRFLib_SUCCESS;
-	}
-
-	if (!mb->ff_Qfunc) {
-		mb->ff_Qfunc = Calloc(nf, GMRFLib_Qfunc_tp **);
-		mb->ff_Qfunc_arg = Calloc(nf, void **);
-		for (i = 0; i < nf; i++) {
-			mb->ff_Qfunc[i] = Calloc(nf, GMRFLib_Qfunc_tp *);
-			mb->ff_Qfunc_arg[i] = Calloc(nf, void *);
-		}
-	}
-
-	for (i = 0; i < nk; i++) {
-		k = ka->array[i];
-		kk = kka->array[i];
-		if (mb->f_graph[k]->n != mb->f_graph[kk]->n) {
-			GMRFLib_sprintf(&msg, "ffield[%s] and [%s] has different length: %d != %d\n",
-					mb->f_tag[k], mb->f_tag[kk], mb->f_graph[k]->n, mb->f_graph[kk]->n);
-			inla_error_general(msg);
-			return !GMRFLib_SUCCESS;
-		}
-
-		if (mb->verbose || debug) {
-			printf("\tAdd interaction between ffield[%d] and ffield[%d]\n", k, kk);
-		}
-
-		assert(mb->ff_Qfunc[k][kk] == NULL);
-		assert(mb->ff_Qfunc[kk][k] == NULL);
-		assert(mb->ff_Qfunc_arg[k][kk] == NULL);
-		assert(mb->ff_Qfunc_arg[kk][k] == NULL);
-
-		if (mb->f_Qfunc[k] == Qfunc_replicate) {
-			/*
-			 * this is the replicated case 
-			 */
-			inla_replicate_tp *rep01 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *rep11 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *a = (inla_replicate_tp *) mb->f_Qfunc_arg[k];
-
-			memcpy(rep01, a, sizeof(inla_replicate_tp));
-			memcpy(rep11, a, sizeof(inla_replicate_tp));
-
-			rep01->Qfunc = Qfunc_2diid_wishart_part01;
-			rep11->Qfunc = Qfunc_2diid_wishart_part11;
-
-			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_replicate;
-			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = (void *) rep01;
-
-			mb->f_Qfunc[kk] = Qfunc_replicate;
-			mb->f_Qfunc_arg[kk] = (void *) rep11;
-		} else {
-			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_2diid_wishart_part01;
-			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = mb->f_Qfunc_arg[k];	/* this is part0 */
-			mb->f_Qfunc_arg[kk] = mb->f_Qfunc_arg[k];	/* just a copy as they need the same arguments */
-		}
-	}
-
-	return GMRFLib_SUCCESS;
-}
-int add_interactions_3diid(inla_tp * mb)
-{
-	/*
-	 * add interactions between the ffields, if any. This is for 3diid_wishart model
-	 */
-	int k, kk, kkk, i, nf, debug = 0, nk, nkk, nkkk;
-	char *msg;
-	inla_iarray_tp *ka, *kka, *kkka;
-	nf = mb->nf;
-
-	ka = find_all_f(mb, F_3DIIDWISHARTPART0);
-	kka = find_all_f(mb, F_3DIIDWISHARTPART1);
-	kkka = find_all_f(mb, F_3DIIDWISHARTPART2);
-	nk = ka->n;
-	nkk = kka->n;
-	nkkk = kkka->n;
-
-	if (debug) {
-		for (i = 0; i < ka->n; i++) {
-			printf("PART0 %d %s\n", ka->array[i], mb->f_tag[ka->array[i]]);
-		}
-		for (i = 0; i < kka->n; i++) {
-			printf("PART1 %d %s\n", kka->array[i], mb->f_tag[kka->array[i]]);
-		}
-		for (i = 0; i < kkka->n; i++) {
-			printf("PART1 %d %s\n", kkka->array[i], mb->f_tag[kkka->array[i]]);
-		}
-	}
-
-	if (nk == 0 && nkk == 0 && nkkk == 0) {
-		/*
-		 * no such terms 
-		 */
-		return !GMRFLib_SUCCESS;		       /* yes, return this */
-	}
-
-	if (nk != nkk) {
-		GMRFLib_sprintf(&msg, "model=[3DIIDWISHARTPART0] defined %d times but, model=[3DIIDWISHARTPART1] is defined %d times!\n", nk, nkk);
-		inla_error_general(msg);
-		return !GMRFLib_SUCCESS;
-	}
-	if (nk != nkkk) {
-		GMRFLib_sprintf(&msg, "model=[3DIIDWISHARTPART0] defined %d times but, model=[3DIIDWISHARTPART2] is defined %d times!\n", nk, nkkk);
-		inla_error_general(msg);
-		return !GMRFLib_SUCCESS;
-	}
-	if (nkk != nkkk) {
-		GMRFLib_sprintf(&msg, "model=[3DIIDWISHARTPART1] defined %d times but, model=[3DIIDWISHARTPART2] is defined %d times!\n", nkk, nkkk);
-		inla_error_general(msg);
-		return !GMRFLib_SUCCESS;
-	}
-
-	if (!mb->ff_Qfunc) {
-		mb->ff_Qfunc = Calloc(nf, GMRFLib_Qfunc_tp **);
-		mb->ff_Qfunc_arg = Calloc(nf, void **);
-		for (i = 0; i < nf; i++) {
-			mb->ff_Qfunc[i] = Calloc(nf, GMRFLib_Qfunc_tp *);
-			mb->ff_Qfunc_arg[i] = Calloc(nf, void *);
-		}
-	}
-
-	for (i = 0; i < nk; i++) {
-		k = ka->array[i];
-		kk = kka->array[i];
-		kkk = kkka->array[i];
-		if ((mb->f_graph[k]->n != mb->f_graph[kk]->n) || (mb->f_graph[k]->n != mb->f_graph[kkk]->n) || (mb->f_graph[kk]->n != mb->f_graph[kkk]->n)) {
-			GMRFLib_sprintf(&msg, "ffield[%s], [%s] and [%s] has different length: %d != %d != %d\n",
-					mb->f_tag[k], mb->f_tag[kk], mb->f_tag[kkk], mb->f_graph[k]->n, mb->f_graph[kk]->n, mb->f_graph[kkk]->n);
-			inla_error_general(msg);
-			return !GMRFLib_SUCCESS;
-		}
-
-		if (mb->verbose || debug) {
-			printf("\tAdd interaction between ffield[%d], ffield[%d] and ffield[%d]\n", k, kk, kkk);
-		}
-
-		assert(mb->ff_Qfunc[k][kk] == NULL);
-		assert(mb->ff_Qfunc[kk][k] == NULL);
-		assert(mb->ff_Qfunc[k][kkk] == NULL);
-		assert(mb->ff_Qfunc[kkk][k] == NULL);
-		assert(mb->ff_Qfunc[kk][kkk] == NULL);
-		assert(mb->ff_Qfunc[kkk][kk] == NULL);
-		assert(mb->ff_Qfunc_arg[k][kk] == NULL);
-		assert(mb->ff_Qfunc_arg[kk][k] == NULL);
-		assert(mb->ff_Qfunc_arg[k][kkk] == NULL);
-		assert(mb->ff_Qfunc_arg[kkk][k] == NULL);
-		assert(mb->ff_Qfunc_arg[kk][kkk] == NULL);
-		assert(mb->ff_Qfunc_arg[kkk][kk] == NULL);
-
-		if (mb->f_Qfunc[k] == Qfunc_replicate) {
-			/*
-			 * this is the replicated case 
-			 */
-			inla_replicate_tp *rep01 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *rep02 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *rep12 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *rep11 = Calloc(1, inla_replicate_tp);
-			inla_replicate_tp *rep22 = Calloc(1, inla_replicate_tp);
-
-			inla_replicate_tp *a = (inla_replicate_tp *) mb->f_Qfunc_arg[k];
-
-			memcpy(rep01, a, sizeof(inla_replicate_tp));	/* this copies also Qfunc_arg and `n' */
-			memcpy(rep02, a, sizeof(inla_replicate_tp));
-			memcpy(rep12, a, sizeof(inla_replicate_tp));
-			memcpy(rep11, a, sizeof(inla_replicate_tp));
-			memcpy(rep22, a, sizeof(inla_replicate_tp));
-
-			rep01->Qfunc = Qfunc_3diid_wishart_part01;	/* so we only have to supply Qfunc() */
-			rep02->Qfunc = Qfunc_3diid_wishart_part02;
-			rep12->Qfunc = Qfunc_3diid_wishart_part12;
-			rep11->Qfunc = Qfunc_3diid_wishart_part11;
-			rep22->Qfunc = Qfunc_3diid_wishart_part22;
-
-			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_replicate;
-			mb->ff_Qfunc[k][kkk] = mb->ff_Qfunc[kkk][k] = Qfunc_replicate;
-			mb->ff_Qfunc[kk][kkk] = mb->ff_Qfunc[kkk][kk] = Qfunc_replicate;
-
-			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = (void *) rep01;
-			mb->ff_Qfunc_arg[k][kkk] = mb->ff_Qfunc_arg[kkk][k] = (void *) rep02;
-			mb->ff_Qfunc_arg[kk][kkk] = mb->ff_Qfunc_arg[kkk][kk] = (void *) rep12;
-
-			mb->f_Qfunc[kk] = mb->f_Qfunc[kkk] = Qfunc_replicate;
-			mb->f_Qfunc_arg[kk] = (void *) rep11;
-			mb->f_Qfunc_arg[kkk] = (void *) rep22;
-		} else {
-			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_3diid_wishart_part01;
-			mb->ff_Qfunc[k][kkk] = mb->ff_Qfunc[kkk][k] = Qfunc_3diid_wishart_part02;
-			mb->ff_Qfunc[kk][kkk] = mb->ff_Qfunc[kkk][kk] = Qfunc_3diid_wishart_part12;
-
-			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = mb->f_Qfunc_arg[k];
-			mb->ff_Qfunc_arg[k][kkk] = mb->ff_Qfunc_arg[kkk][k] = mb->f_Qfunc_arg[k];
-			mb->ff_Qfunc_arg[kk][kkk] = mb->ff_Qfunc_arg[kkk][kk] = mb->f_Qfunc_arg[k];
-
-			mb->f_Qfunc_arg[kk] = mb->f_Qfunc_arg[k];
-			mb->f_Qfunc_arg[kkk] = mb->f_Qfunc_arg[k];
 		}
 	}
 
@@ -6556,38 +6321,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_IID3D;
 		mb->f_ntheta[mb->nf] = 6;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID3D model");
-	} else if (OneOf2("2DIIDWISHARTPART0", "2DIIDWISHARTP1")) {
-		mb->f_id[mb->nf] = F_2DIIDWISHARTPART0;
-		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID-Wishart model-part0");
-	} else if (OneOf2("2DIIDWISHARTPART1", "2DIIDWISHARTP2")) {
-		mb->f_id[mb->nf] = F_2DIIDWISHARTPART1;
-		mb->f_ntheta[mb->nf] = 0;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID-Wishart model-part1");
 	} else if (OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID model");
-	} else if (OneOf("2DIIDWISHART")) {
-		mb->f_id[mb->nf] = F_2DIIDWISHART;
-		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID-Wishart model");
-	} else if (OneOf("3DIIDWISHART")) {
-		mb->f_id[mb->nf] = F_3DIIDWISHART;
-		mb->f_ntheta[mb->nf] = 6;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("3DIID-Wishart model");
-	} else if (OneOf2("3DIIDWISHARTPART0", "3DIIDWISHARTP1")) {
-		mb->f_id[mb->nf] = F_3DIIDWISHARTPART0;
-		mb->f_ntheta[mb->nf] = 6;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("3DIID-Wishart model-part0");
-	} else if (OneOf2("3DIIDWISHARTPART1", "3DIIDWISHARTP2")) {
-		mb->f_id[mb->nf] = F_3DIIDWISHARTPART1;
-		mb->f_ntheta[mb->nf] = 0;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("3DIID-Wishart model-part1");
-	} else if (OneOf2("3DIIDWISHARTPART2", "3DIIDWISHARTP3")) {
-		mb->f_id[mb->nf] = F_3DIIDWISHARTPART2;
-		mb->f_ntheta[mb->nf] = 0;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("3DIID-Wishart model-part2");
 	} else if (OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
@@ -6676,17 +6413,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1");
 		break;
 
-	case F_2DIIDWISHART:
-	case F_2DIIDWISHARTPART0:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART2D");
-		if (mb->f_prior[mb->nf][0].id != P_WISHART2D) {
-			char *m;
-			GMRFLib_sprintf(&m, "Model=[2DIIDWISHART or 2DIIDWISHARTPART0] needs prior=[WISHART2D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
-			inla_error_general(m);
-			exit(1);
-		}
-		break;
-
 	case F_IID1D:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART1D");
 		if (mb->f_prior[mb->nf][0].id != P_LOGGAMMA) { /* This is what it should be, yes! */
@@ -6702,17 +6428,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->f_prior[mb->nf][0].id != P_WISHART2D) {
 			char *m;
 			GMRFLib_sprintf(&m, "Model=[IID2D] needs prior=[WISHART2D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
-			inla_error_general(m);
-			exit(1);
-		}
-		break;
-
-	case F_3DIIDWISHART:
-	case F_3DIIDWISHARTPART0:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART3D");
-		if (mb->f_prior[mb->nf][0].id != P_WISHART3D) {
-			char *m;
-			GMRFLib_sprintf(&m, "Model=[3DIIDWISHART(PART0)] needs prior=[WISHART3D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
 			inla_error_general(m);
 			exit(1);
 		}
@@ -6759,9 +6474,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
 		break;
 
-	case F_2DIIDWISHARTPART1:
-	case F_3DIIDWISHARTPART1:
-	case F_3DIIDWISHARTPART2:
 	case F_ZADD:
 
 		break;
@@ -7266,7 +6978,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			Free(ptmp);
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_2DIID || mb->f_id[mb->nf] == F_2DIIDWISHART) {
+		} else if (mb->f_id[mb->nf] == F_2DIID) {
 			/*
 			 * 2DIID-model; need length N
 			 */
@@ -7321,41 +7033,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_sprintf(&msg, "%s: N=%1d is not divisible by 3", secname, n);
 				inla_error_general(msg);
 				exit(1);
-			}
-			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_2DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_2DIIDWISHARTPART1) {
-			/*
-			 * 2DIIDWISHARTPART0/1-model; need length N
-			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			if (!ptmp) {
-				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
-			}
-			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
-			if (n <= 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
-			}
-			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_3DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_3DIIDWISHARTPART1 ||
-			   mb->f_id[mb->nf] == F_3DIIDWISHARTPART2 || mb->f_id[mb->nf] == F_3DIIDWISHART) {
-			/*
-			 * 3DIIDWISHART/PART0/1/2-model; need length N
-			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			if (!ptmp) {
-				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
-			}
-			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
-			if (n <= 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
 			}
 			if (mb->verbose) {
 				printf("\t\tn=[%1d]\n", n);
@@ -8220,8 +7897,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_IID2D:
 	case F_2DIID:
-	case F_2DIIDWISHART:
-	case F_2DIIDWISHARTPART0:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -8335,8 +8010,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	case F_IID3D:
-	case F_3DIIDWISHART:
-	case F_3DIIDWISHARTPART0:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -8563,9 +8236,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_2DIIDWISHARTPART1:
-	case F_3DIIDWISHARTPART1:
-	case F_3DIIDWISHARTPART2:
 	case F_ZADD:
 		break;
 
@@ -8831,7 +8501,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_iid2d;
 		inla_make_iid2d_graph(&(mb->f_graph[mb->nf]), arg);
 		mb->f_rankdef[mb->nf] = 0;
-	} else if (mb->f_id[mb->nf] == F_2DIID || mb->f_id[mb->nf] == F_2DIIDWISHART) {
+	} else if (mb->f_id[mb->nf] == F_2DIID) {
 		inla_2diid_arg_tp *arg = NULL;
 
 		mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf];
@@ -8849,94 +8519,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_make_2diid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
 		}
 		mb->f_rankdef[mb->nf] = 0;
-	} else if (mb->f_id[mb->nf] == F_2DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_2DIIDWISHARTPART1) {
-		inla_2diid_arg_tp *arg = NULL;
-
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		arg = Calloc(1, inla_2diid_arg_tp);
-		arg->n = mb->f_n[mb->nf];
-		if (mb->f_id[mb->nf] == F_2DIIDWISHARTPART0) {
-			mb->f_Qfunc[mb->nf] = Qfunc_2diid_wishart_part00;
-			arg->log_prec0 = log_prec0;
-			arg->log_prec1 = log_prec1;
-			arg->rho_intern = rho_intern;
-		} else {
-			mb->f_Qfunc[mb->nf] = Qfunc_2diid_wishart_part11;
-			arg->log_prec0 = NULL;		       /* this argument is fixed later in the interaction routine */
-			arg->log_prec1 = NULL;		       /* this argument is fixed later in the interaction routine */
-			arg->rho_intern = NULL;		       /* this argument is fixed later in the interaction routine */
-			mb->f_Qfunc_arg[mb->nf] = NULL;	       /* this argument is fixed later in the interaction routine */
-		}
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 0;
-		mb->f_id[mb->nf] = (mb->f_id[mb->nf] == F_2DIIDWISHARTPART0 ? F_2DIIDWISHARTPART0 : F_2DIIDWISHARTPART1);
-		/*
-		 * yes, we just make the graph for one at the time, since the interaction part is added in the ff_Qfunc part
-		 */
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->n, 0, 0);
-	} else if (mb->f_id[mb->nf] == F_3DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_3DIIDWISHARTPART1 || mb->f_id[mb->nf] == F_3DIIDWISHARTPART2) {
-		inla_3diid_arg_tp *arg = NULL;
-
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		arg = Calloc(1, inla_3diid_arg_tp);
-		arg->n = mb->f_n[mb->nf];
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 0;
-
-		if (mb->f_id[mb->nf] == F_3DIIDWISHARTPART0) {
-			mb->f_Qfunc[mb->nf] = Qfunc_3diid_wishart_part00;
-			mb->f_id[mb->nf] = F_3DIIDWISHARTPART0;
-
-			arg->log_prec0 = log_prec0;
-			arg->log_prec1 = log_prec1;
-			arg->log_prec2 = log_prec2;
-			arg->rho_intern01 = rho_intern01;
-			arg->rho_intern02 = rho_intern02;
-			arg->rho_intern12 = rho_intern12;
-		} else if (mb->f_id[mb->nf] == F_3DIIDWISHARTPART1) {
-			mb->f_Qfunc[mb->nf] = Qfunc_3diid_wishart_part11;
-			mb->f_id[mb->nf] = F_3DIIDWISHARTPART1;
-
-			arg->log_prec0 = NULL;
-			arg->log_prec1 = NULL;
-			arg->log_prec2 = NULL;
-			arg->rho_intern01 = NULL;
-			arg->rho_intern02 = NULL;
-			arg->rho_intern12 = NULL;
-		} else if (mb->f_id[mb->nf] == F_3DIIDWISHARTPART2) {
-			mb->f_Qfunc[mb->nf] = Qfunc_3diid_wishart_part22;
-			mb->f_id[mb->nf] = F_3DIIDWISHARTPART2;
-
-			arg->log_prec0 = NULL;
-			arg->log_prec1 = NULL;
-			arg->log_prec2 = NULL;
-			arg->rho_intern01 = NULL;
-			arg->rho_intern02 = NULL;
-			arg->rho_intern12 = NULL;
-		} else {
-			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-		}
-		/*
-		 * yes, we just make the graph for one at the time, since the interaction part is added in the ff_Qfunc part
-		 */
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->n, 0, 0);
-	} else if (mb->f_id[mb->nf] == F_3DIIDWISHART) {
-		inla_3diid_arg_tp *arg = NULL;
-
-		mb->f_N[mb->nf] = 3 * mb->f_n[mb->nf];
-		arg = Calloc(1, inla_3diid_arg_tp);
-		arg->n = mb->f_n[mb->nf];
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 0;
-		arg->log_prec0 = log_prec0;
-		arg->log_prec1 = log_prec1;
-		arg->log_prec2 = log_prec2;
-		arg->rho_intern01 = rho_intern01;
-		arg->rho_intern02 = rho_intern02;
-		arg->rho_intern12 = rho_intern12;
-		mb->f_Qfunc[mb->nf] = Qfunc_3diid_wishart;
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		inla_make_3diid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
 	} else if (mb->f_id[mb->nf] == F_IID3D) {
 		inla_iid3d_arg_tp *arg = NULL;
 
@@ -9203,17 +8785,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * add groups! 
 			 */
-
-			if (mb->f_id[mb->nf] == F_2DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_2DIIDWISHARTPART1 ||
-			    mb->f_id[mb->nf] == F_3DIIDWISHARTPART0 || mb->f_id[mb->nf] == F_3DIIDWISHARTPART1 || mb->f_id[mb->nf] == F_3DIIDWISHARTPART2) {
-				/*
-				 * these models does not work 
-				 */
-				GMRFLib_sprintf(&msg, "Cannot have ngroup > 1 for model: %s", model);
-				inla_error_general(msg);
-				exit(1);
-			}
-
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), "EXCHANGEABLE"));
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUPMODEL"), ptmp));
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
@@ -11127,62 +10698,6 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 			}
 
-			case F_2DIIDWISHART:
-			case F_2DIIDWISHARTPART0:
-			{
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_2DIIDWISHART* is not yet prepared for ngroup > 1\n");
-					exit(1);
-				}
-				assert(mb->f_ntheta[i] == 3);  /* yes */
-				if (!mb->f_fixed[i][0]) {
-					log_precision0 = theta[count];
-					count++;
-				} else {
-					log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][1]) {
-					log_precision1 = theta[count];
-					count++;
-				} else {
-					log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][2]) {
-					rho_intern = theta[count];
-					count++;
-				} else {
-					rho_intern = mb->f_theta[i][2][GMRFLib_thread_id][0];
-				}
-				precision0 = map_precision(log_precision0, MAP_FORWARD, NULL);
-				precision1 = map_precision(log_precision1, MAP_FORWARD, NULL);
-				rho = map_rho(rho_intern, MAP_FORWARD, NULL);
-				n = (double) mb->f_n[i];       /* yes */
-				val += mb->f_nrep[i] * (normc * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
-							+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
-							+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
-
-				nfixed = mb->f_fixed[i][0] + mb->f_fixed[i][1] + mb->f_fixed[i][2];
-				if (nfixed == 1 || nfixed == 2) {
-					static char first = 1;
-					if (first)
-						fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-							nfixed);
-					first = 0;
-				}
-				tvec[0] = precision0;
-				tvec[1] = precision1;
-				tvec[2] = rho;
-				/*
-				 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-				 * log_precision1, rho_intern). 
-				 */
-				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-				    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-				    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-				    + log(map_rho(rho_intern, MAP_DFORWARD, NULL));
-				break;
-			}
-
 			case F_IID2D:
 			{
 				assert(mb->f_ntheta[i] == 3);  /* yes */
@@ -11237,127 +10752,6 @@ double extra(double *theta, int ntheta, void *argument)
 				    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
 				    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
 				    + log(map_rho(rho_intern, MAP_DFORWARD, NULL));
-				break;
-			}
-
-			case F_3DIIDWISHART:
-			case F_3DIIDWISHARTPART0:
-			{
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_3DIIDWISHART* is not yet prepared for ngroup > 1\n");
-					exit(1);
-				}
-				assert(mb->f_ntheta[i] == 6);  /* yes */
-				if (!mb->f_fixed[i][0]) {
-					log_precision0 = theta[count];
-					count++;
-				} else {
-					log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][1]) {
-					log_precision1 = theta[count];
-					count++;
-				} else {
-					log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][2]) {
-					log_precision2 = theta[count];
-					count++;
-				} else {
-					log_precision2 = mb->f_theta[i][2][GMRFLib_thread_id][0];
-				}
-
-				if (!mb->f_fixed[i][3]) {
-					rho_intern01 = theta[count];
-					count++;
-				} else {
-					rho_intern01 = mb->f_theta[i][3][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][4]) {
-					rho_intern02 = theta[count];
-					count++;
-				} else {
-					rho_intern02 = mb->f_theta[i][4][GMRFLib_thread_id][0];
-				}
-				if (!mb->f_fixed[i][5]) {
-					rho_intern12 = theta[count];
-					count++;
-				} else {
-					rho_intern12 = mb->f_theta[i][5][GMRFLib_thread_id][0];
-				}
-
-				precision0 = map_precision(log_precision0, MAP_FORWARD, NULL);
-				precision1 = map_precision(log_precision1, MAP_FORWARD, NULL);
-				precision2 = map_precision(log_precision2, MAP_FORWARD, NULL);
-				rho01 = map_rho(rho_intern01, MAP_FORWARD, NULL);
-				rho02 = map_rho(rho_intern02, MAP_FORWARD, NULL);
-				rho12 = map_rho(rho_intern12, MAP_FORWARD, NULL);
-				tvec[0] = precision0;
-				tvec[1] = precision1;
-				tvec[2] = precision2;
-				tvec[3] = rho01;
-				tvec[4] = rho02;
-				tvec[5] = rho12;
-
-				Q = gsl_matrix_calloc(3, 3);
-				fail = inla_wishart3d_adjust(&tvec[3]);
-				if (fail != GMRFLib_SUCCESS) {
-					rho01 = tvec[3];
-					rho02 = tvec[4];
-					rho12 = tvec[5];
-				}
-				gsl_matrix_set(Q, 0, 0, 1.0 / precision0);
-				gsl_matrix_set(Q, 1, 1, 1.0 / precision1);
-				gsl_matrix_set(Q, 2, 2, 1.0 / precision2);
-				gsl_matrix_set(Q, 0, 1, rho01 / sqrt(precision0 * precision1));
-				gsl_matrix_set(Q, 0, 2, rho02 / sqrt(precision0 * precision2));
-				gsl_matrix_set(Q, 1, 2, rho12 / sqrt(precision1 * precision2));
-				gsl_matrix_set(Q, 1, 0, gsl_matrix_get(Q, 0, 1));
-				gsl_matrix_set(Q, 2, 0, gsl_matrix_get(Q, 0, 2));
-				gsl_matrix_set(Q, 2, 1, gsl_matrix_get(Q, 1, 2));
-				GMRFLib_gsl_spd_inverse(Q);
-
-				// GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);
-				logdet = GMRFLib_gsl_spd_logdet(Q);
-				gsl_matrix_free(Q);
-
-				n = (double) mb->f_n[i];
-				val += mb->f_nrep[i] * (normc * 3.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=3n */
-							+(n - mb->f_rankdef[i]) / 2.0 * logdet);
-				if (fail) {
-					val += PENALTY;
-				}
-				nfixed = mb->f_fixed[i][0] + mb->f_fixed[i][1] + mb->f_fixed[i][2] + mb->f_fixed[i][3] + mb->f_fixed[i][4] + mb->f_fixed[i][5];
-				if (nfixed) {
-					static char first = 1;
-					if (first)
-						fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-							nfixed);
-					first = 0;
-				}
-				/*
-				 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-				 * log_precision1, rho_intern). 
-				 */
-				val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-				    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-				    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-				    + log(map_precision(log_precision2, MAP_DFORWARD, NULL))
-				    + log(map_rho(rho_intern01, MAP_DFORWARD, NULL))
-				    + log(map_rho(rho_intern02, MAP_DFORWARD, NULL))
-				    + log(map_rho(rho_intern12, MAP_DFORWARD, NULL));
-				break;
-			}
-
-			case F_2DIIDWISHARTPART1:
-			case F_3DIIDWISHARTPART1:
-			case F_3DIIDWISHARTPART2:
-			{
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_[23]DIIDWISHART* is not yet prepared for ngroup > 1\n");
-					exit(1);
-				}
-				assert(mb->f_ntheta[i] == 0);
 				break;
 			}
 

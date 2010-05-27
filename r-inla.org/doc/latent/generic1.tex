@@ -48,16 +48,13 @@ where {\tt <Cmat>} can be given in two different ways:
     where $i$ and $j$ are the row and column index and
     $\mathbf{C}_{ij}$ is the corresponding element of the precision
     matrix. Only the non-zero elements of the precision matrix need to
-    be stored in the file. {\bf NOTE:} the indexes for $i$ and $j$
-    start from 0, as this matrix is passed directly into the
-    \texttt{inla}-program.
+    be stored in the file.
 \end{itemize}
 
 \subsection*{Example}
 \begin{verbatim}
 
-n = 10
-
+n = 100
 #build a structure matrix
 Cm = matrix(runif(n^2,min=-1,max=1),n,n)
 diag(Cm) = 0
@@ -65,7 +62,7 @@ Cm = 0.5*(Cm + t(Cm))
 lambda.max = max(eigen(Cm)$values)
 
 #define the precision matrix
-beta = 0.5
+beta = 0.9
 Q = diag(rep(1,n)) - beta/lambda.max * Cm
 Sigma = solve(Q)
 
@@ -82,21 +79,20 @@ cat("",file=file, append = FALSE)
 for(i in 1:n)
 {
     j = i
-    cat(i,j,Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
+    cat(i, j, Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
     if (i < n)
         for(j in (i+1):n)
             cat(i, j, Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
 }
 
-
 idx = 1:n
-formula = y ~ f(idx, model = "generic1", Cmatrix = file, initial=c(0,0),fixed=c(F,F) ) + z
+formula = y ~ f(idx, model = "generic1", Cmatrix = file,
+                initial=c(0,0),fixed=c(F,F) ) + z
 
 d = list(y=y,idx=idx,z=z)
 result = inla(formula, data=d,family="gaussian",
-              control.data = list(initial = log(1/sd^2), fixed=TRUE))
-
-
+              control.data = list(initial = log(1/sd^2), fixed=TRUE),
+              verbose=T)
 
 \end{verbatim}
 
