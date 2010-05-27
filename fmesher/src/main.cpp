@@ -646,7 +646,14 @@ int koala_test()
 
 int main()
 {
-  DTsphere_test2();
+
+  fmesh::SparseMatrix<double> M;
+  M.assign(10,12,1.0);
+  M.assign(1,2,2.0);
+  M.assign(9,12,3.0);
+  M.assign(10,12,0.0);
+  cout << M;
+
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
