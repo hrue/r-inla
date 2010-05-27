@@ -13,6 +13,7 @@
 #include <string>
 
 #include "xtmpl.h"
+#include "vector.h"
 
 #define Mesh_V_capacity_doubling_limit 8192
 #define Mesh_V_capacity_step_size 1024
@@ -35,7 +36,6 @@ namespace fmesh {
   class MOAdouble3;
   class MeshC;
 
-  typedef double Point[3];
   typedef int Int3[3];
   typedef std::pair<int,int> IntPair;
   typedef std::list<int> vertexListT;
@@ -44,101 +44,6 @@ namespace fmesh {
   typedef std::list<constrT> constrListT;
   typedef std::list<Dart> DartList;
   typedef std::pair<Dart,Dart> DartPair;
-
-  struct Vec {  
-    static void copy(Point& s, const Point& s0)
-    {
-      s[0] = s0[0];
-      s[1] = s0[1];
-      s[2] = s0[2];
-    };
-    static void rescale(Point& s, double s1)
-    {
-      s[0] *= s1;
-      s[1] *= s1;
-      s[2] *= s1;
-    };
-    static void scale(Point& s, const Point& s0, double s1)
-    {
-      s[0] = s0[0]*s1;
-      s[1] = s0[1]*s1;
-      s[2] = s0[2]*s1;
-    };
-    static void diff(Point& s,const Point& s0, const Point& s1)
-    {
-      s[0] = s0[0]-s1[0];
-      s[1] = s0[1]-s1[1];
-      s[2] = s0[2]-s1[2];
-    };
-    static void sum(Point& s,const Point& s0, const Point& s1)
-    {
-      s[0] = s0[0]+s1[0];
-      s[1] = s0[1]+s1[1];
-      s[2] = s0[2]+s1[2];
-    };
-    static void accum(Point& s, const Point& s0, double s1 = 1.0)
-    {
-      s[0] += s0[0]*s1;
-      s[1] += s0[1]*s1;
-      s[2] += s0[2]*s1;
-    };
-    static double scalar(const Point& s0, const Point& s1)
-    {
-      return (s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2]);
-    };
-    static double length(const Point& s0)
-    {
-      return (std::sqrt(s0[0]*s0[0]+s0[1]*s0[1]+s0[2]*s0[2]));
-    };
-    static void cross(Point& s, const Point& s0, const Point& s1)
-    {
-      s[0] = s0[1]*s1[2]-s0[2]*s1[1];
-      s[1] = s0[2]*s1[0]-s0[0]*s1[2];
-      s[2] = s0[0]*s1[1]-s0[1]*s1[0];
-    };
-    static double cross2(const Point& s0, const Point& s1)
-    {
-      return (s0[0]*s1[1]-s0[1]*s1[0]);
-    };
-    /*!
-      "Volume product" = scalar(cross(s0,s1),s2)
-     */
-    static double volume(const Point& s0, const Point& s1, const Point& s2)
-    {
-      return ((s0[1]*s1[2]-s0[2]*s1[1])*s2[0]+
-	      (s0[2]*s1[0]-s0[0]*s1[2])*s2[1]+
-	      (s0[0]*s1[1]-s0[1]*s1[0])*s2[2]);
-    };
-    static double angle(const Point& s0, const Point& s1)
-    {
-      Point s0xs1;
-      cross(s0xs1,s0,s1);
-      return std::atan2(length(s0xs1),scalar(s0,s1));
-    };
-    /*!
-      Calculate an arbitrary perpendicular vector.
-
-      Michael M. Stark, Efficient Construction of Perpendicular
-      Vectors without Branching, Journal of graphics, gpu, and game
-      tools, Vol. 14, No. 1: 55-62, 2009
-    */
-#define ABS(X) std::fabs(X)
-#define SIGNBIT(X) ((unsigned int)(std::signbit(X) != 0))
-    static void arbitrary_perpendicular(Point& n, const Point& v)
-    {
-      const unsigned int uyx = SIGNBIT(ABS(v[0]) - ABS(v[1]));
-      const unsigned int uzx = SIGNBIT(ABS(v[0]) - ABS(v[2]));
-      const unsigned int uzy = SIGNBIT(ABS(v[1]) - ABS(v[2]));
-      const unsigned int xm = uyx & uzx;
-      const unsigned int ym = (1^xm) & uzy;
-      const unsigned int zm = 1^(xm & ym);
-      std::cout << uyx << ' ' << uzx << ' ' << uzy << std::endl;
-      std::cout << xm << ' ' << ym << ' ' << zm << std::endl;
-      n[0] =  zm*v[1] - ym*v[2];
-      n[1] =  xm*v[2] - zm*v[0];
-      n[2] =  ym*v[0] - xm*v[1];
-    };
-  };
 
 
   class Mesh {
