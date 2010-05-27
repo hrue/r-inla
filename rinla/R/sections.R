@@ -198,7 +198,8 @@
 
         if (!is.null(random.spec$Cmatrix)) {
             if (is.character(random.spec$Cmatrix)) {
-                cat("Cmatrix = ",random.spec$Cmatrix,"\n",append=TRUE, sep = " ", file = file)
+                fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
+                cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
             } else {
                 inla.check.sparse.matrix(random.spec$Cmatrix)
 
@@ -224,7 +225,7 @@
                                ", length(random.spec$Cmatrix$j)", length(random.spec$Cmatrix$j),
                                ", length(random.spec$Cmatrix$values)", length(random.spec$Cmatrix$values)))
                 }
-                write(t(cbind(random.spec$Cmatrix$i -1 , random.spec$Cmatrix$j - 1, random.spec$Cmatrix$values)),
+                write(t(cbind(random.spec$Cmatrix$i, random.spec$Cmatrix$j, random.spec$Cmatrix$values)),
                       ncolumns=3,file=file.C,append=FALSE)
                 file.C = gsub(data.dir, "$DATADIR", file.C, fixed=TRUE)
                 cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
