@@ -9,7 +9,7 @@ formula = inla.surv(Leuk$time, Leuk$cens) ~ sex + age +
     f(inla.group(tpi), model="rw2")+
     f(district,model="besag",graph.file = g)
 
-result = inla(formula, family="piecewise.constant",
+result = inla(formula, family="coxph",
         data=Leuk, verbose=TRUE, 
         control.hazard=list(model="rw1", n.intervals=20),
         control.inla=list(h=0.05))

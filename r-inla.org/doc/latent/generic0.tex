@@ -34,8 +34,8 @@ The generic0 models is specified inside the {\tt f()} function as
 
 where {\tt <Cmat>} can be given in two different ways:
 \begin{itemize}
-\item a list of type {\tt Cmatrix = list(i = c(), j = c(), Cij =
-        c())}, where {\tt i}, {\tt j} and {\tt Cij} are vectors of the
+\item a list of type {\tt Cmatrix = list(i = c(), j = c(), values =
+        c())}, where {\tt i}, {\tt j} and {\tt values} are vectors of the
     non-zero elements of $\mathbf{C}$. Note that {\tt i} and {\tt j}
     start from 1, and only the upper or lower part of $\mathbf{C}$ has
     to be given.
@@ -47,9 +47,7 @@ where {\tt <Cmat>} can be given in two different ways:
     where $i$ and $j$ are the row and column index and
     $\mathbf{C}_{ij}$ is the corresponding element of the precision
     matrix. Only the non-zero elements of the precision matrix need to
-    be stored in the file.  {\bf NOTE:} the indexes for $i$ and $j$
-    must start from 0, as this matrix is passed directly into the
-    \texttt{inla}-program.
+    be stored in the file.  
 \end{itemize}
 See the following example for an application
 
@@ -67,18 +65,18 @@ data=data.frame(y=y,z=z)
 #specify Cmatrix
 i=c(1:n,1:(n-1))
 j=c(1:n,2:n)
-Cij=c(1,rep(2,n-2),1,rep(-1,n-1))
+values=c(1,rep(2,n-2),1,rep(-1,n-1))
 
 #pass the C matrix as a list
 
 #note that for the generic0 model constraints and diagonal have to be defined by the user
-formula= y~f(z,model="generic0",Cmatrix=list(i = i, j = j, Cij = Cij),
+formula= y~f(z,model="generic0",Cmatrix=list(i = i, j = j, values = values),
              rankdef=1,constr=TRUE,diagonal=1e-05)
 result=inla(formula,data=data,family="gaussian")
 
 #pass the C matrix as a file
 file.name="Cmatrix.dat"
-write.table(cbind(i-1,j-1,Cij),file=file.name,col.name=F,row.name=F)
+write.table(cbind(i,j,values),file=file.name,col.name=F,row.name=F)
 formula1= y~f(z,model="generic0",Cmatrix=file.name,rankdef=1,rankdef=1,constr=TRUE,diagonal=1e-05)
 result1=inla(formula1,data=data,family="gaussian")
 
