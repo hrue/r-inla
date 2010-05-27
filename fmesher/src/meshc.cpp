@@ -589,8 +589,9 @@ namespace fmesh {
     MESHC_LOG("Locating node " << v
 	      << " " << M_->S(v) << endl);
 
-    td = M_->locatePoint(ed,M_->S(v));
+    td = M_->locatePoint(ed,M_->S(v),v);
     if (td.isnull()) { return Dart(); }; /* ERROR, not found! */
+    if (td.v() == v) { return td; } /* Node already inserted! */
     td = Dart(*M_,td.t());
     Point bary;
     M_->barycentric(td,M_->S(v),bary);
@@ -693,8 +694,10 @@ namespace fmesh {
   */
   bool MeshC::CETsphere(int sides, double margin)
   {
-    if (state_ != State_noT)
-      return false; /* Cannot TODO: Add convex enclosure? */
+    if (state_ != State_noT) {
+      MESHC_LOG("Cannot add convex enclosure to existing triangulation.");
+      return false;
+    }
 
     if (M_->type() != Mesh::Mtype_sphere) {
       MESHC_LOG("Mesh type mismatch: "
@@ -759,14 +762,131 @@ namespace fmesh {
       margin = -diameter*margin;
     }
     
-    MESHC_LOG("diameter = " << diameter << endl);
-    MESHC_LOG("margin = " << margin <<endl);
+    MESHC_LOG_("diameter = " << diameter << endl);
+    MESHC_LOG_("margin = " << margin <<endl);
 
-    if (diameter+2*margin>=M_PI) {
+    if (diameter+2*margin+margin>=M_PI) {
       /* The whole sphere needs to be covered. */
       MESHC_LOG("Cover the whole sphere.");
       NOT_IMPLEMENTED;
-      return false;
+
+      if (nV<3) { /* Not enough points for even one triangle,
+		     needs special treatment. */
+	NOT_IMPLEMENTED;
+	return false;
+      }
+      
+      /*
+	1. Pick a point v0.
+	2. Find the point v1 that minimises (s0s1+1/3)^2
+	3. Find the point v2 that minimises
+	     (s0s2+1/3)^2+(s1s2+1/3)^2
+	4. Reorder to a CCW triangle (s0,s1,s2)
+	5. Find any point v3 in the triangle (-s0,-s1,-s2)
+	6. If no point found in 5., add a vertex at -(s0+s1+s2)/\|s0+s1+s2\|
+	6. Create triangles (v0,v1,v2), (v2,v1,v3), (v0,v2,v3), (v1,v0,v3)
+       */
+
+      int v0 = 0;
+      Point const * s0 = &(M_->S(v0));
+      int v1 = -1;
+      int v2 = -1;
+      int v3 = -1;
+      Point const * s1 = NULL;
+      Point const * s2 = NULL;
+
+      MESHC_LOG_("First point," << 
+		 " v0=" << v0 <<
+		 " s0=" << *s0 << endl);
+
+      /* Find suitable v1: */
+      double loss = 16.0/9.0+1.0;
+      for (int v=0; v<nV; v++) {
+	if (v==v0) continue;
+	double loss_ = (Vec::scalar(*s0,M_->S(v))+1.0/3.0);
+	loss_ *= loss_;
+	if (loss_ < loss) {
+	  loss = loss_;
+	  v1 = v;
+	}
+      }
+      s1 = &(M_->S(v1));
+
+      MESHC_LOG_("Second point," << 
+		 " v1=" << v1 <<
+		 " s1=" << *s1 << endl);
+
+      /* Find suitable v2: */
+      loss = 16.0/9.0+16.0/9.0+1.0;
+      for (int v=0; v<nV; v++) {
+	if ((v==v0) || (v==v1)) continue;
+	double loss0_ = (Vec::scalar(*s0,M_->S(v))+1.0/3.0);
+	double loss1_ = (Vec::scalar(*s1,M_->S(v))+1.0/3.0);
+	double loss_ = loss0_*loss0_+loss1_*loss1_;
+	if (loss_ < loss) {
+	  loss = loss_;
+	  v2 = v;
+	}
+      }
+      s2 = &(M_->S(v2));
+
+      MESHC_LOG_("Third point," << 
+		 " v2=" << v2 <<
+		 " s2=" << *s2 << endl);
+
+      /* Make sure we have a CCW triangle: */
+      if (Vec::volume(*s0,*s1,*s2) < 0.0) {
+	int v = v2;
+	v2 = v1;
+	v1 = v;
+	s1 = &(M_->S(v1));
+	s2 = &(M_->S(v2));
+
+	MESHC_LOG_("Swapped second and third point." << endl);
+      }
+
+      /* Calculate the inward normals of the triangle. */
+      Point s0xs1; Vec::cross(s0xs1,*s0,*s1);
+      Point s1xs2; Vec::cross(s1xs2,*s1,*s2);
+      Point s2xs0; Vec::cross(s2xs0,*s2,*s0);
+
+      /* Find a point in the opposing triangle: */
+      Point outside;
+      outside[0] = 0.0;
+      outside[1] = 0.0;
+      outside[2] = 0.0;
+      for (int v=0; v<nV; v++) {
+	if ((v==v0) || (v==v1) || (v==v2)) continue;
+	Point outside_;
+	outside_[0] = Vec::scalar(s1xs2,M_->S(v));
+	outside_[1] = Vec::scalar(s2xs0,M_->S(v));
+	outside_[2] = Vec::scalar(s0xs1,M_->S(v));
+	if ((outside_[0] < outside[0]) &&
+	    (outside_[1] < outside[1]) &&
+	    (outside_[2] < outside[2])) {
+	  Vec::copy(outside,outside_);
+	  v3 = v;
+	}
+      }
+      if (v3<0) {
+	Point s3;
+	Vec::sum(s3,*s0,*s1);
+	Vec::accum(s3,*s2);
+	Vec::rescale(s3,-1.0/Vec::length(s3));
+	v3 = addVertices(&s3,1);
+	MESHC_LOG_("Needed to add an extra vertex." << endl);
+      }
+
+      MESHC_LOG_("Fourth point," << 
+		 " v3=" << v3 <<
+		 " s3=" << M_->S(v3) << endl);
+
+      /* Create triangles: */
+      Int3 TV[4] = {{v0,v1,v2},
+		    {v3,v2,v1},
+		    {v3,v0,v2},
+		    {v3,v1,v0}};
+      M_->TV_append(TV,4);
     } else {
       /* Calculate tight enclosure. */
       MESHC_LOG("Calculate tight enclosure.");
