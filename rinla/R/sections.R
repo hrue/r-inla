@@ -398,6 +398,9 @@
         cat("cdf = ",predictor.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     if(!is.null(file.offset))
         cat("offset = ", file.offset,"\n", sep = " ", file = file, append=TRUE)
+    if(!is.null(predictor.spec$prior))
+        cat("prior = ", predictor.spec$prior, sep = " ", file = file, append=TRUE)
+    ## hard-coded to have two parameters... FIX LATER
     if(!is.null(predictor.spec$param))
         cat("parameters = ",predictor.spec$param[1]," ",predictor.spec$param[2],"\n", sep = " ", file = file, append=TRUE)
     if(!is.null(predictor.spec$initial)) {
