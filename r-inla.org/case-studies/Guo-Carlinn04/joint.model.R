@@ -91,11 +91,8 @@ mod6 = inla(formula6, family = c("gaussian","exponential"),
 ##MODEL VII
 formula7 = Y ~ mu + b12.time + b13.timedrug + b14.sex + b15.prevoi +
   b16.stratum + b22.drug + b23.sex + b24.prevoi + b25.stratum - 1 +
-  f(U11 , model="2diidwishart",
-    param = c(23,100,100,0),
-    initial = c(-2.7,0.9,-0.22),
-    n=N, values = 1:(2*N)) +
-  f(U21, b12.time, copy="U11",values = 1:(2*N))
+  f(U11 , model="iid2d", param = c(23,100,100,0), initial = c(-2.7,0.9,-0.22), n=2*N) +
+  f(U21, b12.time, copy="U11")
 
 mod7 = inla(formula7, family = c("gaussian","exponential"),
   data = joint.data, verbose=TRUE, control.compute=list(dic=TRUE))

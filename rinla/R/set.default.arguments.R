@@ -254,8 +254,13 @@
          ##:ARGUMENT: quantiles A list of quantiles to compute for the linear predictor
          quantiles = NULL,
 
-         ## DO NOT ADD THESE
+         ##:ARGUMENT: fixed If the precision for the artificial noise is fixed or not (defualt TRUE)
          fixed=TRUE,
+
+         ##:ARGUMENT: prior The prior for the artificial noise
+         prior=NULL,
+
+         ##:ARGUMENT: param Prior parameters for the artificial noise
          param=NULL,
 
          ##:ARGUMENT: initial The value of the log precision of the artificial noise
@@ -265,7 +270,14 @@
          cross=NULL,
          
          ##:ARGUMENT: predictor.usermap One of the predfined mappings to compute new marginals for
-         predictor.usermap=NULL)
+         predictor.usermap=NULL,
+
+         ##:ARGUMENT: A The observation matrix A = list(i=..., j=..., values=...)
+         A = NULL,
+
+         ##:ARGUMENT precision The precision for eta - A*eta,
+         precision = 1e08)
+         
     ##:SEEALSO: inla
 }
 
