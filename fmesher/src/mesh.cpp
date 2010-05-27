@@ -919,14 +919,22 @@ namespace fmesh {
 	area = theta0+theta1+theta2+static_cast<double>(2*nneg-1)*M_PI;
 
 	/*
-	  New formula, not correct yet...
+	  New formula.
 	*/
+	double costh =
+	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
+	double sinth = Vec::volume(s0,s1,s2);
+	double area2 = 2.*std::atan2(sinth,costh);
+	if (area2<0)
+	  area2 += 4.*M_PI;
+	
+	cout << WHEREAMI << "Areas: (" << area << "," << area2
+	     << ") a2/a1 = " << area2/area << endl;
+
 	/*
 	double costh =
 	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
-	Point tmp1;
-	Vec::cross(tmp1,s0,s1);
-	double sinth = 2.*Vec::scalar(tmp1,s2)/Vec::length(e2);
+	double sinth = 2.*Vec::volume(s0,s1,s2)/Vec::length(e2);
 	double area2 = 2.*std::atan2(sinth,costh);
 	
 	cout << WHEREAMI << "Areas: (" << area << "," << area2
@@ -1909,6 +1917,23 @@ namespace fmesh {
 	  if (bary[1] > a) bary[1] = bary[1]-4.0*M_PI;
 	  if (bary[2] > a) bary[2] = bary[2]-4.0*M_PI;
 	}
+
+	/* "Official Barycentric coordinates, normalised: */
+	{
+	  const Point& s0 = S_[v0];
+	  const Point& s1 = S_[v1];
+	  const Point& s2 = S_[v2];
+	  Point vol;
+	  vol[0] = Vec::volume(s1,s2,s);
+	  vol[1] = Vec::volume(s2,s0,s);
+	  vol[2] = Vec::volume(s0,s1,s);
+	  Vec::rescale(bary,1.0/(bary[0]+bary[1]+bary[2]));
+	  cout << WHEREAMI << "Barycentric:\t" << bary << endl;
+	  Vec::rescale(vol,1.0/Vec::volume(s0,s1,s2));
+	  cout << WHEREAMI << "Unnormalised:\t" << vol << endl;
+	  Vec::rescale(vol,1.0/(vol[0]+vol[1]+vol[2]));
+	  cout << WHEREAMI << "Normalised:\t" << vol << endl;
+	}
       }
       break;
     }
@@ -1990,7 +2015,7 @@ namespace fmesh {
 
 
   /*!
-    Trace the geodesic path from a vertex to a point ar another vertex.
+    Trace the geodesic path from a vertex to a point or another vertex.
 
     Return a pair of darts identifying the starting vertex, together
     with the point containing triangle, or a dart originating at the
@@ -2022,9 +2047,9 @@ namespace fmesh {
     \endverbatim
    */
   DartPair Mesh::tracePath(const Dart& d0,
-		       const Point& s1,
-		       const int v1,
-		       DartList* trace) const
+			   const Point& s1,
+			   const int v1,
+			   DartList* trace) const
   {
     Dart dh;
     bool found, other;
@@ -2092,14 +2117,14 @@ namespace fmesh {
 
     If the point is not found, a null Dart is returned.
    */
-  Dart Mesh::locatePoint(const Dart& d0, const Point& s) const
+  Dart Mesh::locatePoint(const Dart& d0, const Point& s, const int v) const
   {
     Dart dh;
     if (d0.isnull())
       dh = Dart(*this,0);
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
-    return tracePath(dh,s).second;
+    return tracePath(dh,s,v).second;
   }
 
 

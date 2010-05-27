@@ -407,11 +407,13 @@ int DTsphere_test()
     //   M.useX11(true,useX11text,500,500,-0.1,0.1,0.6,0.8);
       M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
+  /*
   M.S_append(Sb,4);
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
   M.TV_set(TVb,4);
+  */
   MeshC MC(&M);
 
   fmesh::vertexListT vertices;
@@ -452,7 +454,7 @@ int DTsphere_test2()
   double S[4][3] = {{0.4,0.2,0.8},
 		    {0.4,-0.2,0.8},
 		    {-0.4,0.2,0.8},
-		    {-0.4,-0.2,0.8}};
+		    {-0.4,-0.2,-0.3}};
 
   Mesh M(Mesh::Mtype_sphere,0,useVT,useTTi);
   int t,vi,v,i;
@@ -644,6 +646,7 @@ int koala_test()
 
 int main()
 {
+  DTsphere_test2();
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
