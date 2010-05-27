@@ -134,8 +134,8 @@ function(...,
   \item{Cmatrix}{The specification of the precision matrix for the
     generic models (up to a scaling constant), and is only used if
     \code{model="generic0"} or \code{model="generic1"}.  \code{Cmatrix}
-    is a list of type \code{Cmatrix = list(i = c(), j = c(), Cij =
-    c())}, where \code{i}, \code{j} and \code{Cij} are vectors of the
+    is a list of type \code{Cmatrix = list(i = c(), j = c(), values =
+    c())}, where \code{i}, \code{j} and \code{values} are vectors of the
     non-zero elements of \code{C}. Note that \code{i} starts \code{1},
     and only the upper or lower part of \code{C} has to be given.
 
