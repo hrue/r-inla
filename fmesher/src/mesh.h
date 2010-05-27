@@ -100,6 +100,15 @@ namespace fmesh {
     {
       return (s0[0]*s1[1]-s0[1]*s1[0]);
     };
+    /*!
+      "Volume product" = scalar(cross(s0,s1),s2)
+     */
+    static double volume(const Point& s0, const Point& s1, const Point& s2)
+    {
+      return ((s0[1]*s1[2]-s0[2]*s1[1])*s2[0]+
+	      (s0[2]*s1[0]-s0[0]*s1[2])*s2[1]+
+	      (s0[0]*s1[1]-s0[1]*s1[0])*s2[2]);
+    };
     static double angle(const Point& s0, const Point& s1)
     {
       Point s0xs1;
@@ -244,7 +253,7 @@ namespace fmesh {
     Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
     DartPair tracePath(const Dart& d0, const Point& s,
 		       const int v = -1, DartList* trace = NULL) const;
-    Dart locatePoint(const Dart& d0, const Point& s) const;
+    Dart locatePoint(const Dart& d0, const Point& s, const int v = -1) const;
     Dart locateVertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
