@@ -76,7 +76,7 @@ function(...,
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "Cij", "method")
+    arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "method", "Cij")
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
         if (!is.element(elm, arguments)) {
@@ -104,9 +104,10 @@ function(...,
                 stop("Filename defined in argument `Cmatrix' does not exists.")
         }
         else {
-            if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$Cij))
-                stop("List defined in argument `Cmatrix' is not of type `Cmatrix = list(i=c(), j=c(), Cij=c())'")
-            if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$Cij))
+            inla.check.sparse.matrix(Cmatrix)
+            if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$values))
+                stop("List defined in argument `Cmatrix' is not of type `Cmatrix = list(i=c(), j=c(), values=c())'")
+            if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$values))
                 stop("Entries in the list `Cmatrix' has not equal length")
         }
 
@@ -114,7 +115,7 @@ function(...,
             ## find `n' from the Cmatrix
 
             if (is.character(Cmatrix)) {
-                cm = read.table(Cmatrix, col.names=c("i", "j", "Cij"))
+                cm = read.table(Cmatrix, col.names=c("i", "j", "values"))
                 n = max(cm$i, cm$j)
             } else {
                 n = max(Cmatrix$i, Cmatrix$j)
