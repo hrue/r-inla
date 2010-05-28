@@ -66,12 +66,18 @@ namespace fmesh {
     ~Matrix() {
       if (data_)
 	delete[] data_;
-      std::cout << "Capability = " << cap_
-		<< ", rows = " << rows_
-		<< ", cols = " << cols_
-		<< std::endl;
+      if (cap_>0)
+	std::cout << "Capability = " << cap_
+		  << ", rows = " << rows_
+		  << ", cols = " << cols_
+		  << std::endl;
     };
     void clear(void) {
+      if (cap_>0)
+	std::cout << "Capability = " << cap_
+		  << ", rows = " << rows_
+		  << ", cols = " << cols_
+		  << std::endl;
       if (data_) {
 	delete[] data_;
 	data_ = NULL;
