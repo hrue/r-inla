@@ -290,11 +290,17 @@ namespace fmesh {
     }
 
     /*!
+      \brief Append a vertex
+
+      Return index of the the added point.
+    */
+    int addVertex(const Point& s);
+    /*!
       \brief Append vertices
 
       Return index of the first of the added points.
     */
-    int addVertices(const Point (*S), int nV);
+    int addVertices(const Matrix3double& S);
 
     /*! Swap an edge, keeping track of extra swapable darts information. */
     Dart swapEdge(const Dart& d, MCQswapable& swapable);

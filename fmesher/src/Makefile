@@ -7,9 +7,9 @@ LDFLAGS = -lX11
 all: main
 
 $(OBJ): Makefile
-mesh.o: mesh.h
-meshc.o: meshc.h mesh.h
-main.o: fmesher.h mesh.h meshc.h predicates.h vector.h
+mesh.o: mesh.h vector.h
+meshc.o: meshc.h mesh.h vector.h
+main.o: fmesher.h mesh.h meshc.h predicates.h vector.h ioutils.h
 predicates.o: predicates.h
 
 main: $(OBJ) Makefile
