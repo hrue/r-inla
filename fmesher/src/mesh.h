@@ -15,8 +15,6 @@
 #include "xtmpl.h"
 #include "vector.h"
 
-#define Mesh_V_capacity_doubling_limit 8192
-#define Mesh_V_capacity_step_size 1024
 #define MESH_EPSILON 1e-15
 
 #ifndef NOT_IMPLEMENTED
@@ -36,7 +34,6 @@ namespace fmesh {
   class MOAdouble3;
   class MeshC;
 
-  typedef int Int3[3];
   typedef std::pair<int,int> IntPair;
   typedef std::list<int> vertexListT;
   typedef std::set<int> triangleSetT;
@@ -55,20 +52,15 @@ namespace fmesh {
 		Mtype_sphere};
   private:
     Mtype type_;
-    size_t Vcap_;
-    size_t Tcap_;
-    size_t nV_;
-    size_t nT_;
     bool use_VT_;
     bool use_TTi_;
-    Int3 (*TV_);  /* TV[t]  : {v1,v2,v3} */
-    Int3 (*TT_);  /* TT[t]  : {t1,t2,t3} */
-    int (*VT_);   /* VT[v]  : t,
+    Matrix3int TV_;  /* TV[t]  : {v1,v2,v3} */
+    Matrix3int TT_;  /* TT[t]  : {t1,t2,t3} */
+    Matrix1int VT_;  /* VT[v]  : t,
 		     v == TV[t][vi]  for some vi=0,1,2 */
-    Int3 (*TTi_); /* TTi[t] : {vi1,vi2,vi3},
+    Matrix3int TTi_; /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
-    //    double (*S_)[3];
-    Point (*S_);
+    Matrix3double S_;
     Xtmpl (*X11_);
     int X11_v_big_limit_;
     
@@ -94,14 +86,15 @@ namespace fmesh {
     void redrawX11(std::string str);
     
   public:
-    Mesh(void) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_VT_(false), use_TTi_(true),
-      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL),
-      X11_(NULL), X11_v_big_limit_(0) {};
-    Mesh(Mtype manifold_type, size_t Vcapacity, bool use_VT=true, bool use_TTi=false);
-    Mesh(const Mesh& M) : type_(Mtype_manifold), Vcap_(0), Tcap_(0),
-      nV_(0), nT_(0), use_VT_(true), use_TTi_(false),
-      TV_(NULL), TT_(NULL), TTi_(NULL), S_(NULL),
+    Mesh(void) : type_(Mtype_manifold),
+		 use_VT_(false), use_TTi_(true),
+		 TV_(), TT_(), VT_(), TTi_(), S_(),
+		 X11_(NULL), X11_v_big_limit_(0) {};
+    Mesh(Mtype manifold_type, size_t Vcapacity,
+	 bool use_VT=true, bool use_TTi=false);
+    Mesh(const Mesh& M) : type_(Mtype_manifold),
+			  use_VT_(true), use_TTi_(false),
+			  TV_(), TT_(), VT_(), TTi_(), S_(),
       X11_(NULL), X11_v_big_limit_(0) {
       *this = M;
     };
@@ -113,7 +106,7 @@ namespace fmesh {
       \brief Check the storage capacity, and increase if necessary
     */
     Mesh& check_capacity(size_t nVc, size_t nTc);
-    size_t Vcap() const { return Vcap_; }
+    size_t Vcap() const { return S_.capacity(); }
 
     bool useVT() const { return use_VT_; };
     Mesh& useVT(bool use_VT);
@@ -131,13 +124,13 @@ namespace fmesh {
 		 std::string name = "fmesher::Mesh");
 
     Mtype type() const { return type_; };
-    size_t nV() const { return nV_; };
-    size_t nT() const { return nT_; };
-    const Int3 (*TV() const) { return TV_; };
-    const Int3 (*TT() const) { return TT_; };
-    const int (*VT() const) { return VT_; };
-    const Int3 (*TTi() const) { return TTi_; };
-    const Point (*S() const) { return S_; };
+    size_t nV() const { return S_.rows(); };
+    size_t nT() const { return TV_.rows(); };
+    const Matrix3int& TV() const { return TV_; };
+    const Matrix3int& TT() const { return TT_; };
+    const Matrix1int& VT() const { return VT_; };
+    const Matrix3int& TTi() const { return TTi_; };
+    const Matrix3double& S() const { return S_; };
     const Int3& TV(int t) const { return TV_[t]; };
     const Int3& TT(int t) const { return TT_[t]; };
     const int& VT(int v) const { return VT_[v]; };
@@ -150,10 +143,11 @@ namespace fmesh {
     MOAint3 TTiO() const;
     MOAdouble3 SO() const;
     
-    Mesh& S_set(const double (*S)[3], int nV);
-    Mesh& TV_set(const int (*TV)[3], int nT); 
-    Mesh& S_append(const double (*S)[3], int nV);
-    Mesh& TV_append(const int (*TV)[3], int nT); 
+    Mesh& S_set(const Matrix3double& S);
+    Mesh& TV_set(const Matrix3int& TV); 
+    Mesh& S_append(const Point& s);
+    Mesh& S_append(const Matrix3double& S);
+    Mesh& TV_append(const Matrix3int& TV); 
 
     Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
     DartPair tracePath(const Dart& d0, const Point& s,
@@ -165,6 +159,7 @@ namespace fmesh {
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
 
+    Mesh& unlinkEdge(const Dart& d);
     Mesh& unlinkTriangle(const int t); 
     Mesh& relocateTriangle(const int t_source, const int t_target); 
     int removeTriangle(const int t); 
@@ -203,27 +198,27 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const MOAint& MO);
   private:
     size_t n_;
-    const int (*M_);
+    const Matrix1int (&M_);
   public:
-    MOAint(const int (*M),size_t n) : n_(n), M_(M) {};
+    MOAint(const Matrix1int (&M),size_t n) : n_(n), M_(M) {};
   };
 
   class MOAint3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAint3& MO);
   private:
     size_t n_;
-    const int (*M_)[3];
+    const Matrix3int (&M_);
   public:
-    MOAint3(const int (*M)[3],size_t n) : n_(n), M_(M) {};
+    MOAint3(const Matrix3int (&M),size_t n) : n_(n), M_(M) {};
   };
 
   class MOAdouble3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO);
   private:
     size_t n_;
-    const double (*M_)[3];
+    const Matrix3double (&M_);
   public:
-   MOAdouble3(const double (*M)[3],size_t n) : n_(n), M_(M) {};
+   MOAdouble3(const Matrix3double (&M),size_t n) : n_(n), M_(M) {};
   };
 
   std::ostream& operator<<(std::ostream& output, const Point& MO);
@@ -319,8 +314,6 @@ namespace fmesh {
     {
       return (!circumcircleOK());
     };
-
-    Dart& unlinkEdge(); 
 
     /* Graph traversal algebra. */
     Dart& alpha0(void);

@@ -529,7 +529,7 @@ namespace fmesh {
       }
     }
 
-    int v = addVertices(&s,1);
+    int v = addVertex(s);
     if ((state_>=State_RCDT) && big_.usingQv())
       big_.setQv(v,std::exp(std::log(big_.getQv(v0))*(1.-beta)+
 			    std::log(big_.getQv(v1))*beta));
@@ -873,7 +873,7 @@ namespace fmesh {
 	Vec::sum(s3,*s0,*s1);
 	Vec::accum(s3,*s2);
 	Vec::rescale(s3,-1.0/Vec::length(s3));
-	v3 = addVertices(&s3,1);
+	v3 = addVertex(s3);
 	MESHC_LOG_("Needed to add an extra vertex." << endl);
       }
 
@@ -882,11 +882,11 @@ namespace fmesh {
 		 " s3=" << M_->S(v3) << endl);
 
       /* Create triangles: */
-      Int3 TV[4] = {{v0,v1,v2},
-		    {v3,v2,v1},
-		    {v3,v0,v2},
-		    {v3,v1,v0}};
-      M_->TV_append(TV,4);
+      Int3Raw TV[4] = {{v0,v1,v2},
+		       {v3,v2,v1},
+		       {v3,v0,v2},
+		       {v3,v1,v0}};
+      M_->TV_append(Matrix3int(4,TV));
     } else {
       /* Calculate tight enclosure. */
       MESHC_LOG("Calculate tight enclosure.");
@@ -992,15 +992,15 @@ namespace fmesh {
 
       /* Construct enclosure triangles. */
       MESHC_LOG("Construct enclosure triangles.");
-      Int3* TV = new Int3[sides-2];
+      Int3Raw* TV = new Int3Raw[sides-2];
       for (i=0;i<sides-2;i++) {
 	TV[i][0] = nV+(0);
 	TV[i][1] = nV+(i+1);
 	TV[i][2] = nV+((i+2)%sides);
       }
 
-      M_->S_append(S,sides);
-      M_->TV_append(TV,sides-2);
+      M_->S_append(Matrix3double(sides,S));
+      M_->TV_append(Matrix3int(sides-2,TV));
 
       delete[] TV;
       delete[] S;
@@ -1138,8 +1138,8 @@ namespace fmesh {
       TV[i][2] = nV+((i+2)%sides);
     }
 
-    M_->S_append(S,sides);
-    M_->TV_append(TV,sides-2);
+    M_->S_append(Matrix3double(sides,S));
+    M_->TV_append(Matrix3int(sides-2,TV));
 
     MESHC_LOG("CET finished" << endl << *this);
     M_->redrawX11("CET finished");
@@ -1232,11 +1232,10 @@ namespace fmesh {
     if (state_>=State_CDT)
       return true; /* Nothing to do. Data structures already active. */
 
-    const int* tt;
     int vi;
     Dart d;
     for (int t=0;t<(int)M_->nT();t++) {
-      tt = M_->TT()[t];
+      const Int3& tt = M_->TT()[t];
       for (vi=0;vi<3;vi++)
 	if (tt[vi]<0) {
 	  d = Dart(*M_,t,1,(vi+1)%3);
@@ -1892,7 +1891,7 @@ namespace fmesh {
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (insertNode(addVertices(&c,1),dh).isnull()) {
+	if (insertNode(addVertex(c),dh).isnull()) {
 	  MESHC_LOG("Skinny triangle elimination failed" << endl);
 	  if (M_->useX11()) {
 	    char msg[] = "Skinny triangle elimination failed";
@@ -1913,7 +1912,7 @@ namespace fmesh {
 	if ((!buildRCDTlookahead(&boundary_,c)) ||
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
-	if (insertNode(addVertices(&c,1),dh).isnull()) {
+	if (insertNode(addVertex(c),dh).isnull()) {
 	  MESHC_LOG("Big triangle elimination failed failed" << endl);
 	  if (M_->useX11()) {
 	    char msg[] = "Big triangle elimination failed failed";
@@ -2032,15 +2031,25 @@ namespace fmesh {
 
 
 
-  int MeshC::addVertices(const Point (*S), int nV)
+  int MeshC::addVertex(const Point& s)
   {
     int nVorig = (int)M_->nV();
-    M_->S_append(S,nV);
+    M_->S_append(s);
     if ((state_>=State_RCDT) && big_.usingQv()) {
-      for (int v=nVorig;v<nVorig+nV;v++)
+      big_.setQv(nVorig,big_.getQ());
+    }
+    return M_->nV()-1;
+  };
+
+  int MeshC::addVertices(const Matrix3double& S)
+  {
+    int nVorig = (int)M_->nV();
+    M_->S_append(S);
+    if ((state_>=State_RCDT) && big_.usingQv()) {
+      for (int v=nVorig; v < nVorig+S.rows(); v++)
 	big_.setQv(v,big_.getQ());
     }
-    return M_->nV()-nV;
+    return M_->nV()-S.rows();
   };
 
 
@@ -2330,7 +2339,7 @@ namespace fmesh {
   void MeshC::unlinkEdge(Dart& d)
   {
     if (state_<State_CDT) {
-      d.unlinkEdge();
+      M_->unlinkEdge(d);
       return;
     }
 
@@ -2342,7 +2351,7 @@ namespace fmesh {
     }
     if (interior_.found(d)) interior_.erase(d);
     
-    d.unlinkEdge();
+    M_->unlinkEdge(d);
         
     if (!onboundary) {
       boundary_.erase(dh);
