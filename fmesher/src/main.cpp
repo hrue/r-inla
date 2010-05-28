@@ -11,7 +11,15 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+using fmesh::Matrix;
+using fmesh::Matrix3;
+using fmesh::Matrix3int;
+using fmesh::Matrix3double;
+using fmesh::Vector3;
+using fmesh::PointRaw;
+using fmesh::Int3Raw;
 using fmesh::Point;
+using fmesh::Int3;
 using fmesh::Mesh;
 using fmesh::Dart;
 using fmesh::MeshC;
@@ -23,45 +31,21 @@ const bool useX11text = false;
 const int maxiter = 1;
 
 
-int predicates_test()
-{
-  vector< Point* > S1;
-  double S2[5][3];
-  Point* p;
-
-  double a[3] = {1.0, 2.0, 3.0};
-  double b[3] = {1.0, 2.0, 3.0};
-  double c[3] = {1.0, 2.0, 3.0};
-  p = &a;
-
-  S1.push_back(&a);
-  S1.push_back(&b);
-  S1.push_back(&c);
-
-  fmesh::predicates::orient2d(a,b,c);
-  fmesh::predicates::orient2d(S2[0],S2[1],c);
-  fmesh::predicates::orient2d(*S1[0],*S1[1],c);
-
-  return 0;
-}
-
 int mesh_test()
 {
-  double S[4][3] = {{0.,0.,0.},
-		    {1.,0.,0.},
-		    {0.,1.,0.},
-		    {1.,1.,0.}};
-  int TV[2][3] = {{0,1,2},
-		  {3,2,1}};
-  // -std=c++0x
-  //  S[0] = {1.,2.,3.};
-  //  S[1] = {1.,2.,3.};
-  //std::sqrt(2.0);
+  PointRaw S[4] =
+    {{0.,0.,0.},
+     {1.,0.,0.},
+     {0.,1.,0.},
+     {1.,1.,0.}};
+  Int3Raw TV[2] =
+    {{0,1,2},
+     {3,2,1}};
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
-  M.S_set(S,4);
-  M.TV_set(TV,2);
+  M.S_set(Matrix3double(4,S));
+  M.TV_set(Matrix3int(2,TV));
 
   Mesh M2 = M;
 
@@ -72,8 +56,8 @@ int mesh_test()
   d = M.swapEdge(Dart(M,0,1,1));
   d = M.swapEdge(Dart(M,0,1,1));
   cout << M;
-  Point s = {0.2,0.2,0.0};
-  M.S_append(&s,1);
+  PointRaw s = {0.2,0.2,0.0};
+  M.S_append(Matrix3double(1,&s));
   cout << M;
   d = M.splitTriangle(Dart(M,1,1,0),M.nV()-1);
   cout << M;
@@ -104,7 +88,7 @@ int mesh_test()
 int CDT_test()
 {
   int n = 5;
-  Point S[5] = {{0.3,0.5,0},
+  PointRaw S[5] = {{0.3,0.5,0},
 		{0.6,0.6,0},
 		{0.7,0.5,0},
 		{0.7,0.4,0},
@@ -112,7 +96,7 @@ int CDT_test()
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
@@ -180,17 +164,17 @@ int DT2D_test()
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_append(Sb,4);
+  M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
-  M.TV_set(TVb,2);
+  M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
   fmesh::vertexListT vertices;
@@ -263,17 +247,17 @@ int DT2D_test2()
   }
   */
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
 
-  M.S_append(Sb,4);
+  M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
-  M.TV_set(TVb,2);
+  M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
   fmesh::vertexListT vertices;
@@ -296,7 +280,7 @@ int DT2D_test2()
 int DT2D_test3() /* Random points */
 {
   int n = 200;
-  fmesh::Point S[200];
+  PointRaw S[200];
   double Sb[4][3] = {{0.,0.,0.},
 		     {1.,0.,0.},
 		     {0.,1.,0.},
@@ -312,18 +296,18 @@ int DT2D_test3() /* Random points */
     S[v][2] = 0.0;
   }
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
         M.useX11(true,useX11text,500,500);
   //      M.useX11(true,useX11text,500,500,0.7,0.9,0.4,0.85);
 
-  M.S_append(Sb,4);
+  M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
-  M.TV_set(TVb,2);
+  M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
   fmesh::vertexListT vertices;
@@ -400,7 +384,7 @@ int DTsphere_test()
       Sb[v][i] = Sb[v][i]/l;
   }
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
@@ -408,11 +392,11 @@ int DTsphere_test()
       M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 
   /*
-  M.S_append(Sb,4);
+  M.S_append(Matrix3double(4,Sb));
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
       TVb[t][vi] += n; 
-  M.TV_set(TVb,4);
+  M.TV_set(Matrix3int(4,TVb));
   */
   MeshC MC(&M);
 
@@ -466,7 +450,7 @@ int DTsphere_test2()
       S[v][i] = S[v][i]/l;
   }
 
-  M.S_set(S,n);
+  M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
   if (useX11)
@@ -505,7 +489,7 @@ int DTsphere_test2()
 int koala_test()
 {
   int n = 15;
-  Point S[15] = {
+  PointRaw S[15] = {
     {585.6,3553.4,0.},
     {537.6,3497.6,0.},
     {1078.8,3825.8,0.},
@@ -524,7 +508,7 @@ int koala_test()
   };
 
   int nb = 45;
-  Point Sb[45] = {{
+  PointRaw Sb[45] = {{
 2125,4011.1,0.},{
 4.5,3975.8,0.},{
 3192.8,16.9,0.},{
@@ -573,7 +557,7 @@ int koala_test()
 		 //,{2125,4011.1,0.}
 };
   int ne = 4;
-  Point Se[4] = {{0.,0.,0.},
+  PointRaw Se[4] = {{0.,0.,0.},
 		 {5000.,0.,0.},
 		 {0.,5000.,0.},
 		 {5000.,5000.,0.}};
@@ -586,16 +570,16 @@ int koala_test()
   if (useX11)
     M.useX11(true,useX11text,500,500,-440,4400+440,-400-240,4000+400+240);
 
-  M.S_set(S,n);
-  M.S_append(Sb,nb);
+  M.S_set(Matrix3double(n,S));
+  M.S_append(Matrix3double(nb,Sb));
 
 
   /*
-  M.S_append(Se,ne);
+  M.S_append(Matrix3double(ne,Se));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
       TVe[t][vi] += n+nb;
-  M.TV_set(TVe,2);
+  M.TV_set(Matrix3int(2,TVe));
   MeshC MC(&M);
   */
 
@@ -647,12 +631,22 @@ int koala_test()
 int main()
 {
 
-  fmesh::SparseMatrix<double> M;
-  M.assign(10,12,1.0);
-  M.assign(1,2,2.0);
-  M.assign(9,12,3.0);
-  M.assign(10,12,0.0);
+  fmesh::Matrix3double M(5);
+  M(3)[1] = 1.0;
+  M(2,3) = 2.0;
+  const Point& s = M[3];
+  cout << s << endl;
   cout << M;
+  //  return 0;
+
+  fmesh::SparseMatrix<double> SM;
+  (SM(1,1) = 0.0) = 3.0;
+  SM(2,3) = 15.0;
+  SM.assign(10,12,1.0);
+  SM.assign(1,2,2.0);
+  SM.assign(9,12,3.0);
+  SM.assign(10,12,0.0);
+  cout << SM;
 
   for (int i=0;i<maxiter;i++) {
     CDT_test();

@@ -233,29 +233,18 @@ namespace fmesh {
 	     size_t V_capacity,
 	     bool use_VT,
 	     bool use_TTi) : type_(manifold_type),
-			     Vcap_(V_capacity), Tcap_(2*V_capacity),
-			     nV_(0), nT_(0),
 			     use_VT_(use_VT), use_TTi_(use_TTi),
+			     TV_(), TT_(), VT_(), TTi_(), S_(),
 			     X11_v_big_limit_(0)
   {
-    if (Vcap_ > 0) {
-      TV_ = new int[Vcap_][3];
-      TT_ = new int[Tcap_][3];
+    if (V_capacity > 0) {
+      TV_.capacity(V_capacity*2);
+      TT_.capacity(V_capacity*2);
       if (use_VT_)
-	VT_ = new int[Vcap_];
-      else
-	VT_ = NULL;
+	VT_.capacity(V_capacity);
       if (use_TTi_)
-	TTi_ = new int[Tcap_][3];
-      else
-	TTi_ = NULL;
-      S_ = new Point[Vcap_];
-    } else {
-      TV_ = NULL;
-      TT_ = NULL;
-      VT_ = NULL;
-      TTi_ = NULL;
-      S_ = NULL;
+	TTi_.capacity(V_capacity*2);
+      S_.capacity(V_capacity);
     }
     X11_ = NULL;
   };
@@ -267,17 +256,13 @@ namespace fmesh {
 
   Mesh& Mesh::clear()
   {
-    Vcap_ = 0;
-    Tcap_ = 0;
-    nV_ = 0;
-    nT_ = 0;
     use_VT_ = false;
     use_TTi_ = false;
-    if (TV_) { delete[] TV_; TV_ = NULL; }
-    if (TT_) { delete[] TT_; TT_ = NULL; }
-    if (VT_) { delete[] VT_; VT_ = NULL; }
-    if (TTi_) { delete[] TTi_; TTi_ = NULL; }
-    if (S_) { delete[] S_; S_ = NULL; }
+    TV_.clear();
+    TT_.clear();
+    VT_.clear();
+    TTi_.clear();
+    S_.clear();
     if (X11_) { delete X11_; X11_ = NULL; }
     return *this;
   }
@@ -294,53 +279,23 @@ namespace fmesh {
       X11_ = NULL;
     }
     X11_v_big_limit_ = M.X11_v_big_limit_;
-    S_set(M.S_,M.nV_);
-    TV_set(M.TV_,M.nT_);
+    S_set(M.S_);
+    TV_set(M.TV_);
     return *this;
   }
 
   Mesh& Mesh::check_capacity(size_t nVc, size_t nTc)
   {
-    if ((nVc <= Vcap_) && (nTc <= Tcap_))
-      return *this;
-    MESH_LOG("Increasing V-capacity from " << Vcap_ << endl)
-    while ((nVc > Vcap_) || (nTc > Tcap_)) {
-      if (Vcap_==0)
-	Vcap_ = Mesh_V_capacity_step_size;
-      else if (Vcap_<Mesh_V_capacity_doubling_limit)
-	Vcap_ *= 2;
-      else
-	Vcap_ += Mesh_V_capacity_step_size;
-      Tcap_ = 2*Vcap_;
-    }
-    MESH_LOG("V-capacity set to " << Vcap_ << endl)
-
-    int (*TV)[3] = new Int3[Tcap_];
-    int (*TT)[3] = new Int3[Tcap_];
-    int (*VT) = NULL;
-    if (use_VT_) VT = new int[Vcap_];
-    int (*TTi)[3] = NULL;
-    if (use_TTi_) TTi = new Int3[Tcap_];
-    double (*S)[3] = new Point[Vcap_];
-
-    if (TV_) {
-      if (TV_) memcpy(TV,TV_,sizeof(Int3)*nT_);
-      if (TT_) memcpy(TT,TT_,sizeof(Int3)*nT_);
-      if (VT_) memcpy(VT,VT_,sizeof(int)*nV_);
-      if (TTi_) memcpy(TTi,TTi_,sizeof(Int3)*nT_);
-      if (S_) memcpy(S,S_,sizeof(Point)*nV_);
-      if (TV_) delete[] TV_;
-      if (TT_) delete[] TT_;
-      if (VT_) delete[] VT_;
-      if (TTi_) delete[] TTi_;
-      if (S_) delete[] S_;
+    if (nVc > S_.capacity()) {
+      if (use_VT_) VT_.capacity(nVc);
+      S_.capacity(nVc);
     }
 
-    TV_ = TV;
-    TT_ = TT;
-    VT_ = VT;
-    TTi_ = TTi;
-    S_ = S;
+    if (nTc > TV_.capacity()) {
+      TV_.capacity(nTc);
+      TT_.capacity(nTc);
+      if (use_TTi_) TTi_.capacity(nTc);
+    }
 
     return *this;
   };
@@ -352,35 +307,34 @@ namespace fmesh {
     typedef IntPair E_Type;
     typedef std::map<E_Type,int> ET_Type;
     int t, vi;
-    int* TVt;
     E_Type E0,E1;
     ET_Type::const_iterator Ei;
     ET_Type ET;
     /* Pass 1: */
-    for (t=0; t<(int)nT_; t++) {
-      TVt = TV_[t];
+    for (t=0; t<(int)nT(); t++) {
+      const Int3& TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
 	E0 = IntPair(TVt[(vi+1)%3],TVt[(vi+2)%3]);
 	E1 = IntPair(TVt[(vi+2)%3],TVt[(vi+1)%3]);
 	Ei = ET.find(E1);
 	if (Ei != ET.end()) { /* Found neighbour */
-	  TT_[t][vi] = Ei->second;
+	  TT_(t)[vi] = Ei->second;
 	} else { /* Either on boundary, or not added yet. */
-	  TT_[t][vi] = -1;
+	  TT_(t)[vi] = -1;
 	}
 	ET.insert(ET_Type::value_type(E0,t));
       }
     }
 
     /* Pass 2: */
-    for (t=0; t<(int)nT_; t++) {
-      TVt = TV_[t];
+    for (t=0; t<(int)nT(); t++) {
+      const Int3& TVt = TV_[t];
       for (vi=0; vi<3; vi++) {
 	if (TT_[t][vi]>=0) continue;
 	E1 = IntPair(TVt[(vi+2)%3],TVt[(vi+1)%3]);
 	Ei = ET.find(E1);
 	if (Ei != ET.end()) { /* Found neighbour */
-	  TT_[t][vi] = Ei->second;
+	  TT_(t)[vi] = Ei->second;
 	}
       }
     }
@@ -392,24 +346,24 @@ namespace fmesh {
 
   Mesh& Mesh::updateVT(const int v, const int t)
   {
-    if ((!use_VT_) || (v>=(int)nV_) || (t>=(int)nT_) || (VT_[v]<0))
+    if ((!use_VT_) || (v>=(int)nV()) || (t>=(int)nT()) || (VT_[v]<0))
       return *this;
-    VT_[v] = t;
+    VT_(v) = t;
     return *this;
   }
 
   Mesh& Mesh::setVT(const int v, const int t)
   {
-    if ((!use_VT_) || (v>=(int)nV_) || (t>=(int)nT_))
+    if ((!use_VT_) || (v>=(int)nV()) || (t>=(int)nT()))
       return *this;
-    VT_[v] = t;
+    VT_(v) = t;
     return *this;
   }
 
   Mesh& Mesh::updateVTtri(const int t)
   {
     int vi;
-    if ((!use_VT_) || (t>=(int)nT_) || (t<0))
+    if ((!use_VT_) || (t>=(int)nT()) || (t<0))
       return *this;
     for (vi=0; vi<3; vi++)
       updateVT(TV_[t][vi],t);
@@ -419,7 +373,7 @@ namespace fmesh {
   Mesh& Mesh::setVTtri(const int t)
   {
     int vi;
-    if ((!use_VT_) || (t>=(int)nT_) || (t<0))
+    if ((!use_VT_) || (t>=(int)nT()) || (t<0))
       return *this;
     for (vi=0; vi<3; vi++)
       setVT(TV_[t][vi],t);
@@ -430,7 +384,7 @@ namespace fmesh {
   {
     if (!use_VT_) return *this;
     int t, vi;
-    for (t=t0; t<(int)nT_; t++)
+    for (t=t0; t<(int)nT(); t++)
       for (vi=0; vi<3; vi++)
 	updateVT(TV_[t][vi],t);
     return *this;
@@ -440,24 +394,19 @@ namespace fmesh {
   {
     if (!use_VT_) return *this;
     int v;
-    for (v=v0; v<(int)nV_; v++)
+    for (v=v0; v<(int)nV(); v++)
       setVT(v,-1);
     return *this;
   }
 
   Mesh& Mesh::rebuildVT()
   {
-    if (!use_VT_) {
-      if (VT_) {
-	delete[] VT_;
-	VT_ = NULL;
-      }
+    if ((!use_VT_) || (!S_.capacity())) {
+      VT_.clear();
       return *this;
     }
-    if (!Vcap_)
-      return *this;
-    if (!VT_)
-      VT_ = new int[Vcap_];
+    VT_.truncate(0);
+    VT_.capacity(S_.capacity());
     setVTv_private(0);
     updateVTtri_private(0);
     return *this;
@@ -467,30 +416,27 @@ namespace fmesh {
   {
     int t, vi, v, t2, vi2;
     if (!use_TTi_) {
-      if (TTi_) {
-	delete[] TTi_;
-	TTi_ = NULL;
-      }
+      TTi_.clear();
       return *this;
     }
-    if (!Tcap_)
+    TTi_.truncate(nT());
+    if (!TV_.capacity())
       return *this;
-    if (!TTi_)
-      TTi_ = new Int3[Tcap_];
-    for (t=0; t<(int)nT_; t++) {
+    TTi_.capacity(TV_.capacity());
+    for (t=0; t<(int)nT(); t++) {
       for (vi=0; vi<3; vi++) {
 	v = TV_[t][vi];
 	t2 = TT_[t][(vi+2)%3];
 	if (t2>=0) {
 	  for (vi2 = 0; (vi2<3) && (TV_[t2][vi2] != v); vi2++) { }
 	  if (vi2<3) {
-	    TTi_[t][(vi+2)%3] = (vi2+1)%3;
+	    TTi_(t)[(vi+2)%3] = (vi2+1)%3;
 	  } else {
 	    /* Error! This should never happen! */
 	    MESH_LOG("ERROR\n");
 	  }
 	} else {
-	  TTi_[t][(vi+2)%3] = -1;
+	  TTi_(t)[(vi+2)%3] = -1;
 	}
       }
     }
@@ -501,11 +447,6 @@ namespace fmesh {
   Mesh& Mesh::useVT(bool use_VT)
   {
     if (use_VT_ != use_VT) {
-      if ((!use_VT_) && (VT_)) {
-	/* This shouldn't happen. */
-	delete[] VT_;
-	VT_ = NULL;
-      }
       use_VT_ = use_VT;
       rebuildVT();
     }
@@ -515,11 +456,6 @@ namespace fmesh {
   Mesh& Mesh::useTTi(bool use_TTi)
   {
     if (use_TTi_ != use_TTi) {
-      if ((!use_TTi_) && (TTi_)) {
-	/* This shouldn't happen. */
-	delete[] TTi_;
-	TTi_ = NULL;
-      }
       use_TTi_ = use_TTi;
       rebuildTTi();
     }
@@ -563,27 +499,33 @@ namespace fmesh {
 
 
 
-  Mesh& Mesh::S_set(const double (*S)[3], int nV)
+  Mesh& Mesh::S_set(const Matrix3double& S)
   {
-    nV_ = 0; /* Avoid possible unnecessary copy. */
-    S_append(S,nV);
+    S_.truncate(0); /* Avoid possible unnecessary copy. */
+    S_append(S);
     return *this;
   }
   
-  Mesh& Mesh::TV_set(const int (*TV)[3], int nT)
+  Mesh& Mesh::TV_set(const Matrix3int& TV)
   {
-    nT_ = 0; /* Avoid possible unnecessary copy. */
-    TV_append(TV,nT);
+    TV_.truncate(0); /* Avoid possible unnecessary copy. */
+    TV_append(TV);
     return *this;
   }
 
-  Mesh& Mesh::S_append(const double (*S)[3], int nV)
+  Mesh& Mesh::S_append(const Point& s)
   {
-    check_capacity(nV_+nV,0);
-    memcpy(S_+nV_,S,sizeof(double)*nV*3);
-    nV_ += nV;
+    S_(nV()) = s;
     if (use_VT_)
-      setVTv_private(nV_-nV);
+      setVTv_private(nV()-1);
+    return *this;
+  }
+
+  Mesh& Mesh::S_append(const Matrix3double& S)
+  {
+    S_.append(S);
+    if (use_VT_)
+      setVTv_private(nV()-S.rows());
     return *this;
   }
 
@@ -594,11 +536,9 @@ namespace fmesh {
     int szbig = 5;
     int szsmall = 1;
 
-    Point& s = S_[v];
-
+    const Point& s = S_[v];
     bool otherside = (s[2]<0);
 
-    Vec::copy(s,S_[v]);
     if (type_==Mtype_sphere) {
       double offset(otherside ? X11_->width()/2.0 : 0.0);
       int sz = ((v<X11_v_big_limit_) ? szbig : szsmall);
@@ -616,7 +556,7 @@ namespace fmesh {
     int szbig = 5;
     int szsmall = 1;
 
-    int* v;
+    const Int3& v = TV_[t];
     Point s[3];
     Point s0;
     bool otherside = false;
@@ -624,7 +564,6 @@ namespace fmesh {
     s0[0] = 0.0;
     s0[1] = 0.0;
     s0[2] = 0.0;
-    v = TV_[t];
     for (int vi=0;vi<3;vi++) {
       Vec::copy(s[vi],S_[v[vi]]);
       Vec::accum(s0,s[vi],1.0/3.0);
@@ -699,9 +638,9 @@ namespace fmesh {
     if (!X11_) return;
 
     X11_->clear();
-    for (int v=0;v<(int)nV_;v++)
+    for (int v=0;v<(int)nV();v++)
       drawX11point(v,true);
-    for (int t=0;t<(int)nT_;t++)
+    for (int t=0;t<(int)nT();t++)
       drawX11triangle(t,true);
 
     if (true) {
@@ -715,13 +654,11 @@ namespace fmesh {
     }
   }
   
-  Mesh& Mesh::TV_append(const int (*TV)[3], int nT)
+  Mesh& Mesh::TV_append(const Matrix3int& TV)
   {
-    check_capacity(0,nT_+nT);
-    memcpy(TV_+nT_,TV,sizeof(int)*nT*3);
-    nT_ += nT;
+    TV_.append(TV);
     if (use_VT_)
-      updateVTtri_private(nT_-nT);
+      updateVTtri_private(nT()-TV.rows());
     rebuildTT();
     rebuildTTi();
     redrawX11(std::string("TV appended"));
@@ -770,7 +707,7 @@ namespace fmesh {
   double Mesh::edgeLength(const Dart& d) const
   {
     int t(d.t());
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
+    if ((t<0) || (t>=(int)nT())) return 0.0;
 
     return edgeLength(S_[d.v()],S_[d.vo()]);
   }
@@ -969,7 +906,7 @@ namespace fmesh {
 
   double Mesh::triangleArea(int t) const
   {
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
+    if ((t<0) || (t>=(int)nT())) return 0.0;
 
     Dart dh(Dart(*this,t));
     int v0 = dh.v();
@@ -1002,7 +939,7 @@ namespace fmesh {
   */
   void Mesh::triangleCircumcenter(int t, Point& c) const
   {
-    if ((t<0) || (t>=(int)nT_)) {
+    if ((t<0) || (t>=(int)nT())) {
       c[0] = 0.0;
       c[1] = 0.0;
       c[2] = 0.0;
@@ -1110,7 +1047,7 @@ namespace fmesh {
    */
   double Mesh::triangleCircumcircleRadius(int t) const
   {
-    if ((t<0) || (t>=(int)nT_)) return -1.0;
+    if ((t<0) || (t>=(int)nT())) return -1.0;
 
     int v0 = TV_[t][0];
     int v1 = TV_[t][1];
@@ -1124,7 +1061,7 @@ namespace fmesh {
 
   bool Mesh::triangleEdgeLengths(int t, Point& len) const
   {
-    if ((t<0) || (t>=(int)nT_)) return 0.0;
+    if ((t<0) || (t>=(int)nT())) return 0.0;
 
     Dart dh(*this,t);
     len[2] = edgeLength(dh);
@@ -1179,7 +1116,7 @@ namespace fmesh {
   /* > --> encroached */
   {
     int t(d.t());
-    if ((t<0) || (t>=(int)nT_)) return -1.0;
+    if ((t<0) || (t>=(int)nT())) return -1.0;
 
     const Point& s0 = S_[d.v()];
     const Point& s1 = S_[d.vo()];
@@ -1211,11 +1148,11 @@ namespace fmesh {
       NOT_IMPLEMENTED;
       break;
     case Mesh::Mtype_plane:
-      return predicates::orient2d(s0,s1,s);
+      return predicates::orient2d(s0.raw(),s1.raw(),s.raw());
       break;
     case Mesh::Mtype_sphere:
-      Point zero = {0.,0.,0.};
-      return -predicates::orient3d(s0,s1,zero,s);
+      Point zero(0.,0.,0.);
+      return -predicates::orient3d(s0.raw(),s1.raw(),zero.raw(),s.raw());
       break;
     }
     /* This should never be reached. */
@@ -1246,10 +1183,16 @@ namespace fmesh {
       //	return predicates::orient3d(M_->S[]);
       break;
     case Mesh::Mtype_plane:
-      return predicates::incircle(M_->S_[v0],M_->S_[v1],M_->S_[v2],s);
+      return predicates::incircle(M_->S_[v0].raw(),
+				  M_->S_[v1].raw(),
+				  M_->S_[v2].raw(),
+				  s.raw());
       break;
     case Mesh::Mtype_sphere:
-      return -predicates::orient3d(M_->S_[v0],M_->S_[v1],M_->S_[v2],s);
+      return -predicates::orient3d(M_->S_[v0].raw(),
+				   M_->S_[v1].raw(),
+				   M_->S_[v2].raw(),
+				   s.raw());
       break;
     }
     /* This should never be reached. */
@@ -1331,59 +1274,59 @@ namespace fmesh {
     drawX11triangle(t1,false);
 
     /* Step 2: Overwrite with new triangles. */
-    TV_[t0][0] = v_list[0];
-    TV_[t0][1] = v_list[3];
-    TV_[t0][2] = v_list[2];
-    TT_[t0][0] = t1;
-    TT_[t0][1] = tt_list[1];
-    TT_[t0][2] = tt_list[2];
+    TV_(t0)[0] = v_list[0];
+    TV_(t0)[1] = v_list[3];
+    TV_(t0)[2] = v_list[2];
+    TT_(t0)[0] = t1;
+    TT_(t0)[1] = tt_list[1];
+    TT_(t0)[2] = tt_list[2];
     if (use_TTi_) {
-      TTi_[t0][0] = 0;
-      TTi_[t0][1] = tti_list[1];
-      TTi_[t0][2] = tti_list[2];
+      TTi_(t0)[0] = 0;
+      TTi_(t0)[1] = tti_list[1];
+      TTi_(t0)[2] = tti_list[2];
     }
-    TV_[t1][0] = v_list[1];
-    TV_[t1][1] = v_list[2];
-    TV_[t1][2] = v_list[3];
-    TT_[t1][0] = t0;
-    TT_[t1][1] = tt_list[3];
-    TT_[t1][2] = tt_list[0];
+    TV_(t1)[0] = v_list[1];
+    TV_(t1)[1] = v_list[2];
+    TV_(t1)[2] = v_list[3];
+    TT_(t1)[0] = t0;
+    TT_(t1)[1] = tt_list[3];
+    TT_(t1)[2] = tt_list[0];
     if (use_TTi_) {
-      TTi_[t1][0] = 0;
-      TTi_[t1][1] = tti_list[3];
-      TTi_[t1][2] = tti_list[0];
+      TTi_(t1)[0] = 0;
+      TTi_(t1)[1] = tti_list[3];
+      TTi_(t1)[2] = tti_list[0];
     }
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
-      if (TT_[t0][1]>=0) TTi_[TT_[t0][1]][TTi_[t0][1]] = 1;
-      if (TT_[t0][2]>=0) TTi_[TT_[t0][2]][TTi_[t0][2]] = 2;
-      if (TT_[t1][1]>=0) TTi_[TT_[t1][1]][TTi_[t1][1]] = 1;
-      if (TT_[t1][2]>=0) TTi_[TT_[t1][2]][TTi_[t1][2]] = 2;
-      if (TT_[t0][1]>=0) TT_[TT_[t0][1]][TTi_[t0][1]] = t0;
-      if (TT_[t0][2]>=0) TT_[TT_[t0][2]][TTi_[t0][2]] = t0;
-      if (TT_[t1][1]>=0) TT_[TT_[t1][1]][TTi_[t1][1]] = t1;
-      if (TT_[t1][2]>=0) TT_[TT_[t1][2]][TTi_[t1][2]] = t1;
+      if (TT_[t0][1]>=0) TTi_(TT_[t0][1])[TTi_[t0][1]] = 1;
+      if (TT_[t0][2]>=0) TTi_(TT_[t0][2])[TTi_[t0][2]] = 2;
+      if (TT_[t1][1]>=0) TTi_(TT_[t1][1])[TTi_[t1][1]] = 1;
+      if (TT_[t1][2]>=0) TTi_(TT_[t1][2])[TTi_[t1][2]] = 2;
+      if (TT_[t0][1]>=0) TT_(TT_[t0][1])[TTi_[t0][1]] = t0;
+      if (TT_[t0][2]>=0) TT_(TT_[t0][2])[TTi_[t0][2]] = t0;
+      if (TT_[t1][1]>=0) TT_(TT_[t1][1])[TTi_[t1][1]] = t1;
+      if (TT_[t1][2]>=0) TT_(TT_[t1][2])[TTi_[t1][2]] = t1;
     } else {
       if (TT_[t0][1]>=0) {
 	dh = Dart(*this,t0,1,2).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t0;
+	TT_(dh.t())[dh.vi()] = t0;
       }
       if (TT_[t0][2]>=0) {
 	dh = Dart(*this,t0,1,0).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t0;
+	TT_(dh.t())[dh.vi()] = t0;
       }
       if (TT_[t1][1]>=0) {
 	dh = Dart(*this,t1,1,2).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t1;
+	TT_(dh.t())[dh.vi()] = t1;
       }
       if (TT_[t1][2]>=0) {
 	dh = Dart(*this,t1,1,0).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t1;
+	TT_(dh.t())[dh.vi()] = t1;
       }
     }
 
@@ -1485,113 +1428,107 @@ namespace fmesh {
     /* t0 = t0; */
     if (!on_boundary) {
       /* t1 = t1; */
-      t2 = nT_;
-      t3 = nT_+1;
-      check_capacity(0,nT_+2);
+      t2 = nT();
+      t3 = nT()+1;
+      check_capacity(0,nT()+2);
     } else {
-      t1 = nT_;
-      check_capacity(0,nT_+1);
+      t1 = nT();
+      check_capacity(0,nT()+1);
       t2 = -1;
       t3 = -1;
     }
     /* t0 */
     t = t0;
-    TV_[t][0] = v;
-    TV_[t][1] = v1;
-    TV_[t][2] = v0;
-    TT_[t][0] = tt_list[0];
-    TT_[t][1] = t3;
-    TT_[t][2] = t1;
+    TV_(t)[0] = v;
+    TV_(t)[1] = v1;
+    TV_(t)[2] = v0;
+    TT_(t)[0] = tt_list[0];
+    TT_(t)[1] = t3;
+    TT_(t)[2] = t1;
     if (use_TTi_) {
-      TTi_[t][0] = tti_list[0];
-      TTi_[t][1] = 2;
-      TTi_[t][2] = 1;
+      TTi_(t)[0] = tti_list[0];
+      TTi_(t)[1] = 2;
+      TTi_(t)[2] = 1;
     }
     /* t1 */
     t = t1;
-    TV_[t][0] = v;
-    TV_[t][1] = v2;
-    TV_[t][2] = v1;
-    TT_[t][0] = tt_list[1];
-    TT_[t][1] = t0;
-    TT_[t][2] = t2;
+    TV_(t)[0] = v;
+    TV_(t)[1] = v2;
+    TV_(t)[2] = v1;
+    TT_(t)[0] = tt_list[1];
+    TT_(t)[1] = t0;
+    TT_(t)[2] = t2;
     if (use_TTi_) {
-      TTi_[t][0] = tti_list[1];
-      TTi_[t][1] = 2;
-      TTi_[t][2] = 1;
+      TTi_(t)[0] = tti_list[1];
+      TTi_(t)[1] = 2;
+      TTi_(t)[2] = 1;
     }
     if (!on_boundary) {
       /* t2 */
       t = t2;
-      TV_[t][0] = v;
-      TV_[t][1] = v3;
-      TV_[t][2] = v2;
-      TT_[t][0] = tt_list[2];
-      TT_[t][1] = t1;
-      TT_[t][2] = t3;
+      TV_(t)[0] = v;
+      TV_(t)[1] = v3;
+      TV_(t)[2] = v2;
+      TT_(t)[0] = tt_list[2];
+      TT_(t)[1] = t1;
+      TT_(t)[2] = t3;
       if (use_TTi_) {
-	TTi_[t][0] = tti_list[2];
-	TTi_[t][1] = 2;
-	TTi_[t][2] = 1;
+	TTi_(t)[0] = tti_list[2];
+	TTi_(t)[1] = 2;
+	TTi_(t)[2] = 1;
       }
       /* t3 */
       t = t3;
-      TV_[t][0] = v;
-      TV_[t][1] = v0;
-      TV_[t][2] = v3;
-      TT_[t][0] = tt_list[3];
-      TT_[t][1] = t2;
-      TT_[t][2] = t0;
+      TV_(t)[0] = v;
+      TV_(t)[1] = v0;
+      TV_(t)[2] = v3;
+      TT_(t)[0] = tt_list[3];
+      TT_(t)[1] = t2;
+      TT_(t)[2] = t0;
       if (use_TTi_) {
-	TTi_[t][0] = tti_list[3];
-	TTi_[t][1] = 2;
-	TTi_[t][2] = 1;
+	TTi_(t)[0] = tti_list[3];
+	TTi_(t)[1] = 2;
+	TTi_(t)[2] = 1;
       }
     }
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
-      if (TT_[t0][0]>=0) TTi_[TT_[t0][0]][TTi_[t0][0]] = 0;
-      if (TT_[t1][0]>=0) TTi_[TT_[t1][0]][TTi_[t1][0]] = 0;
-      if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
-      if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
+      if (TT_[t0][0]>=0) TTi_(TT_[t0][0])[TTi_[t0][0]] = 0;
+      if (TT_[t1][0]>=0) TTi_(TT_[t1][0])[TTi_[t1][0]] = 0;
+      if (TT_[t0][0]>=0) TT_(TT_[t0][0])[TTi_[t0][0]] = t0;
+      if (TT_[t1][0]>=0) TT_(TT_[t1][0])[TTi_[t1][0]] = t1;
       if (!on_boundary) {
-	if (TT_[t2][0]>=0) TTi_[TT_[t2][0]][TTi_[t2][0]] = 0;
-	if (TT_[t3][0]>=0) TTi_[TT_[t3][0]][TTi_[t3][0]] = 0;
-	if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
-	if (TT_[t3][0]>=0) TT_[TT_[t3][0]][TTi_[t3][0]] = t3;
+	if (TT_[t2][0]>=0) TTi_(TT_[t2][0])[TTi_[t2][0]] = 0;
+	if (TT_[t3][0]>=0) TTi_(TT_[t3][0])[TTi_[t3][0]] = 0;
+	if (TT_[t2][0]>=0) TT_(TT_[t2][0])[TTi_[t2][0]] = t2;
+	if (TT_[t3][0]>=0) TT_(TT_[t3][0])[TTi_[t3][0]] = t3;
       }
     } else {
       if (TT_[t0][0]>=0) {
 	dh = Dart(*this,t0,1,1).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t0;
+	TT_(dh.t())[dh.vi()] = t0;
       }
       if (TT_[t1][0]>=0) {
 	dh = Dart(*this,t1,1,1).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t1;
+	TT_(dh.t())[dh.vi()] = t1;
       }
       if (!on_boundary) {
 	if (TT_[t2][0]>=0) {
 	  dh = Dart(*this,t2,1,1).orbit0rev();
 	  dh.orbit2();
-	  TT_[dh.t()][dh.vi()] = t2;
+	  TT_(dh.t())[dh.vi()] = t2;
 	}
 	if (TT_[t3][0]>=0) {
 	  dh = Dart(*this,t3,1,1).orbit0rev();
 	  dh.orbit2();
-	  TT_[dh.t()][dh.vi()] = t3;
+	  TT_(dh.t())[dh.vi()] = t3;
 	}
       }
     }
 
-    /* Step 4: Update triangle count. */
-    if (on_boundary)
-      nT_ = nT_+1;
-    else
-      nT_ = nT_+2;
-  
     /* Link vertices to triangles */
     if (use_VT_) {
       if (!on_boundary) {
@@ -1672,76 +1609,73 @@ namespace fmesh {
 
     /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
-    t1 = nT_;
-    t2 = nT_+1;
-    check_capacity(0,nT_+2);
+    t1 = nT();
+    t2 = nT()+1;
+    check_capacity(0,nT()+2);
     
     MESH_LOG("Capacity (V,T) = ("
-	     << Vcap_ << "," << Tcap_ << "), T-indices = ("
+	     << S_.capacity() << "," << TV_.capacity() << "), T-indices = ("
 	     << t0 << "," << t1 << "," << t2 << ")" << endl);
 
-    TV_[t0][0] = v;
-    TV_[t0][1] = v0;
-    TV_[t0][2] = v1;
-    TT_[t0][0] = tt_list[0];
-    TT_[t0][1] = t1;
-    TT_[t0][2] = t2;
+    TV_(t0)[0] = v;
+    TV_(t0)[1] = v0;
+    TV_(t0)[2] = v1;
+    TT_(t0)[0] = tt_list[0];
+    TT_(t0)[1] = t1;
+    TT_(t0)[2] = t2;
     if (use_TTi_) {
-      TTi_[t0][0] = tti_list[0];
-      TTi_[t0][1] = 2;
-      TTi_[t0][2] = 1;
+      TTi_(t0)[0] = tti_list[0];
+      TTi_(t0)[1] = 2;
+      TTi_(t0)[2] = 1;
     }
-    TV_[t1][0] = v;
-    TV_[t1][1] = v1;
-    TV_[t1][2] = v2;
-    TT_[t1][0] = tt_list[1];
-    TT_[t1][1] = t2;
-    TT_[t1][2] = t0;
+    TV_(t1)[0] = v;
+    TV_(t1)[1] = v1;
+    TV_(t1)[2] = v2;
+    TT_(t1)[0] = tt_list[1];
+    TT_(t1)[1] = t2;
+    TT_(t1)[2] = t0;
     if (use_TTi_) {
-      TTi_[t1][0] = tti_list[1];
-      TTi_[t1][1] = 2;
-      TTi_[t1][2] = 1;
+      TTi_(t1)[0] = tti_list[1];
+      TTi_(t1)[1] = 2;
+      TTi_(t1)[2] = 1;
     }
-    TV_[t2][0] = v;
-    TV_[t2][1] = v2;
-    TV_[t2][2] = v0;
-    TT_[t2][0] = tt_list[2];
-    TT_[t2][1] = t0;
-    TT_[t2][2] = t1;
+    TV_(t2)[0] = v;
+    TV_(t2)[1] = v2;
+    TV_(t2)[2] = v0;
+    TT_(t2)[0] = tt_list[2];
+    TT_(t2)[1] = t0;
+    TT_(t2)[2] = t1;
     if (use_TTi_) {
-      TTi_[t2][0] = tti_list[2];
-      TTi_[t2][1] = 2;
-      TTi_[t2][2] = 1;
+      TTi_(t2)[0] = tti_list[2];
+      TTi_(t2)[1] = 2;
+      TTi_(t2)[2] = 1;
     }
 
     /* Step 3: Relink neighbouring triangles. */
     if (use_TTi_) {
-      if (TT_[t0][0]>=0) TTi_[TT_[t0][0]][TTi_[t0][0]] = 0;
-      if (TT_[t1][0]>=0) TTi_[TT_[t1][0]][TTi_[t1][0]] = 0;
-      if (TT_[t2][0]>=0) TTi_[TT_[t2][0]][TTi_[t2][0]] = 0;
-      if (TT_[t0][0]>=0) TT_[TT_[t0][0]][TTi_[t0][0]] = t0;
-      if (TT_[t1][0]>=0) TT_[TT_[t1][0]][TTi_[t1][0]] = t1;
-      if (TT_[t2][0]>=0) TT_[TT_[t2][0]][TTi_[t2][0]] = t2;
+      if (TT_[t0][0]>=0) TTi_(TT_[t0][0])[TTi_[t0][0]] = 0;
+      if (TT_[t1][0]>=0) TTi_(TT_[t1][0])[TTi_[t1][0]] = 0;
+      if (TT_[t2][0]>=0) TTi_(TT_[t2][0])[TTi_[t2][0]] = 0;
+      if (TT_[t0][0]>=0) TT_(TT_[t0][0])[TTi_[t0][0]] = t0;
+      if (TT_[t1][0]>=0) TT_(TT_[t1][0])[TTi_[t1][0]] = t1;
+      if (TT_[t2][0]>=0) TT_(TT_[t2][0])[TTi_[t2][0]] = t2;
     } else {
       if (TT_[t0][0]>=0) {
 	dh = Dart(*this,t0,1,1).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t0;
+	TT_(dh.t())[dh.vi()] = t0;
       }
       if (TT_[t1][0]>=0) {
 	dh = Dart(*this,t1,1,1).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t1;
+	TT_(dh.t())[dh.vi()] = t1;
       }
       if (TT_[t2][0]>=0) {
 	dh = Dart(*this,t2,1,1).orbit0rev();
 	dh.orbit2();
-	TT_[dh.t()][dh.vi()] = t2;
+	TT_(dh.t())[dh.vi()] = t2;
       }
     }
-
-    /* Step 4: Update triangle count. */
-    nT_ = nT_+2;
 
     /* Link vertices to triangles */
     if (use_VT_) {
@@ -1774,20 +1708,20 @@ namespace fmesh {
 
 
 
-  Dart& Dart::unlinkEdge()
+  Mesh& Mesh::unlinkEdge(const Dart& d)
   {
-    Dart dh(*this);
-    if (!onBoundary()) {
+    Dart dh(d);
+    if (!d.onBoundary()) {
       dh.orbit0rev().orbit2();
-      M_->TT_[dh.t()][dh.vi()] = -1;
-      if (M_->use_TTi_)
-	M_->TTi_[dh.t()][dh.vi()] = -1;
+      TT_(dh.t())[dh.vi()] = -1;
+      if (use_TTi_)
+	TTi_(dh.t())[dh.vi()] = -1;
+      dh = d;
     }
-    dh = *this;
     dh.orbit2rev();
-    M_->TT_[dh.t()][dh.vi()] = -1;
-    if (M_->use_TTi_)
-      M_->TTi_[dh.t()][dh.vi()] = -1;
+    TT_(dh.t())[dh.vi()] = -1;
+    if (use_TTi_)
+      TTi_(dh.t())[dh.vi()] = -1;
     
     return *this;
   }
@@ -1797,7 +1731,12 @@ namespace fmesh {
    */
   Mesh& Mesh::unlinkTriangle(const int t)
   {
-    Dart(*this,t).unlinkEdge().orbit2().unlinkEdge().orbit2().unlinkEdge();
+    Dart dh(*this,t);
+    unlinkEdge(dh);
+    dh.orbit2();
+    unlinkEdge(dh);
+    dh.orbit2();
+    unlinkEdge(dh);
     return *this;
   }
 
@@ -1807,40 +1746,40 @@ namespace fmesh {
       return *this;
     if (t_target>t_source)
       check_capacity(0,t_target+1);
-    TV_[t_target][0] = TV_[t_source][0];
-    TV_[t_target][1] = TV_[t_source][1];
-    TV_[t_target][2] = TV_[t_source][2];
-    TT_[t_target][0] = TT_[t_source][0];
-    TT_[t_target][1] = TT_[t_source][1];
-    TT_[t_target][2] = TT_[t_source][2];
+    TV_(t_target)[0] = TV_[t_source][0];
+    TV_(t_target)[1] = TV_[t_source][1];
+    TV_(t_target)[2] = TV_[t_source][2];
+    TT_(t_target)[0] = TT_[t_source][0];
+    TT_(t_target)[1] = TT_[t_source][1];
+    TT_(t_target)[2] = TT_[t_source][2];
     if (use_VT_) {
       if (VT_[TV_[t_target][0]] == t_source)
-	VT_[TV_[t_target][0]] = t_target;
+	VT_(TV_[t_target][0]) = t_target;
       if (VT_[TV_[t_target][1]] == t_source)
-	VT_[TV_[t_target][1]] = t_target;
+	VT_(TV_[t_target][1]) = t_target;
       if (VT_[TV_[t_target][2]] == t_source)
-	VT_[TV_[t_target][2]] = t_target;
+	VT_(TV_[t_target][2]) = t_target;
     }
     if (use_TTi_) {
-      TTi_[t_target][0] = TTi_[t_source][0];
-      TTi_[t_target][1] = TTi_[t_source][1];
-      TTi_[t_target][2] = TTi_[t_source][2];
+      TTi_(t_target)[0] = TTi_[t_source][0];
+      TTi_(t_target)[1] = TTi_[t_source][1];
+      TTi_(t_target)[2] = TTi_[t_source][2];
     }
     /* Relink neighbouring TT:s. TTi is not affected by the relocation. */
     Dart dh(*this,t_target,1,0);
     if (!dh.onBoundary()) {
       dh.orbit0rev().orbit2();
-      TT_[dh.t()][dh.vi()] = t_target;
+      TT_(dh.t())[dh.vi()] = t_target;
     }
     dh = Dart(*this,t_target,1,1);
     if (!dh.onBoundary()) {
       dh.orbit0rev().orbit2();
-      TT_[dh.t()][dh.vi()] = t_target;
+      TT_(dh.t())[dh.vi()] = t_target;
     }
     dh = Dart(*this,t_target,1,2);
     if (!dh.onBoundary()) {
       dh.orbit0rev().orbit2();
-      TT_[dh.t()][dh.vi()] = t_target;
+      TT_(dh.t())[dh.vi()] = t_target;
     }
     
     return *this;
@@ -1855,7 +1794,7 @@ namespace fmesh {
    */
   int Mesh::removeTriangle(const int t)
   {
-    if ((t<0) || (t>=(int)nT_))
+    if ((t<0) || (t>=(int)nT()))
       return -1;
 
     if (X11_) {
@@ -1866,11 +1805,13 @@ namespace fmesh {
     }
 
     unlinkTriangle(t);
-    relocateTriangle(nT_-1,t);
-    nT_--;
+    relocateTriangle(nT()-1,t);
+    TV_.truncate(nT()-1);
+    if (use_TTi_)
+      TTi_.truncate(nT());
     if (use_VT_)
       rebuildVT();
-    return nT_;
+    return nT();
   }
 
 
@@ -2139,8 +2080,7 @@ namespace fmesh {
 			  const int v) const
   {
     if (use_VT_) {
-      int t;
-      t = VT_[v];
+      int t = VT_[v];
       if (t<0) /* Vertex not connected to any triangles. */
 	return Dart();
       if (TV_[t][0] == v)
@@ -2167,11 +2107,11 @@ namespace fmesh {
 
 
 
-  MOAint3 Mesh::TVO() const { return MOAint3(TV_,nT_); };
-  MOAint3 Mesh::TTO() const { return MOAint3(TT_,nT_); };
-  MOAint Mesh::VTO() const { return MOAint(VT_,nV_); };
-  MOAint3 Mesh::TTiO() const { return MOAint3(TTi_,nT_); };
-  MOAdouble3 Mesh::SO() const { return MOAdouble3(S_,nV_); };
+  MOAint3 Mesh::TVO() const { return MOAint3(TV_,nT()); };
+  MOAint3 Mesh::TTO() const { return MOAint3(TT_,nT()); };
+  MOAint Mesh::VTO() const { return MOAint(VT_,nV()); };
+  MOAint3 Mesh::TTiO() const { return MOAint3(TTi_,nT()); };
+  MOAdouble3 Mesh::SO() const { return MOAdouble3(S_,nV()); };
 
 
 
@@ -2288,7 +2228,6 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const MOAint& MO)
   {
-    if (!MO.M_) return output;
     for (int i = 0; i < (int)MO.n_; i++) {
       output << ' ' << std::right << std::setw(4)
 	     << MO.M_[i];
@@ -2299,7 +2238,6 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const MOAint3& MO)
   {
-    if (!MO.M_) return output;
     for (int j = 0; j<3; j++) {
       for (int i = 0; i < (int)MO.n_; i++) {
 	output << ' ' << std::right << std::setw(4)
@@ -2312,7 +2250,6 @@ namespace fmesh {
 
   std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO)
   {
-    if (!MO.M_) return output;
     for (int i = 0; i < (int)MO.n_; i++) {
       for (int j = 0; j<3; j++)
 	output << ' ' << std::right << std::setw(10) << std::scientific
