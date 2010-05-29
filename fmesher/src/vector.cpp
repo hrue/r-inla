@@ -21,5 +21,4 @@ using std::endl;
 
 namespace fmesh {
 
-
 } /* namespace fmesh */

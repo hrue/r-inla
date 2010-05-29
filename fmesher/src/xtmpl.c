@@ -42,7 +42,7 @@ static int forever = 0;				  /* used by the `playback' program */
 #define CLOSE 7
 
 
-int xtmpl_open(int nx, int ny, char *title)
+int xtmpl_open(int nx, int ny, const char *title)
 {
     static int first = 1;
     if (first)
@@ -236,7 +236,7 @@ int xtmpl_close()
     else
 	return XTMPL_ERR;
 }
-int xtmpl_record(char *filename,  char *channels)
+int xtmpl_record(const char *filename,  const char *channels)
 {
     if ((rec_fp = fopen(filename, "w+b")))
     {
@@ -304,7 +304,7 @@ int byte_swap(char *what, int size, int n)
     }
     return XTMPL_OK;
 }
-int xtmpl_record_event(int type, char *a0, char *a1, char *a2, char *a3)
+int xtmpl_record_event(int type, char *a0, char *a1, const char *a2, char *a3)
 {
     static int win = 0;
     static int first=1;
@@ -398,7 +398,7 @@ int xtmpl_record_event(int type, char *a0, char *a1, char *a2, char *a3)
 
     return XTMPL_OK;
 }
-int press_ret(char *do_what)
+int press_ret(const char *do_what)
 {
     char str[4];
     int how_long;
@@ -413,7 +413,7 @@ int press_ret(char *do_what)
     }
     return XTMPL_OK;
 }
-int xtmpl_press_ret(char *do_what)
+int xtmpl_press_ret(const char *do_what)
 {
   return press_ret(do_what);
 }
@@ -433,7 +433,7 @@ int my_fread(void *ptr, size_t size, size_t nitems, FILE *stream)
     }
     return i;
 }
-int xtmpl_playback(char *filename, char *channels, double magnify)
+int xtmpl_playback(const char *filename, const char *channels, double magnify)
 {
     FILE *fp;
     int type;

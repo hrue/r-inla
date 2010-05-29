@@ -542,8 +542,8 @@ namespace fmesh {
   /*!
     \f{align*}{
     r &= CR(s_0,s_1,c)
-    r/\|s1-s0\| &> \beta \\
-    }
+    r/\|s1-s0\| &> \beta
+    \f}
   */
   void MeshC::calcSteinerPoint(const Dart& d, Point& c)
   {
@@ -882,11 +882,12 @@ namespace fmesh {
 		 " s3=" << M_->S(v3) << endl);
 
       /* Create triangles: */
-      Int3Raw TV[4] = {{v0,v1,v2},
-		       {v3,v2,v1},
-		       {v3,v0,v2},
-		       {v3,v1,v0}};
-      M_->TV_append(Matrix3int(4,TV));
+      Matrix3int TV(4);
+      TV(0) = Int3(v0,v1,v2);
+      TV(1) = Int3(v3,v2,v1);
+      TV(2) = Int3(v3,v0,v2);
+      TV(3) = Int3(v3,v1,v0);
+      M_->TV_append(TV);
     } else {
       /* Calculate tight enclosure. */
       MESHC_LOG("Calculate tight enclosure.");
@@ -922,12 +923,12 @@ namespace fmesh {
 	Vec::rescale(n2,1.0/Vec::length(n2));
       }
 
-      Point* n = new Point[sides]; /* Normal vectors. */
+      Matrix3double n(sides); /* Normal vectors. */
       double th;
       for (i=0;i<sides;i++) {
 	th = 2.0*M_PI*double(i)/double(sides);
-	Vec::scale(n[i],n1,-std::sin(th));
-	Vec::accum(n[i],n2,std::cos(th));
+	Vec::scale(n(i),n1,-std::sin(th));
+	Vec::accum(n(i),n2,std::cos(th));
       }
       
       double dist;
@@ -936,8 +937,8 @@ namespace fmesh {
 	  dist = Vec::scalar(n[i],M_->S(v));
 	  if (dist < 0.0) { /* Update enclosure. */
 	    Vec::cross(sh,n0,n[i]);
-	    Vec::cross(n[i],sh,M_->S(v));
-	    Vec::rescale(n[i],1.0/Vec::length(n[i]));
+	    Vec::cross(n(i),sh,M_->S(v));
+	    Vec::rescale(n(i),1.0/Vec::length(n[i]));
 	  }
 	}
       }
@@ -961,16 +962,16 @@ namespace fmesh {
 	    nc = 1.0;
 	    ns = 0.0;
 	  }
-	  Vec::cross(n[i],sh,n0);
-	  Vec::rescale(n[i],ns);
-	  Vec::accum(n[i],n0,nc);
-	  Vec::rescale(n[i],1.0/Vec::length(n[i]));
+	  Vec::cross(n(i),sh,n0);
+	  Vec::rescale(n(i),ns);
+	  Vec::accum(n(i),n0,nc);
+	  Vec::rescale(n(i),1.0/Vec::length(n[i]));
 	}
       }
 
       /* Calculate intersections. */
       MESHC_LOG("Calculate enclosure boundary.");
-      Point* S = new Point[sides];
+      Matrix3double S(sides);
       {
 	Point nip, nipp;
 	double nip_nj, nipp_nj;
@@ -985,26 +986,23 @@ namespace fmesh {
 	  nip_nj = Vec::scalar(nip,n[j]);
 	  nipp_nj = Vec::scalar(nipp,n[j]);
 	  bi = std::sqrt(nip_nj*nip_nj+nipp_nj*nipp_nj);
-	  Vec::scale(S[j],nip,nipp_nj/bi);
-	  Vec::accum(S[j],nipp,-nip_nj/bi);
+	  Vec::scale(S(j),nip,nipp_nj/bi);
+	  Vec::accum(S(j),nipp,-nip_nj/bi);
 	}
       }
 
       /* Construct enclosure triangles. */
       MESHC_LOG("Construct enclosure triangles.");
-      Int3Raw* TV = new Int3Raw[sides-2];
+      Matrix3int TV(sides-2);
       for (i=0;i<sides-2;i++) {
-	TV[i][0] = nV+(0);
-	TV[i][1] = nV+(i+1);
-	TV[i][2] = nV+((i+2)%sides);
+	TV(i) = Int3(nV+(0),
+		     nV+(i+1),
+		     nV+((i+2)%sides));
       }
 
-      M_->S_append(Matrix3double(sides,S));
-      M_->TV_append(Matrix3int(sides-2,TV));
+      M_->S_append(S);
+      M_->TV_append(TV);
 
-      delete[] TV;
-      delete[] S;
-      delete[] n;
     }
     
     MESHC_LOG("CET finished" << endl << *this);
@@ -1745,7 +1743,7 @@ namespace fmesh {
       MESHC_LOG((boundary ? "Boundary" : "Interior")
 		<< " segment not inserted ("
 		<< v0 << "," << v1 << ")" << endl);
-      xtmpl_press_ret("Segment not inserted");
+      xtmpl_press_ret(std::string("Segment not inserted").c_str());
       return ds;
     }
     if (boundary)
