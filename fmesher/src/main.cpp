@@ -631,22 +631,37 @@ int koala_test()
 int main()
 {
 
-  fmesh::Matrix3double M(5);
-  M(3)[1] = 1.0;
-  M(2,3) = 2.0;
-  const Point& s = M[3];
-  cout << s << endl;
+
+  fmesh::Matrix3double M(4);
+  M(0) = Point(0.0,0.1,0.2);
+  M(1) = Point(1.0,1.1,1.2);
+  M(2) = Point(2.0,2.1,2.2);
+  M(3) = Point(3.0,3.1,3.2);
+  M(0,0,9.9);
   cout << M;
-  //  return 0;
+
+  fmesh::IOHelper iohelper(M);
+  iohelper.O(cout).O(cout,M);
+  iohelper = fmesh::IOHelper(M,fmesh::IOHeader::Matrixtype_symmetric);
+  iohelper.O(cout).O(cout,M);
+  iohelper = fmesh::IOHelper(M,fmesh::IOHeader::Matrixtype_diagonal);
+  iohelper.O(cout).O(cout,M);
 
   fmesh::SparseMatrix<double> SM;
-  (SM(1,1) = 0.0) = 3.0;
-  SM(2,3) = 15.0;
-  SM.assign(10,12,1.0);
-  SM.assign(1,2,2.0);
-  SM.assign(9,12,3.0);
-  SM.assign(10,12,0.0);
+  SM(1,1) = 1.1;
+  SM(2,3) = 2.3;
+  SM(3)[1] = 0.0;
+  SM(0,1,0.1);
   cout << SM;
+
+  iohelper = fmesh::IOHelper(SM);
+  iohelper.O(cout).O(cout,SM);
+    iohelper = fmesh::IOHelper(SM,fmesh::IOHeader::Matrixtype_symmetric);
+  iohelper.O(cout).O(cout,SM);
+  iohelper = fmesh::IOHelper(SM,fmesh::IOHeader::Matrixtype_diagonal);
+  iohelper.O(cout).O(cout,SM);
+
+  return 0;
 
   for (int i=0;i<maxiter;i++) {
     CDT_test();

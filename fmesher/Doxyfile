@@ -574,7 +574,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = src/main.cpp src/fmesher.h src/mesh.h src/mesh.cpp src/meshc.h src/meshc.cpp
+INPUT                  = src/main.cpp src/fmesher.h src/mesh.h src/vector.h src/ioutils.h src/mesh.cpp src/meshc.h src/meshc.cpp src/vector.cpp src/ioutils.cpp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
