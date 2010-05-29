@@ -23,44 +23,46 @@ namespace fmesh {
 
 
 
-  template <class ValueType> class Matrix;
-  template <class ValueType> class Vector3;
-  template <class ValueType> class Matrix3;
-  template <class ValueType> class SparseMatrix;
+  template <class T> class Matrix;
+  template <class T> class Vector3;
+  template <class T> class Matrix3;
+  template <class T> class SparseMatrix;
 
-  template<class ValueType>
+  template<class T>
   std::ostream& operator<<(std::ostream& output,
-			   const Matrix<ValueType>& M);
-  template<class ValueType>
+			   const Matrix<T>& M);
+  template<class T>
   std::ostream& operator<<(std::ostream& output,
-			   const SparseMatrix<ValueType>& M);
+			   const SparseMatrix<T>& M);
 
 
-  template <class ValueType>
+  template <class T>
   class Matrix {
     friend
     std::ostream& operator<< <> (std::ostream& output,
-				 const Matrix<ValueType>& M);
+				 const Matrix<T>& M);
     
   protected:
     static const size_t capacity_step_size_ = 1024;
     static const size_t capacity_doubling_limit_ = 8192;
-    ValueType* data_;
+    T* data_;
     size_t rows_;
     size_t cols_;
     size_t cap_;
+    const T zero_;
   public:
-    Matrix() : data_(NULL), rows_(0), cols_(0), cap_(0) {};
-    Matrix(size_t set_cols) : data_(NULL), rows_(0), cols_(0), cap_(0) {
+    Matrix() : data_(NULL), rows_(0), cols_(0), cap_(0), zero_() {};
+    Matrix(size_t set_cols) : data_(NULL), rows_(0), cols_(0),
+			      cap_(0), zero_() {
       cols(set_cols);
     };
-    Matrix(size_t set_rows, size_t set_cols, const ValueType* vals = NULL)
-      : data_(NULL), rows_(0), cols_(0), cap_(0) {
+    Matrix(size_t set_rows, size_t set_cols, const T* vals = NULL)
+      : data_(NULL), rows_(0), cols_(0), cap_(0), zero_() {
       cols(set_cols);
       capacity(set_rows);
       rows_ = set_rows;
       if (vals) {
-	std::memcpy(data_,vals,sizeof(ValueType)*rows_*cols_);
+	std::memcpy(data_,vals,sizeof(T)*rows_*cols_);
       }
     };
     ~Matrix() {
@@ -86,6 +88,10 @@ namespace fmesh {
       rows_ = 0;
       cols_ = 0;
     };
+    void zeros(const size_t from_row = 0) {
+      for (size_t i=from_row*cols_; i<cap_*cols_; i++)
+	data_[i] = zero_;
+    }
     void truncate(const size_t new_rows) {
       if (new_rows < rows_)
 	rows_ = new_rows;
@@ -96,6 +102,7 @@ namespace fmesh {
       if (cap <= cap_) {
 	return true;
       }
+      size_t old_cap = cap_;
       if ((cap_==0) && 
 	  (cap < capacity_step_size_))
 	cap_ = cap;
@@ -110,23 +117,24 @@ namespace fmesh {
 	}
       }
 
-      ValueType* data_new_ = new ValueType[cap_*cols_];
+      T* data_new_ = new T[cap_*cols_];
 
-      if ((data_) && (rows_>0)) { /* Copy existing data: */
+      if (data_) { /* Copy existing data: */
 	std::memcpy(data_new_,data_,
-		    sizeof(ValueType)*rows_*cols_);
+		    sizeof(T)*old_cap*cols_);
 	delete[] data_;
       }
 
       data_ = data_new_;
+      zeros(old_cap);
       return true;
     };
 
-    bool append(const Matrix<ValueType>& toappend) {
+    bool append(const Matrix<T>& toappend) {
       if (cols_ != toappend.cols_) return false;
       if (!capacity(rows_+toappend.rows_)) return false;
       std::memcpy(data_+rows_*cols_,toappend.data_,
-		  sizeof(ValueType)*toappend.rows_*cols_);
+		  sizeof(T)*toappend.rows_*cols_);
       rows_ += toappend.rows_;
       return true;
     };
@@ -142,14 +150,14 @@ namespace fmesh {
       return cols_;
     };
 
-    const ValueType (* operator[](const int r) const) {
+    const T (* operator[](const int r) const) {
       if (r >= (int)rows_) {
 	return NULL;
       }
       return &data_[r*cols_];
     };
 
-    ValueType& operator()(const int r, const int c) {
+    T& operator()(const int r, const int c) {
       if (r >= (int)rows_) {
 	capacity(r+1);
 	rows_ = r+1;
@@ -157,36 +165,43 @@ namespace fmesh {
       return data_[r*cols_+c]; 
     };
 
+    const T& operator()(const int r, const int c, const T& val) {
+      operator()(r,c) = val; 
+      return data_[r*cols_+c]; 
+    };
+
+    const T (* raw(void) const) { return data_; }
+
   };
 
 
-  template <class ValueType>
+  template <class T>
   class Vector3 {
   public:
-    typedef ValueType Raw[3];
+    typedef T Raw[3];
   private:
-    ValueType data_[3];
+    T data_[3];
   public:
     Vector3() {};
-    Vector3(const ValueType& val0,
-	    const ValueType& val1,
-	    const ValueType& val2) {
+    Vector3(const T& val0,
+	    const T& val1,
+	    const T& val2) {
       data_[0] = val0;
       data_[1] = val1;
       data_[2] = val2;
     };
-    Vector3(const ValueType val[3]) {
+    Vector3(const T val[3]) {
       data_[0] = val[0];
       data_[1] = val[1];
       data_[2] = val[2];
     };
-    Vector3(const Vector3<ValueType>& vec) {
+    Vector3(const Vector3<T>& vec) {
       data_[0] = vec.data_[0];
       data_[1] = vec.data_[1];
       data_[2] = vec.data_[2];
     };
 
-    Vector3<ValueType>& operator=(const Vector3<ValueType> vec) {
+    Vector3<T>& operator=(const Vector3<T> vec) {
       if (this != &vec) {
 	data_[0] = vec.data_[0];
 	data_[1] = vec.data_[1];
@@ -195,11 +210,11 @@ namespace fmesh {
       return *this;
     };
 
-    const ValueType& operator[](const int i) const {
+    const T& operator[](const int i) const {
       return data_[i];
     };
 
-    ValueType& operator[](const int i) {
+    T& operator[](const int i) {
       return data_[i];
     };
 
@@ -207,59 +222,63 @@ namespace fmesh {
     
   };
 
-  template <class ValueType>
-  class Matrix1 : public Matrix<ValueType> {
+  template <class T>
+  class Matrix1 : public Matrix<T> {
   public:
-    typedef ValueType ValueRaw;
-    Matrix1() : Matrix<ValueType>(1) {};
+    typedef T ValueRaw;
+    Matrix1() : Matrix<T>(1) {};
     Matrix1(size_t set_rows, const ValueRaw* vals = NULL)
-      : Matrix<ValueType>(set_rows,1,(ValueType*)vals) {};
+      : Matrix<T>(set_rows,1,(T*)vals) {};
     void clear(void) {
-      Matrix<ValueType>::clear();
-      Matrix<ValueType>::cols(1);
+      Matrix<T>::clear();
+      Matrix<T>::cols(1);
     };
 
-    const ValueType& operator[](const int r) const {
-      if (r >= (int)Matrix<ValueType>::rows_) {
+    const T& operator[](const int r) const {
+      if (r >= (int)Matrix<T>::rows_) {
 	/* ERROR */
       }
-      return Matrix<ValueType>::data_[r];
+      return Matrix<T>::data_[r];
     };
 
-    ValueType& operator()(const int r) {
-      return Matrix<ValueType>::operator()(r,0);
+    T& operator()(const int r) {
+      return Matrix<T>::operator()(r,0);
     };
     
   };
 
 
-  template <class ValueType>
-  class Matrix3 : public Matrix<ValueType> {
+  template <class T>
+  class Matrix3 : public Matrix<T> {
   public:
-    typedef ValueType ValueRaw[3];
-    typedef Vector3<ValueType> ValueRow;
-    Matrix3() : Matrix<ValueType>(3) {};
+    typedef T ValueRaw[3];
+    typedef Vector3<T> ValueRow;
+    Matrix3() : Matrix<T>(3) {};
     Matrix3(size_t set_rows, const ValueRow* vals)
-      : Matrix<ValueType>(set_rows,3,(ValueType*)vals) {};
+      : Matrix<T>(set_rows,3,(T*)vals) {};
     Matrix3(size_t set_rows, const ValueRaw* vals = NULL)
-      : Matrix<ValueType>(set_rows,3,(ValueType*)vals) {};
+      : Matrix<T>(set_rows,3,(T*)vals) {};
     void clear(void) {
-      Matrix<ValueType>::clear();
-      Matrix<ValueType>::cols(3);
+      Matrix<T>::clear();
+      Matrix<T>::cols(3);
     };
 
     const ValueRow& operator[](const int r) const {
-      return ((ValueRow*)Matrix<ValueType>::data_)[r];
+      return ((ValueRow*)Matrix<T>::data_)[r];
     };
     
     ValueRow& operator()(const int r) {
-      return *(ValueRow*)(&Matrix<ValueType>::operator()(r,0));
+      return *(ValueRow*)(&Matrix<T>::operator()(r,0));
     };
     
-    ValueType& operator()(const int r, const int c) {
-      return Matrix<ValueType>::operator()(r,c);
+    T& operator()(const int r, const int c) {
+      return Matrix<T>::operator()(r,c);
     };
     
+    const T& operator()(const int r, const int c, const T& val) {
+      return Matrix<T>::operator()(r,c,val);
+    };
+
   };
 
 
@@ -278,23 +297,23 @@ namespace fmesh {
 
 
 
-  template <class ValueType>
+  template <class T>
   class SparseMatrix {
     friend
     std::ostream& operator<< <> (std::ostream& output,
-				 const SparseMatrix<ValueType>& M);
+				 const SparseMatrix<T>& M);
     
-    typedef typename std::map<int, ValueType> RowType;
+    typedef typename std::map<int, T> RowType;
     typedef typename std::map<int, RowType> DataType;
     typedef typename RowType::const_iterator ColConstIter;
     typedef typename DataType::const_iterator RowConstIter;
     typedef typename RowType::iterator ColIter;
     typedef typename DataType::iterator RowIter;
   private:
-    static const ValueType zero_ = ValueType();
     DataType data_;
+    const T zero_;
   public:
-    SparseMatrix() : data_() {};
+  SparseMatrix() : data_(), zero_() {};
 
     int rows(void) const {
       if (data_.size() == 0)
@@ -336,7 +355,7 @@ namespace fmesh {
       }
     };
 
-    const ValueType& operator()(const int r,  const int c) const {
+    const T& operator()(const int r,  const int c) const {
       RowConstIter row;
       if ((row = data_.find(r)) != data_.end()) {
 	ColConstIter col;
@@ -350,11 +369,19 @@ namespace fmesh {
       }
     };
 
-    ValueType& operator()(const int r,  const int c) {
+    const RowType& operator[](const int r) const {
+      return data_[r];
+    };
+
+    RowType& operator()(const int r) {
+      return data_[r];
+    };
+
+    T& operator()(const int r,  const int c) {
       return data_[r][c];
     };
 
-    void assign(const int r,  const int c, const ValueType& val) {
+    const T& operator()(const int r,  const int c, const T& val) {
       if (val == zero_) {
 	RowIter row;
 	if ((row = data_.find(r)) != data_.end()) {
@@ -366,8 +393,10 @@ namespace fmesh {
 	    }
 	  }
 	}
+	return zero_;
       } else {
 	data_[r][c] = val;
+	return data_[r][c];
       }
     };
 
@@ -473,9 +502,9 @@ namespace fmesh {
 
 
 
-  template<class ValueType>
+  template<class T>
   std::ostream& operator<<(std::ostream& output,
-			   const Matrix<ValueType>& M)
+			   const Matrix<T>& M)
   {
     output << M.rows_ << " "
 	   << M.cols_ << std::endl;
@@ -489,18 +518,18 @@ namespace fmesh {
   }
 
 
-  template<class ValueType>
+  template<class T>
   std::ostream& operator<<(std::ostream& output,
-			   const SparseMatrix<ValueType>& M)
+			   const SparseMatrix<T>& M)
   {
     output << M.rows() << " "
 	   << M.cols() << " "
 	   << M.nnz() << std::endl;
-    for (typename SparseMatrix<ValueType>::RowConstIter row
+    for (typename SparseMatrix<T>::RowConstIter row
 	   = M.data_.begin();
 	 row != M.data_.end();
 	 row++) {
-      for (typename SparseMatrix<ValueType>::ColConstIter col
+      for (typename SparseMatrix<T>::ColConstIter col
 	     = row->second.begin();
 	   col != row->second.end();
 	   col++) {
