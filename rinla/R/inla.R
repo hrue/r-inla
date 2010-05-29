@@ -162,7 +162,7 @@
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
         
-        inla.eval(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
+        inla.eval(paste("surv.formula = .y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
 
         if (debug) {
             print(f.hazard)
@@ -170,11 +170,11 @@
             print(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
         }
 
-        return (inla(surv.formula,
+        result = inla(surv.formula,
                      family = "poisson",
                      data = new.data, 
                      quantiles=quantiles,
-                     E = E,
+                     E = .E,
                      offset= offset,
                      scale = scale,
                      Ntrials = NULL,
@@ -201,7 +201,11 @@
                      user.hook = user.hook,
                      user.hook.arg = user.hook.arg,
                      ## internal options used to transfer data after expansions
-                     .internal = .internal))
+                     .internal = .internal)
+
+        ## replace the argument so it can be reused, if...
+        result$call.orig = deparse(match.call())
+        return (result)
     }
 
     ## this is nice hack ;-) we keep the original response. then we
