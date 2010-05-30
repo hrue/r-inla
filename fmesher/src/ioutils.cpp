@@ -23,8 +23,7 @@ using std::endl;
 namespace fmesh {
 
    // enum Datatype {Datatype_dense=0,
-   //                 Datatype_sparse=1,
-   //                 Datatype_map=2};
+   //                 Datatype_sparse=1};
    //  /*! int/double */
    //  enum Valuetype {Valuetype_int=0,
    //                  Valuetype_double=1};
@@ -36,44 +35,20 @@ namespace fmesh {
    //  enum Storagetype {Storagetype_rowmajor=0,
    //                    Storagetype_colmajor=1};
 
-  IOHelper::IOHelper(const Matrix<int>& M,
-		     IOHeader::Matrixtype matrixt) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultDense(M,matrixt);
-    h_.valuetype = IOHeader::Valuetype_int;
-  }
-  IOHelper::IOHelper(const Matrix<double>& M,
-		     IOHeader::Matrixtype matrixt) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultDense(M,matrixt);
-    h_.valuetype = IOHeader::Valuetype_double;
-  }
 
-  IOHelper::IOHelper(const SparseMatrix<int>& M,
-		     IOHeader::Matrixtype matrixt) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultSparse(M,matrixt);
-    h_.valuetype = IOHeader::Valuetype_int;
-  }
-  IOHelper::IOHelper(const SparseMatrix<double>& M,
-		     IOHeader::Matrixtype matrixt) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultSparse(M,matrixt);
-    h_.valuetype = IOHeader::Valuetype_double;
-  }
+  template <>
+  IOHeader::IOHeader(const int& ref) { valuetype = IOValuetype_int; };
+  template <>
+  IOHeader::IOHeader(const double& ref) { valuetype = IOValuetype_double; };
+  template <>
+  IOHeader::IOHeader(const SparseMatrixDuplet<int>& ref);
+  template <>
+  IOHeader::IOHeader(const SparseMatrixDuplet<double>& ref);
+  template <>
+  IOHeader::IOHeader(const SparseMatrixTriplet<int>& ref);
+  template <>
+  IOHeader::IOHeader(const SparseMatrixTriplet<double>& ref);
 
-  IOHelper::IOHelper(const Matrix1int& m,
-		     const Matrix<int>& M) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultMap(m,M);
-    h_.valuetype = IOHeader::Valuetype_int;
-  }
-  IOHelper::IOHelper(const Matrix1int& m,
-		     const Matrix<double>& M) : ascii_(ASCII_DEFAULT)
-  {
-    h_.DefaultMap(m,M);
-    h_.valuetype = IOHeader::Valuetype_double;
-  }
 
 
   IOHelper& IOHelper::O(std::ostream& output)
@@ -103,7 +78,7 @@ namespace fmesh {
       int file_header_length;
       input >> file_header_length;
       if (file_header_length < header_length) {
-	h_.DefaultDense(Matrix<int>(0),IOHeader::Matrixtype_general);
+	h_.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
 	int* ioheader_p = (int*)&h_;
 	for (int i=0; i<file_header_length; i++)
 	  input >> ioheader_p[i];
@@ -123,7 +98,7 @@ namespace fmesh {
       int file_header_size;
       input.read((char*)&file_header_size, sizeof(file_header_size));
       if (file_header_size < header_size) {
-	h_.DefaultDense(Matrix<int>(0),IOHeader::Matrixtype_general);
+	h_.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
 	input.read((char*)&h_, file_header_size);
       } else {
 	input.read((char*)&h_, header_size);
@@ -134,6 +109,12 @@ namespace fmesh {
 	}
       }
     }
+    return *this;
+  }
+
+  IOHelper& IOHelper::H(const IOHeader& h)
+  {
+    h_ = h;
     return *this;
   }
 
