@@ -157,12 +157,23 @@ namespace fmesh {
       return &data_[r*cols_];
     };
 
+    T* operator()(const int r) {
+      if (r >= (int)rows_) {
+	capacity(r+1);
+	rows_ = r+1;
+      }
+      return &data_[r*cols_]; 
+    };
+
     T& operator()(const int r, const int c) {
+      return operator()(r)[c]; 
+      /*
       if (r >= (int)rows_) {
 	capacity(r+1);
 	rows_ = r+1;
       }
       return data_[r*cols_+c]; 
+      */
     };
 
     const T& operator()(const int r, const int c, const T& val) {
@@ -171,6 +182,7 @@ namespace fmesh {
     };
 
     const T (* raw(void) const) { return data_; }
+    T* raw(void) { return data_; }
 
   };
 
@@ -294,6 +306,27 @@ namespace fmesh {
 
 
 
+  template <class T>
+  class SparseMatrixDuplet {
+  public:
+    int r;
+    T value;
+    SparseMatrixDuplet()
+      : r(0), value(T()) {};
+    SparseMatrixDuplet(int set_r, const T& set_value)
+      : r(set_r), value(set_value) {};
+  };
+  template <class T>
+  class SparseMatrixTriplet {
+  public:
+    int r;
+    int c;
+    T value;
+    SparseMatrixTriplet()
+      : r(0), c(0), value(T()) {};
+    SparseMatrixTriplet(int set_r, int set_c, const T& set_value)
+      : r(set_r), c(set_c), value(set_value) {};
+  };
 
 
 
@@ -303,17 +336,20 @@ namespace fmesh {
     std::ostream& operator<< <> (std::ostream& output,
 				 const SparseMatrix<T>& M);
     
+  public:
     typedef typename std::map<int, T> RowType;
     typedef typename std::map<int, RowType> DataType;
     typedef typename RowType::const_iterator ColConstIter;
     typedef typename DataType::const_iterator RowConstIter;
     typedef typename RowType::iterator ColIter;
     typedef typename DataType::iterator RowIter;
+
   private:
     DataType data_;
     const T zero_;
   public:
-  SparseMatrix() : data_(), zero_() {};
+    SparseMatrix() : data_(), zero_() {};
+    void clear() { data_.clear(); };
 
     int rows(void) const {
       if (data_.size() == 0)
@@ -397,6 +433,110 @@ namespace fmesh {
       } else {
 	data_[r][c] = val;
 	return data_[r][c];
+      }
+    };
+
+    /*! To list, assuming diagonal. */
+    void tolist(Matrix1< SparseMatrixDuplet<T> >& MT) const {
+      int elem = 0;
+      for (RowConstIter row = data_.begin();
+	  row != data_.end();
+	  row++) {
+	ColConstIter col;
+	if ((col = row->second.find(row->first)) != row->second.end()) {
+	  MT(elem) = SparseMatrixDuplet<T>(row->first,col->second);
+	  elem++;
+	}
+      }
+    };
+    /*! To list, general or symmetric. */
+    void tolist(Matrix1< SparseMatrixTriplet<T> >& MT,
+		bool assume_symmetric = false) const {
+      int elem = 0;
+      for (RowConstIter row = data_.begin();
+	  row != data_.end();
+	  row++) {
+	for (ColConstIter col = row->second.begin();
+	    col != row->second.end();
+	    col++) {
+	  if ((!assume_symmetric) ||
+	      (row->first <= col->first)) {
+	    MT(elem) = SparseMatrixTriplet<T>(row->first,col->first,
+					      col->second);
+	    elem++;
+	  }
+	}
+      }
+    };
+    /*! To list, assuming diagonal. */
+    void tolist(Matrix1< int >& Tr,
+		Matrix1< T >& Tv) const {
+      int elem = 0;
+      for (RowConstIter row = data_.begin();
+	  row != data_.end();
+	  row++) {
+	ColConstIter col;
+	if ((col = row->second.find(row->first)) != row->second.end()) {
+	  Tr(elem) = row->first;
+	  Tv(elem) = col->second;
+	  elem++;
+	}
+      }
+    };
+    /*! To list, general or symmetric. */
+    void tolist(Matrix1< int >& Tr,
+		Matrix1< int >& Tc,
+		Matrix1< T >& Tv,
+		bool assume_symmetric = false) const {
+      int elem = 0;
+      for (RowConstIter row = data_.begin();
+	  row != data_.end();
+	  row++) {
+	for (ColConstIter col = row->second.begin();
+	    col != row->second.end();
+	    col++) {
+	  if ((!assume_symmetric) ||
+	      (row->first <= col->first)) {
+	    Tr(elem) = row->first;
+	    Tc(elem) = col->first;
+	    Tv(elem) = col->second;
+	    elem++;
+	  }
+	}
+      }
+    };
+
+    /*! From list, assuming diagonal. */
+    void fromlist(const Matrix1< SparseMatrixDuplet<T> >& MT) {
+      for (int i=0; i<MT.rows(); i++)
+	operator()(MT[i].r,MT[i].r,MT[i].value);
+    };
+    /*! From list, general or symmetric. */
+    void fromlist(const Matrix1< SparseMatrixTriplet<T> >& MT,
+		bool assume_symmetric = false) {
+      for (int i=0; i<MT.rows(); i++)
+	operator()(MT[i].r,MT[i].c,MT[i].value);
+    };
+    /*! From list, assuming diagonal. */
+    void fromlist(const Matrix1< int >& Tr,
+		  const Matrix1< T >& Tv) {
+      for (int i=0; i<Tr.rows(); i++)
+	operator()(Tr[i],Tr[i],Tv[i]);
+    };
+    /*! From list, general or symmetric. */
+    void fromlist(const Matrix1< int >& Tr,
+		  const Matrix1< int >& Tc,
+		  const Matrix1< T >& Tv,
+		  bool assume_symmetric = false) {
+      if (assume_symmetric) {
+	for (int i=0; i<Tr.rows(); i++) {
+	  operator()(Tr[i],Tc[i],Tv[i]);
+	  operator()(Tc[i],Tr[i],Tv[i]);
+	}
+      } else {
+	for (int i=0; i<Tr.rows(); i++) {
+	  operator()(Tr[i],Tc[i],Tv[i]);
+	}
       }
     };
 
@@ -515,6 +655,45 @@ namespace fmesh {
       output << std::endl;
     }
     return output;
+  }
+
+
+  template<class T>
+  std::ostream& operator<<(std::ostream& output,
+			   const SparseMatrixDuplet<T>& MT)
+  {
+    output << MT.r << " "
+	   << MT.value;
+    return output;
+  }
+
+  template<class T>
+  std::istream& operator>>(std::istream& input,
+			   SparseMatrixDuplet<T>& MT)
+  {
+    input >> MT.r;
+    input >> MT.value;
+    return input;
+  }
+
+  template<class T>
+  std::ostream& operator<<(std::ostream& output,
+			   const SparseMatrixTriplet<T>& MT)
+  {
+    output << MT.r << " "
+	   << MT.c << " "
+	   << MT.value;
+    return output;
+  }
+
+  template<class T>
+  std::istream& operator>>(std::istream& input,
+			   SparseMatrixTriplet<T>& MT)
+  {
+    input >> MT.r;
+    input >> MT.c;
+    input >> MT.value;
+    return input;
   }
 
 

@@ -642,10 +642,16 @@ int main()
 
   fmesh::IOHelper iohelper(M);
   iohelper.O(cout).O(cout,M);
-  iohelper = fmesh::IOHelper(M,fmesh::IOHeader::Matrixtype_symmetric);
+  iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_symmetric);
   iohelper.O(cout).O(cout,M);
-  iohelper = fmesh::IOHelper(M,fmesh::IOHeader::Matrixtype_diagonal);
+  iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_diagonal);
   iohelper.O(cout).O(cout,M);
+
+  iohelper.H(iohelper.h_).O(cout,M);
+  fmesh::IOHelper(iohelper.h_).O(cout,M);
+
+  //  fmesh::IOHelper(M).I(std::cin).I(std::cin,M);
+  //   cout << M;
 
   fmesh::SparseMatrix<double> SM;
   SM(1,1) = 1.1;
@@ -656,12 +662,16 @@ int main()
 
   iohelper = fmesh::IOHelper(SM);
   iohelper.O(cout).O(cout,SM);
-    iohelper = fmesh::IOHelper(SM,fmesh::IOHeader::Matrixtype_symmetric);
+  iohelper.storage().O(cout).O(cout,SM);
+  iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_symmetric);
   iohelper.O(cout).O(cout,SM);
-  iohelper = fmesh::IOHelper(SM,fmesh::IOHeader::Matrixtype_diagonal);
+  iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_diagonal);
   iohelper.O(cout).O(cout,SM);
 
-  return 0;
+  //  fmesh::IOHelper(SM).I(std::cin).I(std::cin,SM);
+  //  cout << SM;
+
+  //  return 0;
 
   for (int i=0;i<maxiter;i++) {
     CDT_test();
