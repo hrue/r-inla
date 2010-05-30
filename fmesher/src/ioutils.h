@@ -73,6 +73,9 @@ namespace fmesh {
   template <>
   IOHeader::IOHeader(const double& ref);
 
+  std::ostream& operator<<(std::ostream& output, const IOHeader& h);
+  std::istream& operator>>(std::istream& output, IOHeader& h);
+
   /*! Helper for input and output. */
   class IOHelper {
   public:
