@@ -201,7 +201,7 @@
                 fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
                 cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
             } else {
-                inla.check.sparse.matrix(random.spec$Cmatrix)
+                inla.sm.check(random.spec$Cmatrix)
 
                 file.C=inla.tempfile(tmpdir=data.dir)
                 file.create(file.C)
@@ -390,7 +390,7 @@
     cat("[Predictor]\n", sep = " ", file = file,  append = TRUE)
     cat("type = predictor\n", sep = " ", file = file,  append = TRUE)
     cat("dir = predictor\n", sep = " ", file = file, append = TRUE)
-    cat("n = ",n,"\n", sep = " ", file = file,  append = TRUE)
+    cat("n = ",n, "\n", sep = " ", file = file,  append = TRUE)
 
     inla.write.boolean.field("fixed", predictor.spec$fixed, file)
     inla.write.boolean.field("compute", predictor.spec$compute, file)
@@ -423,6 +423,65 @@
         write(predictor.spec$cross, ncol=1, file=file.cross)
         fnm = gsub(data.dir, "$DATADIR", file.cross, fixed=TRUE)
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
+    }
+
+    if (!is.null(random.spec$A)) {
+        ## Since we will expand the A into [ I, -A; -A^T, A^T A
+        ## ], we have to read the matrix it if its given in a
+        ## file. The fileformat is given as a three colums file, with
+        ## columns i, j and values.
+        if (is.character(random.spec$A)) {
+            A = read.table(random.spec$A, col.names = c("i", "j", "values"))
+        } else {
+            A = random.spec$A
+        }
+        inla.sm.check(A, dims = n)
+
+        ## Now we will build the extended Matrix, which is
+        ##
+        ## Aextended = [ I, -A; -A^T, A^T A ] (2n x 2x)
+        ##
+        ## This matrix is the one that is needed for input to inla. We
+        ## will only build the upper triangular part!
+        
+        ## Note that only a subset of the matrix has to be
+        ## given, and the rest is filled with zeros:
+        ## > inla.sm2dgTMatrix(list(i=2, j=2, values=2), dims=c(3,3))
+        ##   3 x 3 sparse Matrix of class "dgTMatrix"
+        ##   [1,] . . .
+        ##   [2,] . 2 .
+        ##   [3,] . . .
+        ##
+        A = inla.sm2dgTMatrix(A, dims = c(n,n))
+
+        ## The `I'
+        Aext = list(i = 1:n, j = 1:n, values = rep(1,n))
+
+        ## add -A^T. Ooops; the internal storage @i etc, are zero-based indexing.
+        Aext$i = c(Aext$i, (A@i+1))
+        Aext$j = c(Aext$j, (A@j+1) + n)
+        Aext$values = c(Aext$values, -A@x)
+
+        ## add A^T A. Ooops; the internal storage @i etc, are zero-based indexing.
+        ATA = inla.as.dgTMatrix( t(A) %*% A )
+        Aext$i = c(Aext$i, (ATA@i+1) + n)
+        Aext$j = c(Aext$j, (ATA@j+1) + n)
+        Aext$values = c(Aext$values, ATA@x)
+
+        stopifnot(length(Aext$i) == length(Aext$j))
+        stopifnot(length(Aext$i) == length(Aext$values))
+        
+        file.A=inla.tempfile(tmpdir=data.dir)
+        file.create(file.A)
+        
+        ## upper triangular part
+        idx = (Aext$i <= Aext$j)
+        stopifnot(sum(idx) >= n)
+        
+        write(t(cbind(Aext$i[idx], Aext$j[idx], Aext$values[idx])),
+              ncolumns=3, file=file.A, append=FALSE)
+        file.A = gsub(data.dir, "$DATADIR", file.A, fixed=TRUE)
+        cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

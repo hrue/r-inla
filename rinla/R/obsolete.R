@@ -23,12 +23,3 @@
     return (invisible())
 }
 
-`inla.check.sparse.matrix` = function(C)
-{
-    if (!is.null(C$Cij))
-        stop("INLA-format for sparse-matrix has changed. Please use format `C = list(i=.., j=.., values=...)'")
-    if (!(!is.null(C$i) && !is.null(C$j) && !is.null(C$values)))
-        stop("INLA-format for sparse-matrix has format `C = list(i=.., j=.., values=...)'")
-
-    return (invisible())
-}
