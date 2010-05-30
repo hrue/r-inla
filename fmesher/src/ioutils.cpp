@@ -54,14 +54,7 @@ namespace fmesh {
   IOHelper& IOHelper::O(std::ostream& output)
   {
     if (ascii_) {
-      int header_length = sizeof(IOHeader)/sizeof(int);
-      output << header_length << " ";
-      const int* ioheader_p = (const int*)&h_;
-      for (int i=0; i<header_length; i++) {
-	output << ioheader_p[i];
-	if (i+1<header_length)
-	  output << " ";
-      }
+      output << h_;
       output << endl;
     } else {
       int header_size = sizeof(IOHeader);
@@ -74,25 +67,7 @@ namespace fmesh {
   IOHelper& IOHelper::I(std::istream& input)
   {
     if (ascii_) {
-      int header_length = sizeof(IOHeader)/sizeof(int);
-      int file_header_length;
-      input >> file_header_length;
-      if (file_header_length < header_length) {
-	h_.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
-	int* ioheader_p = (int*)&h_;
-	for (int i=0; i<file_header_length; i++)
-	  input >> ioheader_p[i];
-      } else {
-	int* ioheader_p = (int*)&h_;
-	for (int i=0; i<header_length; i++)
-	  input >> ioheader_p[i];
-	if (file_header_length > header_length) {
-	  int* buf = new int[header_length-file_header_length];
-	  for (int i=0; i<header_length-file_header_length; i++)
-	    input >> buf[i];
-	  delete[] buf;
-	}
-      }
+      input >> h_;
     } else {
       int header_size = sizeof(IOHeader);
       int file_header_size;
@@ -116,6 +91,45 @@ namespace fmesh {
   {
     h_ = h;
     return *this;
+  }
+
+
+  std::ostream& operator<<(std::ostream& output, const IOHeader& h)
+  {
+    int header_length = sizeof(IOHeader)/sizeof(int);
+    output << header_length << " ";
+    const int* ioheader_p = (const int*)&h;
+    for (int i=0; i<header_length; i++) {
+      output << ioheader_p[i];
+      if (i+1<header_length)
+	output << " ";
+    }
+    return output;
+  }
+
+
+  std::istream& operator>>(std::istream& input, IOHeader& h)
+  {
+    int header_length = sizeof(IOHeader)/sizeof(int);
+    int file_header_length;
+    input >> file_header_length;
+    if (file_header_length < header_length) {
+      h.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
+      int* ioheader_p = (int*)&h;
+      for (int i=0; i<file_header_length; i++)
+	input >> ioheader_p[i];
+    } else {
+      int* ioheader_p = (int*)&h;
+      for (int i=0; i<header_length; i++)
+	input >> ioheader_p[i];
+      if (file_header_length > header_length) {
+	int* buf = new int[header_length-file_header_length];
+	for (int i=0; i<header_length-file_header_length; i++)
+	  input >> buf[i];
+	delete[] buf;
+      }
+    }
+    return input;
   }
 
 

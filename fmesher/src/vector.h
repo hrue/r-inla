@@ -671,8 +671,8 @@ namespace fmesh {
   std::istream& operator>>(std::istream& input,
 			   SparseMatrixDuplet<T>& MT)
   {
-    input >> MT.r;
-    input >> MT.value;
+    input >> MT.r
+	  >> MT.value;
     return input;
   }
 
@@ -690,9 +690,9 @@ namespace fmesh {
   std::istream& operator>>(std::istream& input,
 			   SparseMatrixTriplet<T>& MT)
   {
-    input >> MT.r;
-    input >> MT.c;
-    input >> MT.value;
+    input >> MT.r
+	  >> MT.c
+	  >> MT.value;
     return input;
   }
 
