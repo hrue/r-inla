@@ -21,4 +21,18 @@ using std::endl;
 
 namespace fmesh {
 
+  template<>
+  std::ostream& operator<<(std::ostream& output,
+			   const SparseMatrixTriplet<int>& MT);
+  template<>
+  std::ostream& operator<<(std::ostream& output,
+			   const SparseMatrixTriplet<double>& MT);
+
+  template<>
+  std::istream& operator>>(std::istream& input,
+			   SparseMatrixTriplet<int>& MT);
+  template<>
+  std::istream& operator>>(std::istream& input,
+			   SparseMatrixTriplet<double>& MT);
+
 } /* namespace fmesh */
