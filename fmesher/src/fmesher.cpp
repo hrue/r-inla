@@ -17,6 +17,8 @@ using fmesh::Dart;
 using fmesh::Int3;
 using fmesh::Int3Raw;
 using fmesh::IOHelper;
+using fmesh::IOHelperM;
+using fmesh::IOHelperSM;
 using fmesh::Matrix;
 using fmesh::Matrix3;
 using fmesh::Matrix3int;
@@ -45,7 +47,7 @@ int main(int argc, const char* argv[])
 
   Matrix<double> iS0;
   ifstream I((prefix+"s0").c_str(), ios::in | ios::binary);
-  IOHelper(iS0).binary().I(I).I(I,iS0);
+  IOHelperM<double>().D(&iS0).binary().IH(I).ID(I);
   I.close();
   Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
   int nV = S0.rows();
@@ -87,11 +89,11 @@ int main(int argc, const char* argv[])
 
   ofstream O;
   O.open((prefix+"s").c_str(), ios::out | ios::binary);
-  IOHelper(M.S()).binary().O(O).O(O,M.S());
+  IOHelperM<double>().cD(&M.S()).binary().OH(O).OD(O);
   O.close();
 
   O.open((prefix+"tv").c_str(), ios::out | ios::binary);
-  IOHelper(M.TV()).binary().O(O).O(O,M.TV());
+  IOHelperM<int>().cD(&M.TV()).binary().OH(O).OD(O);
   O.close();
 
   return 0;

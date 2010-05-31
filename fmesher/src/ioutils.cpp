@@ -37,9 +37,9 @@ namespace fmesh {
 
 
   template <>
-  IOHeader::IOHeader(const int& ref) { valuetype = IOValuetype_int; };
+  IOHeader::IOHeader(const int& ref);
   template <>
-  IOHeader::IOHeader(const double& ref) { valuetype = IOValuetype_double; };
+  IOHeader::IOHeader(const double& ref);
   template <>
   IOHeader::IOHeader(const SparseMatrixDuplet<int>& ref);
   template <>
@@ -49,49 +49,32 @@ namespace fmesh {
   template <>
   IOHeader::IOHeader(const SparseMatrixTriplet<double>& ref);
 
-
-
-  IOHelper& IOHelper::O(std::ostream& output)
+  template <>
+  IOHeader& IOHeader::def(const int& ref) {
+    def();
+    valuetype = IOValuetype_int;
+    return *this;
+  }
+  template <>
+  IOHeader& IOHeader::def(const double& ref)
   {
-    if (binary_) {
-      int header_size = sizeof(IOHeader);
-      output.write((char*)&header_size, sizeof(header_size));
-      output.write((const char*)&h_, header_size);
-    } else {
-      output << h_;
-      output << endl;
-    }
+    def();
+    valuetype = IOValuetype_double;
     return *this;
   }
 
-  IOHelper& IOHelper::I(std::istream& input)
-  {
-    if (binary_) {
-      int header_size = sizeof(IOHeader);
-      int file_header_size;
-      input.read((char*)&file_header_size, sizeof(file_header_size));
-      if (file_header_size < header_size) {
-	h_.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
-	input.read((char*)&h_, file_header_size);
-      } else {
-	input.read((char*)&h_, header_size);
-	if (file_header_size > header_size) {
-	  char* buf = new char[header_size-file_header_size];
-	  input.read(buf, header_size-file_header_size);
-	  delete[] buf;
-	}
-      }
-    } else {
-      input >> h_;
-    }
+  IOHeader& IOHeader::def() {
+    version = IOHEADER_VERSION;
+    elems = 0;
+    rows = 0;
+    cols = 0;
+    datatype = -1;
+    valuetype = -1;
+    matrixtype = -1;
+    storagetype = -1;
     return *this;
   }
 
-  IOHelper& IOHelper::H(const IOHeader& h)
-  {
-    h_ = h;
-    return *this;
-  }
 
 
   std::ostream& operator<<(std::ostream& output, const IOHeader& h)
@@ -114,7 +97,7 @@ namespace fmesh {
     int file_header_length;
     input >> file_header_length;
     if (file_header_length < header_length) {
-      h.DefaultDense(Matrix<int>(0),IOMatrixtype_general);
+      h.dense(Matrix<int>(0),IOMatrixtype_general);
       int* ioheader_p = (int*)&h;
       for (int i=0; i<file_header_length; i++)
 	input >> ioheader_p[i];

@@ -1064,7 +1064,7 @@ namespace fmesh {
     int i;
 
     /* Construct interior boundary normals. */
-    Point* n = new Point[sides]; /* Normal vectors. */
+    Point n[sides]; /* Normal vectors. */
     double th;
     for (i=0;i<sides;i++) {
       th = 2.0*M_PI*double(i)/double(sides);
@@ -1074,7 +1074,7 @@ namespace fmesh {
     }
     
     /* Initialise enclosure. */
-    double* d = new double[sides]; /* Distances from origin for boundary. */
+    double d[sides]; /* Distances from origin for boundary. */
     for (i=0;i<sides;i++) {
       d[i] = Vec::scalar(n[i],M_->S(0));
     }
@@ -1115,7 +1115,7 @@ namespace fmesh {
 
     MESHC_LOG("Calculate enclosure boundary.");
 
-    Point* S = new Point[sides];
+    Point S[sides];
     double a0, a1, n01;
     int j;
     for (i=0;i<sides;i++) {
@@ -1130,7 +1130,7 @@ namespace fmesh {
 
     /* Add enclosure triangles. */
     MESHC_LOG("Add enclosure triangles.");
-    Int3* TV = new Int3[sides-2];
+    Int3 TV[sides-2];
     for (i=0;i<sides-2;i++) {
       TV[i][0] = nV+(0);
       TV[i][1] = nV+(i+1);
@@ -1142,10 +1142,6 @@ namespace fmesh {
 
     MESHC_LOG("CET finished" << endl << *this);
     M_->redrawX11("CET finished");
-
-    delete[] TV;
-    delete[] S;
-    delete[] n;
 
     state_ = State_CET;
     return true;
