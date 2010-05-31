@@ -398,6 +398,10 @@ struct inla_tp_struct {
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 
+	int predictor_n_ext;				       /* dimension of \eta_ext */
+	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix  */
+	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+
 	/*
 	 * type Data 
 	 */

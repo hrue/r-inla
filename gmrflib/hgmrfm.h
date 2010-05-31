@@ -54,14 +54,9 @@ __BEGIN_DECLS
  * 
  */
     typedef struct {
-	int n;
-	int N;
-
-	/*
-	 * no longer needed 
-	 */
-	// double *logprec_unstruct;
-	// double **logprec_unstruct_omp;
+	int n;						       /* length of the linear predictor */
+	int n_ext;					       /* length of the extended part of the linear predictor */
+	int N;						       /* grand total */
 
 	int *idx_map_f;
 	int *idx_map_beta;
@@ -85,6 +80,9 @@ __BEGIN_DECLS
 
 	GMRFLib_graph_tp *eta_graph;
 	GMRFLib_tabulate_Qfunc_tp *eta_Q;
+
+	GMRFLib_graph_tp *eta_ext_graph;
+	GMRFLib_tabulate_Qfunc_tp *eta_ext_Q;
 
 	GMRFLib_graph_tp *lc_graph;
 	GMRFLib_tabulate_Qfunc_tp *lc_Q;
@@ -128,6 +126,7 @@ typedef struct {
 } GMRFLib_hgmrfm_type_tp;
 
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
+			const char *Aext_fnm, double Aext_precision, 
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
