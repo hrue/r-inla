@@ -68,18 +68,8 @@ namespace fmesh {
     ~Matrix() {
       if (data_)
 	delete[] data_;
-      if (cap_>0)
-	std::cout << "Capability = " << cap_
-		  << ", rows = " << rows_
-		  << ", cols = " << cols_
-		  << std::endl;
     };
     void clear(void) {
-      if (cap_>0)
-	std::cout << "Capability = " << cap_
-		  << ", rows = " << rows_
-		  << ", cols = " << cols_
-		  << std::endl;
       if (data_) {
 	delete[] data_;
 	data_ = NULL;
@@ -194,7 +184,11 @@ namespace fmesh {
   private:
     T data_[3];
   public:
-    Vector3() {};
+    Vector3() {
+      data_[0] = T();
+      data_[1] = T();
+      data_[2] = T();
+    };
     Vector3(const T& val0,
 	    const T& val1,
 	    const T& val2) {
@@ -266,6 +260,13 @@ namespace fmesh {
     typedef T ValueRaw[3];
     typedef Vector3<T> ValueRow;
     Matrix3() : Matrix<T>(3) {};
+    Matrix3(const Matrix<T>& M) : Matrix<T>(3) {
+      for (int r=0; r < M.rows(); r++) {
+	for (int c=0; (c < 3) && (c < M.cols()); c++) {
+	  operator()(r,c,M[r][c]);
+	}
+      }
+    };
     Matrix3(size_t set_rows, const ValueRow* vals)
       : Matrix<T>(set_rows,3,(T*)vals) {};
     Matrix3(size_t set_rows, const ValueRaw* vals = NULL)
