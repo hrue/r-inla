@@ -20,7 +20,7 @@
 #endif
 
 #define IOHEADER_VERSION 0
-#define ASCII_DEFAULT true
+#define BINARY_DEFAULT false
 
 namespace fmesh {
 
@@ -80,41 +80,51 @@ namespace fmesh {
   class IOHelper {
   public:
     IOHeader h_;
-    bool ascii_;
+    bool binary_;
   public:
     /* Constructors: */
-    IOHelper() : h_(0), ascii_(ASCII_DEFAULT) {};
-    IOHelper(const IOHeader& h) : h_(h), ascii_(ASCII_DEFAULT) {};
+    IOHelper() : h_(0), binary_(BINARY_DEFAULT) {};
+    IOHelper(const IOHeader& h) : h_(h), binary_(BINARY_DEFAULT) {};
     template <class T>
     IOHelper(const Matrix<T>& M,
 	     IOMatrixtype matrixt = IOMatrixtype_general,
-	     bool set_ascii = ASCII_DEFAULT)
-      : h_(T()), ascii_(set_ascii)
+	     bool set_binary = BINARY_DEFAULT)
+      : h_(T()), binary_(set_binary)
     { h_.DefaultDense(M,matrixt); };
     template <class T>
     IOHelper(const SparseMatrix<T>& M,
 	     IOMatrixtype matrixt = IOMatrixtype_general,
-	     bool set_ascii = ASCII_DEFAULT)
-      : h_(T()), ascii_(set_ascii)
+	     bool set_binary = BINARY_DEFAULT)
+      : h_(T()), binary_(set_binary)
     { h_.DefaultSparse(M,matrixt); };
 
-    IOHelper& ascii() {
-      ascii_ = !ascii_;
+    bool binaryformat() const {
+      return binary_;
+    };
+    IOStoragetype storage() const {
+      return (IOStoragetype)h_.storagetype;
+    };
+    IOHelper& ascii(bool set_ascii = true) {
+      return binary(!set_ascii);
+    };
+    IOHelper& binary(bool set_binary = true) {
+      binary_ = set_binary;
       return *this;
     };
-    IOHelper& storage() {
-      if (h_.storagetype == IOStoragetype_rowmajor)
-	h_.storagetype = IOStoragetype_colmajor;
-      else
-	h_.storagetype = IOStoragetype_rowmajor;
-      return *this;
-    };
-    IOHelper& ascii(bool set_ascii) {
-      ascii_ = set_ascii;
-      return *this;
-    };
-    IOHelper& storage(bool set_storage) {
+    IOHelper& storage(IOStoragetype set_storage) {
       h_.storagetype = set_storage;
+      return *this;
+    };
+    IOHelper& rowmajor(bool set_rowmajor = true) {
+      h_.storagetype = (set_rowmajor
+			? IOStoragetype_rowmajor
+			: IOStoragetype_rowmajor);
+      return *this;
+    };
+    IOHelper& colmajor(bool set_colmajor = true) {
+      h_.storagetype = (set_colmajor
+			? IOStoragetype_colmajor
+			: IOStoragetype_colmajor);
       return *this;
     };
 

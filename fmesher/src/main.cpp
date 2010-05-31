@@ -641,7 +641,8 @@ int main()
   cout << M;
 
   fmesh::IOHelper iohelper(M);
-  iohelper.O(cout).O(cout,M);
+  iohelper.rowmajor().O(cout).O(cout,M);
+  iohelper.colmajor().O(cout).O(cout,M);
   iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_symmetric);
   iohelper.O(cout).O(cout,M);
   iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_diagonal);
@@ -661,8 +662,10 @@ int main()
   cout << SM;
 
   iohelper = fmesh::IOHelper(SM);
-  iohelper.O(cout).O(cout,SM);
-  iohelper.storage().O(cout).O(cout,SM);
+  cout << "XYZZY" << endl;
+  iohelper.rowmajor().O(cout).O(cout,SM);
+  iohelper.colmajor().O(cout).O(cout,SM);
+  cout << "XYZZY" << endl;
   iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_symmetric);
   iohelper.O(cout).O(cout,SM);
   iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_diagonal);
