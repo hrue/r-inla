@@ -299,7 +299,7 @@ int DT2D_test3() /* Random points */
 
   std::ofstream F("exrandom.io.s0", std::ios::out | std::ios::binary);
   Matrix3double FM(n,S);
-  fmesh::IOHelper(FM).binary().O(F).O(F,FM);
+  fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
   F.close();
 
   M.S_set(Matrix3double(n,S));
@@ -643,19 +643,19 @@ int iohelper_test()
   M(0,0,9.9);
   cout << M;
 
-  fmesh::IOHelper iohelper(M);
-  iohelper.rowmajor().O(cout).O(cout,M);
-  iohelper.colmajor().O(cout).O(cout,M);
-  iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_symmetric);
-  iohelper.O(cout).O(cout,M);
-  iohelper = fmesh::IOHelper(M,fmesh::IOMatrixtype_diagonal);
-  iohelper.O(cout).O(cout,M);
-
-  iohelper.H(iohelper.h_).O(cout,M);
-  fmesh::IOHelper(iohelper.h_).O(cout,M);
-
-  //  fmesh::IOHelper(M).I(std::cin).I(std::cin,M);
-  //   cout << M;
+  {
+    fmesh::IOHelperM<double> iohelper;
+    iohelper.cD(&M);
+    iohelper.rowmajor().OH(cout).OD(cout);
+    iohelper.colmajor().OH(cout).OD(cout);
+    iohelper.symmetric().OH(cout).OD(cout);
+    iohelper.diagonal().OH(cout).OD(cout);
+    
+    iohelper.IH(iohelper.h_).OD(cout);
+    
+    //  fmesh::IOHelper<double>().D(&M).IH(std::cin).ID(std::cin);
+    //   cout << M;
+  }
 
   fmesh::SparseMatrix<double> SM;
   SM(1,1) = 1.1;
@@ -663,19 +663,20 @@ int iohelper_test()
   SM(3)[1] = 0.0;
   SM(0,1,0.1);
   cout << SM;
+  
+  {
+    fmesh::IOHelperSM<double> iohelper;
+    iohelper.cD(&SM);
+    cout << "XYZZY" << endl;
+    iohelper.rowmajor().OH(cout).OD(cout);
+    iohelper.colmajor().OH(cout).OD(cout);
+    cout << "XYZZY" << endl;
+    iohelper.symmetric().OH(cout).OD(cout);
+    iohelper.diagonal().OH(cout).OD(cout);
 
-  iohelper = fmesh::IOHelper(SM);
-  cout << "XYZZY" << endl;
-  iohelper.rowmajor().O(cout).O(cout,SM);
-  iohelper.colmajor().O(cout).O(cout,SM);
-  cout << "XYZZY" << endl;
-  iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_symmetric);
-  iohelper.O(cout).O(cout,SM);
-  iohelper = fmesh::IOHelper(SM,fmesh::IOMatrixtype_diagonal);
-  iohelper.O(cout).O(cout,SM);
-
-  //  fmesh::IOHelper(SM).I(std::cin).I(std::cin,SM);
-  //  cout << SM;
+    //  fmesh::IOHelper<double>().D(&SM).IH(std::cin).ID(std::cin);
+    //  cout << SM;
+  }
 
   return 0;
 }
