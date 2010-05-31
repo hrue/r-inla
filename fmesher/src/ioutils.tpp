@@ -214,6 +214,7 @@ namespace fmesh {
     M.clear();
     M.cols(h_.cols);
     M.capacity(h_.rows);
+    M(h_.rows-1,h_.cols-1,T()); /* Initialize last element. */
     if (binary_) {
       switch (h_.matrixtype) {
       case IOMatrixtype_general:
