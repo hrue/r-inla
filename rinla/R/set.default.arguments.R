@@ -272,7 +272,7 @@
          ##:ARGUMENT: predictor.usermap One of the predfined mappings to compute new marginals for
          predictor.usermap=NULL,
 
-         ##:ARGUMENT: A The observation matrix A = list(i=..., j=..., values=...)
+         ##:ARGUMENT: A The observation matrix A = list(i=..., j=..., values=...) or a filename.
          A = NULL,
 
          ##:ARGUMENT precision The precision for eta - A*eta,
