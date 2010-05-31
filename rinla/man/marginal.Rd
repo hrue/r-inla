@@ -51,10 +51,10 @@ inla.marginal.transform = function(fun, marginal, n, h.diff, ...)
 
   \item{n}{The number of observations. If \code{length(n) > 1}, the
     length is taken to be the number required. For
-    \code{inla.marginal.transformation}, its the number of points to use
+    \code{inla.marginal.transform}, its the number of points to use
     in the new density.}
 
-  \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.marginal.transformation}}
+  \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.marginal.transform}}
     
   \item{...}{Further arguments to be passed to function which
     expectation is to be computed.}
@@ -83,7 +83,8 @@ n = 10
 x = rnorm(n)
 sd = 0.1
 y = 1+x + rnorm(n,sd=sd)
-res = inla(y ~ 1 + x, control.data=list(initial = log(1/sd^2),fixed=TRUE))
+res = inla(y ~ 1 + x, data = data.frame(x,y),
+           control.data=list(initial = log(1/sd^2),fixed=TRUE))
 
 ## chose a marginal and compare the with the results computed by the
 ## inla-program
@@ -91,9 +92,9 @@ r = res$summary.fixed["x",]
 m = res$marginals.fixed$x
 
 ## compute the the density for exp(r), version 1
-r.exp = inla.marginal.transformation(exp, r)
+r.exp = inla.marginal.transform(exp, m)
 ## or version 2
-r.exp = inla.marginal.transformation(function(x) exp(x), r)
+r.exp = inla.marginal.transform(function(x) exp(x), m)
 
 ## to plot the marginal, we use the inla.spline, which interpolates (in
 ## log-scale). Compare with some samples.
