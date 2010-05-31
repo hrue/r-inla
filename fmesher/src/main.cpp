@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <cstdlib>
 
@@ -295,6 +296,11 @@ int DT2D_test3() /* Random points */
     S[v][1] = double(std::rand())/RAND_MAX*0.9+0.05;
     S[v][2] = 0.0;
   }
+
+  std::ofstream F("exrandom.io.s0", std::ios::out | std::ios::binary);
+  Matrix3double FM(n,S);
+  fmesh::IOHelper(FM).binary().O(F).O(F,FM);
+  F.close();
 
   M.S_set(Matrix3double(n,S));
 
@@ -627,11 +633,8 @@ int koala_test()
 
 
 
-
-int main()
+int iohelper_test()
 {
-
-
   fmesh::Matrix3double M(4);
   M(0) = Point(0.0,0.1,0.2);
   M(1) = Point(1.0,1.1,1.2);
@@ -674,8 +677,15 @@ int main()
   //  fmesh::IOHelper(SM).I(std::cin).I(std::cin,SM);
   //  cout << SM;
 
-  //  return 0;
+  return 0;
+}
 
+
+
+int main()
+{
+  iohelper_test();
+  //  return 0;
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();

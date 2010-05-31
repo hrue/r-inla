@@ -643,7 +643,7 @@ namespace fmesh {
     for (int t=0;t<(int)nT();t++)
       drawX11triangle(t,true);
 
-    if (true) {
+    if (false) {
       std::string str0 = str;
       str0 += std::string(", continue");
       char* str_ = new char[str0.length()+1];

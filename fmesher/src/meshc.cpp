@@ -122,10 +122,11 @@ namespace fmesh {
   void MCQtri::setQv(int v, double quality_limit)
   {
     if (quality_limits_cap_ < MC_->M_->Vcap()) {
+      size_t old_quality_limits_cap_ = quality_limits_cap_;
       quality_limits_cap_ = MC_->M_->Vcap();
       double* ql = new double[quality_limits_cap_];
       if (quality_limits_) {
-	memcpy(ql,quality_limits_,sizeof(double)*MC_->M_->nV());
+	memcpy(ql,quality_limits_,sizeof(double)*old_quality_limits_cap_);
 	delete[] quality_limits_;
       }
       quality_limits_ = ql;
