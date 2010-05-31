@@ -104,7 +104,7 @@ function(...,
                 stop("Filename defined in argument `Cmatrix' does not exists.")
         }
         else {
-            inla.sm.check(Cmatrix)
+            inla.sparse.check(Cmatrix)
             if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$values))
                 stop("List defined in argument `Cmatrix' is not of type `Cmatrix = list(i=c(), j=c(), values=c())'")
             if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$values))
