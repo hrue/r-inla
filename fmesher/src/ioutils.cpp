@@ -53,22 +53,20 @@ namespace fmesh {
 
   IOHelper& IOHelper::O(std::ostream& output)
   {
-    if (ascii_) {
-      output << h_;
-      output << endl;
-    } else {
+    if (binary_) {
       int header_size = sizeof(IOHeader);
       output.write((char*)&header_size, sizeof(header_size));
       output.write((const char*)&h_, header_size);
+    } else {
+      output << h_;
+      output << endl;
     }
     return *this;
   }
 
   IOHelper& IOHelper::I(std::istream& input)
   {
-    if (ascii_) {
-      input >> h_;
-    } else {
+    if (binary_) {
       int header_size = sizeof(IOHeader);
       int file_header_size;
       input.read((char*)&file_header_size, sizeof(file_header_size));
@@ -83,6 +81,8 @@ namespace fmesh {
 	  delete[] buf;
 	}
       }
+    } else {
+      input >> h_;
     }
     return *this;
   }
