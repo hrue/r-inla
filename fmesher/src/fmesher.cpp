@@ -30,7 +30,7 @@ using fmesh::Vector3;
 
 const bool useVT = true;
 const bool useTTi = true;
-const bool useX11 = false;
+const bool useX11 = true;
 const bool useX11text = false;
 
 
