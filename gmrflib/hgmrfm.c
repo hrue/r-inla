@@ -123,6 +123,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  * \sa \c GMRFLib_free_hgmrfm()
  */
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
+			const char *Aext_fnm, double Aext_precision, 
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
@@ -148,7 +149,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 #define SET_ELEMENT_FORCE(i_, j_, Qij_) SET_ELEMENT_ADV(i_, j_, Qij_, 1)
 #define SET_ELEMENT_ADV(i_, j_, Qij_, test) if (Qij_ || (test)) {	\
 		if (ntriples >= ntriples_max) {				\
-			ntriples_max += 4*n;				\
+			ntriples_max += n;				\
 			ilist = Realloc(ilist, ntriples_max, int);	\
 			jlist = Realloc(jlist, ntriples_max, int);	\
 			Qijlist = Realloc(Qijlist, ntriples_max, double); \
@@ -163,11 +164,12 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 #define SET_ELEMENT_FORCE_LC(i_, j_, Qij_) SET_ELEMENT_ADV_LC(i_, j_, Qij_, 1)
 #define SET_ELEMENT_ADV_LC(i_, j_, Qij_, test) if (Qij_ || (test)) {	\
 		if (ntriples_lc >= ntriples_max_lc) {			\
-			ntriples_max_lc += 4*n;				\
+			ntriples_max_lc += n;				\
 			ilist_lc = Realloc(ilist_lc, ntriples_max_lc, int); \
 			jlist_lc = Realloc(jlist_lc, ntriples_max_lc, int); \
 			Qijlist_lc = Realloc(Qijlist_lc, ntriples_max_lc, double); \
 		}							\
+		if(0)printf("set_element_lc %d %d %g\n", i_, j_, Qij_);	\
 		ilist_lc[ntriples_lc] = i_;				\
 		jlist_lc[ntriples_lc] = j_;				\
 		Qijlist_lc[ntriples_lc] = Qij_;				\
@@ -175,7 +177,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	}
 
 	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, *ilist = NULL, *jlist = NULL, ntriples = 0, ntriples_max = 0, *idxs = NULL,
-	    *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
+		idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL,
+		**lfidx = NULL, fidx_add = 5;
 	int nu = 0, *uniq = NULL;
 	double *Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
@@ -235,11 +238,31 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 	}
+
+	/* 
+	   need to read the Aext matrix, which is required. Allocate a new copy of precision, as we need to make it persistent.
+	*/
+	if (Aext_fnm){
+		double *pr = Calloc(1, double);
+
+		*pr = Aext_precision;
+		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, pr, NULL, NULL);
+		GMRFLib_ASSERT(arg->eta_ext_graph->n == 2*n, GMRFLib_EPARAMETER);  /* this is required!!!!! */
+		arg->n_ext = n;
+		//GMRFLib_print_graph(stdout, arg->eta_ext_graph);
+	} else {
+		arg->eta_ext_Q = NULL;
+		arg->eta_ext_graph = NULL;
+		arg->n_ext = 0;
+	}
+
 	/*
 	 * Our first job, is to go through the model and compute all interactions etc that are defined through the \eta-model. 
 	 * define the index-mapping. The outline of x is (eta, f[0], ..., beta[0], ...)
 	 */
-	offset = n;
+	idx_map_eta = offset = arg->n_ext;		       /* starting for 'eta' (not eta_ext) */
+	offset += n;					       /* including eta */
+	
 	if (nf) {
 		idx_map_f = Calloc(nf + 1, int);
 		for (i = 0; i < nf; i++) {
@@ -268,11 +291,27 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 
 	/*
 	 * we need to make sure that all nodes are present in the eta-graph. We do this by adding just zero's. This is not checked for when
-	 * building the graph, but we do it here, so we use 1 as last argument to SET_ELEMENT(,,,1). 
+	 * building the graph, but we do it here, so we use 1 as last argument to SET_ELEMENT(,,1). 
 	 */
 	N = offset;					       /* N is the grand-total. */
 	SET_ELEMENT_FORCE(N - 1, N - 1, 0.0);
 
+	/* 
+	   Ensure also that eta_ext elements are set to zero, so we produce the joint graph. yes, we need the hole graph!!!!
+	*/
+	if (idx_map_eta > 0){
+		assert(arg->eta_ext_graph);
+
+		GMRFLib_graph_tp *g = arg->eta_ext_graph;
+		for(i=0; i<g->n; i++){
+			SET_ELEMENT_FORCE(i, i, 0.0);
+			for(j=0; j<g->nnbs[i]; j++){
+				jj = g->nbs[i][j];
+				SET_ELEMENT_FORCE(i, jj, 0.0);
+			}
+		}
+	}
+	
 	/*
 	 * If we have cross-terms, make sure to mark these cross-terms as neigbours; just fill them with zero's. If they are connected in the data, then this value
 	 * will be overrided and this is how it should be.
@@ -327,7 +366,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	 * \eta_i^2 = 1 
 	 */
 	for (i = 0; i < n; i++) {
-		SET_ELEMENT(i, i, 1.0);
+		SET_ELEMENT(idx_map_eta + i, idx_map_eta + i, 1.0);
 	}
 	/*
 	 * \eta_i f_jk = - 1_{c_j(i) = k} 
@@ -337,7 +376,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			for (k = 0; k < f_graph[j]->n; k++) {
 				for (ii = 0; ii < nfidx[j][k]; ii++) {
 					i = fidx[j][k][ii];
-					SET_ELEMENT(i, idx_map_f[j] + k, -ww[j][i]);
+					SET_ELEMENT(idx_map_eta + i, idx_map_f[j] + k, -ww[j][i]);
 				}
 			}
 		}
@@ -348,7 +387,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	if (nbeta) {
 		for (j = 0; j < nbeta; j++) {
 			for (i = 0; i < n; i++) {
-				SET_ELEMENT(i, idx_map_beta[j], -covariate[j][i]);
+				SET_ELEMENT(idx_map_eta + i, idx_map_beta[j], -covariate[j][i]);
 			}
 		}
 	}
@@ -412,8 +451,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 	}
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), ntriples, ilist, jlist, Qijlist, NULL, logprec_unstruct, logprec_unstruct_omp);
-
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), ntriples, ilist, jlist, Qijlist,
+					 NULL, logprec_unstruct, logprec_unstruct_omp);
 
 	if (nlc) {
 		/*
@@ -441,14 +480,17 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			j = i + n_short;
 			SET_ELEMENT_LC(j, j, lc_precision[i]); /* lc_i ^2 */
 		}
+		/* 
+		   as n_short contains idx_map_eta, we must subtract it in the following...
+		*/
 		for (i = 0; i < nlc; i++) {
-			for (nnz = 0, ii = 0; ii < n_short; ii++) {
+			for (nnz = 0, ii = 0; ii < n_short - idx_map_eta; ii++) {
 				if (lc_w[i][ii]) {
 					nnz++;
 				}
 			}
 			idxs = Calloc(nnz, int);
-			for (j = 0, ii = 0; ii < n_short; ii++) {
+			for (j = 0, ii = 0; ii < n_short - idx_map_eta; ii++) {
 				if (lc_w[i][ii]) {
 					idxs[j++] = ii;
 				}
@@ -459,20 +501,28 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			 */
 			for (k = 0; k < nnz; k++) {
 				j = idxs[k];
-				LC_ADDTO(n_short + i, j, -lc_precision[i] * lc_w[i][j]);	/* lc_i x_j */
-				LC_ADDTO(j, j, lc_precision[i] * SQR(lc_w[i][j]));	/* x_j^2 */
+				LC_ADDTO(n_short + i, idx_map_eta + j, -lc_precision[i] * lc_w[i][j]);	/* lc_i x_j */
+				LC_ADDTO(idx_map_eta + j, idx_map_eta + j, lc_precision[i] * SQR(lc_w[i][j]));	/* x_j^2 */
 				for (kk = k + 1; kk < nnz; kk++) {
 					jj = idxs[kk];
-					LC_ADDTO(j, jj, lc_precision[i] * lc_w[i][j] * lc_w[i][jj]);	/* x_j x_jj */
+					LC_ADDTO(idx_map_eta + j, idx_map_eta + jj, lc_precision[i] * lc_w[i][j] * lc_w[i][jj]); /* x_j x_jj */
 				}
 			}
 			Free(idxs);
+		}
+
+		/* 
+		   set the eta_ext to zero, including n, to prevent the 0/1-based indexing error
+		*/
+		for(i=0; i<idx_map_eta + n; i++){
+			SET_ELEMENT_FORCE_LC(i, i, 0.0);
 		}
 		for (sptr = NULL; (sptr = spmatrix_nextptr(&s, sptr)) != NULL;) {
 			SET_ELEMENT_LC(sptr->key.key1, sptr->key.key2, sptr->value);
 		}
 
 		GMRFLib_tabulate_Qfunc_from_list(&(arg->lc_Q), &(arg->lc_graph), ntriples_lc, ilist_lc, jlist_lc, Qijlist_lc, NULL, NULL, NULL);
+
 		Free(ilist_lc);
 		Free(jlist_lc);
 		Free(Qijlist_lc);
@@ -497,6 +547,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	GMRFLib_ged_free(ged);
 	(*hgmrfm)->Qfunc = GMRFLib_hgmrfm_Qfunc;
 	(*hgmrfm)->Qfunc_arg = (void *) arg;
+
 	/*
 	 * build the constraint, if any. Only simple sum-to-zero constraints are supported.
 	 */
@@ -559,7 +610,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			for (k = 0; k < nu; k++) {
 				ii = uniq[k];
 				for (i = 0; i < n; i++) {
-					constr->a_matrix[i * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
+					constr->a_matrix[(i + idx_map_eta) * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
 				}
 				constr->e_vector[constr_no] = 0.0;
 				constr_no++;
@@ -604,13 +655,36 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 #undef SET_ELEMENT_FORCE_LC
 #undef SET_ELEMENT_ADV
 #undef SET_ELEMENT_ADV_LC
+
+	if (0) {
+		GMRFLib_hgmrfm_tp *h = *hgmrfm;
+
+		printf("view hgmrf\n");
+		GMRFLib_print_graph(stdout, h->graph);
+
+		int nn = h->graph->n;
+		int i;
+
+		if (h->constr && h->constr->nc){
+			for(j = 0; j<h->constr->nc; j++) {
+				printf("constr %d\n", j);
+
+				for(i=0; i<nn; i++){
+					printf("%.1f ", h->constr->a_matrix[i * h->constr->nc + j]);
+				}
+				printf("| %.f\n", h->constr->e_vector[j]);
+			}
+		}
+
+		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
+	}
 	return GMRFLib_SUCCESS;
 }
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a)
 {
 	int i;
 	GMRFLib_hgmrfm_type_tp t = { GMRFLib_HGMRFM_TP___VOID, -1, -1 };
-	if (node < a->n) {
+	if (node < a->n + a->n_ext) {
 		t.tp = GMRFLib_HGMRFM_TP_ETA;
 		t.idx = node;
 		t.tp_idx = 0;
@@ -660,7 +734,19 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 	}
 	switch (it.tp) {
 	case GMRFLib_HGMRFM_TP_ETA:
-		return value;
+		switch(jt.tp){
+		case GMRFLib_HGMRFM_TP_ETA: 
+			if (a->eta_ext_graph) {
+				if ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->eta_ext_graph)) {
+					value += a->eta_ext_Q->Qfunc(ii, jj, a->eta_ext_Q->Qfunc_arg);
+				}
+			}
+			return value;
+		default:
+			return value;
+		}
+		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+
 	case GMRFLib_HGMRFM_TP_F:
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_F:
@@ -681,7 +767,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 											  a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 					}
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+						a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -693,6 +779,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+
 	case GMRFLib_HGMRFM_TP_BETA:
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_BETA:
@@ -706,8 +793,10 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+
 	case GMRFLib_HGMRFM_TP_LC:
 		return value;
+
 	default:
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 	}

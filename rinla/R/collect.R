@@ -494,7 +494,6 @@
                 cat("... no cdf.dat\n")
         }
         
-
         ##get kld
         if (debug) cat("...read kld\n")
         kld =  matrix(inla.read.binary.file(file=paste(subdir, .Platform$file.sep,"symmetric-kld.dat", sep="")),
@@ -517,10 +516,14 @@
         }
         else
             marginals.linear.predictor = NULL
+
+        ## info about size
+        size.info = inla.collect.size(subdir)
     }
     else {
         summary.linear.predictor = NULL
         marginals.linear.predictor = NULL
+        size.info = NULL
     }
 
     ##SECOND: get the inverse linear predictor(if computed)
@@ -636,12 +639,14 @@
         marginals.usermap.values = NULL
     }
     
+
     res = list(summary.linear.predictor=summary.linear.predictor,
-        marginals.linear.predictor=marginals.linear.predictor,
-        summary.fitted.values=summary.fitted.values,
-        marginals.fitted.values=marginals.fitted.values,
-        summary.linear.predictor.usermap=summary.usermap.values,
-        marginals.linear.predictor.usermap=marginals.usermap.values)
+            marginals.linear.predictor=marginals.linear.predictor,
+            summary.fitted.values=summary.fitted.values,
+            marginals.fitted.values=marginals.fitted.values,
+            summary.linear.predictor.usermap=summary.usermap.values,
+            marginals.linear.predictor.usermap=marginals.usermap.values,
+            size.linear.predictor = size.info)
 
     return(res)
 }
