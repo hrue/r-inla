@@ -414,6 +414,16 @@ namespace fmesh {
       return data_[r];
     };
 
+    RowConstIter begin() const {
+      return data_.begin();
+    };
+
+    RowConstIter end() const {
+      return data_.end();
+    };
+
+
+
     T& operator()(const int r,  const int c) {
       return data_[r][c];
     };

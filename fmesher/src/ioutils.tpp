@@ -20,13 +20,19 @@
 namespace fmesh {
 
   template <class T>
-  IOHeader::IOHeader(const T& ref) { valuetype = -1; };
-
-  template <class T>
-  IOHeader& IOHeader::DefaultDense(const Matrix<T>& M,
-				   IOMatrixtype matrixt)
+  IOHeader& IOHeader::def(const T& ref)
   {
-    version = IOHEADER_VERSION;
+    def();
+    valuetype = -sizeof(T);
+    return *this;
+  }
+  
+  template <class T>
+  IOHeader& IOHeader::dense(const Matrix<T>& M,
+			    IOMatrixtype matrixt)
+  {
+    datatype = IODatatype_dense;
+    matrixtype = matrixt;
     switch (matrixt) {
     case IOMatrixtype_general:
       elems = M.rows()*M.cols();
@@ -56,17 +62,14 @@ namespace fmesh {
       }
       break;
     }
-    datatype = IODatatype_dense;
-    /* valuetype is set by the constructor */
-    matrixtype = matrixt;
-    storagetype = IOStoragetype_rowmajor;
     return *this;
   }
   template <class T>
-  IOHeader& IOHeader::DefaultSparse(const SparseMatrix<T>& M,
-				    IOMatrixtype matrixt)
+  IOHeader& IOHeader::sparse(const SparseMatrix<T>& M,
+			     IOMatrixtype matrixt)
   {
-    version = IOHEADER_VERSION;
+    datatype = IODatatype_sparse;
+    matrixtype = matrixt;
     switch (matrixt) {
     case IOMatrixtype_general:
       elems = M.nnz();
@@ -83,9 +86,13 @@ namespace fmesh {
 	rows = M.cols();
 	cols = M.cols();
       }
-      for (int i=0; i<rows; i++)
-	for (int j=i; j<cols; j++)
-	  if (M.non_zero(i,j)) elems++;
+      for (typename SparseMatrix<T>::RowConstIter r = M.begin();
+	   r != M.end();
+	   r++)
+	for (typename SparseMatrix<T>::ColConstIter c = r->second.begin();
+	     c != r->second.end();
+	     c++)
+	  if (r->first <= c->first) elems++;
       break;
     case IOMatrixtype_diagonal:
       if (M.rows() <= M.cols()) {
@@ -97,109 +104,157 @@ namespace fmesh {
 	rows = M.cols();
 	cols = M.cols();
       }
-      for (int i=0; i<rows; i++)
-	if (M.non_zero(i,i)) elems++;
+      for (typename SparseMatrix<T>::RowConstIter r = M.begin();
+	   r != M.end();
+	   r++)
+	if (M.non_zero(r->first,r->first)) elems++;
       break;
     }
-    datatype = IODatatype_sparse;
-    /* valuetype is set by the constructor */
-    matrixtype = matrixt;
-    storagetype = IOStoragetype_colmajor;
+    return *this;
+  }
+
+
+
+
+
+  template <class T>
+  IOHelper<T>& IOHelper<T>::OH(std::ostream& output)
+  {
+    if (binary_) {
+      int header_size = sizeof(IOHeader);
+      output.write((char*)&header_size, sizeof(header_size));
+      output.write((const char*)&h_, header_size);
+    } else {
+      output << h_;
+      output << std::endl;
+    }
+    return *this;
+  }
+
+  template <class T>
+  IOHelper<T>& IOHelper<T>::IH(std::istream& input)
+  {
+    if (binary_) {
+      int header_size = sizeof(IOHeader);
+      int file_header_size;
+      input.read((char*)&file_header_size, sizeof(file_header_size));
+      if (file_header_size < header_size) {
+	h_.dense(Matrix<int>(0),IOMatrixtype_general);
+	input.read((char*)&h_, file_header_size);
+      } else {
+	input.read((char*)&h_, header_size);
+	if (file_header_size > header_size) {
+	  char* buf = new char[header_size-file_header_size];
+	  input.read(buf, header_size-file_header_size);
+	  delete[] buf;
+	}
+      }
+    } else {
+      input >> h_;
+    }
+    return *this;
+  }
+
+  template <class T>
+  IOHelper<T>& IOHelper<T>::IH(const IOHeader& h)
+  {
+    h_ = h;
     return *this;
   }
 
 
 
   template <class T>
-  IOHelper& IOHelper::O(std::ostream& output,
-			const Matrix<T>& M)
+  IOHelperM<T>& IOHelperM<T>::OD(std::ostream& output)
   {
-    if (!((h_.rows>0) && (h_.cols>0))) {
+    const IOHeader& h(IOHelper<T>::h_);
+    const bool& bin_(IOHelper<T>::binary_);
+    if ((!((h.rows>0) && (h.cols>0))) || (!cM_)) {
       return *this;
     }
-    if (binary_) {
-      switch (h_.matrixtype) {
+    if (bin_) {
+      switch (h.matrixtype) {
       case IOMatrixtype_general:
-	if ((h_.storagetype == IOStoragetype_rowmajor) ||
-	    (M.cols()==1)) {
-	  output.write((char*)M.raw(), sizeof(T)*h_.rows*h_.cols);
+	if ((h.storagetype == IOStoragetype_rowmajor) ||
+	    ((*cM_).cols()==1)) {
+	  output.write((char*)(*cM_).raw(), sizeof(T)*h.rows*h.cols);
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
-	    for (int i=0; i<h_.rows; i++) {
-	      output.write((char*)&M[i][j], sizeof(T));
+	  for (int j=0; j<h.cols; j++) {
+	    for (int i=0; i<h.rows; i++) {
+	      output.write((char*)&(*cM_)[i][j], sizeof(T));
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_symmetric:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    const T* Mrow = M[i];
-	    output.write((char*)&Mrow[i], sizeof(T)*(h_.cols-i));
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    const T* Mrow = (*cM_)[i];
+	    output.write((char*)&Mrow[i], sizeof(T)*(h.cols-i));
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
+	  for (int j=0; j<h.cols; j++) {
 	    for (int i=0; i<j; i++) {
-	      output.write((char*)&M[i][j], sizeof(T));
+	      output.write((char*)&(*cM_)[i][j], sizeof(T));
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_diagonal:
-	for (int i=0; i<h_.rows; i++) {
-	  output.write((char*)&M[i][i], sizeof(T));
+	for (int i=0; i<h.rows; i++) {
+	  output.write((char*)&(*cM_)[i][i], sizeof(T));
 	}
 	break;
       }
     } else { /* Text format. */
       output << std::setprecision(15) << std::scientific;
-      switch (h_.matrixtype) {
+      switch (h.matrixtype) {
       case IOMatrixtype_general:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    const T* Mrow = M[i];
-	    for (int j=0; j+1<h_.cols; j++) {
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    const T* Mrow = (*cM_)[i];
+	    for (int j=0; j+1<h.cols; j++) {
 	      output << Mrow[j] << " ";
 	    }
-	    output << Mrow[h_.cols-1] << std::endl;
+	    output << Mrow[h.cols-1] << std::endl;
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
-	    for (int i=0; i+1<h_.rows; i++) {
-	      output << M[i][j] << " ";
+	  for (int j=0; j<h.cols; j++) {
+	    for (int i=0; i+1<h.rows; i++) {
+	      output << (*cM_)[i][j] << " ";
 	    }
-	    output << M[h_.rows-1][j] << std::endl;
+	    output << (*cM_)[h.rows-1][j] << std::endl;
 	  }
 	}
 	break;
       case IOMatrixtype_symmetric:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    const T* Mrow = M[i];
-	    for (int j=i; j+1<h_.cols; j++) {
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    const T* Mrow = (*cM_)[i];
+	    for (int j=i; j+1<h.cols; j++) {
 	      output << Mrow[j] << " ";
 	    }
-	    output << Mrow[h_.cols-1] << std::endl;
+	    output << Mrow[h.cols-1] << std::endl;
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
+	  for (int j=0; j<h.cols; j++) {
 	    for (int i=0; i<j; i++) {
-	      output << M[i][j] << " ";
+	      output << (*cM_)[i][j] << " ";
 	    }
-	    output << M[j][j] << std::endl;
+	    output << (*cM_)[j][j] << std::endl;
 	  }
 	}
 	break;
       case IOMatrixtype_diagonal:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    output << M[i][i] << std::endl;
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    output << (*cM_)[i][i] << std::endl;
 	  }
 	} else {
-	  for (int i=0; i+1<h_.rows; i++) {
-	    output << M[i][i] << " ";
+	  for (int i=0; i+1<h.rows; i++) {
+	    output << (*cM_)[i][i] << " ";
 	  }
-	  output << M[h_.rows-1][h_.rows-1] << std::endl;
+	  output << (*cM_)[h.rows-1][h.rows-1] << std::endl;
 	}
 	break;
       }
@@ -208,89 +263,93 @@ namespace fmesh {
   }
   
   template <class T>
-  IOHelper& IOHelper::I(std::istream& input,
-			Matrix<T>& M)
+  IOHelperM<T>& IOHelperM<T>::ID(std::istream& input)
   {
-    M.clear();
-    M.cols(h_.cols);
-    M.capacity(h_.rows);
-    M(h_.rows-1,h_.cols-1,T()); /* Initialize last element. */
-    if (binary_) {
-      switch (h_.matrixtype) {
+    const IOHeader& h(IOHelper<T>::h_);
+    const bool& bin_(IOHelper<T>::binary_);
+    if (!M_) {
+      return *this;
+    }
+    (*M_).clear();
+    (*M_).cols(h.cols);
+    (*M_).capacity(h.rows);
+    (*M_)(h.rows-1,h.cols-1,T()); /* Initialize last element. */
+    if (bin_) {
+      switch (h.matrixtype) {
       case IOMatrixtype_general:
-	if ((h_.storagetype == IOStoragetype_rowmajor) ||
-	    (h_.cols==1)) {
-	  input.read((char*)M.raw(), sizeof(T)*h_.rows*h_.cols);
+	if ((h.storagetype == IOStoragetype_rowmajor) ||
+	    (h.cols==1)) {
+	  input.read((char*)(*M_).raw(), sizeof(T)*h.rows*h.cols);
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
-	    for (int i=0; i<h_.rows; i++) {
-	      input.read((char*)&M(i)[j], sizeof(T));
+	  for (int j=0; j<h.cols; j++) {
+	    for (int i=0; i<h.rows; i++) {
+	      input.read((char*)&(*M_)(i)[j], sizeof(T));
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_symmetric:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    T* Mrow = M(i);
-	    input.read((char*)&Mrow[i], sizeof(T)*(h_.cols-i));
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    T* Mrow = (*M_)(i);
+	    input.read((char*)&Mrow[i], sizeof(T)*(h.cols-i));
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
+	  for (int j=0; j<h.cols; j++) {
 	    for (int i=0; i<j; i++) {
-	      input.read((char*)&M(i)[j], sizeof(T));
+	      input.read((char*)&(*M_)(i)[j], sizeof(T));
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_diagonal:
-	for (int i=0; i<h_.rows; i++) {
-	  input.read((char*)&M(i)[i], sizeof(T));
+	for (int i=0; i<h.rows; i++) {
+	  input.read((char*)&(*M_)(i)[i], sizeof(T));
 	}
 	break;
       }
     } else { /* Text format. */
-      switch (h_.matrixtype) {
+      switch (h.matrixtype) {
       case IOMatrixtype_general:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    T* Mrow = M(i);
-	    for (int j=0; j<h_.cols; j++) {
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    T* Mrow = (*M_)(i);
+	    for (int j=0; j<h.cols; j++) {
 	      input >> Mrow[j];
 	    }
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
-	    for (int i=0; i<h_.rows; i++) {
-	      input >> M(i)[j];
+	  for (int j=0; j<h.cols; j++) {
+	    for (int i=0; i<h.rows; i++) {
+	      input >> (*M_)(i)[j];
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_symmetric:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    T* Mrow = M(i);
-	    for (int j=i; j<h_.cols; j++) {
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    T* Mrow = (*M_)(i);
+	    for (int j=i; j<h.cols; j++) {
 	      input >> Mrow[j];
 	    }
 	  }
 	} else {
-	  for (int j=0; j<h_.cols; j++) {
+	  for (int j=0; j<h.cols; j++) {
 	    for (int i=0; i<j+1; i++) {
-	      input >> M(i)[j];
+	      input >> (*M_)(i)[j];
 	    }
 	  }
 	}
 	break;
       case IOMatrixtype_diagonal:
-	if (h_.storagetype == IOStoragetype_rowmajor) {
-	  for (int i=0; i<h_.rows; i++) {
-	    input >> M(i)[i];
+	if (h.storagetype == IOStoragetype_rowmajor) {
+	  for (int i=0; i<h.rows; i++) {
+	    input >> (*M_)(i)[i];
 	  }
 	} else {
-	  for (int i=0; i<h_.rows; i++) {
-	    input >> M(i)[i];
+	  for (int i=0; i<h.rows; i++) {
+	    input >> (*M_)(i)[i];
 	  }
 	}
 	break;
@@ -300,70 +359,81 @@ namespace fmesh {
   }
   
   template <class T>
-  IOHelper& IOHelper::O(std::ostream& output,
-			const SparseMatrix<T>& M)
+  IOHelperSM<T>& IOHelperSM<T>::OD(std::ostream& output)
   {
-    if (h_.storagetype == IOStoragetype_rowmajor) {
-      if (h_.matrixtype == IOMatrixtype_diagonal) {
+    const IOHeader& h(IOHelper<T>::h_);
+    const bool& bin_(IOHelper<T>::binary_);
+    if (!cM_) {
+      return *this;
+    }
+    if (h.storagetype == IOStoragetype_rowmajor) {
+      if (h.matrixtype == IOMatrixtype_diagonal) {
 	Matrix1< SparseMatrixDuplet<T> > MT;
-	M.tolist(MT);
-	IOHelper(MT).binary(binary_).rowmajor().O(output,MT);
+	(*cM_).tolist(MT);
+	IOHelperM< SparseMatrixDuplet<T>
+		   >().cD(&MT).binary(bin_).rowmajor().OD(output);
       } else {
 	Matrix1< SparseMatrixTriplet<T> > MT;
-	M.tolist(MT,(h_.matrixtype == IOMatrixtype_symmetric));
-	IOHelper(MT).binary(binary_).rowmajor().O(output,MT);
+	(*cM_).tolist(MT,(h.matrixtype == IOMatrixtype_symmetric));
+	IOHelperM< SparseMatrixTriplet<T>
+		   >().cD(&MT).binary(bin_).rowmajor().OD(output);
       }
     } else {
-      if (h_.matrixtype == IOMatrixtype_diagonal) {
+      if (h.matrixtype == IOMatrixtype_diagonal) {
 	Matrix1int Mr;
 	Matrix1<T> Mv;
-	M.tolist(Mr,Mv);
-	IOHelper(Mr).binary(binary_).colmajor().O(output,Mr);
-	IOHelper(Mv).binary(binary_).colmajor().O(output,Mv);
+	(*cM_).tolist(Mr,Mv);
+	IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
+	IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
       } else {
 	Matrix1int Mr;
 	Matrix1int Mc;
 	Matrix1<T> Mv;
-	M.tolist(Mr,Mc,Mv,(h_.matrixtype == IOMatrixtype_symmetric));
-	IOHelper(Mr).binary(binary_).colmajor().O(output,Mr);
-	IOHelper(Mc).binary(binary_).colmajor().O(output,Mc);
-	IOHelper(Mv).binary(binary_).colmajor().O(output,Mv);
+	(*cM_).tolist(Mr,Mc,Mv,(h.matrixtype == IOMatrixtype_symmetric));
+	IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
+	IOHelperM<int>().cD(&Mc).binary(bin_).colmajor().OD(output);
+	IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
       }
     }
     return *this;
   }
   
   template <class T>
-  IOHelper& IOHelper::I(std::istream& input,
-			SparseMatrix<T>& M)
+  IOHelperSM<T>& IOHelperSM<T>::ID(std::istream& input)
   {
-    NOT_IMPLEMENTED;
-    M.clear();
-    if (h_.storagetype == IOStoragetype_rowmajor) {
-      if (h_.matrixtype == IOMatrixtype_diagonal) {
+    const IOHeader& h(IOHelper<T>::h_);
+    const bool& bin_(IOHelper<T>::binary_);
+    if (!M_) {
+      return *this;
+    }
+    (*M_).clear();
+    if (h.storagetype == IOStoragetype_rowmajor) {
+      if (h.matrixtype == IOMatrixtype_diagonal) {
 	Matrix1< SparseMatrixDuplet<T> > MT;
-	IOHelper(MT).binary(binary_).rowmajor().I(input,MT);
-	M.fromlist(MT);
+	IOHelperM< SparseMatrixTriplet<T>
+		   >().D(&MT).binary(bin_).rowmajor().ID(input);
+	(*M_).fromlist(MT);
       } else {
 	Matrix1< SparseMatrixTriplet<T> > MT;
-	IOHelper(MT).binary(binary_).rowmajor().I(input,MT);
-	M.fromlist(MT,(h_.matrixtype == IOMatrixtype_symmetric));
+	IOHelperM< SparseMatrixTriplet<T>
+		   >().D(&MT).binary(bin_).rowmajor().ID(input);
+	(*M_).fromlist(MT,(h.matrixtype == IOMatrixtype_symmetric));
       }
     } else {
-      if (h_.matrixtype == IOMatrixtype_diagonal) {
+      if (h.matrixtype == IOMatrixtype_diagonal) {
 	Matrix1int Mr;
 	Matrix1<T> Mv;
-	IOHelper(Mr).binary(binary_).colmajor().I(input,Mr);
-	IOHelper(Mv).binary(binary_).colmajor().I(input,Mv);
-	M.fromlist(Mr,Mv);
+	IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
+	IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
+	(*M_).fromlist(Mr,Mv);
       } else {
 	Matrix1int Mr;
 	Matrix1int Mc;
 	Matrix1<T> Mv;
-	IOHelper(Mr).binary(binary_).colmajor().I(input,Mr);
-	IOHelper(Mc).binary(binary_).colmajor().I(input,Mc);
-	IOHelper(Mv).binary(binary_).colmajor().I(input,Mv);
-	M.fromlist(Mr,Mc,Mv,(h_.matrixtype == IOMatrixtype_symmetric));
+	IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
+	IOHelperM<int>().D(&Mc).binary(bin_).colmajor().ID(input);
+	IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
+	(*M_).fromlist(Mr,Mc,Mv,(h.matrixtype == IOMatrixtype_symmetric));
       }
     }
     return *this;
