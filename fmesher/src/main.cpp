@@ -2,16 +2,21 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <cmath>
 #include <cstdlib>
 
 #include "predicates.h"
 #include "fmesher.h"
 
+using std::ios;
 using std::vector;
 using std::cout;
 using std::endl;
 
+using fmesh::IOHelper;
+using fmesh::IOHelperM;
+using fmesh::IOHelperSM;
 using fmesh::Matrix;
 using fmesh::Matrix3;
 using fmesh::Matrix3int;
@@ -297,7 +302,7 @@ int DT2D_test3() /* Random points */
     S[v][2] = 0.0;
   }
 
-  std::ofstream F("exrandom.io.s0", std::ios::out | std::ios::binary);
+  std::ofstream F("exrandom.io.s0", ios::out | ios::binary);
   Matrix3double FM(n,S);
   fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
   F.close();
@@ -635,47 +640,94 @@ int koala_test()
 
 int iohelper_test()
 {
-  fmesh::Matrix3double M(4);
-  M(0) = Point(0.0,0.1,0.2);
-  M(1) = Point(1.0,1.1,1.2);
-  M(2) = Point(2.0,2.1,2.2);
-  M(3) = Point(3.0,3.1,3.2);
-  M(0,0,9.9);
-  cout << M;
+  std::string prefix("iotest.");
+  std::ofstream OA;
+  std::ofstream OB;
 
   {
-    fmesh::IOHelperM<double> iohelper;
-    iohelper.cD(&M);
-    iohelper.rowmajor().OH(cout).OD(cout);
-    iohelper.colmajor().OH(cout).OD(cout);
-    iohelper.symmetric().OH(cout).OD(cout);
-    iohelper.diagonal().OH(cout).OD(cout);
-    
-    iohelper.IH(iohelper.h_).OD(cout);
-    
-    //  fmesh::IOHelper<double>().D(&M).IH(std::cin).ID(std::cin);
-    //   cout << M;
+    fmesh::Matrix3double M(4);
+    M(0) = Point(0.0,0.1,0.2);
+    M(1) = Point(1.0,1.1,1.2);
+    M(2) = Point(2.0,2.1,2.2);
+    M(3) = Point(3.0,3.1,3.2);
+
+    IOHelperM<double> ioh;
+    ioh.D(&M);
+
+    OA.open((prefix+"DDGR.a").c_str(), ios::out | ios::binary);
+    OB.open((prefix+"DDGR").c_str(), ios::out | ios::binary);
+    ioh.rowmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();OA.open((prefix+"DDGC.a").c_str(), ios::out | ios::binary);
+    OB.close();OB.open((prefix+"DDGC").c_str(), ios::out | ios::binary);
+    ioh.colmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();
+    OB.close();
   }
 
-  fmesh::SparseMatrix<double> SM;
-  SM(1,1) = 1.1;
-  SM(2,3) = 2.3;
-  SM(3)[1] = 0.0;
-  SM(0,1,0.1);
-  cout << SM;
-  
   {
-    fmesh::IOHelperSM<double> iohelper;
-    iohelper.cD(&SM);
-    cout << "XYZZY" << endl;
-    iohelper.rowmajor().OH(cout).OD(cout);
-    iohelper.colmajor().OH(cout).OD(cout);
-    cout << "XYZZY" << endl;
-    iohelper.symmetric().OH(cout).OD(cout);
-    iohelper.diagonal().OH(cout).OD(cout);
+    fmesh::Matrix3int M(4);
+    M(0) = Int3(00,01,02);
+    M(1) = Int3(10,11,12);
+    M(2) = Int3(20,21,22);
+    M(3) = Int3(30,31,32);
 
-    //  fmesh::IOHelper<double>().D(&SM).IH(std::cin).ID(std::cin);
-    //  cout << SM;
+    IOHelperM<int> ioh;
+    ioh.D(&M);
+
+    OA.open((prefix+"DIGR.a").c_str(), ios::out | ios::binary);
+    OB.open((prefix+"DIGR").c_str(), ios::out | ios::binary);
+    ioh.rowmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();OA.open((prefix+"DIGC.a").c_str(), ios::out | ios::binary);
+    OB.close();OB.open((prefix+"DIGC").c_str(), ios::out | ios::binary);
+    ioh.colmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();
+    OB.close();
+  }
+    
+  {
+    fmesh::SparseMatrix<double> M;
+    for (int i=0;i<4;i++)
+      for (int j=0;j<3;j++)
+	M(i,j) = (double)i+(double)j/10.0;
+    cout << M;
+
+    IOHelperSM<double> ioh;
+    ioh.D(&M);
+
+    OA.open((prefix+"SDGR.a").c_str(), ios::out | ios::binary);
+    OB.open((prefix+"SDGR").c_str(), ios::out | ios::binary);
+    ioh.rowmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();OA.open((prefix+"SDGC.a").c_str(), ios::out | ios::binary);
+    OB.close();OB.open((prefix+"SDGC").c_str(), ios::out | ios::binary);
+    ioh.colmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+
+    OA.open((prefix+"SDSR.a").c_str(), ios::out | ios::binary);
+    OB.open((prefix+"SDSR").c_str(), ios::out | ios::binary);
+    ioh.symmetric();
+    ioh.rowmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();OA.open((prefix+"SDSC.a").c_str(), ios::out | ios::binary);
+    OB.close();OB.open((prefix+"SDSC").c_str(), ios::out | ios::binary);
+    ioh.colmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+
+    OA.open((prefix+"SDDR.a").c_str(), ios::out | ios::binary);
+    OB.open((prefix+"SDDR").c_str(), ios::out | ios::binary);
+    ioh.diagonal();
+    ioh.rowmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();OA.open((prefix+"SDDC.a").c_str(), ios::out | ios::binary);
+    OB.close();OB.open((prefix+"SDDC").c_str(), ios::out | ios::binary);
+    ioh.colmajor();
+    ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();
+    OB.close();
   }
 
   return 0;
@@ -686,7 +738,7 @@ int iohelper_test()
 int main()
 {
   iohelper_test();
-  //  return 0;
+    return 0;
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
