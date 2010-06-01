@@ -78,7 +78,7 @@
 {
     ## convert a sparse-matrix into a matrix.
     
-    inla.sm.check(C)
+    inla.sparse.check(C)
     stopifnot(length(C$i) == length(C$j))
     stopifnot(length(C$i) == length(C$values))
 
