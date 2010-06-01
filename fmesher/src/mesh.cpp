@@ -2121,24 +2121,65 @@ namespace fmesh {
 
   void Mesh::calcQblocks(SparseMatrix<double>& C,
 			 SparseMatrix<double>& C0,
-			 SparseMatrix<double>& G1) const
+			 SparseMatrix<double>& G1,
+			 SparseMatrix<double>& B1) const
   {
-    Point e0;
-    Point e1;
-    Point e2;
+    Point e[3];
     for (int t = 0; t < (int)nT(); t++) {
-      Int3 tv = TV_[t];
+      const Int3Raw& tv = TV_[t].raw();
       const Point& s0 = S_[tv[0]];
       const Point& s1 = S_[tv[1]];
       const Point& s2 = S_[tv[2]];
-      e0.diff(s2,s1);
-      e1.diff(s0,s2);
-      e2.diff(s1,s0);
-      
-      //      C(
-    }  
-  }
+      e[0].diff(s2,s1);
+      e[1].diff(s0,s2);
+      e[2].diff(s1,s0);
 
+      PointRaw eij[3];
+      for (int i=0; i<3; i++) {
+	eij[i][i] = Vec::scalar(e[i],e[i]);
+	for (int j=i+1; j<3; j++) {
+	  eij[i][j] = Vec::scalar(e[i],e[j]);
+	  eij[j][i] = eij[i][j];
+	}
+      }
+      
+      bool b[3];
+      b[0] = (TT_[t][0] < 0 ? true : false);
+      b[1] = (TT_[t][1] < 0 ? true : false);
+      b[2] = (TT_[t][2] < 0 ? true : false);
+
+      double a = triangleArea(t);
+      
+      /* "Flat area" better approximation for use in G-calculation. */
+      double fa = Point().cross(e[0],e[1]).length()/2.0;
+
+      double vij;
+      for (int i=0; i<3; i++) {
+	C(tv[0],tv[0]) += a/6.;
+	C0(tv[0],tv[0]) += a/3.;
+	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
+	for (int j=i+1; j<3; j++) {
+	  C(tv[i],tv[j]) += a/12.;
+	  C(tv[j],tv[i]) += a/12.;
+	  vij = eij[i][j]/(4.*fa);
+	  G1(tv[i],tv[j]) += vij;
+	  G1(tv[j],tv[i]) += vij;
+	}
+      }
+
+      if (b[0] || b[1] || b[2]) {
+	vij = -1./(4.*fa);
+	for (int i=0; i<3; i++) {
+	  for (int j=0; j<3; j++) {
+	    if ((i != j) && b[j]) {
+	      B1(tv[i],tv[j]) += eij[j][i]*vij;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  
 
 
 

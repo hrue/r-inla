@@ -101,7 +101,8 @@ int main(int argc, const char* argv[])
     SparseMatrix<double> C;
     SparseMatrix<double> C0;
     SparseMatrix<double> G1;
-    M.calcQblocks(C,C0,G1);
+    SparseMatrix<double> B1;
+    M.calcQblocks(C,C0,G1,B1);
     
     O.open((prefix+"c").c_str(), ios::out | ios::binary);
     IOHelperSM<double>().cD(&C).symmetric().binary().OH(O).OD(O).ascii().OH(cout);
@@ -113,6 +114,10 @@ int main(int argc, const char* argv[])
     
     O.open((prefix+"g1").c_str(), ios::out | ios::binary);
     IOHelperSM<double>().cD(&G1).symmetric().binary().OH(O).OD(O).ascii().OH(cout);
+    O.close();
+
+    O.open((prefix+"b1").c_str(), ios::out | ios::binary);
+    IOHelperSM<double>().cD(&B1).symmetric().binary().OH(O).OD(O).ascii().OH(cout);
     O.close();
   }
 

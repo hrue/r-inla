@@ -693,7 +693,6 @@ int iohelper_test()
     for (int i=0;i<4;i++)
       for (int j=0;j<3;j++)
 	M(i,j) = (double)i+(double)j/10.0;
-    cout << M;
 
     IOHelperSM<double> ioh;
     ioh.D(&M);
