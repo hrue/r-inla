@@ -3165,7 +3165,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * if not set to be known, then optimise 
 		 */
 		if (!(ai_par->mode_known)) {
-
+			
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Optimise using %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
 			}
@@ -3276,11 +3276,34 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		/*
-		 * do this again since the mode might have changed 
+		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
-		if (ai_store->mode)
-			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		if (hess_count) {
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "Restart optimisation at the best mode found so far and reesteimate the Hessian\n");
+			}
+			switch (ai_par->optimiser) {
+			case GMRFLib_AI_OPTIMISER_DOMIN:
+				domin_();		       /* this is the optimizer */
+				domin_get_results_(theta_mode, &log_dens_mode, &ierr);
+				break;
+
+			case GMRFLib_AI_OPTIMISER_GSL:
+			case GMRFLib_AI_OPTIMISER_DEFAULT:
+				GMRFLib_gsl_optimize(ai_par);
+				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
+				break;
+
+			default:
+				GMRFLib_ASSERT((ai_par->optimiser == GMRFLib_AI_OPTIMISER_DOMIN) ||
+					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_GSL) ||
+					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_DEFAULT), GMRFLib_EPARAMETER);
+				break;
+			}
+			GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, 0);
+			SET_THETA_MODE;
+		}
 
 		if (ai_par->fp_log) {
 			for (i = 0; i < nhyper; i++) {
