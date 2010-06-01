@@ -102,11 +102,17 @@ int main(int argc, const char* argv[])
     biglim[v] = diam/std::sqrt(nV)*0.5;
 
   if (useX11) {
-    double w0 = maxi[0]-mini[0];
-    double w1 = maxi[1]-mini[0];
-    M.useX11(true,useX11text,500,500,
-	     mini[0]-w0*0.2,maxi[0]+w0*0.2,
-	     mini[1]-w1*0.2,maxi[1]+w1*0.2);
+    if (issphere) {
+      M.useX11(true,useX11text,500,500,
+	       -1.1,1.1,
+	       -1.1,1.1);
+    } else {
+      double w0 = maxi[0]-mini[0];
+      double w1 = maxi[1]-mini[0];
+      M.useX11(true,useX11text,500,500,
+	       mini[0]-w0*0.2,maxi[0]+w0*0.2,
+	       mini[1]-w1*0.2,maxi[1]+w1*0.2);
+    }
   }
 
   MeshC MC(&M);
