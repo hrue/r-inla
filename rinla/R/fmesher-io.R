@@ -1,14 +1,17 @@
 
-`inla.read.fmesher.file` = function(filename, verbose = TRUE)
+`inla.read.fmesher.file` = function(filename, verbose = FALSE, debug = FALSE)
 {
     ##
     ## read a binary-file from fmesher in format specified by FL.
     ##
 
+    if (debug)
+        verbose=TRUE
+    
     read.check = function(x, h)
     {
         if (length(x) != h$elems)
-            stop(paste("Reading file", filename, ". Fail to read", h$elems, "only got", length(x), "."))
+            stop(paste("Reading file", filename, ". Fail to read", h$elems, "but got", length(x), "."))
     }
                
     stopifnot(file.exists(filename))
@@ -17,9 +20,11 @@
     if (verbose)
         print(paste("\nOpen file", filename))
        
-    len.header = readBin(fp, what = integer(), n = 1)
+    len.h = readBin(fp, what = integer(), n = 1)/4
     ## currently required
-    stopifnot(len.header >= 8) 
+    stopifnot(len.h >= 8)
+    if (verbose)
+        print(paste("header of size", len.h))
     
     h.raw = readBin(fp, what = integer(), n = len.h)
 
@@ -37,7 +42,7 @@
             nrow = h.raw[3],
             ncol = h.raw[4],
             datatype = inla.ifelse(h.raw[5] == 0, "dense", "sparse"),
-            valuetype = inla.ifelse(h.raw[6], integer(), double()), 
+            valuetype = inla.ifelse(h.raw[6] == 0, integer(), double()), 
             matrixtype = inla.ifelse(h.raw[7] == 0,
                     "general", inla.ifelse(h.raw[7] == 1, "symmetric", "diagonal")),
             storagetype = inla.ifelse(h.raw[8] == 0, "rowmajor", "columnmajor"))
@@ -54,9 +59,13 @@
         if (h$matrixtype != "general")
             stop(paste("Read", filename, ". Type (`dense' && !`general') is not yet implemented."))
 
-        stopifnot(h$elems != h$nrow * h$ncol)
+        stopifnot(h$elems == h$nrow * h$ncol)
         Aelm = readBin(fp, what = h$valuetype, n = h$elems)
         read.check(Aelm, h)
+        if (debug) {
+            printf("Alem")
+            print(Alem)
+        }
         A = matrix(Aelm, nrow = h$nrow, ncol = h$ncol, byrow = h$storagetype == "rowmajor")
     } else if (h$datatype == "sparse") {
         ##
@@ -76,11 +85,11 @@
                 ##
                 ## symmetric
                 ##
-                if (verbose) print("\tsymmetric")
+                if (verbose) print("symmetric")
                 for(k in 1:h$elems) {
                     ij = readBin(fp, what = integer(), n = 2)
                     i = c(i, max(ij))
-                    j = c(i, min(ij))
+                    j = c(j, min(ij))
                     values = c(values, readBin(fp, what = h$valuetype, n = 1))
                 }
                 read.check(i, h)
@@ -102,11 +111,11 @@
                 ##
                 ## general
                 ##
-                if (verbose) print("\tgeneral")
+                if (verbose) print("general")
                 for(k in 1:h$elems) {
                     ij = readBin(fp, what = integer(), n = 2)
                     i = c(i, ij[1])
-                    j = c(i, ij[2])
+                    j = c(j, ij[2])
                     values = c(values, readBin(fp, what = h$valuetype, n = 1))
                 }
                 read.check(i, h)
@@ -117,7 +126,7 @@
                 ##
                 ## diagonal
                 ##
-                if (verbose) print("\tgeneral")
+                if (verbose) print("diagonal")
                 for(k in 1:h$elems) {
                     i = c(i, readBin(fp, what = integer(), n = 1))
                     values = c(values, readBin(fp, what = h$valuetype, n = 1))
@@ -156,7 +165,7 @@
                     ##
                     ## symmetric: lower or upper triangular part is given
                     ##
-                    if (verbose) print("\tsymmetric")
+                    if (verbose) print("symmetric")
 
                     ## oops. Matrix adds replicated elements!!! 
                     if (!(all(i >= j) || all(i <= j)))
@@ -167,7 +176,7 @@
                     idx = (i != j)
                     ii = i[idx]
                     jj = j[idx]
-                    ## this is correct
+                    ## yes, this is correct
                     i = c(i, jj)
                     j = c(j, ii)
                     values = c(values, values[idx])
@@ -180,7 +189,15 @@
                 }
             }
         }
-        A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol))
+        if (debug) {
+            print("i")
+            print(i)
+            print("j")
+            print(j)
+            print("values")
+            print(values)
+        }
+        A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol), index1=FALSE)
     } else {
         stop("This should not happen.")
     }
