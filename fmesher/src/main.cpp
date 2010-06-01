@@ -706,6 +706,8 @@ int iohelper_test()
     OB.close();OB.open((prefix+"SDGC").c_str(), ios::out | ios::binary);
     ioh.colmajor();
     ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();
+    OB.close();
 
     OA.open((prefix+"SDSR.a").c_str(), ios::out | ios::binary);
     OB.open((prefix+"SDSR").c_str(), ios::out | ios::binary);
@@ -716,6 +718,8 @@ int iohelper_test()
     OB.close();OB.open((prefix+"SDSC").c_str(), ios::out | ios::binary);
     ioh.colmajor();
     ioh.binary().OH(OB).OD(OB).ascii().OH(OA).OD(OA);
+    OA.close();
+    OB.close();
 
     OA.open((prefix+"SDDR.a").c_str(), ios::out | ios::binary);
     OB.open((prefix+"SDDR").c_str(), ios::out | ios::binary);

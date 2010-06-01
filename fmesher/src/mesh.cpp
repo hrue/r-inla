@@ -2123,7 +2123,19 @@ namespace fmesh {
 			 SparseMatrix<double>& C0,
 			 SparseMatrix<double>& G1) const
   {
+    Point e0;
+    Point e1;
+    Point e2;
     for (int t = 0; t < (int)nT(); t++) {
+      Int3 tv = TV_[t];
+      const Point& s0 = S_[tv[0]];
+      const Point& s1 = S_[tv[1]];
+      const Point& s2 = S_[tv[2]];
+      e0.diff(s2,s1);
+      e1.diff(s0,s2);
+      e2.diff(s1,s0);
+      
+      //      C(
     }  
   }
 
