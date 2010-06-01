@@ -1,7 +1,7 @@
 
 `f` =
 function(...,
-         model=NULL,
+         model="iid",
          copy=NULL,
          n=NULL,
          nrep = NULL,
