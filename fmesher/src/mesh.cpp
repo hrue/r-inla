@@ -831,6 +831,7 @@ namespace fmesh {
       break;
     case Mesh::Mtype_sphere:
       {
+	if (false) {
 	/* Calculate the spherical excess. */
 	Point n0, n1, n2;
 	Vec::cross(n0,e1,e2);
@@ -854,6 +855,7 @@ namespace fmesh {
 				   -Vec::scalar(e0,e1));
 	if (theta2<0) nneg++;
 	area = theta0+theta1+theta2+static_cast<double>(2*nneg-1)*M_PI;
+	}
 
 	/*
 	  New formula.
@@ -861,12 +863,12 @@ namespace fmesh {
 	double costh =
 	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
 	double sinth = Vec::volume(s0,s1,s2);
-	double area2 = 2.*std::atan2(sinth,costh);
-	if (area2<0)
-	  area2 += 4.*M_PI;
+	area = 2.*std::atan2(sinth,costh);
+	if (area<0)
+	  area += 4.*M_PI;
 	
-	cout << WHEREAMI << "Areas: (" << area << "," << area2
-	     << ") a2/a1 = " << area2/area << endl;
+	//	cout << WHEREAMI << "Areas: (" << area << "," << area2
+	//	     << ") a2/a1 = " << area2/area << endl;
 
 	/*
 	double costh =
@@ -1860,7 +1862,7 @@ namespace fmesh {
 	}
 
 	/* "Official Barycentric coordinates, normalised: */
-	{
+	if (false) {
 	  const Point& s0 = S_[v0];
 	  const Point& s1 = S_[v1];
 	  const Point& s2 = S_[v2];
@@ -2119,8 +2121,8 @@ namespace fmesh {
 
 
 
-  void Mesh::calcQblocks(SparseMatrix<double>& C,
-			 SparseMatrix<double>& C0,
+  void Mesh::calcQblocks(SparseMatrix<double>& C0,
+			 SparseMatrix<double>& C1,
 			 SparseMatrix<double>& G1,
 			 SparseMatrix<double>& B1) const
   {
@@ -2155,12 +2157,12 @@ namespace fmesh {
 
       double vij;
       for (int i=0; i<3; i++) {
-	C(tv[0],tv[0]) += a/6.;
 	C0(tv[0],tv[0]) += a/3.;
+	C1(tv[0],tv[0]) += a/6.;
 	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
 	for (int j=i+1; j<3; j++) {
-	  C(tv[i],tv[j]) += a/12.;
-	  C(tv[j],tv[i]) += a/12.;
+	  C1(tv[i],tv[j]) += a/12.;
+	  C1(tv[j],tv[i]) += a/12.;
 	  vij = eij[i][j]/(4.*fa);
 	  G1(tv[i],tv[j]) += vij;
 	  G1(tv[j],tv[i]) += vij;
