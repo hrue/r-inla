@@ -8,10 +8,16 @@
     if (debug)
         verbose=TRUE
     
+    ## internal simple checking routine, which also do debug output.
     read.check = function(x, h)
     {
+        msg = deparse(match.call())
         if (length(x) != h$elems)
-            stop(paste("Reading file", filename, ". Fail to read", h$elems, "but got", length(x), "."))
+            stop(paste("Reading file", filename, ". Fail to read", h$elems, ", got", length(x), "."))
+        if (h$debug)
+            print(inla.paste(c(msg, x)))
+
+        return (invisible())
     }
                
     stopifnot(file.exists(filename))
@@ -20,14 +26,13 @@
     if (verbose)
         print(paste("\nOpen file", filename))
        
-    len.h = readBin(fp, what = integer(), n = 1)/4
+    len.h = readBin(fp, what = integer(), n = 1)
     ## currently required
     stopifnot(len.h >= 8)
     if (verbose)
-        print(paste("header of size", len.h))
+        print(paste("header is", len.h, "integers."))
     
     h.raw = readBin(fp, what = integer(), n = len.h)
-
     ## negative entries specify something different not yet defined.
     for(i in 1:len.h) {
         if (h.raw[i] < 0)
@@ -35,16 +40,15 @@
                        ". Do not know what to do.", sep=""))
     }
 
-    h = list(
-            filename = filename,
+    h = list(filename = filename, verbose = verbose, debug = debug,
             version = h.raw[1],
             elems = h.raw[2],
             nrow = h.raw[3],
             ncol = h.raw[4],
             datatype = inla.ifelse(h.raw[5] == 0, "dense", "sparse"),
             valuetype = inla.ifelse(h.raw[6] == 0, integer(), double()), 
-            matrixtype = inla.ifelse(h.raw[7] == 0,
-                    "general", inla.ifelse(h.raw[7] == 1, "symmetric", "diagonal")),
+            matrixtype = inla.ifelse(h.raw[7] == 0, "general",
+                    inla.ifelse(h.raw[7] == 1, "symmetric", "diagonal")),
             storagetype = inla.ifelse(h.raw[8] == 0, "rowmajor", "columnmajor"))
     
     if (verbose)
@@ -54,24 +58,17 @@
         ##
         ## dense matrix
         ##
-        if (verbose)
-            print("read dense matrix")
         if (h$matrixtype != "general")
             stop(paste("Read", filename, ". Type (`dense' && !`general') is not yet implemented."))
 
         stopifnot(h$elems == h$nrow * h$ncol)
         Aelm = readBin(fp, what = h$valuetype, n = h$elems)
         read.check(Aelm, h)
-        if (debug) {
-            printf("Alem")
-            print(Alem)
-        }
-        A = matrix(Aelm, nrow = h$nrow, ncol = h$ncol, byrow = h$storagetype == "rowmajor")
+        A = matrix(Aelm, nrow = h$nrow, ncol = h$ncol, byrow = (h$storagetype == "rowmajor"))
     } else if (h$datatype == "sparse") {
         ##
         ## sparse matrix
         ##
-        if (verbose) print("read sparse matrix")
         require(Matrix)
 
         if (h$storagetype == "rowmajor") {
@@ -85,7 +82,6 @@
                 ##
                 ## symmetric
                 ##
-                if (verbose) print("symmetric")
                 for(k in 1:h$elems) {
                     ij = readBin(fp, what = integer(), n = 2)
                     i = c(i, max(ij))
@@ -107,11 +103,10 @@
                 i = c(i, jj)
                 j = c(j, ii)
                 values = c(values, values[idx])
-            } else if (h$matrixtype == "general") {
+            } else if (h$matrixtype == "general" || h$matrixtype == "diagonal") {
                 ##
-                ## general
+                ## general/diagonal
                 ##
-                if (verbose) print("general")
                 for(k in 1:h$elems) {
                     ij = readBin(fp, what = integer(), n = 2)
                     i = c(i, ij[1])
@@ -122,19 +117,12 @@
                 read.check(j, h)
                 read.check(values, h)
 
-            } else if (h$matrixtype == "diagonal") {
-                ##
-                ## diagonal
-                ##
-                if (verbose) print("diagonal")
-                for(k in 1:h$elems) {
-                    i = c(i, readBin(fp, what = integer(), n = 1))
-                    values = c(values, readBin(fp, what = h$valuetype, n = 1))
+                if (h$matrixtype == "diagonal") {
+                    idx = (i == j)
+                    i = i[idx]
+                    j = j[idx]
+                    values = values[idx]
                 }
-                ## yes!
-                j = i
-                read.check(i, h)
-                read.check(values, h)
             } else {
                 stop("This should not happen.")
             }
@@ -142,60 +130,41 @@
             ##
             ## columnmajor format
             ##
-            if (h$matrixtype == "diagonal") {
-                ##
-                ## diagonal matrix. format (i,values)
-                ##
-                i = j = readBin(fp, what = integer(0), n = h$elems)
-                values = readBin(fp, what = h$valuetype, n = h$elems)
-                read.check(i, h)
-                read.check(values, h)
-            } else {
-                ##
-                ## other format: (i,j,values)
-                ##
-                i = readBin(fp, what = integer(0), n = h$elems)
-                j = readBin(fp, what = integer(0), n = h$elems)
-                values = readBin(fp, what = h$valuetype, n = h$elems)
-                read.check(i, h)
-                read.check(j, h)
-                read.check(values, h)
 
-                if (h$matrixtype == "symmetric") {
-                    ##
-                    ## symmetric: lower or upper triangular part is given
-                    ##
-                    if (verbose) print("symmetric")
+            ##
+            ## other format: (i,j,values)
+            ##
+            i = readBin(fp, what = integer(0), n = h$elems)
+            j = readBin(fp, what = integer(0), n = h$elems)
+            values = readBin(fp, what = h$valuetype, n = h$elems)
+            read.check(i, h)
+            read.check(j, h)
+            read.check(values, h)
 
-                    ## oops. Matrix adds replicated elements!!! 
-                    if (!(all(i >= j) || all(i <= j)))
-                        stop(paste("Reading file", filename,
-                                   ". Both upper and lower part of symmetric sparse matrix",
-                                   "is specified. Do not know what to do."))
+            if (h$matrixtype == "symmetric") {
+                ##
+                ## symmetric: lower or upper triangular part is given
+                ##
 
-                    idx = (i != j)
-                    ii = i[idx]
-                    jj = j[idx]
-                    ## yes, this is correct
-                    i = c(i, jj)
-                    j = c(j, ii)
-                    values = c(values, values[idx])
-                } else if (h$matrixtype == "general") {
-                    ##
-                    ## general: nothing to do
-                    ##
-                } else {
-                    stop("This should not happen.")
-                }
+                ## oops. Matrix adds replicated elements!!! 
+                if (!(all(i >= j) || all(i <= j)))
+                    stop(paste("Reading file", filename,
+                               ". Both upper and lower part of symmetric sparse matrix",
+                               "is specified. Do not know what to do..."))
+
+                idx = (i != j)
+                ii = i[idx]
+                jj = j[idx]
+                ## yes, this is correct...
+                i = c(i, jj)
+                j = c(j, ii)
+                values = c(values, values[idx])
+            } else if (h$matrixtype == "diagonal") {
+                idx = (i == j)
+                i = i[idx]
+                j = j[idx]
+                values = values[idx]
             }
-        }
-        if (debug) {
-            print("i")
-            print(i)
-            print("j")
-            print(j)
-            print("values")
-            print(values)
         }
         A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol), index1=FALSE)
     } else {
