@@ -23,7 +23,7 @@ namespace fmesh {
   IOHeader& IOHeader::def(const T& ref)
   {
     def();
-    valuetype = -sizeof(T);
+    valuetype = -(int)sizeof(T);
     return *this;
   }
   
