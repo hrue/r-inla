@@ -124,6 +124,7 @@ namespace fmesh {
 		 std::string name = "fmesher::Mesh");
 
     Mtype type() const { return type_; };
+    void type(Mtype set_type) { type_ = set_type; };
     size_t nV() const { return S_.rows(); };
     size_t nT() const { return TV_.rows(); };
     const Matrix3int& TV() const { return TV_; };
@@ -192,8 +193,8 @@ namespace fmesh {
 			   const Point& s) const;
 
 
-    void calcQblocks(SparseMatrix<double>& C,
-		     SparseMatrix<double>& C0,
+    void calcQblocks(SparseMatrix<double>& C0,
+		     SparseMatrix<double>& C1,
 		     SparseMatrix<double>& G1,
 		     SparseMatrix<double>& B1) const;
 

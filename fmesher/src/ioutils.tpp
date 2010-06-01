@@ -122,7 +122,8 @@ namespace fmesh {
   {
     if (binary_) {
       int header_size = sizeof(IOHeader);
-      output.write((char*)&header_size, sizeof(header_size));
+      int header_length = header_size/sizeof(int);
+      output.write((char*)&header_length, sizeof(header_length));
       output.write((const char*)&h_, header_size);
     } else {
       output << h_;
@@ -136,8 +137,9 @@ namespace fmesh {
   {
     if (binary_) {
       int header_size = sizeof(IOHeader);
-      int file_header_size;
-      input.read((char*)&file_header_size, sizeof(file_header_size));
+      int file_header_length;
+      input.read((char*)&file_header_length, sizeof(file_header_length));
+      int file_header_size = file_header_length*sizeof(int);
       if (file_header_size < header_size) {
 	h_.dense(Matrix<int>(0),IOMatrixtype_general);
 	input.read((char*)&h_, file_header_size);
@@ -367,33 +369,18 @@ namespace fmesh {
       return *this;
     }
     if (h.storagetype == IOStoragetype_rowmajor) {
-      if (h.matrixtype == IOMatrixtype_diagonal) {
-	Matrix1< SparseMatrixDuplet<T> > MT;
-	(*cM_).tolist(MT);
-	IOHelperM< SparseMatrixDuplet<T>
-		   >().cD(&MT).binary(bin_).rowmajor().OD(output);
-      } else {
-	Matrix1< SparseMatrixTriplet<T> > MT;
-	(*cM_).tolist(MT,(h.matrixtype == IOMatrixtype_symmetric));
-	IOHelperM< SparseMatrixTriplet<T>
-		   >().cD(&MT).binary(bin_).rowmajor().OD(output);
-      }
+      Matrix1< SparseMatrixTriplet<T> > MT;
+      (*cM_).tolist(MT,h.matrixtype);
+      IOHelperM< SparseMatrixTriplet<T>
+		 >().cD(&MT).binary(bin_).rowmajor().OD(output);
     } else {
-      if (h.matrixtype == IOMatrixtype_diagonal) {
-	Matrix1int Mr;
-	Matrix1<T> Mv;
-	(*cM_).tolist(Mr,Mv);
-	IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
-	IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
-      } else {
-	Matrix1int Mr;
-	Matrix1int Mc;
-	Matrix1<T> Mv;
-	(*cM_).tolist(Mr,Mc,Mv,(h.matrixtype == IOMatrixtype_symmetric));
-	IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
-	IOHelperM<int>().cD(&Mc).binary(bin_).colmajor().OD(output);
-	IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
-      }
+      Matrix1int Mr;
+      Matrix1int Mc;
+      Matrix1<T> Mv;
+      (*cM_).tolist(Mr,Mc,Mv,h.matrixtype);
+      IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
+      IOHelperM<int>().cD(&Mc).binary(bin_).colmajor().OD(output);
+      IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
     }
     return *this;
   }
@@ -408,33 +395,18 @@ namespace fmesh {
     }
     (*M_).clear();
     if (h.storagetype == IOStoragetype_rowmajor) {
-      if (h.matrixtype == IOMatrixtype_diagonal) {
-	Matrix1< SparseMatrixDuplet<T> > MT;
-	IOHelperM< SparseMatrixTriplet<T>
-		   >().D(&MT).binary(bin_).rowmajor().ID(input);
-	(*M_).fromlist(MT);
-      } else {
-	Matrix1< SparseMatrixTriplet<T> > MT;
-	IOHelperM< SparseMatrixTriplet<T>
-		   >().D(&MT).binary(bin_).rowmajor().ID(input);
-	(*M_).fromlist(MT,(h.matrixtype == IOMatrixtype_symmetric));
-      }
+      Matrix1< SparseMatrixTriplet<T> > MT;
+      IOHelperM< SparseMatrixTriplet<T>
+		 >().D(&MT).binary(bin_).rowmajor().ID(input);
+      (*M_).fromlist(MT,h.matrixtype);
     } else {
-      if (h.matrixtype == IOMatrixtype_diagonal) {
-	Matrix1int Mr;
-	Matrix1<T> Mv;
-	IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
-	IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
-	(*M_).fromlist(Mr,Mv);
-      } else {
-	Matrix1int Mr;
-	Matrix1int Mc;
-	Matrix1<T> Mv;
-	IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
-	IOHelperM<int>().D(&Mc).binary(bin_).colmajor().ID(input);
-	IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
-	(*M_).fromlist(Mr,Mc,Mv,(h.matrixtype == IOMatrixtype_symmetric));
-      }
+      Matrix1int Mr;
+      Matrix1int Mc;
+      Matrix1<T> Mv;
+      IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
+      IOHelperM<int>().D(&Mc).binary(bin_).colmajor().ID(input);
+      IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
+      (*M_).fromlist(Mr,Mc,Mv,h.matrixtype);
     }
     return *this;
   }
