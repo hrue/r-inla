@@ -448,15 +448,17 @@ namespace fmesh {
     };
 
     int cols(void) const {
-      int cols_ = 0;
+      int cols_ = -1;
       int cols_row_;
-       for (RowConstIter row = data_.begin();
-	    row != data_.end();
-	    row++) {
-	 cols_row_ = row->second.rbegin()->first;
-	 if (cols_row_ > cols_)
-	   cols_ = cols_row_;
-       }
+      for (RowConstIter row = data_.begin();
+	   row != data_.end();
+	   row++) {
+	if (row->second.size() > 0) {
+	  cols_row_ = row->second.rbegin()->first;
+	  if (cols_row_ > cols_)
+	    cols_ = cols_row_;
+	}
+      }
       return cols_+1;
     };
 
