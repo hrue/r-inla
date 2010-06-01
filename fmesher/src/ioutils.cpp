@@ -71,7 +71,7 @@ namespace fmesh {
     datatype = -1;
     valuetype = -1;
     matrixtype = -1;
-    storagetype = -1;
+    storagetype = IOStoragetype_rowmajor;
     return *this;
   }
 
