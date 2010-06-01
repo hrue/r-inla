@@ -104,6 +104,9 @@ namespace fmesh {
       return (IOStoragetype)h_.storagetype;
     };
 
+    IOHelper<T>& ascii(bool set_ascii = true) {
+      return binary(!set_ascii);
+    };
     IOHelper<T>& binary(bool set_binary = true) {
       binary_ = set_binary;
       return *this;
@@ -166,6 +169,8 @@ namespace fmesh {
     IOHelperM<T>& ID(std::istream& input);
 
     /* Overloaded from IOHelper: */
+    IOHelperM<T>& ascii(bool set_ascii = true) {
+      IOHelper<T>::ascii(set_ascii); return *this; };
     IOHelperM<T>& binary(bool set_binary = true) {
       IOHelper<T>::binary(set_binary); return *this; };
     IOHelperM<T>& general() { return matrixtype(IOMatrixtype_general); };
@@ -221,6 +226,8 @@ namespace fmesh {
     IOHelperSM<T>& ID(std::istream& input);
 
     /* Overloaded from IOHelper: */
+    IOHelperSM<T>& ascii(bool set_ascii = true) {
+      IOHelper<T>::ascii(set_ascii); return *this; };
     IOHelperSM<T>& binary(bool set_binary = true) {
       IOHelper<T>::binary(set_binary); return *this; };
     IOHelperSM<T>& general() { return matrixtype(IOMatrixtype_general); };

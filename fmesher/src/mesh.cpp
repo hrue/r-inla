@@ -2119,6 +2119,21 @@ namespace fmesh {
 
 
 
+  void Mesh::calcQblocks(SparseMatrix<double>& C,
+			 SparseMatrix<double>& C0,
+			 SparseMatrix<double>& G1) const
+  {
+    for (int t = 0; t < (int)nT(); t++) {
+    }  
+  }
+
+
+
+
+
+
+
+
   Dart& Dart::alpha0()
   {
     vi_ = (vi_ + (3+edir_) ) % 3;

@@ -190,6 +190,12 @@ namespace fmesh {
     double inLeftHalfspace(const Point& s0,
 			   const Point& s1,
 			   const Point& s) const;
+
+
+    void calcQblocks(SparseMatrix<double>& C,
+		     SparseMatrix<double>& C0,
+		     SparseMatrix<double>& G1) const;
+
   };
 
 
