@@ -201,7 +201,7 @@
                 fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
                 cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
             } else {
-                inla.sm.check(random.spec$Cmatrix)
+                inla.sparse.check(random.spec$Cmatrix)
 
                 file.C=inla.tempfile(tmpdir=data.dir)
                 file.create(file.C)
@@ -425,17 +425,17 @@
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
     }
 
-    if (!is.null(random.spec$A)) {
+    if (!is.null(predictor.spec$A)) {
         ## Since we will expand the A into [ I, -A; -A^T, A^T A
         ## ], we have to read the matrix it if its given in a
         ## file. The fileformat is given as a three colums file, with
         ## columns i, j and values.
-        if (is.character(random.spec$A)) {
-            A = read.table(random.spec$A, col.names = c("i", "j", "values"))
+        if (is.character(predictor.spec$A)) {
+            A = read.table(predictor.spec$A, col.names = c("i", "j", "values"))
         } else {
-            A = random.spec$A
+            A = predictor.spec$A
         }
-        inla.sm.check(A, dims = n)
+        inla.sparse.check(A)
 
         ## Now we will build the extended Matrix, which is
         ##
@@ -446,13 +446,22 @@
         
         ## Note that only a subset of the matrix has to be
         ## given, and the rest is filled with zeros:
-        ## > inla.sm2dgTMatrix(list(i=2, j=2, values=2), dims=c(3,3))
+        ## > inla.sparse2dgTMatrix(list(i=2, j=2, values=2), dims=c(3,3))
         ##   3 x 3 sparse Matrix of class "dgTMatrix"
         ##   [1,] . . .
         ##   [2,] . 2 .
         ##   [3,] . . .
         ##
-        A = inla.sm2dgTMatrix(A, dims = c(n,n))
+
+        ## if A is incomplete, just fill it with unit diagonals. NOTE:
+        ## If this takes time, then we may have to require that A is
+        ## completely specified!
+        A = inla.sparse2dgTMatrix(A, dims = c(n,n))
+        for(i in 1:n) {
+            v = inla.sparse.get(A, row=i)$values
+            if (length(v) == 0 || all(v==0))
+                A[i,i] = 1
+        }
 
         ## The `I'
         Aext = list(i = 1:n, j = 1:n, values = rep(1,n))
@@ -478,10 +487,10 @@
         idx = (Aext$i <= Aext$j)
         stopifnot(sum(idx) >= n)
         
-        write(t(cbind(Aext$i[idx], Aext$j[idx], Aext$values[idx])),
-              ncolumns=3, file=file.A, append=FALSE)
+        write(t(cbind(Aext$i[idx], Aext$j[idx], Aext$values[idx])), ncolumns=3, file=file.A, append=FALSE)
         file.A = gsub(data.dir, "$DATADIR", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
+        cat("precision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
