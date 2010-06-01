@@ -3280,28 +3280,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 */
 		SET_THETA_MODE;
 		if (hess_count) {
-			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Restart optimisation at the best mode found so far and reesteimate the Hessian\n");
+			//FIXME("------------> do one function call");
+			for (i = 0; i < nhyper; i++) {
+				theta_mode[i] = hyperparam[i][0][0];
 			}
-			switch (ai_par->optimiser) {
-			case GMRFLib_AI_OPTIMISER_DOMIN:
-				domin_();		       /* this is the optimizer */
-				domin_get_results_(theta_mode, &log_dens_mode, &ierr);
-				break;
-
-			case GMRFLib_AI_OPTIMISER_GSL:
-			case GMRFLib_AI_OPTIMISER_DEFAULT:
-				GMRFLib_gsl_optimize(ai_par);
-				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
-				break;
-
-			default:
-				GMRFLib_ASSERT((ai_par->optimiser == GMRFLib_AI_OPTIMISER_DOMIN) ||
-					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_GSL) ||
-					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_DEFAULT), GMRFLib_EPARAMETER);
-				break;
-			}
-			GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, 0);
+			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr);
+			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
 		}
 
@@ -4414,11 +4398,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
+		int first_thread = 1;
 		if (run_with_omp) {
 #pragma omp parallel
 			{
-				GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
-
+				int free_store = 1;
+				GMRFLib_ai_store_tp *ai_store_id = NULL;
+#pragma omp critical
+				{
+					/* 
+					   need to make one of them be ai_store as we need the contents later
+					 */
+					if (first_thread) {
+						first_thread = free_store = 0;
+						ai_store_id = ai_store;
+					} else {
+						free_store = 1;
+						ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
+					}
+				}
 #pragma omp for private(i) schedule(static) nowait
 				for (i = 0; i < compute_n; i++) {
 					int ii = compute_idx[i];
@@ -4434,7 +4432,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					COMPUTE;
 					GMRFLib_free_density(cpodens);
 				}
-				GMRFLib_free_ai_store(ai_store_id);
+				if (free_store)
+					GMRFLib_free_ai_store(ai_store_id);
 			}
 		} else {
 			GMRFLib_ai_store_tp *ai_store_id = NULL;
