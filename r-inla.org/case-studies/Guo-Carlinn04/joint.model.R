@@ -100,13 +100,10 @@ mod7 = inla(formula7, family = c("gaussian","exponential"),
 ##MODEL VIII
 formula8 = Y ~ mu + b12.time + b13.timedrug + b14.sex + b15.prevoi +
   b16.stratum + b22.drug + b23.sex + b24.prevoi + b25.stratum - 1 +
-  f(U11 , model="2diidwishart",
-    param = c(23,100,100,0),
-    initial = c(-2.7,0.9,-0.22),
-    n=N, values = 1:(2*N)) +
-  f(U21, b12.time, copy="U11",values = 1:(2*N)) +
-  f(U12, copy="U11", values=1:(2*N),
-    fixed = FALSE, param=c(0,0.01), initial = -0.2)
+  f(U11 , model="iid2d", param = c(23,100,100,0),
+    initial = c(-2.7,0.9,-0.22), n=2*N) +
+  f(U21, b12.time, copy="U11") +
+  f(U12, copy="U11", fixed = FALSE, param=c(0,0.01), initial = -0.2)
 
 mod8 = inla(formula8, family = c("gaussian","exponential"),
   data = joint.data, verbose=TRUE, control.compute=list(dic=TRUE))
@@ -115,13 +112,10 @@ mod8 = inla(formula8, family = c("gaussian","exponential"),
 ##MODEL IX
 formula9 = Y ~ mu + b12.time + b13.timedrug + b14.sex + b15.prevoi +
   b16.stratum + b22.drug + b23.sex + b24.prevoi + b25.stratum - 1 +
-  f(U11 , model="2diidwishart",
-    param = c(23,100,100,0),
-    initial = c(-2.7,0.9,-0.22),
-    n=N, values = 1:(2*N)) +
-  f(U21, b12.time, copy="U11",values = 1:(2*N)) +
-  f(U22, copy="U11", values=1:(2*N),
-    fixed = FALSE, param=c(0,0.01), initial = -0.2)
+  f(U11 , model="iid2d", param = c(23,100,100,0),
+    initial = c(-2.7,0.9,-0.22), n=2*N) +
+  f(U21, b12.time, copy="U11") +
+  f(U22, copy="U11", fixed = FALSE, param=c(0,0.01), initial = -0.2)
 
 mod9 = inla(formula9, family = c("gaussian","exponential"),
   data = joint.data, verbose=TRUE, control.compute=list(dic=TRUE))
@@ -130,18 +124,11 @@ mod9 = inla(formula9, family = c("gaussian","exponential"),
 ##MODEL XI
 formula11 = Y ~ mu + b12.time + b13.timedrug + b14.sex + b15.prevoi +
   b16.stratum + b22.drug + b23.sex + b24.prevoi + b25.stratum - 1 +
-  f(U11 , model="2diidwishart",
-    param = c(23,100,100,0),
-    initial = c(-2.7,0.9,-0.22),
-    n=N, values = 1:(2*N)) +
-  f(U21, b12.time, copy="U11",values = 1:(2*N)) +
-  f(U12, copy="U11", values=1:(2*N),
-    fixed = FALSE, param=c(0,0.01), initial = -0.2) +
-  f(U22, copy="U11", values=1:(2*N),
-    fixed = FALSE, param=c(0,0.01), initial = -1.6)
+  f(U11 , model="iid2d", param = c(23,100,100,0),
+    initial = c(-2.7,0.9,-0.22), n=2*N) +
+  f(U21, b12.time, copy="U11") +
+  f(U12, copy="U11", fixed = FALSE, param=c(0,0.01), initial = -0.2) +
+  f(U22, copy="U11", fixed = FALSE, param=c(0,0.01), initial = -1.6)
 
 mod11 = inla(formula11, family = c("gaussian","exponential"),
   data = joint.data, verbose=TRUE, control.compute=list(dic=TRUE))
-
-
-
