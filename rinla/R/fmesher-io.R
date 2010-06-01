@@ -1,4 +1,3 @@
-
 `inla.read.fmesher.file` = function(filename, verbose = FALSE, debug = FALSE)
 {
     ##
@@ -174,4 +173,120 @@
     close(fp)
 
     return (A)
+}
+
+`inla.write.fmesher.file` = function(A, filename = tempfile(), verbose = FALSE, debug = FALSE)
+{
+    ##
+    ## write a binary-file from fmesher in format specified by FL.
+    ##
+
+    if (debug)
+        verbose=TRUE
+    
+    if (verbose)
+        print(paste("\nOpen file to write", filename))
+       
+    version = 0
+
+    if (is.matrix(A)) {
+        ##
+        nrow = dim(A)[1]
+        ncol = dim(A)[2]
+        elems = nrow*ncol
+        datatype = 0
+        valuetype = inla.ifelse(is.integer(A[1,1]), integer(), double())
+        matrixtype = 0  ## general
+        storagetype = 1 ## columnmajor
+    } else if (is.list(A)) {
+        ##
+        inla.sparse.check(A)
+        nrow = max(A$i)
+        ncol = max(A$j)
+        datatype = 1 ## sparse
+        valuetype = inla.ifelse(is.integer(A$values[1]), integer(), double())
+        matrixtype = 0  ## general
+        storagetype = 1 ## columnmajor
+
+        i = A$i-1
+        j = A$j-1
+        values = A$values
+    } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
+        ##
+        A = inla.as.dgTMatrix(A)
+        nrow = dim(A)[1]
+        ncol = dim(A)[2]
+        datatype = 1 ## sparse
+        valuetype = inla.ifelse(is.integer(A[1,1]), integer(), double())
+        matrixtype = 0  ## general
+        storagetype = 1 ## columnmajor
+
+        i = c()
+        j = c()
+        values =c()
+        for(k in 1:nrow) {
+            xx = inla.sparse.get(A, row=k)
+            if (length(xx$j) > 0) {
+                i = c(i, xx$i)
+                j = c(j, xx$j)
+                values = c(values, xx$values)
+            }
+        }
+        ## zero-based indexing
+        i = i-1
+        j = j-1
+        elems = length(i)
+    } else if (is.vector(A)) {
+        ## diagonal
+        nrow = length(A)
+        ncol = length(A)
+        elems = length(A)
+        datatype = 1 ## sparse
+        valuetype = inla.ifelse(is.integer(A[1]), integer(), double())
+        matrixtype = 2  ## diagonal
+        storagetype = 1 ## columnmajor
+        
+        i = j = 0:(nrow-1)
+        values = A
+    } else {
+        stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
+    }
+    h = integer(8)
+    valuetp = inla.ifelse(equals(valuetype, integer()), 0, 1)
+    h = c(version, elems, nrow, ncol, datatype, valuetp, matrixtype, storagetype)
+    if (verbose) 
+        print(h)
+    if (debug) {
+        print("i (zero-based indexing)")
+        print(i)
+        print("j (zero-based indexing)")
+        print(j)
+        print("values")
+        print(values)
+    }
+
+    fp = file(filename, "wb")
+    writeBin(as.integer(length(h)), fp)
+    writeBin(as.integer(h), fp)
+    
+    if (datatype == 0) {
+        ## dense
+        if (equals(valuetype, integer())) {
+            writeBin(as.integer(as.vector(A)), fp)
+        } else {
+            writeBin(as.double(as.vector(A)), fp)
+        }
+    } else {
+        ## sparse: columnorder
+        writeBin(as.integer(i), fp)
+        writeBin(as.integer(j), fp)
+        if (equals(valuetype, integer())) {
+            writeBin(as.integer(values), fp)
+        } else {
+            writeBin(as.double(values), fp)
+        }
+    }
+    close(fp)
+
+    return (filename)
 }
