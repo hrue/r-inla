@@ -180,53 +180,140 @@ namespace fmesh {
   template <class T>
   class Vector3 {
   public:
+    typedef Vector3<T> selfT;
     typedef T Raw[3];
   private:
-    T data_[3];
+    T s[3];
   public:
     Vector3() {
-      data_[0] = T();
-      data_[1] = T();
-      data_[2] = T();
+      s[0] = T();
+      s[1] = T();
+      s[2] = T();
     };
     Vector3(const T& val0,
 	    const T& val1,
 	    const T& val2) {
-      data_[0] = val0;
-      data_[1] = val1;
-      data_[2] = val2;
+      s[0] = val0;
+      s[1] = val1;
+      s[2] = val2;
     };
     Vector3(const T val[3]) {
-      data_[0] = val[0];
-      data_[1] = val[1];
-      data_[2] = val[2];
+      s[0] = val[0];
+      s[1] = val[1];
+      s[2] = val[2];
     };
-    Vector3(const Vector3<T>& vec) {
-      data_[0] = vec.data_[0];
-      data_[1] = vec.data_[1];
-      data_[2] = vec.data_[2];
+    Vector3(const selfT& vec) {
+      s[0] = vec.s[0];
+      s[1] = vec.s[1];
+      s[2] = vec.s[2];
     };
 
-    Vector3<T>& operator=(const Vector3<T> vec) {
-      if (this != &vec) {
-	data_[0] = vec.data_[0];
-	data_[1] = vec.data_[1];
-	data_[2] = vec.data_[2];
-      }
-      return *this;
+    selfT& operator=(const selfT vec) {
+      return copy(vec);
     };
 
     const T& operator[](const int i) const {
-      return data_[i];
+      return s[i];
     };
 
     T& operator[](const int i) {
-      return data_[i];
+      return s[i];
     };
 
-    const Raw& raw(void) const { return data_; }
+    const Raw& raw(void) const { return s; }
     
+
+
+    selfT& copy(const selfT& s0)
+    {
+      if (this != &s0) {
+	s[0] = s0.s[0];
+	s[1] = s0.s[1];
+	s[2] = s0.s[2];
+      }
+      return *this;
+    };
+    selfT& rescale(T s1)
+    {
+      s[0] *= s1;
+      s[1] *= s1;
+      s[2] *= s1;
+      return *this;
+    };
+    selfT& scale(const selfT& s0, T s1)
+    {
+      s[0] = s0.s[0]*s1;
+      s[1] = s0.s[1]*s1;
+      s[2] = s0.s[2]*s1;
+      return *this;
+    };
+    selfT& diff(const selfT& s0, const selfT& s1)
+    {
+      s[0] = s0.s[0]-s1.s[0];
+      s[1] = s0.s[1]-s1.s[1];
+      s[2] = s0.s[2]-s1.s[2];
+      return *this;
+    };
+    selfT& sum(const selfT& s0, const selfT& s1)
+    {
+      s[0] = s0.s[0]+s1.s[0];
+      s[1] = s0.s[1]+s1.s[1];
+      s[2] = s0.s[2]+s1.s[2];
+      return *this;
+    };
+    selfT& accum(const selfT& s0, T s1)
+    {
+      s[0] += s0.s[0]*s1;
+      s[1] += s0.s[1]*s1;
+      s[2] += s0.s[2]*s1;
+      return *this;
+    };
+    T scalar(const selfT& s1) const
+    {
+      return (s[0]*s1.s[0]+s[1]*s1.s[1]+s[2]*s1.s[2]);
+    };
+    double length() const;
+    selfT& cross(const selfT& s0,const selfT& s1)
+    {
+      if ((this == &s0) || (this == &s0)) {
+	T s_0 = s0.s[1]*s1.s[2]-s0.s[2]*s1.s[1];
+	T s_1 = s0.s[2]*s1.s[0]-s0.s[0]*s1.s[2];
+	T s_2 = s0.s[0]*s1.s[1]-s0.s[1]*s1.s[0];
+	s[0] = s_0;
+	s[1] = s_1;
+	s[2] = s_2;
+      } else {
+	s[0] = s0.s[1]*s1.s[2]-s0.s[2]*s1.s[1];
+	s[1] = s0.s[2]*s1.s[0]-s0.s[0]*s1.s[2];
+	s[2] = s0.s[0]*s1.s[1]-s0.s[1]*s1.s[0];
+      }
+    };
+    T cross2(const selfT& s1) const
+    {
+      return (s[0]*s1.s[1]-s[1]*s1.s[0]);
+    };
+    /*!
+      "Volume product" = scalar(cross(s0,s1),s2)
+     */
+    T volume(const selfT& s1, const selfT& s2) const
+    {
+      return ((s1.s[1]*s2.s[2]-s1.s[2]*s2.s[1])*s[0]+
+	      (s1.s[2]*s2.s[0]-s1.s[0]*s2.s[2])*s[1]+
+	      (s1.s[0]*s2.s[1]-s1.s[1]*s2.s[0])*s[2]);
+    };
+    double angle(const selfT& s0, const selfT& s1) const
+    {
+      Vector3<T> s0xs1;
+      s0xs1.cross(s0,s1);
+      return std::atan2((double)length(s0xs1),(double)scalar(s0,s1));
+    };
+
+    friend
+    void arbitrary_perpendicular(Vector3<double>& n,
+				 const Vector3<double>& v);
   };
+
+
 
   template <class T>
   class Matrix1 : public Matrix<T> {
@@ -554,6 +641,11 @@ namespace fmesh {
   };
 
 
+  template <class T>
+  double Vector3<T>::length() const
+  {
+    return 0.0;
+  };
 
 
   struct Vec {  

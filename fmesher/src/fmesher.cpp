@@ -39,6 +39,7 @@ const bool useX11text = false;
 
 
 
+
 int main(int argc, const char* argv[])
 {
   string prefix("fmesher.io.");
@@ -47,7 +48,7 @@ int main(int argc, const char* argv[])
 
   Matrix<double> iS0;
   ifstream I((prefix+"s0").c_str(), ios::in | ios::binary);
-  IOHelperM<double>().D(&iS0).binary().IH(I).ID(I);
+  IOHelperM<double>().D(&iS0).binary().IH(I).ID(I).ascii().OH(cout);
   I.close();
   Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
   int nV = S0.rows();
@@ -89,12 +90,31 @@ int main(int argc, const char* argv[])
 
   ofstream O;
   O.open((prefix+"s").c_str(), ios::out | ios::binary);
-  IOHelperM<double>().cD(&M.S()).binary().OH(O).OD(O);
+  IOHelperM<double>().cD(&M.S()).binary().OH(O).OD(O).ascii().OH(cout);
   O.close();
 
   O.open((prefix+"tv").c_str(), ios::out | ios::binary);
-  IOHelperM<int>().cD(&M.TV()).binary().OH(O).OD(O);
+  IOHelperM<int>().cD(&M.TV()).binary().OH(O).OD(O).ascii().OH(cout);
   O.close();
+
+  {
+    SparseMatrix<double> C;
+    SparseMatrix<double> C0;
+    SparseMatrix<double> G1;
+    M.calcQblocks(C,C0,G1);
+    
+    O.open((prefix+"c").c_str(), ios::out | ios::binary);
+    IOHelperSM<double>().cD(&C).symmetric().binary().OH(O).OD(O).ascii().OH(cout);
+    O.close();
+
+    O.open((prefix+"c0").c_str(), ios::out | ios::binary);
+    IOHelperSM<double>().cD(&C0).diagonal().binary().OH(O).OD(O).ascii().OH(cout);
+    O.close();
+    
+    O.open((prefix+"g1").c_str(), ios::out | ios::binary);
+    IOHelperSM<double>().cD(&G1).symmetric().binary().OH(O).OD(O).ascii().OH(cout);
+    O.close();
+  }
 
   return 0;
 }
