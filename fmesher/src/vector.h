@@ -443,7 +443,7 @@ namespace fmesh {
       if (data_.size() == 0)
 	return 0;
       else {
-	return data_.rbegin()->first;
+	return data_.rbegin()->first+1;
       }
     };
 
@@ -457,7 +457,7 @@ namespace fmesh {
 	 if (cols_row_ > cols_)
 	   cols_ = cols_row_;
        }
-      return cols_;
+      return cols_+1;
     };
 
     int nnz(void) const {
