@@ -287,6 +287,7 @@ namespace fmesh {
 	s[1] = s0.s[2]*s1.s[0]-s0.s[0]*s1.s[2];
 	s[2] = s0.s[0]*s1.s[1]-s0.s[1]*s1.s[0];
       }
+      return *this;
     };
     T cross2(const selfT& s1) const
     {
@@ -437,7 +438,10 @@ namespace fmesh {
     const T zero_;
   public:
     SparseMatrix() : data_(), zero_() {};
-    void clear() { data_.clear(); };
+    SparseMatrix<T>& clear() {
+      data_.clear();
+      return *this;
+    };
 
     int rows(void) const {
       if (data_.size() == 0)

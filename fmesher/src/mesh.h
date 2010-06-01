@@ -194,7 +194,8 @@ namespace fmesh {
 
     void calcQblocks(SparseMatrix<double>& C,
 		     SparseMatrix<double>& C0,
-		     SparseMatrix<double>& G1) const;
+		     SparseMatrix<double>& G1,
+		     SparseMatrix<double>& B1) const;
 
   };
 
