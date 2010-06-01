@@ -257,12 +257,14 @@
     if (verbose) 
         print(h)
     if (debug) {
-        print("i (zero-based indexing)")
-        print(i)
-        print("j (zero-based indexing)")
-        print(j)
-        print("values")
-        print(values)
+        if (!is.matrix(A)) {
+            print("i (zero-based indexing)")
+            print(i)
+            print("j (zero-based indexing)")
+            print(j)
+            print("values")
+            print(values)
+        }
     }
 
     fp = file(filename, "wb")
