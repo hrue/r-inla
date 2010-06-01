@@ -41,10 +41,6 @@ namespace fmesh {
   template <>
   IOHeader::IOHeader(const double& ref);
   template <>
-  IOHeader::IOHeader(const SparseMatrixDuplet<int>& ref);
-  template <>
-  IOHeader::IOHeader(const SparseMatrixDuplet<double>& ref);
-  template <>
   IOHeader::IOHeader(const SparseMatrixTriplet<int>& ref);
   template <>
   IOHeader::IOHeader(const SparseMatrixTriplet<double>& ref);

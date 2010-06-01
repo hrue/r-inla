@@ -763,17 +763,17 @@ namespace fmesh {
       margin = -diameter*margin;
     }
     
-    MESHC_LOG_("diameter = " << diameter << endl);
-    MESHC_LOG_("margin = " << margin <<endl);
+    MESHC_LOG("diameter = " << diameter << endl);
+    MESHC_LOG("margin = " << margin <<endl);
 
     if (diameter+2*margin+margin>=M_PI) {
       /* The whole sphere needs to be covered. */
       MESHC_LOG("Cover the whole sphere.");
-      NOT_IMPLEMENTED;
 
       if (nV<3) { /* Not enough points for even one triangle,
 		     needs special treatment. */
 	NOT_IMPLEMENTED;
+	MESHC_LOG_("nV=" << nV);
 	return false;
       }
       
@@ -796,9 +796,9 @@ namespace fmesh {
       Point const * s1 = NULL;
       Point const * s2 = NULL;
 
-      MESHC_LOG_("First point," << 
-		 " v0=" << v0 <<
-		 " s0=" << *s0 << endl);
+      MESHC_LOG("First point," << 
+		" v0=" << v0 <<
+		" s0=" << *s0 << endl);
 
       /* Find suitable v1: */
       double loss = 16.0/9.0+1.0;
@@ -813,9 +813,9 @@ namespace fmesh {
       }
       s1 = &(M_->S(v1));
 
-      MESHC_LOG_("Second point," << 
-		 " v1=" << v1 <<
-		 " s1=" << *s1 << endl);
+      MESHC_LOG("Second point," << 
+		" v1=" << v1 <<
+		" s1=" << *s1 << endl);
 
       /* Find suitable v2: */
       loss = 16.0/9.0+16.0/9.0+1.0;
@@ -831,9 +831,9 @@ namespace fmesh {
       }
       s2 = &(M_->S(v2));
 
-      MESHC_LOG_("Third point," << 
-		 " v2=" << v2 <<
-		 " s2=" << *s2 << endl);
+      MESHC_LOG("Third point," << 
+		" v2=" << v2 <<
+		" s2=" << *s2 << endl);
 
       /* Make sure we have a CCW triangle: */
       if (Vec::volume(*s0,*s1,*s2) < 0.0) {
@@ -843,7 +843,7 @@ namespace fmesh {
 	s1 = &(M_->S(v1));
 	s2 = &(M_->S(v2));
 
-	MESHC_LOG_("Swapped second and third point." << endl);
+	MESHC_LOG("Swapped second and third point." << endl);
       }
 
       /* Calculate the inward normals of the triangle. */
@@ -875,12 +875,12 @@ namespace fmesh {
 	Vec::accum(s3,*s2);
 	Vec::rescale(s3,-1.0/Vec::length(s3));
 	v3 = addVertex(s3);
-	MESHC_LOG_("Needed to add an extra vertex." << endl);
+	MESHC_LOG("Needed to add an extra vertex." << endl);
       }
 
-      MESHC_LOG_("Fourth point," << 
-		 " v3=" << v3 <<
-		 " s3=" << M_->S(v3) << endl);
+      MESHC_LOG("Fourth point," << 
+		" v3=" << v3 <<
+		" s3=" << M_->S(v3) << endl);
 
       /* Create triangles: */
       Matrix3int TV(4);

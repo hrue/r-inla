@@ -302,7 +302,7 @@ int DT2D_test3() /* Random points */
     S[v][2] = 0.0;
   }
 
-  std::ofstream F("exrandom.io.s0", ios::out | ios::binary);
+  std::ofstream F("ex.random.io.s0", ios::out | ios::binary);
   Matrix3double FM(n,S);
   fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
   F.close();
@@ -395,6 +395,13 @@ int DTsphere_test()
       Sb[v][i] = Sb[v][i]/l;
   }
 
+  {
+    std::ofstream F("ex.sphere1.io.s0", ios::out | ios::binary);
+    Matrix3double FM(n,S);
+    fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
+    F.close();
+  }
+
   M.S_set(Matrix3double(n,S));
 
   M.setX11VBigLimit(n);
@@ -459,6 +466,13 @@ int DTsphere_test2()
     l = std::sqrt(S[v][0]*S[v][0]+S[v][1]*S[v][1]+S[v][2]*S[v][2]);
     for (i=0;i<3;i++)
       S[v][i] = S[v][i]/l;
+  }
+
+  {
+    std::ofstream F("ex.sphere2.io.s0", ios::out | ios::binary);
+    Matrix3double FM(n,S);
+    fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
+    F.close();
   }
 
   M.S_set(Matrix3double(n,S));
@@ -580,6 +594,14 @@ int koala_test()
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500,-440,4400+440,-400-240,4000+400+240);
+
+  {
+    std::ofstream F("ex.koala.io.s0", ios::out | ios::binary);
+    Matrix3double FM(n,S);
+    FM.append(Matrix3double(nb,Sb));
+    fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
+    F.close();
+  }
 
   M.S_set(Matrix3double(n,S));
   M.S_append(Matrix3double(nb,Sb));
@@ -741,7 +763,7 @@ int iohelper_test()
 int main()
 {
   iohelper_test();
-    return 0;
+  //    return 0;
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
