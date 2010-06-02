@@ -37,6 +37,65 @@ const bool useX11text = false;
 
 
 
+template <class T>
+void print_M(string filename,
+	     const Matrix<T>& M,
+	     fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
+{
+  ofstream O;
+  O.open(filename.c_str(), ios::out | ios::binary);
+  IOHelperM<T> ioh;
+  ioh.cD(&M).matrixtype(matrixt);
+  ioh.binary().OH(O).OD(O);
+  ioh.ascii().OH(cout << filename << "\t: ");
+  O.close();
+}
+
+template <class T>
+void print_SM(string filename,
+	      const SparseMatrix<T>& M,
+	      fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
+{
+  ofstream O;
+  O.open(filename.c_str(), ios::out | ios::binary);
+  IOHelperSM<T> ioh;
+  ioh.cD(&M).matrixtype(matrixt);
+  ioh.binary().OH(O).OD(O);
+  ioh.ascii().OH(cout << filename << "\t: ");
+  O.close();
+}
+
+template <class T>
+void print_M_old(string filename,
+		 const Matrix<T>& M,
+		 bool header = true,
+		 fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
+{
+  ofstream O;
+  O.open(filename.c_str(), ios::out);
+  IOHelperM<T> ioh;
+  ioh.cD(&M).ascii().matrixtype(matrixt);
+  if (header) ioh.OH_2009(O);
+  ioh.OD_2009(O);
+  O.close();
+}
+
+template <class T>
+void print_SM_old(string filename,
+		  const SparseMatrix<T>& M,
+		  bool header = false,
+		  fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
+{
+  ofstream O;
+  O.open(filename.c_str(), ios::out);
+  IOHelperSM<T> ioh;
+  ioh.cD(&M).ascii().matrixtype(matrixt);
+  if (header) ioh.OH_2009(O);
+  ioh.OD_2009(O);
+  O.close();
+}
+
+
 
 
 
@@ -127,37 +186,45 @@ int main(int argc, const char* argv[])
 
   cout << "Final mesh:" << endl << M;
 
-  ofstream O;
-  O.open((prefix+"s").c_str(), ios::out | ios::binary);
-  IOHelperM<double>().cD(&M.S()).binary().OH(O).OD(O).ascii().OH(cout << "S : ");
-  O.close();
+  print_M(prefix+"s",M.S());
+  print_M(prefix+"tv",M.TV());
 
-  O.open((prefix+"tv").c_str(), ios::out | ios::binary);
-  IOHelperM<int>().cD(&M.TV()).binary().OH(O).OD(O).ascii().OH(cout << "TV: ");
-  O.close();
+  print_M_old(prefix+"S.dat",M.S());
+  print_M_old(prefix+"FV.dat",M.TV(),false);
 
   {
     SparseMatrix<double> C0;
     SparseMatrix<double> C1;
     SparseMatrix<double> G1;
     SparseMatrix<double> B1;
+    SparseMatrix<double> G2; /* G1*inv(C0)*G1 */
+    SparseMatrix<double> K1; /* G1-B1 */
+    SparseMatrix<double> K2; /* K1*inv(C0)*K1 */
     M.calcQblocks(C0,C1,G1,B1);
-    
-    O.open((prefix+"c0").c_str(), ios::out | ios::binary);
-    IOHelperSM<double>().cD(&C0).diagonal().binary().OH(O).OD(O).ascii().OH(cout << "C0: ");
-    O.close();
 
-    O.open((prefix+"c1").c_str(), ios::out | ios::binary);
-    IOHelperSM<double>().cD(&C1).symmetric().binary().OH(O).OD(O).ascii().OH(cout << "C1: ");
-    O.close();
-    
-    O.open((prefix+"g1").c_str(), ios::out | ios::binary);
-    IOHelperSM<double>().cD(&G1).symmetric().binary().OH(O).OD(O).ascii().OH(cout << "G1: ");
-    O.close();
+    /*
+    C0inv.inverse(C0,true);
+    tmp.mult(G1,C0inv);
+    G2.mult(tmp,G1);
+    K1.diff(G1,B1);
+    tmp.mult(K1,C0inv);
+    K2.mult(tmp,K1);
+    */
 
-    O.open((prefix+"b1").c_str(), ios::out | ios::binary);
-    IOHelperSM<double>().cD(&B1).symmetric().binary().OH(O).OD(O).ascii().OH(cout << "B1: ");
-    O.close();
+    print_SM(prefix+"c0",C0,fmesh::IOMatrixtype_diagonal);
+    print_SM(prefix+"c1",C1,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"g1",G1,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"b1",B1,fmesh::IOMatrixtype_symmetric);
+
+    print_SM(prefix+"g2",G2,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"k1",K1,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"k2",K2,fmesh::IOMatrixtype_symmetric);
+
+    print_SM_old(prefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
+    print_SM_old(prefix+"G.dat",G1,false,fmesh::IOMatrixtype_symmetric);
+    print_SM_old(prefix+"G2.dat",G2,false,fmesh::IOMatrixtype_symmetric);
+    print_SM_old(prefix+"K2.dat",K2,false,fmesh::IOMatrixtype_symmetric);
+
   }
 
   return 0;

@@ -168,6 +168,10 @@ namespace fmesh {
     IOHelperM<T>& OD(std::ostream& output);
     IOHelperM<T>& ID(std::istream& input);
 
+    /* Backwards compatibility: */
+    IOHelperM<T>& OH_2009(std::ostream& output);
+    IOHelperM<T>& OD_2009(std::ostream& output);
+
     /* Overloaded from IOHelper: */
     IOHelperM<T>& ascii(bool set_ascii = true) {
       IOHelper<T>::ascii(set_ascii); return *this; };
@@ -224,6 +228,9 @@ namespace fmesh {
     /* Output/Input: */
     IOHelperSM<T>& OD(std::ostream& output);
     IOHelperSM<T>& ID(std::istream& input);
+    /* Backwards compatibility: */
+    IOHelperSM<T>& OH_2009(std::ostream& output);
+    IOHelperSM<T>& OD_2009(std::ostream& output);
 
     /* Overloaded from IOHelper: */
     IOHelperSM<T>& ascii(bool set_ascii = true) {

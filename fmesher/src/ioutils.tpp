@@ -70,44 +70,29 @@ namespace fmesh {
   {
     datatype = IODatatype_sparse;
     matrixtype = matrixt;
+    elems = M.nnz(matrixt);
     switch (matrixt) {
     case IOMatrixtype_general:
-      elems = M.nnz();
       rows = M.rows();
       cols = M.cols();
       break;
     case IOMatrixtype_symmetric:
       if (M.rows() <= M.cols()) {
-	elems = 0;
-	rows = M.rows();
-	cols = M.rows();
-      } else {
-	elems = 0;
 	rows = M.cols();
 	cols = M.cols();
+      } else {
+	rows = M.rows();
+	cols = M.rows();
       }
-      for (typename SparseMatrix<T>::RowConstIter r = M.begin();
-	   r != M.end();
-	   r++)
-	for (typename SparseMatrix<T>::ColConstIter c = r->second.begin();
-	     c != r->second.end();
-	     c++)
-	  if (r->first <= c->first) elems++;
       break;
     case IOMatrixtype_diagonal:
       if (M.rows() <= M.cols()) {
-	elems = 0;
 	rows = M.rows();
 	cols = M.rows();
       } else {
-	elems = 0;
 	rows = M.cols();
 	cols = M.cols();
       }
-      for (typename SparseMatrix<T>::RowConstIter r = M.begin();
-	   r != M.end();
-	   r++)
-	if (M.non_zero(r->first,r->first)) elems++;
       break;
     }
     return *this;
@@ -410,6 +395,73 @@ namespace fmesh {
     }
     return *this;
   }
+
+
+
+
+
+
+  template <class T>
+  IOHelperM<T>& IOHelperM<T>::OH_2009(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<T>::h_);
+    output << h.rows;
+    output << std::endl;
+    return *this;
+  }
+
+  template <class T>
+  IOHelperSM<T>& IOHelperSM<T>::OH_2009(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<T>::h_);
+    if (h.matrixtype == IOMatrixtype_diagonal) {
+      output << h.rows;
+      output << std::endl;
+    }
+    return *this;
+  }
+
+  template <class T>
+  IOHelperM<T>& IOHelperM<T>::OD_2009(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<T>::h_);
+    if ((!((h.rows>0) && (h.cols>0))) || (!cM_)) {
+      return *this;
+    }
+    output << std::setprecision(15) << std::scientific;
+    for (int i=0; i<h.rows; i++) {
+      const T* Mrow = (*cM_)[i];
+      output << i << " ";
+      for (int j=0; j+1<h.cols; j++) {
+	output << Mrow[j] << " ";
+      }
+      output << Mrow[h.cols-1] << std::endl;
+    }
+    return *this;
+  }
+  
+  template <class T>
+  IOHelperSM<T>& IOHelperSM<T>::OD_2009(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<T>::h_);
+    if (!cM_) {
+      return *this;
+    }
+    if (h.matrixtype == IOMatrixtype_diagonal) {
+      Matrix1<T> MT;
+      for (int r=0; r < (*cM_).rows(); r++)
+	MT(r) = (*cM_)[r][r];
+      IOHelperM<T>().cD(&MT).OD_2009(output);
+    } else {
+      Matrix1< SparseMatrixTriplet<T> > MT;
+      (*cM_).tolist(MT,h.matrixtype);
+      IOHelperM< SparseMatrixTriplet<T>
+		 >().cD(&MT).ascii().rowmajor().OD(output);
+    }
+    return *this;
+  }
+
+
   
 
 
