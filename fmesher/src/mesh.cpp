@@ -2126,6 +2126,10 @@ namespace fmesh {
 			 SparseMatrix<double>& G1,
 			 SparseMatrix<double>& B1) const
   {
+    C0.clear().rows(nV()).cols(nV());
+    C1.clear().rows(nV()).cols(nV());
+    G1.clear().rows(nV()).cols(nV());
+    B1.clear().rows(nV()).cols(nV());
     Point e[3];
     for (int t = 0; t < (int)nT(); t++) {
       const Int3Raw& tv = TV_[t].raw();
@@ -2157,8 +2161,8 @@ namespace fmesh {
 
       double vij;
       for (int i=0; i<3; i++) {
-	C0(tv[0],tv[0]) += a/3.;
-	C1(tv[0],tv[0]) += a/6.;
+	C0(tv[i],tv[i]) += a/3.;
+	C1(tv[i],tv[i]) += a/6.;
 	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
 	for (int j=i+1; j<3; j++) {
 	  C1(tv[i],tv[j]) += a/12.;
