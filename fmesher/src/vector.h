@@ -26,6 +26,7 @@ namespace fmesh {
   template <class T> class Matrix;
   template <class T> class Vector3;
   template <class T> class Matrix3;
+  template <class T> class SparseMatrixRow;
   template <class T> class SparseMatrix;
 
   template<class T>
@@ -45,19 +46,19 @@ namespace fmesh {
   protected:
     static const size_t capacity_step_size_ = 1024;
     static const size_t capacity_doubling_limit_ = 8192;
+    static const T zero_;
     T* data_;
     size_t rows_;
     size_t cols_;
     size_t cap_;
-    const T zero_;
   public:
-    Matrix() : data_(NULL), rows_(0), cols_(0), cap_(0), zero_() {};
+    Matrix() : data_(NULL), rows_(0), cols_(0), cap_(0) {};
     Matrix(size_t set_cols) : data_(NULL), rows_(0), cols_(0),
-			      cap_(0), zero_() {
+			      cap_(0) {
       cols(set_cols);
     };
     Matrix(size_t set_rows, size_t set_cols, const T* vals = NULL)
-      : data_(NULL), rows_(0), cols_(0), cap_(0), zero_() {
+      : data_(NULL), rows_(0), cols_(0), cap_(0) {
       cols(set_cols);
       capacity(set_rows);
       rows_ = set_rows;
@@ -409,6 +410,157 @@ namespace fmesh {
 
 
 
+
+  template <class T>
+  class SparseMatrixRow {
+    friend class SparseMatrix<T>;
+  public:
+    typedef typename std::map<int, T> DataType;
+    typedef typename DataType::const_iterator ColCIter;
+    typedef typename DataType::const_reverse_iterator ColCRIter;
+    typedef typename DataType::iterator ColIter;
+    typedef typename DataType::reverse_iterator ColRIter;
+  private:
+    static const T zero_;
+    SparseMatrix<T>* M_;
+    DataType data_;
+  protected:
+    SparseMatrixRow()
+      : M_(NULL), data_() { };
+    SparseMatrixRow(SparseMatrix<T>* M)
+      : M_(M), data_() { };
+
+    void cols(size_t set_cols) {
+      ColRIter col;
+      if (data_.size()>0) {
+	for (col = data_.rbegin();
+	     (col != data_.rend()) && (!(col->first < (int)set_cols));
+	     col = data_.rbegin()) {
+	  data_.erase((++col).base());
+	}
+      }
+    };
+
+    int nnz(int r, int matrixt = 0) const {
+      int nnz_ = 0;
+      if (matrixt == 2) {
+	ColCIter col;
+	if ((col = data_.find(r)) != data_.end()) {
+	  nnz_ = 1;
+	}
+      } else if (matrixt == 1) {
+	for (ColCIter c = data_.begin();
+	     c != data_.end();
+	     c++)
+	  if (r <= c->first) nnz_++;
+      } else {
+	nnz_ = data_.size();
+      }
+      return nnz_;
+    };
+
+    int tolist(int offset,
+	       int row,
+	       Matrix1< SparseMatrixTriplet<T> >& MT,
+	       int matrixt = 0) const {
+      int elem = 0;
+      if (matrixt == 2) {
+	ColCIter col;
+	if ((col = data_.find(row)) != data_.end()) {
+	  MT(offset+elem) = SparseMatrixTriplet<T>(row,row,
+					    col->second);
+	  elem++;
+	}
+      } else {
+	for (ColCIter col = data_.begin();
+	     col != data_.end();
+	     col++) {
+	  if ((matrixt==0) ||
+	      (row <= col->first)) {
+	    MT(offset+elem) = SparseMatrixTriplet<T>(row,col->first,
+						     col->second);
+	    elem++;
+	  }
+	}
+      }
+      return elem;
+    };
+    /*! To list, general, symmetric, or diagonal. */
+    int tolist(int offset,
+	       int row,
+	       Matrix1< int >& Tr,
+	       Matrix1< int >& Tc,
+	       Matrix1< T >& Tv,
+	       int matrixt = 0) const {
+      int elem = 0;
+      if (matrixt==2) {
+	ColCIter col;
+	if ((col = data_.find(row)) != data_.end()) {
+	  Tr(offset+elem) = row;
+	  Tc(offset+elem) = row;
+	  Tv(offset+elem) = col->second;
+	  elem++;
+	}
+      } else {
+	for (ColCIter col = data_.begin();
+	     col != data_.end();
+	     col++) {
+	  if ((matrixt==0) ||
+	      (row <= col->first)) {
+	    Tr(offset+elem) = row;
+	    Tc(offset+elem) = col->first;
+	    Tv(offset+elem) = col->second;
+	    elem++;
+	  }
+	}
+      }
+      return elem;
+    };
+
+    ColIter begin() { return data_.begin(); };
+    ColRIter rbegin() { return data_.rbegin(); };
+    ColIter end() { return data_.end(); };
+    ColRIter rend() { return data_.rend(); };
+    ColIter find(int c) { return data_.find(c); };
+
+  public:
+
+    ColCIter begin() const { return data_.begin(); };
+    ColCRIter rbegin() const { return data_.rbegin(); };
+    ColCIter end() const { return data_.end(); };
+    ColCRIter rend() const { return data_.rend(); };
+    ColCIter find(int c) const { return data_.find(c); };
+
+    const T& operator[](const int c) const {
+      if (!(c < M_->cols())) {
+	/* Range error. */
+	return zero_;
+      }
+      ColCIter col;
+      if ((col = data_.find(c)) != data_.end())
+	return col->second;
+      return zero_;
+    };
+    
+    T& operator()(const int c) {
+      if (!(c < M_->cols()))
+	M_->cols(c+1);
+      return data_[c];
+    };
+
+    void erase(ColIter& col) {
+      data_.erase(col);
+    };
+    
+    void erase(int c) {
+      ColIter col;
+      if ((col = data_.find(c)) != data_.end())
+	data_.erase(col);
+    };
+    
+  };
+
+
   template <class T>
   class SparseMatrix {
     friend
@@ -416,179 +568,119 @@ namespace fmesh {
 				 const SparseMatrix<T>& M);
     
   public:
-    typedef typename std::map<int, T> RowType;
-    typedef typename std::map<int, RowType> DataType;
-    typedef typename RowType::const_iterator ColConstIter;
-    typedef typename DataType::const_iterator RowConstIter;
-    typedef typename RowType::iterator ColIter;
-    typedef typename DataType::iterator RowIter;
+    typedef typename fmesh::SparseMatrixRow<T> RowType;
+    typedef typename std::vector<RowType> DataType;
+    typedef typename RowType::ColCIter ColCIter;
+    typedef typename RowType::ColCRIter ColCRIter;
+    typedef typename RowType::ColIter ColIter;
+    typedef typename RowType::ColRIter ColRIter;
 
   private:
+    static const T zero_;
+    size_t cols_;
     DataType data_;
-    const T zero_;
   public:
-    SparseMatrix() : data_(), zero_() {};
+    SparseMatrix(size_t set_rows = 0, size_t set_cols = 0)
+      : cols_(set_cols), data_() {
+      rows(set_rows);
+    };
     SparseMatrix<T>& clear() {
       data_.clear();
       return *this;
     };
 
-    int rows(void) const {
-      if (data_.size() == 0)
-	return 0;
-      else {
-	return data_.rbegin()->first+1;
+    SparseMatrix<T>& rows(size_t set_rows) {
+      data_.resize(set_rows, RowType(this));
+      return *this;
+    };
+
+    SparseMatrix<T>& cols(size_t set_cols) {
+      if (!(cols_<set_cols)) {
+	for (int row=0; row<rows(); row++) {
+	  data_[row].cols(set_cols);
+	}
       }
+      cols_ = set_cols;
+      return *this;
+    };
+
+    int rows(void) const {
+      return data_.size();
     };
 
     int cols(void) const {
-      int cols_ = -1;
-      int cols_row_;
-      for (RowConstIter row = data_.begin();
-	   row != data_.end();
-	   row++) {
-	if (row->second.size() > 0) {
-	  cols_row_ = row->second.rbegin()->first;
-	  if (cols_row_ > cols_)
-	    cols_ = cols_row_;
-	}
-      }
-      return cols_+1;
+      return cols_;
     };
 
-    int nnz(void) const {
+    int nnz(int matrixt = 0) const {
       int nnz_ = 0;
-      for (RowConstIter row = data_.begin();
-	   row != data_.end();
-	   row++) {
-	nnz_ += row->second.size();
-       }
+      for (int row=0; row<rows(); row++)
+	nnz_ += data_[row].nnz(row,matrixt);
       return nnz_;
     };
 
     bool non_zero(const int r,  const int c) const {
-      RowConstIter row;
-      if ((row = data_.find(r)) != data_.end()) {
-	return (row->second.find(c) != row->second.end());
+      if (r < rows()) {
+	return (data_[r].find(c) != data_[r].end());
       } else {
 	return false; 
       }
     };
 
     const T& operator()(const int r,  const int c) const {
-      RowConstIter row;
-      if ((row = data_.find(r)) != data_.end()) {
-	ColConstIter col;
-	if ((col = row->second.find(c)) != row->second.end()) {
-	  return col->second;
-	} else {
-	  return zero_; 
-	}
+      if (r<rows()) {
+	return data_[r][c];
       } else {
 	return zero_; 
       }
     };
 
     const RowType& operator[](const int r) const {
+      if (!(r<rows())) {
+	/* Range error. */
+      }
       return data_[r];
     };
 
     RowType& operator()(const int r) {
+      if (!(r<rows()))
+	rows(r+1); /* Expand. */
       return data_[r];
     };
 
-    RowConstIter begin() const {
-      return data_.begin();
-    };
-
-    RowConstIter end() const {
-      return data_.end();
-    };
-
-
-
     T& operator()(const int r,  const int c) {
-      return data_[r][c];
+      return operator()(r)(c);
     };
 
     const T& operator()(const int r,  const int c, const T& val) {
       if (val == zero_) {
-	RowIter row;
-	if ((row = data_.find(r)) != data_.end()) {
-	  ColIter col;
-	  if ((col = row->second.find(c)) != row->second.end()) {
-	    row->second.erase(col);
-	    if (row->second.size() == 0) {
-	      data_.erase(row);
-	    }
-	  }
+	if (r < rows()) {
+	  data_[r].erase(r);
 	}
 	return zero_;
       } else {
-	data_[r][c] = val;
-	return data_[r][c];
+	return (operator()(r)(c) = val);
       }
     };
 
     /*! To list, general, symmetric, or diagonal. */
-    void tolist(Matrix1< SparseMatrixTriplet<T> >& MT,
-		int matrixt = 0) const {
+    int tolist(Matrix1< SparseMatrixTriplet<T> >& MT,
+	       int matrixt = 0) const {
       int elem = 0;
-      for (RowConstIter row = data_.begin();
-	   row != data_.end();
-	   row++) {
-	if (matrixt ==2) {
-	  ColConstIter col;
-	  if ((col = row->second.find(row->first)) != row->second.end()) {
-	    MT(elem) = SparseMatrixTriplet<T>(row->first,row->first,
-					      col->second);
-	    elem++;
-	  }
-	} else {
-	  for (ColConstIter col = row->second.begin();
-	       col != row->second.end();
-	       col++) {
-	    if ((matrixt==0) ||
-		(row->first <= col->first)) {
-	      MT(elem) = SparseMatrixTriplet<T>(row->first,col->first,
-						col->second);
-	      elem++;
-	    }
-	  }
-	}
+      for (int row=0; row<rows(); row++) {
+	elem += data_[row].tolist(elem,row,MT,matrixt);
       }
+      return elem;
     };
     /*! To list, general, symmetric, or diagonal. */
-    void tolist(Matrix1< int >& Tr,
-		Matrix1< int >& Tc,
-		Matrix1< T >& Tv,
-		int matrixt = 0) const {
+    int tolist(Matrix1< int >& Tr,
+	       Matrix1< int >& Tc,
+	       Matrix1< T >& Tv,
+	       int matrixt = 0) const {
       int elem = 0;
-      for (RowConstIter row = data_.begin();
-	   row != data_.end();
-	   row++) {
-	if (matrixt==2) {
-	  ColConstIter col;
-	  if ((col = row->second.find(row->first)) != row->second.end()) {
-	    Tr(elem) = row->first;
-	    Tc(elem) = row->first;
-	    Tv(elem) = col->second;
-	    elem++;
-	  }
-	} else {
-	  for (ColConstIter col = row->second.begin();
-	       col != row->second.end();
-	       col++) {
-	    if ((matrixt==0) ||
-		(row->first <= col->first)) {
-	      Tr(elem) = row->first;
-	      Tc(elem) = col->first;
-	      Tv(elem) = col->second;
-	      elem++;
-	    }
-	  }
-	}
-      }
+      for (int row=0; row < rows(); row++)
+	elem += data_[row].tolist(elem,row,Tr,Tc,Tv,matrixt);
+      return elem;
     };
 
     /*! From list, general, symmetric, or diagonal. */
@@ -734,16 +826,15 @@ namespace fmesh {
   };
 
 
-
   template<class T>
   std::ostream& operator<<(std::ostream& output,
 			   const Matrix<T>& M)
   {
     output << M.rows_ << " "
 	   << M.cols_ << std::endl;
-    for (int r=0; r<(int)M.rows_; r++) {
-      for (int c=0; c<(int)M.cols_; c++) {
-	output << M.data_[r*M.cols_+c] << " ";
+    for (int r=0; r<M.rows(); r++) {
+      for (int c=0; c<M.cols(); c++) {
+	output << M.data_[r*M.cols()+c] << " ";
       }
       output << std::endl;
     }
@@ -779,21 +870,26 @@ namespace fmesh {
     output << M.rows() << " "
 	   << M.cols() << " "
 	   << M.nnz() << std::endl;
-    for (typename SparseMatrix<T>::RowConstIter row
-	   = M.data_.begin();
-	 row != M.data_.end();
-	 row++) {
-      for (typename SparseMatrix<T>::ColConstIter col
-	     = row->second.begin();
-	   col != row->second.end();
+    for (int row=0; row<M.rows(); row++)
+      for (typename SparseMatrix<T>::ColCIter col
+	     = M[row].begin();
+	   col != M[row].end();
 	   col++) {
-	output << row->first << " "
+	output << row << " "
 	       << col->first << " "
 	       << col->second << std::endl;
       }
-    }
     return output;
   }
+
+
+
+  template <class T>
+  const T fmesh::Matrix<T>::zero_ = T();
+  template <class T>
+  const T fmesh::SparseMatrixRow<T>::zero_ = T();
+  template <class T>
+  const T fmesh::SparseMatrix<T>::zero_ = T();
 
 
 } /* namespace fmesh */
