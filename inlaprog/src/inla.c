@@ -4121,6 +4121,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	 *
 	 * ALL is a macro for 0:(n-1) where n = lenght(TAG)
 	 *
+	 * FEATURE: with same index repeated the the weights are added.
+	 *
 	 *
 	 * ENTRY <name>  define an entry which is read until next ENTRY or EOF
 	 */
@@ -4266,12 +4268,14 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			if (idx_range) {
-				// printf("set idx from %d to %d to %g\n", idx_from, idx_to, w);
+				if (0) {
+					printf("set idx from %d to %d to %g\n", idx_from, idx_to, w);
+				}
 				for (idx = idx_from; idx <= idx_to; idx++) {
-					mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] = w;
+					mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] += w;
 				}
 			} else {
-				mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] = w;
+				mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] += w;
 			}
 
 			if (mb->verbose) {
