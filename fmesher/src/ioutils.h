@@ -58,6 +58,8 @@ namespace fmesh {
     /* Sets defaults, and the valuetype matching T: */
     template <class T>
     IOHeader& def(const T& ref);
+    IOHeader& def(const int& ref);
+    IOHeader& def(const double& ref);
     IOHeader& def();
     /* Default values: */
     template <class T>
@@ -69,15 +71,9 @@ namespace fmesh {
     
     /* Constructor, that sets the valuetype matching T: */
     template <class T>
-    IOHeader(const T& ref) { def(ref); };
+    IOHeader(const T& ref);
   };
 
-  /*
-  template <>
-  IOHeader::def(const int& ref);
-  template <>
-  IOHeader::def(const double& ref);
-  */
 
   std::ostream& operator<<(std::ostream& output, const IOHeader& h);
   std::istream& operator>>(std::istream& output, IOHeader& h);

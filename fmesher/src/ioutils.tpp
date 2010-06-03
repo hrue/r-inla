@@ -19,13 +19,14 @@
 
 namespace fmesh {
 
+  /*
   template <class T>
   IOHeader& IOHeader::def(const T& ref)
   {
     def();
-    valuetype = -(int)sizeof(T);
     return *this;
   }
+  */
   
   template <class T>
   IOHeader& IOHeader::dense(const Matrix<T>& M,
@@ -463,6 +464,16 @@ namespace fmesh {
 
 
   
+  template <class T>
+  IOHeader& IOHeader::def(const T& ref) {
+    def();
+    valuetype = -(int)sizeof(T);
+    return *this;
+  }
+
+  template <class T>
+  IOHeader::IOHeader(const T& ref) { def(ref); };
+
 
 
   

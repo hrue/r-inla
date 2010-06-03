@@ -1260,7 +1260,7 @@ namespace fmesh {
     int v_list[4];
     int t0, t1;
     int tt_list[4];
-    int tti_list[4];
+    int tti_list[4] = {-1,-1,-1};
     if (d.edir()<0) dh.alpha1(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
@@ -1394,7 +1394,7 @@ namespace fmesh {
     int v0, v1, v2, v3;
     int t0, t1, t2, t3;
     int tt_list[4];
-    int tti_list[4];
+    int tti_list[4] = {-1,-1,-1};
     if (d.edir()<0) dh.alpha0(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */
@@ -1601,7 +1601,7 @@ namespace fmesh {
     int v0, v1, v2;
     int t0, t1, t2;
     int tt_list[3];
-    int tti_list[3];
+    int tti_list[3] = {-1,-1,-1};
     if (d.edir()<0) dh.alpha1(); /* Correct dart orientation */
 
     /* Step 1: Store geometry information. */

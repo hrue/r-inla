@@ -898,7 +898,7 @@ namespace fmesh {
       Point n1, n2;
       //      Vec::arbitrary_perpendicular(n1,n0);
       //     Vec::cross(n2,n0,n1);
-      if (n0[3]>0.9) {
+      if (n0[2]>0.9) {
 	n1[0] = 0.;
 	n1[1] = 1.;
 	n1[2] = 0.;
@@ -906,7 +906,7 @@ namespace fmesh {
 	Vec::rescale(n2,1.0/Vec::length(n2));
 	Vec::cross(n1,n2,n0);
 	Vec::rescale(n1,1.0/Vec::length(n1));
-      } else if (n0[3]<-0.9) {
+      } else if (n0[2]<-0.9) {
 	n1[0] = 0.;
 	n1[1] = 1.;
 	n1[2] = 0.;
@@ -2114,8 +2114,8 @@ namespace fmesh {
     }
 
     /* Collect CDT data */
-    bool segm_b[4];
-    bool segm_i[4];
+    bool segm_b[4] = {false,false,false,false};
+    bool segm_i[4] = {false,false,false,false};
     Dart dh(d);
     if (state_>=State_CDT) {
     dh.orbit2rev();

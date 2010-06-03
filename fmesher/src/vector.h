@@ -598,16 +598,19 @@ namespace fmesh {
   public:
     SparseMatrix(size_t set_rows = 0, size_t set_cols = 0)
       : cols_(set_cols), data_() {
+      std::cout << "sparse matrix 0" << std::endl;
       rows(set_rows);
     };
     SparseMatrix(const SparseMatrix<T>& from)
       : cols_(from.cols_), data_(from.data_) {
+      std::cout << "sparse matrix 1"<< std::endl;
       for (int r=0; r<rows(); r++) {
 	data_[r].M_ = this;
       }
       //      std::cout << "SM copy" << std::endl;
     };
     const SparseMatrix<T>& operator=(const SparseMatrix<T>& from) {
+      std::cout << "sparse matrix 2"<< std::endl;
       cols_ = from.cols_;
       data_ = from.data_;
       for (int r=0; r<rows(); r++) {
@@ -817,12 +820,13 @@ namespace fmesh {
     };
   };
 
-
   template <class T>
   double Vector3<T>::length() const
   {
-    return 0.0;
+    return (std::sqrt(s[0]*s[0]+s[1]*s[1]+s[2]*s[2]));
   };
+
+
 
 
   template<class T>
@@ -934,8 +938,11 @@ namespace fmesh {
   SparseMatrix<T> inverse(const SparseMatrix<T>& M1,
 			  bool diagonal)
   {
+    std::cout << "inverse 0"<< std::endl;
     SparseMatrix<T> M;
+    std::cout << "inverse 1"<< std::endl;
     M.cols(M1.cols()).rows(M1.rows());
+    std::cout << "inverse 2"<< std::endl;
     if (!diagonal) {
       /* NOT IMPLEMENTED */
       return M;
