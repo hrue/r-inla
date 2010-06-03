@@ -35,29 +35,18 @@ namespace fmesh {
    //  enum Storagetype {Storagetype_rowmajor=0,
    //                    Storagetype_colmajor=1};
 
-
-  template <>
-  IOHeader::IOHeader(const int& ref);
-  template <>
-  IOHeader::IOHeader(const double& ref);
-  template <>
-  IOHeader::IOHeader(const SparseMatrixTriplet<int>& ref);
-  template <>
-  IOHeader::IOHeader(const SparseMatrixTriplet<double>& ref);
-
-  template <>
   IOHeader& IOHeader::def(const int& ref) {
     def();
     valuetype = IOValuetype_int;
     return *this;
   }
-  template <>
-  IOHeader& IOHeader::def(const double& ref)
-  {
+
+  IOHeader& IOHeader::def(const double& ref) {
     def();
     valuetype = IOValuetype_double;
     return *this;
   }
+
 
   IOHeader& IOHeader::def() {
     version = IOHEADER_VERSION;
