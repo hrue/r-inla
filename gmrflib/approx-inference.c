@@ -1422,6 +1422,16 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	alpha = -1.0;
 	daxpy_(&n, &alpha, fixed_mode, &one, derivative, &one);	/* derivative = derivative - fixed_mode */
 
+	if (0){
+		P(idx);
+		P(x_mean);
+		for(i=0; i<n; i++)
+			printf("derivative %d %.12g  fixed_mode %.12g  covariances %.12g\n",
+			       i,  derivative[i], fixed_mode[i],  covariances[i]);
+		//exit(0);
+	}
+
+
 	/*
 	 * if we do not use the meancorrected gaussian and the fast-option, then locate local neigb. set the derivative to zero
 	 * for those sites that are not in the local neigb.
@@ -2230,7 +2240,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 
 		for (k = 0; k < nc; k++) {
 			val = b22 * w[k];
-			daxpy_(&nc, &val, v, &one, tmp_m, &one);
+			daxpy_(&nc, &val, v, &one, &tmp_m[k*nc], &one);
 			tmp_m[IDX(k, k, nc)] += 1.0;
 		}
 
@@ -2977,10 +2987,17 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
    since all threads compute the same quantity, this is it well defined
 */
 #define COMPUTE_NEFF					\
-	if (run_with_omp ) {				\
+	if (run_with_omp) {				\
 		neff[dens_count] = ai_store_id->neff;	\
 	} else {					\
 		neff[dens_count] = ai_store->neff;	\
+	}
+	
+#define COMPUTE_NEFF2							\
+	if (run_with_omp) {						\
+		neff[dens_count] = ai_store_id[id]->neff;		\
+	} else {							\
+		neff[dens_count] = ai_store->neff;			\
 	}
 
 #define COMPUTE_NEFF_LOCAL neff_local = ai_store_id->neff
@@ -3002,6 +3019,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 #define COMPUTE       COMPUTE_NEFF;       COMPUTE_CPO_AND_DIC;       ADD_LINEAR_TERM
+#define COMPUTE2      COMPUTE_NEFF2;      COMPUTE_CPO_AND_DIC;       ADD_LINEAR_TERM
 #define COMPUTE_LOCAL COMPUTE_NEFF_LOCAL; COMPUTE_CPO_AND_DIC_LOCAL; ADD_LINEAR_TERM_LOCAL
 
 	int i, j, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
@@ -4398,43 +4416,38 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-		int first_thread = 1;
 		if (run_with_omp) {
-#pragma omp parallel
-			{
-				int free_store = 1;
-				GMRFLib_ai_store_tp *ai_store_id = NULL;
-#pragma omp critical
-				{
-					/* 
-					   need to make one of them be ai_store as we need the contents later
-					 */
-					if (first_thread) {
-						first_thread = free_store = 0;
-						ai_store_id = ai_store;
-					} else {
-						free_store = 1;
-						ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
-					}
-				}
+			GMRFLib_ai_store_tp **ai_store_id = Calloc(omp_get_max_threads(),  GMRFLib_ai_store_tp *);
 #pragma omp for private(i) schedule(static) nowait
-				for (i = 0; i < compute_n; i++) {
-					int ii = compute_idx[i];
-					GMRFLib_density_tp *cpodens = NULL;
+			for (i = 0; i < compute_n; i++) {
+				int id = omp_get_thread_num();
+				int ii = compute_idx[i];
+				GMRFLib_density_tp *cpodens = NULL;
 
-					GMRFLib_thread_id = 0;
+				if (!ai_store_id[id])
+					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store);
 
-					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-								   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
-								   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+				GMRFLib_thread_id = 0;
+				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
+							   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
+							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id]);
 
-					double *xx_mode = ai_store_id->mode;
-					COMPUTE;
-					GMRFLib_free_density(cpodens);
-				}
-				if (free_store)
-					GMRFLib_free_ai_store(ai_store_id);
+				double *xx_mode = ai_store_id[id]->mode;
+				COMPUTE2;
+				GMRFLib_free_density(cpodens);
 			}
+			for(i = 0; i < omp_get_max_threads(); i++){
+				if (!ai_store_id[i]){
+					ai_store = GMRFLib_duplicate_ai_store(ai_store_id[i]);
+					break;
+				}
+			}
+			for(i = 0; i < omp_get_max_threads(); i++){
+				if (!ai_store_id[i]){
+					GMRFLib_free_ai_store(ai_store_id[i]);
+				}
+			}
+			Free(ai_store_id);
 		} else {
 			GMRFLib_ai_store_tp *ai_store_id = NULL;
 			for (i = 0; i < compute_n; i++) {
@@ -4446,6 +4459,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 							   ii, x, b, c, mean, d,
 							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+
+				if (0) {
+					GMRFLib_problem_tp *p = ai_store->problem;
+
+					GMRFLib_print_Qfunc(stdout, p->sub_graph, p->tab->Qfunc, p->tab->Qfunc_arg);
+					int jj;
+					for(jj=0; jj<graph->n; jj++){
+						printf("mean/sd %d %.12g %.12g\n",  p->mean_constr[jj],
+						       sqrt(*GMRFLib_Qinv_get(p,  jj, jj)));
+					}
+					GMRFLib_print_constr(stdout,  p->sub_constr,  p->sub_graph);
+					//exit(0);
+				}
 
 				double *xx_mode = ai_store->mode;
 
@@ -5117,8 +5143,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #undef COMPUTE_CPO_AND_DIC
 #undef COMPUTE_CPO_AND_DIC_LOCAL
 #undef COMPUTE
+#undef COMPUTE2
 #undef COMPUTE_LOCAL
 #undef COMPUTE_NEFF
+#undef COMPUTE_NEFF2
 #undef COMPUTE_NEFF_LOCAL
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
