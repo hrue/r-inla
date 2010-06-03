@@ -1,8 +1,11 @@
 OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o
 FLAGS = -g -Wall
+CFLAGS = $(FLAGS)
 CXXFLAGS = -g -Wall
 #CXXFLAGS = -g -Wall -DDEBUG
 LDFLAGS = -lX11
+CC = gcc
+CXX = g++
 
 ALL = fmesher main
 
