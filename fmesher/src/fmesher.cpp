@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <string>
 
 #include "fmesher.h"
 
@@ -188,6 +190,10 @@ int main(int argc, const char* argv[])
 
   print_M(prefix+"s",M.S());
   print_M(prefix+"tv",M.TV());
+  print_M(prefix+"tt",M.TT());
+  M.useTTi(true);
+  print_M(prefix+"tti",M.TTi());
+  print_SM(prefix+"vv",M.VV());
 
   print_M_old(prefix+"S.dat",M.S());
   print_M_old(prefix+"FV.dat",M.TV(),false);
@@ -195,36 +201,43 @@ int main(int argc, const char* argv[])
   {
     SparseMatrix<double> C0;
     SparseMatrix<double> C1;
-    SparseMatrix<double> G1;
     SparseMatrix<double> B1;
-    SparseMatrix<double> G2; /* G1*inv(C0)*G1 */
-    SparseMatrix<double> K1; /* G1-B1 */
-    SparseMatrix<double> K2; /* K1*inv(C0)*K1 */
-    M.calcQblocks(C0,C1,G1,B1);
+    SparseMatrix<double> G;
+    SparseMatrix<double> K; /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
+    M.calcQblocks(C0,C1,G,B1);
 
-    /*
-    C0inv.inverse(C0,true);
-    tmp.multiply(G1,C0inv);
-    G2.multiply(tmp,G1);
-    K1.copy(G1);
-    K1.subtract(B1);
-    tmp.multiply(K1,C0inv);
-    K2.multiply(tmp,K1);
-    */
+    K = G-B1;
 
     print_SM(prefix+"c0",C0,fmesh::IOMatrixtype_diagonal);
     print_SM(prefix+"c1",C1,fmesh::IOMatrixtype_symmetric);
-    print_SM(prefix+"g1",G1,fmesh::IOMatrixtype_symmetric);
     print_SM(prefix+"b1",B1,fmesh::IOMatrixtype_symmetric);
-
-    print_SM(prefix+"g2",G2,fmesh::IOMatrixtype_symmetric);
-    print_SM(prefix+"k1",K1,fmesh::IOMatrixtype_symmetric);
-    print_SM(prefix+"k2",K2,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"g1",G,fmesh::IOMatrixtype_symmetric);
+    print_SM(prefix+"k1",K,fmesh::IOMatrixtype_symmetric);
 
     print_SM_old(prefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
-    print_SM_old(prefix+"G.dat",G1,false,fmesh::IOMatrixtype_symmetric);
-    print_SM_old(prefix+"G2.dat",G2,false,fmesh::IOMatrixtype_symmetric);
-    print_SM_old(prefix+"K2.dat",K2,false,fmesh::IOMatrixtype_symmetric);
+    print_SM_old(prefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
+    print_SM_old(prefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
+
+    SparseMatrix<double> C0inv = inverse(C0,true);
+    SparseMatrix<double> tmp = G*C0inv;
+    for (int i=0; i<3; i++) {
+      G = tmp*G;
+      std::stringstream ss;
+      ss << i+2;
+      print_SM(prefix+"g"+ss.str(),G,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(prefix+"G"+ss.str()+".dat",G,
+		   false,fmesh::IOMatrixtype_symmetric);
+    }
+    tmp = C0inv*K;
+    for (int i=0; i<3; i++) {
+      K = K*tmp;
+      std::stringstream ss;
+      ss << i+2;
+      print_SM(prefix+"k"+ss.str(),K,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(prefix+"K"+ss.str()+".dat",K,
+		   false,fmesh::IOMatrixtype_symmetric);
+    }
+
 
   }
 
