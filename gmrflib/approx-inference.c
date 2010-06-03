@@ -1422,6 +1422,16 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	alpha = -1.0;
 	daxpy_(&n, &alpha, fixed_mode, &one, derivative, &one);	/* derivative = derivative - fixed_mode */
 
+	if (0){
+		P(idx);
+		P(x_mean);
+		for(i=0; i<n; i++)
+			printf("derivative %d %.12g  fixed_mode %.12g  covariances %.12g\n",
+			       i,  derivative[i], fixed_mode[i],  covariances[i]);
+		//exit(0);
+	}
+
+
 	/*
 	 * if we do not use the meancorrected gaussian and the fast-option, then locate local neigb. set the derivative to zero
 	 * for those sites that are not in the local neigb.
@@ -2230,7 +2240,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 
 		for (k = 0; k < nc; k++) {
 			val = b22 * w[k];
-			daxpy_(&nc, &val, v, &one, tmp_m, &one);
+			daxpy_(&nc, &val, v, &one, &tmp_m[k*nc], &one);
 			tmp_m[IDX(k, k, nc)] += 1.0;
 		}
 
@@ -4449,6 +4459,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 							   ii, x, b, c, mean, d,
 							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+
+				if (0) {
+					GMRFLib_problem_tp *p = ai_store->problem;
+
+					GMRFLib_print_Qfunc(stdout, p->sub_graph, p->tab->Qfunc, p->tab->Qfunc_arg);
+					int jj;
+					for(jj=0; jj<graph->n; jj++){
+						printf("mean/sd %d %.12g %.12g\n",  p->mean_constr[jj],
+						       sqrt(*GMRFLib_Qinv_get(p,  jj, jj)));
+					}
+					GMRFLib_print_constr(stdout,  p->sub_constr,  p->sub_graph);
+					//exit(0);
+				}
 
 				double *xx_mode = ai_store->mode;
 
