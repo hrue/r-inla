@@ -736,6 +736,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, double *Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean);
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store);
+GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,

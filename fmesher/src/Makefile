@@ -1,10 +1,15 @@
 OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o
 FLAGS = -g -Wall
+CFLAGS = $(FLAGS)
 CXXFLAGS = -g -Wall
 #CXXFLAGS = -g -Wall -DDEBUG
 LDFLAGS = -lX11
+CC = gcc
+CXX = g++
 
-all: fmesher main
+ALL = fmesher main
+
+all: $(ALL)
 
 $(OBJ): Makefile
 ioutils.o: ioutils.tpp ioutils.h
@@ -20,3 +25,8 @@ fmesher: $(OBJ) Makefile fmesher.o
 
 main: $(OBJ) Makefile main.o
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.o -o main
+
+clean :;
+	rm $(ALL) *.o
+
+.PHONY : clean
