@@ -115,6 +115,7 @@ namespace fmesh {
 
     bool useX11() const { return (X11_!=NULL); };
     void setX11VBigLimit(int lim) { X11_v_big_limit_ = lim; };
+    void setX11delay(double set_delay);
     Mesh& useX11(bool use_X11, bool draw_text,
 		 int sx = 500, int sy = 500,
 		 double minx = -0.05,

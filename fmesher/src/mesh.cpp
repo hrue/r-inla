@@ -4,6 +4,8 @@
 #include <map>
 #include <sstream>
 #include <cmath>
+#include <time.h>
+#include <cerrno>
 
 #include "predicates.h"
 
@@ -34,12 +36,14 @@ namespace fmesh {
     int sx_, sy_;
     double minx_, maxx_, miny_, maxy_;
     bool draw_text_;
+    double delay_;
   public:
     Xtmpl(const Xtmpl& X)
       : window_(X.window_+1), name_char_(NULL),
 	sx_(X.sx_), sy_(X.sy_),
 	minx_(X.minx_), maxx_(X.maxx_),
-	miny_(X.miny_), maxy_(X.maxy_), draw_text_(true) {
+	miny_(X.miny_), maxy_(X.maxy_), draw_text_(true),
+	delay_(0.0) {
       open(std::string(X.name_char_),X.sx_,X.sy_);
       setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
     };
@@ -52,7 +56,8 @@ namespace fmesh {
       : window_(-1), name_char_(NULL),
 	sx_(sx), sy_(sy),
 	minx_(minx), maxx_(maxx),
-	miny_(miny), maxy_(maxy), draw_text_(draw_text) {
+	miny_(miny), maxy_(maxy), draw_text_(draw_text),
+	delay_(0.0) {
       open(name,sx_,sy_);
       setAxis(minx, maxx, miny, maxy);
     };
@@ -102,6 +107,21 @@ namespace fmesh {
       xtmpl_window = window_;
       xtmpl_clear();
     }
+
+    void delay(double set_delay) { delay_ = set_delay; };
+    void delay() const {
+      if (delay_>0.0) {
+	struct timespec req;
+	struct timespec rem;
+	req.tv_sec = time_t(delay_);
+	req.tv_nsec = long((delay_-double(req.tv_sec))*1.e9);
+	while ((::nanosleep(&req,&rem) != -1) &&
+	       (errno == EINTR)) {
+	  req = rem;
+	}
+      }
+    };
+    
 
     void setSize(int sx, int sy) {
       reopen(sx,sy);
@@ -478,6 +498,11 @@ namespace fmesh {
   };
     
 
+  void Mesh::setX11delay(double set_delay)
+  {
+    if (X11_)
+      X11_->delay(set_delay);
+  }
 
   Mesh& Mesh::useX11(bool use_X11,
 		     bool draw_text,
@@ -669,6 +694,7 @@ namespace fmesh {
       xtmpl_press_ret(str_);
       delete[] str_;
     }
+    X11_->delay();
   }
   
   Mesh& Mesh::TV_append(const Matrix3int& TV)
@@ -1289,8 +1315,10 @@ namespace fmesh {
     dh.orbit2();
     v_list[3] = TV_[t1][dh.vi()];
 
-    drawX11triangle(t0,false);
-    drawX11triangle(t1,false);
+    if (X11_) {
+      drawX11triangle(t0,false);
+      drawX11triangle(t1,false);
+    }
 
     /* Step 2: Overwrite with new triangles. */
     TV_(t0)[0] = v_list[0];
@@ -1367,9 +1395,12 @@ namespace fmesh {
     }
     */
 
-    drawX11triangle(t0,true);
-    drawX11triangle(t1,true);
     MESH_LOG("Edge swapped" << endl);
+    if (X11_) {
+      drawX11triangle(t0,true);
+      drawX11triangle(t1,true);
+      X11_->delay();
+    }
     
     return Dart(*this,t0,1,1);
   }
@@ -1414,7 +1445,8 @@ namespace fmesh {
     v1 = TV_[t0][vi];
     dh.orbit2();
 
-    drawX11triangle(t0,false);
+    if (X11_)
+      drawX11triangle(t0,false);
 
     bool on_boundary = dh.onBoundary();
     if (!on_boundary) {
@@ -1432,7 +1464,8 @@ namespace fmesh {
       vi = dh.vi();
       v3 = TV_[t1][vi];
 
-      drawX11triangle(t1,false);
+      if (X11_)
+	drawX11triangle(t1,false);
     } else {
       v3 = -1;
       tt_list[2] = -1;
@@ -1570,13 +1603,16 @@ namespace fmesh {
     }
     */
 
-    if (!on_boundary) {
-      drawX11triangle(t3,true);
-      drawX11triangle(t2,true);
-    }
-    drawX11triangle(t1,true);
-    drawX11triangle(t0,true);
     MESH_LOG("Edge split" << endl);
+    if (X11_) {
+      if (!on_boundary) {
+	drawX11triangle(t3,true);
+	drawX11triangle(t2,true);
+      }
+      drawX11triangle(t1,true);
+      drawX11triangle(t0,true);
+      X11_->delay();
+    }
     
     return Dart(*this,t1,1,0);
   }
@@ -1624,7 +1660,8 @@ namespace fmesh {
     if (use_TTi_) tti_list[0] = TTi_[t][vi];
     dh.orbit2();
 
-    drawX11triangle(t,false);
+    if (X11_)
+      drawX11triangle(t,false);
 
     /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
@@ -1715,10 +1752,13 @@ namespace fmesh {
     }
     */
     
-    drawX11triangle(t0,true);
-    drawX11triangle(t1,true);
-    drawX11triangle(t2,true);
     MESH_LOG("Triangle split" << endl);
+    if (X11_) {
+      drawX11triangle(t0,true);
+      drawX11triangle(t1,true);
+      drawX11triangle(t2,true);
+      X11_->delay();
+    }
 
     return Dart(*this,t0,1,0);
   }
@@ -1821,6 +1861,7 @@ namespace fmesh {
       if (!(TT_[t][0]<0)) drawX11triangle(TT_[t][0],true);
       if (!(TT_[t][1]<0)) drawX11triangle(TT_[t][1],true);
       if (!(TT_[t][2]<0)) drawX11triangle(TT_[t][2],true);
+      X11_->delay();
     }
 
     unlinkTriangle(t);
