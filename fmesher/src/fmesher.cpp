@@ -36,7 +36,7 @@ const bool useVT = true;
 const bool useTTi = true;
 const bool useX11 = true;
 const bool useX11text = false;
-
+const double x11_delay_factor = 1.0;
 
 
 template <class T>
@@ -174,6 +174,7 @@ int main(int argc, const char* argv[])
 	       mini[0]-w0*0.2,maxi[0]+w0*0.2,
 	       mini[1]-w1*0.2,maxi[1]+w1*0.2);
     }
+    M.setX11delay(x11_delay_factor/M.nV());
   }
 
   MeshC MC(&M);
@@ -181,6 +182,7 @@ int main(int argc, const char* argv[])
   fmesh::vertexListT vertices;
   for (int v=0;v<nV;v++)
     vertices.push_back(v);
+  MC.CET(8,-0.1);
   MC.DT(vertices);
 
   /* Calculate the RCDT: */
