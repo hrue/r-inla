@@ -486,7 +486,7 @@ namespace fmesh {
   SparseMatrix<int> Mesh::VV() const
   {
     SparseMatrix<int> VV;
-    for (int t=0; t<nV(); t++) {
+    for (int t=0; t<nT(); t++) {
       VV(TV_[t][0],TV_[t][1]) = 1;
       VV(TV_[t][0],TV_[t][2]) = 1;
       VV(TV_[t][1],TV_[t][0]) = 1;
