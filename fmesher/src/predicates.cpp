@@ -2646,7 +2646,12 @@ REAL incircleadapt(CREAL *pa, CREAL *pb, CREAL *pc, CREAL *pd, REAL permanent)
   REAL cxtaa[8], cxtbb[8], cytaa[8], cytbb[8];
   int cxtaalen, cxtbblen, cytaalen, cytbblen;
   REAL axtbc[8], aytbc[8], bxtca[8], bytca[8], cxtab[8], cytab[8];
-  int axtbclen, aytbclen, bxtcalen, bytcalen, cxtablen, cytablen;
+  int axtbclen = 0;
+  int aytbclen = 0;
+  int bxtcalen = 0;
+  int bytcalen = 0;
+  int cxtablen = 0;
+  int cytablen = 0;
   REAL axtbct[16], aytbct[16], bxtcat[16], bytcat[16], cxtabt[16], cytabt[16];
   int axtbctlen, aytbctlen, bxtcatlen, bytcatlen, cxtabtlen, cytabtlen;
   REAL axtbctt[8], aytbctt[8], bxtcatt[8];

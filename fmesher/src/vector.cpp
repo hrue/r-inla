@@ -22,12 +22,6 @@ using std::endl;
 namespace fmesh {
 
 
-  template <>
-  double Vector3<double>::length() const
-  {
-    return (std::sqrt(s[0]*s[0]+s[1]*s[1]+s[2]*s[2]));
-  };
-
   double Vec::length(const Point& s0)
   {
     return s0.length();
