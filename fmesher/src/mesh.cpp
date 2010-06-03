@@ -462,6 +462,23 @@ namespace fmesh {
     return *this;
   }
 
+
+  SparseMatrix<int> Mesh::VV() const
+  {
+    SparseMatrix<int> VV;
+    for (int t=0; t<1; t++) {
+      VV(TV_[t][0],TV_[t][1]) = 1;
+      VV(TV_[t][0],TV_[t][2]) = 1;
+      VV(TV_[t][1],TV_[t][0]) = 1;
+      VV(TV_[t][1],TV_[t][2]) = 1;
+      VV(TV_[t][2],TV_[t][0]) = 1;
+      VV(TV_[t][2],TV_[t][1]) = 1;
+    };
+    return VV;
+  };
+    
+
+
   Mesh& Mesh::useX11(bool use_X11,
 		     bool draw_text,
 		     int sx, int sy,
