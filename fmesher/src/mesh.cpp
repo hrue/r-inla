@@ -4,7 +4,7 @@
 #include <map>
 #include <sstream>
 #include <cmath>
-#include <time.h>
+#include <ctime>
 #include <cerrno>
 
 #include "predicates.h"
@@ -486,7 +486,7 @@ namespace fmesh {
   SparseMatrix<int> Mesh::VV() const
   {
     SparseMatrix<int> VV;
-    for (int t=0; t<1; t++) {
+    for (int t=0; t<nV(); t++) {
       VV(TV_[t][0],TV_[t][1]) = 1;
       VV(TV_[t][0],TV_[t][2]) = 1;
       VV(TV_[t][1],TV_[t][0]) = 1;
