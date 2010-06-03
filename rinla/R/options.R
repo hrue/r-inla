@@ -1,7 +1,7 @@
 
 ### Functions to deal with `inla.options'
 
-`inla.getOption` = function(option = c("inla.call", "inla.arg", "num.threads", "keep",
+`inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug",
                                     "cygwin", "ssh.auth.sock", "cygwin.home"))
 {
@@ -22,9 +22,16 @@
     else
         inla.call = opt$inla.call
 
+    if (is.null(opt$fmesher.call))
+        fmesher.call = inla.fmesher.call.builtin()
+    else
+        fmesher.call = opt$fmesher.call
+
     all.opt = list(
             inla.call = inla.call,
+            fmesher.call = fmesher.call,
             inla.arg = NULL,
+            fmesher.arg = NULL,
             num.threads = inla.ifelse(!is.null(opt$num.threads), opt$num.threads, NULL),
             keep = inla.ifelse(!is.null(opt$keep), opt$keep, FALSE),
             working.directory = inla.ifelse(!is.null(opt$working.directory), opt$working.directory, NULL),
@@ -46,7 +53,7 @@
     return (res)
 }
 
-`inla.setOption` = function(option = c("inla.call", "inla.arg", "num.threads", "keep",
+`inla.setOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug",
                                     "cygwin", "ssh.auth.sock", "cygwin.home"), value)
 {
