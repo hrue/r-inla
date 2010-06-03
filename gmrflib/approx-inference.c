@@ -1331,7 +1331,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		ai_store->bb = Calloc(n, double);
 		ai_store->cc = Calloc(n, double);
 
-		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern(&ai_store->problem,
+		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern(&(ai_store->problem),
 									     (ai_store->mode ? ai_store->mode : x),
 									     b, c, mean, d, loglFunc, loglFunc_arg, fixed_value,
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
@@ -4437,10 +4437,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_free_density(cpodens);
 			}
 			for(i = 0; i < omp_get_max_threads(); i++){
-				if (!ai_store_id[i]){
-					ai_store = GMRFLib_duplicate_ai_store(ai_store_id[i]);
+				if (ai_store_id[i] && ai_store_id[i]->problem) {
+					GMRFLib_assign_ai_store(ai_store, ai_store_id[i]);
+					ai_store_id[i] = NULL; /* to prevent it from beeing Free's twice */
+					if (need_Qinv) {
+						GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
+						GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
+					}
 					break;
-				}
+				} 
 			}
 			for(i = 0; i < omp_get_max_threads(); i++){
 				if (!ai_store_id[i]){
@@ -6300,6 +6305,39 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store)
 
 #undef DUPLICATE
 #undef COPY
+}
+GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp * from)
+{
+	/*
+	 * set contents of TO = FROM
+	 */
+
+#define ASSIGN(name) to->name = from->name
+
+	GMRFLib_ENTER_ROUTINE;
+	if (!to || !from) {
+		GMRFLib_LEAVE_ROUTINE;
+		return NULL;
+	}
+
+	ASSIGN(bb);
+	ASSIGN(cc);
+	ASSIGN(correction_idx);
+	ASSIGN(correction_term);
+	ASSIGN(d_idx);
+	ASSIGN(derivative3);
+	ASSIGN(mode);
+	ASSIGN(nc_orig);
+	ASSIGN(nd);
+	ASSIGN(neff);
+	ASSIGN(nidx);
+	ASSIGN(problem);
+	ASSIGN(stdev);
+	ASSIGN(store);
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+#undef ASSIGN
 }
 int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_par, int nhyper)
 {
