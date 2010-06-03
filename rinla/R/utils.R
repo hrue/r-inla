@@ -253,6 +253,22 @@
     else
         stop(paste("INLA installation error; no such file",fnm))
 }
+`inla.fmesher.call.builtin` = function()
+{
+    if (inla.os("mac"))
+        fnm = system.file("bin/mac/fmesher", package="INLA")
+    else if (inla.os("linux"))
+        fnm = system.file("bin/linux/fmesher", package="INLA")
+    else if (inla.os("windows"))
+        fnm = system.file("bin/windows/fmesher.exe", package="INLA")
+    else
+        stop("Unknown OS")
+
+    if (file.exists(fnm))
+        return (fnm)
+    else
+        stop(paste("INLA installation error; no such file",fnm))
+}
 
 `inla.paste` = function(strings, sep = " ")
 {
@@ -391,7 +407,9 @@
 `inla.only.for.developers` = function()
 {
     require(R.utils)
-    if (getUsername.System() != "hrue")
+    if (getUsername.System() != "hrue" &&
+        getUsername.System() != "martino" &&
+        getUsername.System() != "finnkrl")
         stop("This function is for developers only.")
     return (invisible())
 }
