@@ -29,6 +29,18 @@ namespace fmesh {
   template <class T> class SparseMatrixRow;
   template <class T> class SparseMatrix;
 
+  template <class T>
+  SparseMatrix<T> operator*(const SparseMatrix<T>& M1,
+			    const SparseMatrix<T>& M2);
+  template <class T>
+  SparseMatrix<T> operator-(const SparseMatrix<T>& M1,
+			    const SparseMatrix<T>& M2);
+  template <class T>
+  SparseMatrix<T> inverse(const SparseMatrix<T>& M1,
+			  bool diagonal = false);
+
+
+
   template<class T>
   std::ostream& operator<<(std::ostream& output,
 			   const Matrix<T>& M);
@@ -295,7 +307,7 @@ namespace fmesh {
       return (s[0]*s1.s[1]-s[1]*s1.s[0]);
     };
     /*!
-      "Volume product" = scalar(cross(s0,s1),s2)
+      "Volume product" = scalar(s0,cross(s1,s2))
      */
     T volume(const selfT& s1, const selfT& s2) const
     {
@@ -303,11 +315,11 @@ namespace fmesh {
 	      (s1.s[2]*s2.s[0]-s1.s[0]*s2.s[2])*s[1]+
 	      (s1.s[0]*s2.s[1]-s1.s[1]*s2.s[0])*s[2]);
     };
-    double angle(const selfT& s0, const selfT& s1) const
+    double angle(const selfT& s1) const
     {
       Vector3<T> s0xs1;
-      s0xs1.cross(s0,s1);
-      return std::atan2((double)length(s0xs1),(double)scalar(s0,s1));
+      s0xs1.cross(*this,s1);
+      return std::atan2((double)s0xs1.length(),(double)scalar(s1));
     };
 
     friend
@@ -420,15 +432,19 @@ namespace fmesh {
     typedef typename DataType::const_reverse_iterator ColCRIter;
     typedef typename DataType::iterator ColIter;
     typedef typename DataType::reverse_iterator ColRIter;
-  private:
+  protected:
     static const T zero_;
     SparseMatrix<T>* M_;
     DataType data_;
-  protected:
+  public:
     SparseMatrixRow()
       : M_(NULL), data_() { };
+    SparseMatrixRow(const SparseMatrixRow<T>& from)
+      : M_(from.M_), data_(from.data_) { };
     SparseMatrixRow(SparseMatrix<T>* M)
       : M_(M), data_() { };
+
+    int size() const { return data_.size(); };
 
     void cols(size_t set_cols) {
       ColRIter col;
@@ -584,6 +600,22 @@ namespace fmesh {
       : cols_(set_cols), data_() {
       rows(set_rows);
     };
+    SparseMatrix(const SparseMatrix<T>& from)
+      : cols_(from.cols_), data_(from.data_) {
+      for (int r=0; r<rows(); r++) {
+	data_[r].M_ = this;
+      }
+      //      std::cout << "SM copy" << std::endl;
+    };
+    const SparseMatrix<T>& operator=(const SparseMatrix<T>& from) {
+      cols_ = from.cols_;
+      data_ = from.data_;
+      for (int r=0; r<rows(); r++) {
+	data_[r].M_ = this;
+      }
+      //      std::cout << "SM assignment" << std::endl;
+      return *this;
+    };
     SparseMatrix<T>& clear() {
       data_.clear();
       return *this;
@@ -663,6 +695,19 @@ namespace fmesh {
       }
     };
 
+
+    /* Linear algebra */
+    friend
+    SparseMatrix<T> operator*<T>(const SparseMatrix<T>& M1,
+				 const SparseMatrix<T>& M2);
+    friend
+    SparseMatrix<T> operator-<T>(const SparseMatrix<T>& M1,
+				 const SparseMatrix<T>& M2);
+    friend
+    SparseMatrix<T> inverse<T>(const SparseMatrix<T>& M1,
+			       bool diagonal);
+
+
     /*! To list, general, symmetric, or diagonal. */
     int tolist(Matrix1< SparseMatrixTriplet<T> >& MT,
 	       int matrixt = 0) const {
@@ -723,83 +768,30 @@ namespace fmesh {
   };
 
 
-  template <class T>
-  double Vector3<T>::length() const
-  {
-    return 0.0;
-  };
-
-
   struct Vec {  
     static void copy(Point& s, const Point& s0)
-    {
-      s[0] = s0[0];
-      s[1] = s0[1];
-      s[2] = s0[2];
-    };
+    { s.copy(s0); };
     static void rescale(Point& s, double s1)
-    {
-      s[0] *= s1;
-      s[1] *= s1;
-      s[2] *= s1;
-    };
+    { s.rescale(s1); };
     static void scale(Point& s, const Point& s0, double s1)
-    {
-      s[0] = s0[0]*s1;
-      s[1] = s0[1]*s1;
-      s[2] = s0[2]*s1;
-    };
+    { s.scale(s0,s1); };
     static void diff(Point& s,const Point& s0, const Point& s1)
-    {
-      s[0] = s0[0]-s1[0];
-      s[1] = s0[1]-s1[1];
-      s[2] = s0[2]-s1[2];
-    };
+    { s.diff(s0,s1); };
     static void sum(Point& s,const Point& s0, const Point& s1)
-    {
-      s[0] = s0[0]+s1[0];
-      s[1] = s0[1]+s1[1];
-      s[2] = s0[2]+s1[2];
-    };
+    { s.sum(s0,s1); };
     static void accum(Point& s, const Point& s0, double s1 = 1.0)
-    {
-      s[0] += s0[0]*s1;
-      s[1] += s0[1]*s1;
-      s[2] += s0[2]*s1;
-    };
+    { s.accum(s0,s1); };
     static double scalar(const Point& s0, const Point& s1)
-    {
-      return (s0[0]*s1[0]+s0[1]*s1[1]+s0[2]*s1[2]);
-    };
-    static double length(const Point& s0)
-    {
-      return (std::sqrt(s0[0]*s0[0]+s0[1]*s0[1]+s0[2]*s0[2]));
-    };
+    { return s0.scalar(s1); };
+    static double length(const Point& s0);
     static void cross(Point& s, const Point& s0, const Point& s1)
-    {
-      s[0] = s0[1]*s1[2]-s0[2]*s1[1];
-      s[1] = s0[2]*s1[0]-s0[0]*s1[2];
-      s[2] = s0[0]*s1[1]-s0[1]*s1[0];
-    };
+    { s.cross(s0,s1); };
     static double cross2(const Point& s0, const Point& s1)
-    {
-      return (s0[0]*s1[1]-s0[1]*s1[0]);
-    };
-    /*!
-      "Volume product" = scalar(cross(s0,s1),s2)
-     */
+    { return s0.cross2(s1); };
     static double volume(const Point& s0, const Point& s1, const Point& s2)
-    {
-      return ((s0[1]*s1[2]-s0[2]*s1[1])*s2[0]+
-	      (s0[2]*s1[0]-s0[0]*s1[2])*s2[1]+
-	      (s0[0]*s1[1]-s0[1]*s1[0])*s2[2]);
-    };
+    { return s0.volume(s1,s2); };
     static double angle(const Point& s0, const Point& s1)
-    {
-      Point s0xs1;
-      cross(s0xs1,s0,s1);
-      return std::atan2(length(s0xs1),scalar(s0,s1));
-    };
+    { return s0.angle(s1); };
     /*!
       Calculate an arbitrary perpendicular vector.
 
@@ -823,6 +815,13 @@ namespace fmesh {
       n[1] =  xm*v[2] - zm*v[0];
       n[2] =  ym*v[0] - xm*v[1];
     };
+  };
+
+
+  template <class T>
+  double Vector3<T>::length() const
+  {
+    return 0.0;
   };
 
 
@@ -881,6 +880,76 @@ namespace fmesh {
       }
     return output;
   }
+
+
+
+
+  template <class T>
+  SparseMatrix<T> operator*(const SparseMatrix<T>& M1,
+			    const SparseMatrix<T>& M2)
+  {
+    SparseMatrix<T> M;
+    int M1rows = M1.rows();
+    int M2rows = M2.rows();
+    M.cols(M2.cols()).rows(M1rows);
+    for (int i=0; i<M1rows; i++) {
+      SparseMatrixRow<T>& Mi = M(i);
+      const SparseMatrixRow<T>& M1i = M1[i];
+      if (M1i.size() > 0) {
+	for (typename SparseMatrixRow<T>::ColCIter M1k = M1i.begin();
+	     (M1k != M1i.end()) && (M1k->first < M2rows);
+	     M1k++) {
+	  int k = M1k->first;
+	  const T& M1ik = M1i[k];
+	  const SparseMatrixRow<T>& M2k = M2[k];
+	  for (typename SparseMatrixRow<T>::ColCIter M2j = M2k.begin();
+	       (M2j != M2k.end());
+	       M2j++) {
+	    Mi(M2j->first) += (M1ik * M2j->second);
+	  }
+	}
+      }
+    }
+    return M;
+  }
+
+  template <class T>
+  SparseMatrix<T> operator-(const SparseMatrix<T>& M1,
+			    const SparseMatrix<T>& M2)
+  {
+    SparseMatrix<T> M(M1);
+    for (int r=0; (r<M1.rows()) && (r<M2.rows()); r++) {
+      SparseMatrixRow<T>& Mr = M(r);
+      const SparseMatrixRow<T>& M2r = M2[r];
+      for (typename SparseMatrixRow<T>::ColCIter c = M2r.begin();
+	   (c != M2r.end()) && (c->first < M1.cols());
+	   c++) {
+	Mr(c->first) -= c->second;
+      }
+    }
+    return M;
+  }
+
+  template <class T>
+  SparseMatrix<T> inverse(const SparseMatrix<T>& M1,
+			  bool diagonal)
+  {
+    SparseMatrix<T> M;
+    M.cols(M1.cols()).rows(M1.rows());
+    if (!diagonal) {
+      /* NOT IMPLEMENTED */
+      return M;
+    }
+    for (int r=0; (r<M1.rows()) && (r<M1.cols()); r++) {
+      const T& val = M1[r][r];
+      if (!(val==T()))
+	M(r,r) = 1/val;
+    }
+    return M;
+  }
+
+
+
 
 
 

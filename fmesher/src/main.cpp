@@ -712,6 +712,7 @@ int iohelper_test()
     
   {
     fmesh::SparseMatrix<double> M;
+    M.cols(3).rows(4);
     for (int i=0;i<4;i++)
       for (int j=0;j<3;j++)
 	M(i,j) = (double)i+(double)j/10.0;
