@@ -204,11 +204,12 @@ int main(int argc, const char* argv[])
 
     /*
     C0inv.inverse(C0,true);
-    tmp.mult(G1,C0inv);
-    G2.mult(tmp,G1);
-    K1.diff(G1,B1);
-    tmp.mult(K1,C0inv);
-    K2.mult(tmp,K1);
+    tmp.multiply(G1,C0inv);
+    G2.multiply(tmp,G1);
+    K1.copy(G1);
+    K1.subtract(B1);
+    tmp.multiply(K1,C0inv);
+    K2.multiply(tmp,K1);
     */
 
     print_SM(prefix+"c0",C0,fmesh::IOMatrixtype_diagonal);
