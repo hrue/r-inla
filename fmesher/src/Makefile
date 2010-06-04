@@ -12,13 +12,13 @@ ALL = fmesher main
 all: $(ALL)
 
 $(OBJ): Makefile
-ioutils.o: ioutils.tpp ioutils.h
-vector.o: vector.h
-mesh.o: mesh.h vector.h
-meshc.o: meshc.h mesh.h vector.h
-main.o: main.cpp fmesher.h mesh.h meshc.h predicates.h vector.h ioutils.h ioutils.tpp
-fmesher.o: fmesher.cpp fmesher.h mesh.h meshc.h predicates.h vector.h ioutils.h ioutils.tpp
-predicates.o: predicates.h
+ioutils.o: ioutils.tcc ioutils.hh
+vector.o: vector.hh
+mesh.o: mesh.hh vector.hh
+meshc.o: meshc.hh mesh.hh vector.hh
+main.o: main.cc fmesher.hh mesh.hh meshc.hh predicates.hh vector.hh ioutils.hh ioutils.tcc
+fmesher.o: fmesher.cc fmesher.hh mesh.hh meshc.hh predicates.hh vector.hh ioutils.hh ioutils.tcc
+predicates.o: predicates.hh
 
 fmesher: $(OBJ) Makefile fmesher.o
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) fmesher.o -o fmesher

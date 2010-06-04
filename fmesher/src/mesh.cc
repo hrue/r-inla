@@ -7,9 +7,8 @@
 #include <ctime>
 #include <cerrno>
 
-#include "predicates.h"
-
-#include "mesh.h"
+#include "predicates.hh"
+#include "mesh.hh"
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
@@ -364,71 +363,71 @@ namespace fmesh {
 
 
 
-  Mesh& Mesh::updateVT(const int v, const int t)
+  Mesh& Mesh::update_VT(const int v, const int t)
   {
-    if ((!use_VT_) || (v>=(int)nV()) || (t>=(int)nT()) || (VT_[v]<0))
-      return *this;
-    VT_(v) = t;
+    if ((use_VT_) && (v<(int)nV()) & (t<(int)nT()) && (VT_[v]<0))
+      VT_(v) = t;
     return *this;
   }
 
-  Mesh& Mesh::setVT(const int v, const int t)
+  Mesh& Mesh::set_VT(const int v, const int t)
   {
-    if ((!use_VT_) || (v>=(int)nV()) || (t>=(int)nT()))
-      return *this;
-    VT_(v) = t;
+    if ((use_VT_) && (v<(int)nV()) & (t<(int)nT()))
+      VT_(v) = t;
     return *this;
   }
 
-  Mesh& Mesh::updateVTtri(const int t)
+  Mesh& Mesh::update_VT_triangle(const int t)
   {
-    int vi;
-    if ((!use_VT_) || (t>=(int)nT()) || (t<0))
-      return *this;
-    for (vi=0; vi<3; vi++)
-      updateVT(TV_[t][vi],t);
+    if ((use_VT_) && (t<(int)nT()) && (t>=0)) {
+      const Int3& TVt = TV_[t];
+      for (int vi=0; vi<3; vi++) {
+	int v = TVt[vi];
+	if (VT_[v]<0)
+	  VT_(v) = t;
+      }
+    }
     return *this;
   }
 
-  Mesh& Mesh::setVTtri(const int t)
+  Mesh& Mesh::set_VT_triangle(const int t)
   {
-    int vi;
-    if ((!use_VT_) || (t>=(int)nT()) || (t<0))
-      return *this;
-    for (vi=0; vi<3; vi++)
-      setVT(TV_[t][vi],t);
+    if ((use_VT_) && (t<(int)nT()) && (t>=0)) {
+      const Int3& TVt = TV_[t];
+      for (int vi=0; vi<3; vi++)
+	VT_(TVt[vi]) = t;
+    }
     return *this;
   }
 
-  Mesh& Mesh::updateVTtri_private(const int t0)
+  Mesh& Mesh::update_VT_triangles(const int t_start)
   {
-    if (!use_VT_) return *this;
-    int t, vi;
-    for (t=t0; t<(int)nT(); t++)
-      for (vi=0; vi<3; vi++)
-	updateVT(TV_[t][vi],t);
+    if (use_VT_) {
+      for (int t=t_start; t<(int)nT(); t++)
+	update_VT_triangle(t);
+    }
     return *this;
   }
 
-  Mesh& Mesh::setVTv_private(const int v0)
+  Mesh& Mesh::reset_VT(const int v_start)
   {
-    if (!use_VT_) return *this;
-    int v;
-    for (v=v0; v<(int)nV(); v++)
-      setVT(v,-1);
+    if (use_VT_) {
+      for (int v=v_start; v<(int)nV(); v++)
+	set_VT(v,-1);
+    }
     return *this;
   }
 
-  Mesh& Mesh::rebuildVT()
+  Mesh& Mesh::rebuild_VT()
   {
     if ((!use_VT_) || (!S_.capacity())) {
       VT_.clear();
-      return *this;
+    } else {
+      VT_.truncate(0);
+      VT_.capacity(S_.capacity());
+      reset_VT(0);
+      update_VT_triangles(0);
     }
-    VT_.truncate(0);
-    VT_.capacity(S_.capacity());
-    setVTv_private(0);
-    updateVTtri_private(0);
     return *this;
   }
 
@@ -468,7 +467,7 @@ namespace fmesh {
   {
     if (use_VT_ != use_VT) {
       use_VT_ = use_VT;
-      rebuildVT();
+      rebuild_VT();
     }
     return *this;
   }
@@ -486,7 +485,7 @@ namespace fmesh {
   SparseMatrix<int> Mesh::VV() const
   {
     SparseMatrix<int> VV;
-    for (int t=0; t<nT(); t++) {
+    for (int t=0; t<(int)nT(); t++) {
       VV(TV_[t][0],TV_[t][1]) = 1;
       VV(TV_[t][0],TV_[t][2]) = 1;
       VV(TV_[t][1],TV_[t][0]) = 1;
@@ -559,7 +558,7 @@ namespace fmesh {
   {
     S_(nV()) = s;
     if (use_VT_)
-      setVTv_private(nV()-1);
+      reset_VT(nV()-1);
     return *this;
   }
 
@@ -567,7 +566,7 @@ namespace fmesh {
   {
     S_.append(S);
     if (use_VT_)
-      setVTv_private(nV()-S.rows());
+      reset_VT(nV()-S.rows());
     return *this;
   }
 
@@ -701,7 +700,7 @@ namespace fmesh {
   {
     TV_.append(TV);
     if (use_VT_)
-      updateVTtri_private(nT()-TV.rows());
+      update_VT_triangles(nT()-TV.rows());
     rebuildTT();
     rebuildTTi();
     redrawX11(std::string("TV appended"));
@@ -1379,8 +1378,8 @@ namespace fmesh {
 
     /* Link vertices to triangles */
     if (use_VT_) {
-      setVTtri(t1);
-      setVTtri(t0);
+      set_VT_triangle(t1);
+      set_VT_triangle(t0);
     }
 
     /* Debug code: */
@@ -1584,11 +1583,11 @@ namespace fmesh {
     /* Link vertices to triangles */
     if (use_VT_) {
       if (!on_boundary) {
-	setVTtri(t3);
-	setVTtri(t2);
+	set_VT_triangle(t3);
+	set_VT_triangle(t2);
       }
-      setVTtri(t1);
-      setVTtri(t0);
+      set_VT_triangle(t1);
+      set_VT_triangle(t0);
     }
 
     /* Debug code: */
@@ -1735,9 +1734,9 @@ namespace fmesh {
 
     /* Link vertices to triangles */
     if (use_VT_) {
-      setVTtri(t2);
-      setVTtri(t1);
-      setVTtri(t0);
+      set_VT_triangle(t2);
+      set_VT_triangle(t1);
+      set_VT_triangle(t0);
     }
 
     /* Debug code: */
@@ -1870,7 +1869,7 @@ namespace fmesh {
     if (use_TTi_)
       TTi_.truncate(nT());
     if (use_VT_)
-      rebuildVT();
+      rebuild_VT();
     return nT();
   }
 
@@ -1971,9 +1970,9 @@ namespace fmesh {
     20. return null // Not found (hit boundary).
     \endverbatim
    */
-  Dart Mesh::findPathDirection(const Dart& d0,
-			       const Point& s,
-			       const int v) const
+  Dart Mesh::find_path_direction(const Dart& d0,
+				 const Point& s,
+				 const int v) const
   {
     Dart d(d0);
     if (d.isnull())
@@ -2047,10 +2046,10 @@ namespace fmesh {
     13. return null
     \endverbatim
    */
-  DartPair Mesh::tracePath(const Dart& d0,
-			   const Point& s1,
-			   const int v1,
-			   DartList* trace) const
+  DartPair Mesh::trace_path(const Dart& d0,
+			    const Point& s1,
+			    const int v1,
+			    DartList* trace) const
   {
     Dart dh;
     bool found, other;
@@ -2064,7 +2063,7 @@ namespace fmesh {
 	     << " v0=" << v0
 	     << " v1=" << v1
 	     << endl);
-    Dart d(findPathDirection(dh,s1,v1));
+    Dart d(find_path_direction(dh,s1,v1));
     MESH_LOG("Path-direction " << d << endl);
     MESH_LOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
@@ -2118,14 +2117,14 @@ namespace fmesh {
 
     If the point is not found, a null Dart is returned.
    */
-  Dart Mesh::locatePoint(const Dart& d0, const Point& s, const int v) const
+  Dart Mesh::locate_point(const Dart& d0, const Point& s, const int v) const
   {
     Dart dh;
     if (d0.isnull())
       dh = Dart(*this,0);
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
-    return tracePath(dh,s,v).second;
+    return trace_path(dh,s,v).second;
   }
 
 
@@ -2136,7 +2135,7 @@ namespace fmesh {
 
     If the vertex is not found, a null Dart is returned.
    */
-  Dart Mesh::locateVertex(const Dart& d0,
+  Dart Mesh::locate_vertex(const Dart& d0,
 			  const int v) const
   {
     if (use_VT_) {
@@ -2158,7 +2157,7 @@ namespace fmesh {
       dh = Dart(*this,0);
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
-    dh = tracePath(dh,S_[v],v).second;
+    dh = trace_path(dh,S_[v],v).second;
     if (dh.v() != v) /* Point may be found, but not the actual vertex. */
       return Dart();
     return dh;

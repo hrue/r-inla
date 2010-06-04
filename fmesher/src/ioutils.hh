@@ -10,7 +10,7 @@
 #include <list>
 #include <string>
 
-#include "vector.h"
+#include "vector.hh"
 
 #ifndef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED (std::cout					\
@@ -255,6 +255,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-#include "ioutils.tpp"
+#include "ioutils.tcc"
 
 #endif
