@@ -13,7 +13,7 @@
 #include <string>
 
 #include "xtmpl.h"
-#include "vector.h"
+#include "vector.hh"
 
 #define MESH_EPSILON 1e-15
 
@@ -67,16 +67,18 @@ namespace fmesh {
   private:
     Mesh& rebuildTT();
 
-    Mesh& updateVT(const int v, const int t);
     /*!< Change VT[v] only if not linked to a triangle */
-    Mesh& setVT(const int v, const int t);
+    Mesh& update_VT(const int v, const int t);
     /* Overwerite current VT[v] info */
-    Mesh& updateVTtri(const int t);
-    Mesh& setVTtri(const int t);
-    Mesh& updateVTtri_private(const int t0);
-    Mesh& setVTv_private(const int t0);
+    Mesh& set_VT(const int v, const int t);
+    /* Set VT[v]=-1 for v>=v_start */
+    Mesh& reset_VT(const int v_start = 0);
 
-    Mesh& rebuildVT();
+    Mesh& update_VT_triangle(const int t);
+    Mesh& set_VT_triangle(const int t);
+    Mesh& update_VT_triangles(const int t_start = 0);
+
+    Mesh& rebuild_VT();
     Mesh& rebuildTTi();
 
     void drawX11point(int v, bool fg);
@@ -152,11 +154,11 @@ namespace fmesh {
     Mesh& S_append(const Matrix3double& S);
     Mesh& TV_append(const Matrix3int& TV); 
 
-    Dart findPathDirection(const Dart& d0, const Point& s, const int v = -1) const;
-    DartPair tracePath(const Dart& d0, const Point& s,
-		       const int v = -1, DartList* trace = NULL) const;
-    Dart locatePoint(const Dart& d0, const Point& s, const int v = -1) const;
-    Dart locateVertex(const Dart& d0, const int v) const;
+    Dart find_path_direction(const Dart& d0, const Point& s, const int v = -1) const;
+    DartPair trace_path(const Dart& d0, const Point& s,
+			const int v = -1, DartList* trace = NULL) const;
+    Dart locate_point(const Dart& d0, const Point& s, const int v = -1) const;
+    Dart locate_vertex(const Dart& d0, const int v) const;
     
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);

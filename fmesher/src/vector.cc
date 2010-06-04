@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cmath>
 
-#include "vector.h"
+#include "vector.hh"
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 

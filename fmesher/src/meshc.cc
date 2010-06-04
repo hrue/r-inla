@@ -5,8 +5,8 @@
 #include <sstream>
 #include <cmath>
 
-#include "predicates.h"
-#include "meshc.h"
+#include "predicates.hh"
+#include "meshc.hh"
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
@@ -590,7 +590,7 @@ namespace fmesh {
     MESHC_LOG("Locating node " << v
 	      << " " << M_->S(v) << endl);
 
-    td = M_->locatePoint(ed,M_->S(v),v);
+    td = M_->locate_point(ed,M_->S(v),v);
     if (td.isnull()) { return Dart(); }; /* ERROR, not found! */
     if (td.v() == v) { return td; } /* Node already inserted! */
     td = Dart(*M_,td.t());
@@ -1678,13 +1678,13 @@ namespace fmesh {
     if (v0 == v1) return Dart();
 
     DartList trace;
-    Dart dh(M_->locateVertex(Dart(),v0));
+    Dart dh(M_->locate_vertex(Dart(),v0));
     if (dh.isnull()) {
       MESHC_LOG("Originating vertex not found "
 		<< v0 << endl);
       return Dart();
     }
-    DartPair dhp(M_->tracePath(dh,M_->S(v1),v1,&trace));
+    DartPair dhp(M_->trace_path(dh,M_->S(v1),v1,&trace));
     if (dhp.second.isnull()) {
       MESHC_LOG("Endpoint vertex not found ("
 		<< v0 << "," << v1 << ") "

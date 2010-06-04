@@ -12,7 +12,7 @@
 #include <list>
 #include <string>
 
-#include "mesh.h"
+#include "mesh.hh"
 
 #ifndef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED (std::cout				\
