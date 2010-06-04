@@ -696,7 +696,7 @@
                     nrep = as.integer(gp$random.spec[[r]]$nrep)
                 } else {
                     if (!is.null(gp$random.spec[[r]]$replicate)) {
-                        nrep = as.integer(max(gp$random.spec[[r]]$replicate))
+                        nrep = as.integer(max(gp$random.spec[[r]]$replicate, na.rm=TRUE))
                     } else {
                         nrep = 1
                     }
