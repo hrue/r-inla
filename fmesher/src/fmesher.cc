@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#include "fmesher.h"
+#include "fmesher.hh"
 
 using std::ios;
 using std::ifstream;

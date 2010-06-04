@@ -118,8 +118,10 @@
 #include <cmath>
 #include <ctime>
 
+#if defined(LINUX)
 #include <fpu_control.h>
-#include "predicates.h"
+#endif
+#include "predicates.hh"
 
 namespace fmesh {
 namespace predicates {
@@ -133,8 +135,11 @@ namespace predicates {
 /* To try this out, write "#define INEXACT volatile" below.  Normally,       */
 /*   however, INEXACT should be defined to be nothing.  ("#define INEXACT".) */
 
-//#define INEXACT                          /* Nothing */
+#if defined(LINUX)
+#define INEXACT                          /* Nothing */
+#else
 #define INEXACT volatile
+#endif
 
 /* #define SINGLE */
 #ifdef SINGLE
@@ -656,14 +661,16 @@ void exactinit()
   REAL half;
   REAL check, lastcheck;
   int every_other;
-  int cword;
 
+#if defined LINUX
+  int cword;
 #ifdef SINGLE
   cword = 4210;                 /* set FPU control word for single precision */
 #else /* not SINGLE */
   cword = 4722;                 /* set FPU control word for double precision */
 #endif /* not SINGLE */
   _FPU_SETCW(cword);
+#endif /* ifdef LINUX */
 
   every_other = 1;
   half = 0.5;
