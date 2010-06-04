@@ -1,4 +1,4 @@
-OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o
+OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o
 FLAGS = -g -Wall
 CFLAGS = $(FLAGS)
 CXXFLAGS = -g -Wall
@@ -26,7 +26,10 @@ fmesher: $(OBJ) Makefile fmesher.o
 main: $(OBJ) Makefile main.o
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.o -o main
 
+cmdline:
+	gengetopt --file-name=cmdline --conf-parser --unamed-opts --func-name=cmdline < cmdline.ggo	
+
 clean :;
 	rm $(ALL) *.o
 
-.PHONY : clean
+.PHONY : clean cmdline

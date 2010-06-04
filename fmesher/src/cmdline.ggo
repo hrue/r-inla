@@ -1,0 +1,27 @@
+package "fmesher"
+version "0.0.1-1"
+purpose "Generate triangular meshes and prepare finite element calculations"
+
+option "config" c "Path to config file" string optional
+option "boundary" b "Handle triangulation boundary" flag off
+option "interior" i "Handle interior triangulation constraints" flag off
+option "fem" - "Calculate FEM matrices up to order fem" int default="4" optional
+
+option "cet" e "Convex encapsulation parameters" double multiple(1-2) optional
+#details="Detailed CET parameter description"
+option "rcdt" r "RCDT, with optional quality parameters" double multiple(-3) optional argoptional
+option "x11" x "Show progress in an x11 window, with delay factor" double argoptional default="1.0" optional
+
+option "--ascii-input" - "Text file input" flag off
+option "--ascii-output" a "Text file output" flag off
+
+
+option "have-triangulation" T "The input already contains a tringulation" flag off
+
+#option "curly" i "Curly Stooge" int yes
+#option "shemp" - "Shemp? Sometimes" flag off
+#option "stooge" F "The Stooges" no
+#option "nyuk" - "Perhaps nyuks should float?" long no
+#option "funny" - "Stooges are funny!" string default="Yes" no
+
+#gengetopt --file-name=cmds --conf-parser --unamed-opts --func-name=main < test.ggo
