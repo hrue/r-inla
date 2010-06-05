@@ -22,14 +22,9 @@
     else
         inla.call = opt$inla.call
 
-    if (is.null(opt$fmesher.call))
-        fmesher.call = inla.fmesher.call.builtin()
-    else
-        fmesher.call = opt$fmesher.call
-
     all.opt = list(
             inla.call = inla.call,
-            fmesher.call = fmesher.call,
+            fmesher.call = inla.ifelse(is.null(opt$fmesher.call), inla.fmesher.call.builtin(), opt$fmesher.call),
             inla.arg = NULL,
             fmesher.arg = "--x11",
             num.threads = inla.ifelse(!is.null(opt$num.threads), opt$num.threads, NULL),
