@@ -26,6 +26,7 @@ using fmesh::Matrix;
 using fmesh::Matrix3;
 using fmesh::Matrix3int;
 using fmesh::Matrix3double;
+using fmesh::MatrixC;
 using fmesh::Mesh;
 using fmesh::MeshC;
 using fmesh::Point;
@@ -39,6 +40,8 @@ bool useX11 = true;
 const bool useX11text = false;
 double x11_delay_factor = 1.0;
 
+MatrixC matrices;
+
 
 template <class T>
 void print_M(string filename,
@@ -50,7 +53,6 @@ void print_M(string filename,
   IOHelperM<T> ioh;
   ioh.cD(&M).matrixtype(matrixt);
   ioh.binary().OH(O).OD(O);
-  ioh.ascii().OH(cout << filename << "\t: ");
   O.close();
 }
 
@@ -64,7 +66,6 @@ void print_SM(string filename,
   IOHelperSM<T> ioh;
   ioh.cD(&M).matrixtype(matrixt);
   ioh.binary().OH(O).OD(O);
-  ioh.ascii().OH(cout << filename << "\t: ");
   O.close();
 }
 
@@ -108,11 +109,11 @@ int main(int argc, char* argv[])
   gengetopt_args_info args_info;
   struct cmdline_params params;
   
-  /* initialize the parameters structure */
+  cmdline_init(&args_info);
   cmdline_params_init(&params);
      
   /* call the command line parser */
-  if (cmdline(argc, argv, &args_info) != 0) {
+  if (cmdline_ext(argc, argv, &args_info, &params) != 0) {
     cmdline_free(&args_info);
     return 1;
   }
@@ -130,8 +131,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  cmdline_dump(stdout,&args_info);
-  return 0;
+  //  cmdline_dump(stdout,&args_info);
 
   int cet_sides = 8;
   double cet_margin = -0.05;
@@ -160,6 +160,14 @@ int main(int argc, char* argv[])
        << args_info.rcdt_max << " "
        << args_info.rcdt_arg[0] << " "
        << endl;
+  if (args_info.boundary_given) {
+    cout << "Boundary given:\t"
+	 << args_info.boundary_given << " "
+	 << args_info.boundary_arg << " "
+	 << &(args_info.boundary_arg[0]) << " "
+      //	 << string(args_info.boundary_arg[0]) << " "
+	 << endl;
+  }
   cout << "X11 given:\t"
        << args_info.x11_given << " "
        << args_info.x11_arg << " "
@@ -173,30 +181,94 @@ int main(int argc, char* argv[])
   cout << "X11 delay factor:\t" << x11_delay_factor << endl;
 
 
-
   string iprefix("-");
   string oprefix("-");
-  if (args_info.inputs_num>0)
+  if (args_info.inputs_num>0) {
     iprefix = string(args_info.inputs[0]);
-  if (iprefix=="-")
-    oprefix = "fmesher.output.";
-  else
+  }
+  if (iprefix != "-") {
     oprefix = iprefix;
-  if (args_info.inputs_num>1)
+  }
+  if (args_info.inputs_num>1) {
     oprefix = string(args_info.inputs[1]);
-
+  }
+  if ((iprefix=="-") && (args_info.ic_given==0)) {
+    /* Nowhere to read general input!
+       May be OK, if the input is available in raw format. */
+    if (args_info.ir_given==0) {
+      /* No input available.
+	 May be OK. */
+    }
+  }
+  if ((oprefix=="-") && (args_info.oc_given==0)) {
+    /* Nowhere to place output!
+       OK; might just want to see the algorithm at work with --x11. */
+  }
 
   cout << "Input:\t" << iprefix << endl;
   cout << "Output:\t" << oprefix << endl;
 
-  Matrix<double> iS0;
-  if (iprefix=="-") {
-    IOHelperM<double>().D(&iS0).binary().IH(cin).ID(cin).ascii().OH(cout << "S0: ");
-  } else {
-    ifstream I((iprefix+"s0").c_str(), ios::in | ios::binary);
-    IOHelperM<double>().D(&iS0).binary().IH(I).ID(I).ascii().OH(cout << "S0: ");
-    I.close();
+  matrices.io(((args_info.io_arg == io_arg_ba) ||
+	       (args_info.io_arg == io_arg_bb)),
+	      ((args_info.io_arg == io_arg_ab) ||
+	       (args_info.io_arg == io_arg_bb)));
+  matrices.input_prefix(iprefix);
+  matrices.output_prefix(oprefix);
+  for (int i=0; i<(int)args_info.ic_given; ++i) {
+    matrices.input_file(string(args_info.ic_arg[i]));
   }
+  if (args_info.oc_given>0) {
+    matrices.output_file(string(args_info.oc_arg));
+  }
+  for (int i=0; i+2<(int)args_info.ir_given; i=i+3) {
+    matrices.input_raw(string(args_info.ir_arg[i]),
+		       string(args_info.ir_arg[i+1]),
+		       string(args_info.ir_arg[i+2]));
+  }
+
+  if (!matrices.load("s0").active) {
+    cout << "Matrix s0 not active." << endl;
+  }
+  Matrix<double>& iS0 = matrices.DD("s0");
+
+  fmesh::constrListT cdt_boundary;
+  if (args_info.boundary_given) {
+    string b_name = string(args_info.boundary_arg[0]);
+    if (!matrices.load(b_name).active) {
+      cout << "Matrix "+b_name+" not found." << endl;
+    }
+    Matrix<int>& boundary0 = matrices.DI(b_name);
+    if (boundary0.cols()==1) {
+      int v0 = -1;
+      int v1 = -1;
+      for (int i=0; i < boundary0.rows(); i++) {
+	v0 = v1;
+	v1 = boundary0[i][0];
+	if ((v0>=0) && (v1>=0))
+	  cdt_boundary.push_back(fmesh::constrT(v0,v1));
+      }
+    }
+  }
+
+  fmesh::constrListT cdt_interior;
+  if (args_info.interior_given) {
+    string b_name = string(args_info.interior_arg[0]);
+    if (!matrices.load(b_name).active) {
+      cout << "Matrix "+b_name+" not found." << endl;
+    }
+    Matrix<int>& interior0 = matrices.DI(b_name);
+    if (interior0.cols()==1) {
+      int v0 = -1;
+      int v1 = -1;
+      for (int i=0; i < interior0.rows(); i++) {
+	v0 = v1;
+	v1 = interior0[i][0];
+	if ((v0>=0) && (v1>=0))
+	  cdt_interior.push_back(fmesh::constrT(v0,v1));
+      }
+    }
+  }
+
 
   /* Check the input. */
   if (iS0.cols()<2) {
@@ -280,6 +352,13 @@ int main(int argc, char* argv[])
   MC.CET(cet_sides,cet_margin);
   MC.DT(vertices);
 
+  if (cdt_interior.size()>0)
+    MC.CDTInterior(cdt_interior);
+  if (cdt_boundary.size()>0) {
+    MC.CDTBoundary(cdt_boundary);
+    MC.PruneExterior();
+  }
+
   if (args_info.rcdt_given) {
     /* Calculate the RCDT: */
     if (rcdt_big_limit<0.0)
@@ -289,31 +368,32 @@ int main(int argc, char* argv[])
 
   cout << "Final mesh:" << endl << M;
 
-  print_M(oprefix+"s",M.S());
-  print_M(oprefix+"tv",M.TV());
-  print_M(oprefix+"tt",M.TT());
-  M.useTTi(true);
-  print_M(oprefix+"tti",M.TTi());
-  print_SM(oprefix+"vv",M.VV());
-
   print_M_old(oprefix+"S.dat",M.S());
   print_M_old(oprefix+"FV.dat",M.TV(),false);
 
-  {
-    SparseMatrix<double> C0;
-    SparseMatrix<double> C1;
-    SparseMatrix<double> B1;
-    SparseMatrix<double> G;
-    SparseMatrix<double> K; /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
+  int fem_order_max = args_info.fem_arg;
+  if (fem_order_max>0) {
+    SparseMatrix<double>& C0 = matrices.SD("c0").clear();
+    SparseMatrix<double>& C1 = matrices.SD("c1").clear();
+    SparseMatrix<double>& B1 = matrices.SD("b1").clear();
+    SparseMatrix<double>& G  = matrices.SD("g1").clear();
+    SparseMatrix<double>& K  = matrices.SD("k1").clear();
+    /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
+
     M.calcQblocks(C0,C1,G,B1);
 
     K = G-B1;
 
-    print_SM(oprefix+"c0",C0,fmesh::IOMatrixtype_diagonal);
-    print_SM(oprefix+"c1",C1,fmesh::IOMatrixtype_symmetric);
-    print_SM(oprefix+"b1",B1,fmesh::IOMatrixtype_symmetric);
-    print_SM(oprefix+"g1",G,fmesh::IOMatrixtype_symmetric);
-    print_SM(oprefix+"k1",K,fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("c0",fmesh::IOMatrixtype_diagonal);
+    matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
+    matrices.output("c0");
+    matrices.output("c1");
+    matrices.output("b1");
+    matrices.output("g1");
+    matrices.output("k1");
 
     print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
     print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
@@ -321,26 +401,58 @@ int main(int argc, char* argv[])
 
     SparseMatrix<double> C0inv = inverse(C0,true);
     SparseMatrix<double> tmp = G*C0inv;
-    for (int i=0; i<3; i++) {
-      G = tmp*G;
+    SparseMatrix<double>* a;
+    SparseMatrix<double>* b = &G;
+    for (int i=1; i<fem_order_max; i++) {
       std::stringstream ss;
-      ss << i+2;
-      print_SM(oprefix+"g"+ss.str(),G,fmesh::IOMatrixtype_symmetric);
-      print_SM_old(oprefix+"G"+ss.str()+".dat",G,
+      ss << i+1;
+      std::string Gname = "g"+ss.str();
+      a = b;
+      b = &(matrices.SD(Gname).clear());
+      *b = tmp*(*a);
+      matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
+      matrices.output(Gname);
+
+      Gname = "G"+ss.str();
+      print_SM_old(oprefix+Gname+".dat",*b,
 		   false,fmesh::IOMatrixtype_symmetric);
     }
     tmp = C0inv*K;
-    for (int i=0; i<3; i++) {
-      K = K*tmp;
+    b = &K;
+    for (int i=1; i<fem_order_max; i++) {
       std::stringstream ss;
-      ss << i+2;
-      print_SM(oprefix+"k"+ss.str(),K,fmesh::IOMatrixtype_symmetric);
-      print_SM_old(oprefix+"K"+ss.str()+".dat",K,
+      ss << i+1;
+      std::string Kname = "k"+ss.str();
+      a = b;
+      b = &(matrices.SD(Kname).clear());
+      *b = (*a)*tmp;
+      matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
+      matrices.output(Kname);
+
+      Kname = "K"+ss.str();
+      print_SM_old(oprefix+Kname+".dat",*b,
 		   false,fmesh::IOMatrixtype_symmetric);
     }
 
-
   }
+
+
+  matrices.add("s",M.S());
+  matrices.add("tv",M.TV());
+  matrices.add("tt",M.TT());
+  M.useTTi(true);
+  matrices.add("tti",M.TT());
+  matrices.add("vv",M.VV());
+
+  matrices.output("s").output("tv");
+  matrices.output("tt").output("tti").output("vv");
+
+
+  for (int i=0; i<(int)args_info.collect_given; i++) {
+    matrices.output(string(args_info.collect_arg[i]));
+  }
+
+  matrices.save();
 
   cmdline_free(&args_info);
 

@@ -17,7 +17,9 @@
 #endif
 
 
+using std::ios;
 using std::cout;
+using std::cin;
 using std::endl;
 
 namespace fmesh {
@@ -34,6 +36,9 @@ namespace fmesh {
    //  /*! rowmajor/colmajor */
    //  enum Storagetype {Storagetype_rowmajor=0,
    //                    Storagetype_colmajor=1};
+
+
+  IOHeader::IOHeader() { def(); };
 
   IOHeader& IOHeader::def(const int& ref) {
     def();
@@ -57,6 +62,17 @@ namespace fmesh {
     valuetype = -1;
     matrixtype = -1;
     storagetype = IOStoragetype_rowmajor;
+    return *this;
+  }
+
+
+  IOHeader& IOHeader::collection(const MatrixC& C)
+  {
+    datatype = IODatatype_collection;
+    elems = C.output_size();
+    rows = -1;
+    cols = -1;
+    storagetype = -1;
     return *this;
   }
 
@@ -99,6 +115,495 @@ namespace fmesh {
     }
     return input;
   }
+
+
+
+
+  IOHelperC& IOHelperC::OL(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<int>::h_);
+    const bool& bin_(IOHelper<int>::binary_);
+    if ((h.elems==0) || (!cM_)) {
+      return *this;
+    }
+    if (bin_) {
+      NOT_IMPLEMENTED;
+    } else {
+      for (MatrixC::outputT::const_iterator outi = cM_->output_.begin();
+	   outi != cM_->output_.end();
+	   ++outi) {
+	output << *outi << std::endl;
+      }
+    }
+    return *this;
+  }
+
+  IOHelperC& IOHelperC::IL(std::istream& input)
+  {
+    const IOHeader& h(IOHelper<int>::h_);
+    const bool& bin_(IOHelper<int>::binary_);
+    if ((h.elems==0) || (!cM_)) {
+      return *this;
+    }
+    if (bin_) {
+      NOT_IMPLEMENTED;
+    } else {
+      std::string name;
+      for (int i=0; i<h.elems; i++) {
+	input >> name;
+	list_.push_back(name);
+      }
+    }
+    return *this;
+  }
+
+
+
+
+  IOHelperC& IOHelperC::OD(std::ostream& output)
+  {
+    const IOHeader& h(IOHelper<int>::h_);
+    const bool& bin_(IOHelper<int>::binary_);
+    if ((h.elems==0) || (!cM_)) {
+      return *this;
+    }
+    for (MatrixC::outputT::const_iterator outi = cM_->output_.begin();
+	 outi != cM_->output_.end();
+	 ++outi) {
+      const MCC& mcc = *(cM_->coll_.find(*outi)->second);
+      if (mcc.info.datatype == IODatatype_dense)
+	if (mcc.info.valuetype == IOValuetype_int) {
+	  IOHelperM<int> ioh;
+	  ioh.cD(&(mcc.DI())).matrixtype(mcc.info.matrixtype);
+	  ioh.binary(bin_).OH(output).OD(output);
+	} else {
+	  IOHelperM<double> ioh;
+	  ioh.cD(&mcc.DD()).matrixtype(mcc.info.matrixtype);
+	  ioh.binary(bin_).OH(output).OD(output);
+	}
+      else
+	if (mcc.info.valuetype == IOValuetype_int) {
+	  IOHelperSM<int> ioh;
+	  ioh.cD(&mcc.SI()).matrixtype(mcc.info.matrixtype);
+	  ioh.binary(bin_).OH(output).OD(output);
+	} else {
+	  IOHelperSM<double> ioh;
+	  ioh.cD(&mcc.SD()).matrixtype(mcc.info.matrixtype);
+	  ioh.binary(bin_).OH(output).OD(output);
+	}
+    }
+    return *this;
+  }
+  
+  IOHelperC& IOHelperC::ID(std::istream& input)
+  {
+    const IOHeader& h(IOHelper<int>::h_);
+    const bool& bin_(IOHelper<int>::binary_);
+    if ((!M_) || (h.elems==0)) {
+      return *this;
+    }
+    for (listT::iterator listi = list_.begin();
+	 listi != list_.end();
+	 ++listi) {
+
+      IOHelper<int> ioh_;
+      ioh_.binary(bin_).IH(input);
+
+      if (ioh_.h_.datatype == IODatatype_dense)
+	if (ioh_.h_.valuetype == IOValuetype_int) {
+	  IOHelperM<int> ioh;
+	  ioh.D(&(M_->DI(*listi)));
+	  ioh.binary(bin_).IH(ioh_.h_).ID(input);
+	} else {
+	  IOHelperM<double> ioh;
+	  ioh.D(&(M_->DD(*listi)));
+	  ioh.binary(bin_).IH(ioh_.h_).ID(input);
+	}
+      else
+	if (ioh_.h_.valuetype == IOValuetype_int) {
+	  IOHelperSM<int> ioh;
+	  ioh.D(&(M_->SI(*listi)));
+	  ioh.binary(bin_).IH(ioh_.h_).ID(input);
+	} else {
+	  IOHelperSM<double> ioh;
+	  ioh.D(&(M_->SD(*listi)));
+	  ioh.binary(bin_).IH(ioh_.h_).ID(input);
+	}
+    }
+    return *this;
+  }
+  
+
+
+
+
+  template <>
+  Matrix<int>& MatrixC::add(std::string name,
+			    const Matrix<int>& M,
+			    IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_dense,
+				   IOValuetype_int,
+				   matrixt)));
+    coll_[name]->DI() = M;
+    activate(name);
+    return coll_[name]->DI();
+  }
+  
+  template <>
+  Matrix<double>& MatrixC::add(std::string name,
+			       const Matrix<double>& M,
+			       IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_dense,
+				   IOValuetype_double,
+				   matrixt)));
+    coll_[name]->DD() = M;
+    activate(name);
+    return coll_[name]->DD();
+  }
+
+
+
+  template <>
+  SparseMatrix<int>& MatrixC::add(std::string name,
+				  const SparseMatrix<int>& M,
+				  IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_sparse,
+				   IOValuetype_int,
+				   matrixt)));
+    coll_[name]->SI() = M;
+    activate(name);
+    return coll_[name]->SI();
+  }
+  
+  template <>
+  SparseMatrix<double>& MatrixC::add(std::string name,
+				     const SparseMatrix<double>& M,
+				     IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_sparse,
+				   IOValuetype_double,
+				   matrixt)));
+    coll_[name]->SD() = M;
+    activate(name);
+    return coll_[name]->SD();
+  }
+
+  
+  bool MatrixC::activate(std::string name)
+  {
+    collT::iterator colli;
+    if ((colli = coll_.find(name)) == coll_.end()) {
+      return false;
+    }
+    colli->second->info.active = true;
+    return true;
+  }
+
+  void MatrixC::activate()
+  {
+    for (collT::iterator colli = coll_.begin();
+	 colli != coll_.end();
+	 ++colli) {
+      colli->second->info.active = true;
+    }
+  }
+
+  void MatrixC::load_file(std::string filename, bool only_list)
+  {
+    IOHelperC ioh;
+    if (filename=="-") {
+      /* Can only read stdin once, so read everything now. */
+      ioh.D(this);
+      ioh.binary(bin_in_).IH(std::cin).IL(std::cin).ID(std::cin);
+    } else {
+      std::ifstream I;
+      I.open(filename.c_str(),
+	     (bin_in_ ? (ios::in | ios::binary) : ios::in));
+      ioh.D(this);
+      ioh.binary(bin_in_).IH(I).IL(I);
+      if (!only_list)
+	ioh.ID(I);
+      I.close();
+    }
+
+    /* Populate source_ */
+    for (IOHelperC::listT::const_iterator listi = ioh.list_.begin();
+	 listi != ioh.list_.end();
+	 ++listi) {
+      source_[(*listi)] = filename;
+    }
+  }
+
+  MCCInfo MatrixC::load(std::string name)
+  {
+    /* Is the matrix already loaded? */
+    if (activate(name))
+      return info(name);
+
+    sourceT::const_iterator sourcei;
+    if ((sourcei = source_.find(name)) != source_.end()) {
+      /* The matrix is in a collection file */
+      load_file(sourcei->second);
+      if (activate(name))
+	return info(name);
+    }
+
+    /* Do we have a prefix to read from? */
+    if (input_prefix_ == "-")
+      return info(name);
+
+    /* Try to read from prefix data. */
+    
+    std::ifstream I;
+    I.open((input_prefix_+name).c_str(),
+	   (bin_in_ ? (ios::in | ios::binary) : ios::in));
+    // TODO: Add test for success/failure.
+    //    {
+    //      return info(name)
+    //    }
+    IOHelper<int> ioh_;
+    ioh_.binary(bin_in_).IH(I);
+    I.close();
+
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype(ioh_.h_.datatype),
+				   IOValuetype(ioh_.h_.valuetype),
+				   IOMatrixtype(ioh_.h_.matrixtype))));
+    activate(name);
+
+    I.open((input_prefix_+name).c_str(),
+	   (bin_in_ ? (ios::in | ios::binary) : ios::in));
+    if (ioh_.h_.datatype == IODatatype_dense)
+      if (ioh_.h_.valuetype == IOValuetype_int) {
+	IOHelperM<int> ioh;
+	ioh.D(&DI(name));
+	ioh.binary(bin_in_).IH(I);
+	ioh.ID(I);
+      } else {
+	IOHelperM<double> ioh;
+	ioh.D(&DD(name));
+	ioh.binary(bin_in_).IH(I).ID(I);
+      }
+    else
+      if (ioh_.h_.valuetype == IOValuetype_int) {
+	IOHelperSM<int> ioh;
+	ioh.D(&SI(name));
+	ioh.binary(bin_in_).IH(I).ID(I);
+      } else {
+	IOHelperSM<double> ioh;
+	ioh.D(&SD(name));
+	ioh.binary(bin_in_).IH(I).ID(I);
+      }
+    I.close();
+
+    return info(name);
+  }
+
+  MatrixC& MatrixC::free(std::string name)
+  {
+    dont_output(name);
+    
+    collT::iterator colli;
+    if ((colli = coll_.find(name)) != coll_.end()) {
+      delete colli->second;
+      coll_.erase(colli);
+    }
+    return *this;
+  }
+
+  MatrixC& MatrixC::dont_output(std::string name)
+  {
+    outputT::iterator outi;
+    if ((outi = output_.find(name)) != output_.end()) {
+      output_.erase(outi);
+    }
+    return *this;
+  }
+
+  MatrixC& MatrixC::output(std::string name)
+  {
+    if (name=="-") {
+      output_all_ = true;
+      for (collT::iterator colli = coll_.begin();
+	   colli != coll_.end();
+	   ++colli) {
+	if (colli->second->info.active)
+	  output_.insert(colli->first);
+      }
+    } else {
+      if (info(name).loaded) {
+	activate(name);
+	if (output_all_) {
+	  output_all_ = false;
+	  output_.clear();
+	}
+	output_.insert(name);
+      }
+    }
+    return *this;
+  }
+
+
+
+
+  void MatrixC::io(bool bin_in, bool bin_out)
+  {
+    bin_in_ = bin_in;
+    bin_out_ = bin_out;
+  }
+
+  void MatrixC::input_prefix(std::string prefix)
+  {
+    input_prefix_ = prefix;
+  }
+
+  void MatrixC::output_prefix(std::string prefix)
+  {
+    output_prefix_ = prefix;
+  }
+
+  void MatrixC::input_file(std::string filename)
+  {
+    load_file(filename,true);
+  }
+  void MatrixC::output_file(std::string filename)
+  {
+    output_file_ = filename;
+  }
+
+  void MatrixC::input_raw(std::string name,
+		 std::string specification,
+		 std::string filename)
+  {
+    /* Parse raw ascii matrix data and add to collection. */    
+    NOT_IMPLEMENTED;
+  }
+
+
+
+  void MatrixC::save()
+  {
+   /* Write the matrix collection to output */
+    if (output_prefix_ != "-") {
+      for (outputT::const_iterator outi = output_.begin();
+	   outi != output_.end();
+	   ++outi) {
+	MCC& mcc = *(coll_.find(*outi)->second); 
+	if (mcc.info.datatype == IODatatype_dense)
+	  if (mcc.info.valuetype == IOValuetype_int)
+	    save_M((output_prefix_+(*outi)),mcc.DI(),mcc.info,bin_out_);
+	  else
+	    save_M((output_prefix_+(*outi)),mcc.DD(),mcc.info,bin_out_);
+	else
+	  if (mcc.info.valuetype == IOValuetype_int)
+	    save_SM((output_prefix_+(*outi)),mcc.SI(),mcc.info,bin_out_);
+	  else
+	    save_SM((output_prefix_+(*outi)),mcc.SD(),mcc.info,bin_out_);
+      }
+    }
+    if (output_file_ != "") {
+      if (output_file_ == "-") {
+	IOHelperC ioh;
+	ioh.cD(this);
+	ioh.binary(bin_out_).OH(std::cout).OL(std::cout).OD(std::cout);
+      } else {
+	std::ofstream O;
+	O.open(output_file_.c_str(),
+	       (bin_out_ ? (ios::out | ios::binary) : ios::out));
+	IOHelperC ioh;
+	ioh.cD(this);
+	ioh.binary(bin_out_).OH(O).OL(O).OD(O);
+	O.close();
+      }
+    }
+  }
+
+
+
+
+
+
+
+  Matrix<int>& MatrixC::DI(std::string name)
+  {
+    collT::iterator colli;
+    if (((colli = coll_.find(name)) != coll_.end()) &&
+	(colli->second->info.datatype == IODatatype_dense) &&
+	(colli->second->info.valuetype == IOValuetype_int) &&
+	(colli->second->info.active)) {
+      return colli->second->DI();
+    }
+    return add(name,Matrix<int>());
+  }
+
+  Matrix<double>& MatrixC::DD(std::string name)
+  {
+    collT::iterator colli;
+    if (((colli = coll_.find(name)) != coll_.end()) &&
+	(colli->second->info.datatype == IODatatype_dense) &&
+	(colli->second->info.valuetype == IOValuetype_double) &&
+	(colli->second->info.active)) {
+      return colli->second->DD();
+    }
+    return add(name,Matrix<double>());
+  }
+
+  SparseMatrix<int>& MatrixC::SI(std::string name)
+  {
+    collT::iterator colli;
+    if (((colli = coll_.find(name)) != coll_.end()) &&
+	(colli->second->info.datatype == IODatatype_sparse) &&
+	(colli->second->info.valuetype == IOValuetype_int) &&
+	(colli->second->info.active)) {
+      return colli->second->SI();
+    }
+    return add(name,SparseMatrix<int>());
+  }
+
+  SparseMatrix<double>& MatrixC::SD(std::string name)
+  {
+    collT::iterator colli;
+    if (((colli = coll_.find(name)) != coll_.end()) &&
+	(colli->second->info.datatype == IODatatype_sparse) &&
+	(colli->second->info.valuetype == IOValuetype_double) &&
+	(colli->second->info.active)) {
+      return colli->second->SD();
+    }
+    return add(name,SparseMatrix<double>());
+  }
+
+
+  
+  void MatrixC::matrixtype(std::string name, IOMatrixtype matrixt)
+  {
+    collT::iterator colli;
+    if ((colli = coll_.find(name)) != coll_.end())
+      colli->second->info.matrixtype = matrixt;
+  }
+
+  MCCInfo MatrixC::info(std::string name) const
+  {
+    collT::const_iterator colli;
+    if ((colli = coll_.find(name)) == coll_.end()) {
+      return MCCInfo();
+    }
+    return colli->second->info;
+  }
+
+
+
+
 
 
 } /* namespace fmesh */
