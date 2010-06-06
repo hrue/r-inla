@@ -31,17 +31,64 @@ extern "C" {
 
 #ifndef CMDLINE_VERSION
 /** @brief the program version */
-#define CMDLINE_VERSION "0.0.1-1"
+#define CMDLINE_VERSION "unknown"
 #endif
+
+enum enum_io { io_arg_aa = 0 , io_arg_ab, io_arg_ba, io_arg_bb };
 
 /** @brief Where the command line options are stored */
 struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
+  const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  char * config_arg;	/**< @brief Path to config file.  */
-  char * config_orig;	/**< @brief Path to config file original value given at command line.  */
-  const char *config_help; /**< @brief Path to config file help description.  */
+  char * config_arg;	/**< @brief Read options from file.  */
+  char * config_orig;	/**< @brief Read options from file original value given at command line.  */
+  const char *config_help; /**< @brief Read options from file help description.  */
+  char * save_config_arg;	/**< @brief Save options to file.  */
+  char * save_config_orig;	/**< @brief Save options to file original value given at command line.  */
+  const char *save_config_help; /**< @brief Save options to file help description.  */
+  enum enum_io io_arg;	/**< @brief I/O format specification (ascii/binary) (default='bb').  */
+  char * io_orig;	/**< @brief I/O format specification (ascii/binary) original value given at command line.  */
+  const char *io_help; /**< @brief I/O format specification (ascii/binary) help description.  */
+  char * ip_arg;	/**< @brief Read input from multiple files with the given prefix.  */
+  char * ip_orig;	/**< @brief Read input from multiple files with the given prefix original value given at command line.  */
+  const char *ip_help; /**< @brief Read input from multiple files with the given prefix help description.  */
+  char * op_arg;	/**< @brief Write output to multiple files with the given prefix.  */
+  char * op_orig;	/**< @brief Write output to multiple files with the given prefix original value given at command line.  */
+  const char *op_help; /**< @brief Write output to multiple files with the given prefix help description.  */
+  char ** ic_arg;	/**< @brief Read input as matrix collections in the given files.  */
+  char ** ic_orig;	/**< @brief Read input as matrix collections in the given files original value given at command line.  */
+  unsigned int ic_min; /**< @brief Read input as matrix collections in the given files's minimum occurreces */
+  unsigned int ic_max; /**< @brief Read input as matrix collections in the given files's maximum occurreces */
+  const char *ic_help; /**< @brief Read input as matrix collections in the given files help description.  */
+  char * oc_arg;	/**< @brief Write output as a matrix collection in the given file.  */
+  char * oc_orig;	/**< @brief Write output as a matrix collection in the given file original value given at command line.  */
+  const char *oc_help; /**< @brief Write output as a matrix collection in the given file help description.  */
+  char ** collect_arg;	/**< @brief Add named matrices to the output collection (default='-').  */
+  char ** collect_orig;	/**< @brief Add named matrices to the output collection original value given at command line.  */
+  unsigned int collect_min; /**< @brief Add named matrices to the output collection's minimum occurreces */
+  unsigned int collect_max; /**< @brief Add named matrices to the output collection's maximum occurreces */
+  const char *collect_help; /**< @brief Add named matrices to the output collection help description.  */
+  int collect_all_flag;	/**< @brief With --collect=-, load all matrices from the input collections (default=off).  */
+  const char *collect_all_help; /**< @brief With --collect=-, load all matrices from the input collections help description.  */
+  char ** ir_arg;	/**< @brief Import a raw matrix file in ascii format.  */
+  char ** ir_orig;	/**< @brief Import a raw matrix file in ascii format original value given at command line.  */
+  unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
+  unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
+  const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
+  int have_triangulation_flag;	/**< @brief The input already contains a triangulation (default=off).  */
+  const char *have_triangulation_help; /**< @brief The input already contains a triangulation help description.  */
+  double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
+  char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
+  unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
+  unsigned int cet_max; /**< @brief Convex encapsulation parameters's maximum occurreces */
+  const char *cet_help; /**< @brief Convex encapsulation parameters help description.  */
+  double* rcdt_arg;	/**< @brief Generate RCDT, with optional quality parameters (default='21').  */
+  char ** rcdt_orig;	/**< @brief Generate RCDT, with optional quality parameters original value given at command line.  */
+  unsigned int rcdt_min; /**< @brief Generate RCDT, with optional quality parameters's minimum occurreces */
+  unsigned int rcdt_max; /**< @brief Generate RCDT, with optional quality parameters's maximum occurreces */
+  const char *rcdt_help; /**< @brief Generate RCDT, with optional quality parameters help description.  */
   int boundary_flag;	/**< @brief Handle triangulation boundary (default=off).  */
   const char *boundary_help; /**< @brief Handle triangulation boundary help description.  */
   int interior_flag;	/**< @brief Handle interior triangulation constraints (default=off).  */
@@ -49,38 +96,30 @@ struct gengetopt_args_info
   int fem_arg;	/**< @brief Calculate FEM matrices up to order fem (default='4').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up to order fem original value given at command line.  */
   const char *fem_help; /**< @brief Calculate FEM matrices up to order fem help description.  */
-  double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
-  char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
-  unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
-  unsigned int cet_max; /**< @brief Convex encapsulation parameters's maximum occurreces */
-  const char *cet_help; /**< @brief Convex encapsulation parameters help description.  */
-  double* rcdt_arg;	/**< @brief RCDT, with optional quality parameters.  */
-  char ** rcdt_orig;	/**< @brief RCDT, with optional quality parameters original value given at command line.  */
-  unsigned int rcdt_min; /**< @brief RCDT, with optional quality parameters's minimum occurreces */
-  unsigned int rcdt_max; /**< @brief RCDT, with optional quality parameters's maximum occurreces */
-  const char *rcdt_help; /**< @brief RCDT, with optional quality parameters help description.  */
   double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
   char * x11_orig;	/**< @brief Show progress in an x11 window, with delay factor original value given at command line.  */
   const char *x11_help; /**< @brief Show progress in an x11 window, with delay factor help description.  */
-  int __ascii_input_flag;	/**< @brief Text file input (default=off).  */
-  const char *__ascii_input_help; /**< @brief Text file input help description.  */
-  int __ascii_output_flag;	/**< @brief Text file output (default=off).  */
-  const char *__ascii_output_help; /**< @brief Text file output help description.  */
-  int have_triangulation_flag;	/**< @brief The input already contains a tringulation (default=off).  */
-  const char *have_triangulation_help; /**< @brief The input already contains a tringulation help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
+  unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int config_given ;	/**< @brief Whether config was given.  */
+  unsigned int save_config_given ;	/**< @brief Whether save-config was given.  */
+  unsigned int io_given ;	/**< @brief Whether io was given.  */
+  unsigned int ip_given ;	/**< @brief Whether ip was given.  */
+  unsigned int op_given ;	/**< @brief Whether op was given.  */
+  unsigned int ic_given ;	/**< @brief Whether ic was given.  */
+  unsigned int oc_given ;	/**< @brief Whether oc was given.  */
+  unsigned int collect_given ;	/**< @brief Whether collect was given.  */
+  unsigned int collect_all_given ;	/**< @brief Whether collect-all was given.  */
+  unsigned int ir_given ;	/**< @brief Whether ir was given.  */
+  unsigned int have_triangulation_given ;	/**< @brief Whether have-triangulation was given.  */
+  unsigned int cet_given ;	/**< @brief Whether cet was given.  */
+  unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
-  unsigned int cet_given ;	/**< @brief Whether cet was given.  */
-  unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
   unsigned int x11_given ;	/**< @brief Whether x11 was given.  */
-  unsigned int __ascii_input_given ;	/**< @brief Whether --ascii-input was given.  */
-  unsigned int __ascii_output_given ;	/**< @brief Whether --ascii-output was given.  */
-  unsigned int have_triangulation_given ;	/**< @brief Whether have-triangulation was given.  */
 
   char **inputs ; /**< @brief unamed options (options without names) */
   unsigned inputs_num ; /**< @brief unamed options number */
@@ -102,6 +141,8 @@ extern const char *gengetopt_args_info_purpose;
 extern const char *gengetopt_args_info_usage;
 /** @brief all the lines making the help output */
 extern const char *gengetopt_args_info_help[];
+/** @brief all the lines making the detailed help output (including hidden options and details) */
+extern const char *gengetopt_args_info_detailed_help[];
 
 /**
  * The command line parser
@@ -163,6 +204,10 @@ int cmdline_file_save(const char *filename,
  * Print the help
  */
 void cmdline_print_help(void);
+/**
+ * Print the detailed help (including hidden options and details)
+ */
+void cmdline_print_detailed_help(void);
 /**
  * Print the version
  */
@@ -229,6 +274,8 @@ int cmdline_config_file (const char *filename,
  */
 int cmdline_required (struct gengetopt_args_info *args_info,
   const char *prog_name);
+
+extern const char *cmdline_io_values[];  /**< @brief Possible values for io. */
 
 
 #ifdef __cplusplus
