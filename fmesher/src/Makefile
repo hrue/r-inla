@@ -1,7 +1,7 @@
 OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o
-FLAGS = -g -Wall
+FLAGS = -g -Wall -DCMDLINE_VERSION="\"0.0.1\""
 CFLAGS = $(FLAGS)
-CXXFLAGS = -g -Wall
+CXXFLAGS = $(FLAGS)
 #CXXFLAGS = -g -Wall -DDEBUG
 LDFLAGS = -lX11
 CC = gcc
@@ -27,9 +27,9 @@ main: $(OBJ) Makefile main.o
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.o -o main
 
 cmdline:
-	gengetopt --file-name=cmdline --conf-parser --unamed-opts --func-name=cmdline < cmdline.ggo	
+	gengetopt --file-name=cmdline --conf-parser --unamed-opts --long-help --func-name=cmdline < cmdline.ggo	
 
 clean :;
-	rm $(ALL) *.o
+	-rm $(ALL) *.o
 
 .PHONY : clean cmdline
