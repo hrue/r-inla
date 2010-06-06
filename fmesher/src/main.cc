@@ -18,6 +18,8 @@ using fmesh::IOHelper;
 using fmesh::IOHelperM;
 using fmesh::IOHelperSM;
 using fmesh::Matrix;
+using fmesh::Matrix1;
+using fmesh::Matrix1int;
 using fmesh::Matrix3;
 using fmesh::Matrix3int;
 using fmesh::Matrix3double;
@@ -595,14 +597,6 @@ int koala_test()
   if (useX11)
     M.useX11(true,useX11text,500,500,-440,4400+440,-400-240,4000+400+240);
 
-  {
-    std::ofstream F("ex.koala.io.s0", ios::out | ios::binary);
-    Matrix3double FM(n,S);
-    FM.append(Matrix3double(nb,Sb));
-    fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
-    F.close();
-  }
-
   M.S_set(Matrix3double(n,S));
   M.S_append(Matrix3double(nb,Sb));
 
@@ -624,6 +618,28 @@ int koala_test()
     vertices.push_back(n+v);
   MC.DT(vertices);
   cout << MC;
+
+  {
+    Matrix1<int> bnd;
+    for (v=0;v<nb;v++)
+      bnd(v) = n+v;
+    bnd(nb) = n;
+
+    {
+      std::ofstream F("ex.koala.io.s0", ios::out | ios::binary);
+      Matrix3double FM(n,S);
+      FM.append(Matrix3double(nb,Sb));
+      fmesh::IOHelperM<double>().cD(&FM).binary().OH(F).OD(F);
+      F.close();
+    }
+
+    {
+      std::ofstream F("ex.koala.io.bnd0", ios::out | ios::binary);
+      fmesh::IOHelperM<int>().cD(&bnd).binary().OH(F).OD(F);
+      F.close();
+    }
+
+  }
 
   fmesh::constrListT cinp;
   for (v=0;v<nb-1;v++)

@@ -45,18 +45,12 @@ struct gengetopt_args_info
   char * config_arg;	/**< @brief Read options from file.  */
   char * config_orig;	/**< @brief Read options from file original value given at command line.  */
   const char *config_help; /**< @brief Read options from file help description.  */
-  char * save_config_arg;	/**< @brief Save options to file.  */
-  char * save_config_orig;	/**< @brief Save options to file original value given at command line.  */
-  const char *save_config_help; /**< @brief Save options to file help description.  */
+  char * dump_config_arg;	/**< @brief Dump options to file.  */
+  char * dump_config_orig;	/**< @brief Dump options to file original value given at command line.  */
+  const char *dump_config_help; /**< @brief Dump options to file help description.  */
   enum enum_io io_arg;	/**< @brief I/O format specification (ascii/binary) (default='bb').  */
   char * io_orig;	/**< @brief I/O format specification (ascii/binary) original value given at command line.  */
   const char *io_help; /**< @brief I/O format specification (ascii/binary) help description.  */
-  char * ip_arg;	/**< @brief Read input from multiple files with the given prefix.  */
-  char * ip_orig;	/**< @brief Read input from multiple files with the given prefix original value given at command line.  */
-  const char *ip_help; /**< @brief Read input from multiple files with the given prefix help description.  */
-  char * op_arg;	/**< @brief Write output to multiple files with the given prefix.  */
-  char * op_orig;	/**< @brief Write output to multiple files with the given prefix original value given at command line.  */
-  const char *op_help; /**< @brief Write output to multiple files with the given prefix help description.  */
   char ** ic_arg;	/**< @brief Read input as matrix collections in the given files.  */
   char ** ic_orig;	/**< @brief Read input as matrix collections in the given files original value given at command line.  */
   unsigned int ic_min; /**< @brief Read input as matrix collections in the given files's minimum occurreces */
@@ -77,8 +71,11 @@ struct gengetopt_args_info
   unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
   unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
   const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
-  int have_triangulation_flag;	/**< @brief The input already contains a triangulation (default=off).  */
-  const char *have_triangulation_help; /**< @brief The input already contains a triangulation help description.  */
+  char ** have_mesh_arg;	/**< @brief The input already contains a triangulation mesh (s,tv).  */
+  char ** have_mesh_orig;	/**< @brief The input already contains a triangulation mesh (s,tv) original value given at command line.  */
+  unsigned int have_mesh_min; /**< @brief The input already contains a triangulation mesh (s,tv)'s minimum occurreces */
+  unsigned int have_mesh_max; /**< @brief The input already contains a triangulation mesh (s,tv)'s maximum occurreces */
+  const char *have_mesh_help; /**< @brief The input already contains a triangulation mesh (s,tv) help description.  */
   double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
   char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
   unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
@@ -89,11 +86,17 @@ struct gengetopt_args_info
   unsigned int rcdt_min; /**< @brief Generate RCDT, with optional quality parameters's minimum occurreces */
   unsigned int rcdt_max; /**< @brief Generate RCDT, with optional quality parameters's maximum occurreces */
   const char *rcdt_help; /**< @brief Generate RCDT, with optional quality parameters help description.  */
-  int boundary_flag;	/**< @brief Handle triangulation boundary (default=off).  */
+  char ** boundary_arg;	/**< @brief Handle triangulation boundary (default='boundary0').  */
+  char ** boundary_orig;	/**< @brief Handle triangulation boundary original value given at command line.  */
+  unsigned int boundary_min; /**< @brief Handle triangulation boundary's minimum occurreces */
+  unsigned int boundary_max; /**< @brief Handle triangulation boundary's maximum occurreces */
   const char *boundary_help; /**< @brief Handle triangulation boundary help description.  */
-  int interior_flag;	/**< @brief Handle interior triangulation constraints (default=off).  */
-  const char *interior_help; /**< @brief Handle interior triangulation constraints help description.  */
-  int fem_arg;	/**< @brief Calculate FEM matrices up to order fem (default='4').  */
+  char ** interior_arg;	/**< @brief Handle interior constraints (default='interior0').  */
+  char ** interior_orig;	/**< @brief Handle interior constraints original value given at command line.  */
+  unsigned int interior_min; /**< @brief Handle interior constraints's minimum occurreces */
+  unsigned int interior_max; /**< @brief Handle interior constraints's maximum occurreces */
+  const char *interior_help; /**< @brief Handle interior constraints help description.  */
+  int fem_arg;	/**< @brief Calculate FEM matrices up to order fem (default='2').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up to order fem original value given at command line.  */
   const char *fem_help; /**< @brief Calculate FEM matrices up to order fem help description.  */
   double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
@@ -104,16 +107,14 @@ struct gengetopt_args_info
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int config_given ;	/**< @brief Whether config was given.  */
-  unsigned int save_config_given ;	/**< @brief Whether save-config was given.  */
+  unsigned int dump_config_given ;	/**< @brief Whether dump-config was given.  */
   unsigned int io_given ;	/**< @brief Whether io was given.  */
-  unsigned int ip_given ;	/**< @brief Whether ip was given.  */
-  unsigned int op_given ;	/**< @brief Whether op was given.  */
   unsigned int ic_given ;	/**< @brief Whether ic was given.  */
   unsigned int oc_given ;	/**< @brief Whether oc was given.  */
   unsigned int collect_given ;	/**< @brief Whether collect was given.  */
   unsigned int collect_all_given ;	/**< @brief Whether collect-all was given.  */
   unsigned int ir_given ;	/**< @brief Whether ir was given.  */
-  unsigned int have_triangulation_given ;	/**< @brief Whether have-triangulation was given.  */
+  unsigned int have_mesh_given ;	/**< @brief Whether have-mesh was given.  */
   unsigned int cet_given ;	/**< @brief Whether cet was given.  */
   unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */

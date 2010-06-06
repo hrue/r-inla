@@ -24,9 +24,17 @@
 
 namespace fmesh {
 
+  class MatrixC;
+  class IOHeader;
+  template <class T> class IOHelper;
+  template <class T> class IOHelperM;
+  template <class T> class IOHelperSM;
+  class IOHelperC;
+
   /*! dense/sparse/map */
   enum IODatatype {IODatatype_dense=0,
-		   IODatatype_sparse=1};
+		   IODatatype_sparse=1,
+		   IODatatype_collection=2};
   /*! int/double */
   enum IOValuetype {IOValuetype_int=0,
 		    IOValuetype_double=1};
@@ -60,6 +68,7 @@ namespace fmesh {
     IOHeader& def(const T& ref);
     IOHeader& def(const int& ref);
     IOHeader& def(const double& ref);
+    IOHeader& def(const MatrixC& ref);
     IOHeader& def();
     /* Default values: */
     template <class T>
@@ -68,10 +77,12 @@ namespace fmesh {
     template <class T>
     IOHeader& sparse(const SparseMatrix<T>& M,
 		     IOMatrixtype matrixt = IOMatrixtype_general);
+    IOHeader& collection(const MatrixC& C);
     
     /* Constructor, that sets the valuetype matching T: */
     template <class T>
     IOHeader(const T& ref);
+    IOHeader();
   };
 
 
@@ -230,9 +241,15 @@ namespace fmesh {
 
     /* Overloaded from IOHelper: */
     IOHelperSM<T>& ascii(bool set_ascii = true) {
-      IOHelper<T>::ascii(set_ascii); return *this; };
+      binary(!set_ascii); return *this; };
     IOHelperSM<T>& binary(bool set_binary = true) {
-      IOHelper<T>::binary(set_binary); return *this; };
+      IOHelper<T>::binary(set_binary);
+      if (set_binary)
+	colmajor();
+      else
+	rowmajor();
+      return *this;
+    };
     IOHelperSM<T>& general() { return matrixtype(IOMatrixtype_general); };
     IOHelperSM<T>& symmetric() { return matrixtype(IOMatrixtype_symmetric); };
     IOHelperSM<T>& diagonal() { return matrixtype(IOMatrixtype_diagonal); };
@@ -250,6 +267,193 @@ namespace fmesh {
       IOHelper<T>::IH(h); return *this; };
   };
 
+
+  /*! Helper for MatrixC input and output. */
+  class IOHelperC : public IOHelper<int> {
+  public:
+    typedef std::vector<std::string> listT;
+    const MatrixC *cM_;
+    MatrixC *M_;
+    listT list_;
+  public:
+    /* Constructors: */
+    IOHelperC() : IOHelper<int>(IOHeader()) {};
+    IOHelperC(const IOHeader& h) : IOHelper<int>(h) {};
+    IOHelperC& cD(const MatrixC* M) {
+      cM_ = M;
+      M_ = NULL;
+      IOHelper<int>::h_.collection(*M);
+      return *this;
+    };
+    IOHelperC& D(MatrixC* M)
+    {
+      cM_ = M;
+      M_ = M;
+      IOHelper<int>::h_.collection(*M);
+      return *this;
+    };
+
+    /* Output/Input: */
+    IOHelperC& OL(std::ostream& output);
+    IOHelperC& IL(std::istream& input);
+    IOHelperC& OD(std::ostream& output);
+    IOHelperC& ID(std::istream& input);
+
+    /* Overloaded from IOHelper: */
+    IOHelperC& ascii(bool set_ascii = true) {
+      IOHelper<int>::ascii(set_ascii); return *this; };
+    IOHelperC& binary(bool set_binary = true) {
+      IOHelper<int>::binary(set_binary); return *this; };
+    IOHelperC& OH(std::ostream& output) {
+      IOHelper<int>::OH(output); return *this; };
+    IOHelperC& IH(std::istream& input) {
+      IOHelper<int>::IH(input); return *this; };
+    IOHelperC& IH(const IOHeader& h) {
+      IOHelper<int>::IH(h); return *this; };
+  };
+
+
+  class MCCInfo {
+  public:
+    bool loaded;
+    bool active;
+    IODatatype datatype;
+    IOValuetype valuetype;
+    IOMatrixtype matrixtype;
+
+    MCCInfo()
+      : loaded(false), active(false),
+	datatype(IODatatype_dense), valuetype(IOValuetype_int),
+	matrixtype(IOMatrixtype_general) {};
+    MCCInfo(bool load, bool act,
+	    IODatatype data, IOValuetype value, IOMatrixtype matrixt)
+      : loaded(load), active(act),
+	datatype(data), valuetype(value), matrixtype(matrixt) {};
+  };
+
+  class MCC {
+    friend class MatrixC;
+  public:
+    MCCInfo info;
+  protected:
+    Matrix<int>* DI_;
+    Matrix<double>* DD_;
+    SparseMatrix<int>* SI_;
+    SparseMatrix<double>* SD_;
+  public:
+
+    MCC() : info(false,false,
+		 IODatatype_dense,IOValuetype_int,IOMatrixtype_general),
+	    DI_(NULL), DD_(NULL), SI_(NULL), SD_(NULL) {};
+    MCC(IODatatype data, IOValuetype value, IOMatrixtype matrixt)
+      : info(true,false,data,value,matrixt),
+	DI_(NULL), DD_(NULL), SI_(NULL), SD_(NULL) {
+      if (info.datatype==IODatatype_dense)
+	if (info.valuetype==IOValuetype_int)
+	  DI_ = new Matrix<int>();
+	else
+	  DD_ = new Matrix<double>();
+      else
+	if (info.valuetype==IOValuetype_int)
+	  SI_ = new SparseMatrix<int>();
+	else
+	  SD_ = new SparseMatrix<double>();
+    };
+    ~MCC() {
+      if (DI_) delete DI_;
+      if (DD_) delete DD_;
+      if (SI_) delete SI_;
+      if (SD_) delete SD_;
+    };
+
+    Matrix<int>& DI() { return *DI_; };
+    Matrix<double>& DD() { return *DD_; };
+    SparseMatrix<int>& SI() { return *SI_; };
+    SparseMatrix<double>& SD() { return *SD_; };
+    const Matrix<int>& DI() const { return *DI_; };
+    const Matrix<double>& DD() const { return *DD_; };
+    const SparseMatrix<int>& SI() const { return *SI_; };
+    const SparseMatrix<double>& SD() const { return *SD_; };
+  };
+
+  class MatrixC {
+    friend class IOHelperC;
+    typedef std::pair<std::string, MCC* > collPairT;
+    typedef std::map<std::string, MCC* > collT;
+    typedef std::set<std::string> outputT;
+    typedef std::map<std::string, std::string> sourceT;
+
+    collT coll_; /* name --> matrixdata */
+    bool output_all_;
+    outputT output_; /* names */
+    bool bin_in_;
+    bool bin_out_;
+    sourceT source_; /* name --> filename */
+    std::string input_prefix_;
+    std::string output_prefix_;
+    std::string output_file_;
+  public:
+    MatrixC() : output_all_(false), bin_in_(true), bin_out_(true),
+		input_prefix_("-"), output_prefix_("-"),
+		output_file_("") {};
+    ~MatrixC() {
+      for (collT::iterator colli = coll_.begin();
+	   colli != coll_.end();
+	   ++colli) {
+	delete colli->second;
+      }
+    };
+
+    int output_size() const { return output_.size(); }
+    MatrixC& dont_output(std::string name);
+    MatrixC& output(std::string name);
+
+    void io(bool bin_in, bool bin_out);
+    void input_prefix(std::string prefix);
+    void output_prefix(std::string prefix);
+    void input_file(std::string filename);
+    void output_file(std::string filename);
+    void input_raw(std::string name,
+		   std::string specification,
+		   std::string filename);
+    void save();
+
+    void load_file(std::string filename, bool only_list = false);
+
+    /*! Activate all loaded matrices */
+    void activate();
+    /*! Activate if loaded */
+    bool activate(std::string name);
+    /*! Load and activate */
+    MCCInfo load(std::string name);
+
+    /*! Add and activate */
+    template <class T>
+    Matrix<T>& add(std::string name, const Matrix<T>& M,
+		   IOMatrixtype matrixt = IOMatrixtype_general);
+    template <class T>
+    Matrix<T>& add(std::string name, const Matrix1<T>& M,
+		   IOMatrixtype matrixt = IOMatrixtype_general);
+    template <class T>
+    Matrix<T>& add(std::string name, const Matrix3<T>& M,
+		   IOMatrixtype matrixt = IOMatrixtype_general);
+    template <class T>
+    SparseMatrix<T>& add(std::string name,
+			 const SparseMatrix<T>& M,
+			 IOMatrixtype matrixt = IOMatrixtype_general);
+
+    MatrixC& free(std::string name);
+
+    Matrix<int>& DI(std::string name);
+    Matrix<double>& DD(std::string name);
+    SparseMatrix<int>& SI(std::string name);
+    SparseMatrix<double>& SD(std::string name);
+
+    void matrixtype(std::string name, IOMatrixtype matrixt);
+
+    MCCInfo info(std::string name) const;
+
+  };
 
 
 
