@@ -130,9 +130,12 @@ int main(int argc, char* argv[])
     }
   }
 
+  cmdline_dump(stdout,&args_info);
+  return 0;
+
   int cet_sides = 8;
   double cet_margin = -0.05;
-  if ((args_info.cet_given>0) && (args_info.cet_arg[0] != 0))
+  if (args_info.cet_given>0)
     cet_sides = args_info.cet_arg[0];
   if (args_info.cet_given>1)
     cet_margin = args_info.cet_arg[1];
@@ -151,8 +154,16 @@ int main(int argc, char* argv[])
   x11_delay_factor = args_info.x11_arg;
 
   cout << "CET given:\t" << args_info.cet_given << endl;
-  cout << "RCDT given:\t" << args_info.rcdt_given << endl;
-  cout << "X11 given:\t" << args_info.x11_given << endl;
+  cout << "RCDT given:\t"
+       << args_info.rcdt_given << " "
+       << args_info.rcdt_min << " "
+       << args_info.rcdt_max << " "
+       << args_info.rcdt_arg[0] << " "
+       << endl;
+  cout << "X11 given:\t"
+       << args_info.x11_given << " "
+       << args_info.x11_arg << " "
+       << endl;
 
   cout << "CET sides:\t" << cet_sides << endl;
   cout << "CET margin:\t" << cet_margin << endl;
