@@ -78,6 +78,16 @@ namespace fmesh {
 	std::memcpy(data_,vals,sizeof(T)*rows_*cols_);
       }
     };
+    const Matrix<T>& operator=(const Matrix<T>& from) {
+      clear();
+      cols(from.cols_);
+      capacity(from.cap_);
+      rows_ = from.rows_;
+      if (data_) {
+	std::memcpy(data_,from.data_,sizeof(T)*rows_*cols_);
+      }
+      return *this;
+    };
     ~Matrix() {
       if (data_)
 	delete[] data_;

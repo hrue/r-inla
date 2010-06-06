@@ -27,7 +27,7 @@ main: $(OBJ) Makefile main.o
 	g++ $(FLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.o -o main
 
 cmdline:
-	gengetopt --file-name=cmdline --conf-parser --unamed-opts --long-help --func-name=cmdline < cmdline.ggo	
+	gengetopt --file-name=cmdline --conf-parser --unamed-opts=PREFIX --long-help --func-name=cmdline < cmdline.ggo	
 
 clean :;
 	-rm $(ALL) *.o

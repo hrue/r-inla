@@ -5,38 +5,54 @@ purpose "Generate triangular meshes and prepare finite element calculations"
 description "Examples:
 
 Build a refined triangulation from a set of points stored in prefix.s0:
-  fmesher -R --ip=prefix. --op=prefix.
+  fmesher -R prefix.
+  fmesher -R prefix. output.
+  fmesher collect=-,s,tv prefix.
 The output is stored in prefix.s and prefix.tv (and other prefix.* files)
+or output.s and putput.tv (in the second version).
+In the third version, only the s and tv matrices are output, thus
+excluding any other output matrices.
 
 Join separate matrix files into collection files:
-  fmesher --collect=s0,s,tv,tt,tti,vv --ip=prefix. --oc=graph.col
-  fmesher --collect=c0,c1,g1,g2 --ip=prefix. --oc=fem.col
+  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col
+  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col
 
-Extract all matrices from collection files:
-  fmesher --collect=- --ic=graph.col,fem.col --op=prefix.
+Extract all matrices from two collection files graph.col and fem.col:
+  fmesher --collect=- --ic=graph.col,fem.col - prefix.
+The `-' indicates that no prefix-input is used, only output.
 
 Convert a raw ascii matrix from stdin to fmesher format:
-  fmesher --ir=s0,ddgr,- -R --collect=s0 --op=prefix. < S0.dat
-  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 --op=prefix.
-In both cases, s0 is read from S0.dat
-In the first example, s0 used for triangulation, and added to the output.
-In the second example, only s0 is output."
+  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat
+  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.
+  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.
+In all cases, s0 is read from S0.dat
+In the first example, s0 is used for triangulation, but not output.
+In the second example, s0 is used for triangulation, and added to the output.
+In the third and fourth example, only s0 is output, and no triangulation made."
 
 option "config" C "Read options from file" string typestr="FILE" optional
-option "save-config" - "Save options to file" string typestr="FILE" optional
+option "dump-config" - "Dump options to file" string typestr="FILE" optional
 
 
 section "I/O options"
-option "io" - "I/O format specification (ascii/binary)" enum optional values="aa","ab","ba","bb" default="bb" typestr="SPEC"
-option "ip" i "Read input from multiple files with the given prefix" string typestr="PREFIX" optional
-option "op" o "Write output to multiple files with the given prefix" string typestr="PREFIX" optional
-option "ic" - "Read input as matrix collections in the given files" string multiple typestr="FILE" optional
-option "oc" - "Write output as a matrix collection in the given file" string typestr="FILE" optional
-option "collect" - "Add named matrices to the output collection" string typestr="NAME" multiple default="-" optional
+option "io" - "I/O format specification (ascii/binary)" enum optional
+       values="aa","ab","ba","bb" default="bb" typestr="SPEC"
+#option "ip" - "Read input from multiple files with the given prefix" string
+#       typestr="PREFIX" optional
+#option "op" - "Write output to multiple files with the given prefix" string
+#       typestr="PREFIX" optional
+option "ic" i "Read input as matrix collections in the given files" string
+       multiple typestr="FILE" optional
+option "oc" o "Write output as a matrix collection in the given file" string
+       typestr="FILE" optional
+option "collect" - "Add named matrices to the output collection" string
+       typestr="NAME" multiple default="-" optional
        details="
 If only `-' is specified, all loaded matrices are added.
 If `-' is followed by other names, only those will be added.\n"
-option "collect-all" - "With --collect=-, load all matrices from the input collections" flag off dependon="collect"
+option "collect-all" -
+       "With --collect=-, load all matrices from the input collections"
+       flag off dependon="collect"
 option "ir" - "Import a raw matrix file in ascii format"
        string typestr="SPEC" multiple(3)
        details="
@@ -52,17 +68,21 @@ Third SPEC the filename, - for standard input\n"
 
 
 section "Triangulation options"
-option "have-triangulation" T "The input already contains a triangulation" flag off
+option "have-mesh" T "The input already contains a triangulation mesh (s,tv)"
+       string typestr="NAME" multiple(2) argoptional optional
 option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
        multiple(1-2) optional
-#       details="
-#       Detailed CET parameter description"
-option "rcdt" R "Generate RCDT, with optional quality parameters" double typestr="PARAM"
+option "rcdt" R "Generate RCDT, with optional quality parameters" double
+       typestr="PARAM"
        multiple(1-3) argoptional default="21" optional
-option "boundary" B "Handle triangulation boundary" flag off
-option "interior" I "Handle interior triangulation constraints" flag off
-option "fem" - "Calculate FEM matrices up to order fem" int typestr="ORDER" default="4" optional
+option "boundary" B "Handle triangulation boundary" string typestr="NAME"
+       multiple default="boundary0" optional
+option "interior" I "Handle interior constraints" string typestr="NAME"
+       multiple default="interior0" optional
+option "fem" - "Calculate FEM matrices up to order fem" int typestr="ORDER"
+       default="2" optional
 
 section "Miscellaneous options"
-option "x11" x "Show progress in an x11 window, with delay factor" double typestr="DELAY"
+option "x11" x "Show progress in an x11 window, with delay factor" double
+       typestr="DELAY"
        argoptional default="1.0" optional

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <vector>
 #include <set>
@@ -65,6 +66,7 @@ namespace fmesh {
     }
     return *this;
   }
+
   template <class T>
   IOHeader& IOHeader::sparse(const SparseMatrix<T>& M,
 			     IOMatrixtype matrixt)
@@ -380,15 +382,19 @@ namespace fmesh {
       return *this;
     }
     (*M_).clear();
+    if (h.elems==0) {
+      return *this;
+    }
     if (h.storagetype == IOStoragetype_rowmajor) {
       Matrix1< SparseMatrixTriplet<T> > MT;
+      MT(h.elems-1) = SparseMatrixTriplet<T>();
       IOHelperM< SparseMatrixTriplet<T>
 		 >().D(&MT).binary(bin_).rowmajor().ID(input);
       (*M_).fromlist(MT,h.matrixtype);
     } else {
-      Matrix1int Mr;
-      Matrix1int Mc;
-      Matrix1<T> Mv;
+      Matrix1int Mr; Mr(h.elems-1) = 0;
+      Matrix1int Mc; Mc(h.elems-1) = 0;
+      Matrix1<T> Mv; Mv(h.elems-1) = T();
       IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
       IOHelperM<int>().D(&Mc).binary(bin_).colmajor().ID(input);
       IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
@@ -473,6 +479,59 @@ namespace fmesh {
 
   template <class T>
   IOHeader::IOHeader(const T& ref) { def(ref); };
+
+
+
+
+
+
+  template <class T>
+  void save_M(std::string filename,
+	      const Matrix<T>& M,
+	      MCCInfo mccinfo,
+	      bool binary)
+  {
+    std::ofstream O;
+    O.open(filename.c_str(),
+	   (binary ? (std::ios::out | std::ios::binary) : std::ios::out));
+    IOHelperM<T> ioh;
+    ioh.cD(&M).matrixtype(mccinfo.matrixtype);
+    ioh.binary(binary).OH(O).OD(O);
+    O.close();
+  }
+
+  template <class T>
+  void save_SM(std::string filename,
+	       const SparseMatrix<T>& M,
+	       MCCInfo mccinfo,
+	       bool binary)
+  {
+    std::ofstream O;
+    O.open(filename.c_str(),
+	   (binary ? (std::ios::out | std::ios::binary) : std::ios::out));
+    IOHelperSM<T> ioh;
+    ioh.cD(&M).matrixtype(mccinfo.matrixtype);
+    ioh.binary(binary).OH(O).OD(O);
+    O.close();
+  }
+
+
+
+
+  template <class T>
+  Matrix<T>& MatrixC::add(std::string name,
+			  const Matrix1<T>& M,
+			  IOMatrixtype matrixt) {
+    return add(name,*((Matrix<T>*)&M),matrixt);
+  }
+
+  template <class T>
+  Matrix<T>& MatrixC::add(std::string name,
+			  const Matrix3<T>& M,
+			  IOMatrixtype matrixt) {
+    return add(name,*((Matrix<T>*)&M),matrixt);
+  }
+
 
 
 
