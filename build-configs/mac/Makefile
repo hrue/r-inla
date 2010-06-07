@@ -79,7 +79,7 @@ download :;
 		mkdir -p local/include; )
 
 zlib :
-	cd zlib-1.2.3; \
+	cd ./extlibs/zlib-1.2.5; \
 	$(MAKE) $(ARGS) -k clean; \
 	export CFLAGS="$(FLAGS)";\
 	./configure --prefix=$(PREFIX); \
@@ -87,7 +87,7 @@ zlib :
 	$(MAKE) $(ARGS) install
 
 gsl :
-	cd gsl-1.14; \
+	cd ./extlibs/gsl-1.14; \
 	$(MAKE) $(ARGS) -k clean;\
 	export CFLAGS="$(FLAGS)";\
 	./configure --prefix=$(PREFIX); \
@@ -104,11 +104,11 @@ inla :
 lapack :
 	$(MAKE) -C lapack-3.2.1 FLAGS="$(FLAGS)" LOADOPTS="$(FLAGS)" $(ARGS) -k clean
 	$(MAKE) -C lapack-3.2.1 FLAGS="$(FLAGS)" LOADOPTS="$(FLAGS)" $(ARGS) -k
-	cp -v -f lapack-3.2.1/lapack.a $(PREFIX)/lib/liblapack.a
+	cp -v -f lapack-3.2.1/lapack_LINUX.a $(PREFIX)/lib/liblapack.a
 	ar d lapack-3.2.1/blas.a lsame.o
 	ar d lapack-3.2.1/blas.a xerbla.o
 	ar d lapack-3.2.1/blas.a xerbla_array.o
-	cp -v -f lapack-3.2.1/blas.a $(PREFIX)/lib/libblas.a
+	cp -v -f lapack-3.2.1/blas_LINUX.a $(PREFIX)/lib/libblas.a
 
 GMRFLib :
 	$(MAKE) -C gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
