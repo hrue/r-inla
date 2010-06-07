@@ -133,6 +133,14 @@ int main(int argc, char* argv[])
 
   //  cmdline_dump(stdout,&args_info);
 
+  string input_s0_name = "";
+  string input_tv0_name = "";
+
+  input_s0_name = string(args_info.input_arg[0]);
+  if (args_info.input_given>1)
+    input_tv0_name = string(args_info.input_arg[1]);
+    
+
   int cet_sides = 8;
   double cet_margin = -0.05;
   if (args_info.cet_given>0)
@@ -226,10 +234,20 @@ int main(int argc, char* argv[])
 		       string(args_info.ir_arg[i+2]));
   }
 
-  if (!matrices.load("s0").active) {
-    cout << "Matrix s0 not active." << endl;
+  if (!matrices.load(input_s0_name).active) {
+    cout << "Matrix "+input_s0_name+" not active." << endl;
   }
-  Matrix<double>& iS0 = matrices.DD("s0");
+  Matrix<double>& iS0 = matrices.DD(input_s0_name);
+
+
+  Matrix<int>* TV0 = NULL;
+  if (input_tv0_name != "") {
+    if (!matrices.load(input_tv0_name).active) {
+      cout << "Matrix "+input_tv0_name+" not active." << endl;
+    } else {
+      TV0 = &(matrices.DI(input_tv0_name));
+    }
+  }
 
   fmesh::constrListT cdt_boundary;
   if (args_info.boundary_given) {
@@ -299,6 +317,10 @@ int main(int argc, char* argv[])
   M.S_set(S0);
   M.setX11VBigLimit(nV);
 
+  if (TV0) {
+    M.TV_set(*TV0);
+  }
+
   cout << "Initial mesh:" << endl << M;
 
   Point mini(S0(0));
@@ -346,10 +368,14 @@ int main(int argc, char* argv[])
 
   MeshC MC(&M);
 
+  if (!TV0)
+    MC.CET(cet_sides,cet_margin);
+
+  /* TODO: Check that this is ok even when some or all points are
+     already in the triangulation. */
   fmesh::vertexListT vertices;
   for (int v=0;v<nV;v++)
     vertices.push_back(v);
-  MC.CET(cet_sides,cet_margin);
   MC.DT(vertices);
 
   if (cdt_boundary.size()>0)
