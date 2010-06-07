@@ -1,4 +1,3 @@
-
 /* fmesher-io.c
  * 
  * Copyright (C) 2010 Havard Rue
@@ -60,7 +59,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 									\
 		position = ftell(fp);					\
 		nread = fread((void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
-		if (nread != (size_t) n){				\
+		if (nread != (size_t) n) {				\
 			char *m;					\
 			GMRFLib_sprintf(&m, "Fail to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
@@ -72,14 +71,14 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 	char *msg = NULL; 
 	int *header =  NULL;
 	int len_header = 0;
-	int verbose = 1, debug = 0, i, j, k;
+	int verbose = 1, debug = 1, i, j, k;
 	inla_matrix_tp *M = NULL;
 
 	if (debug)
 		verbose = 1;
 	
 	fp = fopen(filename,  "rb");
-	if (!fp){
+	if (!fp) {
 		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
 		ERROR(msg);
 	}
@@ -87,7 +86,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 		printf("Open file [%s]\n", filename);
 	
 	READ(&len_header, 1, int);
-	if (len_header < 8){
+	if (len_header < 8) {
 		GMRFLib_sprintf(&msg, "Header in file [%s] is only %1d (< 8) ints long.", filename, len_header);
 		ERROR(msg);
 	}
@@ -106,7 +105,9 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 	int matrixtype = header[6];
 	int storagetype = header[7];
 
-	if (verbose){
+	Free(header);
+
+	if (verbose) {
 		printf("\tversion     \t%d\n", version);
 		printf("\telems       \t%d\n", elems);
 		printf("\tnrow        \t%d\n", nrow);
@@ -129,49 +130,54 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 	int diagonal = (matrixtype == 2);
 	
 	if (dense) {
-		if (symmetric || diagonal){
+		if (symmetric || diagonal) {
 			ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
 		}
 		assert(general);
 		
-		M->values = Calloc(elems, double);
-		if (integer){
-			int *ivalues = NULL;
-
-			ivalues = Calloc(elems, int);
-			READ(ivalues, elems, int);
-			for(i = 0; i<elems; i++){
-				M->values[i] = (double) ivalues[i];
+		M->A = Calloc(elems, double);
+		if (integer) {
+			M->iA = Calloc(elems, int);
+			READ(M->iA, elems, int);
+			for(i = 0; i<elems; i++) {
+				M->A[i] = (double) M->iA[i];
 			}
-			Free(ivalues);
 		} else {
-			READ(M->values, elems, double);
+			READ(M->A, elems, double);
 		}
-		if (rowmajor){
+		if (rowmajor) {
 			/* 
 			   swap
 			*/
-			
 			double *swapped_values = Calloc(elems, double);
 
 			for(i=0; i<nrow; i++) {
 				for(j=0; j<ncol; j++) {
-					int idx = i + j*nrow;
-					int idxx = j + i*ncol;
-
-					swapped_values[idxx] = M->values[idx];
+					swapped_values[j + i*ncol] = M->A[i + j*nrow];
 				}
 			}
-			Free(M->values);
-			M->values = swapped_values;
+			Free(M->A);
+			M->A = swapped_values;
+
+			if (integer) {
+				for(k=0; k<elems; k++) {
+					M->iA[k] = (int) M->A[k];
+				}
+			}
 		}
 
 		if (debug) {
-			printf("\n\t%d x %d\n", M->nrow,  M->ncol);
-			for(i=0; i<nrow; i++){
+			printf("\n\t%d x %d %s\n", M->nrow,  M->ncol,  (integer ? "integer" :  "double"));
+			for(i=0; i<nrow; i++) {
 				printf("\t");
-				for(j=0; j<ncol; j++){
-					printf("%.3f ", M->values[i + j * nrow]);
+				if (integer) {
+					for(j=0; j<ncol; j++) {
+						printf("%3d ", M->iA[i + j * nrow]);
+					}
+				} else {
+					for(j=0; j<ncol; j++) {
+						printf("%.3f ", M->A[i + j * nrow]);
+					}
 				}
 				printf("\n");
 			}
@@ -185,15 +191,17 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 		M->i = Calloc(elems, int);
 		M->j = Calloc(elems, int);
 		M->values = Calloc(elems, double);
-
+		if (integer) {
+			M->ivalues = Calloc(elems, int);
+		}
+		
 		if (rowmajor) {
-			for(k=0; k<elems; k++){
+			for(k=0; k<elems; k++) {
 				READ(&(M->i[k]), 1, int);
 				READ(&(M->j[k]), 1, int);
-				if (integer){
-					int itmp;
-					READ(&itmp, 1, int);
-					M->values[k] = (double) itmp;
+				if (integer) {
+					READ(&(M->ivalues[k]), 1, int);
+					M->values[k] = (double) M->ivalues[k];
 				} else {
 					READ(&(M->values[k]), 1, double);
 				}
@@ -201,13 +209,11 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 		} else {
 			READ(M->i, elems, int);
 			READ(M->j, elems, int);
-			if (integer){
-				int *ivalues = Calloc(elems, int);
-				READ(ivalues, elems, int);
-				for(k=0; k<elems; k++){
-					M->values[k] = (double) ivalues[k];
+			if (integer) {
+				READ(M->ivalues, elems, int);
+				for(k=0; k<elems; k++) {
+					M->values[k] = (double) M->ivalues[k];
 				}
-				Free(ivalues);
 			} else {
 				READ(M->values, elems, double);
 			}
@@ -215,21 +221,28 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 		if (symmetric) {
 			int nneq = 0;
 
-			for(k=0; k<elems; k++){
-				if (M->i[k] != M->j[k])
+			for(k=0; k<elems; k++) {
+				if (M->i[k] != M->j[k]) {
 					nneq++;
+				}
 			}
-			if (nneq > 0){
+			if (nneq > 0) {
 				M->i = Realloc(M->i, elems + nneq, int);
 				M->j = Realloc(M->j, elems + nneq, int);
 				M->values = Realloc(M->values, elems + nneq, double);
+				if (integer) {
+					M->ivalues = Realloc(M->ivalues, elems + nneq, int);
+				}
 
 				int kk = elems;
 				for(k=0; k<elems; k++) {
-					if (M->i[k] != M->j[k]){
+					if (M->i[k] != M->j[k]) {
 						M->i[kk] = M->j[k]; /* yes */
 						M->j[kk] = M->i[k]; /* yes */
 						M->values[kk] = M->values[k];
+						if (integer) {
+							M->ivalues[kk] = M->ivalues[k];
+						}
 						kk++;
 					}
 					assert(kk == elems + nneq);
@@ -240,47 +253,179 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
+			int *iA = Calloc(M->nrow * M->nrow, int);
 			double fix= GMRFLib_uniform();
 
-			if (0){
-				for(k=0; k<elems; k++)
-					printf("%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
+			if (1) {
+				if (integer) {
+					for(k=0; k<elems; k++)
+						printf("%d: i j values %d %d %d\n", k, M->i[k], M->j[k], M->ivalues[k]);
+				} else {
+					for(k=0; k<elems; k++)
+						printf("%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
+				}
 			}
 
-			for(k=0; k<M->nrow*M->ncol; k++)
+			for(k=0; k<M->nrow*M->ncol; k++) {
 				A[k] = fix;
-			for(k=0; k<M->elems; k++){
+			}
+			if (integer) {
+				for(k=0; k<M->elems; k++) {
+					iA[ M->i[k] + M->j[k] * M->nrow ] = M->ivalues[k];
+				}
+			} 
+			for(k=0; k<M->elems; k++) {
 				A[ M->i[k] + M->j[k] * M->nrow ] = M->values[k];
 			}
 				
-			printf("\n\t%d x %d\n", M->nrow,  M->ncol);
-			for(i=0; i<M->nrow; i++){
+			printf("\n\t%d x %d %s\n", M->nrow,  M->ncol, (integer ? "integer" : "double"));
+			for(i=0; i<M->nrow; i++) {
 				printf("\t");
-				for(j=0; j<M->ncol; j++){
+				for(j=0; j<M->ncol; j++) {
 					int idx = i+j*M->nrow;
 
-					if(A[idx] != fix)
-						printf("%.3f ", A[idx]);
-					else
+					if(A[idx] != fix) {
+						if (integer) {
+							printf("%4d ", iA[idx]);
+						} else {
+							printf("%.3f ", A[idx]);
+						}
+					} else {
 						printf("      ");
+					}
 				}
 				printf("\n");
 			}
+			Free(A);
+			Free(iA);
 		}
 	}
-
 #undef READ
 #undef ERROR
 
 	return (M);
+}
+int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename)
+{
+	/* 
+	   write file
+	*/
+
+#define ERROR(msg)							\
+	{								\
+		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		exit(EXIT_FAILURE);					\
+		return 1;						\
+	}
+	
+#define WRITE(ptr, n, type)						\
+	{								\
+		size_t nwrite;						\
+									\
+		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
+		if (nwrite != (size_t) n) {				\
+			char *m;					\
+			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
+					n, sizeof(type), filename, ftell(fp)); \
+			ERROR(m);					\
+		}							\
+	}
+	
+	FILE *fp = NULL;
+	char *msg = NULL; 
+	int *header =  NULL;
+	int len_header;
+	int verbose = 1, dense, integer;
+	int i;
+	
+	if (!M)
+		return 0;
+	
+	fp = fopen(filename,  "wb");
+	if (!fp) {
+		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
+		ERROR(msg);
+	}
+	if (verbose)
+		printf("Open file [%s]\n", filename);
+	
+	len_header = 8;
+	header = Calloc(len_header, int);
+
+	if (M->A || M->iA) {
+		dense = 1;
+		integer = (M->iA ? 1 : 0);
+	} else {
+		dense = 0;
+		integer = (M->ivalues ? 1 : 0);
+	}
+
+	header[0] = 0;					       /* version */
+	header[1] = M->elems;
+	header[2] = M->nrow;
+	header[3] = M->ncol;
+	header[4] = (dense ? 0 : 1);
+	header[5] = (integer ? 0 : 1);
+	header[6] = 0;					       /* general */
+	header[7] = 1;					       /* columnmajor */
+
+	if (verbose) {
+		for(i=0; i<len_header; i++)
+			printf("\theader[%1d] = %1d\n", i, header[i]);
+	}
+	
+	WRITE(&len_header, 1, int);
+	WRITE(header, len_header, int);
+
+	if (dense) {
+		if (integer) {
+			WRITE(M->iA, M->elems, int);
+		} else {
+			WRITE(M->A, M->elems, double);
+		}
+	} else {
+		WRITE(M->i, M->elems, int);
+		WRITE(M->j, M->elems, int);
+		if (integer) {
+			WRITE(M->ivalues, M->elems, int);
+		} else {
+			WRITE(M->values, M->elems, double);
+		}
+	}
+
+	fclose(fp);
+	Free(header);
+	
+#undef ERROR
+#undef WRITE	
+	return (0);
+}
+
+int inla_free_fmesher_file(inla_matrix_tp *M)
+{
+	if (M) {
+		Free(M->i);
+		Free(M->j);
+		Free(M->values);
+		Free(M->ivalues);
+		Free(M->A);
+		Free(M->iA);
+		Free(M);
+	}
+	return (0);
 }
 
 #ifdef TESTME
 int main(int argc, char **argv)
 {
 	int i;
-	for(i=1; i< argc; i++)
-		inla_read_fmesher_file(argv[i]);
+	inla_matrix_tp *M;
+	
+	for(i=1; i< argc; i++) {
+		M = inla_read_fmesher_file(argv[i]);
+		inla_write_fmesher_file(M,  "testmatrix.dat");
+		M = inla_read_fmesher_file("testmatrix.dat");
+	}
 	return 0;
 }
 #endif

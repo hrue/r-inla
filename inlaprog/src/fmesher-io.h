@@ -50,18 +50,30 @@ typedef struct
 
 	/* 
 	   sparse
-	 */
+	*/
 	int elems;					       /* number of elements */
 	int *i;
 	int *j;
+
+	/* 
+	   on reading; 'values' are always set. on writing; only one of these can be set. 
+	*/
+	int *ivalues;
 	double *values;
 
 	/* 
-	   dense, columnwise
-	 */
+	   dense, columnwise. on reading `A' is always set. on writing; only one of these can be set. ls
+	*/
+	int *iA;
 	double *A;
 }
 	inla_matrix_tp;
 
+
+inla_matrix_tp *inla_read_fmesher_file(const char *filename);
+int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename);
+int inla_free_fmesher_file(inla_matrix_tp *M);
+
 __END_DECLS
+
 #endif
