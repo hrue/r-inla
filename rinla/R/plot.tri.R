@@ -19,10 +19,9 @@
     Ez = S[tETV,3]
     Ecol = rgb(0.3,0.3,0.3)
     points3d(S,color="black")
-#lines3d(Ex,Ey,Ez,color=Ecol,lwd=1)
-#triangles3d(Tx,Ty,Tz,color=Tcol,specular="black")
-	  lines3d(Ex[1],Ey[1],Ez[1],color=Ecol,lwd=1)
-	  triangles3d(Tx[1],Ty[1],Tz[1],color="red",specular="black")
+	lines3d(Ex,Ey,Ez,color=Ecol,lwd=1)
+	triangles3d(Tx,Ty,Tz,color=Tcol,specular="black")
+	
   }
 
 # library(geometry)
