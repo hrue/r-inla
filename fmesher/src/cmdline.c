@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--have-mesh=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-BNAME|--boundary=NAME] \n         [-INAME|--interior=NAME] [--fem=ORDER] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-BNAME|--boundary=NAME] \n         [-INAME|--interior=NAME] [--fem=ORDER] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=- --ic=graph.col,fem.col - prefix.\nThe `-' indicates that no prefix-input is used, only output.\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -47,7 +47,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --ir=SPEC           Import a raw matrix file in ascii format",
   "  \n  First SPEC is the name of the matrix\n  Second SPEC is a four letter matrix specification:\n         d/s = dense/sparse\n         i/d = int/double\n         g/s/d = general/symmetric/diagonal\n         r/c = row/column major storage\n         Common format for point lists with one point per line = ddgr\n  Third SPEC the filename, - for standard input\n",
   "\nTriangulation options:",
-  "  -T, --have-mesh[=NAME]  The input already contains a triangulation mesh \n                            (s,tv)",
+  "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0  (default=`s0')",
   "  -E, --cet=PARAM         Convex encapsulation parameters",
   "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
@@ -151,7 +151,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->collect_given = 0 ;
   args_info->collect_all_given = 0 ;
   args_info->ir_given = 0 ;
-  args_info->have_mesh_given = 0 ;
+  args_info->input_given = 0 ;
   args_info->cet_given = 0 ;
   args_info->rcdt_given = 0 ;
   args_info->boundary_given = 0 ;
@@ -179,8 +179,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->collect_all_flag = 0;
   args_info->ir_arg = NULL;
   args_info->ir_orig = NULL;
-  args_info->have_mesh_arg = NULL;
-  args_info->have_mesh_orig = NULL;
+  args_info->input_arg = NULL;
+  args_info->input_orig = NULL;
   args_info->cet_arg = NULL;
   args_info->cet_orig = NULL;
   args_info->rcdt_arg = NULL;
@@ -218,9 +218,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->ir_help = gengetopt_args_info_detailed_help[12] ;
   args_info->ir_min = 3;
   args_info->ir_max = 3;
-  args_info->have_mesh_help = gengetopt_args_info_detailed_help[15] ;
-  args_info->have_mesh_min = 2;
-  args_info->have_mesh_max = 2;
+  args_info->input_help = gengetopt_args_info_detailed_help[15] ;
+  args_info->input_min = 1;
+  args_info->input_max = 2;
   args_info->cet_help = gengetopt_args_info_detailed_help[16] ;
   args_info->cet_min = 1;
   args_info->cet_max = 2;
@@ -401,7 +401,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->oc_orig));
   free_multiple_string_field (args_info->collect_given, &(args_info->collect_arg), &(args_info->collect_orig));
   free_multiple_string_field (args_info->ir_given, &(args_info->ir_arg), &(args_info->ir_orig));
-  free_multiple_string_field (args_info->have_mesh_given, &(args_info->have_mesh_arg), &(args_info->have_mesh_orig));
+  free_multiple_string_field (args_info->input_given, &(args_info->input_arg), &(args_info->input_orig));
   free_multiple_field (args_info->cet_given, (void *)(args_info->cet_arg), &(args_info->cet_orig));
   args_info->cet_arg = 0;
   free_multiple_field (args_info->rcdt_given, (void *)(args_info->rcdt_arg), &(args_info->rcdt_orig));
@@ -513,7 +513,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   if (args_info->collect_all_given)
     write_into_file(outfile, "collect-all", 0, 0 );
   write_multiple_into_file(outfile, args_info->ir_given, "ir", args_info->ir_orig, 0);
-  write_multiple_into_file(outfile, args_info->have_mesh_given, "have-mesh", args_info->have_mesh_orig, 0);
+  write_multiple_into_file(outfile, args_info->input_given, "input", args_info->input_orig, 0);
   write_multiple_into_file(outfile, args_info->cet_given, "cet", args_info->cet_orig, 0);
   write_multiple_into_file(outfile, args_info->rcdt_given, "rcdt", args_info->rcdt_orig, 0);
   write_multiple_into_file(outfile, args_info->boundary_given, "boundary", args_info->boundary_orig, 0);
@@ -782,7 +782,7 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
   if (check_multiple_option_occurrences(prog_name, args_info->ir_given, args_info->ir_min, args_info->ir_max, "'--ir'"))
      error = 1;
   
-  if (check_multiple_option_occurrences(prog_name, args_info->have_mesh_given, args_info->have_mesh_min, args_info->have_mesh_max, "'--have-mesh' ('-T')"))
+  if (check_multiple_option_occurrences(prog_name, args_info->input_given, args_info->input_min, args_info->input_max, "'--input' ('-T')"))
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->cet_given, args_info->cet_min, args_info->cet_max, "'--cet' ('-E')"))
@@ -1099,7 +1099,7 @@ cmdline_internal (
   struct generic_list * ic_list = NULL;
   struct generic_list * collect_list = NULL;
   struct generic_list * ir_list = NULL;
-  struct generic_list * have_mesh_list = NULL;
+  struct generic_list * input_list = NULL;
   struct generic_list * cet_list = NULL;
   struct generic_list * rcdt_list = NULL;
   struct generic_list * boundary_list = NULL;
@@ -1145,7 +1145,7 @@ cmdline_internal (
         { "collect",	1, NULL, 0 },
         { "collect-all",	0, NULL, 0 },
         { "ir",	1, NULL, 0 },
-        { "have-mesh",	2, NULL, 'T' },
+        { "input",	1, NULL, 'T' },
         { "cet",	1, NULL, 'E' },
         { "rcdt",	2, NULL, 'R' },
         { "boundary",	1, NULL, 'B' },
@@ -1155,7 +1155,7 @@ cmdline_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVC:i:o:T::E:R::B:I:x::", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVC:i:o:T:E:R::B:I:x::", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -1204,11 +1204,11 @@ cmdline_internal (
             goto failure;
         
           break;
-        case 'T':	/* The input already contains a triangulation mesh (s,tv).  */
+        case 'T':	/* Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0.  */
         
-          if (update_multiple_arg_temp(&have_mesh_list, 
-              &(local_args_info.have_mesh_given), optarg, 0, 0, ARG_STRING,
-              "have-mesh", 'T',
+          if (update_multiple_arg_temp(&input_list, 
+              &(local_args_info.input_given), optarg, 0, "s0", ARG_STRING,
+              "input", 'T',
               additional_error))
             goto failure;
         
@@ -1371,10 +1371,11 @@ cmdline_internal (
     &(args_info->ir_orig), args_info->ir_given,
     local_args_info.ir_given, 0,
     ARG_STRING, ir_list);
-  update_multiple_arg((void *)&(args_info->have_mesh_arg),
-    &(args_info->have_mesh_orig), args_info->have_mesh_given,
-    local_args_info.have_mesh_given, 0,
-    ARG_STRING, have_mesh_list);
+  multiple_default_value.default_string_arg = "s0";
+  update_multiple_arg((void *)&(args_info->input_arg),
+    &(args_info->input_orig), args_info->input_given,
+    local_args_info.input_given, &multiple_default_value,
+    ARG_STRING, input_list);
   update_multiple_arg((void *)&(args_info->cet_arg),
     &(args_info->cet_orig), args_info->cet_given,
     local_args_info.cet_given, 0,
@@ -1401,8 +1402,8 @@ cmdline_internal (
   local_args_info.collect_given = 0;
   args_info->ir_given += local_args_info.ir_given;
   local_args_info.ir_given = 0;
-  args_info->have_mesh_given += local_args_info.have_mesh_given;
-  local_args_info.have_mesh_given = 0;
+  args_info->input_given += local_args_info.input_given;
+  local_args_info.input_given = 0;
   args_info->cet_given += local_args_info.cet_given;
   local_args_info.cet_given = 0;
   args_info->rcdt_given += local_args_info.rcdt_given;
@@ -1452,7 +1453,7 @@ failure:
   free_list (ic_list, 1 );
   free_list (collect_list, 1 );
   free_list (ir_list, 1 );
-  free_list (have_mesh_list, 1 );
+  free_list (input_list, 1 );
   free_list (cet_list, 0 );
   free_list (rcdt_list, 0 );
   free_list (boundary_list, 1 );

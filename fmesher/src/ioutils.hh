@@ -455,14 +455,6 @@ namespace fmesh {
 		      bool transfer_ownership = true,
 		      IOMatrixtype matrixt = IOMatrixtype_general);
     template <class T>
-    Matrix<T>& attach(std::string name, Matrix1<T>* M,
-		      bool transfer_ownership = true,
-		      IOMatrixtype matrixt = IOMatrixtype_general);
-    template <class T>
-    Matrix<T>& attach(std::string name, Matrix3<T>* M,
-		      bool transfer_ownership = true,
-		      IOMatrixtype matrixt = IOMatrixtype_general);
-    template <class T>
     SparseMatrix<T>& attach(std::string name,
 			    SparseMatrix<T>* M,
 			    bool transfer_ownership = true,

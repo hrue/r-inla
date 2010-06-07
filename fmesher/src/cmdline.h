@@ -71,11 +71,11 @@ struct gengetopt_args_info
   unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
   unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
   const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
-  char ** have_mesh_arg;	/**< @brief The input already contains a triangulation mesh (s,tv).  */
-  char ** have_mesh_orig;	/**< @brief The input already contains a triangulation mesh (s,tv) original value given at command line.  */
-  unsigned int have_mesh_min; /**< @brief The input already contains a triangulation mesh (s,tv)'s minimum occurreces */
-  unsigned int have_mesh_max; /**< @brief The input already contains a triangulation mesh (s,tv)'s maximum occurreces */
-  const char *have_mesh_help; /**< @brief The input already contains a triangulation mesh (s,tv) help description.  */
+  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 (default='s0').  */
+  char ** input_orig;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 original value given at command line.  */
+  unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0's minimum occurreces */
+  unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0's maximum occurreces */
+  const char *input_help; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 help description.  */
   double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
   char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
   unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
@@ -114,7 +114,7 @@ struct gengetopt_args_info
   unsigned int collect_given ;	/**< @brief Whether collect was given.  */
   unsigned int collect_all_given ;	/**< @brief Whether collect-all was given.  */
   unsigned int ir_given ;	/**< @brief Whether ir was given.  */
-  unsigned int have_mesh_given ;	/**< @brief Whether have-mesh was given.  */
+  unsigned int input_given ;	/**< @brief Whether input was given.  */
   unsigned int cet_given ;	/**< @brief Whether cet was given.  */
   unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */

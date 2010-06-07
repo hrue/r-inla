@@ -68,8 +68,8 @@ Third SPEC the filename, - for standard input\n"
 
 
 section "Triangulation options"
-option "have-mesh" T "The input already contains a triangulation mesh (s,tv)"
-       string typestr="NAME" multiple(2) argoptional optional
+option "input" T "Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0"
+       string typestr="NAME" multiple(1-2) default="s0" optional
 option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
        multiple(1-2) optional
 option "rcdt" R "Generate RCDT, with optional quality parameters" double
