@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
     
 
   int cet_sides = 8;
-  double cet_margin = -0.05;
+  double cet_margin = -0.1;
   if (args_info.cet_given>0)
     cet_sides = args_info.cet_arg[0];
   if (args_info.cet_given>1)
