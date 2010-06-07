@@ -45,6 +45,10 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 {
+	/* 
+	   read a fmesher_file. 
+	 */
+
 #define ERROR(msg)							\
 	{								\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
@@ -71,7 +75,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 	char *msg = NULL; 
 	int *header =  NULL;
 	int len_header = 0;
-	int verbose = 1, debug = 1, i, j, k;
+	int verbose = 0, debug = 0, i, j, k;
 	inla_matrix_tp *M = NULL;
 
 	if (debug)
@@ -219,8 +223,30 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 			}
 		}
 		if (symmetric) {
-			int nneq = 0;
+			/* 
+			   In the symmetric case, I need to check if either all M_ij, i>=j, or all M_ij, i<=j, is given. What to do if both sides of the matrix is
+			   given is not spesificed, or, we need to define what we mean in this case. So let's do that if that case appear... he he.
+			*/
+			
+			int all_i_st_j = 1,  all_j_st_i = 1;
 
+			for(k=0; k<elems; k++) {
+				int ij[2];
+
+				all_i_st_j &= (M->i[k] <= M->j[k]);
+				all_j_st_i &= (M->j[k] <= M->i[k]);
+				
+				ij[0] = M->i[k];
+				ij[1] = M->j[k];
+
+				M->i[k] = IMIN(ij[0], ij[1]);
+				M->j[k] = IMAX(ij[0], ij[1]);
+			}
+			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
+				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+			}
+
+			int nneq = 0;
 			for(k=0; k<elems; k++) {
 				if (M->i[k] != M->j[k]) {
 					nneq++;
@@ -245,8 +271,8 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 						}
 						kk++;
 					}
-					assert(kk == elems + nneq);
 				}
+				assert(kk == elems + nneq);
 				M->elems += nneq;
 			}
 		}
@@ -259,10 +285,10 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 			if (1) {
 				if (integer) {
 					for(k=0; k<elems; k++)
-						printf("%d: i j values %d %d %d\n", k, M->i[k], M->j[k], M->ivalues[k]);
+						printf("\t%d: i j values %d %d %d\n", k, M->i[k], M->j[k], M->ivalues[k]);
 				} else {
 					for(k=0; k<elems; k++)
-						printf("%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
+						printf("\t%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
 				}
 			}
 
@@ -291,7 +317,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 							printf("%.3f ", A[idx]);
 						}
 					} else {
-						printf("      ");
+						printf(" .    ");
 					}
 				}
 				printf("\n");
@@ -305,10 +331,11 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 
 	return (M);
 }
+
 int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename)
 {
 	/* 
-	   write file
+	   write fmesher-file
 	*/
 
 #define ERROR(msg)							\
@@ -335,7 +362,7 @@ int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename)
 	char *msg = NULL; 
 	int *header =  NULL;
 	int len_header;
-	int verbose = 1, dense, integer;
+	int verbose = 0, dense, integer;
 	int i;
 	
 	if (!M)
@@ -422,8 +449,11 @@ int main(int argc, char **argv)
 	inla_matrix_tp *M;
 	
 	for(i=1; i< argc; i++) {
+		printf("\n\n\n\n *** Check file %s\n\n\n",  argv[i]);
 		M = inla_read_fmesher_file(argv[i]);
+		printf("\n\n");
 		inla_write_fmesher_file(M,  "testmatrix.dat");
+		printf("\n\n");
 		M = inla_read_fmesher_file("testmatrix.dat");
 	}
 	return 0;
