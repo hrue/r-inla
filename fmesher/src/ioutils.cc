@@ -238,31 +238,33 @@ namespace fmesh {
 
 
   template <>
-  Matrix<int>& MatrixC::add(std::string name,
-			    const Matrix<int>& M,
-			    IOMatrixtype matrixt)
-  {
-    free(name);
-    coll_.insert(collPairT(name,
-			   new MCC(IODatatype_dense,
-				   IOValuetype_int,
-				   matrixt)));
-    coll_[name]->DI() = M;
-    activate(name);
-    return coll_[name]->DI();
-  }
-  
-  template <>
-  Matrix<double>& MatrixC::add(std::string name,
-			       const Matrix<double>& M,
+  Matrix<int>& MatrixC::attach(std::string name,
+			       Matrix<int>* M,
+			       bool transfer_ownership,
 			       IOMatrixtype matrixt)
   {
     free(name);
     coll_.insert(collPairT(name,
 			   new MCC(IODatatype_dense,
+				   IOValuetype_int,
+				   matrixt,
+				   M,transfer_ownership)));
+    activate(name);
+    return coll_[name]->DI();
+  }
+  
+  template <>
+  Matrix<double>& MatrixC::attach(std::string name,
+				  Matrix<double>* M,
+				  bool transfer_ownership,
+				  IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_dense,
 				   IOValuetype_double,
-				   matrixt)));
-    coll_[name]->DD() = M;
+				   matrixt,
+				   M,transfer_ownership)));
     activate(name);
     return coll_[name]->DD();
   }
@@ -270,31 +272,33 @@ namespace fmesh {
 
 
   template <>
-  SparseMatrix<int>& MatrixC::add(std::string name,
-				  const SparseMatrix<int>& M,
-				  IOMatrixtype matrixt)
-  {
-    free(name);
-    coll_.insert(collPairT(name,
-			   new MCC(IODatatype_sparse,
-				   IOValuetype_int,
-				   matrixt)));
-    coll_[name]->SI() = M;
-    activate(name);
-    return coll_[name]->SI();
-  }
-  
-  template <>
-  SparseMatrix<double>& MatrixC::add(std::string name,
-				     const SparseMatrix<double>& M,
+  SparseMatrix<int>& MatrixC::attach(std::string name,
+				     SparseMatrix<int>* M,
+				     bool transfer_ownership,
 				     IOMatrixtype matrixt)
   {
     free(name);
     coll_.insert(collPairT(name,
 			   new MCC(IODatatype_sparse,
+				   IOValuetype_int,
+				   matrixt,
+				   M,transfer_ownership)));
+    activate(name);
+    return coll_[name]->SI();
+  }
+  
+  template <>
+  SparseMatrix<double>& MatrixC::attach(std::string name,
+					SparseMatrix<double>* M,
+					bool transfer_ownership,
+					IOMatrixtype matrixt)
+  {
+    free(name);
+    coll_.insert(collPairT(name,
+			   new MCC(IODatatype_sparse,
 				   IOValuetype_double,
-				   matrixt)));
-    coll_[name]->SD() = M;
+				   matrixt,
+				   M,transfer_ownership)));
     activate(name);
     return coll_[name]->SD();
   }
@@ -544,7 +548,7 @@ namespace fmesh {
 	(colli->second->info.active)) {
       return colli->second->DI();
     }
-    return add(name,Matrix<int>());
+    return attach(name,new Matrix<int>());
   }
 
   Matrix<double>& MatrixC::DD(std::string name)
@@ -556,7 +560,7 @@ namespace fmesh {
 	(colli->second->info.active)) {
       return colli->second->DD();
     }
-    return add(name,Matrix<double>());
+    return attach(name,new Matrix<double>());
   }
 
   SparseMatrix<int>& MatrixC::SI(std::string name)
@@ -568,7 +572,7 @@ namespace fmesh {
 	(colli->second->info.active)) {
       return colli->second->SI();
     }
-    return add(name,SparseMatrix<int>());
+    return attach(name,new SparseMatrix<int>());
   }
 
   SparseMatrix<double>& MatrixC::SD(std::string name)
@@ -580,7 +584,7 @@ namespace fmesh {
 	(colli->second->info.active)) {
       return colli->second->SD();
     }
-    return add(name,SparseMatrix<double>());
+    return attach(name,new SparseMatrix<double>());
   }
 
 

@@ -320,15 +320,19 @@ namespace fmesh {
     IODatatype datatype;
     IOValuetype valuetype;
     IOMatrixtype matrixtype;
+    bool owner;
 
     MCCInfo()
       : loaded(false), active(false),
 	datatype(IODatatype_dense), valuetype(IOValuetype_int),
-	matrixtype(IOMatrixtype_general) {};
+	matrixtype(IOMatrixtype_general),
+	owner(false) {};
     MCCInfo(bool load, bool act,
-	    IODatatype data, IOValuetype value, IOMatrixtype matrixt)
+	    IODatatype data, IOValuetype value, IOMatrixtype matrixt,
+	    bool isowner)
       : loaded(load), active(act),
-	datatype(data), valuetype(value), matrixtype(matrixt) {};
+	datatype(data), valuetype(value), matrixtype(matrixt),
+	owner(isowner) {};
   };
 
   class MCC {
@@ -343,27 +347,45 @@ namespace fmesh {
   public:
 
     MCC() : info(false,false,
-		 IODatatype_dense,IOValuetype_int,IOMatrixtype_general),
+		 IODatatype_dense,IOValuetype_int,IOMatrixtype_general,
+		 false),
 	    DI_(NULL), DD_(NULL), SI_(NULL), SD_(NULL) {};
-    MCC(IODatatype data, IOValuetype value, IOMatrixtype matrixt)
-      : info(true,false,data,value,matrixt),
+    MCC(IODatatype data, IOValuetype value, IOMatrixtype matrixt,
+	void* M = NULL, bool isowner = true)
+      : info(true,false,data,value,matrixt,isowner),
 	DI_(NULL), DD_(NULL), SI_(NULL), SD_(NULL) {
-      if (info.datatype==IODatatype_dense)
-	if (info.valuetype==IOValuetype_int)
-	  DI_ = new Matrix<int>();
+      if (M) {
+	if (info.datatype==IODatatype_dense)
+	  if (info.valuetype==IOValuetype_int)
+	    DI_ = (Matrix<int>*)M;
+	  else
+	    DD_ = (Matrix<double>*)M;
 	else
-	  DD_ = new Matrix<double>();
-      else
-	if (info.valuetype==IOValuetype_int)
-	  SI_ = new SparseMatrix<int>();
+	  if (info.valuetype==IOValuetype_int)
+	    SI_ = (SparseMatrix<int>*)M;
+	  else
+	    SD_ = (SparseMatrix<double>*)M;
+      } else {
+	info.owner = true;
+	if (info.datatype==IODatatype_dense)
+	  if (info.valuetype==IOValuetype_int)
+	    DI_ = new Matrix<int>();
+	  else
+	    DD_ = new Matrix<double>();
 	else
-	  SD_ = new SparseMatrix<double>();
+	  if (info.valuetype==IOValuetype_int)
+	    SI_ = new SparseMatrix<int>();
+	  else
+	    SD_ = new SparseMatrix<double>();
+      }
     };
     ~MCC() {
-      if (DI_) delete DI_;
-      if (DD_) delete DD_;
-      if (SI_) delete SI_;
-      if (SD_) delete SD_;
+      if (info.owner) {
+	if (DI_) delete DI_;
+	if (DD_) delete DD_;
+	if (SI_) delete SI_;
+	if (SD_) delete SD_;
+      }
     };
 
     Matrix<int>& DI() { return *DI_; };
@@ -429,18 +451,22 @@ namespace fmesh {
 
     /*! Add and activate */
     template <class T>
-    Matrix<T>& add(std::string name, const Matrix<T>& M,
-		   IOMatrixtype matrixt = IOMatrixtype_general);
+    Matrix<T>& attach(std::string name, Matrix<T>* M,
+		      bool transfer_ownership = true,
+		      IOMatrixtype matrixt = IOMatrixtype_general);
     template <class T>
-    Matrix<T>& add(std::string name, const Matrix1<T>& M,
-		   IOMatrixtype matrixt = IOMatrixtype_general);
+    Matrix<T>& attach(std::string name, Matrix1<T>* M,
+		      bool transfer_ownership = true,
+		      IOMatrixtype matrixt = IOMatrixtype_general);
     template <class T>
-    Matrix<T>& add(std::string name, const Matrix3<T>& M,
-		   IOMatrixtype matrixt = IOMatrixtype_general);
+    Matrix<T>& attach(std::string name, Matrix3<T>* M,
+		      bool transfer_ownership = true,
+		      IOMatrixtype matrixt = IOMatrixtype_general);
     template <class T>
-    SparseMatrix<T>& add(std::string name,
-			 const SparseMatrix<T>& M,
-			 IOMatrixtype matrixt = IOMatrixtype_general);
+    SparseMatrix<T>& attach(std::string name,
+			    SparseMatrix<T>* M,
+			    bool transfer_ownership = true,
+			    IOMatrixtype matrixt = IOMatrixtype_general);
 
     MatrixC& free(std::string name);
 

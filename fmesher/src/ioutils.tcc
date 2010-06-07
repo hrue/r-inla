@@ -519,17 +519,19 @@ namespace fmesh {
 
 
   template <class T>
-  Matrix<T>& MatrixC::add(std::string name,
-			  const Matrix1<T>& M,
-			  IOMatrixtype matrixt) {
-    return add(name,*((Matrix<T>*)&M),matrixt);
+  Matrix<T>& MatrixC::attach(std::string name,
+			     Matrix1<T>* M,
+			     bool transfer_ownership,
+			     IOMatrixtype matrixt) {
+    return attach(name,(Matrix<T>*)&M,transfer_ownership,matrixt);
   }
 
   template <class T>
-  Matrix<T>& MatrixC::add(std::string name,
-			  const Matrix3<T>& M,
-			  IOMatrixtype matrixt) {
-    return add(name,*((Matrix<T>*)&M),matrixt);
+  Matrix<T>& MatrixC::attach(std::string name,
+			     Matrix3<T>* M,
+			     bool transfer_ownership,
+			     IOMatrixtype matrixt) {
+    return attach(name,(Matrix<T>*)&M,transfer_ownership,matrixt);
   }
 
 

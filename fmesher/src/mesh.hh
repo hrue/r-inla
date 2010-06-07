@@ -135,6 +135,13 @@ namespace fmesh {
     const Matrix1int& VT() const { return VT_; };
     const Matrix3int& TTi() const { return TTi_; };
     const Matrix3double& S() const { return S_; };
+
+    Matrix3int& TV() { return TV_; };
+    Matrix3int& TT() { return TT_; };
+    Matrix1int& VT() { return VT_; };
+    Matrix3int& TTi() { return TTi_; };
+    Matrix3double& S() { return S_; };
+
     SparseMatrix<int> VV() const;
     const Int3& TV(int t) const { return TV_[t]; };
     const Int3& TT(int t) const { return TT_[t]; };
