@@ -352,12 +352,11 @@ int main(int argc, char* argv[])
   MC.CET(cet_sides,cet_margin);
   MC.DT(vertices);
 
+  if (cdt_boundary.size()>0)
+    MC.CDTBoundary(cdt_boundary);
   if (cdt_interior.size()>0)
     MC.CDTInterior(cdt_interior);
-  if (cdt_boundary.size()>0) {
-    MC.CDTBoundary(cdt_boundary);
-    MC.PruneExterior();
-  }
+  MC.PruneExterior();
 
   if (args_info.rcdt_given) {
     /* Calculate the RCDT: */
@@ -437,12 +436,13 @@ int main(int argc, char* argv[])
   }
 
 
-  matrices.add("s",M.S());
-  matrices.add("tv",M.TV());
-  matrices.add("tt",M.TT());
+  matrices.attach(string("s"),&M.S(),false);
+  matrices.attach("tv",&M.TV(),false);
+  matrices.attach("tt",&M.TT(),false);
   M.useTTi(true);
-  matrices.add("tti",M.TT());
-  matrices.add("vv",M.VV());
+  matrices.attach("tti",&M.TT(),false);
+  matrices.attach("vv",new SparseMatrix<int>(M.VV()),
+		  true,fmesh::IOMatrixtype_symmetric);
 
   matrices.output("s").output("tv");
   matrices.output("tt").output("tti").output("vv");
