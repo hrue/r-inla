@@ -126,12 +126,14 @@ namespace fmesh {
     if ((h.elems==0) || (!cM_)) {
       return *this;
     }
-    if (bin_) {
-      NOT_IMPLEMENTED;
-    } else {
-      for (MatrixC::outputT::const_iterator outi = cM_->output_.begin();
-	   outi != cM_->output_.end();
-	   ++outi) {
+    for (MatrixC::outputT::const_iterator outi = cM_->output_.begin();
+	 outi != cM_->output_.end();
+	 ++outi) {
+      if (bin_) {
+	int string_size = (*outi).length()+1;
+	output.write((char*)&string_size, sizeof(string_size));
+	output.write((char*)(*outi).c_str(), sizeof(char)*string_size);
+      } else {
 	output << *outi << std::endl;
       }
     }
@@ -145,11 +147,15 @@ namespace fmesh {
     if ((h.elems==0) || (!cM_)) {
       return *this;
     }
-    if (bin_) {
-      NOT_IMPLEMENTED;
-    } else {
-      std::string name;
-      for (int i=0; i<h.elems; i++) {
+    std::string name;
+    for (int i=0; i<h.elems; i++) {
+      if (bin_) {
+	int string_size;
+	input.read((char*)&string_size, sizeof(string_size));
+	char buf[string_size];
+	input.read(buf, sizeof(char)*string_size);
+	list_.push_back(std::string(buf));
+      } else {
 	input >> name;
 	list_.push_back(name);
       }
@@ -205,6 +211,8 @@ namespace fmesh {
     for (listT::iterator listi = list_.begin();
 	 listi != list_.end();
 	 ++listi) {
+
+      std::cout << "*listi = " << *listi << std::endl;
 
       IOHelper<int> ioh_;
       ioh_.binary(bin_).IH(input);
@@ -355,9 +363,14 @@ namespace fmesh {
     if (activate(name))
       return info(name);
 
+    cout << "Name: " << name << endl;
+    cout << "Source: " << source_ << endl;
     sourceT::const_iterator sourcei;
     if ((sourcei = source_.find(name)) != source_.end()) {
       /* The matrix is in a collection file */
+      cout << "Sourcei: " << sourcei << endl;
+      cout << "Sourcei1: " << sourcei->first << endl;
+      cout << "Sourcei2: " << sourcei->second << endl;
       load_file(sourcei->second);
       if (activate(name))
 	return info(name);
@@ -443,6 +456,14 @@ namespace fmesh {
 	   colli != coll_.end();
 	   ++colli) {
 	if (colli->second->info.active)
+	  output_.insert(colli->first);
+      }
+    } else if (name=="--") {
+      output_all_ = true;
+      for (collT::iterator colli = coll_.begin();
+	   colli != coll_.end();
+	   ++colli) {
+	if (activate(colli->first))
 	  output_.insert(colli->first);
       }
     } else {

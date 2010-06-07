@@ -287,193 +287,196 @@ int main(int argc, char* argv[])
     }
   }
 
-
-  /* Check the input. */
-  if (iS0.cols()<2) {
+  int nV = iS0.rows();
+  if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
     return 0;
-  }
-  Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
-  int nV = S0.rows();
-  if (nV<0) {
-    /* No data */
-    return 0;
-  }
-  double radius = S0[0].length();
-  bool issphere = true;
-  bool isflat = (std::abs(S0[0][2]) < 1.0e-10);
-  for (int i=1; i<nV; i++) {
-    isflat = (isflat && (std::abs(S0[i][2]) < 1.0e-10));
-    issphere = (issphere && (std::abs(S0[i].length()-radius) < 1.0e-10));
-  }
-  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
-  if (!isflat) {
-    if (issphere) {
-      M.type(Mesh::Mtype_sphere);
+  } else if (nV>0) {
+    Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
+    
+    double radius = S0[0].length();
+    bool issphere = true;
+    bool isflat = (std::abs(S0[0][2]) < 1.0e-10);
+    for (int i=1; i<nV; i++) {
+      isflat = (isflat && (std::abs(S0[i][2]) < 1.0e-10));
+      issphere = (issphere && (std::abs(S0[i].length()-radius) < 1.0e-10));
+    }
+    Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
+    if (!isflat) {
+      if (issphere) {
+	M.type(Mesh::Mtype_sphere);
+      } else {
+	M.type(Mesh::Mtype_manifold);
+      }
+    }
+    M.S_set(S0);
+    M.setX11VBigLimit(nV);
+    
+    if (TV0) {
+      M.TV_set(*TV0);
+    }
+    
+    cout << "Initial mesh:" << endl << M;
+    
+    Point mini(S0(0));
+    Point maxi(S0(0));
+    for (int v=1; v<nV; v++)
+      for (int i=0; i<3; i++) {
+	mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
+	maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
+      }
+    Point sz;
+    fmesh::Vec::diff(sz,maxi,mini);
+    double diam;
+    diam = (sz[1] < sz[0]
+	    ? (sz[2] < sz[0] ? sz[0] : sz[2])
+	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
+    
+    double biglim[nV];
+    if (rcdt_big_limits==0.0) {
+      /* Read limits from a file */
+      NOT_IMPLEMENTED;
+      return 0;
+    } else if (rcdt_big_limits>0.0) {
+      for (int v=0;v<nV;v++)
+	biglim[v] = rcdt_big_limits;
     } else {
-      M.type(Mesh::Mtype_manifold);
+      /* Rudimentary default biglimit construction: */
+      for (int v=0;v<nV;v++)
+	biglim[v] = diam/std::sqrt(nV)*(-rcdt_big_limits);
     }
-  }
-  M.S_set(S0);
-  M.setX11VBigLimit(nV);
-
-  if (TV0) {
-    M.TV_set(*TV0);
-  }
-
-  cout << "Initial mesh:" << endl << M;
-
-  Point mini(S0(0));
-  Point maxi(S0(0));
-  for (int v=1; v<nV; v++)
-    for (int i=0; i<3; i++) {
-      mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
-      maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
+    
+    if (useX11) {
+      if (issphere) {
+	M.useX11(true,useX11text,500,500,
+		 -1.1,1.1,
+		 -1.1,1.1);
+      } else {
+	double w0 = maxi[0]-mini[0];
+	double w1 = maxi[1]-mini[0];
+	M.useX11(true,useX11text,500,500,
+		 mini[0]-w0*0.2,maxi[0]+w0*0.2,
+		 mini[1]-w1*0.2,maxi[1]+w1*0.2);
+      }
+      M.setX11delay(x11_delay_factor/M.nV());
     }
-  Point sz;
-  fmesh::Vec::diff(sz,maxi,mini);
-  double diam;
-  diam = (sz[1] < sz[0]
-	  ? (sz[2] < sz[0] ? sz[0] : sz[2])
-	  : (sz[2] < sz[1] ? sz[1] : sz[2]));
-
-  double biglim[nV];
-  if (rcdt_big_limits==0.0) {
-    /* Read limits from a file */
-    NOT_IMPLEMENTED;
-    return 0;
-  } else if (rcdt_big_limits>0.0) {
+    
+    MeshC MC(&M);
+    
+    if (!TV0)
+      MC.CET(cet_sides,cet_margin);
+    
+    /* TODO: Check that this is ok even when some or all points are
+       already in the triangulation. */
+    fmesh::vertexListT vertices;
     for (int v=0;v<nV;v++)
-      biglim[v] = rcdt_big_limits;
-  } else {
-    /* Rudimentary default biglimit construction: */
-    for (int v=0;v<nV;v++)
-      biglim[v] = diam/std::sqrt(nV)*(-rcdt_big_limits);
-  }
-
-  if (useX11) {
-    if (issphere) {
-      M.useX11(true,useX11text,500,500,
-	       -1.1,1.1,
-	       -1.1,1.1);
-    } else {
-      double w0 = maxi[0]-mini[0];
-      double w1 = maxi[1]-mini[0];
-      M.useX11(true,useX11text,500,500,
-	       mini[0]-w0*0.2,maxi[0]+w0*0.2,
-	       mini[1]-w1*0.2,maxi[1]+w1*0.2);
+      vertices.push_back(v);
+    MC.DT(vertices);
+    
+    if (cdt_boundary.size()>0)
+      MC.CDTBoundary(cdt_boundary);
+    if (cdt_interior.size()>0)
+      MC.CDTInterior(cdt_interior);
+    MC.PruneExterior();
+    
+    if (args_info.rcdt_given) {
+      /* Calculate the RCDT: */
+      if (rcdt_big_limit<0.0)
+	rcdt_big_limit = -rcdt_big_limit*diam;
+      MC.RCDT(rcdt_min_angle,rcdt_big_limit,biglim,nV);
     }
-    M.setX11delay(x11_delay_factor/M.nV());
-  }
-
-  MeshC MC(&M);
-
-  if (!TV0)
-    MC.CET(cet_sides,cet_margin);
-
-  /* TODO: Check that this is ok even when some or all points are
-     already in the triangulation. */
-  fmesh::vertexListT vertices;
-  for (int v=0;v<nV;v++)
-    vertices.push_back(v);
-  MC.DT(vertices);
-
-  if (cdt_boundary.size()>0)
-    MC.CDTBoundary(cdt_boundary);
-  if (cdt_interior.size()>0)
-    MC.CDTInterior(cdt_interior);
-  MC.PruneExterior();
-
-  if (args_info.rcdt_given) {
-    /* Calculate the RCDT: */
-    if (rcdt_big_limit<0.0)
-      rcdt_big_limit = -rcdt_big_limit*diam;
-    MC.RCDT(rcdt_min_angle,rcdt_big_limit,biglim,nV);
-  }
-
-  cout << "Final mesh:" << endl << M;
-
-  print_M_old(oprefix+"S.dat",M.S());
-  print_M_old(oprefix+"FV.dat",M.TV(),false);
-
-  int fem_order_max = args_info.fem_arg;
-  if (fem_order_max>0) {
-    SparseMatrix<double>& C0 = matrices.SD("c0").clear();
-    SparseMatrix<double>& C1 = matrices.SD("c1").clear();
-    SparseMatrix<double>& B1 = matrices.SD("b1").clear();
-    SparseMatrix<double>& G  = matrices.SD("g1").clear();
-    SparseMatrix<double>& K  = matrices.SD("k1").clear();
-    /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
-
-    M.calcQblocks(C0,C1,G,B1);
-
-    K = G-B1;
-
-    matrices.matrixtype("c0",fmesh::IOMatrixtype_diagonal);
-    matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
-    matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
-    matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
-    matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
-    matrices.output("c0");
-    matrices.output("c1");
-    matrices.output("b1");
-    matrices.output("g1");
-    matrices.output("k1");
-
-    print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
-    print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
-    print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
-
-    SparseMatrix<double> C0inv = inverse(C0,true);
-    SparseMatrix<double> tmp = G*C0inv;
-    SparseMatrix<double>* a;
-    SparseMatrix<double>* b = &G;
-    for (int i=1; i<fem_order_max; i++) {
-      std::stringstream ss;
-      ss << i+1;
-      std::string Gname = "g"+ss.str();
-      a = b;
-      b = &(matrices.SD(Gname).clear());
-      *b = tmp*(*a);
-      matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
-      matrices.output(Gname);
-
-      Gname = "G"+ss.str();
-      print_SM_old(oprefix+Gname+".dat",*b,
-		   false,fmesh::IOMatrixtype_symmetric);
+    
+    cout << "Final mesh:" << endl << M;
+    
+    if (oprefix != "-") {
+      print_M_old(oprefix+"S.dat",M.S());
+      print_M_old(oprefix+"FV.dat",M.TV(),false);
     }
-    tmp = C0inv*K;
-    b = &K;
-    for (int i=1; i<fem_order_max; i++) {
-      std::stringstream ss;
-      ss << i+1;
-      std::string Kname = "k"+ss.str();
-      a = b;
-      b = &(matrices.SD(Kname).clear());
-      *b = (*a)*tmp;
-      matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
-      matrices.output(Kname);
-
-      Kname = "K"+ss.str();
-      print_SM_old(oprefix+Kname+".dat",*b,
-		   false,fmesh::IOMatrixtype_symmetric);
+    
+    int fem_order_max = args_info.fem_arg;
+    if (fem_order_max>0) {
+      SparseMatrix<double>& C0 = matrices.SD("c0").clear();
+      SparseMatrix<double>& C1 = matrices.SD("c1").clear();
+      SparseMatrix<double>& B1 = matrices.SD("b1").clear();
+      SparseMatrix<double>& G  = matrices.SD("g1").clear();
+      SparseMatrix<double>& K  = matrices.SD("k1").clear();
+      /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
+      
+      M.calcQblocks(C0,C1,G,B1);
+      
+      K = G-B1;
+      
+      matrices.matrixtype("c0",fmesh::IOMatrixtype_diagonal);
+      matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
+      matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
+      matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
+      matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
+      matrices.output("c0");
+      matrices.output("c1");
+      matrices.output("b1");
+      matrices.output("g1");
+      matrices.output("k1");
+      
+      if (oprefix != "-") {
+	print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
+	print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
+	print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
+      }
+      
+      SparseMatrix<double> C0inv = inverse(C0,true);
+      SparseMatrix<double> tmp = G*C0inv;
+      SparseMatrix<double>* a;
+      SparseMatrix<double>* b = &G;
+      for (int i=1; i<fem_order_max; i++) {
+	std::stringstream ss;
+	ss << i+1;
+	std::string Gname = "g"+ss.str();
+	a = b;
+	b = &(matrices.SD(Gname).clear());
+	*b = tmp*(*a);
+	matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
+	matrices.output(Gname);
+	
+	if (oprefix != "-") {
+	  Gname = "G"+ss.str();
+	  print_SM_old(oprefix+Gname+".dat",*b,
+		       false,fmesh::IOMatrixtype_symmetric);
+	}
+      }
+      tmp = C0inv*K;
+      b = &K;
+      for (int i=1; i<fem_order_max; i++) {
+	std::stringstream ss;
+	ss << i+1;
+	std::string Kname = "k"+ss.str();
+	a = b;
+	b = &(matrices.SD(Kname).clear());
+	*b = (*a)*tmp;
+	matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
+	matrices.output(Kname);
+	
+	if (oprefix != "-") {
+	  Kname = "K"+ss.str();
+	  print_SM_old(oprefix+Kname+".dat",*b,
+		       false,fmesh::IOMatrixtype_symmetric);
+	}
+      }
+      
     }
 
+    matrices.attach(string("s"),&M.S(),false);
+    matrices.attach("tv",&M.TV(),false);
+    matrices.attach("tt",&M.TT(),false);
+    M.useTTi(true);
+    matrices.attach("tti",&M.TT(),false);
+    matrices.attach("vv",new SparseMatrix<int>(M.VV()),
+		    true,fmesh::IOMatrixtype_symmetric);
+    
+    matrices.output("s").output("tv");
+    matrices.output("tt").output("tti").output("vv");
+    
   }
-
-
-  matrices.attach(string("s"),&M.S(),false);
-  matrices.attach("tv",&M.TV(),false);
-  matrices.attach("tt",&M.TT(),false);
-  M.useTTi(true);
-  matrices.attach("tti",&M.TT(),false);
-  matrices.attach("vv",new SparseMatrix<int>(M.VV()),
-		  true,fmesh::IOMatrixtype_symmetric);
-
-  matrices.output("s").output("tv");
-  matrices.output("tt").output("tti").output("vv");
-
-
+  
   for (int i=0; i<(int)args_info.collect_given; i++) {
     matrices.output(string(args_info.collect_arg[i]));
   }
