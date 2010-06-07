@@ -118,8 +118,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  cout << "Config given:\t" << args_info.config_given << endl;
-    
   /* Read an optional config file, but don't override given options */
   if (args_info.config_given) {
     params.initialize = 0;
@@ -161,6 +159,7 @@ int main(int argc, char* argv[])
   useX11 = (args_info.x11_given>0);
   x11_delay_factor = args_info.x11_arg;
 
+  /*
   cout << "CET given:\t" << args_info.cet_given << endl;
   cout << "RCDT given:\t"
        << args_info.rcdt_given << " "
@@ -187,7 +186,7 @@ int main(int argc, char* argv[])
   cout << "RCDT maximum edge length:\t" << rcdt_big_limit << endl;
   cout << "RCDT maximum edge lengths:\t" << rcdt_big_limits << endl;
   cout << "X11 delay factor:\t" << x11_delay_factor << endl;
-
+  */
 
   string iprefix("-");
   string oprefix("-");
@@ -213,9 +212,6 @@ int main(int argc, char* argv[])
        OK; might just want to see the algorithm at work with --x11. */
   }
 
-  cout << "Input:\t" << iprefix << endl;
-  cout << "Output:\t" << oprefix << endl;
-
   matrices.io(((args_info.io_arg == io_arg_ba) ||
 	       (args_info.io_arg == io_arg_bb)),
 	      ((args_info.io_arg == io_arg_ab) ||
@@ -235,7 +231,7 @@ int main(int argc, char* argv[])
   }
 
   if (!matrices.load(input_s0_name).active) {
-    cout << "Matrix "+input_s0_name+" not active." << endl;
+    cout << "Matrix "+input_s0_name+" not found." << endl;
   }
   Matrix<double>& iS0 = matrices.DD(input_s0_name);
 
@@ -243,7 +239,7 @@ int main(int argc, char* argv[])
   Matrix<int>* TV0 = NULL;
   if (input_tv0_name != "") {
     if (!matrices.load(input_tv0_name).active) {
-      cout << "Matrix "+input_tv0_name+" not active." << endl;
+      cout << "Matrix "+input_tv0_name+" not found." << endl;
     } else {
       TV0 = &(matrices.DI(input_tv0_name));
     }
@@ -287,6 +283,8 @@ int main(int argc, char* argv[])
     }
   }
 
+  Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
+
   int nV = iS0.rows();
   if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
@@ -301,7 +299,6 @@ int main(int argc, char* argv[])
       isflat = (isflat && (std::abs(S0[i][2]) < 1.0e-10));
       issphere = (issphere && (std::abs(S0[i].length()-radius) < 1.0e-10));
     }
-    Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
     if (!isflat) {
       if (issphere) {
 	M.type(Mesh::Mtype_sphere);
@@ -315,8 +312,6 @@ int main(int argc, char* argv[])
     if (TV0) {
       M.TV_set(*TV0);
     }
-    
-    cout << "Initial mesh:" << endl << M;
     
     Point mini(S0(0));
     Point maxi(S0(0));
@@ -385,8 +380,6 @@ int main(int argc, char* argv[])
 	rcdt_big_limit = -rcdt_big_limit*diam;
       MC.RCDT(rcdt_min_angle,rcdt_big_limit,biglim,nV);
     }
-    
-    cout << "Final mesh:" << endl << M;
     
     if (oprefix != "-") {
       print_M_old(oprefix+"S.dat",M.S());
