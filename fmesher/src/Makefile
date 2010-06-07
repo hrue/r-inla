@@ -3,9 +3,10 @@ FLAGS = -g -Wall -DCMDLINE_VERSION="\"0.0.1\""
 CFLAGS = $(FLAGS)
 CXXFLAGS = $(FLAGS)
 #CXXFLAGS = -g -Wall -DDEBUG
-LDFLAGS = -lX11
+LDFLAGS = -L/usr/X11R6/lib -lX11
 CC = gcc
 CXX = g++
+OS_TYPE:=$(shell uname -s)
 
 ALL = fmesher main
 
@@ -33,3 +34,5 @@ clean :;
 	-rm $(ALL) *.o
 
 .PHONY : clean cmdline
+
+
