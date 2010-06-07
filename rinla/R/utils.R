@@ -264,10 +264,13 @@
     else
         stop("Unknown OS")
 
-    if (file.exists(fnm))
+    if (file.exists(fnm)) {
         return (fnm)
-    else
-        stop(paste("INLA installation error; no such file",fnm))
+    } else {
+        return (NULL)
+        ## Disable this for the moment....
+        ##stop(paste("INLA installation error; no such file",fnm))
+    }
 }
 
 `inla.paste` = function(strings, sep = " ")
