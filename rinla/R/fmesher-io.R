@@ -211,6 +211,7 @@
         i = A$i-1
         j = A$j-1
         values = A$values
+        elems = length(values)
     } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
         ##
         A = inla.as.dgTMatrix(A)
