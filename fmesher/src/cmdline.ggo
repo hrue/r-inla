@@ -18,8 +18,15 @@ Join separate matrix files into collection files:
   fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col
 
 Extract all matrices from two collection files graph.col and fem.col:
-  fmesher --collect=- --ic=graph.col,fem.col - prefix.
-The `-' indicates that no prefix-input is used, only output.
+  fmesher --collect=-- --ic=graph.col,fem.col - prefix.
+
+--collect=- outputs all files activated by the program, but since
+we are only interested in extracting all the matrices,
+--collect=-- indicates that all matrices should be read, regardless of
+whether they are needed or not.
+The `-' at the end indicates that no prefix-input is used, only output.
+To completely disable prefix I/O, omit the prefixes completely, or
+specify `-' or `- -'
 
 Convert a raw ascii matrix from stdin to fmesher format:
   fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat
