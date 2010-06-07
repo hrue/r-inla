@@ -212,8 +212,6 @@ namespace fmesh {
 	 listi != list_.end();
 	 ++listi) {
 
-      std::cout << "*listi = " << *listi << std::endl;
-
       IOHelper<int> ioh_;
       ioh_.binary(bin_).IH(input);
 
@@ -363,14 +361,9 @@ namespace fmesh {
     if (activate(name))
       return info(name);
 
-    cout << "Name: " << name << endl;
-    cout << "Source: " << source_ << endl;
     sourceT::const_iterator sourcei;
     if ((sourcei = source_.find(name)) != source_.end()) {
       /* The matrix is in a collection file */
-      cout << "Sourcei: " << sourcei << endl;
-      cout << "Sourcei1: " << sourcei->first << endl;
-      cout << "Sourcei2: " << sourcei->second << endl;
       load_file(sourcei->second);
       if (activate(name))
 	return info(name);
