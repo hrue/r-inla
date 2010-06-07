@@ -47,7 +47,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --ir=SPEC           Import a raw matrix file in ascii format",
   "  \n  First SPEC is the name of the matrix\n  Second SPEC is a four letter matrix specification:\n         d/s = dense/sparse\n         i/d = int/double\n         g/s/d = general/symmetric/diagonal\n         r/c = row/column major storage\n         Common format for point lists with one point per line = ddgr\n  Third SPEC the filename, - for standard input\n",
   "\nTriangulation options:",
-  "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0  (default=`s0')",
+  "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0, further indicates additional data \n                            point matrices.  Use - for tv0 to only supply \n                            additional points.  (default=`s0')",
   "  -E, --cet=PARAM         Convex encapsulation parameters",
   "  \n  \tThe parameters are n,m, where n is the number of sides of the \n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
   "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
@@ -218,11 +218,11 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->collect_max = 0;
   args_info->collect_all_help = gengetopt_args_info_detailed_help[11] ;
   args_info->ir_help = gengetopt_args_info_detailed_help[12] ;
-  args_info->ir_min = 3;
-  args_info->ir_max = 3;
+  args_info->ir_min = 0;
+  args_info->ir_max = 0;
   args_info->input_help = gengetopt_args_info_detailed_help[15] ;
-  args_info->input_min = 1;
-  args_info->input_max = 2;
+  args_info->input_min = 0;
+  args_info->input_max = 0;
   args_info->cet_help = gengetopt_args_info_detailed_help[16] ;
   args_info->cet_min = 1;
   args_info->cet_max = 2;
@@ -1206,7 +1206,7 @@ cmdline_internal (
             goto failure;
         
           break;
-        case 'T':	/* Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0.  */
+        case 'T':	/* Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points..  */
         
           if (update_multiple_arg_temp(&input_list, 
               &(local_args_info.input_given), optarg, 0, "s0", ARG_STRING,

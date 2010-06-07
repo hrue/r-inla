@@ -71,11 +71,11 @@ struct gengetopt_args_info
   unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
   unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
   const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
-  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 (default='s0').  */
-  char ** input_orig;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 original value given at command line.  */
-  unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0's minimum occurreces */
-  unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0's maximum occurreces */
-  const char *input_help; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0 help description.  */
+  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. (default='s0').  */
+  char ** input_orig;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. original value given at command line.  */
+  unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s minimum occurreces */
+  unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s maximum occurreces */
+  const char *input_help; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. help description.  */
   double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
   char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
   unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */

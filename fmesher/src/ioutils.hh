@@ -435,6 +435,11 @@ namespace fmesh {
     void output_prefix(std::string prefix);
     void input_file(std::string filename);
     void output_file(std::string filename);
+
+    template <class T>
+    void input_raw_M(std::istream& input,
+		     Matrix<T>& M);
+
     void input_raw(std::string name,
 		   std::string specification,
 		   std::string filename);
