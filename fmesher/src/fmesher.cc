@@ -129,10 +129,11 @@ int main(int argc, char* argv[])
     }
   }
 
-  //  cmdline_dump(stdout,&args_info);
+  if (args_info.dump_config_given)
+    cmdline_dump(stdout,&args_info);
 
   string input_s0_name = "";
-  string input_tv0_name = "";
+  string input_tv0_name = "-";
 
   input_s0_name = string(args_info.input_arg[0]);
   if (args_info.input_given>1)
@@ -235,14 +236,23 @@ int main(int argc, char* argv[])
   }
   Matrix<double>& iS0 = matrices.DD(input_s0_name);
 
-
   Matrix<int>* TV0 = NULL;
-  if (input_tv0_name != "") {
+  if (input_tv0_name != "-") {
     if (!matrices.load(input_tv0_name).active) {
       cout << "Matrix "+input_tv0_name+" not found." << endl;
     } else {
       TV0 = &(matrices.DI(input_tv0_name));
     }
+  }
+
+  /* Append any additional location matrices */ 
+  for (int i=2; i < (int)args_info.input_given; i++) {
+    std::string extra_name = string(args_info.input_arg[i]);
+    if (!matrices.load(extra_name).active) {
+      cout << "Matrix "+extra_name+" not found." << endl;
+    }
+    Matrix<double>& S0_extra = matrices.DD(extra_name);
+    iS0.append(S0_extra);
   }
 
   fmesh::constrListT cdt_boundary;
@@ -291,7 +301,7 @@ int main(int argc, char* argv[])
     return 0;
   } else if (nV>0) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
-    
+
     double radius = S0[0].length();
     bool issphere = true;
     bool isflat = (std::abs(S0[0][2]) < 1.0e-10);
@@ -367,9 +377,10 @@ int main(int argc, char* argv[])
     for (int v=0;v<nV;v++)
       vertices.push_back(v);
     MC.DT(vertices);
-    
-    if (cdt_boundary.size()>0)
+
+    if (cdt_boundary.size()>0) {
       MC.CDTBoundary(cdt_boundary);
+    }
     if (cdt_interior.size()>0)
       MC.CDTInterior(cdt_interior);
     MC.PruneExterior();

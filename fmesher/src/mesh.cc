@@ -2063,6 +2063,11 @@ namespace fmesh {
 	     << " v0=" << v0
 	     << " v1=" << v1
 	     << endl);
+
+    if (v1>=(int)nV()) { /* Vertex index out of range */
+      return DartPair(dh,Dart()); 
+    }
+
     Dart d(find_path_direction(dh,s1,v1));
     MESH_LOG("Path-direction " << d << endl);
     MESH_LOG("Starting triangle " << d.t() << " ("
@@ -2138,6 +2143,10 @@ namespace fmesh {
   Dart Mesh::locate_vertex(const Dart& d0,
 			  const int v) const
   {
+    if ((v<0) || (v>=(int)nV())) {
+      return Dart(); /* Vertex index out of range */
+    }
+
     if (use_VT_) {
       int t = VT_[v];
       if (t<0) /* Vertex not connected to any triangles. */
