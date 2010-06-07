@@ -49,7 +49,9 @@ const char *gengetopt_args_info_detailed_help[] = {
   "\nTriangulation options:",
   "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0  (default=`s0')",
   "  -E, --cet=PARAM         Convex encapsulation parameters",
+  "  \n  \tThe parameters are n,m, where n is the number of sides of the \n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
   "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
+  "  \n  \tThe parameter order is min_angle, max_edge_length for added points, \n  max_edge_length for data points.\n  \tWhen negative values for the edge_length-parameters, a rudimentary\n  scaling with respect to the initial point density is used.\n  \tPositive values are absolute.\n  \tThe algorithm is only guaranteed to converge for min_angle<=21, but values \n  as high as 34 often work in practice.\n  \tDefaults are 21,-1.,-0.5\n",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
   "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
   "      --fem=ORDER         Calculate FEM matrices up to order fem  (default=`2')",
@@ -76,12 +78,12 @@ init_help_array(void)
   gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[14];
   gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[15];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[16];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[19];
-  gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[20];
-  gengetopt_args_info_help[19] = gengetopt_args_info_detailed_help[21];
-  gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[22];
+  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[20];
+  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[21];
+  gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[22];
+  gengetopt_args_info_help[19] = gengetopt_args_info_detailed_help[23];
+  gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[24];
   gengetopt_args_info_help[21] = 0; 
   
 }
@@ -224,17 +226,17 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->cet_help = gengetopt_args_info_detailed_help[16] ;
   args_info->cet_min = 1;
   args_info->cet_max = 2;
-  args_info->rcdt_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->rcdt_help = gengetopt_args_info_detailed_help[18] ;
   args_info->rcdt_min = 1;
   args_info->rcdt_max = 3;
-  args_info->boundary_help = gengetopt_args_info_detailed_help[18] ;
+  args_info->boundary_help = gengetopt_args_info_detailed_help[20] ;
   args_info->boundary_min = 0;
   args_info->boundary_max = 0;
-  args_info->interior_help = gengetopt_args_info_detailed_help[19] ;
+  args_info->interior_help = gengetopt_args_info_detailed_help[21] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[20] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[22] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[22] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[24] ;
   
 }
 

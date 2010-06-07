@@ -79,9 +79,19 @@ option "input" T "Specify triangulation input data, default=s0.  A second name i
        string typestr="NAME" multiple(1-2) default="s0" optional
 option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
        multiple(1-2) optional
+       details="\n\tThe parameters are n,m, where n is the number of sides of the encapsulation, and m is the margin.
+\tFor m>0, the margins are set to m.
+\tFor m<0, the margins are set to approximately -m*diam.
+\tDefaults are 8,-0.1, adding 10% on all sides\n"
 option "rcdt" R "Generate RCDT, with optional quality parameters" double
        typestr="PARAM"
        multiple(1-3) argoptional default="21" optional
+       details="\n\tThe parameter order is min_angle, max_edge_length for added points, max_edge_length for data points.
+\tWhen negative values for the edge_length-parameters, a rudimentary
+scaling with respect to the initial point density is used.
+\tPositive values are absolute.
+\tThe algorithm is only guaranteed to converge for min_angle<=21, but values as high as 34 often work in practice.
+\tDefaults are 21,-1.,-0.5\n"
 option "boundary" B "Handle triangulation boundary" string typestr="NAME"
        multiple default="boundary0" optional
 option "interior" I "Handle interior constraints" string typestr="NAME"
