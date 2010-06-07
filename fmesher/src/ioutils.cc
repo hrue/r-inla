@@ -501,11 +501,34 @@ namespace fmesh {
   }
 
   void MatrixC::input_raw(std::string name,
-		 std::string specification,
-		 std::string filename)
+			  std::string specification,
+			  std::string filename)
   {
     /* Parse raw ascii matrix data and add to collection. */    
-    NOT_IMPLEMENTED;
+
+    if (specification=="ddgr") {
+      Matrix<double>& M = attach(name,new Matrix<double>());
+      if (filename=="-")
+	input_raw_M(std::cin,M);
+      else {
+	std::ifstream I;
+	I.open(filename.c_str(), std::ios::in);
+	input_raw_M(I,M);
+	I.close();
+      }
+    } else if (specification=="digr") {
+      Matrix<int>& M = attach(name,new Matrix<int>());
+      if (filename=="-")
+	input_raw_M(std::cin,M);
+      else {
+	std::ifstream I;
+	I.open(filename.c_str(), std::ios::in);
+	input_raw_M(I,M);
+	I.close();
+      }
+    } else
+      NOT_IMPLEMENTED;
+
   }
 
 
