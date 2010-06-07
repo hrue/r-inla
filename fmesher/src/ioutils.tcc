@@ -260,10 +260,13 @@ namespace fmesh {
     if (!M_) {
       return *this;
     }
+    std::cout << "rows,cols = " << h.rows << "," << h.rows << std::endl;
     (*M_).clear();
     (*M_).cols(h.cols);
     (*M_).capacity(h.rows);
-    (*M_)(h.rows-1,h.cols-1,T()); /* Initialize last element. */
+    if ((h.rows>0) && (h.cols>0))
+      (*M_)(h.rows-1,h.cols-1,T()); /* Initialize last element. */
+    std::cout << "OK" << std::endl;
     if (bin_) {
       switch (h.matrixtype) {
       case IOMatrixtype_general:
