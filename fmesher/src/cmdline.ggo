@@ -61,7 +61,7 @@ option "collect-all" -
        "With --collect=-, load all matrices from the input collections"
        flag off dependon="collect"
 option "ir" - "Import a raw matrix file in ascii format"
-       string typestr="SPEC" multiple(3)
+       string typestr="SPEC" multiple
        details="
 First SPEC is the name of the matrix
 Second SPEC is a four letter matrix specification:
@@ -75,8 +75,8 @@ Third SPEC the filename, - for standard input\n"
 
 
 section "Triangulation options"
-option "input" T "Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0"
-       string typestr="NAME" multiple(1-2) default="s0" optional
+option "input" T "Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points."
+       string typestr="NAME" multiple default="s0" optional
 option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
        multiple(1-2) optional
        details="\n\tThe parameters are n,m, where n is the number of sides of the encapsulation, and m is the margin.
@@ -103,3 +103,8 @@ section "Miscellaneous options"
 option "x11" x "Show progress in an x11 window, with delay factor" double
        typestr="DELAY"
        argoptional default="1.0" optional
+
+
+
+# ./fmesher --ir=s0,ddgr,koala-posisions.txt --ir=bnds0,ddgr,koala-boundary.txt --ir=bnd0,digr,koala-bnd0.txt --io=aa --oc=test.col --collect=s0 -x -Ts0,-,bnds0 -Bbnd0 -R
+# ./fmesher --ic=koala.col -Ts0,-,bnds0 -Bbnd0 - -R -x

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <vector>
 #include <set>
@@ -515,9 +516,36 @@ namespace fmesh {
     ioh.binary(binary).OH(O).OD(O);
     O.close();
   }
-
-
-
+  
+  
+  
+  
+  template <class T>
+  void MatrixC::input_raw_M(std::istream& input,
+			    Matrix<T>& M)
+  {
+    int r = 0;
+    int cols = 0;
+    while (!input.eof()) {
+      std::string line;
+      getline(input,line);
+      std::stringstream ss(line);
+      int c = 0;
+      if (line.length()>0)
+	while (!ss.eof()) {
+	  ss >> M(r,c);
+	  c++;
+	}
+      if (r==0) {
+	cols = c;
+      }
+      if (c<cols) {
+	M.rows(r);
+	r--;
+      }
+      r++;
+    }
+  }
 
 
 

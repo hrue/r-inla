@@ -1762,12 +1762,16 @@ namespace fmesh {
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
+      MESHC_LOG("Trying to add segment: "
+		 << ci->first << "," << ci->second << endl);
       if (!CDTSegment(true,ci->first,ci->second).isnull()) {
+	MESHC_LOG("Success." << endl);
 	ci_next = ci;
 	ci_next++;
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
       } else {
+	MESHC_LOG("Failure." << endl);
 	ci++;
       }
     }

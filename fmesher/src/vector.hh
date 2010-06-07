@@ -152,14 +152,36 @@ namespace fmesh {
       return true;
     };
 
+    int rows(size_t set_rows) {
+      if (set_rows>rows_)
+	capacity(set_rows);
+      else if (set_rows<rows_)
+	truncate(set_rows);
+      return rows_;
+    };
     int rows(void) const { return rows_; };
     int cols(void) const { return cols_; };
     int cols(size_t set_cols) {
-      if (cols_ > 0) {
-	/* Cannot alter number of columns */
+      /* When set, cannot alter number of columns,
+	 unless we only need to expand a single row. */
+      if ((cols_ > 0) &&
+	  (!((rows_<=1) && cols_<=set_cols))) {
 	return cols_;
       }
-      cols_ = set_cols;
+      if ((cols_>0) && (rows_>0)) { /* We already have some data, and
+				       need to carefully make sure the
+				       capacity is enough */
+	/* Pre-data-size: cap_*cols_
+	   Post-data_size needed cap_*set_cols
+	   capacity is set as r*cols_
+	   Requirement: r*cols_ >= cap_*set_cols
+	   r = (cap_*set_cols)/cols_+1
+	 */
+	capacity((cap_*set_cols)/cols_+1);
+	cols_ = set_cols;
+	cap_ = rows_; /* This makes sure we dont' overestimate the true cap_. */
+      } else
+	cols_ = set_cols;
       return cols_;
     };
 
@@ -179,6 +201,8 @@ namespace fmesh {
     };
 
     T& operator()(const int r, const int c) {
+      if (c >= (int)cols_)
+	cols(c+1);
       return operator()(r)[c]; 
       /*
       if (r >= (int)rows_) {
