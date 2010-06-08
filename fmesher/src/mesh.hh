@@ -240,7 +240,8 @@ namespace fmesh {
     void calcQblocks(SparseMatrix<double>& C0,
 		     SparseMatrix<double>& C1,
 		     SparseMatrix<double>& G1,
-		     SparseMatrix<double>& B1) const;
+		     SparseMatrix<double>& B1,
+		     Matrix<double>& Tareas) const;
 
   };
 

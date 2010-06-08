@@ -396,77 +396,6 @@ int main(int argc, char* argv[])
       print_M_old(oprefix+"S.dat",M.S());
       print_M_old(oprefix+"FV.dat",M.TV(),false);
     }
-    
-    int fem_order_max = args_info.fem_arg;
-    if (fem_order_max>0) {
-      SparseMatrix<double>& C0 = matrices.SD("c0").clear();
-      SparseMatrix<double>& C1 = matrices.SD("c1").clear();
-      SparseMatrix<double>& B1 = matrices.SD("b1").clear();
-      SparseMatrix<double>& G  = matrices.SD("g1").clear();
-      SparseMatrix<double>& K  = matrices.SD("k1").clear();
-      /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
-      
-      M.calcQblocks(C0,C1,G,B1);
-      
-      K = G-B1;
-      
-      matrices.matrixtype("c0",fmesh::IOMatrixtype_diagonal);
-      matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
-      matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
-      matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
-      matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
-      matrices.output("c0");
-      matrices.output("c1");
-      matrices.output("b1");
-      matrices.output("g1");
-      matrices.output("k1");
-      
-      if (oprefix != "-") {
-	print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
-	print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
-	print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
-      }
-      
-      SparseMatrix<double> C0inv = inverse(C0,true);
-      SparseMatrix<double> tmp = G*C0inv;
-      SparseMatrix<double>* a;
-      SparseMatrix<double>* b = &G;
-      for (int i=1; i<fem_order_max; i++) {
-	std::stringstream ss;
-	ss << i+1;
-	std::string Gname = "g"+ss.str();
-	a = b;
-	b = &(matrices.SD(Gname).clear());
-	*b = tmp*(*a);
-	matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
-	matrices.output(Gname);
-	
-	if (oprefix != "-") {
-	  Gname = "G"+ss.str();
-	  print_SM_old(oprefix+Gname+".dat",*b,
-		       false,fmesh::IOMatrixtype_symmetric);
-	}
-      }
-      tmp = C0inv*K;
-      b = &K;
-      for (int i=1; i<fem_order_max; i++) {
-	std::stringstream ss;
-	ss << i+1;
-	std::string Kname = "k"+ss.str();
-	a = b;
-	b = &(matrices.SD(Kname).clear());
-	*b = (*a)*tmp;
-	matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
-	matrices.output(Kname);
-	
-	if (oprefix != "-") {
-	  Kname = "K"+ss.str();
-	  print_SM_old(oprefix+Kname+".dat",*b,
-		       false,fmesh::IOMatrixtype_symmetric);
-	}
-      }
-      
-    }
 
     matrices.attach(string("s"),&M.S(),false);
     matrices.attach("tv",&M.TV(),false);
@@ -480,7 +409,84 @@ int main(int argc, char* argv[])
     matrices.output("tt").output("tti").output("vv");
     
   }
+    
+  int fem_order_max = args_info.fem_arg;
+  if (fem_order_max>0) {
+    SparseMatrix<double>& C0 = matrices.SD("c0").clear();
+    SparseMatrix<double>& C1 = matrices.SD("c1").clear();
+    SparseMatrix<double>& B1 = matrices.SD("b1").clear();
+    SparseMatrix<double>& G  = matrices.SD("g1").clear();
+    SparseMatrix<double>& K  = matrices.SD("k1").clear();
+    /* K1=G1-B1, K2=K1*inv(C0)*K1, ... */
+    Matrix<double>& Tareas  = matrices.DD("ta").clear();
+    
+    M.calcQblocks(C0,C1,G,B1,Tareas);
+    
+    matrices.attach(string("va"),new Matrix<double>(diag(C0)),true);
+    
+    K = G-B1;
+    
+    matrices.matrixtype("c0",fmesh::IOMatrixtype_diagonal);
+    matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
+    matrices.output("c0");
+    matrices.output("c1");
+    matrices.output("b1");
+    matrices.output("g1");
+    matrices.output("k1");
+    matrices.output("va");
+    matrices.output("ta");
+    
+    if (oprefix != "-") {
+      print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
+      print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
+    }
+    
+    SparseMatrix<double> C0inv = inverse(C0,true);
+    SparseMatrix<double> tmp = G*C0inv;
+    SparseMatrix<double>* a;
+    SparseMatrix<double>* b = &G;
+    for (int i=1; i<fem_order_max; i++) {
+      std::stringstream ss;
+      ss << i+1;
+      std::string Gname = "g"+ss.str();
+      a = b;
+      b = &(matrices.SD(Gname).clear());
+      *b = tmp*(*a);
+      matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
+      matrices.output(Gname);
+      
+      if (oprefix != "-") {
+	Gname = "G"+ss.str();
+	print_SM_old(oprefix+Gname+".dat",*b,
+		     false,fmesh::IOMatrixtype_symmetric);
+      }
+    }
+    tmp = C0inv*K;
+    b = &K;
+    for (int i=1; i<fem_order_max; i++) {
+      std::stringstream ss;
+      ss << i+1;
+      std::string Kname = "k"+ss.str();
+      a = b;
+      b = &(matrices.SD(Kname).clear());
+      *b = (*a)*tmp;
+      matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
+      matrices.output(Kname);
+      
+      if (oprefix != "-") {
+	Kname = "K"+ss.str();
+	print_SM_old(oprefix+Kname+".dat",*b,
+		     false,fmesh::IOMatrixtype_symmetric);
+      }
+    }
+    
+  }
   
+
   for (int i=0; i<(int)args_info.collect_given; i++) {
     matrices.output(string(args_info.collect_arg[i]));
   }
