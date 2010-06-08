@@ -5989,8 +5989,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	inla_sphere_tp *sphere_model = NULL;
 	inla_sphere_tp *sphere_model_orig = NULL;
 
-	inla_sphere_tp *spde_model = NULL;
-	inla_sphere_tp *spde_model_orig = NULL;
+	inla_spde_tp *spde_model = NULL;
+	inla_spde_tp *spde_model_orig = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
