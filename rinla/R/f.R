@@ -31,6 +31,7 @@ function(...,
          nu = NULL,
          bvalue = NULL,
          sphere.dir = NULL,
+         spde.dir = NULL,
          T.order=NULL,
          T.model=NULL,
          K.order=NULL,
@@ -133,7 +134,7 @@ function(...,
         if (!file.exists(graph.file))
             stop(paste("Cannot find graph.file", graph.file))
         ## read n from the graph
-        n.from.graph = scan(graph.file, n=1, what = integer(0), comment.char = "#")
+        n.from.graph = scan(graph.file, n=1, what = integer(0), comment.char = "#") #
         if (n.from.graph <= 0)
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         if (!is.null(n) && n != n.from.graph)
@@ -146,7 +147,7 @@ function(...,
         if (!file.exists(graph.file))
             stop(paste("Cannot find graph.file", graph.file))
         ## read n from the graph
-        n.from.graph = 2*scan(graph.file, n=1, what = integer(0), comment.char = "#")
+        n.from.graph = 2*scan(graph.file, n=1, what = integer(0), comment.char = "#") #
         if (n.from.graph <= 0)
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         if (!is.null(n) && n != n.from.graph)
@@ -197,6 +198,13 @@ function(...,
             stop("Argument sphere.dir=NULL is required for model = sphere")
         if (!(file.exists(sphere.dir) && file.info(sphere.dir)$isdir))
             stop(paste("Argument sphere.dir=", sphere.dir, "must be an existing directory."))
+    } 
+
+    if (inla.one.of(model, "spde")) {
+        if (is.null(spde.dir))
+            stop("Argument spde.dir=NULL is required for model = spde")
+        if (!(file.exists(spde.dir) && file.info(spde.dir)$isdir))
+            stop(paste("Argument spde.dir=", spde.dir, "must be an existing directory."))
     } 
         
     ## in ... is the name of the covariate  and possibly the location of the weights
@@ -343,7 +351,8 @@ function(...,
             Cmatrix = Cmatrix, rankdef=rankdef, extraconstr=extraconstr, values=values,
             nrow = nrow, ncol = ncol, nu = nu, bvalue = bvalue,
             sphere.dir = sphere.dir, T.order = T.order, T.model = T.model, K.order = K.order, K.model = K.model,
-            of = of, precision = precision, si = si)
+            of = of, precision = precision, si = si,
+            spde.dir = spde.dir )
 
     return (ret)
 }
