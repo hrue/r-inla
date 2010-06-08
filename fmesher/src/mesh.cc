@@ -574,7 +574,7 @@ namespace fmesh {
   {
     if (!X11_) return;
 
-    int szbig = 5;
+    int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
     int szsmall = 1;
 
     const Point& s = S_[v];
@@ -594,7 +594,7 @@ namespace fmesh {
   {
     if (!X11_) return;
 
-    int szbig = 5;
+    int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
     int szsmall = 1;
 
     const Int3& v = TV_[t];
