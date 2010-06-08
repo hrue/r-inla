@@ -12,7 +12,9 @@
 #include <list>
 #include <string>
 
-#include "xtmpl.h"
+#ifndef FMESHER_NO_X
+#include "x11utils.hh"
+#endif
 #include "vector.hh"
 
 #define MESH_EPSILON 1e-15
@@ -61,8 +63,10 @@ namespace fmesh {
     Matrix3int TTi_; /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
     Matrix3double S_;
+#ifndef FMESHER_NO_X
     Xtmpl (*X11_);
     int X11_v_big_limit_;
+#endif
     
   private:
     Mesh& rebuildTT();
@@ -81,23 +85,28 @@ namespace fmesh {
     Mesh& rebuild_VT();
     Mesh& rebuildTTi();
 
+  public:
     void drawX11point(int v, bool fg);
-  public:
     void drawX11triangle(int t, bool fg);
-  public:
     void redrawX11(std::string str);
     
   public:
     Mesh(void) : type_(Mtype_manifold),
 		 use_VT_(false), use_TTi_(true),
-		 TV_(), TT_(), VT_(), TTi_(), S_(),
-		 X11_(NULL), X11_v_big_limit_(0) {};
+		 TV_(), TT_(), VT_(), TTi_(), S_()
+#ifndef FMESHER_NO_X
+	       , X11_(NULL), X11_v_big_limit_(0)
+#endif
+    {};
     Mesh(Mtype manifold_type, size_t Vcapacity,
 	 bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold),
 			  use_VT_(true), use_TTi_(false),
-			  TV_(), TT_(), VT_(), TTi_(), S_(),
-      X11_(NULL), X11_v_big_limit_(0) {
+			  TV_(), TT_(), VT_(), TTi_(), S_()
+#ifndef FMESHER_NO_X
+			, X11_(NULL), X11_v_big_limit_(0)
+#endif
+    {
       *this = M;
     };
     Mesh& operator=(const Mesh& M);
@@ -115,8 +124,18 @@ namespace fmesh {
     bool useTTi() const { return use_TTi_; };
     Mesh& useTTi(bool use_TTi);
 
-    bool useX11() const { return (X11_!=NULL); };
-    void setX11VBigLimit(int lim) { X11_v_big_limit_ = lim; };
+    bool useX11() const {
+#ifndef FMESHER_NO_X
+      return (X11_!=NULL);
+#else
+      return false;
+#endif
+    };
+    void setX11VBigLimit(int lim) {
+#ifndef FMESHER_NO_X
+      X11_v_big_limit_ = lim;
+#endif
+    };
     void setX11delay(double set_delay);
     Mesh& useX11(bool use_X11, bool draw_text,
 		 int sx = 500, int sy = 500,
@@ -148,7 +167,11 @@ namespace fmesh {
     const int& VT(int v) const { return VT_[v]; };
     const Int3& TTi(int t) const { return TTi_[t]; };
     const Point& S(int v) const { return S_[v]; };
+#ifndef FMESHER_NO_X
     Xtmpl *X11() { return X11_; };
+#else
+    void *X11() { return NULL; };
+#endif
     MOAint3 TVO() const;
     MOAint3 TTO() const;
     MOAint VTO() const;

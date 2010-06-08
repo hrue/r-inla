@@ -18,6 +18,8 @@ LEXTPREFIX = $(PREFIX)
 #
 ################################################################################
 
+CP    = cp
+MV    = mv
 RM    = rm -f
 RMR   = rm -rf
 RMDIR = rmdir
@@ -52,6 +54,8 @@ doc:
 	  < Doxyfile \
 	  | doxygen -
 	make -C doc/latex pdf
+	$(MV) doc/latex/refman.pdf doc/fmesher-refman.pdf
+	$(RMR) doc/latex/
 
 install: $(FMESHER)
 	 @umask 022;\
@@ -60,13 +64,13 @@ install: $(FMESHER)
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m755 $(FMESHER) $(PREFIX)/bin/$(FMESHER);\
-	 $(INSTALL) -m755 $(FMESHER) $(PREFIX)/bin/$(FMESHER)-$(VERSION);\
 	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/fmesher; \
 	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/fmesher/examples; 
 
 clean:
 	make -C src clean
 	-$(RM) $(FMESHER) $(FMESHER_TEST)
+	-$(RM) examples/koala.out.*
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt

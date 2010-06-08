@@ -535,7 +535,6 @@ namespace fmesh {
       big_.setQv(v,std::exp(std::log(big_.getQv(v0))*(1.-beta)+
 			    std::log(big_.getQv(v1))*beta));
     dh = splitEdgeDelaunay(d,v);
-    //    xtmpl_press_ret("bisectEdgeDelaunay finished");
     return dh;
   }
 
@@ -1514,11 +1513,6 @@ namespace fmesh {
     dh = vd0;
 
     //    CDTMSG("");
-    //    if (M_->useX11()) {
-    //  char msg[] = "Starting segment insertion.";
-    //  xtmpl_press_ret(msg);
-    // }
-
     while (true) {
       bool swapable = true;
       int v10 = vd0.vo(); /* The first opposite vertex. */
@@ -1612,10 +1606,6 @@ namespace fmesh {
 		    "(Restart this vertex)" :
 		    "(Leave vertex)") << endl);
 
-	  // if (M_->useX11()) {
-	  //  char msg[] = "Swapped away an edge.";
-	  //  xtmpl_press_ret(msg);
-	  // }
       	}
       }
 
@@ -1648,11 +1638,6 @@ namespace fmesh {
 	CDTMSG("Vertex not eliminated, go to next:");
       }
 
-      // if (M_->useX11()) {
-      //	char msg[] = "Tried to eliminate vertex.";
-      //	xtmpl_press_ret(msg);
-      // }
-      
     }
 
     MESHC_LOG("Segment inserted:" << endl);
@@ -1740,7 +1725,6 @@ namespace fmesh {
       MESHC_LOG((boundary ? "Boundary" : "Interior")
 		<< " segment not inserted ("
 		<< v0 << "," << v1 << ")" << endl);
-      xtmpl_press_ret(std::string("Segment not inserted").c_str());
       return ds;
     }
     if (boundary)
@@ -1891,11 +1875,7 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertex(c),dh).isnull()) {
-	  MESHC_LOG("Skinny triangle elimination failed" << endl);
-	  if (M_->useX11()) {
-	    char msg[] = "Skinny triangle elimination failed";
-	    xtmpl_press_ret(msg);
-	  }
+	  MESHC_LOG_("Skinny triangle elimination failed" << endl);
 	  return false;
 	}
 	continue;
@@ -1912,11 +1892,7 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertex(c),dh).isnull()) {
-	  MESHC_LOG("Big triangle elimination failed failed" << endl);
-	  if (M_->useX11()) {
-	    char msg[] = "Big triangle elimination failed failed";
-	    xtmpl_press_ret(msg);
-	  }
+	  MESHC_LOG_("Big triangle elimination failed failed" << endl);
 	  return false;
 	}
 	continue;
