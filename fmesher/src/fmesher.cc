@@ -36,7 +36,7 @@ using fmesh::Vector3;
 
 const bool useVT = true;
 const bool useTTi = true;
-bool useX11 = true;
+bool useX11 = false;
 const bool useX11text = false;
 double x11_delay_factor = 1.0;
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
   if (args_info.rcdt_given>2)
     rcdt_big_limits = args_info.rcdt_arg[2];
 
-  useX11 = (args_info.x11_given>0);
+  useX11 = (args_info.x11_given>0) && (args_info.x11_arg>=0);
   x11_delay_factor = args_info.x11_arg;
 
   /*
