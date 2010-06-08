@@ -103,9 +103,10 @@
             fnm = inla.copy.dir.for.section(random.spec$sphere.dir, data.dir)
             cat("sphere.dir =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         }
-        if (!is.null(random.spec$spde.dir)) {
-            fnm = inla.copy.dir.for.section(random.spec$spde.dir, data.dir)
-            cat("spde.dir =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        if (!is.null(random.spec$spde.prefix)) {
+            ## need a special one, as spde.prefix is not a file or a directory...
+            fnm = inla.copy.dir.for.section.spde(random.spec$spde.prefix, data.dir)
+            cat("spde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         }
         if (!is.null(random.spec$T.order))
             cat("T.order =", random.spec$T.order, "\n", sep = " ", file = file,  append = TRUE)
@@ -653,18 +654,37 @@
 }
 
 `inla.copy.dir.for.section` =
-    function(dirname, data.dir)
+    function(dir.name, data.dir)
 {
-    if (missing(dirname))
+    if (missing(dir.name))
         return (NULL)
     if (missing(data.dir))
         stop("data.dir required")
 
     d.fnm = inla.tempfile(tmpdir=data.dir)
     dir.create(d.fnm, recursive=TRUE)
-    files.to.copy = paste(dirname, "/", dir(dirname, recursive=TRUE), sep="")
+    files.to.copy = paste(dir.name, "/", dir(dir.name, recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
     return (gsub(data.dir, "$DATADIR", d.fnm, fixed=TRUE))
+}
+
+`inla.copy.dir.for.section.spde` =
+    function(prefix, data.dir)
+{
+    dir.name = dirname(d)
+    file.prefix = basename(d)
+    if (missing(dir.name))
+        return (NULL)
+    if (missing(data.dir))
+        stop("data.dir required")
+
+    d.fnm = inla.tempfile(tmpdir=data.dir)
+    dir.create(d.fnm, recursive=TRUE)
+    files.to.copy = paste(dir.name, "/", dir(dir.name, pattern = paste("^", file.prefix, sep=""), recursive=TRUE), sep="")
+    file.copy(files.to.copy, d.fnm, recursive=TRUE)
+    rdir = gsub(data.dir, "$DATADIR", d.fnm, fixed=TRUE)
+    rprefix = paste(rdir, "/", file.prefix, sep="")
+    return (rprefix)
 }
 
 `inla.z.section` =
