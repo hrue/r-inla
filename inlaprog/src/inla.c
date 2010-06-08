@@ -5986,9 +5986,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	map_table_tp *um, *um0, *um1, *um2, *um3, *um4, *um5;
+
 	inla_sphere_tp *sphere_model = NULL;
 	inla_sphere_tp *sphere_model_orig = NULL;
-
 	inla_spde_tp *spde_model = NULL;
 	inla_spde_tp *spde_model_orig = NULL;
 
