@@ -103,6 +103,10 @@
             fnm = inla.copy.dir.for.section(random.spec$sphere.dir, data.dir)
             cat("sphere.dir =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         }
+        if (!is.null(random.spec$spde.dir)) {
+            fnm = inla.copy.dir.for.section(random.spec$spde.dir, data.dir)
+            cat("spde.dir =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        }
         if (!is.null(random.spec$T.order))
             cat("T.order =", random.spec$T.order, "\n", sep = " ", file = file,  append = TRUE)
         if (!is.null(random.spec$T.model))

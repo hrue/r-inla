@@ -63,7 +63,7 @@ install: $(INLA)
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/inla; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/inla/examples; 
 
-tags :; etags src/*.c src/*.h
+tags :; etags --output=src/TAGS src/*.c src/*.h
 
 clean:; -$(RM) $(OBJ) $(INLA)
 
