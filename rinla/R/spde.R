@@ -34,7 +34,7 @@
     loc.file = inla.write.fmesher.file(A, filename = paste(loc.file.argument, "s0", sep=""))
 
     ## additional argumets
-    all.args = paste("-r", inla.getOption("fmesher.arg"))
+    all.args = paste("--rcdt", inla.getOption("fmesher.arg"))
     fmesher.call = inla.getOption("fmesher.call")
     
     if (inla.os("linux") || inla.os("mac")) {

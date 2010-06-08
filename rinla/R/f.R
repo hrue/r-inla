@@ -31,7 +31,7 @@ function(...,
          nu = NULL,
          bvalue = NULL,
          sphere.dir = NULL,
-         spde.dir = NULL,
+         spde.prefix = NULL,
          T.order=NULL,
          T.model=NULL,
          K.order=NULL,
@@ -201,10 +201,11 @@ function(...,
     } 
 
     if (inla.one.of(model, "spde")) {
-        if (is.null(spde.dir))
-            stop("Argument spde.dir=NULL is required for model = spde")
-        if (!(file.exists(spde.dir) && file.info(spde.dir)$isdir))
-            stop(paste("Argument spde.dir=", spde.dir, "must be an existing directory."))
+        if (is.null(spde.prefix))
+            stop("Argument spde.prefix=NULL is required for model = spde")
+        ## file ``PREFIXs'' must exists... test this one
+        if (!(file.exists(paste(spde.prefix, "s", sep=""))))
+            stop(paste("Argument spde.prefix=", spde.prefix, "does not seems to be valid (no file `PREFIXs')"))
     } 
         
     ## in ... is the name of the covariate  and possibly the location of the weights
@@ -352,7 +353,7 @@ function(...,
             nrow = nrow, ncol = ncol, nu = nu, bvalue = bvalue,
             sphere.dir = sphere.dir, T.order = T.order, T.model = T.model, K.order = K.order, K.model = K.model,
             of = of, precision = precision, si = si,
-            spde.dir = spde.dir )
+            spde.prefix = spde.prefix )
 
     return (ret)
 }
