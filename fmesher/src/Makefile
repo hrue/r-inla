@@ -33,9 +33,9 @@ ifeq ($(OS_TYPE), Linux)
   OS_FLAGS=-DLINUX -DFMESHER_X11 
   OS_LDFLAGS=-lX11
 endif
-# TODO: What dous uname -s say on Mac/OSX?
-ifeq ($(OS_TYPE), OSX)
-  OS_FLAGS=-DMACOSX -DFMESHER_X11 
+# What does uname -s say on Mac/OSX: Darwin.
+ifeq ($(OS_TYPE), Darwin)
+  OS_FLAGS=-DMAC -DFMESHER_X11 
   OS_LDFLAGS=-L/usr/X11R6/lib -lX11
 endif
 ifeq ($(OS_TYPE), Windows)
