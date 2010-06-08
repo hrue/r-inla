@@ -1,6 +1,6 @@
-## create a matern model using fmesher.
+## create a spde model using fmesher.
 
-`inla.create.matern` = function(data.locations = list(x=NULL,y=NULL,z=NULL),
+`inla.create.spde` = function(data.locations = list(x=NULL,y=NULL,z=NULL),
         boundary = list(x=NULL, y=NULL, z=NULL), dir = tempdir())
 {
 
