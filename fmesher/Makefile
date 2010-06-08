@@ -32,7 +32,6 @@ HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {nod
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
-OBJ = src/xtmpl.o src/predicates.o src/mesh.o src/meshc.o src/vector.o src/ioutils.o src/cmdline.o
 all: $(FMESHER)
 
 
@@ -67,7 +66,7 @@ install: $(FMESHER)
 
 clean:
 	make -C src clean
-	-$(RM) $(OBJ) $(FMESHER) $(FMESHER_TEST)
+	-$(RM) $(FMESHER) $(FMESHER_TEST)
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt
