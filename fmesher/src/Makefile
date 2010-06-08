@@ -10,7 +10,7 @@ CC = gcc
 CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
+FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
 LD = $(CXX)
 INSTALL = install
 RSYNC = rsync
@@ -37,7 +37,7 @@ endif
 # What does uname -s say on Mac/OSX: Darwin.
 ifeq ($(OS_TYPE), Darwin)
   OS_FLAGS=-DMAC -DFMESHER_X11 
-  OS_LDFLAGS=-L/usr/X11R6/lib -lX11
+  OS_LDFLAGS=-L/usr/X11R6/lib -lX11 -lpthread
 endif
 ifeq ($(OS_TYPE), Windows)
   OS_FLAGS=-DWINDOWS -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
