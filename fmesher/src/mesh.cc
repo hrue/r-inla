@@ -2007,12 +2007,14 @@ namespace fmesh {
   void Mesh::calcQblocks(SparseMatrix<double>& C0,
 			 SparseMatrix<double>& C1,
 			 SparseMatrix<double>& G1,
-			 SparseMatrix<double>& B1) const
+			 SparseMatrix<double>& B1,
+			 Matrix<double>& Tareas) const
   {
     C0.clear().rows(nV()).cols(nV());
     C1.clear().rows(nV()).cols(nV());
     G1.clear().rows(nV()).cols(nV());
     B1.clear().rows(nV()).cols(nV());
+    Tareas.clear().cols(1).rows(nT());
     Point e[3];
     for (int t = 0; t < (int)nT(); t++) {
       const Int3Raw& tv = TV_[t].raw();
@@ -2038,6 +2040,7 @@ namespace fmesh {
       b[2] = (TT_[t][2] < 0 ? true : false);
 
       double a = triangleArea(t);
+      Tareas(t,0) = a;
       
       /* "Flat area" better approximation for use in G-calculation. */
       double fa = Point().cross(e[0],e[1]).length()/2.0;
