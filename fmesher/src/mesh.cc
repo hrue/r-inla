@@ -8,6 +8,7 @@
 #include <cerrno>
 
 #include "predicates.hh"
+#include "x11utils.hh"
 #include "mesh.hh"
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
@@ -23,213 +24,6 @@ using std::cout;
 using std::endl;
 
 namespace fmesh {
-
-
-
-
-  class Xtmpl {
-  private:
-    static int window_next_;
-    int window_;
-    char* name_char_;
-    int sx_, sy_;
-    double minx_, maxx_, miny_, maxy_;
-    bool draw_text_;
-    double delay_;
-  public:
-    Xtmpl(const Xtmpl& X)
-      : window_(X.window_+1), name_char_(NULL),
-	sx_(X.sx_), sy_(X.sy_),
-	minx_(X.minx_), maxx_(X.maxx_),
-	miny_(X.miny_), maxy_(X.maxy_), draw_text_(true),
-	delay_(0.0) {
-      open(std::string(X.name_char_),X.sx_,X.sy_);
-      setAxis(X.minx_, X.maxx_, X.miny_, X.maxy_);
-    };
-    Xtmpl(bool draw_text, int sx, int sy,
-	  double minx,
-	  double maxx,
-	  double miny,
-	  double maxy,
-	  std::string name = "fmesher::Mesh")
-      : window_(-1), name_char_(NULL),
-	sx_(sx), sy_(sy),
-	minx_(minx), maxx_(maxx),
-	miny_(miny), maxy_(maxy), draw_text_(draw_text),
-	delay_(0.0) {
-      open(name,sx_,sy_);
-      setAxis(minx, maxx, miny, maxy);
-    };
-    void reopen(int sx, int sy) {
-      if (!(window_<0))
-	close();
-      else
-	window_ = window_next_++;
-      sx_ = sx;
-      sy_ = sy;
-      xtmpl_window = window_;
-      xtmpl_open(sx_,sy_,name_char_);
-    };
-    void reopen(int sx, int sy, bool draw_text) {
-      reopen(sx,sy);
-      draw_text_ = draw_text;
-    };
-    void open(std::string name,
-	      int sx, int sy) {
-      if (!(window_<0))
-	close();
-      else
-	window_ = window_next_++;
-      sx_ = sx;
-      sy_ = sy;
-      if (name_char_) delete[] name_char_;
-      name_char_ = new char[name.length()+1];
-      name.copy(name_char_,name.length(),0);
-      name_char_[name.length()] = '\0';
-      xtmpl_window = window_;
-      xtmpl_open(sx,sy,name_char_);
-      setAxis(-0.05,1.05,-0.05,1.05);
-    };
-    void close() {
-      if (window_<0)
-	return;
-      xtmpl_window = window_;
-      xtmpl_close();
-      window_ = -1;
-    };
-    ~Xtmpl() {
-      close();
-      if (name_char_) delete[] name_char_;
-    };
-
-    void clear() {
-      xtmpl_window = window_;
-      xtmpl_clear();
-    }
-
-    void delay(double set_delay) { delay_ = set_delay; };
-    void delay() const {
-      if (delay_>0.0) {
-	struct timespec req;
-	struct timespec rem;
-	req.tv_sec = time_t(delay_);
-	req.tv_nsec = long((delay_-double(req.tv_sec))*1.e9);
-	while ((::nanosleep(&req,&rem) != -1) &&
-	       (errno == EINTR)) {
-	  req = rem;
-	}
-      }
-    };
-    
-
-    void setSize(int sx, int sy) {
-      reopen(sx,sy);
-    };
-    void setAxis(double minx, double maxx,
-		 double miny, double maxy) {
-      clear();
-      minx_ = minx;
-      maxx_ = maxx;
-      miny_ = miny;
-      maxy_ = maxy;
-    };
-    double width() const { return (maxx_-minx_); };
-
-    void dot(bool fg, const Point& s0, int sz);
-    void dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset);
-    void arc(bool fg, const Point& s0, const Point& s1, double xoffset);
-    void line(bool fg, const Point& s0, const Point& s1);
-    void text(bool fg, const Point& s0, std::string str);
-  };
-  int Xtmpl::window_next_ = 0;
-
-  void Xtmpl::dot(bool fg, const Point& s0, int sz)
-  {
-    xtmpl_window = window_;
-    xtmpl_dot((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	      sz,
-	      (int)fg);
-  };
-
-  void Xtmpl::dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset)
-  {
-    xtmpl_window = window_;
-    xtmpl_dot((int)(sx_*(s0[0]+xoffset-minx_)/(maxx_-minx_)),
-	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	      sz,
-	      (int)fg);
-  };
-
-  void Xtmpl::arc(bool fg, const Point& s0, const Point& s1, double xoffset)
-  {
-    int n = 8;
-    xtmpl_window = window_;
-    double p0[2];
-    double p1[2];
-    double s[3];
-    double l;
-    int dim;
-    p1[0] = s0[0];
-    p1[1] = s0[1];
-    for (int i=1;i<=n;i++) {
-      l = 0.0;
-      p0[0] = p1[0]; p0[1] = p1[1];
-      for (dim=0;dim<3;dim++) {
-	s[dim] = ((n-i)*s0[dim]+i*s1[dim])/n;
-	l += s[dim]*s[dim];
-      }
-      l = std::sqrt(l);
-      for (dim=0;dim<2;dim++)
-	p1[dim] = s[dim]/l;
-      
-      if (fg)
-	xtmpl_draw_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
-			(int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			(int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
-			(int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
-      else
-	xtmpl_erase_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
-			 (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			 (int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
-			 (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
-    }
-  };
-
-  void Xtmpl::line(bool fg, const Point& s0, const Point& s1)
-  {
-    xtmpl_window = window_;
-    if (fg)
-      xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		      (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
-    else
-      xtmpl_erase_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		       (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
-  };
-
-  void Xtmpl::text(bool fg, const Point& s0, std::string str)
-  {
-    if (!draw_text_) return;
-    char* str_ = new char[str.length()+1];
-    str.copy(str_,str.length(),0);
-    str_[str.length()] = '\0';
-    xtmpl_window = window_;
-    if (fg)
-      xtmpl_draw_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		      str_,str.length());
-    else
-      xtmpl_erase_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		       str_,str.length());
-    delete[] str_;
-  };
-
-
 
 
 
@@ -253,8 +47,10 @@ namespace fmesh {
 	     bool use_VT,
 	     bool use_TTi) : type_(manifold_type),
 			     use_VT_(use_VT), use_TTi_(use_TTi),
-			     TV_(), TT_(), VT_(), TTi_(), S_(),
-			     X11_v_big_limit_(0)
+			     TV_(), TT_(), VT_(), TTi_(), S_()
+#ifndef FMESHER_NO_X
+			   , X11_(NULL), X11_v_big_limit_(0)
+#endif
   {
     if (V_capacity > 0) {
       TV_.capacity(V_capacity*2);
@@ -265,7 +61,6 @@ namespace fmesh {
 	TTi_.capacity(V_capacity*2);
       S_.capacity(V_capacity);
     }
-    X11_ = NULL;
   };
 
   Mesh::~Mesh()
@@ -282,7 +77,9 @@ namespace fmesh {
     VT_.clear();
     TTi_.clear();
     S_.clear();
+#ifndef FMESHER_NO_X
     if (X11_) { delete X11_; X11_ = NULL; }
+#endif
     return *this;
   }
 
@@ -292,12 +89,14 @@ namespace fmesh {
     type_ = M.type_;
     useVT(M.use_VT_);
     useTTi(M.use_TTi_);
+#ifndef FMESHER_NO_X
     if (M.X11_) {
       X11_ = new Xtmpl(*M.X11_);
     } else {
       X11_ = NULL;
     }
     X11_v_big_limit_ = M.X11_v_big_limit_;
+#endif
     S_set(M.S_);
     TV_set(M.TV_);
     return *this;
@@ -499,8 +298,11 @@ namespace fmesh {
 
   void Mesh::setX11delay(double set_delay)
   {
-    if (X11_)
+#ifndef FMESHER_NO_X
+    if (X11_) {
       X11_->delay(set_delay);
+    }
+#endif
   }
 
   Mesh& Mesh::useX11(bool use_X11,
@@ -512,6 +314,7 @@ namespace fmesh {
 		     double maxy,
 		     std::string name)
   {
+#ifndef FMESHER_NO_X
     if (use_X11) {
       if (!X11_) { /* Init. */
 	if (type_ == Mtype_sphere)
@@ -535,6 +338,7 @@ namespace fmesh {
 	X11_ = NULL;
       }
     }
+#endif
     return *this;
   }
 
@@ -572,6 +376,7 @@ namespace fmesh {
 
   void Mesh::drawX11point(int v, bool fg)
   {
+#ifndef FMESHER_NO_X
     if (!X11_) return;
 
     int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
@@ -588,10 +393,12 @@ namespace fmesh {
       int sz = ((v<X11_v_big_limit_) ? szbig : szsmall);
       X11_->dot(fg,s,sz);
     }
+#endif
   }
 
   void Mesh::drawX11triangle(int t, bool fg)
   {
+#ifndef FMESHER_NO_X
     if (!X11_) return;
 
     int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
@@ -672,28 +479,22 @@ namespace fmesh {
       ss << "t" << t << "";
       X11_->text(fg,s0,ss.str());
     }
+#endif
   }
 
   void Mesh::redrawX11(std::string str)
   {
+#ifndef FMESHER_NO_X
     if (!X11_) return;
-
+    
     X11_->clear();
     for (int v=0;v<(int)nV();v++)
       drawX11point(v,true);
     for (int t=0;t<(int)nT();t++)
       drawX11triangle(t,true);
 
-    if (false) {
-      std::string str0 = str;
-      str0 += std::string(", continue");
-      char* str_ = new char[str0.length()+1];
-      str0.copy(str_,str0.length(),0);
-      str_[str0.length()] = '\0';
-      xtmpl_press_ret(str_);
-      delete[] str_;
-    }
     X11_->delay();
+#endif /* FMESHER_NO_X */
   }
   
   Mesh& Mesh::TV_append(const Matrix3int& TV)
@@ -1314,10 +1115,12 @@ namespace fmesh {
     dh.orbit2();
     v_list[3] = TV_[t1][dh.vi()];
 
+#ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t0,false);
       drawX11triangle(t1,false);
     }
+#endif
 
     /* Step 2: Overwrite with new triangles. */
     TV_(t0)[0] = v_list[0];
@@ -1395,11 +1198,13 @@ namespace fmesh {
     */
 
     MESH_LOG("Edge swapped" << endl);
+#ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t0,true);
       drawX11triangle(t1,true);
       X11_->delay();
     }
+#endif
     
     return Dart(*this,t0,1,1);
   }
@@ -1444,8 +1249,10 @@ namespace fmesh {
     v1 = TV_[t0][vi];
     dh.orbit2();
 
+#ifndef FMESHER_NO_X
     if (X11_)
       drawX11triangle(t0,false);
+#endif
 
     bool on_boundary = dh.onBoundary();
     if (!on_boundary) {
@@ -1463,8 +1270,10 @@ namespace fmesh {
       vi = dh.vi();
       v3 = TV_[t1][vi];
 
+#ifndef FMESHER_NO_X
       if (X11_)
 	drawX11triangle(t1,false);
+#endif
     } else {
       v3 = -1;
       tt_list[2] = -1;
@@ -1603,6 +1412,7 @@ namespace fmesh {
     */
 
     MESH_LOG("Edge split" << endl);
+#ifndef FMESHER_NO_X
     if (X11_) {
       if (!on_boundary) {
 	drawX11triangle(t3,true);
@@ -1612,6 +1422,7 @@ namespace fmesh {
       drawX11triangle(t0,true);
       X11_->delay();
     }
+#endif
     
     return Dart(*this,t1,1,0);
   }
@@ -1659,8 +1470,10 @@ namespace fmesh {
     if (use_TTi_) tti_list[0] = TTi_[t][vi];
     dh.orbit2();
 
+#ifndef FMESHER_NO_X
     if (X11_)
       drawX11triangle(t,false);
+#endif
 
     /* Step 2: Overwrite one triangle, create two new. */
     t0 = t;
@@ -1752,12 +1565,14 @@ namespace fmesh {
     */
     
     MESH_LOG("Triangle split" << endl);
+#ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t0,true);
       drawX11triangle(t1,true);
       drawX11triangle(t2,true);
       X11_->delay();
     }
+#endif
 
     return Dart(*this,t0,1,0);
   }
@@ -1855,6 +1670,7 @@ namespace fmesh {
     if ((t<0) || (t>=(int)nT()))
       return -1;
 
+#ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t,false);
       if (!(TT_[t][0]<0)) drawX11triangle(TT_[t][0],true);
@@ -1862,6 +1678,7 @@ namespace fmesh {
       if (!(TT_[t][2]<0)) drawX11triangle(TT_[t][2],true);
       X11_->delay();
     }
+#endif
 
     unlinkTriangle(t);
     relocateTriangle(nT()-1,t);

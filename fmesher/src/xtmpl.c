@@ -1,3 +1,5 @@
+#ifndef FMESHER_NO_X
+
 /* Time-stamp: <98/01/06 10:36:34 hrue> */
 #include <stddef.h>
 #include <malloc.h>
@@ -680,3 +682,4 @@ main()
 }
 #endif
 
+#endif

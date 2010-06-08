@@ -30,16 +30,16 @@ EXTLIBS = $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 
 OS_TYPE:=$(shell uname -s)
 ifeq ($(OS_TYPE), Linux)
-  OS_FLAGS=-DLINUX -DFMESHER_X11
+  OS_FLAGS=-DLINUX
   OS_LDFLAGS=-lX11
 endif
 # What does uname -s say on Mac/OSX: Darwin.
 ifeq ($(OS_TYPE), Darwin)
-  OS_FLAGS=-DMAC -DFMESHER_X11 
+  OS_FLAGS=-DMAC
   OS_LDFLAGS=-L/usr/X11R6/lib -lX11
 endif
 ifeq ($(OS_TYPE), Windows)
-  OS_FLAGS=-DWINDOWS
+  OS_FLAGS=-DWINDOWS -DFMESHER_NO_X
   OS_LDFLAGS=
 endif
 
@@ -68,7 +68,7 @@ CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSI
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
-OBJ = xtmpl.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o
+OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o
 all: $(FMESHER)
 
 
