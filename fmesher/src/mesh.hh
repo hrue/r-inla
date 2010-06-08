@@ -167,11 +167,13 @@ namespace fmesh {
     const int& VT(int v) const { return VT_[v]; };
     const Int3& TTi(int t) const { return TTi_[t]; };
     const Point& S(int v) const { return S_[v]; };
+
 #ifndef FMESHER_NO_X
     Xtmpl *X11() { return X11_; };
 #else
     void *X11() { return NULL; };
 #endif
+
     MOAint3 TVO() const;
     MOAint3 TTO() const;
     MOAint VTO() const;
@@ -194,6 +196,14 @@ namespace fmesh {
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
 
+    Mesh& removeLastVertex() { /* Does not check that the vertex is unused! */
+      if (nV()>0) {
+	S_.rows(nV()-1);
+	if (use_VT_)
+	  VT_.rows(nV()-1);
+      }
+      return *this;      
+    };
     Mesh& unlinkEdge(const Dart& d);
     Mesh& unlinkTriangle(const int t); 
     Mesh& relocateTriangle(const int t_source, const int t_target); 

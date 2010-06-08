@@ -1932,8 +1932,6 @@ namespace fmesh {
     removed in step 3.  Solved by finding the previous segment again,
     and then moving to the next.
 
-    TODO: Remove exterior points at the end of the vertex list.\n
-
     TODO: Allow optional vertex reordering.
    */
   bool MeshC::PruneExterior()
@@ -1987,6 +1985,16 @@ namespace fmesh {
 	ext.erase(ext_i);
 
       MESHC_LOG(ext << endl);
+    }
+
+    { /* Remove unused points. */
+      /* Make sure useVT is on: */
+      M_->useVT(true);
+      int v = M_->nV()-1;
+      while ((v>=0) && (M_->VT(v)==-1)) {
+	M_->removeLastVertex();
+	--v;
+      }
     }
 
     /* Restore useVT-state: */
