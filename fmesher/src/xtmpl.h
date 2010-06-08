@@ -1,3 +1,5 @@
+#ifndef FMESHER_NO_X
+
 /* Time-stamp: <98/01/06 10:30:04 hrue> */
 
 #define XTMPL_OK 0
@@ -41,3 +43,5 @@ extern int xtmpl_press_ret(const char *do_what);
 extern int xtmpl_playback(const char *filename, const char *channels, double magnify);
 
 __END_DECLS
+
+#endif
