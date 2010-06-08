@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2010 Havard Rue
@@ -80,6 +79,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "inla.h"
 #include "sphere.h"
+#include "spde.h"
 
 #define PREVIEW    5
 #define MODEFILENAME ".inla-mode"
@@ -5989,6 +5989,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	inla_sphere_tp *sphere_model = NULL;
 	inla_sphere_tp *sphere_model_orig = NULL;
 
+	inla_sphere_tp *spde_model = NULL;
+	inla_sphere_tp *spde_model_orig = NULL;
+
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
 	}
@@ -6207,6 +6210,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_SPHERE;
 		mb->f_ntheta[mb->nf] = 4;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Sphere model");
+	} else if (OneOf("SPDE")) {
+		mb->f_id[mb->nf] = F_SPDE;
+		mb->f_ntheta[mb->nf] = 4;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE model");
 	} else if (OneOf("COPY")) {
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
@@ -6253,6 +6260,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_SPHERE:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// T[0]
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// K[0]
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// the rest
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "FLAT");	// the ocillating cooef
+		break;
+
+	case F_SPDE:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// T[0]
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// K[0]
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// the rest
@@ -6943,6 +6957,60 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tK.order=[%1d]\n", mb->f_Korder[mb->nf]);
 				printf("\t\tK.type=[%s]\n", m);
 			}
+		} else if (mb->f_id[mb->nf] == F_SPDE) {
+			/*
+			 * SPDE
+			 */
+
+			char *m;
+
+			order = -1;
+			order = iniparser_getint(ini, inla_string_join(secname, "T_ORDER"), order);
+			order = iniparser_getint(ini, inla_string_join(secname, "T.ORDER"), order);
+			order = iniparser_getint(ini, inla_string_join(secname, "TORDER"), order);
+			mb->f_Torder[mb->nf] = order;
+
+			m = iniparser_getstring(ini, inla_string_join(secname, "T_MODEL"), GMRFLib_strdup("GENERAL"));
+			m = iniparser_getstring(ini, inla_string_join(secname, "T.MODEL"), m);
+			m = iniparser_getstring(ini, inla_string_join(secname, "TMODEL"), m);
+			if (!strcasecmp(m, "GENERAL")) {
+				mb->f_Tmodel[mb->nf] = GMRFLib_strdup(m);
+			} else if (!strcasecmp(m, "ROTSYM")) {
+				mb->f_Tmodel[mb->nf] = GMRFLib_strdup(m);
+			} else {
+				GMRFLib_sprintf(&msg, "T.MODEL = [%s] is void, must be GENERAL or ROTSYM", m);
+				inla_error_general(msg);
+				exit(1);
+			}
+
+			if (mb->verbose) {
+				printf("\t\tT.order=[%1d]\n", mb->f_Torder[mb->nf]);
+				printf("\t\tT.type=[%s]\n", m);
+			}
+
+			order = -1;
+			order = iniparser_getint(ini, inla_string_join(secname, "K_ORDER"), order);
+			order = iniparser_getint(ini, inla_string_join(secname, "K.ORDER"), order);
+			order = iniparser_getint(ini, inla_string_join(secname, "KORDERK"), order);
+			mb->f_Korder[mb->nf] = order;
+
+			m = iniparser_getstring(ini, inla_string_join(secname, "K.MODEL"), GMRFLib_strdup("GENERAL"));
+			m = iniparser_getstring(ini, inla_string_join(secname, "K_MODEL"), m);
+			m = iniparser_getstring(ini, inla_string_join(secname, "KMODEL"), m);
+			if (!strcasecmp(m, "GENERAL")) {
+				mb->f_Kmodel[mb->nf] = GMRFLib_strdup(m);
+			} else if (!strcasecmp(m, "ROTSYM")) {
+				mb->f_Kmodel[mb->nf] = GMRFLib_strdup(m);
+			} else {
+				GMRFLib_sprintf(&msg, "K.MODEL = [%s] is void, must be GENERAL or ROTSYM", m);
+				inla_error_general(msg);
+				exit(1);
+			}
+
+			if (mb->verbose) {
+				printf("\t\tK.order=[%1d]\n", mb->f_Korder[mb->nf]);
+				printf("\t\tK.type=[%s]\n", m);
+			}
 		} else {
 			/*
 			 * RW-model: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -7272,6 +7340,212 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 	}
+
+	case F_SPDE:
+	{
+		char *spde_dir;
+
+		spde_dir = GMRFLib_strdup(".");
+		spde_dir = iniparser_getstring(ini, inla_string_join(secname, "SPDE_DIR"), spde_dir);
+		spde_dir = iniparser_getstring(ini, inla_string_join(secname, "SPDE.DIR"), spde_dir);
+		spde_dir = iniparser_getstring(ini, inla_string_join(secname, "SPDEDIR"), spde_dir);
+		if (mb->verbose) {
+			printf("\t\tspde.dir = [%s]\n", spde_dir);
+		}
+
+		spde_basis_model_tp modelT, modelK;
+		int nT, nK;
+
+		modelT.order = mb->f_Torder[mb->nf];
+		if (!strcasecmp(mb->f_Tmodel[mb->nf], "GENERAL")) {
+			modelT.type = SPH_BASIS_GENERAL;
+		} else if (!strcasecmp(mb->f_Tmodel[mb->nf], "ROTSYM")) {
+			modelT.type = SPH_BASIS_ROTSYM;
+		} else {
+			inla_error_general2("Unknown T-model", mb->f_Tmodel[mb->nf]);
+			assert(0 == 1);
+		}
+		modelK.order = mb->f_Korder[mb->nf];
+		if (!strcasecmp(mb->f_Kmodel[mb->nf], "GENERAL")) {
+			modelK.type = SPH_BASIS_GENERAL;
+		} else if (!strcasecmp(mb->f_Kmodel[mb->nf], "ROTSYM")) {
+			modelK.type = SPH_BASIS_ROTSYM;
+		} else {
+			inla_error_general2("Unknown K-model", mb->f_Kmodel[mb->nf]);
+			assert(0 == 1);
+		}
+
+		/*
+		 * 
+		 */
+		inla_spde_build_model(&spde_model_orig, (const char *) spde_dir, &modelT, &modelK);
+		mb->f_model[mb->nf] = (void *) spde_model_orig;
+
+		/*
+		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
+		 */
+		inla_spde_build_model(&spde_model, (const char *) spde_dir, &modelT, &modelK);
+		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
+		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
+		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */
+
+		double initial_t = 0.0, initial_k = 0.0, initial_rest = 0.0, initial_oc = 0.0;
+
+		/*
+		 * reread this here, as we need non-std defaults 
+		 */
+		mb->f_fixed[mb->nf][3] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED3"), 1);	/* default fixed, yes */
+
+		initial_t = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
+		initial_k = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		initial_rest = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
+		initial_oc = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL3"), -20.0);
+		SetInitial(0, initial_t);
+		SetInitial(1, initial_k);
+		SetInitial(2, initial_rest);
+		SetInitial(3, initial_oc);
+
+		if (modelT.order < 0 && modelK.order < 0) {
+			mb->f_ntheta[mb->nf] = 0;
+		} else {
+			nT = spde_basis_n(&modelT);
+			nK = spde_basis_n(&modelK);
+			mb->f_ntheta[mb->nf] = nT + nK + 1;
+
+			if (mb->verbose) {
+				printf("\t\tinitialise theta_t[%g]\n", initial_t);
+				printf("\t\tinitialise theta_k[%g]\n", initial_k);
+				printf("\t\tinitialise theta_rest[%g]\n", initial_rest);
+				printf("\t\tinitialise theta_oc[%g]\n", initial_oc);
+				printf("\t\tfixed_t=[%1d]\n", mb->f_fixed[mb->nf][0]);
+				printf("\t\tfixed_k=[%1d]\n", mb->f_fixed[mb->nf][1]);
+				printf("\t\tfixed_rest=[%1d]\n", mb->f_fixed[mb->nf][2]);
+				printf("\t\tfixed_oc=[%1d]\n", mb->f_fixed[mb->nf][3]);
+			}
+
+			for (k = 0; k < nT; k++) {
+				if (k == 0) {
+					if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+						tmp = mb->theta_file[mb->theta_counter_file++];
+					} else {
+						tmp = initial_t;
+					}
+				} else {
+					if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+						tmp = mb->theta_file[mb->theta_counter_file++];
+					} else {
+						tmp = initial_rest;
+					}
+				}
+				HYPER_INIT(spde_model->Tmodel->theta[k], tmp);
+			}
+			for (k = 0; k < nK; k++) {
+				if (k == 0) {
+					if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+						tmp = mb->theta_file[mb->theta_counter_file++];
+					} else {
+						tmp = initial_k;
+					}
+				} else {
+					if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+						tmp = mb->theta_file[mb->theta_counter_file++];
+					} else {
+						tmp = initial_rest;
+					}
+				}
+				HYPER_INIT(spde_model->Kmodel->theta[k], tmp);
+			}
+
+			if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			} else {
+				tmp = initial_oc;
+			}
+			HYPER_INIT(spde_model->oc, tmp);
+
+			mb->f_theta[mb->nf] = Calloc(nT + nK + 1, double **);
+			for (k = 0; k < nT; k++)
+				mb->f_theta[mb->nf][k] = spde_model->Tmodel->theta[k];
+			for (k = 0; k < nK; k++)
+				mb->f_theta[mb->nf][k + nT] = spde_model->Kmodel->theta[k];
+			mb->f_theta[mb->nf][nK + nT] = spde_model->oc;
+
+			for (k = 0; k < nT + nK + 1; k++) {
+				int fx;
+
+				if (k == 0) {
+					fx = mb->f_fixed[mb->nf][0];	/* T[0] */
+				} else if (k == nT) {
+					fx = mb->f_fixed[mb->nf][1];	/* K[0] */
+				} else if (k == nT + nK) {
+					fx = mb->f_fixed[mb->nf][3];	/* oc */
+				} else {
+					fx = mb->f_fixed[mb->nf][2];	/* the rest */
+				}
+
+				if (!fx) {
+					/*
+					 * add this \theta 
+					 */
+					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+					if (k == nT + nK) {
+						GMRFLib_sprintf(&msg, "%s for %s", "Oc", (secname ? secname : mb->f_tag[mb->nf]));
+					} else {
+						if (k < nT) {
+							GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "T", k, (secname ? secname : mb->f_tag[mb->nf]),
+									mb->f_Tmodel[mb->nf]);
+						} else {
+							GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "K", k - nT,
+									(secname ? secname : mb->f_tag[mb->nf]), mb->f_Kmodel[mb->nf]);
+						}
+					}
+					mb->theta_tag[mb->ntheta] = msg;
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+
+					if (k == nT + nK) {
+						GMRFLib_sprintf(&msg, "%s-parameter-Oc", mb->f_dir[mb->nf]);
+					} else {
+						if (k < nT) {
+							GMRFLib_sprintf(&msg, "%s-parameter-T.%1d-%s", mb->f_dir[mb->nf], k, mb->f_Tmodel[mb->nf]);
+						} else {
+							GMRFLib_sprintf(&msg, "%s-parameter-K.%1d-%s", mb->f_dir[mb->nf], k - nT, mb->f_Kmodel[mb->nf]);
+						}
+					}
+					mb->theta_dir[mb->ntheta] = msg;
+
+					if (k == nT + nK) {
+						mb->theta[mb->ntheta] = spde_model->oc;
+					} else {
+						if (k < nT) {
+							mb->theta[mb->ntheta] = spde_model->Tmodel->theta[k];
+						} else {
+							mb->theta[mb->ntheta] = spde_model->Kmodel->theta[k - nT];
+						}
+					}
+
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					if (k == nT + nK) {
+						mb->theta_map[mb->ntheta] = map_probability;
+					} else {
+						mb->theta_map[mb->ntheta] = map_identity;
+					}
+					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+					mb->theta_map_arg[mb->ntheta] = NULL;
+
+					mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
+					mb->theta_usermap[mb->ntheta] = NULL;
+					mb->ntheta++;
+				}
+			}
+		}
+		break;
+	}
+
+
 	case F_AR1:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
@@ -8301,6 +8575,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = sphere_model->n;
+	} else if (mb->f_id[mb->nf] == F_SPDE) {
+		mb->f_Qfunc[mb->nf] = spde_model->Qfunc;
+		mb->f_Qfunc_arg[mb->nf] = spde_model->Qfunc_arg;
+		mb->f_graph[mb->nf] = spde_model->graph;
+
+		if (0) {
+			FILE *fp;
+			fp = fopen("spde.graph.dat", "w");
+			GMRFLib_print_graph(fp, spde_model->graph);
+			fclose(fp);
+			FIXME("write graph");
+			exit(0);
+		}
+
+		mb->f_rankdef[mb->nf] = 0;
+		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde_model->n;
 	} else if (mb->f_id[mb->nf] == F_RW2D) {
 		GMRFLib_rw2ddef_tp *arg = NULL;
 
@@ -10296,6 +10586,173 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				if (nK) {
 					sphere->Kmodel->theta_extra[GMRFLib_thread_id] = NULL;
+				}
+
+				Free(Tpar);
+				Free(Kpar);
+				break;
+			}
+
+			case F_SPDE:
+			{
+				int k, nT, nK, nt, Toffset = 0, Koffset = 0;
+				double t;
+				inla_spde_tp *spde;
+				double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
+
+				spde = (inla_spde_tp *) mb->f_model[i];
+				assert(spde->Qfunc_arg == spde);
+				
+				nT = (spde->Tmodel ? spde->Tmodel->ntheta : 0);
+				nK = (spde->Kmodel ? spde->Kmodel->ntheta : 0);
+				nt = mb->f_ntheta[i];
+
+				fixed0 = mb->f_fixed[i][0];
+				fixed1 = mb->f_fixed[i][1];
+				fixed2 = mb->f_fixed[i][2];
+				fixed3 = mb->f_fixed[i][3];
+				init0 = mb->f_initial[i][0];
+				init1 = mb->f_initial[i][1];
+				init2 = mb->f_initial[i][2];
+				init3 = mb->f_initial[i][3];
+
+				Tpar = Calloc(nT, double);
+				Kpar = Calloc(nK, double);
+
+				if (0) {
+					P(fixed0);
+					P(fixed1);
+					P(fixed2);
+					P(fixed3);
+					P(init0);
+					P(init1);
+					P(init2);
+					P(init3);
+				}
+
+				if (nT) {
+					if (fixed0) {
+						Tpar[0] = init0;
+					} else {
+						Tpar[0] = theta[count];
+						Toffset++;
+					}
+					if (nT > 1) {
+						if (fixed2) {
+							for (k = 1; k < nT; k++)
+								Tpar[k] = init2;
+						} else {
+							for (k = 1; k < nT; k++) {
+								Tpar[k] = theta[count + Toffset + k - 1];
+							}
+							Toffset += nT - 1;
+						}
+					}
+					spde->Tmodel->theta_extra[GMRFLib_thread_id] = Tpar;
+				}
+				if (nK) {
+					if (fixed1) {
+						Kpar[0] = init1;
+					} else {
+						Kpar[0] = theta[count + Toffset];
+						Koffset++;
+					}
+					if (nK > 1) {
+						if (fixed2) {
+							for (k = 1; k < nK; k++)
+								Kpar[k] = init2;
+						} else {
+							for (k = 1; k < nK; k++) {
+								Kpar[k] = theta[count + Koffset + Toffset + k - 1];
+							}
+							Koffset += nK - 1;
+						}
+					}
+					spde->Kmodel->theta_extra[GMRFLib_thread_id] = Kpar;
+				}
+				if (fixed3) {
+					spde->oc[GMRFLib_thread_id][0] = init3;
+				} else {
+					spde->oc[GMRFLib_thread_id][0] = theta[count + Koffset + Toffset];
+				}
+
+				if (0) {
+					printf("call extra() with\n");
+					for (k = 0; k < nT; k++) {
+						printf("Tmodel %d %g\n", k, spde->Tmodel->theta_extra[GMRFLib_thread_id][k]);
+					}
+					for (k = 0; k < nK; k++) {
+						printf("Kmodel %d %g\n", k, spde->Kmodel->theta_extra[GMRFLib_thread_id][k]);
+					}
+					printf("Oc %g\n", spde->oc[GMRFLib_thread_id][0]);
+				}
+
+				/*
+				 * T 
+				 */
+				if (nT) {
+					if (!mb->f_fixed[i][0]) {
+						t = theta[count];
+						val += mb->f_prior[i][0].priorfunc(&t, mb->f_prior[i][0].parameters);
+						count++;
+					}
+					for (k = 1; k < mb->f_ntheta[i]; k++) {
+						if (k < nT) {
+							if (!mb->f_fixed[i][2]) {
+								t = theta[count];
+								val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+								count++;
+							}
+						}
+					}
+				}
+
+				/*
+				 * K 
+				 */
+				if (nK) {
+					if (!mb->f_fixed[i][1]) {
+						t = theta[count];
+						val += mb->f_prior[i][1].priorfunc(&t, mb->f_prior[i][1].parameters);
+						count++;
+					}
+					for (k = 1; k < mb->f_ntheta[i]; k++) {
+						if (k > nT && k < nT + nK) {
+							if (!mb->f_fixed[i][2]) {
+								t = theta[count];
+								val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+								count++;
+							}
+						}
+					}
+				}
+				/*
+				 * Ocillating coeff 
+				 */
+				if (!fixed3) {
+					t = theta[count];
+					val += mb->f_prior[i][3].priorfunc(&t, mb->f_prior[i][3].parameters);
+					count++;
+				}
+
+				assert(nT + nK + 1 == mb->f_ntheta[i]);
+				// This does not work YET ????
+				SET_GROUP_RHO(nT + nK + 1);
+
+				static GMRFLib_problem_tp *problem = NULL;
+#pragma omp threadprivate(problem)
+
+				GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
+						     spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
+						     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+				GMRFLib_evaluate(problem);
+				val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
+
+				if (nT) {
+					spde->Tmodel->theta_extra[GMRFLib_thread_id] = NULL;
+				}
+				if (nK) {
+					spde->Kmodel->theta_extra[GMRFLib_thread_id] = NULL;
 				}
 
 				Free(Tpar);
