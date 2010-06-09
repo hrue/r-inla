@@ -131,14 +131,22 @@ int main(int argc, char* argv[])
 
   if (args_info.dump_config_given)
     cmdline_dump(stdout,&args_info);
-
-  string input_s0_name = "";
+  
+  std::vector<string> input_s0_names;
   string input_tv0_name = "-";
-
-  input_s0_name = string(args_info.input_arg[0]);
+  
+  input_s0_names.push_back(string(args_info.input_arg[0]));
   if (args_info.input_given>1)
     input_tv0_name = string(args_info.input_arg[1]);
-    
+  for (int i=1; i<int(args_info.input_given)-1; i++) {
+    input_s0_names.push_back(string(args_info.input_arg[i+1]));
+  }
+
+  std::vector<string> quality_names;
+  for (int i=0; i<int(args_info.quality_given); i++) {
+    quality_names.push_back(string(args_info.quality_arg[i]));
+  }
+
 
   int cet_sides = 8;
   double cet_margin = -0.1;
@@ -146,16 +154,21 @@ int main(int argc, char* argv[])
     cet_sides = args_info.cet_arg[0];
   if (args_info.cet_given>1)
     cet_margin = args_info.cet_arg[1];
-
+  
   double rcdt_min_angle = 21;
-  double rcdt_big_limit = -1.0;
-  double rcdt_big_limits = -0.5;
+  double rcdt_big_limit_auto_default = -1.0;
+  Matrix<double> rcdt_big_limit_defaults;
+  rcdt_big_limit_defaults(0,0) = -0.5;
+  for (int i=1; (i<int(args_info.input_given)-2); i++) {
+    rcdt_big_limit_defaults(i,0) = -0.5;
+  }
   if ((args_info.rcdt_given>0) && (args_info.rcdt_arg[0] != 0))
     rcdt_min_angle = args_info.rcdt_arg[0];
   if (args_info.rcdt_given>1)
-    rcdt_big_limit = args_info.rcdt_arg[1];
-  if (args_info.rcdt_given>2)
-    rcdt_big_limits = args_info.rcdt_arg[2];
+    rcdt_big_limit_auto_default = args_info.rcdt_arg[1];
+  for (int i=0; (i < int(args_info.rcdt_given)-2); i++) {
+    rcdt_big_limit_defaults(i,0) = args_info.rcdt_arg[i+2];
+  }
 
   useX11 = (args_info.x11_given>0) && (args_info.x11_arg>=0);
   x11_delay_factor = args_info.x11_arg;
@@ -231,10 +244,53 @@ int main(int argc, char* argv[])
 		       string(args_info.ir_arg[i+2]));
   }
 
-  if (!matrices.load(input_s0_name).active) {
-    cout << "Matrix "+input_s0_name+" not found." << endl;
+  for (int i=0; i<input_s0_names.size(); i++) {
+    if (!matrices.load(input_s0_names[i]).active) {
+      cout << "Matrix "+input_s0_names[i]+" not found." << endl;
+    }
   }
-  Matrix<double>& iS0 = matrices.DD(input_s0_name);
+  for (int i=0; i<quality_names.size(); i++) {
+    if (!matrices.load(quality_names[i]).active) {
+      cout << "Matrix "+quality_names[i]+" not found." << endl;
+    }
+  }
+
+  Matrix<double>& iS0 = matrices.DD(input_s0_names[0]);
+  Matrix<double>& Quality0 = matrices.DD(string("quality0")).clear();
+
+  /* Join the location matrices */ 
+  for (int i=0; i < input_s0_names.size(); i++) {
+    Matrix<double>& S0_extra = matrices.DD(input_s0_names[i]);
+    if (i>0) /* i=0 is already taken care of above. */
+      iS0.append(S0_extra);
+    if (i < quality_names.size()) {
+      int rows = S0_extra.rows();
+      Matrix<double>& quality_extra = matrices.DD(quality_names[i]);
+      quality_extra.rows(rows); /* Make sure we have the right number
+				   of rows */
+      if (i<rcdt_big_limit_defaults.rows())
+	for (int r=quality_extra.rows(); r<rows; r++)
+	  quality_extra(r,0) = rcdt_big_limit_defaults[i][0];
+      else
+	for (int r=quality_extra.rows(); r<rows; r++)
+	  quality_extra(r,0) = rcdt_big_limit_defaults[0][0];
+      Quality0.append(quality_extra);
+    } else if (i<rcdt_big_limit_defaults.rows()) {
+      int rows = S0_extra.rows();
+      Matrix<double> quality_extra(rows,1);
+      for (int r=0; r<rows; r++)
+	quality_extra(r,0) = rcdt_big_limit_defaults[i][0];
+      Quality0.append(quality_extra);
+    } else {
+      int rows = S0_extra.rows();
+      Matrix<double> quality_extra(rows,1);
+      for (int r=0; r<rows; r++)
+	quality_extra(r,0) = rcdt_big_limit_defaults[0][0];
+      Quality0.append(quality_extra);
+    }
+  }
+
+
 
   Matrix<int>* TV0 = NULL;
   if (input_tv0_name != "-") {
@@ -245,15 +301,6 @@ int main(int argc, char* argv[])
     }
   }
 
-  /* Append any additional location matrices */ 
-  for (int i=2; i < (int)args_info.input_given; i++) {
-    std::string extra_name = string(args_info.input_arg[i]);
-    if (!matrices.load(extra_name).active) {
-      cout << "Matrix "+extra_name+" not found." << endl;
-    }
-    Matrix<double>& S0_extra = matrices.DD(extra_name);
-    iS0.append(S0_extra);
-  }
 
   fmesh::constrListT cdt_boundary;
   if (args_info.boundary_given) {
@@ -349,18 +396,11 @@ int main(int argc, char* argv[])
 	    ? (sz[2] < sz[0] ? sz[0] : sz[2])
 	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
     
-    double biglim[nV];
-    if (rcdt_big_limits==0.0) {
-      /* Read limits from a file */
-      NOT_IMPLEMENTED;
-      return 0;
-    } else if (rcdt_big_limits>0.0) {
-      for (int v=0;v<nV;v++)
-	biglim[v] = rcdt_big_limits;
-    } else {
-      /* Rudimentary default biglimit construction: */
-      for (int v=0;v<nV;v++)
-	biglim[v] = diam/std::sqrt(nV)*(-rcdt_big_limits);
+    for (int i=0; i<Quality0.rows(); i++) {
+      if (Quality0[i][0]<0.0) {
+	/* Rudimentary relative biglimit construction: */
+	Quality0(i,0) = diam/std::sqrt(nV)*(-Quality0[i][0]);
+      }
     }
     
     if (useX11) {
@@ -399,9 +439,8 @@ int main(int argc, char* argv[])
     
     if (args_info.rcdt_given) {
       /* Calculate the RCDT: */
-      if (rcdt_big_limit<0.0)
-	rcdt_big_limit = -rcdt_big_limit*diam;
-      MC.RCDT(rcdt_min_angle,rcdt_big_limit,biglim,nV);
+      MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
+	      Quality0.raw(),Quality0.rows());
     }
 
     }

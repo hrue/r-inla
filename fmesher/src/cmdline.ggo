@@ -85,13 +85,16 @@ option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
 \tDefaults are 8,-0.1, adding 10% on all sides\n"
 option "rcdt" R "Generate RCDT, with optional quality parameters" double
        typestr="PARAM"
-       multiple(1-3) argoptional default="21" optional
-       details="\n\tThe parameter order is min_angle, max_edge_length for added points, max_edge_length for data points.
+       multiple argoptional default="21" optional
+       details="\n\tThe parameter order is min_angle, max_edge_length for added points, max_edge_length for data points. Further values apply to data points added by extra matrices specified with -T|--input
 \tWhen negative values for the edge_length-parameters, a rudimentary
 scaling with respect to the initial point density is used.
 \tPositive values are absolute.
 \tThe algorithm is only guaranteed to converge for min_angle<=21, but values as high as 34 often work in practice.
 \tDefaults are 21,-1.,-0.5\n"
+option "quality" Q "Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input" string
+       typestr="NAME"
+       multiple optional dependon="rcdt"
 option "boundary" B "Handle triangulation boundary" string typestr="NAME"
        multiple default="boundary0" optional
 option "interior" I "Handle interior constraints" string typestr="NAME"
