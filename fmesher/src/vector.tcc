@@ -75,9 +75,10 @@ namespace fmesh {
   
   template <class T>
   Matrix<T>& Matrix<T>::rows(size_t set_rows) {
-    if (set_rows>rows_)
+    if (set_rows>rows_) {
       capacity(set_rows);
-    else if (set_rows<rows_)
+      rows_ = set_rows;
+    } else if (set_rows<rows_)
       truncate(set_rows);
     return *this;
   };
