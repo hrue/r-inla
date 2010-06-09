@@ -45,10 +45,9 @@ function(...,
     debug = FALSE
 
     ## this is a nice trick
-    if (is.null(model) && !is.null(copy)) {
+    if (!is.null(copy)) {
         if (!is.null(of))
             stop("Argument `of=NULL' is required when `copy=...' is used.")
-        
         model = "copy"
         of = copy
         copy = NULL
