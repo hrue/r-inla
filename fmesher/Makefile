@@ -64,8 +64,8 @@ install: $(FMESHER)
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m755 $(FMESHER) $(PREFIX)/bin/$(FMESHER);\
-	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/fmesher; \
-	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/fmesher/examples; 
+	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/ $(PREFIX)/doc/fmesher/; \
+	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/ $(PREFIX)/doc/fmesher/examples/; 
 
 clean:
 	make -C src clean
