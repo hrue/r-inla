@@ -89,13 +89,13 @@ namespace fmesh {
       cols_ = 0;
       return *this;
     };
-    void zeros(const size_t from_row = 0) {
-      for (size_t i=from_row*cols_; i<cap_*cols_; i++)
+    void zeros(const size_t from_row = 0,
+	       const size_t num_rows = 0) {
+      size_t num_rows_ = ((num_rows != 0)
+			  ? ((num_rows>rows_) ? rows_ : num_rows)
+			  : rows_);
+      for (size_t i=from_row*cols_; i<num_rows_*cols_; i++)
 	data_[i] = zero_;
-    }
-    void truncate(const size_t new_rows) {
-      if (new_rows < rows_)
-	rows_ = new_rows;
     }
 
     size_t capacity() const { return cap_; };

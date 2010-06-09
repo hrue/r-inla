@@ -59,7 +59,7 @@ namespace fmesh {
     }
     
     data_ = data_new_;
-    zeros(old_cap);
+    zeros(old_cap,cap_);
     return true;
   };
 
@@ -77,9 +77,9 @@ namespace fmesh {
   Matrix<T>& Matrix<T>::rows(size_t set_rows) {
     if (set_rows>rows_) {
       capacity(set_rows);
-      rows_ = set_rows;
     } else if (set_rows<rows_)
-      truncate(set_rows);
+      zeros(set_rows,rows_);
+    rows_ = set_rows;
     return *this;
   };
   template <class T>
