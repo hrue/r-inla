@@ -117,8 +117,7 @@ namespace fmesh {
 
     T* operator()(const int r) {
       if (r >= (int)rows_) {
-	capacity(r+1);
-	rows_ = r+1;
+	rows(r+1);
       }
       return &data_[r*cols_]; 
     };
