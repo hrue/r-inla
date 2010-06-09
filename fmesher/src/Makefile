@@ -10,7 +10,7 @@ CC = gcc
 CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe
+FLAGS= -O3 -g -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe
 LD = $(CXX)
 INSTALL = install
 RSYNC = rsync
