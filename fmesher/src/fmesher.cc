@@ -250,30 +250,33 @@ int main(int argc, char* argv[])
     }
   }
   for (int i=0; i<quality_names.size(); i++) {
-    if (!matrices.load(quality_names[i]).active) {
-      cout << "Matrix "+quality_names[i]+" not found." << endl;
-    }
+    if (quality_names[i] != "-")
+      if (!matrices.load(quality_names[i]).active) {
+	cout << "Matrix "+quality_names[i]+" not found." << endl;
+	quality_names[i] = "-";
+      }
   }
 
   Matrix<double>& iS0 = matrices.DD(input_s0_names[0]);
-  Matrix<double>& Quality0 = matrices.DD(string("quality0")).clear();
+  Matrix<double>* Quality0_ = new Matrix<double>();
+  Matrix<double>& Quality0 = *Quality0_;
 
   /* Join the location matrices */ 
   for (int i=0; i < input_s0_names.size(); i++) {
     Matrix<double>& S0_extra = matrices.DD(input_s0_names[i]);
     if (i>0) /* i=0 is already taken care of above. */
       iS0.append(S0_extra);
-    if (i < quality_names.size()) {
+    if ((i < quality_names.size()) && (quality_names[i] != "-")) {
       int rows = S0_extra.rows();
       Matrix<double>& quality_extra = matrices.DD(quality_names[i]);
-      quality_extra.rows(rows); /* Make sure we have the right number
-				   of rows */
       if (i<rcdt_big_limit_defaults.rows())
 	for (int r=quality_extra.rows(); r<rows; r++)
 	  quality_extra(r,0) = rcdt_big_limit_defaults[i][0];
       else
 	for (int r=quality_extra.rows(); r<rows; r++)
 	  quality_extra(r,0) = rcdt_big_limit_defaults[0][0];
+      quality_extra.rows(rows); /* Make sure we have the right number
+				   of rows */
       Quality0.append(quality_extra);
     } else if (i<rcdt_big_limit_defaults.rows()) {
       int rows = S0_extra.rows();
@@ -290,6 +293,8 @@ int main(int argc, char* argv[])
     }
   }
 
+  /* OK to overwrite any old quality0 */
+    matrices.attach(string("quality0"),Quality0_,true);
 
 
   Matrix<int>* TV0 = NULL;
