@@ -86,6 +86,11 @@ struct gengetopt_args_info
   unsigned int rcdt_min; /**< @brief Generate RCDT, with optional quality parameters's minimum occurreces */
   unsigned int rcdt_max; /**< @brief Generate RCDT, with optional quality parameters's maximum occurreces */
   const char *rcdt_help; /**< @brief Generate RCDT, with optional quality parameters help description.  */
+  char ** quality_arg;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input.  */
+  char ** quality_orig;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input original value given at command line.  */
+  unsigned int quality_min; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input's minimum occurreces */
+  unsigned int quality_max; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input's maximum occurreces */
+  const char *quality_help; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input help description.  */
   char ** boundary_arg;	/**< @brief Handle triangulation boundary (default='boundary0').  */
   char ** boundary_orig;	/**< @brief Handle triangulation boundary original value given at command line.  */
   unsigned int boundary_min; /**< @brief Handle triangulation boundary's minimum occurreces */
@@ -117,6 +122,7 @@ struct gengetopt_args_info
   unsigned int input_given ;	/**< @brief Whether input was given.  */
   unsigned int cet_given ;	/**< @brief Whether cet was given.  */
   unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
+  unsigned int quality_given ;	/**< @brief Whether quality was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */

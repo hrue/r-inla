@@ -65,8 +65,14 @@ namespace fmesh {
 
   template <class T>
   bool Matrix<T>::append(const Matrix<T>& toappend) {
-    if (cols_ != toappend.cols_) return false;
-    if (!capacity(rows_+toappend.rows_)) return false;
+    if (cols_>0) {
+      if (cols_ != toappend.cols_)
+	return false;
+    } else {
+      cols(toappend.cols_);
+    }
+    if (!capacity(rows_+toappend.rows_))
+      return false;
     std::memcpy(data_+rows_*cols_,toappend.data_,
 		sizeof(T)*toappend.rows_*cols_);
     rows_ += toappend.rows_;
