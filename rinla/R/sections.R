@@ -656,11 +656,6 @@
 `inla.copy.dir.for.section` =
     function(dir.name, data.dir)
 {
-    if (missing(dir.name))
-        return (NULL)
-    if (missing(data.dir))
-        stop("data.dir required")
-
     d.fnm = inla.tempfile(tmpdir=data.dir)
     dir.create(d.fnm, recursive=TRUE)
     files.to.copy = paste(dir.name, "/", dir(dir.name, recursive=TRUE), sep="")
@@ -671,12 +666,8 @@
 `inla.copy.dir.for.section.spde` =
     function(prefix, data.dir)
 {
-    dir.name = dirname(d)
-    file.prefix = basename(d)
-    if (missing(dir.name))
-        return (NULL)
-    if (missing(data.dir))
-        stop("data.dir required")
+    dir.name = dirname(prefix)
+    file.prefix = basename(prefix)
 
     d.fnm = inla.tempfile(tmpdir=data.dir)
     dir.create(d.fnm, recursive=TRUE)

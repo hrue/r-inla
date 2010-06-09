@@ -43,6 +43,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 #include "fmesher-io.h"
 
+
 inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 {
 	/* 
@@ -138,6 +139,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 			ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
 		}
 		assert(general);
+		assert(elems == nrow*ncol);
 		
 		M->A = Calloc(elems, double);
 		if (integer) {
@@ -331,7 +333,6 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 
 	return (M);
 }
-
 int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename)
 {
 	/* 
@@ -427,8 +428,38 @@ int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename)
 #undef WRITE	
 	return (0);
 }
+double *inla_matrix_get_diagonal(inla_matrix_tp *M)
+{
+	/* 
+	   return the diagonal of the matrix as a new and alloced double vector.
+	*/
 
-int inla_free_fmesher_file(inla_matrix_tp *M)
+	double *diag = NULL;
+	int i, j, k;
+	
+	if (M) {
+		if (M->nrow != M->ncol) {
+			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n",
+				__FILE__,  __LINE__,  M->nrow,  M->ncol);
+			exit(1);
+		}
+
+		if (M->nrow) {
+			diag = Calloc(M->nrow, double);
+			if (M->A){
+				for(i=0; i<M->nrow; i++)
+					diag[i] = M->A[ i + j * M->nrow ];
+			} else {
+				for(k=0; k<M->elems; k++) {
+					if (M->i[k] == M->j[k])
+						diag[ M->i[k] ] = M->values[k];
+				}
+			}
+		}
+	}
+	return diag;
+}
+int inla_matrix_free(inla_matrix_tp *M)
 {
 	if (M) {
 		Free(M->i);
@@ -440,6 +471,44 @@ int inla_free_fmesher_file(inla_matrix_tp *M)
 		Free(M);
 	}
 	return (0);
+}
+
+inla_matrix_tp *inla_matrix_1(int n)
+{
+	/* 
+	   return a 1-matrix with given dimension
+	*/
+
+	if (n > 0){
+		inla_matrix_tp *M = Calloc(1, inla_matrix_tp);
+
+		M->nrow = M->elems = n;
+		M->ncol = 1;
+		M->A = Calloc(n, double);
+
+		int i;
+		for(i=0; i<n; i++)
+			M->A[i] = 1.0;
+
+		return M;
+	} else {
+		return NULL;
+	}
+}
+	
+int inla_file_check(const char *filename, const char *mode)
+{
+	/* 
+	   open file with given mode and return 0 if ok, and 1 if failure
+	 */
+
+	FILE *fp = fopen(filename, mode);
+	if (fp) {
+		fclose(fp);
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 #ifdef TESTME

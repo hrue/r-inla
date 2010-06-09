@@ -41,6 +41,8 @@
 #endif
 __BEGIN_DECLS
 
+#include "fmesher-io.h"
+
 /* 
    
  */
@@ -61,7 +63,8 @@ typedef int spde_basis_eval_func_tp(spde_basis_model_tp * model, double *s, doub
 
 typedef struct {
 	int n;
-	double **s;
+	int dim;
+	double **s;					       /* n x dim */
 } inla_spde_points_tp;
 
 typedef struct {
@@ -107,21 +110,23 @@ double inla_spde_KT_model_eval(inla_spde_theta_tp * theta_model, int idx);
 double inla_spde_Qfunction(int node, int nnode, void *arg);
 double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int *nhyper);
 int inla_spde_userfunc1(double *theta, int nhyper, double *covmat);
-inla_spde_points_tp *inla_spde_alloc_points(int n);
 int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp * theta_model, int idx, int iidx);
-int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, spde_basis_model_tp * bmodel, inla_spde_points_tp * points);
+int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, inla_matrix_tp *basis);
 int inla_spde_free_points(inla_spde_points_tp * p);
-int inla_spde_read_diagonal_matrix(const char *filename, int *n, double **x);
-int inla_spde_read_points(const char *filename, inla_spde_points_tp ** points);
 int inla_spde_basis_eval(int kmax, double *s, double *res_array);
 int inla_spde_basis_n(int kmax);
-int inla_spde_build_model(inla_spde_tp ** smodel, const char *dir, spde_basis_model_tp * basisT, spde_basis_model_tp * basisK);
+int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis_model_tp * basisT, spde_basis_model_tp * basisK);
 int spde_basis_eval_general(spde_basis_model_tp * model, double *s, double *res_array);
 int spde_basis_eval_rotsym(spde_basis_model_tp * model, double *s, double *res_array);
 int spde_basis_n_general(int kmax);
 int spde_basis_n_rotsym(int kmax);
 int spde_basis_n(spde_basis_model_tp * model);
 
+inla_spde_points_tp *inla_spde_set_points(inla_matrix_tp *M);
+
+//inla_spde_points_tp *inla_spde_alloc_points(int n);
+//int inla_spde_read_diagonal_matrix(const char *filename, int *n, double **x);
+//int inla_spde_read_points(const char *filename, inla_spde_points_tp ** points);
 
 __END_DECLS
 #endif
