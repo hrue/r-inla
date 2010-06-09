@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-BNAME|--boundary=NAME] \n         [-INAME|--interior=NAME] [--fem=ORDER] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -51,7 +51,8 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -E, --cet=PARAM         Convex encapsulation parameters",
   "  \n  \tThe parameters are n,m, where n is the number of sides of the \n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
   "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
-  "  \n  \tThe parameter order is min_angle, max_edge_length for added points, \n  max_edge_length for data points.\n  \tWhen negative values for the edge_length-parameters, a rudimentary\n  scaling with respect to the initial point density is used.\n  \tPositive values are absolute.\n  \tThe algorithm is only guaranteed to converge for min_angle<=21, but values \n  as high as 34 often work in practice.\n  \tDefaults are 21,-1.,-0.5\n",
+  "  \n  \tThe parameter order is min_angle, max_edge_length for added points, \n  max_edge_length for data points. Further values apply to data points added by \n  extra matrices specified with -T|--input\n  \tWhen negative values for the edge_length-parameters, a rudimentary\n  scaling with respect to the initial point density is used.\n  \tPositive values are absolute.\n  \tThe algorithm is only guaranteed to converge for min_angle<=21, but values \n  as high as 34 often work in practice.\n  \tDefaults are 21,-1.,-0.5\n",
+  "  -Q, --quality=NAME      Per vertex RCDT parameters, as one or more one-column \n                            matrices with minimum edge lengths for the points \n                            specified with -T|--input",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
   "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
   "      --fem=ORDER         Calculate FEM matrices up to order fem  (default=`2')",
@@ -84,11 +85,12 @@ init_help_array(void)
   gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[22];
   gengetopt_args_info_help[19] = gengetopt_args_info_detailed_help[23];
   gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[24];
-  gengetopt_args_info_help[21] = 0; 
+  gengetopt_args_info_help[21] = gengetopt_args_info_detailed_help[25];
+  gengetopt_args_info_help[22] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[22];
+const char *gengetopt_args_info_help[23];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -156,6 +158,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->input_given = 0 ;
   args_info->cet_given = 0 ;
   args_info->rcdt_given = 0 ;
+  args_info->quality_given = 0 ;
   args_info->boundary_given = 0 ;
   args_info->interior_given = 0 ;
   args_info->fem_given = 0 ;
@@ -187,6 +190,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->cet_orig = NULL;
   args_info->rcdt_arg = NULL;
   args_info->rcdt_orig = NULL;
+  args_info->quality_arg = NULL;
+  args_info->quality_orig = NULL;
   args_info->boundary_arg = NULL;
   args_info->boundary_orig = NULL;
   args_info->interior_arg = NULL;
@@ -227,16 +232,19 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->cet_min = 1;
   args_info->cet_max = 2;
   args_info->rcdt_help = gengetopt_args_info_detailed_help[18] ;
-  args_info->rcdt_min = 1;
-  args_info->rcdt_max = 3;
-  args_info->boundary_help = gengetopt_args_info_detailed_help[20] ;
+  args_info->rcdt_min = 0;
+  args_info->rcdt_max = 0;
+  args_info->quality_help = gengetopt_args_info_detailed_help[20] ;
+  args_info->quality_min = 0;
+  args_info->quality_max = 0;
+  args_info->boundary_help = gengetopt_args_info_detailed_help[21] ;
   args_info->boundary_min = 0;
   args_info->boundary_max = 0;
-  args_info->interior_help = gengetopt_args_info_detailed_help[21] ;
+  args_info->interior_help = gengetopt_args_info_detailed_help[22] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[22] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[23] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[25] ;
   
 }
 
@@ -408,6 +416,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   args_info->cet_arg = 0;
   free_multiple_field (args_info->rcdt_given, (void *)(args_info->rcdt_arg), &(args_info->rcdt_orig));
   args_info->rcdt_arg = 0;
+  free_multiple_string_field (args_info->quality_given, &(args_info->quality_arg), &(args_info->quality_orig));
   free_multiple_string_field (args_info->boundary_given, &(args_info->boundary_arg), &(args_info->boundary_orig));
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
   free_string_field (&(args_info->fem_orig));
@@ -518,6 +527,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->input_given, "input", args_info->input_orig, 0);
   write_multiple_into_file(outfile, args_info->cet_given, "cet", args_info->cet_orig, 0);
   write_multiple_into_file(outfile, args_info->rcdt_given, "rcdt", args_info->rcdt_orig, 0);
+  write_multiple_into_file(outfile, args_info->quality_given, "quality", args_info->quality_orig, 0);
   write_multiple_into_file(outfile, args_info->boundary_given, "boundary", args_info->boundary_orig, 0);
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
   if (args_info->fem_given)
@@ -793,6 +803,9 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
   if (check_multiple_option_occurrences(prog_name, args_info->rcdt_given, args_info->rcdt_min, args_info->rcdt_max, "'--rcdt' ('-R')"))
      error = 1;
   
+  if (check_multiple_option_occurrences(prog_name, args_info->quality_given, args_info->quality_min, args_info->quality_max, "'--quality' ('-Q')"))
+     error = 1;
+  
   if (check_multiple_option_occurrences(prog_name, args_info->boundary_given, args_info->boundary_min, args_info->boundary_max, "'--boundary' ('-B')"))
      error = 1;
   
@@ -804,6 +817,11 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
   if (args_info->collect_all_given && ! args_info->collect_given)
     {
       fprintf (stderr, "%s: '--collect-all' option depends on option 'collect'%s\n", prog_name, (additional_error ? additional_error : ""));
+      error = 1;
+    }
+  if (args_info->quality_given && ! args_info->rcdt_given)
+    {
+      fprintf (stderr, "%s: '--quality' ('-Q') option depends on option 'rcdt'%s\n", prog_name, (additional_error ? additional_error : ""));
       error = 1;
     }
 
@@ -1104,6 +1122,7 @@ cmdline_internal (
   struct generic_list * input_list = NULL;
   struct generic_list * cet_list = NULL;
   struct generic_list * rcdt_list = NULL;
+  struct generic_list * quality_list = NULL;
   struct generic_list * boundary_list = NULL;
   struct generic_list * interior_list = NULL;
   int error = 0;
@@ -1150,6 +1169,7 @@ cmdline_internal (
         { "input",	1, NULL, 'T' },
         { "cet",	1, NULL, 'E' },
         { "rcdt",	2, NULL, 'R' },
+        { "quality",	1, NULL, 'Q' },
         { "boundary",	1, NULL, 'B' },
         { "interior",	1, NULL, 'I' },
         { "fem",	1, NULL, 0 },
@@ -1157,7 +1177,7 @@ cmdline_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVC:i:o:T:E:R::B:I:x::", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVC:i:o:T:E:R::Q:B:I:x::", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -1229,6 +1249,15 @@ cmdline_internal (
           if (update_multiple_arg_temp(&rcdt_list, 
               &(local_args_info.rcdt_given), optarg, 0, "21", ARG_DOUBLE,
               "rcdt", 'R',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'Q':	/* Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input.  */
+        
+          if (update_multiple_arg_temp(&quality_list, 
+              &(local_args_info.quality_given), optarg, 0, 0, ARG_STRING,
+              "quality", 'Q',
               additional_error))
             goto failure;
         
@@ -1387,6 +1416,10 @@ cmdline_internal (
     &(args_info->rcdt_orig), args_info->rcdt_given,
     local_args_info.rcdt_given, &multiple_default_value,
     ARG_DOUBLE, rcdt_list);
+  update_multiple_arg((void *)&(args_info->quality_arg),
+    &(args_info->quality_orig), args_info->quality_given,
+    local_args_info.quality_given, 0,
+    ARG_STRING, quality_list);
   multiple_default_value.default_string_arg = "boundary0";
   update_multiple_arg((void *)&(args_info->boundary_arg),
     &(args_info->boundary_orig), args_info->boundary_given,
@@ -1410,6 +1443,8 @@ cmdline_internal (
   local_args_info.cet_given = 0;
   args_info->rcdt_given += local_args_info.rcdt_given;
   local_args_info.rcdt_given = 0;
+  args_info->quality_given += local_args_info.quality_given;
+  local_args_info.quality_given = 0;
   args_info->boundary_given += local_args_info.boundary_given;
   local_args_info.boundary_given = 0;
   args_info->interior_given += local_args_info.interior_given;
@@ -1458,6 +1493,7 @@ failure:
   free_list (input_list, 1 );
   free_list (cet_list, 0 );
   free_list (rcdt_list, 0 );
+  free_list (quality_list, 1 );
   free_list (boundary_list, 1 );
   free_list (interior_list, 1 );
   
