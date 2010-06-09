@@ -316,6 +316,7 @@ int main(int argc, char* argv[])
 	M.type(Mesh::Mtype_manifold);
       }
     }
+
     M.S_set(S0);
     M.setX11VBigLimit(nV);
     
