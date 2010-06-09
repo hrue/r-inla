@@ -51,7 +51,10 @@ function(...,
         model = "copy"
         of = copy
         copy = NULL
-    }
+        if (!missing(model))
+            warning(paste("Ignored argument model=`", model,
+                          "' in f() due to copy=`", copy, "'"))
+    } 
 
     if (is.null(model))
         stop("No model is specified.")
