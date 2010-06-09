@@ -222,7 +222,7 @@ namespace fmesh {
     if ((!use_VT_) || (!S_.capacity())) {
       VT_.clear();
     } else {
-      VT_.truncate(0);
+      VT_.rows(0);
       VT_.capacity(S_.capacity());
       reset_VT(0);
       update_VT_triangles(0);
@@ -237,7 +237,7 @@ namespace fmesh {
       TTi_.clear();
       return *this;
     }
-    TTi_.truncate(nT());
+    TTi_.rows(nT());
     if (!TV_.capacity())
       return *this;
     TTi_.capacity(TV_.capacity());
@@ -346,14 +346,14 @@ namespace fmesh {
 
   Mesh& Mesh::S_set(const Matrix3double& S)
   {
-    S_.truncate(0); /* Avoid possible unnecessary copy. */
+    S_.rows(0); /* Avoid possible unnecessary copy. */
     S_append(S);
     return *this;
   }
   
   Mesh& Mesh::TV_set(const Matrix3int& TV)
   {
-    TV_.truncate(0); /* Avoid possible unnecessary copy. */
+    TV_.rows(0); /* Avoid possible unnecessary copy. */
     TV_append(TV);
     return *this;
   }
@@ -1682,9 +1682,10 @@ namespace fmesh {
 
     unlinkTriangle(t);
     relocateTriangle(nT()-1,t);
-    TV_.truncate(nT()-1);
+    TV_.rows(nT()-1);
     if (use_TTi_)
-      TTi_.truncate(nT());
+      TTi_.rows(nT()); /* Note: nT() was changed by the alteration of
+			  TV_ above. */
     if (use_VT_)
       rebuild_VT();
     return nT();
