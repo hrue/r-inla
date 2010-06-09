@@ -46,10 +46,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "spde.h"
 
 
-#define M_2_SQRT_PI 3.5449077018110320546
-#define KMAXMAX 15
-static unsigned char Idxs2[KMAXMAX + 1] = { 0, 2, 6, 12, 20, 30, 42, 56, 72, 90, 110, 132, 156, 182, 210, 240 };
-
 extern G_tp G;						       /* import some global parametes from inla */
 
 /* 
@@ -57,106 +53,6 @@ extern G_tp G;						       /* import some global parametes from inla */
  */
 static inla_spde_tp *func_smodel = NULL;
 
-int spde_basis_n(spde_basis_model_tp * model)
-{
-	int n = -1;
-	switch (model->type) {
-	case SPDE_BASIS_GENERAL:
-		n = spde_basis_n_general(model->order);
-		break;
-	case SPDE_BASIS_ROTSYM:
-		n = spde_basis_n_rotsym(model->order);
-		break;
-	default:
-		assert(0 == 1);
-	}
-	return n;
-}
-int spde_basis_n_general(int kmax)
-{
-	if (kmax >= 0) {
-		return (kmax + 1) * (kmax + 1);
-	} else {
-		return 0;
-	}
-}
-int spde_basis_n_rotsym(int kmax)
-{
-	if (kmax >= 0) {
-		return (kmax + 1);
-	} else {
-		return 0;
-	}
-}
-int spde_basis_eval_general(spde_basis_model_tp * model, double *s, double *res_array)
-{
-	int k, m, kmax;
-	double phi, scaling_sin, scaling_cos;
-	double GSL_res_array[KMAXMAX + 1];
-
-	phi = atan2(s[1], s[0]);
-	kmax = model->order;
-
-	gsl_sf_legendre_sphPlm_array(kmax, 0, s[2], GSL_res_array);
-	for (k = 0; k <= kmax; k++) {
-		res_array[Idxs2[k]] = M_2_SQRT_PI * GSL_res_array[k];
-	}
-	for (m = 1; m <= kmax; m++) {
-		scaling_sin = M_2_SQRT_PI * M_SQRT2 * sin(-m * phi);
-		scaling_cos = M_2_SQRT_PI * M_SQRT2 * cos(m * phi);
-		gsl_sf_legendre_sphPlm_array(kmax, m, s[2], GSL_res_array);
-		for (k = m; k <= kmax; k++) {
-			res_array[Idxs2[k] - m] = scaling_sin * GSL_res_array[k - m];
-			res_array[Idxs2[k] + m] = scaling_cos * GSL_res_array[k - m];
-		}
-	}
-
-	return 0;
-}
-int spde_basis_eval_rotsym(spde_basis_model_tp * model, double *s, double *res_array)
-{
-	int k, kmax;
-	double GSL_res_array[KMAXMAX + 1];
-
-	kmax = model->order;
-	gsl_sf_legendre_sphPlm_array(kmax, 0, s[2], GSL_res_array);
-	for (k = 0; k <= kmax; k++) {
-		res_array[k] = M_2_SQRT_PI * GSL_res_array[k];
-	}
-
-	return 0;
-}
-int inla_spde_basis_n(int kmax)
-{
-	if (kmax >= 0)
-		return (kmax + 1) * (kmax + 1);
-	else
-		return 0;
-}
-int inla_spde_basis_eval(int kmax, double *s, double *res_array)
-{
-	int k, m;
-	double phi, scaling_sin, scaling_cos;
-	double GSL_res_array[KMAXMAX + 1];
-
-	phi = atan2(s[1], s[0]);
-
-	gsl_sf_legendre_sphPlm_array(kmax, 0, s[2], GSL_res_array);
-	for (k = 0; k <= kmax; k++) {
-		res_array[Idxs2[k]] = M_2_SQRT_PI * GSL_res_array[k];
-	}
-	for (m = 1; m <= kmax; m++) {
-		scaling_sin = M_2_SQRT_PI * M_SQRT2 * sin(-m * phi);
-		scaling_cos = M_2_SQRT_PI * M_SQRT2 * cos(m * phi);
-		gsl_sf_legendre_sphPlm_array(kmax, m, s[2], GSL_res_array);
-		for (k = m; k <= kmax; k++) {
-			res_array[Idxs2[k] - m] = scaling_sin * GSL_res_array[k - m];
-			res_array[Idxs2[k] + m] = scaling_cos * GSL_res_array[k - m];
-		}
-	}
-
-	return 0;
-}
 inla_spde_points_tp *inla_spde_set_points(inla_matrix_tp *M)
 {
 	assert(M->nrow > 0);
@@ -191,28 +87,6 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 	}
 	return INLA_OK;
 }
-int inla_spde_read_diagonal_matrix(const char *filename, int *n, double **x)
-{
-	GMRFLib_io_tp *io;
-	int i, j, debug = 0;
-	double value;
-
-	GMRFLib_io_open(&io, filename, "r");
-	GMRFLib_io_read_next(io, n, "%d");
-	*x = Calloc(*n, double);
-
-	for (i = 0; i < *n; i++) {
-		GMRFLib_io_read_next(io, &j, "%d");
-		GMRFLib_io_read_next(io, &value, "%lf");
-		(*x)[j] = value;
-
-		if (debug)
-			printf("read from %s x[%d] = %g\n", filename, j, value);
-	}
-	GMRFLib_io_close(io);
-
-	return INLA_OK;
-}
 double inla_spde_Qfunction(int node, int nnode, void *arg)
 {
 	inla_spde_tp *model = (inla_spde_tp *) arg;
@@ -245,9 +119,9 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 	}
 
 	if (node == nnode) {
-		double Gii, G2ii, K, T;
+		double G1ii, G2ii, K, T;
 
-		Gii = model->G->Qfunc(node, node, (void *) model->G->Qfunc_arg);
+		G1ii = model->G1->Qfunc(node, node, (void *) model->G1->Qfunc_arg);
 		G2ii = model->G2->Qfunc(node, node, (void *) model->G2->Qfunc_arg);
 
 		if (model->K) {
@@ -262,14 +136,14 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 			T = inla_spde_KT_model_eval(model->Tmodel, node);
 		}
 
-		value = SQR(T) * (SQR(K) * model->C[node] + a->oc * 2.0 * K * Gii + G2ii);
+		value = SQR(T) * (SQR(K) * model->C[node] + a->oc * 2.0 * K * G1ii + G2ii);
 	} else {
-		double Gij, G2ij, K, KK, T, TT;
+		double G1ij, G2ij, K, KK, T, TT;
 
-		if (GMRFLib_is_neighb(node, nnode, model->G_graph)) {
-			Gij = model->G->Qfunc(node, nnode, (void *) model->G->Qfunc_arg);
+		if (GMRFLib_is_neighb(node, nnode, model->G1_graph)) {
+			G1ij = model->G1->Qfunc(node, nnode, (void *) model->G1->Qfunc_arg);
 		} else {
-			Gij = 0.0;
+			G1ij = 0.0;
 		}
 		G2ij = model->G2->Qfunc(node, nnode, (void *) model->G2->Qfunc_arg);
 
@@ -287,7 +161,7 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 			inla_spde_KT_model_eval2(&T, &TT, model->Tmodel, node, nnode);
 		}
 
-		value = T * (a->oc * (K * Gij + KK * Gij) + G2ij) * TT;
+		value = T * (a->oc * (K * G1ij + KK * G1ij) + G2ij) * TT;
 	}
 	return value;
 }
@@ -407,7 +281,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 		exit(0);
 	}
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "s0");
+	GMRFLib_sprintf(&fnm, "%s%s", prefix, "s");
 	M = inla_read_fmesher_file((const char *)fnm);
 	model->s = inla_spde_set_points(M);
 	assert(model->s->n == n);
@@ -426,7 +300,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g1");
 	M = inla_read_fmesher_file((const char *)fnm);
 	assert(M->nrow == n);
-	GMRFLib_tabulate_Qfunc_from_list(&(model->G), &(model->G_graph), M->elems, M->i, M->j, M->values, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_list(&(model->G1), &(model->G1_graph), M->elems, M->i, M->j, M->values, NULL, NULL, NULL);
 	inla_matrix_free(M);
 	Free(fnm);
 
@@ -437,7 +311,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	inla_matrix_free(M);
 	Free(fnm);
 
- 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisT");
+  	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisT");
 	if (inla_file_check(fnm, "rb") == 0){
 		M = inla_read_fmesher_file((const char *)fnm);
 	} else {

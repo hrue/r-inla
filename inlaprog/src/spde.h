@@ -89,8 +89,8 @@ typedef struct {
 	double *K;
 	double *C;
 
-	GMRFLib_tabulate_Qfunc_tp *G;
-	GMRFLib_graph_tp *G_graph;
+	GMRFLib_tabulate_Qfunc_tp *G1;
+	GMRFLib_graph_tp *G1_graph;
 
 	GMRFLib_tabulate_Qfunc_tp *G2;
 	GMRFLib_graph_tp *G2_graph;
