@@ -92,7 +92,7 @@ namespace fmesh {
     void zeros(const size_t from_row = 0,
 	       const size_t num_rows = 0) {
       size_t num_rows_ = ((num_rows != 0)
-			  ? ((num_rows>rows_) ? rows_ : num_rows)
+			  ? ((num_rows>cap_) ? cap_ : num_rows)
 			  : rows_);
       for (size_t i=from_row*cols_; i<num_rows_*cols_; i++)
 	data_[i] = zero_;
