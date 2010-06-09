@@ -322,6 +322,17 @@ int main(int argc, char* argv[])
     if (TV0) {
       M.TV_set(*TV0);
     }
+
+    if (oprefix != "-") {
+      print_M_old(oprefix+"S.dat",M.S());
+      print_M_old(oprefix+"FV.dat",M.TV(),false);
+    }
+
+    matrices.attach(string("s"),&M.S(),false);
+    matrices.attach("tv",&M.TV(),false);
+    matrices.output("s").output("tv");
+
+    if (isflat || issphere) {
     
     Point mini(S0(0));
     Point maxi(S0(0));
@@ -391,21 +402,16 @@ int main(int argc, char* argv[])
 	rcdt_big_limit = -rcdt_big_limit*diam;
       MC.RCDT(rcdt_min_angle,rcdt_big_limit,biglim,nV);
     }
-    
-    if (oprefix != "-") {
-      print_M_old(oprefix+"S.dat",M.S());
-      print_M_old(oprefix+"FV.dat",M.TV(),false);
-    }
 
-    matrices.attach(string("s"),&M.S(),false);
-    matrices.attach("tv",&M.TV(),false);
+    }
+    
+
     matrices.attach("tt",&M.TT(),false);
     M.useTTi(true);
     matrices.attach("tti",&M.TT(),false);
     matrices.attach("vv",new SparseMatrix<int>(M.VV()),
 		    true,fmesh::IOMatrixtype_symmetric);
     
-    matrices.output("s").output("tv");
     matrices.output("tt").output("tti").output("vv");
     
   }
