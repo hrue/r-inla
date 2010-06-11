@@ -27,13 +27,14 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
 const char *gengetopt_args_info_detailed_help[] = {
   "  -h, --help              Print help and exit",
   "      --detailed-help     Print help, including all details and hidden options, \n                            and exit",
+  "      --full-help         Print help, including hidden options, and exit",
   "  -V, --version           Print version and exit",
   "  -C, --config=FILE       Read options from file",
   "      --dump-config=FILE  Dump options to file",
@@ -58,8 +59,41 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --fem=ORDER         Calculate FEM matrices up to order fem  (default=`2')",
   "\nMiscellaneous options:",
   "  -x, --x11[=DELAY]       Show progress in an x11 window, with delay factor  \n                            (default=`1.0')",
+  "      --x11-zoom=LIMITS   Zoom into a smaller section of the graph, \n                            [minx,maxx,miny,maxy]",
     0
 };
+static void
+init_full_help_array(void)
+{
+  gengetopt_args_info_full_help[0] = gengetopt_args_info_detailed_help[0];
+  gengetopt_args_info_full_help[1] = gengetopt_args_info_detailed_help[1];
+  gengetopt_args_info_full_help[2] = gengetopt_args_info_detailed_help[2];
+  gengetopt_args_info_full_help[3] = gengetopt_args_info_detailed_help[3];
+  gengetopt_args_info_full_help[4] = gengetopt_args_info_detailed_help[4];
+  gengetopt_args_info_full_help[5] = gengetopt_args_info_detailed_help[5];
+  gengetopt_args_info_full_help[6] = gengetopt_args_info_detailed_help[6];
+  gengetopt_args_info_full_help[7] = gengetopt_args_info_detailed_help[7];
+  gengetopt_args_info_full_help[8] = gengetopt_args_info_detailed_help[8];
+  gengetopt_args_info_full_help[9] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_full_help[10] = gengetopt_args_info_detailed_help[10];
+  gengetopt_args_info_full_help[11] = gengetopt_args_info_detailed_help[12];
+  gengetopt_args_info_full_help[12] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_full_help[13] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_full_help[14] = gengetopt_args_info_detailed_help[16];
+  gengetopt_args_info_full_help[15] = gengetopt_args_info_detailed_help[17];
+  gengetopt_args_info_full_help[16] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_full_help[17] = gengetopt_args_info_detailed_help[21];
+  gengetopt_args_info_full_help[18] = gengetopt_args_info_detailed_help[22];
+  gengetopt_args_info_full_help[19] = gengetopt_args_info_detailed_help[23];
+  gengetopt_args_info_full_help[20] = gengetopt_args_info_detailed_help[24];
+  gengetopt_args_info_full_help[21] = gengetopt_args_info_detailed_help[25];
+  gengetopt_args_info_full_help[22] = gengetopt_args_info_detailed_help[26];
+  gengetopt_args_info_full_help[23] = gengetopt_args_info_detailed_help[27];
+  gengetopt_args_info_full_help[24] = 0; 
+  
+}
+
+const char *gengetopt_args_info_full_help[25];
 
 static void
 init_help_array(void)
@@ -74,23 +108,24 @@ init_help_array(void)
   gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[7];
   gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[8];
   gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[9];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[11];
+  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[10];
   gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[14];
+  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[13];
   gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[15];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[16];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[20];
+  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[17];
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[19];
   gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[21];
   gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[22];
   gengetopt_args_info_help[19] = gengetopt_args_info_detailed_help[23];
   gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[24];
   gengetopt_args_info_help[21] = gengetopt_args_info_detailed_help[25];
-  gengetopt_args_info_help[22] = 0; 
+  gengetopt_args_info_help[22] = gengetopt_args_info_detailed_help[26];
+  gengetopt_args_info_help[23] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[23];
+const char *gengetopt_args_info_help[24];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -146,6 +181,7 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->detailed_help_given = 0 ;
+  args_info->full_help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->config_given = 0 ;
   args_info->dump_config_given = 0 ;
@@ -163,6 +199,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->interior_given = 0 ;
   args_info->fem_given = 0 ;
   args_info->x11_given = 0 ;
+  args_info->x11_zoom_given = 0 ;
 }
 
 static
@@ -200,51 +237,57 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->fem_orig = NULL;
   args_info->x11_arg = 1.0;
   args_info->x11_orig = NULL;
+  args_info->x11_zoom_arg = NULL;
+  args_info->x11_zoom_orig = NULL;
   
 }
 
 static
 void init_args_info(struct gengetopt_args_info *args_info)
 {
-
+  init_full_help_array(); 
   init_help_array(); 
   args_info->help_help = gengetopt_args_info_detailed_help[0] ;
   args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
-  args_info->version_help = gengetopt_args_info_detailed_help[2] ;
-  args_info->config_help = gengetopt_args_info_detailed_help[3] ;
-  args_info->dump_config_help = gengetopt_args_info_detailed_help[4] ;
-  args_info->io_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->ic_help = gengetopt_args_info_detailed_help[7] ;
+  args_info->full_help_help = gengetopt_args_info_detailed_help[2] ;
+  args_info->version_help = gengetopt_args_info_detailed_help[3] ;
+  args_info->config_help = gengetopt_args_info_detailed_help[4] ;
+  args_info->dump_config_help = gengetopt_args_info_detailed_help[5] ;
+  args_info->io_help = gengetopt_args_info_detailed_help[7] ;
+  args_info->ic_help = gengetopt_args_info_detailed_help[8] ;
   args_info->ic_min = 0;
   args_info->ic_max = 0;
-  args_info->oc_help = gengetopt_args_info_detailed_help[8] ;
-  args_info->collect_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->oc_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->collect_help = gengetopt_args_info_detailed_help[10] ;
   args_info->collect_min = 0;
   args_info->collect_max = 0;
-  args_info->collect_all_help = gengetopt_args_info_detailed_help[11] ;
-  args_info->ir_help = gengetopt_args_info_detailed_help[12] ;
+  args_info->collect_all_help = gengetopt_args_info_detailed_help[12] ;
+  args_info->ir_help = gengetopt_args_info_detailed_help[13] ;
   args_info->ir_min = 0;
   args_info->ir_max = 0;
-  args_info->input_help = gengetopt_args_info_detailed_help[15] ;
+  args_info->input_help = gengetopt_args_info_detailed_help[16] ;
   args_info->input_min = 0;
   args_info->input_max = 0;
-  args_info->cet_help = gengetopt_args_info_detailed_help[16] ;
+  args_info->cet_help = gengetopt_args_info_detailed_help[17] ;
   args_info->cet_min = 1;
   args_info->cet_max = 2;
-  args_info->rcdt_help = gengetopt_args_info_detailed_help[18] ;
+  args_info->rcdt_help = gengetopt_args_info_detailed_help[19] ;
   args_info->rcdt_min = 0;
   args_info->rcdt_max = 0;
-  args_info->quality_help = gengetopt_args_info_detailed_help[20] ;
+  args_info->quality_help = gengetopt_args_info_detailed_help[21] ;
   args_info->quality_min = 0;
   args_info->quality_max = 0;
-  args_info->boundary_help = gengetopt_args_info_detailed_help[21] ;
+  args_info->boundary_help = gengetopt_args_info_detailed_help[22] ;
   args_info->boundary_min = 0;
   args_info->boundary_max = 0;
-  args_info->interior_help = gengetopt_args_info_detailed_help[22] ;
+  args_info->interior_help = gengetopt_args_info_detailed_help[23] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[23] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[26] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->x11_zoom_min = 3;
+  args_info->x11_zoom_max = 4;
   
 }
 
@@ -278,6 +321,15 @@ cmdline_print_help (void)
   print_help_common();
   while (gengetopt_args_info_help[i])
     printf("%s\n", gengetopt_args_info_help[i++]);
+}
+
+void
+cmdline_print_full_help (void)
+{
+  int i = 0;
+  print_help_common();
+  while (gengetopt_args_info_full_help[i])
+    printf("%s\n", gengetopt_args_info_full_help[i++]);
 }
 
 void
@@ -421,6 +473,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
   free_string_field (&(args_info->fem_orig));
   free_string_field (&(args_info->x11_orig));
+  free_multiple_field (args_info->x11_zoom_given, (void *)(args_info->x11_zoom_arg), &(args_info->x11_zoom_orig));
+  args_info->x11_zoom_arg = 0;
   
   
   for (i = 0; i < args_info->inputs_num; ++i)
@@ -509,6 +563,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->detailed_help_given)
     write_into_file(outfile, "detailed-help", 0, 0 );
+  if (args_info->full_help_given)
+    write_into_file(outfile, "full-help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->config_given)
@@ -534,6 +590,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "fem", args_info->fem_orig, 0);
   if (args_info->x11_given)
     write_into_file(outfile, "x11", args_info->x11_orig, 0);
+  write_multiple_into_file(outfile, args_info->x11_zoom_given, "x11-zoom", args_info->x11_zoom_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -812,6 +869,9 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
   if (check_multiple_option_occurrences(prog_name, args_info->interior_given, args_info->interior_min, args_info->interior_max, "'--interior' ('-I')"))
      error = 1;
   
+  if (check_multiple_option_occurrences(prog_name, args_info->x11_zoom_given, args_info->x11_zoom_min, args_info->x11_zoom_max, "'--x11-zoom'"))
+     error = 1;
+  
   
   /* checks for dependences among options */
   if (args_info->collect_all_given && ! args_info->collect_given)
@@ -822,6 +882,11 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
   if (args_info->quality_given && ! args_info->rcdt_given)
     {
       fprintf (stderr, "%s: '--quality' ('-Q') option depends on option 'rcdt'%s\n", prog_name, (additional_error ? additional_error : ""));
+      error = 1;
+    }
+  if (args_info->x11_zoom_given && ! args_info->x11_given)
+    {
+      fprintf (stderr, "%s: '--x11-zoom' option depends on option 'x11'%s\n", prog_name, (additional_error ? additional_error : ""));
       error = 1;
     }
 
@@ -1125,6 +1190,7 @@ cmdline_internal (
   struct generic_list * quality_list = NULL;
   struct generic_list * boundary_list = NULL;
   struct generic_list * interior_list = NULL;
+  struct generic_list * x11_zoom_list = NULL;
   int error = 0;
   struct gengetopt_args_info local_args_info;
   
@@ -1157,6 +1223,7 @@ cmdline_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "detailed-help",	0, NULL, 0 },
+        { "full-help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
         { "config",	1, NULL, 'C' },
         { "dump-config",	1, NULL, 0 },
@@ -1174,6 +1241,7 @@ cmdline_internal (
         { "interior",	1, NULL, 'I' },
         { "fem",	1, NULL, 0 },
         { "x11",	2, NULL, 'x' },
+        { "x11-zoom",	1, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
@@ -1300,6 +1368,12 @@ cmdline_internal (
             exit (EXIT_SUCCESS);
           }
 
+          if (strcmp (long_options[option_index].name, "full-help") == 0) {
+            cmdline_print_full_help ();
+            cmdline_free (&local_args_info);
+            exit (EXIT_SUCCESS);
+          }
+
           /* Dump options to file.  */
           if (strcmp (long_options[option_index].name, "dump-config") == 0)
           {
@@ -1376,6 +1450,17 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Zoom into a smaller section of the graph, [minx,maxx,miny,maxy].  */
+          else if (strcmp (long_options[option_index].name, "x11-zoom") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&x11_zoom_list, 
+                &(local_args_info.x11_zoom_given), optarg, 0, 0, ARG_DOUBLE,
+                "x11-zoom", '-',
+                additional_error))
+              goto failure;
+          
+          }
           
           break;
         case '?':	/* Invalid option.  */
@@ -1430,6 +1515,10 @@ cmdline_internal (
     &(args_info->interior_orig), args_info->interior_given,
     local_args_info.interior_given, &multiple_default_value,
     ARG_STRING, interior_list);
+  update_multiple_arg((void *)&(args_info->x11_zoom_arg),
+    &(args_info->x11_zoom_orig), args_info->x11_zoom_given,
+    local_args_info.x11_zoom_given, 0,
+    ARG_DOUBLE, x11_zoom_list);
 
   args_info->ic_given += local_args_info.ic_given;
   local_args_info.ic_given = 0;
@@ -1449,6 +1538,8 @@ cmdline_internal (
   local_args_info.boundary_given = 0;
   args_info->interior_given += local_args_info.interior_given;
   local_args_info.interior_given = 0;
+  args_info->x11_zoom_given += local_args_info.x11_zoom_given;
+  local_args_info.x11_zoom_given = 0;
   
   if (check_required)
     {
@@ -1496,6 +1587,7 @@ failure:
   free_list (quality_list, 1 );
   free_list (boundary_list, 1 );
   free_list (interior_list, 1 );
+  free_list (x11_zoom_list, 0 );
   
   cmdline_release (&local_args_info);
   return (EXIT_FAILURE);

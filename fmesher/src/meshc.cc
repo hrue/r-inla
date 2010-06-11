@@ -590,11 +590,31 @@ namespace fmesh {
 	      << " " << M_->S(v) << endl);
 
     td = M_->locate_point(ed,M_->S(v),v);
-    if (td.isnull()) { return Dart(); }; /* ERROR, not found! */
-    if (td.v() == v) { return td; } /* Node already inserted! */
+    if (td.isnull()) { /* ERROR, not found! */
+      MESHC_LOG("Error, node not found");
+      return Dart();
+    };
+    if (td.v() == v) { /* Node already inserted! */
+      MESHC_LOG("Node already inserted");
+      return td;
+    }
     td = Dart(*M_,td.t());
     Point bary;
     M_->barycentric(td,M_->S(v),bary);
+    if ((bary[0]<-1000*MESH_EPSILON) ||
+	(bary[0]<-1000*MESH_EPSILON) ||
+	(bary[0]<-1000*MESH_EPSILON)) {
+      MESHC_LOG("Triangle dart " << td
+		<< "\n\t S[t]=("
+		<< M_->S(M_->TV(td.t())[0]) << ",\n\t       "
+		<< M_->S(M_->TV(td.t())[1]) << ",\n\t       "
+		<< M_->S(M_->TV(td.t())[2]) << ")"
+		<< "\n\t bary=" << bary
+		<< "\n\t S[v]=" << M_->S(v)
+		<< endl);
+      MESHC_LOG("ERROR: locate_point returned triangle with bad barycentric coordinates for point.");
+      return Dart();
+    }
     size_t pattern(size_t(bary[0]>MESH_EPSILON)*1+
 		   size_t(bary[1]>MESH_EPSILON)*2+
 		   size_t(bary[2]>MESH_EPSILON)*4);
@@ -634,9 +654,19 @@ namespace fmesh {
     case 1: // +-- Close to node 0, not allowed
     case 2: // -+- Close to node 1, not allowed
     case 4: // --+ Close to node 2, not allowed
+      MESHC_LOG("Triangle dart " << td
+		 << "\n\t S[t]=("
+		 << M_->S(M_->TV(td.t())[0]) << ",\n\t       "
+		 << M_->S(M_->TV(td.t())[1]) << ",\n\t       "
+		 << M_->S(M_->TV(td.t())[2]) << ")"
+		 << "\n\t bary=" << bary
+		 << "\n\t pattern=" << pattern
+		 << "\n\t S[v]=" << M_->S(v)
+		 << endl);
       MESHC_LOG("ERROR: Attempt to add a duplicate point in triangle " << td << endl);
       break;
     case 0: // --- Close to all nodes, should not happen!
+      MESHC_LOG("Close to all nodes, this should not happen, in triangle " << td << endl);
       break;
     }
 
@@ -772,7 +802,7 @@ namespace fmesh {
       if (nV<3) { /* Not enough points for even one triangle,
 		     needs special treatment. */
 	NOT_IMPLEMENTED;
-	MESHC_LOG_("nV=" << nV);
+	MESHC_LOG("nV=" << nV);
 	return false;
       }
       
@@ -1875,8 +1905,13 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertex(c),dh).isnull()) {
-	  MESHC_LOG_("Skinny triangle elimination failed" << endl);
-	  return false;
+	  MESHC_LOG("Skinny triangle elimination failed" << endl);
+	  M_->removeLastVertex(); /* Failed to add to graph, so delete it. */
+	  //	  skinny_.erase(dh); /* Hope we don't fall into
+	  //	                        infinite loop; we do... */
+	  skinny_.clear(); /* Stop caring about the skinny triangles. */
+	  //	  return false;
+	  continue;
 	}
 	continue;
       }
@@ -1892,8 +1927,11 @@ namespace fmesh {
 	    (!buildRCDTlookahead(&interior_,c)))
 	  continue;
 	if (insertNode(addVertex(c),dh).isnull()) {
-	  MESHC_LOG_("Big triangle elimination failed failed" << endl);
-	  return false;
+	  MESHC_LOG("Big triangle elimination failed failed" << endl);
+	  M_->removeLastVertex(); /* Failed to add to graph, so delete it. */
+	  skinny_.erase(dh); /* Hope we don't fall into infinite loop. */
+	  //	  return false;
+	  continue;
 	}
 	continue;
       }
