@@ -200,7 +200,7 @@ namespace fmesh {
       if (nV()>0) {
 	S_.rows(nV()-1);
 	if (use_VT_)
-	  VT_.rows(nV()-1);
+	  VT_.rows(nV());
       }
       return *this;      
     };
