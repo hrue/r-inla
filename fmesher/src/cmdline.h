@@ -41,6 +41,7 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
+  const char *full_help_help; /**< @brief Print help, including hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
   char * config_arg;	/**< @brief Read options from file.  */
   char * config_orig;	/**< @brief Read options from file original value given at command line.  */
@@ -107,9 +108,15 @@ struct gengetopt_args_info
   double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
   char * x11_orig;	/**< @brief Show progress in an x11 window, with delay factor original value given at command line.  */
   const char *x11_help; /**< @brief Show progress in an x11 window, with delay factor help description.  */
+  double* x11_zoom_arg;	/**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy].  */
+  char ** x11_zoom_orig;	/**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy] original value given at command line.  */
+  unsigned int x11_zoom_min; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy]'s minimum occurreces */
+  unsigned int x11_zoom_max; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy]'s maximum occurreces */
+  const char *x11_zoom_help; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy] help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
+  unsigned int full_help_given ;	/**< @brief Whether full-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int config_given ;	/**< @brief Whether config was given.  */
   unsigned int dump_config_given ;	/**< @brief Whether dump-config was given.  */
@@ -127,6 +134,7 @@ struct gengetopt_args_info
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
   unsigned int x11_given ;	/**< @brief Whether x11 was given.  */
+  unsigned int x11_zoom_given ;	/**< @brief Whether x11-zoom was given.  */
 
   char **inputs ; /**< @brief unamed options (options without names) */
   unsigned inputs_num ; /**< @brief unamed options number */
@@ -148,6 +156,8 @@ extern const char *gengetopt_args_info_purpose;
 extern const char *gengetopt_args_info_usage;
 /** @brief all the lines making the help output */
 extern const char *gengetopt_args_info_help[];
+/** @brief all the lines making the full help output (including hidden options) */
+extern const char *gengetopt_args_info_full_help[];
 /** @brief all the lines making the detailed help output (including hidden options and details) */
 extern const char *gengetopt_args_info_detailed_help[];
 
@@ -211,6 +221,10 @@ int cmdline_file_save(const char *filename,
  * Print the help
  */
 void cmdline_print_help(void);
+/**
+ * Print the full help (including hidden options)
+ */
+void cmdline_print_full_help(void);
 /**
  * Print the detailed help (including hidden options and details)
  */

@@ -135,20 +135,93 @@ namespace fmesh {
   void Xtmpl::dot(bool fg, const Point& s0, int sz)
   {
     xtmpl_window = window_;
-    xtmpl_dot((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	      sz,
-	      (int)fg);
+    double x0 = (s0[0]-minx_)/(maxx_-minx_);
+    double y0 = (s0[1]-miny_)/(maxy_-miny_);
+    if ((0.0<=x0) && (x0<=1.0) && (0.0<=y0) && (y0<=1.0))
+      xtmpl_dot((int)(sx_*x0), (int)(sy_*y0), sz, (int)fg);
   };
 
   void Xtmpl::dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset)
   {
     xtmpl_window = window_;
-    xtmpl_dot((int)(sx_*(s0[0]+xoffset-minx_)/(maxx_-minx_)),
-	      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-	      sz,
-	      (int)fg);
+    double x0 = (s0[0]+xoffset-minx_)/(maxx_-minx_);
+    double y0 = (s0[1]-miny_)/(maxy_-miny_);
+    if ((0.0<=x0) && (x0<=1.0) && (0.0<=y0) && (y0<=1.0))
+      xtmpl_dot((int)(sx_*x0), (int)(sy_*y0), sz, (int)fg);
   };
+
+
+  void Xtmpl::draw_line(bool fg, double x0, double y0, double x1, double y1)
+  {
+    if ((((x0<=0.0) && (x1<=0.0)) || ((x0>=1.0) && (x1>=1.0))) ||
+	(((y0<=0.0) && (y1<=0.0)) || ((y0>=1.0) && (y1>=1.0))))
+      return;
+    if (x1<x0) {
+      /* Swap */
+      double x = x1; double y = y1;
+      x1 = x0; y1 = y0;
+      x0 = x; y0 = y;
+    }
+    if (x0<x1) {
+      /* Truncate at x=0 and 1 */ 
+      if (x0<0.0) {
+	/* x = (1-a)*x0+a*x1 = 0
+	   y = (1-a)*y0+a*y1
+	   a = -x0/(x1-x0), 1-a = x1/(x1-x0)
+	   y = (x1*y0-x0*y1)/(x1-x0)
+	*/
+	double x = 0.0;
+	double y = (x1*y0-x0*y1)/(x1-x0);
+	x0 = x;
+	y0 = y;
+      }
+      if (x1>1.0) {
+	/* x = (1-a)*x0+a*x1 = 1
+	   y = (1-a)*y0+a*y1
+	   a = (1-x0)/(x1-x0), 1-a = (x1-1)/(x1-x0)
+	   y = ((x1-1)*y0-(x0-1)*y1)/(x1-x0)
+	*/
+	double x = 1.0;
+	double y = ((x1-1)*y0-(x0-1)*y1)/(x1-x0);
+	x1 = x;
+	y1 = y;
+      }
+    }
+
+    if (((y0<=0.0) && (y1<=0.0)) || ((y0>=1.0) && (y1>=1.0)))
+      return;
+    if (y1<y0) {
+      /* Swap */
+      double x = x1; double y = y1;
+      x1 = x0; y1 = y0;
+      x0 = x; y0 = y;
+    }
+    if (y0<y1) {
+      /* Truncate at y=0 and 1 */ 
+      if (y0<0.0) {
+	double x = (y1*x0-y0*x1)/(y1-y0);
+	double y = 0.0;
+	x0 = x;
+	y0 = y;
+      }
+      if (y1>1.0) {
+	double x = ((y1-1)*x0-(y0-1)*x1)/(y1-y0);
+	double y = 1.0;
+	x1 = x;
+	y1 = y;
+      }
+    }
+
+    xtmpl_window = window_;
+    if (fg)
+      xtmpl_draw_line((int)(sx_*x0),(int)(sy_*y0),
+		      (int)(sx_*x1),(int)(sy_*y1));
+    else
+      xtmpl_erase_line((int)(sx_*x0),(int)(sy_*y0),
+		       (int)(sx_*x1),(int)(sy_*y1));
+  }
+
+
 
   void Xtmpl::arc(bool fg, const Point& s0, const Point& s1, double xoffset)
   {
@@ -172,32 +245,22 @@ namespace fmesh {
       for (dim=0;dim<2;dim++)
 	p1[dim] = s[dim]/l;
       
-      if (fg)
-	xtmpl_draw_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
-			(int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			(int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
-			(int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
-      else
-	xtmpl_erase_line((int)(sx_*(p0[0]+xoffset-minx_)/(maxx_-minx_)),
-			 (int)(sy_*(p0[1]-miny_)/(maxy_-miny_)),
-			 (int)(sx_*(p1[0]+xoffset-minx_)/(maxx_-minx_)),
-			 (int)(sy_*(p1[1]-miny_)/(maxy_-miny_)));
+      draw_line(fg,
+		(p0[0]+xoffset-minx_)/(maxx_-minx_),
+		(p0[1]-miny_)/(maxy_-miny_),
+		(p1[0]+xoffset-minx_)/(maxx_-minx_),
+		(p1[1]-miny_)/(maxy_-miny_));
     }
-  };
+  }
 
   void Xtmpl::line(bool fg, const Point& s0, const Point& s1)
   {
     xtmpl_window = window_;
-    if (fg)
-      xtmpl_draw_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		      (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
-    else
-      xtmpl_erase_line((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		       (int)(sx_*(s1[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s1[1]-miny_)/(maxy_-miny_)));
+    draw_line(fg,
+	      (s0[0]-minx_)/(maxx_-minx_),
+	      (s0[1]-miny_)/(maxy_-miny_),
+	      (s1[0]-minx_)/(maxx_-minx_),
+	      (s1[1]-miny_)/(maxy_-miny_));
   };
 
   void Xtmpl::text(bool fg, const Point& s0, std::string str)
@@ -207,14 +270,16 @@ namespace fmesh {
     str.copy(str_,str.length(),0);
     str_[str.length()] = '\0';
     xtmpl_window = window_;
-    if (fg)
-      xtmpl_draw_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		      (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		      str_,str.length());
-    else
-      xtmpl_erase_text((int)(sx_*(s0[0]-minx_)/(maxx_-minx_)),
-		       (int)(sy_*(s0[1]-miny_)/(maxy_-miny_)),
-		       str_,str.length());
+    double x0 = (s0[0]-minx_)/(maxx_-minx_);
+    double y0 = (s0[1]-miny_)/(maxy_-miny_);
+    if ((0.0<=x0) && (x0<=1.0) && (0.0<=y0) && (y0<=1.0)) {
+      if (fg)
+	xtmpl_draw_text((int)(sx_*x0),(int)(sy_*y0),
+			str_,str.length());
+      else
+	xtmpl_erase_text((int)(sx_*x0),(int)(sy_*y0),
+			 str_,str.length());
+    }
     delete[] str_;
   };
 

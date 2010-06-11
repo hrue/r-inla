@@ -62,6 +62,8 @@ namespace fmesh {
 		 double miny, double maxy);
     double width() const;
 
+    void draw_line(bool fg, double x0, double y0, double x1, double y1);
+
     void dot(bool fg, const Point& s0, int sz);
     void dot_on_sphere(bool fg, const Point& s0, int sz, double xoffset);
     void arc(bool fg, const Point& s0, const Point& s1, double xoffset);
