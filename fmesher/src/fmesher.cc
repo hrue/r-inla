@@ -39,6 +39,7 @@ const bool useTTi = true;
 bool useX11 = false;
 const bool useX11text = false;
 double x11_delay_factor = 1.0;
+double x11_zoom[4];
 
 MatrixC matrices;
 
@@ -172,6 +173,18 @@ int main(int argc, char* argv[])
 
   useX11 = (args_info.x11_given>0) && (args_info.x11_arg>=0);
   x11_delay_factor = args_info.x11_arg;
+  if (args_info.x11_zoom_given==4) {
+    for (int i=0; i<4; i++)
+      x11_zoom[i] = args_info.x11_zoom_arg[i];
+  } else if (args_info.x11_zoom_given==3) {
+    double xmid = args_info.x11_zoom_arg[0];
+    double ymid = args_info.x11_zoom_arg[1];
+    double margin = args_info.x11_zoom_arg[2];
+    x11_zoom[0] = xmid-margin;
+    x11_zoom[1] = xmid+margin;
+    x11_zoom[2] = ymid-margin;
+    x11_zoom[3] = ymid+margin;
+  }
 
   /*
   cout << "CET given:\t" << args_info.cet_given << endl;
@@ -376,11 +389,6 @@ int main(int argc, char* argv[])
       M.TV_set(*TV0);
     }
 
-    if (oprefix != "-") {
-      print_M_old(oprefix+"S.dat",M.S());
-      print_M_old(oprefix+"FV.dat",M.TV(),false);
-    }
-
     matrices.attach(string("s"),&M.S(),false);
     matrices.attach("tv",&M.TV(),false);
     matrices.output("s").output("tv");
@@ -410,21 +418,32 @@ int main(int argc, char* argv[])
     
     if (useX11) {
       if (issphere) {
+	if (args_info.x11_zoom_given==0) {
+	  x11_zoom[0] = -1.1;
+	  x11_zoom[1] = 1.1;
+	  x11_zoom[2] = -1.1;
+	  x11_zoom[3] = 1.1;
+	}
 	M.useX11(true,useX11text,500,500,
-		 -1.1,1.1,
-		 -1.1,1.1);
+		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
       } else {
 	double w0 = maxi[0]-mini[0];
 	double w1 = maxi[1]-mini[0];
+	if (args_info.x11_zoom_given==0) {
+	  x11_zoom[0] = mini[0]-w0*0.2;
+	  x11_zoom[1] = maxi[0]+w0*0.2;
+	  x11_zoom[2] = mini[1]-w1*0.2;
+	  x11_zoom[3] = maxi[1]+w1*0.2;
+	}
 	M.useX11(true,useX11text,500,500,
-		 mini[0]-w0*0.2,maxi[0]+w0*0.2,
-		 mini[1]-w1*0.2,maxi[1]+w1*0.2);
+		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
       }
       M.setX11delay(x11_delay_factor/M.nV());
     }
     
     MeshC MC(&M);
-    
+    MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
+
     if (!TV0)
       MC.CET(cet_sides,cet_margin);
     
@@ -450,14 +469,20 @@ int main(int argc, char* argv[])
 
     }
     
+    if (oprefix != "-") {
+      print_M_old(oprefix+"S.dat",M.S());
+      print_M_old(oprefix+"FV.dat",M.TV(),false);
+    }
 
     matrices.attach("tt",&M.TT(),false);
+    M.useVT(true);
+    matrices.attach("vt",&M.VT(),false);
     M.useTTi(true);
     matrices.attach("tti",&M.TT(),false);
     matrices.attach("vv",new SparseMatrix<int>(M.VV()),
 		    true,fmesh::IOMatrixtype_symmetric);
     
-    matrices.output("tt").output("tti").output("vv");
+    matrices.output("tt").output("tti").output("vt").output("vv");
     
   }
     

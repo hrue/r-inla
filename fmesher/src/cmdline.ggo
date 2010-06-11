@@ -106,6 +106,9 @@ section "Miscellaneous options"
 option "x11" x "Show progress in an x11 window, with delay factor" double
        typestr="DELAY"
        argoptional default="1.0" optional
+option "x11-zoom" - "Zoom into a smaller section of the graph, [minx,maxx,miny,maxy]" double
+       typestr="LIMITS" multiple(3-4)
+       optional dependon="x11" hidden
 
 
 
