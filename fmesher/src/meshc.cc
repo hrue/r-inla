@@ -1223,6 +1223,9 @@ namespace fmesh {
       if (dh.isnull()) dh = Dart(*M_,0);
       dh = insertNode(v,dh); /* Start looking where the previous
 				point was found. */
+      if (dh.isnull()) {
+	MESHC_LOG("DT: Failed to insert node " << v << endl << *this);
+      }
     }
       
     MESHC_LOG("DT finished" << endl << *this);
