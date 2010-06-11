@@ -93,9 +93,9 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulated_Qfunc, GMRFLib
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 					 const char *filename, double *prec, double *log_prec, double **log_prec_omp);
-int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
+int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename, int dim, 
 				     double *prec, double *log_prec, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, int ntriples,
-				     int *ilist, int *jlist, double *Qijlist, double *prec, double *log_prec, double **log_prec_omp);
+				     int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec, double **log_prec_omp);
 __END_DECLS
 #endif

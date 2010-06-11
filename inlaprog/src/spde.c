@@ -287,27 +287,42 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	assert(model->s->n == n);
 	inla_matrix_free(M);
 	Free(fnm);
-	if (1) {
+	if (0) {
 		for(i=0; i<n; i++){
 			printf("%d ",  i);
 			for(j=0; j<model->s->dim; j++)
 				printf(" %g", model->s->s[i][j]);
 			printf("\n");
 		}
-		exit(0);
 	}
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g1");
 	M = inla_read_fmesher_file((const char *)fnm);
 	assert(M->nrow == n);
-	GMRFLib_tabulate_Qfunc_from_list(&(model->G1), &(model->G1_graph), M->elems, M->i, M->j, M->values, NULL, NULL, NULL);
+	if (0){
+		int imax=0;
+		int jmax=0;
+		for(i=0; i<M->elems; i++){
+			printf("%d %d %d %g\n",  i, M->i[i],  M->j[i], M->values[i]);
+			imax = IMAX(imax,  M->i[i]);
+			jmax = IMAX(jmax,  M->j[i]);
+		}
+		P(M->elems);
+		P(imax);
+		P(jmax);
+	}
+	
+	GMRFLib_tabulate_Qfunc_from_list(&(model->G1), &(model->G1_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
+	P(model->G1_graph->n);
+	
 	inla_matrix_free(M);
 	Free(fnm);
 
  	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g2");
 	M = inla_read_fmesher_file((const char *)fnm);
 	assert(M->nrow == n);
-	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
+	P(model->G2_graph->n);
 	inla_matrix_free(M);
 	Free(fnm);
 
@@ -336,7 +351,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	model->Qfunc = inla_spde_Qfunction;
 	model->Qfunc_arg = (void *) model;
 	model->graph = model->G2_graph;
-	model->n = n;
+	model->n = model->graph->n;
 	*smodel = model;
 	func_smodel = model;				       /* store it also here */
 

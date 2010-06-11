@@ -917,3 +917,67 @@
     return (s)
 }
 
+`inla.unique.rows` = function(A)
+{
+    ## return the unique rows and index-list how to map rows of A.
+
+    ## Example:
+    ## > A
+    ##       [,1] [,2]
+    ##  [1,]    1    1
+    ##  [2,]    2    2
+    ##  [3,]    3    3
+    ##  [4,]    1    1
+    ##  [5,]    2    2
+    ##  [6,]    3    3
+    ##  [7,]    4    4
+    ##  [8,]    4    4
+    ##  [9,]    1    1
+
+    ## > inla.unique.rows(A)
+    ## $rows
+    ##     [,1] [,2]
+    ## [1,]    1    1
+    ## [2,]    2    2
+    ## [3,]    3    3
+    ## [4,]    4    4
+    ##
+    ## $idx
+    ## [1] 1 2 3 1 2 3 4 4 1
+
+
+    stopifnot(is.matrix(A))
+    
+    ## we will use the builtin function 'duplicated', but since we
+    ## have a matrix, we form a vector where each element is the
+    ## character string of that column.
+    
+    n = dim(A)[1]
+    ncol = dim(A)[2]
+    a = apply(A, 1, function(x) inla.paste(c(as.character(x)), sep="<|>"))
+
+    ## then we know which columns that are duplicated. the next step
+    ## is to make an index-table over unique rows, and if duplicated,
+    ## the index to the first equal unique row.
+
+    dup = as.integer(duplicated(a))
+    nu = sum(!dup)
+    uA = matrix(NA, nu, ncol)
+    k = 1
+    for(i in 1:n) {
+        if (dup[i] == 1) {
+            idx = which(a[i] == a[1:(i-1)])[1]
+            dup[i] = dup[ idx ]
+        } else {
+            dup[i] = k
+            uA[k, ] = A[i, ]
+            k = k+1
+        }
+    }
+
+    ## we need both the unique ones and the mapping
+
+    return (list(rows = uA, idx = dup))
+}
+
+            

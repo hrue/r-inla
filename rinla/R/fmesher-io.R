@@ -253,7 +253,7 @@
         stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
     }
     h = integer(8)
-    valuetp = inla.ifelse(equals(valuetype, integer()), 0, 1)
+    valuetp = inla.ifelse(identical(valuetype, integer()), 0, 1)
     h = c(version, elems, nrow, ncol, datatype, valuetp, matrixtype, storagetype)
     if (verbose) 
         print(h)
@@ -274,7 +274,7 @@
     
     if (datatype == 0) {
         ## dense
-        if (equals(valuetype, integer())) {
+        if (identical(valuetype, integer())) {
             writeBin(as.integer(as.vector(A)), fp)
         } else {
             writeBin(as.double(as.vector(A)), fp)
@@ -283,7 +283,7 @@
         ## sparse: columnorder
         writeBin(as.integer(i), fp)
         writeBin(as.integer(j), fp)
-        if (equals(valuetype, integer())) {
+        if (identical(valuetype, integer())) {
             writeBin(as.integer(values), fp)
         } else {
             writeBin(as.double(values), fp)

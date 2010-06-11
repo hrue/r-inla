@@ -246,7 +246,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		double *pr = Calloc(1, double);
 
 		*pr = Aext_precision;
-		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, pr, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == 2*n, GMRFLib_EPARAMETER);  /* this is required!!!!! */
 		arg->n_ext = n;
 		//GMRFLib_print_graph(stdout, arg->eta_ext_graph);
@@ -451,7 +451,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 	}
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), ntriples, ilist, jlist, Qijlist,
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), ntriples, ilist, jlist, Qijlist, -1, 
 					 NULL, logprec_unstruct, logprec_unstruct_omp);
 
 	if (nlc) {
@@ -521,7 +521,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			SET_ELEMENT_LC(sptr->key.key1, sptr->key.key2, sptr->value);
 		}
 
-		GMRFLib_tabulate_Qfunc_from_list(&(arg->lc_Q), &(arg->lc_graph), ntriples_lc, ilist_lc, jlist_lc, Qijlist_lc, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_list(&(arg->lc_Q), &(arg->lc_graph), ntriples_lc, ilist_lc, jlist_lc, Qijlist_lc, -1, NULL, NULL, NULL);
 
 		Free(ilist_lc);
 		Free(jlist_lc);

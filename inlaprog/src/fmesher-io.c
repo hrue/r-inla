@@ -224,6 +224,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 				READ(M->values, elems, double);
 			}
 		}
+
 		if (symmetric) {
 			/* 
 			   In the symmetric case, I need to check if either all M_ij, i>=j, or all M_ij, i<=j, is given. What to do if both sides of the matrix is
@@ -505,9 +506,9 @@ int inla_file_check(const char *filename, const char *mode)
 	FILE *fp = fopen(filename, mode);
 	if (fp) {
 		fclose(fp);
-		return 1;
-	} else {
 		return 0;
+	} else {
+		return 1;
 	}
 }
 

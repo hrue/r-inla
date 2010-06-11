@@ -451,11 +451,11 @@ int inla_sphere_build_model(inla_sphere_tp ** smodel, const char *dir, sph_basis
 	}
 
 	GMRFLib_sprintf(&fnm, "%s/%s", dir, "G.dat");
-	GMRFLib_tabulate_Qfunc_from_file(&(model->G), &(model->G_graph), fnm, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&(model->G), &(model->G_graph), fnm, n, NULL, NULL, NULL);
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s/%s", dir, "G2.dat");
-	GMRFLib_tabulate_Qfunc_from_file(&(model->G2), &(model->G2_graph), fnm, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&(model->G2), &(model->G2_graph), fnm, n, NULL, NULL, NULL);
 	Free(fnm);
 
 	model->Qfunc = inla_sphere_Qfunction;

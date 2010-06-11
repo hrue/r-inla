@@ -200,6 +200,14 @@ function(...,
             stop("Argument sphere.dir=NULL is required for model = sphere")
         if (!(file.exists(sphere.dir) && file.info(sphere.dir)$isdir))
             stop(paste("Argument sphere.dir=", sphere.dir, "must be an existing directory."))
+
+        ## set the Occilation parameter default to fixed, unless its set already
+        if (missing(fixed)) {
+            fixed = c(FALSE, FALSE, FALSE, TRUE)
+        }
+        if (missing(initial)) {
+            initial = c(NA, NA, NA, -20)
+        }
     } 
 
     if (inla.one.of(model, "spde")) {
@@ -208,6 +216,14 @@ function(...,
         ## file ``PREFIXs'' must exists... test this one
         if (!(file.exists(paste(spde.prefix, "s", sep=""))))
             stop(paste("Argument spde.prefix=", spde.prefix, "does not seems to be valid (no file `PREFIXs')"))
+
+        ## set the Occilation parameter default to fixed, unless its set already
+        if (missing(fixed)) {
+            fixed = c(FALSE, FALSE, FALSE, TRUE)
+        }
+        if (missing(initial)) {
+            initial = c(NA,NA,NA,-20)
+        }
     } 
         
     ## in ... is the name of the covariate  and possibly the location of the weights

@@ -266,7 +266,7 @@ int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Q
 
 */
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
-				     double *prec, double *log_prec, double **log_prec_omp)
+				     int dim, double *prec, double *log_prec, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but reads the Q_ij values from file with name FILENAME, in format
@@ -288,6 +288,14 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
+
+	/* 
+	   to fix the dimension, possibly padding with zero's
+	 */
+	GMRFLib_ged_add(ged, 0, 0);
+	if (dim > 0){
+		GMRFLib_ged_add(ged, dim-1, dim-1);
+	}
 
 	/* 
 	   read it first to determine if this is a zero-based or one-based graph
@@ -454,7 +462,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 */
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, double *prec, double *log_prec, double **log_prec_omp)
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, 
+				     double *prec, double *log_prec, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
@@ -479,6 +488,14 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	}
 	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)),  GMRFLib_ESNH);
 	off = (imin == 1 ? 1 : 0);
+
+	/* 
+	   to fix the dimension, possibly padding with zero's
+	 */
+	GMRFLib_ged_add(ged, 0, 0);
+	if (dim > 0){
+		GMRFLib_ged_add(ged, dim-1, dim-1);
+	}
 
 	for (i = 0; i < ntriples; i++) {
 		GMRFLib_ged_add(ged, ilist[i]-off, jlist[i]-off);
