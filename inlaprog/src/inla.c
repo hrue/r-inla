@@ -6506,7 +6506,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&tab, &(mb->f_graph[mb->nf]), (const char *) filename, NULL, NULL, log_prec);
+			GMRFLib_tabulate_Qfunc_from_file(&tab, &(mb->f_graph[mb->nf]), (const char *) filename, -1, NULL, NULL, log_prec);
 			mb->f_Qfunc[mb->nf] = tab->Qfunc;
 			mb->f_Qfunc_arg[mb->nf] = tab->Qfunc_arg;
 			mb->f_locations[mb->nf] = NULL;
@@ -6532,7 +6532,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &(mb->f_graph[mb->nf]), (const char *) filename, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &(mb->f_graph[mb->nf]), (const char *) filename, -1, NULL, NULL, NULL);
 			arg->log_prec = log_prec;
 			arg->beta = beta_intern;
 			arg->n = nn = mb->f_graph[mb->nf]->n;
@@ -6600,7 +6600,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &g, (const char *) filename, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &g, (const char *) filename, -1, NULL, NULL, NULL);
 			arg->log_prec = log_prec;
 			arg->h2_intern = h2_intern;
 			arg->n = nn = g->n;
@@ -7391,6 +7391,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		inla_spde_build_model(&spde_model_orig, (const char *) spde_prefix, &modelT, &modelK);
 		mb->f_model[mb->nf] = (void *) spde_model_orig;
+
+		P(spde_model_orig->graph->n);
 
 		/*
 		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
@@ -13864,7 +13866,7 @@ int inla_qinv(const char *filename)
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 	GMRFLib_optimize_reorder(graph, NULL);
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);

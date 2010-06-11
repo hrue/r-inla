@@ -1,7 +1,6 @@
 ## create a spde model using fmesher.
 
-`inla.create.spde` = function(data.locations = list(x=NULL,y=NULL,z=NULL),
-        boundary = list(x=NULL, y=NULL, z=NULL), dir = tempdir())
+`inla.create.spde` = function(locations, boundary = NULL, dir = tempdir())
 {
 
     ## create files using fmesher
@@ -14,24 +13,17 @@
         }
     }
 
-    if (!is.list(data.locations))
-        stop("Argument `data.locations' is required.")
-
-    n = length(data.locations$x)
-    stopifnot(length(data.locations$y) == n)
-    stopifnot(length(data.locations$z) == 0)
-
-    ## this does not work for dimension 3.... FIXME!!! locations must
-    ## be unique. check ?? make the locations complex numbers and then
-    ## check...
-    stopifnot(length(data.locations$x + 1i * data.locations$y) == n)
+    Loc = as.matrix(locations)
+    n = dim(Loc)[1]
+    ss = inla.unique.rows(Loc)
+    s = ss$rows
+    idx = ss$idx
 
     ## Following FL's convension, the location file MUST end with a
     ## `s0'...  which means that we have to separate the location file
     ## and the argument to fmesher.
-    A = cbind(data.locations$x, data.locations$y)
     loc.file.argument = paste(tempfile(tmpdir=dir), ".", sep="")
-    loc.file = inla.write.fmesher.file(A, filename = paste(loc.file.argument, "s0", sep=""))
+    loc.file = inla.write.fmesher.file(s, filename = paste(loc.file.argument, "s0", sep=""))
 
     ## additional argumets
     all.args = paste("--rcdt", inla.getOption("fmesher.arg"))
@@ -55,5 +47,6 @@
     else
         stop("\n\tNot supported architecture.")
     
-    return (loc.file.argument)
+    return (list(prefix = loc.file.argument, locations = s, locations.idx = idx))
 }
+

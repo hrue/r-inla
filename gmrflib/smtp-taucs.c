@@ -662,7 +662,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 				for (k = 0; k < graph->nnbs[i]; k++) {
 					j = graph->nbs[i][k];
 					if (i < j) {
-						fprintf(fp, "%d %d %.12g\n", i, j, Qfunc(i, j, Qfunc_arg));
+						fprintf(fp, "%d %d %.20g\n", i, j, Qfunc(i, j, Qfunc_arg));
 					}
 				}
 			}
