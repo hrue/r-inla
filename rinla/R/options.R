@@ -26,7 +26,7 @@
             inla.call = inla.call,
             fmesher.call = inla.ifelse(is.null(opt$fmesher.call), inla.fmesher.call.builtin(), opt$fmesher.call),
             inla.arg = NULL,
-            fmesher.arg = "--x11",
+            fmesher.arg = inla.ifelse(is.null(opt$fmesher.arg), "--x11=0", opt$fmesher.arg),
             num.threads = inla.ifelse(!is.null(opt$num.threads), opt$num.threads, NULL),
             keep = inla.ifelse(!is.null(opt$keep), opt$keep, FALSE),
             working.directory = inla.ifelse(!is.null(opt$working.directory), opt$working.directory, NULL),
