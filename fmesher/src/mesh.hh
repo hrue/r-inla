@@ -112,6 +112,7 @@ namespace fmesh {
     Mesh& operator=(const Mesh& M);
     ~Mesh();
     Mesh& clear();
+    Mesh& empty();
 
     /*!
       \brief Check the storage capacity, and increase if necessary
@@ -208,6 +209,9 @@ namespace fmesh {
     Mesh& unlinkTriangle(const int t); 
     Mesh& relocateTriangle(const int t_source, const int t_target); 
     int removeTriangle(const int t); 
+
+    Mesh& quad_tesselate(const Mesh& M);
+    Mesh& make_globe(int subsegments);
 
     /* Traits: */
     double edgeLength(const Point& s0, const Point& s1) const;
