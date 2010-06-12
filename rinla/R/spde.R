@@ -8,7 +8,7 @@
     ## create the directory if not already there, otherwise, create a
     ## random one if dir=NULL.
     if (is.na(file.info(dir)$isdir) || !file.info(dir)$isdir) {
-        if (!mkdirs(dir)) {
+        if (!dir.create(dir, recursive=TRUE)) {
             stop(paste("Fail to create directory:", dir))
         }
     }
