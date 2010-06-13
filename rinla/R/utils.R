@@ -410,10 +410,8 @@
 `inla.only.for.developers` = function()
 {
     require(R.utils)
-    if (getUsername.System() != "hrue" &&
-        getUsername.System() != "martino" &&
-        getUsername.System() != "finnkrl" &&
-        getUsername.System() != "finn")
+    if (!is.element(getUsername.System(),
+                   c("hrue", "martino", "finnkrl", "finn")))
         stop("This function is for developers only.")
     return (invisible())
 }
