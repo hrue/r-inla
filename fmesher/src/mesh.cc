@@ -9,12 +9,14 @@
 
 #include "predicates.hh"
 #include "x11utils.hh"
+#include "meshc.hh"
 #include "mesh.hh"
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
+#define MESH_LOG_(msg) cout << WHEREAMI << msg;
 #ifdef DEBUG
-#define MESH_LOG(msg) std::cout << WHEREAMI << msg;
+#define MESH_LOG(msg) MESH_LOG_(msg)
 #else
 #define MESH_LOG(msg)
 #endif
@@ -70,16 +72,20 @@ namespace fmesh {
 
   Mesh& Mesh::clear()
   {
-    use_VT_ = false;
-    use_TTi_ = false;
+    empty();
+#ifndef FMESHER_NO_X
+    if (X11_) { delete X11_; X11_ = NULL; }
+#endif
+    return *this;
+  }
+
+  Mesh& Mesh::empty()
+  {
     TV_.clear();
     TT_.clear();
     VT_.clear();
     TTi_.clear();
     S_.clear();
-#ifndef FMESHER_NO_X
-    if (X11_) { delete X11_; X11_ = NULL; }
-#endif
     return *this;
   }
 
@@ -407,7 +413,11 @@ namespace fmesh {
     const Int3& v = TV_[t];
     Point s[3];
     Point s0;
-    bool otherside = false;
+    bool arc_upper[3] = {false, false, false};
+    bool arc_lower[3] = {false, false, false};
+    Point arc_split_s_upper[3];
+    Point arc_split_s[3];
+    Point arc_split_s_lower[3];
 
     s0[0] = 0.0;
     s0[1] = 0.0;
@@ -419,6 +429,38 @@ namespace fmesh {
     if (type_==Mtype_sphere) {
       double l = std::sqrt(Vec::scalar(s0,s0));
       Vec::rescale(s0,l);
+
+      if (s[0][2]>=0.) { arc_upper[1] = true; arc_upper[2] = true; }
+      if (s[0][2]< 0.) { arc_lower[1] = true; arc_lower[2] = true; }
+      if (s[1][2]>=0.) { arc_upper[0] = true; arc_upper[2] = true; }
+      if (s[1][2]< 0.) { arc_lower[0] = true; arc_lower[2] = true; }
+      if (s[2][2]>=0.) { arc_upper[0] = true; arc_upper[1] = true; }
+      if (s[2][2]< 0.) { arc_lower[0] = true; arc_lower[1] = true; }
+
+      for (int i=0; i<3; i++) {
+	int i1 = (i+1)%3;
+	int i2 = (i+2)%3;
+	if (arc_upper[i] && arc_lower[i]) {
+	  arc_split_s_lower[i] = ((s[i1][2] <  0.0) ? s[i1] : s[i2]);
+	  arc_split_s_upper[i] = ((s[i1][2] >= 0.0) ? s[i1] : s[i2]);
+	  /*  s[i1]z * (1-?) + s[i2]z * ? = 0
+	      ? = - s[i1]z / (s[i2]z - s[i1]z)
+	   */
+	  Vec::copy(arc_split_s[i],s[i1]);
+	  double beta = - s[i1][2] / (s[i2][2] - s[i1][2]);
+	  Vec::rescale(arc_split_s[i],1-beta);
+	  Vec::accum(arc_split_s[i],s[i2],beta);
+	  Vec::rescale(arc_split_s[i],1.0/arc_split_s[i].length());
+	} else if (arc_upper[i]) {
+	  arc_split_s_upper[i] = s[i1];
+	  arc_split_s[i] = s[i2];
+	} else {
+	  arc_split_s_lower[i] = s[i1];
+	  arc_split_s[i] = s[i2];
+	}
+      }
+
+      /*
       Point r0;
       Point r1;
       Point n;
@@ -426,6 +468,14 @@ namespace fmesh {
       Vec::diff(r1,s[2],s[0]);
       Vec::cross(n,r0,r1);
       otherside = (n[2]<0);
+
+      Vec::copy(r0,s[0]);
+      Vec::accum(r0,s[1]);
+      Vec::accum(r0,s[2]);
+      Vec::rescale(r0,1/3.);
+
+      MESH_LOG_(arc_split << "\t" << r0[2] << "\t" << n[2] << endl);
+      */
     }
     /* Draw triangle slightly closer to center. */
     if (type_==Mtype_sphere) {
@@ -435,16 +485,19 @@ namespace fmesh {
       // 	Vec::accum(s[vi],s0);
       // 	Vec::rescale(s[vi],1./Vec::length(s[vi]));
       // }
-      double offset(otherside ? X11_->width()/2.0 : 0.0);
+      double offset = X11_->width()/2.;
       int sz = ((v[0]<X11_v_big_limit_) ? szbig : szsmall);
-      X11_->dot_on_sphere(fg,s[0],sz,offset);
+      X11_->dot_on_sphere(fg,s[0],sz,((s[0][2]<0.0) ? offset : 0.0));
       sz = ((v[1]<X11_v_big_limit_) ? szbig : szsmall);
-      X11_->dot_on_sphere(fg,s[1],sz,offset);
+      X11_->dot_on_sphere(fg,s[1],sz,((s[1][2]<0.0) ? offset : 0.0));
       sz = ((v[2]<X11_v_big_limit_) ? szbig : szsmall);
-      X11_->dot_on_sphere(fg,s[2],sz,offset);
-      X11_->arc(fg,s[0],s[1],offset);
-      X11_->arc(fg,s[1],s[2],offset);
-      X11_->arc(fg,s[2],s[0],offset);
+      X11_->dot_on_sphere(fg,s[2],sz,((s[2][2]<0.0) ? offset : 0.0));
+      for (int i=0; i<3; i++) {
+	if (arc_upper[i])
+	  X11_->arc(fg,arc_split_s[i],arc_split_s_upper[i],0.0);
+	if (arc_lower[i])
+	  X11_->arc(fg,arc_split_s[i],arc_split_s_lower[i],offset);
+      }
     } else {
       //      for (int vi=0;vi<3;vi++) {
       //       	Vec::diff(s[vi],s[vi],s0);
@@ -1989,6 +2042,90 @@ namespace fmesh {
       return Dart();
     return dh;
   }
+
+
+
+
+
+
+
+
+
+
+  Mesh& Mesh::quad_tesselate(const Mesh& M)
+  {
+    clear();
+
+  }
+  Mesh& Mesh::make_globe(int subsegments)
+  {
+    empty();
+    type(Mtype_sphere);
+    int nT = 20*subsegments*subsegments;
+    int nV = 2+nT/2;
+    check_capacity(nV,nT);
+
+    S_(0) = Point(0.,0.,1.);
+    int offset = 1;
+
+    for (int i=1; i <= subsegments; i++) {
+      /* #points in this ring: 5*i */
+      double colatitude = i*M_PI/(subsegments*3.);
+      for (int j=0; j < 5*i ; j++) {
+	double longitude = j/(5.*i)*2.*M_PI;
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
+			     std::sin(longitude)*std::sin(colatitude),
+			     std::cos(colatitude));
+      }
+      offset = offset+5*i;
+    }
+
+    for (int i=1; i < subsegments; i++) {
+      /* #points in this ring: 5*subsegments */
+      double colatitude = (subsegments+i)*M_PI/(subsegments*3.);
+      for (int j=0; j < 5*subsegments ; j++) {
+	double longitude = (0.5*(i%2)+j)/(5.*subsegments)*2.*M_PI;
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
+			     std::sin(longitude)*std::sin(colatitude),
+			     std::cos(colatitude));
+      }
+      offset = offset+5*subsegments;
+    }
+
+    for (int i=subsegments; i>0; i--) {
+      /* #points in this ring: 5*i */
+      double colatitude = M_PI-i*M_PI/(subsegments*3.);
+      for (int j=0; j < 5*i ; j++) {
+	double longitude = (0.5*(i%2)+j)/(5.*i)*2.*M_PI;
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
+			     std::sin(longitude)*std::sin(colatitude),
+			     std::cos(colatitude));
+      }
+      offset = offset+5*i;
+    }
+    S_(offset) = Point(0.,0.,-1.);
+
+    MeshC MC(this);
+    vertexListT vertices;
+    for (int v=0;v<nV;v++)
+    vertices.push_back(v);
+    MC.DT(vertices);
+
+    /*
+    if (use_VT_)
+      update_VT_triangles(0);
+    rebuildTT();
+    rebuildTTi();
+    */
+
+    return *this;
+  }
+
+
+
+
+
+
 
 
 
