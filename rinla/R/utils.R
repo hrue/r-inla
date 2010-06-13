@@ -412,7 +412,8 @@
     require(R.utils)
     if (getUsername.System() != "hrue" &&
         getUsername.System() != "martino" &&
-        getUsername.System() != "finnkrl")
+        getUsername.System() != "finnkrl" &&
+        getUsername.System() != "finn")
         stop("This function is for developers only.")
     return (invisible())
 }
