@@ -775,12 +775,25 @@ int iohelper_test()
   return 0;
 }
 
+void make_globe_test()
+{
+  fmesh::Mesh M;
+  M.type(fmesh::Mesh::Mtype_sphere);
+  //  if (useX11)
+  //    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+  M.make_globe(30);
+  if (useX11)
+    M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+  std::cout << M;
+}
+
 
 
 int main()
 {
+  make_globe_test();
+  return 0;
   iohelper_test();
-  //    return 0;
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
