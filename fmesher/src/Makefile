@@ -43,6 +43,10 @@ ifeq ($(OS_TYPE), Windows)
   OS_LDFLAGS=
 endif
 
+ifeq ($(FMESHER_NO_X), 1)
+  OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
+endif
+
 ################################################################################
 #
 # no changes usually needed below this point
