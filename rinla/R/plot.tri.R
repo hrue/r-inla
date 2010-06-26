@@ -17,8 +17,19 @@
     Ez = S[tETV,3]
     Ecol = rgb(0.3,0.3,0.3)
     points3d(S, color="black", ...)
-    lines3d(Ex,Ey,Ez,color=Ecol,lwd=1, ...)
-    triangles3d(Tx,Ty,Tz,color=Tcol,specular="black", ...)
+    ## need to know if argument "lwd=.." is in the dots or not. In
+    ## case it is, do not add lwd=1 argument.
+    if (length(grep("lwd", names(match.call(expand.dots=TRUE)))) > 0) {
+        lines3d(Ex, Ey, Ez, color=Ecol, ...)
+    } else {
+        lines3d(Ex, Ey, Ez, color=Ecol, lwd=1, ...)
+    }
+    ## same issue here...
+    if (length(grep("specular", names(match.call(expand.dots=TRUE)))) > 0) {
+        triangles3d(Tx, Ty, Tz, color=Tcol, ...)
+    } else {
+        triangles3d(Tx, Ty, Tz, color=Tcol, specular="black", ...)
+    }
 }
 
 ## library(geometry)
