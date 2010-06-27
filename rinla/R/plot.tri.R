@@ -19,13 +19,13 @@
     points3d(S, color="black", ...)
     ## need to know if argument "lwd=.." is in the dots or not. In
     ## case it is, do not add lwd=1 argument.
-    if (length(grep("lwd", names(match.call(expand.dots=TRUE)))) > 0) {
+    if (is.element("lwd", names(match.call(expand.dots=TRUE)))) {
         lines3d(Ex, Ey, Ez, color=Ecol, ...)
     } else {
         lines3d(Ex, Ey, Ez, color=Ecol, lwd=1, ...)
     }
     ## same issue here...
-    if (length(grep("specular", names(match.call(expand.dots=TRUE)))) > 0) {
+    if (is.element("specular", names(match.call(expand.dots=TRUE)))) {
         triangles3d(Tx, Ty, Tz, color=Tcol, ...)
     } else {
         triangles3d(Tx, Ty, Tz, color=Tcol, specular="black", ...)
