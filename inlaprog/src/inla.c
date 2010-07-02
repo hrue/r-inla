@@ -3393,6 +3393,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "LOGGAMMA-alpha")) {
+		prior->id = P_LOGGAMMA;
+		prior->priorfunc = priorfunc_loggamma;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 10.0;
+			prior->parameters[1] = 10.0;
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
 	} else if (!strcasecmp(prior->name, "BYMJOINT")) {
 		prior->id = P_BYMJOINT;
 		prior->priorfunc2 = priorfunc_bymjoint;
@@ -5545,7 +5561,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-alpha");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
@@ -5589,7 +5605,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA-alpha");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
