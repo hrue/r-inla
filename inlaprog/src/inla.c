@@ -5149,7 +5149,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 
 		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
 		if (mb->verbose && um1) {
@@ -5197,7 +5197,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
 
 		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
 		if (mb->verbose && um0) {
@@ -5240,7 +5240,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha[%g]\n", ds->data_observations.zeroinflated_alpha[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 
 		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
 		if (mb->verbose && um1) {
@@ -5629,7 +5629,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise p_intern[%g]\n", ds->data_observations.p_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
@@ -5673,7 +5673,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
@@ -5722,7 +5722,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
@@ -5766,7 +5766,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 		if (mb->verbose && um) {
 			printf("\t\tusermap=[%s]\n", um->name);
