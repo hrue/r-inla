@@ -5742,7 +5742,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identitya;
+			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
