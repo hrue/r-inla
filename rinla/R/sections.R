@@ -122,9 +122,6 @@
         if (!is.null(random.spec$precision))
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
 
-
-        print(random.spec$fixed)
-        
         if (prop$ntheta > 0) {
             k = 1
             for(j in 1:prop$ntheta) {
