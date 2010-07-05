@@ -2211,7 +2211,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-	    alpha = ds->data_observations.zeroinflated_alpha[GMRFLib_thread_id][0], mu, p;
+		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p;
 
 	if ((int) y == 0) {
 		if (m > 0) {
@@ -2546,7 +2546,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
-	double alpha = ds->data_observations.zeroinflated_alpha[GMRFLib_thread_id][0];
+	double alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double p_zeroinflated = 0.0;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
@@ -5246,14 +5246,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * the zeroinflation parameter; the parameter alpha (see the documentation) 
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1.0);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), log(2.0));
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.zeroinflated_alpha, tmp);
+		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise alpha[%g]\n", ds->data_observations.zeroinflated_alpha[0][0]);
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
@@ -5271,13 +5271,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Parameter alpha for Zero-Inflated nBinomial_3", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Parameter alpha for Zero-Inflated nBinomial_3", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Parameter alpha.intern for Zero-Inflated nBinomial2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Parameter alpha for Zero-Inflated nBinomial2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha;
+			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
@@ -5726,16 +5726,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the ZEROINFLATEDPOISSON2
 		 */
-		double initial_value = 2.0;
+		double initial_value = log(2.0);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.zeroinflated_alpha, tmp);
+		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha[0][0]);
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
@@ -5756,9 +5756,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Zero-Probability parameter for zero-inflated Poisson_2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha;
+			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
@@ -10206,9 +10206,9 @@ double extra(double *theta, int ntheta, void *argument)
 					/*
 					 * this is the alpha-parameter in the zero-inflated nbinomial_0/1
 					 */
-					double alpha = theta[count];
+					double alpha_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&alpha, ds->data_prior1.parameters);
+					val += ds->data_prior1.priorfunc(&alpha_intern, ds->data_prior1.parameters);
 					count++;
 				}
 			} else if (ds->data_id == L_LAPLACE) {
