@@ -157,7 +157,7 @@ typedef struct {
 	 * zero-inflated Poission/Binomial/nbinomial version 0 and 1: prob
 	 */
 	double **prob_intern;
-	double **zeroinflated_alpha;
+	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
 
 	/*
 	 * for the (asymmetric) laplace

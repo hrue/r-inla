@@ -106,10 +106,13 @@ implemented for the cases where its needed/requested.
     \begin{displaymath}
         p = 1-\left( \frac{E\exp(x)}{1 + E\exp(x)}\right)^{\alpha}
     \end{displaymath}
-    where $\alpha$ is the hyperparameter instead of $p$ (and
+    where $\alpha > 0$ is the hyperparameter instead of $p$ (and
     $E\exp(x)$ is the mean).  Available as
     \texttt{zeroinflatedpoisson2} and for negative binomial as
     \texttt{zeroinflatednbinomial2}.
+
+    The internal representation is $\theta = \log(\alpha)$ and prior
+    is defined on $\log(\alpha)$.
 \end{description}
 
 

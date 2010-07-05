@@ -230,81 +230,83 @@
         }
     }
 
-    if(plot.predictor) {
+    if (plot.predictor) {
         ## linear predictor and fitted values
-        lp = x$summary.linear.predictor
-        fv = x$summary.fitted.values
-        fvu = x$summary.linear.predictor.usermap
         n = x$size.linear.predictor$n
-        A = (x$size.linear.predictor$nrep == 2)
-
-        for(m in inla.ifelse(A, 1:2, 1)) {
-            if (m == 1)
-                idx = 1:n
-            else if (m == 2)
-                idx = 1:n + n
-            else
-                stop("This should not happen")
-            if (A) {
+        if (!is.null(n)) {
+            lp = x$summary.linear.predictor
+            fv = x$summary.fitted.values
+            fvu = x$summary.linear.predictor.usermap
+            A = (x$size.linear.predictor$nrep == 2)
+        
+            for(m in inla.ifelse(A, 1:2, 1)) {
                 if (m == 1)
-                    msg = inla.ifelse(A, "(A*lin.pred)", "")
+                    idx = 1:n
+                else if (m == 2)
+                    idx = 1:n + n
                 else
-                    msg = "(orig.)"
-            }
-            
-            if(!is.null(lp)) {
-                dev.new()
-                if(!is.null(fv)) par(mfrow=c(2,1))
-                if(!is.null(fvu)) par(mfrow=c(3,1))
-                plot(lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx,-2]), ylab="",xlab="Index",type="l",lwd=2, ...)
-                lq = grep("quan", colnames(lp))
-                if(length(lq)>0) {
-                    qq = lp[,lq]
-                    dq = dim(qq)[2]
-                    sub = paste("Posterior mean together with ")
-                    for(j in 1:dq) {
-                        points(qq[idx,j],type="l",lty=2)
-                        sub = paste(sub, colnames(qq)[j])
-                    }
-                    title(main=paste("Linear Predictor", msg), sub= inla.nameunfix(sub))
+                    stop("This should not happen")
+                if (A) {
+                    if (m == 1)
+                        msg = inla.ifelse(A, "(A*lin.pred)", "")
+                    else
+                        msg = "(orig.)"
                 }
-                else 
-                    title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
             
-                if(!is.null(fv)) {
-                    plot(fv[idx ,colnames(fv)=="mean"], ylim=range(fv[idx,-2]),ylab="",xlab="Index",type="l",lwd=2, ...)
-                    lq = grep("quan", colnames(fv))
+                if(!is.null(lp)) {
+                    dev.new()
+                    if(!is.null(fv)) par(mfrow=c(2,1))
+                    if(!is.null(fvu)) par(mfrow=c(3,1))
+                    plot(lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx,-2]), ylab="",xlab="Index",type="l",lwd=2, ...)
+                    lq = grep("quan", colnames(lp))
                     if(length(lq)>0) {
-                        qq = fv[,lq]
+                        qq = lp[,lq]
                         dq = dim(qq)[2]
                         sub = paste("Posterior mean together with ")
                         for(j in 1:dq) {
                             points(qq[idx,j],type="l",lty=2)
-                            sub = paste(sub,colnames(qq)[j])
+                            sub = paste(sub, colnames(qq)[j])
                         }
-                        title(main=paste("Fitted values (inv.link(lin.pred))",msg), sub = inla.nameunfix(sub))
+                        title(main=paste("Linear Predictor", msg), sub= inla.nameunfix(sub))
                     }
                     else 
-                        title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
+                        title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
+            
+                    if(!is.null(fv)) {
+                        plot(fv[idx ,colnames(fv)=="mean"], ylim=range(fv[idx,-2]),ylab="",xlab="Index",type="l",lwd=2, ...)
+                        lq = grep("quan", colnames(fv))
+                        if(length(lq)>0) {
+                            qq = fv[,lq]
+                            dq = dim(qq)[2]
+                            sub = paste("Posterior mean together with ")
+                            for(j in 1:dq) {
+                                points(qq[idx,j],type="l",lty=2)
+                                sub = paste(sub,colnames(qq)[j])
+                            }
+                            title(main=paste("Fitted values (inv.link(lin.pred))",msg), sub = inla.nameunfix(sub))
+                        }
+                        else 
+                            title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
+                    }
+                    if(!is.null(fvu)) {
+                        plot(fvu[idx, colnames(fvu)=="mean"], ylim=range(fvu[idx,-2]),ylab="",xlab="Index",type="l",lwd=2, ...)
+                        lq = grep("quan", colnames(fvu))
+                        if(length(lq)>0) {
+                            qq = fvu[,lq]
+                            dq = dim(qq)[2]
+                            sub = paste("Posterior mean together with ")
+                            for(j in 1:dq) {
+                                points(qq[idx,j],type="l",lty=2)
+                                sub = paste(sub,colnames(qq)[j])
+                            }
+                            title(main=paste("Usermap transformed values (usermap(lin.pred))", msg),
+                                  sub = inla.nameunfix(sub))
+                        }
+                        else 
+                            title(main=paste("Usermap transformed values (usermap(lin.pred))", msg,
+                                          inla.nameunfix(labels.random[i])))
+                    }          
                 }
-                if(!is.null(fvu)) {
-                    plot(fvu[idx, colnames(fvu)=="mean"], ylim=range(fvu[idx,-2]),ylab="",xlab="Index",type="l",lwd=2, ...)
-                    lq = grep("quan", colnames(fvu))
-                    if(length(lq)>0) {
-                        qq = fvu[,lq]
-                        dq = dim(qq)[2]
-                        sub = paste("Posterior mean together with ")
-                        for(j in 1:dq) {
-                            points(qq[idx,j],type="l",lty=2)
-                            sub = paste(sub,colnames(qq)[j])
-                        }
-                        title(main=paste("Usermap transformed values (usermap(lin.pred))", msg),
-                              sub = inla.nameunfix(sub))
-                    }
-                    else 
-                        title(main=paste("Usermap transformed values (usermap(lin.pred))", msg,
-                                      inla.nameunfix(labels.random[i])))
-                }          
             }
         }
     }
