@@ -372,6 +372,11 @@
     f = paste("inla.set.", nm, ".default()", sep="")
     elms = names(inla.eval(f))
 
+    if (is.null(names(contr)))
+        stop(inla.paste(c("Named elements in in control-argument `", nm, "', is required: ", contr,
+                          "\n\n  Valid ones are:\n\t",
+                          inla.paste(sort(elms),sep="\n\t")), sep=""))
+    
     for(elm in names(contr))
         if (!is.element(elm, elms))
             stop(inla.paste(c("Name `", elm,"' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",
