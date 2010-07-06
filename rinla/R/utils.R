@@ -561,7 +561,7 @@
     return(invisible(tmp["plt"]))
 }
 
-`inla.display.matrix` = function(x, wrap=TRUE, xaxt=FALSE, yaxt=FALSE, ...)
+`inla.display.matrix` = function(x, wrap=TRUE, xaxt=FALSE, yaxt=FALSE, col=gray(seq(0,1,len=256)), ...)
 {
     ## display a matrix as an image with correct layout and autoscaling
     
@@ -576,10 +576,10 @@
     ## use the image.plot-function in package fields; its much better...
     inla.squishplot(c(0,1), c(0,1), n[1]/n[2])
     if (require("fields", quietly = TRUE)) {
-        image.plot(t(y), col=gray(seq(0,1,len=256)), bty="n", xaxt="n", yaxt="n", ...)
+        image.plot(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...)
     } else {
         warning("Please install package `fields'")
-        image(t(y), col=gray(seq(0,1,len=256)), bty="n", xaxt="n", yaxt="n", ...) 
+        image(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...) 
     }
 
     box()
