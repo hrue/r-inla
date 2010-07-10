@@ -1,10 +1,9 @@
-`plot.inla.trimesh` = function(TV, S, color = NULL, ...)
+`plot.inla.trimesh` = function(TV, S, color = NULL, lwd = 1, specular = "black", ...)
 {
     ## Make indices 1 based... should make this safer
     if (min(TV) == 0) {
         TV <- TV + 1
     }
-
 
     tTV = t(TV);
     tETV = t(TV[,c(1,2,3,1,NA)]);
@@ -17,19 +16,10 @@
     Ez = S[tETV,3]
     Ecol = rgb(0.3,0.3,0.3)
     points3d(S, color="black", ...)
-    ## need to know if argument "lwd=.." is in the dots or not. In
-    ## case it is, do not add lwd=1 argument.
-    if (is.element("lwd", names(match.call(expand.dots=TRUE)))) {
-        lines3d(Ex, Ey, Ez, color=Ecol, ...)
-    } else {
-        lines3d(Ex, Ey, Ez, color=Ecol, lwd=1, ...)
-    }
-    ## same issue here...
-    if (is.element("specular", names(match.call(expand.dots=TRUE)))) {
-        triangles3d(Tx, Ty, Tz, color=Tcol, ...)
-    } else {
-        triangles3d(Tx, Ty, Tz, color=Tcol, specular="black", ...)
-    }
+    lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
+    triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, ...)
+
+    return (invisible())
 }
 
 ## library(geometry)
