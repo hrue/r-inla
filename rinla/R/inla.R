@@ -218,7 +218,7 @@
         y...orig = inla.as.list.of.lists(y...orig)
         ny = max(sapply(y...orig, length))
         nc = length(y...orig)
-        if( n.family != nc)
+        if (n.family != nc)
             stop(paste("Number of families", n.family, "does not match number of responce variables", nc))
     } else {
         if (inherits(y...orig, "inla.surv"))
@@ -289,7 +289,7 @@
         new.fix.formula = gp$fixf
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula = update.formula(new.fix.formula, y...fake ~ .)
-        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame( new.fix.formula, data, na.action=inla.na.action))
+        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data, na.action=inla.na.action))
 
         ## n.fix can have been changed here due to a `-1'
         gp$n.fix = dim(gp$model.matrix)[2]
@@ -308,9 +308,9 @@
     ## control predictor section
     cont.pred = inla.set.control.predictor.default()
     cont.pred[(namc = names(control.predictor))] = control.predictor
-    if(cont.compute$cpo || cont.compute$dic) 
+    if (cont.compute$cpo || cont.compute$dic) 
         cont.pred$compute=TRUE
-    if(only.hyperparam) {
+    if (only.hyperparam) {
         cont.pred$compute = cont.pred$return.marginals = FALSE
         cont.pred$cdf = cont.pred$quantiles = NULL
     }
@@ -365,11 +365,11 @@
     
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
-    if(!is.null(working.directory))
+    if (!is.null(working.directory))
         keep=TRUE
     if (keep) {
         ##create the directory locally or whereever specified by the user
-        if(is.null(working.directory)) {
+        if (is.null(working.directory)) {
             working.directory="inla.model"
             working.directory.start="inla.model"
         } else {
@@ -386,7 +386,7 @@
         }
         inla.dir=working.directory
         xx=dir.create(inla.dir, showWarnings=FALSE)
-        if(!xx) 
+        if (!xx) 
             stop(paste("\n\tNo permission to create the directory ",inla.dir))
         else
             cat("Model and results are stored in working directory [",inla.dir,"]\n", sep="")
@@ -404,7 +404,7 @@
     ## create the .file.ini and make the problem.section
     file.ini = paste(inla.dir, "/Model.ini", sep="")
 
-    if(debug) 
+    if (debug) 
         print("prepare problem section")
     inla.problem.section(file = file.ini, data.dir = data.dir, result.dir = results.dir,
                          hyperpar = cont.compute$hyperpar,
@@ -448,7 +448,7 @@
         rf = NULL
     }
         
-    if(gp$n.weights > 0) {
+    if (gp$n.weights > 0) {
         wf = mf
         wf$scale = wf$Ntrials = wf$offset = wf$E =  NULL ## these we do not need
         wf$formula = gp$weightf
@@ -567,7 +567,7 @@
                 if (cont.data[[i.family]]$fixed[j.] && !is.numeric(cont.data[[i.family]]$initial[j.]))
                     stop(paste("\n\tLikelihood model ", i.family," parameter no ", j., " is fixed but has no intial value", sep=""))
 
-        if(debug) 
+        if (debug) 
             print("prepare data section")
 
         ##....then create the new section
@@ -577,8 +577,8 @@
     
     ##create the PREDICTOR section. if necessary create a file with
     ##the offset for all likelihood
-    if(!is.null(offset.sum)) {
-        if(sum(is.na(offset.sum))>0) 
+    if (!is.null(offset.sum)) {
+        if (sum(is.na(offset.sum))>0) 
             stop("\n\tNo NA values allowed in the offset vector!")
         os = cbind(ind,offset.sum)
         file.offset = inla.tempfile(tmpdir=data.dir)
@@ -596,7 +596,7 @@
         all.labels = c(all.labels,"predictor")
 
     ##FIXED EFFECTS
-    if(gp$n.fix >0) {
+    if (gp$n.fix >0) {
         nc = ncol(gp$model.matrix)
         labels = colnames(gp$model.matrix)
         for(i in 1:nc) {
@@ -627,9 +627,9 @@
     j=0
     extra.fixed=0
     
-    if(nr>0) {
+    if (nr>0) {
         name.random.dir=c()
-        if(nr!=(ncol(rf)-1))
+        if (nr!=(ncol(rf)-1))
             stop("\n\tSOMETHING STRANGE: You probably used one variable as a covariate more than once.")
                
         location = list()
@@ -670,7 +670,7 @@
         for(r in 1:nr) {
             n = nrep = ngroup = N = NULL
             
-            if(gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
+            if (gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
                 ##in this case we have to add a FFIELD section.........
                 count.random = count.random+1
                 xx=rf[,r +1]
@@ -714,10 +714,10 @@
                 
                 if (nrep > 1 || ngroup > 1) {
                     if (is.null(gp$random.spec[[r]]$n)) {
-                        if(is.factor(xx)) {
+                        if (is.factor(xx)) {
                             n = length(unique(xx[!is.na(xx)]))
                         } else {
-                            if(!is.null(gp$random.spec[[r]]$values))
+                            if (!is.null(gp$random.spec[[r]]$values))
                                 n = length(unique(gp$random.spec[[r]]$values[ !is.na(gp$random.spec[[r]]$values) ]))
                             else
                                 n = length(unique(xx[!is.na(xx)]))
@@ -778,26 +778,31 @@
                     if (is.null(group))
                         stop("group is NULL")
                 }
-                
-                if(is.factor(xx)) {
-                    location[[r]] = sort(unique(xx))
-                    cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+
+                if (!is.null(gp$random.spec[[r]]$values)) {
+                    ## no sort for values here, since they are given as they should be !!!!
+                    location[[r]] = unique(gp$random.spec[[r]]$values)
+                    cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
                     cov[is.na(cov)] = -1
                     covariate[[r]] = cov
                 } else {
-                    if(!is.null(gp$random.spec[[r]]$values)) {
-                        location[[r]] = sort(unique(gp$random.spec[[r]]$values))
-                        cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
-                        cov[is.na(cov)] = -1
-                        covariate[[r]] = cov
-                    } else {
-                        location[[r]] = sort(unique(xx))
-                        cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
-                        cov[is.na(cov)] = -1
-                        covariate[[r]] = cov
-                    }
+                    location[[r]] = sort(unique(xx))
+                    cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+                    cov[is.na(cov)] = -1
+                    covariate[[r]] = cov
                 }
 
+                ## this case is special.
+                if (is.factor(xx) && is.factor(gp$random.spec[[r]]$values)) {
+                    ## then we need to redefine the values to
+                    ## something numerical. perhaps we need to fix
+                    ## this later on, as then the plotting should take
+                    ## into account the "labels" ???
+                    if (debug)
+                        print("redefine values and locations since both idx and values are factors")
+                    gp$random.spec[[r]]$values = location[[r]]= 1:length(location[[r]])
+                }
+                
                 if (is.null(gp$random.spec[[r]]$values))
                     gp$random.spec[[r]]$values = location[[r]]
 
@@ -842,7 +847,7 @@
                 ## implement the constr=TRUE using the argument
                 ## EXTRACONSTR
 
-                if(inla.model.properties(gp$random.spec[[r]]$model)$augmented) {
+                if (inla.model.properties(gp$random.spec[[r]]$model)$augmented) {
                     fac = inla.model.properties(gp$random.spec[[r]]$model)$aug.factor
                     con = inla.model.properties(gp$random.spec[[r]]$model)$aug.constr
 
@@ -852,7 +857,7 @@
                     
                         ## this case is a very special case
                         if (gp$random.spec[[r]]$constr) {
-                            if(is.null(gp$random.spec[[r]]$extraconstr)) {
+                            if (is.null(gp$random.spec[[r]]$extraconstr)) {
                                 A = matrix(0, 1, fac*n)
                                 for(con.elm in con)
                                     A[1, (con.elm-1)*n + 1:n] = 1
@@ -883,7 +888,7 @@
                         n.small = n %/% max(con)
 
                         if (gp$random.spec[[r]]$constr) {
-                            if(is.null(gp$random.spec[[r]]$extraconstr)) {
+                            if (is.null(gp$random.spec[[r]]$extraconstr)) {
                                 A = matrix(0, length(con), n)
                                 k = 1
                                 for(con.elm in con) {
@@ -918,11 +923,11 @@
                 ##print(gp$random.spec[[r]]$extraconstr$e)
 
                 ##and in case a file for the extraconstraint
-                if(!is.null(gp$random.spec[[r]]$extraconstr)) {
+                if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
                     
-                    if(ncol(A) != inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n)
+                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n)
                         stop(paste("\n\tncol in matrix A(extraconstraint) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n))
@@ -936,10 +941,10 @@
                 }
                 
                 ##....also if necessary a file for the weights
-                if(!is.null(gp$random.spec[[r]]$weights)) {
+                if (!is.null(gp$random.spec[[r]]$weights)) {
                     ##set possible NA to -1
                     www = wf[,n.weights+2]
-                    if(sum(is.na(www))!=0)
+                    if (sum(is.na(www))!=0)
                         www[is.na(www)] = -1
                     
                     ##create a file for the weights
@@ -958,7 +963,7 @@
                                     results.dir=paste("random.effect", inla.num(count.random), sep=""), 
                                     only.hyperparam=only.hyperparam,  data.dir=data.dir)
             }
-            else if(inla.one.of(gp$random.spec[[r]]$model, "linear")) {
+            else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ##....while here we have to add a LINEAR section
                 count.linear = count.linear+1
                 xx=rf[,r +1]
@@ -988,7 +993,7 @@
         }
     }
     
-    if(n.weights != gp$n.weights) 
+    if (n.weights != gp$n.weights) 
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
@@ -1060,7 +1065,7 @@
         if (inla.os("linux") || inla.os("mac")) {
             echoc = system(paste(shQuote(inla.call), all.args, file.ini))
         }
-        else if(inla.os("windows")) {
+        else if (inla.os("windows")) {
             if (!remote) {
                 echoc = try(system(paste(shQuote(inla.call), all.args, file.ini)), silent=TRUE)
                 echoc = 0
@@ -1080,7 +1085,7 @@
 
         my.time.used[3] = Sys.time()
 
-        if(echoc==0) {
+        if (echoc==0) {
             ret = try(inla.collect.results(results.dir,control.results=cont.res, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
 
@@ -1124,8 +1129,8 @@
             ret = NULL
         }
 
-        if(debug && !keep) cat("clean up\n")
-        if(!keep) unlink(inla.dir, recursive=TRUE)
+        if (debug && !keep) cat("clean up\n")
+        if (!keep) unlink(inla.dir, recursive=TRUE)
     }
     else
         ret = NULL
