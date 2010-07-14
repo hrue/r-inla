@@ -60,8 +60,8 @@
                                      "zeroinflatednbinomial1",
                                      "zeroinflatednbinomial2"))) {
         ## Poisson/nbinomial family has the E field
-        if(is.null(E)) {
-            response=cbind(ind,rep(1,n.data),y.orig)
+        if (is.null(E)) {
+            response = cbind(ind,rep(1,n.data),y.orig)
             null.dat = is.na(response[,3])
             response = response[!null.dat,]
         } else {
@@ -75,7 +75,29 @@
                 stop("Length of E has to be the same as the length of data")
             }
             else
-                response=cbind(response[,1],E,response[,2])
+                response=cbind(response[,1], E, response[,2])
+        }       
+    } else if (inla.one.of(family, c("poissonext"))) {
+        ## PoissonExt family has the E field, which is a n x 3 matrix
+        if (is.null(E)) {
+            ## this is the default value '[1,0,0]'
+            response = cbind(ind, rep(1,n.data), rep(0, n.data), rep(0, n.data), y.orig)
+            null.dat = is.na(response[,3])
+            response = response[!null.dat,]
+        } else {
+            response = cbind(ind, y.orig)
+            null.dat = is.na(response[,2])
+            response = response[!null.dat,]
+            if (!is.matrix(E) || dim(E)[2] != 3)
+                stop(paste("Family 'poissonext': E has to be a 'n x 3' matrix;", dim(E)))
+            E = E[!null.dat, ]
+            if (dim(E)[1] != nrow(response)) {
+                file.remove(file)
+                file.remove(data.dir)
+                stop(paste("Family 'poissonext': dim(E)[1] has to be the same as the length of data;", dim(E)[1], nrow(response)))
+            }
+            else
+                response=cbind(response[,1], E, response[,2])
         }       
     } else if(inla.one.of(family,
                           c("binomial",
