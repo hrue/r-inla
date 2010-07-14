@@ -83,6 +83,7 @@ inla.models = function()
                  lmodels = list(
                          ##
                          poisson = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = FALSE, discrete = TRUE),
+                         poissonext = list(ntheta = 2, theta = c("ThetaE1", "ThetaE2"), nparameters = 4, npriors = 2, survival = FALSE, discrete = TRUE),
                          binomial = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = FALSE, discrete = TRUE),
                          nbinomial = list(ntheta = 1, theta = "size", nparameters = 2, npriors = 1, survival = FALSE, discrete = TRUE),
                          exponential = list(ntheta = 0, theta = NULL, nparameters = 0, npriors = 0, survival = TRUE, discrete = FALSE),

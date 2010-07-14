@@ -109,6 +109,15 @@ typedef struct {
 	 * y ~ Poisson(E*exp(x)) 
 	 */
 	double *E;
+
+	/*
+	 * y ~ Poisson(theta*E1 + theta*E2 + E*exp(x)) 
+	 */
+	double *E1;
+	double *E2;
+	double **log_theta_E1;
+	double **log_theta_E2;
+
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
@@ -187,6 +196,7 @@ typedef enum {
 	L_SKEWNORMAL,
 	L_T,
 	L_POISSON,
+	L_POISSONEXT,
 	L_BINOMIAL,
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
@@ -833,6 +843,7 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
