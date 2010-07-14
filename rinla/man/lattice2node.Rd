@@ -14,8 +14,13 @@
 
 \description{These functions define mapping in between two-dimensional
   indices on a lattice and the one-dimensional node representation used
-  in \code{inla}}
+  in \code{inla}.
 
+  The mapping from node to lattice follows the default \code{R}
+  behaviour (which is column based storage), and \code{as.vector(A)} and
+  \code{matrix(a, nrow, ncol)} can be used instead of
+  \code{inla.matrix2vector} and \code{inla.vector2matrix}.
+}
 
 \usage{
 inla.lattice2node.mapping(nrow, ncol)
@@ -24,11 +29,6 @@ inla.lattice2node(irow, icol, nrow, ncol)
 inla.node2lattice(node, nrow, ncol)
 inla.matrix2vector(a.matrix)
 inla.vector2matrix(a.vector, nrow, ncol)
-
-The mapping from node to lattice follows the default R behaviour (which
-is column based storage), and \code{as.vector(A)} and \code{matrix(a,
-nrow, ncol)} can be used instead of \code{inla.matrix2vector} and
-\code{inla.vector2matrix}.
 }
 
 \arguments{
