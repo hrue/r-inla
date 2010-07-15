@@ -2246,14 +2246,41 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p;
+		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p;
+
+	// Added some robustness here which is required according to James.S. Hopefully this will help.
 
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				p = PROB(x[i] + OFFSET(idx), E);
-				mu = E * exp(x[i] + OFFSET(idx));
-				logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+				if (gsl_isnan(p)) {
+					//P(p);
+					//P(x[i]+OFFSET(idx));
+					logll[i] = 0.0;
+				} else {
+					log_mu = log(E)  + (x[i] + OFFSET(idx));
+					mu = exp(log_mu);
+					// better expression I hope
+					if (p < 1e-10) {
+						logll[i] = 0*log_mu - mu - normc;
+					} else {
+						logll[i] = 0*log_mu - mu - normc + log(p/(gsl_ran_poisson_pdf((unsigned int) y, mu)) + (1.0-p));
+					}
+					//logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+
+					/* 
+					   if all fails...
+					*/
+					if (gsl_isnan(logll[i]))
+					{
+						P(p);
+						P(logll[i]);
+						P(x[i] + OFFSET(idx));
+						fprintf(stderr,  "inla.c: Don't know what to do. Please report problem...");
+						exit(1);
+					}
+				}
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
@@ -2266,8 +2293,13 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				p = PROB(x[i] + OFFSET(idx), E);
-				mu = E * exp(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc;
+				if (gsl_isnan(p)){
+					logll[i] = -DBL_MAX;
+				} else {
+					log_mu = log(E)  + (x[i] + OFFSET(idx));
+					mu = exp(log_mu);
+					logll[i] = log(1.0 - p) + y * log_mu - mu - normc;
+				}
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
