@@ -251,6 +251,8 @@
                         msg = inla.ifelse(A, "(A*lin.pred)", "")
                     else
                         msg = "(orig.)"
+                } else {
+                    msg = ""
                 }
             
                 if(!is.null(lp)) {

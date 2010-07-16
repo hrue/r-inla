@@ -3150,6 +3150,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
+	x_mode = Calloc(graph->n, double);
+
 	if (nhyper > 0) {
 		/*
 		 * the first step is to locate the mode of \pi(\theta | y). here we use the domin-optimiser routine.  NOTE that this
@@ -3169,7 +3171,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		theta = Calloc(nhyper, double);		       /* theta is the hyperparameters */
 		theta_mode = Calloc(nhyper, double);
-		x_mode = Calloc(graph->n, double);
 		z = Calloc(nhyper, double);
 		tmax_local = IMIN(nhyper + 1, tmax);
 		if (tmax_local < tmax && !ai_par->huge) {
@@ -4446,6 +4447,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			for(i = 0; i < omp_get_max_threads(); i++){
 				if (ai_store_id[i] && ai_store_id[i]->problem) {
 					GMRFLib_assign_ai_store(ai_store, ai_store_id[i]);
+					memcpy(x_mode,  ai_store->mode,  graph->n*sizeof(double));
 					ai_store_id[i] = NULL; /* to prevent it from beeing Free's twice */
 					if (need_Qinv) {
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
@@ -4490,6 +4492,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				COMPUTE;
 				GMRFLib_free_density(cpodens);
 			}
+			memcpy(x_mode,  ai_store->mode,  graph->n*sizeof(double));
 		}
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
