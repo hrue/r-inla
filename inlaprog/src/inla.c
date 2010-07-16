@@ -12708,7 +12708,8 @@ int inla_output(inla_tp * mb)
 
 			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 					   mb->predictor_output, mb->predictor_dir, NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
-			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1, 2);
+			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1,
+						 (mb->predictor_n_ext == 0 ? 1 : 2));
 
 			if (mb->predictor_linkfunc && mb->predictor_user_scale) {
 				char *sdir, *newtag;
@@ -12717,8 +12718,8 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 						   mb->predictor_output, sdir, NULL, NULL, mb->predictor_linkfunc, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_n_ext, -1, -1, -1, -1);
-
+				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_n_ext, -1, -1, -1,
+						 (mb->predictor_n_ext == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
 			}
@@ -12729,7 +12730,8 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&sdir, "%s usermap", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 						   mb->predictor_output, sdir, mb->predictor_usermap->func, NULL, NULL, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1, 2);
+				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1,
+						 (mb->predictor_n_ext == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
 			}
