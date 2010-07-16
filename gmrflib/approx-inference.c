@@ -3297,6 +3297,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
+		if (x){
+			memcpy(x_mode, x, graph->n*sizeof(double));
+		}
+		
 		if (hess_count) {
 			//FIXME("------------> do one function call");
 			for (i = 0; i < nhyper; i++) {
@@ -3305,6 +3309,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
+			if (x){
+				memcpy(x_mode, x, graph->n*sizeof(double));
+			}
 		}
 
 		if (ai_par->fp_log) {
