@@ -7257,7 +7257,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "SEASON");
 			}
 			s = iniparser_getint(ini, inla_string_join(secname, "SEASON"), 0);
-			if (s <= 0 || s >= n) {
+			if (s <= 0 || s > n) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "SEASON", ptmp);
 			}
 			if (mb->verbose) {
