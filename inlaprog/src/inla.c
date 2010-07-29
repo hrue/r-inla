@@ -5530,7 +5530,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
 
 		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 		if (mb->verbose && um) {
@@ -5573,7 +5573,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
 		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
 		if (mb->verbose && um0) {
@@ -5664,7 +5664,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
 		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
 		if (mb->verbose && um0) {
