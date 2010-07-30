@@ -46,14 +46,14 @@ function(...,
 
     ## this is a nice trick
     if (!is.null(copy)) {
+        if (!missing(model))
+            warning(paste("Ignored argument model=`", model,
+                          "' in f() due to copy=`", copy, "'", sep=""))
         if (!is.null(of))
             stop("Argument `of=NULL' is required when `copy=...' is used.")
         model = "copy"
         of = copy
         copy = NULL
-        if (!missing(model))
-            warning(paste("Ignored argument model=`", model,
-                          "' in f() due to copy=`", copy, "'"))
     } 
 
     if (is.null(model))
