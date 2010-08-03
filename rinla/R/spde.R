@@ -47,6 +47,9 @@
     else
         stop("\n\tNot supported architecture.")
     
-    return (list(prefix = loc.file.argument, locations = s, locations.idx = idx))
+    ## need to know the size of the full graph. read the points-file and take it from there
+    n = nrow(inla.read.fmesher.file(paste(loc.file.argument, "s", sep="")))
+    
+    return (list(prefix = loc.file.argument, locations = s, locations.idx = idx, n = n))
 }
 
