@@ -1,6 +1,7 @@
 ## create a spde model using fmesher.
 
-`inla.create.spde` = function(locations, boundary = NULL, dir = tempdir())
+`inla.create.spde` = function(locations, boundary = NULL, dir = tempdir(),
+  rcdt = c(21,-1.0,-0.5))
 {
 
     ## create files using fmesher
@@ -26,7 +27,8 @@
     loc.file = inla.write.fmesher.file(s, filename = paste(loc.file.argument, "s0", sep=""))
 
     ## additional argumets
-    all.args = paste("--rcdt", inla.getOption("fmesher.arg"))
+    arg.rcdt = paste("--rcdt=",rcdt[1],",",rcdt[2],",",rcdt[3],sep="")
+    all.args = paste(arg.rcdt, inla.getOption("fmesher.arg"))
     fmesher.call = inla.getOption("fmesher.call")
     
     if (inla.os("linux") || inla.os("mac")) {
