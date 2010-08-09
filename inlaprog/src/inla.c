@@ -1249,6 +1249,10 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 
 	return val;
 }
+double priorfunc_logflat(double *x, double *parameters)
+{
+	return exp(*x);
+}
 double priorfunc_flat(double *x, double *parameters)
 {
 	return 0.0;
@@ -3965,6 +3969,13 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			       prior->parameters[0], prior->parameters[1], prior->parameters[2], prior->parameters[3]);
 			printf("\t\t%s->%s=[%g (R12), %g (R13), %g (R23)]\n", prior_tag, param_tag,
 			       prior->parameters[4], prior->parameters[5], prior->parameters[6]);
+		}
+	} else if (!strcasecmp(prior->name, "LOGFLAT")) {
+		prior->id = P_LOGFLAT;
+		prior->priorfunc = priorfunc_logflat;
+		prior->parameters = NULL;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
 		}
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, prior->name);
