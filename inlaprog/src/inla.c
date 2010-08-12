@@ -2125,25 +2125,42 @@ int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *
 	 * y ~ Poisson(E1*theta1 + E2*theta2 + E*exp(x))
 	 */
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
+		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
 	}
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], mu,
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], mu, mu2, EE, 
 		normc = gsl_sf_lnfact((unsigned int) y), 
 		E1 = ds->data_observations.E1[idx], E2 = ds->data_observations.E2[idx], 
 		theta_E1 = map_exp(ds->data_observations.log_theta_E1[GMRFLib_thread_id][0], MAP_FORWARD, NULL), 
 		theta_E2 = map_exp(ds->data_observations.log_theta_E2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
+	EE = theta_E1 * E1 + theta_E2 * E2;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			mu = theta_E1 * E1 + theta_E2 * E2 + E * exp((x[i] + OFFSET(idx)));
-			logll[i] = y * log(mu) - mu - normc;
+		if (m <= 3) {
+			mu = EE + E * exp((x[0] + OFFSET(idx)));
+			logll[0] = y * log(mu) - mu - normc;
+
+			if (m > 1){
+				mu2 = E * exp((x[1] + OFFSET(idx)));
+				mu = EE + mu2;
+				logll[1] = -(mu2 * (-y + mu))/mu;
+			}
+			if (m > 2){
+				mu2 = E * exp((x[2] + OFFSET(idx)));
+				mu = EE + mu2;
+				logll[2] = -(mu2 * (-y*EE + SQR(EE) + 2*EE*mu2 + SQR(mu2))) / SQR(mu);
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				mu = EE + E * exp((x[i] + OFFSET(idx)));
+				logll[i] = y * log(mu) - mu - normc;
+			}
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
-			mu = theta_E1 * E1 + theta_E2 * E2 + E1 * exp((x[i] + OFFSET(idx)));
+			mu = EE + E1 * exp((x[i] + OFFSET(idx)));
 			logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
 		}
 	}
@@ -2233,285 +2250,6 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 			}
 		}
 	}
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/* 
-	   I don't think this one works!
-	 */
-	FIXME("This version does not work I think...");
-	abort();
-
-	/*
-	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x)), where p=p(x; alpha)
-	 */
-
-#define PROB(xx, EE) (1.0-pow(EE*exp(xx)/(1.0+EE*exp(xx)), alpha))
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
-	}
-
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p;
-
-	// Added some robustness here which is required according to James.S. Hopefully this will help.
-
-	/* 
-	   this is for the Maple-generated code
-
-	   pois := (y,xx, E) -> (E*exp(xx))^y * exp(-E*exp(xx)) / y!;
-	   prob := (xx, E, alpha) -> 1-((E*exp(xx))/(1 + E*exp(xx)))^alpha;
-	   logl0 := (xx, E, alpha) -> log(prob(xx,E,alpha) + (1-prob(xx,E,alpha))*pois(0,  xx, E));
-	   logl := (xx, E, alpha) -> log((1-prob(xx,E,alpha))*pois(y,  xx, E));
-	   
-	   assume(y>0);
-	   assume(E>0);
-	   assume(alpha>0);
-	   
-	   with(CodeGeneration);
-	   
-	   Clogl0(xx,E,alpha), optimize);
-	   C(simplify(diff(logl0(xx,E,alpha),xx)), optimize);
-	   C(simplify(diff(logl0(xx,E,alpha),xx,xx)), optimize);
-	   
-	   C(simplify(logl(xx,E,alpha)), optimize);
-	   C(simplify(diff(logl(xx,E,alpha),xx)), optimize);
-	   C(simplify(diff(logl(xx,E,alpha),xx,xx)), optimize);
-	*/
-	double t1, t10, t100, t104, t108, t11, t111, t114, t115, t119, t12, t121, t126, t13, t131, t133, t134, t137,
-		t14, t140, t145, t15, t156, t158, t16, t163, t164, t167, t169, t17, t172, t18, t181, t183, t187,
-		t189, t19, t2, t200, t202, t204, t21, t222, t225, t229, t231, t232, t235, t24, t25, t27, t28, t29,
-		t3, t31, t32, t33, t35, t37, t4, t42, t45, t46, t48, t49, t5, t52, t53, t55, t59, t6, t64, t65, t69,
-		t7, t70, t71, t74, t75, t78, t81, t84, t87, t89, t9, t91, t99;
-	double cg = E,  cg1 = alpha, cg3 = y, xx;
-	
-	FIXME1("new code");
-	
-	if ((int) y == 0) {
-		if (m > 0) {
-			if (m <= 3){
-				xx = x[0] + OFFSET(idx);
-				t1 = exp(xx);
-				t2 = cg * t1;
-				t6 = pow(t2 / (0.1e1 + t2), cg1);
-				t7 = exp(-t2);
-				t10 = log(0.1e1 - t6 + t6 * t7);
-				logll[0] = t10;
-
-				if (m >= 2) {
-					xx = x[1] + OFFSET(idx);
-					t1 = exp(xx);
-					t2 = cg * t1;
-					t3 = 0.1e1 + t2;
-					t4 = t3 * t3;
-					t6 = exp(t2);
-					t7 = pow(cg, cg1);
-					t10 = pow(t1 / t3, cg1);
-					t11 = t7 * t10;
-					t19 = exp(t2 + xx);
-					t21 = pow(cg, cg1 + 0.1e1);
-					t29 = exp(0.2e1 * xx);
-					t31 = pow(cg, cg1 + 0.2e1);
-					t35 = exp(0.3e1 * xx);
-					t37 = pow(cg, cg1 + 0.3e1);
-					t42 = -0.1e1 / t4 / (-t6 + t11 * t6 - t11) * t10 *
-						(-t6 * t7 * cg1 - t19 * t21 * cg1 + t7 * cg1 + t21 * cg1 * t1 - t1 * t21 - 0.2e1 * t29 * t31 - t35 * t37);
-					logll[1] = t42;
-				}
-				if (m >= 3) {
-					xx = x[2] + OFFSET(idx);
-					t1 = exp(xx);
-					t2 = cg * t1;
-					t3 = 0.2e1 * t2;
-					t4 = 0.5e1 * xx;
-					t6 = exp(t3 + t4);
-					t7 = 0.1e1 + t2;
-					t9 = t1 / t7;
-					t10 = 3 * cg1;
-					t11 = pow(t9, (double) t10);
-					t14 = pow(cg, (double) (t10 + 5));
-					t16 = 0.3e1 * xx;
-					t17 = exp(t16);
-					t18 = cg1 + 1;
-					t19 = pow(cg, (double) (3 * t18));
-					t24 = pow(cg, (double) (t10 + 1));
-					t25 = t1 * t24;
-					t27 = t2 + xx;
-					t28 = exp(t27);
-					t29 = 2 * cg1;
-					t31 = pow(cg, (double) (t29 + 1));
-					t32 = t28 * t31;
-					t33 = pow(t9, (double) t29);
-					t37 = exp(t2 + t4);
-					t42 = pow(cg, (double) (t29 + 5));
-					t45 = 0.2e1 * xx;
-					t46 = exp(t45);
-					t48 = pow(cg, (double) (t10 + 2));
-					t49 = t46 * t48;
-					t52 = 0.4e1 * xx;
-					t53 = exp(t52);
-					t55 = pow(cg, (double) (t10 + 4));
-					t59 = exp(t2 + t16);
-					t64 = pow(cg, (double) (t29 + 3));
-					t65 = t59 * t64;
-					t69 = exp(t2 + t45);
-					t70 = pow(cg, (double) (2 * t18));
-					t71 = t69 * t70;
-					t74 = exp(0.2e1 * t27);
-					t75 = pow(t9, (double) cg1);
-					t78 = pow(cg, (double) (cg1 + 2));
-					t81 = t74 * t70;
-					t84 = t74 * t48;
-					t87 = -t11 * t6 * t14 + 0.3e1 * t17 * t19 * t11 + t25 * t11 +
-						0.2e1 * t32 * t33 + t37 * t11 * t14 + 0.2e1 * t6 * t33 * t42
-						+ 0.3e1 * t49 * t11 + t53 * t55 * t11 - 0.3e1 * t59 * t19 * t11
-						+ 0.3e1 * t65 * t33 + 0.5e1 * t71 * t33
-						+ 0.2e1 * t74 * t75 * t78 - 0.4e1 * t81 * t33 + 0.2e1 * t84 * t11;
-					t89 = exp(t3 + t52);
-					t91 = pow(cg, (double) (t29 + 4));
-					t99 = exp(t3 + xx);
-					t100 = t99 * t31;
-					t104 = pow(cg, (double) (4 + cg1));
-					t108 = t28 * t24;
-					t111 = t69 * t48;
-					t114 = t99 * t75;
-					t115 = pow(cg, (double) t18);
-					t119 = pow(cg, (double) (5 + cg1));
-					t121 = t99 * t24;
-					t126 = exp(t2 + t52);
-					t131 = pow(cg, (double) t29);
-					t133 = (int) pow((double) cg1, (double) 2);
-					t134 = exp(t2);
-					t137 = t11 * (double) cg1;
-					t140 = 0.4e1 * t89 * t91 * t33 - 0.2e1 * t89 * t55 * t11 - 0.2e1 * t100 * t33 - 0.2e1 * t89 * t104 * t75
-						- 0.2e1 * t108 * t11 - 0.5e1 * t111 * t11 + t114 * t115 - t6 * t75 * t119 + t121 * t11
-						- t37 * t33 * t42 - t126 * t91 * t33 + t126 * t55 * t11
-						- t131 * t33 * (double) t133 * t134 - 0.3e1 * t108 * t137;
-					t145 = t33 * (double) cg1;
-					t156 = 0.3e1 * t2;
-					t158 = exp(t156 + t45);
-					t163 = exp(t156 + xx);
-					t164 = t163 * t31;
-					t167 = exp(t3);
-					t169 = t33 * (double) t133;
-					t172 = t115 * (double) cg1;
-					t181 = -0.3e1 * t111 * t137 + t25 * t137 + 0.4e1 * t32 * t145 + 0.6e1 * t71 * t145
-						- t31 * t33 * (double) t133 * t28 + t49 * t137 + 0.2e1 * t65 * t145
-						+ 0.2e1 * t158 * t70 * t145 + 0.2e1 * t164 * t145 + 0.2e1 * t167 * t131 * t169
-						+ 0.3e1 * t114 * t172 + 0.2e1 * t100 * t169 - 0.6e1 * t100 * t145 + 0.3e1 * t121 * t137;
-					t183 = t75 * (double) cg1;
-					t187 = exp(t3 + t16);
-					t189 = pow(cg, (double) (cg1 + 3));
-					t200 = pow(cg, (double) cg1);
-					t202 = t75 * (double) t133;
-					t204 = exp(t156);
-					t222 = 0.5e1 * t74 * t78 * t183 + 0.2e1 * t187 * t189 * t183 - 0.8e1 * t81 * t145
-						+ 0.3e1 * t84 * t137 - 0.2e1 * t187 * t64 * t145 - t167 * t200 * t202 - t204 * t131 * t169
-						+ t204 * t200 * t202 - t163 * t75 * t172 + t163 * t115 * t202 - t164 * t169 - t158 * t48 * t137
-						- t158 * t78 * t183 - t163 * t24 * t137 - t99 * t115 * t202;
-					t225 = t7 * t7;
-					t229 = t200 * t75;
-					t231 = -t134 + t229 * t134 - t229;
-					t232 = t231 * t231;
-					t235 = (t87 + t140 + t181 + t222) / t225 / t7 / t232 / t231;
-					logll[2] = t235;
-				}
-			} else {
-				for(i=0; i< m ;  i++){
-					p = PROB(x[i] + OFFSET(idx), E);
-					mu = E * exp(x[i] + OFFSET(idx));
-					logll[i] = -mu -normc +log(p/(gsl_ran_poisson_pdf((unsigned int) y, mu)) + (1.0-p));
-				}
-			}
-		} else {
-			for (i = 0; i < -m; i++) {
-				p = PROB(x[i] + OFFSET(idx), E);
-				mu = E * exp(x[i] + OFFSET(idx));
-				logll[i] = p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) y, mu);
-			}
-		}
-	} else {
-		if (m > 0) {
-			if (m <= 3) {
-				xx = x[0] + OFFSET(idx);
-				t1 = log(cg);
-				t5 = normc;
-				t6 = exp(xx);
-				t7 = cg * t6;
-				t11 = pow(t6 / (0.1e1 + t7), cg1);
-				t12 = pow(t6, cg3);
-				t14 = exp(-t7);
-				t16 = log(t11 * t12 * t14);
-				t17 = cg1 * t1 + cg3 * t1 - t5 + t16;
-				logll[0] = t17;
-
-				if (m >= 2){
-					xx = x[1] + OFFSET(idx);
-					t2 = exp(xx);
-					t4 = cg * t2;
-					t5 = pow(cg, 0.2e1);
-					t7 = exp(0.2e1 * xx);
-					t13 = -(-cg1 - cg3 - cg3 * cg * t2 + t4 + t5 * t7) / (0.1e1 + t4);
-					logll[1] = t13;
-					if (gsl_isnan(logll[1]))
-						logll[1] = 0.0;
-				}
-				if (m >= 3){
-					xx = x[2] + OFFSET(idx);
-					t1 = pow(cg, 0.2e1);
-					t3 = exp((double) (2 * xx));
-					t5 = exp((double) xx);
-					t6 = cg * t5;
-					t11 = pow(0.1e1 + t6, 0.2e1);
-					t15 = -(t1 * t3 + 0.2e1 * t6 + 0.1e1 + cg1) * t5 * cg / t11;
-					logll[2] = t15;
-				}
-			} else {
-				for (i = 0; i < m; i++) {
-					p = PROB(x[i] + OFFSET(idx), E);
-					log_mu = log(E)  + (x[i] + OFFSET(idx));
-					mu = exp(log_mu);
-					logll[i] = log(1.0 - p) + y * log_mu - mu - normc;
-				}
-			}
-		} else {
-			for (i = 0; i < -m; i++) {
-				p = PROB(x[i] + OFFSET(idx), E);
-				mu = E * exp(x[i] + OFFSET(idx));
-				logll[i] = p + (1.0 - p) * gsl_cdf_poisson_P((unsigned int) y, mu);
-			}
-		}
-	}
-#undef PROB
-
-	for(i=0; i<IABS(m); i++){
-		/* 
-		   return +/- 1 for +/- infinity
-		 */
-		if (gsl_isinf(logll[i]))
-			logll[i] = FLT_MAX * gsl_isinf(logll[i]);
-
-		if (gsl_isnan(logll[i])){
-			switch(i){
-			case 0: 
-				logll[i] = -1000;
-				break;
-			case 1:
-				logll[i] = -1000;
-				break;
-			case 2:
-				logll[i] = -1000;
-				break;
-			default:
-				logll[i] = 0;
-			}
-		}
-		//printf("logll[%1d] = %g\n",  i,  logll[i]);
-	}
-
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
