@@ -2137,11 +2137,12 @@ int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *
 		theta_E2 = map_exp(ds->data_observations.log_theta_E2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	EE = theta_E1 * E1 + theta_E2 * E2;
+
 	if (m > 0) {
 		if (m <= 3) {
-			mu = EE + E * exp((x[0] + OFFSET(idx)));
+			mu2 = E * exp((x[0] + OFFSET(idx)));
+			mu = EE + mu2;
 			logll[0] = y * log(mu) - mu - normc;
-
 			if (m > 1){
 				mu2 = E * exp((x[1] + OFFSET(idx)));
 				mu = EE + mu2;
@@ -7178,66 +7179,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			 * SPDE
 			 */
 
-			char *m;
-
-			order = 1;
-			order = iniparser_getint(ini, inla_string_join(secname, "T_ORDER"), order);
-			order = iniparser_getint(ini, inla_string_join(secname, "T.ORDER"), order);
-			order = iniparser_getint(ini, inla_string_join(secname, "TORDER"), order);
-			mb->f_Torder[mb->nf] = order;
-
-			if (mb->f_Torder[mb->nf] != 1)
-				FIXME("I am not sure of f_Torder need to be used!");
-			
-			m = iniparser_getstring(ini, inla_string_join(secname, "T_MODEL"), GMRFLib_strdup("GENERAL"));
-			m = iniparser_getstring(ini, inla_string_join(secname, "T.MODEL"), m);
-			m = iniparser_getstring(ini, inla_string_join(secname, "TMODEL"), m);
-			if (!strcasecmp(m, "GENERAL")) {
-				mb->f_Tmodel[mb->nf] = GMRFLib_strdup(m);
-			} else if (!strcasecmp(m, "ROTSYM")) {
-				mb->f_Tmodel[mb->nf] = GMRFLib_strdup(m);
-			} else {
-				GMRFLib_sprintf(&msg, "T.MODEL = [%s] is void, must be GENERAL or ROTSYM", m);
-				inla_error_general(msg);
-				exit(1);
-			}
-
-			FIXME("Do not need T_MODEL I think.");
-
-			if (mb->verbose) {
-				printf("\t\tT.order=[%1d]\n", mb->f_Torder[mb->nf]);
-				printf("\t\tT.type=[%s]\n", m);
-			}
-
-			order = 1;
-			order = iniparser_getint(ini, inla_string_join(secname, "K_ORDER"), order);
-			order = iniparser_getint(ini, inla_string_join(secname, "K.ORDER"), order);
-			order = iniparser_getint(ini, inla_string_join(secname, "KORDERK"), order);
-			mb->f_Korder[mb->nf] = order;
-
-			if (mb->f_Korder[mb->nf] != 1)
-				FIXME("I am not sure of f_Torder need to be used!");
-			
-
-			m = iniparser_getstring(ini, inla_string_join(secname, "K.MODEL"), GMRFLib_strdup("GENERAL"));
-			m = iniparser_getstring(ini, inla_string_join(secname, "K_MODEL"), m);
-			m = iniparser_getstring(ini, inla_string_join(secname, "KMODEL"), m);
-			if (!strcasecmp(m, "GENERAL")) {
-				mb->f_Kmodel[mb->nf] = GMRFLib_strdup(m);
-			} else if (!strcasecmp(m, "ROTSYM")) {
-				mb->f_Kmodel[mb->nf] = GMRFLib_strdup(m);
-			} else {
-				GMRFLib_sprintf(&msg, "K.MODEL = [%s] is void, must be GENERAL or ROTSYM", m);
-				inla_error_general(msg);
-				exit(1);
-			}
-
-			FIXME("Do not need K_MODEL I think.");
-
-			if (mb->verbose) {
-				printf("\t\tK.order=[%1d]\n", mb->f_Korder[mb->nf]);
-				printf("\t\tK.type=[%s]\n", m);
-			}
+			// nothing to do
 		} else {
 			/*
 			 * RW-model: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -7571,6 +7513,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_SPDE:
 	{
 		char *spde_prefix;
+		int nT, nK;
 
 		spde_prefix = GMRFLib_strdup(".");
 		spde_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE_PREFIX"), spde_prefix);
@@ -7580,40 +7523,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tspde.prefix = [%s]\n", spde_prefix);
 		}
 
-		spde_basis_model_tp modelT, modelK;
-		int nT, nK;
-
-		modelT.order = mb->f_Torder[mb->nf];
-		if (!strcasecmp(mb->f_Tmodel[mb->nf], "GENERAL")) {
-			modelT.type = SPH_BASIS_GENERAL;
-		} else if (!strcasecmp(mb->f_Tmodel[mb->nf], "ROTSYM")) {
-			modelT.type = SPH_BASIS_ROTSYM;
-		} else {
-			inla_error_general2("Unknown T-model", mb->f_Tmodel[mb->nf]);
-			assert(0 == 1);
-		}
-		modelK.order = mb->f_Korder[mb->nf];
-		if (!strcasecmp(mb->f_Kmodel[mb->nf], "GENERAL")) {
-			modelK.type = SPH_BASIS_GENERAL;
-		} else if (!strcasecmp(mb->f_Kmodel[mb->nf], "ROTSYM")) {
-			modelK.type = SPH_BASIS_ROTSYM;
-		} else {
-			inla_error_general2("Unknown K-model", mb->f_Kmodel[mb->nf]);
-			assert(0 == 1);
-		}
-
 		/*
 		 * 
 		 */
-		inla_spde_build_model(&spde_model_orig, (const char *) spde_prefix, &modelT, &modelK);
+		inla_spde_build_model(&spde_model_orig, (const char *) spde_prefix);
 		mb->f_model[mb->nf] = (void *) spde_model_orig;
-
-		P(spde_model_orig->graph->n);
 
 		/*
 		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
 		 */
-		inla_spde_build_model(&spde_model, (const char *) spde_prefix, &modelT, &modelK);
+		inla_spde_build_model(&spde_model, (const char *) spde_prefix);
 		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
 		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
 		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */
@@ -7634,150 +7553,145 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		SetInitial(2, initial_rest);
 		SetInitial(3, initial_oc);
 
-		if (modelT.order < 0 && modelK.order < 0) {
-			mb->f_ntheta[mb->nf] = 0;
-		} else {
-			nT = modelT.order;
-			nK = modelK.order;
+		nT = spde_model->Tmodel->ntheta;
+		nK = spde_model->Kmodel->ntheta;
+		mb->f_ntheta[mb->nf] = nT + nK + 1;
+		mb->f_Tmodel[mb->nf] = GMRFLib_strdup("basisT");
+		mb->f_Kmodel[mb->nf] = GMRFLib_strdup("basisK");
 
-			P(nT);
-			P(nK);
-			
-			mb->f_ntheta[mb->nf] = nT + nK + 1;
+		if (mb->verbose) {
+			printf("\t\tnT=[%d]\n", nT);
+			printf("\t\tnK=[%d]\n", nK);
+			printf("\t\tinitialise theta_t=[%g]\n", initial_t);
+			printf("\t\tinitialise theta_k=[%g]\n", initial_k);
+			printf("\t\tinitialise theta_rest=[%g]\n", initial_rest);
+			printf("\t\tinitialise theta_oc=[%g]\n", initial_oc);
+			printf("\t\tfixed_t=[%1d]\n", mb->f_fixed[mb->nf][0]);
+			printf("\t\tfixed_k=[%1d]\n", mb->f_fixed[mb->nf][1]);
+			printf("\t\tfixed_rest=[%1d]\n", mb->f_fixed[mb->nf][2]);
+			printf("\t\tfixed_oc=[%1d]\n", mb->f_fixed[mb->nf][3]);
+		}
 
-			if (mb->verbose) {
-				printf("\t\tinitialise theta_t[%g]\n", initial_t);
-				printf("\t\tinitialise theta_k[%g]\n", initial_k);
-				printf("\t\tinitialise theta_rest[%g]\n", initial_rest);
-				printf("\t\tinitialise theta_oc[%g]\n", initial_oc);
-				printf("\t\tfixed_t=[%1d]\n", mb->f_fixed[mb->nf][0]);
-				printf("\t\tfixed_k=[%1d]\n", mb->f_fixed[mb->nf][1]);
-				printf("\t\tfixed_rest=[%1d]\n", mb->f_fixed[mb->nf][2]);
-				printf("\t\tfixed_oc=[%1d]\n", mb->f_fixed[mb->nf][3]);
-			}
-
-			for (k = 0; k < nT; k++) {
-				if (k == 0) {
-					if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
-						tmp = mb->theta_file[mb->theta_counter_file++];
-					} else {
-						tmp = initial_t;
-					}
+		for (k = 0; k < nT; k++) {
+			if (k == 0) {
+				if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+					tmp = mb->theta_file[mb->theta_counter_file++];
 				} else {
-					if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
-						tmp = mb->theta_file[mb->theta_counter_file++];
-					} else {
-						tmp = initial_rest;
-					}
+					tmp = initial_t;
 				}
-				HYPER_INIT(spde_model->Tmodel->theta[k], tmp);
-			}
-			for (k = 0; k < nK; k++) {
-				if (k == 0) {
-					if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
-						tmp = mb->theta_file[mb->theta_counter_file++];
-					} else {
-						tmp = initial_k;
-					}
-				} else {
-					if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
-						tmp = mb->theta_file[mb->theta_counter_file++];
-					} else {
-						tmp = initial_rest;
-					}
-				}
-				HYPER_INIT(spde_model->Kmodel->theta[k], tmp);
-			}
-
-			if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
-				tmp = mb->theta_file[mb->theta_counter_file++];
 			} else {
-				tmp = initial_oc;
-			}
-			HYPER_INIT(spde_model->oc, tmp);
-
-			mb->f_theta[mb->nf] = Calloc(nT + nK + 1, double **);
-			for (k = 0; k < nT; k++)
-				mb->f_theta[mb->nf][k] = spde_model->Tmodel->theta[k];
-			for (k = 0; k < nK; k++)
-				mb->f_theta[mb->nf][k + nT] = spde_model->Kmodel->theta[k];
-			mb->f_theta[mb->nf][nK + nT] = spde_model->oc;
-
-			for (k = 0; k < nT + nK + 1; k++) {
-				int fx;
-
-				if (k == 0) {
-					fx = mb->f_fixed[mb->nf][0];	/* T[0] */
-				} else if (k == nT) {
-					fx = mb->f_fixed[mb->nf][1];	/* K[0] */
-				} else if (k == nT + nK) {
-					fx = mb->f_fixed[mb->nf][3];	/* oc */
+				if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+					tmp = mb->theta_file[mb->theta_counter_file++];
 				} else {
-					fx = mb->f_fixed[mb->nf][2];	/* the rest */
+					tmp = initial_rest;
+				}
+			}
+			HYPER_INIT(spde_model->Tmodel->theta[k], tmp);
+		}
+		for (k = 0; k < nK; k++) {
+			if (k == 0) {
+				if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+					tmp = mb->theta_file[mb->theta_counter_file++];
+				} else {
+					tmp = initial_k;
+				}
+			} else {
+				if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+					tmp = mb->theta_file[mb->theta_counter_file++];
+				} else {
+					tmp = initial_rest;
+				}
+			}
+			HYPER_INIT(spde_model->Kmodel->theta[k], tmp);
+		}
+
+		if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		} else {
+			tmp = initial_oc;
+		}
+		HYPER_INIT(spde_model->oc, tmp);
+
+		mb->f_theta[mb->nf] = Calloc(nT + nK + 1, double **);
+		for (k = 0; k < nT; k++)
+			mb->f_theta[mb->nf][k] = spde_model->Tmodel->theta[k];
+		for (k = 0; k < nK; k++)
+			mb->f_theta[mb->nf][k + nT] = spde_model->Kmodel->theta[k];
+		mb->f_theta[mb->nf][nK + nT] = spde_model->oc;
+
+		for (k = 0; k < nT + nK + 1; k++) {
+			int fx;
+
+			if (k == 0) {
+				fx = mb->f_fixed[mb->nf][0];	/* T[0] */
+			} else if (k == nT) {
+				fx = mb->f_fixed[mb->nf][1];	/* K[0] */
+			} else if (k == nT + nK) {
+				fx = mb->f_fixed[mb->nf][3];	/* oc */
+			} else {
+				fx = mb->f_fixed[mb->nf][2];	/* the rest */
+			}
+
+			if (!fx) {
+				/*
+				 * add this \theta 
+				 */
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				if (k == nT + nK) {
+					GMRFLib_sprintf(&msg, "%s for %s", "Oc", (secname ? secname : mb->f_tag[mb->nf]));
+				} else {
+					if (k < nT) {
+						GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "T", k, (secname ? secname : mb->f_tag[mb->nf]),
+								mb->f_Tmodel[mb->nf]);
+					} else {
+						GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "K", k - nT,
+								(secname ? secname : mb->f_tag[mb->nf]), mb->f_Kmodel[mb->nf]);
+					}
+				}
+				mb->theta_tag[mb->ntheta] = msg;
+				mb->theta_tag_userscale[mb->ntheta] = msg;
+
+				if (k == nT + nK) {
+					GMRFLib_sprintf(&msg, "%s-parameter-Oc", mb->f_dir[mb->nf]);
+				} else {
+					if (k < nT) {
+						GMRFLib_sprintf(&msg, "%s-parameter-T.%1d-%s", mb->f_dir[mb->nf], k, mb->f_Tmodel[mb->nf]);
+					} else {
+						GMRFLib_sprintf(&msg, "%s-parameter-K.%1d-%s", mb->f_dir[mb->nf], k - nT, mb->f_Kmodel[mb->nf]);
+					}
+				}
+				mb->theta_dir[mb->ntheta] = msg;
+
+				if (k == nT + nK) {
+					mb->theta[mb->ntheta] = spde_model->oc;
+				} else {
+					if (k < nT) {
+						mb->theta[mb->ntheta] = spde_model->Tmodel->theta[k];
+					} else {
+						mb->theta[mb->ntheta] = spde_model->Kmodel->theta[k - nT];
+					}
 				}
 
-				if (!fx) {
-					/*
-					 * add this \theta 
-					 */
-					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-
-					if (k == nT + nK) {
-						GMRFLib_sprintf(&msg, "%s for %s", "Oc", (secname ? secname : mb->f_tag[mb->nf]));
-					} else {
-						if (k < nT) {
-							GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "T", k, (secname ? secname : mb->f_tag[mb->nf]),
-									mb->f_Tmodel[mb->nf]);
-						} else {
-							GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "K", k - nT,
-									(secname ? secname : mb->f_tag[mb->nf]), mb->f_Kmodel[mb->nf]);
-						}
-					}
-					mb->theta_tag[mb->ntheta] = msg;
-					mb->theta_tag_userscale[mb->ntheta] = msg;
-
-					if (k == nT + nK) {
-						GMRFLib_sprintf(&msg, "%s-parameter-Oc", mb->f_dir[mb->nf]);
-					} else {
-						if (k < nT) {
-							GMRFLib_sprintf(&msg, "%s-parameter-T.%1d-%s", mb->f_dir[mb->nf], k, mb->f_Tmodel[mb->nf]);
-						} else {
-							GMRFLib_sprintf(&msg, "%s-parameter-K.%1d-%s", mb->f_dir[mb->nf], k - nT, mb->f_Kmodel[mb->nf]);
-						}
-					}
-					mb->theta_dir[mb->ntheta] = msg;
-
-					if (k == nT + nK) {
-						mb->theta[mb->ntheta] = spde_model->oc;
-					} else {
-						if (k < nT) {
-							mb->theta[mb->ntheta] = spde_model->Tmodel->theta[k];
-						} else {
-							mb->theta[mb->ntheta] = spde_model->Kmodel->theta[k - nT];
-						}
-					}
-
-					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-					if (k == nT + nK) {
-						mb->theta_map[mb->ntheta] = map_probability;
-					} else {
-						mb->theta_map[mb->ntheta] = map_identity;
-					}
-					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-					mb->theta_map_arg[mb->ntheta] = NULL;
-
-					mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-					mb->theta_usermap[mb->ntheta] = NULL;
-					mb->ntheta++;
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				if (k == nT + nK) {
+					mb->theta_map[mb->ntheta] = map_probability;
+				} else {
+					mb->theta_map[mb->ntheta] = map_identity;
 				}
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+
+				mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
+				mb->theta_usermap[mb->ntheta] = NULL;
+				mb->ntheta++;
 			}
 		}
 		break;
 	}
-
 
 	case F_AR1:
 	{
@@ -10853,8 +10767,8 @@ double extra(double *theta, int ntheta, void *argument)
 				spde = (inla_spde_tp *) mb->f_model[i];
 				assert(spde->Qfunc_arg == spde);
 				
-				nT = (spde->Tmodel ? spde->Tmodel->ntheta : 0);
-				nK = (spde->Kmodel ? spde->Kmodel->ntheta : 0);
+				nT = spde->Tmodel->ntheta;
+				nK = spde->Kmodel->ntheta;
 				nt = mb->f_ntheta[i];
 
 				fixed0 = mb->f_fixed[i][0];
@@ -10986,7 +10900,11 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 
 				assert(nT + nK + 1 == mb->f_ntheta[i]);
-				// This does not work YET ????
+
+				// TODO
+				if (mb->f_ngroup[i] > 1)
+					FIXME("Please verify that ngroup works with SPDE!");
+				
 				SET_GROUP_RHO(nT + nK + 1);
 
 				static GMRFLib_problem_tp *problem = NULL;

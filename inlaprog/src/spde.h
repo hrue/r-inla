@@ -46,20 +46,6 @@ __BEGIN_DECLS
 /* 
    
  */
-    typedef enum {
-	SPDE_BASIS_GENERAL = 1,
-	SPDE_BASIS_ROTSYM = 2
-} spde_basis_enum_tp;
-
-typedef struct {
-	spde_basis_enum_tp type;
-	int order;
-	int nparam;
-} spde_basis_model_tp;
-
-typedef int spde_basis_n_func_tp(int order);
-typedef int spde_basis_eval_func_tp(spde_basis_model_tp * model, double *s, double *res_array);
-
 
 typedef struct {
 	int n;
@@ -68,16 +54,12 @@ typedef struct {
 } inla_spde_points_tp;
 
 typedef struct {
-	int order;
 	int ntheta;
 	double ***theta;				       /* theta[i][thread_id][0] */
 	double **theta_extra;				       /* theta_extra[thread_id][i] */
 
 	int n;
 	double **basis;
-
-	spde_basis_n_func_tp *basis_func_n;
-	spde_basis_eval_func_tp *basis_func_eval;
 } inla_spde_theta_tp;
 
 
@@ -115,18 +97,8 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, inla_matrix_tp *ba
 int inla_spde_free_points(inla_spde_points_tp * p);
 int inla_spde_basis_eval(int kmax, double *s, double *res_array);
 int inla_spde_basis_n(int kmax);
-int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis_model_tp * basisT, spde_basis_model_tp * basisK);
-int spde_basis_eval_general(spde_basis_model_tp * model, double *s, double *res_array);
-int spde_basis_eval_rotsym(spde_basis_model_tp * model, double *s, double *res_array);
-int spde_basis_n_general(int kmax);
-int spde_basis_n_rotsym(int kmax);
-int spde_basis_n(spde_basis_model_tp * model);
-
+int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix);
 inla_spde_points_tp *inla_spde_set_points(inla_matrix_tp *M);
-
-//inla_spde_points_tp *inla_spde_alloc_points(int n);
-//int inla_spde_read_diagonal_matrix(const char *filename, int *n, double **x);
-//int inla_spde_read_points(const char *filename, inla_spde_points_tp ** points);
 
 __END_DECLS
 #endif
