@@ -171,7 +171,6 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, inla_matrix_tp *ba
 	int i, j;
 	char *msg;
 
-	theta_model->order = basis->ncol;
 	theta_model->ntheta = basis->ncol;
 	assert(theta_model->ntheta > 0);
 
@@ -252,7 +251,7 @@ int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp 
 
 	return INLA_OK;
 }
-int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis_model_tp * basisT, spde_basis_model_tp * basisK)
+int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 {
 	int n, n2, i, j;
 	inla_spde_tp *model;
@@ -313,7 +312,6 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	}
 	
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G1), &(model->G1_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
-	P(model->G1_graph->n);
 	
 	inla_matrix_free(M);
 	Free(fnm);
@@ -322,7 +320,6 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix, spde_basis
 	M = inla_read_fmesher_file((const char *)fnm);
 	assert(M->nrow == n);
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
-	P(model->G2_graph->n);
 	inla_matrix_free(M);
 	Free(fnm);
 
@@ -426,7 +423,6 @@ int inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
 	double mean, var;
 
 	where_to_start = GMRFLib_ai_INLA_userfunc1_dim;
-	P(where_to_start);
 
 	GMRFLib_ai_INLA_userfunc1_dim = 2 * n;		       /* set this variable, yes */
 	GMRFLib_ai_INLA_userfunc1_density = Calloc(GMRFLib_ai_INLA_userfunc1_dim, GMRFLib_density_tp *);

@@ -2510,12 +2510,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		int iter, itmax = optpar->max_iter;
+		int cc_positive = 1;
+		int cc_is_negative = 0;
 
 		for (iter = 0; iter < itmax; iter++) {
 
 			memcpy(bb, b, n * sizeof(double));
 			memcpy(cc, c, n * sizeof(double));
 
+			cc_is_negative = 0;
 #pragma omp parallel for private(i) schedule(static)
 			for (i = 0; i < nidx; i++) {
 				int idx;
@@ -2525,7 +2528,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				idx = idxs[i];
 				GMRFLib_2order_approx(NULL, &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
 				bb[idx] += bcoof;
-				cc[idx] += DMAX(0.0, ccoof);
+				cc_is_negative = (cc_is_negative || ccoof < 0.0); /* this line IS OK! also for multithread.. */
+				if (cc_positive){
+					cc[idx] += DMAX(0.0, ccoof);
+				} else {
+					cc[idx] += ccoof;
+				}
 			}
 			GMRFLib_thread_id = id;
 
@@ -2548,9 +2556,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 			if (err < optpar->abserr_step || gaussian_data) {
 				/*
-				 * we're done! 
+				 * we're done!  unless we have negative elements on the diagonal...
 				 */
-				break;
+				if (0 && cc_is_negative && cc_positive){
+					FIXME("switch to cc_positive = 0");
+					cc_positive = 0;
+				} else {
+					break;
+				}
 			}
 
 			if (0) {
@@ -2609,6 +2622,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		if (*problem && new_idea) {
 			double *sd = Calloc(n, double), fac = 3, step_len, err = 0.0, f, itmax_local = 40;
 
+			cc_positive = 1;
 			for (iter = 0; iter < itmax; iter++) {
 
 				GMRFLib_Qinv(*problem, GMRFLib_QINV_ALL);
@@ -2621,6 +2635,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				memcpy(bb, b, n * sizeof(double));
 				memcpy(cc, c, n * sizeof(double));
 
+				cc_is_negative = 0;
 #pragma omp parallel for private(i) schedule(static)
 				for (i = 0; i < nidx; i++) {
 					int idx;
@@ -2631,7 +2646,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					step_len = -(fac * sd[idx]);	/* yes! */
 					GMRFLib_2order_approx(NULL, &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &step_len);
 					bb[idx] += bcoof;
-					cc[idx] += DMAX(0.0, ccoof);
+
+					cc_is_negative = (cc_is_negative || ccoof < 0.0); /* this line IS OK! also for multithread.. */
+					if (cc_positive){
+						cc[idx] += DMAX(0.0, ccoof);
+					} else {
+						cc[idx] += ccoof;
+					}
 				}
 				GMRFLib_thread_id = id;
 
@@ -2654,6 +2675,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					/*
 					 * we're done! 
 					 */
+					if (cc_is_negative)
+						FIXME("cc_is_negative is not yet handled here!");
 					break;
 				}
 				GMRFLib_free_problem(*problem);
@@ -5880,8 +5903,9 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		 * we need to bound the maximum function evaluations, otherwise it can just go on forever, especially for _linear
 		 * and _quadratic interpolation. seems like they produce to `rough' integrands... 
 		 */
-		unsigned int max_eval = (unsigned int) gsl_pow_int(400.0, ITRUNCATE(nhyper - 1, 1, 3));	/* 0 for none */
-		double abs_err = 0.0001, rel_err = 0.0001, value, err;
+		//unsigned int max_eval = (unsigned int) gsl_pow_int(400.0, ITRUNCATE(nhyper - 1, 1, 3));	/* 0 for none */
+		unsigned int max_eval = 10000;
+		double abs_err = 0.0001, rel_err = 0.001, value, err;
 		int retval;
 
 		for (i = 0; i < npoints; i++) {
@@ -5895,7 +5919,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			if (retval) {
 				fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
 				fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-				fprintf(stderr, "\t\tPart 1, i=%1d, point=%g\n", i, points[i]);
+				fprintf(stderr, "\t\tPart 1, i=%1d, point=%g, thread=%1d\n", i, points[i],  omp_get_thread_num());
 			}
 		}
 		for (i = 0; i < NEXTRA; i++) {
@@ -5909,7 +5933,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			if (retval) {
 				fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
 				fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-				fprintf(stderr, "\t\tPart 2, i=%1d, point=%g\n", i, points[i]);
+				fprintf(stderr, "\t\tPart 2, i=%1d, point=%g, thread=%1d\n", i, points[i], omp_get_thread_num());
 			}
 		}
 
