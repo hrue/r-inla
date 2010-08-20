@@ -987,16 +987,84 @@ inla.make.lincomb = function(...)
 
     str = ""
     arg = match.call(expand.dots=TRUE)
+
+    ## we might need to expand arguments?
+    if (all(is.null(names(arg))))
+        arg = eval(parse(text=arg[2]), 1)
+
     for(var in names(arg)) {
         if (var != "") {
             value = eval(inla.eval(paste("arg$", var, sep="")))
             idx = which(!is.na(value))
             if (length(idx) > 0) {
-                str = paste(str, var)
+                str = paste(str, " ", var)
                 for(i in idx)
                     str = paste(str, i, value[i])
             }
         }
     }
     return (str)
+}
+
+inla.make.lincombs = function(...)
+{
+    ## this is the more general version, which constructs one lincomb
+    ## for each 'row', like
+    ##
+    ##> A
+    ## [,1] [,2] [,3]
+    ##[1,]    1    2    3
+    ##[2,]    2    1    3
+    ##> inla.make.lincombs(b=1:2,a=A,c=1:2)
+    ##$lincomb.1
+    ##[1] "   b 1 1   a 1 1 2 2 3 3   c 1 1"
+    ##
+    ##$lincomb.2
+    ##[1] "   b 2 2   a 1 2 2 1 3 3   c 2 2"
+    
+    ## unfortunately, this gets quite messy...
+
+    arg = match.call(expand.dots=TRUE)
+
+    ## we might need to expand arguments?
+    if (all(is.null(names(arg))))
+        arg = eval(parse(text=arg[2], 2))
+
+    n = -1
+    for(var in names(arg)) {
+        if (var != "") {
+            value = eval(inla.eval(paste("arg$", var, sep="")))
+            if (is.matrix(value)) {
+                stopifnot(nrow(value) == n || n < 0)
+                n = nrow(value) 
+            } else {
+                stopifnot(length(value) == n || n < 0)
+                n = length(value)
+            }
+        }
+    }
+
+    name = paste("lincomb.", 1:n, sep="")
+    lc = list()
+    for(idx in 1:n) {
+        f.arg = list()
+        for(var in names(arg)) {
+            if (var != "") {
+                value = eval(inla.eval(paste("arg$", var, sep="")))
+                if (is.matrix(value)) {
+                    val = rep(NA, ncol(value))
+                    val[ which( !is.na(value[idx,]) ) ] = value[idx,]
+                } else {
+                    val = value[idx]
+                }
+                val = inla.eval(inla.paste(c("list(", var, "=", inla.2list(val), ")")))
+                f.arg = c(f.arg, val)
+            }
+        }
+        lincomb = inla.make.lincomb(f.arg)
+        names(lincomb) = name[idx]
+        lc = c(lc, lincomb)
+    }
+
+    return (lc)
 }
