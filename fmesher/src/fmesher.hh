@@ -5,5 +5,6 @@
 #include "mesh.hh"
 #include "meshc.hh"
 #include "ioutils.hh"
+#include "basis.hh"
 
 #endif
