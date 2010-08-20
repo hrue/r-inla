@@ -792,8 +792,8 @@ void make_globe_test()
 int main()
 {
   make_globe_test();
-  return 0;
-  iohelper_test();
+  //  return 0;
+  //  iohelper_test();
   for (int i=0;i<maxiter;i++) {
     CDT_test();
     DTsphere_test2();
