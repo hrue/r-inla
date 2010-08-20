@@ -979,4 +979,24 @@
     return (list(rows = uA, idx = dup))
 }
 
-            
+inla.make.lincomb = function(...)
+{
+    ## makes a lincomb-entry using the variables in the call, like
+    ## > inla.make.lincomb(x=runif(2), b=1, c=3, Predictor=c(NA,2,3))
+    ## [1] " x 1 0.736 2 0.231 b 1 1 c 1 3 Predictor 2 2 3 3"
+
+    str = ""
+    arg = match.call(expand.dots=TRUE)
+    for(var in names(arg)) {
+        if (var != "") {
+            value = eval(inla.eval(paste("arg$", var, sep="")))
+            idx = which(!is.na(value))
+            if (length(idx) > 0) {
+                str = paste(str, var)
+                for(i in idx)
+                    str = paste(str, i, value[i])
+            }
+        }
+    }
+    return (str)
+}
