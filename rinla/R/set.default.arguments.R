@@ -11,7 +11,7 @@
          ##:ARGUMENT: usermap One of the predefined functions to transform the linear combinations with. Default NULL.
          usermap = NULL, 
 
-         ##:ARGUMENT: c.indexing If TRUE, then the indexing of the linear combination spesifications start from index 0 (C-style), and if FALSE, then they start
+         ##:ARGUMENT: c.indexing If TRUE, then the indexing of the linear combination spesifications start from index 0 (C-style), and if FALSE, then they start at 1 (R-style, default)
          c.indexing = FALSE)
 
     ##:SEEALSO: inla
