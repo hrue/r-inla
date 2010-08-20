@@ -361,6 +361,7 @@ int main(int argc, char* argv[])
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
   int nV = iS0.rows();
+  bool issphere = false;
   if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
     return 0;
@@ -368,7 +369,7 @@ int main(int argc, char* argv[])
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
 
     double radius = S0[0].length();
-    bool issphere = true;
+    issphere = true;
     bool isflat = (std::abs(S0[0][2]) < 1.0e-10);
     for (int i=1; i<nV; i++) {
       isflat = (isflat && (std::abs(S0[i][2]) < 1.0e-10));
@@ -469,9 +470,11 @@ int main(int argc, char* argv[])
 
     }
     
+    if (false) {
     if (oprefix != "-") {
       print_M_old(oprefix+"S.dat",M.S());
       print_M_old(oprefix+"FV.dat",M.TV(),false);
+    }
     }
 
     matrices.attach("tt",&M.TT(),false);
@@ -484,6 +487,18 @@ int main(int argc, char* argv[])
     
     matrices.output("tt").output("tti").output("vt").output("vv");
     
+  }
+
+  if (issphere) {
+    matrices.attach(string("sph0"),
+		    new Matrix<double>(spherical_harmonics(M.S(),6,true)),
+		    true);
+    matrices.attach(string("sph"),
+		    new Matrix<double>(spherical_harmonics(M.S(),6,false)),
+		    true);
+    matrices.matrixtype("sph0",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("sph",fmesh::IOMatrixtype_general);
+    matrices.output("sph0").output("sph");
   }
     
   int fem_order_max = args_info.fem_arg;
@@ -515,10 +530,12 @@ int main(int argc, char* argv[])
     matrices.output("va");
     matrices.output("ta");
     
+    if (false) {
     if (oprefix != "-") {
       print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
       print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
       print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
+    }
     }
     
     SparseMatrix<double> C0inv = inverse(C0,true);
@@ -535,10 +552,12 @@ int main(int argc, char* argv[])
       matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
       matrices.output(Gname);
       
+      if (false) {
       if (oprefix != "-") {
 	Gname = "G"+ss.str();
 	print_SM_old(oprefix+Gname+".dat",*b,
 		     false,fmesh::IOMatrixtype_symmetric);
+      }
       }
     }
     tmp = C0inv*K;
@@ -553,10 +572,12 @@ int main(int argc, char* argv[])
       matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
       matrices.output(Kname);
       
+      if (false) {
       if (oprefix != "-") {
 	Kname = "K"+ss.str();
 	print_SM_old(oprefix+Kname+".dat",*b,
 		     false,fmesh::IOMatrixtype_symmetric);
+      }
       }
     }
     

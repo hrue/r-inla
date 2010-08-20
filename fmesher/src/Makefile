@@ -65,14 +65,14 @@ HG:= $(shell which hg)
 HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
 INCL    = -I$(PREFIX)/include
-LDFLAGS = $(FLAGS) $(OS_LDFLAGS)
+LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
 CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
-OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o
+OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o
 all: $(FMESHER)
 
 
@@ -90,6 +90,8 @@ $(DEPDIR):
 	-$(RM) $(dir $(DEPDIR))$(notdir $*.d.tmp)
 
 %.o: %.cc $(DEPDIR)
+	echo $(OSFLAGS)
+	echo $(OS_LDFLAGS)
 	$(COMPILE.C) -MMD -MF $(dir $(DEPDIR))$(notdir $*.d.tmp) -o $@ $<
 	-@$(SED) -e ':more;/\\/N;s/[ ]*\\\r*\n[ ]*/ /;tmore' \
 	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
