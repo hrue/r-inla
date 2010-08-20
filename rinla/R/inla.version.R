@@ -1,3 +1,9 @@
 `inla.version` = function(details=FALSE, quiet =FALSE) {
-    stop("If you see this then the packageing of INLA has errors....")
+    cat("\n",
+        "This version of R-INLA use the code from inla.googlecode.com",
+        "\n",
+        "No version-number is available.",
+        "\n",
+        "\n")
+    return (invisible())
 }

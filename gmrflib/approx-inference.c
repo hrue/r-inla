@@ -2510,8 +2510,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		int iter, itmax = optpar->max_iter;
+
+		/* 
+		   these tricks are currently disabled
+		 */
 		int cc_positive = 1;
 		int cc_is_negative = 0;
+		double cc_factor = 0.1;
+		double cc_factor_mult = 1.2;
 
 		for (iter = 0; iter < itmax; iter++) {
 
@@ -2527,15 +2533,25 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				GMRFLib_thread_id = id;
 				idx = idxs[i];
 				GMRFLib_2order_approx(NULL, &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
-				bb[idx] += bcoof;
 				cc_is_negative = (cc_is_negative || ccoof < 0.0); /* this line IS OK! also for multithread.. */
-				if (cc_positive){
+				if (cc_positive) {
+					bb[idx] += bcoof;
 					cc[idx] += DMAX(0.0, ccoof);
 				} else {
-					cc[idx] += ccoof;
+					if (ccoof > 0.0){
+						bb[idx] += bcoof;
+						cc[idx] += ccoof;
+					} else {
+						bb[idx] += bcoof;
+						//bb[idx] += cc_factor*bcoof; /* what to use?? if any...*/
+						cc[idx] += cc_factor*ccoof;
+					}
 				}
 			}
 			GMRFLib_thread_id = id;
+
+			if (!cc_positive)
+				cc_factor = DMIN(1.0, cc_factor*cc_factor_mult);
 
 			for (i = 0; i < n; i++) {
 				bb[i] += -c[i] * mean[i];
@@ -2558,7 +2574,18 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				/*
 				 * we're done!  unless we have negative elements on the diagonal...
 				 */
-				if (0 && cc_is_negative && cc_positive){
+
+				/* 
+				   disable these cc_positive tricks now...
+				 */
+				break;
+				
+
+				if (cc_is_negative && !cc_positive && (cc_factor < 1.0)){
+					/* 
+					   do nothing
+					 */
+				} else if (cc_is_negative && cc_positive){
 					FIXME("switch to cc_positive = 0");
 					cc_positive = 0;
 				} else {
