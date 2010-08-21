@@ -990,7 +990,7 @@ inla.make.lincomb = function(...)
 
     ## we might need to expand arguments?
     if (all(is.null(names(arg))))
-        arg = eval(parse(text=arg[2]), 1)
+        arg = eval.parent(parse(text=arg[2]))
 
     for(var in names(arg)) {
         if (var != "") {
@@ -1044,7 +1044,7 @@ inla.make.lincombs = function(...)
         }
     }
 
-    name = paste("lincomb.", 1:n, sep="")
+    name = paste("lc", inla.num(1:n, width = floor(log10(n))+1), sep="")
     lc = list()
     for(idx in 1:n) {
         f.arg = list()
