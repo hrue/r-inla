@@ -80,7 +80,8 @@ inla.make.lincombs = function(...)
                 value = eval(inla.eval(paste("arg$", var, sep="")))
                 if (is.matrix(value)) {
                     val = rep(NA, ncol(value))
-                    val[ which( !is.na(value[idx,]) ) ] = value[idx,]
+                    ii = which( !is.na(value[idx,]) )
+                    val[ii] = value[idx, ii]
                 } else {
                     val = value[idx]
                 }
