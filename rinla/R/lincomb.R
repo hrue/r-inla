@@ -96,3 +96,37 @@ inla.make.lincombs = function(...)
 
     return (lc)
 }
+
+inla.uncbind = function(A, name.prefix="col")
+{
+    ## given a matrix with colnames, expand this into
+    ## list(a=c1, b=c2, ....)
+
+    if (!is.matrix(A))
+        return (NULL)
+    
+    result = list()
+    rownames(A) = NULL
+
+    for(icol in 1:ncol(A)) {
+        ## extract each column and give it its name or 'column001' if
+        ## its NULL.
+        x = list(A[, icol])
+        name = colnames(A)[icol]
+        if (is.null(name)) {
+            name = paste(name.prefix,
+                    inla.num(icol, width = floor(log10(ncol(A))+1)),
+                    sep="")
+        }
+        names(x) = name
+        result = c(result, x)
+    }
+
+    return (result)
+}
+inla.unrbind = function(A, name.prefix = "row")
+{
+    return (inla.uncbind(t(A), name.prefix = name.prefix))
+}
+
+    
