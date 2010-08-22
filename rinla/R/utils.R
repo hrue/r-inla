@@ -179,12 +179,30 @@
     return (graph.file)
 }
 
-`inla.num` = function(i, width = 8, digits=4)
+`inla.numlen` = function(n)
 {
-    ##return (gsub(" ", "0", format(i,width=width)))
-    return(formatC(i, format="g", width = width, flag = "0", digits=digits))
+    ## number of digits required to represent a spesific (integer)
+    ## number
+    return (floor(log10(max(abs(n))))+1)
 }
 
+`inla.num` = function(x, width = if (length(x) > 1) inla.numlen(x) else 8, digits=4)
+{
+    ## format numbers using preceeding zeros. 
+    ## > inla.num(sqrt(2))
+    ##  [1] "0001.414"
+    ## > inla.num(2)
+    ##  [1] "00000002"
+
+    ## for a sequence of numbers, the width is calculated
+    ## automatically.> inla.num(1:10)
+    ## > inla.num(1:10)
+    ##  [1] "01" "02" "03" "04" "05" "06" "07" "08" "09" "10"
+    
+    return(formatC(x, format="g", width = width, flag = "0", digits=digits))
+}
+
+    
 `inla.trim` = function(string)
 {
     ## trim leading and trailing whitespaces and dots. there is a
@@ -730,14 +748,18 @@
     if (is.null(x))
         return (NULL)
 
-    if (length(x) == 0)
-        return ("numeric(0)")
-    s = inla.paste(as.character(x))
-    s = gsub("^[ ]+", "", s)
-    s = gsub("[ ]+$", "", s)
-    s = gsub("c[ ]*[(][ ]*", "", s)
-    s = gsub("[ ]*[)][ ]*", "", s)
-    return (paste("c(", gsub("[, ]+", ",", s, ")"), ")", sep=""))
+    if (!is.character(x)) {
+        return (paste("c(", paste(x, collapse=","), ")"))
+    } else {
+        if (length(x) == 0)
+            return ("numeric(0)")
+        s = inla.paste(as.character(x))
+        s = gsub("^[ ]+", "", s)
+        s = gsub("[ ]+$", "", s)
+        s = gsub("c[ ]*[(][ ]*", "", s)
+        s = gsub("[ ]*[)][ ]*", "", s)
+        return (paste("c(", gsub("[, ]+", ",", s, ")"), ")", sep=""))
+    }
 }
 
 `inla.reload` = function(lib.loc = NULL)
