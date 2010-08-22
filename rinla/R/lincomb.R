@@ -45,8 +45,8 @@
     values = list()
     is.m = numeric(length(arg))
     n = -1
-    for(var in names(arg)) {
-        for(k in 2:length(arg)) {
+    for(k in 1:length(arg)) {
+        if (names(arg)[k] != "") {
             values[[k]] = eval.parent(arg[[k]])
             if (is.matrix(values[[k]])) {
                 stopifnot(nrow(values[[k]]) == n || n < 0)
@@ -79,24 +79,29 @@
         lc = lapply(1:n,
                 function(idx, ...) {
                     f.arg = list()
-                    for(k in 2:length(arg)) {
-                        kk = k-1
-                        var = names(arg)[k]
-                        if (is.m[k]) {
-                            value = values[[k]][idx,]
-                            ii = which( !is.na(value) )
-                            ff.arg = list(list(idx = ii, weight = value[ii]))
-                        } else {
-                            ff.arg = list(list(weight = values[[k]][idx]))
+                    f.arg[[ length(arg) ]] = list
+                    for(k in 1:length(arg)) {
+                        if (names(arg)[k] != "") {
+                            kk = k
+                            var = names(arg)[k]
+                            if (is.m[k]) {
+                                value = values[[k]][idx,]
+                                ii = which( !is.na(value) )
+                                ff.arg = list(list(idx = ii, weight = value[ii]))
+                            } else {
+                                ff.arg = list(list(weight = values[[k]][idx]))
+                            }
+                            names(ff.arg) = var
+                            f.arg[[k]] = ff.arg
                         }
-                        names(ff.arg) = var
-                        f.arg = c(f.arg, ff.arg)
                     }
+                    ## the first might or might be relevant
+                    if (is.null(f.arg[[1]][[1]]))
+                        f.arg = f.arg[[-1]]
                     return (f.arg)
                 },
                 arg=arg, is.m=is.m, values=values)
         names(lc) = name
-
     } else {
 
         ## this is the slow version for which the lapply-version is
