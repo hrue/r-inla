@@ -610,13 +610,23 @@
 `inla.lincomb.section` =
     function(file, data.dir, contr, lincomb)
 {
+    ## format is either
+    ##
+    ##     list("lc1" = "a 1 1 b 2 1 3 2...", ...)
+    ##
+    ## or
+    ##
+    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2,3), weight = c(1,2)), ...), ...)
+    ##       
+
     if (!is.null(lincomb)) {
+        numlen = inla.numlen(length(lincomb))
         for(i in 1:length(lincomb)) {
             if (is.null(names(lincomb[i])) || is.na(names(lincomb[i]))) {
-                secname = paste("lincomb.", i, sep="")
-                lc = lincomb[i]
+                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
+                lc = lincomb[[i]]
             } else if (names(lincomb[i]) == "") {
-                secname = paste("lincomb.", i, sep="")
+                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
                 lc = lincomb[[i]]
             } else {
                 secname = paste("lincomb.", names(lincomb[i])[1], sep="")
@@ -632,7 +642,18 @@
                 cat("usermap = ", contr$usermap,"\n", sep = " ", file = file,  append = TRUE)
             fnm = inla.tempfile(tmpdir=data.dir)
             file.create(fnm)
-            write(lc, file=fnm)
+            if (is.character(lc)) {
+                write(lc, file=fnm)
+            } else {
+                stopifnot(is.list(lc))
+                for(i in 1:length(lc)) {
+                    if (is.null(lc[[i]]$idx) && length(lc[[i]]$weight == 1)) {
+                        cat(c( names(lc)[i], c( 1, lc[[i]]$weight ), "\n"), file=fnm, append=TRUE)
+                    } else {
+                        cat(c( names(lc)[i], c( rbind( lc[[i]]$idx, lc[[i]]$weight )), "\n"), file=fnm, append=TRUE)
+                    }
+                }
+            }
             fnm = gsub(data.dir, "$DATADIR", fnm, fixed=TRUE)
             cat("filename = ", fnm, "\n", sep = " ", file = file, append = TRUE)
         }
