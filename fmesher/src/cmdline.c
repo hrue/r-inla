@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -56,7 +56,9 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -Q, --quality=NAME      Per vertex RCDT parameters, as one or more one-column \n                            matrices with minimum edge lengths for the points \n                            specified with -T|--input",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
   "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
-  "      --fem=ORDER         Calculate FEM matrices up to order fem  (default=`2')",
+  "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
+  "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
+  "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
   "\nMiscellaneous options:",
   "  -x, --x11[=DELAY]       Show progress in an x11 window, with delay factor  \n                            (default=`1.0')",
   "      --x11-zoom=LIMITS   Zoom into a smaller section of the graph, \n                            [minx,maxx,miny,maxy]",
@@ -89,11 +91,13 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[21] = gengetopt_args_info_detailed_help[25];
   gengetopt_args_info_full_help[22] = gengetopt_args_info_detailed_help[26];
   gengetopt_args_info_full_help[23] = gengetopt_args_info_detailed_help[27];
-  gengetopt_args_info_full_help[24] = 0; 
+  gengetopt_args_info_full_help[24] = gengetopt_args_info_detailed_help[28];
+  gengetopt_args_info_full_help[25] = gengetopt_args_info_detailed_help[29];
+  gengetopt_args_info_full_help[26] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[25];
+const char *gengetopt_args_info_full_help[27];
 
 static void
 init_help_array(void)
@@ -121,11 +125,13 @@ init_help_array(void)
   gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[24];
   gengetopt_args_info_help[21] = gengetopt_args_info_detailed_help[25];
   gengetopt_args_info_help[22] = gengetopt_args_info_detailed_help[26];
-  gengetopt_args_info_help[23] = 0; 
+  gengetopt_args_info_help[23] = gengetopt_args_info_detailed_help[27];
+  gengetopt_args_info_help[24] = gengetopt_args_info_detailed_help[28];
+  gengetopt_args_info_help[25] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[24];
+const char *gengetopt_args_info_help[26];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -198,6 +204,8 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->boundary_given = 0 ;
   args_info->interior_given = 0 ;
   args_info->fem_given = 0 ;
+  args_info->sph0_given = 0 ;
+  args_info->sph_given = 0 ;
   args_info->x11_given = 0 ;
   args_info->x11_zoom_given = 0 ;
 }
@@ -235,6 +243,10 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->interior_orig = NULL;
   args_info->fem_arg = 2;
   args_info->fem_orig = NULL;
+  args_info->sph0_arg = -1;
+  args_info->sph0_orig = NULL;
+  args_info->sph_arg = -1;
+  args_info->sph_orig = NULL;
   args_info->x11_arg = 1.0;
   args_info->x11_orig = NULL;
   args_info->x11_zoom_arg = NULL;
@@ -284,8 +296,10 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->interior_min = 0;
   args_info->interior_max = 0;
   args_info->fem_help = gengetopt_args_info_detailed_help[24] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[26] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[26] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[28] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[29] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -472,6 +486,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->boundary_given, &(args_info->boundary_arg), &(args_info->boundary_orig));
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
   free_string_field (&(args_info->fem_orig));
+  free_string_field (&(args_info->sph0_orig));
+  free_string_field (&(args_info->sph_orig));
   free_string_field (&(args_info->x11_orig));
   free_multiple_field (args_info->x11_zoom_given, (void *)(args_info->x11_zoom_arg), &(args_info->x11_zoom_orig));
   args_info->x11_zoom_arg = 0;
@@ -588,6 +604,10 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
   if (args_info->fem_given)
     write_into_file(outfile, "fem", args_info->fem_orig, 0);
+  if (args_info->sph0_given)
+    write_into_file(outfile, "sph0", args_info->sph0_orig, 0);
+  if (args_info->sph_given)
+    write_into_file(outfile, "sph", args_info->sph_orig, 0);
   if (args_info->x11_given)
     write_into_file(outfile, "x11", args_info->x11_orig, 0);
   write_multiple_into_file(outfile, args_info->x11_zoom_given, "x11-zoom", args_info->x11_zoom_orig, 0);
@@ -1240,6 +1260,8 @@ cmdline_internal (
         { "boundary",	1, NULL, 'B' },
         { "interior",	1, NULL, 'I' },
         { "fem",	1, NULL, 0 },
+        { "sph0",	1, NULL, 0 },
+        { "sph",	1, NULL, 0 },
         { "x11",	2, NULL, 'x' },
         { "x11-zoom",	1, NULL, 0 },
         { 0,  0, 0, 0 }
@@ -1436,7 +1458,7 @@ cmdline_internal (
               goto failure;
           
           }
-          /* Calculate FEM matrices up to order fem.  */
+          /* Calculate FEM matrices up through order fem.  */
           else if (strcmp (long_options[option_index].name, "fem") == 0)
           {
           
@@ -1446,6 +1468,34 @@ cmdline_internal (
                 &(local_args_info.fem_given), optarg, 0, "2", ARG_INT,
                 check_ambiguity, override, 0, 0,
                 "fem", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Calculate rotationally invariant spherical harmonics up through order sph0.  */
+          else if (strcmp (long_options[option_index].name, "sph0") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->sph0_arg), 
+                 &(args_info->sph0_orig), &(args_info->sph0_given),
+                &(local_args_info.sph0_given), optarg, 0, "-1", ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "sph0", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Calculate spherical harmonics up through order sph.  */
+          else if (strcmp (long_options[option_index].name, "sph") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->sph_arg), 
+                 &(args_info->sph_orig), &(args_info->sph_given),
+                &(local_args_info.sph_given), optarg, 0, "-1", ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "sph", '-',
                 additional_error))
               goto failure;
           

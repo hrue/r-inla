@@ -490,16 +490,29 @@ int main(int argc, char* argv[])
   }
 
   if (issphere) {
-    matrices.attach(string("sph0"),
-		    new Matrix<double>(spherical_harmonics(M.S(),6,true)),
-		    true);
-    matrices.attach(string("sph"),
-		    new Matrix<double>(spherical_harmonics(M.S(),6,false)),
-		    true);
-    matrices.matrixtype("sph0",fmesh::IOMatrixtype_general);
-    matrices.matrixtype("sph",fmesh::IOMatrixtype_general);
-    matrices.output("sph0").output("sph");
+    int sph0_order_max = args_info.sph0_arg;
+    int sph_order_max = args_info.sph_arg;
+
+    if (sph0_order_max >= 0) {
+      matrices.attach(string("sph0"),
+		      new Matrix<double>(spherical_harmonics(M.S(),
+							     sph0_order_max,
+							     true)),
+		      true);
+      matrices.matrixtype("sph0",fmesh::IOMatrixtype_general);
+      matrices.output("sph0");
+    }
+    if (sph_order_max >= 0) {
+      matrices.attach(string("sph"),
+		      new Matrix<double>(spherical_harmonics(M.S(),
+							     sph_order_max,
+							     false)),
+		      true);
+      matrices.matrixtype("sph",fmesh::IOMatrixtype_general);
+      matrices.output("sph");
+    }
   }
+
     
   int fem_order_max = args_info.fem_arg;
   if (fem_order_max>0) {
