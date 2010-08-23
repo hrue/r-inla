@@ -189,7 +189,8 @@
        
     version = 0
 
-    ## Ad hoc tests for integers (is.integer is not appropriate)
+    ## Ad hoc tests for integers
+    ## (is.integer would mandate integer matrix storage, which is tricky)
     is.wholenumber =
       function(x, tol = .Machine$double.eps*2)  abs(x - round(x)) < tol
     is.integer.values =
