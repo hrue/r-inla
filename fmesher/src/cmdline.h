@@ -102,9 +102,15 @@ struct gengetopt_args_info
   unsigned int interior_min; /**< @brief Handle interior constraints's minimum occurreces */
   unsigned int interior_max; /**< @brief Handle interior constraints's maximum occurreces */
   const char *interior_help; /**< @brief Handle interior constraints help description.  */
-  int fem_arg;	/**< @brief Calculate FEM matrices up to order fem (default='2').  */
-  char * fem_orig;	/**< @brief Calculate FEM matrices up to order fem original value given at command line.  */
-  const char *fem_help; /**< @brief Calculate FEM matrices up to order fem help description.  */
+  int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='2').  */
+  char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
+  const char *fem_help; /**< @brief Calculate FEM matrices up through order fem help description.  */
+  int sph0_arg;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 (default='-1').  */
+  char * sph0_orig;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 original value given at command line.  */
+  const char *sph0_help; /**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 help description.  */
+  int sph_arg;	/**< @brief Calculate spherical harmonics up through order sph (default='-1').  */
+  char * sph_orig;	/**< @brief Calculate spherical harmonics up through order sph original value given at command line.  */
+  const char *sph_help; /**< @brief Calculate spherical harmonics up through order sph help description.  */
   double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
   char * x11_orig;	/**< @brief Show progress in an x11 window, with delay factor original value given at command line.  */
   const char *x11_help; /**< @brief Show progress in an x11 window, with delay factor help description.  */
@@ -133,6 +139,8 @@ struct gengetopt_args_info
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
+  unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
+  unsigned int sph_given ;	/**< @brief Whether sph was given.  */
   unsigned int x11_given ;	/**< @brief Whether x11 was given.  */
   unsigned int x11_zoom_given ;	/**< @brief Whether x11-zoom was given.  */
 

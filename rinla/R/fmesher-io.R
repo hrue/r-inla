@@ -189,13 +189,20 @@
        
     version = 0
 
+    ## Ad hoc tests for integers (is.integer is not appropriate)
+    is.wholenumber =
+      function(x, tol = .Machine$double.eps*2)  abs(x - round(x)) < tol
+    is.integer.values =
+      function(A)  all(is.wholenumber(A))
+
+
     if (is.matrix(A)) {
         ##
         nrow = dim(A)[1]
         ncol = dim(A)[2]
         elems = nrow*ncol
         datatype = 0
-        valuetype = inla.ifelse(is.integer(A[1,1]), integer(), double())
+        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
     } else if (is.list(A)) {
@@ -204,7 +211,7 @@
         nrow = max(A$i)
         ncol = max(A$j)
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer(A$values[1]), integer(), double())
+        valuetype = inla.ifelse(is.integer.values(A$values), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
@@ -218,7 +225,7 @@
         nrow = dim(A)[1]
         ncol = dim(A)[2]
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer(A[1,1]), integer(), double())
+        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
@@ -243,7 +250,7 @@
         ncol = length(A)
         elems = length(A)
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer(A[1]), integer(), double())
+        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
         matrixtype = 2  ## diagonal
         storagetype = 1 ## columnmajor
         
