@@ -78,11 +78,11 @@
 
         lc = lapply(1:n,
                 function(idx, ...) {
+                    ## preallocate
                     f.arg = list()
                     f.arg[[ length(arg) ]] = list
                     for(k in 1:length(arg)) {
                         if (names(arg)[k] != "") {
-                            kk = k
                             var = names(arg)[k]
                             if (is.m[k]) {
                                 value = values[[k]][idx,]
@@ -95,9 +95,10 @@
                             f.arg[[k]] = ff.arg
                         }
                     }
-                    ## the first might or might be relevant
+                    ## the first might or might not be relevant
                     if (is.null(f.arg[[1]][[1]]))
-                        f.arg = f.arg[[-1]]
+                        f.arg[[1]] = NULL
+
                     return (f.arg)
                 },
                 arg=arg, is.m=is.m, values=values)
@@ -110,18 +111,21 @@
         for(idx in 1:n) {
 
             f.arg = list()
-            for(k in 2:length(arg)) {
-                kk = k-1
-                var = names(arg)[k]
-                if (is.m[k]) {
-                    value = values[[k]][idx,]
-                    ii = which( !is.na(value) )
-                    ff.arg = list(list(idx = ii, weight = value[ii]))
-                } else {
-                    ff.arg = list(list(weight = values[[k]][idx]))
+            for(k in 1:length(arg)) {
+                if (names(arg)[k] != "") {
+                    var = names(arg)[k]
+                    if (is.m[k]) {
+                        value = values[[k]][idx,]
+                        ii = which( !is.na(value) )
+                        ff.arg = list(list(idx = ii, weight = value[ii]))
+                    } else {
+                        ff.arg = list(list(weight = values[[k]][idx]))
+                    }
+                    names(ff.arg) = var
+                    f.arg = c(f.arg, ff.arg)
                 }
-                names(ff.arg) = var
-                f.arg = c(f.arg, ff.arg)
+                if (is.null(f.arg[[1]][[1]]))
+                    f.arg[[1]] = NULL
             }
             lc[[idx]] = f.arg
             names(lc)[idx] = name[idx]
