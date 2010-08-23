@@ -50,9 +50,10 @@
   return (prefix)
 }
 
-`inla.create.spde` = function(mesh, prefix = NULL,
-  fem=2, sph0=NULL, sph=NULL)
+`inla.create.spde` = function(mesh=NULL, prefix = NULL,
+  fem=NULL, sph0=NULL, sph=NULL)
   {
+    ## create files using fmesher
 
     stopifnot(is.matrix(mesh$s))
     n = nrow(mesh$s)
@@ -62,12 +63,15 @@
       stop("1-D models not implemented yet.")
     stopifnot(s.dim>=2, s.dim<=3)
 
-    ## create files using fmesher
+    if (is.null(mesh) && is.null(prefix))
+      stop("At least one of mesh and prefix must be specified.")
     
     prefix = inla.fmesher.make.prefix(NULL,prefix)
 
-    inla.write.fmesher.file(mesh$s, filename = paste(prefix, "s", sep=""))
-    inla.write.fmesher.file(mesh$tv-1, filename = paste(prefix, "tv", sep=""))
+    if (!is.null(mesh)) {
+      inla.write.fmesher.file(mesh$s, filename = paste(prefix, "s", sep=""))
+      inla.write.fmesher.file(mesh$tv-1, filename = paste(prefix, "tv", sep=""))
+    }
     all.args = "--input=s,tv"
 
     ## additional argumets
