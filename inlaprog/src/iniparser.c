@@ -422,6 +422,9 @@ dictionary *iniparser_load(const char *ininame)
 	lineno = 0;
 	while (fgets(lin, ASCIILINESZ, ini) != NULL) {
 		lineno++;
+
+		//if (!(lineno % 1000)) printf("lineno %d\n",  lineno);
+		
 		where = strskp(lin);			       /* Skip leading spaces */
 		if (*where == ';' || *where == '#' || *where == 0)
 			continue;			       /* Comment lines */
