@@ -1,17 +1,73 @@
-`plot.inla.trimesh` = function(TV, S, color = NULL, lwd = 1, specular = "black", ...)
+`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL,
+  color.palette = cm.colors, color.truncate=FALSE, lwd = 1, specular = "black", ...)
 {
-    ## Make indices 1 based.  Deprecated and will be deactivated
+    ## Make indices 1 based.  Deprecated and will be deactivated.
     if (min(TV) == 0) {
       warning("Zero-based indices in TV are deprecated and will be deactivated in a future version.")
-        TV <- TV + 1
+        TV <- TV + 1L
     }
 
+    if (is.character(color)) {
+      colors = color
+    } else if (is.vector(color) || (is.matrix(color) && (ncol(color)==1))) {
+      if (is.null(color.axis))
+        color.axis = c(min(color,na.rm=TRUE),max(color,na.rm=TRUE))
+      if (color.truncate) {
+        not.ok = ((color<color.axis[1]) |
+                  (color>color.axis[2]))
+      } else {
+        not.ok = rep(FALSE,length(color))
+      }
+      cs = (pmax(color.axis[1],
+                 pmin(color.axis[2],color,na.rm=TRUE),na.rm=TRUE))
+      cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
+      not.ok = not.ok | is.na(cs)
+      cs[not.ok] = 0.5
+      alpha = as.numeric(!not.ok)
+
+      ncolors = 512
+      ics = as.numeric(cut(cs, ncolors))
+      colors = color.palette(ncolors)[ics]
+
+      ## Todo: handle alpha, combining "input alpha" with "not.ok-alpha"
+    } else if (is.matrix(color) && (ncol(color)==3)) {
+      if (is.null(color.axis))
+        color.axis = c(min(color,na.rm=TRUE),max(color,na.rm=TRUE))
+      if (color.truncate) {
+        not.ok = ((color[,1]<color.axis[1]) |
+                  (color[,2]<color.axis[1]) |
+                  (color[,3]<color.axis[1]) |
+                  (color[,1]>color.axis[2]) |
+                  (color[,2]>color.axis[2]) |
+                  (color[,3]>color.axis[2]))
+      } else {
+        not.ok = rep(FALSE,nrow(color))
+      }
+      cs = matrix(
+        pmax(color.axis[1],
+             pmin(color.axis[2],color,na.rm=TRUE),na.rm=TRUE),dim(color))
+      cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
+      not.ok = not.ok | is.na(cs[,1]) | is.na(cs[,2]) | is.na(cs[,3])
+      cs[not.ok,] = c(0.5,0.5,0.5)
+      alpha = as.numeric(!not.ok)
+      colors = rgb(cs[,1],cs[,2],cs[,3],alpha)
+    } else {
+      stop("color specification must be character, matrix, or vector.")
+    }
+    
     tTV = t(TV);
     tETV = t(TV[,c(1,2,3,1,NA)]);
     Tx = S[tTV,1]
     Ty = S[tTV,2]
     Tz = S[tTV,3]
-    Tcol = color[tTV]
+    if (length(colors) == nrow(s))
+      ## One color per vertex
+      Tcol = colors[tTV]
+    else {
+      ## One color per triangle
+      stopifnot(length(colors) == nrow(TV))
+      Tcol = colors[t(matrix(rep(1:nrow(TV),3),dim(TV)))]
+    }
     Ex = S[tETV,1]
     Ey = S[tETV,2]
     Ez = S[tETV,3]

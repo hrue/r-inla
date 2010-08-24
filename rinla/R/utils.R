@@ -1001,16 +1001,33 @@
     return (list(rows = uA, idx = dup))
 }
 
-`inla.is.dir`= function(dir)
+`inla.is.dir` = function(dir)
 {
-  return (!is.na(file.info(dir)$isdir) && file.info(dir)$isdir)
+    return (!is.na(file.info(dir)$isdir) && file.info(dir)$isdir)
 }
 
-`inla.dirname`= function(path)
+`inla.dirname` = function(path)
 {
-  if (identical(substr(path,nchar(path),nchar(path)), .Platform$file.sep)) {
-    return (substr(path,1,nchar(path)-1))
-  } else {
-    return (dirname(path))
-  }
+    if (identical(substr(path,nchar(path),nchar(path)), .Platform$file.sep)) {
+        return (substr(path,1,nchar(path)-1))
+    } else {
+        return (dirname(path))
+    }
+}
+
+`inla.affirm.integer` = function(A,...)
+{
+    is.wholenumber = function(x, tol = .Machine$double.eps*2)
+    {
+        return (abs(x - round(x)) <= tol)
+    }
+    is.integer.values = function(A,...)
+    {
+        return (is.integer(A) || all(is.wholenumber(A,...)))
+    }
+    if (is.integer.values(A,...)) {
+        A = round(A)
+        storage.mode(A) = "integer"
+        return (A)
+    }
 }
