@@ -9,19 +9,21 @@
         arg = eval.parent(parse(text=arg[2]))
 
     f.arg = list()
-    for(k in 2:length(arg)) {
+    for(k in 1:length(arg)) {
         var = names(arg)[k]
-        value = eval.parent(arg[[k]])
+        if (var != "") {
+            value = eval.parent(arg[[k]])
         
-        if (length(value) == 1) {
-            ff.arg = list(list(weight = value))
-        } else {
-            ii = which( !is.na(value) )
-            ff.arg = list(list(idx = ii, weight = value[ii]))
+            if (length(value) == 1) {
+                ff.arg = list(list(weight = value))
+            } else {
+                ii = which( !is.na(value) )
+                ff.arg = list(list(idx = ii, weight = value[ii]))
+            }
+        
+            names(ff.arg) = var
+            f.arg = c(f.arg, ff.arg)
         }
-        
-        names(ff.arg) = var
-        f.arg = c(f.arg, ff.arg)
     }
     lc = list(f.arg)
     names(lc) = "lc.default.name"
