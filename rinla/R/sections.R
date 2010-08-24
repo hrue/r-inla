@@ -608,7 +608,7 @@
 }
 
 `inla.lincomb.section` =
-    function(file, data.dir, contr, lincomb, use.one.file = "use.default.behaviour")
+    function(file, data.dir, contr, lincomb, use.one.file = TRUE)
 {
     ## format is either
     ##
@@ -626,14 +626,6 @@
 
         ## I need this to be set upfront
         fnm = NULL
-
-        ## if not set in the call, then do set it
-        if (missing(use.one.file)) {
-            use.one.file = (length(lincomb) > 50)
-        } else {
-            if (is.null(use.one.file) || !(use.one.file == TRUE || use.one.file == FALSE))
-                use.one.file = TRUE
-        }
 
         numlen = inla.numlen(length(lincomb))
 
