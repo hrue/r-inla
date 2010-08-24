@@ -175,7 +175,7 @@
     return (A)
 }
 
-`inla.write.fmesher.file` = function(A, filename = tempfile(), verbose = FALSE, debug = FALSE, auto.convert = TRUE)
+`inla.write.fmesher.file` = function(A, filename = tempfile(), verbose = FALSE, debug = FALSE, auto.convert = FALSE)
 {
     ##
     ## write a binary-file from fmesher in format specified by FL.
@@ -191,19 +191,17 @@
 
     ## decide how to treat with almost integers...
     if (auto.convert) {
-        is.wholenumber = function(x, tol = .Machine$double.eps*2)
-        {
-            return (abs(x - round(x)) < tol)
+        if (is.matrix(A)) {
+          A = inla.affirm.integer(A)
+        } else if (is.list(A)) {
+          A$values = affirm.integer(A$values)
+        } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
+          A = inla.affirm.integer(A)
+        } else if (is.vector(A)) {
+          A = inla.affirm.integer(A)
+        } else {
+          stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
         }
-    } else {
-        is.wholenumber = function(x)
-        {
-            return (is.integer(x))
-        }
-    }
-    is.integer.values = function(A)
-    {
-        return (all(is.wholenumber(A)))
     }
     
     if (is.matrix(A)) {
@@ -212,7 +210,7 @@
         ncol = dim(A)[2]
         elems = nrow*ncol
         datatype = 0
-        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
+        valuetype = inla.ifelse(is.integer(A), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
     } else if (is.list(A)) {
@@ -221,7 +219,7 @@
         nrow = max(A$i)
         ncol = max(A$j)
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer.values(A$values), integer(), double())
+        valuetype = inla.ifelse(is.integer(A$values), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
@@ -235,7 +233,7 @@
         nrow = dim(A)[1]
         ncol = dim(A)[2]
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
+        valuetype = inla.ifelse(is.integer(A), integer(), double())
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
@@ -260,7 +258,7 @@
         ncol = length(A)
         elems = length(A)
         datatype = 1 ## sparse
-        valuetype = inla.ifelse(is.integer.values(A), integer(), double())
+        valuetype = inla.ifelse(is.integer(A), integer(), double())
         matrixtype = 2  ## diagonal
         storagetype = 1 ## columnmajor
         
