@@ -185,12 +185,14 @@
     return (inla.uncbind(t(A), name.prefix = name.prefix))
 }
 
-########################################
- ### OLD VERSIONS GOES BELOW HERE! ###
-########################################
+##########################################################################
+ ### OLD VERSIONS GOES BELOW HERE! I THINK THE FORMAT HAS CHANGED... ###
+##########################################################################
 
 `inla.make.lincombs.OLD` = function(...)
 {
+    stop("might not work... please check format!")
+
     ## this is the more general version, which constructs one lincomb
     ## for each 'row', like
     ##
@@ -265,6 +267,7 @@
 
 `inla.make.lincomb.OLD` = function(...)
 {
+    stop("might not work... please check format")
 
     ## makes a lincomb-entry using the variables in the call, like
     ## > inla.make.lincomb(x=runif(2), b=1, c=3, Predictor=c(NA,2,3))

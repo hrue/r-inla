@@ -93,6 +93,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io);
 int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io);
 int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode);
+int GMRFLib_io_seek(GMRFLib_io_tp * io,  size_t offset, int whence);
 int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt);
 int GMRFLib_io_strip_blanks(char *line);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);

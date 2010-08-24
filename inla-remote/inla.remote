@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: d970506d7db4  date: Tue Jul 06 10:38:24 2010 +0200"
+HGVERSION="hgid: 46675b373cda  date: Mon Aug 23 16:57:44 2010 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -67,9 +67,9 @@ fi
 
 TMP=$(mktemp -t inla.remote.XXXXXXXX)
 {
-    echo "DATADIR=data.files"
-    echo "RESDIR=results.files"
-    egrep -v '^(DATA|RES)DIR' $model 
+    echo "inladatadir=data.files"
+    echo "inlaresdir=results.files"
+    egrep -v '^(inladatadir|inlaresdir)' $model 
 } > $TMP
 mv -f $TMP $model
 

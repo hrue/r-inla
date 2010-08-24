@@ -158,7 +158,7 @@
     file.create(file.data)
     write(t(response),ncolumns=ncol(response),file=file.data,append=FALSE)
 
-    file.data = gsub(data.dir, "$DATADIR", file.data, fixed=TRUE)
+    file.data = gsub(data.dir, "$inladatadir", file.data, fixed=TRUE)
 
     return(file.data)
 }

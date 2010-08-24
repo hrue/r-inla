@@ -186,7 +186,7 @@
     return (floor(log10(max(abs(n))))+1)
 }
 
-`inla.num` = function(x, width = if (length(x) > 1) inla.numlen(x) else 8, digits=4)
+`inla.num` = function(x, width = if (length(x) > 1) inla.numlen(x) else 8, digits=max(4, width))
 {
     ## format numbers using preceeding zeros. 
     ## > inla.num(sqrt(2))

@@ -584,7 +584,7 @@
         file.offset = inla.tempfile(tmpdir=data.dir)
         file.create(file.offset)
         write(t(os),ncolumns=2,file=file.offset,append=FALSE)
-        file.offset = gsub(data.dir, "$DATADIR", file.offset, fixed=TRUE)
+        file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
     } else {
         file.offset = NULL
     }
@@ -610,7 +610,7 @@
             file.fixed=inla.tempfile(tmpdir=data.dir)
             file.create(file.fixed)
             write(t(fixed.eff),ncolumns=ncol(fixed.eff),file=file.fixed,append=FALSE)
-            file.fixed = gsub(data.dir, "$DATADIR", file.fixed, fixed=TRUE)
+            file.fixed = gsub(data.dir, "$inladatadir", file.fixed, fixed=TRUE)
 
             if (debug)
                 cat("file fixed", file.fixed,"\n")
@@ -810,12 +810,12 @@
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 file.create(file.loc)
                 write(location[[r]],ncolumns=1,file=file.loc,append=FALSE)
-                file.loc = gsub(data.dir, "$DATADIR", file.loc, fixed=TRUE)
+                file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
                 
                 file.cov=inla.tempfile(tmpdir=data.dir)
                 file.create(file.cov)
                 write(t(cbind(ind,covariate[[r]])),ncolumns=2,file=file.cov,append=FALSE)
-                file.cov = gsub(data.dir, "$DATADIR", file.cov, fixed=TRUE)
+                file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
 
                 if (nrep == 1 && ngroup == 1) {
                     n = inla.ifelse(is.null(gp$random.spec[[r]]$n), length(location[[r]][!is.na(location[[r]])]),
@@ -935,7 +935,7 @@
                     file.extraconstr=inla.tempfile(tmpdir=data.dir)
                     file.create(file.extraconstr)
                     write(c(as.vector(t(A)),e),ncolumns=1,file=file.extraconstr,append=FALSE)
-                    file.extraconstr = gsub(data.dir, "$DATADIR", file.extraconstr, fixed=TRUE)
+                    file.extraconstr = gsub(data.dir, "$inladatadir", file.extraconstr, fixed=TRUE)
                 } else {
                     file.extraconstr = NULL
                 }
@@ -951,7 +951,7 @@
                     file.weights=inla.tempfile(tmpdir=data.dir)
                     file.create(file.weights)
                     write(t(cbind(ind,www)),ncolumns=2,file=file.weights,append=FALSE)
-                    file.weights = gsub(data.dir, "$DATADIR", file.weights, fixed=TRUE)
+                    file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
 
                     n.weights = n.weights+1
                 }
@@ -970,7 +970,7 @@
                 file.linear = inla.tempfile(tmpdir=data.dir)
                 file.create(file.linear)
                 write(t(cbind(ind,xx)),ncolumns=2,file=file.linear,append=FALSE)
-                file.linear = gsub(data.dir, "$DATADIR", file.linear, fixed=TRUE)
+                file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
                         quantiles=gp$random.spec[[r]]$quantiles,
@@ -1182,18 +1182,18 @@
     ## This is the ini-file that is used
     cat("\tfile.ini = ", file.ini, "\n")
 
-    ## data.dir also coded in the .ini-file as the variable DATADIR,
+    ## data.dir also coded in the .ini-file as the variable inladatadir,
     ## so files in the data.dir should be specified in the .ini-file
-    ## as $DATADIR/file
+    ## as $inladatadir/file
     cat("\tdata.dir = ", data.dir, "\n")
 
-    ## results.dir also coded in the .ini-file as the variable RESDIR,
+    ## results.dir also coded in the .ini-file as the variable inlaresdir,
     ## is where the result-files are stored. Note that the argument
     ## 'dir' in the ini-file, like
     ##
     ## dir = fixed.effect001
     ##
-    ## spesify that the results are stored in RESDIR/fixed.effect001
+    ## spesify that the results are stored in inlaresdir/fixed.effect001
     ##
     cat("\tresults.dir = ", results.dir, "\n")
 
@@ -1251,18 +1251,18 @@
     ## This is the ini-file that is used
     cat("\tfile.ini = ", file.ini, "\n")
 
-    ## data.dir also coded in the .ini-file as the variable DATADIR,
+    ## data.dir also coded in the .ini-file as the variable inladatadir,
     ## so files in the data.dir should be specified in the .ini-file
-    ## as $DATADIR/file
+    ## as $inladatadir/file
     cat("\tdata.dir = ", data.dir, "\n")
 
-    ## results.dir also coded in the .ini-file as the variable RESDIR,
+    ## results.dir also coded in the .ini-file as the variable inlaresdir,
     ## is where the result-files are stored. Note that the argument
     ## 'dir' in the ini-file, like
     ##
     ## dir = fixed.effect001
     ##
-    ## spesify that the results are stored in RESDIR/fixed.effect001
+    ## spesify that the results are stored in inlaresdir/fixed.effect001
     ##
     cat("\tresults.dir = ", results.dir, "\n")
 

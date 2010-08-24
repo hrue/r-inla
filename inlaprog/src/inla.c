@@ -237,7 +237,10 @@ unsigned char *inla_inifile_sha1(const char *filename)
 		dictionary *d = NULL;
 		int i, debug = 0;
 		unsigned char *hash = NULL, buf[BUFSIZE], md[SHA_DIGEST_LENGTH];
+		map_stri fhash;
 
+		map_stri_init(&fhash);
+		
 		memset(md, 0, SHA_DIGEST_LENGTH);
 		SHA1_Init(&c);
 		SCAN_FILE(filename);
@@ -264,14 +267,23 @@ unsigned char *inla_inifile_sha1(const char *filename)
 					    || !strcasecmp("EXTRACONSTRAINT", p)) {
 						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
 
-						if (debug)
-							printf("\tscan file %s\n", f);
-
-						SCAN_FILE(f);
+						/* 
+						   make sure we do not read the same file twice! this is required for all the lincomb's of Finn...
+						 */
+						if (map_stri_ptr(&fhash, f)){
+							if (debug)
+								printf("\talready scanned file %s\n", f);
+						} else {
+							if (debug)
+								printf("\tscan file %s\n", f);
+							map_stri_set(&fhash, f, 1);
+							SCAN_FILE(f);
+						}
 					}
 				}
 			}
 		}
+		map_stri_free(&fhash);
 
 		SHA1_Final(&(md[0]), &c);
 		hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
@@ -4168,7 +4180,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = LINCOMB
 	 */
 	int debug = 0, *ip = NULL, offset = -1, idx, fail, n = -1, first_time = 1, nnz = 0, *visited = NULL,
-	    **visited_idx = NULL, i, j, offset_i = -1, idx_from, idx_to, idx_range, use_entry, c_indexing = 1;
+		**visited_idx = NULL, i, j, offset_i = -1, idx_from, idx_to, idx_range, use_entry, c_indexing = 1;
+	size_t entryoffset = 0;
 	double w, **visited_w = NULL;
 	char *filename = NULL, *secname = NULL, *ptr = NULL, *msg = NULL, *entry = NULL;
 	GMRFLib_io_tp *io = NULL;
@@ -4190,11 +4203,14 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, "filename");
 	}
 	entry = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ENTRY"), NULL));
+	entryoffset = (size_t) iniparser_getdouble(ini, inla_string_join(secname, "ENTRYOFFSET"), 0.0);
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		if (entry)
+		if (entry){
 			printf("\t\tentry [%s]\n", entry);
+			printf("\t\tentryoffset [%20g]\n", (double)entryoffset);
+		}
 	}
 
 	c_indexing = iniparser_getboolean(ini, inla_string_join(secname, "C.INDEXING"), 1);
@@ -4246,6 +4262,9 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	 */
 
 	GMRFLib_io_open(&io, filename, "r");
+	if (entryoffset > 0)
+		GMRFLib_io_seek(io, entryoffset, SEEK_SET);
+
 	old_handler = GMRFLib_set_error_handler_off();	       /* we need to turn this off to control the EOF... */
 	use_entry = (entry ? 1 : 0);			       /* if ENTRY then look for this one first */
 
@@ -4255,6 +4274,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 			 * look for ENTRY <entry> and then read from there 
 			 */
 			GMRFLib_io_next_token(&ptr, io);
+			//printf("READ %s\n", ptr);
 			if (ptr) {
 				if (!strcasecmp(ptr, "ENTRY")) {
 					/*
@@ -13974,24 +13994,18 @@ int inla_endian(void)
 }
 int testit(void)
 {
-#define N 100
-	double x[N], y[N];
-	int i;
-	int n;
+	map_stri stri;
 
-	x[0] = y[0] = 0.0;
-	for (i = 0; i < N; i++) {
-		x[i] = x[i] + 1 / SQR(SQR(i + 1));
-		y[i] = x[i];
-	}
-	n = N;
-	for (i = 0; i < n; i++) {
-		printf("%d %.12g\n", i, x[i]);
-	}
-	GMRFLib_unique_additive2(&n, x, y, 0.0001);
-	for (i = 0; i < n; i++) {
-		printf("%d %.12g\n", i, x[i]);
-	}
+	map_stri_init(&stri);
+	map_stri_set(&stri,  "a",  1);
+	map_stri_set(&stri,  "b",  1);
+	map_stri_set(&stri,  NULL,  1);
+
+	printf("a %d\n", map_stri_ptr(&stri,  "a"));
+	printf("b %d\n", map_stri_ptr(&stri,  "b"));
+	printf("c %d\n", map_stri_ptr(&stri,  "c"));
+	printf("c %d\n", map_stri_ptr(&stri,  NULL));
+
 	return 0;
 }
 int inla_divisible(int n, int by)
@@ -14073,9 +14087,6 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 	}
-
-	// testit();exit(0);
-
 
 #if !defined(WINDOWS)
 	signal(SIGUSR1, inla_signal);

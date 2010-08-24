@@ -63,9 +63,9 @@ fi
 
 TMP=$(mktemp -t inla.remote.XXXXXXXX)
 {
-    echo "DATADIR=data.files"
-    echo "RESDIR=results.files"
-    egrep -v '^(DATA|RES)DIR' $model 
+    echo "inladatadir=data.files"
+    echo "inlaresdir=results.files"
+    egrep -v '^(inladatadir|inlaresdir)' $model 
 } > $TMP
 mv -f $TMP $model
 
