@@ -175,7 +175,7 @@
     return (A)
 }
 
-`inla.write.fmesher.file` = function(A, filename = tempfile(), verbose = FALSE, debug = FALSE)
+`inla.write.fmesher.file` = function(A, filename = tempfile(), verbose = FALSE, debug = FALSE, auto.convert = TRUE)
 {
     ##
     ## write a binary-file from fmesher in format specified by FL.
@@ -189,13 +189,23 @@
        
     version = 0
 
-    ## Ad hoc tests for integers (is.integer is not appropriate)
-    is.wholenumber =
-      function(x, tol = .Machine$double.eps*2)  abs(x - round(x)) < tol
-    is.integer.values =
-      function(A)  all(is.wholenumber(A))
-
-
+    ## decide how to treat with almost integers...
+    if (auto.convert) {
+        is.wholenumber = function(x, tol = .Machine$double.eps*2)
+        {
+            return (abs(x - round(x)) < tol)
+        }
+    } else {
+        is.wholenumber = function(x)
+        {
+            return (is.integer(x))
+        }
+    }
+    is.integer.values = function(A)
+    {
+        return (all(is.wholenumber(A)))
+    }
+    
     if (is.matrix(A)) {
         ##
         nrow = dim(A)[1]
@@ -259,6 +269,7 @@
     } else {
         stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
     }
+
     h = integer(8)
     valuetp = inla.ifelse(identical(valuetype, integer()), 0, 1)
     h = c(version, elems, nrow, ncol, datatype, valuetp, matrixtype, storagetype)
