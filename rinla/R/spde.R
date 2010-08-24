@@ -70,7 +70,8 @@
 
     if (!is.null(mesh)) {
       inla.write.fmesher.file(mesh$s, filename = paste(prefix, "s", sep=""))
-      inla.write.fmesher.file(mesh$tv-1, filename = paste(prefix, "tv", sep=""))
+      inla.write.fmesher.file(inla.affirm.integer(mesh$tv-1L),
+                              filename = paste(prefix, "tv", sep=""))
     }
     all.args = "--input=s,tv"
 
@@ -166,7 +167,7 @@
     echoc = inla.fmesher.call(all.args=all.args,prefix=prefix)
     
     mesh = list(
-      tv = 1+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
+      tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
       s = inla.read.fmesher.file(paste(prefix, "s", sep="")))
     
     return (list(prefix = prefix, mesh = mesh, locations.idx = idx))
