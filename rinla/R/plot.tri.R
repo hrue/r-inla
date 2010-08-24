@@ -1,7 +1,8 @@
 `plot.inla.trimesh` = function(TV, S, color = NULL, lwd = 1, specular = "black", ...)
 {
-    ## Make indices 1 based... should make this safer
+    ## Make indices 1 based.  Deprecated and will be deactivated
     if (min(TV) == 0) {
+      warning("Zero-based indices in TV are deprecated and will be deactivated in a future version.")
         TV <- TV + 1
     }
 
