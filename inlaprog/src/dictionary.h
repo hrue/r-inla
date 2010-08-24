@@ -44,6 +44,9 @@ __BEGIN_DECLS
 #include <string.h>
 #include <unistd.h>
 
+#include "GMRFLib/GMRFLibP.h"
+#include "GMRFLib/GMRFLib.h"
+
 /*---------------------------------------------------------------------------
    								New types
  ---------------------------------------------------------------------------*/
@@ -64,7 +67,17 @@ __BEGIN_DECLS
 
 	int n;						/** Number of entries in dictionary */
 
-	int size;				/** Storage size */
+	int size;					       /** Storage size */
+
+	/* 
+	   map key->idx
+	 */
+	map_stri strihash;				       /* HRue  */
+
+	/* 
+	   hold free entries
+	 */
+	map_ii iihash;					       /* HRue  */
 
 	char *used;					       /* HRue: mark as used */
 

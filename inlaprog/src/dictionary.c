@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "strlib.h"
+#include "my-fix.h"
 #include "GMRFLib/GMRFLib.h"
 
 /** Maximum value size for integers and doubles. */
@@ -86,6 +87,7 @@ unsigned dictionary_hash(char *key)
  */
 dictionary *dictionary_new(int size)
 {
+	int i;
 	dictionary *d = NULL;
 
 	/*
@@ -102,6 +104,13 @@ dictionary *dictionary_new(int size)
 	d->val = (char **) calloc((size_t) size, sizeof(char *));
 	d->key = (char **) calloc((size_t) size, sizeof(char *));
 	d->hash = (unsigned int *) calloc((size_t) size, sizeof(unsigned));
+	map_stri_init_hint(&(d->strihash), (size_t) size);
+	map_ii_init_hint(&(d->iihash), (size_t) size);
+
+	for(i=0; i<size; i++) {
+		map_ii_set(&(d->iihash), i, 1);
+	}
+
 	return d;
 }
 
@@ -128,7 +137,10 @@ void dictionary_del(dictionary * d)
 	free(d->key);
 	free(d->hash);
 	free(d->used);
+	map_stri_free(&(d->strihash));
+	map_ii_free(&(d->iihash));
 	free(d);
+
 	return;
 }
 
@@ -147,26 +159,16 @@ void dictionary_del(dictionary * d)
 char *dictionary_get(dictionary * d, char *key, char *def)
 {
 	unsigned hash;
-	int i;
-
-	hash = dictionary_hash(key);
-	for (i = 0; i < d->size; i++) {
-		if (d->key == NULL)
-			continue;
-		/*
-		 * Compare hash 
-		 */
-		if (hash == d->hash[i]) {
-			/*
-			 * Compare string, to avoid hash collisions 
-			 */
-			if (!strcmp(key, d->key[i])) {
-				d->used[i] = 1;
-				return dictionary_replace_variables(d, d->val[i]);
-			}
-		}
+	int i, *ip;
+	
+	ip = map_stri_ptr(&(d->strihash), key);
+	if (ip){
+		i = *ip;
+		d->used[i] = 1;
+		return dictionary_replace_variables(d, d->val[i]);
+	} else {
+		return dictionary_replace_variables(d, def);
 	}
-	return dictionary_replace_variables(d, def);
 }
 
 /**
@@ -258,81 +260,78 @@ double dictionary_getdouble(dictionary * d, char *key, double def)
  */
 void dictionary_set(dictionary * d, char *key, char *val)
 {
-	int i;
+	int i, *ip;
 
 	unsigned hash;
 
 	if (d == NULL || key == NULL)
 		return;
 
-	/*
-	 * Compute hash for this key 
-	 */
-	hash = dictionary_hash(key);
-	/*
-	 * Find if value is already in blackboard 
-	 */
-	if (d->n > 0) {
-		for (i = 0; i < d->size; i++) {
-			if (d->key[i] == NULL)
-				continue;
-			if (hash == d->hash[i]) {	       /* Same hash value */
-				if (!strcmp(key, d->key[i])) { /* Same key */
+	ip = map_stri_ptr(&(d->strihash), key);
+	if (ip){
+		i = *ip;
+
+		/*
+		 * Found a value: modify and return 
+		 */
+		if (d->val[i] != NULL)
+			free(d->val[i]);
+		d->val[i] = val ? strdup(val) : NULL;
+		map_stri_set(&(d->strihash), d->val[i], 1);
+	} else {
+		/*
+		 * Add a new value 
+		 */
+		/*
+		 * See if dictionary needs to grow 
+		 */
+		if (d->n == d->size) {
+
+			/*
+			 * Reached maximum size: reallocate blackboard 
+			 */
+			d->used = (char *) mem_double(d->used, (int) (d->size * sizeof(char)));
+			d->val = (char **) mem_double(d->val, (int) (d->size * sizeof(char *)));
+			d->key = (char **) mem_double(d->key, (int) (d->size * sizeof(char *)));
+			d->hash = (unsigned int *) mem_double(d->hash, (int) (d->size * sizeof(unsigned)));
+			for(i=d->size;  i<2*d->size; i++)
+				map_ii_set(&(d->iihash), i, 1);
+			d->size *= 2;
+		}
+
+		int j;
+		for (j = -1 ; (j = map_ii_next(&(d->iihash), j)) != -1 ; )
+		{
+			i = d->iihash.contents[j].key;
+			break;
+		}
+		assert(d->key[i] == NULL);
+
+		if (0){
+			/*
+			 * Insert key in the first empty slot 
+			 */
+			for (i = 0; i < d->size; i++) {
+				if (d->key[i] == NULL) {
 					/*
-					 * Found a value: modify and return 
+					 * Add key here 
 					 */
-					if (d->val[i] != NULL)
-						free(d->val[i]);
-					d->val[i] = val ? strdup(val) : NULL;
-					/*
-					 * Value has been modified: return 
-					 */
-					return;
+					break;
 				}
 			}
 		}
-	}
-	/*
-	 * Add a new value 
-	 */
-	/*
-	 * See if dictionary needs to grow 
-	 */
-	if (d->n == d->size) {
-
 		/*
-		 * Reached maximum size: reallocate blackboard 
+		 * Copy key 
 		 */
-		d->used = (char *) mem_double(d->used, (int) (d->size * sizeof(char)));
-		d->val = (char **) mem_double(d->val, (int) (d->size * sizeof(char *)));
-		d->key = (char **) mem_double(d->key, (int) (d->size * sizeof(char *)));
-		d->hash = (unsigned int *) mem_double(d->hash, (int) (d->size * sizeof(unsigned)));
-
-		/*
-		 * Double size 
-		 */
-		d->size *= 2;
+		d->key[i] = strdup(key);
+		d->val[i] = val ? strdup(val) : NULL;
+		d->hash[i] = hash;
+		d->used[i] = 0;
+		map_stri_set(&(d->strihash), d->key[i], i);
+		map_ii_remove(&(d->iihash), i);
+		
+		d->n++;
 	}
-
-	/*
-	 * Insert key in the first empty slot 
-	 */
-	for (i = 0; i < d->size; i++) {
-		if (d->key[i] == NULL) {
-			/*
-			 * Add key here 
-			 */
-			break;
-		}
-	}
-	/*
-	 * Copy key 
-	 */
-	d->key[i] = strdup(key);
-	d->val[i] = val ? strdup(val) : NULL;
-	d->hash[i] = hash;
-	d->used[i] = 0;
-	d->n++;
 	return;
 }
 
@@ -348,36 +347,21 @@ void dictionary_set(dictionary * d, char *key, char *val)
 void dictionary_unset(dictionary * d, char *key)
 {
 	unsigned hash;
-	int i;
+	int i, *ip;
 
 	if (key == NULL) {
 		return;
 	}
 
-	hash = dictionary_hash(key);
-	for (i = 0; i < d->size; i++) {
-		if (d->key[i] == NULL)
-			continue;
-		/*
-		 * Compare hash 
-		 */
-		if (hash == d->hash[i]) {
-			/*
-			 * Compare string, to avoid hash collisions 
-			 */
-			if (!strcmp(key, d->key[i])) {
-				/*
-				 * Found key 
-				 */
-				break;
-			}
-		}
-	}
-	if (i >= d->size)
-		/*
-		 * Key not found 
-		 */
+	ip = map_stri_ptr(&(d->strihash), key);
+
+	if (!ip)
 		return;
+
+	map_stri_remove(&(d->strihash),  key);
+
+	i = *ip;
+	map_ii_set(&(d->iihash), i, 1);
 
 	free(d->key[i]);
 	d->key[i] = NULL;
@@ -496,23 +480,25 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 	if (debug) {
 		printf("var is [%s]\n", var);
 	}
-	for (i = 0; i < d->size; i++) {
-		if (d->key[i]) {
-			if (debug)
-				printf("key[%1d] = %s\n", i, d->key[i]);
-			if (!strcasecmp(var, d->key[i])) {
-				if (debug) {
-					printf("replace [%s] with [%s]\n", d->key[i], d->val[i]);
-				}
 
-				*first = '\0';
-				GMRFLib_sprintf(&newstr, "%s%s%s", str, d->val[i], last);
-				if (debug) {
-					printf("new string [%s]\n", newstr);
-				}
-				return dictionary_replace_variables(d, newstr);
-			}
+	int *ip;
+	ip = map_stri_ptr(&(d->strihash), var);
+	if (ip) {
+		i = *ip;
+		if (debug) {
+			printf("replace [%s] with [%s]\n", d->key[i], d->val[i]);
 		}
+
+		*first = '\0';
+		GMRFLib_sprintf(&newstr, "%s%s%s", str, d->val[i], last);
+		if (debug) {
+			printf("new string [%s]\n", newstr);
+		}
+		return dictionary_replace_variables(d, newstr);
+
+	} else {
+		if (debug)
+			printf("var not in strhash...\n");
 	}
 
 	if (debug) {

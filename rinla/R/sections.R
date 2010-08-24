@@ -231,7 +231,7 @@
                 }
                 write(t(cbind(random.spec$Cmatrix$i, random.spec$Cmatrix$j, random.spec$Cmatrix$values)),
                       ncolumns=3,file=file.C,append=FALSE)
-                file.C = gsub(data.dir, "$DATADIR", file.C, fixed=TRUE)
+                file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
                 cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
             }
         }
@@ -324,7 +324,7 @@
     if(!is.null(inla.spec$diff.logdens)) 
         cat("diff.log.dens = ",inla.spec$diff.logdens,"\n", sep = " ", file = file,  append = TRUE)
     if(inla.spec$print.joint.hyper)
-        cat("fp.hyperparam = $RESDIR/joint.dat\n", sep = " ", file = file,  append = TRUE)
+        cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = " ", file = file,  append = TRUE)
     if(!is.null(inla.spec$tolerance)) {
         ## tolerance is a generic option, which sets 'all' tolerance to the given value
         cat("epsg = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
@@ -425,7 +425,7 @@
         file.cross = inla.tempfile(tmpdir=data.dir)
         predictor.spec$cross[is.na(predictor.spec$cross)] = 0
         write(predictor.spec$cross, ncol=1, file=file.cross)
-        fnm = gsub(data.dir, "$DATADIR", file.cross, fixed=TRUE)
+        fnm = gsub(data.dir, "$inladatadir", file.cross, fixed=TRUE)
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
     }
 
@@ -492,7 +492,7 @@
         stopifnot(sum(idx) >= n)
         
         write(t(cbind(Aext$i[idx], Aext$j[idx], Aext$values[idx])), ncolumns=3, file=file.A, append=FALSE)
-        file.A = gsub(data.dir, "$DATADIR", file.A, fixed=TRUE)
+        file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
         cat("precision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
     }
@@ -504,15 +504,15 @@
     function(file , data.dir, result.dir, hyperpar, dic, cpo, mlik, quantiles, smtp, q)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("DATADIR = ",data.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("RESDIR = ",result.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("#DATADIR = ",gsub("^.*/","",data.dir), "\n", sep = "", file = file,  append = TRUE) #
-    cat("#RESDIR = ", gsub("^.*/","",result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+    cat("inladatadir = ",data.dir, "\n", sep = "", file = file,  append = TRUE)
+    cat("inlaresdir = ",result.dir, "\n", sep = "", file = file,  append = TRUE)
+    cat("#inladatadir = ",gsub("^.*/","",data.dir), "\n", sep = "", file = file,  append = TRUE) #
+    cat("#inlaresdir = ", gsub("^.*/","",result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[Model]\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
-    cat("dir = $RESDIR\n", sep = " ", file = file,  append = TRUE)
+    cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("hyperparameters",hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
     inla.write.boolean.field("dic", dic, file)
@@ -587,7 +587,7 @@
         if (!is.null(args$x.mode) && length(args$x.mode) > 0) {
             file.x.mode = inla.tempfile(tmpdir=data.dir)
             write(args$x.mode, ncol=1, file=file.x.mode)
-            fnm = gsub(data.dir, "$DATADIR", file.x.mode, fixed=TRUE)
+            fnm = gsub(data.dir, "$inladatadir", file.x.mode, fixed=TRUE)
             cat("xmode =", fnm, "\n", file=file, append = TRUE)
         }
         inla.write.boolean.field("restart", args$restart, file)
@@ -608,7 +608,7 @@
 }
 
 `inla.lincomb.section` =
-    function(file, data.dir, contr, lincomb)
+    function(file, data.dir, contr, lincomb, use.one.file = "use.default.behaviour")
 {
     ## format is either
     ##
@@ -619,9 +619,26 @@
     ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2,3), weight = c(1,2)), ...), ...)
     ##       
 
+    ## if use.one.file = TRUE, then use one file for all lincombs and
+    ## the 'ENTRY keyword', otherwise, use one file for each lincomb.
+
     if (!is.null(lincomb)) {
+
+        ## I need this to be set upfront
+        fnm = NULL
+
+        ## if not set in the call, then do set it
+        if (missing(use.one.file)) {
+            use.one.file = (length(lincomb) > 50)
+        } else {
+            if (is.null(use.one.file) || !(use.one.file == TRUE || use.one.file == FALSE))
+                use.one.file = TRUE
+        }
+
         numlen = inla.numlen(length(lincomb))
+
         for(i in 1:length(lincomb)) {
+            
             if (is.null(names(lincomb[i])) || is.na(names(lincomb[i]))) {
                 secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
                 lc = lincomb[[i]]
@@ -640,22 +657,44 @@
                 cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$usermap))
                 cat("usermap = ", contr$usermap,"\n", sep = " ", file = file,  append = TRUE)
-            fnm = inla.tempfile(tmpdir=data.dir)
-            file.create(fnm)
+
+            if (use.one.file) {
+                ## create file if we havn't done already
+                if (is.null(fnm)) {
+                    fnm = inla.tempfile(tmpdir=data.dir)
+                    file.create(fnm)
+                }
+                ## use the ENTRY option, set option entry and add ENTRY to the file
+                cat("entry = ", secname, "\n", sep = "", file = file, append = TRUE)
+                cat("entryoffset = ", file.info(fnm)$size, "\n", sep="", file = file, append = TRUE)
+                cat("\nENTRY ", secname, "\n", sep= "", file = fnm, append = TRUE)
+            } else {
+                ## need new file for each lincomb
+                fnm = inla.tempfile(tmpdir=data.dir)
+                file.create(fnm)
+            }
+            
             if (is.character(lc)) {
                 write(lc, file=fnm)
             } else {
-                stopifnot(is.list(lc))
-                for(i in 1:length(lc)) {
-                    if (is.null(lc[[i]]$idx) && length(lc[[i]]$weight == 1)) {
-                        cat(c( names(lc)[i], c( 1, lc[[i]]$weight ), "\n"), file=fnm, append=TRUE)
+                for(j in 1:length(lc)) {
+                    lc.j.name = names(lc[[j]])
+                    lc.j = lc[[j]][[1]]
+
+                    ## if $idx is not there, its default 1.
+                    if (is.null(lc.j$idx) && length(lc.j$weight == 1)) {
+                        cat(c( lc.j.name, 1, lc.j$weight), "\n", file=fnm, append=TRUE)
                     } else {
-                        cat(c( names(lc)[i], c( rbind( lc[[i]]$idx, lc[[i]]$weight )), "\n"), file=fnm, append=TRUE)
+                        idx = lc.j$idx[ !is.na(lc.j$idx) ]
+                        weight = lc.j$weight[ !is.na(lc.j$weight) ]
+                        stopifnot(length(idx) == length(weight))
+                        cat(c( lc.j.name, c(rbind( idx, weight))), "\n", file=fnm, append=TRUE)
                     }
                 }
             }
-            fnm = gsub(data.dir, "$DATADIR", fnm, fixed=TRUE)
-            cat("filename = ", fnm, "\n", sep = " ", file = file, append = TRUE)
+
+            fnm.new = gsub(data.dir, "$inladatadir", fnm, fixed=TRUE)
+            cat("filename = ", fnm.new, "\n", sep = " ", file = file, append = TRUE)
         }
     }
 }
@@ -670,7 +709,7 @@
 
     fnm = inla.tempfile(tmpdir=data.dir)
     file.copy(filename, fnm, overwrite=TRUE)
-    return (gsub(data.dir, "$DATADIR", fnm, fixed=TRUE))
+    return (gsub(data.dir, "$inladatadir", fnm, fixed=TRUE))
 }
 
 `inla.copy.dir.for.section` =
@@ -680,7 +719,7 @@
     dir.create(d.fnm, recursive=TRUE)
     files.to.copy = paste(dir.name, "/", dir(dir.name, recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
-    return (gsub(data.dir, "$DATADIR", d.fnm, fixed=TRUE))
+    return (gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE))
 }
 
 `inla.copy.dir.for.section.spde` =
@@ -693,7 +732,7 @@
     dir.create(d.fnm, recursive=TRUE)
     files.to.copy = paste(dir.name, "/", dir(dir.name, pattern = paste("^", file.prefix, sep=""), recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
-    rdir = gsub(data.dir, "$DATADIR", d.fnm, fixed=TRUE)
+    rdir = gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE)
     rprefix = paste(rdir, "/", file.prefix, sep="")
     return (rprefix)
 }
@@ -725,13 +764,13 @@
         file.cov=inla.tempfile(tmpdir=data.dir)
         file.create(file.cov)
         write(t(cbind(ind,rep(0,n))),ncolumns=2,file=file.cov,append=FALSE)
-        file.cov = gsub(data.dir, "$DATADIR", file.cov, fixed=TRUE)
+        file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
         cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
 
         file.w=inla.tempfile(tmpdir=data.dir)
         file.create(file.w)
         write(t(cbind(ind,random.spec$Z[,k])),ncolumns=2,file=file.w,append=FALSE)
-        file.w = gsub(data.dir, "$DATADIR", file.w, fixed=TRUE)
+        file.w = gsub(data.dir, "$inladatadir", file.w, fixed=TRUE)
         cat("weights = ", file.w,"\n", sep = " ", file = file,  append = TRUE)
 
         if(only.hyperparam) 
