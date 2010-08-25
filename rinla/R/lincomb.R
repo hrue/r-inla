@@ -9,6 +9,7 @@
         arg = eval.parent(parse(text=arg[2]))
 
     f.arg = list()
+    f.arg[[ length(arg) ]] = list
     for(k in 1:length(arg)) {
         var = names(arg)[k]
         if (var != "") {
@@ -22,11 +23,14 @@
             }
         
             names(ff.arg) = var
-            f.arg = c(f.arg, ff.arg)
+            f.arg[[k]] = ff.arg
         }
     }
+    if (is.null(f.arg[[1]][[1]]))
+        f.arg[[1]] = NULL
+
     lc = list(f.arg)
-    names(lc) = "lc.default.name"
+    names(lc) = "lc"
     
     return (lc)
 }
