@@ -55,20 +55,29 @@
   {
     ## create files using fmesher
 
-    stopifnot(is.matrix(mesh$s))
-    n = nrow(mesh$s)
-    s.dim = ncol(mesh$s)
+    if (is.null(mesh) && is.null(prefix))
+      stop("At least one of mesh and prefix must be specified.")
+
+    if (is.null(mesh)) {
+      ## Need to know the size of the graph.
+      s = inla.read.fmesher.file(paste(prefix, "s", sep=""))
+      stopifnot(is.matrix(s))
+      n = nrow(s)
+      s.dim = ncol(s)
+    } else {
+      stopifnot(is.matrix(mesh$s))
+      n = nrow(mesh$s)
+      s.dim = ncol(mesh$s)
+    }
 
     if (s.dim==1)
       stop("1-D models not implemented yet.")
     stopifnot(s.dim>=2, s.dim<=3)
 
-    if (is.null(mesh) && is.null(prefix))
-      stop("At least one of mesh and prefix must be specified.")
-    
     prefix = inla.fmesher.make.prefix(NULL,prefix)
 
     if (!is.null(mesh)) {
+      stopifnot(is.matrix(mesh$tv))
       inla.write.fmesher.file(mesh$s, filename = paste(prefix, "s", sep=""))
       inla.write.fmesher.file(inla.affirm.integer(mesh$tv-1L),
                               filename = paste(prefix, "tv", sep=""))
