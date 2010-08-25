@@ -120,10 +120,12 @@
 
     ## Map locations to nodes, avoiding near-duplicates.
     node.coord = matrix(nrow=loc.n,ncol=loc.dim)
+    map.loc.to.node = rep(0,nrow=loc.n)
     excluded = c()
     loc.i = 1
     node.i.max = 1
     node.coord[node.i.max,] = locations[loc.i,]
+    map.loc.to.node[[loc.i]] = node.i.max
     for (loc.i in 2:loc.n) {
       loc.to.node.dist = 
         sqrt(rowSums((as.matrix(rep(1,node.i.max)) %*% locations[loc.i,] -
@@ -131,14 +133,14 @@
       if (min(loc.to.node.dist) > min.input.distance) {
         node.i.max = node.i.max+1
         node.coord[node.i.max,] = locations[loc.i,]
+        map.loc.to.node[[loc.i]] = node.i.max
       } else {
         excluded = c(excluded,loc.i)
       }
     } 
     ## Remove excess nodes.
     node.coord = node.coord[1:node.i.max,]
-    ## Identify nearest nodes.
-    map.loc.to.node = 1:loc.n
+    ## Identify nearest nodes for excluded locations.
     for (loc.i in excluded) {
       loc.to.node.dist = 
         sqrt(rowSums((as.matrix(rep(1,node.i.max)) %*% locations[loc.i,] -
