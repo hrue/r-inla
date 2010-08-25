@@ -58,6 +58,8 @@
     if (is.null(mesh) && is.null(prefix))
       stop("At least one of mesh and prefix must be specified.")
 
+    prefix = inla.fmesher.make.prefix(NULL,prefix)
+
     if (is.null(mesh)) {
       ## Need to know the size of the graph.
       s = inla.read.fmesher.file(paste(prefix, "s", sep=""))
@@ -73,8 +75,6 @@
     if (s.dim==1)
       stop("1-D models not implemented yet.")
     stopifnot(s.dim>=2, s.dim<=3)
-
-    prefix = inla.fmesher.make.prefix(NULL,prefix)
 
     if (!is.null(mesh)) {
       stopifnot(is.matrix(mesh$tv))
