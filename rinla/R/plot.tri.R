@@ -60,7 +60,7 @@
     Tx = S[tTV,1]
     Ty = S[tTV,2]
     Tz = S[tTV,3]
-    if (length(colors) == nrow(s))
+    if (length(colors) == nrow(S))
       ## One color per vertex
       Tcol = colors[tTV]
     else {
