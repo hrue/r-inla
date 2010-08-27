@@ -102,7 +102,8 @@
     } else if(inla.one.of(family,
                           c("binomial",
                             "zeroinflatedbinomial0",
-                            "zeroinflatedbinomial1"))) {
+                            "zeroinflatedbinomial1",
+                            "zeroinflatedbinomial2"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[,2])
         response = response[!null.dat,]
