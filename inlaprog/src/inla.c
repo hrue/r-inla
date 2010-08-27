@@ -1711,6 +1711,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL1) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
 	} else if (ds->data_id == L_NBINOMIAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
@@ -2659,6 +2662,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
+	double normc = gsl_sf_lnfact((unsigned int) y);
 
 	if (m > 0) {
 		/*
@@ -2670,35 +2674,44 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 			for (i = 0; i < m; i++) {
 				mu = E * exp(x[i] + OFFSET(idx));
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
-				if (mu / size > cutoff) {
-					/*
-					 * NegativeBinomial 
-					 */
-					p = size / (size + mu);
-					logll[i] = log(p_zeroinflated + (1.0 - p_zeroinflated) * gsl_ran_negative_binomial_pdf((unsigned int) y, p, size));
+
+				if (gsl_isnan(p_zeroinflated)){
+					logll[i] = -DBL_MAX;
 				} else {
-					/*
-					 * the Poission limit 
-					 */
-					logll[i] = log(p_zeroinflated + (1.0 - p_zeroinflated) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+					if (mu / size > cutoff) {
+						/*
+						 * NegativeBinomial 
+						 */
+						p = size / (size + mu);
+						logll[i] = log(p_zeroinflated + (1.0 - p_zeroinflated) * gsl_ran_negative_binomial_pdf((unsigned int) y, p, size));
+					} else {
+						/*
+						 * the Poission limit 
+						 */
+						logll[i] = log(p_zeroinflated + (1.0 - p_zeroinflated) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+					}
 				}
 			}
 		} else {
 			for (i = 0; i < m; i++) {
 				mu = E * exp(x[i] + OFFSET(idx));
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
-				if (mu / size > cutoff) {
-					/*
-					 * NegativeBinomial 
-					 */
-					p = size / (size + mu);
-					logll[i] = log(1.0 - p_zeroinflated) + lnorm + size * log(p) + y * log(1.0 - p);
+				if (gsl_isnan(p_zeroinflated)){
+					logll[i] = -DBL_MAX;
 				} else {
-					/*
-					 * the Poission limit 
-					 */
-					logll[i] = log(1.0 - p_zeroinflated) +
-					    y * ((x[i] + OFFSET(idx)) + log(E)) - E * exp(x[i] + OFFSET(idx)) - gsl_sf_lnfact((unsigned int) y);
+					if (mu / size > cutoff) {
+						/*
+						 * NegativeBinomial 
+						 */
+						p = size / (size + mu);
+						logll[i] = log(1.0 - p_zeroinflated) + lnorm + size * log(p) + y * log(1.0 - p);
+					} else {
+						/*
+						 * the Poission limit 
+						 */
+						logll[i] = log(1.0 - p_zeroinflated) +
+							y * ((x[i] + OFFSET(idx)) + log(E)) - E * exp(x[i] + OFFSET(idx)) - normc;
+					}
 				}
 			}
 		}
@@ -2720,6 +2733,12 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 			}
 		}
 	}
+
+	for(i = 0; i < IABS(m); i++){
+		if (gsl_isinf(logll[i]))
+			logll[i] = FLT_MAX * gsl_isinf(logll[i]);
+	}
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2855,6 +2874,76 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 			}
 		}
 	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * zeroinflated Binomial : y ~ prob*1[y=0] + (1-prob)*Binomial(n, p), where logit(p) = x, and prob = 1-p^alpha.
+	 */
+#define PROB(xx) (exp(xx)/(1.0+exp(xx)))
+#define PZERO(xx) (1.0-pow(PROB(xx), alpha))
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],  pzero, p,  
+		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	if ((int) y == 0) {
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				pzero = PZERO(x[i] + OFFSET(idx));
+				p = PROB(x[i] + OFFSET(idx));
+				if (gsl_isinf(pzero) || gsl_isinf(p)){
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+				}
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				pzero = PZERO(x[i] + OFFSET(idx));
+				p = PROB(x[i] + OFFSET(idx));
+				if (gsl_isinf(pzero) || gsl_isinf(p)){
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+				}
+			}
+		}
+	} else {
+		gsl_sf_result res;
+		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				pzero = PZERO(x[i] + OFFSET(idx));
+				p = PROB(x[i] + OFFSET(idx));
+				if (gsl_isinf(pzero) || gsl_isinf(p)){
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+				}
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				pzero = PZERO(x[i] + OFFSET(idx));
+				p = PROB(x[i] + OFFSET(idx));
+				if (gsl_isinf(pzero) || gsl_isinf(p)){
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+				}
+			}
+		}
+	}
+
+#undef PZERO
+#undef PROB	
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4887,6 +4976,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial1;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL1;
 		ds->predictor_linkfunc = link_logit;
+	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial2;
+		ds->data_id = L_ZEROINFLATEDBINOMIAL2;
+		ds->predictor_linkfunc = link_logit;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_negative_binomial;
 		ds->data_id = L_NBINOMIAL;
@@ -5006,7 +5099,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
-	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1) {
+	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
+		   ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
 		for (i = 0; i < mb->predictor_n; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -5975,6 +6069,50 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern Zero-Probability parameter for zero-inflated Poisson_2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Zero-Probability parameter for zero-inflated Poisson_2", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
+			mb->theta_usermap[mb->ntheta] = um;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
+		/*
+		 * get options related to the ZEROINFLATEDBINOMIAL2
+		 */
+		double initial_value = log(2.0);
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zeroinflated_alpha_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
+		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
+		if (mb->verbose && um) {
+			printf("\t\tusermap=[%s]\n", um->name);
+		}
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern Zero-Probability parameter for zero-inflated Binomial_2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Zero-Probability parameter for zero-inflated Binomial_2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
@@ -10459,6 +10597,16 @@ double extra(double *theta, int ntheta, void *argument)
 				if (!ds->data_fixed) {
 					/*
 					 * this is the probability-parameter in the zero-inflated Poisson_2
+					 */
+					double alpha_intern = theta[count];
+
+					val += ds->data_prior.priorfunc(&alpha_intern, ds->data_prior.parameters);
+					count++;
+				}
+			} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
+				if (!ds->data_fixed) {
+					/*
+					 * this is the probability-parameter in the zero-inflated Binomial_2
 					 */
 					double alpha_intern = theta[count];
 
