@@ -436,7 +436,7 @@ double *inla_matrix_get_diagonal(inla_matrix_tp *M)
 	*/
 
 	double *diag = NULL;
-	int i, j, k;
+	int i, k;
 	
 	if (M) {
 		if (M->nrow != M->ncol) {
@@ -449,7 +449,7 @@ double *inla_matrix_get_diagonal(inla_matrix_tp *M)
 			diag = Calloc(M->nrow, double);
 			if (M->A){
 				for(i=0; i<M->nrow; i++)
-					diag[i] = M->A[ i + j * M->nrow ];
+					diag[i] = M->A[ i + i * M->nrow ];
 			} else {
 				for(k=0; k<M->elems; k++) {
 					if (M->i[k] == M->j[k])
