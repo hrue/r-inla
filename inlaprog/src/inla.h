@@ -200,6 +200,7 @@ typedef enum {
 	L_BINOMIAL,
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
+	L_ZEROINFLATEDBINOMIAL2,
 	L_NBINOMIAL,
 	L_ZEROINFLATEDNBINOMIAL0,
 	L_ZEROINFLATEDNBINOMIAL1,
@@ -854,6 +855,7 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
