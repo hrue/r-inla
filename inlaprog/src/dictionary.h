@@ -85,7 +85,6 @@ __BEGIN_DECLS
 
 	char **key;			/** List of string keys */
 
-	unsigned *hash;			/** List of hash values for keys */
 } dictionary;
 
 /*---------------------------------------------------------------------------

@@ -169,7 +169,6 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, inla_matrix_tp *ba
 {
 	double ***theta, *hold;
 	int i, j;
-	char *msg;
 
 	theta_model->ntheta = basis->ncol;
 	assert(theta_model->ntheta > 0);
@@ -253,7 +252,7 @@ int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp 
 }
 int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 {
-	int n, n2, i, j;
+	int n, i, j;
 	inla_spde_tp *model;
 	char *fnm;
 	inla_matrix_tp *M;

@@ -9856,7 +9856,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * parse section = INLA 
 	 */
-	int si, i, j, k;
+	int i, j, k;
 	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL, *default_int_strategy = NULL, *defname = NULL, *r, *ctmp;
 	double tmp, tmp_ref;
 
@@ -14142,18 +14142,6 @@ int inla_endian(void)
 }
 int testit(void)
 {
-	map_stri stri;
-
-	map_stri_init(&stri);
-	map_stri_set(&stri,  "a",  1);
-	map_stri_set(&stri,  "b",  1);
-	map_stri_set(&stri,  NULL,  1);
-
-	printf("a %d\n", map_stri_ptr(&stri,  "a"));
-	printf("b %d\n", map_stri_ptr(&stri,  "b"));
-	printf("c %d\n", map_stri_ptr(&stri,  "c"));
-	printf("c %d\n", map_stri_ptr(&stri,  NULL));
-
 	return 0;
 }
 int inla_divisible(int n, int by)

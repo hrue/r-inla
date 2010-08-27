@@ -103,7 +103,6 @@ dictionary *dictionary_new(int size)
 	d->used = (char *) calloc((size_t) size, sizeof(char));
 	d->val = (char **) calloc((size_t) size, sizeof(char *));
 	d->key = (char **) calloc((size_t) size, sizeof(char *));
-	d->hash = (unsigned int *) calloc((size_t) size, sizeof(unsigned));
 	map_stri_init_hint(&(d->strihash), (size_t) size);
 	map_ii_init_hint(&(d->iihash), (size_t) size);
 
@@ -135,7 +134,6 @@ void dictionary_del(dictionary * d)
 	}
 	free(d->val);
 	free(d->key);
-	free(d->hash);
 	free(d->used);
 	map_stri_free(&(d->strihash));
 	map_ii_free(&(d->iihash));
@@ -158,7 +156,6 @@ void dictionary_del(dictionary * d)
  */
 char *dictionary_get(dictionary * d, char *key, char *def)
 {
-	unsigned hash;
 	int i, *ip;
 	
 	ip = map_stri_ptr(&(d->strihash), key);
@@ -260,9 +257,7 @@ double dictionary_getdouble(dictionary * d, char *key, double def)
  */
 void dictionary_set(dictionary * d, char *key, char *val)
 {
-	int i, *ip;
-
-	unsigned hash;
+	int i=0, *ip=NULL;
 
 	if (d == NULL || key == NULL)
 		return;
@@ -293,7 +288,6 @@ void dictionary_set(dictionary * d, char *key, char *val)
 			d->used = (char *) mem_double(d->used, (int) (d->size * sizeof(char)));
 			d->val = (char **) mem_double(d->val, (int) (d->size * sizeof(char *)));
 			d->key = (char **) mem_double(d->key, (int) (d->size * sizeof(char *)));
-			d->hash = (unsigned int *) mem_double(d->hash, (int) (d->size * sizeof(unsigned)));
 			for(i=d->size;  i<2*d->size; i++)
 				map_ii_set(&(d->iihash), i, 1);
 			d->size *= 2;
@@ -325,7 +319,6 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		 */
 		d->key[i] = strdup(key);
 		d->val[i] = val ? strdup(val) : NULL;
-		d->hash[i] = hash;
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);
@@ -346,9 +339,8 @@ void dictionary_set(dictionary * d, char *key, char *val)
  */
 void dictionary_unset(dictionary * d, char *key)
 {
-	unsigned hash;
 	int i, *ip;
-
+	
 	if (key == NULL) {
 		return;
 	}
@@ -369,7 +361,6 @@ void dictionary_unset(dictionary * d, char *key)
 		free(d->val[i]);
 		d->val[i] = NULL;
 	}
-	d->hash[i] = 0;
 	d->used[i] = 0;
 	d->n--;
 	return;
