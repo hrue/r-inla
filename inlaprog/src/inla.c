@@ -2882,7 +2882,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	 * zeroinflated Binomial : y ~ prob*1[y=0] + (1-prob)*Binomial(n, p), where logit(p) = x, and prob = 1-p^alpha.
 	 */
 #define PROB(xx) (exp(xx)/(1.0+exp(xx)))
-#define PZERO(xx) (1.0-pow(PROB(xx), alpha))
+#define PROBZERO(xx) (1.0-pow(PROB(xx), alpha))
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -2896,7 +2896,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
-				pzero = PZERO(x[i] + OFFSET(idx));
+				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)){
 					logll[i] = -DBL_MAX;
@@ -2906,7 +2906,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
-				pzero = PZERO(x[i] + OFFSET(idx));
+				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)){
 					logll[i] = -DBL_MAX;
@@ -2921,7 +2921,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
-				pzero = PZERO(x[i] + OFFSET(idx));
+				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)){
 					logll[i] = -DBL_MAX;
@@ -2931,7 +2931,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
-				pzero = PZERO(x[i] + OFFSET(idx));
+				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)){
 					logll[i] = -DBL_MAX;
@@ -2942,7 +2942,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 		}
 	}
 
-#undef PZERO
+#undef PROBZERO
 #undef PROB	
 	return GMRFLib_SUCCESS;
 }
