@@ -1,4 +1,4 @@
-`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL,
+`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL, color.n=512,
   color.palette = cm.colors, color.truncate=FALSE, lwd = 1, specular = "black", ...)
 {
     ## Make indices 1 based.  Deprecated and will be deactivated.
@@ -25,9 +25,8 @@
       cs[not.ok] = 0.5
       alpha = as.numeric(!not.ok)
 
-      ncolors = 512
-      ics = as.numeric(cut(cs, ncolors))
-      colors = color.palette(ncolors)[ics]
+      ics = as.numeric(cut(cs, color.n))
+      colors = color.palette(color.n)[ics]
 
       ## Todo: handle alpha, combining "input alpha" with "not.ok-alpha"
     } else if (is.matrix(color) && (ncol(color)==3)) {
