@@ -52,7 +52,7 @@ inla.models = function()
                                  n.div.by = NULL, n.required = FALSE, set.default.values = FALSE),
                          spde = list(ntheta = 4, theta = c("theta.T", "theta.K", "theta.TK", "theta.OC"), nparameters = 8, npriors = 4,
                                  constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = NULL,
-                                 n.div.by = NULL, n.required = FALSE, set.default.values = FALSE),
+                                 n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
                          iid1d = list(ntheta = 1, theta = "precision", nparameters = 2, npriors = 1,
                                  constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = NULL,
                                  n.div.by = NULL, n.required = FALSE, set.default.values = FALSE),
