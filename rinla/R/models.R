@@ -49,7 +49,7 @@ inla.models = function()
                                  n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
                          sphere = list(ntheta = 4, theta = c("theta.T", "theta.K", "theta.TK", "theta.OC"), nparameters = 8, npriors = 4,
                                  constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = NULL,
-                                 n.div.by = NULL, n.required = FALSE, set.default.values = FALSE),
+                                 n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
                          spde = list(ntheta = 4, theta = c("theta.T", "theta.K", "theta.TK", "theta.OC"), nparameters = 8, npriors = 4,
                                  constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = NULL,
                                  n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
