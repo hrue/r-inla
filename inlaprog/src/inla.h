@@ -694,6 +694,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_fnmfix(char *name);
 char *inla_make_tag(const char *string, int ds);
 const char *inla_string_join(const char *a, const char *b);
+double Qfunc_2diid_wishart(int i, int j, void *arg);
 double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
