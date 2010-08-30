@@ -2349,7 +2349,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 
 	for(i = 0; i < IABS(m); i++){
 		if (gsl_isinf(logll[i]))
-			logll[i] = FLT_MAX * gsl_isinf(logll[i]);
+			logll[i] = ((double)FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
 #undef PROB
@@ -2736,7 +2736,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 
 	for(i = 0; i < IABS(m); i++){
 		if (gsl_isinf(logll[i]))
-			logll[i] = FLT_MAX * gsl_isinf(logll[i]);
+			logll[i] = ((double)FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -9230,7 +9230,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * add groups! 
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), "EXCHANGEABLE"));
+			ptmp = GMRFLib_strdup("EXCHANGEABLE");
+			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), ptmp));
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUPMODEL"), ptmp));
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
 				mb->f_group_model[mb->nf] = G_EXCHANGEABLE;
@@ -10418,7 +10419,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double log_precision = theta[count];
+					log_precision = theta[count];
 
 					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
 					count++;
