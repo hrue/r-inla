@@ -4261,21 +4261,44 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
+GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w)
+{
+	int i, k, n;
+	GMRFLib_lc_tp *lc;
+
+	for(i=n=0; i<len; i++)
+		n += (w[i] != 0.0);
+
+	if (n == 0)
+		return NULL;
+
+	lc = Calloc(1, GMRFLib_lc_tp);
+	lc->n = n;
+	lc->idx = Calloc(n, int);
+	lc->weight = Calloc(n, float);
+
+	for(i=k=0; i<len; i++){
+		if (w[i] != 0.0){
+			lc->idx[k] = i;
+			lc->weight[k] = (float) w[i];
+			k++;
+		}
+	}
+	assert(k == n);
+
+	return lc;
+}
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 {
-#define IDX_FIX(idx) (c_indexing ? (idx) : (idx)-1)
-
 	/*
-	 * parse section = LINCOMB
+	 * parse section = LINCOMB. Here we assume the binary files are written by Rinla, so they are index-1 based!!!!!
 	 */
-	int debug = 0, *ip = NULL, offset = -1, idx, fail, n = -1, first_time = 1, nnz = 0, *visited = NULL,
-		**visited_idx = NULL, i, j, offset_i = -1, idx_from, idx_to, idx_range, use_entry, c_indexing = 1;
-	size_t entryoffset = 0;
-	double w, **visited_w = NULL;
-	char *filename = NULL, *secname = NULL, *ptr = NULL, *msg = NULL, *entry = NULL;
+	int *ip = NULL, num_sections, sec_no, n, npairs, debug=0, offset, i;
+	size_t fileoffset = 0;
+	char *filename = NULL, *secname = NULL, *ptr = NULL, *msg = NULL;
 	GMRFLib_io_tp *io = NULL;
-	GMRFLib_error_handler_tp *old_handler = NULL;
-
+	GMRFLib_lc_tp *lc = NULL;
+	
 	mb->lc_tag = Realloc(mb->lc_tag, mb->nlc + 1, char *);
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
@@ -4291,278 +4314,120 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	if (!filename) {
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, "filename");
 	}
-	entry = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ENTRY"), NULL));
-	entryoffset = (size_t) iniparser_getdouble(ini, inla_string_join(secname, "ENTRYOFFSET"), 0.0);
+	fileoffset = (size_t) iniparser_getdouble(ini, inla_string_join(secname, "FILE.OFFSET"), 0.0);
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		if (entry){
-			printf("\t\tentry [%s]\n", entry);
-			printf("\t\tentryoffset [%20g]\n", (double)entryoffset);
-		}
-	}
-
-	c_indexing = iniparser_getboolean(ini, inla_string_join(secname, "C.INDEXING"), 1);
-	if (mb->verbose) {
-		printf("\t\tc.indexing [%d]\n", c_indexing);
+		printf("\t\tfile.offset [%g]\n", (double)fileoffset);
 	}
 
 	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e9);
 	if (mb->verbose) {
 		printf("\t\tprecision [%g]\n", mb->lc_prec[mb->nlc]);
 	}
-	mb->lc_w = Realloc(mb->lc_w, mb->nlc + 1, double *);
-	mb->lc_w[mb->nlc] = Calloc(mb->idx_ntot, double);
 
 	mb->lc_usermap[mb->nlc] = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
 	if (mb->verbose && mb->lc_usermap[mb->nlc]) {
 		printf("\t\tusermap=[%s]\n", mb->lc_usermap[mb->nlc]->name);
 	}
 
-	if (mb->verbose) {
-		visited = Calloc(mb->idx_tot, int);
-		visited_idx = Calloc(mb->idx_tot, int *);
-		visited_w = Calloc(mb->idx_tot, double *);
-		for (i = 0; i < mb->idx_tot; i++) {
-			visited_idx[i] = Calloc(PREVIEW, int);
-			visited_w[i] = Calloc(PREVIEW, double);
-		}
+	// FORMAT:: se section.R in Rinla...
+
+	GMRFLib_io_open(&io, filename, "rb");
+	if (fileoffset > 0)
+		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
+
+	if (mb->verbose){
+		printf("\t\tOpen file [%s] at location [%g]\n", filename, (double)fileoffset);
 	}
 
-	/*
-	 * The format of the lincomb-file is
-	 * 
-	 * TAG IDX W : TAG IDX W :
-	 * 
-	 * The format
-	 * 
-	 * IDXFROM:IDXTO W
-	 * 
-	 * is a macro for
-	 * 
-	 * IDXFROM W IDXFROM+1 W ... IDXTO W
-	 *
-	 * ALL is a macro for 0:(n-1) where n = lenght(TAG)
-	 *
-	 * FEATURE: with same index repeated the the weights are added.
-	 *
-	 *
-	 * ENTRY <name>  define an entry which is read until next ENTRY or EOF
-	 */
-
-	GMRFLib_io_open(&io, filename, "r");
-	if (entryoffset > 0)
-		GMRFLib_io_seek(io, entryoffset, SEEK_SET);
-
-	old_handler = GMRFLib_set_error_handler_off();	       /* we need to turn this off to control the EOF... */
-	use_entry = (entry ? 1 : 0);			       /* if ENTRY then look for this one first */
-
-	if (use_entry) {
-		do {
-			/*
-			 * look for ENTRY <entry> and then read from there 
-			 */
-			GMRFLib_io_next_token(&ptr, io);
-			//printf("READ %s\n", ptr);
-			if (ptr) {
-				if (!strcasecmp(ptr, "ENTRY")) {
-					/*
-					 * got it! is this the one we are looking for? 
-					 */
-					GMRFLib_io_next_token(&ptr, io);
-					if (!strcasecmp(ptr, entry)) {
-						if (debug)
-							printf("\t\tgot it! found entry %s\n", entry);
-						use_entry = 0;
-					} else {
-						/*
-						 * no! keep looking! 
-						 */
-					}
-				} else {
-					/*
-					 * keep looking! 
-					 */
-				}
-			} else {
-				GMRFLib_sprintf(&msg, "Section[%s]: do not find ENTRY[%s] in file[%s].", secname, entry, filename);
-				inla_error_general(msg);
-				break;
-			}
-		} while (use_entry);
+	GMRFLib_io_read(io, &num_sections, sizeof(int));
+	if (mb->verbose){
+		printf("\t\tNumber of sections [%d]\n", num_sections);
 	}
 
-	do {
-		GMRFLib_io_next_token(&ptr, io);
-		if (!ptr) {
-			/*
-			 * leave here 
-			 */
-			break;
-		}
-		if (debug) {
-			printf("token [%s]\n", ptr);
-		}
+	lc = Calloc(1, GMRFLib_lc_tp);
+	lc->n = 0;
+	lc->idx = NULL;
+	lc->weight = NULL;
+	
+	for(sec_no = 0; sec_no < num_sections; sec_no++) {
 
-		if (entry) {
-			if (!strcasecmp(ptr, "ENTRY")) {
-				if (debug) {
-					printf("\t\tfound key ENTRY, stop reading\n");
-				}
-				break;
-			}
-		}
+		int len;
 
-		/*
-		 * if this is the first check, then it has to be a valid tag 
-		 */
+		GMRFLib_io_read(io, &len, sizeof(int));
+		ptr = Calloc(len+1, char);
+		GMRFLib_io_read(io, ptr, len+1);	       /* includes trailing \0 */
+		if (mb->verbose){
+			printf("\t\t\tSection [%1d] is named [%s]\n", sec_no, ptr);
+		}
 		ip = map_stri_ptr(&(mb->idx_hash), ptr);
-		if (first_time && !ip) {
-			GMRFLib_sprintf(&msg, "Section[%s]: first entry in the file[%s] must be a valid tag and [%s] is not", secname, filename, ptr);
+		if (!ip) {
+			GMRFLib_sprintf(&msg, "Section no [%1d] named [%s] in file [%1d] offset[%g] is unknown.", sec_no, ptr, filename,  fileoffset);
+			GMRFLib_io_close(io);
 			inla_error_general(msg);
 		}
-		first_time = 0;
+		Free(ptr);
 
-		if (ip) {
-			offset = mb->idx_start[*ip];
-			offset_i = *ip;
-			n = mb->idx_n[*ip];
-			if (debug) {
-				printf("\t\tnew offset [%s] %d %d\n", mb->idx_tag[*ip], offset, n);
-			}
-		} else {
-			/*
-			 * then this must be an legal index 
-			 */
-			if (offset < 0) {
-				/*
-				 * offset is not initialised, this is required! 
-				 */
-				GMRFLib_sprintf(&msg, "Section[%s]: No tag is specified reading file[%s]: this is required!", secname, filename);
-				inla_error_general(msg);
-			}
+		offset = mb->idx_start[*ip];
+		n = mb->idx_n[*ip];
 
-			/*
-			 * read the index's trying I:J first. `ALL' is a macro for all the indices for this tag. 
-			 */
-			if (strcasecmp(ptr, "ALL") == 0) {
-				idx_from = 0;
-				idx_to = n - 1;
-				idx_range = 1;
-			} else {
-				if (inla_sread_colon_ints(&idx_from, &idx_to, ptr) == INLA_OK) {
-					idx_range = 1;
-					if (!LEGAL(IDX_FIX(idx_from), n)) {
-						GMRFLib_sprintf(&msg,
-								"Section[%s] filename[%s] line[%1d] token[%1d]: (colon) Illegal index %d: must be between 0 and %1d",
-								secname, filename, io->lines_read, io->tokens_read, IDX_FIX(idx_from), n);
-						inla_error_general(msg);
-					}
-					if (!LEGAL(IDX_FIX(idx_to), n)) {
-						GMRFLib_sprintf(&msg,
-								"Section[%s] filename[%s] line[%1d] token[%1d]: (colon) Illegal index %d: must be between 0 and %1d",
-								secname, filename, io->lines_read, io->tokens_read, IDX_FIX(idx_to), n);
-						inla_error_general(msg);
-					}
-				} else {
-					idx_range = 0;
-				}
-			}
+		if (mb->verbose)
+			printf("\t\t\tSection has offset=[%1d] and n=[%1d]\n", offset, n);
 
-			if (!idx_range) {
-				fail = inla_sread_ints(&idx, 1, ptr);
-				if (fail) {
-					GMRFLib_sprintf(&msg,
-							"Section[%s] filename[%s] line[%1d] token[%1d]: This is not an integer [%s]",
-							secname, filename, io->lines_read, io->tokens_read, ptr);
-					inla_error_general(msg);
-				}
+		GMRFLib_io_read(io, &npairs, sizeof(int));
+		assert(npairs >= 0);
 
-				if (!LEGAL(IDX_FIX(idx), n)) {
-					GMRFLib_sprintf(&msg,
-							"Section[%s] filename[%s] line[%1d] token[%1d]: Illegal index %d: must be between 0 and %1d",
-							secname, filename, io->lines_read, io->tokens_read, IDX_FIX(idx), n);
-					inla_error_general(msg);
-				}
-			}
+		if (mb->verbose){
+			printf("\t\t\tnpairs=[%1d]\n",  npairs);
+		}
 
-			GMRFLib_io_next_token(&ptr, io);
-			fail = inla_sread_doubles(&w, 1, ptr);
-			if (fail) {
-				GMRFLib_sprintf(&msg, "Section[%s] filename[%s] line[%1d] token[%1d]: This is not an double [%s]",
-						secname, filename, io->lines_read, io->tokens_read, ptr);
-				inla_error_general(msg);
-			}
+		int *idx = Calloc(npairs, int);
+		double *w = Calloc(npairs, double);
 
-			if (idx_range) {
-				if (0) {
-					printf("set idx from %d to %d to %g\n", idx_from, idx_to, w);
-				}
-				for (idx = idx_from; idx <= idx_to; idx++) {
-					mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] += w;
-				}
-			} else {
-				mb->lc_w[mb->nlc][IDX_FIX(idx) + offset] += w;
-			}
+		GMRFLib_io_read(io, idx, npairs*sizeof(int));
+		lc->idx = Realloc(lc->idx, lc->n + npairs, int);
+		for(i=0; i<npairs; i++){
+			lc->idx[lc->n + i] = (idx[i]-1) + offset; /*  `-1': convert to C-indexing */
+		}
+		
+		GMRFLib_io_read(io, w, npairs*sizeof(double));
+		lc->weight = Realloc(lc->weight, lc->n + npairs, float); /* YES! */
+		for(i=0; i<npairs; i++){
+			lc->weight[lc->n + i] = (float) w[i];
+		}
 
-			if (mb->verbose) {
-				if (visited[offset_i] < PREVIEW) {
-					visited_idx[offset_i][visited[offset_i]] = IDX_FIX(idx);
-					visited_w[offset_i][visited[offset_i]] = w;
-				}
-				visited[offset_i]++;
-			}
-			if (debug) {
-				printf("\t\tidx %d offset %d n %d w %f\n", IDX_FIX(idx), offset, n, w);
-			}
-			if (w) {
-				nnz++;
+		Free(idx);
+		Free(w);
+
+		if (debug){
+			for(i=0; i<npairs; i++){
+				printf("\t\t\t\tC.idx+offset [%1d] weight [%g]\n", lc->idx[ lc->n + i ],  lc->weight[ lc->n + i ]);
 			}
 		}
-	} while (1);
-
-	GMRFLib_set_error_handler(old_handler);
+		lc->n += npairs;
+	}
 	GMRFLib_io_close(io);
 
-	if (!nnz) {
-		GMRFLib_sprintf(&msg, "Section[%s] filename[%s]: none or only zero weights are specified!", secname, filename);
-		inla_error_general(msg);
-	}
 	if (mb->verbose) {
-		printf("\t\tRead linear combination from file[%s]: %1d non-zero weights\n", filename, nnz);
-		printf("\t\t\t%-30s %10s %10s\n", "tag", "index", "weight");
-		for (i = 0; i < mb->idx_tot; i++) {
-			if (visited[i]) {
-				for (j = 0; j < IMIN(PREVIEW, visited[i]); j++) {
-					printf("\t\t\t%-30s %10d %10g\n", mb->idx_tag[i], visited_idx[i][j], visited_w[i][j]);
-				}
-				Free(visited_idx[i]);
-				Free(visited_w[i]);
-			}
+		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
+	}
+
+	/* 
+	   sort them with increasing idx's (and carry the weights along) to speed things up later on.
+	*/
+	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, NULL, GMRFLib_icmp);
+	if (mb->verbose) {
+		printf("\t\tLincomb =    idx\tweight\n");
+		for (i = 0; i < IMIN(lc->n, PREVIEW); i++) {
+			printf("\t\t\t%6d \t\t%.10f\n", lc->idx[i], lc->weight[i]);
 		}
-		Free(visited);
-		Free(visited_idx);
-		Free(visited_w);
 	}
-
-	if (debug) {
-		for (j = 0; j < mb->idx_ntot; j++)
-			printf("lc[%d] = %g\n", j, mb->lc_w[mb->nlc][j]);
-	}
-	if (mb->Alc) {
-		assert(mb->nlc > 0);
-		mb->Alc = Realloc(mb->Alc, (mb->nlc + 1) * mb->idx_ntot, double);
-		memcpy(&(mb->Alc[mb->nlc * mb->idx_ntot]), mb->lc_w[mb->nlc], mb->idx_ntot * sizeof(double));
-	} else {
-		assert(mb->nlc == 0);
-		mb->Alc = Calloc(mb->idx_ntot, double);
-		memcpy(&(mb->Alc[mb->nlc * mb->idx_ntot]), mb->lc_w[mb->nlc], mb->idx_ntot * sizeof(double));
-	}
-
+	mb->lc_lc = Realloc(mb->lc_lc, (mb->nlc + 1) , GMRFLib_lc_tp *);
+	mb->lc_lc[mb->nlc] = lc;
 	inla_parse_output(mb, ini, sec, &(mb->lc_output[mb->nlc]));
 	mb->nlc++;
 
-#undef IDX_FIX
 	return INLA_OK;
 }
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
@@ -11705,7 +11570,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 }
 int inla_INLA(inla_tp * mb)
 {
-	double *c = NULL, *x = NULL, *b = NULL, *Alc = NULL;
+	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count;
 	char *compute = NULL;
 
@@ -11716,7 +11581,7 @@ int inla_INLA(inla_tp * mb)
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_w, mb->lc_prec);
+			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
 		printf("\tSize of full graph=[%1d]\n", N);
@@ -11868,16 +11733,10 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 
-	if (mb->nlc) {
-		Alc = Calloc(mb->nlc * N, double);
-		for (i = 0; i < mb->nlc; i++) {
-			memcpy(&Alc[i * N], &(mb->Alc[i * mb->idx_ntot]), mb->idx_ntot * sizeof(double));
-		}
-	}
-
 	/*
 	 * Finally, let us do the job...
 	 */
+
 	GMRFLib_ai_INLA(&(mb->density),
 			&(mb->gdensity),
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -11890,11 +11749,10 @@ int inla_INLA(inla_tp * mb)
 			x, b, c, NULL, mb->d,
 			loglikelihood_inla, (void *) mb, NULL,
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store, inla_all_offset, (void *) mb,
-			mb->nlc, Alc, &(mb->density_lin), &(mb->misc_output));
+			mb->nlc, mb->lc_lc, &(mb->density_lin), &(mb->misc_output));
 
 
 	GMRFLib_free_ai_store(ai_store);
-	Free(Alc);
 	Free(b);
 	Free(c);
 	Free(compute);
@@ -11918,12 +11776,14 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			    (const char *) mb_old->predictor_Aext_fnm, mb_old->predictor_Aext_precision,
 			    mb_old->nf, mb_old->f_c, mb_old->f_weights, mb_old->f_graph, mb_old->f_Qfunc, mb_old->f_Qfunc_arg, mb_old->f_sumzero, mb_old->f_constr,
 			    mb_old->ff_Qfunc, mb_old->ff_Qfunc_arg,
-			    mb_old->nlinear, mb_old->linear_covariate, mb_old->linear_precision, mb_old->nlc, mb_old->lc_w, mb_old->lc_prec);
+			    mb_old->nlinear, mb_old->linear_covariate, mb_old->linear_precision,
+			    (mb_old->lc_derived_only ? 0 : mb_old->nlc), mb_old->lc_lc, mb_old->lc_prec);
 	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, mb_new->predictor_cross_sumzero, NULL, mb_new->predictor_log_prec,
 			    (const char *) mb_new->predictor_Aext_fnm, mb_new->predictor_Aext_precision,
 			    mb_new->nf, mb_new->f_c, mb_new->f_weights, mb_new->f_graph, mb_new->f_Qfunc, mb_new->f_Qfunc_arg, mb_new->f_sumzero, mb_new->f_constr,
 			    mb_new->ff_Qfunc, mb_new->ff_Qfunc_arg,
-			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision, mb_new->nlc, mb_new->lc_w, mb_new->lc_prec);
+			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision, 
+			    (mb_new->lc_derived_only ? 0 : mb_new->nlc), mb_new->lc_lc, mb_new->lc_prec);
 
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb_new->hgmrfm->Qfunc_arg)->N;
 	assert(N == ((GMRFLib_hgmrfm_arg_tp *) mb_old->hgmrfm->Qfunc_arg)->N);	/* just a check */

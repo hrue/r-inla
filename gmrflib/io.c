@@ -385,7 +385,7 @@ int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, unsigned int len)
+int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
 {
 	/*
 	 * binary: read the next LEN bytes into BUF 
@@ -393,7 +393,7 @@ int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, unsigned int len)
 	unsigned int nr;
 
 	if (io && len) {
-		nr = gzread(io->fp, buf, len);
+		nr = gzread(io->fp, buf, (unsigned int) len);
 		if (nr != len) {
 			return GMRFLib_io_error(io, GMRFLib_IO_ERR_READBYTES);
 		} else {
@@ -402,7 +402,7 @@ int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, unsigned int len)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, unsigned int len)
+int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len)
 {
 	/*
 	 * binary: write LEN bytes in BUF to file 
@@ -410,7 +410,7 @@ int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, unsigned int len)
 	unsigned int nw;
 
 	if (io && len) {
-		nw = gzwrite(io->fp, buf, len);
+		nw = gzwrite(io->fp, buf, (unsigned int) len);
 		if (nw != len) {
 			return GMRFLib_io_error(io, GMRFLib_IO_ERR_WRITEBYTES);
 		} else {

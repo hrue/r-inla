@@ -361,6 +361,7 @@ typedef struct {
 	void *Qfunc_arg;
 } inla_copy_arg_tp;
 
+
 struct inla_tp_struct {
 	/*
 	 * General stuff 
@@ -498,12 +499,11 @@ struct inla_tp_struct {
 	int nlc;					       /* number of linear combinations */
 	int lc_derived_only;				       /* use only the derived lincombs ? */
 	char **lc_tag;					       /* the tags */
-	double **lc_w;					       /* their weights */
 	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	Output_tp **lc_output;
 	map_table_tp **lc_usermap;
-	double *Alc;
+	GMRFLib_lc_tp **lc_lc;
 
 	/*
 	 * offset functions
@@ -873,6 +873,8 @@ void inla_signal(int sig);
 
 double inla_log_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+
+GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w);
 
 
 /* 

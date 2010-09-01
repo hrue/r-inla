@@ -439,7 +439,6 @@ typedef struct {
 	 * 
 	 * The subgraph defined on the nodes for which the elements of <em>\b x</em> are not fixed. This can be used to extract 
 	 * \f$ \mbox{\small\tt sub\_graph} \rightarrow \mbox{\small\tt n} \f$, the number of elements of the graph, equal to
-	 * the length of the \a map-array. 
 	 */
 	GMRFLib_graph_tp *sub_graph;
 
