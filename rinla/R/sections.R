@@ -323,8 +323,8 @@
         cat("interpolator = ", inla.spec$interpolator,"\n", sep = " ", file = file,  append = TRUE)
     if(!is.null(inla.spec$diff.logdens)) 
         cat("diff.log.dens = ",inla.spec$diff.logdens,"\n", sep = " ", file = file,  append = TRUE)
-    if(inla.spec$print.joint.hyper)
-        cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(inla.spec$print.joint.hyper))
+        cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = "", file = file,  append = TRUE)
     if(!is.null(inla.spec$tolerance)) {
         ## tolerance is a generic option, which sets 'all' tolerance to the given value
         cat("epsg = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
@@ -608,6 +608,93 @@
 }
 
 `inla.lincomb.section` =
+    function(file, data.dir, contr, lincomb)
+{
+    ## this one write binary format files...
+
+    ## format is either
+    ##
+    ##     list("lc1" = "a 1 1 b 2 1 3 2...", ...)
+    ##
+    ## or
+    ##
+    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2,3), weight = c(1,2)), ...), ...)
+    ##       
+    ## use the functions 'inla.make.lincomb()' and 'inla.make.lincombs()'
+    
+    ## if use.one.file = TRUE, then use one file for all lincombs and
+    ## the 'ENTRY keyword', otherwise, use one file for each lincomb.
+
+    if (!is.null(lincomb)) {
+
+        fnm = inla.tempfile(tmpdir=data.dir)
+        file.create(fnm)
+        fp.binary = file(fnm, "wb")
+        stopifnot(!is.null(fnm))
+        stopifnot(!is.null(fp.binary))
+
+        numlen = inla.numlen(length(lincomb))
+
+        for(i in 1:length(lincomb)) {
+            
+            if (is.null(names(lincomb[i])) || is.na(names(lincomb[i]))) {
+                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
+                lc = lincomb[[i]]
+            } else if (names(lincomb[i]) == "") {
+                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
+                lc = lincomb[[i]]
+            } else {
+                secname = paste("lincomb.", names(lincomb[i])[1], sep="")
+                lc = lincomb[[i]]
+            }
+                
+            cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
+            cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
+            if (!is.null(contr$precision))
+                cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
+            if (!is.null(contr$usermap))
+                cat("usermap = ", contr$usermap,"\n", sep = " ", file = file,  append = TRUE)
+
+            cat("file.offset = ", seek(fp.binary, where=NA), "\n", sep="", file = file, append = TRUE)
+            
+            ## number of entries
+            writeBin(as.integer(length(lc)), fp.binary)
+
+            for(j in 1:length(lc)) {
+
+                lc.j.name = as.character( names(lc[[j]]) )
+                lc.j = lc[[j]][[1]]
+
+                ## if $idx is not there, its default 1.
+                if (is.null(lc.j$idx) && length(lc.j$weight) == 1) {
+                    lc.j$idx = 1
+                }
+
+                ## NA's are allowed; but we just remove them.
+                idx = lc.j$idx[ !is.na(lc.j$idx) ]
+                weight = lc.j$weight[ !is.na(lc.j$weight) ]
+                stopifnot(length(idx) == length(weight))
+
+                ## this the old code:
+                ## cat(c( lc.j.name, c(rbind( idx, weight))), "\n", file=fnm, append=TRUE)
+                writeBin(as.integer(nchar(lc.j.name)), fp.binary)
+                writeBin(as.character(lc.j.name), fp.binary)
+                writeBin(as.integer(length(idx)), fp.binary) ## number of pairs
+                writeBin(as.integer(idx), fp.binary)
+                writeBin(as.double(weight), fp.binary)
+
+                ##print(paste(" stop writing at position ", seek(fp.binary, where=NA)))
+            }
+
+            fnm.new = gsub(data.dir, "$inladatadir", fnm, fixed=TRUE)
+            cat("filename = ", fnm.new, "\n", sep = " ", file = file, append = TRUE)
+        }
+
+        close(fp.binary)
+    }
+}
+
+`inla.lincomb.section.OLDFORMAT` =
     function(file, data.dir, contr, lincomb, use.one.file = TRUE)
 {
     ## format is either
@@ -644,7 +731,6 @@
                 
             cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
-            inla.write.boolean.field("c.indexing", contr$c.indexing, file)
             if (!is.null(contr$precision))
                 cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$usermap))
@@ -674,7 +760,7 @@
                     lc.j = lc[[j]][[1]]
 
                     ## if $idx is not there, its default 1.
-                    if (is.null(lc.j$idx) && length(lc.j$weight == 1)) {
+                    if (is.null(lc.j$idx) && length(lc.j$weight) == 1) {
                         cat(c( lc.j.name, 1, lc.j$weight), "\n", file=fnm, append=TRUE)
                     } else {
                         idx = lc.j$idx[ !is.na(lc.j$idx) ]

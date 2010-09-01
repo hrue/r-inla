@@ -128,7 +128,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, double **lc_w, double *lc_precision)
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp **lc, double *lc_precision)
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -181,6 +181,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		**lfidx = NULL, fidx_add = 5;
 	int nu = 0, *uniq = NULL;
 	double *Qijlist = NULL, value, **ww = NULL;
+	float *weight;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 
@@ -484,31 +485,23 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		   as n_short contains idx_map_eta, we must subtract it in the following...
 		*/
 		for (i = 0; i < nlc; i++) {
-			for (nnz = 0, ii = 0; ii < n_short - idx_map_eta; ii++) {
-				if (lc_w[i][ii]) {
-					nnz++;
-				}
-			}
-			idxs = Calloc(nnz, int);
-			for (j = 0, ii = 0; ii < n_short - idx_map_eta; ii++) {
-				if (lc_w[i][ii]) {
-					idxs[j++] = ii;
-				}
-			}
+
+			nnz    = lc[i]->n;
+			idxs   = lc[i]->idx;
+			weight = lc[i]->weight;
 
 			/*
 			 * we have to do this in two steps, as some elements Qij are a sum of contributions 
 			 */
 			for (k = 0; k < nnz; k++) {
 				j = idxs[k];
-				LC_ADDTO(n_short + i, idx_map_eta + j, -lc_precision[i] * lc_w[i][j]);	/* lc_i x_j */
-				LC_ADDTO(idx_map_eta + j, idx_map_eta + j, lc_precision[i] * SQR(lc_w[i][j]));	/* x_j^2 */
+				LC_ADDTO(n_short + i, idx_map_eta + j, -lc_precision[i] * weight[k]);   /* lc_i x_j */
+				LC_ADDTO(idx_map_eta + j, idx_map_eta + j, lc_precision[i] * SQR(weight[k]));	/* x_j^2 */
 				for (kk = k + 1; kk < nnz; kk++) {
 					jj = idxs[kk];
-					LC_ADDTO(idx_map_eta + j, idx_map_eta + jj, lc_precision[i] * lc_w[i][j] * lc_w[i][jj]); /* x_j x_jj */
+					LC_ADDTO(idx_map_eta + j, idx_map_eta + jj, lc_precision[i] * weight[k] * weight[kk]); /* x_j x_jj */
 				}
 			}
-			Free(idxs);
 		}
 
 		/* 

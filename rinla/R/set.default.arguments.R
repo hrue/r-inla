@@ -9,10 +9,7 @@
          precision = NULL, 
 
          ##:ARGUMENT: usermap One of the predefined functions to transform the linear combinations with. Default NULL.
-         usermap = NULL, 
-
-         ##:ARGUMENT: c.indexing If TRUE, then the indexing of the linear combination spesifications start from index 0 (C-style), and if FALSE, then they start at 1 (R-style, default)
-         c.indexing = FALSE)
+         usermap = NULL)
 
     ##:SEEALSO: inla
 }
@@ -174,7 +171,7 @@
             ##:ARGUMENT: diff.logdens The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.
             diff.logdens=2.5,
 
-            ##:ARGUMENT: print.joint.hyper A filename to print the joint distribution for the hyperparameters to.
+            ##:ARGUMENT: print.joint.hyper If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
             print.joint.hyper=TRUE,
 
             ##:ARGUMENT: force.diagonal A boolean variable, if TRUE, then force the Hessian to be diagonal. (Default FALSE.)

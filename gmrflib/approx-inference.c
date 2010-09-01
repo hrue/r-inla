@@ -2908,7 +2908,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, double *Alin, GMRFLib_density_tp *** dlin,
+		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, GMRFLib_lc_tp **Alin, GMRFLib_density_tp *** dlin,
 		    GMRFLib_ai_misc_output_tp ** misc_output)
 {
 	/*
@@ -4530,7 +4530,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_print_Qfunc(stdout, p->sub_graph, p->tab->Qfunc, p->tab->Qfunc_arg);
 					int jj;
 					for(jj=0; jj<graph->n; jj++){
-						printf("mean/sd %d %.12g %.12g\n",  p->mean_constr[jj],
+						printf("mean/sd %d %.12g %.12g\n", jj,  p->mean_constr[jj],
 						       sqrt(*GMRFLib_Qinv_get(p,  jj, jj)));
 					}
 					GMRFLib_print_constr(stdout,  p->sub_constr,  p->sub_graph);
@@ -4935,7 +4935,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							        *  approach, we use default the CCD
 							        */
 							       (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID
-								&& ai_par->hessian_force_diagonal ? GMRFLib_AI_INTERPOLATOR_GRIDSUM : GMRFLib_AI_INTERPOLATOR_CCD)
+								&& (ai_par->hessian_force_diagonal || nhyper == 1)
+								?
+								GMRFLib_AI_INTERPOLATOR_GRIDSUM : GMRFLib_AI_INTERPOLATOR_CCD)
 							       /*
 							        *  ...if not AUTO, then use whatever is requested
 							        */
@@ -5218,14 +5220,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, double *Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
+GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
 {
 	/*
 	 * Compute the marginals for the linear combinations using just the Gaussians 
 	 */
+
 	GMRFLib_problem_tp *problem = ai_store->problem;
-	int i, j, k, n, debug = 0;
-	double *v, *vv, *AA, var, mean, imean;
+	int i, j, n, debug = 0, nc=0, one=1;
+	double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
 	GMRFLib_density_tp **d;
 
 	assert(problem != NULL);
@@ -5233,118 +5236,57 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, double *Alin, GMRFLib_
 		return NULL;
 
 	n = problem->n;
-	v = Calloc(n * nlin, double);
-
-	for (i = 0; i < nlin; i++) {
-		j = i * n;
-		if (debug) {
-			for (k = 0; k < n; k++)
-				printf("Alin %d %g\n", k, Alin[j + k]);
-		}
-		memcpy(v + j, Alin + j, n * sizeof(double));
-		GMRFLib_solve_l_sparse_matrix(v + j, &(problem->sub_sm_fact), problem->sub_graph);
-	}
-
-	/*
-	 * the correction matrix due to linear constraints 
-	 */
-	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
-	double *var_corr = Calloc(nlin, double);
-	if (nc) {
-		int one = 1;
-		double *w = Calloc(nc * nlin, double);
-		double *ww = Calloc(nc * nlin, double);
-
-		if (0) {
-			/*
-			 * SAFE CODE 
-			 */
-
-			/*
-			 * w = AA^T CONSTR_M 
-			 */
-			for (i = 0; i < nlin; i++) {
-				for (j = 0; j < nc; j++) {
-					for (k = 0; k < n; k++) {
-						w[i + j * nlin] += Alin[k + i * n] * problem->constr_m[k + j * n];
-					}
-				}
-			}
-
-			/*
-			 * ww = AA * QI_AT 
-			 */
-			for (i = 0; i < nlin; i++) {
-				for (j = 0; j < nc; j++) {
-					for (k = 0; k < n; k++) {
-						ww[i + j * nlin] += Alin[k + i * n] * problem->qi_at_m[k + j * n];
-					}
-				}
-			}
-
-			for (i = 0; i < nlin; i++) {
-				for (j = 0; j < nc; j++)
-					var_corr[i] += w[i + j * nlin] * ww[i + j * nlin];
-			}
-		} else {
-			/*
-			 * MORE OPTIMISED CODE. TODO: add proper gdemm() calls (I'm to confused to do this now...) 
-			 */
-			double *wp, *Alinp, *cp, *wwp;
-
-			/*
-			 * w = AA^T CONSTR_M 
-			 */
-			for (i = 0; i < nlin; i++) {
-				Alinp = Alin + i * n;
-				for (j = 0; j < nc; j++) {
-					wp = w + i + j * nlin;
-					cp = problem->constr_m + j * n;
-					wp[0] = ddot_(&n, Alinp, &one, cp, &one);
-				}
-			}
-
-			/*
-			 * ww = AA * QI_AT 
-			 */
-			for (i = 0; i < nlin; i++) {
-				Alinp = Alin + i * n;
-				for (j = 0; j < nc; j++) {
-					wwp = ww + i + j * nlin;
-					cp = problem->qi_at_m + j * n;
-					wwp[0] = ddot_(&n, Alinp, &one, cp, &one);
-				}
-			}
-
-			for (i = 0; i < nlin; i++) {
-				var_corr[i] = ddot_(&nc, w + i, &nlin, ww + i, &nlin);
-			}
-		}
-
-		Free(w);
-		Free(ww);
-	}
-
+	v = Calloc(n, double);
+	a = Calloc(n, double);
 	d = Calloc(nlin, GMRFLib_density_tp *);
+
+	nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
+
+	/* 
+	   do each lincomb at the time. No need to run this in parallel as its already in parallel...
+	*/
 	for (i = 0; i < nlin; i++) {
-		vv = v + i * n;
-		AA = Alin + i * n;
-		var = mean = imean = 0.0;
-		for (j = 0; j < n; j++) {
-			var += vv[j] * vv[j];
-			mean += AA[j] * problem->mean_constr[j];
-			imean += AA[j] * improved_mean[j];
+
+		memset(a, 0, n*sizeof(double));		
+		for(j=0; j < Alin[i]->n; j++) {		
+			a[ Alin[i]->idx[j] ] = Alin[i]->weight[j];
 		}
-		if (debug) {
-			printf("BEFORE sd[%d] = %g\t mean = %g imean = %g\n", i, sqrt(var), mean, imean);
-			printf("AFTER sd[%d] = %g\t mean = %g imean = %g\n", i, sqrt(DMAX(0.0, var - var_corr[i])), mean, imean);
+		
+		memcpy(v, a, n*sizeof(double));
+		GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
+
+		/*
+		 * the correction matrix due to linear constraints 
+		 */
+		var_corr = 0.0;
+		if (nc) {
+			for (j = 0; j < nc; j++) {
+				/*
+				 * w = AA^T CONSTR_M 
+				 */
+				p = &(problem->constr_m[j*n]);
+				w = ddot_(&n, a, &one, p, &one);
+
+				/*
+				 * ww = AA * QI_AT 
+				 */
+				p = &(problem->qi_at_m[j*n]);
+				ww = ddot_(&n, a, &one, p, &one);
+
+				var_corr += w * ww;
+			}
 		}
-		var = DMAX(0.0, var - var_corr[i]);
+
+		var = ddot_(&n, v, &one, v, &one);
+		mean = ddot_(&n, a, &one, problem->mean_constr, &one);
+		imean = ddot_(&n, a, &one, improved_mean, &one);
+
+		var = DMAX(0.0, var - var_corr);
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 	}
 
-	Free(var_corr);
 	Free(v);
+	Free(a);
 
 	return d;
 }
