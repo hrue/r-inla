@@ -661,6 +661,14 @@ typedef struct {
 	double diff_log_dens;
 } GMRFLib_ai_pool_tp;
 
+typedef struct 
+{
+	int n;
+	int *idx;
+	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
+}
+	GMRFLib_lc_tp;
+
 typedef double GMRFLib_linear_term_func_tp(int idx, void *arg);
 
 #define GMRFLib_AI_POOL_GET 1
@@ -731,10 +739,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, double *Alin, GMRFLib_density_tp *** dlin,
+		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, GMRFLib_lc_tp **Alin, GMRFLib_density_tp *** dlin,
 		    GMRFLib_ai_misc_output_tp **misc_output);
 
-GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, double *Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean);
+GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean);
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);

@@ -53,7 +53,8 @@ __BEGIN_DECLS
 /* 
  * 
  */
-    typedef struct {
+
+typedef struct {
 	int n;						       /* length of the linear predictor */
 	int n_ext;					       /* length of the extended part of the linear predictor */
 	int N;						       /* grand total */
@@ -131,7 +132,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, double **lc_w, double *lc_precision);
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp **lc, double *lc_precision);
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a);
 double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg);
 int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm);

@@ -97,8 +97,8 @@ int GMRFLib_io_seek(GMRFLib_io_tp * io,  size_t offset, int whence);
 int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt);
 int GMRFLib_io_strip_blanks(char *line);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
-int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, unsigned int len);
-int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, unsigned int len);
+int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len);
+int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len);
 
 
 __END_DECLS
