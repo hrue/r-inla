@@ -11,8 +11,8 @@
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
+//#define _LOG(msg) std::cout << WHEREAMI << msg;
 #ifdef DEBUG
-#define _LOG(msg) std::cout << WHEREAMI << msg;
 #else
 #define _LOG(msg)
 #endif
@@ -39,7 +39,7 @@ namespace fmesh {
     }
   }
 
-  Matrix<double> spherical_harmonics(Matrix3<double>& S,
+  Matrix<double> spherical_harmonics(const Matrix3<double>& S,
 				     int max_order,
 				     bool rotationally_symmetric)
   {
@@ -87,7 +87,7 @@ namespace fmesh {
   }
 
 
-  Matrix<double> spherical_bsplines(Matrix3<double>& S,
+  Matrix<double> spherical_bsplines(const Matrix3<double>& S,
 				    int n_basis,
 				    int degree,
 				    bool uniform_knot_angle_spacing)
@@ -96,16 +96,16 @@ namespace fmesh {
     double knots[n_basis+degree+1];
     double s,s1,s2;
     Matrix<double> control[n_basis];
-    Matrix<double> control_work[n_basis];
+    Matrix<double> control_work[degree+1];
     int interval;
 
     for (int i=0; i<=degree; i++) {
       knots[i] = -1.0;
     }
     for (int i=degree+1; i<n_basis; i++) {
-      knots[i+degree] = (double(i)/double(n_basis-degree))*2.0-1.0;
+      knots[i] = (double(i-degree)/double(n_basis-degree))*2.0-1.0;
       if (uniform_knot_angle_spacing) {
-	knots[i+degree] = sin(knots[i+degree]*M_PI/2.0);
+	knots[i] = sin(knots[i]*M_PI/2.0);
       }
     }
     for (int i=n_basis; i<=n_basis+degree; i++) {
@@ -113,31 +113,39 @@ namespace fmesh {
     }
 
     for (int i=0; i<n_basis; i++) {
+      control[i] = Matrix<double>(n_basis);
       control[i](0,i) = 1.0;
     }
+
+    _LOG("degree\t" << degree << endl);
+    _LOG("n_basis\t" << n_basis << endl);
+    _LOG("n_basis+degree+1\t" << n_basis+degree+1 << endl);
 
     for (int coord_idx=0; coord_idx<S.rows(); coord_idx++) {
       s = S[coord_idx][2];
 
+      _LOG("step 1, coord_idx\t" << coord_idx << endl);
       interval = degree;
       while ((interval+1<n_basis) & (s>=knots[interval+1]))
 	interval++;
       
+      _LOG("step 2" << endl);
       for (int i=0; i<=degree; i++)
 	control_work[i] = control[i+interval-degree];
       
-      for (int k=1; k<= degree; k++)
-	for (int i=interval+1; i>=interval-degree+k+1; i--) {
-	  s1 = (knots[i+degree-k] - s)/(knots[i+degree-k]-knots[i-1]);
+      _LOG("step 3" << endl);
+      for (int k=1; k<=degree; k++)
+	for (int i=degree; i>=k; i--) {
+	  s1 = (knots[i+interval-k+1] - s)/(knots[i+interval-k+1]-knots[i+interval-degree]);
 	  s2 = 1.0-s1;
 
 	  for (int j=0; j<n_basis; j++)
 	    control_work[i](0,j) = (s1 * control_work[i-1](0,j) +
-				  s2 * control_work[i](0,j));
+				    s2 * control_work[i](0,j));
 	}
       
       for (int j=0; j<n_basis; j++)
-	basis(coord_idx,j) = control_work[interval+1](0,j);
+	basis(coord_idx,j) = control_work[degree](0,j);
     }
 
     return basis;
