@@ -249,6 +249,7 @@ typedef enum {
 	P_WISHART2D,
 	P_WISHART3D,
 	P_LOGFLAT, 
+	P_LOGIFLAT, 
 	O_POSITIVE /* offset-functions */ ,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
@@ -743,6 +744,7 @@ double priorfunc_beta(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
+double priorfunc_logiflat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);
