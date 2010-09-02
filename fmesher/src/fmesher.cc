@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
   if (issphere) {
     int sph0_order_max = args_info.sph0_arg;
     int sph_order_max = args_info.sph_arg;
-
+    
     if (sph0_order_max >= 0) {
       matrices.attach(string("sph0"),
 		      new Matrix<double>(spherical_harmonics(M.S(),
@@ -502,6 +502,7 @@ int main(int argc, char* argv[])
       matrices.matrixtype("sph0",fmesh::IOMatrixtype_general);
       matrices.output("sph0");
     }
+
     if (sph_order_max >= 0) {
       matrices.attach(string("sph"),
 		      new Matrix<double>(spherical_harmonics(M.S(),
@@ -510,6 +511,27 @@ int main(int argc, char* argv[])
 		      true);
       matrices.matrixtype("sph",fmesh::IOMatrixtype_general);
       matrices.output("sph");
+    }
+
+    if (args_info.bspline_given>0) {
+      int bspline_n = 2;
+      int bspline_degree = 1;
+      bool bspline_uniform_knot_angles = true;
+      if (args_info.bspline_given>0)
+	bspline_n = args_info.bspline_arg[0];
+      if (args_info.bspline_given>1)
+	bspline_degree = args_info.bspline_arg[1];
+      if (args_info.bspline_given>2)
+	bspline_uniform_knot_angles = (args_info.bspline_arg[2]>0);
+
+      matrices.attach(string("bspline"),
+		      new Matrix<double>(spherical_bsplines(M.S(),
+							    bspline_n,
+							    bspline_degree,
+							    bspline_uniform_knot_angles)),
+		      true);
+      matrices.matrixtype("bspline",fmesh::IOMatrixtype_general);
+      matrices.output("bspline");
     }
   }
 
