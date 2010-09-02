@@ -25,6 +25,11 @@ namespace fmesh {
 				     int max_order,
 				     bool rotationally_symmetric);
 
+  Matrix<double> spherical_bsplines(Matrix3<double>& S,
+				    int n_basis,
+				    int degree,
+				    bool uniform_knot_angle_spacing);
+
 } /* namespace fmesh */
 
 #endif

@@ -30,6 +30,10 @@ namespace fmesh {
   template <class T> class SparseMatrix;
 
   template <class T>
+  Matrix<T> operator*(const SparseMatrix<T>& M1,
+		      double M2);
+
+  template <class T>
   SparseMatrix<T> operator*(const SparseMatrix<T>& M1,
 			    const SparseMatrix<T>& M2);
   template <class T>
