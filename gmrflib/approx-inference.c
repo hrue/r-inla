@@ -5401,7 +5401,6 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			if (k < d->nd -1)
 				fprintf(fp, "),\n");
 		}
-		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "sd=list(");
@@ -5414,7 +5413,6 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			if (k < d->nd -1)
 				fprintf(fp, "),\n");
 		}
-		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "cor=list(");
