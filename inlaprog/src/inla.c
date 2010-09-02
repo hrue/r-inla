@@ -19,6 +19,7 @@
  * The author's contact information:
  *
  *       H{\aa}vard Rue
+ *       Department of Mathematical Sciences
  *       The Norwegian University of Science and Technology
  *       N-7491 Trondheim, Norway
  *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
