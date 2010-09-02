@@ -132,7 +132,8 @@ inla.models = function()
                          ##
                          bymjoint=list(),
                          flat=list(),
-                         logflat=list()
+                         logflat=list(),
+                         logiflat=list()
                          ##
                          )
                  )
