@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -59,6 +59,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
   "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
   "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
+  "      --bspline=PARAM     Calculate rotationally invariant B-spline basis \n                            functions",
   "\nMiscellaneous options:",
   "  -x, --x11[=DELAY]       Show progress in an x11 window, with delay factor  \n                            (default=`1.0')",
   "      --x11-zoom=LIMITS   Zoom into a smaller section of the graph, \n                            [minx,maxx,miny,maxy]",
@@ -93,11 +94,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[23] = gengetopt_args_info_detailed_help[27];
   gengetopt_args_info_full_help[24] = gengetopt_args_info_detailed_help[28];
   gengetopt_args_info_full_help[25] = gengetopt_args_info_detailed_help[29];
-  gengetopt_args_info_full_help[26] = 0; 
+  gengetopt_args_info_full_help[26] = gengetopt_args_info_detailed_help[30];
+  gengetopt_args_info_full_help[27] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[27];
+const char *gengetopt_args_info_full_help[28];
 
 static void
 init_help_array(void)
@@ -127,11 +129,12 @@ init_help_array(void)
   gengetopt_args_info_help[22] = gengetopt_args_info_detailed_help[26];
   gengetopt_args_info_help[23] = gengetopt_args_info_detailed_help[27];
   gengetopt_args_info_help[24] = gengetopt_args_info_detailed_help[28];
-  gengetopt_args_info_help[25] = 0; 
+  gengetopt_args_info_help[25] = gengetopt_args_info_detailed_help[29];
+  gengetopt_args_info_help[26] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[26];
+const char *gengetopt_args_info_help[27];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -206,6 +209,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->fem_given = 0 ;
   args_info->sph0_given = 0 ;
   args_info->sph_given = 0 ;
+  args_info->bspline_given = 0 ;
   args_info->x11_given = 0 ;
   args_info->x11_zoom_given = 0 ;
 }
@@ -247,6 +251,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->sph0_orig = NULL;
   args_info->sph_arg = -1;
   args_info->sph_orig = NULL;
+  args_info->bspline_arg = NULL;
+  args_info->bspline_orig = NULL;
   args_info->x11_arg = 1.0;
   args_info->x11_orig = NULL;
   args_info->x11_zoom_arg = NULL;
@@ -298,8 +304,11 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->fem_help = gengetopt_args_info_detailed_help[24] ;
   args_info->sph0_help = gengetopt_args_info_detailed_help[25] ;
   args_info->sph_help = gengetopt_args_info_detailed_help[26] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[28] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->bspline_min = 1;
+  args_info->bspline_max = 3;
+  args_info->x11_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[30] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -488,6 +497,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->fem_orig));
   free_string_field (&(args_info->sph0_orig));
   free_string_field (&(args_info->sph_orig));
+  free_multiple_field (args_info->bspline_given, (void *)(args_info->bspline_arg), &(args_info->bspline_orig));
+  args_info->bspline_arg = 0;
   free_string_field (&(args_info->x11_orig));
   free_multiple_field (args_info->x11_zoom_given, (void *)(args_info->x11_zoom_arg), &(args_info->x11_zoom_orig));
   args_info->x11_zoom_arg = 0;
@@ -608,6 +619,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "sph0", args_info->sph0_orig, 0);
   if (args_info->sph_given)
     write_into_file(outfile, "sph", args_info->sph_orig, 0);
+  write_multiple_into_file(outfile, args_info->bspline_given, "bspline", args_info->bspline_orig, 0);
   if (args_info->x11_given)
     write_into_file(outfile, "x11", args_info->x11_orig, 0);
   write_multiple_into_file(outfile, args_info->x11_zoom_given, "x11-zoom", args_info->x11_zoom_orig, 0);
@@ -887,6 +899,9 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->interior_given, args_info->interior_min, args_info->interior_max, "'--interior' ('-I')"))
+     error = 1;
+  
+  if (check_multiple_option_occurrences(prog_name, args_info->bspline_given, args_info->bspline_min, args_info->bspline_max, "'--bspline'"))
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->x11_zoom_given, args_info->x11_zoom_min, args_info->x11_zoom_max, "'--x11-zoom'"))
@@ -1210,6 +1225,7 @@ cmdline_internal (
   struct generic_list * quality_list = NULL;
   struct generic_list * boundary_list = NULL;
   struct generic_list * interior_list = NULL;
+  struct generic_list * bspline_list = NULL;
   struct generic_list * x11_zoom_list = NULL;
   int error = 0;
   struct gengetopt_args_info local_args_info;
@@ -1262,6 +1278,7 @@ cmdline_internal (
         { "fem",	1, NULL, 0 },
         { "sph0",	1, NULL, 0 },
         { "sph",	1, NULL, 0 },
+        { "bspline",	1, NULL, 0 },
         { "x11",	2, NULL, 'x' },
         { "x11-zoom",	1, NULL, 0 },
         { 0,  0, 0, 0 }
@@ -1500,6 +1517,17 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Calculate rotationally invariant B-spline basis functions.  */
+          else if (strcmp (long_options[option_index].name, "bspline") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&bspline_list, 
+                &(local_args_info.bspline_given), optarg, 0, 0, ARG_DOUBLE,
+                "bspline", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Zoom into a smaller section of the graph, [minx,maxx,miny,maxy].  */
           else if (strcmp (long_options[option_index].name, "x11-zoom") == 0)
           {
@@ -1565,6 +1593,10 @@ cmdline_internal (
     &(args_info->interior_orig), args_info->interior_given,
     local_args_info.interior_given, &multiple_default_value,
     ARG_STRING, interior_list);
+  update_multiple_arg((void *)&(args_info->bspline_arg),
+    &(args_info->bspline_orig), args_info->bspline_given,
+    local_args_info.bspline_given, 0,
+    ARG_DOUBLE, bspline_list);
   update_multiple_arg((void *)&(args_info->x11_zoom_arg),
     &(args_info->x11_zoom_orig), args_info->x11_zoom_given,
     local_args_info.x11_zoom_given, 0,
@@ -1588,6 +1620,8 @@ cmdline_internal (
   local_args_info.boundary_given = 0;
   args_info->interior_given += local_args_info.interior_given;
   local_args_info.interior_given = 0;
+  args_info->bspline_given += local_args_info.bspline_given;
+  local_args_info.bspline_given = 0;
   args_info->x11_zoom_given += local_args_info.x11_zoom_given;
   local_args_info.x11_zoom_given = 0;
   
@@ -1637,6 +1671,7 @@ failure:
   free_list (quality_list, 1 );
   free_list (boundary_list, 1 );
   free_list (interior_list, 1 );
+  free_list (bspline_list, 0 );
   free_list (x11_zoom_list, 0 );
   
   cmdline_release (&local_args_info);
