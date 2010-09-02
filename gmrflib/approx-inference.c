@@ -5398,8 +5398,7 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				fprintf(fp, " %.6g%s", ai_store->problem->mean_constr[i],  (i < d->start[k] + d->len[k] -1 ? "," :  ""));
 			}
-			if (k < d->nd -1)
-				fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
@@ -5410,8 +5409,7 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
 				fprintf(fp, " %.6g%s", (p ? sqrt(*p) : 0.0), (i < d->start[k] + d->len[k] -1 ? "," :  ""));
 			}
-			if (k < d->nd -1)
-				fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
@@ -5423,11 +5421,13 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
 					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
 					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					fprintf(fp, "%.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0), (j < d->start[k] + d->len[k] -1 ? "," : ""));
+					fprintf(fp, " %.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0),
+						(((j < d->start[k] + d->len[k] -1)
+						 ||
+						  (i < d->start[k] + d->len[k] -1)) ? "," : ""));
 				}
 			}
-			if (k < d->nd -1)
-				fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
 		fprintf(fp, "))\n");
 		fclose(fp);
