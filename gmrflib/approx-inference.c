@@ -5376,35 +5376,30 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 
 		fprintf(fp, "tags=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\",", d->tag[k]);
+			fprintf(fp, "\"%s\"%s", d->tag[k],  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "start=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d,", d->start[k]);
+			fprintf(fp, "%1d%s", d->start[k],  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "len=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d,", d->len[k]);
+			fprintf(fp, "%1d%s", d->len[k],  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -1, SEEK_CUR);
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "mean=list(");
 		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "\"%s\" = c(", d->tag[k]);
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
-				fprintf(fp, " %.6g,", ai_store->problem->mean_constr[i]);
+				fprintf(fp, " %.6g%s", ai_store->problem->mean_constr[i],  (i < d->start[k] + d->len[k] -1 ? "," :  ""));
 			}
-			fseek(fp, (long) -1, SEEK_CUR);
-			fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "sd=list(");
@@ -5412,12 +5407,10 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			fprintf(fp, "\"%s\" = c(", d->tag[k]);
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				fprintf(fp, " %.6g,", (p ? sqrt(*p) : 0.0));
+				fprintf(fp, " %.6g%s", (p ? sqrt(*p) : 0.0), (i < d->start[k] + d->len[k] -1 ? "," :  ""));
 			}
-			fseek(fp, (long) -1, SEEK_CUR);
-			fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "cor=list(");
@@ -5428,13 +5421,14 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
 					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
 					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					fprintf(fp, "%.6g,", (p ? *p / sqrt(*pi * *pj) : 0.0));
+					fprintf(fp, " %.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0),
+						(((j < d->start[k] + d->len[k] -1)
+						 ||
+						  (i < d->start[k] + d->len[k] -1)) ? "," : ""));
 				}
 			}
-			fseek(fp, (long) -1, SEEK_CUR);
-			fprintf(fp, "),\n");
+			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
 		}
-		fseek(fp, (long) -2, SEEK_CUR);		       /* yes, need also the newline */
 		fprintf(fp, "))\n");
 		fclose(fp);
 	}
