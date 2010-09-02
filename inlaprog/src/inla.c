@@ -1265,6 +1265,10 @@ double priorfunc_logflat(double *x, double *parameters)
 {
 	return exp(*x);
 }
+double priorfunc_logiflat(double *x, double *parameters)
+{
+	return exp(- *x);
+}
 double priorfunc_flat(double *x, double *parameters)
 {
 	return 0.0;
@@ -3813,6 +3817,13 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 	} else if (!strcasecmp(prior->name, "LOGFLAT")) {
 		prior->id = P_LOGFLAT;
 		prior->priorfunc = priorfunc_logflat;
+		prior->parameters = NULL;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
+		}
+	} else if (!strcasecmp(prior->name, "LOGIFLAT")) {
+		prior->id = P_LOGIFLAT;
+		prior->priorfunc = priorfunc_logiflat;
 		prior->parameters = NULL;
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
