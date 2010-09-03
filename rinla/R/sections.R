@@ -672,6 +672,7 @@
                 cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$usermap))
                 cat("usermap = ", contr$usermap,"\n", sep = " ", file = file,  append = TRUE)
+            inla.write.boolean.field("verbose", contr$verbose, file)
 
             cat("file.offset = ", seek(fp.binary, where=NA), "\n", sep="", file = file, append = TRUE)
             

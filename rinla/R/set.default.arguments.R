@@ -9,7 +9,10 @@
          precision = NULL, 
 
          ##:ARGUMENT: usermap One of the predefined functions to transform the linear combinations with. Default NULL.
-         usermap = NULL)
+         usermap = NULL,
+
+         ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
+         verbose = TRUE)
 
     ##:SEEALSO: inla
 }
