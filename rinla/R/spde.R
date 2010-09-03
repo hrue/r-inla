@@ -51,7 +51,7 @@
 }
 
 `inla.create.spde` = function(mesh=NULL, prefix = NULL,
-  fem=NULL, sph0=NULL, sph=NULL)
+  fem=NULL, sph0=NULL, sph=NULL, bspline=NULL)
   {
     ## create files using fmesher
 
@@ -93,6 +93,11 @@
     }
     if (!is.null(sph)) {
       all.args = paste(all.args," --sph=",sph,sep="")
+    }
+    if (!is.null(bspline)) {
+      all.args = paste(all.args," --bspline=",
+        bspline[1],",",bspline[2],",",bspline[3],
+        sep="")
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
