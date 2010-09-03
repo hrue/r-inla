@@ -4122,20 +4122,41 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * type = lincomb
 	 */
+	int numsec = 0;
 	for (sec = 0; sec < nsec; sec++) {
+		
 		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINCOMB")) {
+
+			/* 
+			   we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
+			   for these sections.
+			 */
+			int verbose_save = mb->verbose;
+
+			// This option can surpress mb->verbose locally, but not the other way around.
+			mb->verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), mb->verbose) && mb->verbose;
+
 			if (mb->verbose) {
 				printf("\tsection=[%1d] name=[%s] type=[LINCOMB]\n", sec, iniparser_getsecname(ini, sec));
 			}
 			found++;
 			sec_read[sec] = 1;
 			inla_parse_lincomb(mb, ini, sec);
+
+			mb->verbose = verbose_save;	       /* set it back */
+			numsec++;
 		}
 		Free(secname);
 		Free(sectype);
 	}
+	if (mb->verbose) {
+		if (numsec) {
+			printf("\tRead [%1d] sections with mode=[LINCOMB]\n", numsec);
+		}
+	}
+		
 
 	/*
 	 * check that all sections are read 
@@ -4317,6 +4338,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_usermap = Realloc(mb->lc_usermap, mb->nlc + 1, map_table_tp *);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->lc_tag[mb->nlc]))));
+
 	if (mb->verbose) {
 		printf("\tinla_parse_lincomb...\n");
 	}
