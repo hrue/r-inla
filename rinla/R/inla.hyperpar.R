@@ -118,7 +118,7 @@ function(...)
                control.fixed = control.fixed,
                control.results = list(return.marginals.random=FALSE,
                        return.marginals.predictor=FALSE),
-               control.mode = list(mode = theta.mode, x.mode = x.mode, restart=FALSE),
+               control.mode = list(result = object, restart=FALSE),
                inla.call = inla.call,
                inla.arg = inla.arg,
                only.hyperparam = TRUE,
