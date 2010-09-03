@@ -21,9 +21,14 @@
 
 namespace fmesh {
 
-  Matrix<double> spherical_harmonics(Matrix3<double>& S,
+  Matrix<double> spherical_harmonics(const Matrix3<double>& S,
 				     int max_order,
 				     bool rotationally_symmetric);
+
+  Matrix<double> spherical_bsplines(const Matrix3<double>& S,
+				    int n_basis,
+				    int degree,
+				    bool uniform_knot_angle_spacing);
 
 } /* namespace fmesh */
 
