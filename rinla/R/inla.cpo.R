@@ -36,9 +36,7 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
             
             argument = paste(sep="", "INLA::inla(", just.args, ",",
                     "control.expert = list(cpo.manual = TRUE, cpo.idx =", idx, "),",
-                    "control.mode = list(mode =", inla.2list(r$theta.mode),
-                    ", x.mode =", inla.2list(r$x.mode),
-                    ", restart=", inla.ifelse(recompute.mode, "TRUE", "FALSE"), "))")
+                    "control.mode = list(result = r, restart=", inla.ifelse(recompute.mode, "TRUE", "FALSE"), "))")
             rr = inla.eval(argument)
             r$cpo[idx] = rr$cpo[idx]
             r$pit[idx] = rr$pit[idx]

@@ -66,7 +66,7 @@
     res = c(res.fixed, res.lincomb, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations,
             list(misc = misc),
-            list(dic=res.dic, theta.mode=theta.mode, x.mode=x.mode,  neffp=neffp,
+            list(dic=res.dic, mode = list(theta = theta.mode, x=x.mode),  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode)), 
             res.q)
 
