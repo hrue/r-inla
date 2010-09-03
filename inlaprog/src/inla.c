@@ -4427,7 +4427,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/* 
 	   sort them with increasing idx's (and carry the weights along) to speed things up later on.
 	*/
-	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, NULL, GMRFLib_icmp);
+	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
 	if (mb->verbose) {
 		printf("\t\tLincomb =    idx\tweight\n");
 		for (i = 0; i < IMIN(lc->n, PREVIEW); i++) {
@@ -4503,14 +4503,13 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 			   this is new code that use binary i/o
 			*/
 			FILE *fp;
-			size_t siz;
 			size_t nread;
 			
 			//format: NX x[0] x[1] .... x[ NX-1 ]
 			fp = fopen(tmp, "rb");
 			nread= fread(&(mb->nx_file), sizeof(int), 1, fp); assert(nread == 1);
 			mb->x_file = Calloc(mb->nx_file, double);
-			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp); assert(nread == mb->nx_file);
+			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp); assert(nread == (size_t) mb->nx_file);
 			fclose(fp);
 
 			if (mb->verbose) {
