@@ -15,7 +15,7 @@
 `inla.data.section` =
     function(file, family, file.data, control, i.family="")
 {
-    cat("[Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
+    cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ",family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
@@ -306,7 +306,7 @@
 `inla.inla.section` =
     function(file,inla.spec)
 {
-    cat("[INLA param]\n", sep = " ", file = file,  append = TRUE)
+    cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
 
     if(!is.null(inla.spec$int.strategy)) 
@@ -510,7 +510,7 @@
     cat("#inlaresdir = ", gsub("^.*/","",result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
 
     cat("\n", sep = " ", file = file,  append = TRUE)
-    cat("[Model]\n", sep = " ", file = file,  append = TRUE)
+    cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("hyperparameters",hyperpar, file)
@@ -579,16 +579,34 @@
 `inla.mode.section` =
     function(file, args, data.dir)
 {
-    if (!is.null(args$mode) && length(args$mode) > 0) {
-        cat("[Mode]\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(args$result) || !is.null(args$theta) || !is.null(args$x)) {
+
+        if (!is.null(args$result) && !is.null(args$theta) && !is.null(args$x)) {
+            stop("In control.mode=list(), argument 'result' is defined but also both 'theta' and 'x'. Don't know what to use.")
+        }
+
+        cat("[INLA.Control.Mode]\n", sep = " ", file = file,  append = TRUE)
         cat("type = mode\n", sep = " ", file = file,  append = TRUE)
 
-        cat("mode = ", inla.paste(as.character(args$mode)), "\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(args$x.mode) && length(args$x.mode) > 0) {
-            file.x.mode = inla.tempfile(tmpdir=data.dir)
-            write(args$x.mode, ncol=1, file=file.x.mode)
-            fnm = gsub(data.dir, "$inladatadir", file.x.mode, fixed=TRUE)
-            cat("xmode =", fnm, "\n", file=file, append = TRUE)
+        ## use default the mode in result if given
+        if (is.null(args$theta) && !is.null(args$result)) {
+            args$theta = args$result$mode$theta
+        }
+        cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
+
+        ## use default the mode in result if given
+        if (is.null(args$x) && !is.null(args$result)) {
+            args$x = args$result$mode$x
+        }
+        if (!is.null(args$x)) {
+            file.x = inla.tempfile(tmpdir=data.dir)
+            ##write(args$x, ncol=1, file=file.x)
+            fp.binary = file(file.x, "wb")
+            writeBin(as.integer(length(args$x)), fp.binary)
+            writeBin(args$x, fp.binary)
+            close(fp.binary)
+            fnm = gsub(data.dir, "$inladatadir", file.x, fixed=TRUE)
+            cat("x =", fnm, "\n", file=file, append = TRUE)
         }
         inla.write.boolean.field("restart", args$restart, file)
     }
@@ -599,7 +617,7 @@
 {
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
         cat("\n## If you edit this section it is assumed you know what you're doing ;-)\n", file=file, append=TRUE) #
-        cat("[Expert]\n", sep = " ", file = file,  append = TRUE)
+        cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
         cat("type = expert\n", sep = " ", file = file,  append = TRUE)
         inla.write.boolean.field("cpo.manual", args$cpo.manual, file)
         ## recall to convert to 0-based index'ing

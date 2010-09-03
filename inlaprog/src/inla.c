@@ -263,7 +263,7 @@ unsigned char *inla_inifile_sha1(const char *filename)
 					    || !strcasecmp("CMATRIX", p)
 					    || !strcasecmp("GRAPH", p)
 					    || !strcasecmp("LOCATIONS", p)
-					    || !strcasecmp("XMODE", p)
+					    || !strcasecmp("X", p)
 					    || !strcasecmp("EXTRACONSTRAINT", p)) {
 						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
 
@@ -4454,7 +4454,7 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 		printf("\tinla_parse_mode...\n");
 	}
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "MODE"), NULL));
+	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
 
 	if (!tmp) {
 		mb->ntheta_file = 0;
@@ -4480,7 +4480,7 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		if (nt) {
 			printf("\tUse mode in section[%s]\n", secname);
-			printf("\t\tMode = ");
+			printf("\t\ttheta = ");
 			for (i = 0; i < nt; i++) {
 				printf(" %.4g", mb->theta_file[i]);
 			}
@@ -4490,24 +4490,42 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "XMODE"), NULL));
+	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "X"), NULL));
 	if (tmp) {
-		inla_read_data_all(&(mb->x_file), &(mb->nx_file), tmp);
-		if (mb->verbose) {
-			printf("\t\txMode = ");
-			for (i = 0; i < IMIN(mb->nx_file, PREVIEW); i++) {
-				printf(" %.4g", mb->x_file[i]);
+		if (0){
+			/* 
+			   this is old code that use ascii i/o
+			 */
+			
+			inla_read_data_all(&(mb->x_file), &(mb->nx_file), tmp);
+		} else {
+			/* 
+			   this is new code that use binary i/o
+			*/
+			FILE *fp;
+			size_t siz;
+			size_t nread;
+			
+			//format: NX x[0] x[1] .... x[ NX-1 ]
+			fp = fopen(tmp, "rb");
+			nread= fread(&(mb->nx_file), sizeof(int), 1, fp); assert(nread == 1);
+			mb->x_file = Calloc(mb->nx_file, double);
+			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp); assert(nread == mb->nx_file);
+			fclose(fp);
+
+			if (mb->verbose) {
+				printf("\t\tx = ");
+				for (i = 0; i < IMIN(mb->nx_file, PREVIEW); i++) {
+					printf(" %.4g", mb->x_file[i]);
+				}
+				printf(" ...\n");
 			}
-			printf(" ...\n");
 		}
 	}
 
 	mb->reuse_mode_but_restart = iniparser_getboolean(ini, inla_string_join(secname, "RESTART"), 0);
-	mb->reuse_mode_but_restart = iniparser_getboolean(ini, inla_string_join(secname, "REUSE_MODE_BUT_RESTART"), mb->reuse_mode_but_restart);
-	mb->reuse_mode_but_restart = iniparser_getboolean(ini, inla_string_join(secname, "REUSE.MODE.BUT.RESTART"), mb->reuse_mode_but_restart);
-	mb->reuse_mode_but_restart = iniparser_getboolean(ini, inla_string_join(secname, "REUSEMODEBUTRESTART"), mb->reuse_mode_but_restart);
 	if (mb->verbose) {
-		printf("\t\tReuseModeButRestart = %1d\n", mb->reuse_mode_but_restart);
+		printf("\t\tRestart = %1d\n", mb->reuse_mode_but_restart);
 	}
 
 	return INLA_OK;
