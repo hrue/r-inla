@@ -620,7 +620,19 @@ int main(int argc, char* argv[])
   
 
   for (int i=0; i<(int)args_info.collect_given; i++) {
-    matrices.output(string(args_info.collect_arg[i]));
+    string matrix_name = string(args_info.collect_arg[i]);
+    if (!(matrix_name=="-") & !(matrix_name=="--")) {
+      if (!matrices.activate(matrix_name)) {
+	if (!matrices.load(matrix_name).active) {
+	  cout << "Matrix "+matrix_name+" not found." << endl;
+	} else {
+	  cout << "Matrix "+matrix_name+" activated." << endl;
+	}
+      } else {
+	cout << "Matrix "+matrix_name+" active." << endl;
+      }
+    }
+    matrices.output(matrix_name);
   }
 
   matrices.save();
