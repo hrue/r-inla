@@ -1,5 +1,5 @@
 `inla.generate.colors` = function(color, color.axis = NULL, color.n=512,
-  color.palette = cm.colors, color.truncate=FALSE)
+  color.palette = cm.colors, color.truncate=FALSE, alpha=NULL)
   {
     if (is.character(color)) {
       colors = color
@@ -17,7 +17,11 @@
       cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
       not.ok = not.ok | is.na(cs)
       cs[not.ok] = 0.5
-      alpha = as.numeric(!not.ok)
+      if (is.null(alpha)) {
+        alpha = as.numeric(!not.ok)
+      } else {
+        alpha[not.ok] = 0
+      }
 
       ics = (as.numeric(cut(cs, seq(0,1,length.out=color.n+1),
                             include.lowest=TRUE)))
@@ -43,7 +47,11 @@
       cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
       not.ok = not.ok | is.na(cs[,1]) | is.na(cs[,2]) | is.na(cs[,3])
       cs[not.ok,] = c(0.5,0.5,0.5)
-      alpha = as.numeric(!not.ok)
+      if (is.null(alpha)) {
+        alpha = as.numeric(!not.ok)
+      } else {
+        alpha[not.ok] = 0
+      }
       colors = rgb(cs[,1],cs[,2],cs[,3])
     } else {
       stop("color specification must be character, matrix, or vector.")
@@ -54,7 +62,7 @@
 
 
 `plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL, color.n=512,
-  color.palette = cm.colors, color.truncate=FALSE, lwd = 1, specular = "black", ...)
+  color.palette = cm.colors, color.truncate=FALSE, alpha=NULL,lwd = 1, specular = "black", ...)
 {
     ## Make indices 1 based.  Deprecated and will be deactivated.
     if (min(TV) == 0) {
@@ -63,7 +71,7 @@
     }
 
     colors = (inla.generate.colors(color,color.axis,color.n,
-                                   color.palette,color.truncate))
+                                   color.palette,color.truncate,alpha))
     
     tTV = t(TV);
     tETV = t(TV[,c(1,2,3,1,NA)]);
