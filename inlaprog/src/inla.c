@@ -10191,6 +10191,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\tdiagonal (expert emergency) = %g\n", mb->expert_diagonal_emergencey);
 	}
 
+	mb->ai_par->numint_max_fn_eval = iniparser_getint(ini, inla_string_join(secname, "NUMINT.MAXFEVAL"), mb->ai_par->numint_max_fn_eval);
+	mb->ai_par->numint_rel_err = iniparser_getdouble(ini, inla_string_join(secname, "NUMINT.RELERR"), mb->ai_par->numint_rel_err);
+	mb->ai_par->numint_abs_err = iniparser_getdouble(ini, inla_string_join(secname, "NUMINT.ABSERR"), mb->ai_par->numint_abs_err);
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}

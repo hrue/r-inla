@@ -229,7 +229,16 @@
             derived.only = TRUE,
 
             ## NOT DOCUMENTED ONCES (expert only)
-            diagonal = NULL)
+            diagonal = NULL,
+
+            ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
+            numint.maxfeval = 10000,
+            
+            ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-3)
+            numint.relerr = 1e-3,
+
+            ##:ARGUMENT: numint.abserr Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-4)
+            numint.abserr = 1e-4)
 
     ## use default Gaussian strategy if the observations are gaussian    
     if (all(inla.strcasecmp(family, "gaussian")))
