@@ -1,12 +1,6 @@
-`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL, color.n=512,
-  color.palette = cm.colors, color.truncate=FALSE, lwd = 1, specular = "black", ...)
-{
-    ## Make indices 1 based.  Deprecated and will be deactivated.
-    if (min(TV) == 0) {
-      warning("Zero-based indices in TV are deprecated and will be deactivated in a future version.")
-        TV <- TV + 1L
-    }
-
+`inla.generate.colors` = function(color, color.axis = NULL, color.n=512,
+  color.palette = cm.colors, color.truncate=FALSE)
+  {
     if (is.character(color)) {
       colors = color
     } else if (is.vector(color) || (is.matrix(color) && (ncol(color)==1))) {
@@ -25,7 +19,8 @@
       cs[not.ok] = 0.5
       alpha = as.numeric(!not.ok)
 
-      ics = as.numeric(cut(cs, color.n))
+      ics = (as.numeric(cut(cs, seq(0,1,length.out=color.n+1),
+                            include.lowest=TRUE)))
       colors = color.palette(color.n)[ics]
 
       ## Todo: handle alpha, combining "input alpha" with "not.ok-alpha"
@@ -49,23 +44,41 @@
       not.ok = not.ok | is.na(cs[,1]) | is.na(cs[,2]) | is.na(cs[,3])
       cs[not.ok,] = c(0.5,0.5,0.5)
       alpha = as.numeric(!not.ok)
-      colors = rgb(cs[,1],cs[,2],cs[,3],alpha)
+      colors = rgb(cs[,1],cs[,2],cs[,3])
     } else {
       stop("color specification must be character, matrix, or vector.")
     }
+
+    return (list(colors=colors,alpha=alpha))
+  }
+
+
+`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL, color.n=512,
+  color.palette = cm.colors, color.truncate=FALSE, lwd = 1, specular = "black", ...)
+{
+    ## Make indices 1 based.  Deprecated and will be deactivated.
+    if (min(TV) == 0) {
+      warning("Zero-based indices in TV are deprecated and will be deactivated in a future version.")
+        TV <- TV + 1L
+    }
+
+    colors = (inla.generate.colors(color,color.axis,color.n,
+                                   color.palette,color.truncate))
     
     tTV = t(TV);
     tETV = t(TV[,c(1,2,3,1,NA)]);
     Tx = S[tTV,1]
     Ty = S[tTV,2]
     Tz = S[tTV,3]
-    if (length(colors) == nrow(S))
+    if (length(colors$colors) == nrow(S)) {
       ## One color per vertex
-      Tcol = colors[tTV]
-    else {
+      Tcol = colors$colors[tTV]
+      Talpha = colors$alpha[tTV]
+    } else {
       ## One color per triangle
-      stopifnot(length(colors) == nrow(TV))
-      Tcol = colors[t(matrix(rep(1:nrow(TV),3),dim(TV)))]
+      stopifnot(length(colors$colors) == nrow(TV))
+      Tcol = colors$colors[t(matrix(rep(1:nrow(TV),3),dim(TV)))]
+      Talpha = colors$alpha[t(matrix(rep(1:nrow(TV),3),dim(TV)))]
     }
     Ex = S[tETV,1]
     Ey = S[tETV,2]
@@ -73,7 +86,7 @@
     Ecol = rgb(0.3,0.3,0.3)
     points3d(S, color="black", ...)
     lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
-    triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, ...)
+    triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, alpha=Talpha, ...)
 
     return (invisible())
 }
