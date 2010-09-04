@@ -355,6 +355,36 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 }
 
 /*!
+  \brief Solve \f$Lx=b\f$ for indices in an interval
+*/
+int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped)
+{
+	/*
+	 * rhs in real world, bchol in mapped world. solve Lx=b backward only from rhs[findx] up to rhs[toindx]. note that
+	 * findx and toindx is in mapped world. if remapped, do not remap/remap-back the rhs before solving.
+	 * 
+	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
+	 */
+	switch (sm_fact->smtp) {
+	case GMRFLib_SMTP_BAND:
+		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_BAND
+			       (rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, findx, toindx, remapped));
+		break;
+	case GMRFLib_SMTP_PROFILE:
+		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_PROFILE());
+		break;
+	case GMRFLib_SMTP_TAUCS:
+		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_TAUCS(rhs, sm_fact->L, graph, sm_fact->remap, findx, toindx, remapped));
+		break;
+	default:
+		GMRFLib_ERROR(GMRFLib_ESNH);
+		break;
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+/*!
   \brief Compute the log determininant of \f$Q\f$
 */
 int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)

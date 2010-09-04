@@ -681,6 +681,8 @@ typedef struct {
 typedef struct 
 {
 	int n;
+	int first_nonzero;
+	int last_nonzero;
 	int *idx;
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
 }
