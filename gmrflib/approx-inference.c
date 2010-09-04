@@ -248,6 +248,14 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->huge = GMRFLib_FALSE;
 	(*ai_par)->cpo_manual = GMRFLib_FALSE;
 
+
+	/* 
+	   for numerical integration
+	 */
+	(*ai_par)->numint_max_fn_eval = 10000;
+	(*ai_par)->numint_rel_err = 1e-3;
+	(*ai_par)->numint_abs_err = 1e-4;
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -368,6 +376,11 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	fprintf(fp, "\tHuge model [%s]\n", (ai_par->huge ? "Yes" : "No"));
 
+	fprintf(fp, "\tNumerical integration of hyperparameters:\n");
+	fprintf(fp, "\t\tMaximum number of function evaluations [%1d]\n", ai_par->numint_max_fn_eval);
+	fprintf(fp, "\t\tRelative error ....................... [%g]\n", ai_par->numint_rel_err);
+	fprintf(fp, "\t\tAbsolute error ....................... [%g]\n", ai_par->numint_abs_err);
+	
 	if (show_expert_options) {
 		/*
 		 * expert options goes here 
@@ -5043,7 +5056,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				GMRFLib_ai_marginal_for_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
 									  hyper_ldens, theta_mode, eigen_values, eigen_vectors,
-									  std_stdev_theta, ai_par->dz, stdev_corr_pos, stdev_corr_neg, interpol);
+									  std_stdev_theta, ai_par->dz, stdev_corr_pos, stdev_corr_neg, interpol, ai_par);
 			}
 			if (run_with_omp) {
 				if (ai_par->fp_log) {
@@ -5730,7 +5743,8 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
 					      double *hyper_ldens, double *theta_mode, gsl_vector * eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
-					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator)
+					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
+	                                      GMRFLib_ai_param_tp *ai_par)
 {
 #define NEXTRA 11
 	int i, j;
@@ -5866,10 +5880,13 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		 * we need to bound the maximum function evaluations, otherwise it can just go on forever, especially for _linear
 		 * and _quadratic interpolation. seems like they produce to `rough' integrands... 
 		 */
-		//unsigned int max_eval = (unsigned int) gsl_pow_int(400.0, ITRUNCATE(nhyper - 1, 1, 3));	/* 0 for none */
-		unsigned int max_eval = 10000;
-		double abs_err = 0.0001, rel_err = 0.001, value, err;
+		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
+		double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 		int retval;
+
+		P(max_eval);
+		P(abs_err);
+		P(rel_err);
 
 		for (i = 0; i < npoints; i++) {
 			arg->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);
