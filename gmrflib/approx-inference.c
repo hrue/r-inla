@@ -3426,11 +3426,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		} else {
 			min_pos_eigenvalue /= 100.0;	       /* JUST A CHOICE */
 		}
-		int a_change = 0;
+		int a_change = 0, all_negative = 1;
 
 		for (i = 0; i < nhyper; i++) {
 			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
 
+			all_negative = (all_negative && (eigv < 0));
 			if (eigv < 0.0) {
 				fprintf(stderr, "\n");
 				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
@@ -3449,20 +3450,31 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (a_change) {
 			/*
 			 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
-			 * af-program.c ;-) In any case, the matrix is small... 
+			 * af-program.c ;-) In any case, the matrix is small...
 			 */
+			if (all_negative){
+				/* 
+				   if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on...
+				 */
 
-			for (i = 0; i < nhyper; i++) {
-				for (j = i; j < nhyper; j++) {
-					double sum = 0.0;
-					for (k = 0; k < nhyper; k++) {
-						sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-						    * gsl_vector_get(eigen_values, k);
+				fprintf(stderr, "\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Go on with Hessian = Identity\n\n");
+				memset(hessian, 0, ISQR(nhyper)*sizeof(double));
+				for(i=0; i<nhyper; i++)
+					hessian[i + i * nhyper ] = 1.0;
+			} else {
+				for (i = 0; i < nhyper; i++) {
+					for (j = i; j < nhyper; j++) {
+						double sum = 0.0;
+						for (k = 0; k < nhyper; k++) {
+							sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
+								* gsl_vector_get(eigen_values, k);
+						}
+						hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 					}
-					hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 				}
 			}
 		}
+
 
 
 		/*
@@ -5240,8 +5252,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 	 */
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
-	int i, j, n, debug = 0, nc=0, one=1;
-	double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
+	int i, n, debug = 0, nc=0, one=1, use_new_version = 1;
 	GMRFLib_density_tp **d;
 
 	assert(problem != NULL);
@@ -5249,8 +5260,6 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 		return NULL;
 
 	n = problem->n;
-	v = Calloc(n, double);
-	a = Calloc(n, double);
 	d = Calloc(nlin, GMRFLib_density_tp *);
 
 	nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
@@ -5258,15 +5267,81 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 	/* 
 	   do each lincomb at the time. No need to run this in parallel as its already in parallel...
 	*/
+	if (0) {
+		if (use_new_version){
+			FIXME1("USE NEW VERSION");
+		} else {
+			FIXME1("USE OLD VERSION");
+		}
+	}
+
+#pragma omp parallel for private(i)
 	for (i = 0; i < nlin; i++) {
+
+		int j;
+		double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
+
+		v = Calloc(n, double);
+		a = Calloc(n, double);
 
 		memset(a, 0, n*sizeof(double));		
 		for(j=0; j < Alin[i]->n; j++) {		
 			a[ Alin[i]->idx[j] ] = Alin[i]->weight[j];
 		}
-		
 		memcpy(v, a, n*sizeof(double));
-		GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
+		
+		if (use_new_version && (Alin[i]->first_nonzero < 0)) {
+			if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS){
+				/* 
+				   compute the first non-zero index
+				*/
+				double *aa = Calloc(n, double);
+				int findx;
+				
+				GMRFLib_convert_to_mapped(aa, a, problem->sub_graph, problem->sub_sm_fact.remap);
+				findx = GMRFLib_find_nonzero(aa, n, 1);
+				if (findx < 0)
+					findx=0;
+				//printf("lincomb[%1d] first = %d\n", findx);
+				Alin[i]->first_nonzero = findx;
+				Alin[i]->last_nonzero = -1;
+				Free(aa);
+			} else {
+				Alin[i]->first_nonzero = 0;
+				Alin[i]->last_nonzero = -1;
+			}
+		}
+			
+		if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
+			/* 
+			   use the faster version
+			*/
+			GMRFLib_solve_l_sparse_matrix_special(v, &(problem->sub_sm_fact), problem->sub_graph,
+							      (Alin[i]->first_nonzero < 0 ? 0   : Alin[i]->first_nonzero), 
+							      (Alin[i]->last_nonzero  < 0 ? n-1 : Alin[i]->last_nonzero),
+							      0);
+		} else {
+			GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
+		}
+
+		if (use_new_version && (Alin[i]->last_nonzero < 0)) {
+			if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS){
+				/* 
+				   compute the last non-zero index
+				*/
+				double *vv = Calloc(n, double);
+				int lastindx;
+				
+				GMRFLib_convert_to_mapped(vv, v, problem->sub_graph, problem->sub_sm_fact.remap);
+				lastindx = GMRFLib_find_nonzero(vv, n, -1);
+				if (lastindx < 0)
+					lastindx= n-1;
+				Alin[i]->last_nonzero = lastindx;
+				Free(vv);
+			} else {
+				Alin[i]->last_nonzero = n-1;
+			}
+		}
 
 		/*
 		 * the correction matrix due to linear constraints 
@@ -5296,10 +5371,10 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 
 		var = DMAX(0.0, var - var_corr);
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
-	}
 
-	Free(v);
-	Free(a);
+		Free(v);
+		Free(a);
+	}
 
 	return d;
 }
@@ -5883,10 +5958,6 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
 		double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 		int retval;
-
-		P(max_eval);
-		P(abs_err);
-		P(rel_err);
 
 		for (i = 0; i < npoints; i++) {
 			arg->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);

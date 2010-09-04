@@ -83,6 +83,11 @@ int GMRFLib_solve_lt_sparse_matrix_special_PROFILE(void)
 	abort();
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_solve_l_sparse_matrix_special_PROFILE(void)
+{
+	abort();
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_comp_cond_meansd_PROFILE(void)
 {
 	abort();

@@ -901,6 +901,28 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped)
+{
+	/*
+	 * rhs in real world, L in mapped world.  solve Lx=b backward only from rhs[findx] up to rhs[toindx].  note that
+	 * findx and toindx is in mapped world.  if remapped, do not remap/remap-back the rhs before solving.
+	 * 
+	 */
+
+	double *b = Calloc(graph->n, double);
+
+	if (!remapped) {
+		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	}
+	memcpy(&b[findx], &rhs[findx], (toindx - findx + 1) * sizeof(double));	/* this can be improved */
+	GMRFLib_my_taucs_dccs_solve_l_special(L, rhs, b, findx, toindx);	/* solve it */
+	if (!remapped) {
+		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
+	}
+	Free(b);
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap, int idx)
 {
 	/*
@@ -1600,6 +1622,25 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 		x[i] = b[i] / Aii;
 	}
 
+	return 0;
+}
+int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx)
+{
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	int n, ip, i, j;
+	double Aij, Ajj;
+	
+	for (j = from_idx; j <= to_idx; j++) {
+		ip = L->colptr[j];
+		Ajj = L->values.d[ip];
+		x[j] = b[j] / Ajj;
+
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			i = L->rowind[ip];
+			Aij = L->values.d[ip];
+			b[i] -= x[j] * Aij;
+		}
+	}
 	return 0;
 }
 int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)

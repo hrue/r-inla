@@ -71,6 +71,7 @@ double GMRFLib_eps(double power);
 double GMRFLib_max_value(double *x, int n);
 double GMRFLib_min_value(double *x, int n);
 double GMRFLib_signed_pow(double x, double power);
+int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);

@@ -4306,6 +4306,8 @@ GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w)
 
 	lc = Calloc(1, GMRFLib_lc_tp);
 	lc->n = n;
+	lc->first_nonzero = -1;
+	lc->last_nonzero = -1;
 	lc->idx = Calloc(n, int);
 	lc->weight = Calloc(n, float);
 
@@ -4381,6 +4383,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	lc = Calloc(1, GMRFLib_lc_tp);
 	lc->n = 0;
+	lc->first_nonzero = -1;
+	lc->last_nonzero = -1;
 	lc->idx = NULL;
 	lc->weight = NULL;
 	
