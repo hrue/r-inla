@@ -1,8 +1,10 @@
 ### Binary I/O and interpretation of vectors
 
-`inla.interpret.vector` =
-    function(xx)
+`inla.interpret.vector` = function(xx)
 {
+    if (is.null(xx))
+        return (NULL)
+    
     len = length(xx)
     ii = 1
     res = numeric()
@@ -22,9 +24,11 @@
     return(res)
 }
 
-`inla.interpret.vector.idx` =
-    function(xx)
+`inla.interpret.vector.idx` = function(xx)
 {
+    if (is.null(xx))
+        return (NULL)
+    
     len = length(xx)
     ii = 1
     res = numeric()
@@ -46,9 +50,11 @@
     return(res)
 }
 
- `inla.interpret.vector.list` =
-    function(xx)
+ `inla.interpret.vector.list` = function(xx)
 {
+    if (is.null(xx))
+        return (NULL)
+    
     len = length(xx)
     ind = ii = 1
     res = list()
@@ -70,17 +76,17 @@
     return(res)
 }
 
-`inla.read.binary.file` =
-    function(file)
+`inla.read.binary.file` = function(file)
 {
-    len = file.info(file)$size
-
-    if (is.na(len))
-        stop(paste("File does not exits: ", file))
-
-    fp = file(file,"rb")
-    xx = readBin(fp, numeric(), n=len)
-    close(fp)
+    if (file.exists(file)) {
+        fp = file(file,"rb")
+        len = file.info(file)$size
+        xx = readBin(fp, numeric(), n=len)
+        close(fp)
+    } else {
+        warning(paste("File does not exits: ", file))
+        xx = NULL
+    } 
 
     return (xx)
 }
