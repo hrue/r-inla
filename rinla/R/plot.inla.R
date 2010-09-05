@@ -33,10 +33,12 @@
                 }
                 ip = ip + 1
                 
-                ss = x$summary.fixed[i,]
-                sub=paste("Mean = ",round(ss[names(ss)=="mean"],3)," SD = ",round(ss[names(ss)=="sd"],3),sep="")
-                plot(inla.spline(fix[[i]]),type="l", main=paste("PostDens [",inla.nameunfix(labels.fix[i]),"]",sep=""),
-                     sub=sub, xlab="", ylab="", ...)
+                if (!all(is.na(fix[[i]]))) {
+                    ss = x$summary.fixed[i,]
+                    sub=paste("Mean = ",round(ss[names(ss)=="mean"],3)," SD = ",round(ss[names(ss)=="sd"],3),sep="")
+                    plot(inla.spline(fix[[i]]),type="l", main=paste("PostDens [",inla.nameunfix(labels.fix[i]),"]",sep=""),
+                         sub=sub, xlab="", ylab="", ...)
+                }
             }
         }
     }
@@ -223,9 +225,11 @@
                 ip = ip + 1
 
                 hh = hyper[[i]]
-                label = inla.nameunfix(names(hyper)[i])
-                plot(inla.spline(hh),type="l",ylab="",xlab="", ...)
-                title(main=paste("PostDens [", label, "]", sep=""))
+                if (!is.null(hh)) {
+                    label = inla.nameunfix(names(hyper)[i])
+                    plot(inla.spline(hh),type="l",ylab="",xlab="", ...)
+                    title(main=paste("PostDens [", label, "]", sep=""))
+                }
             }
         }
     }

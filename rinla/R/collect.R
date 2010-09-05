@@ -104,6 +104,8 @@
 
                 ##read the marginals
                 xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")))
+                if (is.null(xx))
+                    xx = cbind(c(NA,NA,NA), c(NA,NA,NA))
                 colnames(xx) = c("x", "y")
                 marginals.fixed[[i]] = xx
             } else {
@@ -186,7 +188,8 @@
             
             ##read the marginals
             xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")))
-            colnames(xx) = c("x", "y")
+            if (!is.null(xx))
+                colnames(xx) = c("x", "y")
             marginals.fixed[[i]] = xx
         }    
         rm(qq)
@@ -353,8 +356,9 @@
             file =paste(results.dir, .Platform$file.sep,hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
             marg1 = inla.interpret.vector(xx)
-            colnames(marg1) = c("x","y")
             rm(xx)
+            if (!is.null(marg1))
+                colnames(marg1) = c("x","y")
             marginal.hyper = c(marginal.hyper,list(marg1))
         }
         names(marginal.hyper) = inla.namefix(names.hyper)
@@ -405,8 +409,9 @@
             file =paste(results.dir, .Platform$file.sep,hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
             marg1 = inla.interpret.vector(xx)
-            colnames(marg1) = c("x","y")
             rm(xx)
+            if (!is.null(marg1))
+                colnames(marg1) = c("x","y")
             internal.marginal.hyper = c(internal.marginal.hyper,list(marg1))
         }
         names(internal.marginal.hyper) = inla.namefix(names.hyper)
@@ -509,13 +514,15 @@
             xx = inla.read.binary.file(file)
             rr = inla.interpret.vector.list(xx)
             rm(xx)
-            names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-            for(i in 1:length(rr))
-                colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+            if (!is.null(rr)) {
+                names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
+                for(i in 1:length(rr))
+                    colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+            }
             marginals.linear.predictor = rr
-        }
-        else
+        } else {
             marginals.linear.predictor = NULL
+        }
 
         ## info about size
         size.info = inla.collect.size(subdir)
@@ -565,20 +572,20 @@
                 xx = inla.read.binary.file(file)
                 rr = inla.interpret.vector.list(xx)
                 rm(xx)
-                names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-                for(i in 1:length(rr))
-                    colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                if (!is.null(rr)) {
+                    names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
+                    for(i in 1:length(rr))
+                        colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                }
                 marginals.fitted.values = rr
-            }
-            else
+            } else {
                 marginals.fitted.values = NULL
-        }
-        else {
+            }
+        } else {
             summary.fitted.values = NULL
             marginals.fitted.values = NULL
         }
-    }
-    else {
+    } else {
         summary.fitted.values = NULL
         marginals.fitted.values = NULL
     }
@@ -622,15 +629,16 @@
                 xx = inla.read.binary.file(file)
                 rr = inla.interpret.vector.list(xx)
                 rm(xx)
-                names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-                for(i in 1:length(rr))
-                    colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                if (!is.null(rr)) {
+                    names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
+                    for(i in 1:length(rr))
+                        colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                }
                 marginals.usermap.values = rr
-            }
-            else
+            } else {
                 marginals.usermap.values = NULL
-        }
-        else {
+            }
+        } else {
             summary.usermap.values = NULL
             marginals.usermap.values = NULL
         }
@@ -730,10 +738,12 @@
                     xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
                     rr = inla.interpret.vector.list(xx)
                     rm(xx)
-                    nd = length(rr)
-                    names(rr) = inla.namefix(paste("index.", as.character(1:nd), sep=""))
-                    for(j in 1:nd)
-                        colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                    if (!is.null(rr)) {
+                        nd = length(rr)
+                        names(rr) = inla.namefix(paste("index.", as.character(1:nd), sep=""))
+                        for(j in 1:nd)
+                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                    }
                     marginals.random[[i]] = rr
                 }
                 else 
@@ -752,7 +762,7 @@
             size.random[[i]] = inla.collect.size(file)
         }
         names(summary.random) = inla.namefix(names.random)
-        if(!is.null(marginals.random))
+        if(!is.null(marginals.random) && (length(marginals.random) > 0))
             names(marginals.random) = inla.namefix(names.random)
     }
     else {
