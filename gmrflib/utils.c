@@ -200,6 +200,21 @@ double GMRFLib_min_value(double *x, int n)
 
 	return min_val;
 }
+int GMRFLib_imin_value(int *x, int n)
+{
+	/*
+	 * return the IMIN(x[]) 
+	 */
+	int i;
+	int min_val;
+
+	min_val = x[0];
+	for (i = 1; i < n; i++) {
+		min_val = IMIN(min_val, x[i]);
+	}
+
+	return min_val;
+}
 double GMRFLib_max_value(double *x, int n)
 {
 	/*
@@ -211,6 +226,22 @@ double GMRFLib_max_value(double *x, int n)
 	max_val = x[0];
 	for (i = 1; i < n; i++) {
 		max_val = DMAX(max_val, x[i]);
+	}
+
+	return max_val;
+}
+int GMRFLib_imax_value(int *x, int n)
+{
+	/*
+	 * return IMAX(x[]) 
+	 */
+
+	int i;
+	int max_val;
+
+	max_val = x[0];
+	for (i = 1; i < n; i++) {
+		max_val = IMAX(max_val, x[i]);
 	}
 
 	return max_val;

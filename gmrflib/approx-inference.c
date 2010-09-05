@@ -5248,11 +5248,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
 {
 	/*
-	 * Compute the marginals for the linear combinations using just the Gaussians 
+	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
+	 * in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero terms in 'a'.
 	 */
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
-	int i, n, debug = 0, nc=0, one=1, use_new_version = 1;
+	int *remap = problem->sub_sm_fact.remap;
+	int i, n, nc=0, one=1, use_new_version = 1;
 	GMRFLib_density_tp **d;
 
 	assert(problem != NULL);
@@ -5269,111 +5271,184 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 	*/
 	if (0) {
 		if (use_new_version){
-			FIXME1("USE NEW VERSION");
+			FIXME1("compute_lincomb: USE NEW VERSION");
 		} else {
-			FIXME1("USE OLD VERSION");
+			FIXME1("compute_lincomb: USE OLD VERSION");
 		}
 	}
 
-#pragma omp parallel for private(i)
-	for (i = 0; i < nlin; i++) {
-
-		int j;
-		double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
-
-		v = Calloc(n, double);
-		a = Calloc(n, double);
-
-		memset(a, 0, n*sizeof(double));		
-		for(j=0; j < Alin[i]->n; j++) {		
-			a[ Alin[i]->idx[j] ] = Alin[i]->weight[j];
-		}
-		memcpy(v, a, n*sizeof(double));
+	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
 		
-		if (use_new_version && (Alin[i]->first_nonzero < 0)) {
-			if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS){
-				/* 
-				   compute the first non-zero index
-				*/
-				double *aa = Calloc(n, double);
-				int findx;
-				
-				GMRFLib_convert_to_mapped(aa, a, problem->sub_graph, problem->sub_sm_fact.remap);
-				findx = GMRFLib_find_nonzero(aa, n, 1);
-				if (findx < 0)
-					findx=0;
-				//printf("lincomb[%1d] first = %d\n", findx);
+#pragma omp parallel for private(i)
+		for (i = 0; i < nlin; i++) {
+
+			int j, k, from_idx, to_idx, len, from_idx_a, to_idx_a, len_a;
+			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
+
+			from_idx_a = n;
+			to_idx_a = 0;
+
+			from_idx_a = GMRFLib_imin_value(Alin[i]->idx,  Alin[i]->n);
+			to_idx_a   = GMRFLib_imax_value(Alin[i]->idx,  Alin[i]->n);
+			len_a      = to_idx_a - from_idx_a + 1;
+
+			a = Calloc(len_a, double);
+			for(j=0; j < Alin[i]->n; j++) {		
+				a[ Alin[i]->idx[j] - from_idx_a ] = (double) Alin[i]->weight[j];
+			}
+
+			/* 
+			 * compute the first non-zero index (mapped) if not already there
+			 */
+			if (Alin[i]->first_nonzero < 0) {
+				int findx = n;
+
+				for(j=0; j< Alin[i]->n; j++) {
+					k = remap[ Alin[i]->idx[j] ];
+					findx = IMIN(findx, k);
+				}
 				Alin[i]->first_nonzero = findx;
 				Alin[i]->last_nonzero = -1;
-				Free(aa);
-			} else {
-				Alin[i]->first_nonzero = 0;
-				Alin[i]->last_nonzero = -1;
 			}
-		}
-			
-		if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
+
+			from_idx = Alin[i]->first_nonzero;
+			to_idx = (Alin[i]->last_nonzero < 0 ? n-1 : Alin[i]->last_nonzero);
+			len = to_idx - from_idx + 1;
+
+			b = Calloc(len, double);
+			v = Calloc(len, double);
+
+			for(j=0; j < Alin[i]->n; j++) {		
+				b[ remap[ Alin[i]->idx[j] ] - from_idx ] = (double) Alin[i]->weight[j];
+			}
+
 			/* 
-			   use the faster version
-			*/
-			GMRFLib_solve_l_sparse_matrix_special(v, &(problem->sub_sm_fact), problem->sub_graph,
-							      (Alin[i]->first_nonzero < 0 ? 0   : Alin[i]->first_nonzero), 
-							      (Alin[i]->last_nonzero  < 0 ? n-1 : Alin[i]->last_nonzero),
-							      0);
-		} else {
-			GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
-		}
+			 * solve L v = b
+			 */
+			taucs_ccs_matrix *L = (taucs_ccs_matrix *) (problem->sub_sm_fact.L);
+			int ip, ii, jj;
+			double Aij, Ajj;
+	
+			for (jj = 0; jj < len; jj++) {
+				ip = L->colptr[jj + from_idx];
+				Ajj = L->values.d[ip];
+				v[jj] = b[jj] / Ajj;
 
-		if (use_new_version && (Alin[i]->last_nonzero < 0)) {
-			if (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS){
-				/* 
-				   compute the last non-zero index
-				*/
-				double *vv = Calloc(n, double);
-				int lastindx;
+				for (ip = L->colptr[jj + from_idx] + 1; ip < L->colptr[jj + from_idx + 1]; ip++) {
+					ii = L->rowind[ip] - from_idx;
+					Aij = L->values.d[ip];
+					b[ii] -= v[jj] * Aij;
+				}
+			}
+
+			/* 
+			 * compute the last non-zero index (mapped) if not already there
+			 */
+			if (Alin[i]->last_nonzero < 0){
+				Alin[i]->last_nonzero = GMRFLib_find_nonzero(v, len, -1) + from_idx;
+			}
+
+			/* 
+			 * we do not need to map back since the innerproduct is the same in any case. It is here possible to store only the non-zero indices of v,
+			 * and do the inner product over those, as they will remain the same for various calls to this function, but I don't think this is worth it.
+			 */
+			var = ddot_(&len, v, &one, v, &one);
+
+			Free(b);
+			Free(v);
+
+			/*
+			 * the correction matrix due to linear constraints 
+			 */
+			var_corr = 0.0;
+			if (nc) {
+				for (j = 0; j < nc; j++) {
+					/*
+					 * w = AA^T CONSTR_M 
+					 */
+					double *p, *pp, w, ww;
+					
+					w = ww = 0.0;
+					p = &(problem->constr_m[j*n]);
+					pp = &(problem->qi_at_m[j*n]);
+
+					for(jj = 0; jj < Alin[i]->n; jj++){
+						k = Alin[i]->idx[jj];
+						weight = (double) Alin[i]->weight[jj];
+
+						w += weight * p[k];
+						ww += weight * pp[k];
+					}
+					var_corr += w * ww;
+				}
+			}
+
+			mean = imean = 0.0;
+			for(j = 0; j < Alin[i]->n; j++){
+				k = Alin[i]->idx[j];
+				weight = (double) Alin[i]->weight[j];
 				
-				GMRFLib_convert_to_mapped(vv, v, problem->sub_graph, problem->sub_sm_fact.remap);
-				lastindx = GMRFLib_find_nonzero(vv, n, -1);
-				if (lastindx < 0)
-					lastindx= n-1;
-				Alin[i]->last_nonzero = lastindx;
-				Free(vv);
-			} else {
-				Alin[i]->last_nonzero = n-1;
+				mean += weight * problem->mean_constr[k];
+				imean += weight * improved_mean[k];
 			}
-		}
+			var = DMAX(0.0, var - var_corr);
+			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 
-		/*
-		 * the correction matrix due to linear constraints 
+			Free(a);
+		}
+	} else {
+		/* 
+		   slow version, can rewrite this for smtp=BAND as well, if required.
 		 */
-		var_corr = 0.0;
-		if (nc) {
-			for (j = 0; j < nc; j++) {
-				/*
-				 * w = AA^T CONSTR_M 
-				 */
-				p = &(problem->constr_m[j*n]);
-				w = ddot_(&n, a, &one, p, &one);
+#pragma omp parallel for private(i)
+		for (i = 0; i < nlin; i++) {
 
-				/*
-				 * ww = AA * QI_AT 
-				 */
-				p = &(problem->qi_at_m[j*n]);
-				ww = ddot_(&n, a, &one, p, &one);
+			int j;
+			double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
 
-				var_corr += w * ww;
+			v = Calloc(n, double);
+			a = Calloc(n, double);
+
+			memset(a, 0, n*sizeof(double));         
+			for(j=0; j < Alin[i]->n; j++) {         
+				a[ Alin[i]->idx[j] ] = (double) Alin[i]->weight[j];
 			}
+			memcpy(v, a, n*sizeof(double));
+                
+			GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
+
+			/*
+			 * the correction matrix due to linear constraints 
+			 */
+			var_corr = 0.0;
+			if (nc) {
+				for (j = 0; j < nc; j++) {
+					/*
+					 * w = AA^T CONSTR_M 
+					 */
+					p = &(problem->constr_m[j*n]);
+					w = ddot_(&n, a, &one, p, &one);
+
+					/*
+					 * ww = AA * QI_AT 
+					 */
+					p = &(problem->qi_at_m[j*n]);
+					ww = ddot_(&n, a, &one, p, &one);
+
+					var_corr += w * ww;
+				}
+			}
+
+			var = ddot_(&n, v, &one, v, &one);
+			mean = ddot_(&n, a, &one, problem->mean_constr, &one);
+			imean = ddot_(&n, a, &one, improved_mean, &one);
+
+			var = DMAX(0.0, var - var_corr);
+			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
+
+			Free(v);
+			Free(a);
 		}
-
-		var = ddot_(&n, v, &one, v, &one);
-		mean = ddot_(&n, a, &one, problem->mean_constr, &one);
-		imean = ddot_(&n, a, &one, improved_mean, &one);
-
-		var = DMAX(0.0, var - var_corr);
-		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
-
-		Free(v);
-		Free(a);
 	}
 
 	return d;
