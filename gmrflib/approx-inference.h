@@ -680,10 +680,10 @@ typedef struct {
 
 typedef struct 
 {
-	int n;
-	int first_nonzero;
-	int last_nonzero;
-	int *idx;
+	int n;						       /* length */
+	int first_nonzero;				       /* first nonzero in the mapped indices. this is automatically added. */
+	int last_nonzero;				       /* last nonzero in the mapped indices. this is automatically added. */
+	int *idx;					       /* list of indices */
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
 }
 	GMRFLib_lc_tp;
