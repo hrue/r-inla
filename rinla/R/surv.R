@@ -72,7 +72,7 @@
     }
     if (!missing(truncation))
     {
-        if (sum(!is.na(truncation)) != 0)
+        if (sum(is.na(truncation)) > 0)
             stop("Non valid values for 'truncation")
         if (sum(truncation<0) > 0)
             stop("Negative times are not allowed")
