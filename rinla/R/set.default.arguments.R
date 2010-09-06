@@ -315,10 +315,10 @@
          ##:ARGUMENT: result Prevous result from inla(). Use the theta- and x-mode from this run.
          result = NULL,
          
-         ##:ARGUMENT: theta The theta-mode/initial values for theta.
+         ##:ARGUMENT: theta The theta-mode/initial values for theta. This option has preference over result$mode$theta.
          theta = NULL,
 
-         ##:ARGUMENT: x The x-mode/intitial values for x.
+         ##:ARGUMENT: x The x-mode/intitial values for x. This option has preference over result$mode$x.
          x = NULL,
 
          ##:ARGUMENT: restart A boolean variable; should we restart the optimisation from this configuration or fix the mode at this configuration? (Default FALSE.)
