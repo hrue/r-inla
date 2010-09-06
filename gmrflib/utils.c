@@ -90,7 +90,7 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 		}
 		return -1;
 	} else {
-		for (i = len-1; i >=  0; i--) {
+		for (i = len - 1; i >= 0; i--) {
 			if (array[i] != 0.0)
 				return i;
 		}

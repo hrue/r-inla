@@ -367,8 +367,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 	 */
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_BAND
-			       (rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, findx, toindx, remapped));
+		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, findx, toindx, remapped));
 		break;
 	case GMRFLib_SMTP_PROFILE:
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_PROFILE());

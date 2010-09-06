@@ -1629,7 +1629,7 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n, ip, i, j;
 	double Aij, Ajj;
-	
+
 	for (j = from_idx; j <= to_idx; j++) {
 		ip = L->colptr[j];
 		Ajj = L->values.d[ip];
