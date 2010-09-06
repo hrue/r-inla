@@ -58,12 +58,16 @@
         }
         else {
             if(start[i]<end[i]) {
-                dc = cbind((truncation[i]-cutpoints[start[i]]),0,i,start[i])
-                dc = rbind(dc, cbind(ds[(start[i]+1):(end[i]-1)],rep(0,(end[i]-start[i])),
-                        rep(i,(end[i]-start[i])),c((start[i]+1):(end[i])-1)))
+                dc = cbind((cutpoints[start[i]+1]-truncation[i]),0,i,start[i])
+                if(end[i]>(start[i]+1))
+                    dc = rbind(dc, cbind(ds[(start[i]+1):(end[i]-1)],rep(0,(end[i]-start[i]-1)),
+                            rep(i,(end[i]-start[i]-1)),c((start[i]+2):(end[i])-1)))
                 dc = rbind(dc,cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i]))
+                data.new = rbind(data.new,dc)
+
             } else if(start[i]==end[i]) {
                 dc = cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i])
+                data.new = rbind(data.new,dc)
             }
             else
                 stop("Truncation cannot be greater than time")

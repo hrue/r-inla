@@ -48,7 +48,6 @@
     if (!is.numeric(time))
         stop ("'Time' variable is not numeric")
     nn = length(time)
-
     if (any(is.na(time)))
     {
         ## fixup the rest of the argument if some of 'time' is NA; in
