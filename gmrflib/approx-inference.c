@@ -5285,11 +5285,26 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			int j, k, from_idx, to_idx, len, from_idx_a, to_idx_a, len_a;
 			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
 
-			from_idx_a = n;
-			to_idx_a = 0;
+			if (Alin[i]->first_nonzero < 0) {
+#pragma omp critical
+				{
+					if (Alin[i]->first_nonzero < 0){
+						Alin[i]->first_nonzero = GMRFLib_imin_value(Alin[i]->idx,  Alin[i]->n);
+					}
+				}
+			}
 
-			from_idx_a = GMRFLib_imin_value(Alin[i]->idx,  Alin[i]->n);
-			to_idx_a   = GMRFLib_imax_value(Alin[i]->idx,  Alin[i]->n);
+			if (Alin[i]->last_nonzero < 0) {
+#pragma omp critical
+				{
+					if (Alin[i]->last_nonzero < 0){
+						Alin[i]->last_nonzero = GMRFLib_imax_value(Alin[i]->idx,  Alin[i]->n);
+					}
+				}
+			}
+
+			from_idx_a = Alin[i]->first_nonzero;
+			to_idx_a   = Alin[i]->last_nonzero;
 			len_a      = to_idx_a - from_idx_a + 1;
 
 			a = Calloc(len_a, double);
@@ -5300,19 +5315,24 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			/* 
 			 * compute the first non-zero index (mapped) if not already there
 			 */
-			if (Alin[i]->first_nonzero < 0) {
-				int findx = n;
+			if (Alin[i]->first_nonzero_mapped < 0) {
+#pragma omp critical
+				{
+					if (Alin[i]->first_nonzero_mapped){
+						int findx = n;
 
-				for(j=0; j< Alin[i]->n; j++) {
-					k = remap[ Alin[i]->idx[j] ];
-					findx = IMIN(findx, k);
+						for(j=0; j< Alin[i]->n; j++) {
+							k = remap[ Alin[i]->idx[j] ];
+							findx = IMIN(findx, k);
+						}
+						Alin[i]->first_nonzero_mapped = findx;
+						Alin[i]->last_nonzero_mapped = -1;
+					}
 				}
-				Alin[i]->first_nonzero = findx;
-				Alin[i]->last_nonzero = -1;
 			}
 
-			from_idx = Alin[i]->first_nonzero;
-			to_idx = (Alin[i]->last_nonzero < 0 ? n-1 : Alin[i]->last_nonzero);
+			from_idx = Alin[i]->first_nonzero_mapped;
+			to_idx = (Alin[i]->last_nonzero_mapped < 0 ? n-1 : Alin[i]->last_nonzero_mapped);
 			len = to_idx - from_idx + 1;
 
 			b = Calloc(len, double);
@@ -5323,7 +5343,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			}
 
 			/* 
-			 * solve L v = b
+			 * solve L v = b, using the index-range computed.
 			 */
 			taucs_ccs_matrix *L = (taucs_ccs_matrix *) (problem->sub_sm_fact.L);
 			int ip, ii, jj;
@@ -5344,8 +5364,13 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			/* 
 			 * compute the last non-zero index (mapped) if not already there
 			 */
-			if (Alin[i]->last_nonzero < 0){
-				Alin[i]->last_nonzero = GMRFLib_find_nonzero(v, len, -1) + from_idx;
+			if (Alin[i]->last_nonzero_mapped < 0) {
+#pragma omp critical
+				{
+					if (Alin[i]->last_nonzero_mapped < 0) {
+						Alin[i]->last_nonzero_mapped = GMRFLib_find_nonzero(v, len, -1) + from_idx;
+					}
+				}
 			}
 
 			/* 

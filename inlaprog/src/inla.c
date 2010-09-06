@@ -4306,8 +4306,8 @@ GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w)
 
 	lc = Calloc(1, GMRFLib_lc_tp);
 	lc->n = n;
-	lc->first_nonzero = -1;
-	lc->last_nonzero = -1;
+	lc->first_nonzero_mapped = -1;
+	lc->last_nonzero_mapped = -1;
 	lc->idx = Calloc(n, int);
 	lc->weight = Calloc(n, float);
 
@@ -4383,8 +4383,10 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	lc = Calloc(1, GMRFLib_lc_tp);
 	lc->n = 0;
-	lc->first_nonzero = -1;
-	lc->last_nonzero = -1;
+	lc->first_nonzero = -1;				       /* added below */
+	lc->last_nonzero = -1;				       /* added below */
+	lc->first_nonzero_mapped = -1;
+	lc->last_nonzero_mapped = -1;
 	lc->idx = NULL;
 	lc->weight = NULL;
 	
@@ -4446,16 +4448,20 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	}
 	GMRFLib_io_close(io);
 
-	if (mb->verbose) {
-		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
-	}
-
 	/* 
 	   sort them with increasing idx's (and carry the weights along) to speed things up later on.
 	*/
 	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
+
+	/* 
+	   add these as well
+	 */
+	lc->first_nonzero = lc->idx[0];
+	lc->last_nonzero = lc->idx[ lc->n -1 ];
+
 	if (mb->verbose) {
-		printf("\t\tLincomb =    idx\tweight\n");
+		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
+		printf("\t\tLincomb = \tidx \tweight\n");
 		for (i = 0; i < IMIN(lc->n, PREVIEW); i++) {
 			printf("\t\t\t%6d \t\t%.10f\n", lc->idx[i], lc->weight[i]);
 		}
