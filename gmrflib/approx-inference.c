@@ -249,8 +249,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->cpo_manual = GMRFLib_FALSE;
 
 
-	/* 
-	   for numerical integration
+	/*
+	 * for numerical integration 
 	 */
 	(*ai_par)->numint_max_fn_eval = 10000;
 	(*ai_par)->numint_rel_err = 1e-3;
@@ -380,7 +380,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tMaximum number of function evaluations [%1d]\n", ai_par->numint_max_fn_eval);
 	fprintf(fp, "\t\tRelative error ....................... [%g]\n", ai_par->numint_rel_err);
 	fprintf(fp, "\t\tAbsolute error ....................... [%g]\n", ai_par->numint_abs_err);
-	
+
 	if (show_expert_options) {
 		/*
 		 * expert options goes here 
@@ -1435,13 +1435,12 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	alpha = -1.0;
 	daxpy_(&n, &alpha, fixed_mode, &one, derivative, &one);	/* derivative = derivative - fixed_mode */
 
-	if (0){
+	if (0) {
 		P(idx);
 		P(x_mean);
-		for(i=0; i<n; i++)
-			printf("derivative %d %.12g  fixed_mode %.12g  covariances %.12g\n",
-			       i,  derivative[i], fixed_mode[i],  covariances[i]);
-		//exit(0);
+		for (i = 0; i < n; i++)
+			printf("derivative %d %.12g  fixed_mode %.12g  covariances %.12g\n", i, derivative[i], fixed_mode[i], covariances[i]);
+		// exit(0);
 	}
 
 
@@ -2253,7 +2252,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 
 		for (k = 0; k < nc; k++) {
 			val = b22 * w[k];
-			daxpy_(&nc, &val, v, &one, &tmp_m[k*nc], &one);
+			daxpy_(&nc, &val, v, &one, &tmp_m[k * nc], &one);
 			tmp_m[IDX(k, k, nc)] += 1.0;
 		}
 
@@ -2524,8 +2523,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		int iter, itmax = optpar->max_iter;
 
-		/* 
-		   these tricks are currently disabled
+		/*
+		 * these tricks are currently disabled 
 		 */
 		int cc_positive = 1;
 		int cc_is_negative = 0;
@@ -2546,25 +2545,25 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				GMRFLib_thread_id = id;
 				idx = idxs[i];
 				GMRFLib_2order_approx(NULL, &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
-				cc_is_negative = (cc_is_negative || ccoof < 0.0); /* this line IS OK! also for multithread.. */
+				cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 				if (cc_positive) {
 					bb[idx] += bcoof;
 					cc[idx] += DMAX(0.0, ccoof);
 				} else {
-					if (ccoof > 0.0){
+					if (ccoof > 0.0) {
 						bb[idx] += bcoof;
 						cc[idx] += ccoof;
 					} else {
 						bb[idx] += bcoof;
-						//bb[idx] += cc_factor*bcoof; /* what to use?? if any...*/
-						cc[idx] += cc_factor*ccoof;
+						// bb[idx] += cc_factor*bcoof; /* what to use?? if any...*/
+						cc[idx] += cc_factor * ccoof;
 					}
 				}
 			}
 			GMRFLib_thread_id = id;
 
 			if (!cc_positive)
-				cc_factor = DMIN(1.0, cc_factor*cc_factor_mult);
+				cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
 
 			for (i = 0; i < n; i++) {
 				bb[i] += -c[i] * mean[i];
@@ -2588,17 +2587,17 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				 * we're done!  unless we have negative elements on the diagonal...
 				 */
 
-				/* 
-				   disable these cc_positive tricks now...
+				/*
+				 * disable these cc_positive tricks now... 
 				 */
 				break;
-				
 
-				if (cc_is_negative && !cc_positive && (cc_factor < 1.0)){
-					/* 
-					   do nothing
+
+				if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
+					/*
+					 * do nothing 
 					 */
-				} else if (cc_is_negative && cc_positive){
+				} else if (cc_is_negative && cc_positive) {
 					FIXME("switch to cc_positive = 0");
 					cc_positive = 0;
 				} else {
@@ -2687,8 +2686,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					GMRFLib_2order_approx(NULL, &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &step_len);
 					bb[idx] += bcoof;
 
-					cc_is_negative = (cc_is_negative || ccoof < 0.0); /* this line IS OK! also for multithread.. */
-					if (cc_positive){
+					cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
+					if (cc_positive) {
 						cc[idx] += DMAX(0.0, ccoof);
 					} else {
 						cc[idx] += ccoof;
@@ -2921,7 +2920,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, GMRFLib_lc_tp **Alin, GMRFLib_density_tp *** dlin,
+		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin,
 		    GMRFLib_ai_misc_output_tp ** misc_output)
 {
 	/*
@@ -3055,7 +3054,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	} else {					\
 		neff[dens_count] = ai_store->neff;	\
 	}
-	
+
 #define COMPUTE_NEFF2							\
 	if (run_with_omp) {						\
 		neff[dens_count] = ai_store_id[id]->neff;		\
@@ -3247,7 +3246,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * if not set to be known, then optimise 
 		 */
 		if (!(ai_par->mode_known)) {
-			
+
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Optimise using %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
 			}
@@ -3361,20 +3360,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
-		if (x){
-			memcpy(x_mode, x, graph->n*sizeof(double));
+		if (x) {
+			memcpy(x_mode, x, graph->n * sizeof(double));
 		}
-		
+
 		if (hess_count) {
-			//FIXME("------------> do one function call");
+			// FIXME("------------> do one function call");
 			for (i = 0; i < nhyper; i++) {
 				theta_mode[i] = hyperparam[i][0][0];
 			}
 			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
-			if (x){
-				memcpy(x_mode, x, graph->n*sizeof(double));
+			if (x) {
+				memcpy(x_mode, x, graph->n * sizeof(double));
 			}
 		}
 
@@ -3452,22 +3451,22 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
 			 * af-program.c ;-) In any case, the matrix is small...
 			 */
-			if (all_negative){
-				/* 
-				   if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on...
+			if (all_negative) {
+				/*
+				 * if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on... 
 				 */
 
 				fprintf(stderr, "\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Go on with Hessian = Identity\n\n");
-				memset(hessian, 0, ISQR(nhyper)*sizeof(double));
-				for(i=0; i<nhyper; i++)
-					hessian[i + i * nhyper ] = 1.0;
+				memset(hessian, 0, ISQR(nhyper) * sizeof(double));
+				for (i = 0; i < nhyper; i++)
+					hessian[i + i * nhyper] = 1.0;
 			} else {
 				for (i = 0; i < nhyper; i++) {
 					for (j = i; j < nhyper; j++) {
 						double sum = 0.0;
 						for (k = 0; k < nhyper; k++) {
 							sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-								* gsl_vector_get(eigen_values, k);
+							    * gsl_vector_get(eigen_values, k);
 						}
 						hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 					}
@@ -4500,7 +4499,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 		if (run_with_omp) {
-			GMRFLib_ai_store_tp **ai_store_id = Calloc(omp_get_max_threads(),  GMRFLib_ai_store_tp *);
+			GMRFLib_ai_store_tp **ai_store_id = Calloc(omp_get_max_threads(), GMRFLib_ai_store_tp *);
 #pragma omp for private(i) schedule(static) nowait
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
@@ -4519,20 +4518,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				COMPUTE2;
 				GMRFLib_free_density(cpodens);
 			}
-			for(i = 0; i < omp_get_max_threads(); i++){
+			for (i = 0; i < omp_get_max_threads(); i++) {
 				if (ai_store_id[i] && ai_store_id[i]->problem) {
 					GMRFLib_assign_ai_store(ai_store, ai_store_id[i]);
-					memcpy(x_mode,  ai_store->mode,  graph->n*sizeof(double));
+					memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 					ai_store_id[i] = NULL; /* to prevent it from beeing Free's twice */
 					if (need_Qinv) {
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
 						GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
 					}
 					break;
-				} 
+				}
 			}
-			for(i = 0; i < omp_get_max_threads(); i++){
-				if (!ai_store_id[i]){
+			for (i = 0; i < omp_get_max_threads(); i++) {
+				if (!ai_store_id[i]) {
 					GMRFLib_free_ai_store(ai_store_id[i]);
 				}
 			}
@@ -4554,12 +4553,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					GMRFLib_print_Qfunc(stdout, p->sub_graph, p->tab->Qfunc, p->tab->Qfunc_arg);
 					int jj;
-					for(jj=0; jj<graph->n; jj++){
-						printf("mean/sd %d %.12g %.12g\n", jj,  p->mean_constr[jj],
-						       sqrt(*GMRFLib_Qinv_get(p,  jj, jj)));
+					for (jj = 0; jj < graph->n; jj++) {
+						printf("mean/sd %d %.12g %.12g\n", jj, p->mean_constr[jj], sqrt(*GMRFLib_Qinv_get(p, jj, jj)));
 					}
-					GMRFLib_print_constr(stdout,  p->sub_constr,  p->sub_graph);
-					//exit(0);
+					GMRFLib_print_constr(stdout, p->sub_constr, p->sub_graph);
+					// exit(0);
 				}
 
 				double *xx_mode = ai_store->mode;
@@ -4567,7 +4565,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				COMPUTE;
 				GMRFLib_free_density(cpodens);
 			}
-			memcpy(x_mode,  ai_store->mode,  graph->n*sizeof(double));
+			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
@@ -4961,8 +4959,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							        */
 							       (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID
 								&& (ai_par->hessian_force_diagonal || nhyper == 1)
-								?
-								GMRFLib_AI_INTERPOLATOR_GRIDSUM : GMRFLib_AI_INTERPOLATOR_CCD)
+								? GMRFLib_AI_INTERPOLATOR_GRIDSUM : GMRFLib_AI_INTERPOLATOR_CCD)
 							       /*
 							        *  ...if not AUTO, then use whatever is requested
 							        */
@@ -5245,7 +5242,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
+GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
 {
 	/*
 	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
@@ -5254,7 +5251,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
-	int i, n, nc=0, one=1, use_new_version = 1;
+	int i, n, nc = 0, one = 1, use_new_version = 1;
 	GMRFLib_density_tp **d;
 
 	assert(problem != NULL);
@@ -5266,11 +5263,11 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 
 	nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
-	/* 
-	   do each lincomb at the time. No need to run this in parallel as its already in parallel...
-	*/
+	/*
+	 * do each lincomb at the time. No need to run this in parallel as its already in parallel... 
+	 */
 	if (0) {
-		if (use_new_version){
+		if (use_new_version) {
 			FIXME1("compute_lincomb: USE NEW VERSION");
 		} else {
 			FIXME1("compute_lincomb: USE OLD VERSION");
@@ -5278,7 +5275,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 	}
 
 	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
-		
+
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
 
@@ -5288,8 +5285,8 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			if (Alin[i]->first_nonzero < 0) {
 #pragma omp critical
 				{
-					if (Alin[i]->first_nonzero < 0){
-						Alin[i]->first_nonzero = GMRFLib_imin_value(Alin[i]->idx,  Alin[i]->n);
+					if (Alin[i]->first_nonzero < 0) {
+						Alin[i]->first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
 					}
 				}
 			}
@@ -5297,32 +5294,32 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			if (Alin[i]->last_nonzero < 0) {
 #pragma omp critical
 				{
-					if (Alin[i]->last_nonzero < 0){
-						Alin[i]->last_nonzero = GMRFLib_imax_value(Alin[i]->idx,  Alin[i]->n);
+					if (Alin[i]->last_nonzero < 0) {
+						Alin[i]->last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
 					}
 				}
 			}
 
 			from_idx_a = Alin[i]->first_nonzero;
-			to_idx_a   = Alin[i]->last_nonzero;
-			len_a      = to_idx_a - from_idx_a + 1;
+			to_idx_a = Alin[i]->last_nonzero;
+			len_a = to_idx_a - from_idx_a + 1;
 
 			a = Calloc(len_a, double);
-			for(j=0; j < Alin[i]->n; j++) {		
-				a[ Alin[i]->idx[j] - from_idx_a ] = (double) Alin[i]->weight[j];
+			for (j = 0; j < Alin[i]->n; j++) {
+				a[Alin[i]->idx[j] - from_idx_a] = (double) Alin[i]->weight[j];
 			}
 
-			/* 
+			/*
 			 * compute the first non-zero index (mapped) if not already there
 			 */
 			if (Alin[i]->first_nonzero_mapped < 0) {
 #pragma omp critical
 				{
-					if (Alin[i]->first_nonzero_mapped){
+					if (Alin[i]->first_nonzero_mapped) {
 						int findx = n;
 
-						for(j=0; j< Alin[i]->n; j++) {
-							k = remap[ Alin[i]->idx[j] ];
+						for (j = 0; j < Alin[i]->n; j++) {
+							k = remap[Alin[i]->idx[j]];
 							findx = IMIN(findx, k);
 						}
 						Alin[i]->first_nonzero_mapped = findx;
@@ -5332,23 +5329,23 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			}
 
 			from_idx = Alin[i]->first_nonzero_mapped;
-			to_idx = (Alin[i]->last_nonzero_mapped < 0 ? n-1 : Alin[i]->last_nonzero_mapped);
+			to_idx = (Alin[i]->last_nonzero_mapped < 0 ? n - 1 : Alin[i]->last_nonzero_mapped);
 			len = to_idx - from_idx + 1;
 
 			b = Calloc(len, double);
 			v = Calloc(len, double);
 
-			for(j=0; j < Alin[i]->n; j++) {		
-				b[ remap[ Alin[i]->idx[j] ] - from_idx ] = (double) Alin[i]->weight[j];
+			for (j = 0; j < Alin[i]->n; j++) {
+				b[remap[Alin[i]->idx[j]] - from_idx] = (double) Alin[i]->weight[j];
 			}
 
-			/* 
+			/*
 			 * solve L v = b, using the index-range computed.
 			 */
 			taucs_ccs_matrix *L = (taucs_ccs_matrix *) (problem->sub_sm_fact.L);
 			int ip, ii, jj;
 			double Aij, Ajj;
-	
+
 			for (jj = 0; jj < len; jj++) {
 				ip = L->colptr[jj + from_idx];
 				Ajj = L->values.d[ip];
@@ -5361,7 +5358,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 				}
 			}
 
-			/* 
+			/*
 			 * compute the last non-zero index (mapped) if not already there
 			 */
 			if (Alin[i]->last_nonzero_mapped < 0) {
@@ -5373,7 +5370,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 				}
 			}
 
-			/* 
+			/*
 			 * we do not need to map back since the innerproduct is the same in any case. It is here possible to store only the non-zero indices of v,
 			 * and do the inner product over those, as they will remain the same for various calls to this function, but I don't think this is worth it.
 			 */
@@ -5392,12 +5389,12 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 					 * w = AA^T CONSTR_M 
 					 */
 					double *p, *pp, w, ww;
-					
-					w = ww = 0.0;
-					p = &(problem->constr_m[j*n]);
-					pp = &(problem->qi_at_m[j*n]);
 
-					for(jj = 0; jj < Alin[i]->n; jj++){
+					w = ww = 0.0;
+					p = &(problem->constr_m[j * n]);
+					pp = &(problem->qi_at_m[j * n]);
+
+					for (jj = 0; jj < Alin[i]->n; jj++) {
 						k = Alin[i]->idx[jj];
 						weight = (double) Alin[i]->weight[jj];
 
@@ -5409,10 +5406,10 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			}
 
 			mean = imean = 0.0;
-			for(j = 0; j < Alin[i]->n; j++){
+			for (j = 0; j < Alin[i]->n; j++) {
 				k = Alin[i]->idx[j];
 				weight = (double) Alin[i]->weight[j];
-				
+
 				mean += weight * problem->mean_constr[k];
 				imean += weight * improved_mean[k];
 			}
@@ -5422,8 +5419,8 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			Free(a);
 		}
 	} else {
-		/* 
-		   slow version, can rewrite this for smtp=BAND as well, if required.
+		/*
+		 * slow version, can rewrite this for smtp=BAND as well, if required. 
 		 */
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
@@ -5434,12 +5431,12 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 			v = Calloc(n, double);
 			a = Calloc(n, double);
 
-			memset(a, 0, n*sizeof(double));         
-			for(j=0; j < Alin[i]->n; j++) {         
-				a[ Alin[i]->idx[j] ] = (double) Alin[i]->weight[j];
+			memset(a, 0, n * sizeof(double));
+			for (j = 0; j < Alin[i]->n; j++) {
+				a[Alin[i]->idx[j]] = (double) Alin[i]->weight[j];
 			}
-			memcpy(v, a, n*sizeof(double));
-                
+			memcpy(v, a, n * sizeof(double));
+
 			GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
 
 			/*
@@ -5451,13 +5448,13 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, 
 					/*
 					 * w = AA^T CONSTR_M 
 					 */
-					p = &(problem->constr_m[j*n]);
+					p = &(problem->constr_m[j * n]);
 					w = ddot_(&n, a, &one, p, &one);
 
 					/*
 					 * ww = AA * QI_AT 
 					 */
-					p = &(problem->qi_at_m[j*n]);
+					p = &(problem->qi_at_m[j * n]);
 					ww = ddot_(&n, a, &one, p, &one);
 
 					var_corr += w * ww;
@@ -5564,19 +5561,19 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 
 		fprintf(fp, "tags=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\"%s", d->tag[k],  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, "\"%s\"%s", d->tag[k], (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "start=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d%s", d->start[k],  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, "%1d%s", d->start[k], (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
 		fprintf(fp, "len=c(");
 		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d%s", d->len[k],  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, "%1d%s", d->len[k], (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
@@ -5584,9 +5581,9 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "\"%s\" = c(", d->tag[k]);
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
-				fprintf(fp, " %.6g%s", ai_store->problem->mean_constr[i],  (i < d->start[k] + d->len[k] -1 ? "," :  ""));
+				fprintf(fp, " %.6g%s", ai_store->problem->mean_constr[i], (i < d->start[k] + d->len[k] - 1 ? "," : ""));
 			}
-			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
@@ -5595,9 +5592,9 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			fprintf(fp, "\"%s\" = c(", d->tag[k]);
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				fprintf(fp, " %.6g%s", (p ? sqrt(*p) : 0.0), (i < d->start[k] + d->len[k] -1 ? "," :  ""));
+				fprintf(fp, " %.6g%s", (p ? sqrt(*p) : 0.0), (i < d->start[k] + d->len[k] - 1 ? "," : ""));
 			}
-			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "),\n");
 
@@ -5609,13 +5606,11 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
 					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
 					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					fprintf(fp, " %.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0),
-						(((j < d->start[k] + d->len[k] -1)
-						 ||
-						  (i < d->start[k] + d->len[k] -1)) ? "," : ""));
+					fprintf(fp, " %.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0), (((j < d->start[k] + d->len[k] - 1)
+												   || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
 				}
 			}
-			fprintf(fp, ")%s\n",  (k < d->nd -1 ? "," : ""));
+			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
 		}
 		fprintf(fp, "))\n");
 		fclose(fp);
@@ -5918,8 +5913,7 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
 					      double *hyper_ldens, double *theta_mode, gsl_vector * eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
-					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
-	                                      GMRFLib_ai_param_tp *ai_par)
+					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator, GMRFLib_ai_param_tp * ai_par)
 {
 #define NEXTRA 11
 	int i, j;
@@ -6070,7 +6064,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			if (retval) {
 				fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
 				fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-				fprintf(stderr, "\t\tPart 1, i=%1d, point=%g, thread=%1d\n", i, points[i],  omp_get_thread_num());
+				fprintf(stderr, "\t\tPart 1, i=%1d, point=%g, thread=%1d\n", i, points[i], omp_get_thread_num());
 			}
 		}
 		for (i = 0; i < NEXTRA; i++) {
@@ -6491,7 +6485,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store)
 #undef DUPLICATE
 #undef COPY
 }
-GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp * from)
+GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from)
 {
 	/*
 	 * set contents of TO = FROM

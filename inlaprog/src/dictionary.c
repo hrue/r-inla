@@ -106,7 +106,7 @@ dictionary *dictionary_new(int size)
 	map_stri_init_hint(&(d->strihash), (size_t) size);
 	map_ii_init_hint(&(d->iihash), (size_t) size);
 
-	for(i=0; i<size; i++) {
+	for (i = 0; i < size; i++) {
 		map_ii_set(&(d->iihash), i, 1);
 	}
 
@@ -157,9 +157,9 @@ void dictionary_del(dictionary * d)
 char *dictionary_get(dictionary * d, char *key, char *def)
 {
 	int i, *ip;
-	
+
 	ip = map_stri_ptr(&(d->strihash), key);
-	if (ip){
+	if (ip) {
 		i = *ip;
 		d->used[i] = 1;
 		return dictionary_replace_variables(d, d->val[i]);
@@ -257,13 +257,13 @@ double dictionary_getdouble(dictionary * d, char *key, double def)
  */
 void dictionary_set(dictionary * d, char *key, char *val)
 {
-	int i=0, *ip=NULL;
+	int i = 0, *ip = NULL;
 
 	if (d == NULL || key == NULL)
 		return;
 
 	ip = map_stri_ptr(&(d->strihash), key);
-	if (ip){
+	if (ip) {
 		i = *ip;
 
 		/*
@@ -288,20 +288,19 @@ void dictionary_set(dictionary * d, char *key, char *val)
 			d->used = (char *) mem_double(d->used, (int) (d->size * sizeof(char)));
 			d->val = (char **) mem_double(d->val, (int) (d->size * sizeof(char *)));
 			d->key = (char **) mem_double(d->key, (int) (d->size * sizeof(char *)));
-			for(i=d->size;  i<2*d->size; i++)
+			for (i = d->size; i < 2 * d->size; i++)
 				map_ii_set(&(d->iihash), i, 1);
 			d->size *= 2;
 		}
 
 		int j;
-		for (j = -1 ; (j = map_ii_next(&(d->iihash), j)) != -1 ; )
-		{
+		for (j = -1; (j = map_ii_next(&(d->iihash), j)) != -1;) {
 			i = d->iihash.contents[j].key;
 			break;
 		}
 		assert(d->key[i] == NULL);
 
-		if (0){
+		if (0) {
 			/*
 			 * Insert key in the first empty slot 
 			 */
@@ -322,7 +321,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);
-		
+
 		d->n++;
 	}
 	return;
@@ -340,7 +339,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 void dictionary_unset(dictionary * d, char *key)
 {
 	int i, *ip;
-	
+
 	if (key == NULL) {
 		return;
 	}
@@ -350,7 +349,7 @@ void dictionary_unset(dictionary * d, char *key)
 	if (!ip)
 		return;
 
-	map_stri_remove(&(d->strihash),  key);
+	map_stri_remove(&(d->strihash), key);
 
 	i = *ip;
 	map_ii_set(&(d->iihash), i, 1);

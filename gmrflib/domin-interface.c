@@ -554,7 +554,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	xx_min = xx_hold[len_xx_hold - 1];		       /* Yes, this is stored as the last element */
 	thread_min = i2thread[len_xx_hold - 1];
-	
+
 	for (i = 0; i < len_xx_hold - 1; i++) {
 		int j;
 
@@ -577,21 +577,21 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	Free(i2thread);
 
-	if (debug){
+	if (debug) {
 		P(f0min);
 		P(thread_min);
 	}
 
-	/* 
-	   this is a problem, thread_min might not point to G.ai_store, which is used later in the main code. we would like to do a similar thing as below, but
-	   cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight!
+	/*
+	 * this is a problem, thread_min might not point to G.ai_store, which is used later in the main code. we would like to do a similar thing as below, but
+	 * cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight! 
 	 */
-	//if (thread_min >  0)
-	//{
-	//        GMRFLib_free_ai_store(G.ai_store);
-	//        G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min]);
-        //}
-	
+	// if (thread_min > 0)
+	// {
+	// GMRFLib_free_ai_store(G.ai_store);
+	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min]);
+	// }
+
 	if (G.ai_par->adaptive_hessian_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
 		if (debug)
 			fprintf(stderr, "%s: (I) Mode not found sufficiently accurate %.8g %.8g\n\n", __GMRFLib_FuncName, f0, f0min);

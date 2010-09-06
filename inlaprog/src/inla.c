@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2010 Havard Rue
@@ -240,7 +241,7 @@ unsigned char *inla_inifile_sha1(const char *filename)
 		map_stri fhash;
 
 		map_stri_init(&fhash);
-		
+
 		memset(md, 0, SHA_DIGEST_LENGTH);
 		SHA1_Init(&c);
 		SCAN_FILE(filename);
@@ -267,10 +268,10 @@ unsigned char *inla_inifile_sha1(const char *filename)
 					    || !strcasecmp("EXTRACONSTRAINT", p)) {
 						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
 
-						/* 
-						   make sure we do not read the same file twice! this is required for all the lincomb's of Finn...
+						/*
+						 * make sure we do not read the same file twice! this is required for all the lincomb's of Finn... 
 						 */
-						if (map_stri_ptr(&fhash, f)){
+						if (map_stri_ptr(&fhash, f)) {
 							if (debug)
 								printf("\talready scanned file %s\n", f);
 						} else {
@@ -1267,7 +1268,7 @@ double priorfunc_logflat(double *x, double *parameters)
 }
 double priorfunc_logiflat(double *x, double *parameters)
 {
-	return exp(- *x);
+	return exp(-*x);
 }
 double priorfunc_flat(double *x, double *parameters)
 {
@@ -2149,11 +2150,11 @@ int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], mu, mu2, EE, 
-		normc = gsl_sf_lnfact((unsigned int) y), 
-		E1 = ds->data_observations.E1[idx], E2 = ds->data_observations.E2[idx], 
-		theta_E1 = map_exp(ds->data_observations.log_theta_E1[GMRFLib_thread_id][0], MAP_FORWARD, NULL), 
-		theta_E2 = map_exp(ds->data_observations.log_theta_E2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], mu, mu2, EE,
+	    normc = gsl_sf_lnfact((unsigned int) y),
+	    E1 = ds->data_observations.E1[idx], E2 = ds->data_observations.E2[idx],
+	    theta_E1 = map_exp(ds->data_observations.log_theta_E1[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
+	    theta_E2 = map_exp(ds->data_observations.log_theta_E2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	EE = theta_E1 * E1 + theta_E2 * E2;
 
@@ -2162,15 +2163,15 @@ int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *
 			mu2 = E * exp((x[0] + OFFSET(idx)));
 			mu = EE + mu2;
 			logll[0] = y * log(mu) - mu - normc;
-			if (m > 1){
+			if (m > 1) {
 				mu2 = E * exp((x[1] + OFFSET(idx)));
 				mu = EE + mu2;
-				logll[1] = -(mu2 * (-y + mu))/mu;
+				logll[1] = -(mu2 * (-y + mu)) / mu;
 			}
-			if (m > 2){
+			if (m > 2) {
 				mu2 = E * exp((x[2] + OFFSET(idx)));
 				mu = EE + mu2;
-				logll[2] = -(mu2 * (-y*EE + SQR(EE) + 2*EE*mu2 + SQR(mu2))) / SQR(mu);
+				logll[2] = -(mu2 * (-y * EE + SQR(EE) + 2 * EE * mu2 + SQR(mu2))) / SQR(mu);
 			}
 		} else {
 			for (i = 0; i < m; i++) {
@@ -2287,7 +2288,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p;
+	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p;
 
 	// Added some robustness here which is required according to James.S. Hopefully this will help.
 
@@ -2296,29 +2297,28 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 			for (i = 0; i < m; i++) {
 				p = PROB(x[i] + OFFSET(idx), E);
 				if (gsl_isnan(p)) {
-					//P(p);
-					//P(x[i]+OFFSET(idx));
+					// P(p);
+					// P(x[i]+OFFSET(idx));
 					logll[i] = 0.0;
 				} else {
-					log_mu = log(E)  + (x[i] + OFFSET(idx));
+					log_mu = log(E) + (x[i] + OFFSET(idx));
 					mu = exp(log_mu);
 					// better expression I hope
 					if (p < 1e-10) {
-						logll[i] = 0*log_mu - mu - normc;
+						logll[i] = 0 * log_mu - mu - normc;
 					} else {
-						logll[i] = 0*log_mu - mu - normc + log(p/(gsl_ran_poisson_pdf((unsigned int) y, mu)) + (1.0-p));
+						logll[i] = 0 * log_mu - mu - normc + log(p / (gsl_ran_poisson_pdf((unsigned int) y, mu)) + (1.0 - p));
 					}
-					//logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+					// logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
 
-					/* 
-					   if all fails...
-					*/
-					if (gsl_isnan(logll[i]))
-					{
+					/*
+					 * if all fails... 
+					 */
+					if (gsl_isnan(logll[i])) {
 						P(p);
 						P(logll[i]);
 						P(x[i] + OFFSET(idx));
-						fprintf(stderr,  "inla.c: Don't know what to do. Please report problem...");
+						fprintf(stderr, "inla.c: Don't know what to do. Please report problem...");
 						exit(1);
 					}
 				}
@@ -2334,10 +2334,10 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				p = PROB(x[i] + OFFSET(idx), E);
-				if (gsl_isnan(p)){
+				if (gsl_isnan(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					log_mu = log(E)  + (x[i] + OFFSET(idx));
+					log_mu = log(E) + (x[i] + OFFSET(idx));
 					mu = exp(log_mu);
 					logll[i] = log(1.0 - p) + y * log_mu - mu - normc;
 				}
@@ -2351,9 +2351,9 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 		}
 	}
 
-	for(i = 0; i < IABS(m); i++){
+	for (i = 0; i < IABS(m); i++) {
 		if (gsl_isinf(logll[i]))
-			logll[i] = ((double)FLT_MAX) * gsl_isinf(logll[i]);
+			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
 #undef PROB
@@ -2679,7 +2679,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 				mu = E * exp(x[i] + OFFSET(idx));
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
 
-				if (gsl_isnan(p_zeroinflated)){
+				if (gsl_isnan(p_zeroinflated)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					if (mu / size > cutoff) {
@@ -2700,7 +2700,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 			for (i = 0; i < m; i++) {
 				mu = E * exp(x[i] + OFFSET(idx));
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
-				if (gsl_isnan(p_zeroinflated)){
+				if (gsl_isnan(p_zeroinflated)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					if (mu / size > cutoff) {
@@ -2713,8 +2713,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 						/*
 						 * the Poission limit 
 						 */
-						logll[i] = log(1.0 - p_zeroinflated) +
-							y * ((x[i] + OFFSET(idx)) + log(E)) - E * exp(x[i] + OFFSET(idx)) - normc;
+						logll[i] = log(1.0 - p_zeroinflated) + y * ((x[i] + OFFSET(idx)) + log(E)) - E * exp(x[i] + OFFSET(idx)) - normc;
 					}
 				}
 			}
@@ -2738,9 +2737,9 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 		}
 	}
 
-	for(i = 0; i < IABS(m); i++){
+	for (i = 0; i < IABS(m); i++) {
 		if (gsl_isinf(logll[i]))
-			logll[i] = ((double)FLT_MAX) * gsl_isinf(logll[i]);
+			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -2894,15 +2893,15 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],  pzero, p,  
-		alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
+	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)){
+				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
@@ -2912,7 +2911,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			for (i = 0; i < -m; i++) {
 				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)){
+				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
@@ -2927,7 +2926,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			for (i = 0; i < m; i++) {
 				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)){
+				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					logll[i] = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
@@ -2937,7 +2936,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			for (i = 0; i < -m; i++) {
 				pzero = PROBZERO(x[i] + OFFSET(idx));
 				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)){
+				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
 					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
@@ -2947,7 +2946,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	}
 
 #undef PROBZERO
-#undef PROB	
+#undef PROB
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4124,14 +4123,14 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	int numsec = 0;
 	for (sec = 0; sec < nsec; sec++) {
-		
+
 		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
 		if (!strcmp(sectype, "LINCOMB")) {
 
-			/* 
-			   we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
-			   for these sections.
+			/*
+			 * we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
+			 * for these sections. 
 			 */
 			int verbose_save = mb->verbose;
 
@@ -4156,7 +4155,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			printf("\tRead [%1d] sections with mode=[LINCOMB]\n", numsec);
 		}
 	}
-		
+
 
 	/*
 	 * check that all sections are read 
@@ -4293,12 +4292,12 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w)
+GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w)
 {
 	int i, k, n;
 	GMRFLib_lc_tp *lc;
 
-	for(i=n=0; i<len; i++)
+	for (i = n = 0; i < len; i++)
 		n += (w[i] != 0.0);
 
 	if (n == 0)
@@ -4311,8 +4310,8 @@ GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w)
 	lc->idx = Calloc(n, int);
 	lc->weight = Calloc(n, float);
 
-	for(i=k=0; i<len; i++){
-		if (w[i] != 0.0){
+	for (i = k = 0; i < len; i++) {
+		if (w[i] != 0.0) {
 			lc->idx[k] = i;
 			lc->weight[k] = (float) w[i];
 			k++;
@@ -4327,12 +4326,12 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = LINCOMB. Here we assume the binary files are written by Rinla, so they are index-1 based!!!!!
 	 */
-	int *ip = NULL, num_sections, sec_no, n, npairs, debug=0, offset, i;
+	int *ip = NULL, num_sections, sec_no, n, npairs, debug = 0, offset, i;
 	size_t fileoffset = 0;
 	char *filename = NULL, *secname = NULL, *ptr = NULL, *msg = NULL;
 	GMRFLib_io_tp *io = NULL;
 	GMRFLib_lc_tp *lc = NULL;
-	
+
 	mb->lc_tag = Realloc(mb->lc_tag, mb->nlc + 1, char *);
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
@@ -4353,7 +4352,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		printf("\t\tfile.offset [%g]\n", (double)fileoffset);
+		printf("\t\tfile.offset [%g]\n", (double) fileoffset);
 	}
 
 	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e9);
@@ -4365,19 +4364,18 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose && mb->lc_usermap[mb->nlc]) {
 		printf("\t\tusermap=[%s]\n", mb->lc_usermap[mb->nlc]->name);
 	}
-
 	// FORMAT:: se section.R in Rinla...
 
 	GMRFLib_io_open(&io, filename, "rb");
 	if (fileoffset > 0)
 		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
 
-	if (mb->verbose){
-		printf("\t\tOpen file [%s] at location [%g]\n", filename, (double)fileoffset);
+	if (mb->verbose) {
+		printf("\t\tOpen file [%s] at location [%g]\n", filename, (double) fileoffset);
 	}
 
 	GMRFLib_io_read(io, &num_sections, sizeof(int));
-	if (mb->verbose){
+	if (mb->verbose) {
 		printf("\t\tNumber of sections [%d]\n", num_sections);
 	}
 
@@ -4389,20 +4387,20 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	lc->last_nonzero_mapped = -1;
 	lc->idx = NULL;
 	lc->weight = NULL;
-	
-	for(sec_no = 0; sec_no < num_sections; sec_no++) {
+
+	for (sec_no = 0; sec_no < num_sections; sec_no++) {
 
 		int len;
 
 		GMRFLib_io_read(io, &len, sizeof(int));
-		ptr = Calloc(len+1, char);
-		GMRFLib_io_read(io, ptr, len+1);	       /* includes trailing \0 */
-		if (mb->verbose){
+		ptr = Calloc(len + 1, char);
+		GMRFLib_io_read(io, ptr, len + 1);	       /* includes trailing \0 */
+		if (mb->verbose) {
 			printf("\t\t\tSection [%1d] is named [%s]\n", sec_no, ptr);
 		}
 		ip = map_stri_ptr(&(mb->idx_hash), ptr);
 		if (!ip) {
-			GMRFLib_sprintf(&msg, "Section no [%1d] named [%s] in file [%1d] offset[%g] is unknown.", sec_no, ptr, filename,  fileoffset);
+			GMRFLib_sprintf(&msg, "Section no [%1d] named [%s] in file [%1d] offset[%g] is unknown.", sec_no, ptr, filename, fileoffset);
 			GMRFLib_io_close(io);
 			inla_error_general(msg);
 		}
@@ -4417,47 +4415,47 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_io_read(io, &npairs, sizeof(int));
 		assert(npairs >= 0);
 
-		if (mb->verbose){
-			printf("\t\t\tnpairs=[%1d]\n",  npairs);
+		if (mb->verbose) {
+			printf("\t\t\tnpairs=[%1d]\n", npairs);
 		}
 
 		int *idx = Calloc(npairs, int);
 		double *w = Calloc(npairs, double);
 
-		GMRFLib_io_read(io, idx, npairs*sizeof(int));
+		GMRFLib_io_read(io, idx, npairs * sizeof(int));
 		lc->idx = Realloc(lc->idx, lc->n + npairs, int);
-		for(i=0; i<npairs; i++){
-			lc->idx[lc->n + i] = (idx[i]-1) + offset; /*  `-1': convert to C-indexing */
+		for (i = 0; i < npairs; i++) {
+			lc->idx[lc->n + i] = (idx[i] - 1) + offset;	/* `-1': convert to C-indexing */
 		}
-		
-		GMRFLib_io_read(io, w, npairs*sizeof(double));
-		lc->weight = Realloc(lc->weight, lc->n + npairs, float); /* YES! */
-		for(i=0; i<npairs; i++){
+
+		GMRFLib_io_read(io, w, npairs * sizeof(double));
+		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
+		for (i = 0; i < npairs; i++) {
 			lc->weight[lc->n + i] = (float) w[i];
 		}
 
 		Free(idx);
 		Free(w);
 
-		if (debug){
-			for(i=0; i<npairs; i++){
-				printf("\t\t\t\tC.idx+offset [%1d] weight [%g]\n", lc->idx[ lc->n + i ],  lc->weight[ lc->n + i ]);
+		if (debug) {
+			for (i = 0; i < npairs; i++) {
+				printf("\t\t\t\tC.idx+offset [%1d] weight [%g]\n", lc->idx[lc->n + i], lc->weight[lc->n + i]);
 			}
 		}
 		lc->n += npairs;
 	}
 	GMRFLib_io_close(io);
 
-	/* 
-	   sort them with increasing idx's (and carry the weights along) to speed things up later on.
-	*/
+	/*
+	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
+	 */
 	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
 
-	/* 
-	   add these as well
+	/*
+	 * add these as well 
 	 */
 	lc->first_nonzero = lc->idx[0];
-	lc->last_nonzero = lc->idx[ lc->n -1 ];
+	lc->last_nonzero = lc->idx[lc->n - 1];
 
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
@@ -4466,7 +4464,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\t\t%6d \t\t%.10f\n", lc->idx[i], lc->weight[i]);
 		}
 	}
-	mb->lc_lc = Realloc(mb->lc_lc, (mb->nlc + 1) , GMRFLib_lc_tp *);
+	mb->lc_lc = Realloc(mb->lc_lc, (mb->nlc + 1), GMRFLib_lc_tp *);
 	mb->lc_lc[mb->nlc] = lc;
 	inla_parse_output(mb, ini, sec, &(mb->lc_output[mb->nlc]));
 	mb->nlc++;
@@ -4524,24 +4522,26 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "X"), NULL));
 	if (tmp) {
-		if (0){
-			/* 
-			   this is old code that use ascii i/o
+		if (0) {
+			/*
+			 * this is old code that use ascii i/o 
 			 */
-			
+
 			inla_read_data_all(&(mb->x_file), &(mb->nx_file), tmp);
 		} else {
-			/* 
-			   this is new code that use binary i/o
-			*/
+			/*
+			 * this is new code that use binary i/o 
+			 */
 			FILE *fp;
 			size_t nread;
-			
-			//format: NX x[0] x[1] .... x[ NX-1 ]
+
+			// format: NX x[0] x[1] .... x[ NX-1 ]
 			fp = fopen(tmp, "rb");
-			nread= fread(&(mb->nx_file), sizeof(int), 1, fp); assert(nread == 1);
+			nread = fread(&(mb->nx_file), sizeof(int), 1, fp);
+			assert(nread == 1);
 			mb->x_file = Calloc(mb->nx_file, double);
-			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp); assert(nread == (size_t) mb->nx_file);
+			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp);
+			assert(nread == (size_t) mb->nx_file);
 			fclose(fp);
 
 			if (mb->verbose) {
@@ -4776,8 +4776,8 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	/* 
-	   These are for the extended observational model
+	/*
+	 * These are for the extended observational model 
 	 */
 	mb->predictor_Aext_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "AEXT"), NULL));
 	mb->predictor_Aext_precision = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e8);
@@ -4785,7 +4785,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tAext=[%s]\n", mb->predictor_Aext_fnm);
 		printf("\t\tAext.precision=[%.4g]\n", mb->predictor_Aext_precision);
 	}
-	if (mb->predictor_Aext_fnm){
+	if (mb->predictor_Aext_fnm) {
 		mb->predictor_n_ext = mb->predictor_n;
 	} else {
 		mb->predictor_n_ext = 0;
@@ -4793,7 +4793,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tpredictor_n_ext=[%d]\n", mb->predictor_n_ext);
 	}
-	
+
 	inla_parse_output(mb, ini, sec, &(mb->predictor_output));
 
 	return INLA_OK;
@@ -5015,7 +5015,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_POISSONEXT) {
 		for (i = 0; i < mb->predictor_n; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0 || 
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0 ||
 				    ds->data_observations.E1[i] < 0.0 || ds->data_observations.E2[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: PoissonExt data[%1d] (E,E1,E2,y) = (%g,%g,%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.E1[i],
@@ -7706,13 +7706,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			int fx;
 
 			if (k == 0) {
-				fx = mb->f_fixed[mb->nf][0];	/* T[0] */
+				fx = mb->f_fixed[mb->nf][0];   /* T[0] */
 			} else if (k == nT) {
-				fx = mb->f_fixed[mb->nf][1];	/* K[0] */
+				fx = mb->f_fixed[mb->nf][1];   /* K[0] */
 			} else if (k == nT + nK) {
-				fx = mb->f_fixed[mb->nf][3];	/* oc */
+				fx = mb->f_fixed[mb->nf][3];   /* oc */
 			} else {
-				fx = mb->f_fixed[mb->nf][2];	/* the rest */
+				fx = mb->f_fixed[mb->nf][2];   /* the rest */
 			}
 
 			if (!fx) {
@@ -7728,8 +7728,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					GMRFLib_sprintf(&msg, "%s for %s", "Oc", (secname ? secname : mb->f_tag[mb->nf]));
 				} else {
 					if (k < nT) {
-						GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "T", k, (secname ? secname : mb->f_tag[mb->nf]),
-								mb->f_Tmodel[mb->nf]);
+						GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "T", k, (secname ? secname : mb->f_tag[mb->nf]), mb->f_Tmodel[mb->nf]);
 					} else {
 						GMRFLib_sprintf(&msg, "%s.%1d for %s-%s", "K", k - nT,
 								(secname ? secname : mb->f_tag[mb->nf]), mb->f_Kmodel[mb->nf]);
@@ -10368,7 +10367,7 @@ double extra(double *theta, int ntheta, void *argument)
 				 * included in the likelihood function. 
 				 */
 				double log_theta;
-				
+
 				if (!ds->data_fixed0) {
 					log_theta = theta[count];
 					val += ds->data_prior0.priorfunc(&log_theta, ds->data_prior0.parameters);
@@ -10864,7 +10863,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 				spde = (inla_spde_tp *) mb->f_model[i];
 				assert(spde->Qfunc_arg == spde);
-				
+
 				nT = spde->Tmodel->ntheta;
 				nK = spde->Kmodel->ntheta;
 				nt = mb->f_ntheta[i];
@@ -11002,7 +11001,7 @@ double extra(double *theta, int ntheta, void *argument)
 				// TODO
 				if (mb->f_ngroup[i] > 1)
 					FIXME("Please verify that ngroup works with SPDE!");
-				
+
 				SET_GROUP_RHO(nT + nK + 1);
 
 				static GMRFLib_problem_tp *problem = NULL;
@@ -11846,7 +11845,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			    (const char *) mb_new->predictor_Aext_fnm, mb_new->predictor_Aext_precision,
 			    mb_new->nf, mb_new->f_c, mb_new->f_weights, mb_new->f_graph, mb_new->f_Qfunc, mb_new->f_Qfunc_arg, mb_new->f_sumzero, mb_new->f_constr,
 			    mb_new->ff_Qfunc, mb_new->ff_Qfunc_arg,
-			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision, 
+			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision,
 			    (mb_new->lc_derived_only ? 0 : mb_new->nlc), mb_new->lc_lc, mb_new->lc_prec);
 
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb_new->hgmrfm->Qfunc_arg)->N;
@@ -12468,8 +12467,8 @@ int inla_output(inla_tp * mb)
 
 			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 					   mb->predictor_output, mb->predictor_dir, NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
-			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1,
-						 (mb->predictor_n_ext == 0 ? 1 : 2));
+			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_n_ext, -1,
+					 (mb->predictor_n_ext == 0 ? 1 : 2));
 
 			if (mb->predictor_linkfunc && mb->predictor_user_scale) {
 				char *sdir, *newtag;
@@ -12478,8 +12477,7 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 						   mb->predictor_output, sdir, NULL, NULL, mb->predictor_linkfunc, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_n_ext, -1, -1, -1,
-						 (mb->predictor_n_ext == 0 ? 1 : 2));
+				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_n_ext, -1, -1, -1, (mb->predictor_n_ext == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
 			}
@@ -12490,7 +12488,7 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&sdir, "%s usermap", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
 						   mb->predictor_output, sdir, mb->predictor_usermap->func, NULL, NULL, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n,  mb->predictor_n,  mb->predictor_n + mb->predictor_n_ext, -1,
+				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_n_ext, -1,
 						 (mb->predictor_n_ext == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
