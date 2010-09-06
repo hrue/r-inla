@@ -163,12 +163,12 @@ int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
 		return GMRFLib_SUCCESS;
 	}
 }
-int GMRFLib_io_seek(GMRFLib_io_tp * io,  size_t offset, int whence)
+int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
 {
-	/* 
-	   whence is one of SEEK_SET and SEEK_CURRENT. SEEK_END is not supported.
+	/*
+	 * whence is one of SEEK_SET and SEEK_CURRENT. SEEK_END is not supported. 
 	 */
-	
+
 	return (gzseek(io->fp, (z_off_t) offset, whence));
 }
 int GMRFLib_io_close(GMRFLib_io_tp * io)

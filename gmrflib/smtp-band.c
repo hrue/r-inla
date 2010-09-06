@@ -312,8 +312,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth,
-						int findx, int toindx, int remapped)
+int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int findx, int toindx, int remapped)
 {
 	fprintf(stderr, "\n\nGMRFLib_solve_l_sparse_matrix_special_BAND is not yet written.\n");
 	exit(1);

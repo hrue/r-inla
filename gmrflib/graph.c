@@ -549,12 +549,12 @@ int GMRFLib_is_neighb(int node, int nnode, GMRFLib_graph_tp * graph)
 
 	int j, m, k;
 
-	/* 
-	   make this extention to ease its use
+	/*
+	 * make this extention to ease its use 
 	 */
 	if (node < 0 || node >= graph->n || nnode < 0 || nnode >= graph->n)
 		return GMRFLib_FALSE;
-	
+
 	m = graph->nnbs[node];
 
 	if (!m || nnode < graph->nbs[node][0] || nnode > graph->nbs[node][m - 1]) {

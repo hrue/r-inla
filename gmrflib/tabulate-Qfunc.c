@@ -289,17 +289,17 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	GMRFLib_ged_init(&ged, NULL);
 
-	/* 
-	   to fix the dimension, possibly padding with zero's
+	/*
+	 * to fix the dimension, possibly padding with zero's 
 	 */
 	GMRFLib_ged_add(ged, 0, 0);
-	if (dim > 0){
-		GMRFLib_ged_add(ged, dim-1, dim-1);
+	if (dim > 0) {
+		GMRFLib_ged_add(ged, dim - 1, dim - 1);
 	}
 
-	/* 
-	   read it first to determine if this is a zero-based or one-based graph
-	*/
+	/*
+	 * read it first to determine if this is a zero-based or one-based graph 
+	 */
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 	while (1) {
 		old_handler = GMRFLib_set_error_handler_off();
@@ -320,7 +320,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	}
 	GMRFLib_EWRAP0(GMRFLib_io_close(io));
 
-	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)),  GMRFLib_ESNH);
+	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
 	off = (imin == 1 ? 1 : 0);
 
 	ntriples = 0;
@@ -336,7 +336,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 			 */
 			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-			GMRFLib_ged_add(ged, i-off, j-off);
+			GMRFLib_ged_add(ged, i - off, j - off);
 
 			if (debug)
 				printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
@@ -411,8 +411,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &i, "%d"));
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-		i = i -off;
-		j = j -off;
+		i = i - off;
+		j = j - off;
 		ii = IMIN(i, j);
 		jj = IMAX(i, j);
 		map_id_set(arg->values[ii], jj, value);
@@ -462,8 +462,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 */
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, 
-				     double *prec, double *log_prec, double **log_prec_omp)
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
@@ -483,22 +482,22 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	GMRFLib_ged_init(&ged, NULL);
 
 	for (i = 0; i < ntriples; i++) {
-		imin = IMIN(imin,  ilist[i]);
-		jmin = IMIN(jmin,  jlist[i]);
+		imin = IMIN(imin, ilist[i]);
+		jmin = IMIN(jmin, jlist[i]);
 	}
-	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)),  GMRFLib_ESNH);
+	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
 	off = (imin == 1 ? 1 : 0);
 
-	/* 
-	   to fix the dimension, possibly padding with zero's
+	/*
+	 * to fix the dimension, possibly padding with zero's 
 	 */
 	GMRFLib_ged_add(ged, 0, 0);
-	if (dim > 0){
-		GMRFLib_ged_add(ged, dim-1, dim-1);
+	if (dim > 0) {
+		GMRFLib_ged_add(ged, dim - 1, dim - 1);
 	}
 
 	for (i = 0; i < ntriples; i++) {
-		GMRFLib_ged_add(ged, ilist[i]-off, jlist[i]-off);
+		GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
 	}
 
 	/*
@@ -556,8 +555,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	for (i = 0; i < ntriples; i++) {
 		int ii, jj;
 
-		ii = IMIN(ilist[i]-off, jlist[i]-off);
-		jj = IMAX(ilist[i]-off, jlist[i]-off);
+		ii = IMIN(ilist[i] - off, jlist[i] - off);
+		jj = IMAX(ilist[i] - off, jlist[i] - off);
 		map_id_set(arg->values[ii], jj, Qijlist[i]);
 	}
 
