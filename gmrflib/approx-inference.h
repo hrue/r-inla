@@ -681,8 +681,10 @@ typedef struct {
 typedef struct 
 {
 	int n;						       /* length */
-	int first_nonzero;				       /* first nonzero in the mapped indices. this is automatically added. */
-	int last_nonzero;				       /* last nonzero in the mapped indices. this is automatically added. */
+	int first_nonzero;				       /* first nonzero idx = min(idx) */
+	int last_nonzero;				       /* last nonzero idx = max(idx) */
+	int first_nonzero_mapped;			       /* first nonzero idx of L^-1 a = min(remap(idx)). automatically added */
+	int last_nonzero_mapped;			       /* last nonzero idx of L^-1 a. automatically added */
 	int *idx;					       /* list of indices */
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
 }
