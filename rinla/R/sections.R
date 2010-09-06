@@ -588,10 +588,6 @@
 {
     if (!is.null(args$result) || !is.null(args$theta) || !is.null(args$x)) {
 
-        if (!is.null(args$result) && !is.null(args$theta) && !is.null(args$x)) {
-            stop("In control.mode=list(), argument 'result' is defined but also both 'theta' and 'x'. Don't know what to use.")
-        }
-
         cat("[INLA.Control.Mode]\n", sep = " ", file = file,  append = TRUE)
         cat("type = mode\n", sep = " ", file = file,  append = TRUE)
 
