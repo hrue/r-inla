@@ -14329,9 +14329,19 @@ int main(int argc, char **argv)
 				fflush(stdout);
 			}
 			if (verbose) {
+				double tsum = mb->misc_output->wall_clock_time_used[0] +
+					mb->misc_output->wall_clock_time_used[1] +
+					mb->misc_output->wall_clock_time_used[2] +
+					mb->misc_output->wall_clock_time_used[3];
+
 				printf("\nWall-clock time used on [%s]\n", argv[arg]);
 				printf("\tPreparations    : %7.3f seconds\n", time_used[0]);
-				printf("\tApprox inference: %7.3f seconds\n", time_used[1]);
+				printf("\tApprox inference: %7.3f seconds [%.1f|%.1f|%.1f|%.1f|%.1f]%%\n", time_used[1],
+				       100*(time_used[1] - tsum)/time_used[1], 
+				       100*mb->misc_output->wall_clock_time_used[0]/time_used[1],
+				       100*mb->misc_output->wall_clock_time_used[1]/time_used[1],
+				       100*mb->misc_output->wall_clock_time_used[2]/time_used[1],
+				       100*mb->misc_output->wall_clock_time_used[3]/time_used[1]);
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
