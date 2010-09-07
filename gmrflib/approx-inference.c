@@ -3421,7 +3421,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				min_pos_eigenvalue = eigv;
 		}
 		if (min_pos_eigenvalue == DBL_MAX) {
-			min_pos_eigenvalue = 1.0;	       /* if all are negative */
+			min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
 		} else {
 			min_pos_eigenvalue /= 100.0;	       /* JUST A CHOICE */
 		}
@@ -3430,7 +3430,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (i = 0; i < nhyper; i++) {
 			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
 
-			all_negative = (all_negative && (eigv < 0));
+			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
 				fprintf(stderr, "\n");
 				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
