@@ -90,8 +90,6 @@ $(DEPDIR):
 	-$(RM) $(dir $(DEPDIR))$(notdir $*.d.tmp)
 
 %.o: %.cc $(DEPDIR)
-	echo $(OSFLAGS)
-	echo $(OS_LDFLAGS)
 	$(COMPILE.C) -MMD -MF $(dir $(DEPDIR))$(notdir $*.d.tmp) -o $@ $<
 	-@$(SED) -e ':more;/\\/N;s/[ ]*\\\r*\n[ ]*/ /;tmore' \
 	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
