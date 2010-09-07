@@ -663,6 +663,8 @@ typedef struct
 {
 	int nhyper;
 	double *cov_m;
+
+	double wall_clock_time_used[4];
 }
 	GMRFLib_ai_misc_output_tp;
 
