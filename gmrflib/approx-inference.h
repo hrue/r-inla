@@ -664,6 +664,13 @@ typedef struct
 	int nhyper;
 	double *cov_m;
 
+	/*
+	 * [0] is the preparation in INLA
+	 * [1] is the optimisation
+	 * [2] is the integration
+	 * [3] is the post-processing part including computing
+	 *     marginals for the hyperparameters.
+	 */
 	double wall_clock_time_used[4];
 }
 	GMRFLib_ai_misc_output_tp;
