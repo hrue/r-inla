@@ -595,7 +595,15 @@
         if (is.null(args$theta) && !is.null(args$result)) {
             args$theta = args$result$mode$theta
         }
-        cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
+        
+        file.theta = inla.tempfile(tmpdir=data.dir)
+        ##cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
+        fp.binary = file(file.theta, "wb")
+        writeBin(as.integer(length(args$theta)), fp.binary)
+        writeBin(args$theta, fp.binary)
+        close(fp.binary)
+        fnm = gsub(data.dir, "$inladatadir", file.theta, fixed=TRUE)
+        cat("theta =", fnm, "\n", file=file, append = TRUE)
 
         ## use default the mode in result if given
         if (is.null(args$x) && !is.null(args$result)) {

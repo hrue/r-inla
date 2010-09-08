@@ -4478,7 +4478,9 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int nt = 0, i;
 	char *tmp, *secname;
-	double *t;
+	double *t = NULL;
+	FILE *fp;
+	size_t nread;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_mode...\n");
@@ -4486,32 +4488,47 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
 
-	if (!tmp) {
-		mb->ntheta_file = 0;
-		mb->theta_file = NULL;
-		mb->reuse_mode = 0;
 
-		return INLA_OK;
-	}
+	/* 
+	   first try if 'tmp' is a filename, is so, read (using binary format) from that.
+	   format: NTHETA theta[0] theta[1] .... theta[ NTHETA-1 ]
+	 */
+	
+	if (tmp) {
+		fp = fopen(tmp, "rb");
+		if (fp) {
+			nread = fread(&(mb->ntheta_file), sizeof(int), 1, fp);
+			assert(nread == 1);
+			mb->theta_file = Calloc(mb->ntheta_file, double);
+			nread = fread(mb->theta_file, sizeof(double), mb->ntheta_file, fp);
+			assert(nread == (size_t) mb->ntheta_file);
+			fclose(fp);
 
-	inla_sread_doubles_q(&t, &nt, tmp);
-
-	if (nt) {
-		mb->ntheta_file = nt;
-		mb->theta_file = t;
-		mb->reuse_mode = 1;
+			mb->reuse_mode = 1;
+		} else {
+			inla_sread_doubles_q(&t, &nt, tmp);
+			if (nt) {
+				mb->ntheta_file = nt;
+				mb->theta_file = t;
+				mb->reuse_mode = 1;
+			} else {
+				mb->ntheta_file = 0;
+				mb->theta_file = NULL;
+				mb->reuse_mode = 0;
+				Free(t);
+			}
+		}
 	} else {
 		mb->ntheta_file = 0;
 		mb->theta_file = NULL;
 		mb->reuse_mode = 0;
-		Free(t);
 	}
-
+	
 	if (mb->verbose) {
-		if (nt) {
+		if (mb->ntheta_file) {
 			printf("\tUse mode in section[%s]\n", secname);
 			printf("\t\ttheta = ");
-			for (i = 0; i < nt; i++) {
+			for (i = 0; i < mb->ntheta_file; i++) {
 				printf(" %.4g", mb->theta_file[i]);
 			}
 			printf("\n");
@@ -4522,35 +4539,24 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "X"), NULL));
 	if (tmp) {
-		if (0) {
-			/*
-			 * this is old code that use ascii i/o 
-			 */
+		/*
+		 * this is new code that use binary i/o 
+		 */
+		// format: NX x[0] x[1] .... x[ NX-1 ]
+		fp = fopen(tmp, "rb");
+		nread = fread(&(mb->nx_file), sizeof(int), 1, fp);
+		assert(nread == 1);
+		mb->x_file = Calloc(mb->nx_file, double);
+		nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp);
+		assert(nread == (size_t) mb->nx_file);
+		fclose(fp);
 
-			inla_read_data_all(&(mb->x_file), &(mb->nx_file), tmp);
-		} else {
-			/*
-			 * this is new code that use binary i/o 
-			 */
-			FILE *fp;
-			size_t nread;
-
-			// format: NX x[0] x[1] .... x[ NX-1 ]
-			fp = fopen(tmp, "rb");
-			nread = fread(&(mb->nx_file), sizeof(int), 1, fp);
-			assert(nread == 1);
-			mb->x_file = Calloc(mb->nx_file, double);
-			nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp);
-			assert(nread == (size_t) mb->nx_file);
-			fclose(fp);
-
-			if (mb->verbose) {
-				printf("\t\tx = ");
-				for (i = 0; i < IMIN(mb->nx_file, PREVIEW); i++) {
-					printf(" %.4g", mb->x_file[i]);
-				}
-				printf(" ...\n");
+		if (mb->verbose) {
+			printf("\t\tx = ");
+			for (i = 0; i < IMIN(mb->nx_file, PREVIEW); i++) {
+				printf(" %.4g", mb->x_file[i]);
 			}
+			printf(" ...\n");
 		}
 	}
 
