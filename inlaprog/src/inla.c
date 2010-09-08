@@ -265,6 +265,7 @@ unsigned char *inla_inifile_sha1(const char *filename)
 					    || !strcasecmp("GRAPH", p)
 					    || !strcasecmp("LOCATIONS", p)
 					    || !strcasecmp("X", p)
+					    || !strcasecmp("THETA", p)
 					    || !strcasecmp("EXTRACONSTRAINT", p)) {
 						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
 
