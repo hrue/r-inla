@@ -132,7 +132,8 @@ function(...)
                )
 
     ret = list(summary = rr$summary.hyperpar, marginals = rr$marginals.hyperpar, 
-            internal.marginals = rr$internal.marginals.hyperpar, log.joint = rr$joint.hyper, mlik = rr$mlik)
+            internal.marginals = rr$internal.marginals.hyperpar, log.joint = rr$joint.hyper, mlik = rr$mlik,
+            version = rr$version)
     return(ret)
 }
 
