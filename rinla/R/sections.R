@@ -596,18 +596,19 @@
             args$theta = args$result$mode$theta
         }
         
-        file.theta = inla.tempfile(tmpdir=data.dir)
-        ##cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
-        fp.binary = file(file.theta, "wb")
-        ## convert from character to a vector of doubles
-        args$theta = as.numeric(strsplit(args$theta, "[ \t]+")[[1]])
-        args$theta = args$theta[!is.na(args$theta)]
-        writeBin(as.integer(length(args$theta)), fp.binary)
-        writeBin(args$theta, fp.binary)
-        close(fp.binary)
-        fnm = gsub(data.dir, "$inladatadir", file.theta, fixed=TRUE)
-        cat("theta =", fnm, "\n", file=file, append = TRUE)
-
+        if (!is.null(args$theta)) {
+            file.theta = inla.tempfile(tmpdir=data.dir)
+            ##cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
+            fp.binary = file(file.theta, "wb")
+            ## convert from character to a vector of doubles
+            args$theta = as.numeric(strsplit(args$theta, "[ \t]+")[[1]])
+            args$theta = args$theta[!is.na(args$theta)]
+            writeBin(as.integer(length(args$theta)), fp.binary)
+            writeBin(args$theta, fp.binary)
+            close(fp.binary)
+            fnm = gsub(data.dir, "$inladatadir", file.theta, fixed=TRUE)
+            cat("theta =", fnm, "\n", file=file, append = TRUE)
+        }
         ## use default the mode in result if given
         if (is.null(args$x) && !is.null(args$result)) {
             args$x = args$result$mode$x
