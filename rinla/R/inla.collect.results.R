@@ -39,6 +39,7 @@
     ##get the hyperparameters
     theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode",sep=""))[-1]
     x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode",sep=""))[-1]
+    hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid",sep=""))
     
     if(length(theta.mode)>0) {
         res.hyper = inla.collect.hyperpar(results.dir,debug)
@@ -59,29 +60,18 @@
         res.hyper = NULL
         joint.hyper = NULL
     }
-        
-    
-    misc = inla.collect.misc(results.dir, debug)
 
+    misc = inla.collect.misc(results.dir, debug)
+    
+    browser()
     res = c(res.fixed, res.lincomb, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations,
-            list(misc = misc),
-            list(dic=res.dic, mode = list(theta = theta.mode, x=x.mode),  neffp=neffp,
-                 joint.hyper=joint.hyper, nhyper=length(theta.mode)), 
+            list(misc = misc,
+                 dic=res.dic, mode = list(theta = theta.mode, x=x.mode),
+                 neffp=neffp,
+                 joint.hyper=joint.hyper, nhyper=length(theta.mode),
+                 version = list(inla = hgid, Rinla=inla.version(hgid=TRUE))),
             res.q)
-
-    res = c(res,
-        list(control.predictor=NULL,
-             control.inla=NULL,
-             control.data=NULL,
-             call=NULL,
-             family="unknown",
-             data=NULL,
-             Ntrials=NULL,
-             offset=NULL,
-             E=NULL,
-             formula="unknown",
-             control.fixed=NULL))
     class(res) = "inla"
 
     return(res)
