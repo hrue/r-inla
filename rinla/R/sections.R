@@ -599,6 +599,9 @@
         file.theta = inla.tempfile(tmpdir=data.dir)
         ##cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
         fp.binary = file(file.theta, "wb")
+        ## convert from character to a vector of doubles
+        args$theta = as.numeric(strsplit(args$theta, "[ \t]+")[[1]])
+        args$theta = args$theta[!is.na(args$theta)]
         writeBin(as.integer(length(args$theta)), fp.binary)
         writeBin(args$theta, fp.binary)
         close(fp.binary)
