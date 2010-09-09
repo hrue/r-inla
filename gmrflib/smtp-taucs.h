@@ -82,6 +82,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x);
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x);
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx);
+int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped);
 
 map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L);
 taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, map_ii ** missing_elements);

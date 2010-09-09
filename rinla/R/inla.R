@@ -1121,7 +1121,6 @@
             ret$model.matrix = gp$model.matrix
             ret$user.hook = user.hook
             ret$user.hook.arg = user.hook.arg
-            ret$version = inla.version(hg=TRUE)
             ##
             ret$.internal = .internal
             ##

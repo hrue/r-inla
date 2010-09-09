@@ -30,7 +30,7 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char RCSId[] = HGVERSION;
 
 /* Pre-hg-Id: $Id: inla.c,v 1.698 2010/04/09 04:10:54 hrue Exp $ */
 
@@ -12688,6 +12688,7 @@ int inla_output(inla_tp * mb)
 			inla_output_detail_neffp(mb->dir, &(mb->neffp), local_verbose);
 			inla_output_detail_x(mb->dir, mb->x_file, mb->nx_file);
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
+			inla_output_hgid(mb->dir);
 			if ((!mb->reuse_mode) || (mb->reuse_mode && mb->reuse_mode_but_restart)) {
 				inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
 			}
@@ -13048,6 +13049,24 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 	fclose(fp);
 	Free(ndir);
 	Free(nndir);
+	return INLA_OK;
+}
+int inla_output_hgid(const char *dir)
+{
+	char *nndir = NULL;
+
+	FILE *fp = NULL;
+
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".hgid");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	fprintf(fp, "%s\n", RCSId);
+	fclose(fp);
+	Free(nndir);
+
 	return INLA_OK;
 }
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
