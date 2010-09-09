@@ -210,8 +210,8 @@
     ## INLA to be dependent on R.oo. This function also works the
     ## string is a list of strings.
 
-    string = gsub("^[ .]+", "", string)
-    string = gsub("[ .]+$", "", string)
+    string = gsub("^[ \t.]+", "", string)
+    string = gsub("[ \t.]+$", "", string)
     return (string)
 }
 
