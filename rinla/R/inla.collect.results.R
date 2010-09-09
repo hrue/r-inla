@@ -63,7 +63,6 @@
 
     misc = inla.collect.misc(results.dir, debug)
     
-    browser()
     res = c(res.fixed, res.lincomb, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations,
             list(misc = misc,
