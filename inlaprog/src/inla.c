@@ -12108,8 +12108,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		SET_THETA(mb_new, theta_old);
 	}
 
-	update_theta = mb_old->ntheta && (mb_new->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) &&
-		(!mb_new->reuse_mode || (mb_new->reuse_mode && mb_new->reuse_mode_but_restart));	/* yes, use mb_new */
+	update_theta = mb_old->ntheta && (mb_new->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES); /* yes, use mb_new */
 	store->fixed_hyperparameters = !update_theta;
 
 	while (!G.mcmc_niter || iteration < G.mcmc_niter) {
