@@ -1031,3 +1031,25 @@
         return (A)
     }
 }
+
+`inla.matrix2list` = function(A, byrow = FALSE)
+{
+    ## convert a matrix to a list of list, with columns as the first
+    ## index (byrow=FALSE) with with rows as the first index
+    ## (byrow=TRUE).
+    
+    if (byrow) {
+        return (inla.matrix2list(t(A)))
+    }
+    
+    stopifnot(is.matrix(A))
+    a = c()
+    for(i in 1:nrow(A)) {
+        b = list(as.list(A[i,]))
+        names(b) = rownames(A)[i]
+        a = c(a, b)
+    }
+    return(a)
+}
+
+    
