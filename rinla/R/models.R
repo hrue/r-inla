@@ -1,4 +1,3 @@
-
 inla.models = function()
 {
     return (
@@ -116,24 +115,24 @@ inla.models = function()
                  
                  priors = list(
                          ##
+                         ## these are the same. NOTE THAT THE ARGUMENT IS ***NOT*** USED AT THE MOMENT!
+                         normal = list(nparameters = 2),
+                         gaussian = list(nparameters = 2),
+                         ##
+                         ##
+                         wishart = list(nparameters = NA),
+                         loggamma = list(nparameters = 2),
+                         ##
                          ## these are the same
-                         normal = list(),
-                         gaussian = list(),
+                         minuslogsqrtruncnormal = list(nparameters = 1),
+                         logtnormal = list(nparameters = 1),
+                         logtgaussian = list(nparameters = 1),
                          ##
                          ##
-                         wishart = list(),
-                         loggamma = list(),
-                         ##
-                         ## these are the same
-                         minuslogsqrtruncnormal = list(),
-                         logtnormal = list(),
-                         logtgaussian = list(),
-                         ##
-                         ##
-                         bymjoint=list(),
-                         flat=list(),
-                         logflat=list(),
-                         logiflat=list()
+                         bymjoint=list(nparameters = 2),
+                         flat=list(nparameters = 0),
+                         logflat=list(nparameters = 0),
+                         logiflat=list(nparameters = 0)
                          ##
                          )
                  )
@@ -183,21 +182,27 @@ inla.is.prior = function(prior, stop.on.error = TRUE, ignore.case = FALSE)
 
 inla.model.properties.generic = function(model, stop.on.error, models, ignore.case)
 {
-    if (length(model) > 1)
-        stop("...only implemented for length(model)=1; FIXME")
-    
-    m = ifelse(ignore.case, tolower(model), model)
-    if (ignore.case)
-        ms = tolower(names(models))
-    else
-        ms = names(models)
-
-    if (inla.is.generic(model, stop.on.error, models, ignore.case)) {
-        k = grep(paste("^", m, "$", sep=""), ms)
-        return (models[[k]])
+    ans = c()
+    for(mm in model) {
+        m = ifelse(ignore.case, tolower(mm), mm)
+        if (ignore.case)
+            ms = tolower(names(models))
+        else
+            ms = names(models)
+        
+        if (inla.is.generic(mm, stop.on.error, models, ignore.case)) {
+            k = grep(paste("^", m, "$", sep=""), ms)
+            ans = c(ans, list(models[[k]]))
+        }
+        else
+            ans = c(ans, list(NA))
     }
+    ## treat the case length(ans) == 1 specially. do not need a list
+    ## of list then.
+    if (length(ans) == 1)
+        return (ans[[1]])
     else
-        return (FALSE)
+        return (ans)
 }
 inla.model.properties = function(model, stop.on.error = TRUE, ignore.case = FALSE)
 {
