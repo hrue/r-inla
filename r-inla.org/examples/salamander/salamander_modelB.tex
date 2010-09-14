@@ -1,0 +1,101 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage{listings}
+\usepackage{bm}
+%\usepackage{block}
+
+\setlength{\parindent}{0ex}
+%\setlength{\textheight}{1.1\textheight}
+\begin{document}
+
+\section*{Salamander mating data: Model B}
+
+We consider the salamander mating experiments reported and analysed
+by \citet[Section 14.5]{Mccullagh-nelder-1983}. 
+Data consist of three separate experiments. The first one, conducted in 
+the summer of 1986, used two groups of 20 salamanders. Each group comprised 
+five male Rough Butt, five male 
+Whiteside, five female Rough Butt and five female Whiteside salamanders. 
+Within each group, each animal was paired to three animals of the opposite 
+sex from the same and from the other population. Therefore, 60 male-female 
+pairs were formed within one group leading to 120 observations in one
+experiment. Two further experiments with equal design were conducted in 
+the fall of 1987. The animals used for the first and the second experiment 
+were identical. A new set of salamanders was utilised for the third experiment. 
+
+The main scientific question addressed in the study was whether the mating 
+of both geographically isolated species of salamanders was as successful 
+as the one between the animals from the same population. Moreover, there 
+was some interest if a seasonal effect could be identified. Therefore, 
+two factors {\tt wsf} (Whiteside female ``yes'': 1, ``no'': 0) 
+and {\tt wsm} (Whiteside male ``yes'': 1, ``no'': 0) together with their
+interaction {\tt ww} and a seasonal effect {\tt fall} (experiment conducted in 
+fall ``yes'': 1, ``no'': 0) were coded. 
+
+\subsection*{Modelling}
+ 
+Let $Y_{ijk}$ denote the binary outcome (0 = failure, 1 = success) of the 
+mating for female $i=1, \ldots, 20$ and male $j=1,\ldots, 20$ in 
+experiment $k=1, \ldots, 3$.  Thus
+\begin{align*}
+   Y_{ijk}|\pi_{ijk} \sim  \text{Bin}(1, \pi_{ijk})&  \quad \text{with} \quad
+   \text{logit}({\pi_{ijk}}) = \bm{x}_{ijk}^\top \bm{\beta} + b_{ik}^F + b_{jk}^M
+\end{align*}
+where $x_{ijk}$ is a vector comprising an intercept, ${\tt wsf}_{ik}$, 
+${\tt wsm}_{jk}$, ${\tt ww}_{ijk}$ and ${\tt fall}_{ijk}$ variables, 
+$\bm{\beta}$ is the corresponding vector of the fixed effects parameters, 
+and $b_{ik}^F$ and $b_{jk}^M$ are female and male random effects respectively.
+
+\subsection*{Prior distributions}
+We assume that $b_{i3}^F \sim \mathcal{N}(0, \kappa^F)$,  
+$b_{i3}^M \sim \mathcal{N}(0, \kappa^M)$ and 
+\begin{align*}
+  {b_{i1}^F}\choose{b_{i2}^F} &\sim \mathcal{N}(\bm{0}, \mathbf{W}^{-1}_F)&
+  {b_{i1}^M}\choose{b_{i2}^M} &\sim \mathcal{N}(\bm{0}, \mathbf{W}^{-1}_M)  
+\end{align*}
+where the covariance matrices $\mathbf{W}^{-1}_F$ and $\mathbf{W}^{-1}_M$ are 
+parameterised in terms of precisions and correlations leading to a 
+total of eight hyperparameters in the model.
+% \begin{align*}
+%     \mathbf{W}_F^{-1} &= \left(\begin{array}{cc}
+%           1/\tau^F_a & \rho^F \sqrt{\tau^F_a\tau^F_b}\\
+%           \rho^F\sqrt{\tau^F_a\tau^F_b}&  1/\tau^F_b
+%       \end{array}\right)&
+%     \mathbf{W}_M^{-1} &= \left(\begin{array}{cc}
+%           1/\tau^M_a & \rho^M \sqrt{\tau^M_a\tau^M_b}\\
+%           \rho^M\sqrt{\tau^M_a\tau^M_b}&  1/\tau^M_b
+%       \end{array}\right).	 
+% \end{align*}
+
+\subsection*{Hyper-prior distributions}
+We assume that both $\kappa^F$ and $\kappa^M$ follow a gamma prior distribution
+with shape equal to $1$ and rate equal to $0.622$. 
+The precision matrices $\mathbf{W}_M$ and $\mathbf{W}_F$ are Wishart distributed:
+\begin{align*}
+  \mathbf{W}_M &\sim \text{Wishart}_{p}(r, \mathbf{R}^{-1})&
+  \mathbf{W}_F &\sim \text{Wishart}_{p}(r, \mathbf{R}^{-1})
+\end{align*}
+with $p=2$, 
+\begin{align*}
+    \mathbf{R} &= \left(\begin{array}{cc}
+          R_{11} &R_{12}\\
+          R_{21} & R_{22}
+      \end{array}\right)  
+\end{align*}
+and parameters $r=3$, $R_{11}= 1.244$, $R_{22}=1.244$ and 
+$R_{12}=R_{21}=0$.
+
+
+\begin{thebibliography}{xx}
+\harvarditem[McCullagh and Nelder]{McCullagh and
+  Nelder}{1983}{Mccullagh-nelder-1983}
+McCullagh, P. and Nelder, J.~A.  (1983).
+\newblock {\em Generalized Linear Models}, 2 edn, Chapman \& Hall/CRC Press,
+  London.
+\end{thebibliography}
+
+\end{document}
+
