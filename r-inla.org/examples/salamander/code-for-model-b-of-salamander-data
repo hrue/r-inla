@@ -1,0 +1,63 @@
+###########################################
+## Crossed effects - Salamander: Model B ##
+###########################################
+
+## load the INLA library
+library (INLA)
+
+## load the salamander data
+load("salam.RData")
+
+## organize data into a form suitable for logistic regression
+dat0=data.frame("y"=c(salam$y),
+    "fW"=as.integer(salam$x[,"W/R"]==1 | salam$x[,"W/W"]==1),
+    "mW"=as.integer(salam$x[,"R/W"]==1 | salam$x[,"W/W"]==1),
+    "WW"=as.integer(salam$x[,"W/W"]==1 ) )
+
+## add salamander id (female, male)
+id = t( apply(salam$z, 1, function(x) {
+        tmp = which (x==1)
+        tmp[2] = tmp[2] - 20
+        tmp
+    }) )
+
+## index for the experiment group
+dat0$group=as.factor(c(rep(c(rep(1,5),rep(2,10),rep(1,5)),6),
+                       rep(c(rep(3,5),rep(4,10),rep(3,5)),6),
+                       rep(c(rep(5,5),rep(6,10),rep(5,5)),6)))   
+## index for the experiment
+dat0$experiment=as.factor(rep(1:3, each=120))
+
+## set the indices for the first two experiments modeled as iid2d,
+## (The indices for the third experiment are set to NA)
+fid_iid2_e1e2 <- c(id[,1],id[,1] + 20, rep(NA, 120))
+mid_iid2_e1e2 <- c(id[,2],id[,2] + 20, rep(NA, 120))
+
+## set the indices for third experiment
+## (The indices for the first two experiments are set to NA)
+fid_id_e3 <- c(rep(NA,240),id[,1])
+mid_id_e3 <- c(rep(NA,240),id[,2])
+
+## Indicator for fall
+fall <- c(rep(0, 120), rep(1,240))
+
+## generate the dataset
+data <- data.frame(dat0, fid_iid2_e1e2, mid_iid2_e1e2, fid_id_e3, mid_id_e3, fall)
+
+
+## specify the formula
+formula <- y ~ fW+mW+WW+fall+
+          f(fid_iid2_e1e2, model="iid2d", n=40, param=c(3,1.244,1.244,0)) +
+          f(mid_iid2_e1e2, model="iid2d", n=40, param=c(3,1.244,1.244,0)) +
+          f(fid_id_e3, model="iid",  param=c(1,0.622)) +
+          f(mid_id_e3, model="iid",  param=c(1,0.622))
+         
+     
+## Note: To get smooth posterior marginals for the hyperparameters you
+## need to increase the number of maximum function evaluations:
+## numint.maxfeval (default: 10000)
+result <- inla(formula,data=data,family="binomial",Ntrials=rep(1,360),
+  control.inla = list(numint.maxfeval = 200000), verbose=T)
+
+summary(result)
+plot(result)
