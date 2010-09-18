@@ -1,7 +1,5 @@
 ### Binary I/O and interpretation of vectors
 
-## keep old version in the source for a while...
-
 `inla.interpret.vector` = function(xx)
 {
     if (is.null(xx))
@@ -39,7 +37,7 @@
             end = ii + 2L*np + 1L
             idx = seq.int(start, end, by=by)
             res[, m] = xx[idx]
-            res[, m+1] = xx[idx+1]
+            res[, m+1L] = xx[idx+1L]
             m = m + 2L
             ii = end + 1L
         } else {
@@ -83,8 +81,8 @@
             end = ii + 2L*np + 1L
             jj = seq.int(start, end, by=by)
             res[, m] = idx
-            res[, m+1] = xx[jj]
-            res[, m+2] = xx[jj+1L]
+            res[, m+1L] = xx[jj]
+            res[, m+2L] = xx[jj+1L]
             m = m + 3L
             ii = end + 1L
         } else {
