@@ -2,31 +2,6 @@
 
 ## keep old version in the source for a while...
 
-`inla.interpret.vector.OLDVERSION` = function(xx)
-{
-    if (is.null(xx))
-        return (NULL)
-    
-    len = length(xx)
-    ii = 1L
-    res = numeric()
-    by = 2L
-    np = NA
-    while(ii <= len) {
-        np = as.integer(xx[ii+1L])
-        if (np > 0) {
-            start = ii + 2L
-            end = ii + 2L*np + 1L
-            idx = seq.int(start, end, by=by)
-            res = cbind(res, xx[idx], xx[idx+1L])
-            ii = end + 1L
-        } else {
-            ii = ii + 2L
-        }
-    }
-    return(res)
-}
-
 `inla.interpret.vector` = function(xx)
 {
     if (is.null(xx))
@@ -75,32 +50,6 @@
     return(res)
 }
 
-`inla.interpret.vector.idx.OLDVERSION` = function(xx)
-{
-    if (is.null(xx))
-        return (NULL)
-    
-    len = length(xx)
-    ii = 1L
-    res = numeric()
-    by = 2L
-    np = NA
-    while(ii <= len) {
-        idx = as.integer(xx[ii])
-        np = as.integer(xx[ii + 1L])
-        if (np > 0) {
-            start = ii + 2L
-            end = ii + 2L*np + 1L
-            jj = seq.int(start, end, by=by)
-            res = cbind(res, rep(idx, length(jj)), xx[jj], xx[jj + 1L])
-            ii = end + 1L
-        } else {
-            ii = ii + 2L;
-        }
-    }
-    return(res)
-}
-
 `inla.interpret.vector.idx` = function(xx)
 {
     ## same here, count first...
@@ -146,7 +95,7 @@
     return(res)
 }
 
- `inla.interpret.vector.list` = function(xx)
+`inla.interpret.vector.list` = function(xx)
 {
     if (is.null(xx))
         return (NULL)
