@@ -3,8 +3,7 @@
 ### "inla/results.files" or any directory where the results from a
 ### inla run are stored
 
-`inla.collect.misc` =
-    function(dir, debug = FALSE)
+`inla.collect.misc` = function(dir, debug = FALSE)
 {
     d = paste(dir,"/misc", sep="")
     d.info = file.info(d)$isdir
@@ -31,8 +30,7 @@
     return (list(cov.intern = cov.intern, cor.intern = cor.intern))
 }
 
-`inla.collect.size` =
-    function(dir, debug = FALSE)
+`inla.collect.size` = function(dir, debug = FALSE)
 {
     fnm = paste(dir, "/size.dat", sep="")
     siz = inla.read.binary.file(fnm)
@@ -48,9 +46,7 @@
     return (list(n=siz[1], N = siz[2], Ntotal = siz[3], ngroup = siz[4], nrep=siz[5]))
 }
 
-`inla.collect.fixed` =
-    function(results.dir,
-             debug = FALSE)
+`inla.collect.fixed` = function(results.dir, debug = FALSE)
 {
     alldir=dir(results.dir)
     if(debug) print("collect fixed effects")
