@@ -82,7 +82,7 @@
     return(res)
 }
 
-`inla.interpret.vector.list` = function(xx, debug=FALSE)
+`inla.interpret.vector.list.OLD` = function(xx, debug=FALSE)
 {
     if (is.null(xx))
         return (NULL)
@@ -108,6 +108,32 @@
 
     stopifnot(length(xx) == ii-1L)
 
+    if (debug)
+        cat("\tLeave inla.interpret.vector.list ...\n")
+
+    return(res)
+}
+
+`inla.interpret.vector.list` = function(xx, debug=FALSE)
+{
+    if (is.null(xx))
+        return (NULL)
+    
+    if (debug)
+        cat("\tEnter inla.interpret.vector.list ... length(xx) = ", length(xx), "\n")
+
+    len = length(xx)
+    ind = ii = 1L
+    np = as.integer(xx[2L])
+    m = length(xx) %/% (2L*np + 2L)
+    stopifnot(length(xx) %% (2L*np + 2L) == 0L)
+    
+    res = lapply(1L:m,
+            function(mm, xx, np) {
+                i = seq.int((mm-1L)*(2L*np+2L)+3L, len=np, by=2L)
+                return (cbind(xx[i],xx[i+1L]))
+            }, xx, np)
+    
     if (debug)
         cat("\tLeave inla.interpret.vector.list ...\n")
 
