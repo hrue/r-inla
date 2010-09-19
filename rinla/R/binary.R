@@ -82,38 +82,6 @@
     return(res)
 }
 
-`inla.interpret.vector.list.OLD` = function(xx, debug=FALSE)
-{
-    if (is.null(xx))
-        return (NULL)
-    
-    if (debug)
-        cat("\tEnter inla.interpret.vector.list ... length(xx) = ", length(xx), "\n")
-
-    len = length(xx)
-    ind = ii = 1L
-    res = list()
-    while(ii <= len) {
-        np = as.integer(xx[ii+1L])
-        if (np>0) {
-            jj = seq.int(ii + 2L, len=np, by=2L)
-            res[[ind]] = cbind(xx[jj], xx[jj+1L])
-            ii = ii + 2L*np + 2L
-        } else {
-            res[[ind]] = NA
-            ii = ii + 2L
-        }
-        ind = ind + 1L
-    }
-
-    stopifnot(length(xx) == ii-1L)
-
-    if (debug)
-        cat("\tLeave inla.interpret.vector.list ...\n")
-
-    return(res)
-}
-
 `inla.interpret.vector.list` = function(xx, debug=FALSE)
 {
     if (is.null(xx))
