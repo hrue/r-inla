@@ -80,14 +80,16 @@
             
                 ##read quantiles if existing
                 if(length(grep("^quantiles.dat$",dir.fix))>0) {
-                    qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")))
+                    qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")),
+                            debug=debug)
                     sum = c(sum,qq[,2])
                     col.nam = c(col.nam,paste(as.character(qq[,1]),"quant", sep=""))
                 }
 
                 ##read quantiles if existing
                 if(length(grep("^cdf.dat$",dir.fix))>0) {
-                    qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")))
+                    qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")),
+                            debug=debug)
                     sum = c(sum,qq[,2])
                     col.nam = c(col.nam,paste(as.character(qq[,1]),"cdf", sep=""))
                 }
@@ -99,7 +101,8 @@
                 summary.fixed = rbind(summary.fixed,sum)
 
                 ##read the marginals
-                xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")))
+                xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")),
+                        debug=debug)
                 if (is.null(xx))
                     xx = cbind(c(NA,NA,NA), c(NA,NA,NA))
                 colnames(xx) = c("x", "y")
@@ -164,14 +167,16 @@
             
             ##read quantiles if existing
             if(length(grep("^quantiles.dat$",dir.fix))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"quant", sep=""))
             }
 
             ##read quantiles if existing
             if(length(grep("^cdf.dat$",dir.fix))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"cdf", sep=""))
             }
@@ -183,7 +188,8 @@
             summary.fixed = rbind(summary.fixed,sum)
             
             ##read the marginals
-            xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")))
+            xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")),
+                    debug=debug)
             if (!is.null(xx))
                 colnames(xx) = c("x", "y")
             marginals.fixed[[i]] = xx
@@ -339,19 +345,21 @@
             sum = dd
             col.nam = c("mean","sd")
             if(length(grep("^quantiles.dat$",dir(dir.hyper)))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"quant", sep=""))
             }
             if(length(grep("^cdf.dat$",dir(dir.hyper)))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"cdf", sep=""))
             }
             summary.hyper = rbind(summary.hyper,sum)
             file =paste(results.dir, .Platform$file.sep,hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
-            marg1 = inla.interpret.vector(xx)
+            marg1 = inla.interpret.vector(xx, debug=debug)
             rm(xx)
             if (!is.null(marg1))
                 colnames(marg1) = c("x","y")
@@ -392,19 +400,21 @@
             sum = dd
             col.nam = c("mean","sd")
             if(length(grep("^quantiles.dat$",dir(dir.hyper)))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"quant", sep=""))
             }
             if(length(grep("^cdf.dat$",dir(dir.hyper)))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")))
+                qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")),
+                        debug=debug)
                 sum = c(sum,qq[,2])
                 col.nam = c(col.nam,paste(as.character(qq[,1]),"cdf", sep=""))
             }
             internal.summary.hyper = rbind(internal.summary.hyper,sum)
             file =paste(results.dir, .Platform$file.sep,hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
-            marg1 = inla.interpret.vector(xx)
+            marg1 = inla.interpret.vector(xx, debug=debug)
             rm(xx)
             if (!is.null(marg1))
                 colnames(marg1) = c("x","y")
@@ -467,7 +477,7 @@
         if(length(grep("^quantiles.dat$",dir(subdir)))==1) {
             if (debug) cat("...read quantiles.dat\n")
             file=paste(subdir, .Platform$file.sep,"quantiles.dat", sep="")
-            xx = inla.interpret.vector(inla.read.binary.file(file))
+            xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
             len = dim(xx)[2]
             qq = xx[, seq(2,len,by=2), drop=FALSE]
             col.nam = c(col.nam,paste(as.character(xx[,1]),"quant", sep=""))
@@ -483,7 +493,7 @@
         if(length(grep("^cdf.dat$",dir(subdir)))==1) {
             if (debug) cat("...read cdf.dat\n")
             file=paste(subdir, .Platform$file.sep,"cdf.dat", sep="")
-            xx = inla.interpret.vector(inla.read.binary.file(file))
+            xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
             len = dim(xx)[2]
             qq = xx[,seq(2,len,by=2),drop=FALSE]
             col.nam = c(col.nam,paste(as.character(xx[,1])," cdf", sep=""))
@@ -508,7 +518,7 @@
             if (debug) cat("...read marginal-densities.dat\n")
             file=paste(subdir, .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
-            rr = inla.interpret.vector.list(xx)
+            rr = inla.interpret.vector.list(xx, debug=debug)
             rm(xx)
             if (!is.null(rr)) {
                 names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
@@ -542,7 +552,7 @@
             ##get quantiles if computed
             if(length(grep("^quantiles.dat$",dir(subdir)))==1) {
                 file=paste(subdir, .Platform$file.sep,"quantiles.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file))
+                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2]
                 qq = xx[,seq(2,len,by=2), drop=FALSE]
                 col.nam = c(col.nam,paste(as.character(xx[,1]),"quant", sep=""))
@@ -553,7 +563,7 @@
             ##get cdf if computed
             if(length(grep("^cdf.dat$",dir(subdir)))==1) {
                 file=paste(subdir, .Platform$file.sep,"cdf.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file))
+                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2]
                 qq = xx[,seq(2,len,by=2), drop=FALSE]
                 col.nam = c(col.nam,paste(as.character(xx[,1])," cdf", sep=""))
@@ -566,7 +576,7 @@
             if(return.marginals.predictor) {
                 file=paste(subdir, .Platform$file.sep,"marginal-densities.dat", sep="")
                 xx = inla.read.binary.file(file)
-                rr = inla.interpret.vector.list(xx)
+                rr = inla.interpret.vector.list(xx, debug=debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
@@ -599,7 +609,7 @@
             ##get quantiles if computed
             if(length(grep("^quantiles.dat$",dir(subdir)))==1) {
                 file=paste(subdir, .Platform$file.sep,"quantiles.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file))
+                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2]
                 qq = xx[,seq(2,len,by=2), drop=FALSE]
                 col.nam = c(col.nam,paste(as.character(xx[,1]),"quant", sep=""))
@@ -610,7 +620,7 @@
             ##get cdf if computed
             if(length(grep("^cdf.dat$",dir(subdir)))==1) {
                 file=paste(subdir, .Platform$file.sep,"cdf.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file))
+                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2]
                 qq = xx[,seq(2,len,by=2), drop=FALSE]
                 col.nam = c(col.nam,paste(as.character(xx[,1])," cdf", sep=""))
@@ -623,7 +633,7 @@
             if(return.marginals.predictor) {
                 file=paste(subdir, .Platform$file.sep,"marginal-densities.dat", sep="")
                 xx = inla.read.binary.file(file)
-                rr = inla.interpret.vector.list(xx)
+                rr = inla.interpret.vector.list(xx, debug=debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
@@ -700,7 +710,8 @@
                 ##read quantiles if existing
                 if (debug) cat("...quantiles.dat if any\n")
                 if(length(grep("^quantiles.dat$",dir.random))==1) {
-                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"quantiles.dat", sep="")))
+                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"quantiles.dat", sep="")),
+                            debug=debug)
                     len = dim(xx)[2]
                     qq = xx[,seq(2,len,by=2),drop=FALSE]
                     col.nam = c(col.nam,paste(as.character(xx[,1]),"quant", sep=""))
@@ -710,7 +721,8 @@
                 ##read cdf if existing
                 if (debug) cat("...cdf.dat if any\n")
                 if(length(grep("^cdf.dat$",dir.random))==1) {
-                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"cdf.dat", sep="")))
+                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"cdf.dat", sep="")),
+                            debug=debug)
                     len = dim(xx)[2]
                     qq = xx[,seq(2,len,by=2),drop=FALSE]
                     col.nam = c(col.nam,paste(as.character(xx[,1])," cdf", sep=""))
@@ -732,7 +744,7 @@
 
                 if(return.marginals.random) {
                     xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
-                    rr = inla.interpret.vector.list(xx)
+                    rr = inla.interpret.vector.list(xx, debug=debug)
                     rm(xx)
                     if (!is.null(rr)) {
                         nd = length(rr)
