@@ -9,28 +9,20 @@
         cat("\tEnter inla.interpret.vector ... length(xx) = ", length(xx), "\n")
 
     len = length(xx)
-    ii = 1L
-    res = numeric()
-    m = 0L
-    np = NA
-    no.missing = FALSE
-
     np = as.integer(xx[2L])
-    stopifnot((length(xx) %% (2L*np+2)) == 0L)
-    m = 2L * length(xx) %/% (2L*np+2)
-
-    res.ncol = m
+    stopifnot((len %% (2L*np+2)) == 0L)
+    res.ncol = (2L * len) %/% (2L*np+2)
     res = matrix(0, np, res.ncol)
     m = 1L
     ii = 1L
     np2 = 2L*np + 2L
-    for(j in 1:(res.ncol %/% 2)) {
+    for (j in 1:(res.ncol %/% 2L)) {
         idx = seq.int(ii + 2L, by=2L, len=np)
         res[, c(m, m+1L)] = xx[c(idx, idx+1L)]
         m = m + 2L
         ii = ii + np2
     }
-    stopifnot(length(xx) == ii-1L)
+    stopifnot(len == ii-1L)
     stopifnot(res.ncol == m-1L) ## since we start from 1L
 
     if (debug)
@@ -48,15 +40,10 @@
         cat("\tEnter inla.interpret.vector.idx ... length(xx) = ", length(xx), "\n")
 
     len = length(xx)
-    ii = 1L
     res = numeric()
-    m = 0L
-    np = NA
-    no.missing = FALSE
-    
     np = as.integer(xx[2L])
-    stopifnot((length(xx) %% (2L*np + 2L)) == 0L)
-    m = 3L * length(xx) %/% (2L*np+2L)
+    stopifnot((len %% (2L*np + 2L)) == 0L)
+    m = (3L * len) %/% (2L*np+2L)
     res.ncol = m
     res = matrix(0, np, res.ncol)
 
@@ -71,7 +58,7 @@
         m = m + 3L
         ii = ii + np2
     }
-    stopifnot(length(xx) == ii-1L)
+    stopifnot(len == ii-1L)
     stopifnot(res.ncol == m-1L) ## since we start from 1L
 
     if (debug)
@@ -88,17 +75,29 @@
     if (debug)
         cat("\tEnter inla.interpret.vector.list ... length(xx) = ", length(xx), "\n")
 
-    len = length(xx)
-    ind = ii = 1L
-    np = as.integer(xx[2L])
-    m = length(xx) %/% (2L*np + 2L)
-    stopifnot(length(xx) %% (2L*np + 2L) == 0L)
-    
-    res = lapply(1L:m,
-            function(mm, xx, np) {
-                i = seq.int((mm - 1L)*(2L*np + 2L) + 3L, len=np, by=2L)
+    ## this gives approximately the correct length, most likely, an
+    ## upper bound.
+    m.approx = length(xx) %/% 54L
+    nps = integer(m.approx)  ## all lengths
+    inds = integer(m.approx) ## all offsets where the density starts
+
+    ## need to get the lengths and the offsets as they vary.
+    count = 1L
+    ind = 2L
+    while (ind < length(xx)) {
+        np = as.integer(xx[ind])
+        inds[count]= ind+1L
+        nps[count] = np
+        count = count + 1L
+        ind = ind + 2L*np + 2L
+    }
+
+    count = count - 1L
+    res = lapply(1L:count,
+            function(m, xx, inds, nps) {
+                i = seq.int(inds[m], len = nps[m], by=2L)
                 return (cbind(xx[i], xx[i + 1L]))
-            }, xx, np)
+            }, xx, inds, nps)
     
     if (debug)
         cat("\tLeave inla.interpret.vector.list ...\n")
