@@ -746,7 +746,12 @@
                             stop(paste("length(replicate) != length(xx)", length(replicate), "!=",  length(xx)))
                         if (!all(is.element(replicate, 1:nrep) | is.na(replicate)))
                             stop(paste("Error in the values of `replicate'; not in [1,...,", nrep,"]", sep=""))
+                        if (any(is.na(replicate[ !is.na(xx) ])))
+                            stop(paste("There are one or more NA's in 'replicate' where 'idx' in f(idx,...) is not NA: idx = \'",
+                                       gp$random.spec[[r]]$term, "\'", sep=""))
+                        replicate[ is.na(xx) ] = 1
                     }
+
                     if (ngroup > 1) {
                         ## if group is a single number, then reuse
                         if (length(group) == 1)
@@ -756,6 +761,10 @@
                             stop(paste("length(group) != length(xx)", length(group), "!=",  length(xx)))
                         if (!all(is.element(group, 1:ngroup) | is.na(group)))
                             stop(paste("Error in the values of `group'; not in [1,...,", ngroup,"]", sep=""))
+                        if (any(is.na( group[ !is.na(xx) ])))
+                            stop(paste("There are one or more NA's in 'group' where 'idx' in f(idx,...) is not NA: idx = \'",
+                                       gp$random.spec[[r]]$term, "\'", sep=""))
+                        group[ is.na(xx) ] = 1
                     }
                 } else {
                     N = NULL
