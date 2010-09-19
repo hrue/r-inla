@@ -21,7 +21,6 @@
 
     res.ncol = m
     res = matrix(0, np, res.ncol)
-
     m = 1L
     ii = 1L
     np2 = 2L*np + 2L
@@ -31,7 +30,6 @@
         m = m + 2L
         ii = ii + np2
     }
-
     stopifnot(length(xx) == ii-1L)
     stopifnot(res.ncol == m-1L) ## since we start from 1L
 
@@ -98,8 +96,8 @@
     
     res = lapply(1L:m,
             function(mm, xx, np) {
-                i = seq.int((mm-1L)*(2L*np+2L)+3L, len=np, by=2L)
-                return (cbind(xx[i],xx[i+1L]))
+                i = seq.int((mm - 1L)*(2L*np + 2L) + 3L, len=np, by=2L)
+                return (cbind(xx[i], xx[i + 1L]))
             }, xx, np)
     
     if (debug)
