@@ -185,6 +185,12 @@ typedef struct {
 	double **log_prec_skew_normal;
 	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
 
+	/* 
+	   GEV
+	 */
+	double *weight_gev;				       /* weights for the skew_normal: Variance propto 1/(weight*prec) */
+	double **log_prec_gev;				       /* log prec for gev */
+	double **xi_gev;				       /* the gev-parameter */
 } Data_tp;
 
 /* 
@@ -194,6 +200,7 @@ typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
 	L_SKEWNORMAL,
+	L_GEV,
 	L_T,
 	L_POISSON,
 	L_POISSONEXT,
@@ -876,6 +883,7 @@ void inla_signal(int sig);
 
 double inla_log_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
 GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w);
 
