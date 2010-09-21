@@ -12,6 +12,8 @@ function(...)
              verbose = FALSE,
              dz = 0.75,
              diff.logdens = 7,
+             h = NULL, 
+             restart = FALSE,
              quantiles = c(0.025, 0.5, 0.975),
              keep = FALSE
              )
@@ -19,7 +21,7 @@ function(...)
     if(class(object) == "inla")
         rr = inla.hyperpar.inla(object, skip.configurations = skip.configurations,
                 verbose = verbose, dz = dz, diff.logdens = diff.logdens,
-                quantiles = quantiles, keep = keep)
+                h = h, restart = restart, quantiles = quantiles, keep = keep)
     else
         stop("Object class not identified")
     
@@ -34,6 +36,8 @@ function(...)
              skip.configurations,
              verbose,
              dz,
+             h,
+             restart,
              quantiles,
              diff.logdens,
              keep
@@ -106,7 +110,7 @@ function(...)
                control.data = control.data,
                control.inla = list(strategy=NULL,
                        int.strategy="grid",
-                       h=control.inla$h,
+                       h=inla.ifelse(is.null(h), control.inla$h, h),
                        dz=dz,
                        diff.logdens= diff.logdens,
                        print.joint.hyper=TRUE,
@@ -118,7 +122,7 @@ function(...)
                control.fixed = control.fixed,
                control.results = list(return.marginals.random=FALSE,
                        return.marginals.predictor=FALSE),
-               control.mode = list(result = object, restart=FALSE),
+               control.mode = list(result = object, restart=restart),
                inla.call = inla.call,
                inla.arg = inla.arg,
                only.hyperparam = TRUE,
