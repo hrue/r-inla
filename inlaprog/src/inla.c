@@ -1685,6 +1685,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_SKEWNORMAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_n, double);
+	} else if (ds->data_id == L_GEV) {
+		idiv = 3;
+		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_n, double);
 	} else if (ds->data_id == L_LAPLACE) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_laplace = Calloc(mb->predictor_n, double);
@@ -2047,6 +2050,80 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 		}
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ GEV
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, lprec, sprec, w, xi, xx;
+
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_gev[idx];
+	lprec = ds->data_observations.log_prec_gev[GMRFLib_thread_id][0] + log(w);
+	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
+	xi = ds->data_observations.xi_gev[GMRFLib_thread_id][0];
+
+	if (0){
+		static double xi_ = 9999;
+		if (xi_ != xi){
+			P(xi);
+			xi_ = xi;
+		}
+	}
+	if (0) {
+		static double lprec_ = 9999;
+		if (lprec_ != lprec){
+			P(lprec);
+			lprec_ = lprec;
+		}
+	}
+	
+	if (m > 0) {
+		if (ISZERO(xi)) {
+			for (i = 0; i < m; i++) {
+				xx = sprec * (y - (x[i] + OFFSET(idx)));
+				logll[i] = -xx - exp(-xx) + log(sprec);
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				xx = 1.0 + xi * sprec * (y - (x[i] + OFFSET(idx)));
+				if (xx > DBL_EPSILON) {
+					logll[i] = (-1.0/xi - 1.0) * log(xx) - pow(xx,  -1.0/xi) + log(sprec);
+				} else {
+					logll[i] = (-1.0/xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON,  -1.0/xi) + log(sprec) -FLT_MAX*SQR(DBL_EPSILON-xx);
+				}
+			}
+		}
+	} else {
+		if (ISZERO(xi)){
+			for(i=0; i< -m; i++){
+				xx = sprec * (y - (x[i] + OFFSET(idx)));
+				logll[i] = exp(-exp(-xx));
+			}
+		} else {
+			xx = sprec * (y - (x[i] + OFFSET(idx)));
+			if (xi > 0.0){
+				if (1.0 + xi * xx > 0.0){
+					logll[i] = exp(-pow(xx, -xi));
+				} else {
+					logll[i] = 0.0;
+				}
+			} else {
+				if (1.0 + xi * xx > 0.0){
+					logll[i] = exp(-pow(xx, xi));
+				} else {
+					logll[i] = 1.0;
+				}
+			}
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -4868,6 +4945,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal;
 		ds->data_id = L_SKEWNORMAL;
 		ds->predictor_linkfunc = map_identity;
+	} else if (!strcasecmp(ds->data_likelihood, "GEV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gev;
+		ds->data_id = L_GEV;
+		ds->predictor_linkfunc = map_identity;
 	} else if (!strcasecmp(ds->data_likelihood, "LAPLACE")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_laplace;
 		ds->data_id = L_LAPLACE;
@@ -4985,6 +5066,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_skew_normal[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: SkewNormal weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_skew_normal[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	} else if (ds->data_id == L_GEV) {
+		for (i = 0; i < mb->predictor_n; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_gev[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: GEV weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gev[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -5164,8 +5254,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-inverse-scale for Skew-Normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Inverse-scale for Skew-Normal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for Skew-Normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for Skew-Normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_skew_normal;
@@ -5222,6 +5312,94 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.shape_skew_normal;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
+			mb->theta_usermap[mb->ntheta] = um1;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_GEV) {
+		/*
+		 * get options related to the GEV
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* YES! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_gev, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gev[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+
+		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
+		if (mb->verbose && um0) {
+			printf("\t\tusermap=[%s]\n", um0->name);
+		}
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for GEV observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for GEV observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gev;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
+			mb->theta_usermap[mb->ntheta] = um0;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * the 'xi' parameter/ the GEV-parameter
+		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.xi_gev, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise gev-parameter[%g]\n", ds->data_observations.xi_gev[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a");
+
+		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
+
+		if (mb->verbose && um1) {
+			printf("\t\tusermap=[%s]\n", um1->name);
+		}
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern GEV-parameter for GEV-observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("GEV-parameter for GEV observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = ds->data_observations.xi_gev;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
@@ -10366,6 +10544,26 @@ double extra(double *theta, int ntheta, void *argument)
 					double shape = theta[count];
 
 					val += ds->data_prior1.priorfunc(&shape, ds->data_prior1.parameters);
+					count++;
+				}
+			} else if (ds->data_id == L_GEV) {
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+
+					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * this is the gev-parameter
+					 */
+					double xi = theta[count];
+
+					val += ds->data_prior1.priorfunc(&xi, ds->data_prior1.parameters);
 					count++;
 				}
 			} else if (ds->data_id == L_POISSONEXT) {
