@@ -20,7 +20,7 @@
     cat("likelihood = ",family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
 
-    if (inla.one.of(family,"laplace")) {
+    if (inla.one.of(family, "laplace")) {
         ## two parameters, alpha and epsilon is require for LAPLACE
         cat("alpha = ", inla.ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
             sep="", file=file, append=TRUE)
@@ -32,6 +32,11 @@
 
     if (inla.one.of(family,c("sn", "skewnormal"))) {
         cat("sn.shape.max = ", inla.ifelse(is.null(control$sn.shape.max), 5.0, control$sn.shape.max), "\n",
+            sep="", file=file, append=TRUE)
+    }
+
+    if (inla.one.of(family, "gev")) {
+        cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
     }
     
