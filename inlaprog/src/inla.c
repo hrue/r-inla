@@ -2058,10 +2058,10 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 	/*
 	 * y ~ GEV
 	 */
+	int i;
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, sprec, w, xi, xx;
 
@@ -2069,7 +2069,7 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 	w = ds->data_observations.weight_gev[idx];
 	lprec = ds->data_observations.log_prec_gev[GMRFLib_thread_id][0] + log(w);
 	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
-	xi = ds->data_observations.xi_gev[GMRFLib_thread_id][0];
+	xi = ds->data_observations.gev_scale_xi * ds->data_observations.xi_gev[GMRFLib_thread_id][0];
 
 	if (0){
 		static double xi_ = 9999;
@@ -2109,18 +2109,20 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 				logll[i] = exp(-exp(-xx));
 			}
 		} else {
-			xx = sprec * (y - (x[i] + OFFSET(idx)));
-			if (xi > 0.0){
-				if (1.0 + xi * xx > 0.0){
-					logll[i] = exp(-pow(xx, -xi));
+			for(i=0; i< -m; i++) {
+				xx = sprec * (y - (x[i] + OFFSET(idx)));
+				if (xi > 0.0){
+					if (1.0 + xi * xx > 0.0){
+						logll[i] = exp(-pow(xx, -xi));
+					} else {
+						logll[i] = 0.0;
+					}
 				} else {
-					logll[i] = 0.0;
-				}
-			} else {
-				if (1.0 + xi * xx > 0.0){
-					logll[i] = exp(-pow(xx, xi));
-				} else {
-					logll[i] = 1.0;
+					if (1.0 + xi * xx > 0.0){
+						logll[i] = exp(-pow(xx, xi));
+					} else {
+						logll[i] = 1.0;
+					}
 				}
 			}
 		}
@@ -5323,6 +5325,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the GEV
 		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev.scale.xi"), 0.01); /* YES! */
+		if (tmp > 0.0) {
+			ds->data_observations.gev_scale_xi = tmp;
+		}
+		if (mb->verbose) {
+			printf("\t\tgev.scale.xi [%g]\n", ds->data_observations.gev_scale_xi);
+		}
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* YES! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
@@ -5393,8 +5404,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern GEV-parameter for GEV-observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("GEV-parameter for GEV observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern shape-parameter for GEV-observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape-parameter for GEV observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.xi_gev;

@@ -116,7 +116,10 @@
          gamma = 1.0,
 
          ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
-         sn.shape.max = 5.0
+         sn.shape.max = 5.0,
+
+         ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
+         gev.scale.xi = 0.01
          )
 
     ##:SEEALSO: inla

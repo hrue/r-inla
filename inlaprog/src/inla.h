@@ -190,7 +190,8 @@ typedef struct {
 	 */
 	double *weight_gev;				       /* weights for the skew_normal: Variance propto 1/(weight*prec) */
 	double **log_prec_gev;				       /* log prec for gev */
-	double **xi_gev;				       /* the gev-parameter */
+	double **xi_gev;				       /* the shape-parameter */
+	double gev_scale_xi;				       /* scaling of the shape-parameter */
 } Data_tp;
 
 /* 

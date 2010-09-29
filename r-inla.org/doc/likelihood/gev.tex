@@ -1,0 +1,81 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[compat2]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Generalised Extreme Value (GEV) distribution}
+
+\subsection*{Parametrisation}
+
+The GEV distribution is defined through the cummulative distribution
+function
+\begin{displaymath}
+    F(y; \eta, \tau, \xi) =
+    \exp\left(
+      - \left[ 1 + \xi \sqrt{\tau w} (y-\eta)\right]^{-1/\xi}
+    \right)
+\end{displaymath}
+for
+\begin{displaymath}
+    1 + \xi \sqrt{\tau w} (y-\eta) > 0
+\end{displaymath}
+and for a continuously response $y$ where
+\begin{description}
+\item[$\eta$:] is the linear predictor
+\item[$\tau$:] is the ``precision''
+\item[$w$:] is a fixed weight, $w>0$.    
+\end{description}
+
+\subsection*{Link-function}
+
+The linear predictor is given in the parameterisation of the GEV
+distribution.
+
+\subsection*{Hyperparameters}
+
+The GEV-models has two hyperparameters.
+The ``precision'' is represented as
+\begin{displaymath}
+    \theta_{1} = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta_{1}$.  The shape parameter $\xi$
+is represented as
+\begin{displaymath}
+    \xi = s\theta_{2}
+\end{displaymath}
+where $s > 0$ is a chosen fixed scaling, and the prior is defined on
+$\theta_{2}$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gev}$
+\item Required arguments: $y$ and $w$ (keyword \texttt{weights})
+\item The scaling $s$ is given by the argument \texttt{scale.xi.gev}
+    and is default set to $0.01$, and provides an more appropriate
+    scale for $\theta_{2}$.
+\end{itemize}
+The weights has default value 1.
+
+\subsection*{Example}
+
+In the following example, we estimate the parameters of the GEV
+distribution on some simulated data.
+%%
+\verbatiminput{example-gev.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
