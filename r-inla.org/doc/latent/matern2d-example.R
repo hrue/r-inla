@@ -34,5 +34,5 @@ result=inla(formula, family="gaussian", data=data, verbose=TRUE,
 
 #plot the posterior mean for `predictor' and compare with the truth
 par(mfrow=c(2,1))
-image(s.mat)
+image(zi.mat + zj.mat)
 image(inla.vector2matrix(result$summary.linear.predictor$mean,nrow,ncol))
