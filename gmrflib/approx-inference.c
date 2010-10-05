@@ -5630,7 +5630,11 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 			fprintf(fp, "\"%s\" = c(", d->tag[k]);
 			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
 				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				fprintf(fp, " %.6g%s", (p ? sqrt(*p) : 0.0), (i < d->start[k] + d->len[k] - 1 ? "," : ""));
+				if (p){
+					fprintf(fp, " %.6g%s", sqrt(*p), (i < d->start[k] + d->len[k] - 1 ? "," : ""));
+				} else {
+					fprintf(fp, " NA%s", (i < d->start[k] + d->len[k] - 1 ? "," : ""));
+				}
 			}
 			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
 		}
@@ -5644,8 +5648,13 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
 					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
 					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					fprintf(fp, " %.6g%s", (p ? *p / sqrt(*pi * *pj) : 0.0), (((j < d->start[k] + d->len[k] - 1)
-												   || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
+					if (p) {
+						fprintf(fp, " %.6g%s", *p / sqrt(*pi * *pj), (((j < d->start[k] + d->len[k] - 1)
+											       || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
+					} else {
+						fprintf(fp, " NA%s", (((j < d->start[k] + d->len[k] - 1)
+								       || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
+					}
 				}
 			}
 			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));

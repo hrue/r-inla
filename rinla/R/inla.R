@@ -644,7 +644,17 @@
             while (swapped) {
                 swapped = FALSE
                 for(r in 1:(nr-1)) {
-                    if (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model != "copy") {
+                    if (
+                        ##
+                        ## not both are copy, then copy is at the end
+                        ##
+                        (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model != "copy") ||
+                        ##
+                        ## both are copy, then 'same.as' is at the end
+                        ##
+                        (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model == "copy" &&
+                         !is.null(gp$random.spec[[r]]$same.as) && is.null(gp$random.spec[[r+1]]$same.as))) {
+
                         tmp = gp$random.spec[[r]]
                         gp$random.spec[[r]] = gp$random.spec[[r+1]]
                         gp$random.spec[[r+1]] = tmp
@@ -951,10 +961,11 @@
                 
                 ##....also if necessary a file for the weights
                 if (!is.null(gp$random.spec[[r]]$weights)) {
-                    ##set possible NA to -1
-                    www = wf[,n.weights+2]
-                    if (sum(is.na(www))!=0)
-                        www[is.na(www)] = -1
+                    ## $weights is the name
+                    www = wf[, gp$random.spec[[r]]$weights ]
+                    www[is.na(www)] = 0
+
+                    print(www)
                     
                     ##create a file for the weights
                     file.weights=inla.tempfile(tmpdir=data.dir)

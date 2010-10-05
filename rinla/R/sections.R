@@ -95,6 +95,8 @@
         cat("dir = ",results.dir,"\n", sep = " ", file = file,  append = TRUE)
         cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
         cat("model = ",random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
+        if (!is.null(random.spec$same.as))
+            cat("same.as = ",random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
         cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
         if (!is.null(random.spec$diagonal))
             cat("diagonal =", random.spec$diagonal,"\n", sep = " ", file = file,  append = TRUE)
