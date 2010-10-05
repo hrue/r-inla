@@ -9546,7 +9546,7 @@ double Qfunc_copy_part11(int i, int j, void *arg)
 }
 int inla_add_copyof(inla_tp * mb)
 {
-	int i, k, kk, kkk, debug = 1, nf = mb->nf;
+	int i, k, kk, kkk, debug = 0, nf = mb->nf;
 	char *msg;
 
 	for (k = 0; k < nf; k++) {
