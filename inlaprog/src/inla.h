@@ -482,6 +482,7 @@ struct inla_tp_struct {
 	char **f_Kmodel;
 	void **f_model;
 	char **f_of;
+	char **f_same_as;
 	double *f_precision;
 	Output_tp **f_output;
 	map_table_tp **f_usermap;

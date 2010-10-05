@@ -1,8 +1,8 @@
-
 `f` =
 function(...,
          model = "iid",
          copy=NULL,
+         same.as = NULL,
          n=NULL,
          nrep = NULL,
          replicate = NULL,
@@ -46,20 +46,27 @@ function(...,
 
     ## this is a nice trick
     if (!is.null(copy)) {
-        if (!missing(model))
+        if (!missing(model)) {
             warning(paste("Ignored argument model=`", model,
                           "' in f() due to copy=`", copy, "'", sep=""))
-        if (!is.null(of))
+        }
+        if (!is.null(of)) {
             stop("Argument `of=NULL' is required when `copy=...' is used.")
+        }
         model = "copy"
         of = copy
         copy = NULL
     } 
 
-    if (is.null(model))
+    if (is.null(model)) {
         stop("No model is specified.")
+    }
     inla.is.model(model,stop.on.error=TRUE)
     
+    if (!missing(same.as) && !is.null(same.as) && model != "copy") {
+        stop(paste("Argument 'same.as' must be NULL is model != 'copy' :", model))
+    }
+
     inla.check.control(control.group)
     cont.group = inla.set.control.group.default()
     cont.group[(namc = names(control.group))] = control.group
@@ -71,15 +78,23 @@ function(...,
     ##
     ## we first collect all arguments of type `name = value'
     args.eq = c() 
-    for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots=TRUE))), ",")))
-        if (length(grep("=", arg)) > 0)
+    for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots=TRUE))), ","))) {
+        if (length(grep("=", arg)) > 0) {
             args.eq = c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
+        }
+    }
+    
     ##
     ## then we compare these with the legal ones in INLA::f(), and
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "method", "Cij")
+    if (TRUE) {
+        arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "method", "Cij")
+    } else {
+        warning("Recall to revert back into INLA::f")
+        arguments = c(names(formals(f)), "A", "e", "i", "j", "values", "method", "Cij")
+    }
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
         if (!is.element(elm, arguments)) {
@@ -90,28 +105,33 @@ function(...,
         }
     }
 
-    if (!is.null(Qmatrix))
+    if (!is.null(Qmatrix)) {
         stop("Argument Qmatrix in f(), has changed name to Cmatrix; please fix...")
+    }
     
-    ## check that the Q matrix is defined if and only if hte model
-    ## is generic. same with the Cmatrix
+    ## check that the Q matrix is defined if and only if the model is
+    ## generic. same with the Cmatrix
     if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
-        if (is.null(Cmatrix))
+        if (is.null(Cmatrix)) {
             stop("For generic models the Cmatrix has to be provided")
+        }
 
-        if (!is.character(Cmatrix) && !is.list(Cmatrix))
+        if (!is.character(Cmatrix) && !is.list(Cmatrix)) {
             stop("Argument `Cmatrix' is not of type `character' or `list'")
+        }
             
         if (is.character(Cmatrix)) {
-            if (!file.exists(Cmatrix))
+            if (!file.exists(Cmatrix)) {
                 stop("Filename defined in argument `Cmatrix' does not exists.")
-        }
-        else {
+            }
+        } else {
             inla.sparse.check(Cmatrix)
-            if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$values))
+            if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$values)) {
                 stop("List defined in argument `Cmatrix' is not of type `Cmatrix = list(i=c(), j=c(), values=c())'")
-            if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$values))
+            }
+            if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$values)) {
                 stop("Entries in the list `Cmatrix' has not equal length")
+            }
         }
 
         if (is.null(n)) {
@@ -125,35 +145,44 @@ function(...,
             }
         }
     } else {
-        if (!is.null(Cmatrix))
+        if (!is.null(Cmatrix)) {
             stop("Cmatrix is only used for generic models")
+        }
     }
 
     ## chech that the graph.file is provided, if required. Set 'n' from the graph.file.
     if(inla.one.of(model, c("besag", "bym"))) {
-        if (is.null(graph.file))
+        if (is.null(graph.file)) {
             stop(paste("The graph.file has to be provided for model", model))
-        if (!file.exists(graph.file))
+        }
+        if (!file.exists(graph.file)) {
             stop(paste("Cannot find graph.file", graph.file))
+        }
         ## read n from the graph
         n.from.graph = scan(graph.file, n=1, what = integer(0), comment.char = "#") #
-        if (n.from.graph <= 0)
+        if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
-        if (!is.null(n) && n != n.from.graph)
+        }
+        if (!is.null(n) && n != n.from.graph) {
             stop(paste("Argument 'n' and 'n from graph.file' does not match", n, n.from.graph))
+        }
         n = n.from.graph
     }
     if(inla.one.of(model, c("besag2"))) {
-        if (is.null(graph.file))
+        if (is.null(graph.file)) {
             stop(paste("The graph.file has to be provided for model", model))
-        if (!file.exists(graph.file))
+        }
+        if (!file.exists(graph.file)) {
             stop(paste("Cannot find graph.file", graph.file))
+        }
         ## read n from the graph
         n.from.graph = 2*scan(graph.file, n=1, what = integer(0), comment.char = "#") #
-        if (n.from.graph <= 0)
+        if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
-        if (!is.null(n) && n != n.from.graph)
+        }
+        if (!is.null(n) && n != n.from.graph) {
             stop(paste("Argument 'n' and 2*'n from graph.file' does not match", n, n.from.graph))
+        }
         n = n.from.graph
     }
 
@@ -164,8 +193,9 @@ function(...,
     
     ## special N required?
     if ((!is.null(inla.model.properties(model)$n.div.by) && inla.model.properties(model)$n.div.by) && !is.null(n)) {
-        if (!inla.divisible(n, inla.model.properties(model)$n.div.by))
+        if (!inla.divisible(n, inla.model.properties(model)$n.div.by)) {
             stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model)$n.div.by))
+        }
     }
 
     ## set default 'values'?
@@ -179,27 +209,32 @@ function(...,
         d = length(vars)
         term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500) 
 
-        if(d!=1)
+        if(d != 1) {
             stop("Too many or no term specified ")
+        }
         term = attr(terms(reformulate(term)),"term.labels")
         ret = list(d=d, term=term, model=model, mean.linear=mean.linear, prec.linear=prec.linear, label=term,
                 cdf=cdf, quantiles = quantiles)
     }
     
     if (inla.one.of(model, "positive")) {
-        if (!is.null(n))
+        if (!is.null(n)) {
             stop(paste("model = positive require n = 1, not n =",n))
+        }
         n=1
     }
             
-    if(!is.null(prec.linear) | !is.null(mean.linear))
+    if(!is.null(prec.linear) | !is.null(mean.linear)) {
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
+    }
 
     if (inla.one.of(model, "sphere")) {
-        if (is.null(sphere.dir))
+        if (is.null(sphere.dir)) {
             stop("Argument sphere.dir=NULL is required for model = sphere")
-        if (!(file.exists(sphere.dir) && file.info(sphere.dir)$isdir))
+        }
+        if (!(file.exists(sphere.dir) && file.info(sphere.dir)$isdir)) {
             stop(paste("Argument sphere.dir=", sphere.dir, "must be an existing directory."))
+        }
 
         ## set the Occilation parameter default to fixed, unless its set already
         if (missing(fixed)) {
@@ -211,11 +246,13 @@ function(...,
     } 
 
     if (inla.one.of(model, "spde")) {
-        if (is.null(spde.prefix))
+        if (is.null(spde.prefix)) {
             stop("Argument spde.prefix=NULL is required for model = spde")
+        }
         ## file ``PREFIXs'' must exists... test this one
-        if (!(file.exists(paste(spde.prefix, "s", sep=""))))
+        if (!(file.exists(paste(spde.prefix, "s", sep="")))) {
             stop(paste("Argument spde.prefix=", spde.prefix, "does not seems to be valid (no file `PREFIXs')"))
+        }
 
         ## set the Occilation parameter default to fixed, unless its set already
         if (missing(fixed)) {
@@ -233,137 +270,165 @@ function(...,
     d = length(vars)
     term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500)
         
-    if (debug)
+    if (debug) {
         print(vars)
+    }
         
     ##the second term in ... is the (possible) weights for the selected covariate!
-    if(d==1) 
+    if(d==1) {
         weights = NULL
-    else if(d==2)
+    } else if(d==2) {
         weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)         
-    else if(d>2) 
+    } else if(d>2) {
         stop(paste("To many variables included in f():", inla.paste(vars)))
-    else if (d==0) 
+    } else if (d==0) {
         stop("At least one variable in f() needs to be defined")
+    }
         
     if(inla.one.of(model,"seasonal") &&
-       is.null(season.length)) stop("The length of the season has to
-        be provided in season.length")
+       is.null(season.length)) {
+        stop("The length of the season has to be provided in season.length")
+    }
         
     ## cyclic is only valid for rw1, rw2 and rw2d-models
     if(!is.null(cyclic) && cyclic &&
-       !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2")))
+       !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
         stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2 and rw2d models")
-        
+    }
 
     need.nrow.ncol = inla.model.properties(model)$nrow.ncol
     ## nrow/ncol
-    if ((!is.null(nrow) || !is.null(ncol)) && !need.nrow.ncol)
+    if ((!is.null(nrow) || !is.null(ncol)) && !need.nrow.ncol) {
         stop(paste("nrow and ncol are not needed for model = ", model))
+    }
     if (need.nrow.ncol) {
-        if (is.null(nrow) || is.null(ncol))
+        if (is.null(nrow) || is.null(ncol)) {
             stop(paste("nrow and ncol must be specified for model", model))
-        if (nrow <= 0 || ncol <= 0 || trunc(nrow) != nrow || trunc(ncol) != ncol)
+        }
+        if (nrow <= 0 || ncol <= 0 || trunc(nrow) != nrow || trunc(ncol) != ncol) {
             stop("nrow and ncol must be positive intergers.")
+        }
         ## then it's ok...
-        if (!is.null(values))
+        if (!is.null(values)) {
             stop(paste("values are not used for model = ", model))
+        }
     }
 
     ## check the NU parameter
     if (model != "matern2d" && model != "matern2dx2part0" && model != "matern2dx2p1") {
-        if (!is.null(nu))
+        if (!is.null(nu)) {
             stop("Argument NU is only used for matern2d/matern2dx2(part0/p1)-model.")
-    }
-    else {
-        if (!is.null(nu) && !is.element(nu, c(0,1,2,3)))
+        }
+    } else {
+        if (!is.null(nu) && !is.element(nu, c(0,1,2,3))) {
             stop("For matern2d/matern2dx2(part0/p1)-model, the NU-parameter must be 0,1,2 or 3.")
+        }
     }
         
     ## get the weights
     term = attr(terms(reformulate(term)),"term.labels")
-    if(d > 1)
+    if(d > 1) {
         weigths = attr(terms(reformulate(weights)),"weights.labels")
+    }
 
     ##for all instrinsic model the constraint has to be ON...
     ##...except if the rw is cyclic!!!!!
     if(is.null(constr)) {
         constr = inla.model.properties(model)$constr
-        if(!is.null(cyclic) && cyclic)
+        if(!is.null(cyclic) && cyclic) {
             constr=FALSE
+        }
     }   
         
     ## if diagonal is not set, the set this depending on the constr
     if (is.null(diagonal)) {
-        if (constr)
+        if (constr) {
             diagonal = inla.set.f.default()$diagonal
-        else
+        } else {
             diagonal = 0
+        }
     }
         
-    if (inla.one.of(model, "z") && is.null(Z))
+    if (inla.one.of(model, "z") && is.null(Z)) {
         stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
+    }
 
     if(!is.null(extraconstr)) {
         ##check
         A=extraconstr$A
         e=extraconstr$e
-        if(!is.matrix(A))
+        if(!is.matrix(A)) {
             stop("A(extraconstraint) has to be a matrix")
-        else
-            if(nrow(A)!=length(e))
+        } else {
+            if(nrow(A)!=length(e)) {
                 stop("Dimension of A and e do not correspond")
+            }
+        }
+        
         ##print.extraconstr = paste("list(A=", deparse(extraconstr$A, backtick = TRUE, width.cutoff = 500),",",
         ##    "e=",deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
 
     prop = inla.model.properties(model, stop.on.error=TRUE)
-    if (!is.null(param))
-        if (length(param) != prop$nparameters)
+    if (!is.null(param)) {
+        if (length(param) != prop$nparameters) {
             stop(paste("The length of `param' in ", model, " has to be ", prop$nparameters))
-        
+        }
+    }
+
     ## FIXED and no INITIAL
-    if (is.null(initial) && !is.null(fixed) && !all(fixed == FALSE))
+    if (is.null(initial) && !is.null(fixed) && !all(fixed == FALSE)) {
         stop("The fixed hyperparameters in model", model,"needs initialisation; use initial=c(....)")
+    }
         
     ## exceptions to default fixed = 0...
     if (model == "copy" && is.null(fixed)) {
         fixed = 1
-        if (is.null(initial))
+        if (is.null(initial)) {
             initial = 1
+        }
     }
 
-    if (!is.null(initial))
-        if (length(initial) != prop$ntheta && !is.na(prop$ntheta))
+    if (!is.null(initial)) {
+        if (length(initial) != prop$ntheta && !is.na(prop$ntheta)) {
             stop(paste("The length of `initial' on model", model,"has to be ", prop$ntheta))
+        }
+    }
         
     if (!is.null(fixed)) {
-        if (length(fixed) != prop$ntheta && !is.na(prop$ntheta))
+        if (length(fixed) != prop$ntheta && !is.na(prop$ntheta)) {
             stop(paste("The length of `fixed' on model", model,"has to be ", prop$ntheta))
-    }
-    else {
-        if (prop$ntheta && !is.na(prop$ntheta))
+        }
+    } else {
+        if (prop$ntheta && !is.na(prop$ntheta)) {
             fixed = rep(0, prop$ntheta)
-        else
+        } else {
             fixed = NULL
+        }
     }
     
-    if (!is.null(fixed))
-        for(j in 1:prop$ntheta)
-            if (fixed[j] && !is.numeric(initial[j]))
+    if (!is.null(fixed)) {
+        for(j in 1:prop$ntheta) {
+            if (fixed[j] && !is.numeric(initial[j])) {
                 stop(paste("Model ", model, ", parameter no ", j, ", is fixed but has no intial value", sep=""))
+            }
+        }
+    }
 
     if (!is.null(prior)) {
-        if (length(prior) != prop$npriors)
+        if (length(prior) != prop$npriors) {
             stop(paste("Prior specification for model", model,"must contains", prop$npriors, "terms"))
-        for(i in 1:length(prior))
-            if (!is.null(prior[i]))
+        }
+        for(i in 1:length(prior)) {
+            if (!is.null(prior[i])) {
                 inla.is.prior(prior[i], stop.on.error=TRUE)
+            }
+        }
     }
 
     ret=list(d=d, term=term, weights=weights, n=n, nrep = nrep, replicate = replicate,
             ngroup = ngroup, group = group, control.group = cont.group,
-            Z=Z, model=model, prior=prior, 
+            Z=Z, model=model, prior=prior, same.as = same.as,
             initial=initial, diagonal = diagonal, param = param,  fixed = fixed,
             cyclic=cyclic, season.length=season.length, 
             constr = constr, label=term, graph.file=graph.file, cdf=cdf, quantiles = quantiles,
