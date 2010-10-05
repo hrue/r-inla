@@ -6536,6 +6536,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_model = Realloc(mb->f_model, mb->nf + 1, void *);
 	mb->f_theta = Realloc(mb->f_theta, mb->nf + 1, double ***);
 	mb->f_of = Realloc(mb->f_of, mb->nf + 1, char *);
+	mb->f_same_as = Realloc(mb->f_same_as, mb->nf + 1, char *);
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
 	mb->f_usermap = Realloc(mb->f_usermap, mb->nf + 1, map_table_tp *);
@@ -8310,6 +8311,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tof=[%s]\n", mb->f_of[mb->nf]);
 		}
 
+		/* 
+		   same_as, says that the beta-parameters is the same as 'same_as', so this is to be determined later on. so we need to add space for it in f_theta,
+		   but not in mb->theta and mb->ntheta. The error-checking is done later.
+		 */
+		mb->f_same_as[mb->nf] = iniparser_getstring(ini, inla_string_join(secname, "SAMEAS"), NULL);
+		mb->f_same_as[mb->nf] = iniparser_getstring(ini, inla_string_join(secname, "SAME.AS"), mb->f_same_as[mb->nf]);
+		if (mb->verbose){
+			printf("\t\tsame.as=[%s]\n", mb->f_same_as[mb->nf]);
+		}
+
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		if (mb->verbose) {
 			printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
@@ -8340,7 +8351,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		mb->f_theta[mb->nf] = Calloc(1, double **);
 		mb->f_theta[mb->nf][0] = beta;
-		if (!mb->f_fixed[mb->nf][0]) {
+
+		if (mb->f_same_as[mb->nf] == NULL && !mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
 			 */
@@ -9534,7 +9546,7 @@ double Qfunc_copy_part11(int i, int j, void *arg)
 }
 int inla_add_copyof(inla_tp * mb)
 {
-	int i, k, kk, debug = 0, nf = mb->nf;
+	int i, k, kk, kkk, debug = 1, nf = mb->nf;
 	char *msg;
 
 	for (k = 0; k < nf; k++) {
@@ -9545,7 +9557,7 @@ int inla_add_copyof(inla_tp * mb)
 
 			kk = find_tag(mb, mb->f_of[k]);
 			if (kk < 0 || k == kk) {
-				GMRFLib_sprintf(&msg, "ffield %d is F_COPY and a copy of %s which is not found", k, mb->f_of[k]);
+				GMRFLib_sprintf(&msg, "ffield %1d is F_COPY and a copy of %s which is not found", k, mb->f_of[k]);
 				inla_error_general(msg);
 				exit(1);
 			}
@@ -9555,8 +9567,43 @@ int inla_add_copyof(inla_tp * mb)
 				exit(1);
 			}
 
+			if (mb->f_same_as[k]){
+				kkk = find_tag(mb, mb->f_same_as[k]);
+				if (kkk < 0){
+					GMRFLib_sprintf(&msg, "ffield %1d is F_COPY but same.as=[%s] is not found", k, mb->f_same_as[k]);
+					inla_error_general(msg);
+					exit(1);
+				}
+				if (mb->f_id[kkk] != F_COPY){
+					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is not F_COPY\n", mb->f_tag[k], mb->f_tag[kk],
+						mb->f_same_as[k]);
+					inla_error_general(msg);
+					exit(1);
+				}
+				if (kkk == k){
+					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is not allowed.\n", 
+							mb->f_tag[k], mb->f_tag[kk],
+							mb->f_same_as[k]);
+					inla_error_general(msg);
+					exit(1);
+				}
+				if (kkk > k){
+					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is after; please swap. %1d > %1d\n",
+							mb->f_tag[k], mb->f_tag[kk],
+							mb->f_same_as[k],  kkk, k);
+					inla_error_general(msg);
+					exit(1);
+				}
+			} else {
+				kkk = k;
+			}
+			
 			if (debug) {
-				printf("found name %s at ffield %d\n", mb->f_of[k], kk);
+				if (mb->f_same_as[k]){
+					printf("found name %s at ffield %1d [same.as %s = ffield %1d]\n", mb->f_of[k], kk,  mb->f_same_as[k], kkk);
+				} else {
+					printf("found name %s at ffield %1d\n", mb->f_of[k], kk);
+				}
 			}
 
 			/*
@@ -9585,7 +9632,13 @@ int inla_add_copyof(inla_tp * mb)
 			arg->Qfunc = mb->f_Qfunc[kk];
 			arg->Qfunc_arg = mb->f_Qfunc_arg[kk];
 			arg->precision = mb->f_precision[k];
-			arg->beta = mb->f_theta[k][0];
+			arg->beta = mb->f_theta[kkk][0];
+			/* 
+			   zero this out if its not needed anymore
+			 */
+			if (k != kkk){
+				mb->f_theta[k] = NULL;
+			}
 
 			mb->f_Qfunc[kk] = Qfunc_copy_part00;
 			mb->f_Qfunc_arg[kk] = (void *) arg;
@@ -11753,13 +11806,18 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case F_COPY:
 			{
-				if (!mb->f_fixed[i][0]) {
+				if (!mb->f_fixed[i][0] && !mb->f_same_as[i]) {
 					beta = theta[count];
 					count++;
 				} else {
-					beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+					/* 
+					   not needed
+					 */
+					//if (mb->f_theta[i]){
+					//beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+					//}
 				}
-				if (!mb->f_fixed[i][0]) {
+				if (!mb->f_fixed[i][0] && !mb->f_same_as[i]){
 					val += mb->f_prior[i][0].priorfunc(&beta, mb->f_prior[i][0].parameters);
 				}
 				break;
@@ -11796,6 +11854,10 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
+	//P(count);
+	//P(mb->ntheta);
+	//P(ntheta);
+	
 	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
 	Free(f_joint);
 
