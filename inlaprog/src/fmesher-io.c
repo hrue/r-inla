@@ -343,7 +343,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 
 	/* 
 	   add fileinfo
-	 */
+	*/
 	M->filename = GMRFLib_strdup(filename);
 	M->offset = offset;
 	M->whence = whence;
@@ -391,6 +391,7 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int o
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
+		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
