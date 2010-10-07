@@ -44,11 +44,12 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 #include "fmesher-io.h"
 
+#define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
 
-inla_matrix_tp *inla_read_fmesher_file(const char *filename)
+inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
-	 * read a fmesher_file. 
+	 * read a fmesher_file, starting from (offset,whence)
 	 */
 
 #define ERROR(msg)							\
@@ -80,16 +81,21 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 	int verbose = 0, debug = 0, i, j, k;
 	inla_matrix_tp *M = NULL;
 
-	if (debug)
+	if (debug){
 		verbose = 1;
+	}
 
 	fp = fopen(filename, "rb");
+	if (VALID_WHENCE(whence)) {
+		fseek(fp, offset, whence);
+	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
 		ERROR(msg);
 	}
-	if (verbose)
-		printf("Open file [%s]\n", filename);
+	if (verbose){
+		printf("Open file to read [%s]\n", filename);
+	}
 
 	READ(&len_header, 1, int);
 	if (len_header < 8) {
@@ -288,11 +294,13 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 
 			if (1) {
 				if (integer) {
-					for (k = 0; k < elems; k++)
+					for (k = 0; k < elems; k++){
 						printf("\t%d: i j values %d %d %d\n", k, M->i[k], M->j[k], M->ivalues[k]);
+					}
 				} else {
-					for (k = 0; k < elems; k++)
+					for (k = 0; k < elems; k++){
 						printf("\t%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
+					}
 				}
 			}
 
@@ -333,12 +341,21 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename)
 #undef READ
 #undef ERROR
 
+	/* 
+	   add fileinfo
+	 */
+	M->filename = GMRFLib_strdup(filename);
+	M->offset = offset;
+	M->whence = whence;
+	M->tell = ftell(fp);
+	fclose(fp);
+	
 	return (M);
 }
-int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename)
+int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int offset, int whence)
 {
 	/*
-	 * write fmesher-file 
+	 * write fmesher-file at (offset,whence).
 	 */
 
 #define ERROR(msg)							\
@@ -365,19 +382,26 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename)
 	char *msg = NULL;
 	int *header = NULL;
 	int len_header;
-	int verbose = 0, dense, integer;
+	int verbose = 1, dense, integer;
 	int i;
 
-	if (!M)
+	if (!M) {
 		return 0;
+	}
 
-	fp = fopen(filename, "wb");
+	if (VALID_WHENCE(whence)) {
+		fp = fopen(filename, "ab");
+		fseek(fp, offset, whence);
+	} else {
+		fp = fopen(filename, "wb");
+	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
 		ERROR(msg);
 	}
-	if (verbose)
-		printf("Open file [%s]\n", filename);
+	if (verbose) {
+		printf("Open file to write[%s]\n", filename);
+	}
 
 	len_header = 8;
 	header = Calloc(len_header, int);
@@ -400,8 +424,9 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename)
 	header[7] = 1;					       /* columnmajor */
 
 	if (verbose) {
-		for (i = 0; i < len_header; i++)
+		for (i = 0; i < len_header; i++){
 			printf("\theader[%1d] = %1d\n", i, header[i]);
+		}
 	}
 
 	WRITE(&len_header, 1, int);
@@ -448,12 +473,14 @@ double *inla_matrix_get_diagonal(inla_matrix_tp * M)
 		if (M->nrow) {
 			diag = Calloc(M->nrow, double);
 			if (M->A) {
-				for (i = 0; i < M->nrow; i++)
+				for (i = 0; i < M->nrow; i++){
 					diag[i] = M->A[i + i * M->nrow];
+				}
 			} else {
 				for (k = 0; k < M->elems; k++) {
-					if (M->i[k] == M->j[k])
+					if (M->i[k] == M->j[k]){
 						diag[M->i[k]] = M->values[k];
+					}
 				}
 			}
 		}
@@ -469,6 +496,7 @@ int inla_matrix_free(inla_matrix_tp * M)
 		Free(M->ivalues);
 		Free(M->A);
 		Free(M->iA);
+		Free(M->filename);
 		Free(M);
 	}
 	return (0);
@@ -488,15 +516,20 @@ inla_matrix_tp *inla_matrix_1(int n)
 		M->A = Calloc(n, double);
 
 		int i;
-		for (i = 0; i < n; i++)
+		for (i = 0; i < n; i++){
 			M->A[i] = 1.0;
+		}
+
+		M->filename = NULL;
+		M->offset = 0L;
+		M->whence = SEEK_SET;
+		M->tell = -1L;
 
 		return M;
 	} else {
 		return NULL;
 	}
 }
-
 int inla_file_check(const char *filename, const char *mode)
 {
 	/*
@@ -517,15 +550,23 @@ int main(int argc, char **argv)
 {
 	int i;
 	inla_matrix_tp *M;
-
+	
 	for (i = 1; i < argc; i++) {
 		printf("\n\n\n\n *** Check file %s\n\n\n", argv[i]);
-		M = inla_read_fmesher_file(argv[i]);
+		M = inla_read_fmesher_file(argv[i], 0, -1);
 		printf("\n\n");
-		inla_write_fmesher_file(M, "testmatrix.dat");
+		printf("write testmatrix.dat\n");
+		printf("write testmatrix.dat (append)\n");
+		inla_write_fmesher_file(M, "testmatrix.dat", 0, -1);
+		inla_write_fmesher_file(M, "testmatrix.dat", 0, SEEK_END);
 		printf("\n\n");
-		M = inla_read_fmesher_file("testmatrix.dat");
+		printf("read testmatrix.dat\n");
+		printf("read testmatrix.dat (appended)\n");
+		M = inla_read_fmesher_file("testmatrix.dat", 0, -1);
+		M = inla_read_fmesher_file("testmatrix.dat", M->tell, SEEK_SET);
 	}
 	return 0;
 }
 #endif
+
+#undef VALID_WHENCE

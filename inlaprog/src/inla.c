@@ -12111,7 +12111,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	char *fnm;
 
 	if (mb_old->verbose) {
-		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d]\n", __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter);
+		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
+		       __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter, G.tmax);
 	}
 	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, mb_old->predictor_cross_sumzero, NULL, mb_old->predictor_log_prec,
 			    (const char *) mb_old->predictor_Aext_fnm, mb_old->predictor_Aext_precision,
