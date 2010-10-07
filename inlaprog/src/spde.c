@@ -267,7 +267,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 		model->oc[i] = Calloc(1, double);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "c0");
-	M = inla_read_fmesher_file((const char *) fnm);
+	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	n = M->nrow;
 	model->C = inla_matrix_get_diagonal(M);
 	inla_matrix_free(M);
@@ -280,7 +280,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	}
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "s");
-	M = inla_read_fmesher_file((const char *) fnm);
+	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	model->s = inla_spde_set_points(M);
 	assert(model->s->n == n);
 	inla_matrix_free(M);
@@ -295,7 +295,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	}
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g1");
-	M = inla_read_fmesher_file((const char *) fnm);
+	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	assert(M->nrow == n);
 	if (0) {
 		int imax = 0;
@@ -316,7 +316,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g2");
-	M = inla_read_fmesher_file((const char *) fnm);
+	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	assert(M->nrow == n);
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
 	inla_matrix_free(M);
@@ -324,7 +324,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisT");
 	if (inla_file_check(fnm, "rb") == 0) {
-		M = inla_read_fmesher_file((const char *) fnm);
+		M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
 		M = inla_matrix_1(n);
 	}
@@ -335,7 +335,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisK");
 	if (inla_file_check(fnm, "rb") == 0) {
-		M = inla_read_fmesher_file((const char *) fnm);
+		M = inla_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
 		M = inla_matrix_1(n);
 	}
