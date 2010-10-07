@@ -62,18 +62,26 @@ typedef struct
 	double *values;
 
 	/* 
-	   dense, columnwise. on reading `A' is always set. on writing; only one of these can be set. ls
+	   dense, columnwise. on reading `A' is always set. on writing; only one of these can be set. 
 	*/
 	int *iA;
 	double *A;
+
+	/* 
+	   if read from file, add the fileinfo here
+	 */
+	char *filename;					       /* filename if any, where this file is read from */
+	long int offset;				       /* offset in the file */
+	int whence;					       /* whence of the file */
+	long int tell;					       /* the position where this matrix ended */
 }
 	inla_matrix_tp;
 
 
 double *inla_matrix_get_diagonal(inla_matrix_tp *M);
-inla_matrix_tp *inla_read_fmesher_file(const char *filename);
+inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, int whence);
 int inla_matrix_free(inla_matrix_tp *M);
-int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename);
+int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename, long int offset, int whence);
 int inla_file_check(const char *filename, const char *mode);
 inla_matrix_tp *inla_matrix_1(int n);
 
