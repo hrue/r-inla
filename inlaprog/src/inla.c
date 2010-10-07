@@ -12188,9 +12188,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	}
 	assert(count == N);
 
-	GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL);
-	if (mb_new->verbose) {
-		printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
+	if (G.reorder < 0) {
+		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL);
+		if (mb_new->verbose) {
+			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
+		}
 	}
 	if (mb_new->verbose) {
 		if (mb_new->ntheta) {
