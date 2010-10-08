@@ -163,10 +163,11 @@ typedef struct {
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
 	/*
-	 * zero-inflated Poission/Binomial/nbinomial version 0 and 1: prob
+	 * zero-inflated Poission/Binomial/nbinomial/BetaBinomial version 0/1/2...
 	 */
 	double **prob_intern;
 	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
+	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
 
 	/*
 	 * for the (asymmetric) laplace
@@ -209,6 +210,7 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
+	L_ZEROINFLATEDBETABINOMIAL2,
 	L_NBINOMIAL,
 	L_ZEROINFLATEDNBINOMIAL0,
 	L_ZEROINFLATEDNBINOMIAL1,
