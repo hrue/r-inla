@@ -1083,11 +1083,11 @@
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
-            echoc = system(paste(shQuote(inla.call), all.args, file.ini))
+            echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
         }
         else if (inla.os("windows")) {
             if (!remote) {
-                echoc = try(system(paste(shQuote(inla.call), all.args, file.ini)), silent=TRUE)
+                echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 echoc = 0
             } else {
                 echoc = try(inla.cygwin.run.command(
