@@ -105,6 +105,7 @@ inla.models = function()
                          zeroinflatedbinomial0 = list(ntheta = 1, theta = "prob", nparameters = 2, npriors = 1, survival = FALSE, discrete = TRUE),
                          zeroinflatedbinomial1 = list(ntheta = 1, theta = "prob", nparameters = 2, npriors = 1, survival = FALSE, discrete = TRUE),
                          zeroinflatedbinomial2 = list(ntheta = 1, theta = "alpha", nparameters = 2, npriors = 1, survival = FALSE, discrete = TRUE),
+                         zeroinflatedbetabinomial2 = list(ntheta = 2, theta = c("alpha", "delta"), nparameters = 4, npriors = 2, survival = FALSE, discrete = TRUE),
                          zeroinflatednbinomial0 = list(ntheta = 2, theta = c("size", "prob"), nparameters = 4, npriors = 2, survival = FALSE, discrete = TRUE),
                          zeroinflatednbinomial1 = list(ntheta = 2, theta = c("size", "prob"), nparameters = 4, npriors = 2, survival = FALSE, discrete = TRUE),
                          zeroinflatednbinomial2 = list(ntheta = 2, theta = c("size", "alpha"), nparameters = 4, npriors = 2, survival = FALSE, discrete = TRUE),
