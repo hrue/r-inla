@@ -3,7 +3,7 @@
 ### are shown.
 
 ### The name of the remote host.
-#RemoteHost="mc.math.ntnu.no"
+#RemoteHost="inla.math.ntnu.no"
 
 ### The username on the remote host
 #RemoteUser="hrue"
