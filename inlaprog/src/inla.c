@@ -1721,6 +1721,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+	} else if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
 	} else if (ds->data_id == L_NBINOMIAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
@@ -3032,69 +3035,56 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 	/*
 	 * zeroinflated BetaBinomial : y ~ prob*1[y=0] + (1-prob)*BetaBinomial(n, p, delta), where logit(p) = x, and prob = 1-p^alpha.
 	 */
-#define PROB(xx) (exp(xx)/(1.0+exp(xx)))
-#define PROBZERO(xx) (1.0-pow(PROB(xx), alpha))
+#define PROB(xx)         (exp(xx)/(1.0+exp(xx)))
+#define PROBZERO(xx)     (1.0-pow(PROB(xx), alpha))
+#define LOGGAMMA(xx)     gsl_sf_lngamma(xx)
+#define LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
 
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
+		return 0;
 	}
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
-	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	int y = (int) ds->data_observations.y[idx];
+	int n = (int) ds->data_observations.nb[idx];
+	double pzero, p;
+	double alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double delta = map_exp(ds->data_observations.zeroinflated_delta_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if ((int) y == 0) {
-		if (m > 0) {
-			for (i = 0; i < m; i++) {
-				pzero = PROBZERO(x[i] + OFFSET(idx));
-				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
-				} else {
-					logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
-				}
-			}
-		} else {
-			for (i = 0; i < -m; i++) {
-				pzero = PROBZERO(x[i] + OFFSET(idx));
-				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
-				} else {
-					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
-				}
+		for (i = 0; i < m; i++) {
+			pzero = PROBZERO(x[i] + OFFSET(idx));
+			p = PROB(x[i] + OFFSET(idx));
+			if (gsl_isinf(pzero) || gsl_isinf(p)) {
+				logll[i] = -DBL_MAX;
+			} else {
+				logll[i] = log(pzero + (1.0 - pzero) *
+					       exp(LOGGAMMA_INT(n+1) - LOGGAMMA_INT(y+1) - LOGGAMMA_INT(n-y+1) 
+						   + LOGGAMMA(delta*p + y) + LOGGAMMA(n+delta*(1.0-p)-y) - LOGGAMMA(delta + n) 
+						   + LOGGAMMA(delta) - LOGGAMMA(delta*p) - LOGGAMMA(delta*(1.0-p))));
 			}
 		}
 	} else {
-		gsl_sf_result res;
-		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-
-		if (m > 0) {
-			for (i = 0; i < m; i++) {
-				pzero = PROBZERO(x[i] + OFFSET(idx));
-				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
-				} else {
-					logll[i] = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-				}
-			}
-		} else {
-			for (i = 0; i < -m; i++) {
-				pzero = PROBZERO(x[i] + OFFSET(idx));
-				p = PROB(x[i] + OFFSET(idx));
-				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
-				} else {
-					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
-				}
+		for (i = 0; i < m; i++) {
+			pzero = PROBZERO(x[i] + OFFSET(idx));
+			p = PROB(x[i] + OFFSET(idx));
+			if (gsl_isinf(pzero) || gsl_isinf(p)) {
+				logll[i] = -DBL_MAX;
+			} else {
+				logll[i] = log(1.0 - pzero)
+					+ LOGGAMMA_INT(n+1) - LOGGAMMA_INT(y+1) - LOGGAMMA_INT(n-y+1) 
+					+ LOGGAMMA(delta*p + y) + LOGGAMMA(n+delta*(1.0-p)-y) - LOGGAMMA(delta + n) 
+					+ LOGGAMMA(delta) - LOGGAMMA(delta*p) - LOGGAMMA(delta*(1.0-p));
 			}
 		}
 	}
 
-#undef PROBZERO
 #undef PROB
+#undef PROBZERO
+#undef LOGGAMMA
+#undef LOGGAMMA_INT
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -6350,7 +6340,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern Zero-Probability parameter for zero-inflated BetaBinomial_2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Zero-Probability parameter for zero-inflated BetaBinomial_2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -6390,9 +6380,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern overdispersion parameter for zero-inflated BetaBinomial_2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Overdispersion parameter for zero-inflated BetaBinomial_2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
+			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_delta_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
