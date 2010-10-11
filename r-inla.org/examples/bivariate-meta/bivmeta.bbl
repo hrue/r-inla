@@ -1,0 +1,24 @@
+\begin{thebibliography}{xx}
+
+\harvarditem[Chu and Cole]{Chu and Cole}{2006}{Chu_Cole_2006}
+Chu, H. and Cole, S.~R.  (2006).
+\newblock Bivariate meta-analysis of sensitivity and specificity with sparse
+  data: a generalized linear mixed model approach., {\em Journal of Clinical
+  Epidemiology} {\bf 59}(12):~1331--1333.
+
+\harvarditem[Reitsma {\it and others}]{Reitsma, Glas, Rutjes, Scholten, Bossuyt
+  and Zwinderman}{2005}{Reitsma_etal_2005}
+Reitsma, J.~B., Glas, A.~S., Rutjes, A. W.~S., Scholten, R. J. P.~M., Bossuyt,
+  P.~M. and Zwinderman, A.~H.  (2005).
+\newblock Bivariate analysis of sensitivity and specificity produces
+  informative summary measures in diagnostic reviews., {\em Journal of Clinical
+  Epidemiology} {\bf 58}(10):~982--990.
+
+\harvarditem[Scheidler {\it and others}]{Scheidler, Hricak, Yu, Subak and
+  Segal}{1997}{Scheidler_etal_1997}
+Scheidler, J., Hricak, H., Yu, K.~K., Subak, L. and Segal, M.~R.  (1997).
+\newblock Radiological evaluation of lymph node metastases in patients with
+  cervical cancer: a meta-analysis, {\em Journal of the American Medical
+  Association} {\bf 278}(13):~1096--1101.
+
+\end{thebibliography}
