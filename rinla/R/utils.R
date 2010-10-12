@@ -1052,4 +1052,17 @@
     return(a)
 }
 
-    
+`inla.dir.create` = function(dir, showWarnings = TRUE, recursive = FALSE, mode = "0777", StopOnError = TRUE)
+{
+    ## change the default behaviour, so that if DIR exists an error is
+    ## NOT flagged, and recursive is default TRUE.
+    if (inla.is.dir(dir))
+        return (TRUE)
+
+    result = try(dir.create(dir, showWarnings = showWarnings, recursive = recursive, mode = mode))
+    if ((inherits(result, "try-error") || !result) && StopOnError) {
+        stop(paste("Fail to create directory [", dir, "]", sep=""))
+    }
+
+    return (result)
+}
