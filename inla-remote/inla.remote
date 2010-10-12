@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: 46675b373cda  date: Mon Aug 23 16:57:44 2010 +0200"
+HGVERSION="hgid: 17b09056d6ac  date: Tue Oct 12 19:36:14 2010 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -33,7 +33,7 @@ fi
 
 ## these are the variables to be set by the user
 RemoteINLA="/usr/local/bin/inla"
-RemoteHost=mc.math.ntnu.no
+RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
 sshArguments="-x -o BatchMode=yes"
 

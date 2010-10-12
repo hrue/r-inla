@@ -29,7 +29,7 @@ fi
 
 ## these are the variables to be set by the user
 RemoteINLA="/usr/local/bin/inla"
-RemoteHost=mc.math.ntnu.no
+RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
 sshArguments="-x -o BatchMode=yes"
 
