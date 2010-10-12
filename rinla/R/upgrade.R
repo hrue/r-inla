@@ -99,7 +99,8 @@
                         if (substr(ans, 1L, 1L) == "n") 
                             stop("unable to install the INLA package")
                     }
-                    dir.create(userdir)
+                    if (!dir.create(userdir, recursive = TRUE))
+                        stop("unable to create ", sQuote(userdir))
                     lib <- userdir
                     .libPaths(c(userdir, .libPaths()))
                 } else {
