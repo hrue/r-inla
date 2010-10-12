@@ -2385,7 +2385,10 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 					log_mu = log(E) + (x[i] + OFFSET(idx));
 					mu = exp(log_mu);
 					// better expression I hope
-					if (p < 1e-10) {
+
+					if (ISEQUAL(p, 1.0)) {
+						logll[i] = 0.0;
+					} else if (p < 1e-10) {
 						logll[i] = 0 * log_mu - mu - normc;
 					} else {
 						logll[i] = 0 * log_mu - mu - normc + log(p / (gsl_ran_poisson_pdf((unsigned int) y, mu)) + (1.0 - p));
