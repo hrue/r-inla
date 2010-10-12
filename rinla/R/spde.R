@@ -31,21 +31,11 @@
         if (is.null(dir))
             prefix = paste(tempfile(), ".", sep="")
         else {
-            ## create the directory if not already there.
-            if (!inla.is.dir(dir)) {
-                if (!dir.create(dir, recursive=TRUE)) {
-                    stop(paste("Failed to create directory:", dir))
-                }
-            }
+            inla.dir.create(dir)
             prefix = paste(tempfile(tmpdir=dir), ".", sep="")
         }
     } else {
-        ## Make sure the prefix directory exists.
-        if (!inla.is.dir(inla.dirname(prefix))) {
-            if (!dir.create(inla.dirname(prefix), recursive=TRUE)) {
-                stop(paste("Failed to create directory:", inla.dirname(prefix)))
-            }
-        }
+        inla.dir.create(inla.dirname(prefix))
     }
     return (prefix)
 }

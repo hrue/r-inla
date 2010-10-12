@@ -836,7 +836,7 @@
     function(dir.name, data.dir)
 {
     d.fnm = inla.tempfile(tmpdir=data.dir)
-    dir.create(d.fnm, recursive=TRUE)
+    inla.dir.create(d.fnm)
     files.to.copy = paste(dir.name, "/", dir(dir.name, recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
     return (gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE))
@@ -849,7 +849,7 @@
     file.prefix = basename(prefix)
 
     d.fnm = inla.tempfile(tmpdir=data.dir)
-    dir.create(d.fnm, recursive=TRUE)
+    inla.dir.create(d.fnm)
     files.to.copy = paste(dir.name, "/", dir(dir.name, pattern = paste("^", file.prefix, sep=""), recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
     rdir = gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE)
