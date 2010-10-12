@@ -385,21 +385,18 @@
             ans=file.exists(working.directory)
         }
         inla.dir=working.directory
-        xx=dir.create(inla.dir, showWarnings=FALSE)
-        if (!xx) 
-            stop(paste("\n\tNo permission to create the directory ",inla.dir))
-        else
-            cat("Model and results are stored in working directory [",inla.dir,"]\n", sep="")
+        inla.dir.create(inla.dir)
+        cat("Model and results are stored in working directory [",inla.dir,"]\n", sep="")
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
         inla.dir=gsub("\\\\", "/", inla.dir)
-        dir.create(inla.dir)
+        inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
     data.dir=paste(inla.dir, "/data.files",sep="")
     results.dir = paste(inla.dir, "/results.files",sep="")
-    dir.create(data.dir)
+    inla.dir.create(data.dir)
 
     ## create the .file.ini and make the problem.section
     file.ini = paste(inla.dir, "/Model.ini", sep="")
