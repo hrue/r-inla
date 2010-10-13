@@ -95,6 +95,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 int GMRFLib_domin_f(double *x, double *fx, int *ierr);
 int gmrflib_domin_f_(double *x, double *fx, int *ierr);
 int gmrflib_domin_f__(double *x, double *fx, int *ierr);
+int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr);
 int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr);
 int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr);
 int gmrflib_domin_gradf_(double *x, double *gradx, int *ierr);
