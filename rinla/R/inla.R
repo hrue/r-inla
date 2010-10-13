@@ -962,8 +962,6 @@
                     www = wf[, gp$random.spec[[r]]$weights ]
                     www[is.na(www)] = 0
 
-                    print(www)
-                    
                     ##create a file for the weights
                     file.weights=inla.tempfile(tmpdir=data.dir)
                     file.create(file.weights)

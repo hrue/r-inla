@@ -3321,7 +3321,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-
 		if (tmax_local < tmax && !ai_par->huge) {
 			/*
 			 * set it back 
@@ -3336,7 +3335,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
 				ai_par->hessian_finite_difference_step_len, (ai_par->hessian_force_diagonal ? "diagonal" : "dense"));
 		}
-
 
 		/*
 		 * The parameters for the adaptive hessian estimation is set in ai_par (hence G.ai_par in domin-interface.c).
