@@ -1,4 +1,3 @@
-
 /* domin-interface.c
  * 
  * Copyright (C) 2006-2008 Havard Rue
@@ -143,6 +142,60 @@ int GMRFLib_domin_f(double *x, double *fx, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
+{
+	/*
+	 * Evaluate nx function evaluations of f for configuration x[i][0]...x[i][..], in parallel.
+	 */
+
+	int i, tmax, id, *err = NULL;
+	GMRFLib_ai_store_tp **ai_store = NULL,  *ai_store_reference = NULL;
+
+	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
+	tmax = omp_get_max_threads();
+	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
+	err = Calloc(nx, int);
+	id = omp_get_thread_num();
+
+	/* 
+	   This is the copy that is to be copied
+	*/
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store);
+
+#pragma omp parallel for private(i) schedule(static)
+	for (i = 0; i < nx; i++) {
+		int local_err;
+		GMRFLib_ai_store_tp *ais = NULL;
+
+		GMRFLib_thread_id = omp_get_thread_num();
+		if (GMRFLib_thread_id == 0) {
+			ais = G.ai_store;
+		} else {
+			if (!ai_store[GMRFLib_thread_id]){
+				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference);
+			}
+			ais = ai_store[GMRFLib_thread_id];
+		}
+		GMRFLib_domin_f_intern(x[i], &f[i], &local_err, ais);
+		err[i] = err[i] || local_err;
+	}
+	GMRFLib_thread_id = id;
+
+	for(i=0; i<nx; i++){
+		*ierr = *ierr || err[i];
+	}
+
+	GMRFLib_free_ai_store(ai_store_reference);
+	for (i = 0; i < tmax; i++) {
+		if (ai_store[i]) {
+			GMRFLib_free_ai_store(ai_store[i]);
+		}
+	}
+	Free(ai_store);
+	Free(err);
+	
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais)
 {
 	/*
@@ -254,12 +307,18 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	int i, tmax, id, debug = 0;
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	GMRFLib_ai_store_tp **ai_store = NULL;
+	GMRFLib_ai_store_tp *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	tmax = omp_get_max_threads();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id = omp_get_thread_num();
 
+	/* 
+	   this is the one to be copied
+	*/
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store);
+	
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
 		 * forward differences 
@@ -277,11 +336,14 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
-				if (!ai_store[GMRFLib_thread_id]) {
-					ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
-					// printf("Sizeof(ai_store) = %lu\n", GMRFLib_sizeof_ai_store(G.ai_store));
+				if (GMRFLib_thread_id == 0){
+					ais = G.ai_store;
+				} else {
+					if (!ai_store[GMRFLib_thread_id]) {
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference);
+					}
+					ais = ai_store[GMRFLib_thread_id];
 				}
-				ais = ai_store[GMRFLib_thread_id];
 			} else {
 				ais = G.ai_store;
 			}
@@ -336,10 +398,14 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
-				if (!ai_store[GMRFLib_thread_id]) {
-					ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
+				if (GMRFLib_thread_id == 0){
+					ais = G.ai_store;
+				} else {
+					if (!ai_store[GMRFLib_thread_id]) {
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
+					}
+					ais = ai_store[GMRFLib_thread_id];
 				}
-				ais = ai_store[GMRFLib_thread_id];
 			} else {
 				ais = G.ai_store;
 			}
@@ -372,6 +438,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		Free(fm);
 	}
 
+	GMRFLib_free_ai_store(ai_store_reference);
 	for (i = 0; i < tmax; i++) {
 		if (ai_store[i]) {
 			GMRFLib_free_ai_store(ai_store[i]);
@@ -889,8 +956,6 @@ void GMRFLib_gsl_fdf(const gsl_vector * v, void *params, double *f, gsl_vector *
 }
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 {
-	int i;
-
 	memcpy(theta_mode, G.solution, G.nhyper * sizeof(double));
 	*log_dens_mode = G.fvalue;
 

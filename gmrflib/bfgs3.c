@@ -151,7 +151,6 @@ static double interp_cubic(double f0, double fp0, double f1, double fp1, double 
 	return zmin;
 }
 
-
 static double interpolate(double a, double fa, double fpa, double b, double fb, double fpb, double xmin, double xmax, int order)
 {
 	/*
@@ -237,6 +236,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		}
 
 		fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
+		if (debug)
+			printf("...begin bracketing: eval df %.12g\n", fn);
 
 		/*
 		 * Fletcher's sigma test 
@@ -264,7 +265,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			double upper = alpha + tau1 * delta;
 
 			alpha_next = interpolate(alpha_prev, falpha_prev, fpalpha_prev, alpha, falpha, fpalpha, lower, upper, order);
-
 		}
 
 		alpha_prev = alpha;
