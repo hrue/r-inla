@@ -9,13 +9,13 @@
 
 \subsection*{Parameterisation}
 
-There is support for a further zero-inflated model of type
-$2$ (see zero-inflated.pdf), the zero-inflated beta-binomial.
-It is only defined for type 2.
+There is support for a further zero-inflated model of type $2$ (see
+zero-inflated.pdf), the zero-inflated beta-binomial.  It is only
+defined for type 2.
 
 \subsubsection*{Type 2}
 
-The  likelihood is defined as
+The likelihood is defined as
 
 \begin{displaymath}
     \text{Prob}(y \mid \ldots ) = p \times 1_{[y=0]} +
@@ -24,7 +24,7 @@ The  likelihood is defined as
 
 where:
 \begin{displaymath}
-        p = 1-\left( \frac{\exp(x)}{1 + \exp(x)}\right)^{\alpha}
+    p = 1-\left( \frac{\exp(x)}{1 + \exp(x)}\right)^{\alpha}
 \end{displaymath}
 
 \subsection*{Link-function}
@@ -33,16 +33,20 @@ As for the Binomial (see Zero-inflated.pdf).
 
 \subsection*{Hyperparameters}
 
-The Beta-binomial distribution has two arguments ($\beta_1$ \& $\beta_2$) which we assume are a (specific) function of an underlying hyperparameter ($\delta$) \& $x$. There is a further hyperparameter, $\alpha$, governing zero-inflation where:
+The Beta-binomial distribution has two arguments ($\beta_1$ \&
+$\beta_2$) which we assume are a (specific) function of an underlying
+hyperparameter ($\delta$) \& $x$. There is a further hyperparameter,
+$\alpha$, governing zero-inflation where:
 
 \vspace{5mm}
 
 \noindent
-The parameter controlling the degree of overdispersion, $\delta$, is represented as
+The parameter controlling the degree of overdispersion, $\delta$, is
+represented as
 \begin{displaymath}
     \theta_{1} = \log(\delta)
 \end{displaymath}
-and the prior is defined on $\theta_{1}$. 
+and the prior is defined on $\theta_{1}$.
 
 \vspace{5mm}
 
@@ -52,19 +56,19 @@ The zero-inflation parameter $\alpha$, is represented as
 \begin{displaymath}
     \theta_2 = \log(\alpha)
 \end{displaymath}
-and the prior and initial value is is given for  $\theta_{2}$.
+and the prior and initial value is is given for $\theta_{2}$.
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{zeroinflatedbetabinomial2}$
-\item Required arguments: As for the zero-inflated-nbinomial2 likelihood.
+\item Required arguments: As for the zero-inflated-nbinomial2
+    likelihood.
 \end{itemize}
 
 \subsection*{Example}
 
-In the following we estimate the parameters in a simulated
-example.
+In the following we estimate the parameters in a simulated example.
 
 \begin{verbatim}
 Example-zero-inflated-beta-binomial2.R
@@ -79,18 +83,13 @@ alpha = 2                      #ZI parameter
 q = p^alpha                    #prob presence
 
 beta_1=delta*p                    #beta-bin parameter 1
-beta_2=delta*(1-p)                #beta-bin parameter 2					
+beta_2=delta*(1-p)                #beta-bin parameter 2                                 
 rb = rbeta(nx, beta_1, beta_2, ncp = 0)
 
-	
-y = rep(0,nx)                       #generating data			
+        
+y = rep(0,nx)                       #generating data                    
 abs.pres = rbinom(nx,1,q)
 y[abs.pres==1] = rbinom( sum(abs.pres>0), n.trial, rb[abs.pres==1])
-
-if (FALSE) {
-    inla.my.update()
-    inla.setOption("inla.call", "inla.work")
-}
 
 formula = y ~ x +1
 r = inla(formula, data = data.frame(x,y), family = "zeroinflatedbetabinomial2",
