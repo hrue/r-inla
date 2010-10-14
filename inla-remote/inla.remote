@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: 17b09056d6ac  date: Tue Oct 12 19:36:14 2010 +0200"
+HGVERSION="hgid: 59f05a29cac0  date: Wed Oct 13 21:11:18 2010 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -76,10 +76,6 @@ mv -f $TMP $model
 ## if this script is interupted, then cleanup on the remote host
 function kill_inla_remote
 {
-    ## echo "$0 killed... Kill process on remote host." 1>&2
-    if [ "$sync_pid"XX != "XX" ]; then
-        kill $sync_pid
-    fi	 
     prog=${RemoteINLA##*/}
 	ssh $sshArguments $RemoteUser@$RemoteHost "\
 	    rm -rf $rdir; \
@@ -89,21 +85,19 @@ function kill_inla_remote
 }
 trap kill_inla_remote SIGINT SIGTERM
 
-sync_sleep=3
-sync_max=600
-{ c=1; while test $c -lt $sync_max; do sleep $sync_sleep; sync; c=$[ $c + 1 ]; done; } &
-sync_pid=$!
-
-
-## finally, do the job...
+## finally, do the job...  Do this in two steps, as it seems that for
+## long jobs the pipe gets terminated.
 cd $dir > /dev/null
+
 tar cfzm - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     tar xfzm - ; \
-    $RemoteINLA $args Model.ini 1>&2; \
+    $RemoteINLA $args Model.ini 1>&2; "
+
+ssh $sshArguments $RemoteUser@$RemoteHost "\
+    cd $rdir; \
     tar cfz - results.files; \
     cd; \
     rm -rf $rdir" | tar xfzm -
 
-kill -9 $sync_pid >/dev/null 2>/dev/null
