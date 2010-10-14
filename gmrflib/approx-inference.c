@@ -2455,7 +2455,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * this is the old version 
 		 */
 
-		FIXME("OLD VERSION");
+		FIXME1("OLD VERSION");
 
 		if (!blockupdate_par) {
 			GMRFLib_default_blockupdate_param(&blockupdate_par);
@@ -2606,7 +2606,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 
 			if (0) {
-				if (err < 1.0) {
+				if (iter > 3) {
 					/*
 					 * NOT PROPERLY TESTED!!!! do one step more step without touching Q and its factorisation.
 					 */
@@ -6507,23 +6507,30 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store)
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 	int nd = ai_store->nd;
 
-	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store);
-	DUPLICATE(mode, n, double);
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
+			new_ai_store->store = GMRFLib_duplicate_store(ai_store->store);
+		}
+#pragma omp section
+		{
+			new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem);
+			COPY(nidx);
+			COPY(neff);
+			COPY(nd);
 
-	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem);
-
-	COPY(nidx);
-	COPY(neff);
-	COPY(nd);
-
-	DUPLICATE(bb, n, double);
-	DUPLICATE(cc, n, double);
-	DUPLICATE(stdev, n, double);
-	DUPLICATE(correction_term, n, double);
-	DUPLICATE(derivative3, n, double);
-	DUPLICATE(correction_idx, n, int);
-	DUPLICATE(d_idx, nd, int);
-
+			DUPLICATE(mode, n, double);
+			DUPLICATE(bb, n, double);
+			DUPLICATE(cc, n, double);
+			DUPLICATE(stdev, n, double);
+			DUPLICATE(correction_term, n, double);
+			DUPLICATE(derivative3, n, double);
+			DUPLICATE(correction_idx, n, int);
+			DUPLICATE(d_idx, nd, int);
+		}
+	}
+	
 	GMRFLib_LEAVE_ROUTINE;
 	return new_ai_store;
 
