@@ -8,7 +8,7 @@
         stop(paste("This is not a directory: ", results.dir, "\n"))
     }
 
-    if(!only.hyperparam) {
+    if (!only.hyperparam) {
         res.fixed = inla.collect.fixed(results.dir,debug)
         res.lincomb = inla.collect.lincomb(results.dir,debug)
         res.dic = inla.collect.dic(results.dir,debug)
@@ -20,8 +20,8 @@
         file=paste(results.dir,.Platform$file.sep,"neffp",.Platform$file.sep,"neffp.dat",sep="")
         neffp = matrix(inla.read.binary.file(file),3,1)
         rownames(neffp) = inla.trim(c("Expectected  number of parameters",
-                    "Stdev of the number of parameters",
-                    "Number of equivalent replicates"))
+                        "Stdev of the number of parameters",
+                        "Number of equivalent replicates"))
 
     } else {
         res.fixed=NULL
@@ -41,21 +41,24 @@
     x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode",sep=""))[-1]
     hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid",sep=""))
     
-    if(length(theta.mode)>0) {
+    if (length(theta.mode)>0) {
         res.hyper = inla.collect.hyperpar(results.dir,debug)
 
         ##get the joint (if printed)
         alldir = dir(results.dir)
-        if(length(grep("joint.dat",alldir))==1) {
-            if(debug) print("inla.collect.joint hyperpar")
+        if (length(grep("joint.dat",alldir))==1) {
+            if (debug) {
+                print("inla.collect.joint hyperpar")
+            }
             fnm = paste(results.dir,"/joint.dat",sep="")
-            if (file.info(fnm)$size > 0)
+            if (file.info(fnm)$size > 0) {
                 joint.hyper = read.table(fnm)
-            else
+            } else {
                 joint.hyper = NULL
-        }
-        else
+            }
+        } else {
             joint.hyper = NULL
+        }
     } else {
         res.hyper = NULL
         joint.hyper = NULL

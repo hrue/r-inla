@@ -16,12 +16,13 @@
         labels.fix = names(x$marginals.fixed)
         nf = length(labels.fix)
         if (nf>0) {
-            if (nf == 1)
+            if (nf == 1) {
                 plot.layout = c(1,1)
-            else if (nf == 2)
+            } else if (nf == 2) {
                 plot.layout = c(2,1)
-            else 
+            } else {
                 plot.layout = c(3,3)
+            }
             np = prod(plot.layout)
             par(mfrow=c(plot.layout[1],plot.layout[2]))
 
@@ -49,12 +50,14 @@
         labels.fix = names(x$marginals.lincomb)
         nf = length(labels.fix)
         if (nf>0) {
-            if (nf == 1)
+            if (nf == 1) {
                 plot.layout = c(1,1)
-            else if (nf == 2)
+            }
+            else if (nf == 2) {
                 plot.layout = c(2,1)
-            else 
+            } else {
                 plot.layout = c(3,3)
+            }
             np = prod(plot.layout)
             par(mfrow=c(plot.layout[1],plot.layout[2]))
 
@@ -95,12 +98,13 @@
 
                     ## determine the plot-layout here
                     nrr = ngroup*nrep
-                    if (nrr == 1)
+                    if (nrr == 1) {
                         plot.layout = c(1,1)
-                    else if (nrr == 2)
+                    } else if (nrr == 2) {
                         plot.layout = c(2,1)
-                    else 
+                    } else {
                         plot.layout = c(3,3)
+                    }
                     np = prod(plot.layout)
                     ip = 0
 
@@ -116,12 +120,15 @@
                                     ip = ip + 1
 
                                     rep.txt = ""
-                                    if (nrep > 1)
+                                    if (nrep > 1) {
                                         rep.txt = paste(rep.txt, " rep:", r.rep, sep="")
-                                    if (ngroup > 1)
+                                    }
+                                    if (ngroup > 1) {
                                         rep.txt = paste(rep.txt, " group:", r.group,sep="")
-                                    if (r.N > r.n)
+                                    }
+                                    if (r.N > r.n) {
                                         rep.txt = paste(rep.txt, " part:", ii, sep="")
+                                    }
                             
                                     idx = (r.rep-1)*r.N +  (r.group-1)*r.N.orig + (ii-1)*r.n.orig + (1:r.n.orig)  
                             
@@ -137,9 +144,10 @@
                                              ylim=range(rr[,setdiff(colnames(rr), c("ID", "sd", "kld"))]),
                                              xlim=range(xval),
                                              axes=FALSE,ylab="",xlab="",type=tp, lwd=2, ...)
-                                        if (!is.null(x$.internal$baseline.hazard.strata.coding))
+                                        if (!is.null(x$.internal$baseline.hazard.strata.coding)) {
                                             rep.txt = inla.paste(c(rep.txt, "[",
                                                     x$.internal$baseline.hazard.strata.coding[r.rep], "]"), sep="")
+                                        }
                                     } else {
                                         xval = rr[, colnames(rr)=="ID"][idx]
                                         yval = rr[,colnames(rr)=="mean"][idx]
@@ -162,8 +170,9 @@
                                         for(j in 1:dq) {
                                             yval = qq[,j][idx]
                                             ## this is the baseline.hazard case
-                                            if (length(yval)+1 == length(xval))
+                                            if (length(yval)+1 == length(xval)) {
                                                 yval = c(yval, yval[ length(yval) ])
+                                            }
                                             points(xval, yval,type=tp,lty=2)
                                             sub = gsub("quant", "%", paste(sub,colnames(qq)[j]))
                                         }
@@ -184,10 +193,12 @@
                                 ip = ip + 1
 
                                 rep.txt = ""
-                                if (nrep > 1)
+                                if (nrep > 1) {
                                     rep.txt = paste(rep.txt, ", replicate", r.rep)
-                                if (ngroup > 1)
+                                }
+                                if (ngroup > 1) {
                                     rep.txt = paste(rep.txt, ", group", r.group)
+                                }
                             
                                 idx = (r.rep-1)*ngroup + r.group
                             
@@ -211,12 +222,13 @@
         if (!is.null(hyper)) {
             nhyper = length(hyper)
 
-            if (nhyper == 1)
+            if (nhyper == 1) {
                 plot.layout = c(1,1)
-            else if (nhyper == 2)
+            } else if (nhyper == 2) {
                 plot.layout = c(2,1)
-            else 
+            } else {
                 plot.layout = c(3,3)
+            }
             np = prod(plot.layout)
 
             ip = 0
@@ -247,25 +259,31 @@
             A = (x$size.linear.predictor$nrep == 2)
         
             for(m in inla.ifelse(A, 1:2, 1)) {
-                if (m == 1)
+                if (m == 1) {
                     idx = 1:n
-                else if (m == 2)
+                } else if (m == 2) {
                     idx = 1:n + n
-                else
+                } else {
                     stop("This should not happen")
+                }
                 if (A) {
-                    if (m == 1)
+                    if (m == 1) {
                         msg = inla.ifelse(A, "(A*lin.pred)", "")
-                    else
+                    } else {
                         msg = "(orig.)"
+                    }
                 } else {
                     msg = ""
                 }
             
                 if (!is.null(lp)) {
                     dev.new()
-                    if (!is.null(fv)) par(mfrow=c(2,1))
-                    if (!is.null(fvu)) par(mfrow=c(3,1))
+                    if (!is.null(fv)) {
+                        par(mfrow=c(2,1))
+                    }
+                    if (!is.null(fvu)) {
+                        par(mfrow=c(3,1))
+                    }
                     plot(lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx,-2]), ylab="",xlab="Index",type="l",lwd=2, ...)
                     lq = grep("quan", colnames(lp))
                     if (length(lq)>0) {
@@ -387,8 +405,9 @@
                 pit = x$pit
             }
             plot(pit, main = paste(m, ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
-            if (n.fail > 0)
+            if (n.fail > 0) {
                 points(pit[ x$failure > 0 ], pch=20)
+            }
 
             hist(pit, main = paste(m, ", n.fail", n.fail, sep=""), xlab = "Probability",
                  n = max(20,min(round(length(x$pit)/10),100)))
@@ -396,8 +415,9 @@
         if (!is.null(x$cpo)) {
             n.fail = sum(x$failure != 0.0)
             plot(x$cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
-            if (n.fail > 0)
+            if (n.fail > 0) {
                 points(x$cpo[ x$failure > 0 ], pch=20)
+            }
             hist(x$cpo, main = paste("Histogram of the CPO-values", ", n.fail", n.fail, sep=""), xlab = "Probability",
                  n = max(20,min(round(length(x$pit)/10),100)))
         }
