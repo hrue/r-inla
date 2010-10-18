@@ -42,7 +42,7 @@
 `inla.set.f.default` =
     function()
 {
-    list(diagonal = 1e-5)
+    list(diagonal = 1e-6)
 }
 
 `inla.set.control.expert.default` =
@@ -146,7 +146,10 @@
          prec=NULL, 
 
          ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
-         prec.intercept = 0.0)
+         prec.intercept = 0.0,
+
+         ##:ARGUMENT: compute Compute marginals for the fixed effects ? (default TRUE)
+         compute = TRUE)
 
     ##:SEEALSO: inla
 }
