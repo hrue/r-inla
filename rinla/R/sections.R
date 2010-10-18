@@ -242,13 +242,13 @@
                 cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
             }
         }
-        if(!is.null(random.spec$rankdef))
+        if (!is.null(random.spec$rankdef))
             cat("rankdef = ",random.spec$rankdef,"\n",append=TRUE, sep = " ", file = file)
-        if(!is.null(random.spec$cdf))
+        if (!is.null(random.spec$cdf))
             cat("cdf = ",random.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
-        if(!is.null(random.spec$quantiles))
+        if (!is.null(random.spec$quantiles))
             cat("quantiles = ",random.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
-        if(only.hyperparam)
+        if (only.hyperparam || !random.spec$compute)
             cat("compute=0\n", sep = " ", file = file,  append = TRUE)
         cat("\n", sep = " ", file = file,  append = TRUE)
     }
