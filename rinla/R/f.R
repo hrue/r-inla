@@ -40,7 +40,8 @@ function(...,
          prec.linear=NULL,
          of=NULL,
          precision=NULL,
-         si=NULL)
+         si=NULL,
+         compute = TRUE)
 {
     debug = FALSE
 
@@ -435,7 +436,7 @@ function(...,
             Cmatrix = Cmatrix, rankdef=rankdef, extraconstr=extraconstr, values=values,
             nrow = nrow, ncol = ncol, nu = nu, bvalue = bvalue,
             sphere.dir = sphere.dir, T.order = T.order, T.model = T.model, K.order = K.order, K.model = K.model,
-            of = of, precision = precision, si = si,
+            of = of, precision = precision, si = si, compute = compute,
             spde.prefix = spde.prefix )
 
     return (ret)
