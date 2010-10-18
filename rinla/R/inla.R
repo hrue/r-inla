@@ -976,7 +976,8 @@
                                     file.weights=file.weights, n=n, nrep = nrep, ngroup = ngroup,
                                     random.spec=gp$random.spec[[r]], 
                                     results.dir=paste("random.effect", inla.num(count.random), sep=""), 
-                                    only.hyperparam=only.hyperparam,  data.dir=data.dir)
+                                    only.hyperparam= only.hyperparam,
+                                    data.dir=data.dir)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ##....while here we have to add a LINEAR section
