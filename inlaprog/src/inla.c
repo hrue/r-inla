@@ -12686,7 +12686,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->cpo = 0;
 		(*out)->dic = 0;
 		(*out)->summary = 1;
-		(*out)->density = 1;
+		(*out)->return_marginals = 1;
 		(*out)->kld = 1;
 		(*out)->mlik = 0;
 		(*out)->q = 0;
@@ -12704,7 +12704,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->mlik = mb->output->mlik;
 		(*out)->q = mb->output->q;
 		(*out)->hyperparameters = mb->output->hyperparameters;
-		(*out)->density = mb->output->density;
+		(*out)->return_marginals = mb->output->return_marginals;
 		(*out)->nquantiles = mb->output->nquantiles;
 		if (mb->output->nquantiles) {
 			(*out)->quantiles = Calloc(mb->output->nquantiles, double);
@@ -12719,7 +12719,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
 	(*out)->summary = iniparser_getboolean(ini, inla_string_join(secname, "SUMMARY"), (*out)->summary);
-	(*out)->density = iniparser_getboolean(ini, inla_string_join(secname, "DENSITY"), (*out)->density);
+	(*out)->return_marginals = iniparser_getboolean(ini, inla_string_join(secname, "RETURN.MARGINALS"), (*out)->return_marginals);
 	(*out)->hyperparameters = iniparser_getboolean(ini, inla_string_join(secname, "HYPERPARAMETERS"), (*out)->hyperparameters);
 	(*out)->kld = iniparser_getboolean(ini, inla_string_join(secname, "KLD"), (*out)->kld);
 	(*out)->mlik = iniparser_getboolean(ini, inla_string_join(secname, "MLIK"), (*out)->mlik);
@@ -12771,7 +12771,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			printf("\t\t\thyperparameters=[%1d]\n", (*out)->hyperparameters);
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
-		printf("\t\t\tdensity=[%1d]\n", (*out)->density);
+		printf("\t\t\treturn.marginals=[%1d]\n", (*out)->return_marginals);
 		printf("\t\t\tnquantiles=[%1d]  [", (*out)->nquantiles);
 		for (i = 0; i < (*out)->nquantiles; i++) {
 			printf(" %g", (*out)->quantiles[i]);
@@ -13039,6 +13039,7 @@ int inla_output(inla_tp * mb)
 			}
 
 			if (mb->density_hyper) {
+
 				for (ii = 0; ii < mb->ntheta; ii++) {
 					char *sdir, *newtag;
 
@@ -13908,7 +13909,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			Free(nndir);
 		}
 	}
-	if (output->density) {
+	if (output->return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
 			inla_fnmfix(nndir);

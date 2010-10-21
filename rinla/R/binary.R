@@ -105,7 +105,7 @@
     return(res)
 }
 
-`inla.read.binary.file` = function(file)
+`inla.read.binary.file` = function(file, silent = TRUE)
 {
     if (file.exists(file)) {
         fp = file(file,"rb")
@@ -113,7 +113,9 @@
         xx = readBin(fp, numeric(), n=len)
         close(fp)
     } else {
-        warning(paste("File does not exits: ", file))
+        if (!silent) {
+            warning(paste("File does not exits: ", file))
+        }
         xx = NULL
     } 
 
