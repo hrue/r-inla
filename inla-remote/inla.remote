@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: 59f05a29cac0  date: Wed Oct 13 21:11:18 2010 +0200"
+HGVERSION="hgid: a00d786e37d6  date: Thu Oct 21 15:31:55 2010 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
+
+compress_put="z"
+compress_get=""
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     set -vx
@@ -89,15 +92,15 @@ trap kill_inla_remote SIGINT SIGTERM
 ## long jobs the pipe gets terminated.
 cd $dir > /dev/null
 
-tar cfzm - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
+tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
-    tar xfzm - ; \
+    tar xfm$compress_put - ; \
     $RemoteINLA $args Model.ini 1>&2; "
 
 ssh $sshArguments $RemoteUser@$RemoteHost "\
     cd $rdir; \
-    tar cfz - results.files; \
+    tar cf$compress_get - results.files; \
     cd; \
-    rm -rf $rdir" | tar xfzm -
+    rm -rf $rdir" | tar xfm$compress_get -
 
