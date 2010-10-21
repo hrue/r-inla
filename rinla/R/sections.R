@@ -572,7 +572,7 @@
 }
 
 `inla.problem.section` =
-    function(file , data.dir, result.dir, hyperpar, dic, cpo, mlik, quantiles, smtp, q)
+    function(file , data.dir, result.dir, hyperpar, return.marginals, dic, cpo, mlik, quantiles, smtp, q)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("inladatadir = ",data.dir, "\n", sep = "", file = file,  append = TRUE)
@@ -584,7 +584,8 @@
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
-    inla.write.boolean.field("hyperparameters",hyperpar, file)
+    inla.write.boolean.field("return.marginals", return.marginals, file)
+    inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
     inla.write.boolean.field("dic", dic, file)
     inla.write.boolean.field("mlik", mlik, file)

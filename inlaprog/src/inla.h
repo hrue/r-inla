@@ -308,7 +308,7 @@ typedef struct {
 	int cpo;					       /* output CPO */
 	int dic;					       /* output DIC */
 	int summary;					       /* output marginal summaries (mean, stdev, etc) */
-	int density;					       /* output detailed marginal density */
+	int return_marginals;				       /* output detailed marginal density (even though they are computed) */
 	int hyperparameters;				       /* compute also the marginal for the hyperparameters */
 	int kld;					       /* output the (symmetric) kld between marginals */
 	int mlik;					       /* compute the marginal likelihood? */
