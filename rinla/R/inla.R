@@ -404,7 +404,7 @@
     if (debug) 
         print("prepare problem section")
     inla.problem.section(file = file.ini, data.dir = data.dir, result.dir = results.dir,
-                         hyperpar = cont.compute$hyperpar,
+                         hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
                          dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo,
                          quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q)
     
