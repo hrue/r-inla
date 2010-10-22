@@ -5319,7 +5319,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
 
 			if (Alin[i]->first_nonzero < 0) {
-#pragma omp critical
+//#pragma omp critical
 				{
 					if (Alin[i]->first_nonzero < 0) {
 						Alin[i]->first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
@@ -5328,7 +5328,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 			}
 
 			if (Alin[i]->last_nonzero < 0) {
-#pragma omp critical
+//#pragma omp critical
 				{
 					if (Alin[i]->last_nonzero < 0) {
 						Alin[i]->last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
@@ -5349,7 +5349,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 			 * compute the first non-zero index (mapped) if not already there
 			 */
 			if (Alin[i]->first_nonzero_mapped < 0) {
-#pragma omp critical
+//#pragma omp critical
 				{
 					if (Alin[i]->first_nonzero_mapped) {
 						int findx = n;
@@ -5398,7 +5398,7 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 			 * compute the last non-zero index (mapped) if not already there
 			 */
 			if (Alin[i]->last_nonzero_mapped < 0) {
-#pragma omp critical
+//#pragma omp critical
 				{
 					if (Alin[i]->last_nonzero_mapped < 0) {
 						Alin[i]->last_nonzero_mapped = GMRFLib_find_nonzero(v, len, -1) + from_idx;
