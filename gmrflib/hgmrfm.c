@@ -654,8 +654,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		GMRFLib_print_graph(stdout, h->graph);
 
 		int nn = h->graph->n;
-		int i;
-
 		if (h->constr && h->constr->nc) {
 			for (j = 0; j < h->constr->nc; j++) {
 				printf("constr %d\n", j);

@@ -1,5 +1,9 @@
 
 /* bfgs3.h
+ *
+ *
+ * EXPERIMENTAL ONLY!!!
+ *
  * 
  * Copyright (C) 2009 Havard Rue
  * 

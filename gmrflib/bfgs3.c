@@ -1,7 +1,10 @@
 
 /* bfgs3.c
  *
- *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL
+ * EXPERIMENTAL ONLY!!!
+ *
+ *
+ *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL 
  */
 
 #ifndef HGVERSION
@@ -237,7 +240,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 		fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
 		if (debug)
-			printf("...begin bracketing: eval df %.12g\n", fn);
+			printf("...begin bracketing: eval df %.12g\n", falpha);
 
 		/*
 		 * Fletcher's sigma test 

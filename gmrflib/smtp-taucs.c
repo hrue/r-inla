@@ -1627,7 +1627,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
-	int n, ip, i, j;
+	int ip, i, j;
 	double Aij, Ajj;
 
 	for (j = from_idx; j <= to_idx; j++) {
