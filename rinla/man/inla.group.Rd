@@ -7,7 +7,7 @@
   the number of unique values}
 
 \usage{
-inla.group = function(x, n = 25, method = c("cut", "quantile"), ...)
+inla.group = function(x, n = 25, method = c("cut", "quantile"), idx.only=FALSE)
 }
 
 \arguments{
@@ -19,6 +19,10 @@ inla.group = function(x, n = 25, method = c("cut", "quantile"), ...)
   \item{method}{Group either using bins with equal length intervals
     (\code{method = "cut"}), or equal distance in the `probability'
     scale using the quantiles (\code{method = "quantile"}).}
+
+  \item{idx.only}{Option to return the index only and not the
+    \code{method}.}
+
 }
 
 

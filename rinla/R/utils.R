@@ -496,8 +496,17 @@
 
     stopifnot( nrow > 0 && ncol > 0 )
 
-    ##return ((icol-1) + (irow-1)*ncol + 1)
-    return ((irow-1) + (icol-1)*nrow + 1)
+    if (length(irow) == length(icol) && length(irow) > 1) {
+        ## this makes it kind of 'vectorize' for two arguments...
+        n = length(irow)
+        k = 1:n
+        return (sapply(k,
+                       function(irow, icol, nrow, ncol, k) {
+                           return (inla.lattice2node(irow[k], icol[k], nrow, ncol)) 
+                       }, irow = irow, icol = icol, nrow = nrow, ncol = ncol))
+    } else {
+        return ((irow-1) + (icol-1)*nrow + 1)
+    }
 }
 
 `inla.node2lattice` = function(node, nrow, ncol)
@@ -509,8 +518,6 @@
 
     stopifnot( nrow > 0 && ncol > 0 )
 
-    ##irow = (node - 1) %/% ncol
-    ##icol = (node - 1) %% ncol
     icol = (node - 1) %/% nrow
     irow = (node - 1) %% nrow
 
@@ -613,13 +620,14 @@
     }
 }
 
-`inla.group` = function(x, n = 25, method = c("cut", "quantile")) {
-
-    `inla.group.core` = function(x, n = 25, method = c("cut", "quantile"))
+`inla.group` = function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
+{
+    `inla.group.core` = function(x, n = 25, method = c("cut", "quantile"), idx.only)
     {
         ## group covariates into N groups using method "quantile" or
-        ## "cut", i.e., the functions quantile() or cut().  the cut use
-        ## 'even length' wheras the 'quantile' use even length quantiles.
+        ## "cut", i.e., the functions quantile() or cut().  the cut
+        ## use 'even length' wheras the 'quantile' use even length
+        ## quantiles.
 
         ## I make the "cut" default, as then we have control over the
         ## minimum distance between each cell, whereas the "quantile"
@@ -656,10 +664,12 @@
             else
                 return (NA)
         }
-        values = unlist(sapply(xx, ff.local))
-        x.group = as.numeric(values[as.numeric(a)])
-
-        return (x.group)
+        if (!idx.only) {
+            values = unlist(sapply(xx, ff.local))
+            return (as.numeric(values[as.numeric(a)]))
+        } else {
+            return (as.numeric(a))
+        }
     }
 
     if (missing(x))
@@ -667,11 +677,11 @@
 
     if (any(is.na(x))) {
         idx.ok = !is.na(x)
-        x[idx.ok] = inla.group.core(x[idx.ok], n, method)
+        x[idx.ok] = inla.group.core(x[idx.ok], n, method, idx.only)
 
         return (x)
     } else {
-        return (inla.group.core(x, n, method))
+        return (inla.group.core(x, n, method, idx.only))
     }
 }
 
