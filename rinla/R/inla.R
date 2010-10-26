@@ -155,7 +155,7 @@
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
                 ", fixed = ", cont.hazard$fixed,
-                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", prior = ", cont.hazard$initial, "", sep="")),
+                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", initial = ", cont.hazard$initial, "", sep="")),
                 ", constr = ", cont.hazard$constr,
                 inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
