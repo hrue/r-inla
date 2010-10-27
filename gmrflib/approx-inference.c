@@ -3377,8 +3377,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
-		if (x) {
-			memcpy(x_mode, x, graph->n * sizeof(double));
+		if (x_mode) {
+			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
 
 		if (hess_count) {
@@ -5119,6 +5119,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	SET_THETA_MODE;
 	if (x && x_mode) {
 		memcpy(x, x_mode, graph->n * sizeof(double));
+
+		if (0){
+			for(i=0; i<graph->n; i++)
+				printf("xmode[%1d] = %.12g\n", i, x_mode[i]);
+		}
 	}
 
 
@@ -6072,66 +6077,75 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 				j++;
 			}
 		}
-		GMRFLib_ai_integrator_arg_tp *arg = Calloc(1, GMRFLib_ai_integrator_arg_tp);
 
-		arg->nhyper = nhyper;
-		arg->idx = idx;
-		arg->hyper_count = hyper_count;
-		arg->hyper_z = hyper_z;
-		arg->hyper_ldens = hyper_ldens;
-		arg->theta_mode = theta_mode;
-		arg->eigen_values = eigen_values;
-		arg->eigen_vectors = eigen_vectors;
-		arg->z = Calloc(nhyper, double);
-		arg->theta = Calloc(nhyper, double);
+		int tmax = omp_get_max_threads();
+		GMRFLib_ai_integrator_arg_tp **arg = Calloc(tmax, GMRFLib_ai_integrator_arg_tp *);
 
-		arg->stdev_corr_pos = stdev_corr_pos;
-		arg->stdev_corr_neg = stdev_corr_neg;
-		arg->dz = dz;
-		arg->interpolator = interpolator;
+		for(i=0; i<tmax; i++){
+			arg[i] = Calloc(tmax, GMRFLib_ai_integrator_arg_tp);
 
+			arg[i]->nhyper = nhyper;
+			arg[i]->idx = idx;
+			arg[i]->hyper_count = hyper_count;
+			arg[i]->hyper_z = hyper_z;
+			arg[i]->hyper_ldens = hyper_ldens;
+			arg[i]->theta_mode = theta_mode;
+			arg[i]->eigen_values = eigen_values;
+			arg[i]->eigen_vectors = eigen_vectors;
+			arg[i]->z = Calloc(nhyper, double);
+			arg[i]->theta = Calloc(nhyper, double);
+
+			arg[i]->stdev_corr_pos = stdev_corr_pos;
+			arg[i]->stdev_corr_neg = stdev_corr_neg;
+			arg[i]->dz = dz;
+			arg[i]->interpolator = interpolator;
+		}
+		
 		/*
 		 * we need to bound the maximum function evaluations, otherwise it can just go on forever, especially for _linear
 		 * and _quadratic interpolation. seems like they produce to `rough' integrands... 
 		 */
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
-		double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
-		int retval;
 
+#pragma omp parallel for private(i) schedule(static)
 		for (i = 0; i < npoints; i++) {
-			arg->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);
-			points[i] = (arg->theta_fixed - theta_mode[idx]) / sd;
+			int retval;
+			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
+			int thread = omp_get_thread_num();
+
+			if (i < npoints) {
+				arg[thread]->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);
+				points[i] = (arg[thread]->theta_fixed - theta_mode[idx]) / sd;
+			} else {
+				int ii = i - npoints;
+				arg[thread]->theta_fixed = theta_mode[idx] + extra_points[ii] * sd;
+				points[i] = extra_points[ii];
+			}
+
 			retval =
-			    adapt_integrate(GMRFLib_ai_integrator_func, arg, (unsigned int) nhyper - 1, (const double *) theta_min,
+			    adapt_integrate(GMRFLib_ai_integrator_func, arg[thread], (unsigned int) nhyper - 1, (const double *) theta_min,
 					    (const double *) theta_max, max_eval, abs_err, rel_err, &value, &err);
 			value = DMAX(DBL_MIN, value);
 			ldens_values[i] = log(value);
 			if (retval) {
-				fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
-				fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-				fprintf(stderr, "\t\tPart 1, i=%1d, point=%g, thread=%1d\n", i, points[i], omp_get_thread_num());
-			}
-		}
-		for (i = 0; i < NEXTRA; i++) {
-			arg->theta_fixed = theta_mode[idx] + extra_points[i] * sd;
-			points[i + npoints] = extra_points[i];
-			retval =
-			    adapt_integrate(GMRFLib_ai_integrator_func, arg, (unsigned int) nhyper - 1, (const double *) theta_min,
-					    (const double *) theta_max, max_eval, abs_err, rel_err, &value, &err);
-			value = DMAX(DBL_MIN, value);
-			ldens_values[i + npoints] = log(value);
-			if (retval) {
-				fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
-				fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-				fprintf(stderr, "\t\tPart 2, i=%1d, point=%g, thread=%1d\n", i, points[i], omp_get_thread_num());
+#pragma omp critical 
+				{
+					fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
+					fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
+					fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], omp_get_thread_num());
+				}
 			}
 		}
 
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints + NEXTRA, points, ldens_values, theta_mode[idx], sd, GMRFLib_TRUE);
 
-		Free(arg->z);
-		Free(arg->theta);
+		for(i=0; i < tmax; i++){
+			Free(arg[i]->z);
+			Free(arg[i]->theta);
+			Free(arg[i]);
+		}
 		Free(arg);
+		
 		Free(theta_max_all);
 		Free(theta_min_all);
 		Free(theta_tmp);

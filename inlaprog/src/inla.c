@@ -12374,14 +12374,27 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		}
 	}
 
+
+
 	x_old = Calloc(N, double);
 	x_new = Calloc(N, double);
+
+	if (mb_old->reuse_mode && mb_old->x_file) {
+		if (N != mb_old->nx_file) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb_old->nx_file);
+			inla_error_general(msg);
+		}
+		memcpy(x_old, mb_old->x_file, N * sizeof(double));
+		memcpy(x_new, mb_old->x_file, N * sizeof(double));
+	} else {
 #pragma omp parallel for private(i)
-	for (i = 0; i < mb_old->predictor_n; i++) {
-		if (mb_old->d[i]) {
-			x_old[i] = x_new[i] = inla_compute_initial_value(i, mb_old->loglikelihood[i], x_new, (void *) mb_old->loglikelihood_arg[i]);
-		} else {
-			x_old[i] = x_new[i] = 0.0;
+		for (i = 0; i < mb_old->predictor_n; i++) {
+			if (mb_old->d[i]) {
+				x_old[i] = x_new[i] = inla_compute_initial_value(i, mb_old->loglikelihood[i], NULL, (void *) mb_old->loglikelihood_arg[i]);
+			} else {
+				x_old[i] = x_new[i] = 0.0;
+			}
 		}
 	}
 
@@ -14595,6 +14608,8 @@ int main(int argc, char **argv)
 	double time_used[3];
 	inla_tp *mb = NULL;
 
+	omp_set_nested(1);				       /* want this feature */
+	
 	ncpu = inla_ncpu();
 	if (ncpu > 0) {
 		omp_set_num_threads(ncpu);
