@@ -158,6 +158,7 @@
                 inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", initial = ", cont.hazard$initial, "", sep="")),
                 ", constr = ", cont.hazard$constr,
                 inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
+                inla.ifelse(is.null(cont.hazard$param), ", param = NULL", paste(", param = ", inla.2list(cont.hazard$param), sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
