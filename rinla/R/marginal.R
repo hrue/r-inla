@@ -91,15 +91,21 @@
     }
     return (d)
 }
-`inla.pmarginal` = function(x, marginal, normalize = TRUE)
+`inla.pmarginal` = function(x, marginal, normalize = TRUE, len = 1024)
 {
+    f = inla.splinefun(inla.spline(marginal))
+    xx = seq(f$range[1], f$range[2], length = len)
+    d = cumsum(exp(f$fun(xx)))
+    d = d/d[length(d)]
+
+    ## just spline-interpolate the mapping
+    fq = splinefun(xx, d)
+
+    ## just make sure the p's are in [0,1]
     n = length(x)
-    p = numeric(n)
-    for(i in 1:n) {
-        xx.xx.xx = x[i]
-        p[i] = inla.expectation(function(x) (1.0*(x < xx.xx.xx)), marginal)
-    }
-    return (p)
+    xx = pmin(pmax(x, rep(f$range[1],n)), rep(f$range[2], n))
+
+    return (fq(xx))
 }
 `inla.qmarginal` = function(p, marginal, len = 1024)
 {
