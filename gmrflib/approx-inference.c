@@ -6108,7 +6108,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
 
 #pragma omp parallel for private(i) schedule(static)
-		for (i = 0; i < npoints; i++) {
+		for (i = 0; i < npoints + NEXTRA; i++) {
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 			int thread = omp_get_thread_num();
