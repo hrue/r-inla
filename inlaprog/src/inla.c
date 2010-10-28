@@ -14608,7 +14608,7 @@ int main(int argc, char **argv)
 	double time_used[3];
 	inla_tp *mb = NULL;
 
-	omp_set_nested(0);				       /* want this feature */
+	omp_set_nested(1);				       /* want this feature */
 	
 	ncpu = inla_ncpu();
 	if (ncpu > 0) {
