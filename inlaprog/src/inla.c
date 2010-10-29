@@ -12420,7 +12420,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	if (mb_old->ntheta) {
 		printf("\n\tInitial values for the hyperparameters: \n");
 		for (i = 0; i < mb_old->ntheta; i++) {
-			printf("\t\ttheta[%1d] = %s = %.10g = %.10g in user-scale\n", i, mb_old->theta_tag[i], mb_old->theta[i][0][0],
+			printf("\t\ttheta[%1d] = %s = %.10g (= %.10g in user-scale)\n", i, mb_old->theta_tag[i], mb_old->theta[i][0][0],
 			       mb_old->theta_map[i] (mb_old->theta[i][0][0], MAP_FORWARD, mb_old->theta_map_arg[i]));
 		}
 		printf("\n");
@@ -12669,6 +12669,49 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		}
 	}
 
+	/* 
+	   write to file, the last configuration additional to the index-table, describing what is what.
+	 */
+	FILE *fp_last_x = NULL;
+	FILE *fp_last_theta = NULL;
+	FILE *fp_idx_table = NULL;
+	char *last_dir = NULL;
+	char *last_theta = NULL;
+	char *last_x = NULL;
+	char *idx_table = NULL;
+	
+	GMRFLib_sprintf(&last_dir, "%s/%s", mb_old->dir, "last-mcmc-configuration");
+	inla_fnmfix(last_dir);
+	inla_mkdir(last_dir);
+
+	GMRFLib_sprintf(&last_theta, "%s/theta.dat", last_dir);
+	inla_fnmfix(last_theta);
+	fp_last_theta = fopen(last_theta, "w");
+	for(i=0; i<mb_old->ntheta; i++){
+		fprintf(fp_last_theta, "%.12g\n", mb_old->theta[i][0][0]);
+	}
+	fclose(fp_last_theta);
+
+	GMRFLib_sprintf(&last_x, "%s/x.dat", last_dir);
+	inla_fnmfix(last_x);
+	fp_last_x = fopen(last_x, "w");
+	for(i=0; i<N; i++){
+		fprintf(fp_last_x, "%.12g\n", x_old[i]);
+	}
+	fclose(fp_last_x);
+	
+	GMRFLib_sprintf(&idx_table, "%s/idx-table.dat", last_dir);
+	inla_fnmfix(idx_table);
+	fp_idx_table = fopen(idx_table, "w");
+
+	for (i = 0; i < mb_old->idx_tot; i++) {
+		fprintf(fp_idx_table, "%1d %1d %s\n",  mb_old->idx_start[i], mb_old->idx_n[i],  mb_old->idx_tag[i]);
+	}
+	fclose(fp_idx_table);
+
+	/* 
+	   cleanup
+	 */
 	GMRFLib_free_store(store);
 	Free(b);
 	Free(c);
@@ -12676,6 +12719,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	Free(x_new);
 	Free(theta_old);
 	Free(theta_new);
+	Free(last_dir);
+	Free(last_theta);
+	Free(last_x);
+	Free(idx_table);
 
 	return INLA_OK;
 }
