@@ -97,7 +97,8 @@
       
         y.surv = eval(parse(text=formula[2]),data)
         if (class(y.surv) != "inla.surv")
-            stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `", class(y.surv), "'", sep=""))
+            stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
+                       class(y.surv), "'", sep=""))
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
         if (is.null(y.surv$subject)) {
@@ -155,10 +156,13 @@
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
                 ", fixed = ", cont.hazard$fixed,
-                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", initial = ", cont.hazard$initial, "", sep="")),
+                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL",
+                            paste(", initial = ", cont.hazard$initial, "", sep="")),
                 ", constr = ", cont.hazard$constr,
-                inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
-                inla.ifelse(is.null(cont.hazard$param), ", param = NULL", paste(", param = ", inla.2list(cont.hazard$param), sep="")),
+                inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL",
+                            paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
+                inla.ifelse(is.null(cont.hazard$param), ", param = NULL",
+                            paste(", param = ", inla.2list(cont.hazard$param), sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
@@ -509,10 +513,11 @@
     else if (is.null(offset.formula) && !is.null(offset))
         offset.sum = offset
     else if (!is.null(offset.formula) && !is.null(offset.formula)) {
-        if (length(offset.formula) == length(offset))
+        if (length(offset.formula) == length(offset)) {
             offset.sum = offset.formula + offset
-        else
+        } else {
             stop("\n\tThe offset defined in formula and in argument has different length.")
+        }
     } else {
         offset.sum = NULL
     }
@@ -1105,7 +1110,6 @@
         if (echoc==0) {
             ret = try(inla.collect.results(results.dir,control.results=cont.res, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
-
             if (!is.list(ret))
                 ret = list()
             
@@ -1138,6 +1142,19 @@
             ret$model.matrix = gp$model.matrix
             ret$user.hook = user.hook
             ret$user.hook.arg = user.hook.arg
+            
+            ## store also the default control-parameters; just in case
+            ret$.control.defaults = list(
+                    control.compute = inla.set.control.compute.default(),
+                    control.predictor = inla.set.control.predictor.default(),
+                    control.data = inla.set.control.data.default(),
+                    control.inla = inla.set.control.inla.default(),
+                    control.results = inla.set.control.results.default(),
+                    control.fixed = inla.set.control.fixed.default(),
+                    control.mode = inla.set.control.mode.default(),
+                    control.expert = inla.set.control.expert.default(),
+                    control.hazard = inla.set.control.hazard.default(),
+                    control.lincomb = inla.set.control.lincomb.default())
             ##
             ret$.internal = .internal
             ##

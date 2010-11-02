@@ -41,22 +41,24 @@ static const char RCSId[] = HGVERSION;
 #if defined(__linux__)
 #include <getopt.h>
 #endif
-#include <errno.h>
-#include <assert.h>
-#include <stddef.h>
-#include <time.h>
-#include <signal.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
+
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <math.h>
+#include <signal.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 
 #if defined(__APPLE__)
 #include <sys/types.h>
@@ -93,7 +95,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL };
+G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0 };
 
 /* 
    default values for priors
@@ -107,6 +109,7 @@ G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL };
  */
 #define OFFSET(idx_) (ds->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)(ds->mb)) : 0.0))
 #define OFFSET2(idx_) (mb_old->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)mb_old) : 0.0))
+#define OFFSET3(idx_) (mb->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)mb) : 0.0))
 
 #define PENALTY -100.0					       /* wishart3d: going over limit... */
 
@@ -9983,6 +9986,10 @@ int inla_parse_offset(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	if (!strcasecmp(model, "POSITIVE")) {
+
+		FIXME("model positive does not work with the current offsets; please check and fix");
+		exit(1);
+		
 		mb->off_id[mb->noff] = O_POSITIVE;
 		mb->off_ntheta[mb->noff] = 1;
 		mb->off_modelname[mb->noff] = GMRFLib_strdup("Positive fixed-effect");
@@ -12231,6 +12238,14 @@ int inla_INLA(inla_tp * mb)
 			inla_error_general(msg);
 		}
 		memcpy(x, mb->x_file, N * sizeof(double));
+
+		/* 
+		   subtract the offset
+		 */
+		for (i = 0; i < mb->predictor_n; i++) {
+			x[i] -= OFFSET3(i);
+		}
+
 	} else {
 #pragma omp parallel for private(i)
 		for (i = 0; i < mb->predictor_n; i++) {
@@ -12245,7 +12260,6 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * Finally, let us do the job...
 	 */
-
 	GMRFLib_ai_INLA(&(mb->density),
 			&(mb->gdensity),
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -12260,15 +12274,40 @@ int inla_INLA(inla_tp * mb)
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store, inla_all_offset, (void *) mb,
 			mb->nlc, mb->lc_lc, &(mb->density_lin), &(mb->misc_output));
 
+	/* 
+	   add offset to the linear predictor
+	 */
+#pragma omp parallel for private(i)
+	for (i = 0; i < mb->predictor_n; i++) {
+		GMRFLib_density_tp *d;
+
+		if (mb->density[i]){
+			d = mb->density[i];
+			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
+			GMRFLib_free_density(d);
+		}
+		if (mb->gdensity[i]){
+			d = mb->gdensity[i];
+			GMRFLib_density_new_mean(&(mb->gdensity[i]), d, d->std_mean + OFFSET3(i));
+			GMRFLib_free_density(d);
+		}
+	}
+
+	/* 
+	   add the offset to 'x'
+	*/
+	for (i = 0; i < mb->predictor_n; i++) {
+		x[i] += OFFSET3(i);
+	}
+	
+	Free(mb->x_file);				       /* yes, and then */
+	mb->x_file = x;					       /* just take over */
+	mb->nx_file = N;
 
 	GMRFLib_free_ai_store(ai_store);
 	Free(b);
 	Free(c);
 	Free(compute);
-
-	Free(mb->x_file);				       /* yes, and then */
-	mb->x_file = x;					       /* just take over */
-	mb->nx_file = N;
 
 	return INLA_OK;
 }
@@ -12276,7 +12315,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 {
 	double *c = NULL, *x_old = NULL, *x_new = NULL, *b = NULL;
 	int N, i, ii, j, n, count;
-	char *fnm;
+	char *fnm, *msg;
 
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
@@ -12374,19 +12413,25 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		}
 	}
 
-
-
 	x_old = Calloc(N, double);
 	x_new = Calloc(N, double);
 
 	if (mb_old->reuse_mode && mb_old->x_file) {
 		if (N != mb_old->nx_file) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb_old->nx_file);
 			inla_error_general(msg);
 		}
 		memcpy(x_old, mb_old->x_file, N * sizeof(double));
 		memcpy(x_new, mb_old->x_file, N * sizeof(double));
+
+		/* 
+		   subtract the offset
+		 */
+		for(i=0; i<mb_old->predictor_n; i++){
+			x_old[i] -= OFFSET2(i);
+			x_new[i] -= OFFSET2(i);
+		}
+
 	} else {
 #pragma omp parallel for private(i)
 		for (i = 0; i < mb_old->predictor_n; i++) {
@@ -12412,9 +12457,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	 * set better initial values 
 	 */
 	if (mb_old->gdensity) {
-		for (i = 0; i < N; i++)
-			if (mb_old->gdensity[i])
+		for (i = 0; i < N; i++){
+			if (mb_old->gdensity[i]){
 				x_old[i] = mb_old->gdensity[i]->user_mean;
+			}
+		}
 	}
 
 	if (mb_old->ntheta) {
@@ -12457,6 +12504,23 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	}
 
 	FILE **fpp = Calloc(len_offsets + 2 * mb_old->ntheta, FILE *);
+
+	/* 
+	   Store the offsets in the linear predictor to file
+	 */
+	FILE *fp_offset;
+	GMRFLib_sprintf(&fnm, "%s/totaloffset", mb_old->dir);
+	inla_fnmfix(fnm);
+	inla_mkdir(fnm);
+	Free(fnm);
+	GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb_old->dir);
+	inla_fnmfix(fnm);
+	fp_offset = fopen(fnm, "w");
+	Free(fnm);
+	for(i=0; i< mb_old->predictor_n + mb_old->predictor_n_ext; i++){
+		fprintf(fp_offset, "%d %.12g\n", i, OFFSET2(i));
+	}
+	fclose(fp_offset);
 
 	j = -1;						       /* yes */
 	j++;
@@ -12566,6 +12630,55 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	update_theta = mb_old->ntheta && (mb_new->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES); /* yes, use mb_new */
 	store->fixed_hyperparameters = !update_theta;
 
+#if !defined(WINDOWS)
+	int fifo_get = -1;
+	int fifo_put = -1;
+	int fifo_err = -1;
+	double *all_fifo_get = NULL;
+	double *all_fifo_put = NULL;
+	
+	if (G.mcmc_fifo){
+		remove(FIFO_GET);
+		remove(FIFO_PUT);
+
+		if (mb_old->verbose){
+			printf("Create new fifo-file [%s]\n", FIFO_GET);
+		}
+		fifo_err = mkfifo(FIFO_GET, 0700);
+		if (fifo_err){
+			GMRFLib_sprintf(&msg,  "FIFO-ERROR (GET): %s\n", strerror(errno));
+			inla_error_general(msg);
+			exit(1);
+		}
+		if (mb_old->verbose){
+			printf("Create new fifo-file [%s]\n", FIFO_PUT);
+		}
+		fifo_err = mkfifo(FIFO_PUT, 0700);
+		if (fifo_err){
+			GMRFLib_sprintf(&msg,  "FIFO-ERROR (PUT): %s\n", strerror(errno));
+			inla_error_general(msg);
+			exit(1);
+		}
+
+		if (mb_old->verbose){
+			printf("Open fifo file [%s]\n", FIFO_GET);
+		}
+		fifo_get = open(FIFO_GET, O_RDONLY);
+
+		if (mb_old->verbose){
+			printf("Open fifo file [%s]\n", FIFO_PUT);
+		}
+		fifo_put = open(FIFO_PUT, O_WRONLY);
+
+		// pass the dimensions
+		//write(fifo_put, mb_old->ntheta, sizeof(int));
+		//write(fifo_put, N, sizeof(int));
+
+		all_fifo_get = Calloc(mb_old->ntheta + N, double);
+		all_fifo_put = Calloc(mb_old->ntheta + N, double);
+	}
+#endif
+	
 	while (!G.mcmc_niter || iteration < G.mcmc_niter) {
 		double lacc, p;
 
@@ -12667,6 +12780,41 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				}
 			}
 		}
+#if !defined(WINDOWS)
+		if (G.mcmc_fifo) {
+			/* 
+			   send all variables in all_ = c( theta, x) to an external process for processing, and replace it with what is coming back.
+			*/
+			
+			for (i = 0; i < mb_old->ntheta; i++){
+				all_fifo_put[i] = mb_old->theta[i][0][0];
+			}
+			for (i = 0; i < N; i++){
+				all_fifo_put[i + mb_old->ntheta ] = x_old[i];
+			}
+			for (i = 0; i < mb_old->predictor_n; i++){
+				all_fifo_put[i + mb_old->ntheta] += OFFSET2(i); /* yes, add the offset */
+			}
+
+			/* 
+			   can use the same vector here, but this enable us to see what is changed.
+			*/
+			write(fifo_put, all_fifo_put,  (N + mb_old->ntheta) * sizeof(double));
+			read( fifo_get, all_fifo_get,  (N + mb_old->ntheta) * sizeof(double));
+
+			if (mb_old->verbose){
+				if (0){
+					for(i=0; i< N + mb_old->ntheta; i++)
+						printf("fifo: put xxx[%1d] = %.12g  get %.12g\n", i, all_fifo_get[i], all_fifo_put[i]);
+				}
+			}
+
+			for (i = 0; i < N; i++){
+				x_old[i] = all_fifo_get[i + mb_old->ntheta ] - OFFSET2(i);
+			}
+			SET_THETA(mb_old, all_fifo_get);
+		}
+#endif
 	}
 
 	/* 
@@ -13033,6 +13181,34 @@ int inla_output(inla_tp * mb)
 			 */
 			int ii;
 
+			if (1){
+				/* 
+				   This the offset
+				 */
+				int len_off = mb->predictor_n + mb->predictor_n_ext;
+				FILE *fp;
+				char *fnm;
+				
+				GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
+				inla_fnmfix(fnm);
+				inla_mkdir(fnm);
+				Free(fnm);
+				GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb->dir);
+				inla_fnmfix(fnm);
+				fp = fopen(fnm, (G.binary ? "wb" : "w"));
+				Free(fnm);
+				if (G.binary){
+					for(ii=0; ii<len_off; ii++){
+						DW(OFFSET3(ii));
+					}
+				} else {
+					for(ii=0; ii<len_off; ii++){
+						fprintf(fp, "%1d %.12g\n", ii, OFFSET3(ii));
+					}
+				}
+				fclose(fp);
+			}
+			
 			for (ii = 0; ii < mb->nlinear; ii++) {
 				char *sdir, *newtag;
 				int offset = offsets[mb->nf + 1 + ii];
@@ -13604,7 +13780,7 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 int inla_output_detail_x(const char *dir, double *x, int n_x)
 {
 	/*
-	 * write the mode of theta to the file DIR/.x_mode. This is used only internally... 
+	 * write the mode of x to the file DIR/.x_mode. This is used only internally... 
 	 */
 	int i;
 	char *nndir = NULL;
@@ -14682,7 +14858,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:F")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -14746,6 +14922,14 @@ int main(int argc, char **argv)
 					fprintf(stderr, "Fail to read MCMC_THINNING from %s\n", optarg);
 					exit(EXIT_SUCCESS);
 				}
+			}
+			break;
+		case 'F':
+			if (!G.mcmc_mode) {
+				fprintf(stderr, "\n *** ERROR *** Option `-F' only available in MCMC mode\n");
+				exit(1);
+			} else {
+				G.mcmc_fifo = 1;
 			}
 			break;
 		case 'N':

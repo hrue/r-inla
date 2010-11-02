@@ -282,7 +282,7 @@
          param=NULL,
 
          ##:ARGUMENT: initial The value of the log precision of the artificial noise
-         initial=NULL,
+         initial=11,
 
          ##:ARGUMENT: cross Cross-sum-to-zero constraints
          cross=NULL,

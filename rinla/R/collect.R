@@ -841,3 +841,11 @@
     }
 }
 
+`inla.collect.offset.linear.predictor` = function(results.dir, debug = FALSE)
+{
+    filename = paste(results.dir, "/totaloffset/totaloffset.dat", sep="")
+    stopifnot(file.exists(filename))
+
+    xx = inla.read.binary.file(filename)
+    return (list(total.offset = xx))
+}
