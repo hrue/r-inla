@@ -35,6 +35,7 @@
     }
     res.mlik = inla.collect.mlik(results.dir,debug)
     res.q = inla.collect.q(results.dir, control.results$image.dim, debug)
+    res.offset = inla.collect.offset.linear.predictor(results.dir, debug)
 
     ##get the hyperparameters
     theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode",sep=""))[-1]
@@ -65,9 +66,8 @@
     }
 
     misc = inla.collect.misc(results.dir, debug)
-    
     res = c(res.fixed, res.lincomb, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
-            res.configurations,
+            res.configurations, res.offset,
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x=x.mode),
                  neffp=neffp,

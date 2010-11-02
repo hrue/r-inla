@@ -482,7 +482,7 @@
         cat("initial = ",predictor.spec$initial,"\n", sep = " ", file = file, append=TRUE)
     } else {
         if (predictor.spec$fixed) {
-            cat("initial = 12\n", sep = " ", file = file,  append = TRUE)
+            cat("initial = 10\n", sep = " ", file = file,  append = TRUE)
         }
     }
     if (!is.null(predictor.spec$predictor.usermap)){

@@ -293,6 +293,11 @@
 
 `inla.paste` = function(strings, sep = " ")
 {
+    ## new version (learning more and more...)
+    return (paste(strings, collapse = sep))
+
+    ## old version::
+
     ## merge strings
     res = NULL
     for(s in strings) {
