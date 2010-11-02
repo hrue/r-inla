@@ -12844,7 +12844,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	inla_fnmfix(last_x);
 	fp_last_x = fopen(last_x, "w");
 	for(i=0; i<N; i++){
-		fprintf(fp_last_x, "%.12g\n", x_old[i]);
+		fprintf(fp_last_x, "%.12g\n", x_old[i] + OFFSET2(i));
 	}
 	fclose(fp_last_x);
 	
