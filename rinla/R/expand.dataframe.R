@@ -23,7 +23,7 @@
    
     expand = table(new.data$indicator)
     if(!missing(dataframe)) {
-        new.dataframe = matrix(0,length(new.data$y),dim(dataframe)[2])
+        new.dataframe = as.data.frame(matrix(0,length(new.data$y),dim(dataframe)[2]))
         for(i in 1:dim(dataframe)[2])
             new.dataframe[,i] = rep(dataframe[,i],expand)
         new.dataframe = as.data.frame(new.dataframe)
