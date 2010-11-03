@@ -12877,7 +12877,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				read( fifo_get_data, all_data_fifo_get,  dlen * sizeof(double));
 
 				if (mb_old->verbose){
-					if (1){
+					if (0) {
 						for(i=0; i< dlen; i++)
 							printf("fifo: put data[%1d] = %.12g  get %.12g\n", i,
 							       all_data_fifo_get[i], all_data_fifo_put[i]);
