@@ -95,7 +95,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0 };
+G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
 
 /* 
    default values for priors
@@ -12636,6 +12636,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	int fifo_err = -1;
 	double *all_fifo_get = NULL;
 	double *all_fifo_put = NULL;
+
+	int fifo_get_data = -1;
+	int fifo_put_data = -1;
+	double *all_data_fifo_get = NULL;
+	double *all_data_fifo_put = NULL;
 	
 	if (G.mcmc_fifo){
 		remove(FIFO_GET);
@@ -12670,12 +12675,51 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		}
 		fifo_put = open(FIFO_PUT, O_WRONLY);
 
-		// pass the dimensions
-		//write(fifo_put, mb_old->ntheta, sizeof(int));
-		//write(fifo_put, N, sizeof(int));
-
 		all_fifo_get = Calloc(mb_old->ntheta + N, double);
 		all_fifo_put = Calloc(mb_old->ntheta + N, double);
+
+		if (G.mcmc_fifo_pass_data) {
+
+			remove(FIFO_GET_DATA);
+			remove(FIFO_PUT_DATA);
+
+			if (mb_old->verbose){
+				printf("Create new fifo-file [%s]\n", FIFO_GET_DATA);
+			}
+			fifo_err = mkfifo(FIFO_GET_DATA, 0700);
+			if (fifo_err){
+				GMRFLib_sprintf(&msg,  "FIFO-ERROR (GET DATA): %s\n", strerror(errno));
+				inla_error_general(msg);
+				exit(1);
+			}
+			if (mb_old->verbose){
+				printf("Create new fifo-file [%s]\n", FIFO_PUT_DATA);
+			}
+			fifo_err = mkfifo(FIFO_PUT_DATA, 0700);
+			if (fifo_err){
+				GMRFLib_sprintf(&msg,  "FIFO-ERROR (PUT DATA): %s\n", strerror(errno));
+				inla_error_general(msg);
+				exit(1);
+			}
+			
+			if (mb_old->verbose){
+				printf("Open fifo file [%s]\n", FIFO_GET_DATA);
+			}
+			fifo_get_data = open(FIFO_GET_DATA, O_RDONLY);
+
+			if (mb_old->verbose){
+				printf("Open fifo file [%s]\n", FIFO_PUT_DATA);
+			}
+			fifo_put_data = open(FIFO_PUT_DATA, O_WRONLY);
+
+			all_data_fifo_put = Calloc(mb_old->nds * mb_old->predictor_n, double);
+			all_data_fifo_get = Calloc(mb_old->nds * mb_old->predictor_n, double);
+
+			/* 
+			   in this case, this feature cannot be used
+			*/
+			store->store_problems = GMRFLib_FALSE;
+		}
 	}
 #endif
 	
@@ -12818,6 +12862,33 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				x_old[i] = all_fifo_get[i + mb_old->ntheta ];
 			}
 			SET_THETA(mb_old, all_fifo_get);
+
+			if (G.mcmc_fifo_pass_data) {
+
+				int dlen = mb_old->nds * mb_old->predictor_n;
+				
+				for(i=0; i<mb_old->nds; i++){
+					memcpy(&(all_data_fifo_put[i*mb_old->predictor_n]),
+					       mb_old->data_sections[i].data_observations.y,
+					       mb_old->predictor_n * sizeof(double));
+				}
+
+				write(fifo_put_data, all_data_fifo_put,  dlen * sizeof(double));
+				read( fifo_get_data, all_data_fifo_get,  dlen * sizeof(double));
+
+				if (mb_old->verbose){
+					if (1){
+						for(i=0; i< dlen; i++)
+							printf("fifo: put data[%1d] = %.12g  get %.12g\n", i,
+							       all_data_fifo_get[i], all_data_fifo_put[i]);
+					}
+				}
+				for(i=0; i<mb_old->nds; i++){
+					memcpy(mb_old->data_sections[i].data_observations.y,
+					       &(all_data_fifo_get[i*mb_old->predictor_n]),  
+					       mb_old->predictor_n * sizeof(double));
+				}
+			}
 		}
 #endif
 	}
@@ -14866,7 +14937,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:F")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FY")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -14938,6 +15009,14 @@ int main(int argc, char **argv)
 				exit(1);
 			} else {
 				G.mcmc_fifo = 1;
+			}
+			break;
+		case 'Y':
+			if (!G.mcmc_mode) {
+				fprintf(stderr, "\n *** ERROR *** Option `-Y' only available in MCMC mode\n");
+				exit(1);
+			} else {
+				G.mcmc_fifo_pass_data = 1;
 			}
 			break;
 		case 'N':
