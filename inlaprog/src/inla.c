@@ -12517,7 +12517,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	inla_fnmfix(fnm);
 	fp_offset = fopen(fnm, "w");
 	Free(fnm);
-	for(i=0; i< mb_old->predictor_n + mb_old->predictor_n_ext; i++){
+	for(i=0; i< mb_old->predictor_n; i++){
 		fprintf(fp_offset, "%d %.12g\n", i, OFFSET2(i));
 	}
 	fclose(fp_offset);
@@ -12731,8 +12731,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			j = -1;				       /* yes */
 			j++;
 			if (fpp[j]) {
-				for (i = 0; i < mb_old->predictor_n + mb_old->predictor_n_ext; i++) {
+				for (i = 0; i < mb_old->predictor_n; i++) {
 					fprintf(fpp[j], " %.5f", x_old[i] + OFFSET2(i));
+				}
+				for (i = mb_old->predictor_n; i < mb_old->predictor_n + mb_old->predictor_n_ext; i++) {
+					fprintf(fpp[j], " %.5f", x_old[i]);
 				}
 				fprintf(fpp[j], "\n");
 			}
@@ -12789,11 +12792,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			for (i = 0; i < mb_old->ntheta; i++){
 				all_fifo_put[i] = mb_old->theta[i][0][0];
 			}
-			for (i = 0; i < N; i++){
-				all_fifo_put[i + mb_old->ntheta ] = x_old[i];
-			}
 			for (i = 0; i < mb_old->predictor_n; i++){
-				all_fifo_put[i + mb_old->ntheta] += OFFSET2(i); /* yes, add the offset */
+				all_fifo_put[i + mb_old->ntheta] = x_old[i] + OFFSET2(i); /* yes, add the offset */
+			}
+			for (i = mb_old->predictor_n; i < N; i++){
+				all_fifo_put[i + mb_old->ntheta ] = x_old[i];
 			}
 
 			/* 
@@ -12809,8 +12812,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				}
 			}
 
-			for (i = 0; i < N; i++){
+			for(i=0; i < mb_old->predictor_n; i++)
 				x_old[i] = all_fifo_get[i + mb_old->ntheta ] - OFFSET2(i);
+			for (i = mb_old->predictor_n; i < N; i++){
+				x_old[i] = all_fifo_get[i + mb_old->ntheta ];
 			}
 			SET_THETA(mb_old, all_fifo_get);
 		}
@@ -12843,8 +12848,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	GMRFLib_sprintf(&last_x, "%s/x.dat", last_dir);
 	inla_fnmfix(last_x);
 	fp_last_x = fopen(last_x, "w");
-	for(i=0; i<N; i++){
+	for(i=0; i < mb_old->predictor_n; i++) {
 		fprintf(fp_last_x, "%.12g\n", x_old[i] + OFFSET2(i));
+	}
+	for(i=mb_old->predictor_n; i < N; i++) {
+		fprintf(fp_last_x, "%.12g\n", x_old[i]);
 	}
 	fclose(fp_last_x);
 	
@@ -13185,7 +13193,7 @@ int inla_output(inla_tp * mb)
 				/* 
 				   This the offset
 				 */
-				int len_off = mb->predictor_n + mb->predictor_n_ext;
+				int len_off = mb->predictor_n;
 				FILE *fp;
 				char *fnm;
 				
