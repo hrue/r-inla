@@ -602,24 +602,38 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	}
 #pragma omp parallel for private(i, ic, k, j)
 	for (i = 0; i < n; i++) {
+		double val;
+		
 		ic = ic_idx[i];
 		GMRFLib_thread_id = id;
-		Q->values.d[ic++] = Qfunc(i, i, Qfunc_arg);
+
+		val = Qfunc(i, i, Qfunc_arg);
+		GMRFLib_STOP_IF_NAN(val);
+		Q->values.d[ic++] = val;
 
 		for (k = 0; k < graph->nnbs[i]; k++) {
 			j = graph->nbs[i][k];
 			if (j > i) {
 				break;
 			}
-			Q->values.d[ic++] = Qfunc(i, j, Qfunc_arg);
+
+			val = Qfunc(i, j, Qfunc_arg);
+			GMRFLib_STOP_IF_NAN(val);
+			Q->values.d[ic++] = val;
 		}
 	}
 	GMRFLib_thread_id = id;
 	Free(ic_idx);
 #else
 	for (i = 0, ic = 0; i < n; i++) {
+		double val;
+		
 		Q->rowind[ic] = i;
-		Q->values.d[ic] = Qfunc(i, i, Qfunc_arg);
+
+		val = Qfunc(i, i, Qfunc_arg);
+		GMRFLib_STOP_IF_NAN(val);
+		Q->values.d[ic] = val;
+
 		ic++;
 		ne = 1;
 
@@ -629,7 +643,10 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 				break;
 			}
 			Q->rowind[ic] = j;
-			Q->values.d[ic] = Qfunc(i, j, Qfunc_arg);
+
+			val = Qfunc(i, j, Qfunc_arg);
+			GMRFLib_STOP_IF_NAN(val);
+			Q->values.d[ic] = val;
 
 			ic++;
 			ne++;
