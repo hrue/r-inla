@@ -207,9 +207,6 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 		exit(1);						\
 	}
 
-
-/*
- */
 #define GMRFLib_SET_PREC(arg_)						\
 	(arg_->prec ? *(arg_->prec)					\
 	 : (arg_->log_prec ? exp(*(arg_->log_prec))			\
