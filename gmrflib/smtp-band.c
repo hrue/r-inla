@@ -150,33 +150,45 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 	for (i = 0; i < graph->n; i++) {
 		int node = remap[i];
 		int j;
-
+		double val;
+		
 		GMRFLib_thread_id = id;
-		(*bandmatrix)[BIDX(0, node)] = Qfunc(i, i, Qfunc_arg);
+		
+		val = Qfunc(i, i, Qfunc_arg);
+		GMRFLib_STOP_IF_NAN(val);
+		(*bandmatrix)[BIDX(0, node)] = val;
+
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			int jj = graph->nbs[i][j];
 			int nnode = remap[jj];
 
 			if (nnode > node) {
-				(*bandmatrix)[BIDX(nnode - node, node)] = Qfunc(i, jj, Qfunc_arg);
+				val = Qfunc(i, jj, Qfunc_arg);
+				GMRFLib_STOP_IF_NAN(val);
+				(*bandmatrix)[BIDX(nnode - node, node)] = val;
 			}
 		}
 	}
 
-	if (0) {
-		FILE *fp = fopen("Q-band.dat", "w");
+	if (1) {
+		static int count = 0;
+		char *fnm = NULL;
+
+		GMRFLib_sprintf(&fnm, "Q-band-%1d-%1d.dat", count++, omp_get_thread_num());
+		FILE *fp = fopen(fnm, "w");
+		Free(fnm);
 		assert(fp);
-		FIXME("write file Q-band.dat");
+		FIXME("write Q-file");
 		for (i = 0; i < graph->n; i++) {
 			int node = remap[i];
 			int j;
 
-			fprintf(fp, "%d %d %.20g\n", i, i, (*bandmatrix)[BIDX(0, node)]);
+			fprintf(fp, "%d %d %.20f\n", i, i, (*bandmatrix)[BIDX(0, node)]);
 			for (j = 0; j < graph->nnbs[i]; j++) {
 				int jj = graph->nbs[i][j];
 				int nnode = remap[jj];
 				if (nnode > node) {
-					fprintf(fp, "%d %d %.20g\n", i, jj, (*bandmatrix)[BIDX(nnode - node, node)]);
+					fprintf(fp, "%d %d %.20f\n", i, jj, (*bandmatrix)[BIDX(nnode - node, node)]);
 				}
 			}
 		}
