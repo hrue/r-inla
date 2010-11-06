@@ -93,7 +93,7 @@
         ## Poisson observations, and call inla() again.
 
         cont.hazard = inla.set.control.hazard.default()
-        cont.hazard[(namc = names(control.hazard))] = control.hazard
+        cont.hazard[names(control.hazard)] = control.hazard
       
         y.surv = eval(parse(text=formula[2]),data)
         if (class(y.surv) != "inla.surv")
@@ -304,7 +304,7 @@
     
     ## control what should be computed
     cont.compute = inla.set.control.compute.default()
-    cont.compute[(namc = names(control.compute))] = control.compute
+    cont.compute[names(control.compute)] = control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar = TRUE
         cont.compute$dic = cont.compute$cpo = FALSE 
@@ -312,7 +312,7 @@
     
     ## control predictor section
     cont.pred = inla.set.control.predictor.default()
-    cont.pred[(namc = names(control.predictor))] = control.predictor
+    cont.pred[names(control.predictor)] = control.predictor
     if (cont.compute$cpo || cont.compute$dic) 
         cont.pred$compute=TRUE
     if (only.hyperparam) {
@@ -321,11 +321,11 @@
     }
     
     cont.inla =inla.set.control.inla.default(family)
-    cont.inla[(namc = names(control.inla))] = control.inla
+    cont.inla[names(control.inla)] = control.inla
 
     ## control fixed
     cont.fixed = inla.set.control.fixed.default()
-    cont.fixed[(namc = names(control.fixed))] = control.fixed
+    cont.fixed[names(control.fixed)] = control.fixed
 
     ## control.data
     if (n.family == 1) {
@@ -361,12 +361,12 @@
     cont.data = list(list())
     for(i.family in 1:n.family) {
         cont.data[[i.family]] = inla.set.control.data.default()
-        cont.data[[i.family]][(namc = names(control.data[[i.family]]))] = control.data[[i.family]]
+        cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
     }
 
     ## control results
-    cont.res = inla.set.control.results.default()
-    cont.res[(namc = names(control.results))] = control.results
+    cont.result = inla.set.control.results.default()
+    cont.result[names(control.results)] = control.results
     
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
@@ -943,7 +943,8 @@
 
                 ##print(gp$random.spec[[r]]$extraconstr$A)
                 ##print(gp$random.spec[[r]]$extraconstr$e)
-
+                ##browser()
+                
                 ##and in case a file for the extraconstraint
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
@@ -1023,17 +1024,17 @@
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
-    cont.mode[(namc = names(control.mode))] = control.mode
+    cont.mode[names(control.mode)] = control.mode
     inla.mode.section(file=file.ini, cont.mode, data.dir)
 
     ## create expert section
     cont.expert = inla.set.control.expert.default()
-    cont.expert[(namc = names(control.expert))] = control.expert
+    cont.expert[names(control.expert)] = control.expert
     inla.expert.section(file=file.ini, cont.expert)
     
     ## create lincomb section
     cont.lincomb = inla.set.control.lincomb.default()
-    cont.lincomb[(namc = names(control.lincomb))] = control.lincomb
+    cont.lincomb[names(control.lincomb)] = control.lincomb
     inla.lincomb.section(file=file.ini, data.dir=data.dir, contr=cont.lincomb, lincomb=lincomb)
     
     if (!is.null(user.hook) && class(user.hook) == "function")
@@ -1108,7 +1109,7 @@
         my.time.used[3] = Sys.time()
 
         if (echoc==0) {
-            ret = try(inla.collect.results(results.dir,control.results=cont.res, debug=debug,
+            ret = try(inla.collect.results(results.dir,control.results=cont.result, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
             if (!is.list(ret))
                 ret = list()
@@ -1122,11 +1123,20 @@
 
             ret$cpu.used = cpu.used
             ret$lincomb = lincomb
-            ret$control.lincomb = control.lincomb
+
             ret$control.compute=cont.compute
             ret$control.predictor=cont.pred
-            ret$control.inla=cont.inla
+            ret$control.lincomb = control.lincomb
             ret$control.data=cont.data
+            ret$control.inla=cont.inla
+            ret$control.results = cont.result
+            ret$control.fixed = cont.fixed
+            ret$control.mode = cont.mode
+            ret$control.expert = cont.expert
+            if (exists("cont.hazard"))
+                ret$control.hazard = cont.hazard
+            ret$control.lincomb = cont.lincomb
+
             ret$call=call
             ret$family=family
             ret$data=data.orig
