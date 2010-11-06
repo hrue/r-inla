@@ -554,7 +554,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	ai_store->mode = Calloc(n, double);
 	memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
-	if (mean == NULL) {
+	//FIXME1("use old version");
+	if (mean == NULL && 1) {
 		/* 
 		   Here we use the joint expression and take advantage of that we have already evaluated the log-likelihood in the mode.
 
@@ -591,10 +592,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		}
 
 		// printf("ai_marginal_hyper thread_id %d ldens %.12f sub_logdens %.12f\n", GMRFLib_thread_id, ldens, problem->sub_logdens);
-
-		/*
-		**
-		*/
 
 		*logdens = ldens - problem->sub_logdens;
 	}
@@ -2687,7 +2684,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 		}
 		if (*problem && new_idea) {
-			double *sd = Calloc(n, double), fac = 1.0, step_len, err = 0.0, f, itmax_local = 40;
+			double *sd = Calloc(n, double), fac = 1.414, step_len, err = 0.0, f, itmax_local = 40;
 
 			cc_positive = 1;
 			for (iter = 0; iter < itmax; iter++) {
