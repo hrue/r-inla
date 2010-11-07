@@ -14922,6 +14922,8 @@ int main(int argc, char **argv)
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
+	GMRFLib_bitmap_max_dimension = 128;
+	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
