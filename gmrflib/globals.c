@@ -185,3 +185,13 @@ int GMRFLib_thread_id = 0;
   Signal USR2: Stop optimiser and present results
 */
 int GMRFLib_request_optimiser_to_stop = GMRFLib_FALSE;
+
+/* 
+   Maximum dimension of bitmap-files, or unlimited if <= 0
+ */
+int GMRFLib_bitmap_max_dimension = -1;
+
+/* 
+   Swap bitmap-file ?
+ */
+int GMRFLib_bitmap_swap = 0;

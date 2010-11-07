@@ -202,10 +202,15 @@ extern int GMRFLib_request_optimiser_to_stop;
 
 
 
+/* 
+   Maximum dimension of bitmap; unlimited if size <= 0
+ */
+extern int GMRFLib_bitmap_max_dimension;
 
-
-
-
+/* 
+   Swap bitmap-file ?
+ */
+extern int GMRFLib_bitmap_swap;
 
 #endif
 __END_DECLS

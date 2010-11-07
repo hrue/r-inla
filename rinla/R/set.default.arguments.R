@@ -199,7 +199,7 @@
             adjust.weights=TRUE,
 
             ##:ARGUMENT: tolerance The tolerance for the optimisation.
-            tolerance = NULL,
+            tolerance = 0.5e-3,
 
             ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
             restart = NULL,
@@ -211,7 +211,7 @@
             verbose = NULL,
 
             ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")
-            reordering = NULL,
+            reordering = "auto",
 
             ##:ARGUMENT: cpo.diff Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)
             cpo.diff = NULL,

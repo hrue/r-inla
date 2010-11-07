@@ -170,7 +170,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 		}
 	}
 
-	if (1) {
+	if (0) {
 		static int count = 0;
 		char *fnm = NULL;
 
@@ -584,45 +584,67 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 */
 int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
 {
-#define NBitsInByte 8
-#define SETBIT(im,jm) { int ii; ii = (im)/NBitsInByte;			\
-	GMRFLib_setbit(&bitmap[ ii+(jm)*m], (unsigned int) (NBitsInByte-1-((im)-ii*NBitsInByte))); }
 #define BIDX(i,j) ((i)+(j)*ldim)			       /* band index'ing */
 
-	int i, j, n = graph->n, m, nband, ldim;
-	GMRFLib_uchar *bitmap;
+#define NBitsInByte 8
+#define SETBIT(im, jm, m, N) {						\
+		int local_im = (int)((im) * reduce_factor);		\
+		int local_jm = (int)((jm) * reduce_factor);		\
+		if (GMRFLib_bitmap_swap){				\
+			int itmp = local_im;				\
+			local_im = N-1-local_jm;			\
+			local_jm = itmp;				\
+		}							\
+		int ii = (local_im)/NBitsInByte;			\
+		GMRFLib_setbit(&bitmap[ ii+(local_jm)*(m)], (unsigned int) (NBitsInByte-1-((local_im)-ii*NBitsInByte))); \
+	}
+
+	int i, j, im, jm, n = graph->n, N, m;
+	double reduce_factor;
+	unsigned char *bitmap;
 	FILE *fp;
 	size_t ret;
 
-	nband = bandwidth;
-	ldim = bandwidth + 1;
+	int nband = bandwidth;
+	int ldim = bandwidth + 1;
 
-	m = n / NBitsInByte;
-	if (m * NBitsInByte != n)
+	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
+		N = GMRFLib_bitmap_max_dimension;
+		reduce_factor = (double)N/(double)n;
+	} else{
+		N = n;
+		reduce_factor = 1.0;
+	}
+
+	m = N / NBitsInByte;
+	if (m * NBitsInByte != N)
 		m++;
-	bitmap = Calloc(n * m, GMRFLib_uchar);
+	bitmap = Calloc(m * N, unsigned char);
 
 	for (i = 0; i < graph->n; i++) {
 		for (j = i; j < IMIN(i + nband + 1, graph->n); j++) {
 			if (!ISZERO(band[BIDX(j - i, i)])) {
-				SETBIT(i, j);
+				SETBIT(i, j, m, N);
 			}
 		}
 	}
 
 	fp = fopen(filename, "w");
 	if (fp) {
-		fprintf(fp, "P4\n%1d %1d\n", n, n);
-		for (i = 0; i < n; i++) {
+		fprintf(fp, "P4\n%1d %1d\n", N, N);
+		for (i = 0; i < N; i++) {
 			ret = fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
 		}
 		fclose(fp);
 	} else {
 		GMRFLib_ERROR(GMRFLib_EOPENFILE);
 	}
-
 	Free(bitmap);
 	return GMRFLib_SUCCESS;
+#undef SETBIT
+#undef NBitsInByte
+
+
 #undef SETBIT
 #undef NBitsInByte
 #undef BIDX
