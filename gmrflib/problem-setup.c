@@ -2416,7 +2416,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 
 #pragma omp parallel for private(k) schedule(static)
 		for (k = 0; k < nk; k++) {
-			int *iperm = NULL, *perm = NULL;
+			int *iperm = NULL, *perm = NULL, ii;
 			supernodal_factor_matrix *symb_fact;
 			taucs_ccs_matrix *L = NULL;
 
@@ -2424,8 +2424,8 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 			GMRFLib_compute_reordering_TAUCS(&iperm, subgraph, rs[k]);
 			perm = Calloc(n, int);
 
-			for (i = 0; i < n; i++) {
-				perm[iperm[i]] = i;
+			for (ii = 0; ii < n; ii++) {
+				perm[iperm[ii]] = ii;
 			}
 			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
