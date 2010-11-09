@@ -3216,6 +3216,10 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+
+	
+
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg)

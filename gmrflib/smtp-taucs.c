@@ -608,7 +608,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		GMRFLib_thread_id = id;
 
 		val = Qfunc(i, i, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN(val);
+		GMRFLib_STOP_IF_NAN_OR_INF(val);
 		Q->values.d[ic++] = val;
 
 		for (k = 0; k < graph->nnbs[i]; k++) {
@@ -618,7 +618,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			}
 
 			val = Qfunc(i, j, Qfunc_arg);
-			GMRFLib_STOP_IF_NAN(val);
+			GMRFLib_STOP_IF_NAN_OR_INF(val);
 			Q->values.d[ic++] = val;
 		}
 	}
@@ -631,7 +631,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		Q->rowind[ic] = i;
 
 		val = Qfunc(i, i, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN(val);
+		GMRFLib_STOP_IF_NAN_OR_INF(val);
 		Q->values.d[ic] = val;
 
 		ic++;
@@ -645,7 +645,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			Q->rowind[ic] = j;
 
 			val = Qfunc(i, j, Qfunc_arg);
-			GMRFLib_STOP_IF_NAN(val);
+			GMRFLib_STOP_IF_NAN_OR_INF(val);
 			Q->values.d[ic] = val;
 
 			ic++;
