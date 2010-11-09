@@ -155,7 +155,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 		GMRFLib_thread_id = id;
 		
 		val = Qfunc(i, i, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN(val);
+		GMRFLib_STOP_IF_NAN_OR_INF(val);
 		(*bandmatrix)[BIDX(0, node)] = val;
 
 		for (j = 0; j < graph->nnbs[i]; j++) {
@@ -164,7 +164,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 
 			if (nnode > node) {
 				val = Qfunc(i, jj, Qfunc_arg);
-				GMRFLib_STOP_IF_NAN(val);
+				GMRFLib_STOP_IF_NAN_OR_INF(val);
 				(*bandmatrix)[BIDX(nnode - node, node)] = val;
 			}
 		}
