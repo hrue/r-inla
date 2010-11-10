@@ -432,7 +432,7 @@
     if (!is.null(inla.spec$adapt.hessian.scale) && inla.spec$adapt.hessian.scale >= 1) {
         cat("adapt.hessian.scale = ", inla.spec$adapt.hessian.scale, "\n", sep = " ", file = file,  append = TRUE)
     }
-    if (!is.null(inla.spec$step.len) && inla.spec$step.len > 0) {
+    if (!is.null(inla.spec$step.len)) {
         cat("step.len = ", inla.spec$step.len, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$diagonal) && inla.spec$diagonal >= 0.0) {
@@ -482,7 +482,7 @@
         cat("initial = ",predictor.spec$initial,"\n", sep = " ", file = file, append=TRUE)
     } else {
         if (predictor.spec$fixed) {
-            cat("initial = 12\n", sep = " ", file = file,  append = TRUE)
+            cat("initial = 10\n", sep = " ", file = file,  append = TRUE)
         }
     }
     if (!is.null(predictor.spec$predictor.usermap)){
