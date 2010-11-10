@@ -93,11 +93,12 @@
         ## Poisson observations, and call inla() again.
 
         cont.hazard = inla.set.control.hazard.default()
-        cont.hazard[(namc = names(control.hazard))] = control.hazard
+        cont.hazard[names(control.hazard)] = control.hazard
       
         y.surv = eval(parse(text=formula[2]),data)
         if (class(y.surv) != "inla.surv")
-            stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `", class(y.surv), "'", sep=""))
+            stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
+                       class(y.surv), "'", sep=""))
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
         if (is.null(y.surv$subject)) {
@@ -155,10 +156,13 @@
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
                 ", fixed = ", cont.hazard$fixed,
-                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL", paste(", initial = ", cont.hazard$initial, "", sep="")),
+                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL",
+                            paste(", initial = ", cont.hazard$initial, "", sep="")),
                 ", constr = ", cont.hazard$constr,
-                inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL", paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
-                inla.ifelse(is.null(cont.hazard$param), ", param = NULL", paste(", param = ", inla.2list(cont.hazard$param), sep="")),
+                inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL",
+                            paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
+                inla.ifelse(is.null(cont.hazard$param), ", param = NULL",
+                            paste(", param = ", inla.2list(cont.hazard$param), sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
@@ -300,7 +304,7 @@
     
     ## control what should be computed
     cont.compute = inla.set.control.compute.default()
-    cont.compute[(namc = names(control.compute))] = control.compute
+    cont.compute[names(control.compute)] = control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar = TRUE
         cont.compute$dic = cont.compute$cpo = FALSE 
@@ -308,7 +312,7 @@
     
     ## control predictor section
     cont.pred = inla.set.control.predictor.default()
-    cont.pred[(namc = names(control.predictor))] = control.predictor
+    cont.pred[names(control.predictor)] = control.predictor
     if (cont.compute$cpo || cont.compute$dic) 
         cont.pred$compute=TRUE
     if (only.hyperparam) {
@@ -317,11 +321,11 @@
     }
     
     cont.inla =inla.set.control.inla.default(family)
-    cont.inla[(namc = names(control.inla))] = control.inla
+    cont.inla[names(control.inla)] = control.inla
 
     ## control fixed
     cont.fixed = inla.set.control.fixed.default()
-    cont.fixed[(namc = names(control.fixed))] = control.fixed
+    cont.fixed[names(control.fixed)] = control.fixed
 
     ## control.data
     if (n.family == 1) {
@@ -357,12 +361,12 @@
     cont.data = list(list())
     for(i.family in 1:n.family) {
         cont.data[[i.family]] = inla.set.control.data.default()
-        cont.data[[i.family]][(namc = names(control.data[[i.family]]))] = control.data[[i.family]]
+        cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
     }
 
     ## control results
-    cont.res = inla.set.control.results.default()
-    cont.res[(namc = names(control.results))] = control.results
+    cont.result = inla.set.control.results.default()
+    cont.result[names(control.results)] = control.results
     
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
@@ -509,10 +513,11 @@
     else if (is.null(offset.formula) && !is.null(offset))
         offset.sum = offset
     else if (!is.null(offset.formula) && !is.null(offset.formula)) {
-        if (length(offset.formula) == length(offset))
+        if (length(offset.formula) == length(offset)) {
             offset.sum = offset.formula + offset
-        else
+        } else {
             stop("\n\tThe offset defined in formula and in argument has different length.")
+        }
     } else {
         offset.sum = NULL
     }
@@ -938,7 +943,8 @@
 
                 ##print(gp$random.spec[[r]]$extraconstr$A)
                 ##print(gp$random.spec[[r]]$extraconstr$e)
-
+                ##browser()
+                
                 ##and in case a file for the extraconstraint
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
@@ -1018,17 +1024,17 @@
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
-    cont.mode[(namc = names(control.mode))] = control.mode
+    cont.mode[names(control.mode)] = control.mode
     inla.mode.section(file=file.ini, cont.mode, data.dir)
 
     ## create expert section
     cont.expert = inla.set.control.expert.default()
-    cont.expert[(namc = names(control.expert))] = control.expert
+    cont.expert[names(control.expert)] = control.expert
     inla.expert.section(file=file.ini, cont.expert)
     
     ## create lincomb section
     cont.lincomb = inla.set.control.lincomb.default()
-    cont.lincomb[(namc = names(control.lincomb))] = control.lincomb
+    cont.lincomb[names(control.lincomb)] = control.lincomb
     inla.lincomb.section(file=file.ini, data.dir=data.dir, contr=cont.lincomb, lincomb=lincomb)
     
     if (!is.null(user.hook) && class(user.hook) == "function")
@@ -1103,9 +1109,8 @@
         my.time.used[3] = Sys.time()
 
         if (echoc==0) {
-            ret = try(inla.collect.results(results.dir,control.results=cont.res, debug=debug,
+            ret = try(inla.collect.results(results.dir,control.results=cont.result, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
-
             if (!is.list(ret))
                 ret = list()
             
@@ -1118,11 +1123,20 @@
 
             ret$cpu.used = cpu.used
             ret$lincomb = lincomb
-            ret$control.lincomb = control.lincomb
+
             ret$control.compute=cont.compute
             ret$control.predictor=cont.pred
-            ret$control.inla=cont.inla
+            ret$control.lincomb = control.lincomb
             ret$control.data=cont.data
+            ret$control.inla=cont.inla
+            ret$control.results = cont.result
+            ret$control.fixed = cont.fixed
+            ret$control.mode = cont.mode
+            ret$control.expert = cont.expert
+            if (exists("cont.hazard"))
+                ret$control.hazard = cont.hazard
+            ret$control.lincomb = cont.lincomb
+
             ret$call=call
             ret$family=family
             ret$data=data.orig
@@ -1138,6 +1152,19 @@
             ret$model.matrix = gp$model.matrix
             ret$user.hook = user.hook
             ret$user.hook.arg = user.hook.arg
+            
+            ## store also the default control-parameters; just in case
+            ret$.control.defaults = list(
+                    control.compute = inla.set.control.compute.default(),
+                    control.predictor = inla.set.control.predictor.default(),
+                    control.data = inla.set.control.data.default(),
+                    control.inla = inla.set.control.inla.default(),
+                    control.results = inla.set.control.results.default(),
+                    control.fixed = inla.set.control.fixed.default(),
+                    control.mode = inla.set.control.mode.default(),
+                    control.expert = inla.set.control.expert.default(),
+                    control.hazard = inla.set.control.hazard.default(),
+                    control.lincomb = inla.set.control.lincomb.default())
             ##
             ret$.internal = .internal
             ##
@@ -1226,71 +1253,3 @@
     cat("\n")
 }
 
-`inla.check.inla.call` =
-    function(inla.call = inla.getOption("inla.call"))
-{
-    ##
-    ## Signal an error if the inla-program cannot be started
-    ##
-
-    ok = TRUE
-    
-    ## this is a special option: inla.call = ""
-    if (is.character(inla.call) && nchar(inla.call) == 0)
-        return (ok)
-
-    if (inla.os("windows")) {
-        ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
-                wait = TRUE, input = NULL, show.output.on.console = FALSE, minimized = TRUE,
-                invisible = TRUE),silent = TRUE)
-        if (class(ret) == "try-error")
-            ok = FALSE
-    } else if (inla.os("linux") || inla.os("mac")) {
-        ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
-                wait = TRUE, input = NULL),silent = TRUE)
-        ok =  (length(grep("ALIVE", ret)) > 0 || length(grep("unknown option", ret)) > 0)
-    } else {
-        stop("Not supported OS")
-    }
-    
-    if (!ok)
-        stop(paste("\n\n***ERROR*** Cannot find the inla-program[", inla.call, "].\n",
-                   "            Please modify the [inla.call] argument\n\n", sep=""))
-
-    return (ok)
-}
-
-`inla.user.hook` =
-    function(file.ini = NULL, data.dir = NULL, results.dir = NULL, formula = NULL, data = NULL, arg = NULL)
-{
-    cat("\n\ninla.user.hook called with \n")
-
-    ## This is the ini-file that is used
-    cat("\tfile.ini = ", file.ini, "\n")
-
-    ## data.dir also coded in the .ini-file as the variable inladatadir,
-    ## so files in the data.dir should be specified in the .ini-file
-    ## as $inladatadir/file
-    cat("\tdata.dir = ", data.dir, "\n")
-
-    ## results.dir also coded in the .ini-file as the variable inlaresdir,
-    ## is where the result-files are stored. Note that the argument
-    ## 'dir' in the ini-file, like
-    ##
-    ## dir = fixed.effect001
-    ##
-    ## spesify that the results are stored in inlaresdir/fixed.effect001
-    ##
-    cat("\tresults.dir = ", results.dir, "\n")
-
-    ## the formula (of type 'formula') and the data.frame/list that
-    ## was passed to inla().
-    cat("\tformula = ", inla.formula2character(formula), "\n")
-    cat("\tdata = ", names(data), "\n")
-
-    ## arg
-    cat("\targ = ")
-    dput(arg)
-
-    cat("\n")
-}

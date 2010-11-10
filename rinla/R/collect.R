@@ -790,33 +790,35 @@
     ## reduce image IM to image.dim IMAGE.DIM and return the image as a matrix.
     ## order the indices so the output can be plotted by image()
     
-    if (class(im) != "pixmapGrey")
-        return(im)
-
-    if (im@size[1] != im@size[2])
+    if ((class(im) != "pixmapGrey") || (im@size[1] != im@size[2])) {
         return (im)
+    } else {
+        return (im@grey)
+    }
 
-    if (image.dim >= im@size[1]) {
-        n = im@size[1]
-        x  = matrix(NA, n, n)
-        for(j in 1:n)
-            x[j, n-(1:n)+1] = im@grey[1:n, j]
+    ## do not need this anymore as we do this in GMRFLib.
+    if (FALSE) {
+        if (image.dim >= im@size[1]) {
+            n = as.integer(im@size[1])
+            x  = matrix(NA, n, n)
+            for(j in 1L:n)
+                x[j, n-(1L:n)+1L] = im@grey[1L:n, j]
+            return (x)
+        }
+        block = ceiling(im@size[1]/image.dim)
+        n = floor(im@size[1]/block)
+        ii = jj = 0
+        x = matrix(NA,n,n)
+        for(i in seq(1, im@size[1]-block+1, by=block)) {
+            ii = ii + 1
+            jj = 0
+            for(j in seq(1, im@size[1]-block+1, by=block)) {
+                jj = jj + 1
+                x[jj, n-ii+1] = min(im@grey[i:(i+block-1), j:(j+block-1)])
+            }
+        }
         return (x)
     }
-
-    block = ceiling(im@size[1]/image.dim)
-    n = floor(im@size[1]/block)
-    ii = jj = 0
-    x = matrix(NA,n,n)
-    for(i in seq(1, im@size[1]-block+1, by=block)) {
-        ii = ii + 1
-        jj = 0
-        for(j in seq(1, im@size[1]-block+1, by=block)) {
-            jj = jj + 1
-            x[jj, n-ii+1] = min(im@grey[i:(i+block-1), j:(j+block-1)])
-        }
-    }
-    return (x)
 }
 
 `inla.collect.configurations` = function (results.dir, debug=FALSE) 
@@ -841,3 +843,11 @@
     }
 }
 
+`inla.collect.offset.linear.predictor` = function(results.dir, debug = FALSE)
+{
+    filename = paste(results.dir, "/totaloffset/totaloffset.dat", sep="")
+    stopifnot(file.exists(filename))
+
+    xx = inla.read.binary.file(filename)
+    return (list(total.offset = xx))
+}

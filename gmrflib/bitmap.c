@@ -79,35 +79,57 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: bitmap.c,v 1.23 2008/12/28 19:43:43 hrue Exp $ */
 
+/* 
+   THIS IS A MESS; rewrite the corresponding routines in smtp-taucs/band to call this one!!!!
+ */
+
 int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename, int *mapping)
 {
 #define NBitsInByte 8
-#define SETBIT(im,jm) { int ii; ii = (im)/NBitsInByte; \
-	GMRFLib_setbit(&bitmap[ ii+(jm)*m], (unsigned int) (NBitsInByte-1-((im)-ii*NBitsInByte))); }
+#define SETBIT(im, jm, m, N) {						\
+		int local_im = (int)((im)*reduce_factor);		\
+		int local_jm = (int)((jm)*reduce_factor);		\
+		if (GMRFLib_bitmap_swap){				\
+			int itmp = local_im;				\
+			local_im = N-1-local_jm;			\
+			local_jm = itmp;				\
+		}							\
+		int ii = (local_im)/NBitsInByte;			\
+		GMRFLib_setbit(&bitmap[ ii+(local_jm)*(m)], (unsigned int) (NBitsInByte-1-((local_im)-ii*NBitsInByte))); \
+	}
 
-	int i, j, im, jm, n = graph->n, m;
+	int i, j, im, jm, n = graph->n, N, m;
+	double reduce_factor;
 	unsigned char *bitmap;
 	FILE *fp;
 	size_t ret;
 
-	m = n / NBitsInByte;
-	if (m * NBitsInByte != n)
+	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
+		N = GMRFLib_bitmap_max_dimension;
+		reduce_factor = (double)N / (double)n;
+	} else{
+		N = n;
+		reduce_factor = 1.0;
+	}
+
+	m = N / NBitsInByte;
+	if (m * NBitsInByte != N)
 		m++;
-	bitmap = Calloc(n * m, unsigned char);
+	bitmap = Calloc(m * N, unsigned char);
 
 	for (i = 0; i < graph->n; i++) {
 		im = mapping[i];
-		SETBIT(im, im);
+		SETBIT(im, im, m, N);
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jm = mapping[graph->nbs[i][j]];
-			SETBIT(im, jm);
+			SETBIT(im, jm, m, N);
 		}
 	}
 
 	fp = fopen(filename, "w");
 	if (fp) {
-		fprintf(fp, "P4\n%1d %1d\n", n, n);
-		for (i = 0; i < n; i++) {
+		fprintf(fp, "P4\n%1d %1d\n", N, N);
+		for (i = 0; i < N; i++) {
 			ret = fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
 		}
 		fclose(fp);

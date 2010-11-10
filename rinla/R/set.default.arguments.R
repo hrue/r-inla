@@ -199,7 +199,7 @@
             adjust.weights=TRUE,
 
             ##:ARGUMENT: tolerance The tolerance for the optimisation.
-            tolerance = NULL,
+            tolerance = 0.5e-3,
 
             ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
             restart = NULL,
@@ -211,7 +211,7 @@
             verbose = NULL,
 
             ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")
-            reordering = NULL,
+            reordering = "auto",
 
             ##:ARGUMENT: cpo.diff Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)
             cpo.diff = NULL,
@@ -232,7 +232,7 @@
             huge = FALSE,
 
             ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
-            step.len = NULL,
+            step.len = .Machine$double.eps^0.25,
 
             ##:ARGUMENT: derived.only A boolen variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
             derived.only = TRUE,
@@ -282,7 +282,7 @@
          param=NULL,
 
          ##:ARGUMENT: initial The value of the log precision of the artificial noise
-         initial=NULL,
+         initial=11,
 
          ##:ARGUMENT: cross Cross-sum-to-zero constraints
          cross=NULL,
