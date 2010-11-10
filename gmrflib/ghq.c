@@ -127,7 +127,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 {
 	/*
 	 * return a pointer to the abscissas and the weights for the Gauss-Hermite quadrature for given `n' with kernel
-	 * exp(-x^2/2)
+	 * exp(-x^2/2)/sqrt(2*pi)
 	 * 
 	 * both abscissas and the weights are optional
 	 * 
@@ -183,11 +183,11 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		GMRFLib_EWRAP0(GMRFLib_ghq__intern(x, w, n));
 
 		/*
-		 * the Gauss-Hermite is with kernel exp(-x^2), transform to kernel exp(-x^2/2) 
+		 * the Gauss-Hermite is with kernel exp(-x^2), transform to kernel exp(-x^2/2)/sqrt(2*pi)
 		 */
 		for (i = 0; i < n; i++) {
 			x[i] *= M_SQRT2;
-			w[i] *= M_SQRT2;
+			w[i] *= M_SQRT2 / sqrt(2.0*M_PI);
 		}
 
 		/*

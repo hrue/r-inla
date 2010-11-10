@@ -46,6 +46,12 @@ __BEGIN_DECLS
 #include "strlib.h"
 #define INLA_FAIL  1
 #define INLA_OK    0
+
+#define FIFO_GET "inla-mcmc-fifo-get"
+#define FIFO_PUT "inla-mcmc-fifo-put"
+#define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
+#define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
+
     typedef enum {
 	/*
 	 * Failure time
@@ -913,6 +919,8 @@ typedef struct {
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */
 	int reorder;					       /* reorder strategy: -1 for optimize */
 	inla_all_offset_func_tp *all_offset;
+	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
+	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
 

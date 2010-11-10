@@ -493,6 +493,7 @@ typedef struct {
 	 */
 	GMRFLib_problem_tp *problem;
 	int nc_orig;
+	double *aa;
 	double *bb;					       /* the 'bb' and 'cc' array */
 	double *cc;
 
@@ -758,7 +759,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
-						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *bb, double *cc,
+						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb, double *cc,
 						  int gaussian_data);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
