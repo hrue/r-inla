@@ -79,6 +79,7 @@
     return(data.new)
 }
 
+
 `inla.expand.dataframe.2` =function(response, dataframe, control.hazard = inla.set.control.hazard.default())
 {
     n.intervals = control.hazard$n.intervals
@@ -105,17 +106,16 @@
     aa2=which(names(dataframe)=="time")
     aa3=which(names(dataframe)=="event")
     jj=unique(dataframe$subject)
+    subject.first.line = numeric(length(jj))
     for(i in 1: length(jj))
     {
-        sem = as.matrix(dataframe[dataframe[,aa1]==i,-c(aa1,aa2,aa3)])
-        ro = length(sem[1,])
-        for(j in 1:ro)
-        {
-            if(length(unique(sem[,j])) > 1)
-                stop("coxph with subject only works for fixed covariates")
-        } 
+        rows = which(dataframe[,aa1]==i)
+        sem = dataframe[rows,-c(aa1,aa2,aa3)]
+        if(mode(apply(sem,2,unique))=="list")
+            stop("coxph with subject only works for fixed covariates")
+        subject.first.line[i] = rows[1]
     }
- 
+    dataframe.copy = dataframe[subject.first.line, -c(aa1,aa2,aa3)]
     ##create cutpoints if not provided
     if(is.null(cutpoints)) 
         cutpoints = seq(0,max(time),len = n.intervals +1) 
@@ -123,11 +123,10 @@
     new.data = inla.get.poisson.data.2(time=time, subject=subject, event=event, cutpoints=cutpoints)
    
     ## we want to expand  only covariates 
-    part=numeric(0)
-    aa= table(new.data$indicator)
+    aa = table(new.data$indicator)
     ind = unique(new.data$indicator)
     stopifnot(dim(dataframe)[2] > 3)
-    new.dataframe=matrix(0,0,dim(dataframe)[2]-3)
+    new.dataframe = as.data.frame(matrix(0,length(new.data$y),dim(dataframe)[2]-3))
     
     col.data = grep("(subject)|(time)|(event)", names(dataframe))
     if (length(col.data) != 3)
@@ -135,12 +134,10 @@
 
 
     ##  rewriting the covariates as per new data
-    for(i in 1: length(ind))
+    for(i in 1: dim(dataframe.copy)[2])
     {
-     	part  = dataframe[which(dataframe$subject==ind[i])[1],-col.data ]
-     	new.dataframe=rbind(new.dataframe,matrix(rep(as.numeric(part),aa[i]),byrow=T,nrow=aa[i]))
+        new.dataframe[,i] = rep(dataframe.copy[,i],aa)
     }
-    new.dataframe = as.data.frame(new.dataframe)
     names(new.dataframe) = names(dataframe)[-col.data]
    
     res = data.frame(.y.surv=new.data$y, .E=new.data$E, baseline.hazard=new.data$baseline.haz, 
