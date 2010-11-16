@@ -2413,7 +2413,8 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 
 		nk = (int) (sizeof(rs) / sizeof(int));
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
-
+		
+//FIXME("comment out omp...");
 #pragma omp parallel for private(k) schedule(static)
 		for (k = 0; k < nk; k++) {
 			int *iperm = NULL, *perm = NULL, ii;
