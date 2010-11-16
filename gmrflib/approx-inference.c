@@ -2569,7 +2569,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 				GMRFLib_thread_id = id;
 				idx = idxs[i];
-				GMRFLib_2order_approx(&aa[idx], &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
+				GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
 				cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 				if (cc_positive) {
 					bb[idx] += bcoof;

@@ -1997,7 +1997,10 @@ namespace fmesh {
   {
     Dart dh;
     if (d0.isnull())
-      dh = Dart(*this,0);
+      dh = Dart(*this,0); /* Another option here would be to pick a
+			     random triangle instead of always triangle 0.
+			     For now, we leave such options to the caller.
+			  */
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
     return trace_path(dh,s,v).second;
