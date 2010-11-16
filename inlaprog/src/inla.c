@@ -12679,6 +12679,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		}
 		fifo_put = open(FIFO_PUT, O_WRONLY);
 
+		fprintf(stderr, "\n\nNumber of doubles to pass through %s and %s: %1d\n\n",
+			FIFO_GET, FIFO_PUT,  mb_old->ntheta + N);
 		all_fifo_get = Calloc(mb_old->ntheta + N, double);
 		all_fifo_put = Calloc(mb_old->ntheta + N, double);
 
@@ -12716,8 +12718,13 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			}
 			fifo_put_data = open(FIFO_PUT_DATA, O_WRONLY);
 
-			all_data_fifo_put = Calloc(mb_old->nds * mb_old->predictor_n, double);
-			all_data_fifo_get = Calloc(mb_old->nds * mb_old->predictor_n, double);
+			/* 
+			   for each data_section, pass the data and the offset
+			 */
+			fprintf(stderr, "\n\nNumber of doubles to pass through %s and %s: %1d\n\n",
+				FIFO_GET_DATA, FIFO_PUT_DATA, 2 * mb_old->nds * mb_old->predictor_n);
+			all_data_fifo_put = Calloc(2 * mb_old->nds * mb_old->predictor_n, double);
+			all_data_fifo_get = Calloc(2 * mb_old->nds * mb_old->predictor_n, double);
 
 			/* 
 			   in this case, this feature cannot be used
@@ -12869,11 +12876,14 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 			if (G.mcmc_fifo_pass_data) {
 
-				int dlen = mb_old->nds * mb_old->predictor_n;
+				int dlen = 2 * mb_old->nds * mb_old->predictor_n;
 				
 				for(i=0; i<mb_old->nds; i++){
-					memcpy(&(all_data_fifo_put[i*mb_old->predictor_n]),
+					memcpy(&(all_data_fifo_put[2*i*mb_old->predictor_n]),
 					       mb_old->data_sections[i].data_observations.y,
+					       mb_old->predictor_n * sizeof(double));
+					memcpy(&(all_data_fifo_put[2*i*mb_old->predictor_n + mb_old->predictor_n]),
+					       mb_old->data_sections[i].offset,
 					       mb_old->predictor_n * sizeof(double));
 				}
 
@@ -12889,7 +12899,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				}
 				for(i=0; i<mb_old->nds; i++){
 					memcpy(mb_old->data_sections[i].data_observations.y,
-					       &(all_data_fifo_get[i*mb_old->predictor_n]),  
+					       &(all_data_fifo_get[2*i*mb_old->predictor_n]),  
+					       mb_old->predictor_n * sizeof(double));
+					memcpy(mb_old->data_sections[i].offset,
+					       &(all_data_fifo_get[2*i*mb_old->predictor_n + mb_old->predictor_n]),  
 					       mb_old->predictor_n * sizeof(double));
 				}
 			}
