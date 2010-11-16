@@ -46,10 +46,13 @@ using the following hyperparameters
 The two parameters in the \texttt{generic2} model are represented as
 \begin{eqnarray*}
     \theta_1 &= & \log(\tau_{v})\\
-    \theta_2 &=& \log\left(
-      \frac{h^{2}}{1-h^{2}}\right)
+    \theta_2 &=& \log(\tau_{u}) 
 \end{eqnarray*}
-and priors are assigned to $(\theta_1,\theta_2)$
+and priors are assigned to $(\theta_1,\theta_2)$.
+
+\textbf{YES THIS IS CORRECT!} This is because the prior spesification
+would then be similar to another spesification, but allows one to
+compute the posterior marginal for $h^{2}$ more easily.
 
 \subsection*{Specification}
 
@@ -84,7 +87,7 @@ where {\tt <Cmat>} can be given in two different ways:
 {\small\begin{verbatim}
 require(mvtnorm)
 
-n = 50
+n = 200
 Cm = matrix(runif(n^2,min=-1,max=1),n,n)
 Cm = Cm %*% t(Cm)
 Sigma = solve(Cm)
