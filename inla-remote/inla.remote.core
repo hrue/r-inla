@@ -34,7 +34,7 @@ fi
 RemoteINLA="/usr/local/bin/inla"
 RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
-sshArguments="-x -o BatchMode=yes"
+sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
 
 if [ -r "$INIFILE" ]; then
     if [ "$INLA_OS" == "windows" ]; then
