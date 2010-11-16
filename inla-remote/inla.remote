@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: a00d786e37d6  date: Thu Oct 21 15:31:55 2010 +0200"
+HGVERSION="hgid: 528de9b8734c  date: Fri Nov 12 00:23:57 2010 +0100"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -38,7 +38,7 @@ fi
 RemoteINLA="/usr/local/bin/inla"
 RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
-sshArguments="-x -o BatchMode=yes"
+sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
 
 if [ -r "$INIFILE" ]; then
     if [ "$INLA_OS" == "windows" ]; then

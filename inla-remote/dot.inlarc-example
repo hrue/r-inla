@@ -12,4 +12,4 @@
 #RemoteINLA="/usr/local/bin/inla"
 
 ### Arguments to ssh. Usually no need to change this
-#sshArguments="-x -o BatchMode=yes"
+#sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
