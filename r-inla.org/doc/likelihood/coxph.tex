@@ -5,25 +5,26 @@
 \usepackage{verbatim}
 \newcommand{\vect}[1]{\boldsymbol{#1}}
 \begin{document}
-\section*{Cox Model}
+\section*{Cox Proportional Hazards Model}
 
 \subsection*{Parametrisation}
 
-In the Cox models the hazard rate is defined as:
+In the Cox proportional hazards model, defines the hazard rate as:
 \begin{displaymath}
     h(t) = h_{0}(t)\exp(\eta)
 \end{displaymath}
 where
 \begin{description}
-    \item[$h_{0}(\cdot)$:]  baseline hazard
+\item[$h_{0}(\cdot)$:] baseline hazard
 \item[$\eta$:] linear predictor
 \end{description}
 
 We start from a finite partition of the time axis
-$0=s_{0}<s_{1}<\dots,s_{K}$
-and assume the baseline hazard to be constant in each time interval 
+$0=s_{0}<s_{1}<\dots,s_{K}$ and assume the baseline hazard to be
+constant in each time interval
 \[
-h_{0}(t) = \exp(b_{k})\mbox{ for }t\in(s_{k-1},s_{k}],\qquad k=1,\dots,K
+h_{0}(t) = \exp(b_{k})\mbox{ for }t\in(s_{k-1},s_{k}],\qquad
+k=1,\dots,K
 \]
 and assign $\mathbf{b} = (b_{1},\dots,b_{K})$ a Gaussian prior (RW1 or
 RW2) with unknown precision $\tau_{b}$
@@ -40,23 +41,24 @@ The log precision $\log\tau_{b}$ for the piecewise constant hazard
 \item $\text{family}=\texttt{coxph}$
 \item Required arguments:
     \begin{itemize}
-    \item $y$ (to be given in a format by using
-        $\texttt{inla.surv()}$ function )
+    \item $y$ (to be given in a format by using $\texttt{inla.surv()}$
+        function )
     \item $\texttt{control.hazard = list()}$ to control the prior for
-        the piecewise constant hazar, see $\texttt{?control.hazard}$ for
-        more information.
-\end{itemize}
+        the piecewise constant hazar, see $\texttt{?control.hazard}$
+        for more information.
+    \end{itemize}
 \end{itemize}
 
 \subsection*{Example}
 
-In the following example we estimate the baseline hazard in a simulated
-case \verbatiminput{example-cox.R}
+In the following example we estimate the baseline hazard in a
+simulated case \verbatiminput{example-cox.R}
 
 \subsection*{Notes}
 
 \begin{itemize}
-\item The Cox model can be used only for uncensored or right censored data.
+\item The Cox model can be used only for uncensored or right censored
+    data.
 \item The model for the piecewise constant baseline hazard is
     specified through $\texttt{control.hazard}$
 \item A general frame work to represent time is given by
@@ -71,7 +73,7 @@ case \verbatiminput{example-cox.R}
 \end{verbatim}
     If you encounter this problem, try to scale the observatios,
     \verb|time = time / max(time)| or similar, before running
-    \verb|inla()|. 
+    \verb|inla()|.
 \end{itemize}
 
 
