@@ -131,7 +131,6 @@ inla.models = function()
                          logtgaussian = list(nparameters = 1),
                          ##
                          ##
-                         bymjoint=list(nparameters = 2),
                          flat=list(nparameters = 0),
                          logflat=list(nparameters = 0),
                          logiflat=list(nparameters = 0)
