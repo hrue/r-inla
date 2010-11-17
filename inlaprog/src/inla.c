@@ -11327,7 +11327,8 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_GENERIC2:
 		{
 			/* 
-			   OOPS: even though the parameters are (log_prec, h2_inter), the prior is defined on (log_prec, log_prec_unstruct).
+			   OOPS: even though the parameters are (log_prec, h2_inter), the prior is defined on (log_prec, log_prec_unstruct), with the proper
+			   Jacobian added.
 			*/
 			double h2;
 
@@ -11359,6 +11360,11 @@ double extra(double *theta, int ntheta, void *argument)
 			if (!mb->f_fixed[i][1]) {
 				val += mb->f_prior[i][1].priorfunc(&log_prec_unstruct, mb->f_prior[i][1].parameters);
 			}
+			/* 
+			   The Jacobian for the change of variables, is
+
+			   | d log_prec_unstruct / d h2_intern | = 1, so no need to correct for the Jacobian from the change of variables.
+			 */
 			break;
 		}
 
