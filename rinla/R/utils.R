@@ -257,19 +257,22 @@
 }
 `inla.call.builtin` = function()
 {
-    if (inla.os("mac"))
+    if (inla.os("mac")) {
         fnm = system.file("bin/mac/inla", package="INLA")
-    else if (inla.os("linux"))
-        fnm = system.file("bin/linux/inla", package="INLA")
-    else if (inla.os("windows"))
+    } else if (inla.os("linux")) {
+        fnm = paste(system.file("bin/linux/inla", package="INLA"),
+                inla.os.32or64bit(), sep="")
+    } else if (inla.os("windows")) {
         fnm = system.file("bin/windows/inla.exe", package="INLA")
-    else
+    } else {
         stop("Unknown OS")
+    }
 
-    if (file.exists(fnm))
+    if (file.exists(fnm)) {
         return (fnm)
-    else
+    } else {
         stop(paste("INLA installation error; no such file",fnm))
+    }
 }
 `inla.fmesher.call.builtin` = function()
 {
