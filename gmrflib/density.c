@@ -1744,7 +1744,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp **new_density, GMRFLib_density_t
 	Free(x);
 	Free(ld);
 
-	return new_density;
+	return GMRFLib_SUCCESS;
 }
 
 /*!
