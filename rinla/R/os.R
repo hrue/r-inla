@@ -24,3 +24,16 @@
     stop("This shouldn't happen.")
 }
 
+## this seems be to a nice way to test 32/64 bits architecture.
+`inla.os.32or64bit` = function()
+{
+    return (ifelse(.Machine$sizeof.pointer == 4, "32", "64"))
+}
+`inla.os.is.32bit` = function()
+{
+    return (inla.os.32or64bit() == "32")
+}
+`inla.os.is.64bit` = function()
+{
+    return (inla.os.32or64bit() == "64")
+}
