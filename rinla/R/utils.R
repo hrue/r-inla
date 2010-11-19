@@ -432,9 +432,8 @@
 }
 `inla.only.for.developers` = function()
 {
-    require(R.utils)
-    if (!is.element(getUsername.System(),
-                   c("hrue", "martino", "finnkrl", "finn")))
+    if (!is.element(Sys.getenv("USER"),
+                    c("hrue", "martino", "finnkrl", "finn")))
         stop("This function is for developers only.")
     return (invisible())
 }
