@@ -199,7 +199,8 @@ function(...,
         }
     }
 
-    ## set default 'values'?
+    ## set default 'values'?  Do the check for values for nrow.ncol
+    ## models further below.
     if (!is.null(n) && is.null(values) &&
         (!is.null(inla.model.properties(model)$set.default.values) && inla.model.properties(model)$set.default.values)) {
         values = 1:n
@@ -309,9 +310,21 @@ function(...,
         if (nrow <= 0 || ncol <= 0 || trunc(nrow) != nrow || trunc(ncol) != ncol) {
             stop("nrow and ncol must be positive intergers.")
         }
-        ## then it's ok...
-        if (!is.null(values)) {
-            stop(paste("values are not used for model = ", model))
+
+        ## set n as well, makes it easier. 
+        if (!missing(n)) {
+            stopifnot(n == nrow*ncol)
+        } else {
+            n = nrow * ncol
+        }
+
+        ## and set default values, if required
+        if (inla.model.properties(model)$set.default.values) {
+            if (missing(values)) {
+                values = 1:n
+            } else {
+                stopifnot(length(values) == n)
+            }
         }
     }
 
