@@ -260,8 +260,8 @@
     if (inla.os("mac")) {
         fnm = system.file("bin/mac/inla", package="INLA")
     } else if (inla.os("linux")) {
-        fnm = paste(system.file("bin/linux/inla", package="INLA"),
-                inla.os.32or64bit(), sep="")
+        fnm = system.file(paste("bin/linux/inla",
+                inla.os.32or64bit(), sep=""), package="INLA")
     } else if (inla.os("windows")) {
         fnm = system.file("bin/windows/inla.exe", package="INLA")
     } else {
