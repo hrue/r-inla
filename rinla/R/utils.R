@@ -279,7 +279,8 @@
     if (inla.os("mac"))
         fnm = system.file("bin/mac/fmesher", package="INLA")
     else if (inla.os("linux"))
-        fnm = system.file("bin/linux/fmesher", package="INLA")
+        fnm = system.file(paste("bin/linux/fmesher",
+                inla.os.32or64bit(), sep=""), package="INLA")
     else if (inla.os("windows"))
         fnm = system.file("bin/windows/fmesher.exe", package="INLA")
     else
