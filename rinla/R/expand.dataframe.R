@@ -110,7 +110,7 @@
     for(i in 1: length(jj))
     {
         rows = which(dataframe[,aa1]==i)
-        sem = dataframe[rows,-c(aa1,aa2,aa3)]
+        sem = dataframe[rows,-c(aa1,aa2,aa3), drop=F]
         if(mode(apply(sem,2,unique))=="list")
             stop("coxph with subject only works for fixed covariates")
         subject.first.line[i] = rows[1]
