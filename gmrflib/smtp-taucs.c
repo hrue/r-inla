@@ -536,9 +536,52 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		for (i = 0; i < ns; i++) {
 			iperm_new[i] = subgraph->mothergraph_idx[iperm[i]];
 		}
-		for (i = 0, j = ns; i < n; i++) {
-			if (fixed[i]) {
-				iperm_new[j++] = i;
+
+		if (1) {
+			/* 
+			   in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are given
+			   highest node-number.
+			 */
+			int ng = n - ns;
+			int *node = Calloc(ng, int);
+			int *nnbs = Calloc(ng, int);
+			
+			for (i = 0, j = 0; i < n; i++) {
+				if (fixed[i]) {
+					node[j] = i;
+					nnbs[j] = graph->nnbs[i];
+					j++;
+				}
+			}
+			assert(j == ng);
+
+			/* 
+			   sort with respect to number of neigbours and carry the node-number along
+			 */
+			GMRFLib_qsorts((void *)nnbs, (size_t)ng, sizeof(int), (void *)node, sizeof(int), NULL, 0, GMRFLib_icmp);
+			if (0) {
+#pragma omp critical
+				{
+					for(i=0; i<ng; i++)
+						printf("thread %1d nnbs %d node %d\n", omp_get_thread_num(), nnbs[i], node[i]);
+				}
+			}
+
+			for (i = 0, j = ns; i < ng; i++, j++){
+				iperm_new[j] = node[i];
+			}
+			assert(j == n);
+
+			Free(node);
+			Free(nnbs);
+		} else {
+			/* 
+			   this is the old version which just place the global node in the order that they appear.
+			 */
+			for (i = 0, j = ns; i < n; i++) {
+				if (fixed[i]) {
+					iperm_new[j++] = i;
+				}
 			}
 		}
 		GMRFLib_ASSERT(j == n, GMRFLib_ESNH);	       /* just a check... */
