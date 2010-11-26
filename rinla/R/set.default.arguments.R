@@ -68,7 +68,7 @@
          ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
          hyperpar=TRUE,
 
-         ##:ARGUMENT: marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
+         ##:ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
          return.marginals=TRUE,
          
          ##:ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
