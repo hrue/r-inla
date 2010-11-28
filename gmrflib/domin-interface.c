@@ -247,7 +247,11 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 				printf("************************* B.f_busy = 1 ******************************\n");
 			B.f_busy = 1;
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
+
+				printf("f_local %g f_best %g\n",  fx_local,  B.f_best);
+
 				B.f_best = fx_local;
+
 				if (!B.f_best_x)
 					B.f_best_x = Calloc(G.nhyper, double);
 				memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
@@ -651,7 +655,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	/*
 	 * this is a problem, thread_min might not point to G.ai_store, which is used later in the main code. we would like to do a similar thing as below, but
-	 * cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight! 
+	 * cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight!
 	 */
 	// if (thread_min > 0)
 	// {
@@ -675,6 +679,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		/*
 		 * make sure the global reference thinks the same 
 		 */
+		printf("set B.f_best from %f to %f\n", B.f_best, f0min);
+		
 		B.f_best = f0min;
 		memcpy(B.f_best_x, xx_min, G.nhyper * sizeof(double));
 
