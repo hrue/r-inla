@@ -10448,7 +10448,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	mb->ai_par->huge = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), 0);
-
+	if (mb->ai_par->huge) {
+		fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is currently disabled.\n\n");
+		mb->ai_par->huge = 0;
+	}
+	
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
 	if (r) {
 		int err;
@@ -11923,7 +11927,7 @@ int inla_INLA(inla_tp * mb)
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec);
+			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
 		printf("\tSize of full graph=[%1d]\n", N);
@@ -12152,13 +12156,13 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			    mb_old->nf, mb_old->f_c, mb_old->f_weights, mb_old->f_graph, mb_old->f_Qfunc, mb_old->f_Qfunc_arg, mb_old->f_sumzero, mb_old->f_constr,
 			    mb_old->ff_Qfunc, mb_old->ff_Qfunc_arg,
 			    mb_old->nlinear, mb_old->linear_covariate, mb_old->linear_precision,
-			    (mb_old->lc_derived_only ? 0 : mb_old->nlc), mb_old->lc_lc, mb_old->lc_prec);
+			    (mb_old->lc_derived_only ? 0 : mb_old->nlc), mb_old->lc_lc, mb_old->lc_prec, mb_old->ai_par);
 	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, mb_new->predictor_cross_sumzero, NULL, mb_new->predictor_log_prec,
 			    (const char *) mb_new->predictor_Aext_fnm, mb_new->predictor_Aext_precision,
 			    mb_new->nf, mb_new->f_c, mb_new->f_weights, mb_new->f_graph, mb_new->f_Qfunc, mb_new->f_Qfunc_arg, mb_new->f_sumzero, mb_new->f_constr,
 			    mb_new->ff_Qfunc, mb_new->ff_Qfunc_arg,
 			    mb_new->nlinear, mb_new->linear_covariate, mb_new->linear_precision,
-			    (mb_new->lc_derived_only ? 0 : mb_new->nlc), mb_new->lc_lc, mb_new->lc_prec);
+			    (mb_new->lc_derived_only ? 0 : mb_new->nlc), mb_new->lc_lc, mb_new->lc_prec, mb_old->ai_par);
 
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb_new->hgmrfm->Qfunc_arg)->N;
 	assert(N == ((GMRFLib_hgmrfm_arg_tp *) mb_old->hgmrfm->Qfunc_arg)->N);	/* just a check */

@@ -119,6 +119,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  * \param[in] lc_w  The weights of each \c nlc linear combinations, where \f$ \sum_j lc\_w[i][j] x_j\f$ is the i'th linear
  * combination.
  * \param[in] lc_precision The (artificial) precision for each linear combination. This is a high value (default to 1.0E09).
+ * \param[in] ai_par Optional parameters of type \c GMRFLib_ai_param_tp.
  *
  * \sa \c GMRFLib_free_hgmrfm()
  */
@@ -128,7 +129,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision)
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
+	                GMRFLib_ai_param_tp *ai_par)
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -145,19 +147,20 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	 * one field is only allowed to be present once in the predictor. This feature is for internal use only, really...
 	 */
 
-#define SET_ELEMENT(i_, j_, Qij_) SET_ELEMENT_ADV(i_, j_, Qij_, 0)
-#define SET_ELEMENT_FORCE(i_, j_, Qij_) SET_ELEMENT_ADV(i_, j_, Qij_, 1)
-#define SET_ELEMENT_ADV(i_, j_, Qij_, test) if (Qij_ || (test)) {	\
-		if (ntriples >= ntriples_max) {				\
-			ntriples_max += n;				\
-			ilist = Realloc(ilist, ntriples_max, int);	\
-			jlist = Realloc(jlist, ntriples_max, int);	\
-			Qijlist = Realloc(Qijlist, ntriples_max, double); \
+#define SET_ELEMENT(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 0, id_)
+#define SET_ELEMENT_FORCE(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 1, id_)
+#define SET_ELEMENT_ADV(i_, j_, Qij_, test, id_) \
+	if (Qij_ || (test)) {						\
+		if (ntriples[id_] >= ntriples_max[id_]) {		\
+			ntriples_max[id_] += n;				\
+			ilist[id_] = Realloc(ilist[id_], ntriples_max[id_], int); \
+			jlist[id_] = Realloc(jlist[id_], ntriples_max[id_], int); \
+			Qijlist[id_] = Realloc(Qijlist[id_], ntriples_max[id_], double); \
 		}							\
-		ilist[ntriples] = i_;					\
-		jlist[ntriples] = j_;					\
-		Qijlist[ntriples] = Qij_;				\
-		ntriples++;						\
+		ilist[id_][ntriples[id_]] = i_;				\
+		jlist[id_][ntriples[id_]] = j_;				\
+		Qijlist[id_][ntriples[id_]] = Qij_;			\
+		ntriples[id_]++;					\
 	}
 
 #define SET_ELEMENT_LC(i_, j_, Qij_) SET_ELEMENT_ADV_LC(i_, j_, Qij_, 0)
@@ -176,10 +179,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		ntriples_lc++;						\
 	}
 
-	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, *ilist = NULL, *jlist = NULL, ntriples = 0, ntriples_max = 0, *idxs = NULL,
+	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL, *idxs = NULL,
 	    idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
 	int nu = 0, *uniq = NULL;
-	double *Qijlist = NULL, value, **ww = NULL;
+	double **Qijlist = NULL, value, **ww = NULL;
 	float *weight;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -293,8 +296,24 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	 * we need to make sure that all nodes are present in the eta-graph. We do this by adding just zero's. This is not checked for when
 	 * building the graph, but we do it here, so we use 1 as last argument to SET_ELEMENT(,,1). 
 	 */
+
+	/* 
+	   I may want to let ai_par->huge control this, but currently I just set to TRUE
+	 */
+	int huge = ((ai_par && ai_par->huge) ? 1 : 1);	       /* YES, for the moment... */
+	int tmax = (huge ? omp_get_max_threads() : 1);
+
+	ilist = Calloc(tmax, int *);
+	jlist = Calloc(tmax, int *);
+	Qijlist = Calloc(tmax, double *);
+	ntriples = Calloc(tmax, int);
+	ntriples_max = Calloc(tmax, int);
+
+	/* 
+	   set for all threads
+	 */
 	N = offset;					       /* N is the grand-total. */
-	SET_ELEMENT_FORCE(N - 1, N - 1, 0.0);
+	SET_ELEMENT_FORCE(N - 1, N - 1, 0.0, 0);
 
 	/*
 	 * Ensure also that eta_ext elements are set to zero, so we produce the joint graph. yes, we need the hole graph!!!! 
@@ -304,10 +323,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 
 		GMRFLib_graph_tp *g = arg->eta_ext_graph;
 		for (i = 0; i < g->n; i++) {
-			SET_ELEMENT_FORCE(i, i, 0.0);
+			SET_ELEMENT_FORCE(i, i, 0.0, 0);
 			for (j = 0; j < g->nnbs[i]; j++) {
 				jj = g->nbs[i][j];
-				SET_ELEMENT_FORCE(i, jj, 0.0);
+				SET_ELEMENT_FORCE(i, jj, 0.0, 0);
 			}
 		}
 	}
@@ -321,7 +340,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			for (j = i + 1; j < nf; j++) {
 				if (ff_Qfunc[i][j]) {
 					for (k = 0; k < IMIN(f_graph[i]->n, f_graph[j]->n); k++) {
-						SET_ELEMENT_FORCE(idx_map_f[i] + k, idx_map_f[j] + k, 0.0);
+						SET_ELEMENT_FORCE(idx_map_f[i] + k, idx_map_f[j] + k, 0.0, 0);
 					}
 				}
 			}
@@ -362,96 +381,227 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 	}
-	/*
-	 * \eta_i^2 = 1 
-	 */
-	for (i = 0; i < n; i++) {
-		SET_ELEMENT(idx_map_eta + i, idx_map_eta + i, 1.0);
-	}
-	/*
-	 * \eta_i f_jk = - 1_{c_j(i) = k} 
-	 */
-	if (nf) {
-		for (j = 0; j < nf; j++) {
-			for (k = 0; k < f_graph[j]->n; k++) {
-				for (ii = 0; ii < nfidx[j][k]; ii++) {
-					i = fidx[j][k][ii];
-					SET_ELEMENT(idx_map_eta + i, idx_map_f[j] + k, -ww[j][i]);
+
+#pragma omp parallel sections if (huge)
+	{
+#pragma omp section 
+		{
+			/*
+			 * \eta_i^2 = 1 
+			 */
+			int thread = omp_get_thread_num();
+			int it;
+			
+			for (it = 0; it < n; it++) {
+				SET_ELEMENT(idx_map_eta + it, idx_map_eta + it, 1.0, thread);
+			}
+		}
+#pragma omp section
+		{
+			/*
+			 * \eta_i f_jk = - 1_{c_j(i) = k} 
+			 */
+			if (nf) {
+				int thread = omp_get_thread_num();
+				int jt, kt, iit, it;
+				
+				for (jt = 0; jt < nf; jt++) {
+					for (kt = 0; kt < f_graph[jt]->n; kt++) {
+						for (iit = 0; iit < nfidx[jt][kt]; iit++) {
+							it = fidx[jt][kt][iit];
+							SET_ELEMENT(idx_map_eta + it, idx_map_f[jt] + kt, -ww[jt][it], thread);
+						}
+					}
 				}
 			}
 		}
-	}
-	/*
-	 * \eta_i \beta_j 
-	 */
-	if (nbeta) {
-		for (j = 0; j < nbeta; j++) {
-			for (i = 0; i < n; i++) {
-				SET_ELEMENT(idx_map_eta + i, idx_map_beta[j], -covariate[j][i]);
+
+#pragma omp section
+		{
+			/*
+			 * \eta_i \beta_j 
+			 */
+			if (nbeta) {
+				int thread = omp_get_thread_num();
+				int jt, it;
+				
+				for (jt = 0; jt < nbeta; jt++) {
+					for (it = 0; it < n; it++) {
+						SET_ELEMENT(idx_map_eta + it, idx_map_beta[jt], -covariate[jt][it], thread);
+					}
+				}
 			}
 		}
-	}
+#pragma omp section 
+		{
+			/*
+			 * f_jk beta_m = \sum z_ki, for all i: c_j[i] = k 
+			 */
+			if (nf && nbeta) {
+				int thread = omp_get_thread_num();
+				int jt, kt, mt, it, iit;
+
+				for (jt = 0; jt < nf; jt++) {
+					for (kt = 0; kt < f_graph[jt]->n; kt++) {
+						for (mt = 0; mt < nbeta; mt++) {
+							double valuet = 0.0;
+
+							for (iit = 0; iit < nfidx[jt][kt]; iit++) {
+								it = fidx[jt][kt][iit];
+								valuet += covariate[mt][it] * ww[jt][it];
+							}
+							SET_ELEMENT(idx_map_f[jt] + kt, idx_map_beta[mt], valuet, thread);
+						}
+					}
+				}
+			}
+		}
+
+#pragma omp section
+		{
+			/*
+			 * beta_k beta_m = sum_i z_ki z_mi 
+			 */
+			if (nbeta) {
+				int thread = omp_get_thread_num();
+				int kt, mt, it;
+				
+				for (kt = 0; kt < nbeta; kt++) {
+					for (mt = kt; mt < nbeta; mt++) {
+						double valuet = 0.0;
+						
+						for (it = 0; it < n; it++) {
+							valuet += covariate[kt][it] * covariate[mt][it];
+						}
+						SET_ELEMENT(idx_map_beta[kt], idx_map_beta[mt], valuet, thread);
+					}
+				}
+			}
+		}
+	} /* END of parallel sections */
+
+
+	/* 
+	   this one could be heavy...
+	 */
+		
 	/*
 	 * f_jk f_ml = \sum 1_{i : c_j(i) == k && c_m(i) == l } 
 	 */
 	if (nf) {
-		for (j = 0; j < nf; j++) {
+		/* 
+		   first we build a 1d index to emulate a 2d index.
+		 */
+		int jm, jm_idx;
+		int *j_idx = Calloc(ISQR(nf), int);
+		int *m_idx = Calloc(ISQR(nf), int);
+
+		for (j = 0, jm=0; j < nf; j++) {
+			for (m = j; m < nf; m++) {
+				j_idx[jm] = j;
+				m_idx[jm] = m;
+				jm++;
+			}
+		}
+		
+#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) if(huge)
+		for(jm_idx = 0;  jm_idx < jm; jm_idx++) {
+			int thread = omp_get_thread_num();
+
+			j = j_idx[jm_idx];
+			m = m_idx[jm_idx];
+
 			for (k = 0; k < f_graph[j]->n; k++) {
-				for (m = j; m < nf; m++) {
-					for (l = 0; l < f_graph[m]->n; l++) {
-						value = 0.0;
-						if (nfidx[j][k] < nfidx[m][l]) {
-							for (ii = 0; ii < nfidx[j][k]; ii++) {
-								i = fidx[j][k][ii];
-								if (c[m][i] == l) {
-									value += ww[j][i] * ww[m][i];
-								}
-							}
-						} else {
-							for (ii = 0; ii < nfidx[m][l]; ii++) {
-								i = fidx[m][l][ii];
-								if (c[j][i] == k) {
-									value += ww[j][i] * ww[m][i];
-								}
+				for (l = 0; l < f_graph[m]->n; l++) {
+					value = 0.0;
+					if (nfidx[j][k] < nfidx[m][l]) {
+						for (ii = 0; ii < nfidx[j][k]; ii++) {
+							i = fidx[j][k][ii];
+							if (c[m][i] == l) {
+								value += ww[j][i] * ww[m][i];
 							}
 						}
-						SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value);
+					} else {
+						for (ii = 0; ii < nfidx[m][l]; ii++) {
+							i = fidx[m][l][ii];
+							if (c[j][i] == k) {
+								value += ww[j][i] * ww[m][i];
+							}
+						}
 					}
+					SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
 				}
 			}
 		}
 	}
-	/*
-	 * f_jk beta_m = \sum z_ki, for all i: c_j[i] = k 
+
+	if (0) {
+		for(k = 0; k<tmax; k++)
+			for (i = 0; i< ntriples[k]; i++){
+				printf("QQ %d %d %d %g\n", k, ilist[k][i], jlist[k][i], Qijlist[k][i]);
+			}
+	}
+
+	/* 
+	   now we need to collect all results...
 	 */
-	if (nf && nbeta) {
-		for (j = 0; j < nf; j++) {
-			for (k = 0; k < f_graph[j]->n; k++) {
-				for (m = 0; m < nbeta; m++) {
-					value = 0.0;
-					for (ii = 0; ii < nfidx[j][k]; ii++) {
-						i = fidx[j][k][ii];
-						value += covariate[m][i] * ww[j][i];
-					}
-					SET_ELEMENT(idx_map_f[j] + k, idx_map_beta[m], value);
-				}
-			}
+
+	int *iilist = NULL;
+	int *jjlist = NULL;
+	double *QQijlist = NULL;
+	int nntriples;
+
+	nntriples = 0;
+	for(i = 0; i<tmax; i++) {
+		nntriples += ntriples[i];
+	}
+
+	if (0) {
+		for(i = 0; i<tmax; i++){
+			printf("i %d ntriples %d\n", i, ntriples[i]);
 		}
 	}
-	/*
-	 * beta_k beta_m = sum_i z_ki z_mi 
+
+	iilist = Calloc(nntriples, int);
+	jjlist = Calloc(nntriples, int);
+	QQijlist = Calloc(nntriples, double);
+
+	for(i=0, k = 0; i<tmax; i++){
+		int len = ntriples[i];
+
+		if (len){
+			memcpy(&iilist[k], ilist[i], len * sizeof(int));
+			memcpy(&jjlist[k], jlist[i], len * sizeof(int));
+			memcpy(&QQijlist[k], Qijlist[i], len * sizeof(double));
+			k += len;
+		}
+	}
+
+	if (0) {
+		for (i = 0; i< nntriples; i++){
+			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
+		}
+	}
+
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct, logprec_unstruct_omp);
+
+	/* 
+	   cleanup already here, as we do not need them anymore
 	 */
-	if (nbeta) {
-		for (k = 0; k < nbeta; k++) {
-			for (m = k; m < nbeta; m++) {
-				for (i = 0, value = 0.0; i < n; i++) {
-					value += covariate[k][i] * covariate[m][i];
-				}
-				SET_ELEMENT(idx_map_beta[k], idx_map_beta[m], value);
-			}
-		}
+	Free(iilist);
+	Free(jjlist);
+	Free(QQijlist);
+	for(i=0; i<tmax; i++){
+		Free(ilist[i]);
+		Free(jlist[i]);
+		Free(Qijlist[i]);
 	}
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), ntriples, ilist, jlist, Qijlist, -1, NULL, logprec_unstruct, logprec_unstruct_omp);
+	Free(ilist);
+	Free(jlist);
+	Free(Qijlist);
+	Free(ntriples);
+	Free(ntriples_max);
+	
 
 	if (nlc) {
 		/*
@@ -619,9 +769,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	arg->idx_map_lc = idx_map_lc;
 	arg->N = (*hgmrfm)->graph->n;
 	GMRFLib_ASSERT(arg->N == N, GMRFLib_ESNH);
-	Free(ilist);
-	Free(jlist);
-	Free(Qijlist);
+
 	Free(uniq);
 	if (nf) {
 		for (k = 0; k < nf; k++) {
