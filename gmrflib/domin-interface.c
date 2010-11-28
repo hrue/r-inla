@@ -248,7 +248,8 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			B.f_busy = 1;
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 
-				printf("f_local %g f_best %g\n",  fx_local,  B.f_best);
+				if (debug)
+					printf("f_local %g f_best %g\n",  fx_local,  B.f_best);
 
 				B.f_best = fx_local;
 
@@ -679,7 +680,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		/*
 		 * make sure the global reference thinks the same 
 		 */
-		printf("set B.f_best from %f to %f\n", B.f_best, f0min);
+		if (debug)
+			printf("set B.f_best from %f to %f\n", B.f_best, f0min);
 		
 		B.f_best = f0min;
 		memcpy(B.f_best_x, xx_min, G.nhyper * sizeof(double));
