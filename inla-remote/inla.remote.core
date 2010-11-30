@@ -98,8 +98,9 @@ tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
 
 if [ $verbose == 1 ]; then
    {
-       echo -e "\n\t *** Computations finished at $(date)"
-       echo -e "\n\t *** Transfer the results...\n" 
+       echo 
+       echo -e " *** Computations finished at $(date)"
+       echo -e " *** Transfer the results...\n" 
    } 1>&2
 fi 
 
