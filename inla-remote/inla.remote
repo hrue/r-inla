@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-HGVERSION="hgid: 528de9b8734c  date: Fri Nov 12 00:23:57 2010 +0100"
+HGVERSION="hgid: 45f2e6cbb60c  date: Sun Nov 28 16:27:31 2010 +0100"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
 
 compress_put="z"
-compress_get=""
+compress_get="z"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     set -vx
@@ -61,8 +61,10 @@ dir=${model%/*}
 rdir=tmp/.inla.remote/inla-job-$RANDOM-$RANDOM-$RANDOM
 args=$(echo "$@" | awk '{$NF="";print}')
 
-if $(echo $args | awk '$0 ~ /-v/{exit 0};{exit 1}'); then
+verbose=0
+if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
+	verbose=1
 	echo -e "\n\t$HGVERSION"
 	echo -e "\tRun $RemoteINLA at host $RemoteHost\n" 
     } 1>&2
@@ -98,9 +100,15 @@ tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
     tar xfm$compress_put - ; \
     $RemoteINLA $args Model.ini 1>&2; "
 
+if [ $verbose == 1 ]; then
+   {
+       echo -e "\n\t *** Computations finished at $(date)"
+       echo -e "\n\t *** Transfer the results...\n" 
+   } 1>&2
+fi 
+
 ssh $sshArguments $RemoteUser@$RemoteHost "\
     cd $rdir; \
     tar cf$compress_get - results.files; \
     cd; \
     rm -rf $rdir" | tar xfm$compress_get -
-
