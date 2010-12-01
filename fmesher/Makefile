@@ -42,12 +42,13 @@ all: $(FMESHER)
 $(FMESHER) : src/$(FMESHER)
 	cp src/$(FMESHER) .
 src/$(FMESHER) :
-	make -C src $(FMESHER)
+	make -C src CC=$(CC) CXX=$(CXX) $(FMESHER)
 
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
 	cp src/$(FMESHER_TEST) .
+
 src/$(FMESHER_TEST) :
-	make -C src $(FMESHER_TEST)
+	make -C src CC=$(CC) CXX=$(CXX) $(FMESHER_TEST)
 
 doc:
 	$(SED) 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
