@@ -10585,7 +10585,6 @@ double extra(double *theta, int ntheta, void *argument)
 	    h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }, log_positive;
 
 	inla_tp *mb = NULL;
-	char *msg = NULL;
 	gsl_matrix *Q = NULL;
 
 
