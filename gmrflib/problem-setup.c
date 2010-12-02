@@ -2333,7 +2333,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
 		int k, debug = 0, n = -1, nk, r, id, i, free_subgraph = 0, limit, n_global = 0, ne = 0;
-		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD, GMRFLib_REORDER_AMD };
+		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
 		GMRFLib_graph_tp *subgraph = NULL;
@@ -2430,10 +2430,10 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 			}
 			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
-			// nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(symb_fact);
-			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(symb_fact);
+			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(symb_fact);
+			//nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(symb_fact);
 			if (debug) {
-				printf("%s: reorder=[%s] \tnnz=%lu\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[k]), nnzs[k]);
+				printf("%s: reorder=[%s] \tSize=%lu\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[k]), nnzs[k]);
 			}
 			Free(perm);
 			Free(iperm);
