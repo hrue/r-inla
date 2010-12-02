@@ -10464,6 +10464,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
+	if (mb->verbose) {
+		printf("\treordering = %s\n", (r ? r :  "(default)"));
+	}
+
 	if (r) {
 		int err;
 
