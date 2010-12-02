@@ -67,6 +67,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash);
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
 char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
+char *GMRFLib_rindex(const char *p, int ch);
 double GMRFLib_eps(double power);
 double GMRFLib_max_value(double *x, int n);
 double GMRFLib_min_value(double *x, int n);
