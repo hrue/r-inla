@@ -3726,7 +3726,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		 */
 		char *p, *new_name;
 		new_name = GMRFLib_strdup(prior->name);
-		p = rindex(new_name, '-');
+		p = rindex((const char *)new_name, '-');
 		if (p) {
 			*p = '\0';
 		}
