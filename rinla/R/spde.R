@@ -102,6 +102,7 @@
         dir = tempdir(),
         prefix = NULL,
         rcdt = c(21,-1.0,-0.5),
+        cet = c(8,-0.1),
         x11.delay = NULL,
         min.input.distance = 0)
 {
@@ -158,6 +159,9 @@
 
     ## additional arguments
     all.args = ""
+    if (!is.null(cet)) {
+        all.args = paste(all.args," --cet=",cet[1],",",cet[2],sep="")
+    }
     if (!is.null(rcdt)) {
         all.args = paste(all.args," --rcdt=",rcdt[1],",",rcdt[2],",",rcdt[3],sep="")
     }
@@ -186,7 +190,8 @@
         color = rep(color, dim(m$mesh$s)[1])
 
     require(rgl)
-    rgl.open()
+    open3d()
+    view3d(0,0,fov=0)
     rgl.points(m$mesh$s[m$locations.idx, ], size=2*size, lwd=lwd, color = "blue", ...)
     plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color, size=size, lwd=lwd, ...)
 

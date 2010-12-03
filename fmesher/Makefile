@@ -54,7 +54,7 @@ doc:
 	$(SED) 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
 	  < Doxyfile \
 	  | doxygen -
-	make -C doc/latex pdf
+	-make -C doc/latex pdf
 	$(MV) doc/latex/refman.pdf doc/fmesher-refman.pdf
 	$(RMR) doc/latex/
 
