@@ -61,8 +61,10 @@
   }
 
 
-`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL, color.n=512,
-  color.palette = cm.colors, color.truncate=FALSE, alpha=NULL,lwd = 1, specular = "black", ...)
+`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL,
+  color.n=512, color.palette = cm.colors, color.truncate=FALSE, alpha=NULL,
+  lwd = 1, specular = "black",
+  draw.vertices=TRUE, draw.edges=TRUE, edge.color=rgb(0.3,0.3,0.3), ...)
 {
     ## Make indices 1 based.  Deprecated and will be deactivated.
     if (min(TV) == 0) {
@@ -78,7 +80,11 @@
     Tx = S[tTV,1]
     Ty = S[tTV,2]
     Tz = S[tTV,3]
-    if (length(colors$colors) == nrow(S)) {
+    if (length(colors$colors) == 1) {
+      ## One color
+      Tcol = colors$colors
+      Talpha = colors$alpha
+    } else if (length(colors$colors) == nrow(S)) {
       ## One color per vertex
       Tcol = colors$colors[tTV]
       Talpha = colors$alpha[tTV]
@@ -91,9 +97,13 @@
     Ex = S[tETV,1]
     Ey = S[tETV,2]
     Ez = S[tETV,3]
-    Ecol = rgb(0.3,0.3,0.3)
-    points3d(S, color="black", ...)
-    lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
+    Ecol = edge.color
+    if (draw.vertices) {
+      points3d(S, color="black", ...)
+    }
+    if (draw.edges) {
+      lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
+    }
     triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, alpha=Talpha, ...)
 
     return (invisible())
