@@ -3721,7 +3721,17 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, NULL);
 	}
 	if (mb->verbose) {
-		printf("\t\t%s->name=[%s]\n", prior_tag, prior->name);
+		/* 
+		   remove trailing -[a-zA-Z]*$
+		 */
+		char *p, *new_name;
+		new_name = GMRFLib_strdup(prior->name);
+		p = GMRFLib_rindex((const char *)new_name, '-');
+		if (p) {
+			*p = '\0';
+		}
+		printf("\t\t%s->name=[%s]\n", prior_tag, new_name);
+		Free(new_name);
 	}
 	param = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, param_tag), NULL));
 	if (!strcasecmp(prior->name, "LOGGAMMA")) {
@@ -10454,6 +10464,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
+	if (mb->verbose) {
+		printf("\treordering = %s\n", (r ? r :  "(default)"));
+	}
+
 	if (r) {
 		int err;
 
@@ -12035,7 +12049,7 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_sizeof_tp sizeof_L = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &sizeof_L);
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] time(L)=[%lu]\n", GMRFLib_reorder_name(GMRFLib_reorder), sizeof_L);
+			printf("\tFound optimal reordering=[%s] sizeof(L)=[%lu]\n", GMRFLib_reorder_name(GMRFLib_reorder), sizeof_L);
 		}
 	}
 	if (mb->verbose) {

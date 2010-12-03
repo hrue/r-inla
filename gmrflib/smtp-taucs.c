@@ -243,7 +243,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(super
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < L->sn_size[sn]; jp++) {
 			siz += ISQR(L->sn_size[sn] - jp + 1);
-			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1);
+			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1); /* HOW CAN THIS BE CORRECT ???? */
 		}
 	}
 	return siz;
