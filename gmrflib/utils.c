@@ -62,6 +62,22 @@ static int memcheck_first = 1;
    compute with -DGMRFLib_TRACE_MEMORY  to view memory allocation
  */
 
+char *GMRFLib_rindex(const char *p, int ch)
+{
+	/* 
+	   as Windows does not have it...
+	 */
+	char *save;
+	for (save = NULL;; ++p) {
+		if (*p == ch)
+			save = (char *)p;
+		if (!*p)
+			return(save);
+	}
+	abort();
+	return NULL;
+}
+
 int GMRFLib_which(double val, double *array, int len)
 {
 	/*
