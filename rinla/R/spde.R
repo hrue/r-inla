@@ -41,7 +41,7 @@
 }
 
 `inla.create.spde` = function(mesh=NULL, prefix = NULL,
-        fem=NULL, sph0=NULL, sph=NULL, bspline=NULL)
+        fem=NULL, sph0=NULL, sph=NULL, bspline=NULL, points2mesh=NULL)
 {
     ## create files using fmesher
 
@@ -74,7 +74,7 @@
     }
     all.args = "--input=s,tv"
 
-    ## additional argumets
+    ## additional arguments
     if (!is.null(fem)) {
         all.args = paste(all.args," --fem=",fem,sep="")
     }
@@ -88,6 +88,12 @@
         all.args = paste(all.args," --bspline=",
                 bspline[1],",",bspline[2],",",bspline[3],
                 sep="")
+    }
+    if (!is.null(points2mesh)) {
+        inla.write.fmesher.file(points2mesh,
+                                filename = paste(prefix, "points2mesh", sep=""))
+
+        all.args = paste(all.args," --points2mesh=points2mesh",sep="")
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 

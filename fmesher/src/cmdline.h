@@ -116,6 +116,9 @@ struct gengetopt_args_info
   unsigned int bspline_min; /**< @brief Calculate rotationally invariant B-spline basis functions's minimum occurreces */
   unsigned int bspline_max; /**< @brief Calculate rotationally invariant B-spline basis functions's maximum occurreces */
   const char *bspline_help; /**< @brief Calculate rotationally invariant B-spline basis functions help description.  */
+  char * points2mesh_arg;	/**< @brief Calculate barycentric triangle coordinates for a set of points (default='s').  */
+  char * points2mesh_orig;	/**< @brief Calculate barycentric triangle coordinates for a set of points original value given at command line.  */
+  const char *points2mesh_help; /**< @brief Calculate barycentric triangle coordinates for a set of points help description.  */
   double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
   char * x11_orig;	/**< @brief Show progress in an x11 window, with delay factor original value given at command line.  */
   const char *x11_help; /**< @brief Show progress in an x11 window, with delay factor help description.  */
@@ -147,6 +150,7 @@ struct gengetopt_args_info
   unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
   unsigned int sph_given ;	/**< @brief Whether sph was given.  */
   unsigned int bspline_given ;	/**< @brief Whether bspline was given.  */
+  unsigned int points2mesh_given ;	/**< @brief Whether points2mesh was given.  */
   unsigned int x11_given ;	/**< @brief Whether x11 was given.  */
   unsigned int x11_zoom_given ;	/**< @brief Whether x11-zoom was given.  */
 
