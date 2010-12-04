@@ -103,6 +103,42 @@ void print_SM_old(string filename,
 
 
 
+void map_points_to_mesh(const Mesh& M,
+			const Matrix<double>& points,
+			Matrix<int>& point2T,
+			Matrix<double>& point2bary)
+{
+  Dart d0(M);
+  Dart d;
+  Point s;
+  Point b;
+  for (int i=0; i<points.rows(); i++) {
+    s[0] = points[i][0];
+    s[1] = points[i][1];
+    s[2] = points[i][2];
+    //    std::cout << i << endl;
+    //    std::cout << s << endl;
+    d = M.locate_point(Dart(M),s);
+    if (!d.isnull()) { /* Point located. */
+      //      std::cout << d << endl;
+      M.barycentric(d,s,b);
+      //      std::cout << b << endl;
+      M.barycentric(Dart(M,d.t()),s,b); /* Coordinates relative to
+					   canonical vertex
+					   ordering. */
+      point2T(i,0) = d.t();
+      point2bary(i,0) = b[0];
+      point2bary(i,1) = b[1];
+      point2bary(i,2) = b[2];
+
+      d0 = d; /* Bet on the next point being close. */
+    } else { /* Point not found. */
+      point2T(i,0) = -1;
+    }
+  }
+}
+
+
 
 int main(int argc, char* argv[])
 {
@@ -535,6 +571,27 @@ int main(int argc, char* argv[])
     }
   }
 
+  if (args_info.points2mesh_given>0) {
+    string points2mesh_name(args_info.points2mesh_arg);
+    if (!matrices.load(points2mesh_name).active) {
+      cout << "Matrix "+points2mesh_name+" not found." << endl;
+    }
+    Matrix<double>& points2mesh = matrices.DD(points2mesh_name);
+    int points_n = points2mesh.rows();
+    Matrix<int>& points2mesh_t =
+      matrices.attach(string("points2mesh.t"),
+		      new Matrix<int>(points_n,1),
+		      true);
+    Matrix<double>& points2mesh_b =
+      matrices.attach(string("points2mesh.b"),
+		      new Matrix<double>(points_n,3),
+		      true);
+    matrices.matrixtype("points2mesh.t",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("points2mesh.b",fmesh::IOMatrixtype_general);
+    matrices.output("points2mesh.t").output("points2mesh.b");
+    
+    map_points_to_mesh(M,points2mesh,points2mesh_t,points2mesh_b);
+  }
     
   int fem_order_max = args_info.fem_arg;
   if (fem_order_max>0) {

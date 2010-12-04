@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -56,10 +56,12 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -Q, --quality=NAME      Per vertex RCDT parameters, as one or more one-column \n                            matrices with minimum edge lengths for the points \n                            specified with -T|--input",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
   "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
+  "\nSMORG options:",
   "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
   "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
   "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
   "      --bspline=PARAM     Calculate rotationally invariant B-spline basis \n                            functions",
+  "      --points2mesh=NAME  Calculate barycentric triangle coordinates for a set \n                            of points  (default=`s')",
   "\nMiscellaneous options:",
   "  -x, --x11[=DELAY]       Show progress in an x11 window, with delay factor  \n                            (default=`1.0')",
   "      --x11-zoom=LIMITS   Zoom into a smaller section of the graph, \n                            [minx,maxx,miny,maxy]",
@@ -95,11 +97,13 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[24] = gengetopt_args_info_detailed_help[28];
   gengetopt_args_info_full_help[25] = gengetopt_args_info_detailed_help[29];
   gengetopt_args_info_full_help[26] = gengetopt_args_info_detailed_help[30];
-  gengetopt_args_info_full_help[27] = 0; 
+  gengetopt_args_info_full_help[27] = gengetopt_args_info_detailed_help[31];
+  gengetopt_args_info_full_help[28] = gengetopt_args_info_detailed_help[32];
+  gengetopt_args_info_full_help[29] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[28];
+const char *gengetopt_args_info_full_help[30];
 
 static void
 init_help_array(void)
@@ -130,11 +134,13 @@ init_help_array(void)
   gengetopt_args_info_help[23] = gengetopt_args_info_detailed_help[27];
   gengetopt_args_info_help[24] = gengetopt_args_info_detailed_help[28];
   gengetopt_args_info_help[25] = gengetopt_args_info_detailed_help[29];
-  gengetopt_args_info_help[26] = 0; 
+  gengetopt_args_info_help[26] = gengetopt_args_info_detailed_help[30];
+  gengetopt_args_info_help[27] = gengetopt_args_info_detailed_help[31];
+  gengetopt_args_info_help[28] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[27];
+const char *gengetopt_args_info_help[29];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -210,6 +216,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->sph0_given = 0 ;
   args_info->sph_given = 0 ;
   args_info->bspline_given = 0 ;
+  args_info->points2mesh_given = 0 ;
   args_info->x11_given = 0 ;
   args_info->x11_zoom_given = 0 ;
 }
@@ -253,6 +260,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->sph_orig = NULL;
   args_info->bspline_arg = NULL;
   args_info->bspline_orig = NULL;
+  args_info->points2mesh_arg = gengetopt_strdup ("s");
+  args_info->points2mesh_orig = NULL;
   args_info->x11_arg = 1.0;
   args_info->x11_orig = NULL;
   args_info->x11_zoom_arg = NULL;
@@ -301,14 +310,15 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->interior_help = gengetopt_args_info_detailed_help[23] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[24] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[25] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[26] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[26] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[28] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->x11_help = gengetopt_args_info_detailed_help[29] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[32] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -499,6 +509,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->sph_orig));
   free_multiple_field (args_info->bspline_given, (void *)(args_info->bspline_arg), &(args_info->bspline_orig));
   args_info->bspline_arg = 0;
+  free_string_field (&(args_info->points2mesh_arg));
+  free_string_field (&(args_info->points2mesh_orig));
   free_string_field (&(args_info->x11_orig));
   free_multiple_field (args_info->x11_zoom_given, (void *)(args_info->x11_zoom_arg), &(args_info->x11_zoom_orig));
   args_info->x11_zoom_arg = 0;
@@ -620,6 +632,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   if (args_info->sph_given)
     write_into_file(outfile, "sph", args_info->sph_orig, 0);
   write_multiple_into_file(outfile, args_info->bspline_given, "bspline", args_info->bspline_orig, 0);
+  if (args_info->points2mesh_given)
+    write_into_file(outfile, "points2mesh", args_info->points2mesh_orig, 0);
   if (args_info->x11_given)
     write_into_file(outfile, "x11", args_info->x11_orig, 0);
   write_multiple_into_file(outfile, args_info->x11_zoom_given, "x11-zoom", args_info->x11_zoom_orig, 0);
@@ -1279,6 +1293,7 @@ cmdline_internal (
         { "sph0",	1, NULL, 0 },
         { "sph",	1, NULL, 0 },
         { "bspline",	1, NULL, 0 },
+        { "points2mesh",	1, NULL, 0 },
         { "x11",	2, NULL, 'x' },
         { "x11-zoom",	1, NULL, 0 },
         { 0,  0, 0, 0 }
@@ -1524,6 +1539,20 @@ cmdline_internal (
             if (update_multiple_arg_temp(&bspline_list, 
                 &(local_args_info.bspline_given), optarg, 0, 0, ARG_DOUBLE,
                 "bspline", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Calculate barycentric triangle coordinates for a set of points.  */
+          else if (strcmp (long_options[option_index].name, "points2mesh") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->points2mesh_arg), 
+                 &(args_info->points2mesh_orig), &(args_info->points2mesh_given),
+                &(local_args_info.points2mesh_given), optarg, 0, "s", ARG_STRING,
+                check_ambiguity, override, 0, 0,
+                "points2mesh", '-',
                 additional_error))
               goto failure;
           
