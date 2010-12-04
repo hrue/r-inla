@@ -99,6 +99,8 @@ option "boundary" B "Handle triangulation boundary" string typestr="NAME"
        multiple default="boundary0" optional
 option "interior" I "Handle interior constraints" string typestr="NAME"
        multiple default="interior0" optional
+
+section "SMORG options"
 option "fem" - "Calculate FEM matrices up through order fem" int typestr="ORDER"
        default="2" optional
 option "sph0" - "Calculate rotationally invariant spherical harmonics up through order sph0" int typestr="ORDER"
@@ -107,6 +109,8 @@ option "sph" - "Calculate spherical harmonics up through order sph" int typestr=
        default="-1" optional
 option "bspline" - "Calculate rotationally invariant B-spline basis functions" double typestr="PARAM"
        multiple(1-3) optional
+option "points2mesh" - "Calculate barycentric triangle coordinates for a set of points" string typestr="NAME"
+       default="s" optional
 
 section "Miscellaneous options"
 option "x11" x "Show progress in an x11 window, with delay factor" double
