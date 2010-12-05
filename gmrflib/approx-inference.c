@@ -82,8 +82,6 @@ int domin_seteps_(double *epsx, double *epsf, double *epsg);
 
 static int pool_nhyper = -1;
 
-
-
 /*!
   \brief Create a \c GMRFLib_ai_param_tp -object holding the default values.
   
@@ -3625,7 +3623,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (omp_in_parallel()) {
 						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store);
+							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 						}
 						s = ais[GMRFLib_thread_id];
 					} else {
@@ -3664,7 +3662,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (omp_in_parallel()) {
 						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store);
+							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 						}
 						s = ais[GMRFLib_thread_id];
 					} else {
@@ -3712,7 +3710,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (run_with_omp) {
 #pragma omp parallel
 				{
-					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
+					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 #pragma omp for private(i) schedule(static) nowait
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
@@ -3798,7 +3796,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (omp_in_parallel()) {
 						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store);
+							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 						}
 						ai_store_id = ais[GMRFLib_thread_id];
 					} else {
@@ -3996,7 +3994,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (run_with_omp) {
 #pragma omp parallel
 						{
-							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
+							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 
 #pragma omp for private(i) schedule(static) nowait
 							for (i = 0; i < compute_n; i++) {
@@ -4086,7 +4084,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 						if (omp_in_parallel()) {
 							if (!ais[GMRFLib_thread_id]) {
-								ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store);
+								ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 							}
 							ai_store_id = ais[GMRFLib_thread_id];
 						} else {
@@ -4310,7 +4308,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									/*
 									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
 									 */
-									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
+									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 
 #pragma omp for private(i) schedule(static) nowait
 									for (i = 0; i < compute_n; i++) {
@@ -4456,7 +4454,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									/*
 									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
 									 */
-									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store);
+									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 
 #pragma omp for private(i) schedule(static) nowait
 									for (i = 0; i < compute_n; i++) {
@@ -4561,7 +4559,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_density_tp *cpodens = NULL;
 
 				if (!ai_store_id[id])
-					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store);
+					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
 
 				GMRFLib_thread_id = 0;
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
@@ -6522,20 +6520,22 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store)
 
 	return siz;
 }
-GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store)
+GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton)
 {
 	/*
-	 * duplicate AI_STORE 
+	 * duplicate AI_STORE. 'skeleton' only duplicate 'required' features.
 	 */
 
-#define DUPLICATE(name, len, tp)   if (1) {				\
-		if (ai_store->name && len){				\
+#define DUPLICATE(name, len, tp, skeleton_)				\
+	if (1) {							\
+		if (ai_store->name && len && !skeleton_){		\
 			new_ai_store->name = Calloc(len, tp);		\
 			memcpy(new_ai_store->name, ai_store->name, len*sizeof(tp)); \
 		} else {						\
 			new_ai_store->name = NULL;			\
 		}							\
 	}
+	
 #define COPY(name) new_ai_store->name = ai_store->name
 
 	GMRFLib_ENTER_ROUTINE;
@@ -6552,24 +6552,24 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store)
 	{
 #pragma omp section
 		{
-			new_ai_store->store = GMRFLib_duplicate_store(ai_store->store);
+			new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton);
 		}
 #pragma omp section
 		{
-			new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem);
+			new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton);
 			COPY(nidx);
 			COPY(neff);
 			COPY(nd);
 
-			DUPLICATE(mode, n, double);
-			DUPLICATE(aa, n, double);
-			DUPLICATE(bb, n, double);
-			DUPLICATE(cc, n, double);
-			DUPLICATE(stdev, n, double);
-			DUPLICATE(correction_term, n, double);
-			DUPLICATE(derivative3, n, double);
-			DUPLICATE(correction_idx, n, int);
-			DUPLICATE(d_idx, nd, int);
+			DUPLICATE(mode, n, double, 0);
+			DUPLICATE(aa, n, double, skeleton);
+			DUPLICATE(bb, n, double, skeleton);
+			DUPLICATE(cc, n, double, skeleton);
+			DUPLICATE(stdev, n, double, skeleton);
+			DUPLICATE(correction_term, n, double, skeleton);
+			DUPLICATE(derivative3, n, double, skeleton);
+			DUPLICATE(correction_idx, n, int, skeleton);
+			DUPLICATE(d_idx, nd, int, 0);
 		}
 	}
 	

@@ -517,8 +517,8 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 			  GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
 int GMRFLib_sample(GMRFLib_problem_tp * problem);
 
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem);
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store);
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton);
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton);
 double GMRFLib_Qfunc_generic(int i, int j, void *arg);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeof_L);
 GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);

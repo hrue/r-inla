@@ -1989,14 +1989,15 @@ int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem)
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton)
 {
 	/*
 	 * duplicate a problem 
 	 */
 
-#define DUPLICATE(name, len, tp)   if (1) {				\
-		if (problem->name && len){				\
+#define DUPLICATE(name, len, tp, skeleton_)				\
+	if (1) {							\
+		if (problem->name && len && !skeleton_){		\
 			np->name = Calloc(len, tp);			\
 			memcpy(np->name, problem->name, len*sizeof(tp)); \
 		} else {						\
@@ -2016,32 +2017,32 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem)
 	int ns = problem->sub_graph->n;			       /* sub_graph */
 	int nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
-	DUPLICATE(sample, n, double);
-	DUPLICATE(mean, n, double);
-	DUPLICATE(mean_constr, n, double);
+	DUPLICATE(sample, n, double, skeleton);
+	DUPLICATE(mean, n, double, skeleton);
+	DUPLICATE(mean_constr, n, double, skeleton);
 
 	COPY(n);
 	COPY(sub_logdens);
-	DUPLICATE(sub_sample, ns, double);
-	DUPLICATE(sub_mean, ns, double);
-	DUPLICATE(sub_mean_constr, ns, double);
+	DUPLICATE(sub_sample, ns, double, skeleton);
+	DUPLICATE(sub_mean, ns, double, skeleton);
+	DUPLICATE(sub_mean_constr, ns, double, skeleton);
 
 	/*
 	 * duplicate the sparse-matrix factorisation 
 	 */
-	DUPLICATE(sub_sm_fact.remap, ns, int);
-	DUPLICATE(sub_sm_fact.bchol, ns * (problem->sub_sm_fact.bandwidth + 1), double);
+	DUPLICATE(sub_sm_fact.remap, ns, int, 0);
+	DUPLICATE(sub_sm_fact.bchol, ns * (problem->sub_sm_fact.bandwidth + 1), double, 0);
 
 	COPY(sub_sm_fact.bandwidth);
 	COPY(sub_sm_fact.smtp);
-	if (problem->sub_sm_fact.L) {
+	if (problem->sub_sm_fact.L && !skeleton) {
 		np->sub_sm_fact.L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.L, problem->sub_sm_fact.L->flags);
 	} else {
 		np->sub_sm_fact.L = NULL;
 	}
 
 	if (problem->sub_sm_fact.L_inv_diag) {
-		DUPLICATE(sub_sm_fact.L_inv_diag, ns, double);
+		DUPLICATE(sub_sm_fact.L_inv_diag, ns, double, skeleton);
 	} else {
 		np->sub_sm_fact.L_inv_diag = NULL;
 	}
@@ -2051,30 +2052,34 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem)
 	/*
 	 * then the constraint 
 	 */
-	if (problem->sub_constr) {
-		GMRFLib_make_empty_constr(&(np->sub_constr));
-		COPY(sub_constr->nc);
-		DUPLICATE(sub_constr->a_matrix, nc * ns, double);
-		DUPLICATE(sub_constr->e_vector, nc, double);
-
-		if (STOCHASTIC_CONSTR(problem->sub_constr)) {
-			DUPLICATE(sub_constr->errcov_diagonal, nc, double);
-			DUPLICATE(sub_constr->errcov_general, ISQR(nc), double);
-
-			if (problem->sub_constr->intern) {
-				np->sub_constr->intern = Calloc(1, GMRFLib_constr__intern_tp);
-				DUPLICATE(sub_constr->intern->Qpattern, ISQR(nc), char);
-			}
-		}
+	if (skeleton){
+		np->sub_constr = NULL;
 	} else {
-		COPY(sub_constr);
-	}
+		if (problem->sub_constr) {
+			GMRFLib_make_empty_constr(&(np->sub_constr));
+			COPY(sub_constr->nc);
+			DUPLICATE(sub_constr->a_matrix, nc * ns, double, 0);
+			DUPLICATE(sub_constr->e_vector, nc, double, 0);
 
-	DUPLICATE(sub_constr_value, nc, double);
-	DUPLICATE(constr_m, ns * nc, double);
-	DUPLICATE(l_aqat_m, nc * nc, double);
-	DUPLICATE(inv_aqat_m, nc * nc, double);
-	DUPLICATE(qi_at_m, ns * nc, double);
+			if (STOCHASTIC_CONSTR(problem->sub_constr)) {
+				DUPLICATE(sub_constr->errcov_diagonal, nc, double, 0);
+				DUPLICATE(sub_constr->errcov_general, ISQR(nc), double, 0);
+
+				if (problem->sub_constr->intern) {
+					np->sub_constr->intern = Calloc(1, GMRFLib_constr__intern_tp);
+					DUPLICATE(sub_constr->intern->Qpattern, ISQR(nc), char, 0);
+				}
+			}
+		} else {
+			COPY(sub_constr);
+		}
+	}
+	
+	DUPLICATE(sub_constr_value, nc, double, skeleton);
+	DUPLICATE(constr_m, ns * nc, double, skeleton);
+	DUPLICATE(l_aqat_m, nc * nc, double, skeleton);
+	DUPLICATE(inv_aqat_m, nc * nc, double, skeleton);
+	DUPLICATE(qi_at_m, ns * nc, double, skeleton);
 
 	COPY(logdet_aat);
 	COPY(logdet_aqat);
@@ -2086,7 +2091,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem)
 	/*
 	 * copy the tab 
 	 */
-	if (problem->tab) {
+	if (problem->tab && !skeleton) {
 		GMRFLib_tabulate_Qfunc_tp *tab = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 		GMRFLib_tabulate_Qfunc_arg_tp *Qfunc_arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 		GMRFLib_tabulate_Qfunc_arg_tp *tmp = (GMRFLib_tabulate_Qfunc_arg_tp *) (problem->tab->Qfunc_arg);
@@ -2109,13 +2114,13 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem)
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
 	} else {
-		COPY(tab);
+		np->tab = NULL;
 	}
 
 	/*
 	 * copy the sub_inverse 
 	 */
-	if (problem->sub_inverse) {
+	if (problem->sub_inverse && !skeleton) {
 		np->sub_inverse = Calloc(1, GMRFLib_Qinv_tp);
 		map_id **Qinv = Calloc(n, map_id *);
 
@@ -2256,13 +2261,14 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	return siz;
 }
 
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store)
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton)
 {
 	/*
 	 * duplicate STORE 
 	 */
-#define DUPLICATE(name, len, tp)   if (1) {				\
-		if (store->name && len){				\
+#define DUPLICATE(name, len, tp, skeleton_)				\
+	if (1) {							\
+		if (store->name && len && !skeleton_){				\
 			new_store->name = Calloc(len, tp);		\
 			memcpy(new_store->name, store->name, len*sizeof(tp)); \
 		} else {						\
@@ -2279,7 +2285,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store)
 	GMRFLib_store_tp *new_store = Calloc(1, GMRFLib_store_tp);
 
 	COPY(bandwidth);
-	DUPLICATE(remap, ns, int);
+	DUPLICATE(remap, ns, int, 0);
 
 	GMRFLib_copy_graph(&(new_store->sub_graph), store->sub_graph);
 	new_store->symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->symb_fact);
@@ -2287,17 +2293,22 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store)
 	COPY(store_problems);
 	COPY(fixed_hyperparameters);
 	COPY(decision);
-	DUPLICATE(old_logdens, 1, double);
-	DUPLICATE(new_logdens, 1, double);
+	DUPLICATE(old_logdens, 1, double, skeleton);
+	DUPLICATE(new_logdens, 1, double, skeleton);
 
-	new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new);
-	new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old);
+	if (!skeleton){
+		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton);
+		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton);
+	} else {
+		new_store->problem_new2old = NULL;
+		new_store->problem_old2new = NULL;
+	}
 
 	if (store->diag_store) {
-		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store);
+		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton);
 	}
 	if (store->sub_store) {
-		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store);
+		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton);
 	}
 #undef DUPLICATE
 #undef COPY
@@ -2414,7 +2425,6 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 		nk = (int) (sizeof(rs) / sizeof(int));
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
 		
-//FIXME("comment out omp...");
 #pragma omp parallel for private(k) schedule(static)
 		for (k = 0; k < nk; k++) {
 			int *iperm = NULL, *perm = NULL, ii;
