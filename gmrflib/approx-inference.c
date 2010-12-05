@@ -2411,7 +2411,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	 * This is copy of the original routine but with optional two last arguments 
 	 */
 
-	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
+	int i, j, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
 	    *idxs = NULL, nidx = 0, use_old_code = 0;
 	double *mode = NULL;
 	static int new_idea = 0;
@@ -2554,6 +2554,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		double cc_factor = 0.1;
 		double cc_factor_mult = 1.2;
 
+		GMRFLib_problem_tp *lproblem = NULL;
+		
 		for (iter = 0; iter < itmax; iter++) {
 
 			memcpy(bb, b, n * sizeof(double));
@@ -2592,14 +2594,27 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				bb[i] += -c[i] * mean[i];
 				cc[i] += c[i];
 			}
-			GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-								  GMRFLib_NEW_PROBLEM, store));
+			
+			/* 
+			   I thought this was quicker without store, as there is just reuse and no copy... but not.  I free lproblem below and set it to NULL, so it
+			   will always be lproblem = NULL
+			*/
+			if (!lproblem) {
+				GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+									  GMRFLib_NEW_PROBLEM, store));
+			} else {
+				/* 
+				   store could be NULL here I presume...?
+				 */
+				GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+									  GMRFLib_KEEP_graph, store));
+			}
 
 			double err = 0.0, f;
 			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
 			for (i = 0; i < n; i++) {
-				err += SQR((*problem)->mean_constr[i] - mode[i]);
-				mode[i] += f * ((*problem)->mean_constr[i] - mode[i]);
+				err += SQR((lproblem)->mean_constr[i] - mode[i]);
+				mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 			}
 			err = sqrt(err / n);
 			if (optpar && optpar->fp)
@@ -2629,39 +2644,60 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 
 			if (0) {
-				if (iter > 3) {
+				FIXME("Stop. Not properly tested.");
+				abort();
+
+				if (iter > 0) {
 					/*
 					 * NOT PROPERLY TESTED!!!! do one step more step without touching Q and its factorisation.
 					 */
-					memcpy(bb, b, n * sizeof(double));
-#pragma omp parallel for private(i) schedule(static)
-					for (i = 0; i < nidx; i++) {
-						int idx;
-						double bcoof;
+					printf("do three extra steps\n");
 
+					for (i = 0; i < n; i++) {
+						mode[i] = lproblem->mean_constr[i];
+					}
+					
+					for(j=0; j<1; j++){
+						memcpy(bb, b, n * sizeof(double));
+
+//#pragma omp parallel for private(i) schedule(static)
+						for (i = 0; i < nidx; i++) {
+							int idx;
+							double bcoof;
+
+							GMRFLib_thread_id = id;
+							idx = idxs[i];
+							GMRFLib_2order_approx(&aa[idx], &bcoof, NULL, d[idx], mode[idx], idx,
+									      lproblem->mean_constr, loglFunc, loglFunc_arg, &(optpar->step_len));
+							bb[idx] += bcoof;
+						}
 						GMRFLib_thread_id = id;
-						idx = idxs[i];
-						GMRFLib_2order_approx(&aa[idx], &bcoof, NULL, d[idx], (*problem)->mean_constr[idx], idx,
-								      (*problem)->mean_constr, loglFunc, loglFunc_arg, &(optpar->step_len));
-						bb[idx] += bcoof;
-					}
-					GMRFLib_thread_id = id;
-					for (i = 0; i < n; i++) {
-						bb[i] += -c[i] * mean[i];
-					}
-					GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-										  GMRFLib_KEEP_graph | GMRFLib_KEEP_constr | GMRFLib_KEEP_chol, NULL));
-					for (i = 0; i < n; i++) {
-						mode[i] = (*problem)->mean_constr[i];
+						for (i = 0; i < n; i++) {
+							bb[i] += -c[i] * mean[i];
+						}
+						GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+											  GMRFLib_KEEP_graph | GMRFLib_KEEP_constr | GMRFLib_KEEP_chol, NULL));
+						for (i = 0; i < n; i++) {
+							mode[i] = lproblem->mean_constr[i];
+						}
 					}
 				}
 			}
-			GMRFLib_free_problem(*problem);
-			*problem = NULL;
-
 			if (gsl_isnan(err))
 				break;
+
+			GMRFLib_free_problem(lproblem);
+			lproblem = NULL;
+
 		}
+
+		if (iter < itmax) {
+			*problem = lproblem;
+		} else {
+			*problem = NULL;
+			GMRFLib_free_problem(lproblem);
+		}
+		
 		if (!*problem) {
 			/*
 			 * fail to converge. restart with a reduced step_factor. 
