@@ -64,6 +64,12 @@ function(...,
     }
     inla.is.model(model,stop.on.error=TRUE)
     
+    ## for model = copy, its is not allowed to define constr or extraconstr
+    if (model == "copy") {
+        stopifnot(missing(constr))
+        stopifnot(missing(extraconstr))
+    }
+
     if (!missing(same.as) && !is.null(same.as) && model != "copy") {
         stop(paste("Argument 'same.as' must be NULL is model != 'copy' :", model))
     }

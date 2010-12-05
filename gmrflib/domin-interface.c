@@ -160,7 +160,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	/* 
 	   This is the copy that is to be copied
 	*/
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store);
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 
 #pragma omp parallel for private(i) schedule(static)
 	for (i = 0; i < nx; i++) {
@@ -172,7 +172,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 			ais = G.ai_store;
 		} else {
 			if (!ai_store[GMRFLib_thread_id]){
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference);
+				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 		}
@@ -322,7 +322,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	/* 
 	   this is the one to be copied
 	*/
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store);
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 	
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
@@ -345,7 +345,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference);
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -407,7 +407,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -594,7 +594,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		GMRFLib_thread_id = omp_get_thread_num();
 		if (omp_in_parallel()) {
 			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
+				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 			i2thread[i] = GMRFLib_thread_id;
@@ -661,7 +661,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	// if (thread_min > 0)
 	// {
 	// GMRFLib_free_ai_store(G.ai_store);
-	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min]);
+	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min], GMRFLib_TRUE);
 	// }
 
 	if (G.ai_par->adaptive_hessian_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
@@ -727,7 +727,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store);
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				} else {
@@ -853,7 +853,7 @@ int GMRFLib_test_something____omp(void)
 	printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
 
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
@@ -864,7 +864,7 @@ int GMRFLib_test_something____omp(void)
 	}
 #pragma omp parallel for private(i, x, fx) schedule(static)
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;

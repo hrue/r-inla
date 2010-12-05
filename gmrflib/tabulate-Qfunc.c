@@ -570,6 +570,9 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 */
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 {
+	if (!tabulate_Qfunc)
+		return GMRFLib_SUCCESS;
+
 	int i;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
