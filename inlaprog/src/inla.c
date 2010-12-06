@@ -13215,21 +13215,21 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < mb->ntheta; ii++) {
 					char *sdir, *newtag;
 
-					GMRFLib_sprintf(&sdir, "hyperparameter %s", mb->theta_dir[ii]);
+					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, NULL,
 							   mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
 					Free(sdir);
 
-					GMRFLib_sprintf(&sdir, "hyperparameter %s user scale", mb->theta_dir[ii]);
+					GMRFLib_sprintf(&sdir, "hyperparameter 2 %.6d %s user scale", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
 							   mb->theta_map[ii], mb->theta_map_arg[ii], NULL, mb->theta_tag_userscale[ii], NULL, local_verbose);
 					Free(sdir);
 
 					if (mb->theta_usermap[ii]) {
 						GMRFLib_sprintf(&newtag, "%s usermap %s", mb->theta_tag[ii], mb->theta_usermap[ii]->name);
-						GMRFLib_sprintf(&sdir, "hyperparameter %s usermap", mb->theta_dir[ii]);
+						GMRFLib_sprintf(&sdir, "hyperparameter 3 %.6d %s usermap", ii, mb->theta_dir[ii]);
 						inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
 								   mb->theta_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
 						inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
