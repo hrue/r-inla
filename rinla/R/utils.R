@@ -74,78 +74,6 @@
     return (graph.file)
 }
 
-`inla.sparse2matrix` = function(C, symmetric = TRUE)
-{
-    ## convert a sparse-matrix into a matrix.
-    
-    inla.sparse.check(C)
-    stopifnot(length(C$i) == length(C$j))
-    stopifnot(length(C$i) == length(C$values))
-
-    n = max(c(C$i, C$j))
-    A = matrix(0,n,n)
-    for(k in 1:length(C$i)) {
-        ## this could be vectorised with more work...
-        i = C$i[k]
-        j = C$j[k]
-        v = C$values[k]
-        A[i,j] = v
-        if (symmetric)
-            A[j,i] = v
-    }
-    return (A)
-}
-
-`inla.matrix2sparse` = function(Q, symmetric = TRUE)
-{
-    ## convert a symmetric(if TRUE) matrix into the form:
-    ## list(i=,j=,values=)
-
-    if (!is.matrix(Q))
-        stop("Argument must be a matrix")
-    
-    n = dim(Q)
-    if (n[1] != n[2])
-        stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
-    
-    n = n[1]
-    ii = c()
-    jj = c()
-    values = c()
-
-    for(i in 1:n) {
-        if (symmetric){
-            idx = which(Q[i, i:n] != 0)
-            offset = i-1
-        } else {
-            idx = which(Q[i, 1:n] != 0)
-            offset = 0
-        }
-        if (length(idx) > 0) {
-            idx = idx + offset
-            ii = c(ii, rep(i, length(idx)))
-            jj = c(jj, idx)
-            values = c(values, Q[i, idx])
-        }
-    }
-
-    return (list(i=ii, j=jj, values = values))
-}
-
-`inla.sparse2file` = function(C, filename = NULL, c.indexing = FALSE)
-{
-    if (c.indexing)
-        off = 1
-    else
-        off = 0
-    
-    if (is.null(filename)) {
-        filename = tempfile()
-    }
-    write(t(cbind(C$i-off, C$j-off, C$values)), ncolumns=3, file = filename)
-
-    return (filename)
-}
 
 
 `inla.matrix2graph` = function(Q, graph.file = "graph.txt", c.indexing = FALSE)
@@ -933,27 +861,6 @@
     ## convert a formula to characters without the 500 character
     ## constraint. Remove the ``()'' at the end.
     return (gsub("[(][)]$","", inla.paste(deparse(formula))))
-}
-
-`inla.qinv` = function(C)
-{
-    if (is.matrix(C)) {
-        qinv.file = inla.sparse2file(inla.matrix2sparse(C), c.indexing = TRUE)
-    } else {
-        qinv.file = inla.sparse2file(C, c.indexing = TRUE)
-    }
-        
-    if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
-    } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file), intern=TRUE)
-    } else {
-        stop("\n\tNot supported architecture.")
-    }
-
-    unlink(qinv.file)
-
-    return (s)
 }
 
 `inla.unique.rows` = function(A)
