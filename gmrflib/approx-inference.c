@@ -1390,7 +1390,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 * ensure that the Qinv is present to be sure.
 	 */
 	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-
+	
 	/*
 	 * for internal use 
 	 */
@@ -3746,7 +3746,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (run_with_omp) {
 #pragma omp parallel
 				{
-					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 #pragma omp for private(i) schedule(static) nowait
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
@@ -3832,7 +3832,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (omp_in_parallel()) {
 						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+							ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 						}
 						ai_store_id = ais[GMRFLib_thread_id];
 					} else {
@@ -4030,7 +4030,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (run_with_omp) {
 #pragma omp parallel
 						{
-							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 
 #pragma omp for private(i) schedule(static) nowait
 							for (i = 0; i < compute_n; i++) {
@@ -4120,7 +4120,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 						if (omp_in_parallel()) {
 							if (!ais[GMRFLib_thread_id]) {
-								ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+								ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 							}
 							ai_store_id = ais[GMRFLib_thread_id];
 						} else {
@@ -4344,7 +4344,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									/*
 									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
 									 */
-									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 
 #pragma omp for private(i) schedule(static) nowait
 									for (i = 0; i < compute_n; i++) {
@@ -4490,7 +4490,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									/*
 									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
 									 */
-									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 
 #pragma omp for private(i) schedule(static) nowait
 									for (i = 0; i < compute_n; i++) {
@@ -4595,7 +4595,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_density_tp *cpodens = NULL;
 
 				if (!ai_store_id[id])
-					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE);
+					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE);
 
 				GMRFLib_thread_id = 0;
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
@@ -5957,9 +5957,10 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store)
 	if (!ai_store || !(ai_store->problem)) {
 		return GMRFLib_SUCCESS;
 	}
+
 	if (!ai_store->problem->sub_inverse) {
 		int i, n;
-
+		
 		GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
 		Free(ai_store->stdev);
 		n = ai_store->problem->n;
@@ -6579,6 +6580,9 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 		GMRFLib_LEAVE_ROUTINE;
 		return NULL;
 	}
+
+	//FIXME("skeleton = 0");
+	//skeleton = 0;
 
 	GMRFLib_ai_store_tp *new_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 	int n = (ai_store->problem ? ai_store->problem->n : 0);

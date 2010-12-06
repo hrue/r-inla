@@ -2035,13 +2035,15 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 
 	COPY(sub_sm_fact.bandwidth);
 	COPY(sub_sm_fact.smtp);
+
+	//FIXME("Duplicate L");
 	if (problem->sub_sm_fact.L && !skeleton) {
 		np->sub_sm_fact.L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.L, problem->sub_sm_fact.L->flags);
 	} else {
 		np->sub_sm_fact.L = NULL;
 	}
 
-	if (problem->sub_sm_fact.L_inv_diag) {
+	if (problem->sub_sm_fact.L_inv_diag && !skeleton) {
 		DUPLICATE(sub_sm_fact.L_inv_diag, ns, double, skeleton);
 	} else {
 		np->sub_sm_fact.L_inv_diag = NULL;
