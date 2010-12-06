@@ -18,6 +18,6 @@
 
     unlink(qinv.file)
 
-    return (s)
+    return (as.numeric(s))
 }
 
