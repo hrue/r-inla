@@ -112,6 +112,7 @@ typedef double GMRFLib_cpu_tp(void);
 typedef double *GMRFLib_ai_INLA_userfunc0_tp(GMRFLib_problem_tp * problem, double *theta, int nhyper);
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(double *theta, int nhyper, double *covmat);
 
+
 /* 
    define the global variables, unless __GMRFLib_DONT_DEFINE_GLOBALS is set
  */
@@ -211,6 +212,12 @@ extern int GMRFLib_bitmap_max_dimension;
    Swap bitmap-file ?
  */
 extern int GMRFLib_bitmap_swap;
+
+/* 
+   Holds the thread strategy
+ */
+extern GMRFLib_openmp_tp *GMRFLib_openmp;
+
 
 #endif
 __END_DECLS

@@ -190,6 +190,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	if (!hgmrfm) {
 		return GMRFLib_SUCCESS;
 	}
+
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL);
+
 	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
 	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
 	n = IMAX(0, n);
@@ -202,6 +205,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	arg->ff_Qfunc = ff_Qfunc;
 	arg->ff_Qfunc_arg = ff_Qfunc_arg;
 	arg->f_graph = f_graph;
+	
 	arg->nbeta = nbeta;
 	arg->covariate = covariate;
 	arg->prior_precision = prior_precision;
@@ -297,11 +301,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	 * building the graph, but we do it here, so we use 1 as last argument to SET_ELEMENT(,,1). 
 	 */
 
-	/* 
-	   I may want to let ai_par->huge control this, but currently I just set to TRUE
-	 */
-	int huge = ((ai_par && ai_par->huge) ? 1 : 1);	       /* YES, for the moment... */
-	int tmax = (huge ? omp_get_max_threads() : 1);
+	int tmax = GMRFLib_MAX_THREADS;
 
 	ilist = Calloc(tmax, int *);
 	jlist = Calloc(tmax, int *);
@@ -382,7 +382,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		}
 	}
 
-#pragma omp parallel sections if (huge)
+#pragma omp parallel sections
 	{
 #pragma omp section 
 		{
@@ -504,7 +504,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 		
-#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) if(huge)
+#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
 		for(jm_idx = 0;  jm_idx < jm; jm_idx++) {
 			int thread = omp_get_thread_num();
 
@@ -815,6 +815,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 
 		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
+
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+
 	return GMRFLib_SUCCESS;
 }
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a)

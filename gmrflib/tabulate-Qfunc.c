@@ -132,7 +132,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	arg->prec = prec;
 	arg->log_prec = (prec == NULL ? log_prec : NULL);
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-		int tmax = omp_get_max_threads();
+		int tmax = GMRFLib_MAX_THREADS;
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
@@ -196,7 +196,7 @@ int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Q
 	arg->prec = prec;
 	arg->log_prec = (prec == NULL ? log_prec : NULL);
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-		int tmax = omp_get_max_threads();
+		int tmax = GMRFLib_MAX_THREADS;
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
@@ -369,7 +369,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	arg->prec = prec;
 	arg->log_prec = (prec == NULL ? log_prec : NULL);
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-		int tmax = omp_get_max_threads();
+		int tmax = GMRFLib_MAX_THREADS;
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
@@ -520,7 +520,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	arg->n = (*graph)->n;
 	arg->values = Calloc((*graph)->n, map_id *);
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-		int tmax = omp_get_max_threads();
+		int tmax = GMRFLib_MAX_THREADS;
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];

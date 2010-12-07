@@ -65,6 +65,9 @@
 {
     ##:NAME: control.compute
     list(
+         ##:ARGUMENT: strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
+         strategy = "default",
+         
          ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
          hyperpar=TRUE,
 
@@ -228,7 +231,7 @@
             ##:ARGUMENT: adapt.hessian.scale The scaling of the 'h' after each trial.
             adapt.hessian.scale = NULL,
 
-            ##:ARGUMENT: huge A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.)
+            ##:ARGUMENT: huge A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
             huge = FALSE,
 
             ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood

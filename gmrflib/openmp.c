@@ -116,3 +116,193 @@ double omp_get_wtick(void)
 }
 
 #endif
+
+int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
+{
+	int nt;
+	int ntmax = GMRFLib_MAX_THREADS;
+	int strategy = (GMRFLib_openmp ? GMRFLib_openmp->strategy : GMRFLib_OPENMP_STRATEGY_MEDIUM);
+	int nested=-1;
+	int *nhyper = (int *)arg;
+
+	switch(place){
+	case GMRFLib_OPENMP_PLACES_BUILD_MODEL: 
+		switch(strategy) {
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_OPTIMIZE: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = IMIN(*nhyper + 1, ntmax);
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = IMIN(*nhyper+1, ntmax);
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_HESSIAN: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_HESSIAN_SCALE: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_INTEGRATE: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = (*nhyper > 2 ? ntmax : 1);
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = *nhyper;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = *nhyper;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = *nhyper;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	case GMRFLib_OPENMP_PLACES_DEFAULT: 
+		switch(strategy){
+		case GMRFLib_OPENMP_STRATEGY_SMALL: 
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			nt = 1;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_LARGE: 
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_HUGE: 
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0==1);
+		}
+		break;
+
+	default:
+		assert(0==1);
+	}
+
+	nt = IMAX(0, IMIN(ntmax, nt));
+	omp_set_num_threads(nt);
+	omp_set_nested(nested);
+
+	//printf("set strategy nt %d nested %d\n", nt, nested);
+	
+	return GMRFLib_SUCCESS;
+}

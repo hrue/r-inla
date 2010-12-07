@@ -383,6 +383,7 @@ struct inla_tp_struct {
 	 * General stuff 
 	 */
 	int verbose;
+	int strategy;
 
 	/*
 	 * reuse the mode-stuff 
@@ -905,7 +906,6 @@ GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w);
 typedef double inla_all_offset_func_tp(int idx, void *arg);
 
 typedef struct {
-	int tmax;					       /* maximum number of threads */
 	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	int hyper_mode;					       /* enable accurate computations of the hyperparameters */
@@ -927,28 +927,28 @@ typedef struct {
 		int i_, j_;						\
 		name_ = Calloc(n_, double **);				\
 		for(j_=0; j_ < n_; j_++){				\
-			name_[j_] = Calloc(G.tmax, double *);		\
-			for(i_ = 0; i_ < G.tmax; i_++) {		\
+			name_[j_] = Calloc(GMRFLib_MAX_THREADS, double *); \
+			for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) { \
 				name_[j_][i_] = Calloc(1, double);	\
 				name_[j_][i_][0] = initial_;		\
 			}						\
 		}							\
 	}								\
 
-#define HYPER_NEW(name_, initial_)  {			\
-		int i_;					\
-		name_ = Calloc(G.tmax, double *);	\
-		for(i_ = 0; i_ < G.tmax; i_++) {	\
-			name_[i_] = Calloc(1, double);	\
-			name_[i_][0] = initial_;	\
-		}					\
+#define HYPER_NEW(name_, initial_)  {					\
+		int i_;							\
+		name_ = Calloc(GMRFLib_MAX_THREADS, double *);	\
+		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+			name_[i_] = Calloc(1, double);			\
+			name_[i_][0] = initial_;			\
+		}							\
 	}
 
-#define HYPER_INIT(name_, initial_) { \
-		int i_;					\
-		for(i_ = 0; i_ < G.tmax; i_++) {	\
-			name_[i_][0] = initial_;	\
-		}					\
+#define HYPER_INIT(name_, initial_) {					\
+		int i_;							\
+		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+			name_[i_][0] = initial_;			\
+		}							\
 	}
 
 

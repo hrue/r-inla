@@ -446,11 +446,6 @@ typedef struct {
 	double adaptive_hessian_scale;
 
 	/**
-	 * \brief Flag for huge models
-	 */
-	int huge;
-
-	/**
 	 * \brief Flag for manual-cpo calculation. (Expert use only.)
 	 */
 	int cpo_manual;
@@ -673,6 +668,9 @@ typedef struct
 	 *     marginals for the hyperparameters.
 	 */
 	double wall_clock_time_used[4];
+
+	int len_reordering;
+	int *reordering;
 }
 	GMRFLib_ai_misc_output_tp;
 

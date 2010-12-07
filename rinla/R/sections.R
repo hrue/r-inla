@@ -388,7 +388,6 @@
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
-    inla.write.boolean.field("huge", inla.spec$huge, file)
     inla.write.boolean.field("derived.only", inla.spec$derived.only, file)
 
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
@@ -572,7 +571,7 @@
 }
 
 `inla.problem.section` =
-    function(file , data.dir, result.dir, hyperpar, return.marginals, dic, cpo, mlik, quantiles, smtp, q)
+    function(file , data.dir, result.dir, hyperpar, return.marginals, dic, cpo, mlik, quantiles, smtp, q, strategy)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("inladatadir = ",data.dir, "\n", sep = "", file = file,  append = TRUE)
@@ -584,6 +583,7 @@
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
+    cat("strategy = ", strategy, "\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
