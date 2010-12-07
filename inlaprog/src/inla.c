@@ -95,7 +95,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { -1, 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
+G_tp G = { 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
 
 /* 
    default values for priors
@@ -4712,7 +4712,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * parse section = PROBLEM
 	 */
 	int i, ok;
-	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL;
+	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *strategy = NULL;
 
 	mb->predictor_tag = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
@@ -4725,6 +4725,30 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
+	strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), GMRFLib_strdup("DEFAULT")));
+	if (mb->verbose) {
+		printf("\t\tstrategy=[%s]\n", strategy);
+	}
+
+	if (!strcasecmp(strategy, "DEFAULT")){
+		/* 
+		   this option means that it will be determined later on.
+		 */
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+	} else if (!strcasecmp(strcasecmp, "SMALL")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
+	} else if (!strcasecmp(strcasecmp, "MEDIUM")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_MEDIUM;
+	} else if (!strcasecmp(strcasecmp, "LARGE")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
+	} else if (!strcasecmp(strcasecmp, "HUGE")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+	} else {
+		GMRFLib_sprintf(&tmp, "Unknown strategy [%s]", strategy);
+		inla_error_general(tmp);
+		exit(1);
+	}
+
 	G.dof_max = iniparser_getdouble(ini, inla_string_join(secname, "DOF.MAX"), G.dof_max);
 	if (mb->verbose) {
 		printf("\t\tdof.max=[%g]\n", G.dof_max);
@@ -10457,15 +10481,15 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->compute_nparam_eff = GMRFLib_FALSE;
 	}
 
-	mb->ai_par->huge = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), 0);
-	if (mb->ai_par->huge) {
-		fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is currently disabled.\n\n");
-		mb->ai_par->huge = 0;
+	tmp = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), -1);
+	if (tmp != -1) {
+		fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
+		fprintf(stderr,     "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
 	}
 	
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
 	if (mb->verbose) {
-		printf("\treordering = %s\n", (r ? r :  "(default)"));
+		printf("\t\treordering = %s\n", (r ? r :  "(default)"));
 	}
 
 	if (r) {
@@ -11936,6 +11960,41 @@ int inla_INLA(inla_tp * mb)
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
+
+	/* 
+	   We need to determine the strategy if strategy is default
+	 */
+	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
+		/* 
+		   to determine the strategy, count the size of the model
+		 */
+		int ntot = 0;
+
+		ntot += mb->predictor_n + mb->nlinear;
+		for(i=0; i< mb->nf; i++)
+			ntot += mb->f_graph[i]->n;
+		if (mb->verbose){
+			printf("\tStrategy = [DEFAULT]\n");
+
+			char *sname;
+			if (ntot < 300){
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
+				sname = GMRFLib_strdup("SMALL");
+			} else if (ntot < 1500) {
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_MEDIUM;
+				sname = GMRFLib_strdup("MEDIUM");
+			} else if (ntot < 5000) {
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
+				sname = GMRFLib_strdup("LARGE");
+			} else {
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+				sname = GMRFLib_strdup("HUGE");
+			}
+			printf("\tSize is [%1d] and strategy [%s] is chosen\n",  ntot, sname);
+		}
+	}
+	GMRFLib_openmp->strategy = mb->strategy;
+
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
@@ -12162,7 +12221,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
-		       __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter, G.tmax);
+		       __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter, GMRFLib_MAX_THREADS);
 	}
 	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, mb_old->predictor_cross_sumzero, NULL, mb_old->predictor_log_prec,
 			    (const char *) mb_old->predictor_Aext_fnm, mb_old->predictor_Aext_precision,
@@ -12442,7 +12501,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	if (1) {							\
 		int _i, _j;						\
 		for(_i=0; _i < _mb->ntheta; _i++){			\
-			for(_j=0; _j < G.tmax; _j++) {			\
+			for(_j=0; _j < GMRFLib_MAX_THREADS; _j++) { \
 				_mb->theta[_i][_j][0] = _theta[_i];	\
 			}						\
 		}							\
@@ -13552,17 +13611,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int verbos
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
+
+	if (verbose) {
+#pragma omp critical
+		{
+			printf("\t\tstore misc-output in[%s]\n", ndir);
+		}
+	}
+
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-hyper-internal.dat");
 	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
-	}
-	if (verbose) {
-#pragma omp critical
-		{
-			printf("\t\tstore misc-output in[%s]\n", nndir);
-		}
 	}
 	if (G.binary) {
 		DW(mo->nhyper);
@@ -13579,8 +13640,28 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int verbos
 		}
 	}
 	fclose(fp);
-	Free(ndir);
 	Free(nndir);
+
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "reordering.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	if (G.binary) {
+		for (i = 0; i < mo->len_reordering; i++) {
+			IW(mo->reordering[i] + 1);	       /* yes, use 1-based indexing. */
+		}
+	} else {
+		fprintf(fp, "%d\n", mo->len_reordering);
+		for (i = 0; i < mo->len_reordering; i++) {
+			fprintf(fp, " %d %d\n", i, mo->reordering[i]);
+		}
+	}
+	fclose(fp);
+	Free(nndir);
+
+	Free(ndir);
 	return INLA_OK;
 }
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose)
@@ -14759,7 +14840,12 @@ int main(int argc, char **argv)
 	printf("\t\t-m MODE\t: Enable special mode:\n");		\
         printf("\t\t\tMCMC  :  Enable MCMC mode\n");			\
         printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
+	printf("\t\t\tAUTO\n");						\
+	printf("\t\t\tSMALL\n");					\
+	printf("\t\t\tMEDIUM\n");					\
+	printf("\t\t\tHUGE\n");						\
 	printf("\t\t-h\t: Print (this) help.\n")
+
 #define BUGS_intern(fp) fprintf(fp, "Report bugs to <hrue@math.ntnu.no>\n")
 #define BUGS BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, err, ncpu;
@@ -14767,15 +14853,16 @@ int main(int argc, char **argv)
 	double time_used[3];
 	inla_tp *mb = NULL;
 
-	omp_set_nested(1);				       /* want this feature */
-	
 	ncpu = inla_ncpu();
 	if (ncpu > 0) {
 		omp_set_num_threads(ncpu);
 	} else {
 		omp_set_num_threads(1);
 	}
-	G.tmax = IMAX(ncpu, omp_get_max_threads());
+	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
+	GMRFLib_openmp->max_threads = IMAX(ncpu, omp_get_max_threads());
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
@@ -14815,10 +14902,8 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
-				// Do not need this anymore
-				// G.tmax = IMAX(0, IMIN(nt, G.tmax));
-				G.tmax = IMAX(0, nt);
-				omp_set_num_threads(G.tmax);
+				GMRFLib_openmp->max_threads = IMAX(0, nt);
+				omp_set_num_threads(GMRFLib_openmp->max_threads);
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -14836,6 +14921,7 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			break;
+
 		case 'S':
 			if (!G.mcmc_mode) {
 				fprintf(stderr, "\n *** ERROR *** Option `-S scale' only available in MCMC mode\n");
@@ -14960,10 +15046,10 @@ int main(int argc, char **argv)
 	if (!G.mcmc_mode) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Processing file [%s] using max_threads=[%1d]\n", argv[arg], omp_get_max_threads());
+				printf("Processing file [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			if (!silent) {
-				printf("\nWall-clock time used on [%s] using max_threads=[%1d]\n", argv[arg], omp_get_max_threads());
+				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			time_used[0] = GMRFLib_cpu();
 			mb = inla_build(argv[arg], verbose, 1);

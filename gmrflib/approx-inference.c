@@ -243,9 +243,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->adaptive_hessian_max_trials = 1000;
 	(*ai_par)->adaptive_hessian_scale = 1.01;
 
-	(*ai_par)->huge = GMRFLib_FALSE;
 	(*ai_par)->cpo_manual = GMRFLib_FALSE;
-
 
 	/*
 	 * for numerical integration 
@@ -371,8 +369,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tStatus     [%s]\n", (ai_par->adaptive_hessian_mode ? "On" : "Off"));
 	fprintf(fp, "\t\tMax trials [%d]\n", ai_par->adaptive_hessian_max_trials);
 	fprintf(fp, "\t\tScale      [%g]\n", ai_par->adaptive_hessian_scale);
-
-	fprintf(fp, "\tHuge model [%s]\n", (ai_par->huge ? "Yes" : "No"));
 
 	fprintf(fp, "\tNumerical integration of hyperparameters:\n");
 	fprintf(fp, "\t\tMaximum number of function evaluations [%1d]\n", ai_par->numint_max_fn_eval);
@@ -631,7 +627,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	run_with_omp = (omp_get_max_threads() > 1 ? 1 : 0);
+	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
 
@@ -3168,8 +3164,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		abort();
 	}
 
-	tmax = omp_get_max_threads();
-	run_with_omp = (omp_get_max_threads() > 1 ? 1 : 0);
+	tmax = GMRFLib_MAX_THREADS;
+	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
 
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
@@ -3302,6 +3298,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * good way to get around it for the moment.
 		 */
 
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void*) &nhyper);
+
 		GMRFLib_domin_setup(hyperparam, nhyper, log_extra, log_extra_arg, compute, x, b, c, mean, d, loglFunc, loglFunc_arg,
 				    fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
 		domin_seteps_(&(ai_par->domin_epsx), &(ai_par->domin_epsf), &(ai_par->domin_epsg));
@@ -3309,18 +3307,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.
 		 */
-		int tmax_local;
-
 		theta = Calloc(nhyper, double);		       /* theta is the hyperparameters */
 		theta_mode = Calloc(nhyper, double);
 		z = Calloc(nhyper, double);
-		tmax_local = IMIN(nhyper + 1, tmax);
-		if (tmax_local < tmax && !ai_par->huge) {
-			/*
-			 * only if there is a change we do not have a HUGE model
-			 */
-			omp_set_num_threads(tmax_local);
-		}
+
 
 		/*
 		 * if not set to be known, then optimise 
@@ -3382,14 +3372,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-		if (tmax_local < tmax && !ai_par->huge) {
-			/*
-			 * set it back 
-			 */
-			omp_set_num_threads(tmax);
-		}
-
 		SET_THETA_MODE;
+
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper);
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
@@ -3632,13 +3617,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD
 		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper && ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD)) {
 
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *)&nhyper);
+
 			stdev_corr_pos = Calloc(nhyper, double);
 			stdev_corr_neg = Calloc(nhyper, double);
 
 			/*
 			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
 			 */
-			if (tmax > nhyper) {
+			if (omp_get_max_threads > nhyper) {
 #pragma omp parallel for private(k) schedule(static)
 				for (k = 0; k < 2 * nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
@@ -3731,6 +3718,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
+
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE, NULL);
 
 		if (timer){
 			timer[1] = GMRFLib_cpu() - timer[1];
@@ -4569,6 +4558,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * this is the case for nhyper = 0 
 		 */
 
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE, NULL);
+
 		if (timer){
 			timer[1] = 0.0;
 			timer[2] = GMRFLib_cpu();
@@ -4587,7 +4578,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 		if (run_with_omp) {
-			GMRFLib_ai_store_tp **ai_store_id = Calloc(omp_get_max_threads(), GMRFLib_ai_store_tp *);
+			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 #pragma omp for private(i) schedule(static) nowait
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
@@ -4606,7 +4597,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				COMPUTE2;
 				GMRFLib_free_density(cpodens);
 			}
-			for (i = 0; i < omp_get_max_threads(); i++) {
+			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				if (ai_store_id[i] && ai_store_id[i]->problem) {
 					GMRFLib_assign_ai_store(ai_store, ai_store_id[i]);
 					memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -4618,7 +4609,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					break;
 				}
 			}
-			for (i = 0; i < omp_get_max_threads(); i++) {
+			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				if (!ai_store_id[i]) {
 					GMRFLib_free_ai_store(ai_store_id[i]);
 				}
@@ -4666,6 +4657,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * END OF nhyper == 0 
 		 */
 	}
+
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
 
 	if (timer){
 		timer[2] = GMRFLib_cpu() - timer[2];
@@ -5026,6 +5019,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * compute the posterior marginals for each hyperparameter, if possible 
 	 */
 	if (hyper_z && density_hyper && nhyper) {
+
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, (void *) &nhyper);
+
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_GAUSSIAN) {
 			/*
 			 * Just use the modal values and the stdev's found from the Hessian. 
@@ -5174,6 +5170,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+
 	/*
 	 * return the mode in hyperparam and in 'x'
 	 */
@@ -5187,6 +5185,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
+	if (misc_output) {
+		/* 
+		   store the reordering as well.
+		*/
+		if (ai_store) {
+			assert(ai_store->problem->sub_sm_fact.remap != NULL);
+
+			(*misc_output)->len_reordering = ai_store->problem->sub_graph->n;
+			(*misc_output)->reordering = Calloc((*misc_output)->len_reordering, int);
+			memcpy((*misc_output)->reordering, ai_store->problem->sub_sm_fact.remap,
+			       (*misc_output)->len_reordering * sizeof(int));
+		}
+	}
 
 	/*
 	 * userfunction1 
@@ -6140,7 +6151,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			}
 		}
 
-		int tmax = omp_get_max_threads();
+		int tmax = GMRFLib_MAX_THREADS;
 		GMRFLib_ai_integrator_arg_tp **arg = Calloc(tmax, GMRFLib_ai_integrator_arg_tp *);
 
 		for(i=0; i<tmax; i++){
@@ -6709,7 +6720,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 	 * now we need to ``sort'' the configurations... recall to set pool_hyper which is required.
 	 */
 	pool_nhyper = (int) p->nhyper;
-	if (omp_get_max_threads() > 1) {
+	if (GMRFLib_MAX_THREADS > 1) {
 		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_int8), GMRFLib_pool_cmp);
 	} else {
 		/*

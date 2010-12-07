@@ -406,13 +406,16 @@
     ## create the .file.ini and make the problem.section
     file.ini = paste(inla.dir, "/Model.ini", sep="")
 
+    ## problem section
     if (debug) 
         print("prepare problem section")
+
     inla.problem.section(file = file.ini, data.dir = data.dir, result.dir = results.dir,
                          hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
                          dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo,
-                         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q)
-    
+                         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
+                         strategy = cont.compute$strategy)
+
     ## PREPARE RESPONSE AND FIXED EFFECTS
     if (debug)
         cat("Prepare inla file.....")
@@ -577,9 +580,12 @@
         inla.data.section(file=file.ini,family=family[[i.family]],file.data=file.data,control=cont.data[[i.family]],
                           i.family=i.family)
     }
-    
+
     ##create the PREDICTOR section. if necessary create a file with
     ##the offset for all likelihood
+    if (debug) 
+        print("prepare predictor section")
+
     if (!is.null(offset.sum)) {
         if (sum(is.na(offset.sum))>0) 
             stop("\n\tNo NA values allowed in the offset vector!")
@@ -591,7 +597,7 @@
     } else {
         file.offset = NULL
     }
-    inla.predictor.section(file=file.ini, n=tot.data,predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
+    inla.predictor.section(file=file.ini, n=tot.data, predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
 
     ##
     all.labels = character(0)

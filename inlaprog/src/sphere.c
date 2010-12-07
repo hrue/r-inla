@@ -244,7 +244,7 @@ double inla_sphere_Qfunction(int node, int nnode, void *arg)
 #pragma omp critical
 		{
 			if (!OC) {
-				OC = Calloc(G.tmax, OC_tp);
+				OC = Calloc(GMRFLib_MAX_THREADS, OC_tp);
 			}
 		}
 	}
@@ -330,7 +330,7 @@ int inla_KT_model_init(inla_theta_tp * theta_model, sph_basis_model_tp * bmodel,
 
 	HYPER_NEW2(theta, 0.0, theta_model->ntheta);
 	theta_model->theta = theta;
-	theta_model->theta_extra = Calloc(G.tmax, double *);
+	theta_model->theta_extra = Calloc(GMRFLib_MAX_THREADS, double *);
 
 	theta_model->n = n = points->n;
 	theta_model->basis = Calloc(n, double *);
@@ -416,8 +416,8 @@ int inla_sphere_build_model(inla_sphere_tp ** smodel, const char *dir, sph_basis
 	/*
 	 * ocillating coeff 
 	 */
-	model->oc = Calloc(G.tmax, double *);
-	for (i = 0; i < G.tmax; i++)
+	model->oc = Calloc(GMRFLib_MAX_THREADS, double *);
+	for (i = 0; i < GMRFLib_MAX_THREADS; i++)
 		model->oc[i] = Calloc(1, double);
 
 	GMRFLib_sprintf(&fnm, "%s/%s", dir, "C.dat");

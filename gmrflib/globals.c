@@ -195,3 +195,8 @@ int GMRFLib_bitmap_max_dimension = -1;
    Swap bitmap-file ?
  */
 int GMRFLib_bitmap_swap = 0;
+
+/* 
+   Holds the thread strategy
+ */
+GMRFLib_openmp_tp *GMRFLib_openmp = NULL;

@@ -80,7 +80,7 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	G.nhyper = nhyper;
 	G.log_extra = log_extra;
 	G.log_extra_arg = log_extra_arg;
-	G.f_count = Calloc(omp_get_max_threads(), int);
+	G.f_count = Calloc(GMRFLib_MAX_THREADS, int);
 	G.compute = compute;
 	G.solution = Calloc(nhyper, double);
 	G.fvalue = 0.0;
@@ -152,7 +152,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	GMRFLib_ai_store_tp **ai_store = NULL,  *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
-	tmax = omp_get_max_threads();
+	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	err = Calloc(nx, int);
 	id = omp_get_thread_num();
@@ -204,7 +204,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	int i, debug = 0;
 	double ffx, fx_local;
 
-#pragma omp parallel sections if(G.ai_par->huge)
+#pragma omp parallel sections if (((GMRFLib_openmp && GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_HUGE) ? 1 : 0))
 	{
 		/*
 		 * if huge, then do this in parallel; the normaising contstant may be needed to compute like the matern... 
@@ -315,7 +315,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
-	tmax = omp_get_max_threads();
+	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id = omp_get_thread_num();
 
@@ -572,7 +572,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
 	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
 
-	tmax = omp_get_max_threads();
+	tmax = GMRFLib_MAX_THREADS;
 	id = omp_get_thread_num();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
@@ -880,7 +880,7 @@ int GMRFLib_test_something____omp(void)
 int GMRFLib_domin_get_f_count(void)
 {
 	int i, sum;
-	for (sum = 0, i = 0; i < omp_get_max_threads(); i++) {
+	for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS; i++) {
 		sum += G.f_count[i];
 	}
 	return sum;
