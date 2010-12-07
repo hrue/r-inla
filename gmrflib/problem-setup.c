@@ -2036,7 +2036,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	COPY(sub_sm_fact.bandwidth);
 	COPY(sub_sm_fact.smtp);
 
-	//FIXME("Duplicate L");
+	// FIXME("Duplicate L");
 	if (problem->sub_sm_fact.L && !skeleton) {
 		np->sub_sm_fact.L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.L, problem->sub_sm_fact.L->flags);
 	} else {
@@ -2054,7 +2054,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	/*
 	 * then the constraint 
 	 */
-	if (skeleton){
+	if (skeleton) {
 		np->sub_constr = NULL;
 	} else {
 		if (problem->sub_constr) {
@@ -2076,7 +2076,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 			COPY(sub_constr);
 		}
 	}
-	
+
 	DUPLICATE(sub_constr_value, nc, double, skeleton);
 	DUPLICATE(constr_m, ns * nc, double, skeleton);
 	DUPLICATE(l_aqat_m, nc * nc, double, skeleton);
@@ -2298,7 +2298,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	DUPLICATE(old_logdens, 1, double, skeleton);
 	DUPLICATE(new_logdens, 1, double, skeleton);
 
-	if (!skeleton){
+	if (!skeleton) {
 		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton);
 		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton);
 	} else {
@@ -2426,7 +2426,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 
 		nk = (int) (sizeof(rs) / sizeof(int));
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
-		
+
 #pragma omp parallel for private(k) schedule(static)
 		for (k = 0; k < nk; k++) {
 			int *iperm = NULL, *perm = NULL, ii;
@@ -2443,7 +2443,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
 			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(symb_fact);
-			//nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(symb_fact);
+			// nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(symb_fact);
 			if (debug) {
 				printf("%s: reorder=[%s] \tSize=%lu\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[k]), nnzs[k]);
 			}

@@ -81,7 +81,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 	int verbose = 0, debug = 0, i, j, k;
 	inla_matrix_tp *M = NULL;
 
-	if (debug){
+	if (debug) {
 		verbose = 1;
 	}
 
@@ -93,7 +93,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
 		ERROR(msg);
 	}
-	if (verbose){
+	if (verbose) {
 		printf("Open file to read [%s]\n", filename);
 	}
 
@@ -294,11 +294,11 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 
 			if (1) {
 				if (integer) {
-					for (k = 0; k < elems; k++){
+					for (k = 0; k < elems; k++) {
 						printf("\t%d: i j values %d %d %d\n", k, M->i[k], M->j[k], M->ivalues[k]);
 					}
 				} else {
-					for (k = 0; k < elems; k++){
+					for (k = 0; k < elems; k++) {
 						printf("\t%d: i j values %d %d %f\n", k, M->i[k], M->j[k], M->values[k]);
 					}
 				}
@@ -341,15 +341,15 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 #undef READ
 #undef ERROR
 
-	/* 
-	   add fileinfo
-	*/
+	/*
+	 * add fileinfo 
+	 */
 	M->filename = GMRFLib_strdup(filename);
 	M->offset = offset;
 	M->whence = whence;
 	M->tell = ftell(fp);
 	fclose(fp);
-	
+
 	return (M);
 }
 int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int offset, int whence)
@@ -425,7 +425,7 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int o
 	header[7] = 1;					       /* columnmajor */
 
 	if (verbose) {
-		for (i = 0; i < len_header; i++){
+		for (i = 0; i < len_header; i++) {
 			printf("\theader[%1d] = %1d\n", i, header[i]);
 		}
 	}
@@ -474,12 +474,12 @@ double *inla_matrix_get_diagonal(inla_matrix_tp * M)
 		if (M->nrow) {
 			diag = Calloc(M->nrow, double);
 			if (M->A) {
-				for (i = 0; i < M->nrow; i++){
+				for (i = 0; i < M->nrow; i++) {
 					diag[i] = M->A[i + i * M->nrow];
 				}
 			} else {
 				for (k = 0; k < M->elems; k++) {
-					if (M->i[k] == M->j[k]){
+					if (M->i[k] == M->j[k]) {
 						diag[M->i[k]] = M->values[k];
 					}
 				}
@@ -517,7 +517,7 @@ inla_matrix_tp *inla_matrix_1(int n)
 		M->A = Calloc(n, double);
 
 		int i;
-		for (i = 0; i < n; i++){
+		for (i = 0; i < n; i++) {
 			M->A[i] = 1.0;
 		}
 
@@ -551,7 +551,7 @@ int main(int argc, char **argv)
 {
 	int i;
 	inla_matrix_tp *M;
-	
+
 	for (i = 1; i < argc; i++) {
 		printf("\n\n\n\n *** Check file %s\n\n\n", argv[i]);
 		M = inla_read_fmesher_file(argv[i], 0, -1);

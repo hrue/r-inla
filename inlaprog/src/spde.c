@@ -351,11 +351,11 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	*smodel = model;
 	func_smodel = model;				       /* store it also here */
 
-	if (0){
+	if (0) {
 		FILE *fp;
 
 		FIXME("write graph to file spde-graph.dat");
-		fp = fopen("spde-graph.dat",  "w");
+		fp = fopen("spde-graph.dat", "w");
 		GMRFLib_print_graph(fp, model->graph);
 		fclose(fp);
 	}
