@@ -4735,13 +4735,13 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		   this option means that it will be determined later on.
 		 */
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	} else if (!strcasecmp(strcasecmp, "SMALL")) {
+	} else if (!strcasecmp(strategy, "SMALL")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
-	} else if (!strcasecmp(strcasecmp, "MEDIUM")) {
+	} else if (!strcasecmp(strategy, "MEDIUM")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_MEDIUM;
-	} else if (!strcasecmp(strcasecmp, "LARGE")) {
+	} else if (!strcasecmp(strategy, "LARGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
-	} else if (!strcasecmp(strcasecmp, "HUGE")) {
+	} else if (!strcasecmp(strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown strategy [%s]", strategy);
