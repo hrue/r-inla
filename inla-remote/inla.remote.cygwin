@@ -1,6 +1,7 @@
 #!/usr/bin/env.exe bash.exe
 
-HGVERSION="hgid: aca17b78c3f5  date: Tue Nov 30 09:46:46 2010 +0100"
+CYGWIN=0
+HGVERSION="hgid: 21cad1a7c617  date: Mon Dec 06 20:41:06 2010 +0100"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -81,6 +82,10 @@ mv -f $TMP $model
 ## if this script is interupted, then cleanup on the remote host
 function kill_inla_remote
 {
+    ## only need for CYGWIN
+    if [ $CYGWIN == 1 -a -f "$tarfile_to" ]; then
+	rm -f "$tarfile_to"
+    fi
     prog=${RemoteINLA##*/}
 	ssh $sshArguments $RemoteUser@$RemoteHost "\
 	    rm -rf $rdir; \
@@ -105,11 +110,28 @@ if [ $verbose == 1 ]; then
        echo 
        echo -e " *** Computations finished at $(date)"
        echo -e " *** Transfer the results...\n" 
+       if [ $CYGWIN == 1 ]; then
+	   echo -e " *** Since you are using Cygwin/Windows, the transfer is done in a"
+	   echo -e " *** more robust way which is somewhat slower; sorry about that...\n"
+       fi
    } 1>&2
-fi 
+fi
 
-ssh $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; \
+## Problems has been reported using the natural first approach for
+## Cygwin/Windows, so we divide the code here...
+if [ $CYGWIN == 0 ]; then
+    ## Linux and Mac
+    ssh $sshArguments $RemoteUser@$RemoteHost "\
+    cd $rdir; \	  
     tar cf$compress_get - results.files; \
-    cd; \
-    rm -rf $rdir" | tar xfm$compress_get -
+	cd; \
+	rm -rf $rdir" | tar xfm$compress_get -
+else
+    ## Cygwin/Windows
+    tarfile=results$RANDOM$RANDOM.tar
+    ssh $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
+    tarfile_to=$(mktemp).tar
+    scp -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
+    tar xfm "$tarfile_to"
+    rm -f "$tarfile_to"
+fi

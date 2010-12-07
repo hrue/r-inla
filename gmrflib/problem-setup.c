@@ -2103,7 +2103,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		Qfunc_arg->prec = tmp->prec;
 		Qfunc_arg->log_prec = tmp->log_prec;
 		if (tmp->log_prec_omp) {
-			int tmax = omp_get_max_threads();
+			int tmax = GMRFLib_MAX_THREADS;
 			Qfunc_arg->log_prec_omp = Calloc(tmax, double *);
 			for (i = 0; i < tmax; i++) {
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];
