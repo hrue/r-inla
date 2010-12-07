@@ -129,8 +129,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
-	                GMRFLib_ai_param_tp *ai_par)
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision, GMRFLib_ai_param_tp * ai_par)
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -205,7 +204,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	arg->ff_Qfunc = ff_Qfunc;
 	arg->ff_Qfunc_arg = ff_Qfunc_arg;
 	arg->f_graph = f_graph;
-	
+
 	arg->nbeta = nbeta;
 	arg->covariate = covariate;
 	arg->prior_precision = prior_precision;
@@ -309,8 +308,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	ntriples = Calloc(tmax, int);
 	ntriples_max = Calloc(tmax, int);
 
-	/* 
-	   set for all threads
+	/*
+	 * set for all threads 
 	 */
 	N = offset;					       /* N is the grand-total. */
 	SET_ELEMENT_FORCE(N - 1, N - 1, 0.0, 0);
@@ -381,17 +380,16 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			}
 		}
 	}
-
 #pragma omp parallel sections
 	{
-#pragma omp section 
+#pragma omp section
 		{
 			/*
 			 * \eta_i^2 = 1 
 			 */
 			int thread = omp_get_thread_num();
 			int it;
-			
+
 			for (it = 0; it < n; it++) {
 				SET_ELEMENT(idx_map_eta + it, idx_map_eta + it, 1.0, thread);
 			}
@@ -404,7 +402,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			if (nf) {
 				int thread = omp_get_thread_num();
 				int jt, kt, iit, it;
-				
+
 				for (jt = 0; jt < nf; jt++) {
 					for (kt = 0; kt < f_graph[jt]->n; kt++) {
 						for (iit = 0; iit < nfidx[jt][kt]; iit++) {
@@ -424,7 +422,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			if (nbeta) {
 				int thread = omp_get_thread_num();
 				int jt, it;
-				
+
 				for (jt = 0; jt < nbeta; jt++) {
 					for (it = 0; it < n; it++) {
 						SET_ELEMENT(idx_map_eta + it, idx_map_beta[jt], -covariate[jt][it], thread);
@@ -432,7 +430,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 				}
 			}
 		}
-#pragma omp section 
+#pragma omp section
 		{
 			/*
 			 * f_jk beta_m = \sum z_ki, for all i: c_j[i] = k 
@@ -465,11 +463,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 			if (nbeta) {
 				int thread = omp_get_thread_num();
 				int kt, mt, it;
-				
+
 				for (kt = 0; kt < nbeta; kt++) {
 					for (mt = kt; mt < nbeta; mt++) {
 						double valuet = 0.0;
-						
+
 						for (it = 0; it < n; it++) {
 							valuet += covariate[kt][it] * covariate[mt][it];
 						}
@@ -478,34 +476,34 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 				}
 			}
 		}
-	} /* END of parallel sections */
+	}						       /* END of parallel sections */
 
 
-	/* 
-	   this one could be heavy...
+	/*
+	 * this one could be heavy... 
 	 */
-		
+
 	/*
 	 * f_jk f_ml = \sum 1_{i : c_j(i) == k && c_m(i) == l } 
 	 */
 	if (nf) {
-		/* 
-		   first we build a 1d index to emulate a 2d index.
+		/*
+		 * first we build a 1d index to emulate a 2d index. 
 		 */
 		int jm, jm_idx;
 		int *j_idx = Calloc(ISQR(nf), int);
 		int *m_idx = Calloc(ISQR(nf), int);
 
-		for (j = 0, jm=0; j < nf; j++) {
+		for (j = 0, jm = 0; j < nf; j++) {
 			for (m = j; m < nf; m++) {
 				j_idx[jm] = j;
 				m_idx[jm] = m;
 				jm++;
 			}
 		}
-		
+
 #pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
-		for(jm_idx = 0;  jm_idx < jm; jm_idx++) {
+		for (jm_idx = 0; jm_idx < jm; jm_idx++) {
 			int thread = omp_get_thread_num();
 
 			j = j_idx[jm_idx];
@@ -536,14 +534,14 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	}
 
 	if (0) {
-		for(k = 0; k<tmax; k++)
-			for (i = 0; i< ntriples[k]; i++){
+		for (k = 0; k < tmax; k++)
+			for (i = 0; i < ntriples[k]; i++) {
 				printf("QQ %d %d %d %g\n", k, ilist[k][i], jlist[k][i], Qijlist[k][i]);
 			}
 	}
 
-	/* 
-	   now we need to collect all results...
+	/*
+	 * now we need to collect all results... 
 	 */
 
 	int *iilist = NULL;
@@ -552,12 +550,12 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	int nntriples;
 
 	nntriples = 0;
-	for(i = 0; i<tmax; i++) {
+	for (i = 0; i < tmax; i++) {
 		nntriples += ntriples[i];
 	}
 
 	if (0) {
-		for(i = 0; i<tmax; i++){
+		for (i = 0; i < tmax; i++) {
 			printf("i %d ntriples %d\n", i, ntriples[i]);
 		}
 	}
@@ -566,10 +564,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	jjlist = Calloc(nntriples, int);
 	QQijlist = Calloc(nntriples, double);
 
-	for(i=0, k = 0; i<tmax; i++){
+	for (i = 0, k = 0; i < tmax; i++) {
 		int len = ntriples[i];
 
-		if (len){
+		if (len) {
 			memcpy(&iilist[k], ilist[i], len * sizeof(int));
 			memcpy(&jjlist[k], jlist[i], len * sizeof(int));
 			memcpy(&QQijlist[k], Qijlist[i], len * sizeof(double));
@@ -578,20 +576,20 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	}
 
 	if (0) {
-		for (i = 0; i< nntriples; i++){
+		for (i = 0; i < nntriples; i++) {
 			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
 		}
 	}
 
 	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct, logprec_unstruct_omp);
 
-	/* 
-	   cleanup already here, as we do not need them anymore
+	/*
+	 * cleanup already here, as we do not need them anymore 
 	 */
 	Free(iilist);
 	Free(jjlist);
 	Free(QQijlist);
-	for(i=0; i<tmax; i++){
+	for (i = 0; i < tmax; i++) {
 		Free(ilist[i]);
 		Free(jlist[i]);
 		Free(Qijlist[i]);
@@ -601,7 +599,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 	Free(Qijlist);
 	Free(ntriples);
 	Free(ntriples_max);
-	
+
 
 	if (nlc) {
 		/*

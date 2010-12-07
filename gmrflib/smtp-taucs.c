@@ -243,7 +243,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(super
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < L->sn_size[sn]; jp++) {
 			siz += ISQR(L->sn_size[sn] - jp + 1);
-			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1); /* HOW CAN THIS BE CORRECT ???? */
+			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1);	/* HOW CAN THIS BE CORRECT ???? */
 		}
 	}
 	return siz;
@@ -538,14 +538,14 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		}
 
 		if (1) {
-			/* 
-			   in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are given
-			   highest node-number.
+			/*
+			 * in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are
+			 * given highest node-number. 
 			 */
 			int ng = n - ns;
 			int *node = Calloc(ng, int);
 			int *nnbs = Calloc(ng, int);
-			
+
 			for (i = 0, j = 0; i < n; i++) {
 				if (fixed[i]) {
 					node[j] = i;
@@ -555,19 +555,19 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			}
 			assert(j == ng);
 
-			/* 
-			   sort with respect to number of neigbours and carry the node-number along
+			/*
+			 * sort with respect to number of neigbours and carry the node-number along 
 			 */
-			GMRFLib_qsorts((void *)nnbs, (size_t)ng, sizeof(int), (void *)node, sizeof(int), NULL, 0, GMRFLib_icmp);
+			GMRFLib_qsorts((void *) nnbs, (size_t) ng, sizeof(int), (void *) node, sizeof(int), NULL, 0, GMRFLib_icmp);
 			if (0) {
 #pragma omp critical
 				{
-					for(i=0; i<ng; i++)
+					for (i = 0; i < ng; i++)
 						printf("thread %1d nnbs %d node %d\n", omp_get_thread_num(), nnbs[i], node[i]);
 				}
 			}
 
-			for (i = 0, j = ns; i < ng; i++, j++){
+			for (i = 0, j = ns; i < ng; i++, j++) {
 				iperm_new[j] = node[i];
 			}
 			assert(j == n);
@@ -575,8 +575,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			Free(node);
 			Free(nnbs);
 		} else {
-			/* 
-			   this is the old version which just place the global node in the order that they appear.
+			/*
+			 * this is the old version which just place the global node in the order that they appear. 
 			 */
 			for (i = 0, j = ns; i < n; i++) {
 				if (fixed[i]) {
@@ -646,7 +646,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 #pragma omp parallel for private(i, ic, k, j)
 	for (i = 0; i < n; i++) {
 		double val;
-		
+
 		ic = ic_idx[i];
 		GMRFLib_thread_id = id;
 
@@ -670,7 +670,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 #else
 	for (i = 0, ic = 0; i < n; i++) {
 		double val;
-		
+
 		Q->rowind[ic] = i;
 
 		val = Qfunc(i, i, Qfunc_arg);
@@ -1849,8 +1849,8 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
-		reduce_factor = (double)N / (double)n;
-	} else{
+		reduce_factor = (double) N / (double) n;
+	} else {
 		N = n;
 		reduce_factor = 1.0;
 	}
