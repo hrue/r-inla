@@ -106,8 +106,8 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
-		reduce_factor = (double)N / (double)n;
-	} else{
+		reduce_factor = (double) N / (double) n;
+	} else {
 		N = n;
 		reduce_factor = 1.0;
 	}

@@ -151,9 +151,9 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 		int node = remap[i];
 		int j;
 		double val;
-		
+
 		GMRFLib_thread_id = id;
-		
+
 		val = Qfunc(i, i, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val);
 		(*bandmatrix)[BIDX(0, node)] = val;
@@ -610,8 +610,8 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
-		reduce_factor = (double)N/(double)n;
-	} else{
+		reduce_factor = (double) N / (double) n;
+	} else {
 		N = n;
 		reduce_factor = 1.0;
 	}

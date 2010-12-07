@@ -1,3 +1,4 @@
+
 /* domin-interface.c
  * 
  * Copyright (C) 2006-2008 Havard Rue
@@ -149,7 +150,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	 */
 
 	int i, tmax, id, *err = NULL;
-	GMRFLib_ai_store_tp **ai_store = NULL,  *ai_store_reference = NULL;
+	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
@@ -157,9 +158,9 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	err = Calloc(nx, int);
 	id = omp_get_thread_num();
 
-	/* 
-	   This is the copy that is to be copied
-	*/
+	/*
+	 * This is the copy that is to be copied 
+	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
 
 #pragma omp parallel for private(i) schedule(static)
@@ -171,7 +172,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 		if (GMRFLib_thread_id == 0) {
 			ais = G.ai_store;
 		} else {
-			if (!ai_store[GMRFLib_thread_id]){
+			if (!ai_store[GMRFLib_thread_id]) {
 				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
@@ -181,7 +182,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	}
 	GMRFLib_thread_id = id;
 
-	for(i=0; i<nx; i++){
+	for (i = 0; i < nx; i++) {
 		*ierr = *ierr || err[i];
 	}
 
@@ -193,7 +194,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	}
 	Free(ai_store);
 	Free(err);
-	
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais)
@@ -249,7 +250,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 
 				if (debug)
-					printf("f_local %g f_best %g\n",  fx_local,  B.f_best);
+					printf("f_local %g f_best %g\n", fx_local, B.f_best);
 
 				B.f_best = fx_local;
 
@@ -319,11 +320,11 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id = omp_get_thread_num();
 
-	/* 
-	   this is the one to be copied
-	*/
+	/*
+	 * this is the one to be copied 
+	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE);
-	
+
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
 		 * forward differences 
@@ -341,7 +342,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
-				if (GMRFLib_thread_id == 0){
+				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
@@ -403,7 +404,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
-				if (GMRFLib_thread_id == 0){
+				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
@@ -682,7 +683,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		 */
 		if (debug)
 			printf("set B.f_best from %f to %f\n", B.f_best, f0min);
-		
+
 		B.f_best = f0min;
 		memcpy(B.f_best_x, xx_min, G.nhyper * sizeof(double));
 

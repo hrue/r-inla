@@ -187,7 +187,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		 */
 		for (i = 0; i < n; i++) {
 			x[i] *= M_SQRT2;
-			w[i] *= M_SQRT2 / sqrt(2.0*M_PI);
+			w[i] *= M_SQRT2 / sqrt(2.0 * M_PI);
 		}
 
 		/*
