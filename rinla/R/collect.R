@@ -130,7 +130,9 @@
         }    
         rownames(summary.fixed) = inla.namefix(names.fixed)
         colnames(summary.fixed) = inla.namefix(col.nam)
-        names(marginals.fixed) = inla.namefix(names.fixed)
+        if (length(marginals.fixed) > 0) {
+            names(marginals.fixed) = inla.namefix(names.fixed)
+        }
     }
     else {
         if (debug)
@@ -213,7 +215,9 @@
         rm(xx)
         rownames(summary.fixed) = inla.namefix(names.fixed)
         colnames(summary.fixed) = inla.namefix(col.nam)
-        names(marginals.fixed) = inla.namefix(names.fixed)
+        if (length(marginals.fixed) > 0) {
+            names(marginals.fixed) = inla.namefix(names.fixed)
+        }
     }
     else {
         if (debug)
