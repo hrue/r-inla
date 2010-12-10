@@ -3623,7 +3623,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			/*
 			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
 			 */
-			if (omp_get_max_threads > nhyper) {
+			if (omp_get_max_threads() > nhyper) {
 #pragma omp parallel for private(k) schedule(static)
 				for (k = 0; k < 2 * nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
