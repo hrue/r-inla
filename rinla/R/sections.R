@@ -788,6 +788,8 @@
                 idx = lc.j$idx[ !is.na(lc.j$idx) ]
                 weight = lc.j$weight[ !is.na(lc.j$weight) ]
                 stopifnot(length(idx) == length(weight))
+                if (length(idx) == 0)
+                    stop(paste("lincomb", lc.j.name, "has only zero entries. This is not allowed"))
 
                 ## this the old code:
                 ## cat(c( lc.j.name, c(rbind( idx, weight))), "\n", file=fnm, append=TRUE)
