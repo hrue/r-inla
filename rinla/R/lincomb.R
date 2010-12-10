@@ -54,7 +54,7 @@
     for(k in 1:length(arg)) {
         if (names(arg)[k] != "") {
             values[[k]] = eval.parent(arg[[k]])
-            if (is.matrix(values[[k]])) {
+            if (is.matrix(values[[k]]) || is(values[[k]], "dgTMatrix")) {
                 stopifnot(nrow(values[[k]]) == n || n < 0)
                 n = nrow(values[[k]]) 
                 is.m[k] = TRUE
@@ -91,9 +91,14 @@
                         if (names(arg)[k] != "") {
                             var = names(arg)[k]
                             if (is.m[k]) {
-                                value = values[[k]][idx,]
-                                ii = which( !is.na(value) )
-                                ff.arg = list(list(idx = ii, weight = value[ii]))
+                                if (is(values[[k]], "dgTMatrix")) {
+                                    row = inla.sparse.get(values[[k]], row=idx)
+                                    ff.arg = list(list(idx = row$j, weight = row$values))
+                                } else {
+                                    value = values[[k]][idx,]
+                                    ii = which( !is.na(value) )
+                                    ff.arg = list(list(idx = ii, weight = value[ii]))
+                                }
                             } else {
                                 ff.arg = list(list(weight = values[[k]][idx]))
                             }
