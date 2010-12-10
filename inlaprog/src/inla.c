@@ -4480,7 +4480,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->lc_tag[mb->nlc]))));
 
 	if (mb->verbose) {
-		printf("\tinla_parse_lincomb...\n");
+		printf("\tinla_parse_lincomb...\n\t\tsecname = [%s]\n", mb->lc_tag[mb->nlc]);
 	}
 
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
@@ -4491,7 +4491,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		printf("\t\tfile.offset [%g]\n", (double) fileoffset);
+		printf("\t\tfile.offset [%16.0g]\n", (double) fileoffset);
 	}
 
 	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e9);
@@ -4510,7 +4510,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
 
 	if (mb->verbose) {
-		printf("\t\tOpen file [%s] at location [%g]\n", filename, (double) fileoffset);
+		printf("\t\tOpen file [%s] at location [%16.0g]\n", filename, (double) fileoffset);
 	}
 
 	GMRFLib_io_read(io, &num_sections, sizeof(int));
@@ -4539,7 +4539,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		}
 		ip = map_stri_ptr(&(mb->idx_hash), ptr);
 		if (!ip) {
-			GMRFLib_sprintf(&msg, "Section no [%1d] named [%s] in file [%1d] offset[%g] is unknown.", sec_no, ptr, filename, fileoffset);
+			GMRFLib_sprintf(&msg, "Section no [%1d] named [%s] in file [%1d] offset[%16.0g] is unknown.",
+					sec_no, ptr, filename, (double) fileoffset);
 			GMRFLib_io_close(io);
 			inla_error_general(msg);
 		}
