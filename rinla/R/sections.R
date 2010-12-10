@@ -787,9 +787,9 @@
                 ## NA's are allowed; but we just remove them.
                 idx = lc.j$idx[ !is.na(lc.j$idx) ]
                 weight = lc.j$weight[ !is.na(lc.j$weight) ]
+                if (length(idx) == 0 || length(weight) == 0)
+                    stop(paste("lincomb", secname, "has only zero entries. This is not allowed"))
                 stopifnot(length(idx) == length(weight))
-                if (length(idx) == 0)
-                    stop(paste("lincomb", lc.j.name, "has only zero entries. This is not allowed"))
 
                 ## this the old code:
                 ## cat(c( lc.j.name, c(rbind( idx, weight))), "\n", file=fnm, append=TRUE)
