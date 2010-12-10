@@ -769,7 +769,7 @@
             }
             inla.write.boolean.field("verbose", contr$verbose, file)
 
-            cat("file.offset = ", seek(fp.binary, where=NA), "\n", sep="", file = file, append = TRUE)
+            cat("file.offset = ", as.integer(seek(fp.binary, where=NA)), "\n", sep="", file = file, append = TRUE)
             
             ## number of entries
             writeBin(as.integer(length(lc)), fp.binary)
@@ -799,7 +799,7 @@
                 writeBin(as.integer(idx), fp.binary)
                 writeBin(as.double(weight), fp.binary)
 
-                ##print(paste(" stop writing at position ", seek(fp.binary, where=NA)))
+                ##print(paste(" stop writing at position ", as.integer(seek(fp.binary, where=NA))))
             }
 
             fnm.new = gsub(data.dir, "$inladatadir", fnm, fixed=TRUE)
