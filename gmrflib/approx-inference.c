@@ -5412,8 +5412,8 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 
 			from_idx_a = Alin[i]->first_nonzero;
 			to_idx_a = Alin[i]->last_nonzero;
-			assert(LEGAL(from_idx_a, Alin[i]->n)); 
-			assert(LEGAL(to_idx_a, Alin[i]->n)); 
+			assert(LEGAL(from_idx_a, n)); 
+			assert(LEGAL(to_idx_a, n)); 
 			len_a = to_idx_a - from_idx_a + 1;
 
 			a = Calloc(len_a, double);
