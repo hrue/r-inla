@@ -1,48 +1,351 @@
+##!\name{f}
+##!\alias{f}
+##!\title{ Defining smooth and spatial effects in INLA formulae }
+##!\description{
+##!
+##!  Function used in definition of smooth and spatial terms within \code{inla} model
+##!  formulae. The function does not evaluate a anything - it
+##!  exists purely to help set up a model. The function specifies one
+##!  smooth function in the linear predictor (see \code{\link{inla.models}}) as
+##!  \deqn{w\ f(x)}{weight*f(var)}
+##!  
+##!}
+##!\usage{
+##!`f` =
+##!function(...,model=NULL,...)
+##!}
+##!\arguments{
 `f` =
-function(...,
+function(
+         ##!\item{...}
+         ##!{
+         ##!Name of the covariate and, possibly of the weights
+         ##!vector. NB: order counts!!!! The first specified term is the covariate
+         ##!and the second one is the vector of weights.
+         ##!}
+         ...,
+         
+         ##!\item{model}
+         ##!{
+         ##! A string indicating the choosen model. The default
+         ##! is \code{iid}. See
+         ##! \code{names(inla.models()$models)}
+         ##! for a list of possible alternatives.
+         ##!}
          model = "iid",
+         
+         ##!\item{copy}
+         ##!{
+         ##!}
          copy=NULL,
+
+         ##!\item{same.as}
+         ##!{
+         ##!}
          same.as = NULL,
+
+         ##!\item{n}
+         ##!{
+         ##!An optional argument which defines the dimension of the model
+         ##!if this is different from \code{length(sort(unique(covariate)))}
+         ##!}
          n=NULL,
+         
+         ##!\item{nrep}
+         ##!{
+         ##!}
          nrep = NULL,
+
+         ##!\item{replicate}
+         ##!{
+         ##!}
          replicate = NULL,
+
+         ##!\item{group}
+         ##!{
+         ##!}
          ngroup = NULL,
+
+         ##!\item{group}
+         ##!{
+         ##!}
          group = NULL,
+
+         ##!\item{control.group}
+         ##!{
+         ##!}
          control.group = inla.set.control.group.default(),
+
+         ##!\item{initial}
+         ##!{
+         ##!Vector indicating the starting values for the optimization
+         ##!algorithm. The length of the vector depends on the number of hyperparamters in the choosen
+         ##!\code{model}. If \code{fixed=T} the value at which the
+         ##!parameters are fixed is determines through \code{initial}. 
+         ##!See \code{inla.models()$models$'model name'} to have info about  the choosen model.
+         ##!}
          initial=NULL,
+
+         ##!\item{season.length}
+         ##!{
+         ##!Lenght of the seasonal compoment (ONLY if
+         ##!\code{model="seasonal"}) 
+         ##!}
          season.length=NULL,
+
+         ##!\item{prior}
+         ##!{
+         ##!Prior distribution(s) for the
+         ##!hyperparameters of the !random model. The default value
+         ##!depends on the type of model, see !\url{www.r-inla.org} for
+         ##!a detailed description of the models. See
+         ##!\code{names(inla.models()$priors)} for possible prior
+         ##!choices
+         ##!}
          prior=NULL,
+
+         ##!\item{param}
+         ##!{
+         ##!Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
+         ##!of the prior distribution for the hyperparameters. The length
+         ##!of the vector depends on the choosen \code{model}.
+         ##!See \code{inla.models()$models$'model name'} to have info about  the choosen model.
+         ##!}
          param = NULL,
+
+         ##!\item{fixed}
+         ##!{
+         ##!Vector of boolean variables indicating wheater the
+         ##!hyperparameters of the model are fixed or random. The length of
+         ##!the vector depends on the choosen \code{model}
+         ##!See \code{inla.models()$models$'model name'} to have info about  the choosen model.
+         ##!}
          fixed = NULL,
+
+         ##!\item{constr}
+         ##!{
+         ##!A boolean variable indicating whater to set a sum to 0
+         ##!constraint on the term. By default the sum to 0 constraint is
+         ##!imposed on all intrinsic models ("iid","rw1","rw1","besag", etc..).
+         ##!}
          constr = NULL,
+
+         ##!\item{extraconstr}
+         ##!{
+         ##!This argument defines extra linear constraints. The
+         ##!argument is a list with two elements, a matrix \code{A} and a vector
+         ##!\code{e}, which defines the extra constraint \code{Ax = e}; for
+         ##!example \code{extraconstr = list(A = A, e=e)}. The number of columns
+         ##!of \code{A} must correspond to the length of this \code{f}-model.
+         ##!Note that this constraint comes additional to the sum-to-zero
+         ##!constraint defined if \code{constr = TRUE}.
+         ##!}
          extraconstr=NULL,
+
+         ##!\item{values}
+         ##!{
+         ##!An optional vector giving all values assumed by the
+         ##!covariate for which we want estimated the effect. It must be a numeric
+         ##!vector, a vector of factors or \code{NULL}.
+         ##!}
          values=NULL,
+
+         ##!\item{cyclic}
+         ##!{
+         ##!A boolean specifying wheather the model is
+         ##!cyclical. Only valid for "rw1" and "rw2" models, is cyclic=T then
+         ##!the sum to 0 constraint is removed. For the correct form of the grah
+         ##!file see \cite{Martinoand Rue (2008)}.
+         ##!}
          cyclic = NULL,
-         diagonal = NULL, 
+
+         ##!\item{diagonal}
+         ##!{
+         ##!}
+         diagonal = NULL,
+
+         ##!\item{graph.file}
+         ##!{
+         ##!Name of the file containing the graph of the model.
+         ##!For the correct for of the graph file see \url{http://www.r-inla.org/help/faq}.
+         ##!}
          graph.file=NULL,
+
+         ##!\item{cdf}
+         ##!{
+         ##!A vector of maximum 10 values between 0 and 1
+         ##!\eqn{x(0),x(1),\ldots}{x(0),x(1),\ldots}. The function returns, for
+         ##!each posterior marginal the probabilities
+         ##!\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} 
+         ##!}
          cdf=NULL,
+
+         ##!\item{quantiles}
+         ##!{
+         ##!A vector of maximum 10 quantiles,
+         ##!\eqn{p(0),p(1),\dots}{p(0),p(1),\ldots} to compute for each
+         ##!posterior marginal. The function returns, for each posterior
+         ##!marginal, the values \eqn{x(0),x(1),\dots}{x(0),x(1),\ldots} such
+         ##!that \deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}
+         ##!}
          quantiles=NULL,
+
+         ##!\item{Cmatrix}
+         ##!{
+         ##!The specification of the precision matrix for the
+         ##!    generic models (up to a scaling constant), and is only used if
+         ##!    \code{model="generic0"} or \code{model="generic1"}.  \code{Cmatrix}
+         ##!    is a list of type \code{Cmatrix = list(i = c(), j = c(), values =
+         ##!    c())}, where \code{i}, \code{j} and \code{values} are vectors of the
+         ##!    non-zero elements of \code{C}. Note that \code{i} starts \code{1},
+         ##!    and only the upper or lower part of \code{C} has to be given.
+         ##!
+         ##!    Alternatively, \code{Qmatrix} is the name of a file giving the
+         ##!    precision matrix as described in the \code{inla}-manual.
+         ##!}
          Qmatrix=NULL,  ### not used anymore
          Cmatrix=NULL,
+
+         ##!\item{rankdef}
+         ##!{
+         ##!A number \bold{defining} the rank deficiency of the
+         ##!model, with sum-to-zero constraint and possible extra-constraints
+         ##!taken into account. See details.
+         ##!}
          rankdef=NULL,
+         
+         ##!\item{Z}
+         ##!{
+         ##!}
          Z = NULL,
+
+         ##!\item{nrow}
+         ##!{
+         ##!Number of rows for 2d-models
+         ##!}
          nrow = NULL,
+
+         ##!\item{ncol}
+         ##!{
+         ##!Number of columns for 2d-models
+         ##!}
          ncol = NULL,
+
+         ##!\item{nu}
+         ##!{
+         ##!Smoothing parameter for the Matern2d-model, possible values are \code{c(0,1,2,3)}
+         ##!}
          nu = NULL,
+
+         ##!\item{bvalue}
+         ##!{
+         ##!}
          bvalue = NULL,
+
+         ##!\item{sphere.dir}
+         ##!{
+         ##!}
          sphere.dir = NULL,
+
+         ##!\item{spde.prefix}
+         ##!{
+         ##!}
          spde.prefix = NULL,
+
+         ##!\item{T.order}
+         ##!{
+         ##!}
          T.order=NULL,
+
+         ##!\item{T.model}
+         ##!{
+         ##!}
          T.model=NULL,
+
+         ##!\item{K.order}
+         ##!{
+         ##!}
          K.order=NULL,
+
+         ##!\item{K.model}
+         ##!{
+         ##!}
          K.model=NULL,
+
+         ##!\item{mean.linear}
+         ##!{
+         ##!Prior mean for the linear component, only used if
+         ##!\code{model="linear"}
+         ##!}
          mean.linear=NULL,
+
+         ##!\item{prec.linear}
+         ##!{
+         ##!Prior precision for the linear component, only used
+         ##!if \code{model="linear"}
+         ##!}
          prec.linear=NULL,
+
+         ##!\item{of}
+         ##!{
+         ##!}
          of=NULL,
+
+         ##!\item{precision}
+         ##!{
+         ##!}
          precision=NULL,
+
+         ##!\item{si}
+         ##!{
+         ##!}
          si=NULL,
+
+         ##!\item{compute}
+         ##!{
+         ##! A boolean variable indicating wheather the marginal
+         ##! posterior distribution for the nodes in the \code{f()} model should be computed
+         ##! or not. This is usefull for large models where we are
+         ##! only interested in some posterior marginals.
+         ##!}
          compute = TRUE)
 {
+    ##!}
+    ##!\value{
+    ##!The function return a list of objects.
+    
+    ##!(NOTE: the description of the output is not accurate since it is used
+    ##!only for internal computations.)
+    ##!}
+
+    ##!\details{
+    ##!There is no default value for \code{rankdef}, if it is not defined by
+    ##!the user  then it is computed by the
+    ##!rank deficiency of the prior model (for the generic model, the
+    ##!default is zero), plus 1 for the sum-to-zero constraint if the
+    ##!prior model is proper, plus the number of extra
+    ##!constraints. \bold{Oops:} This can be wrong, and then the user
+  ##!must define the \code{rankdef} explicitely.
+    ##!}
+    
+    ##!\references{
+    ##!Rue, H. and Martino, S. and Chopin, N. (2008)
+    ##!\emph{Approximate Bayesian Inference for latent Gaussian models using
+    ##!Integrated Nested Laplace Approximations}
+    ##!
+    ##!Rue, H and Held, L. (2005)
+    ##!\emph{Gaussian Markov Random Fields - Theory and Applications}
+    ##!Chapman and Hall
+    ##!
+    ##!  Martino, S. and Rue, H. (2008)
+    ##!\emph{Implementing Approximate Bayesian Inference using Integrated
+    ##!Nested Laplace Approximation: a manual for the inla program}
+    ##!Preprint N.2 from Dep. of Mathematical Sciences (NTNU Norway)
+    ##!}
+    ##!\author{ Sara Martino, Havard Rue \email{hrue@math.ntnu.no} }
+    
+    ##!\seealso{ \code{\link{inla}},  \code{\link{hyperpar.inla}}}
+
     debug = FALSE
 
     ## this is a nice trick
