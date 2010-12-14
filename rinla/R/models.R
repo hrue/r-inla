@@ -156,10 +156,13 @@ inla.is.generic = function(model, stop.on.error, models, ignore.case)
             if (is.element(m[i], ms)) {
                 ret[i] = TRUE
             } else {
-                if (stop.on.error)
-                    stop(paste("\n\tUnknown model [", model[i], "]\n",sep=""))
-                else
+                if (stop.on.error) {
+                    print("Valid models are:")
+                    print(names(models))
+                    stop(paste(c("\n\tUnknown name [", model[i], "]\n", "\tValid choices are: ", names(models)), sep=" ", collapse=" "))
+                } else {
                     ret[i] = FALSE
+                }
             }
         }
     } else {
@@ -205,9 +208,18 @@ inla.model.properties.generic = function(model, stop.on.error, models, ignore.ca
     else
         return (ans)
 }
-inla.model.properties = function(model, stop.on.error = TRUE, ignore.case = FALSE)
+inla.model.properties = function(model = NULL, stop.on.error = TRUE, ignore.case = FALSE)
 {
-    inla.model.properties.generic(inla.trim.family(model), stop.on.error, inla.models()$models, ignore.case)
+    m = inla.model.properties.generic(inla.trim.family(model), stop.on.error, inla.models()$models, ignore.case)
+    if (is.null(m))
+        return (NULL)
+    ##cat("Properties of model:", model, "\n")
+    ##cat("\tNumber of hyperparameters:\t", m$ntheta, "\n")
+    ##cat("\tNames  of hyperparameters:\t", m$theta, "\n")
+    ##cat("\tNumber of priors:\t", m$npriors, "\n")
+    ##cat("\tNumber of parameters in the prior(s):\t", m$nparameters, "\n")
+
+    return (m)
 }
 inla.lmodel.properties = function(lmodel, stop.on.error = TRUE, ignore.case = FALSE)
 {
