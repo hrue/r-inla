@@ -117,10 +117,7 @@ fi
 if [ $CYGWIN == 0 ]; then
     ## Linux and Mac
     ssh $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; \	  
-    tar cf$compress_get - results.files; \
-	cd; \
-	rm -rf $rdir" | tar xfm$compress_get -
+    cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
 else
     ## Cygwin/Windows
     tarfile=results$RANDOM$RANDOM.tar
