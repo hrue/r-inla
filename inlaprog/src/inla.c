@@ -95,7 +95,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { 0, 1, 0, 0, 0, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
 
 /* 
    default values for priors
@@ -4891,7 +4891,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	mb->predictor_compute = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);	// mb->output->cpo || mb->output->dic
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->predictor_compute) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require predictor_compute = 0\n");
 		}
@@ -7027,7 +7027,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tsi=[%1d] (if possible)\n", mb->f_si[mb->nf]);
 	}
 	mb->f_compute[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->f_compute[mb->nf]) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require f_compute[%1d] = 0\n", mb->nf);
 		}
@@ -9867,7 +9867,7 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tprior precision=[%g]\n", mb->linear_precision[mb->nlinear]);
 	}
 	mb->linear_compute[mb->nlinear] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->linear_compute[mb->nlinear]) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require linear_compute[%1d] = 0\n", mb->nlinear);
 		}
@@ -10070,7 +10070,7 @@ int inla_setup_ai_par_default(inla_tp * mb)
 		mb->ai_par->gaussian_data = mb->gaussian_data;
 		// P(mb->gaussian_data);
 
-		if (!G.hyper_mode) {
+		if (!(G.mode == INLA_MODE_HYPER)) {
 			/*
 			 * default mode 
 			 */
@@ -10363,7 +10363,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int_strategy", opt);
 		}
 	}
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_GRID) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require int_strategy = GMRFLib_AI_INT_STRATEGY_GRID\n");
 		}
@@ -10372,7 +10372,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
-	if (G.hyper_mode && tmp > mb->ai_par->dz) {
+	if (G.mode == INLA_MODE_HYPER && tmp > mb->ai_par->dz) {
 		/*
 		 * cannot set it to a larger value 
 		 */
@@ -10389,14 +10389,14 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOG.DENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOGDENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFFLOGDENS"), mb->ai_par->diff_log_dens);
-	if (G.hyper_mode && mb->ai_par->diff_log_dens < tmp_ref) {
+	if (G.mode == INLA_MODE_HYPER && mb->ai_par->diff_log_dens < tmp_ref) {
 		fprintf(stderr, "*** Warning: HYPER_MODE require diff_log_dens >= %f\n", tmp_ref);
 		mb->ai_par->diff_log_dens = tmp_ref;
 	}
 	mb->ai_par->skip_configurations = iniparser_getboolean(ini, inla_string_join(secname, "SKIP_CONFIGURATIONS"), mb->ai_par->skip_configurations);
 	mb->ai_par->skip_configurations = iniparser_getboolean(ini, inla_string_join(secname, "SKIP.CONFIGURATIONS"), mb->ai_par->skip_configurations);
 
-	if (G.hyper_mode && mb->ai_par->skip_configurations) {
+	if (G.mode == INLA_MODE_HYPER && mb->ai_par->skip_configurations) {
 		fprintf(stderr, "*** Warning: HYPER_MODE require skip_configurations = 0\n");
 		mb->ai_par->skip_configurations = 0;
 	}
@@ -10472,7 +10472,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->compute_nparam_eff = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE_NPARAM_EFF"), mb->ai_par->compute_nparam_eff);
 	mb->ai_par->compute_nparam_eff = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE.NPARAM.EFF"), mb->ai_par->compute_nparam_eff);
 
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->compute_nparam_eff) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require compute_nparam_eff = GMRFLib_FALSE\n");
 		}
@@ -12884,7 +12884,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->kld = 1;
 		(*out)->mlik = 0;
 		(*out)->q = 0;
-		(*out)->hyperparameters = (G.hyper_mode ? 1 : 1);
+		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->nquantiles = 0;
 		(*out)->ncdf = 0;
 		(*out)->quantiles = (*out)->cdf = NULL;
@@ -12920,7 +12920,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->q = iniparser_getboolean(ini, inla_string_join(secname, "Q"), (*out)->q);
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		/*
 		 * these are the requirements for the HYPER_MODE 
 		 */
@@ -12928,7 +12928,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->dic = 0;
 		(*out)->mlik = 1;
 	}
-	if (G.hyper_mode) {
+	if (G.mode == INLA_MODE_HYPER) {
 		if (!((*out)->hyperparameters)) {
 			fprintf(stderr, "*** Warning: HYPER_MODE require (*out)->hyperparameters = 1\n");
 		}
@@ -14816,6 +14816,31 @@ int inla_qinv(const char *filename)
 	return 0;
 }
 
+int inla_finn(const char *filename)
+{
+	/*
+	 * Compute whatever Finn wants...
+	 */
+	int i;
+	GMRFLib_tabulate_Qfunc_tp *tab;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_problem_tp *problem;
+	
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+	GMRFLib_optimize_reorder(graph, NULL);
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	GMRFLib_sample(problem);
+
+	for (i = 0; i < graph->n; i++) {
+		printf("%.20g\n", problem->sample[i]);
+	}
+	for (i = 0; i < graph->n; i++) {
+		printf("%1d\n", problem->sub_sm_fact.remap[i]);
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 #define USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
@@ -14902,11 +14927,13 @@ int main(int argc, char **argv)
 			break;
 		case 'm':
 			if (!strncasecmp(optarg, "MCMC", 4)) {
-				G.mcmc_mode = 1;
+				G.mode = INLA_MODE_MCMC;
 			} else if (!strncasecmp(optarg, "HYPER", 5)) {
-				G.hyper_mode = 1;
+				G.mode = INLA_MODE_HYPER;
 			} else if (!strncasecmp(optarg, "QINV", 4)) {
-				G.qinv_mode = 1;
+				G.mode = INLA_MODE_QINV;
+			} else if (!strncasecmp(optarg, "FINN", 4)) {
+				G.mode = INLA_MODE_FINN;
 			} else {
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
 				exit(1);
@@ -14914,7 +14941,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			if (!G.mcmc_mode) {
+			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-S scale' only available in MCMC mode\n");
 				exit(1);
 			} else {
@@ -14927,7 +14954,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'T':
-			if (!G.mcmc_mode) {
+			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-T thining' only available in MCMC mode\n");
 				exit(1);
 			} else {
@@ -14940,7 +14967,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'F':
-			if (!G.mcmc_mode) {
+			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-F' only available in MCMC mode\n");
 				exit(1);
 			} else {
@@ -14948,7 +14975,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'Y':
-			if (!G.mcmc_mode) {
+			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-Y' only available in MCMC mode\n");
 				exit(1);
 			} else {
@@ -14956,7 +14983,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'N':
-			if (!G.mcmc_mode) {
+			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-N niter' only available in MCMC mode\n");
 				exit(1);
 			} else {
@@ -15000,10 +15027,14 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * this one does not belong here, but it makes all easier... and its undocumented 
+	 * these one does not belong here, but it makes all easier... and its undocumented.
 	 */
-	if (G.qinv_mode) {
+	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_FINN) {
+		inla_finn(argv[optind]);
 		exit(0);
 	}
 
@@ -15021,20 +15052,19 @@ int main(int argc, char **argv)
 		USAGE;
 		exit(EXIT_FAILURE);
 	}
-	if (G.mcmc_mode && G.hyper_mode) {
-		fprintf(stderr, "\n*** Error: Only one of MCMC mode and HYPERPARAMETER mode can be enabled at the same time.\n");
-		exit(EXIT_SUCCESS);
-	}
 	if (optind < argc - 1) {
 		fprintf(stderr, "\n*** Error: Can only process one .INI-file at the time.\n");
 		exit(EXIT_SUCCESS);
 	}
 	if (verbose) {
-		if (G.hyper_mode || G.mcmc_mode) {
-			fprintf(stderr, "\nRun in mode=[%s]\n", (G.hyper_mode ? "HYPER" : "MCMC"));
+		if (G.mode == INLA_MODE_HYPER){
+			fprintf(stderr, "\nRun in mode=[%s]\n", "HYPER");
+		}
+		if (G.mode == INLA_MODE_MCMC){
+			fprintf(stderr, "\nRun in mode=[%s]\n", "MCMC");
 		}
 	}
-	if (!G.mcmc_mode) {
+	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
 				printf("Processing file [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
@@ -15085,6 +15115,7 @@ int main(int argc, char **argv)
 			}
 		}
 	} else {
+		assert(G.mode == INLA_MODE_MCMC);
 		for (arg = optind; arg < argc; arg++) {
 			inla_tp *mb_old = NULL;
 			inla_tp *mb_new = NULL;

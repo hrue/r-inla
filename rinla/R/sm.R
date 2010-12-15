@@ -44,10 +44,11 @@
 `inla.as.dgTMatrix` = function(A)
 {
     ## convert into dgTMatrix format of Matrix. Argument A is any matrix
-    if (is(A, "dgTMatrix"))
+    if (is(A, "dgTMatrix")) {
         return (A)
-    else
+    } else {
         return (as(A, "dgTMatrix"))
+    }
 }
 
 `inla.sparse2dgTMatrix` = function(A, dims)
@@ -57,7 +58,7 @@
 
     require(Matrix)
     if (!missing(dims) && length(dims) == 1) {
-        dims = rep(dims,2)
+        dims = rep(dims, 2)
     }
     B = inla.as.dgTMatrix( sparseMatrix(i = A$i, j = A$j, x = A$values, dims = dims) )
     return (B)
@@ -123,34 +124,51 @@
 
 `inla.matrix2sparse` = function(Q, symmetric = TRUE)
 {
-    ## convert a symmetric(if TRUE) matrix into the form:
-    ## list(i=,j=,values=)
+    ## convert a possibly symmetric martix matrix into the form:
+    ## list(i=,j=,values=). Q is either a matrix or a dgTMatrix
 
-    if (!is.matrix(Q))
-        stop("Argument must be a matrix")
+    require(Matrix)
     
-    n = dim(Q)
-    if (n[1] != n[2])
-        stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
-    
-    n = n[1]
-    ii = c()
-    jj = c()
-    values = c()
+    if (is(Q, "dgTMatrix")) {
 
-    for(i in 1:n) {
-        if (symmetric){
-            idx = which(Q[i, i:n] != 0)
-            offset = i-1
-        } else {
-            idx = which(Q[i, 1:n] != 0)
-            offset = 0
+        ii = Q@i + 1L
+        jj = Q@j + 1L
+        values = Q@x
+
+        if (symmetric) {
+            idx = (ii >= jj)
+            ii = ii[idx]
+            jj = jj[idx]
+            values = values[idx]
         }
-        if (length(idx) > 0) {
-            idx = idx + offset
-            ii = c(ii, rep(i, length(idx)))
-            jj = c(jj, idx)
-            values = c(values, Q[i, idx])
+
+    } else {
+
+        stopifnot(is.matrix(Q))
+
+        n = dim(Q)
+        if (n[1] != n[2])
+            stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
+    
+        n = n[1]
+        ii = c()
+        jj = c()
+        values = c()
+
+        for(i in 1:n) {
+            if (symmetric){
+                idx = which(Q[i, i:n] != 0)
+                offset = i-1
+            } else {
+                idx = which(Q[i, 1:n] != 0)
+                offset = 0
+            }
+            if (length(idx) > 0) {
+                idx = idx + offset
+                ii = c(ii, rep(i, length(idx)))
+                jj = c(jj, idx)
+                values = c(values, Q[i, idx])
+            }
         }
     }
 
@@ -169,7 +187,7 @@
     }
     if (!binary) {
         opt = options()
-        options(digits=15)
+        options(digits=16)
         write(t(cbind(as.integer(C$i-off), as.integer(C$j-off), C$values)), ncolumns=3, file = filename)
         options(opt)
     } else {
