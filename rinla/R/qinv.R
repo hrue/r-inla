@@ -2,10 +2,15 @@
 
 `inla.qinv` = function(C)
 {
-    if (is.matrix(C)) {
+    if (is.matrix(C) || is(C, "dgTMatrix")) {
         qinv.file = inla.sparse2file(inla.matrix2sparse(C), c.indexing = TRUE)
+        remove = TRUE
+    } else if (is.character(C)) {
+        qinv.file = C
+        remove = FALSE
     } else {
         qinv.file = inla.sparse2file(C, c.indexing = TRUE)
+        remove = TRUE
     }
         
     if (inla.os("linux") || inla.os("mac")) {
@@ -16,7 +21,9 @@
         stop("\n\tNot supported architecture.")
     }
 
-    unlink(qinv.file)
+    if (remove) {
+        unlink(qinv.file)
+    }
 
     return (as.numeric(s))
 }
