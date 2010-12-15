@@ -6,18 +6,103 @@ function(...)
     return (inla.hyperpar(...))
 }
 
+
+##!\name{inla.hyperpar}
+##!\alias{inla.hyperpar}
+##!\alias{hyperpar.inla}
+##!
+##!\alias{hyperpar.inla.surv}
+##!\alias{hyperpar.inla.inla}
+##!
+##!\title{ Marginals for hyperparameters}
+##!\description{
+##! Compute (more accurate) posterior marginals for the hyperparameters of
+##! the model using the grid integration strategy.
+##!}
+##!\usage{
+##!`inla.hyperpar` =
+##!    function(object,...)
+##!}
+##!
+##!\arguments{
+
 `inla.hyperpar` =
-    function(object,
+    function(
+
+             ##!\item{object}
+             ##!{
+             ##!An object of class \code{inla}. Usually a result of a call to \code{inla}.
+             ##!}
+             object,
+
+             ##!\item{skip.configurations}
+             ##!{
+             ##!A boolean variable; skip configurations if the
+             ##!values at the main axis are to small. (Default TRUE.)
+             ##!}
              skip.configurations = TRUE,
+
+             ##!\item{verbose}
+             ##!{
+             ##!Boolean indicating wheather the inla program should run
+             ##!in a verbose mode. 
+             ##!}
              verbose = FALSE,
+
+             ##!\item{dz}
+             ##!{
+             ##!Step length in the standardized scale used in the construction of the grid, default 0.75.
+             ##!}
              dz = 0.75,
+
+             ##!\item{diff.logdens}
+             ##!{
+             ##!The difference of the log.density for the hyperpameters
+             ##!to stop numerical integration using int.strategy='grid'.
+             ##!Default 7
+             ##!}
              diff.logdens = 7,
-             h = NULL, 
+
+             ##!\item{h}
+             ##!{
+             ##!The step-length for the gradient calculations for the
+             ##!hyperparameters. Default 0.01.
+             ##!}
+             h = NULL,
+
+             ##!\item{restart}
+             ##!{
+             ##!A boolean defining wheather the
+             ##!optimizer should start again to ind the mode or if it
+             ##!should use the mode contained in the \code{object}
+             ##!}
              restart = FALSE,
+
+             ##!\item{quantiles}
+             ##!{
+             ##!A vector of maximum 10 quantiles,
+             ##!to compute for each posterior marginal.
+             ##!}
              quantiles = c(0.025, 0.5, 0.975),
+
+             ##!\item{keep}
+             ##!{
+             ##!A boolean variable indicating the working files (ini file,
+             ##!data files and results files) should be kept.
+             ##!}
              keep = FALSE
              )
 {
+    ##!}
+    ##!\value{
+    ##!The object returned is of class \code{hyperpar.inla} and you may apply
+    ##!\code{plot} and \code{summary}.}
+    ##!\references{
+    ##!See the references in \code{inla}}
+    ##!\author{Sara Martino, Havard Rue \email{hrue@math.ntnu.no}  }
+    ##!\note{This function might take a long time if the number of hyperparameters in
+    ##!the model is large.}
+    ##!seealso{\code{\link{inla}} }
     if(class(object) == "inla")
         rr = inla.hyperpar.inla(object, skip.configurations = skip.configurations,
                 verbose = verbose, dz = dz, diff.logdens = diff.logdens,
