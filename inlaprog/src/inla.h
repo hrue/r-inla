@@ -74,6 +74,14 @@ __BEGIN_DECLS
 	SURV_EVENT_INTERVAL = 3
 } inla_surv_event_tp;
 
+typedef enum {
+	INLA_MODE_DEFAULT = 0,
+	INLA_MODE_MCMC,
+	INLA_MODE_HYPER,
+	INLA_MODE_QINV,
+	INLA_MODE_FINN
+}
+	inla_mode_tp;
 
 typedef enum {
 	/*
@@ -834,6 +842,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
 int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename);
+int inla_finn(const char *filename);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
@@ -908,9 +917,7 @@ typedef double inla_all_offset_func_tp(int idx, void *arg);
 typedef struct {
 	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
-	int hyper_mode;					       /* enable accurate computations of the hyperparameters */
-	int mcmc_mode;					       /* enable MCMC mode */
-	int qinv_mode;					       /* (expert) just compute marginal variance... */
+	inla_mode_tp mode;				       /* which mode to run in */
 	double log_prec_initial;			       /* inititial value for log-precisions */
 	double dof_max;					       /* max dof for (additive) student-t */
 	double mcmc_scale;				       /* scaling */

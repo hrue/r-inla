@@ -42,3 +42,18 @@ for f in set.default.arguments.R; do
     awk '/:[A-Z]+:/{print}' $f | mmp
 done
     
+
+
+## second part
+for f in *.R; do
+    if grep -q '##!' $f; then
+	
+	fname=${f%%.R}
+	awk '/##!/ { gsub(/^.*##!/, ""); print }' $f  > ../man/$fname.Rd
+	echo "Make help-page from $f"
+	
+    fi
+done
+
+	
+	
