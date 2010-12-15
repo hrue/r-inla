@@ -1,7 +1,7 @@
 #!/usr/bin/env.exe bash.exe
 
 CYGWIN=0
-HGVERSION="hgid: 21cad1a7c617  date: Mon Dec 06 20:41:06 2010 +0100"
+HGVERSION="hgid: 8f8be9b778fd  date: Tue Dec 14 15:39:51 2010 +0100"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -122,10 +122,7 @@ fi
 if [ $CYGWIN == 0 ]; then
     ## Linux and Mac
     ssh $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; \	  
-    tar cf$compress_get - results.files; \
-	cd; \
-	rm -rf $rdir" | tar xfm$compress_get -
+    cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
 else
     ## Cygwin/Windows
     tarfile=results$RANDOM$RANDOM.tar
