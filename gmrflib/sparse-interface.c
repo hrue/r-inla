@@ -518,7 +518,7 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 }
 
 /*! 
-  \brief Return the id of the reordering from the name
+  \brief Return the id of the reordering from the name. 
  */
 int GMRFLib_reorder_id(const char *name)
 {
@@ -536,8 +536,10 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_AMD;
 	else if (!strcasecmp(name, "md"))
 		return GMRFLib_REORDER_MD;
-	else if (!strcasecmp(name, "md"))
+	else if (!strcasecmp(name, "mmd"))
 		return GMRFLib_REORDER_MMD;
+	else if (!strcasecmp(name, "auto"))
+		return -1;				       /* THIS IS SPECIAL */
 	else {
 		fprintf(stderr, "\n\t*** ERROR *** Reordering [%s] not defined.\n", name);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, -1);
