@@ -40,7 +40,7 @@ function(
          ##!\code{length(sort(unique(covariate)))}}
          n=NULL,
          
-         ##!\item{nrep} {}
+         ##!\item{nrep}{}
          nrep = NULL,
 
          ##!\item{replicate}{}
