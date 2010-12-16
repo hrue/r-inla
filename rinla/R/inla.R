@@ -145,27 +145,27 @@
               ##!(for which the system takes over control).}
               num.threads = inla.getOption("num.threads"),
 
-              ##!\item{keep} { A boolean variable indicating that the
+              ##!\item{keep}{ A boolean variable indicating that the
               ##!working files (ini file, data files and results
               ##!files) should be kept. If TRUE and no
               ##!\code{working.directory} is specified the working
               ##!files are stored in a directory called "inla".  }
               keep = inla.getOption("keep"),
 
-              ##!\item{working.directory} { A string giving the name
+              ##!\item{working.directory}{ A string giving the name
               ##!of an alternative directory where to store the
               ##!working files }
               working.directory = inla.getOption("working.directory"),
 
-              ##!\item{silent} { A boolean variable defining how the
+              ##!\item{silent}{ A boolean variable defining how the
               ##!\code{inla}-program should be ``silent''.  }
               silent = inla.getOption("silent"),
 
-              ##!\item{debug} { If \code{TRUE}, then enable some debug
+              ##!\item{debug}{ If \code{TRUE}, then enable some debug
               ##!output.  }
               debug = inla.getOption("debug"),
 
-              ##!\item{user.hook} { This defines an optional
+              ##!\item{user.hook}{ This defines an optional
               ##!user-defined function, which can be called just after
               ##!the .ini-file is created, usually, to add extra
               ##!information to the .ini-file. See the function
@@ -173,7 +173,7 @@
               ##!function, and the arguments to it.  }
               user.hook = NULL,
 
-              ##!\item{user.hook.arg} { This defines an optional
+              ##!\item{user.hook.arg}{ This defines an optional
               ##!argument to \code{user.hook} }
               user.hook.arg = NULL,
               ##
