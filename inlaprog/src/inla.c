@@ -14806,7 +14806,9 @@ int inla_qinv(const char *filename)
 	GMRFLib_problem_tp *problem;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
-	GMRFLib_optimize_reorder(graph, NULL);
+	if (G.reorder < 0){
+		GMRFLib_optimize_reorder(graph, NULL);
+	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
 	for (i = 0; i < graph->n; i++) {
@@ -14827,7 +14829,9 @@ int inla_finn(const char *filename)
 	GMRFLib_problem_tp *problem;
 	
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
-	GMRFLib_optimize_reorder(graph, NULL);
+	if (G.reorder < 0) {
+		GMRFLib_optimize_reorder(graph, NULL);
+	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_sample(problem);
 
