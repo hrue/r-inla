@@ -29,67 +29,45 @@ function(...)
 `inla.hyperpar` =
     function(
 
-             ##!\item{object}
-             ##!{
-             ##!An object of class \code{inla}. Usually a result of a call to \code{inla}.
-             ##!}
+             ##!\item{object} { An object of class
+             ##!\code{inla}. Usually a result of a call to
+             ##!\code{inla}.  }
              object,
 
-             ##!\item{skip.configurations}
-             ##!{
-             ##!A boolean variable; skip configurations if the
-             ##!values at the main axis are to small. (Default TRUE.)
-             ##!}
+             ##!\item{skip.configurations} { A boolean variable; skip
+             ##!configurations if the values at the main axis are to
+             ##!small. (Default TRUE.)  }
              skip.configurations = TRUE,
 
-             ##!\item{verbose}
-             ##!{
-             ##!Boolean indicating wheather the inla program should run
-             ##!in a verbose mode. 
-             ##!}
+             ##!\item{verbose} { Boolean indicating wheather the inla
+             ##!program should run in a verbose mode.  }
              verbose = FALSE,
 
-             ##!\item{dz}
-             ##!{
-             ##!Step length in the standardized scale used in the construction of the grid, default 0.75.
-             ##!}
+             ##!\item{dz} { Step length in the standardized scale used
+             ##!in the construction of the grid, default 0.75.  }
              dz = 0.75,
 
-             ##!\item{diff.logdens}
-             ##!{
-             ##!The difference of the log.density for the hyperpameters
-             ##!to stop numerical integration using int.strategy='grid'.
-             ##!Default 7
-             ##!}
+             ##!\item{diff.logdens} { The difference of the
+             ##!log.density for the hyperpameters to stop numerical
+             ##!integration using int.strategy='grid'.  Default 7 }
              diff.logdens = 7,
 
-             ##!\item{h}
-             ##!{
-             ##!The step-length for the gradient calculations for the
-             ##!hyperparameters. Default 0.01.
-             ##!}
+             ##!\item{h} { The step-length for the gradient
+             ##!calculations for the hyperparameters. Default 0.01.  }
              h = NULL,
 
-             ##!\item{restart}
-             ##!{
-             ##!A boolean defining wheather the
+             ##!\item{restart} { A boolean defining wheather the
              ##!optimizer should start again to ind the mode or if it
-             ##!should use the mode contained in the \code{object}
-             ##!}
+             ##!should use the mode contained in the \code{object} }
              restart = FALSE,
 
-             ##!\item{quantiles}
-             ##!{
-             ##!A vector of maximum 10 quantiles,
-             ##!to compute for each posterior marginal.
-             ##!}
+             ##!\item{quantiles} { A vector of maximum 10 quantiles,
+             ##!to compute for each posterior marginal.  }
              quantiles = c(0.025, 0.5, 0.975),
 
-             ##!\item{keep}
-             ##!{
-             ##!A boolean variable indicating the working files (ini file,
-             ##!data files and results files) should be kept.
-             ##!}
+             ##!\item{keep} { A boolean variable indicating the
+             ##!working files (ini file, data files and results files)
+             ##!should be kept.  }
              keep = FALSE
              )
 {
@@ -102,7 +80,7 @@ function(...)
     ##!\author{Sara Martino, Havard Rue \email{hrue@math.ntnu.no}  }
     ##!\note{This function might take a long time if the number of hyperparameters in
     ##!the model is large.}
-    ##!seealso{\code{\link{inla}} }
+    ##!\seealso{\code{\link{inla}}}
     if(class(object) == "inla")
         rr = inla.hyperpar.inla(object, skip.configurations = skip.configurations,
                 verbose = verbose, dz = dz, diff.logdens = diff.logdens,
