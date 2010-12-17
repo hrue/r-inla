@@ -65,10 +65,14 @@
     sink(graph.file)
     len <- length(num)
     cat(len, '\n')
-    spl <- split(adj-1, rep(1:len, num))
-    for(i in 1:len)  {
-        ni <- num[i]
-        cat(i-off, ni, spl[[i]] + (1-off),'\n')
+    k = 1
+    for(i in 1:len) {
+        if (num[i] > 0) {
+            cat(i, num[i], adj[k:(k+num[i]-1)], "\n")
+        } else {
+            cat(i, num[i], "\n")
+        }
+        k = k + num[i]
     }
     sink()
     return (graph.file)
