@@ -68,9 +68,9 @@
     k = 1
     for(i in 1:len) {
         if (num[i] > 0) {
-            cat(i, num[i], adj[k:(k+num[i]-1)], "\n")
+            cat(i - off, num[i], adj[k:(k+num[i]-1)] - off, "\n")
         } else {
-            cat(i, num[i], "\n")
+            cat(i - off, num[i], "\n")
         }
         k = k + num[i]
     }
