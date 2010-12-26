@@ -16,7 +16,7 @@
 ##!    \code{graph$graph.file} is the filename for which this graph is based on.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!\seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
+##!\seealso{}
 ##!\examples{
 ##!cat("2 1 1 2 2 1 1\n", file="g.dat")
 ##!g = inla.read.graph("g.dat")
