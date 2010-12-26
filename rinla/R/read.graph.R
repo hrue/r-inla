@@ -1,6 +1,7 @@
 ## This function interface with mode = graph in the inlaprogram.
 
 ##!\name{read.graph}
+##!\alias{read.graph}
 ##!\alias{inla.read.graph}
 ##!\title{Read a graph-file}
 ##!\description{Reads a graph spesification from file and create an R-object for it"}
@@ -11,7 +12,7 @@
 ##!\value{
 ##!    The output is a graph-object, \code{graph} say, where
 ##!    \code{graph$n} is the size of the graph,
-##!    \code{graph$nnbf} is a vector with the number of neigbours, 
+##!    \code{graph$nnbs} is a vector with the number of neigbours, 
 ##!    \code{graph$nbs} is a list-list with the neigbours, and
 ##!    \code{graph$graph.file} is the filename for which this graph is based on.
 ##!}
