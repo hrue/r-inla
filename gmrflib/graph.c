@@ -320,7 +320,6 @@ int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph)
 	 * write graph to file filename in the format so it can be read by 'read_graph' 
 	 */
 
-	int i, j;
 	FILE *fp = NULL;
 
 	if (!filename) {
@@ -335,6 +334,15 @@ int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph)
 		GMRFLib_ERROR(GMRFLib_EOPENFILE);
 	}
 
+	GMRFLib_write_graph_2(fp, graph);
+	fclose(fp);
+
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_write_graph_2(FILE *fp, GMRFLib_graph_tp *graph)
+{
+	int i, j;
+	
 	fprintf(fp, "%1d\n", graph->n);
 	for (i = 0; i < graph->n; i++) {
 		fprintf(fp, "%1d %1d", i, graph->nnbs[i]);
@@ -343,8 +351,6 @@ int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph)
 		}
 		fprintf(fp, "\n");
 	}
-	fclose(fp);
-
 	return GMRFLib_SUCCESS;
 }
 

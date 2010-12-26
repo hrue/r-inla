@@ -79,7 +79,8 @@ typedef enum {
 	INLA_MODE_MCMC,
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
-	INLA_MODE_FINN
+	INLA_MODE_FINN,
+	INLA_MODE_GRAPH
 }
 	inla_mode_tp;
 
@@ -900,6 +901,7 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
+int inla_read_graph(const char *filename);
 
 double inla_log_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
