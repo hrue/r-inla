@@ -193,6 +193,7 @@ int GMRFLib_sort_nodes(GMRFLib_graph_tp * graph);
 int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
 int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph);
+int GMRFLib_write_graph_2(FILE *fp, GMRFLib_graph_tp *graph);
 int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);

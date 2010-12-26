@@ -14845,6 +14845,19 @@ int inla_finn(const char *filename)
 	return 0;
 }
 
+int inla_read_graph(const char *filename)
+{
+	/*
+	 * Read a graph and print it on stdio.
+	 */
+	GMRFLib_graph_tp *graph;
+
+	GMRFLib_read_graph(&graph,  filename);
+	GMRFLib_write_graph_2(stdout, graph);
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 #define USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
@@ -14938,6 +14951,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_QINV;
 			} else if (!strncasecmp(optarg, "FINN", 4)) {
 				G.mode = INLA_MODE_FINN;
+			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
+				G.mode = INLA_MODE_GRAPH;
 			} else {
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
 				exit(1);
@@ -15031,7 +15046,7 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * these one does not belong here, but it makes all easier... and its undocumented.
+	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind]);
@@ -15041,6 +15056,15 @@ int main(int argc, char **argv)
 		inla_finn(argv[optind]);
 		exit(0);
 	}
+	if (G.mode == INLA_MODE_GRAPH) {
+		inla_read_graph(argv[optind]);
+		exit(0);
+	}
+
+	/* 
+	   DO AS NORMAL
+	 */
+	
 
 	if (!silent || verbose) {
 		fprintf(stderr, "\n\t%s\n", RCSId);
