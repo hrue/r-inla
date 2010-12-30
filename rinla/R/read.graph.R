@@ -35,9 +35,9 @@
     stopifnot(file.exists(graph.file))
               
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m graph", graph.file), intern=TRUE)
+        s = system(paste(shQuote(inla.call.builtin()), "-s -m graph", graph.file), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m graph", graph.file), intern=TRUE)
+        s = system(paste(shQuote(inla.call.builtin()), "-s -m graph", graph.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

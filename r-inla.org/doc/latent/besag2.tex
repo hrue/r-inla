@@ -112,7 +112,12 @@ r = inla(formula, family = "poisson", data = data.frame(E,y,i), E=E, verbose=TRU
 
 \subsection*{Notes}
 
-The besag2 model has default \texttt{constr=FALSE}. 
+The besag2 model has default \texttt{constr=FALSE}, and
+\texttt{constr=TRUE} does not make sense. 
+
+The model is modified accordingly is the graph has more than one
+connected components.
+
 
 \end{document}
 
