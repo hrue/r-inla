@@ -14848,13 +14848,19 @@ int inla_finn(const char *filename)
 int inla_read_graph(const char *filename)
 {
 	/*
-	 * Read a graph and print it on stdio.
+	 * Read a graph and print it on stdio. Compute also the connected components.
 	 */
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_read_graph(&graph,  filename);
 	GMRFLib_write_graph_2(stdout, graph);
 
+	int *cc, i;
+	cc = GMRFLib_connected_components(graph);
+	for(i=0; i<graph->n; i++)
+		printf("%d\n", cc[i]);
+	Free(cc);
+		
 	return 0;
 }
 
