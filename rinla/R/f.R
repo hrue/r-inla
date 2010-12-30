@@ -221,7 +221,10 @@ function(
          ##! \code{f()} model should be computed or not. This is
          ##! usefull for large models where we are only interested in
          ##! some posterior marginals.}
-         compute = TRUE)
+         compute = TRUE,
+
+         ## local debug-flag
+         debug = FALSE)
 {
     ##!}
     ##!\value{
@@ -238,7 +241,7 @@ function(
     ##!default is zero), plus 1 for the sum-to-zero constraint if the
     ##!prior model is proper, plus the number of extra
     ##!constraints. \bold{Oops:} This can be wrong, and then the user
-  ##!must define the \code{rankdef} explicitely.
+    ##!must define the \code{rankdef} explicitely.
     ##!}
     
     ##!\references{
@@ -258,8 +261,6 @@ function(
     ##!\author{ Sara Martino, Havard Rue \email{hrue@math.ntnu.no} }
     
     ##!\seealso{ \code{\link{inla}},  \code{\link{hyperpar.inla}}}
-
-    debug = FALSE
 
     ## this is a nice trick
     if (!is.null(copy)) {
@@ -374,7 +375,7 @@ function(
     }
 
     ## chech that the graph.file is provided, if required. Set 'n' from the graph.file.
-    if(inla.one.of(model, c("besag", "bym"))) {
+    if (inla.one.of(model, c("besag", "bym"))) {
         if (is.null(graph.file)) {
             stop(paste("The graph.file has to be provided for model", model))
         }
@@ -382,7 +383,7 @@ function(
             stop(paste("Cannot find graph.file", graph.file))
         }
         ## read n from the graph
-        n.from.graph = scan(graph.file, n=1, what = integer(0), comment.char = "#") #
+        n.from.graph = inla.read.graph(graph.file)$n
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         }
@@ -391,7 +392,7 @@ function(
         }
         n = n.from.graph
     }
-    if(inla.one.of(model, c("besag2"))) {
+    if (inla.one.of(model, c("besag2"))) {
         if (is.null(graph.file)) {
             stop(paste("The graph.file has to be provided for model", model))
         }
@@ -399,7 +400,7 @@ function(
             stop(paste("Cannot find graph.file", graph.file))
         }
         ## read n from the graph
-        n.from.graph = 2*scan(graph.file, n=1, what = integer(0), comment.char = "#") #
+        n.from.graph = 2*inla.read.graph(graph.file)$n
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         }
@@ -407,6 +408,10 @@ function(
             stop(paste("Argument 'n' and 2*'n from graph.file' does not match", n, n.from.graph))
         }
         n = n.from.graph
+
+        if (!is.null(constr) && constr) {
+            stop(paste("'constr=TRUE' does not make sense for model 'besag2'"))
+        }
     }
 
     ## is N required?
@@ -428,12 +433,12 @@ function(
         values = 1:n
     }
 
-    if(inla.one.of(model, "linear")) {
+    if (inla.one.of(model, "linear")) {
         vars = as.list(substitute(list(...)))[-1]
         d = length(vars)
         term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500) 
 
-        if(d != 1) {
+        if (d != 1) {
             stop("Too many or no term specified ")
         }
         term = attr(terms(reformulate(term)),"term.labels")
@@ -448,7 +453,7 @@ function(
         n=1
     }
             
-    if(!is.null(prec.linear) | !is.null(mean.linear)) {
+    if (!is.null(prec.linear) | !is.null(mean.linear)) {
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
 
@@ -499,23 +504,23 @@ function(
     }
         
     ##the second term in ... is the (possible) weights for the selected covariate!
-    if(d==1) {
+    if (d==1) {
         weights = NULL
-    } else if(d==2) {
+    } else if (d==2) {
         weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)         
-    } else if(d>2) {
+    } else if (d>2) {
         stop(paste("To many variables included in f():", inla.paste(vars)))
     } else if (d==0) {
         stop("At least one variable in f() needs to be defined")
     }
         
-    if(inla.one.of(model,"seasonal") &&
+    if (inla.one.of(model,"seasonal") &&
        is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
     }
         
     ## cyclic is only valid for rw1, rw2 and rw2d-models
-    if(!is.null(cyclic) && cyclic &&
+    if (!is.null(cyclic) && cyclic &&
        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
         stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2 and rw2d models")
     }
@@ -563,15 +568,15 @@ function(
         
     ## get the weights
     term = attr(terms(reformulate(term)),"term.labels")
-    if(d > 1) {
+    if (d > 1) {
         weigths = attr(terms(reformulate(weights)),"weights.labels")
     }
 
     ##for all instrinsic model the constraint has to be ON...
     ##...except if the rw is cyclic!!!!!
-    if(is.null(constr)) {
+    if (is.null(constr)) {
         constr = inla.model.properties(model)$constr
-        if(!is.null(cyclic) && cyclic) {
+        if (!is.null(cyclic) && cyclic) {
             constr=FALSE
         }
     }   
@@ -589,14 +594,14 @@ function(
         stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
     }
 
-    if(!is.null(extraconstr)) {
+    if (!is.null(extraconstr)) {
         ##check
         A=extraconstr$A
         e=extraconstr$e
-        if(!is.matrix(A)) {
+        if (!is.matrix(A)) {
             stop("A(extraconstraint) has to be a matrix")
         } else {
-            if(nrow(A)!=length(e)) {
+            if (nrow(A)!=length(e)) {
                 stop("Dimension of A and e do not correspond")
             }
         }
@@ -658,6 +663,93 @@ function(
         for(i in 1:length(prior)) {
             if (!is.null(prior[i])) {
                 inla.is.prior(prior[i], stop.on.error=TRUE)
+            }
+        }
+    }
+
+    if (inla.one.of(model, c("besag", "besag2", "bym"))) {
+
+        ## I am not sure if this is the best place to do this, but...
+        ## For the model = "besag", "bym" and "besag2", we need to
+        ## check if the graph contains more than 1 connected
+        ## components. If so, we need to modify the meaning of
+        ## constr=TRUE, and set the correct value of rankdef.
+
+        g = inla.read.graph(graph.file)
+        if (g$cc$n == 1) {
+            ## hole graph is just one connected component. all is
+            ## fine, no need to do anything
+        } else {
+            cc.n = sapply(g$cc$nodes, length)
+            cc.n2 = sum(cc.n >= 2L)
+            dimA = 0
+
+            if (debug) {
+                print(paste("modify model", model))
+                print(paste("number of connected components", inla.paste(cc.n)))
+                print(paste("number of connected components of size >= 2L", cc.n2))
+            }
+        
+            if (constr) {
+                ## need to redefine the meaning of constr = TRUE to mean
+                ## constr=TRUE for all connected components with size > 1
+
+                ## like bym place the constr on the second half
+                m = inla.model.properties(model)
+                if (m$augmented) {
+                    N = m$aug.factor * n
+                    offset = (m$aug.constr -1L) * n
+                    stopifnot(length(offset) == 1)
+                } else {
+                    N = n
+                    offset = 0
+                }
+                constr = FALSE
+                AA = matrix(0, cc.n2, N)
+                ee = rep(0, cc.n2)
+            
+                if (debug) {
+                    print(paste("add new extraconstr, dim = ", cc.n2, "x", n))
+                }
+
+                k = 1L
+                for(i in 1L:length(cc.n)) {
+                    if (cc.n[i] >= 2L) {
+                        AA[k, offset + g$cc$nodes[[i]]] = 1
+                        k = k + 1L
+                    }
+                }
+                stopifnot(k-1L == cc.n2)
+
+                if (!is.null(extraconstr)) {
+                    dimA = dim(extraconstr$A)[1] ## need to remember this one for the 'rankdef'
+                    extraconstr$A = rbind(AA, extraconstr$A)
+                    extraconstr$e = c(ee, extraconstr$e)
+                } else {
+                    extraconstr = list(A = AA, e = ee)
+                }
+            }
+
+            ## set correct rankdef if not set manually. well, this is
+            ## not failsafe without detailed analysis, but then we
+            ## asssume that the user knows the correct rankdef (s)he
+            ## will set it correctly. Note that regions with no
+            ## neigbours only reduce 'n' as they do not contribute to the rankdef.
+            if (is.null(rankdef)) {
+                cc.n1 = sum(cc.n == 1)
+                rankdef = cc.n1 + dimA + (g$n - sum(cc.n[ cc.n >= 2L ] -1L))
+                if (debug) {
+                    print(paste("redefine rankdef = ", rankdef))
+                }
+            }
+
+            ## need this, either if there is extraconstr or if there
+            ## are regions without neighbours.
+            if (is.null(diagonal) && (!is.null(extraconstr) || any(cc.n == 1))) {
+                diagonal = inla.set.f.default()$diagonal
+                if (debug) {
+                    print(paste("set diagonal = ", diagonal))
+                }
             }
         }
     }
