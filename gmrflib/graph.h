@@ -199,5 +199,8 @@ int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph);
 
+int *GMRFLib_connected_components(GMRFLib_graph_tp *g);
+int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp *g, int *cc, char *visited, int *ccc);
+
 __END_DECLS
 #endif
