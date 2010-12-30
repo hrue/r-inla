@@ -1906,6 +1906,55 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 
 	return GMRFLib_SUCCESS;
 }
+int *GMRFLib_connected_components(GMRFLib_graph_tp *g)
+{
+	/* 
+	   return a vector of length n, indicating which connecting component each node belongs to
+	 */
+	
+	if (g == NULL || g->n == 0){
+		return NULL;
+	}
+
+	int i, n, *cc, ccc;
+	char *visited;
+
+	n = g->n;
+	cc = Calloc(n, int);
+	ccc = -1;					       /* the counter. yes, start at -1 */
+	visited = Calloc(n, char);
+	
+	for(i=0; i<n; i++){
+		if (!visited[i]){
+			ccc++;
+			GMRFLib_connected_components_do(i, g, cc, visited, &ccc);
+		}
+	}
+
+	Free(visited);
+
+	return cc;
+}
+int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp *g, int *cc, char *visited, int *ccc)
+{
+	if (visited[node]) {				       /* I don't need this but include it for clarity */
+		return GMRFLib_SUCCESS;
+	}
+
+	visited[node] = 1;
+	cc[node] = *ccc;
+
+	int i, nnode;
+	for(i = 0; i<g->nnbs[node]; i++){
+		nnode = g->nbs[node][i];
+		if (!visited[nnode]){			       /* faster to do a check here than to doit inside the funcall */
+			GMRFLib_connected_components_do(nnode, g, cc, visited, ccc);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+	
 
 /*
   Example for manual
