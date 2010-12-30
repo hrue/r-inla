@@ -34,8 +34,9 @@ The besag model is specified inside the {\tt f()} function as
               param=c(<param.prior.theta1>))
 \end{verbatim}
 
-The neighbourhood structure of $\mathbf{x}$ is passed to the program through the {\tt graph.file} argument. 
-The structure of this file is described below.
+The neighbourhood structure of $\mathbf{x}$ is passed to the program
+through the {\tt graph.file} argument.  The structure of this file is
+described below.
 
 \subsubsection*{Structure of the graph file}
 
@@ -67,6 +68,9 @@ For examples of application of this model see the {\tt Bym}, {\tt Munich}, {\tt 
 \subsection*{Notes}
 
 The besag model is a intrinsic random field.
+
+The model is modified accordingly is the graph has more than one
+connected components.
 
 \end{document}
 
