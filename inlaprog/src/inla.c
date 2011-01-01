@@ -476,6 +476,42 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_beta(double x, map_arg_tp typ, void *param)
+{
+	/*
+	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its interpreted as range.low = -INF and
+	 * range.high = INF, ie the mapping is the identity.
+	 */
+
+	double *range = (double *) param;
+
+	if (param == NULL || ISEQUAL(range[0], range[1])){
+		return map_identity(x, typ, param);
+	}
+	
+	/* 
+	   Then the mapping is
+
+	   range[0] +  exp(x)/(1 + exp(x)) * (range[1] - range[0])
+	*/
+
+	double d = range[1] - range[0], xx;
+	
+	switch (typ) {
+	case MAP_FORWARD:
+		return range[0] + d * exp(x) / (1.0 + exp(x));
+	case MAP_BACKWARD:
+		xx = (x - range[0])/d;
+		return log(xx / (1.0 - xx));
+	case MAP_DFORWARD:
+		return d * exp(x) / SQR(1 + exp(x));
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		assert(0 == 1);
+	}
+	return 0.0;
+}
 double map_1exp(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -8444,6 +8480,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%d]\n", mb->f_fixed[mb->nf][0]);
 		}
 
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0); /* low = high ==> map = identity */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]); 
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -8451,6 +8494,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
 		if (mb->verbose) {
+			printf("\t\trange[%g, %g]\n", range[0],range[1]);
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
@@ -8477,9 +8521,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
 			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
