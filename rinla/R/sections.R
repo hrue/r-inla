@@ -141,6 +141,11 @@
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
 
+        if (!is.null(random.spec$range)) {
+            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
+            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+        }
+
         if (prop$ntheta > 0) {
             k = 1
             for(j in 1:prop$ntheta) {
