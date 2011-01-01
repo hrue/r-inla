@@ -748,6 +748,7 @@ double laplace_likelihood_normalising_constant(double alpha, double gamma, doubl
 double link_log(double x, map_arg_tp typ, void *param);
 double link_logit(double x, map_arg_tp typ, void *param);
 double log_apbex(double a, double b);
+double map_beta(double arg, map_arg_tp typ, void *param);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param);

@@ -35,7 +35,7 @@ function(
          ##!\item{same.as}{}
          same.as = NULL,
 
-         ##!\item{n}{ An optional argument which defines the dimension
+         ##!\item{n}{An optional argument which defines the dimension
          ##!of the model if this is different from
          ##!\code{length(sort(unique(covariate)))}}
          n=NULL,
@@ -64,7 +64,7 @@ function(
          ##!about the choosen model.}
          initial=NULL,
 
-         ##!\item{season.length}{ Lenght of the seasonal compoment
+         ##!\item{season.length}{Lenght of the seasonal compoment
          ##!(ONLY if \code{model="seasonal"}) }
          season.length=NULL,
 
@@ -76,7 +76,7 @@ function(
          ##!choices}
          prior=NULL,
 
-         ##!\item{param}{ Vector indicating the parameters \eqn{a}{a}
+         ##!\item{param}{Vector indicating the parameters \eqn{a}{a}
          ##!and \eqn{b}{b} of the prior distribution for the
          ##!hyperparameters. The length of the vector depends on the
          ##!choosen \code{model}.  See
@@ -84,20 +84,20 @@ function(
          ##!about the choosen model.}
          param = NULL,
 
-         ##!\item{fixed}{ Vector of boolean variables indicating
+         ##!\item{fixed}{Vector of boolean variables indicating
          ##!wheater the hyperparameters of the model are fixed or
          ##!random. The length of the vector depends on the choosen
          ##!\code{model} See \code{inla.models()$models$'model name'}
          ##!to have info about the choosen model.}
          fixed = NULL,
 
-         ##!\item{constr}{ A boolean variable indicating whater to set
+         ##!\item{constr}{A boolean variable indicating whater to set
          ##!a sum to 0 constraint on the term. By default the sum to 0
          ##!constraint is imposed on all intrinsic models
          ##!("iid","rw1","rw1","besag", etc..).}
          constr = NULL,
 
-         ##!\item{extraconstr}{ This argument defines extra linear
+         ##!\item{extraconstr}{This argument defines extra linear
          ##!constraints. The argument is a list with two elements, a
          ##!matrix \code{A} and a vector \code{e}, which defines the
          ##!extra constraint \code{Ax = e}; for example
@@ -108,34 +108,35 @@ function(
          ##!\code{constr = TRUE}.}
          extraconstr=NULL,
 
-         ##!\item{values}{ An optional vector giving all values
+         ##!\item{values}{An optional vector giving all values
          ##!assumed by the covariate for which we want estimated the
          ##!effect. It must be a numeric vector, a vector of factors
          ##!or \code{NULL}.}
          values=NULL,
 
-         ##!\item{cyclic}{ A boolean specifying wheather the model is
+         ##!\item{cyclic}{A boolean specifying wheather the model is
          ##!cyclical. Only valid for "rw1" and "rw2" models, is
          ##!cyclic=T then the sum to 0 constraint is removed. For the
          ##!correct form of the grah file see \cite{Martinoand Rue
          ##!(2008)}.}
          cyclic = NULL,
 
-         ##!\item{diagonal}{}
+         ##!\item{diagonal}{An extra constant added to the diagonal of
+         ##!the precision matrix (default 0.0).}
          diagonal = NULL,
 
-         ##!\item{graph.file}{ Name of the file containing the graph
+         ##!\item{graph.file}{Name of the file containing the graph
          ##!of the model.  For the correct for of the graph file see
          ##!\url{http://www.r-inla.org/help/faq}.}
          graph.file=NULL,
 
-         ##!\item{cdf}{ A vector of maximum 10 values between 0 and 1
+         ##!\item{cdf}{A vector of maximum 10 values between 0 and 1
          ##!\eqn{x(0),x(1),\ldots}{x(0),x(1),\ldots}. The function
          ##!returns, for each posterior marginal the probabilities
          ##!\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
          cdf=NULL,
 
-         ##!\item{quantiles}{ A vector of maximum 10 quantiles,
+         ##!\item{quantiles}{A vector of maximum 10 quantiles,
          ##!\eqn{p(0),p(1),\dots}{p(0),p(1),\ldots} to compute for
          ##!each posterior marginal. The function returns, for each
          ##!posterior marginal, the values
@@ -143,7 +144,7 @@ function(
          ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
          quantiles=NULL,
 
-         ##!\item{Cmatrix}{ The specification of the precision matrix
+         ##!\item{Cmatrix}{The specification of the precision matrix
          ##!for the generic models (up to a scaling constant), and is
          ##!only used if \code{model="generic0"} or
          ##!\code{model="generic1"}.  \code{Cmatrix} is a list of type
@@ -159,7 +160,7 @@ function(
          Qmatrix=NULL,  ### not used anymore
          Cmatrix=NULL,
 
-         ##!\item{rankdef}{ A number \bold{defining} the rank
+         ##!\item{rankdef}{A number \bold{defining} the rank
          ##!deficiency of the model, with sum-to-zero constraint and
          ##!possible extra-constraints taken into account. See
          ##!details.}
@@ -168,13 +169,13 @@ function(
          ##!\item{Z}{}
          Z = NULL,
 
-         ##!\item{nrow}{ Number of rows for 2d-models}
+         ##!\item{nrow}{Number of rows for 2d-models}
          nrow = NULL,
 
-         ##!\item{ncol}{ Number of columns for 2d-models}
+         ##!\item{ncol}{Number of columns for 2d-models}
          ncol = NULL,
 
-         ##!\item{nu}{ Smoothing parameter for the Matern2d-model,
+         ##!\item{nu}{Smoothing parameter for the Matern2d-model,
          ##!possible values are \code{c(0,1,2,3)}}
          nu = NULL,
 
@@ -222,6 +223,12 @@ function(
          ##! usefull for large models where we are only interested in
          ##! some posterior marginals.}
          compute = TRUE,
+
+         ##!\item{range}{A vector of size two giving the lower and
+         ##!upper range for the scaling parameter \code{beta} in the
+         ##!model \copy{COPY}. If low = high then the identity mapping
+         ##!is used.
+         range = NULL,
 
          ## local debug-flag
          debug = FALSE)
@@ -276,15 +283,20 @@ function(
         copy = NULL
     } 
 
+    if (model == "copy")
+
     if (is.null(model)) {
         stop("No model is specified.")
     }
     inla.is.model(model,stop.on.error=TRUE)
     
     ## for model = copy, its is not allowed to define constr or extraconstr
-    if (model == "copy") {
+    if (inla.one.of(model, "copy")) {
         stopifnot(missing(constr))
         stopifnot(missing(extraconstr))
+    } else {
+        ## this is only used for model = copy. 
+        stopifnot(missing(range))
     }
 
     if (!missing(same.as) && !is.null(same.as) && model != "copy") {
@@ -764,7 +776,7 @@ function(
             nrow = nrow, ncol = ncol, nu = nu, bvalue = bvalue,
             sphere.dir = sphere.dir, T.order = T.order, T.model = T.model, K.order = K.order, K.model = K.model,
             of = of, precision = precision, si = si, compute = compute,
-            spde.prefix = spde.prefix )
+            spde.prefix = spde.prefix, range = range )
 
     return (ret)
 }
