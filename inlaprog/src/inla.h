@@ -384,6 +384,9 @@ typedef struct {
 
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
+
+	map_func_tp *map_beta;
+	void *map_beta_arg;
 } inla_copy_arg_tp;
 
 
@@ -485,6 +488,8 @@ struct inla_tp_struct {
 	double *f_diag;
 	double *f_rankdef;
 	double ****f_theta;
+	map_func_tp ***f_theta_map;
+	void ***f_theta_map_arg;
 	int *f_si;
 	int *f_compute;
 	int **f_fixed;

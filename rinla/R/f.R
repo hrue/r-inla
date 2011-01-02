@@ -226,8 +226,9 @@ function(
 
          ##!\item{range}{A vector of size two giving the lower and
          ##!upper range for the scaling parameter \code{beta} in the
-         ##!model \copy{COPY}. If low = high then the identity mapping
-         ##!is used.
+         ##!model \code{COPY}. If low = high then the identity mapping
+         ##!is used.}
+
          range = NULL,
 
          ## local debug-flag
