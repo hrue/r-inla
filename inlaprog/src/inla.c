@@ -6742,6 +6742,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_Kmodel = Realloc(mb->f_Kmodel, mb->nf + 1, char *);
 	mb->f_model = Realloc(mb->f_model, mb->nf + 1, void *);
 	mb->f_theta = Realloc(mb->f_theta, mb->nf + 1, double ***);
+	mb->f_theta_map = Realloc(mb->f_theta_map,  mb->nf+1,  map_func_tp **);
+	mb->f_theta_map_arg = Realloc(mb->f_theta_map_arg,  mb->nf+1,  void **);
 	mb->f_of = Realloc(mb->f_of, mb->nf + 1, char *);
 	mb->f_same_as = Realloc(mb->f_same_as, mb->nf + 1, char *);
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
@@ -8505,6 +8507,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_theta[mb->nf] = Calloc(1, double **);
 		mb->f_theta[mb->nf][0] = beta;
 
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;  /* and this one as well */
+		
 		if (mb->f_same_as[mb->nf] == NULL && !mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
@@ -9684,17 +9691,24 @@ double Qfunc_copy_part00(int i, int j, void *arg)
 {
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 
-	return a->Qfunc(i, j, a->Qfunc_arg) + (i == j ? a->precision * SQR(a->beta[GMRFLib_thread_id][0]) : 0.0);
+	if (i == j) {
+		double beta = a->map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
+		return a->Qfunc(i, j, a->Qfunc_arg) + a->precision * SQR(beta);
+	} else {
+		return a->Qfunc(i, j, a->Qfunc_arg);
+	}
 }
 double Qfunc_copy_part01(int i, int j, void *arg)
 {
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
+	double beta = a->map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 
-	return -a->precision * a->beta[GMRFLib_thread_id][0];
+	return - a->precision * beta;
 }
 double Qfunc_copy_part11(int i, int j, void *arg)
 {
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
+
 	return a->precision;
 }
 int inla_add_copyof(inla_tp * mb)
@@ -9784,6 +9798,16 @@ int inla_add_copyof(inla_tp * mb)
 			arg->Qfunc_arg = mb->f_Qfunc_arg[kk];
 			arg->precision = mb->f_precision[k];
 			arg->beta = mb->f_theta[kkk][0];
+
+			arg->map_beta = mb->f_theta_map[kkk][0];
+			arg->map_beta_arg = mb->f_theta_map_arg[kkk][0];
+
+			if (0){
+				if (arg->map_beta_arg){
+					printf("range %g %g\n",  ((double *) (arg->map_beta_arg))[0],((double *) (arg->map_beta_arg))[1]);
+				}
+			}
+
 			/*
 			 * zero this out if its not needed anymore 
 			 */
