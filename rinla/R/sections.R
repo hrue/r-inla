@@ -113,26 +113,10 @@
         if (!is.null(random.spec$weights)) {
             cat("weights =", file.weights,"\n", sep = " ", file = file,  append = TRUE)
         }
-        if (!is.null(random.spec$sphere.dir)) {
-            fnm = inla.copy.dir.for.section(random.spec$sphere.dir, data.dir)
-            cat("sphere.dir =", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
         if (!is.null(random.spec$spde.prefix)) {
             ## need a special one, as spde.prefix is not a file or a directory...
             fnm = inla.copy.dir.for.section.spde(random.spec$spde.prefix, data.dir)
             cat("spde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$T.order)) {
-            cat("T.order =", random.spec$T.order, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$T.model)) {
-            cat("T.model =", random.spec$T.model, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$K.order)) {
-            cat("K.order =", random.spec$K.order, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$K.model)) {
-            cat("K.model =", random.spec$K.model, "\n", sep = " ", file = file,  append = TRUE)
         }
         if (!is.null(random.spec$of)) {
             cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)

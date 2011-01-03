@@ -262,7 +262,6 @@ typedef enum {
 	F_GENERIC1,
 	F_GENERIC2,
 	F_MATERN2D,
-	F_SPHERE,
 	F_SPDE,
 	F_COPY,
 	P_LOGGAMMA,					       /* priors */
