@@ -182,6 +182,9 @@ function(
          ##!\item{bvalue}{}
          bvalue = NULL,
 
+         ##!\item{spde.prefix}{}
+         spde.prefix = NULL,
+
          ##!\item{mean.linear}{ Prior mean for the linear component,
          ##!only used if \code{model="linear"}}
          mean.linear=NULL,
