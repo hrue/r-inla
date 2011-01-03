@@ -20,7 +20,7 @@
 ##!    \code{graph$cc$nodes}  is a list-list of nodes belonging to each connected component
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!\seealso{}
+##!\seealso{inla.debug.graph}
 ##!\examples{
 ##!cat("2 1 1 2 2 1 1\n", file="g.dat")
 ##!g = inla.read.graph("g.dat")
