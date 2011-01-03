@@ -2,11 +2,13 @@
 
 ##!\name{read.graph}
 ##!\alias{read.graph}
+##!\alias{write.graph}
 ##!\alias{inla.read.graph}
+##!\alias{inla.write.graph}
 ##!\title{Read a graph-file}
 ##!\description{Reads a graph spesification from file and create an R-object for it, and write a graph to file."}
 ##!\usage{
-##!inla.read.graph(graph.file)
+##!graph = inla.read.graph(graph.file)
 ##!inla.write.graph(graph, graph.file)}
 ##!\arguments{
 ##!    \item{graph.file}{The filename of the graph.}
