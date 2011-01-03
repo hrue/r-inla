@@ -4,13 +4,16 @@
 ##!\alias{read.graph}
 ##!\alias{inla.read.graph}
 ##!\title{Read a graph-file}
-##!\description{Reads a graph spesification from file and create an R-object for it"}
-##!\usage{inla.read.graph(graph.file)}
+##!\description{Reads a graph spesification from file and create an R-object for it, and write a graph to file."}
+##!\usage{
+##!inla.read.graph(graph.file)
+##!inla.write.graph(graph, graph.file)}
 ##!\arguments{
 ##!    \item{graph.file}{The filename of the graph.}
+##!    \item{graph}{An graph-object (output from \code{inla.read.graph}).}
 ##!}
 ##!\value{
-##!    The output is a graph-object, \code{graph} say, where
+##!    The output of \code{inla.read.graph} is a graph-object, \code{graph} say, where
 ##!    \code{graph$n} is the size of the graph,
 ##!    \code{graph$nnbs} is a vector with the number of neigbours, 
 ##!    \code{graph$nbs} is a list-list with the neigbours, and
@@ -25,6 +28,10 @@
 ##!cat("2 1 1 2 2 1 1\n", file="g.dat")
 ##!g = inla.read.graph("g.dat")
 ##!print(g)
+##!
+##!## this function just writes the graph back to file; useful
+##!## for converting between a 0-based and 1-based graph.
+##!inla.write.graph(g, "gg.graph")
 ##!}
 
 `inla.read.graph` = function(graph.file)
@@ -47,8 +54,8 @@
     s = as.integer(unlist(sapply(s, function(x) strsplit(x, " "))))
 
     n = s[1]
-    g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = graph.file, cc = list(id = NA, n = NA, nodes = NA))
-
+    g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = graph.file,
+            cc = list(id = NA, n = NA, nodes = NA))
     k = 2
     for(i in 1L:n) {
         
@@ -72,3 +79,16 @@
 
     return (g)
 }
+`inla.write.graph` = function(graph, graph.file = "graph.dat") {
+    ## write a graph read from inla.read.graph, or in that format, to
+    ## file.
+    fd = file(graph.file , "w")
+    cat(graph$n, "\n", file = fd)
+    for(i in 1:graph$n) {
+        cat(i, graph$nnbs[i], graph$nbs[[i]], "\n", file = fd)
+    }
+    close(fd)
+
+    return (invisible())
+}
+
