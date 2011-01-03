@@ -182,24 +182,6 @@ function(
          ##!\item{bvalue}{}
          bvalue = NULL,
 
-         ##!\item{sphere.dir}{}
-         sphere.dir = NULL,
-
-         ##!\item{spde.prefix}{}
-         spde.prefix = NULL,
-
-         ##!\item{T.order}{}
-         T.order=NULL,
-
-         ##!\item{T.model}{}
-         T.model=NULL,
-
-         ##!\item{K.order}{}
-         K.order=NULL,
-
-         ##!\item{K.model}{}
-         K.model=NULL,
-
          ##!\item{mean.linear}{ Prior mean for the linear component,
          ##!only used if \code{model="linear"}}
          mean.linear=NULL,
@@ -469,23 +451,6 @@ function(
     if (!is.null(prec.linear) | !is.null(mean.linear)) {
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
-
-    if (inla.one.of(model, "sphere")) {
-        if (is.null(sphere.dir)) {
-            stop("Argument sphere.dir=NULL is required for model = sphere")
-        }
-        if (!(file.exists(sphere.dir) && file.info(sphere.dir)$isdir)) {
-            stop(paste("Argument sphere.dir=", sphere.dir, "must be an existing directory."))
-        }
-
-        ## set the Occilation parameter default to fixed, unless its set already
-        if (missing(fixed)) {
-            fixed = c(FALSE, FALSE, FALSE, TRUE)
-        }
-        if (missing(initial)) {
-            initial = c(NA, NA, NA, -20)
-        }
-    } 
 
     if (inla.one.of(model, "spde")) {
         if (is.null(spde.prefix)) {
@@ -775,7 +740,6 @@ function(
             constr = constr, label=term, graph.file=graph.file, cdf=cdf, quantiles = quantiles,
             Cmatrix = Cmatrix, rankdef=rankdef, extraconstr=extraconstr, values=values,
             nrow = nrow, ncol = ncol, nu = nu, bvalue = bvalue,
-            sphere.dir = sphere.dir, T.order = T.order, T.model = T.model, K.order = K.order, K.model = K.model,
             of = of, precision = precision, si = si, compute = compute,
             spde.prefix = spde.prefix, range = range )
 
