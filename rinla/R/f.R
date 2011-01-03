@@ -309,10 +309,10 @@ function(
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
     if (TRUE) {
-        arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "method", "Cij")
+        arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "Cij")
     } else {
         warning("Recall to revert back into INLA::f")
-        arguments = c(names(formals(f)), "A", "e", "i", "j", "values", "method", "Cij")
+        arguments = c(names(formals(f)), "A", "e", "i", "j", "values", "Cij")
     }
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
