@@ -2219,16 +2219,16 @@ namespace fmesh {
       dh = dnew;
       dh.orbit2();
       boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh,meta_b[1]);
-      interior_.update(dh); if (segm_i[1]) interior_.insert(dh,meta_b[1]);
+      interior_.update(dh); if (segm_i[1]) interior_.insert(dh,meta_i[1]);
       dh.orbit2();
       boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh,meta_b[0]);
-      interior_.update(dh); if (segm_i[0]) interior_.insert(dh,meta_b[0]);
+      interior_.update(dh); if (segm_i[0]) interior_.insert(dh,meta_i[0]);
       dh.orbit2().orbit0rev();
       boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh,meta_b[3]);
-      interior_.update(dh); if (segm_i[3]) interior_.insert(dh,meta_b[3]);
+      interior_.update(dh); if (segm_i[3]) interior_.insert(dh,meta_i[3]);
       dh.orbit2();
       boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh,meta_b[2]);
-      interior_.update(dh); if (segm_i[2]) interior_.insert(dh,meta_b[2]);
+      interior_.update(dh); if (segm_i[2]) interior_.insert(dh,meta_i[2]);
     }
     
     if (state_>=State_RCDT) {
