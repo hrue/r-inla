@@ -5683,7 +5683,7 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 				fprintf(fp, " %.6g,", theta[i]);
 			fprintf(fp, " %.6g),\n", theta[nhyper - 1]);
 		} else {
-			fprintf(fp,  "theta = NULL\n");
+			fprintf(fp,  "theta = NULL,\n");
 		}
 		
 		fprintf(fp, "tags=c(");
