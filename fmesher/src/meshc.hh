@@ -144,14 +144,32 @@ namespace fmesh {
   };
 
   class MCQsegm : public MCQ {
+  public:
+    typedef int meta_type;
+    typedef std::map<Dart,meta_type> meta_map_type;
+    typedef meta_map_type::value_type meta_map_key_type;
+    typedef meta_map_type::const_iterator const_iteratorMeta;
   private:
+    meta_map_type meta_; /*!< Darts, mapped to metadata */
     double encroached_limit_;
     /*!< Larger values are included in the quality set */
   public:
-    MCQsegm(MeshC* MC) : MCQ(MC,false), encroached_limit_(10*MESH_EPSILON) {};
+    MCQsegm(MeshC* MC) : MCQ(MC,false),
+			 meta_(),
+			 encroached_limit_(10*MESH_EPSILON) {};
     double calcQ(const Dart& d) const;
     bool segm(const Dart& d) const; /*!< true if d or d.orbit1() is found */
-    void update(const Dart& d); /*!< Update quality, don't insert new */
+    void update(const Dart& d);
+    /*!< Update quality, keep metadata, don't insert new */
+
+    const meta_type meta_get(const Dart& d) const;
+
+    void clear();
+    void insert(const Dart& d, const meta_type& meta);
+    /*!< Insert dart if not existing, with metadata. */
+    meta_type erase(const Dart& d);
+    /*!< Remove dart if existing, return metadata. */
+
   };
 
   /*!
@@ -379,7 +397,8 @@ namespace fmesh {
       \brief Insert a single segment into a constrained
       Delaunay triangulation (CDT).
     */
-    Dart CDTSegment(const bool boundary, const int v0, const int v1);
+    Dart CDTSegment(const bool boundary, const int v0, const int v1,
+		    MCQsegm::meta_type meta = MCQsegm::meta_type());
     /*!
       \brief Build constrained Delaunay triangulation (CDT)
     */

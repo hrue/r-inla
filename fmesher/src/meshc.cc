@@ -186,16 +186,47 @@ namespace fmesh {
   void MCQsegm::update(const Dart& d)
   {
     if (found(d)){
-      erase(d);
-      insert(d);
+      insert(d,erase(d));
     }
     Dart dh(d);
     dh.orbit1();
     if ((dh.t() != d.t()) && found(dh)) {
-      erase(dh);
-      insert(dh);
+      insert(dh,erase(dh));
     }
   }
+
+  const MCQsegm::meta_type MCQsegm::meta_get(const Dart& d) const
+  {
+    if (MCQ::empty())
+      return meta_type();
+    return meta_.find(d)->second;
+  }
+  
+  void MCQsegm::clear()
+  {
+    meta_.clear();
+    MCQ::clear();
+  }
+  
+  void MCQsegm::insert(const Dart& d, const meta_type& meta)
+  {
+    MCQ::insert(d);
+    meta_.insert(meta_map_key_type(d,meta));
+  }
+
+  MCQsegm::meta_type MCQsegm::erase(const Dart& d)
+  {
+    meta_type meta;
+    meta_map_type::iterator i = meta_.find(d);
+    if (i != meta_.end()) {
+      meta = i->second;
+      meta_.erase(i);
+    }
+    MCQ::erase(d);
+    return meta;
+  }
+
+
 
   double MCQswapable::calcQ(const Dart& d) const
   {
@@ -1266,7 +1297,7 @@ namespace fmesh {
       for (vi=0;vi<3;vi++)
 	if (tt[vi]<0) {
 	  d = Dart(*M_,t,1,(vi+1)%3);
-	  boundary_.insert(d);
+	  boundary_.insert(d,MCQsegm::meta_type());
 	}
     }
 
@@ -1748,7 +1779,9 @@ namespace fmesh {
 
 
 
-  Dart MeshC::CDTSegment(const bool boundary, const int v0, const int v1)
+  Dart MeshC::CDTSegment(const bool boundary,
+			 const int v0, const int v1,
+			 MCQsegm::meta_type meta)
   {
     if (!prepareCDT()) return Dart();
 
@@ -1761,9 +1794,9 @@ namespace fmesh {
       return ds;
     }
     if (boundary)
-      boundary_.insert(ds);
+      boundary_.insert(ds,meta);
     else
-      interior_.insert(ds);
+      interior_.insert(ds,meta);
     LOP(triangles);
     MESHC_LOG((boundary ? "Boundary" : "Interior")
 	      << " segment inserted "
@@ -2145,20 +2178,28 @@ namespace fmesh {
     /* Collect CDT data */
     bool segm_b[4] = {false,false,false,false};
     bool segm_i[4] = {false,false,false,false};
+    MCQsegm::meta_type meta_b[4] = {MCQsegm::meta_type(),
+				    MCQsegm::meta_type(),
+				    MCQsegm::meta_type(),
+				    MCQsegm::meta_type()};
+    MCQsegm::meta_type meta_i[4] = {MCQsegm::meta_type(),
+				    MCQsegm::meta_type(),
+				    MCQsegm::meta_type(),
+				    MCQsegm::meta_type()};
     Dart dh(d);
     if (state_>=State_CDT) {
-    dh.orbit2rev();
-    if ((segm_b[1] = boundary_.found(dh))) boundary_.erase(dh);
-    if ((segm_i[1] = interior_.found(dh))) interior_.erase(dh);
-    dh.orbit2rev();
-    if ((segm_b[2] = boundary_.found(dh))) boundary_.erase(dh);
-    if ((segm_i[2] = interior_.found(dh))) interior_.erase(dh);
-    dh.orbit0().orbit2rev();
-    if ((segm_b[3] = boundary_.found(dh))) boundary_.erase(dh);
-    if ((segm_i[3] = interior_.found(dh))) interior_.erase(dh);
-    dh.orbit2rev();
-    if ((segm_b[0] = boundary_.found(dh))) boundary_.erase(dh);
-    if ((segm_i[0] = interior_.found(dh))) interior_.erase(dh);
+      dh.orbit2rev();
+      if ((segm_b[1] = boundary_.found(dh))) meta_b[1] = boundary_.erase(dh);
+      if ((segm_i[1] = interior_.found(dh))) meta_i[1] = interior_.erase(dh);
+      dh.orbit2rev();
+      if ((segm_b[2] = boundary_.found(dh))) meta_b[2] = boundary_.erase(dh);
+      if ((segm_i[2] = interior_.found(dh))) meta_i[2] = interior_.erase(dh);
+      dh.orbit0().orbit2rev();
+      if ((segm_b[3] = boundary_.found(dh))) meta_b[3] = boundary_.erase(dh);
+      if ((segm_i[3] = interior_.found(dh))) meta_i[3] = interior_.erase(dh);
+      dh.orbit2rev();
+      if ((segm_b[0] = boundary_.found(dh))) meta_b[0] = boundary_.erase(dh);
+      if ((segm_i[0] = interior_.found(dh))) meta_i[0] = interior_.erase(dh);
     }
 
     if (state_>=State_RCDT) {
@@ -2174,22 +2215,22 @@ namespace fmesh {
     Dart dnew(M_->swapEdge(d));
 
     if (state_>=State_CDT) {
-    /* Reassemble CDT data */
-    dh = dnew;
-    dh.orbit2();
-    boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[1]) interior_.insert(dh);
-    dh.orbit2();
-    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
-    dh.orbit2().orbit0rev();
-    boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
-    dh.orbit2();
-    boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[2]) interior_.insert(dh);
+      /* Reassemble CDT data */
+      dh = dnew;
+      dh.orbit2();
+      boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh,meta_b[1]);
+      interior_.update(dh); if (segm_i[1]) interior_.insert(dh,meta_b[1]);
+      dh.orbit2();
+      boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh,meta_b[0]);
+      interior_.update(dh); if (segm_i[0]) interior_.insert(dh,meta_b[0]);
+      dh.orbit2().orbit0rev();
+      boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh,meta_b[3]);
+      interior_.update(dh); if (segm_i[3]) interior_.insert(dh,meta_b[3]);
+      dh.orbit2();
+      boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh,meta_b[2]);
+      interior_.update(dh); if (segm_i[2]) interior_.insert(dh,meta_b[2]);
     }
-
+    
     if (state_>=State_RCDT) {
       /* Reassemble RCDT data */
       dh = dnew;
@@ -2216,17 +2257,19 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[6];
     bool segm_i[6];
+    MCQsegm::meta_type meta_b[6];
+    MCQsegm::meta_type meta_i[6];
     if (state_>=State_CDT) {
     for (int i=0;i<3;i++) {
-      if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
-      if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
+      if ((segm_b[i] = boundary_.found(dh))) meta_b[i] = boundary_.erase(dh);
+      if ((segm_i[i] = interior_.found(dh))) meta_i[i] = interior_.erase(dh);
       dh.orbit2();
     }
     if (!dh.onBoundary()) {
       dh.orbit1();
       for (int i=3;i<6;i++) {
-	if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
-	if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
+	if ((segm_b[i] = boundary_.found(dh))) meta_b[i] = boundary_.erase(dh);
+	if ((segm_i[i] = interior_.found(dh))) meta_i[i] = interior_.erase(dh);
 	dh.orbit2();
       }
     }
@@ -2247,33 +2290,33 @@ namespace fmesh {
     Dart dnew(M_->splitEdge(d,v));
 
     if (state_>=State_CDT) {
-    /* Reassemble CDT data */
-    dh = dnew;
-    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
-    dh.orbit2();
-    boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[1]) interior_.insert(dh);
-    dh.orbit2().orbit0rev();
-    boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[2]) interior_.insert(dh);
-    dh.orbit2();
-    boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh);
-    interior_.update(dh); if (segm_i[0]) interior_.insert(dh);
-    if (!dh.onBoundary()) {
-      dh.orbit1();
-      boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
-      interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
+      /* Reassemble CDT data */
+      dh = dnew;
+      boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh,meta_b[0]);
+      interior_.update(dh); if (segm_i[0]) interior_.insert(dh,meta_i[0]);
       dh.orbit2();
-      boundary_.update(dh); if (segm_b[4]) boundary_.insert(dh);
-      interior_.update(dh); if (segm_i[4]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[1]) boundary_.insert(dh,meta_b[1]);
+      interior_.update(dh); if (segm_i[1]) interior_.insert(dh,meta_i[1]);
       dh.orbit2().orbit0rev();
-      boundary_.update(dh); if (segm_b[5]) boundary_.insert(dh);
-      interior_.update(dh); if (segm_i[5]) interior_.insert(dh);
+      boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh,meta_b[2]);
+      interior_.update(dh); if (segm_i[2]) interior_.insert(dh,meta_i[2]);
       dh.orbit2();
-      boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh);
-      interior_.update(dh); if (segm_i[3]) interior_.insert(dh);
-    }
+      boundary_.update(dh); if (segm_b[0]) boundary_.insert(dh,meta_b[0]);
+      interior_.update(dh); if (segm_i[0]) interior_.insert(dh,meta_i[0]);
+      if (!dh.onBoundary()) {
+	dh.orbit1();
+	boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh,meta_b[3]);
+	interior_.update(dh); if (segm_i[3]) interior_.insert(dh,meta_i[3]);
+	dh.orbit2();
+	boundary_.update(dh); if (segm_b[4]) boundary_.insert(dh,meta_b[4]);
+	interior_.update(dh); if (segm_i[4]) interior_.insert(dh,meta_i[4]);
+	dh.orbit2().orbit0rev();
+	boundary_.update(dh); if (segm_b[5]) boundary_.insert(dh,meta_b[5]);
+	interior_.update(dh); if (segm_i[5]) interior_.insert(dh,meta_i[5]);
+	dh.orbit2();
+	boundary_.update(dh); if (segm_b[3]) boundary_.insert(dh,meta_b[3]);
+	interior_.update(dh); if (segm_i[3]) interior_.insert(dh,meta_i[3]);
+      }
     }
 
     if (state_>=State_RCDT) {
@@ -2310,12 +2353,14 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[3];
     bool segm_i[3];
+    MCQsegm::meta_type meta_b[3];
+    MCQsegm::meta_type meta_i[3];
     if (state_>=State_CDT) {
-    for (int i=0;i<3;i++) {
-      if ((segm_b[i] = boundary_.found(dh))) boundary_.erase(dh);
-      if ((segm_i[i] = interior_.found(dh))) interior_.erase(dh);
-      dh.orbit2();
-    }
+      for (int i=0;i<3;i++) {
+	if ((segm_b[i] = boundary_.found(dh))) meta_b[i] = boundary_.erase(dh);
+	if ((segm_i[i] = interior_.found(dh))) meta_i[i] = interior_.erase(dh);
+	dh.orbit2();
+      }
     }
 
     if (state_>=State_RCDT) {
@@ -2328,13 +2373,13 @@ namespace fmesh {
 
     /* Reassebmle CDT data */
     if (state_>=State_CDT) {
-    dh = dnew;
-    for (int i=0;i<3;i++) {
-      dh.orbit2();
-      boundary_.update(dh); if (segm_b[i]) boundary_.insert(dh);
-      interior_.update(dh); if (segm_i[i]) interior_.insert(dh);
-      dh.orbit2rev().orbit0();
-    }
+      dh = dnew;
+      for (int i=0;i<3;i++) {
+	dh.orbit2();
+	boundary_.update(dh); if (segm_b[i]) boundary_.insert(dh,meta_b[i]);
+	interior_.update(dh); if (segm_i[i]) interior_.insert(dh,meta_i[i]);
+	dh.orbit2rev().orbit0();
+      }
     }
 
     if (state_>=State_RCDT) {
@@ -2378,11 +2423,9 @@ namespace fmesh {
     M_->unlinkEdge(d);
         
     if (!onboundary) {
-      boundary_.erase(dh);
-      boundary_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh));
     }
-    boundary_.erase(d);
-    boundary_.insert(d);
+    boundary_.insert(d,boundary_.erase(d));
 
     return;
   }
@@ -2399,8 +2442,7 @@ namespace fmesh {
     boundary_.erase(dh);
     if (!dh.onBoundary()) {
       dh.orbit1();
-      interior_.erase(dh);
-      boundary_.insert(dh);
+      boundary_.insert(dh,interior_.erase(dh));
       dh.orbit1();
     }
     dh.orbit2();
@@ -2408,8 +2450,7 @@ namespace fmesh {
     boundary_.erase(dh);
     if (!dh.onBoundary()) {
       dh.orbit1();
-      interior_.erase(dh);
-      boundary_.insert(dh);
+      boundary_.insert(dh,interior_.erase(dh));
       dh.orbit1();
     }
     dh.orbit2();
@@ -2417,8 +2458,7 @@ namespace fmesh {
     boundary_.erase(dh);
     if (!dh.onBoundary()) {
       dh.orbit1();
-      interior_.erase(dh);
-      boundary_.insert(dh);
+      boundary_.insert(dh,interior_.erase(dh));
       dh.orbit1();
     }
 
@@ -2428,24 +2468,24 @@ namespace fmesh {
     dh = Dart(*M_,t_removed,1,0);
     Dart dh_old = Dart(*M_,t_relocated,1,0);
     if (boundary_.found(dh_old)) {
-      boundary_.erase(dh_old); boundary_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh_old));
     }
     if (interior_.found(dh_old)) {
-      interior_.erase(dh_old); interior_.insert(dh);
+      interior_.insert(dh,interior_.erase(dh_old));
     }
     dh.orbit2(); dh_old.orbit2();
     if (boundary_.found(dh_old)) {
-      boundary_.erase(dh_old); boundary_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh_old));
     }
     if (interior_.found(dh_old)) {
-      interior_.erase(dh_old); interior_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh_old));
     }
     dh.orbit2(); dh_old.orbit2();
     if (boundary_.found(dh_old)) {
-      boundary_.erase(dh_old); boundary_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh_old));
     }
     if (interior_.found(dh_old)) {
-      interior_.erase(dh_old); interior_.insert(dh);
+      boundary_.insert(dh,boundary_.erase(dh_old));
     }
     
     return t_relocated;
