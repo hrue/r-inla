@@ -3249,7 +3249,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
-	need_Qinv = ((compute_n || ai_par->compute_nparam_eff) ? 1 : 0);
+	need_Qinv = ((compute_n || ai_par->compute_nparam_eff || ai_par->si_directory) ? 1 : 0);
 
 	for (i = 0; i < compute_n; i++) {
 		j = compute_idx[i];
@@ -4568,10 +4568,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		if (need_Qinv) {
 			/*
-			 * In this case the contents of ai_store is NULL 
+			 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since the contents of ai_store is NULL in
+			 * this case.
 			 */
+			double tmp_logdens;
+			GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, b, c, mean, d, 
+						       loglFunc, loglFunc_arg, fixed_value,
+						       graph, Qfunc, Qfunc_arg,
+						       constr, ai_par, ai_store);
 			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
-			GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
+			/* 
+			   if compute_n > 0 it will be written out below, if compute_n=0, we have to do this here.
+			 */
+			if (compute_n == 0){
+				GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
+			}
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
@@ -5666,11 +5677,15 @@ int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, i
 		fprintf(fp, "if (!exists(\"inla.si.configuration\")) inla.si.configuration = list()\n");
 		fprintf(fp, "inla.si.configuration[[%1d]] = list(\n", c);
 		fprintf(fp, "log.dens=c(%.6g),\n", logdens);
-		fprintf(fp, "theta=c(");
-		for (i = 0; i < nhyper - 1; i++)
-			fprintf(fp, " %.6g,", theta[i]);
-		fprintf(fp, " %.6g),\n", theta[nhyper - 1]);
-
+		if (nhyper > 0) {
+			fprintf(fp, "theta=c(");
+			for (i = 0; i < nhyper - 1; i++)
+				fprintf(fp, " %.6g,", theta[i]);
+			fprintf(fp, " %.6g),\n", theta[nhyper - 1]);
+		} else {
+			fprintf(fp,  "theta = NULL\n");
+		}
+		
 		fprintf(fp, "tags=c(");
 		for (k = 0; k < d->nd; k++) {
 			fprintf(fp, "\"%s\"%s", d->tag[k], (k < d->nd - 1 ? "," : ""));
