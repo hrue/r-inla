@@ -147,17 +147,11 @@ function(
          ##!\item{Cmatrix}{The specification of the precision matrix
          ##!for the generic models (up to a scaling constant), and is
          ##!only used if \code{model="generic0"} or
-         ##!\code{model="generic1"}.  \code{Cmatrix} is a list of type
-         ##!\code{Cmatrix = list(i = c(), j = c(), values = c())},
-         ##!where \code{i}, \code{j} and \code{values} are vectors of
-         ##!the non-zero elements of \code{C}.
-         ##!
-         ##!Note that \code{i}
-         ##!starts \code{1}, and only the upper or lower part of
-         ##!\code{C} has to be given.  Alternatively, \code{Qmatrix}
-         ##!is the name of a file giving the precision matrix as
-         ##!described in the \code{inla}-manual.}
-         Qmatrix=NULL,  ### not used anymore
+         ##!\code{model="generic1"}.  \code{Cmatrix} is either a
+         ##!(dense) matrix, a matrix create using
+         ##!Matrix::sparseMatrix(), or a filename which stores the
+         ##!non-zero elements of \code{Cmatrix}, in three columns:
+         ##!\code{i}, \code{j} and \code{Qij}.
          Cmatrix=NULL,
 
          ##!\item{rankdef}{A number \bold{defining} the rank
@@ -311,11 +305,11 @@ function(
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    if (TRUE) {
-        arguments = c(names(formals(INLA::f)), "A", "e", "i", "j", "values", "Cij")
+    if (FALSE) {
+        arguments = c(names(formals(INLA::f)), "A", "e")
     } else {
         warning("Recall to revert back into INLA::f")
-        arguments = c(names(formals(f)), "A", "e", "i", "j", "values", "Cij")
+        arguments = c(names(formals(f)), "A", "e")
     }
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
@@ -327,43 +321,20 @@ function(
         }
     }
 
-    if (!is.null(Qmatrix)) {
-        stop("Argument Qmatrix in f(), has changed name to Cmatrix; please fix...")
-    }
-    
     ## check that the Q matrix is defined if and only if the model is
     ## generic. same with the Cmatrix
     if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
         if (is.null(Cmatrix)) {
             stop("For generic models the Cmatrix has to be provided")
         }
-
-        if (!is.character(Cmatrix) && !is.list(Cmatrix)) {
-            stop("Argument `Cmatrix' is not of type `character' or `list'")
-        }
-            
-        if (is.character(Cmatrix)) {
-            if (!file.exists(Cmatrix)) {
-                stop("Filename defined in argument `Cmatrix' does not exists.")
-            }
-        } else {
-            inla.sparse.check(Cmatrix)
-            if (is.null(Cmatrix$i) || is.null(Cmatrix$j) || is.null(Cmatrix$values)) {
-                stop("List defined in argument `Cmatrix' is not of type `Cmatrix = list(i=c(), j=c(), values=c())'")
-            }
-            if (length(Cmatrix$i) != length(Cmatrix$j) || length(Cmatrix$i) != length(Cmatrix$values)) {
-                stop("Entries in the list `Cmatrix' has not equal length")
-            }
-        }
-
+        Cmatrix = inla.sparse.check(Cmatrix)
         if (is.null(n)) {
             ## find `n' from the Cmatrix
-
             if (is.character(Cmatrix)) {
-                cm = read.table(Cmatrix, col.names=c("i", "j", "values"))
+                cm = read.table(Cmatrix, col.names=c("i", "j", "x"))
                 n = max(cm$i, cm$j)
             } else {
-                n = max(Cmatrix$i, Cmatrix$j)
+                n = dim(Cmatrix)[1]
             }
         }
     } else {

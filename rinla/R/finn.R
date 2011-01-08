@@ -6,15 +6,17 @@
 {
     reordering = match.arg(reordering)
 
-    if (is.matrix(C) || is(C, "dgTMatrix")) {
-        finn.file = inla.sparse2file(inla.matrix2sparse(C), c.indexing = TRUE)
+    if (!is(C, "dgTMatrix"))
+        C = inla.sparse.check(C)
+    
+    if (is(C, "dgTMatrix")) {
+        finn.file = inla.sparse2file(C, c.indexing = TRUE)
         remove = TRUE
     } else if (is.character(C)) {
         finn.file = C
         remove = FALSE
     } else {
-        finn.file = inla.sparse2file(C, c.indexing = TRUE)
-        remove = TRUE
+        stop("This should not happen.")
     }
         
     if (inla.os("linux") || inla.os("mac")) {
