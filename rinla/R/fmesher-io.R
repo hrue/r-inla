@@ -192,15 +192,15 @@
     ## decide how to treat with almost integers...
     if (auto.convert) {
         if (is.matrix(A)) {
-          A = inla.affirm.integer(A)
+            A = inla.affirm.integer(A)
         } else if (is.list(A)) {
-          A$values = affirm.integer(A$values)
+            A$values = affirm.integer(A$values)
         } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
-          A = inla.affirm.integer(A)
+            A = inla.affirm.integer(A)
         } else if (is.vector(A)) {
-          A = inla.affirm.integer(A)
+            A = inla.affirm.integer(A)
         } else {
-          stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
+            stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
         }
     }
     
@@ -214,8 +214,6 @@
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
     } else if (is.list(A)) {
-        ##
-        inla.sparse.check(A)
         nrow = max(A$i)
         ncol = max(A$j)
         datatype = 1 ## sparse
@@ -223,13 +221,15 @@
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
-        i = A$i-1
-        j = A$j-1
+        i = A$i-1L
+        j = A$j-1L
         values = A$values
         elems = length(values)
     } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
         ##
-        A = inla.as.dgTMatrix(A)
+        if (!is(A, "dgTMatrix")) {
+            A = inla.as.dgTMatrix(A)
+        }
         nrow = dim(A)[1]
         ncol = dim(A)[2]
         datatype = 1 ## sparse
@@ -249,8 +249,8 @@
             }
         }
         ## zero-based indexing
-        i = i-1
-        j = j-1
+        i = i-1L
+        j = j-1L
         elems = length(i)
     } else if (is.vector(A)) {
         ## diagonal
