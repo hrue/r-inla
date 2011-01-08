@@ -1,44 +1,27 @@
 ### Some utilities for sparse matrices using the `Matrix' library
 
-`inla.sparse.check` = function(C, dims)
+`inla.sparse.check` = function(A, must.be.squared = TRUE)
 {
-    msg = paste("Call:", deparse(match.call()))
-    if (!is.list(C) && !is.data.frame(C))
-        stop(paste(msg, "\n",
-                   "INLA-format for sparse-matrix is now `C = list(i=.., j=.., values=...)'. Please fix."))
-    if (!(!is.null(C$i) && !is.null(C$j) && !is.null(C$values)))
-        stop(paste(msg, "\n",
-                   "INLA-format for sparse-matrix is now `C = list(i=.., j=.., values=...)'. Please fix."))
-    if ((length(C$i) != length(C$j)) || (length(C$i) != length(C$values)))
-        stop(paste(msg, "\n",
-                   paste("Length of C$i, C$j and C$values differ:", length(C$i), length(C$j), length(C$values))))
-
-    if (missing(dims)) {
-        ni = max(C$i)
-        nj = max(C$j)
-    } else {
-        if (length(dims) == 1) {
-            ni = nj = dims
-        } else {
-            ni = dims[1]
-            nj = dims[2]
+    if (is.character(A)) {
+        if (!file.exists(A)) {
+            stop(paste("File not found:", A))
         }
     }
-    if (!(all(C$i <= ni) && all(C$i >= 1)))
-        stop(paste(msg, "\n", "C$i is not a subset of the numbers 1, 2, ...,", ni))
     
-    if (!(all(C$j <= nj) && all(C$j >= 1)))
-        stop(paste(msg, "\n", "C$j is not a subset of the numbers 1, 2, ...,", nj))
-    
-    if ((length(C$i) != length(C$values)) || (length(C$j) != length(C$i))) {
-        stop(paste(msg, "\n",
-                   "Wrong dimensions:",
-                   ", length(C$i)", length(C$i),
-                   ", length(C$j)", length(C$j),
-                   ", length(C$values)", length(C$values)))
+    if (is.list(A))
+        stop("Define matrix using Matrix::sparseMatrix() instead!!! The list(i=,j=,values=)-format is obsolete!")
+
+    if (!is(A, "dgTMatrix")) {
+        A = inla.as.dgTMatrix(A)
     }
-    
-    return (TRUE)
+
+    if (must.be.squared) {
+        if (dim(A)[1] != dim(A)[2]) {
+            stop(paste(c("Matrix is not a square matrix:", dim(A))))
+        }
+    }
+
+    return (A)
 }
 
 `inla.as.dgTMatrix` = function(A)
@@ -56,7 +39,8 @@
     ## convert a inla-sparse-matrix into a dgTMatrix-format of library
     ## 'Matrix'
 
-    require(Matrix)
+    warning("THIS FUNCTION IS OBSOLETE!")
+    
     if (!missing(dims) && length(dims) == 1) {
         dims = rep(dims, 2)
     }
@@ -66,12 +50,8 @@
 
 `inla.sparse.get` = function(A, row, col)
 {
-    ## extract a list of the a spesific row or col of a sparseMatrix
-    ## (preferable of class dgTMatrix) A. the list returned is of type
-    ## list(i=..., j=..., values=...)
-
-    ## need this library
-    require(Matrix)
+    ## extract a list of the a spesific row or col of a dgTMatrix
+    ## A. the list returned is of type list(i=..., j=..., values=...)
 
     if (missing(row) && missing(col))
         return (list(i=numeric(0), j=numeric(0), values=numeric(0)))
@@ -100,21 +80,23 @@
     }
 }
 
-`inla.sparse2matrix` = function(C, symmetric = TRUE)
+`inla.sparse2matrix` = function(A, symmetric = TRUE)
 {
+    warning("THIS FUNCTION IS OBSOLETE!!!")
+
     ## convert a sparse-matrix into a matrix.
     
-    inla.sparse.check(C)
-    stopifnot(length(C$i) == length(C$j))
-    stopifnot(length(C$i) == length(C$values))
+    inla.sparse.check(A)
+    stopifnot(length(A$i) == length(A$j))
+    stopifnot(length(A$i) == length(A$values))
 
-    n = max(c(C$i, C$j))
+    n = max(c(A$i, A$j))
     A = matrix(0,n,n)
-    for(k in 1:length(C$i)) {
+    for(k in 1:length(A$i)) {
         ## this could be vectorised with more work...
-        i = C$i[k]
-        j = C$j[k]
-        v = C$values[k]
+        i = A$i[k]
+        j = A$j[k]
+        v = A$values[k]
         A[i,j] = v
         if (symmetric)
             A[j,i] = v
@@ -124,6 +106,8 @@
 
 `inla.matrix2sparse` = function(Q, symmetric = TRUE)
 {
+    warning("THIS FUNCTION IS OBSOLETE!!!")
+
     ## convert a possibly symmetric martix matrix into the form:
     ## list(i=,j=,values=). Q is either a matrix or a dgTMatrix
 
@@ -175,23 +159,34 @@
     return (list(i=ii, j=jj, values = values))
 }
 
-`inla.sparse2file` = function(C, filename = NULL, c.indexing = FALSE, binary = FALSE)
+`inla.sparse2file` = function(A, filename = NULL, c.indexing = FALSE, binary = FALSE, symmetric = FALSE)
 {
-    if (c.indexing)
-        off = 1L
-    else
-        off = 0L
-    
     if (is.null(filename)) {
         filename = tempfile()
     }
+
+    if (!is(A, "dgTMatrix"))
+        A = inla.as.dgTMatrix(A)
+
     if (!binary) {
+        if (c.indexing)
+            off = 0L
+        else
+            off = 1L
+    
+        if (symmetric) {
+            idx = (A@i >= A@j)
+        } else {
+            idx = 1:length(A@i)
+        }
+
         opt = options()
         options(digits=16)
-        write(t(cbind(as.integer(C$i-off), as.integer(C$j-off), C$values)), ncolumns=3, file = filename)
+        write(t(cbind(as.integer(A@i[idx]+off), as.integer(A@j[idx]+off), A@x[idx])), ncolumns=3, file = filename)
         options(opt)
     } else {
-        Q  =  cbind(as.integer(C$i), as.integer(C$j), C$values) ## 1-based indexing
+        off = 1L
+        Q  =  cbind(as.integer(A@i+off), as.integer(A@j+off), A@x)  ## 1-based indexing
         inla.write.fmesher.file(Q, filename = filename)
     }
 

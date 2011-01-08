@@ -2,15 +2,18 @@
 
 `inla.qinv` = function(C)
 {
-    if (is.matrix(C) || is(C, "dgTMatrix")) {
-        qinv.file = inla.sparse2file(inla.matrix2sparse(C), c.indexing = TRUE)
+    if (!is(C, "dgTMatrix")) {
+        C = inla.sparse.check(C)
+    }
+    
+    if (is(C, "dgTMatrix")) {
+        qinv.file = inla.sparse2file(C, c.indexing = TRUE, symmetric = TRUE)
         remove = TRUE
     } else if (is.character(C)) {
         qinv.file = C
         remove = FALSE
     } else {
-        qinv.file = inla.sparse2file(C, c.indexing = TRUE)
-        remove = TRUE
+        stop("This chould not happen.")
     }
         
     if (inla.os("linux") || inla.os("mac")) {
@@ -27,4 +30,26 @@
 
     return (as.numeric(s))
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

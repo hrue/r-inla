@@ -223,33 +223,8 @@
                 fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
                 cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
             } else {
-                inla.sparse.check(random.spec$Cmatrix)
-
-                file.C=inla.tempfile(tmpdir=data.dir)
-                file.create(file.C)
-
-                ii = sort(unique(random.spec$Cmatrix$i))
-                ni = length(ii)
-                if (!all(ii == 1:ni))
-                    stop(paste("Cmatrix$i is not the numbers 1, 2, ...,", ni))
-
-                jj = sort(unique(random.spec$Cmatrix$j))
-                nj = length(jj)
-                if (!all(jj == 1:nj)) {
-                    stop(paste("Cmatrix$j is not the numbers 1, 2, ...,", nj))
-                }
-
-                if (ni != nj || length(random.spec$Cmatrix$i) != length(random.spec$Cmatrix$values) ||
-                    length(random.spec$Cmatrix$j) != length(random.spec$Cmatrix$i)) {
-                    stop(paste("Wrong dimensions:",
-                               "length(sort(unique(random.spec$Cmatrix$i)))", ni,
-                               ", length(sort(unique(random.spec$Cmatrix$j)))", nj,
-                               ", length(random.spec$Cmatrix$i)", length(random.spec$Cmatrix$i),
-                               ", length(random.spec$Cmatrix$j)", length(random.spec$Cmatrix$j),
-                               ", length(random.spec$Cmatrix$values)", length(random.spec$Cmatrix$values)))
-                }
-                write(t(cbind(random.spec$Cmatrix$i, random.spec$Cmatrix$j, random.spec$Cmatrix$values)),
-                      ncolumns=3,file=file.C,append=FALSE)
+                file.C = inla.tempfile(tmpdir=data.dir)
+                inla.sparse2file(random.spec$Cmatrix, file.C, c.indexing = TRUE, symmetric = TRUE)
                 file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
                 cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
             }
@@ -493,11 +468,14 @@
         ## file. The fileformat is given as a three colums file, with
         ## columns i, j and values.
         if (is.character(predictor.spec$A)) {
-            A = read.table(predictor.spec$A, col.names = c("i", "j", "values"))
+            A = read.table(predictor.spec$A, col.names = c("i", "j", "x"))
+            A = sparseMatrix(i = A$i, j = A$j, x = A$x, index1=TRUE)
         } else {
             A = predictor.spec$A
         }
-        inla.sparse.check(A)
+        if (!is(A, "dgTMatrix")) {
+            A = inla.sparse.check(A)
+        }
 
         ## Now we will build the extended Matrix, which is
         ##
@@ -518,39 +496,41 @@
         ## if A is incomplete, just fill it with unit diagonals. NOTE:
         ## If this takes time, then we may have to require that A is
         ## completely specified!
-        A = inla.sparse2dgTMatrix(A, dims = c(n,n))
-        for(i in 1:n) {
-            v = inla.sparse.get(A, row=i)$values
-            if (length(v) == 0 || all(v==0)) {
-                A[i,i] = 1
-            }
+        nA = dim(A)[1]
+        if (nA < n) {
+            A = inla.as.dgTMatrix(
+                    sparseMatrix(i = c(A@i+1L, (nA+1):n), j = c(A@j+1L, (nA+1):n),
+                    x = c(A@x, rep(1.0, n-nA)), index1 = TRUE, dims = c(n,n))
+                    )
+            stopifnot(dim(A)[1] == n)
         }
 
         ## The `I'
-        Aext = list(i = 1:n, j = 1:n, values = rep(1,n))
+        Aext = list(i = 1L:n, j = 1L:n, x = rep(1.0,n))
+
+        ## add -A. Ooops; the internal storage @i etc, are zero-based indexing.
+        Aext$i = c(Aext$i, (A@i+1L))
+        Aext$j = c(Aext$j, (A@j+1L) + n)
+        Aext$x = c(Aext$x, -A@x)
 
         ## add -A^T. Ooops; the internal storage @i etc, are zero-based indexing.
-        Aext$i = c(Aext$i, (A@i+1))
-        Aext$j = c(Aext$j, (A@j+1) + n)
-        Aext$values = c(Aext$values, -A@x)
+        Aext$i = c(Aext$i, (A@j+1L) + n)
+        Aext$j = c(Aext$j, (A@i+1L))
+        Aext$x = c(Aext$x, -A@x)
 
         ## add A^T A. Ooops; the internal storage @i etc, are zero-based indexing.
         ATA = inla.as.dgTMatrix( t(A) %*% A )
-        Aext$i = c(Aext$i, (ATA@i+1) + n)
-        Aext$j = c(Aext$j, (ATA@j+1) + n)
-        Aext$values = c(Aext$values, ATA@x)
+        Aext$i = c(Aext$i, (ATA@i+1L) + n)
+        Aext$j = c(Aext$j, (ATA@j+1L) + n)
+        Aext$x = c(Aext$x, ATA@x)
 
         stopifnot(length(Aext$i) == length(Aext$j))
-        stopifnot(length(Aext$i) == length(Aext$values))
+        stopifnot(length(Aext$i) == length(Aext$x))
         
         file.A=inla.tempfile(tmpdir=data.dir)
-        file.create(file.A)
+        Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x)
+        inla.sparse2file(Aext, filename = file.A, c.indexing = TRUE, symmetric = TRUE)
         
-        ## upper triangular part
-        idx = (Aext$i <= Aext$j)
-        stopifnot(sum(idx) >= n)
-        
-        write(t(cbind(Aext$i[idx], Aext$j[idx], Aext$values[idx])), ncolumns=3, file=file.A, append=FALSE)
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
         cat("precision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
