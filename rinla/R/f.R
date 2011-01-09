@@ -145,13 +145,12 @@ function(
          quantiles=NULL,
 
          ##!\item{Cmatrix}{The specification of the precision matrix
-         ##!for the generic models (up to a scaling constant), and is
-         ##!only used if \code{model="generic0"} or
-         ##!\code{model="generic1"}.  \code{Cmatrix} is either a
+         ##!for the generic models (up to a scaling constant).
+         ##!\code{Cmatrix} is either a
          ##!(dense) matrix, a matrix create using
-         ##!Matrix::sparseMatrix(), or a filename which stores the
+         ##!\code{Matrix::sparseMatrix()}, or a filename which stores the
          ##!non-zero elements of \code{Cmatrix}, in three columns:
-         ##!\code{i}, \code{j} and \code{Qij}.
+         ##!\code{i}, \code{j} and \code{Qij}.}
          Cmatrix=NULL,
 
          ##!\item{rankdef}{A number \bold{defining} the rank
@@ -305,7 +304,7 @@ function(
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    if (FALSE) {
+    if (TRUE) {
         arguments = c(names(formals(INLA::f)), "A", "e")
     } else {
         warning("Recall to revert back into INLA::f")
