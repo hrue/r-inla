@@ -6,6 +6,7 @@
         if (!file.exists(A)) {
             stop(paste("File not found:", A))
         }
+        return (A)
     }
     
     if (is.list(A))
@@ -175,7 +176,7 @@
             off = 1L
     
         if (symmetric) {
-            idx = (A@i >= A@j)
+            idx = which(A@i >= A@j)
         } else {
             idx = 1:length(A@i)
         }

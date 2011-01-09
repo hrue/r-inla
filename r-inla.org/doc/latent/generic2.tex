@@ -65,11 +65,8 @@ The generic2model is specified inside the {\tt f()} function as
 \end{verbatim}
 where {\tt <Cmat>} can be given in two different ways:
 \begin{itemize}
-\item a list of type {\tt Cmatrix = list(i = c(), j = c(), values =
-        c())}, where {\tt i}, {\tt j} and {\tt values} are vectors of
-    the non-zero elements of $\mathbf{C}$. Note that {\tt i} and {\tt
-        j} start from 1, and only the upper or lower part of
-    $\mathbf{C}$ need to be given.
+\item a dense matrix or a sparse-matrix defined be
+    \texttt{Matrix::sparseMatrix()}.
 \item the name of a file giving the structure matrix. The file should
     have the following format
     \[
@@ -78,15 +75,12 @@ where {\tt <Cmat>} can be given in two different ways:
     where $i$ and $j$ are the row and column index and
     $\mathbf{C}_{ij}$ is the corresponding element of the precision
     matrix. Only the non-zero elements of the precision matrix need to
-    be stored in the file. {\bf NOTE:} the indexes for $i$ and $j$
-    start from 0, as this matrix is passed directly into the
-    \texttt{inla}-program.
+    be stored in the file.
 \end{itemize}
 
 \subsection*{Example}
 {\small\begin{verbatim}
 require(mvtnorm)
-
 n = 200
 Cm = matrix(runif(n^2,min=-1,max=1),n,n)
 Cm = Cm %*% t(Cm)
@@ -97,7 +91,11 @@ z = rnorm(n,sd=sd)
 eta = rmvnorm(n=1,sigma = Sigma)
 s = 0.1
 y = c(eta) + rnorm(n,sd=s) + z
+idx = 1:n
 
+##
+## Alternative 1
+##
 file = "Cmatrix.dat"
 cat("",file=file, append = FALSE)
 for(i in 1:n)
@@ -108,11 +106,20 @@ for(i in 1:n)
         for(j in (i+1):n)
             cat(i, j, Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
 }
-
-
-idx = 1:n
 formula = y ~ f(idx, model = "generic2", Cmatrix = file,
                 initial=c(0,0), fixed=c(F,F))
+
+## Alternative 2
+## formula = y ~ f(idx, model = "generic2", Cmatrix = Cm,
+##                initial=c(0,0), fixed=c(F,F))
+
+## Alternative 3
+## Cm.sparse = as(Cm, "dgTMatrix")
+## formula = y ~ f(idx, model = "generic2", Cmatrix = Cm.sparse,
+##                 initial=c(0,0), fixed=c(F,F))
+
+
+###################################################################
 
 result = inla(formula, data=data.frame(y,idx),
               control.data = list(initial = log(1/sd^2), fixed=TRUE),
