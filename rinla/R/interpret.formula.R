@@ -46,7 +46,7 @@
         for (i in 1:nt) {
             if (k <= len.rt && ((ks <= len.rt && rt[ks] == i))) {
                 ## make sure we're using the f() function in INLA...
-                if (FALSE) {
+                if (TRUE) {
                     st = eval(parse(text = gsub("^f\\(","INLA::f(",terms[i])), envir = data, enclos = p.env)
                 } else {
                     st = eval(parse(text = gsub("^f\\(","f(",terms[i])), envir = data, enclos = p.env)
