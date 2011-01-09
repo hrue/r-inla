@@ -34,11 +34,8 @@ The generic0 models is specified inside the {\tt f()} function as
 
 where {\tt <Cmat>} can be given in two different ways:
 \begin{itemize}
-\item a list of type {\tt Cmatrix = list(i = c(), j = c(), values =
-        c())}, where {\tt i}, {\tt j} and {\tt values} are vectors of the
-    non-zero elements of $\mathbf{C}$. Note that {\tt i} and {\tt j}
-    start from 1, and only the upper or lower part of $\mathbf{C}$ has
-    to be given.
+\item a dense matrix or a sparse-matrix defined be
+    \texttt{Matrix::sparseMatrix()}.
 \item the name of a file giving the structure matrix. The file should
     have the following format
     \[
@@ -55,34 +52,30 @@ See the following example for an application
 In the example below we define a RW1 model first using the {\tt
     generic0} model and this using the {\tt rw1} model.
 \begin{verbatim}
-
-#simulate data
-n=50
-z=seq(1,n,length.out=n)
+## Simulate data
+n=100
+z=1:n
 y=sin(z/n*2*pi)+rnorm(n,mean=0,sd=0.5)
 data=data.frame(y=y,z=z)
 
-#specify Cmatrix
-i=c(1:n,1:(n-1))
-j=c(1:n,2:n)
-values=c(1,rep(2,n-2),1,rep(-1,n-1))
+Q = toeplitz(c(2,-1, rep(0,n-3),-1))
+Q[1,1] = Q[n,n] = 1
+Q[n,1] = Q[1,n] = 0
 
-#pass the C matrix as a list
-#note that for the generic0 model constraints and diagonal have to be defined by the user
-formula= y~f(z,model="generic0",Cmatrix=list(i = i, j = j, values = values),
-             rankdef=1,constr=TRUE,diagonal=1e-05)
-result=inla(formula,data=data,family="gaussian")
+## Q as dense
+formula1 = y ~ f(z, model="generic0", Cmatrix = Q,
+                 rankdef=1, constr=TRUE, diagonal=1e-05)
+result1 = inla(formula1, data=data, family="gaussian")
 
-#pass the C matrix as a file
-filename= inla.sparse2file(list(i=i,j=j,values=values))
-formula1= y~f(z,model="generic0",Cmatrix=filename,
-              rankdef=1,constr=TRUE,diagonal=1e-05)
-result1=inla(formula1,data=data,family="gaussian")
-unlink(filename)
+## Q as sparse
+Q.sparse = as(Q, "dgTMatrix")
+formula2 = y ~ f(z, model="generic0", Cmatrix = Q.sparse,
+                 rankdef=1, constr=TRUE, diagonal=1e-05)
+result2 = inla(formula2, data=data, family="gaussian")
 
-#this is the same model defined using the rw1 model
-formula2=y~f(z,model="rw1")
-result2=inla(formula2,data=data,family="gaussian")
+## This is the same model defined using the rw1 model
+formula3 = y ~ f(z,model="rw1")
+result3 = inla(formula3, data=data, family="gaussian")
 
 \end{verbatim}
 

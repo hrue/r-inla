@@ -467,7 +467,6 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 
 			node = IMIN(sptr->key.key1, sptr->key.key2);
 			nnode = IMAX(sptr->key.key1, sptr->key.key2);
-
 			assert(LEGAL(node, n) && LEGAL(nnode, n));
 
 			if (node_in_use[node] && node_in_use[nnode] && !indep[node] && !indep[nnode]) {

@@ -320,8 +320,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	}
 	GMRFLib_EWRAP0(GMRFLib_io_close(io));
 
-	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-	off = (imin == 1 ? 1 : 0);
+	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
 
 	ntriples = 0;
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
@@ -485,8 +485,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		imin = IMIN(imin, ilist[i]);
 		jmin = IMIN(jmin, jlist[i]);
 	}
-	GMRFLib_ASSERT(((imin == jmin) && (imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-	off = (imin == 1 ? 1 : 0);
+	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
 
 	/*
 	 * to fix the dimension, possibly padding with zero's 
