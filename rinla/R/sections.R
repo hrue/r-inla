@@ -154,7 +154,8 @@
                         random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
                 }
                 if (!is.null(random.spec$param)) {
-                    cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
+                    cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ",
+                        sep="", file = file, append=TRUE)
                     ## divide equally
                     off = prop$nparameters %/% prop$npriors
                     for(kk in 1:off) {
@@ -288,7 +289,8 @@
                     random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
             }
             if (!is.null(random.spec$param)) {
-                cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
+                cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ",
+                    sep="", file = file, append=TRUE)
                 ## divide equally
                 off = prop$nparameters %/% prop$npriors
                 for(kk in 1:off) {
