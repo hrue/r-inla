@@ -116,13 +116,8 @@ void map_points_to_mesh(const Mesh& M,
     s[0] = points[i][0];
     s[1] = points[i][1];
     s[2] = points[i][2];
-    //    std::cout << i << endl;
-    //    std::cout << s << endl;
     d = M.locate_point(Dart(M),s);
     if (!d.isnull()) { /* Point located. */
-      //      std::cout << d << endl;
-      M.barycentric(d,s,b);
-      //      std::cout << b << endl;
       M.barycentric(Dart(M,d.t()),s,b); /* Coordinates relative to
 					   canonical vertex
 					   ordering. */
