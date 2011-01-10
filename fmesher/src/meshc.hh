@@ -24,6 +24,21 @@
 namespace fmesh {
 
   class MeshC;
+
+  typedef int constrMetaT;
+  class constrT : public std::pair<IntPair,constrMetaT> {
+  public:
+    constrT(int v0, int v1) {
+      first = IntPair(v0,v1);
+      second = constrMetaT();
+    }
+    constrT(int v0, int v1, constrMetaT meta) {
+      first = IntPair(v0,v1);
+      second = meta;
+    }
+  };
+  typedef std::list<constrT> constrListT;
+
   
   class MCQdv {
   public:
@@ -145,7 +160,7 @@ namespace fmesh {
 
   class MCQsegm : public MCQ {
   public:
-    typedef int meta_type;
+    typedef constrMetaT meta_type;
     typedef std::map<Dart,meta_type> meta_map_type;
     typedef meta_map_type::value_type meta_map_key_type;
     typedef meta_map_type::const_iterator const_iteratorMeta;
@@ -162,7 +177,7 @@ namespace fmesh {
     void update(const Dart& d);
     /*!< Update quality, keep metadata, don't insert new */
 
-    const meta_type meta_get(const Dart& d) const;
+    const meta_type meta(const Dart& d) const;
 
     void clear();
     void insert(const Dart& d, const meta_type& meta);
@@ -170,7 +185,8 @@ namespace fmesh {
     meta_type erase(const Dart& d);
     /*!< Remove dart if existing, return metadata. */
 
-  };
+    friend std::ostream& operator<<(std::ostream& output, const MCQsegm& segm);
+ };
 
   /*!
     \brief Holds darts, marked swapable or not.
@@ -397,8 +413,15 @@ namespace fmesh {
       \brief Insert a single segment into a constrained
       Delaunay triangulation (CDT).
     */
+    Dart CDTSegment(const bool boundary, const constrT& constraint);
+    /*!
+      \brief Insert a single segment into a constrained
+      Delaunay triangulation (CDT).
+    */
     Dart CDTSegment(const bool boundary, const int v0, const int v1,
-		    MCQsegm::meta_type meta = MCQsegm::meta_type());
+		    const constrMetaT& meta = constrMetaT()) {
+      return CDTSegment(boundary,constrT(v0,v1,meta));
+    }
     /*!
       \brief Build constrained Delaunay triangulation (CDT)
     */
@@ -418,6 +441,7 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   };
 
+  std::ostream& operator<<(std::ostream& output, const MCQsegm& segm);
   std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   std::ostream& operator<<(std::ostream& output, const IntPair& p);
   std::ostream& operator<<(std::ostream& output, const DartPair& dp);

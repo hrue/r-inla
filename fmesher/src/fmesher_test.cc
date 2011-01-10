@@ -130,9 +130,9 @@ int CDT_test()
   MC.CDTInterior(cinp);
 
   cinp.clear();
-  cinp.push_back(fmesh::constrT(0,3));
-  cinp.push_back(fmesh::constrT(3,4));
-  cinp.push_back(fmesh::constrT(4,0));
+  cinp.push_back(fmesh::constrT(0,3,1));
+  cinp.push_back(fmesh::constrT(3,4,2));
+  cinp.push_back(fmesh::constrT(4,0,3));
   MC.CDTBoundary(cinp);
 
   MC.PruneExterior();
@@ -791,7 +791,7 @@ void make_globe_test()
 
 int main()
 {
-  make_globe_test();
+  //  make_globe_test();
   //  return 0;
   //  iohelper_test();
   for (int i=0;i<maxiter;i++) {

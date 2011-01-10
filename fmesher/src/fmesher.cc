@@ -135,6 +135,42 @@ void map_points_to_mesh(const Mesh& M,
 
 
 
+void prepare_cdt_input(const Matrix<int>& segm0,
+		       const Matrix<int>& segmgrp,
+		       fmesh::constrListT& cdt_segm)
+{
+  int grp = 0; // Init with default group.
+
+  if (segm0.cols()==1) {
+    int v0 = -1;
+    int v1 = -1;
+    for (int i=0; i < segm0.rows(); i++) {
+      v0 = v1;
+      v1 = segm0[i][0];
+      if (i<segmgrp.rows()) // Update group index, if available
+	grp = segmgrp[i][0];
+      if ((v0>=0) && (v1>=0)) {
+	cdt_segm.push_back(fmesh::constrT(v0,v1,grp));
+      }
+    }
+  } else if (segm0.cols()==2) {
+    int v0 = -1;
+    int v1 = -1;
+    for (int i=0; i < segm0.rows(); i++) {
+      v0 = segm0[i][0];
+      v1 = segm0[i][1];
+      if (i<segmgrp.rows()) // Update group index, if available
+	grp = segmgrp[i][0];
+      if ((v0>=0) && (v1>=0)) {
+	cdt_segm.push_back(fmesh::constrT(v0,v1,grp));
+      }
+    }
+  }
+}
+
+
+
+
 int main(int argc, char* argv[])
 {
   
@@ -177,6 +213,26 @@ int main(int argc, char* argv[])
   std::vector<string> quality_names;
   for (int i=0; i<int(args_info.quality_given); i++) {
     quality_names.push_back(string(args_info.quality_arg[i]));
+  }
+
+  std::vector<string> boundary_names;
+  std::vector<string> boundarygrp_names;
+  for (int i=0; i<int(args_info.boundary_given); i++) {
+    boundary_names.push_back(string(args_info.boundary_arg[i]));
+    if (i<args_info.boundarygrp_given)
+      boundarygrp_names.push_back(string(args_info.boundarygrp_arg[i]));
+    else
+      boundarygrp_names.push_back(boundary_names[i]+"grp");
+  }
+
+  std::vector<string> interior_names;
+  std::vector<string> interiorgrp_names;
+  for (int i=0; i<int(args_info.interior_given); i++) {
+    interior_names.push_back(string(args_info.interior_arg[i]));
+    if (i<args_info.interiorgrp_given)
+      interiorgrp_names.push_back(string(args_info.interiorgrp_arg[i]));
+    else
+      interiorgrp_names.push_back(interior_names[i]+"grp");
   }
 
 
@@ -351,43 +407,45 @@ int main(int argc, char* argv[])
   }
 
 
-  fmesh::constrListT cdt_boundary;
-  if (args_info.boundary_given) {
-    string b_name = string(args_info.boundary_arg[0]);
-    if (!matrices.load(b_name).active) {
-      cout << "Matrix "+b_name+" not found." << endl;
+  for (int i=0; i<boundary_names.size(); i++) {
+    if (!matrices.load(boundary_names[i]).active) {
+      cout << "Matrix "+boundary_names[i]+" not found." << endl;
     }
-    Matrix<int>& boundary0 = matrices.DI(b_name);
-    if (boundary0.cols()==1) {
-      int v0 = -1;
-      int v1 = -1;
-      for (int i=0; i < boundary0.rows(); i++) {
-	v0 = v1;
-	v1 = boundary0[i][0];
-	if ((v0>=0) && (v1>=0))
-	  cdt_boundary.push_back(fmesh::constrT(v0,v1));
-      }
+    if (!matrices.load(boundarygrp_names[i]).active) {
+      // cout << "Matrix "+boundarygrp_names[i]+" not found. Creating." << endl;
+      matrices.attach(boundarygrp_names[i],new Matrix<int>(1),true);
+      matrices.DI(boundarygrp_names[i])(0,0) = i+1;
     }
   }
 
-  fmesh::constrListT cdt_interior;
-  if (args_info.interior_given) {
-    string b_name = string(args_info.interior_arg[0]);
-    if (!matrices.load(b_name).active) {
-      cout << "Matrix "+b_name+" not found." << endl;
+  for (int i=0; i<interior_names.size(); i++) {
+    if (!matrices.load(interior_names[i]).active) {
+      cout << "Matrix "+interior_names[i]+" not found." << endl;
     }
-    Matrix<int>& interior0 = matrices.DI(b_name);
-    if (interior0.cols()==1) {
-      int v0 = -1;
-      int v1 = -1;
-      for (int i=0; i < interior0.rows(); i++) {
-	v0 = v1;
-	v1 = interior0[i][0];
-	if ((v0>=0) && (v1>=0))
-	  cdt_interior.push_back(fmesh::constrT(v0,v1));
-      }
+    if (!matrices.load(interiorgrp_names[i]).active) {
+      cout << "Matrix "+interiorgrp_names[i]+" not found. Creating." << endl;
+      matrices.attach(interiorgrp_names[i],new Matrix<int>(1),true);
+      matrices.DI(interiorgrp_names[i])(0,0) = i+1;
     }
   }
+
+
+
+  fmesh::constrListT cdt_boundary;
+  for (int i=0; i<boundary_names.size(); i++) {
+    Matrix<int>& boundary0 = matrices.DI(boundary_names[i]);
+    Matrix<int>& boundarygrp = matrices.DI(boundarygrp_names[i]);
+    prepare_cdt_input(boundary0,boundarygrp,cdt_boundary);
+  }
+
+  fmesh::constrListT cdt_interior;
+  for (int i=0; i<interior_names.size(); i++) {
+    Matrix<int>& interior0 = matrices.DI(interior_names[i]);
+    Matrix<int>& interiorgrp = matrices.DI(interiorgrp_names[i]);
+    prepare_cdt_input(interior0,interiorgrp,cdt_interior);
+  }
+
+
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
