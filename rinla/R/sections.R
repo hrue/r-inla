@@ -159,7 +159,7 @@
                     ## divide equally
                     off = prop$nparameters %/% prop$npriors
                     for(kk in 1:off) {
-                        cat(" ", control$param[k], sep = " ", file = file,  append = TRUE)
+                        cat(" ", random.spec$param[k], sep = " ", file = file,  append = TRUE)
                         k = k + 1
                     }
                     cat("\n", file = file,  append = TRUE)
