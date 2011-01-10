@@ -102,6 +102,16 @@ struct gengetopt_args_info
   unsigned int interior_min; /**< @brief Handle interior constraints's minimum occurreces */
   unsigned int interior_max; /**< @brief Handle interior constraints's maximum occurreces */
   const char *interior_help; /**< @brief Handle interior constraints help description.  */
+  char ** boundarygrp_arg;	/**< @brief Group lables for boundary segments.  */
+  char ** boundarygrp_orig;	/**< @brief Group lables for boundary segments original value given at command line.  */
+  unsigned int boundarygrp_min; /**< @brief Group lables for boundary segments's minimum occurreces */
+  unsigned int boundarygrp_max; /**< @brief Group lables for boundary segments's maximum occurreces */
+  const char *boundarygrp_help; /**< @brief Group lables for boundary segments help description.  */
+  char ** interiorgrp_arg;	/**< @brief Group lables for interior segments.  */
+  char ** interiorgrp_orig;	/**< @brief Group lables for interior segments original value given at command line.  */
+  unsigned int interiorgrp_min; /**< @brief Group lables for interior segments's minimum occurreces */
+  unsigned int interiorgrp_max; /**< @brief Group lables for interior segments's maximum occurreces */
+  const char *interiorgrp_help; /**< @brief Group lables for interior segments help description.  */
   int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='2').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
   const char *fem_help; /**< @brief Calculate FEM matrices up through order fem help description.  */
@@ -146,6 +156,8 @@ struct gengetopt_args_info
   unsigned int quality_given ;	/**< @brief Whether quality was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
+  unsigned int boundarygrp_given ;	/**< @brief Whether boundarygrp was given.  */
+  unsigned int interiorgrp_given ;	/**< @brief Whether interiorgrp was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
   unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
   unsigned int sph_given ;	/**< @brief Whether sph was given.  */

@@ -99,6 +99,10 @@ option "boundary" B "Handle triangulation boundary" string typestr="NAME"
        multiple default="boundary0" optional
 option "interior" I "Handle interior constraints" string typestr="NAME"
        multiple default="interior0" optional
+option "boundarygrp" - "Group lables for boundary segments" string typestr="NAME"
+       multiple optional
+option "interiorgrp" - "Group lables for interior segments" string typestr="NAME"
+       multiple optional
 
 section "SMORG options"
 option "fem" - "Calculate FEM matrices up through order fem" int typestr="ORDER"

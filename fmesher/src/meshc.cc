@@ -195,7 +195,7 @@ namespace fmesh {
     }
   }
 
-  const MCQsegm::meta_type MCQsegm::meta_get(const Dart& d) const
+  const MCQsegm::meta_type MCQsegm::meta(const Dart& d) const
   {
     if (MCQ::empty())
       return meta_type();
@@ -1780,10 +1780,15 @@ namespace fmesh {
 
 
   Dart MeshC::CDTSegment(const bool boundary,
-			 const int v0, const int v1,
-			 MCQsegm::meta_type meta)
+			 const constrT& constraint)
   {
     if (!prepareCDT()) return Dart();
+    const int& v0 = constraint.first.first;
+    const int& v1 = constraint.first.second;
+    const constrMetaT& meta = constraint.second;
+
+    //      MESHC_LOG_("Trying to add segment: "
+    //		 << ci->first.first << "," << ci->first.second << endl);
 
     triangleSetT triangles;
     Dart ds(CDTInsertSegment(v0,v1,triangles));
@@ -1812,22 +1817,23 @@ namespace fmesh {
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
-      MESHC_LOG("Trying to add segment: "
-		 << ci->first << "," << ci->second << endl);
-      if (!CDTSegment(true,ci->first,ci->second).isnull()) {
-	MESHC_LOG("Success." << endl);
+      MESHC_LOG_("Trying to add segment: "
+		 << ci->first.first << "," << ci->first.second <<
+		 " group=" << ci->second << endl);
+      if (!CDTSegment(true,*ci).isnull()) {
+	MESHC_LOG_("Success." << endl);
 	ci_next = ci;
 	ci_next++;
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
       } else {
-	MESHC_LOG("Failure." << endl);
+	MESHC_LOG_("Failure." << endl);
 	ci++;
       }
     }
     for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
-      if (!CDTSegment(false,ci->first,ci->second).isnull()) {
+      if (!CDTSegment(false,*ci).isnull()) {
 	ci_next = ci;
 	ci_next++;
 	ci = constr_interior_.erase(ci);
@@ -2178,14 +2184,14 @@ namespace fmesh {
     /* Collect CDT data */
     bool segm_b[4] = {false,false,false,false};
     bool segm_i[4] = {false,false,false,false};
-    MCQsegm::meta_type meta_b[4] = {MCQsegm::meta_type(),
-				    MCQsegm::meta_type(),
-				    MCQsegm::meta_type(),
-				    MCQsegm::meta_type()};
-    MCQsegm::meta_type meta_i[4] = {MCQsegm::meta_type(),
-				    MCQsegm::meta_type(),
-				    MCQsegm::meta_type(),
-				    MCQsegm::meta_type()};
+    constrMetaT meta_b[4] = {constrMetaT(),
+			     constrMetaT(),
+			     constrMetaT(),
+			     constrMetaT()};
+    constrMetaT meta_i[4] = {constrMetaT(),
+			     constrMetaT(),
+			     constrMetaT(),
+			     constrMetaT()};
     Dart dh(d);
     if (state_>=State_CDT) {
       dh.orbit2rev();
@@ -2257,8 +2263,8 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[6];
     bool segm_i[6];
-    MCQsegm::meta_type meta_b[6];
-    MCQsegm::meta_type meta_i[6];
+    constrMetaT meta_b[6];
+    constrMetaT meta_i[6];
     if (state_>=State_CDT) {
     for (int i=0;i<3;i++) {
       if ((segm_b[i] = boundary_.found(dh))) meta_b[i] = boundary_.erase(dh);
@@ -2353,8 +2359,8 @@ namespace fmesh {
     Dart dh(d);
     bool segm_b[3];
     bool segm_i[3];
-    MCQsegm::meta_type meta_b[3];
-    MCQsegm::meta_type meta_i[3];
+    constrMetaT meta_b[3];
+    constrMetaT meta_i[3];
     if (state_>=State_CDT) {
       for (int i=0;i<3;i++) {
 	if ((segm_b[i] = boundary_.found(dh))) meta_b[i] = boundary_.erase(dh);
@@ -2585,6 +2591,36 @@ namespace fmesh {
   }
 
 
+  std::ostream& operator<<(std::ostream& output,
+			   const MCQsegm::meta_map_type& il)
+  {
+    output << "(n = " << il.size() << ")";
+    if (il.empty()) return output;
+    for (MCQsegm::meta_map_type::const_iterator qi = il.begin();
+	 qi != il.end(); qi++) {
+      output << ' ' << qi->first
+	     << ' ' << qi->second
+	     << endl;
+    }
+    return output;
+  }
+
+
+
+
+  std::ostream& operator<<(std::ostream& output,
+			   const MCQsegm& segm)
+  {
+    output << "Segments:\t" << segm.count();
+    if (segm.countQ() > 0)
+      output << "(" << segm.countQ() << " encroached)";
+    output << endl;
+    //    output << segm.meta_;
+
+    //    output << "Boundary groups:\t" << MC.boundary_.meta_;
+    return output;
+  }
+
 
   std::ostream& operator<<(std::ostream& output,
 			   const MeshC& MC)
@@ -2599,14 +2635,8 @@ namespace fmesh {
 		   )))))
 	   << (MC.is_pruned_ ? ", exterior pruned" : "") << endl;
     if (MC.state_>=MeshC::State_CDT) {
-      output << "Boundary segments:\t" << MC.boundary_.count();
-      if (MC.boundary_.countQ() > 0)
-	output << "(" << MC.boundary_.countQ() << " encroached)";
-      output << endl;
-      output << "Interior segments:\t" << MC.interior_.count();
-      if (MC.interior_.countQ() > 0)
-	output << "(" << MC.interior_.countQ() << " encroached)";
-      output << endl;
+      output << "Boundary " << MC.boundary_;
+      output << "Interior " << MC.interior_;
     }
     if (MC.state_>=MeshC::State_RCDT) {
       output << "Skinny triangles:\t" << MC.skinny_.countQ() << endl;
