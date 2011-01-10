@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--fem=ORDER] [--sph0=ORDER] [--sph=ORDER] \n         [--bspline=PARAM] [--points2mesh=NAME] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -56,6 +56,8 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -Q, --quality=NAME      Per vertex RCDT parameters, as one or more one-column \n                            matrices with minimum edge lengths for the points \n                            specified with -T|--input",
   "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
   "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
+  "      --boundarygrp=NAME  Group lables for boundary segments",
+  "      --interiorgrp=NAME  Group lables for interior segments",
   "\nSMORG options:",
   "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
   "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
@@ -99,11 +101,13 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[26] = gengetopt_args_info_detailed_help[30];
   gengetopt_args_info_full_help[27] = gengetopt_args_info_detailed_help[31];
   gengetopt_args_info_full_help[28] = gengetopt_args_info_detailed_help[32];
-  gengetopt_args_info_full_help[29] = 0; 
+  gengetopt_args_info_full_help[29] = gengetopt_args_info_detailed_help[33];
+  gengetopt_args_info_full_help[30] = gengetopt_args_info_detailed_help[34];
+  gengetopt_args_info_full_help[31] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[30];
+const char *gengetopt_args_info_full_help[32];
 
 static void
 init_help_array(void)
@@ -136,11 +140,13 @@ init_help_array(void)
   gengetopt_args_info_help[25] = gengetopt_args_info_detailed_help[29];
   gengetopt_args_info_help[26] = gengetopt_args_info_detailed_help[30];
   gengetopt_args_info_help[27] = gengetopt_args_info_detailed_help[31];
-  gengetopt_args_info_help[28] = 0; 
+  gengetopt_args_info_help[28] = gengetopt_args_info_detailed_help[32];
+  gengetopt_args_info_help[29] = gengetopt_args_info_detailed_help[33];
+  gengetopt_args_info_help[30] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[29];
+const char *gengetopt_args_info_help[31];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -212,6 +218,8 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->quality_given = 0 ;
   args_info->boundary_given = 0 ;
   args_info->interior_given = 0 ;
+  args_info->boundarygrp_given = 0 ;
+  args_info->interiorgrp_given = 0 ;
   args_info->fem_given = 0 ;
   args_info->sph0_given = 0 ;
   args_info->sph_given = 0 ;
@@ -252,6 +260,10 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->boundary_orig = NULL;
   args_info->interior_arg = NULL;
   args_info->interior_orig = NULL;
+  args_info->boundarygrp_arg = NULL;
+  args_info->boundarygrp_orig = NULL;
+  args_info->interiorgrp_arg = NULL;
+  args_info->interiorgrp_orig = NULL;
   args_info->fem_arg = 2;
   args_info->fem_orig = NULL;
   args_info->sph0_arg = -1;
@@ -310,15 +322,21 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->interior_help = gengetopt_args_info_detailed_help[23] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[25] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[26] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[27] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[28] ;
+  args_info->boundarygrp_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->boundarygrp_min = 0;
+  args_info->boundarygrp_max = 0;
+  args_info->interiorgrp_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->interiorgrp_min = 0;
+  args_info->interiorgrp_max = 0;
+  args_info->fem_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[28] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[30] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[29] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[31] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[33] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[34] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -504,6 +522,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->quality_given, &(args_info->quality_arg), &(args_info->quality_orig));
   free_multiple_string_field (args_info->boundary_given, &(args_info->boundary_arg), &(args_info->boundary_orig));
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
+  free_multiple_string_field (args_info->boundarygrp_given, &(args_info->boundarygrp_arg), &(args_info->boundarygrp_orig));
+  free_multiple_string_field (args_info->interiorgrp_given, &(args_info->interiorgrp_arg), &(args_info->interiorgrp_orig));
   free_string_field (&(args_info->fem_orig));
   free_string_field (&(args_info->sph0_orig));
   free_string_field (&(args_info->sph_orig));
@@ -625,6 +645,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->quality_given, "quality", args_info->quality_orig, 0);
   write_multiple_into_file(outfile, args_info->boundary_given, "boundary", args_info->boundary_orig, 0);
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
+  write_multiple_into_file(outfile, args_info->boundarygrp_given, "boundarygrp", args_info->boundarygrp_orig, 0);
+  write_multiple_into_file(outfile, args_info->interiorgrp_given, "interiorgrp", args_info->interiorgrp_orig, 0);
   if (args_info->fem_given)
     write_into_file(outfile, "fem", args_info->fem_orig, 0);
   if (args_info->sph0_given)
@@ -913,6 +935,12 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->interior_given, args_info->interior_min, args_info->interior_max, "'--interior' ('-I')"))
+     error = 1;
+  
+  if (check_multiple_option_occurrences(prog_name, args_info->boundarygrp_given, args_info->boundarygrp_min, args_info->boundarygrp_max, "'--boundarygrp'"))
+     error = 1;
+  
+  if (check_multiple_option_occurrences(prog_name, args_info->interiorgrp_given, args_info->interiorgrp_min, args_info->interiorgrp_max, "'--interiorgrp'"))
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->bspline_given, args_info->bspline_min, args_info->bspline_max, "'--bspline'"))
@@ -1239,6 +1267,8 @@ cmdline_internal (
   struct generic_list * quality_list = NULL;
   struct generic_list * boundary_list = NULL;
   struct generic_list * interior_list = NULL;
+  struct generic_list * boundarygrp_list = NULL;
+  struct generic_list * interiorgrp_list = NULL;
   struct generic_list * bspline_list = NULL;
   struct generic_list * x11_zoom_list = NULL;
   int error = 0;
@@ -1289,6 +1319,8 @@ cmdline_internal (
         { "quality",	1, NULL, 'Q' },
         { "boundary",	1, NULL, 'B' },
         { "interior",	1, NULL, 'I' },
+        { "boundarygrp",	1, NULL, 0 },
+        { "interiorgrp",	1, NULL, 0 },
         { "fem",	1, NULL, 0 },
         { "sph0",	1, NULL, 0 },
         { "sph",	1, NULL, 0 },
@@ -1490,6 +1522,28 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Group lables for boundary segments.  */
+          else if (strcmp (long_options[option_index].name, "boundarygrp") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&boundarygrp_list, 
+                &(local_args_info.boundarygrp_given), optarg, 0, 0, ARG_STRING,
+                "boundarygrp", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Group lables for interior segments.  */
+          else if (strcmp (long_options[option_index].name, "interiorgrp") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&interiorgrp_list, 
+                &(local_args_info.interiorgrp_given), optarg, 0, 0, ARG_STRING,
+                "interiorgrp", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Calculate FEM matrices up through order fem.  */
           else if (strcmp (long_options[option_index].name, "fem") == 0)
           {
@@ -1622,6 +1676,14 @@ cmdline_internal (
     &(args_info->interior_orig), args_info->interior_given,
     local_args_info.interior_given, &multiple_default_value,
     ARG_STRING, interior_list);
+  update_multiple_arg((void *)&(args_info->boundarygrp_arg),
+    &(args_info->boundarygrp_orig), args_info->boundarygrp_given,
+    local_args_info.boundarygrp_given, 0,
+    ARG_STRING, boundarygrp_list);
+  update_multiple_arg((void *)&(args_info->interiorgrp_arg),
+    &(args_info->interiorgrp_orig), args_info->interiorgrp_given,
+    local_args_info.interiorgrp_given, 0,
+    ARG_STRING, interiorgrp_list);
   update_multiple_arg((void *)&(args_info->bspline_arg),
     &(args_info->bspline_orig), args_info->bspline_given,
     local_args_info.bspline_given, 0,
@@ -1649,6 +1711,10 @@ cmdline_internal (
   local_args_info.boundary_given = 0;
   args_info->interior_given += local_args_info.interior_given;
   local_args_info.interior_given = 0;
+  args_info->boundarygrp_given += local_args_info.boundarygrp_given;
+  local_args_info.boundarygrp_given = 0;
+  args_info->interiorgrp_given += local_args_info.interiorgrp_given;
+  local_args_info.interiorgrp_given = 0;
   args_info->bspline_given += local_args_info.bspline_given;
   local_args_info.bspline_given = 0;
   args_info->x11_zoom_given += local_args_info.x11_zoom_given;
@@ -1700,6 +1766,8 @@ failure:
   free_list (quality_list, 1 );
   free_list (boundary_list, 1 );
   free_list (interior_list, 1 );
+  free_list (boundarygrp_list, 1 );
+  free_list (interiorgrp_list, 1 );
   free_list (bspline_list, 0 );
   free_list (x11_zoom_list, 0 );
   

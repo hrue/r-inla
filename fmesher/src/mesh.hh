@@ -39,8 +39,6 @@ namespace fmesh {
   typedef std::pair<int,int> IntPair;
   typedef std::list<int> vertexListT;
   typedef std::set<int> triangleSetT;
-  typedef IntPair constrT;
-  typedef std::list<constrT> constrListT;
   typedef std::list<Dart> DartList;
   typedef std::pair<Dart,Dart> DartPair;
 
