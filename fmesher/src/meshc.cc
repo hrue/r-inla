@@ -408,6 +408,7 @@ namespace fmesh {
       map_v0_d.insert(intDartPairT(ci->first.v(),ci->first));
     }
 
+    int segm_initial = segm->rows();
     for (intDartMapT::iterator i = map_v0_d.begin();
 	 i != map_v0_d.end();
 	 i = map_v0_d.begin()) {
@@ -427,7 +428,7 @@ namespace fmesh {
       }
     }
 
-    return segm->rows();
+    return segm->rows()-segm_initial;
   }
 
   int MeshC::segments(bool boundary,

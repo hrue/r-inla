@@ -355,6 +355,20 @@ namespace fmesh {
     double skinnyQuality(int t) const;
     double bigQuality(int t) const;
 
+    /*!
+      Append segments to segm, with group metadata in segmgrp.
+
+      \param boundary indicates if boundary or interior segments
+      should be appended. Call once with true and once with false
+      to extract all segments.
+      \param segm Where to append the segments.  Set to NULL if only the
+      number of segments is to be returned. 
+      \param segmgrp Where to append the group metadata for each segment.
+      If NULL, the group metadata is discarded.
+
+      \return The number of appended segments (if segm!=NULL) or
+              the number of segments in seg (if segm==NULL)
+     */
     int segments(bool boundary,
 		 Matrix<int>* segm = NULL,
 		 Matrix<int>* segmgrp = NULL) const;
