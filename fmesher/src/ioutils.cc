@@ -340,6 +340,9 @@ namespace fmesh {
       std::ifstream I;
       I.open(filename.c_str(),
 	     (bin_in_ ? (ios::in | ios::binary) : ios::in));
+      if (!I.is_open()) {
+	// TODO: Add error handling.
+      }
       ioh.D(this);
       ioh.binary(bin_in_).IH(I).IL(I);
       if (!only_list)
@@ -378,10 +381,9 @@ namespace fmesh {
     std::ifstream I;
     I.open((input_prefix_+name).c_str(),
 	   (bin_in_ ? (ios::in | ios::binary) : ios::in));
-    // TODO: Add test for success/failure.
-    //    {
-    //      return info(name)
-    //    }
+    if (!I.is_open()) {
+      return info(name);
+    }
     IOHelper<int> ioh_;
     ioh_.binary(bin_in_).IH(I);
     I.close();
@@ -394,6 +396,9 @@ namespace fmesh {
 
     I.open((input_prefix_+name).c_str(),
 	   (bin_in_ ? (ios::in | ios::binary) : ios::in));
+    if (!I.is_open()) {
+      return info(name);
+    }
     if (ioh_.h_.datatype == IODatatype_dense)
       if (ioh_.h_.valuetype == IOValuetype_int) {
 	IOHelperM<int> ioh;
@@ -513,6 +518,9 @@ namespace fmesh {
       else {
 	std::ifstream I;
 	I.open(filename.c_str(), std::ios::in);
+	if (!I.is_open()) {
+	  // TODO: Add error handling.
+	}
 	input_raw_M(I,M);
 	I.close();
       }
@@ -523,6 +531,9 @@ namespace fmesh {
       else {
 	std::ifstream I;
 	I.open(filename.c_str(), std::ios::in);
+	if (!I.is_open()) {
+	  // TODO: Add error handling.
+	}
 	input_raw_M(I,M);
 	I.close();
       }
@@ -562,6 +573,9 @@ namespace fmesh {
 	std::ofstream O;
 	O.open(output_file_.c_str(),
 	       (bin_out_ ? (ios::out | ios::binary) : ios::out));
+	if (!O.is_open()) {
+	  // TODO: Add error handling.
+	}
 	IOHelperC ioh;
 	ioh.cD(this);
 	ioh.binary(bin_out_).OH(O).OL(O).OD(O);

@@ -355,6 +355,95 @@ namespace fmesh {
 
 
 
+  typedef std::pair<int,Dart> intDartPairT;
+  typedef std::multimap<int,Dart> intDartMapT;
+
+  /* Remove dart from sets. */
+  Dart erase_dart_from_set(intDartMapT::iterator i,
+			   intDartMapT& map_v0_d)
+  {
+    std::pair<intDartMapT::iterator,intDartMapT::iterator> candidates;
+    Dart d = i->second;
+    map_v0_d.erase(i);
+    /* Old code for handling the reverse mapping as well */
+    /*
+    candidates = map_v1_d.equal_range(d.vo());
+    for (intDartMapT::iterator ic=candidates.first;
+	 ic!=candidates.second;
+	 ++ic) {
+      if (ic->second == d) {
+	map_v1_d.erase(ic);
+	break;
+      }
+    }
+    */
+    return d;
+  }
+
+
+  /* Find "next" dart in v0-set. */
+  intDartMapT::iterator find_next_dart_in_set(Dart d,
+					      intDartMapT& map_v0_d)
+  {
+    intDartMapT::iterator candidate;
+    candidate = map_v0_d.find(d.vo());
+    if (candidate != map_v0_d.end())
+      return candidate;
+    return map_v0_d.end();
+  }
+
+
+  int extract_segments(const MCQsegm& seg,
+		       Matrix<int>* segm,
+		       Matrix<int>* segmgrp)
+  {
+    if (segm==NULL) {
+      return seg.count();
+    }
+
+    intDartMapT map_v0_d;
+    for (MCQsegm::const_iterator ci = seg.begin();
+	 ci != seg.end();
+	 ci++) {
+      map_v0_d.insert(intDartPairT(ci->first.v(),ci->first));
+    }
+
+    for (intDartMapT::iterator i = map_v0_d.begin();
+	 i != map_v0_d.end();
+	 i = map_v0_d.begin()) {
+      Dart d;
+      for (;
+	   i != map_v0_d.end();
+	   i = find_next_dart_in_set(d,map_v0_d)) {
+	d = erase_dart_from_set(i,map_v0_d);
+	cout << segm->rows() << endl;
+	int segm_i = segm->rows();
+	(*segm)(segm_i,0) = d.v();
+	(*segm)(segm_i,1) = d.vo();
+	if (segmgrp) {
+	  (*segmgrp)(segm_i,0) = seg.meta(d);
+	}
+	cout << segm->rows() << endl;
+      }
+    }
+
+    return segm->rows();
+  }
+
+  int MeshC::segments(bool boundary,
+		      Matrix<int>* segm,
+		      Matrix<int>* segmgrp) const
+  {
+    if (boundary)
+      return extract_segments(boundary_,segm,segmgrp);
+    else
+      return extract_segments(interior_,segm,segmgrp);
+  }
+
+
+
+
+
 
   /*! Alg 4.3 */
   bool MeshC::recSwapDelaunay(const Dart& d0)
@@ -1817,17 +1906,17 @@ namespace fmesh {
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
-      MESHC_LOG_("Trying to add segment: "
+      MESHC_LOG("Trying to add segment: "
 		 << ci->first.first << "," << ci->first.second <<
 		 " group=" << ci->second << endl);
       if (!CDTSegment(true,*ci).isnull()) {
-	MESHC_LOG_("Success." << endl);
+	MESHC_LOG("Success." << endl);
 	ci_next = ci;
 	ci_next++;
 	ci = constr_boundary_.erase(ci);
 	ci = ci_next;
       } else {
-	MESHC_LOG_("Failure." << endl);
+	MESHC_LOG("Failure." << endl);
 	ci++;
       }
     }
