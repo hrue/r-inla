@@ -33,6 +33,10 @@ using fmesh::Point;
 using fmesh::PointRaw;
 using fmesh::SparseMatrix;
 using fmesh::Vector3;
+using fmesh::constrMetaT;
+using fmesh::constrT;
+using fmesh::constrListT;
+using fmesh::vertexListT;
 
 const bool useVT = true;
 const bool useTTi = true;
@@ -137,7 +141,7 @@ void map_points_to_mesh(const Mesh& M,
 
 void prepare_cdt_input(const Matrix<int>& segm0,
 		       const Matrix<int>& segmgrp,
-		       fmesh::constrListT& cdt_segm)
+		       constrListT& cdt_segm)
 {
   int grp = 0; // Init with default group.
 
@@ -150,7 +154,7 @@ void prepare_cdt_input(const Matrix<int>& segm0,
       if (i<segmgrp.rows()) // Update group index, if available
 	grp = segmgrp[i][0];
       if ((v0>=0) && (v1>=0)) {
-	cdt_segm.push_back(fmesh::constrT(v0,v1,grp));
+	cdt_segm.push_back(constrT(v0,v1,grp));
       }
     }
   } else if (segm0.cols()==2) {
@@ -162,7 +166,7 @@ void prepare_cdt_input(const Matrix<int>& segm0,
       if (i<segmgrp.rows()) // Update group index, if available
 	grp = segmgrp[i][0];
       if ((v0>=0) && (v1>=0)) {
-	cdt_segm.push_back(fmesh::constrT(v0,v1,grp));
+	cdt_segm.push_back(constrT(v0,v1,grp));
       }
     }
   }
@@ -431,14 +435,14 @@ int main(int argc, char* argv[])
 
 
 
-  fmesh::constrListT cdt_boundary;
+  constrListT cdt_boundary;
   for (int i=0; i<boundary_names.size(); i++) {
     Matrix<int>& boundary0 = matrices.DI(boundary_names[i]);
     Matrix<int>& boundarygrp = matrices.DI(boundarygrp_names[i]);
     prepare_cdt_input(boundary0,boundarygrp,cdt_boundary);
   }
 
-  fmesh::constrListT cdt_interior;
+  constrListT cdt_interior;
   for (int i=0; i<interior_names.size(); i++) {
     Matrix<int>& interior0 = matrices.DI(interior_names[i]);
     Matrix<int>& interiorgrp = matrices.DI(interiorgrp_names[i]);
@@ -539,7 +543,7 @@ int main(int argc, char* argv[])
     
     /* TODO: Check that this is ok even when some or all points are
        already in the triangulation. */
-    fmesh::vertexListT vertices;
+    vertexListT vertices;
     for (int v=0;v<nV;v++)
       vertices.push_back(v);
     MC.DT(vertices);
@@ -555,6 +559,30 @@ int main(int argc, char* argv[])
       /* Calculate the RCDT: */
       MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
 	      Quality0.raw(),Quality0.rows());
+    }
+
+    if ((MC.segments(true)>0) || (args_info.boundary_given>0)) {
+      matrices.attach("segm.bnd",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.bnd.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(true,
+		  &matrices.DI("segm.bnd"),
+		  &matrices.DI("segm.bnd.grp"));
+      
+      matrices.output("segm.bnd").output("segm.bnd.grp");
+    }
+
+    if ((MC.segments(false)>0) || (args_info.interior_given>0)) {
+      matrices.attach("segm.int",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.int.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(false,
+		  &matrices.DI("segm.int"),
+		  &matrices.DI("segm.int.grp"));
+      
+      matrices.output("segm.int").output("segm.int.grp");
     }
 
     }
@@ -575,8 +603,9 @@ int main(int argc, char* argv[])
 		    true,fmesh::IOMatrixtype_symmetric);
     
     matrices.output("tt").output("tti").output("vt").output("vv");
-    
+
   }
+
 
   if (issphere) {
     int sph0_order_max = args_info.sph0_arg;
