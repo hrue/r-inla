@@ -355,6 +355,10 @@ namespace fmesh {
     double skinnyQuality(int t) const;
     double bigQuality(int t) const;
 
+    int segments(bool boundary,
+		 Matrix<int>* segm = NULL,
+		 Matrix<int>* segmgrp = NULL) const;
+
     /*!
       \brief Build a convex enclosure triangulation (CET).
     */
