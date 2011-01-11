@@ -583,7 +583,18 @@
      
     if (gp$n.fix > 0) {
         inla.na.action = function(x, ...) {
-            ## set fixed effects that are NA to 0
+            ## set fixed effects that are NA to 0. Check that if there
+            ## are factors, they are not allowed to have NA's (unless
+            ## NA is a level itself of'course).
+            r = sapply(data,
+                    function(x) {
+                        return (is.factor(x) && any(is.na(x)) && !any(is.na(levels(x))))
+                    })
+            if (any(r)) {
+                nm = inla.paste(names(data)[r], sep="', '")
+                stop(paste(c("Error in the dataframe. INLA does not support factor(s) '",
+                             nm, "' having NA's. Please rewrite the factor(s) into fixed effects.")))
+            }
             x[is.na(x)] = 0
             return (x)
         }
