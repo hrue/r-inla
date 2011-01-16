@@ -391,6 +391,9 @@
         ## in this case, we expand the data-frame into a sequence of
         ## Poisson observations, and call inla() again.
 
+        ## This is not supported yet. 
+        stopifnot(is.null(control.predictor$A))
+
         cont.hazard = inla.set.control.hazard.default()
         cont.hazard[names(control.hazard)] = control.hazard
       
@@ -535,6 +538,37 @@
     data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
 
+    ## need to know MPredictor and NPredictor!
+    if (!is.null(control.predictor$A)) {
+        MPredictor = ny
+    } else {
+        MPredictor = 0L
+    }
+    NPredictor = max(sapply(data, length))
+    if (MPredictor > 0) {
+        NData = MPredictor
+    } else {
+        NData = NPredictor
+    }
+    stopifnot(NData > 0)
+    stopifnot(NPredictor > 0)
+    if (debug) {
+        print(paste("MPredictor", MPredictor))
+        print(paste("NPredictor", NPredictor))
+        print(paste("NData", NPredictor))
+    }
+    if (!is.null(control.predictor$A)) {
+        ## Then the dimension of A must match!
+        MN = inla.sparse.dim(A)
+        if (MPredictor != MN[1]) {
+            stop(paste("From the responce, I found that MPredictor =", MPredictor, ", but dim(A)[1] =", MN[1]))
+        }
+        if (NPredictor != MN[2]) {
+            stop(paste("From `data', I found that NPredictor =", NPredictor, ", but dim(A)[2] =", MN[2]))
+        }
+    }
+
+    ##
     if (n.family == 1) {
         y...fake = c(rep(Inf, ny))
         if (debug)
@@ -567,10 +601,19 @@
 
     
     ## ...and then we add the fake to the data-frame after removing the original responce
-    if (is.data.frame(data))
+    if (is.data.frame(data)) {
+        if (MPredictor > 0)
+            stopifnot(MPredictor == NPredictor)
         data = as.data.frame(c(as.data.frame(data), list(y...fake=y...fake)))
-    else
+    } else {
         data = c(data, list(y...fake=y...fake))
+        if (MPredictor > 0 && (MPredictor > NPredictor)) {
+            data$y...fake = data$y...fake[1:NPredictor]
+        }
+        if (MPredictor > 0 && (MPredictor < NPredictor)) {
+            data$y...fake = c(data$y...fake, rep(Inf, NPredictor - MPredictor))
+        }
+    }
 
     ## creates a new version of ``formula'' and keep the old one for reference
     formula.orig = formula
@@ -740,8 +783,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; 
     mf$user.hook = NULL; mf$user.hook.arg = NULL; mf$inla.arg = NULL; mf$lincomb=NULL;
-    mf$.internal = NULL;
-    mf$data = data
+    mf$.internal = NULL; mf$data = data
 
     if (gp$n.fix > 0)
         mf$formula = gp$fixf
@@ -806,8 +848,9 @@
     ## ## ## ## ## ## ## ## ## ## ## ##
 
     mf = eval.parent(mf)
-    tot.data=length(mf[,1])
-    ind=seq(0,tot.data-1)
+    indN = seq(0, NPredictor-1)
+    indD = seq(0, NData-1)
+
 
     ## this takes care of the offset: `offset' is the argument,
     ## `offset.formula' is in the formula and `offset.sum' is their
@@ -848,6 +891,9 @@
             yy = y...orig
         else
             yy = y...orig[[i.family]]
+        
+        if (MPredictor > 0)
+            stopifnot(length(yy) == MPredictor)
         
         file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, family=family[i.family],
                 data.dir=data.dir, file=file.ini, debug=debug)
@@ -897,9 +943,9 @@
         print("prepare predictor section")
 
     if (!is.null(offset.sum)) {
-        if (sum(is.na(offset.sum))>0) 
+        if (any(is.na(offset.sum)))
             stop("\n\tNo NA values allowed in the offset vector!")
-        os = cbind(ind,offset.sum)
+        os = cbind(indD, offset.sum)
         file.offset = inla.tempfile(tmpdir=data.dir)
         file.create(file.offset)
         write(t(os),ncolumns=2,file=file.offset,append=FALSE)
@@ -907,7 +953,9 @@
     } else {
         file.offset = NULL
     }
-    inla.predictor.section(file=file.ini, n=tot.data, predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
+
+    inla.predictor.section(file=file.ini, n=NPredictor, m=MPredictor,
+                           predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
 
     ##
     all.labels = character(0)
@@ -922,7 +970,7 @@
             if (debug)
                 cat("write label[", labels[i],"]\n")
 
-            fixed.eff=cbind(ind, as.numeric(gp$model.matrix[,i]))
+            fixed.eff=cbind(indN, as.numeric(gp$model.matrix[,i]))
             ##remove lines with NA
             fixed.eff = fixed.eff[!is.na(fixed.eff[,2]),,drop=FALSE]
 
@@ -1152,7 +1200,7 @@
                 
                 file.cov=inla.tempfile(tmpdir=data.dir)
                 file.create(file.cov)
-                write(t(cbind(ind,covariate[[r]])),ncolumns=2,file=file.cov,append=FALSE)
+                write(t(cbind(indN,covariate[[r]])),ncolumns=2,file=file.cov,append=FALSE)
                 file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
 
                 if (nrep == 1 && ngroup == 1) {
@@ -1259,7 +1307,6 @@
 
                 ##print(gp$random.spec[[r]]$extraconstr$A)
                 ##print(gp$random.spec[[r]]$extraconstr$e)
-                ##browser()
                 
                 ##and in case a file for the extraconstraint
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
@@ -1288,7 +1335,7 @@
                     ##create a file for the weights
                     file.weights=inla.tempfile(tmpdir=data.dir)
                     file.create(file.weights)
-                    write(t(cbind(ind,www)),ncolumns=2,file=file.weights,append=FALSE)
+                    write(t(cbind(indN,www)),ncolumns=2,file=file.weights,append=FALSE)
                     file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
 
                     n.weights = n.weights+1
@@ -1308,7 +1355,7 @@
                 xx=rf[,r +1]
                 file.linear = inla.tempfile(tmpdir=data.dir)
                 file.create(file.linear)
-                write(t(cbind(ind,xx)),ncolumns=2,file=file.linear,append=FALSE)
+                write(t(cbind(indN,xx)),ncolumns=2,file=file.linear,append=FALSE)
                 file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,

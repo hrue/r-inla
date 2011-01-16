@@ -1,7 +1,27 @@
 ### Some utilities for sparse matrices using the `Matrix' library
 
+`inla.sparse.dim` = function(A) {
+    ## return the dimension of the matrix A
+    A = inla.sparse.check(A, must.be.squared = FALSE)
+
+    if (is.character(A)) {
+        Am = read.table(A, col.names = c("i", "j", "Aij"))
+        if (min(A$i) == 0 || min(A$j) == 0) {
+            cindex = 1
+        } else {
+            cindex = 0
+        }
+        return (c(max(A$i) + cindex, max(A$j) + cindex))
+    } else {
+        return (dim(A))
+    }
+}
+    
+    
 `inla.sparse.check` = function(A, must.be.squared = TRUE)
 {
+    ## just check if matrix A exists and return either a filename or a
+    ## dgTMatrix.
     if (is.character(A)) {
         if (!file.exists(A)) {
             stop(paste("File not found:", A))
@@ -18,7 +38,7 @@
 
     if (must.be.squared) {
         if (dim(A)[1] != dim(A)[2]) {
-            stop(paste(c("Matrix is not a square matrix:", dim(A))))
+            stop(paste(c("Matrix is not a square matrix:", dim(A)[1], "x", dim(A)[2])))
         }
     }
 
@@ -39,9 +59,7 @@
 {
     ## convert a inla-sparse-matrix into a dgTMatrix-format of library
     ## 'Matrix'
-
     warning("THIS FUNCTION IS OBSOLETE!")
-    
     if (!missing(dims) && length(dims) == 1) {
         dims = rep(dims, 2)
     }
@@ -63,8 +81,12 @@
     ## need this particular format. I think this is faster for
     ## repeated use, as we do not need to duplicate the A matrix in
     ## memory. but perhaps I'm wrong...
-    if (!is(A, "dgTMatrix"))
+    if (!is(A, "dgTMatrix")) {
+        ## This is very slow, so its better to stop and say that the
+        ## matrix has to be converted upfront.
+        stop("Matrix is not of type 'dgTMatrix'; please convert it upfront.")
         A = inla.as.dgTMatrix(A)
+    }
 
     if (!missing(row)) {
         stopifnot(row >=1 && row <= A@Dim[1])

@@ -1,6 +1,6 @@
-
 `inla.create.data.file` =
     function(y.orig = NULL,
+             MPredictor = NULL,
              mf=NULL,
              scale=NULL,
              E=NULL,
@@ -17,14 +17,12 @@
         if (!inherits(y.orig,"inla.surv"))
             y.orig = as.data.frame(y.orig)
     }
-
-    n.data=length(mf[,1])
+    
+    ##FIXME
+    ##n.data=length(mf[,1])
+    n.data = dim(y.orig)[1]
     ind=seq(0,n.data-1)
-    if (!inherits(y.orig, "inla.surv")) {
-        n.y.orig = ifelse(is.data.frame(y.orig), dim(y.orig)[1], length(y.orig))
-        if (n.data != n.y.orig)
-            stop(paste("n.data != n.y.orig ", n.data, n.y.orig))
-    }
+
     if (debug)
         cat("inla.create.data.file: n.data = ", n.data, "\n")
 
@@ -89,7 +87,7 @@
             null.dat = is.na(response[,2])
             response = response[!null.dat,]
             if (!is.matrix(E) || dim(E)[2] != 3)
-                stop(paste("Family 'poissonext': E has to be a 'n x 3' matrix;", dim(E)))
+                 stop(paste("Family 'poissonext': E has to be a 'n x 3' matrix;", dim(E)))
             E = E[!null.dat, ]
             if (dim(E)[1] != nrow(response)) {
                 file.remove(file)
@@ -164,5 +162,3 @@
 
     return(file.data)
 }
-
-

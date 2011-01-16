@@ -94,7 +94,7 @@ static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
 	{"invlogit()", map_invlogit}
 };
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, 0, 0 };
 
 /* 
    default values for priors
@@ -106,30 +106,12 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, NULL, 0, 0 };
 /* 
    these are the same, just that the interface is cleaner with the `ds'
  */
-#define OFFSET(idx_) (ds->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)(ds->mb)) : 0.0))
-#define OFFSET2(idx_) (mb_old->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)mb_old) : 0.0))
-#define OFFSET3(idx_) (mb->offset[idx_] + (G.all_offset ? G.all_offset(idx_, (void *)mb) : 0.0))
+#define OFFSET(idx_) ds->offset[idx_]
+#define OFFSET2(idx_) mb_old->offset[idx_]
+#define OFFSET3(idx_) mb->offset[idx_]
 
 #define PENALTY -100.0					       /* wishart3d: going over limit... */
 
-double inla_all_offset(int idx, void *arg)
-{
-	int i, debug = 0;
-	double val = 0.0;
-	inla_tp *mb = (inla_tp *) arg;
-
-	if (debug)
-		printf("call inla_all_offset with idx %d\n", idx);
-
-	if (idx >= mb->predictor_n)
-		return 0.0;
-
-	for (i = 0; i < mb->noff; i++) {
-		val += mb->off_func[i] (idx, mb->off_func_arg[i]);
-	}
-
-	return val;
-}
 
 int inla_ncpu(void)
 {
@@ -266,6 +248,7 @@ unsigned char *inla_inifile_sha1(const char *filename)
 					    || !strcasecmp("LOCATIONS", p)
 					    || !strcasecmp("X", p)
 					    || !strcasecmp("THETA", p)
+					    || !strcasecmp("AEXT", p)
 					    || !strcasecmp("EXTRACONSTRAINT", p)) {
 						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
 
@@ -1705,7 +1688,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	double *x = NULL, *a[128];
 	int n, na, i, j, ii, idiv = 0, k;
-
 	Data_section_tp *ds = &(mb->data_sections[mb->nds - 1]);
 
 	/*
@@ -1717,63 +1699,63 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	}
 	if (ds->data_id == L_GAUSSIAN) {
 		idiv = 3;
-		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_SKEWNORMAL) {
 		idiv = 3;
-		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_GEV) {
 		idiv = 3;
-		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_LAPLACE) {
 		idiv = 3;
-		a[0] = ds->data_observations.weight_laplace = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.weight_laplace = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_T) {
 		idiv = 3;
-		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_POISSON) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_POISSONEXT) {
 		idiv = 5;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
-		a[1] = ds->data_observations.E1 = Calloc(mb->predictor_n, double);
-		a[2] = ds->data_observations.E2 = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.E1 = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.E2 = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDPOISSON0) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDPOISSON1) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDPOISSON2) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_BINOMIAL) {
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL0) {
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL1) {
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
 		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_NBINOMIAL) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDNBINOMIAL0) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDNBINOMIAL1) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDNBINOMIAL2) {
 		idiv = 3;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_STOCHVOL) {
 		idiv = 2;
 		a[0] = NULL;
@@ -1788,10 +1770,10 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = NULL;
 	} else if (ds->data_id == L_EXPONENTIAL || ds->data_id == L_WEIBULL || ds->data_id == L_WEIBULL_CURE) {
 		idiv = 6;
-		a[0] = ds->data_observations.event = Calloc(mb->predictor_n, double);	/* the failure code */
-		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_n, double);
-		a[2] = ds->data_observations.lower = Calloc(mb->predictor_n, double);
-		a[3] = ds->data_observations.upper = Calloc(mb->predictor_n, double);
+		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
+		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.lower = Calloc(mb->predictor_ndata, double);
+		a[3] = ds->data_observations.upper = Calloc(mb->predictor_ndata, double);
 	} else {
 		assert(0 == 1);
 	}
@@ -1800,12 +1782,12 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		inla_error_file_numelm(__GMRFLib_FuncName, ds->data_file.name, n, idiv);
 	}
 	ds->data_observations.ndata = n / idiv;
-	ds->data_observations.y = Calloc(mb->predictor_n, double);
-	ds->data_observations.d = Calloc(mb->predictor_n, double);
+	ds->data_observations.y = Calloc(mb->predictor_ndata, double);
+	ds->data_observations.d = Calloc(mb->predictor_ndata, double);
 
 	for (i = j = 0; i < n; i += idiv, j++) {
 		ii = (int) x[i];
-		if (!LEGAL(ii, mb->predictor_n)) {
+		if (!LEGAL(ii, mb->predictor_ndata)) {
 			inla_error_file_error(__GMRFLib_FuncName, ds->data_file.name, n, i, x[i]);
 		}
 		for (k = 0; k < na; k++) {
@@ -4215,24 +4197,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	/*
-	 * type = offset
-	 */
-	for (sec = 0; sec < nsec; sec++) {
-		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
-		if (!strcmp(sectype, "OFFSET")) {
-			if (mb->verbose) {
-				printf("\tsection=[%1d] name=[%s] type=[OFFSET]\n", sec, iniparser_getsecname(ini, sec));
-			}
-			found++;
-			sec_read[sec] = 1;
-			inla_parse_offset(mb, ini, sec);
-		}
-		Free(secname);
-		Free(sectype);
-	}
-
-	/*
 	 * build the index table and the hash; need this before reading the lincomb sections
 	 */
 	len = 1 + mb->nf + mb->nlinear;
@@ -4243,9 +4207,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	j = idx = 0;
 	mb->idx_tag[j] = GMRFLib_strdup(mb->predictor_tag);
 	mb->idx_start[j] = idx;
-	mb->idx_n[j] = mb->predictor_n;
-	idx += mb->idx_n[j++];
+	mb->idx_n[j] = mb->predictor_n + mb->predictor_m;
 
+	idx += mb->idx_n[j++];
 	for (i = 0; i < mb->nf; i++) {
 		mb->idx_tag[j] = GMRFLib_strdup(mb->f_tag[i]);
 		mb->idx_start[j] = idx;
@@ -4357,11 +4321,11 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * make the final likelihood from all the data-sections 
 	 */
-	mb->loglikelihood = Calloc(mb->predictor_n, GMRFLib_logl_tp *);
-	mb->loglikelihood_arg = Calloc(mb->predictor_n, void *);
-	mb->d = Calloc(mb->predictor_n, double);
+	mb->loglikelihood = Calloc(mb->predictor_ndata, GMRFLib_logl_tp *);
+	mb->loglikelihood_arg = Calloc(mb->predictor_ndata, void *);
+	mb->d = Calloc(mb->predictor_ndata, double);
 
-	for (i = 0; i < mb->predictor_n; i++) {
+	for (i = 0; i < mb->predictor_ndata; i++) {
 
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
@@ -4395,8 +4359,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * make the final predictor_... from all the data-sections 
 	 */
-	mb->predictor_linkfunc = Calloc(mb->predictor_n + mb->predictor_n_ext, map_func_tp *);
-	for (i = 0; i < mb->predictor_n; i++) {
+	mb->predictor_linkfunc = Calloc(mb->predictor_n + mb->predictor_m, map_func_tp *);
+	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
 				k = j;
@@ -4409,7 +4373,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			exit(1);
 		}
 		mb->predictor_linkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_linkfunc : NULL);
-		mb->predictor_linkfunc[i + mb->predictor_n_ext] = (found == 1 ? mb->data_sections[k].predictor_linkfunc : NULL);
 	}
 
 	iniparser_freedict(ini);
@@ -4909,20 +4872,25 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tuser.scale=[%1d]\n", mb->predictor_user_scale);
 	}
-	char *tmp_n = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 
-	if (!tmp_n) {
-		inla_error_missing_required_field(__GMRFLib_FuncName, secname, "n");
-	} else {
-		if (inla_sread_ints(&(mb->predictor_n), 1, tmp_n) == INLA_FAIL) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "n", tmp_n);
-		}
-		if (mb->predictor_n <= 0) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "n", tmp_n);
-		}
-	}
+	mb->predictor_n = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
+	assert(mb->predictor_n > 0);
 	if (mb->verbose) {
 		printf("\t\tn=[%1d]\n", mb->predictor_n);
+	}
+	mb->predictor_m = iniparser_getint(ini, inla_string_join(secname, "M"), 0);
+	assert(mb->predictor_m >= 0);
+	if (mb->verbose) {
+		printf("\t\tm=[%1d]\n", mb->predictor_m);
+	}
+
+	if (mb->predictor_m == 0){
+		mb->predictor_ndata = mb->predictor_n;
+	} else {
+		mb->predictor_ndata = mb->predictor_m;
+	}
+	if (mb->verbose) {
+		printf("\t\tndata=[%1d]\n", mb->predictor_ndata);
 	}
 
 	mb->predictor_compute = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);	// mb->output->cpo || mb->output->dic
@@ -4945,9 +4913,9 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tread offsets from file=[%s]\n", filename);
 		}
-		inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_n, 0, 1, mb->verbose, 0.0);
+		inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_ndata, 0, 1, mb->verbose, 0.0);
 	} else {
-		mb->offset = Calloc(mb->predictor_n, double);
+		mb->offset = Calloc(mb->predictor_ndata, double);
 	}
 
 	mb->predictor_cross_sumzero = NULL;
@@ -4961,9 +4929,9 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (filename) {
 		inla_read_data_all(&dcross, &len_cross, filename);
 		if (len_cross > 0) {
-			if (len_cross != mb->predictor_n) {
-				GMRFLib_sprintf(&msg, "Length of cross-sum-to-zero is not equal to the length of the linear predictor: %1d != %1d\n",
-						len_cross, mb->predictor_n);
+			if (len_cross != mb->predictor_n + mb->predictor_m) {
+				GMRFLib_sprintf(&msg, "Length of cross-sum-to-zero is not equal to the TOTAL length of linear predictor: %1d != %1d\n",
+						len_cross, mb->predictor_n + mb->predictor_m);
 			}
 			icross = Calloc(len_cross, int);
 			for (i = 0; i < len_cross; i++)
@@ -4975,27 +4943,26 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose && mb->predictor_cross_sumzero) {
 		GMRFLib_iuniques(&nu, NULL, mb->predictor_cross_sumzero, mb->predictor_n);
 		printf("\t\tRead cross-sum-to-zero from file[%s]: %1d constraints\n", filename, nu);
-		for (i = 0; i < IMIN(PREVIEW, mb->predictor_n); i++) {
+		for (i = 0; i < IMIN(PREVIEW, mb->predictor_n + mb->predictor_m); i++) {
 			printf("\t\t\t%1d %1d\n", i, mb->predictor_cross_sumzero[i]);
 		}
 	}
 
 	/*
-	 * These are for the extended observational model 
+	 * These are for the extended observational model. only valid if predictor_m > 0.
 	 */
 	mb->predictor_Aext_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "AEXT"), NULL));
-	mb->predictor_Aext_precision = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e8);
+	mb->predictor_Aext_precision = iniparser_getdouble(ini, inla_string_join(secname, "AEXTPRECISION"), 1.0e8);
+
 	if (mb->verbose) {
 		printf("\t\tAext=[%s]\n", mb->predictor_Aext_fnm);
-		printf("\t\tAext.precision=[%.4g]\n", mb->predictor_Aext_precision);
+		printf("\t\tAextPrecision=[%.4g]\n", mb->predictor_Aext_precision);
 	}
-	if (mb->predictor_Aext_fnm) {
-		mb->predictor_n_ext = mb->predictor_n;
-	} else {
-		mb->predictor_n_ext = 0;
+	if (mb->predictor_m > 0){
+		assert(mb->predictor_Aext_fnm != NULL);
 	}
-	if (mb->verbose) {
-		printf("\t\tpredictor_n_ext=[%d]\n", mb->predictor_n_ext);
+	if (mb->predictor_m == 0){
+		assert(mb->predictor_Aext_fnm == NULL);
 	}
 
 	inla_parse_output(mb, ini, sec, &(mb->predictor_output));
@@ -5177,7 +5144,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 * validate the data 
 	 */
 	if (ds->data_id == L_GAUSSIAN) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
@@ -5186,7 +5153,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_SKEWNORMAL) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_skew_normal[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: SkewNormal weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_skew_normal[i]);
@@ -5195,7 +5162,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_GEV) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gev[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: GEV weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gev[i]);
@@ -5204,7 +5171,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_T) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_t[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: T weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_t[i]);
@@ -5213,7 +5180,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_LAPLACE) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_laplace[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: LAPLACE weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_laplace[i]);
@@ -5224,7 +5191,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_POISSON || ds->data_id == L_ZEROINFLATEDPOISSON0 || ds->data_id == L_ZEROINFLATEDPOISSON1 ||
 		   ds->data_id == L_ZEROINFLATEDPOISSON2 || ds->data_id == L_NBINOMIAL || ds->data_id == L_ZEROINFLATEDNBINOMIAL0 ||
 		   ds->data_id == L_ZEROINFLATEDNBINOMIAL1 || ds->data_id == L_ZEROINFLATEDNBINOMIAL2) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
@@ -5234,7 +5201,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_POISSONEXT) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0 ||
 				    ds->data_observations.E1[i] < 0.0 || ds->data_observations.E2[i] < 0.0) {
@@ -5247,7 +5214,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
 		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
 				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
@@ -5258,7 +5225,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_EXPONENTIAL || ds->data_id == L_WEIBULL || ds->data_id == L_WEIBULL_CURE) {
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				int event;
 				double truncation, lower, upper, ttime;
@@ -6684,7 +6651,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-	    **log_positive = NULL, **h2_intern = NULL, **a_intern = NULL;
+		**h2_intern = NULL, **a_intern = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	map_table_tp *um, *um0, *um1, *um2, *um3, *um4, *um5;
@@ -6812,7 +6779,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(range_intern, 0.0);
 	HYPER_NEW(beta_intern, 0.0);
 	HYPER_NEW(beta, 1.0);
-	HYPER_NEW(log_positive, 0.0);
 	HYPER_NEW(group_rho_intern, 0.0);
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
@@ -9664,176 +9630,6 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	mb->nlinear++;
 	return INLA_OK;
 }
-double offset_positive_func(int idx, void *arg)
-{
-	inla_off_func_arg_tp *a = (inla_off_func_arg_tp *) arg;
-	double beta = exp(a->log_positive[GMRFLib_thread_id][0]);
-
-	// printf("beta %g weight %g = %g\n", beta, a->weights[idx], beta * a->weights[idx]);
-	return beta * a->weights[idx];
-}
-int inla_parse_offset(inla_tp * mb, dictionary * ini, int sec)
-{
-	/*
-	 * parse section = OFFSET (work in progress...)
-	 */
-	int i;
-	char *filename = NULL, *secname = NULL, default_tag[100], *model = NULL, *msg = NULL;
-	map_table_tp *um;
-	double **log_positive, tmp;
-
-	if (mb->verbose) {
-		printf("\tinla_parse_offset...\n");
-	}
-	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	if (mb->verbose) {
-		printf("\t\tsection[%s]\n", secname);
-	}
-	mb->off_prior = Realloc(mb->off_prior, mb->noff + 1, Prior_tp *);
-	mb->off_tag = Realloc(mb->off_tag, mb->noff + 1, char *);
-	mb->off_dir = Realloc(mb->off_dir, mb->noff + 1, char *);
-	mb->off_weights = Realloc(mb->off_weights, mb->noff + 1, double *);
-	mb->off_output = Realloc(mb->off_output, mb->noff + 1, Output_tp *);
-	mb->off_usermap = Realloc(mb->off_usermap, mb->noff + 1, map_table_tp *);
-	mb->off_func = Realloc(mb->off_func, mb->noff + 1, inla_off_func_tp *);
-	mb->off_func_arg = Realloc(mb->off_func_arg, mb->noff + 1, void *);
-	mb->off_theta = Realloc(mb->off_theta, mb->noff + 1, double ***);
-	mb->off_fixed = Realloc(mb->off_fixed, mb->noff + 1, int *);
-	mb->off_ntheta = Realloc(mb->off_ntheta, mb->noff + 1, int);
-	mb->off_modelname = Realloc(mb->off_modelname, mb->noff + 1, char *);
-	mb->off_id = Realloc(mb->off_id, mb->noff + 1, int);
-
-	HYPER_NEW(log_positive, 0.0);
-
-	sprintf(default_tag, "default tag for off %d", (int) (10000 * GMRFLib_uniform()));
-
-
-	mb->off_tag[mb->noff] = GMRFLib_strdup((secname ? secname : default_tag));
-	mb->off_dir[mb->noff] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->off_tag[mb->noff]))));
-	if (mb->verbose) {
-		printf("\t\tdir=[%s]\n", mb->off_dir[mb->noff]);
-	}
-
-	model = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "MODEL"), NULL));
-	if (mb->verbose) {
-		printf("\t\tmodel=[%s]\n", model);
-	}
-
-	if (!strcasecmp(model, "POSITIVE")) {
-
-		FIXME("model positive does not work with the current offsets; please check and fix");
-		exit(1);
-
-		mb->off_id[mb->noff] = O_POSITIVE;
-		mb->off_ntheta[mb->noff] = 1;
-		mb->off_modelname[mb->noff] = GMRFLib_strdup("Positive fixed-effect");
-	} else {
-		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
-	}
-
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "WEIGHTS"), NULL));
-	if (!filename) {
-		if (mb->verbose) {
-			printf("\t\tfile for weights=[(null)]: set all weights to 1\n");
-		}
-		mb->off_weights[mb->noff] = Calloc(mb->predictor_n, double);
-
-		for (i = 0; i < mb->predictor_n; i++) {
-			mb->off_weights[mb->noff][i] = 1.0;
-		}
-	} else {
-		if (mb->verbose) {
-			printf("\t\tfile for weights=[%s]\n", filename);
-		}
-		inla_read_data_general(&(mb->off_weights[mb->noff]), NULL, NULL, filename, mb->predictor_n, 0, 1, mb->verbose, -1.0);
-	}
-
-
-	if (mb->off_id[mb->noff] == O_POSITIVE) {
-
-		if (mb->off_ntheta[mb->noff]) {
-			mb->off_prior[mb->noff] = Calloc(mb->off_ntheta[mb->noff], Prior_tp);
-			mb->off_fixed[mb->noff] = Calloc(mb->off_ntheta[mb->noff], int);
-			mb->off_theta[mb->noff] = Calloc(mb->off_ntheta[mb->noff], double **);
-		} else {
-			mb->off_prior[mb->noff] = NULL;
-			mb->off_fixed[mb->noff] = NULL;
-			mb->off_theta[mb->noff] = NULL;
-		}
-
-		mb->off_usermap[mb->noff] = um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "OFFSET.USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\toff.usermap=[%s]\n", um->name);
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
-		if (!mb->off_fixed[mb->noff][0] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		if (mb->verbose) {
-			printf("\t\tinitialise log_positive[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->off_fixed[mb->noff][0]);
-		}
-		HYPER_INIT(log_positive, tmp);
-
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
-		mb->off_theta[mb->noff][0] = log_positive;
-		mb->off_fixed[mb->noff][0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-
-		if (!mb->off_fixed[mb->noff][0]) {
-			/*
-			 * add this \theta 
-			 */
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log positive fixed-effect for %s", (secname ? secname : mb->off_tag[mb->noff]));
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Positive fixed-effect for %s", (secname ? secname : mb->off_tag[mb->noff]));
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter", mb->off_dir[mb->noff]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = log_positive;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
-			mb->ntheta++;
-		}
-
-		inla_off_func_arg_tp *def;
-
-		def = Calloc(1, inla_off_func_arg_tp);
-		def->log_positive = log_positive;
-		def->weights = mb->off_weights[mb->noff];
-		def->n = mb->predictor_n;
-
-		mb->off_func[mb->noff] = offset_positive_func;
-		mb->off_func_arg[mb->noff] = (void *) def;
-	}
-
-	switch (mb->off_id[mb->noff]) {
-	case O_POSITIVE:
-		inla_read_prior(mb, ini, sec, &(mb->off_prior[mb->noff][0]), "LOGGAMMA");
-		break;
-	default:
-		assert(0 == 1);
-	}
-
-	inla_parse_output(mb, ini, sec, &(mb->off_output[mb->noff]));
-
-	G.all_offset = inla_all_offset;
-
-	mb->noff++;
-	return INLA_OK;
-}
 int inla_setup_ai_par_default(inla_tp * mb)
 {
 	/*
@@ -10397,11 +10193,10 @@ double extra(double *theta, int ntheta, void *argument)
 	double val = 0.0, log_precision, log_precision0, log_precision1, log_precision2, precision0, precision1, precision2,
 	    rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-	    h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }, log_positive;
+		h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }; 
 
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
-
 
 #define SET_GROUP_RHO(_nt_)						\
 	if (mb->f_ngroup[i] == 1){					\
@@ -11484,28 +11279,6 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
-
-	for (i = 0; i < mb->noff; i++) {
-		switch (mb->off_id[i]) {
-		case O_POSITIVE:
-		{
-			assert(mb->off_ntheta[i] == 1);
-			if (!mb->off_fixed[i][0]) {
-				log_positive = theta[count];
-				count++;
-			} else {
-				log_positive = mb->off_theta[i][0][GMRFLib_thread_id][0];
-			}
-			if (!mb->off_fixed[i][0]) {
-				val += mb->off_prior[i][0].priorfunc(&log_positive, mb->off_prior[i][0].parameters);
-			}
-			break;
-		}
-		default:
-			assert(0 == 1);
-		}
-	}
-
 	// P(count);
 	// P(mb->ntheta);
 	// P(ntheta);
@@ -11604,7 +11377,8 @@ int inla_INLA(inla_tp * mb)
 	}
 	GMRFLib_openmp->strategy = mb->strategy;
 
-	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m, 
+			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
@@ -11615,11 +11389,11 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	mb->d = Realloc(mb->d, N, double);
-	memset(&(mb->d[mb->predictor_n]), 0, (N - mb->predictor_n) * sizeof(double));
+	memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
 	mb->loglikelihood = Realloc(mb->loglikelihood, N, GMRFLib_logl_tp *);
-	memset(&(mb->loglikelihood[mb->predictor_n]), 0, (N - mb->predictor_n) * sizeof(GMRFLib_logl_tp *));
+	memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb->loglikelihood_arg = Realloc(mb->loglikelihood_arg, N, void *);
-	memset(&(mb->loglikelihood_arg[mb->predictor_n]), 0, (N - mb->predictor_n) * sizeof(void *));
+	memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
 
 	if (0) {
 		for (i = 0; i < N; i++)
@@ -11630,7 +11404,7 @@ int inla_INLA(inla_tp * mb)
 	 * add the diagonal, if any 
 	 */
 	c = Calloc(N, double);
-	count = mb->predictor_n + mb->predictor_n_ext;
+	count = mb->predictor_n + mb->predictor_m;
 	for (i = 0; i < mb->nf; i++) {
 		for (k = 0; k < mb->f_nrep[i]; k++) {
 			for (j = 0; j < mb->f_n[i]; j++) {
@@ -11644,7 +11418,7 @@ int inla_INLA(inla_tp * mb)
 	 * this is an emergency option to prevent singular matrices (and is known to be >= 0) 
 	 */
 	if (mb->expert_diagonal_emergencey) {
-		for (i = mb->predictor_n + mb->predictor_n_ext; i < N; i++)
+		for (i = mb->predictor_n + mb->predictor_m; i < N; i++)
 			c[i] += mb->expert_diagonal_emergencey;
 	}
 
@@ -11663,7 +11437,7 @@ int inla_INLA(inla_tp * mb)
 		/*
 		 * if set, then only then only `linear.predictor[idx]' is set
 		 */
-		for (i = 0; i < mb->predictor_n + mb->predictor_n_ext; i++) {
+		for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 			compute[count] = (char) 0;
 			count++;
 		}
@@ -11692,7 +11466,7 @@ int inla_INLA(inla_tp * mb)
 		/*
 		 * as before 
 		 */
-		for (i = 0; i < mb->predictor_n + mb->predictor_n_ext; i++) {
+		for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 			compute[count++] = (char) mb->predictor_compute;
 		}
 		for (i = 0; i < mb->nf; i++) {
@@ -11742,6 +11516,7 @@ int inla_INLA(inla_tp * mb)
 	 */
 	x = Calloc(N, double);
 
+	FIXME("CHECK THAT THIS IS CORRECT WHEN USING OFFSETS.");
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg;
@@ -11753,13 +11528,13 @@ int inla_INLA(inla_tp * mb)
 		/*
 		 * subtract the offset 
 		 */
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			x[i] -= OFFSET3(i);
 		}
 
 	} else {
 #pragma omp parallel for private(i)
-		for (i = 0; i < mb->predictor_n; i++) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
@@ -11782,14 +11557,14 @@ int inla_INLA(inla_tp * mb)
 			extra, (void *) mb,
 			x, b, c, NULL, mb->d,
 			loglikelihood_inla, (void *) mb, NULL,
-			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store, inla_all_offset, (void *) mb,
+			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store, 
 			mb->nlc, mb->lc_lc, &(mb->density_lin), &(mb->misc_output));
 
 	/*
 	 * add offset to the linear predictor 
 	 */
 #pragma omp parallel for private(i)
-	for (i = 0; i < mb->predictor_n; i++) {
+	for (i = 0; i < mb->predictor_ndata; i++) {
 		GMRFLib_density_tp *d;
 
 		if (mb->density[i]) {
@@ -11807,7 +11582,7 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * add the offset to 'x' 
 	 */
-	for (i = 0; i < mb->predictor_n; i++) {
+	for (i = 0; i < mb->predictor_ndata; i++) {
 		x[i] += OFFSET3(i);
 	}
 
@@ -11832,13 +11607,15 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
 		       __GMRFLib_FuncName, G.mcmc_scale, G.mcmc_thinning, G.mcmc_niter, GMRFLib_MAX_THREADS);
 	}
-	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, mb_old->predictor_cross_sumzero, NULL, mb_old->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb_old->hgmrfm), mb_old->predictor_n, mb_old->predictor_m, 
+			    mb_old->predictor_cross_sumzero, NULL, mb_old->predictor_log_prec,
 			    (const char *) mb_old->predictor_Aext_fnm, mb_old->predictor_Aext_precision,
 			    mb_old->nf, mb_old->f_c, mb_old->f_weights, mb_old->f_graph, mb_old->f_Qfunc, mb_old->f_Qfunc_arg, mb_old->f_sumzero, mb_old->f_constr,
 			    mb_old->ff_Qfunc, mb_old->ff_Qfunc_arg,
 			    mb_old->nlinear, mb_old->linear_covariate, mb_old->linear_precision,
 			    (mb_old->lc_derived_only ? 0 : mb_old->nlc), mb_old->lc_lc, mb_old->lc_prec, mb_old->ai_par);
-	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, mb_new->predictor_cross_sumzero, NULL, mb_new->predictor_log_prec,
+	GMRFLib_init_hgmrfm(&(mb_new->hgmrfm), mb_new->predictor_n, mb_new->predictor_m, 
+			    mb_new->predictor_cross_sumzero, NULL, mb_new->predictor_log_prec,
 			    (const char *) mb_new->predictor_Aext_fnm, mb_new->predictor_Aext_precision,
 			    mb_new->nf, mb_new->f_c, mb_new->f_weights, mb_new->f_graph, mb_new->f_Qfunc, mb_new->f_Qfunc_arg, mb_new->f_sumzero, mb_new->f_constr,
 			    mb_new->ff_Qfunc, mb_new->ff_Qfunc_arg,
@@ -11853,23 +11630,23 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	}
 
 	mb_old->d = Realloc(mb_old->d, N, double);
-	memset(&(mb_old->d[mb_old->predictor_n]), 0, (N - mb_old->predictor_n) * sizeof(double));
+	memset(&(mb_old->d[mb_old->predictor_ndata]), 0, (N - mb_old->predictor_ndata) * sizeof(double));
 	mb_old->loglikelihood = Realloc(mb_old->loglikelihood, N, GMRFLib_logl_tp *);
-	memset(&(mb_old->loglikelihood[mb_old->predictor_n]), 0, (N - mb_old->predictor_n) * sizeof(GMRFLib_logl_tp *));
+	memset(&(mb_old->loglikelihood[mb_old->predictor_ndata]), 0, (N - mb_old->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb_old->loglikelihood_arg = Realloc(mb_old->loglikelihood_arg, N, void *);
-	memset(&(mb_old->loglikelihood_arg[mb_old->predictor_n]), 0, (N - mb_old->predictor_n) * sizeof(void *));
+	memset(&(mb_old->loglikelihood_arg[mb_old->predictor_ndata]), 0, (N - mb_old->predictor_ndata) * sizeof(void *));
 	mb_new->d = Realloc(mb_new->d, N, double);
-	memset(&(mb_new->d[mb_new->predictor_n]), 0, (N - mb_new->predictor_n) * sizeof(double));
+	memset(&(mb_new->d[mb_new->predictor_ndata]), 0, (N - mb_new->predictor_ndata) * sizeof(double));
 	mb_new->loglikelihood = Realloc(mb_new->loglikelihood, N, GMRFLib_logl_tp *);
-	memset(&(mb_new->loglikelihood[mb_old->predictor_n]), 0, (N - mb_old->predictor_n) * sizeof(GMRFLib_logl_tp *));
+	memset(&(mb_new->loglikelihood[mb_old->predictor_ndata]), 0, (N - mb_old->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb_new->loglikelihood_arg = Realloc(mb_new->loglikelihood_arg, N, void *);
-	memset(&(mb_new->loglikelihood_arg[mb_new->predictor_n]), 0, (N - mb_new->predictor_n) * sizeof(void *));
+	memset(&(mb_new->loglikelihood_arg[mb_new->predictor_ndata]), 0, (N - mb_new->predictor_ndata) * sizeof(void *));
 
 	/*
 	 * add the diagonal, if any 
 	 */
 	c = Calloc(N, double);
-	count = mb_new->predictor_n + mb_new->predictor_n_ext;
+	count = mb_new->predictor_n + mb_new->predictor_m;
 	for (i = 0; i < mb_new->nf; i++) {
 		for (j = 0; j < mb_new->f_n[i]; j++) {
 			c[count + j] = mb_new->f_diag[i];      /* yes; this is correct */
@@ -11881,7 +11658,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	 * this is an emergency option to prevent singular matrices (and is known to be >= 0). 
 	 */
 	if (mb_new->expert_diagonal_emergencey) {
-		for (i = mb_new->predictor_n + mb_new->predictor_n_ext; i < N; i++)
+		for (i = mb_new->predictor_n + mb_new->predictor_m; i < N; i++)
 			c[i] += mb_new->expert_diagonal_emergencey;
 	}
 
@@ -11890,7 +11667,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	 */
 	b = Calloc(N, double);
 	count = 0;
-	for (i = 0; i < mb_new->predictor_n + mb_new->predictor_n_ext; i++) {
+	for (i = 0; i < mb_new->predictor_n + mb_new->predictor_m; i++) {
 		count++;
 	}
 	for (i = 0; i < mb_new->nf; i++) {
@@ -11938,14 +11715,13 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		/*
 		 * subtract the offset 
 		 */
-		for (i = 0; i < mb_old->predictor_n; i++) {
+		for (i = 0; i < mb_old->predictor_ndata; i++) {
 			x_old[i] -= OFFSET2(i);
 			x_new[i] -= OFFSET2(i);
 		}
-
 	} else {
 #pragma omp parallel for private(i)
-		for (i = 0; i < mb_old->predictor_n; i++) {
+		for (i = 0; i < mb_old->predictor_ndata; i++) {
 			if (mb_old->d[i]) {
 				x_old[i] = x_new[i] = inla_compute_initial_value(i, mb_old->loglikelihood[i], NULL, (void *) mb_old->loglikelihood_arg[i]);
 			} else {
@@ -11961,7 +11737,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
 			extra, (void *) mb_old, x_old, b, c, NULL, mb_old->d, loglikelihood_inla, (void *) mb_old, NULL,
 			mb_old->hgmrfm->graph, mb_old->hgmrfm->Qfunc, mb_old->hgmrfm->Qfunc_arg, mb_old->hgmrfm->constr, mb_old->ai_par, ai_store,
-			inla_all_offset, (void *) mb_old, 0, NULL, NULL, NULL);
+			0, NULL, NULL, NULL);
 	GMRFLib_free_ai_store(ai_store);
 
 	/*
@@ -11992,7 +11768,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	j = n = 0;
 	offsets[0] = 0;
-	n += mb_old->predictor_n + mb_old->predictor_n_ext;
+	n += mb_old->predictor_n + mb_old->predictor_m;
 	for (i = 0; i < mb_old->nf; i++) {
 		offsets[++j] = n;
 		n += mb_old->f_graph[i]->n;
@@ -12028,7 +11804,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	inla_fnmfix(fnm);
 	fp_offset = fopen(fnm, "w");
 	Free(fnm);
-	for (i = 0; i < mb_old->predictor_n; i++) {
+	for (i = 0; i < mb_old->predictor_ndata; i++) {
 		fprintf(fp_offset, "%d %.12g\n", i, OFFSET2(i));
 	}
 	fclose(fp_offset);
@@ -12228,10 +12004,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			 * for each data_section, pass the data and the offset 
 			 */
 			fprintf(stderr, "\n\nNumber of doubles to pass through %s and %s: %1d\n\n",
-				FIFO_GET_DATA, FIFO_PUT_DATA, 2 * mb_old->nds * mb_old->predictor_n);
+				FIFO_GET_DATA, FIFO_PUT_DATA, 2 * mb_old->nds * mb_old->predictor_ndata);
 
-			all_data_fifo_put = Calloc(2 * mb_old->nds * mb_old->predictor_n, double);
-			all_data_fifo_get = Calloc(2 * mb_old->nds * mb_old->predictor_n, double);
+			all_data_fifo_put = Calloc(2 * mb_old->nds * mb_old->predictor_ndata, double);
+			all_data_fifo_get = Calloc(2 * mb_old->nds * mb_old->predictor_ndata, double);
 
 			/*
 			 * in this case, this feature cannot be used 
@@ -12293,10 +12069,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			j = -1;				       /* yes */
 			j++;
 			if (fpp[j]) {
-				for (i = 0; i < mb_old->predictor_n; i++) {
+				for (i = 0; i < mb_old->predictor_ndata; i++) {
 					fprintf(fpp[j], " %.5f", x_old[i] + OFFSET2(i));
 				}
-				for (i = mb_old->predictor_n; i < mb_old->predictor_n + mb_old->predictor_n_ext; i++) {
+				for (i = mb_old->predictor_ndata; i < mb_old->predictor_n + mb_old->predictor_m; i++) {
 					fprintf(fpp[j], " %.5f", x_old[i]);
 				}
 				fprintf(fpp[j], "\n");
@@ -12354,10 +12130,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			for (i = 0; i < mb_old->ntheta; i++) {
 				all_fifo_put[i] = mb_old->theta[i][0][0];
 			}
-			for (i = 0; i < mb_old->predictor_n; i++) {
+			for (i = 0; i < mb_old->predictor_ndata; i++) {
 				all_fifo_put[i + mb_old->ntheta] = x_old[i] + OFFSET2(i);	/* yes, add the offset */
 			}
-			for (i = mb_old->predictor_n; i < N; i++) {
+			for (i = mb_old->predictor_ndata; i < N; i++) {
 				all_fifo_put[i + mb_old->ntheta] = x_old[i];
 			}
 
@@ -12374,22 +12150,22 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				}
 			}
 
-			for (i = 0; i < mb_old->predictor_n; i++)
+			for (i = 0; i < mb_old->predictor_ndata; i++)
 				x_old[i] = all_fifo_get[i + mb_old->ntheta] - OFFSET2(i);
-			for (i = mb_old->predictor_n; i < N; i++) {
+			for (i = mb_old->predictor_ndata; i < N; i++) {
 				x_old[i] = all_fifo_get[i + mb_old->ntheta];
 			}
 			SET_THETA(mb_old, all_fifo_get);
 
 			if (G.mcmc_fifo_pass_data) {
 
-				int dlen = 2 * mb_old->nds * mb_old->predictor_n;
+				int dlen = 2 * mb_old->nds * mb_old->predictor_ndata;
 
 				for (i = 0; i < mb_old->nds; i++) {
-					memcpy(&(all_data_fifo_put[2 * i * mb_old->predictor_n]),
-					       mb_old->data_sections[i].data_observations.y, mb_old->predictor_n * sizeof(double));
-					memcpy(&(all_data_fifo_put[2 * i * mb_old->predictor_n + mb_old->predictor_n]),
-					       mb_old->data_sections[i].offset, mb_old->predictor_n * sizeof(double));
+					memcpy(&(all_data_fifo_put[2 * i * mb_old->predictor_ndata]),
+					       mb_old->data_sections[i].data_observations.y, mb_old->predictor_ndata * sizeof(double));
+					memcpy(&(all_data_fifo_put[2 * i * mb_old->predictor_ndata + mb_old->predictor_ndata]),
+					       mb_old->data_sections[i].offset, mb_old->predictor_ndata * sizeof(double));
 				}
 
 				write(fifo_put_data, all_data_fifo_put, dlen * sizeof(double));
@@ -12403,9 +12179,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				}
 				for (i = 0; i < mb_old->nds; i++) {
 					memcpy(mb_old->data_sections[i].data_observations.y,
-					       &(all_data_fifo_get[2 * i * mb_old->predictor_n]), mb_old->predictor_n * sizeof(double));
+					       &(all_data_fifo_get[2 * i * mb_old->predictor_ndata]), mb_old->predictor_ndata * sizeof(double));
 					memcpy(mb_old->data_sections[i].offset,
-					       &(all_data_fifo_get[2 * i * mb_old->predictor_n + mb_old->predictor_n]), mb_old->predictor_n * sizeof(double));
+					       &(all_data_fifo_get[2 * i * mb_old->predictor_ndata + mb_old->predictor_ndata]),
+					       mb_old->predictor_ndata * sizeof(double));
 				}
 			}
 		}
@@ -12438,10 +12215,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	GMRFLib_sprintf(&last_x, "%s/x.dat", last_dir);
 	inla_fnmfix(last_x);
 	fp_last_x = fopen(last_x, "w");
-	for (i = 0; i < mb_old->predictor_n; i++) {
+	for (i = 0; i < mb_old->predictor_ndata; i++) {
 		fprintf(fp_last_x, "%.12g\n", x_old[i] + OFFSET2(i));
 	}
-	for (i = mb_old->predictor_n; i < N; i++) {
+	for (i = mb_old->predictor_ndata; i < N; i++) {
 		fprintf(fp_last_x, "%.12g\n", x_old[i]);
 	}
 	fclose(fp_last_x);
@@ -12680,7 +12457,7 @@ int inla_output(inla_tp * mb)
 
 	j = n = 0;
 	offsets[j++] = n;
-	n += mb->predictor_n + mb->predictor_n_ext;
+	n += mb->predictor_n + mb->predictor_m;
 	for (i = 0; i < mb->nf; i++) {
 		offsets[j++] = n;
 		n += mb->f_graph[i]->n;
@@ -12720,19 +12497,19 @@ int inla_output(inla_tp * mb)
 			 */
 			int offset = offsets[0];
 
-			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
+			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
 					   mb->predictor_output, mb->predictor_dir, NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
-			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_n_ext, -1,
-					 (mb->predictor_n_ext == 0 ? 1 : 2));
+			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_m, -1,
+					 (mb->predictor_m == 0 ? 1 : 2));
 
 			if (mb->predictor_linkfunc && mb->predictor_user_scale) {
 				char *sdir, *newtag;
 
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
+				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
 						   mb->predictor_output, sdir, NULL, NULL, mb->predictor_linkfunc, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_n_ext, -1, -1, -1, (mb->predictor_n_ext == 0 ? 1 : 2));
+				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
 			}
@@ -12741,10 +12518,10 @@ int inla_output(inla_tp * mb)
 
 				GMRFLib_sprintf(&newtag, "%s usermap %s", mb->predictor_tag, mb->predictor_usermap->name);
 				GMRFLib_sprintf(&sdir, "%s usermap", mb->predictor_dir);
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_n_ext, 1,
+				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
 						   mb->predictor_output, sdir, mb->predictor_usermap->func, NULL, NULL, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_n_ext, -1,
-						 (mb->predictor_n_ext == 0 ? 1 : 2));
+				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_m, -1,
+						 (mb->predictor_m == 0 ? 1 : 2));
 				Free(sdir);
 				Free(newtag);
 			}
@@ -12783,7 +12560,6 @@ int inla_output(inla_tp * mb)
 				/*
 				 * This the offset 
 				 */
-				int len_off = mb->predictor_n;
 				FILE *fp;
 				char *fnm;
 
@@ -12796,11 +12572,11 @@ int inla_output(inla_tp * mb)
 				fp = fopen(fnm, (G.binary ? "wb" : "w"));
 				Free(fnm);
 				if (G.binary) {
-					for (ii = 0; ii < len_off; ii++) {
+					for (ii = 0; ii < mb->predictor_ndata; ii++) {
 						DW(OFFSET3(ii));
 					}
 				} else {
-					for (ii = 0; ii < len_off; ii++) {
+					for (ii = 0; ii < mb->predictor_ndata; ii++) {
 						fprintf(fp, "%1d %.12g\n", ii, OFFSET3(ii));
 					}
 				}
@@ -12953,7 +12729,7 @@ int inla_output(inla_tp * mb)
 				inla_output_misc(mb->dir, mb->misc_output, local_verbose);
 			}
 			if (mb->cpo) {
-				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_n, local_verbose);
+				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
 			if (mb->dic) {
 				inla_output_detail_dic(mb->dir, mb->dic, local_verbose);

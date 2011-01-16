@@ -980,8 +980,9 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	if (nx <= 0 || !ix) {
 		*nuniques = 0;
-		if (uniques)
+		if (uniques){
 			*uniques = NULL;
+		}
 		return GMRFLib_SUCCESS;
 	}
 
