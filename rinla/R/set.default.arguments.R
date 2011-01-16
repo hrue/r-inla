@@ -297,7 +297,7 @@
          A = NULL,
 
          ##:ARGUMENT precision The precision for eta - A*eta,
-         precision = exp(8.0))
+         precision = exp(11))
          
     ##:SEEALSO: inla
 }

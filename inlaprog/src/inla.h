@@ -273,7 +273,6 @@ typedef enum {
 	P_WISHART3D,
 	P_LOGFLAT, 
 	P_LOGIFLAT, 
-	O_POSITIVE /* offset-functions */ ,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -354,14 +353,6 @@ typedef struct {
 
 
 typedef struct {
-	double **log_positive;
-	double *weights;
-	int n;
-} inla_off_func_arg_tp;
-
-typedef double inla_off_func_tp(int idx, void *arg);
-
-typedef struct {
 	int n;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
@@ -427,6 +418,9 @@ struct inla_tp_struct {
 	 * type Predictor
 	 */
 	int predictor_n;				       /* dimension of \eta */
+	int predictor_m;				       /* dimension of \tilde{\eta}, the extended predictor */
+	int predictor_ndata;				       /* dimension of the data, ie _n if _m is 0, otherwise _m */
+
 	char *predictor_tag;				       /* the tag */
 	char *predictor_dir;				       /* the directory */
 	double **predictor_log_prec;
@@ -440,7 +434,6 @@ struct inla_tp_struct {
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 
-	int predictor_n_ext;				       /* dimension of \eta_ext */
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix  */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
 
@@ -535,22 +528,6 @@ struct inla_tp_struct {
 	Output_tp **lc_output;
 	map_table_tp **lc_usermap;
 	GMRFLib_lc_tp **lc_lc;
-
-	/*
-	 * offset functions
-	 */
-	Output_tp **off_output;
-	Prior_tp **off_prior;
-	char **off_dir;
-	char **off_tag;
-	double ****off_theta;
-	double **off_weights;
-	inla_off_func_tp **off_func;
-	int **off_fixed;
-	int *off_ntheta;
-	int noff;
-	map_table_tp **off_usermap;
-	void **off_func_arg;
 
 	/*
 	 * The final model 
@@ -746,7 +723,6 @@ double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double exp_taylor(double x, double x0, int order);
 double extra(double *theta, int ntheta, void *argument);
-double inla_all_offset(int idx, void *arg);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
 double link_log(double x, map_arg_tp typ, void *param);
@@ -770,7 +746,6 @@ double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
-double offset_positive_func(int idx, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
 double priorfunc_flat(double *x, double *parameters);
@@ -842,7 +817,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec);
-int inla_parse_offset(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
@@ -919,7 +893,6 @@ GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w);
 ***
 */
 
-typedef double inla_all_offset_func_tp(int idx, void *arg);
 
 typedef struct {
 	int binary;					       /* use binary output-files */
@@ -931,7 +904,6 @@ typedef struct {
 	int mcmc_thinning;				       /* thinning */
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */
 	int reorder;					       /* reorder strategy: -1 for optimize */
-	inla_all_offset_func_tp *all_offset;
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;

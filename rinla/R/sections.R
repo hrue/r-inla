@@ -85,186 +85,44 @@
     function(file, file.loc, n, nrep, ngroup, 
              file.cov, file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
-    ## yes, I need to do this....
-    if (inla.one.of(random.spec$model, "positive")) {
-        inla.offset.section(file, file.loc, n, nrep, file.cov, file.extraconstr, file.weights,
-                            random.spec, results.dir, only.hyperparam, data.dir)
-    } else {
-        ## as it should be
-        
-        label= inla.namefix(random.spec$term)
-        prop = inla.model.properties(random.spec$model, stop.on.error=TRUE)
-    
-        cat("[",label,"]\n", sep = "", file = file,  append = TRUE)
-        cat("dir = ",results.dir,"\n", sep = " ", file = file,  append = TRUE)
-        cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
-        cat("model = ",random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(random.spec$same.as)) {
-            cat("same.as = ",random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(random.spec$diagonal)) {
-            cat("diagonal =", random.spec$diagonal,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        inla.write.boolean.field("constraint", random.spec$constr, file)
-        inla.write.boolean.field("si", random.spec$si, file)
-        if (!is.null(file.extraconstr)) {
-            cat("extraconstraint =", file.extraconstr,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$weights)) {
-            cat("weights =", file.weights,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$spde.prefix)) {
-            ## need a special one, as spde.prefix is not a file or a directory...
-            fnm = inla.copy.dir.for.section.spde(random.spec$spde.prefix, data.dir)
-            cat("spde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$of)) {
-            cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$precision)) {
-            cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
-        }
-
-        if (!is.null(random.spec$range)) {
-            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
-            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
-        }
-
-        if (prop$ntheta > 0) {
-            k = 1
-            for(j in 1:prop$ntheta) {
-                jj = j-1
-                if (!is.null(random.spec$fixed[j])) {
-                    cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                        inla.ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
-                }
-                if (!is.null(random.spec$initial[j])) {
-                    cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                        random.spec$initial[j],"\n", sep = "", file = file,  append = TRUE)
-                }
-            }
-        }
-        if (prop$npriors > 0) {
-            k = 1
-            for(j in 1:prop$npriors) {
-                jj = j-1
-                if (!is.null(random.spec$prior) && !is.null(random.spec$prior[j])) {
-                    cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
-                        random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
-                }
-                if (!is.null(random.spec$param)) {
-                    cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ",
-                        sep="", file = file, append=TRUE)
-                    ## divide equally
-                    off = prop$nparameters %/% prop$npriors
-                    for(kk in 1:off) {
-                        cat(" ", random.spec$param[k], sep = " ", file = file,  append = TRUE)
-                        k = k + 1
-                    }
-                    cat("\n", file = file,  append = TRUE)
-                }
-            }
-        }
-
-        if (inla.model.properties(random.spec$model)$nrow.ncol) {
-            cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
-            cat("ncol = ", random.spec$ncol, "\n", sep = " ", file = file,  append = TRUE)
-
-            if (!is.null(random.spec$bvalue)) {
-                cat("bvalue = ", random.spec$bvalue, "\n", sep = " ", file = file,  append = TRUE)
-            }
-            if (inla.one.of(random.spec$model, c("matern2d", "matern2dx2part0", "matern2dx2p1"))) {
-                if (!is.null(random.spec$nu)) {
-                    cat("nu = ", random.spec$nu, "\n", sep = " ", file = file,  append = TRUE)
-                }
-            }
-        } else {
-            cat("n = ",n,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        cat("nrep = ", inla.ifelse(is.null(nrep), 1, nrep), "\n", sep = " ", file = file,  append = TRUE)
-
-        if (!is.null(ngroup) && ngroup > 1) {
-            cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
-            if (!is.null(random.spec$control.group$prior)) {
-                cat("group.prior = ", random.spec$control.group$prior, "\n", sep = " ", file = file,  append = TRUE)
-            }
-            if (!is.null(random.spec$control.group$param)) {
-                cat("group.parameters = ", random.spec$control.group$param, "\n", sep = " ", file = file,  append = TRUE)
-            }
-            if (!is.null(random.spec$control.group$initial)) {
-                cat("group.initial = ", random.spec$control.group$initial, "\n", sep = " ", file = file,  append = TRUE)
-            }
-            if (!is.null(random.spec$control.group$fixed)) {
-                if (random.spec$control.group$fixed) {
-                    cat("group.fixed = ", 1, "\n", sep = " ", file = file,  append = TRUE)
-                } else {
-                    cat("group.fixed = ", 0, "\n", sep = " ", file = file,  append = TRUE)
-                }
-            }
-            if (!is.null(random.spec$control.group$model)) {
-                cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
-            }
-        }
-        
-        if (!is.null(random.spec$cyclic)) {
-            cat("cyclic = ",as.numeric(random.spec$cyclic),"\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$season.length)) {
-            cat("season = ",random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$graph.file)) {
-            fnm = inla.copy.file.for.section(random.spec$graph.file, data.dir)
-            cat("graph = ",fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(file.loc)) {
-            cat("locations = ", file.loc,"\n", sep = " ", file = file,  append = TRUE)
-        }
-
-        if (!is.null(random.spec$Cmatrix)) {
-            if (is.character(random.spec$Cmatrix)) {
-                fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
-                cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
-            } else {
-                file.C = inla.tempfile(tmpdir=data.dir)
-                inla.sparse2file(random.spec$Cmatrix, file.C, c.indexing = TRUE, symmetric = TRUE)
-                file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
-                cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
-            }
-        }
-        if (!is.null(random.spec$rankdef)) {
-            cat("rankdef = ",random.spec$rankdef,"\n",append=TRUE, sep = " ", file = file)
-        }
-        if (!is.null(random.spec$cdf)) {
-            cat("cdf = ",random.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$quantiles)) {
-            cat("quantiles = ",random.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (only.hyperparam || !random.spec$compute) {
-            cat("compute = 0\n", sep = " ", file = file,  append = TRUE)
-        } else {
-            cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
-        }
-        cat("\n", sep = " ", file = file,  append = TRUE)
-    }
-}
-
-`inla.offset.section` =
-    function(file, file.loc, n, nrep, file.cov, file.extraconstr, file.weights,
-             random.spec, results.dir, only.hyperparam, data.dir)
-{
-    ## special version of inla.ffield.section() but for type = offset
-    ##
     label= inla.namefix(random.spec$term)
     prop = inla.model.properties(random.spec$model, stop.on.error=TRUE)
     
     cat("[",label,"]\n", sep = "", file = file,  append = TRUE)
     cat("dir = ",results.dir,"\n", sep = " ", file = file,  append = TRUE)
-    cat("type = offset\n", sep = " ", file = file,  append = TRUE)
+    cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
     cat("model = ",random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
-    if (!is.null(random.spec$weights))
+    if (!is.null(random.spec$same.as)) {
+        cat("same.as = ",random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(random.spec$diagonal)) {
+        cat("diagonal =", random.spec$diagonal,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    inla.write.boolean.field("constraint", random.spec$constr, file)
+    inla.write.boolean.field("si", random.spec$si, file)
+    if (!is.null(file.extraconstr)) {
+        cat("extraconstraint =", file.extraconstr,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$weights)) {
         cat("weights =", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$spde.prefix)) {
+        ## need a special one, as spde.prefix is not a file or a directory...
+        fnm = inla.copy.dir.for.section.spde(random.spec$spde.prefix, data.dir)
+        cat("spde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$of)) {
+        cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$precision)) {
+        cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
+    }
+
+    if (!is.null(random.spec$range)) {
+        cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
+        cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+    }
 
     if (prop$ntheta > 0) {
         k = 1
@@ -302,15 +160,85 @@
         }
     }
 
-    ##cat("n = ",n,"\n", sep = " ", file = file,  append = TRUE)
+    if (inla.model.properties(random.spec$model)$nrow.ncol) {
+        cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
+        cat("ncol = ", random.spec$ncol, "\n", sep = " ", file = file,  append = TRUE)
 
+        if (!is.null(random.spec$bvalue)) {
+            cat("bvalue = ", random.spec$bvalue, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (inla.one.of(random.spec$model, c("matern2d", "matern2dx2part0", "matern2dx2p1"))) {
+            if (!is.null(random.spec$nu)) {
+                cat("nu = ", random.spec$nu, "\n", sep = " ", file = file,  append = TRUE)
+            }
+        }
+    } else {
+        cat("n = ",n,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    cat("nrep = ", inla.ifelse(is.null(nrep), 1, nrep), "\n", sep = " ", file = file,  append = TRUE)
+
+    if (!is.null(ngroup) && ngroup > 1) {
+        cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
+        if (!is.null(random.spec$control.group$prior)) {
+            cat("group.prior = ", random.spec$control.group$prior, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (!is.null(random.spec$control.group$param)) {
+            cat("group.parameters = ", random.spec$control.group$param, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (!is.null(random.spec$control.group$initial)) {
+            cat("group.initial = ", random.spec$control.group$initial, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (!is.null(random.spec$control.group$fixed)) {
+            if (random.spec$control.group$fixed) {
+                cat("group.fixed = ", 1, "\n", sep = " ", file = file,  append = TRUE)
+            } else {
+                cat("group.fixed = ", 0, "\n", sep = " ", file = file,  append = TRUE)
+            }
+        }
+        if (!is.null(random.spec$control.group$model)) {
+            cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
+        }
+    }
+        
+    if (!is.null(random.spec$cyclic)) {
+        cat("cyclic = ",as.numeric(random.spec$cyclic),"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$season.length)) {
+        cat("season = ",random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$graph.file)) {
+        fnm = inla.copy.file.for.section(random.spec$graph.file, data.dir)
+        cat("graph = ",fnm, "\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(file.loc)) {
+        cat("locations = ", file.loc,"\n", sep = " ", file = file,  append = TRUE)
+    }
+
+    if (!is.null(random.spec$Cmatrix)) {
+        if (is.character(random.spec$Cmatrix)) {
+            fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
+            cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
+        } else {
+            file.C = inla.tempfile(tmpdir=data.dir)
+            inla.sparse2file(random.spec$Cmatrix, file.C, c.indexing = TRUE, symmetric = TRUE)
+            file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
+            cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
+        }
+    }
+    if (!is.null(random.spec$rankdef)) {
+        cat("rankdef = ",random.spec$rankdef,"\n",append=TRUE, sep = " ", file = file)
+    }
     if (!is.null(random.spec$cdf)) {
         cat("cdf = ",random.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$quantiles)) {
         cat("quantiles = ",random.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
-    
+    if (only.hyperparam || !random.spec$compute) {
+        cat("compute = 0\n", sep = " ", file = file,  append = TRUE)
+    } else {
+        cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
+    }
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
@@ -420,12 +348,16 @@
 }
 
 `inla.predictor.section` =
-    function(file, n, predictor.spec, file.offset, data.dir)
+    function(file, n, m, predictor.spec, file.offset, data.dir)
 {
+    ## n = NPredictor
+    ## m = MPredictor
+
     cat("[Predictor]\n", sep = " ", file = file,  append = TRUE)
     cat("type = predictor\n", sep = " ", file = file,  append = TRUE)
     cat("dir = predictor\n", sep = " ", file = file, append = TRUE)
-    cat("n = ",n, "\n", sep = " ", file = file,  append = TRUE)
+    cat("n = ", n, "\n", sep = " ", file = file,  append = TRUE)
+    cat("m = ", m, "\n", sep = " ", file = file,  append = TRUE)
 
     inla.write.boolean.field("fixed", predictor.spec$fixed, file)
     inla.write.boolean.field("compute", predictor.spec$compute, file)
@@ -457,8 +389,8 @@
         cat("predictor.usermap=", predictor.spec$predictor.usermap, "\n", sep=" ", file = file, append = TRUE)
     }
     if (!is.null(predictor.spec$cross) && length(predictor.spec$cross) > 0) {
-        if (length(predictor.spec$cross) != n) {
-            stop(paste("Length of cross does not match length of predictor", length(predictor.spec$cross), "!=", n))
+        if (length(predictor.spec$cross) != n + m) {
+            stop(paste("Length of cross does not match the total length of predictor", length(predictor.spec$cross), "!=", n+m))
         }
         file.cross = inla.tempfile(tmpdir=data.dir)
         predictor.spec$cross[is.na(predictor.spec$cross)] = 0
@@ -468,10 +400,12 @@
     }
 
     if (!is.null(predictor.spec$A)) {
-        ## Since we will expand the A into [ I, -A; -A^T, A^T A
-        ## ], we have to read the matrix it if its given in a
-        ## file. The fileformat is given as a three colums file, with
-        ## columns i, j and values.
+        ## Now we will build the extended Matrix, which is
+        ##
+        ## Aextended = [ I, -A; -A^T, A^T A ] (2n x 2x)
+        ##
+        ## This matrix is the one that is needed for input to inla. 
+    
         if (is.character(predictor.spec$A)) {
             A = read.table(predictor.spec$A, col.names = c("i", "j", "x"))
             A = sparseMatrix(i = A$i, j = A$j, x = A$x, index1=TRUE)
@@ -479,54 +413,30 @@
             A = predictor.spec$A
         }
         if (!is(A, "dgTMatrix")) {
-            A = inla.sparse.check(A)
+            A = inla.sparse.check(A, must.be.squared=FALSE)
         }
 
-        ## Now we will build the extended Matrix, which is
-        ##
-        ## Aextended = [ I, -A; -A^T, A^T A ] (2n x 2x)
-        ##
-        ## This matrix is the one that is needed for input to inla. We
-        ## will only build the upper triangular part!
-        
-        ## Note that only a subset of the matrix has to be
-        ## given, and the rest is filled with zeros:
-        ## > inla.sparse2dgTMatrix(list(i=2, j=2, values=2), dims=c(3,3))
-        ##   3 x 3 sparse Matrix of class "dgTMatrix"
-        ##   [1,] . . .
-        ##   [2,] . 2 .
-        ##   [3,] . . .
-        ##
-
-        ## if A is incomplete, just fill it with unit diagonals. NOTE:
-        ## If this takes time, then we may have to require that A is
-        ## completely specified!
-        nA = dim(A)[1]
-        if (nA < n) {
-            A = inla.as.dgTMatrix(
-                    sparseMatrix(i = c(A@i+1L, (nA+1):n), j = c(A@j+1L, (nA+1):n),
-                    x = c(A@x, rep(1.0, n-nA)), index1 = TRUE, dims = c(n,n))
-                    )
-            stopifnot(dim(A)[1] == n)
-        }
+        ## check dimensions
+        stopifnot(dim(A)[1] == m)
+        stopifnot(dim(A)[2] == n)
 
         ## The `I'
-        Aext = list(i = 1L:n, j = 1L:n, x = rep(1.0,n))
+        Aext = list(i = 1L:m, j = 1L:m, x = rep(1.0,m))
 
         ## add -A. Ooops; the internal storage @i etc, are zero-based indexing.
         Aext$i = c(Aext$i, (A@i+1L))
-        Aext$j = c(Aext$j, (A@j+1L) + n)
+        Aext$j = c(Aext$j, (A@j+1L) + m)
         Aext$x = c(Aext$x, -A@x)
 
         ## add -A^T. Ooops; the internal storage @i etc, are zero-based indexing.
-        Aext$i = c(Aext$i, (A@j+1L) + n)
+        Aext$i = c(Aext$i, (A@j+1L) + m)
         Aext$j = c(Aext$j, (A@i+1L))
         Aext$x = c(Aext$x, -A@x)
 
         ## add A^T A. Ooops; the internal storage @i etc, are zero-based indexing.
         ATA = inla.as.dgTMatrix( t(A) %*% A )
-        Aext$i = c(Aext$i, (ATA@i+1L) + n)
-        Aext$j = c(Aext$j, (ATA@j+1L) + n)
+        Aext$i = c(Aext$i, (ATA@i+1L) + m)
+        Aext$j = c(Aext$j, (ATA@j+1L) + m)
         Aext$x = c(Aext$x, ATA@x)
 
         stopifnot(length(Aext$i) == length(Aext$j))
@@ -535,10 +445,12 @@
         file.A=inla.tempfile(tmpdir=data.dir)
         Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x)
         inla.sparse2file(Aext, filename = file.A, c.indexing = TRUE, symmetric = TRUE)
-        
+        stopifnot(dim(Aext)[1] == m+n)
+        stopifnot(dim(Aext)[2] == m+n)
+
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
-        cat("precision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
+        cat("AextPrecision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

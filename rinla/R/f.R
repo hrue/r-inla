@@ -328,13 +328,7 @@ function(
         }
         Cmatrix = inla.sparse.check(Cmatrix)
         if (is.null(n)) {
-            ## find `n' from the Cmatrix
-            if (is.character(Cmatrix)) {
-                cm = read.table(Cmatrix, col.names=c("i", "j", "x"))
-                n = max(cm$i, cm$j)
-            } else {
-                n = dim(Cmatrix)[1]
-            }
+            n = inla.sparse.dim(Cmatrix)[1]
         }
     } else {
         if (!is.null(Cmatrix)) {
@@ -631,6 +625,11 @@ function(
             ## hole graph is just one connected component. all is
             ## fine, no need to do anything
         } else {
+
+            ## issue a warning, as the model has 'changed' compared to earlier versions.
+            warning(paste("The graph for the model", model, "has", g$cc$n,
+                          "connected components!!! Model is revised accordingly.", sep= " "))
+
             cc.n = sapply(g$cc$nodes, length)
             cc.n2 = sum(cc.n >= 2L)
             dimA = 0

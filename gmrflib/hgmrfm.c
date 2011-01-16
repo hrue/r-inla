@@ -1,7 +1,7 @@
 
 /* hgmrfm.c
  * 
- * Copyright (C) 2007-08 Havard Rue
+ * Copyright (C) 2007-11 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,8 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  *
  * \param[out] hgmrfm A pointer to the \c GMRFLib_hgmrfm_tp-object to be created.
  * \param[in] n The dimension  of \f$\eta\f$
- * \param[in] eta_sumzero  An optional int vector of length \c n, where all entries of equal value different from zero defines a sum-to-zero constraint.
+ * \param[in] n_ext The dimension  of the extended \f$\eta\f$
+ * \param[in] eta_sumzero  An optional int vector of length \c n, where all entries of equal value different from zero defines a sum-to-zero constraint. This applies to the total linear predictor of length n + n_ext. 
  * \param[in] logprec_unstruct A pointer to the log of the precision for \f$\eta\f$, i.e. \f$\log(\lambda_{\eta})\f$
  * \param[in] logprec_unstruct_omp A ppointer to the log of the precision for \f$\eta\f$, i.e. \f$\log(\lambda_{\eta})\f$, one
  * for each thread
@@ -123,7 +124,8 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  *
  * \sa \c GMRFLib_free_hgmrfm()
  */
-int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
+int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
+			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
@@ -253,8 +255,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 
 		*pr = Aext_precision;
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
-		GMRFLib_ASSERT(arg->eta_ext_graph->n == 2 * n, GMRFLib_EPARAMETER);	/* this is required!!!!! */
-		arg->n_ext = n;
+		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
+		arg->n_ext = n_ext;
 		// GMRFLib_print_graph(stdout, arg->eta_ext_graph);
 	} else {
 		arg->eta_ext_Q = NULL;
@@ -697,7 +699,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		}
 	}
 
-	GMRFLib_iuniques(&nu, &uniq, eta_sumzero, n);
+	GMRFLib_iuniques(&nu, &uniq, eta_sumzero, n + n_ext);
 	nconstr += nu;
 
 	if (nf && f_constr) {
@@ -748,8 +750,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int *eta_sumzero, do
 		if (nu) {
 			for (k = 0; k < nu; k++) {
 				ii = uniq[k];
-				for (i = 0; i < n; i++) {
-					constr->a_matrix[(i + idx_map_eta) * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
+				for (i = 0; i < n + n_ext; i++) {
+					constr->a_matrix[i * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
 				}
 				constr->e_vector[constr_no] = 0.0;
 				constr_no++;
