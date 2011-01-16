@@ -10710,8 +10710,9 @@ double extra(double *theta, int ntheta, void *argument)
 			assert(nT + nK + 1 == mb->f_ntheta[i]);
 
 			// TODO
-			if (mb->f_ngroup[i] > 1)
+			if (mb->f_ngroup[i] > 1){
 				FIXME("Please verify that ngroup works with SPDE!");
+			}
 
 			SET_GROUP_RHO(nT + nK + 1);
 
@@ -11516,7 +11517,6 @@ int inla_INLA(inla_tp * mb)
 	 */
 	x = Calloc(N, double);
 
-	FIXME("CHECK THAT THIS IS CORRECT WHEN USING OFFSETS.");
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg;
