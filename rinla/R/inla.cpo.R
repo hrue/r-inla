@@ -1,9 +1,18 @@
 
 inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute.mode = TRUE)
 {
-    ## evaluate inla() using the same arguments
+    ## evaluate inla() using the same arguments, but compute the
+    ## cpo-values manually for those with a 'failure'
+
+    if (TRUE) {
+        lib = "INLA::"
+    } else {
+        print("***FIXME*** revert back to INLA::")
+        lib = ""
+    }
+
     arg.char = as.character(as.expression(match.call()))
-    just.args = gsub("^(INLA::)?inla.cpo[(]", "", arg.char)
+    just.args = gsub(paste("^(", lib, ")?inla.cpo[(]", sep=""), "", arg.char)
     just.args = gsub("[)]$", "", just.args)
 
     ## remove the local arguments
@@ -12,7 +21,7 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
     just.args = gsub(",[ ]*recompute.mode[ ]*=[^,]*", "", just.args)
 
     ## call the standard inla()
-    r = inla.eval(paste("INLA::inla(", just.args, ")"))
+    r = inla.eval(paste(lib, "inla(", just.args, ")", sep=""))
 
     ## if there is no cpo, then done
     if (is.null(r$failure))
@@ -34,7 +43,7 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
                 k = k+1
             }
             
-            argument = paste(sep="", "INLA::inla(", just.args, ",",
+            argument = paste(sep="", lib, "inla(", just.args, ",",
                     "control.expert = list(cpo.manual = TRUE, cpo.idx =", idx, "),",
                     "control.mode = list(result = r, restart=", inla.ifelse(recompute.mode, "TRUE", "FALSE"), "))")
             rr = inla.eval(argument)

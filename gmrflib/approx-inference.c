@@ -2976,7 +2976,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    GMRFLib_linear_term_func_tp * linear_term_func, void *linear_term_func_arg, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin,
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin,
 		    GMRFLib_ai_misc_output_tp ** misc_output)
 {
 	/*
@@ -3120,25 +3120,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 #define COMPUTE_NEFF_LOCAL neff_local = ai_store_id->neff
 
-#define ADD_LINEAR_TERM							\
-	if (linear_term_func) {						\
-		double mu_add = linear_term_func(ii, linear_term_func_arg); \
-		dens[ii][dens_count]->user_mean += mu_add;		\
-		dens[ii][dens_count]->std_mean += mu_add;		\
-		assert(dens[ii][dens_count]->spline_P == NULL);		\
-	}
-
-#define ADD_LINEAR_TERM_LOCAL						\
-	if (linear_term_func) {						\
-		double mu_add = linear_term_func(ii, linear_term_func_arg); \
-		dens_local[ii]->user_mean += mu_add;			\
-		dens_local[ii]->std_mean += mu_add;			\
-		assert(dens_local[ii]->spline_P == NULL);		\
-	}
-
-#define COMPUTE       COMPUTE_NEFF;       COMPUTE_CPO_AND_DIC;       ADD_LINEAR_TERM
-#define COMPUTE2      COMPUTE_NEFF2;      COMPUTE_CPO_AND_DIC;       ADD_LINEAR_TERM
-#define COMPUTE_LOCAL COMPUTE_NEFF_LOCAL; COMPUTE_CPO_AND_DIC_LOCAL; ADD_LINEAR_TERM_LOCAL
+#define COMPUTE       COMPUTE_NEFF;       COMPUTE_CPO_AND_DIC;
+#define COMPUTE2      COMPUTE_NEFF2;      COMPUTE_CPO_AND_DIC;
+#define COMPUTE_LOCAL COMPUTE_NEFF_LOCAL; COMPUTE_CPO_AND_DIC_LOCAL;
 
 	int i, j, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
 	    NULL, *iz_axes = NULL, skip, dir, len_length, free_ai_par = 0, config_count = 0, free_compute = 0, dens_count =
@@ -5814,9 +5798,6 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit,
 	int retval, compute_cpo = 1, i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, *work = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL, fail = 0.0;
-
-
-
 	if (!cpo_density) {
 		if (cpo) {
 			*cpo = 0.0;
@@ -5863,21 +5844,25 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit,
 	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
 
 	if (0) {
-		if (idx == 0) {
-			FIXME("idx = 0; write cpo_density");
-			FILE *fp = fopen("cpo-density.dat", "w");
-			for (i = 0; i < np; i++) {
-				fprintf(fp, "%g %g %g\n", xp[i], dens[i], exp(loglik[i]));
-			}
-			fclose(fp);
-			FIXME("info for cpo_dens for idx=0");
-			GMRFLib_density_printf(stdout, cpo_density);
+		P(idx);
+		FIXME("write cpo_density");
+		char *ff;
+		GMRFLib_sprintf(&ff,  "cpo-density-%1d.dat", idx);
+
+		FILE *fp = fopen(ff, "w");
+		for (i = 0; i < np; i++) {
+			fprintf(fp, "%g %g %g\n", xp[i], dens[i], exp(loglik[i]));
 		}
+		fclose(fp);
+		printf("write file %s\n", ff);
+		Free(ff);
+		FIXME("info for cpo_dens");
+		GMRFLib_density_printf(stdout, cpo_density);
 	}
 
 	for (i = 0; i < np; i++) {
-		xp[i] = prob[i] * dens[i];		       /* resuse and redefine xp! */
-		xpi[i] = exp(loglik[i]) * dens[i];	       /* resuse and redefine xpi! */
+		xp[i] = prob[i] * dens[i];		       /* reuse and redefine xp! */
+		xpi[i] = exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
 	}
 
 	integral = xp[0] + xp[np - 1];
