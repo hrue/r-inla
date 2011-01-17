@@ -208,10 +208,10 @@
     ## for each 'row', like
     ##
     ##> A
-    ## [,1] [,2] [,3]
+    ## [, 1] [, 2] [, 3]
     ##[1,]    1    2    3
     ##[2,]    2    1    3
-    ##> inla.make.lincombs(b=1:2,a=A,c=1:2)
+    ##> inla.make.lincombs(b=1:2, a=A, c=1:2)
     ##$lincomb.1
     ##[1] "   b 1 1   a 1 1 2 2 3 3   c 1 1"
     ##
@@ -281,7 +281,7 @@
     stop("might not work... please check format")
 
     ## makes a lincomb-entry using the variables in the call, like
-    ## > inla.make.lincomb(x=runif(2), b=1, c=3, Predictor=c(NA,2,3))
+    ## > inla.make.lincomb(x=runif(2), b=1, c=3, Predictor=c(NA, 2, 3))
     ## [1] " x 1 0.736 2 0.231 b 1 1 c 1 3 Predictor 2 2 3 3"
 
     str = ""

@@ -1,6 +1,5 @@
 
-`print.summary.inla` <-
-function(x,...)
+`print.summary.inla` = function(x, ...)
 {
     digits = 4
     cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
@@ -28,8 +27,8 @@ function(x,...)
         cat("Random effects:\n")
         cat("Name\t ","Model\t ", "\tMax KLD \n"  )
         for(i in 1:length(x$random.names))
-            cat(paste(inla.nameunfix(x$random.names[i])," ",x$random.model[i]," ",
-                      round(x$random.max.kld[i],5),"\n"))
+            cat(paste(inla.nameunfix(x$random.names[i])," ", x$random.model[i]," ",
+                      round(x$random.max.kld[i], 5),"\n"))
         cat("\n")
     } else {
         cat("The model has no random effects\n\n")
@@ -37,16 +36,16 @@ function(x,...)
 
     if(!is.null(x$hyperpar)) {
         cat("Model hyperparameters:\n")
-        print(format(x$hyperpar,digits=digits,nsmall=2),quote=FALSE)
+        print(format(x$hyperpar, digits=digits, nsmall=2), quote=FALSE)
         cat("\n")
     } else {
         cat("The model has no hyperparameters\n\n")
     }
     
     if(!is.null(x$neffp)) {
-        cat("Expected number of effective parameters(std dev): ",format(x$neffp[1],digits=digits,nsmall=2),"(",
-            format(x$neffp[2],digits=digits,nsmall=2),")\n",sep="")
-        cat("Number of equivalent replicates :",format(x$neffp[3],digits=digits,nsmall=2),"\n")
+        cat("Expected number of effective parameters(std dev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
+            format(x$neffp[2], digits=digits, nsmall=2),")\n", sep="")
+        cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n")
         if(x$neffp[3]<2)
             cat("WARNING: The approximations could be not very accurate\n")
         cat("\n")
@@ -56,14 +55,14 @@ function(x,...)
     cat("\n")
 
     if(!is.null(x$dic)) {
-        cat(paste("Deviance Information Criterion: ",format(x$dic[4],digits=digits,nsmall=2),
+        cat(paste("Deviance Information Criterion: ", format(x$dic[4], digits=digits, nsmall=2),
                   " Effective number of parameters:",
-                  format(x$dic[3],digits=digits,nsmall=2),"\n"))
+                  format(x$dic[3], digits=digits, nsmall=2),"\n"))
         cat("\n")
     }
      
     if(!is.null(x$mlik)) {
-        cat(paste("Marginal Likelihood: ",format(x$mlik[2],digits=digits,nsmall=2),"\n"))
+        cat(paste("Marginal Likelihood: ", format(x$mlik[2], digits=digits, nsmall=2),"\n"))
         cat("Warning: Interpret the marginal likelihood with care if the prior model is improper.\n")
     }
 

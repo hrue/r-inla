@@ -12,7 +12,7 @@
 ##!}
 ##!\usage{
 ##!`f` =
-##!function(...,model=NULL,...)
+##!function(..., model=NULL,...)
 ##!}
 ##!\arguments{
 `f` =
@@ -131,16 +131,16 @@ function(
          graph.file=NULL,
 
          ##!\item{cdf}{A vector of maximum 10 values between 0 and 1
-         ##!\eqn{x(0),x(1),\ldots}{x(0),x(1),\ldots}. The function
+         ##!\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
          ##!returns, for each posterior marginal the probabilities
          ##!\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
          cdf=NULL,
 
          ##!\item{quantiles}{A vector of maximum 10 quantiles,
-         ##!\eqn{p(0),p(1),\dots}{p(0),p(1),\ldots} to compute for
+         ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
          ##!each posterior marginal. The function returns, for each
          ##!posterior marginal, the values
-         ##!\eqn{x(0),x(1),\dots}{x(0),x(1),\ldots} such that
+         ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
          ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
          quantiles=NULL,
 
@@ -169,7 +169,7 @@ function(
          ncol = NULL,
 
          ##!\item{nu}{Smoothing parameter for the Matern2d-model,
-         ##!possible values are \code{c(0,1,2,3)}}
+         ##!possible values are \code{c(0, 1, 2, 3)}}
          nu = NULL,
 
          ##!\item{bvalue}{}
@@ -267,7 +267,7 @@ function(
     if (is.null(model)) {
         stop("No model is specified.")
     }
-    inla.is.model(model,stop.on.error=TRUE)
+    inla.is.model(model, stop.on.error=TRUE)
     
     ## for model = copy, its is not allowed to define constr or extraconstr
     if (inla.one.of(model, "copy")) {
@@ -410,7 +410,7 @@ function(
     
     if (inla.one.of(model, "positive")) {
         if (!is.null(n)) {
-            stop(paste("model = positive require n = 1, not n =",n))
+            stop(paste("model = positive require n = 1, not n =", n))
         }
         n=1
     }
@@ -433,12 +433,12 @@ function(
             fixed = c(FALSE, FALSE, FALSE, TRUE)
         }
         if (missing(initial)) {
-            initial = c(NA,NA,NA,-20)
+            initial = c(NA, NA, NA,-20)
         }
     } 
         
     ## in ... is the name of the covariate  and possibly the location of the weights
-    ## like f(covariate,weights)
+    ## like f(covariate, weights)
         
     vars = as.list(substitute(list(...)))[-1]
     d = length(vars)
@@ -506,8 +506,8 @@ function(
             stop("Argument NU is only used for matern2d/matern2dx2(part0/p1)-model.")
         }
     } else {
-        if (!is.null(nu) && !is.element(nu, c(0,1,2,3))) {
-            stop("For matern2d/matern2dx2(part0/p1)-model, the NU-parameter must be 0,1,2 or 3.")
+        if (!is.null(nu) && !is.element(nu, c(0, 1, 2, 3))) {
+            stop("For matern2d/matern2dx2(part0/p1)-model, the NU-parameter must be 0, 1, 2 or 3.")
         }
     }
         
@@ -552,7 +552,7 @@ function(
         }
         
         ##print.extraconstr = paste("list(A=", deparse(extraconstr$A, backtick = TRUE, width.cutoff = 500),",",
-        ##    "e=",deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
+        ##    "e=", deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
 
     prop = inla.model.properties(model, stop.on.error=TRUE)

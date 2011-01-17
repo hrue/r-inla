@@ -17,7 +17,7 @@
     for (itag in 1:length(rc[[1]]$tag)) {
         n = rc[[1]]$len[itag]
         tag= rc[[1]]$tag[itag]
-        xx = matrix(0,n,n)
+        xx = matrix(0, n, n)
         x = numeric(n)
         x[] = 0
 
@@ -71,7 +71,7 @@
             margs = result$marginals.random[[id]]
             nn = length(margs)
             if (debug) {
-                cat("\tid=",id, "nn=", nn, "\n")
+                cat("\tid=", id, "nn=", nn, "\n")
             }
             lower = numeric(nn)
             upper = numeric(nn)
@@ -102,7 +102,7 @@
             cor = matrix(rc[[config]]$cor[[itag]], n, n)
             cc[[config]] = diag(s) %*% cor %*% diag(s)
         }
-        ## pvalue = inla.si.mixture(p, mm, cc, rep(0,n), n.samples = n.samples)
+        ## pvalue = inla.si.mixture(p, mm, cc, rep(0, n), n.samples = n.samples)
     }
     return (result.new)
 }
@@ -111,7 +111,7 @@
     n = length(x.star)
     n.mix = length(p)
     nn = as.integer(n.samples * p)
-    nn = pmax(1,nn)
+    nn = pmax(1, nn)
     n.samples = sum(nn)
 
     d = numeric(n.samples)

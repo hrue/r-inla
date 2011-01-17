@@ -142,13 +142,13 @@
          ##:ARGUMENT: quantiles  A list of quantiles to compute for all fixed effects
          quantiles = NULL,
 
-         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1,b=2,default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.  
+         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.  
          mean = 0.0,
          
          ##:ARGUMENT: mean.intercept Prior mean for the intercept
          mean.intercept = 0.0,
          
-         ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1,b=2,default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.  
+         ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.  
          prec=NULL, 
 
          ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
@@ -399,12 +399,12 @@
     if (is.null(names(contr)))
         stop(inla.paste(c("Named elements in in control-argument `", nm, "', is required: ", contr,
                           "\n\n  Valid ones are:\n\t",
-                          inla.paste(sort(elms),sep="\n\t")), sep=""))
+                          inla.paste(sort(elms), sep="\n\t")), sep=""))
     
     for(elm in names(contr))
         if (!is.element(elm, elms))
             stop(inla.paste(c("Name `", elm,"' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",
-                              inla.paste(sort(elms),sep="\n\t")), sep=""))
+                              inla.paste(sort(elms), sep="\n\t")), sep=""))
 
     return(invisible())
 }

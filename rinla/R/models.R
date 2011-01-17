@@ -23,7 +23,7 @@ inla.models = function()
                                  constr = TRUE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = NULL,
                                  n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
                          besag2 = list(ntheta = 2, theta = c("precision", "a"), nparameters = 4, npriors = 2,
-                                 constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = c(1,2),
+                                 constr = FALSE, nrow.ncol = FALSE, augmented = FALSE, aug.factor = 1, aug.constr = c(1, 2),
                                  n.div.by = 2, n.required = TRUE, set.default.values = TRUE),
                          bym = list(ntheta = 2, theta = c("precision iid", "precision spatial"), nparameters = 4, npriors = 2,
                                  constr = TRUE, nrow.ncol = FALSE, augmented = TRUE, aug.factor = 2, aug.constr = 2,
@@ -51,11 +51,11 @@ inla.models = function()
                                  n.div.by = NULL, n.required = TRUE, set.default.values = TRUE),
                          iid2d = list(ntheta = 3, theta = c("precision1", "precision2", "correlation"),
                                  nparameters = 4, npriors = 1, constr = FALSE, nrow.ncol = FALSE, augmented = TRUE,
-                                 aug.factor = 1, aug.constr = c(1,2), n.div.by = 2, n.required = TRUE, set.default.values = TRUE),
+                                 aug.factor = 1, aug.constr = c(1, 2), n.div.by = 2, n.required = TRUE, set.default.values = TRUE),
                          iid3d = list(ntheta = 6,
                                  theta = c("precision1", "precision2", "precision3", "correlation12", "correlation13", "correlation23"),
                                  nparameters = 7, npriors = 1, constr = FALSE, nrow.ncol = FALSE, augmented = TRUE,
-                                 aug.factor = 1, aug.constr = c(1,2,3), n.div.by = 3, n.required = TRUE, set.default.values = TRUE),
+                                 aug.factor = 1, aug.constr = c(1, 2, 3), n.div.by = 3, n.required = TRUE, set.default.values = TRUE),
                          "2diid" = list(ntheta = 3, theta = c("precision1", "precision2", "correlation"),
                                  nparameters = 6, npriors = 3, constr = FALSE, nrow.ncol = FALSE, augmented = FALSE,
                                  aug.factor = 1, aug.constr = NULL, n.div.by = NULL, n.required = FALSE, set.default.values = FALSE),
@@ -161,7 +161,7 @@ inla.is.generic = function(model, stop.on.error, models, ignore.case)
         }
     } else {
         if (stop.on.error)
-            stop(paste("\n\tModel [", model, "] is not of type character()\n",sep=""))
+            stop(paste("\n\tModel [", model, "] is not of type character()\n", sep=""))
     }
     return (ret)
 }
