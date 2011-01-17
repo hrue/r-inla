@@ -1,6 +1,5 @@
 
-`print.inla` <-
-    function(x,...)
+`print.inla` = function(x, ...)
 {
     cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
     cat("Time used:\n")
@@ -15,13 +14,13 @@
         cat("Central Composit Design\n\n")
     else if(x$control.inla$int.strategy=="GRID") {
         cat("Integration on a regular grid\n")
-        cat("with parameters dz=",x$control.inla$dz," and diff.logdens=",x$control.inla$diff.logdens,"\n\n")
+        cat("with parameters dz=", x$control.inla$dz," and diff.logdens=", x$control.inla$diff.logdens,"\n\n")
     }
     
-    cat(paste("Model contains ",x$nhyper," hyperparameters\n",sep=""))
+    cat(paste("Model contains ", x$nhyper," hyperparameters\n", sep=""))
 
     if(!is.null(x$summary.fixed))
-        cat(paste("The model contains ",dim(x$summary.fixed)[1]," fixed effect (including a possible intercept)\n\n",sep=""))
+        cat(paste("The model contains ", dim(x$summary.fixed)[1]," fixed effect (including a possible intercept)\n\n", sep=""))
     else
         cat("The model has no fixed effects and no intercept\n\n")
     
@@ -42,9 +41,9 @@
   
     if(!is.null(x$summary.random)) {
         labels <- names(x$summary.random)
-        cat(paste("The model has ",length(labels)," random effects:\n",sep=""))
+        cat(paste("The model has ", length(labels)," random effects:\n", sep=""))
         for(i in 1:length(labels)) {
-            cat(paste(i,".'", inla.nameunfix(labels[i]),"' is a " ,x$model.random[i],"\n",sep=""))
+            cat(paste(i,".'", inla.nameunfix(labels[i]),"' is a " , x$model.random[i],"\n", sep=""))
             cat("\n")
         }
     } else {

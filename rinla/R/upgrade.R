@@ -22,6 +22,9 @@
 
     b.date = scan(paste(www,"/build.date", sep=""), quiet=TRUE, what = character(0))
     bb.date = try(inla.version(quiet = TRUE), silent =TRUE)
+    if (is.null(bb.date))
+        bb.date = "UnknownDate"
+
     if (b.date == as.character(bb.date)) {
         cat("\nYou have the newest version of INLA:\n")
         inla.version()

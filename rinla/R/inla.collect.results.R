@@ -9,16 +9,16 @@
     }
 
     if (!only.hyperparam) {
-        res.fixed = inla.collect.fixed(results.dir,debug)
-        res.lincomb = inla.collect.lincomb(results.dir,debug)
-        res.dic = inla.collect.dic(results.dir,debug)
-        res.cpo.pit = inla.collect.cpo(results.dir,debug)
-        res.random = inla.collect.random(results.dir,control.results$return.marginals.random,debug)
-        res.predictor = inla.collect.predictor(results.dir,control.results$return.marginals.predictor,debug)
+        res.fixed = inla.collect.fixed(results.dir, debug)
+        res.lincomb = inla.collect.lincomb(results.dir, debug)
+        res.dic = inla.collect.dic(results.dir, debug)
+        res.cpo.pit = inla.collect.cpo(results.dir, debug)
+        res.random = inla.collect.random(results.dir, control.results$return.marginals.random, debug)
+        res.predictor = inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
         res.configurations = inla.collect.configurations(results.dir, debug)
 
-        file=paste(results.dir,.Platform$file.sep,"neffp",.Platform$file.sep,"neffp.dat",sep="")
-        neffp = matrix(inla.read.binary.file(file),3,1)
+        file=paste(results.dir,.Platform$file.sep,"neffp",.Platform$file.sep,"neffp.dat", sep="")
+        neffp = matrix(inla.read.binary.file(file), 3, 1)
         rownames(neffp) = inla.trim(c("Expectected  number of parameters",
                         "Stdev of the number of parameters",
                         "Number of equivalent replicates"))
@@ -33,25 +33,25 @@
         res.configurations = NULL
         neffp =NULL
     }
-    res.mlik = inla.collect.mlik(results.dir,debug)
+    res.mlik = inla.collect.mlik(results.dir, debug)
     res.q = inla.collect.q(results.dir, control.results$image.dim, debug)
     res.offset = inla.collect.offset.linear.predictor(results.dir, debug)
 
     ##get the hyperparameters
-    theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode",sep=""))[-1]
-    x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode",sep=""))[-1]
-    hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid",sep=""))
+    theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode", sep=""))[-1]
+    x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode", sep=""))[-1]
+    hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid", sep=""))
     
     if (length(theta.mode)>0) {
-        res.hyper = inla.collect.hyperpar(results.dir,debug)
+        res.hyper = inla.collect.hyperpar(results.dir, debug)
 
         ##get the joint (if printed)
         alldir = dir(results.dir)
-        if (length(grep("joint.dat",alldir))==1) {
+        if (length(grep("joint.dat", alldir))==1) {
             if (debug) {
                 print("inla.collect.joint hyperpar")
             }
-            fnm = paste(results.dir,"/joint.dat",sep="")
+            fnm = paste(results.dir,"/joint.dat", sep="")
             if (file.info(fnm)$size > 0) {
                 joint.hyper = read.table(fnm)
             } else {

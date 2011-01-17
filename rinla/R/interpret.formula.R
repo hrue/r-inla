@@ -47,9 +47,9 @@
             if (k <= len.rt && ((ks <= len.rt && rt[ks] == i))) {
                 ## make sure we're using the f() function in INLA...
                 if (TRUE) {
-                    st = eval(parse(text = gsub("^f\\(","INLA::f(",terms[i])), envir = data, enclos = p.env)
+                    st = eval(parse(text = gsub("^f\\(","INLA::f(", terms[i])), envir = data, enclos = p.env)
                 } else {
-                    st = eval(parse(text = gsub("^f\\(","f(",terms[i])), envir = data, enclos = p.env)
+                    st = eval(parse(text = gsub("^f\\(","f(", terms[i])), envir = data, enclos = p.env)
                     warning(" *** Recall to fix INLA:: in interpret.formula.R *** ")
                 }
                 random.spec[[k]] = st

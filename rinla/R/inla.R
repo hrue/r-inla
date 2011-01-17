@@ -20,7 +20,7 @@
     function (
               ##! \item{formula}{ A \code{inla} formula like \code{y
               ##!~1 + z + f(ind, model="iid")} + f(ind2,
-              ##!weights,model="ar1") This is much like the formula
+              ##!weights, model="ar1") This is much like the formula
               ##!for a \code{glm} except that smooth or spatial terms
               ##!can be added to the right hand side of the formula.
               ##!See \code{\link{f}} for full details and the web site
@@ -46,10 +46,10 @@
               data = NULL,
 
               ##!\item{quantiles}{ A vector of quantiles,
-              ##!\eqn{p(0),p(1),\dots}{p(0),p(1),\ldots} to compute
+              ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
               ##!for each posterior marginal. The function returns,
               ##!for each posterior marginal, the values
-              ##!\eqn{x(0),x(1),\dots}{x(0),x(1),\ldots} such that
+              ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
               ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p} }
               quantiles=c(0.025, 0.5, 0.975),
 
@@ -387,7 +387,7 @@
     for(i in 1:n.family)
         have.surv = have.surv || inla.lmodel.properties(family[i])$survival
 
-    if (have.surv && (inla.one.of(family,c("coxph")))) {
+    if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## in this case, we expand the data-frame into a sequence of
         ## Poisson observations, and call inla() again.
 
@@ -397,7 +397,7 @@
         cont.hazard = inla.set.control.hazard.default()
         cont.hazard[names(control.hazard)] = control.hazard
       
-        y.surv = eval(parse(text=formula[2]),data)
+        y.surv = eval(parse(text=formula[2]), data)
         if (class(y.surv) != "inla.surv")
             stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
                        class(y.surv), "'", sep=""))
@@ -517,10 +517,8 @@
 
     ## this is nice hack ;-) we keep the original response. then we
     ## delete it from 'data' keeping a copy of the original one
-    y...orig = eval(parse(text=formula[2]),data)
-    if (!inherits(y...orig, "inla.surv"))
-        class(y...orig) = NULL
-    
+    y...orig = eval(parse(text=formula[2]), data)
+
     if (n.family > 1) {
         y...orig = inla.as.list.of.lists(y...orig)
         ny = max(sapply(y...orig, length))
@@ -528,11 +526,18 @@
         if (n.family != nc)
             stop(paste("Number of families", n.family, "does not match number of responce variables", nc))
     } else {
-        if (inherits(y...orig, "inla.surv"))
+        nc = NULL ## not in use
+        if (inherits(y...orig, "inla.surv")) {
+            class(y...orig) = NULL
             ny = max(sapply(y...orig, length))
-        else
+        } else {
+            if (length(dim(y...orig)) == 2) {
+                ## some matrix type, could be a sparse matrix
+                stopifnot(dim(y...orig)[2] == 1)
+                y...orig = c(drop(as.matrix(y...orig)))
+            }
             ny = length(y...orig)
-        nc = 1
+        }
     }
 
     data.orig = data
@@ -575,14 +580,6 @@
             print(paste("y...fake has length", length(y...fake)))
         
     } else {
-        if (FALSE) {
-            ## number of NA's in one row must be >= nc-1
-            n.na = apply(y...orig, 1, function(x) sum(is.na(x)))
-            if (sum(!(n.na >= nc-1)) > 0)
-                stop(paste("\t",sum(!(n.na >= nc-1)), " of the rows of the responce ``", formula[2],
-                           "'', has more than one real responce.\n",
-                           "\tOnly one (or zero) real responce is allowed for each row", sep=""))
-        }
         y...fake = c(rep(Inf, ny))
         if (debug)
             print(paste("y...fake has length", length(y...fake)))
@@ -744,7 +741,7 @@
         }
         inla.dir=working.directory
         inla.dir.create(inla.dir)
-        cat("Model and results are stored in working directory [",inla.dir,"]\n", sep="")
+        cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
@@ -752,8 +749,8 @@
         inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
-    data.dir=paste(inla.dir, "/data.files",sep="")
-    results.dir = paste(inla.dir, "/results.files",sep="")
+    data.dir=paste(inla.dir, "/data.files", sep="")
+    results.dir = paste(inla.dir, "/results.files", sep="")
     inla.dir.create(data.dir)
 
     ## create the .file.ini and make the problem.section
@@ -902,13 +899,13 @@
         prop = inla.lmodel.properties(family[i.family], stop.on.error=TRUE)
         if (!is.null(cont.data[[i.family]]$param))
             if (length(cont.data[[i.family]]$param) != prop$nparameters)
-                stop(paste("\n\tThe length of `param' on `control.data[[",i.family,"]]' has to be ", prop$nparameters))
+                stop(paste("\n\tThe length of `param' on `control.data[[", i.family,"]]' has to be ", prop$nparameters))
 
         ## FIXED and no INITIAL
         if (is.null(cont.data[[i.family]]$initial) && !is.null(cont.data[[i.family]]$fixed) &&
             !all(cont.data[[i.family]]$fixed == FALSE))
             stop(paste("\n\tThe fixed hyperparameters in the likelihood needs initialisation;",
-                       "use control.data[[",i.family,"]]=list(initial=c(...))"))
+                       "use control.data[[", i.family,"]]=list(initial=c(...))"))
 
         if (!is.null(cont.data[[i.family]]$initial))
             if (length(cont.data[[i.family]]$initial) != prop$ntheta)
@@ -933,7 +930,7 @@
             print("prepare data section")
 
         ##....then create the new section
-        inla.data.section(file=file.ini,family=family[[i.family]],file.data=file.data,control=cont.data[[i.family]],
+        inla.data.section(file=file.ini, family=family[[i.family]], file.data=file.data, control=cont.data[[i.family]],
                           i.family=i.family)
     }
 
@@ -948,7 +945,7 @@
         os = cbind(indD, offset.sum)
         file.offset = inla.tempfile(tmpdir=data.dir)
         file.create(file.offset)
-        write(t(os),ncolumns=2,file=file.offset,append=FALSE)
+        write(t(os), ncolumns=2, file=file.offset, append=FALSE)
         file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
     } else {
         file.offset = NULL
@@ -970,20 +967,20 @@
             if (debug)
                 cat("write label[", labels[i],"]\n")
 
-            fixed.eff=cbind(indN, as.numeric(gp$model.matrix[,i]))
+            fixed.eff=cbind(indN, as.numeric(gp$model.matrix[, i]))
             ##remove lines with NA
-            fixed.eff = fixed.eff[!is.na(fixed.eff[,2]),,drop=FALSE]
+            fixed.eff = fixed.eff[!is.na(fixed.eff[, 2]),, drop=FALSE]
 
             file.fixed=inla.tempfile(tmpdir=data.dir)
             file.create(file.fixed)
-            write(t(fixed.eff),ncolumns=ncol(fixed.eff),file=file.fixed,append=FALSE)
+            write(t(fixed.eff), ncolumns=ncol(fixed.eff), file=file.fixed, append=FALSE)
             file.fixed = gsub(data.dir, "$inladatadir", file.fixed, fixed=TRUE)
 
             if (debug)
                 cat("file fixed", file.fixed,"\n")
 
             inla.linear.section(file=file.ini, file.fixed=file.fixed, label=labels[i],
-                                results.dir=paste("fixed.effect",inla.num(i),sep=""),
+                                results.dir=paste("fixed.effect", inla.num(i), sep=""),
                                 control=cont.fixed, only.hyperparam=only.hyperparam)
         }
     }
@@ -1050,7 +1047,7 @@
             if (gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
                 ##in this case we have to add a FFIELD section.........
                 count.random = count.random+1
-                xx=rf[,r +1]
+                xx=rf[, r +1]
 
                 ## Do some checking for 'copy', which might lead
                 ## to some strange errors if not met.  Its OK to
@@ -1168,12 +1165,12 @@
                 if (!is.null(gp$random.spec[[r]]$values)) {
                     ## no sort for values here, since they are given as they should be !!!!
                     location[[r]] = unique(gp$random.spec[[r]]$values)
-                    cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+                    cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
                     cov[is.na(cov)] = -1
                     covariate[[r]] = cov
                 } else {
                     location[[r]] = sort(unique(xx))
-                    cov = match(xx,location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+                    cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
                     cov[is.na(cov)] = -1
                     covariate[[r]] = cov
                 }
@@ -1195,12 +1192,12 @@
                 ##create a location and covariate file
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 file.create(file.loc)
-                write(location[[r]],ncolumns=1,file=file.loc,append=FALSE)
+                write(location[[r]], ncolumns=1, file=file.loc, append=FALSE)
                 file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
                 
                 file.cov=inla.tempfile(tmpdir=data.dir)
                 file.create(file.cov)
-                write(t(cbind(indN,covariate[[r]])),ncolumns=2,file=file.cov,append=FALSE)
+                write(t(cbind(indN, covariate[[r]])), ncolumns=2, file=file.cov, append=FALSE)
                 file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
 
                 if (nrep == 1 && ngroup == 1) {
@@ -1220,7 +1217,7 @@
 
                 n.div.by = inla.model.properties(gp$random.spec[[r]]$model)$n.div.by
                 if (!is.null(n.div.by)) {
-                    if (!inla.divisible(n,by=n.div.by))
+                    if (!inla.divisible(n, by=n.div.by))
                         stop(paste("Model [", gp$random.spec[[r]]$model,"] require `n'", n, "divisible by", n.div.by))
                 }
 
@@ -1255,14 +1252,14 @@
                                 if (ncol != fac*n)
                                     stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
                             
-                                A = matrix(0,nrow+1,ncol)
+                                A = matrix(0, nrow+1, ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, 0)
-                                A[1:nrow,1:ncol] = gp$random.spec[[r]]$extraconstr$A
+                                A[1:nrow, 1:ncol] = gp$random.spec[[r]]$extraconstr$A
 
                                 for(con.elm in con)
                                     A[nrow+1, (con.elm-1)*n + 1:n] = 1
                             }
-                            gp$random.spec[[r]]$extraconstr = list(A=A,e=e)
+                            gp$random.spec[[r]]$extraconstr = list(A=A, e=e)
                             gp$random.spec[[r]]$constr = FALSE
                         }
                     } else {
@@ -1289,9 +1286,9 @@
                                 if (ncol != n)
                                     stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
                             
-                                A = matrix(0,nrow+length(con),ncol)
-                                e = c(gp$random.spec[[r]]$extraconstr$e, rep(0,length(con)))
-                                A[1:nrow,1:ncol] = gp$random.spec[[r]]$extraconstr$A
+                                A = matrix(0, nrow+length(con), ncol)
+                                e = c(gp$random.spec[[r]]$extraconstr$e, rep(0, length(con)))
+                                A[1:nrow, 1:ncol] = gp$random.spec[[r]]$extraconstr$A
 
                                 k = 1
                                 for(con.elm in con) {
@@ -1299,7 +1296,7 @@
                                     k = k + 1
                                 }
                             }
-                            gp$random.spec[[r]]$extraconstr = list(A=A,e=e)
+                            gp$random.spec[[r]]$extraconstr = list(A=A, e=e)
                             gp$random.spec[[r]]$constr = FALSE
                         }
                     }
@@ -1320,7 +1317,7 @@
 
                     file.extraconstr=inla.tempfile(tmpdir=data.dir)
                     file.create(file.extraconstr)
-                    write(c(as.vector(t(A)),e),ncolumns=1,file=file.extraconstr,append=FALSE)
+                    write(c(as.vector(t(A)), e), ncolumns=1, file=file.extraconstr, append=FALSE)
                     file.extraconstr = gsub(data.dir, "$inladatadir", file.extraconstr, fixed=TRUE)
                 } else {
                     file.extraconstr = NULL
@@ -1335,7 +1332,7 @@
                     ##create a file for the weights
                     file.weights=inla.tempfile(tmpdir=data.dir)
                     file.create(file.weights)
-                    write(t(cbind(indN,www)),ncolumns=2,file=file.weights,append=FALSE)
+                    write(t(cbind(indN, www)), ncolumns=2, file=file.weights, append=FALSE)
                     file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
 
                     n.weights = n.weights+1
@@ -1352,10 +1349,10 @@
             else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ##....while here we have to add a LINEAR section
                 count.linear = count.linear+1
-                xx=rf[,r +1]
+                xx=rf[, r +1]
                 file.linear = inla.tempfile(tmpdir=data.dir)
                 file.create(file.linear)
-                write(t(cbind(indN,xx)),ncolumns=2,file=file.linear,append=FALSE)
+                write(t(cbind(indN, xx)), ncolumns=2, file=file.linear, append=FALSE)
                 file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
@@ -1363,7 +1360,7 @@
                         prec=gp$random.spec[[r]]$prec.linear,
                         mean=gp$random.spec[[r]]$mean.linear)
                 inla.linear.section(file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
-                                    results.dir=paste("fixed.effect",inla.num(gp$n.fix.revised+count.linear),sep=""),
+                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix.revised+count.linear), sep=""),
                                     control=cont, only.hyperparam=only.hyperparam)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
@@ -1383,7 +1380,7 @@
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
-    inla.inla.section(file=file.ini,inla.spec=cont.inla)
+    inla.inla.section(file=file.ini, inla.spec=cont.inla)
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
@@ -1472,7 +1469,7 @@
         my.time.used[3] = Sys.time()
 
         if (echoc==0) {
-            ret = try(inla.collect.results(results.dir,control.results=cont.result, debug=debug,
+            ret = try(inla.collect.results(results.dir, control.results=cont.result, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
             if (!is.list(ret))
                 ret = list()
@@ -1562,13 +1559,13 @@
     if (inla.os("windows")) {
         ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
                 wait = TRUE, input = NULL, show.output.on.console = FALSE, minimized = TRUE,
-                invisible = TRUE),silent = TRUE)
+                invisible = TRUE), silent = TRUE)
         if (class(ret) == "try-error")
             ok = FALSE
     }
     else if (inla.os("linux") || inla.os("mac")) {
         ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
-                wait = TRUE, input = NULL),silent = TRUE)
+                wait = TRUE, input = NULL), silent = TRUE)
         ok =  (length(grep("ALIVE", ret)) > 0 || length(grep("unknown option", ret)) > 0)
     } else {
         stop("Not supported OS")

@@ -168,13 +168,13 @@
     return (string)
 }
 
-`inla.strcmp` = function(s,ss)
+`inla.strcmp` = function(s, ss)
 {
     ## compare two strings
     return (s == ss)
 }
 
-`inla.strcasecmp` = function(s,ss)
+`inla.strcasecmp` = function(s, ss)
 {
     ## compare two strings, ignore case
     return (tolower(s) == tolower(ss))
@@ -185,7 +185,7 @@
     ## just print a msg and wait for the next return
     if (!is.null(msg))
         cat(msg, "\n")
-    scan(quiet=TRUE, multi.line=TRUE,what=character(0))
+    scan(quiet=TRUE, multi.line=TRUE, what=character(0))
 }
 `inla.call.builtin` = function()
 {
@@ -203,7 +203,7 @@
     if (file.exists(fnm)) {
         return (fnm)
     } else {
-        stop(paste("INLA installation error; no such file",fnm))
+        stop(paste("INLA installation error; no such file", fnm))
     }
 }
 `inla.fmesher.call.builtin` = function()
@@ -223,7 +223,7 @@
     } else {
         return (NULL)
         ## Disable this for the moment....
-        ##stop(paste("INLA installation error; no such file",fnm))
+        ##stop(paste("INLA installation error; no such file", fnm))
     }
 }
 
@@ -252,7 +252,7 @@
 
     if (is.null(dir.inla)) {
         print("Enter directory for INLA results ")
-        dir.inla = scan(nmax=1,what = character(0))
+        dir.inla = scan(nmax=1, what = character(0))
     }
     if (!file.exists(dir.inla))
          stop(paste(" *** ERROR *** No such directory ", dir.inla))
@@ -261,7 +261,7 @@
 
     if (is.null(dir.mcmc)) {
         print("Enter directory for MCMC (from ``inla -m mcmc'') results ")
-        dir.mcmc = scan(nmax=1,what = character(0))
+        dir.mcmc = scan(nmax=1, what = character(0))
     }
     if (!file.exists(dir.mcmc))
          stop(paste(" *** ERROR *** No such directory ", dir.mcmc))
@@ -282,7 +282,7 @@
         cat("\nChose directory to view\n")
         i=1
         for(a in dd) {
-            cat("[",i,"] ", a, "\n", sep="")
+            cat("[", i,"] ", a, "\n", sep="")
             i = i+1
         }
         cat("\n(<0: histogram, >0: density: q:quit) : ")
@@ -315,55 +315,55 @@
         d.inla = paste(dir.inla, "/", dd[id], sep="")
         d.mcmc = paste(dir.mcmc, "/", dd[id], sep="")
 
-        fnm = paste(d.inla,"/","marginal-densities.dat",sep="")
-        f = paste(d.inla,"/","TAG",sep="")
-        TAG = inla.ifelse(file.exists(f), inla.paste(scan(paste(d.inla,"/","TAG",sep=""),
+        fnm = paste(d.inla,"/","marginal-densities.dat", sep="")
+        f = paste(d.inla,"/","TAG", sep="")
+        TAG = inla.ifelse(file.exists(f), inla.paste(scan(paste(d.inla,"/","TAG", sep=""),
             what=as.character())), "TAG")
         if (file.exists(fnm)) {
-            ##print(paste("read marginals from ",fnm))
+            ##print(paste("read marginals from ", fnm))
             marg = read.table(fnm)
 
             n.marg = dim(marg)[1]
             n.points = dim(marg)[2]
 
-            fnm = paste(d.mcmc,"/","trace.dat",sep="")
+            fnm = paste(d.mcmc,"/","trace.dat", sep="")
             if (file.exists(fnm)) {
                 samples = read.table(fnm)
                 di = dim(samples)
                 samples = samples[-dim(samples)[1],]
                 ## with ncol=1, the previous line remove dimension attributes
-                samples = as.matrix(samples,nrow=di[1]-1,ncol=di[2])
+                samples = as.matrix(samples, nrow=di[1]-1, ncol=di[2])
                 n.samples = dim(samples)[1]
 
                 if (dim(samples)[2] == n.marg) {
                     if (n.marg <= 4)
-                        par(mfrow=c(n.marg,1))
+                        par(mfrow=c(n.marg, 1))
                     else
-                        par(mfrow=c(4,3))
+                        par(mfrow=c(4, 3))
         
                     for(i in 1:n.marg) {
                         x.values = as.double(marg[i, seq(2, n.points, by=2)])
                         f.values = as.double(marg[i, seq(3, n.points, by=2)])
                         plot(x.values, f.values, type="l", lty=1, lwd=2,
-                             main=paste("Marginal for ", marg[i,1]," ", TAG, sep=""),
+                             main=paste("Marginal for ", marg[i, 1]," ", TAG, sep=""),
                              sub = fnm, frame.plot = FALSE)
                         if (hist)
-                            hist(samples[,i], n = 50, add = TRUE, probability = TRUE)
+                            hist(samples[, i], n = 50, add = TRUE, probability = TRUE)
                         else
-                            lines(density(samples[,i]), lty=3, lwd=2)
+                            lines(density(samples[, i]), lty=3, lwd=2)
                     }
                 }
                 else
-                    print("n.marg != columns(samples) ", n.marg,dim(samples)[2])
+                    print("n.marg != columns(samples) ", n.marg, dim(samples)[2])
             }
             else
-                print(paste(" *** ERROR *** file does not exists: ",fnm))
+                print(paste(" *** ERROR *** file does not exists: ", fnm))
 
             rm(marg)
             rm(samples)
         }
         else
-            print(paste(" *** ERROR *** file does not exits: ",fnm))
+            print(paste(" *** ERROR *** file does not exits: ", fnm))
     }
 }
 `inla.only.for.developers` = function()
@@ -416,7 +416,7 @@
     mapping = matrix(NA, nrow=nrow, ncol=ncol)
     for(i in 1:nrow) {
         j = 1:ncol
-        mapping[i,j] = inla.lattice2node(i, j, nrow, ncol)
+        mapping[i, j] = inla.lattice2node(i, j, nrow, ncol)
     }
     return (mapping)
 }
@@ -526,7 +526,7 @@
     return(invisible(tmp["plt"]))
 }
 
-`inla.display.matrix` = function(x, wrap=TRUE, xaxt=FALSE, yaxt=FALSE, col=gray(seq(0,1,len=256)), ...)
+`inla.display.matrix` = function(x, wrap=TRUE, xaxt=FALSE, yaxt=FALSE, col=gray(seq(0, 1, len=256)), ...)
 {
     ## display a matrix as an image with correct layout and autoscaling
     
@@ -535,11 +535,11 @@
     y = x
     if (wrap) {
         for(j in 1:n[2]) 
-            y[1:n[1],j] = x[n[1]:1,j]
+            y[1:n[1], j] = x[n[1]:1, j]
     }
 
     ## use the image.plot-function in package fields; its much better...
-    inla.squishplot(c(0,1), c(0,1), n[1]/n[2])
+    inla.squishplot(c(0, 1), c(0, 1), n[1]/n[2])
     if (require("fields", quietly = TRUE)) {
         image.plot(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...)
     } else {
@@ -585,7 +585,7 @@
             a = cut(x, n)
         } else {
             ## use break-points corresponding to the quantiles
-            aq = quantile(x, probs = c(0, ppoints(n-1),1))
+            aq = quantile(x, probs = c(0, ppoints(n-1), 1))
             a = cut(x, breaks = as.numeric(aq), include.lowest=TRUE)
         }
         ## the rest is then the same
@@ -595,7 +595,7 @@
             xx[[i]] = list()
     
         for(i in 1:length(x))
-            xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]),x[i])
+            xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]), x[i])
         values = numeric(nlev)
     
         ff.local = function(xx) {
@@ -625,10 +625,10 @@
     }
 }
 
-`inla.group.old` = function(x,n)
+`inla.group.old` = function(x, n)
 {
     ### old version
-    cutpoints = seq(range(x)[1],range(x)[2], length.out=(n+1))
+    cutpoints = seq(range(x)[1], range(x)[2], length.out=(n+1))
     lev = (cutpoints[1:(n)]+cutpoints[2:(n+1)])/2
     int = cut(x, breaks=cutpoints, include.lowest=TRUE, labels=FALSE)
     return(lev[int])
@@ -657,8 +657,8 @@
 
 `inla.as.list.of.lists` = function(a)
 {
-    if (is.matrix(a) || is.data.frame(a)) {
-        return(as.list(as.data.frame(a)))
+    if (is.matrix(a) || is.data.frame(a) || length(dim(a))==2) {
+        return(as.list(as.data.frame(as.matrix(a))))
     } else if (inla.is.list.of.lists(a) || TRUE) {
         return (a)
     } else {
@@ -681,7 +681,7 @@
 {
     len = nchar(elms)
     i = (num %% len) + 1
-    return(substr(elms,i,i))
+    return(substr(elms, i, i))
 }
 
 `inla.2list` = function(x = NULL)
@@ -693,7 +693,7 @@
     ## example:
     ## > x=1:3
     ## > inla.2list(x)
-    ## [1] "c(1,2,3)"
+    ## [1] "c(1, 2, 3)"
     
     if (is.null(x))
         return (NULL)
@@ -728,12 +728,12 @@
 
 `inla.even` = function(n)
 {
-    return (inla.divisible(n,by=2))
+    return (inla.divisible(n, by=2))
 }
 
 `inla.odd` = function(n)
 {
-    return (inla.divisible(n,by=-2))
+    return (inla.divisible(n, by=-2))
 }
 
 `inla.divisible` = function(n, by=2)
@@ -758,7 +758,7 @@
 `inla.idx` = function(idx, n = max(idx), group = rep(1, n), ngroup = max(group),
         replicate = rep(1, n), nrep = max(replicate))
 {
-    ## this function might be useful to convert from (idx,group,rep)
+    ## this function might be useful to convert from (idx, group, rep)
     ## to idx, in the same way as done internally in inla.R
     
     stopifnot(n >= 1)
@@ -873,7 +873,7 @@
 
     ## Example:
     ## > A
-    ##       [,1] [,2]
+    ##       [, 1] [, 2]
     ##  [1,]    1    1
     ##  [2,]    2    2
     ##  [3,]    3    3
@@ -886,7 +886,7 @@
 
     ## > inla.unique.rows(A)
     ## $rows
-    ##     [,1] [,2]
+    ##     [, 1] [, 2]
     ## [1,]    1    1
     ## [2,]    2    2
     ## [3,]    3    3
@@ -937,8 +937,8 @@
 
 `inla.dirname` = function(path)
 {
-    if (identical(substr(path,nchar(path),nchar(path)), .Platform$file.sep)) {
-        return (substr(path,1,nchar(path)-1))
+    if (identical(substr(path, nchar(path), nchar(path)), .Platform$file.sep)) {
+        return (substr(path, 1, nchar(path)-1))
     } else {
         return (dirname(path))
     }
