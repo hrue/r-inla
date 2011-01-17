@@ -2057,9 +2057,13 @@ namespace fmesh {
 
   Mesh& Mesh::quad_tesselate(const Mesh& M)
   {
+    NOT_IMPLEMENTED;
+    // TODO: Implement;
     clear();
-
+    return *this;
   }
+
+
   Mesh& Mesh::make_globe(int subsegments)
   {
     empty();
