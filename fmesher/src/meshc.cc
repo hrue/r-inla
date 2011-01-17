@@ -417,14 +417,12 @@ namespace fmesh {
 	   i != map_v0_d.end();
 	   i = find_next_dart_in_set(d,map_v0_d)) {
 	d = erase_dart_from_set(i,map_v0_d);
-	cout << segm->rows() << endl;
 	int segm_i = segm->rows();
 	(*segm)(segm_i,0) = d.v();
 	(*segm)(segm_i,1) = d.vo();
 	if (segmgrp) {
 	  (*segmgrp)(segm_i,0) = seg.meta(d);
 	}
-	cout << segm->rows() << endl;
       }
     }
 
