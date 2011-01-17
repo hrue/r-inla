@@ -76,7 +76,7 @@
     }
     ## if event is totally missing assume that all data are failures
     if (missing(event)) {
-        event = rep(1,nn)
+        event = rep(1, nn)
         warning("'event' is missing: assuming all are observed failures")
     } else if (any(is.na(event))) {
         ## if some of the element in event are missing assume that
@@ -85,7 +85,7 @@
         warning("Some elements in `event' are NA: set them to observed failures.")
     }
       
-    ## check that event is 0,1,2,3
+    ## check that event is 0, 1, 2, 3
     if (!all(is.element(event, 0:3)))
         stop("Invalid value for event")
   
@@ -97,11 +97,11 @@
     if (sum(interval)==0 && !missing(time2))
         warning("'time2' is ignored for data that are not interval censored")
     if (missing(time2))
-        time2 = rep(0,nn)
+        time2 = rep(0, nn)
 
     ## if truncation is missing set it to 0
     if (missing(truncation))
-        truncation = rep(0,nn)
+        truncation = rep(0, nn)
     ## check that it has the correct length
     if (length(truncation) != nn)
         stop("'truncation' is of the wrong dimension")
@@ -138,24 +138,24 @@
     
     nn = length(time)
 
-    xmax = max(time,upper,lower,event)
-    xax = c(0,xmax+xmax/8)
+    xmax = max(time, upper, lower, event)
+    xax = c(0, xmax+xmax/8)
     yax = c(0, nn)
-    plot(xax,yax,type="n",xlab="time",ylab="",axes=FALSE)
+    plot(xax, yax, type="n", xlab="time", ylab="", axes=FALSE)
     axis(1)
-    axis(2,label=F,tick=FALSE)
+    axis(2, label=F, tick=FALSE)
     for(i in 1:nn) {
         if (event[i]==1) {
-            lines(c(truncation[i],time[i]),c( i, i),type="l")
+            lines(c(truncation[i], time[i]), c( i, i), type="l")
             text(time[i], i,"*")
         } else if (event[i]==0) {
-            lines(c(truncation[i],lower[i]),c( i, i),type="l")
+            lines(c(truncation[i], lower[i]), c( i, i), type="l")
             text(lower[i], i,">")
         } else if (event[i]==2) {
-            lines(c(truncation[i],upper[i]),c( i, i),type="l")
+            lines(c(truncation[i], upper[i]), c( i, i), type="l")
             text(upper[i], i,"<")
         } else if (event[i]==3) {
-            lines(c(truncation[i],upper[i]),c( i, i),type="l")
+            lines(c(truncation[i], upper[i]), c( i, i), type="l")
             text(upper[i], i,"|")
             text(lower[i], i,"|")
         }
@@ -167,17 +167,17 @@
         leg.symb = "*"
         if (any(event==0)) {
             leg.text = c(leg.text,"right cens")
-            leg.symb = paste(leg.symb,">",sep="")
+            leg.symb = paste(leg.symb,">", sep="")
         }
         if (any(event==2)) {
             leg.text = c(leg.text,"left cens")
-            leg.symb = paste(leg.symb,"<",sep="")
+            leg.symb = paste(leg.symb,"<", sep="")
         }
         if (any(event==3)) {
             leg.text = c(leg.text,"interval cens")
-            leg.symb = paste(leg.symb,"|",sep="")
+            leg.symb = paste(leg.symb,"|", sep="")
         }
-        legend("topright",leg.text,pch=leg.symb,inset=0.02)
+        legend("topright", leg.text, pch=leg.symb, inset=0.02)
     }
 }
 
@@ -193,13 +193,13 @@
 
     interval = (x$event==3)
     out = character(nn)
-    out[interval] = paste("[",x$lower[interval],",",x$upper[interval],"]",sep="")
+    out[interval] = paste("[", x$lower[interval],",", x$upper[interval],"]", sep="")
     right = (x$event==0)
-    out[right] = paste(x$lower[right],"+",sep="")
+    out[right] = paste(x$lower[right],"+", sep="")
     left = (x$event==2)
-    out[left] = paste(x$upper[left],"-",sep="")
+    out[left] = paste(x$upper[left],"-", sep="")
     failure = (x$event==1)
-    out[failure] = paste(x$time[failure],sep="")
+    out[failure] = paste(x$time[failure], sep="")
 
     return (out)
 }
@@ -248,7 +248,7 @@
     ## here event is multiple events if event is totally missing
     ## assume that no tumor/event is found
     if (missing(event)) {
-        event = rep(0,nn)
+        event = rep(0, nn)
         warning("'event' is missing: assuming no events")
     } else if (any(is.na(event))) {
         ## if some of the element in event are missing assume that
@@ -258,7 +258,7 @@
     }
       
     
-    ## check that event is 0,1
+    ## check that event is 0, 1
     if (!all(is.element(event, 0:1)))
         stop("Invalid value for event")
   
@@ -292,17 +292,17 @@
 
     xmax = max(time)
     xmin = min(time)
-    xax = c(xmin,xmax+xmax/8)
+    xax = c(xmin, xmax+xmax/8)
     yax = c(0, nn+0.5)
-    plot(xax,yax,type="n",xlab="time",ylab="",axes=FALSE)
+    plot(xax, yax, type="n", xlab="time", ylab="", axes=FALSE)
     axis(1)
-    axis(2,label=F,tick=FALSE)
+    axis(2, label=F, tick=FALSE)
      
     for(i in 1 :nn) {
-        lines(time[subject==i],rep(i,length(time[subject==i])),type="l")
+        lines(time[subject==i], rep(i, length(time[subject==i])), type="l")
         points(time[subject==i & event==1],
                rep(i, length(time[subject==i & event==1])),         
-               pch=8,col="red")
+               pch=8, col="red")
         points(time[subject==i & event==0],
                rep(i, length(time[subject==i & event==0])), pch=10, 
                col="green")
@@ -314,10 +314,10 @@
         leg.col="red"
         if (any(event==0)) {
             leg.text = c(leg.text,"not detect")
-            leg.symb = paste(leg.symb,"o",sep="")
+            leg.symb = paste(leg.symb,"o", sep="")
             leg.col=c(leg.col,"green")
         }
-        legend("topright",leg.text,pch=leg.symb,col=leg.col,inset=0.02)
+        legend("topright", leg.text, pch=leg.symb, col=leg.col, inset=0.02)
     }
 }
 
@@ -332,9 +332,9 @@
     nn = length(x$event)
     out = character(nn)
     detect = (x$event==1)
-    out[detect] = paste(x$time[detect],sep="")
+    out[detect] = paste(x$time[detect], sep="")
     notdetect  = (x$event==0)
-    out[notdetect] = paste(x$time[notdetect],"+",sep="")
+    out[notdetect] = paste(x$time[notdetect],"+", sep="")
 
     return (out)
 }

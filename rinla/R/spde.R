@@ -2,7 +2,7 @@
 
 `inla.fmesher.call` = function(
         fmesher.call = inla.getOption("fmesher.call"),
-        all.args,prefix)
+        all.args, prefix)
 {
     if (inla.os("linux") || inla.os("mac")) {
         echoc = system(paste(shQuote(fmesher.call), all.args, prefix))
@@ -48,7 +48,7 @@
     if (is.null(mesh) && is.null(prefix))
         stop("At least one of mesh and prefix must be specified.")
 
-    prefix = inla.fmesher.make.prefix(NULL,prefix)
+    prefix = inla.fmesher.make.prefix(NULL, prefix)
 
     if (is.null(mesh)) {
         ## Need to know the size of the graph.
@@ -72,32 +72,32 @@
         inla.write.fmesher.file(inla.affirm.integer(mesh$tv-1L),
                                 filename = paste(prefix, "tv", sep=""))
     }
-    all.args = "--input=s,tv"
+    all.args = "--input=s, tv"
 
     ## additional arguments
     if (!is.null(fem)) {
-        all.args = paste(all.args," --fem=",fem,sep="")
+        all.args = paste(all.args," --fem=", fem, sep="")
     }
     if (!is.null(sph0)) {
-        all.args = paste(all.args," --sph0=",sph0,sep="")
+        all.args = paste(all.args," --sph0=", sph0, sep="")
     }
     if (!is.null(sph)) {
-        all.args = paste(all.args," --sph=",sph,sep="")
+        all.args = paste(all.args," --sph=", sph, sep="")
     }
     if (!is.null(bspline)) {
         all.args = paste(all.args," --bspline=",
-                bspline[1],",",bspline[2],",",bspline[3],
+                bspline[1],",", bspline[2],",", bspline[3],
                 sep="")
     }
     if (!is.null(points2mesh)) {
         inla.write.fmesher.file(points2mesh,
                                 filename = paste(prefix, "points2mesh", sep=""))
 
-        all.args = paste(all.args," --points2mesh=points2mesh",sep="")
+        all.args = paste(all.args," --points2mesh=points2mesh", sep="")
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
-    echoc = inla.fmesher.call(all.args=all.args,prefix=prefix)
+    echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
     
     return (list(prefix = prefix, locations = mesh$s, n = n))
 }
@@ -123,11 +123,11 @@
     if (!is.null(boundary))
         stop("Boundary handling is not implemented in the R interface yet.")
 
-    prefix = inla.fmesher.make.prefix(dir,prefix)
+    prefix = inla.fmesher.make.prefix(dir, prefix)
 
     ## Map locations to nodes, avoiding near-duplicates.
-    node.coord = matrix(nrow=loc.n,ncol=loc.dim)
-    map.loc.to.node = rep(0,nrow=loc.n)
+    node.coord = matrix(nrow=loc.n, ncol=loc.dim)
+    map.loc.to.node = rep(0, nrow=loc.n)
     excluded = c()
     loc.i = 1
     node.i.max = 1
@@ -135,14 +135,14 @@
     map.loc.to.node[[loc.i]] = node.i.max
     for (loc.i in 2:loc.n) {
         loc.to.node.dist = 
-            sqrt(rowSums((as.matrix(rep(1,node.i.max)) %*% locations[loc.i,] -
+            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
                           node.coord[1:node.i.max,])^2))
         if (min(loc.to.node.dist) > min.input.distance) {
             node.i.max = node.i.max+1
             node.coord[node.i.max,] = locations[loc.i,]
             map.loc.to.node[[loc.i]] = node.i.max
         } else {
-            excluded = c(excluded,loc.i)
+            excluded = c(excluded, loc.i)
         }
     } 
     ## Remove excess nodes.
@@ -150,7 +150,7 @@
     ## Identify nearest nodes for excluded locations.
     for (loc.i in excluded) {
         loc.to.node.dist = 
-            sqrt(rowSums((as.matrix(rep(1,node.i.max)) %*% locations[loc.i,] -
+            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
                           node.coord)^2))
         node.i = which.min(loc.to.node.dist);
         map.loc.to.node[loc.i] = node.i
@@ -166,17 +166,17 @@
     ## additional arguments
     all.args = ""
     if (!is.null(cet)) {
-        all.args = paste(all.args," --cet=",cet[1],",",cet[2],sep="")
+        all.args = paste(all.args," --cet=", cet[1],",", cet[2], sep="")
     }
     if (!is.null(rcdt)) {
-        all.args = paste(all.args," --rcdt=",rcdt[1],",",rcdt[2],",",rcdt[3],sep="")
+        all.args = paste(all.args," --rcdt=", rcdt[1],",", rcdt[2],",", rcdt[3], sep="")
     }
     if (!is.null(x11.delay)) {
-        all.args = paste(all.args," --x11=",x11.delay,sep="")
+        all.args = paste(all.args," --x11=", x11.delay, sep="")
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
-    echoc = inla.fmesher.call(all.args=all.args,prefix=prefix)
+    echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
     
     mesh = list(
             tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
@@ -197,7 +197,7 @@
 
     require(rgl)
     open3d()
-    view3d(0,0,fov=0)
+    view3d(0, 0, fov=0)
     rgl.points(m$mesh$s[m$locations.idx, ], size=2*size, lwd=lwd, color = "blue", ...)
     plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color, size=size, lwd=lwd, ...)
 

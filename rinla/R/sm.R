@@ -30,7 +30,7 @@
     }
     
     if (is.list(A))
-        stop("Define matrix using Matrix::sparseMatrix() instead!!! The list(i=,j=,values=)-format is obsolete!")
+        stop("Define matrix using Matrix::sparseMatrix() instead!!! The list(i=, j=, values=)-format is obsolete!")
 
     if (!is(A, "dgTMatrix")) {
         A = inla.as.dgTMatrix(A)
@@ -114,15 +114,15 @@
     stopifnot(length(A$i) == length(A$values))
 
     n = max(c(A$i, A$j))
-    A = matrix(0,n,n)
+    A = matrix(0, n, n)
     for(k in 1:length(A$i)) {
         ## this could be vectorised with more work...
         i = A$i[k]
         j = A$j[k]
         v = A$values[k]
-        A[i,j] = v
+        A[i, j] = v
         if (symmetric)
-            A[j,i] = v
+            A[j, i] = v
     }
     return (A)
 }
@@ -132,7 +132,7 @@
     warning("THIS FUNCTION IS OBSOLETE!!!")
 
     ## convert a possibly symmetric martix matrix into the form:
-    ## list(i=,j=,values=). Q is either a matrix or a dgTMatrix
+    ## list(i=, j=, values=). Q is either a matrix or a dgTMatrix
 
     require(Matrix)
     

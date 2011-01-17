@@ -131,7 +131,7 @@
             ##
 
             ##
-            ## other format: (i,j,values)
+            ## other format: (i, j, values)
             ##
             i = readBin(fp, what = integer(0), n = h$elems)
             j = readBin(fp, what = integer(0), n = h$elems)

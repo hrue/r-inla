@@ -1,14 +1,14 @@
 
 ### functions to work with the marginal, either defined as a matrix
-### x[2,n], or a list(x=, y=).  NOTE:: there are NO EXTRAPOLATION, so
+### x[2, n], or a list(x=, y=).  NOTE:: there are NO EXTRAPOLATION, so
 ### the marginal is defined FROM...TO!
 
 `inla.marginal.fix` = function(marginal)
 {
     ## just remove points where the density is <= 0
     if (is.matrix(marginal)) {
-        i = (marginal[,2] > 0)
-        m = list(x=marginal[i,1], y=marginal[i,2])
+        i = (marginal[, 2] > 0)
+        m = list(x=marginal[i, 1], y=marginal[i, 2])
     } else {
         i = (marginal$y > 0)
         m = list(x= marginal$x[i], y = marginal$y[i])
@@ -19,7 +19,7 @@
 `inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
-    ## return the nice interpolated (x,y) where the interpolation is
+    ## return the nice interpolated (x, y) where the interpolation is
     ## done in log(y)
 
     m = inla.marginal.fix(marginal)
@@ -50,7 +50,7 @@
         n = n -1
 
     ## use Simpsons integration rule
-    i.0 = c(1,n)
+    i.0 = c(1, n)
     i.4 = seq(2, n-1, by=2)
     i.2 = seq(3, n-2, by=2)
 
@@ -101,9 +101,9 @@
     ## just spline-interpolate the mapping
     fq = splinefun(xx, d)
 
-    ## just make sure the p's are in [0,1]
+    ## just make sure the p's are in [0, 1]
     n = length(x)
-    xx = pmin(pmax(x, rep(f$range[1],n)), rep(f$range[2], n))
+    xx = pmin(pmax(x, rep(f$range[1], n)), rep(f$range[2], n))
 
     return (fq(xx))
 }
@@ -117,9 +117,9 @@
     ## just spline-interpolate the inverse mapping
     fq = splinefun(d, xx)
 
-    ## just make sure the p's are in [0,1]
+    ## just make sure the p's are in [0, 1]
     n = length(p)
-    pp = pmin(pmax(p, rep(0,n)), rep(1,n))
+    pp = pmin(pmax(p, rep(0, n)), rep(1, n))
 
     return (fq(pp))
 }

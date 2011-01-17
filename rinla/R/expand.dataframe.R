@@ -17,25 +17,25 @@
     
     ##create cutpoints if not provided
     if(is.null(cutpoints)) 
-        cutpoints = seq(0,max(time),len = n.intervals +1) 
+        cutpoints = seq(0, max(time), len = n.intervals +1) 
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation, event=event, cutpoints=cutpoints)
    
     expand = table(new.data$indicator)
     if(!missing(dataframe)) {
-        new.dataframe = as.data.frame(matrix(0,length(new.data$y),dim(dataframe)[2]))
+        new.dataframe = as.data.frame(matrix(0, length(new.data$y), dim(dataframe)[2]))
         for(i in 1:dim(dataframe)[2])
-            new.dataframe[,i] = rep(dataframe[,i],expand)
+            new.dataframe[, i] = rep(dataframe[, i], expand)
         new.dataframe = as.data.frame(new.dataframe)
         ## just give some name that we are able to recognise afterwards
-        names(new.dataframe) = paste("fake.dataframe.names",1:dim(new.dataframe)[2])
+        names(new.dataframe) = paste("fake.dataframe.names", 1:dim(new.dataframe)[2])
     }
     else
         new.dataframe=NULL
 
     res = data.frame(.y.surv=new.data$y, .E=new.data$E, baseline.hazard=new.data$baseline.hazard,
             dataframe=new.dataframe)
-    names(res)[grep("fake.dataframe.names",names(res))] = names(dataframe)
+    names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
     return (list(data = res, cutpoints = cutpoints))
 }
@@ -44,37 +44,37 @@
 {
     data.new = numeric(0)
     nn = length(event)
-    start = as.numeric(cut(truncation,cutpoints,include.lowest=FALSE))
-    end = as.numeric(cut(time,cutpoints,include.lowest=TRUE))
+    start = as.numeric(cut(truncation, cutpoints, include.lowest=FALSE))
+    end = as.numeric(cut(time, cutpoints, include.lowest=TRUE))
     ds = diff(cutpoints)
 
     for(i in 1:length(time)) {
         if(is.na(start[i])) {
             if(end[i]>1)
-                dc = cbind(ds[1:(end[i]-1)],rep(0,(end[i]-1)),rep(i,(end[i]-1)),c(1:(end[i]-1)))
+                dc = cbind(ds[1:(end[i]-1)], rep(0,(end[i]-1)), rep(i,(end[i]-1)), c(1:(end[i]-1)))
             else dc = numeric(0)
             dc = rbind(dc, cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i]))
-            data.new = rbind(data.new,dc)
+            data.new = rbind(data.new, dc)
         }
         else {
             if(start[i]<end[i]) {
-                dc = cbind((cutpoints[start[i]+1]-truncation[i]),0,i,start[i])
+                dc = cbind((cutpoints[start[i]+1]-truncation[i]), 0, i, start[i])
                 if(end[i]>(start[i]+1))
-                    dc = rbind(dc, cbind(ds[(start[i]+1):(end[i]-1)],rep(0,(end[i]-start[i]-1)),
-                            rep(i,(end[i]-start[i]-1)),c((start[i]+2):(end[i])-1)))
-                dc = rbind(dc,cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i]))
-                data.new = rbind(data.new,dc)
+                    dc = rbind(dc, cbind(ds[(start[i]+1):(end[i]-1)], rep(0,(end[i]-start[i]-1)),
+                            rep(i,(end[i]-start[i]-1)), c((start[i]+2):(end[i])-1)))
+                dc = rbind(dc, cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i]))
+                data.new = rbind(data.new, dc)
 
             } else if(start[i]==end[i]) {
-                dc = cbind(time[i]-(cutpoints[end[i]]),event[i],i,end[i])
-                data.new = rbind(data.new,dc)
+                dc = cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i])
+                data.new = rbind(data.new, dc)
             }
             else
                 stop("Truncation cannot be greater than time")
         }
     }
-    data.new = data.frame(E=data.new[,1], y=data.new[,2], indicator=data.new[,3],
-            baseline.hazard=data.new[,4])
+    data.new = data.frame(E=data.new[, 1], y=data.new[, 2], indicator=data.new[, 3],
+            baseline.hazard=data.new[, 4])
 
     return(data.new)
 }
@@ -109,16 +109,16 @@
     subject.first.line = numeric(length(jj))
     for(i in 1: length(jj))
     {
-        rows = which(dataframe[,aa1]==i)
-        sem = dataframe[rows,-c(aa1,aa2,aa3), drop=F]
-        if(mode(apply(sem,2,unique))=="list")
+        rows = which(dataframe[, aa1]==i)
+        sem = dataframe[rows,-c(aa1, aa2, aa3), drop=F]
+        if(mode(apply(sem, 2, unique))=="list")
             stop("coxph with subject only works for fixed covariates")
         subject.first.line[i] = rows[1]
     }
-    dataframe.copy = dataframe[subject.first.line, -c(aa1,aa2,aa3)]
+    dataframe.copy = dataframe[subject.first.line, -c(aa1, aa2, aa3)]
     ##create cutpoints if not provided
     if(is.null(cutpoints)) 
-        cutpoints = seq(0,max(time),len = n.intervals +1) 
+        cutpoints = seq(0, max(time), len = n.intervals +1) 
 
     new.data = inla.get.poisson.data.2(time=time, subject=subject, event=event, cutpoints=cutpoints)
    
@@ -126,7 +126,7 @@
     aa = table(new.data$indicator)
     ind = unique(new.data$indicator)
     stopifnot(dim(dataframe)[2] > 3)
-    new.dataframe = as.data.frame(matrix(0,length(new.data$y),dim(dataframe)[2]-3))
+    new.dataframe = as.data.frame(matrix(0, length(new.data$y), dim(dataframe)[2]-3))
     
     col.data = grep("(subject)|(time)|(event)", names(dataframe))
     if (length(col.data) != 3)
@@ -136,7 +136,7 @@
     ##  rewriting the covariates as per new data
     for(i in 1: dim(dataframe.copy)[2])
     {
-        new.dataframe[,i] = rep(dataframe.copy[,i],aa)
+        new.dataframe[, i] = rep(dataframe.copy[, i], aa)
     }
     names(new.dataframe) = names(dataframe)[-col.data]
    
@@ -146,30 +146,30 @@
     return (list(data = res, cutpoints = cutpoints))
 }
 
-`inla.get.poisson.data.2` = function( subject,time, event, cutpoints)
+`inla.get.poisson.data.2` = function( subject, time, event, cutpoints)
 {
     data.new = numeric(0)
     nn = max(subject)
     ds = diff(cutpoints)
-    ris = matrix(0,max(subject),(length(cutpoints)-1))
-    dataF = cbind(subject,time,event)
+    ris = matrix(0, max(subject),(length(cutpoints)-1))
+    dataF = cbind(subject, time, event)
     end=0
     length(end)=0
     for(i in 1:nn)
     {
-        da = matrix(dataF[dataF[,1]==i,],ncol=3)
+        da = matrix(dataF[dataF[, 1]==i,], ncol=3)
         ## to find the interval for each recurrent time
-        rec = cut(da[,2],cutpoints,labels=1:(length(cutpoints)-1))
-        ris[i,] = tapply(da[,3],rec,sum)
+        rec = cut(da[, 2], cutpoints, labels=1:(length(cutpoints)-1))
+        ris[i,] = tapply(da[, 3], rec, sum)
         ris[i,][is.na(ris[i,])]=0 
-        end =c(end, as.numeric(cut( max(time[subject==i]) ,cutpoints,include.lowest=TRUE)))
+        end =c(end, as.numeric(cut( max(time[subject==i]) , cutpoints, include.lowest=TRUE)))
     }
     
     ## counting number of events in each interval for every subject
     totalevent = 0
     length(totalevent) = 0
     for(i in 1:nn)
-        totalevent = c(totalevent,ris[i,])
+        totalevent = c(totalevent, ris[i,])
     
     ## checking for interval lengths 
     E=numeric(0)
@@ -184,12 +184,12 @@
         }
     }
     
-                                        # combining the number of events, interval lengths,baseline.hazard and subject.
-    index = rep(1:nn,each=length(cutpoints)-1)
+                                        # combining the number of events, interval lengths, baseline.hazard and subject.
+    index = rep(1:nn, each=length(cutpoints)-1)
     baseline.haz=rep(1:(length(cutpoints)-1), nn)
-    dc=cbind(index,E,totalevent,baseline.haz)
-    data.new=data.frame(indicator=dc[,1], E=dc[,2],y=dc[,3],baseline.haz=dc[,4]) #y= no.of events
-    data.new=data.new[data.new[,2]!=0,]
+    dc=cbind(index, E, totalevent, baseline.haz)
+    data.new=data.frame(indicator=dc[, 1], E=dc[, 2], y=dc[, 3], baseline.haz=dc[, 4]) #y= no.of events
+    data.new=data.new[data.new[, 2] !=0, ]
 
     return(data.new)
 }

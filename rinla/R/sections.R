@@ -18,7 +18,7 @@
 {
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
-    cat("likelihood = ",family,"\n", sep = " ", file = file,  append = TRUE)
+    cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
 
     if (inla.one.of(family, "laplace")) {
@@ -31,7 +31,7 @@
             sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family,c("sn", "skewnormal"))) {
+    if (inla.one.of(family, c("sn", "skewnormal"))) {
         cat("sn.shape.max = ", inla.ifelse(is.null(control$sn.shape.max), 5.0, control$sn.shape.max), "\n",
             sep="", file=file, append=TRUE)
     }
@@ -77,7 +77,7 @@
         }
     }
     if (!is.null(control$dof.max))
-        cat("dof.max = ",control$dof.max,"\n", sep = " ", file = file, append = TRUE)
+        cat("dof.max = ", control$dof.max,"\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
@@ -88,12 +88,12 @@
     label= inla.namefix(random.spec$term)
     prop = inla.model.properties(random.spec$model, stop.on.error=TRUE)
     
-    cat("[",label,"]\n", sep = "", file = file,  append = TRUE)
-    cat("dir = ",results.dir,"\n", sep = " ", file = file,  append = TRUE)
+    cat("[", label,"]\n", sep = "", file = file,  append = TRUE)
+    cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
-    cat("model = ",random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
+    cat("model = ", random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
     if (!is.null(random.spec$same.as)) {
-        cat("same.as = ",random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
+        cat("same.as = ", random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
     }
     cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
     if (!is.null(random.spec$diagonal)) {
@@ -173,7 +173,7 @@
             }
         }
     } else {
-        cat("n = ",n,"\n", sep = " ", file = file,  append = TRUE)
+        cat("n = ", n,"\n", sep = " ", file = file,  append = TRUE)
     }
     cat("nrep = ", inla.ifelse(is.null(nrep), 1, nrep), "\n", sep = " ", file = file,  append = TRUE)
 
@@ -201,14 +201,14 @@
     }
         
     if (!is.null(random.spec$cyclic)) {
-        cat("cyclic = ",as.numeric(random.spec$cyclic),"\n", sep = " ", file = file,  append = TRUE)
+        cat("cyclic = ", as.numeric(random.spec$cyclic),"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$season.length)) {
-        cat("season = ",random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
+        cat("season = ", random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$graph.file)) {
         fnm = inla.copy.file.for.section(random.spec$graph.file, data.dir)
-        cat("graph = ",fnm, "\n", sep = " ", file = file,  append = TRUE)
+        cat("graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(file.loc)) {
         cat("locations = ", file.loc,"\n", sep = " ", file = file,  append = TRUE)
@@ -222,17 +222,17 @@
             file.C = inla.tempfile(tmpdir=data.dir)
             inla.sparse2file(random.spec$Cmatrix, file.C, c.indexing = TRUE, symmetric = TRUE)
             file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
-            cat("Cmatrix = ",file.C, "\n",append=TRUE, sep = " ", file = file)
+            cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
         }
     }
     if (!is.null(random.spec$rankdef)) {
-        cat("rankdef = ",random.spec$rankdef,"\n",append=TRUE, sep = " ", file = file)
+        cat("rankdef = ", random.spec$rankdef,"\n", append=TRUE, sep = " ", file = file)
     }
     if (!is.null(random.spec$cdf)) {
-        cat("cdf = ",random.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
+        cat("cdf = ", random.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$quantiles)) {
-        cat("quantiles = ",random.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("quantiles = ", random.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (only.hyperparam || !random.spec$compute) {
         cat("compute = 0\n", sep = " ", file = file,  append = TRUE)
@@ -243,31 +243,31 @@
 }
 
 `inla.inla.section` =
-    function(file,inla.spec)
+    function(file, inla.spec)
 {
     cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(inla.spec$int.strategy)) {
-        cat("int.strategy = ",inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
+        cat("int.strategy = ", inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$strategy)) {
-        cat("strategy = ",inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
+        cat("strategy = ", inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$linear.correction)) {
-        cat("linear.correction = ",inla.spec$linear.correction,"\n", sep = " ", file = file,  append = TRUE)
+        cat("linear.correction = ", inla.spec$linear.correction,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$h)) {
-        cat("h = ",inla.spec$h,"\n", sep = " ", file = file,  append = TRUE)
+        cat("h = ", inla.spec$h,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$dz)) {
-        cat("dz = ",inla.spec$dz,"\n", sep = " ", file = file,  append = TRUE)
+        cat("dz = ", inla.spec$dz,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$interpolator)) {
         cat("interpolator = ", inla.spec$interpolator,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$diff.logdens)) {
-        cat("diff.log.dens = ",inla.spec$diff.logdens,"\n", sep = " ", file = file,  append = TRUE)
+        cat("diff.log.dens = ", inla.spec$diff.logdens,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$print.joint.hyper)) {
         cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = "", file = file,  append = TRUE)
@@ -363,10 +363,10 @@
     inla.write.boolean.field("compute", predictor.spec$compute, file)
     
     if (!is.null(predictor.spec$cdf)) {
-        cat("cdf = ",predictor.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
+        cat("cdf = ", predictor.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(predictor.spec$quantiles)) {
-        cat("cdf = ",predictor.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("cdf = ", predictor.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(file.offset)) {
         cat("offset = ", file.offset,"\n", sep = " ", file = file, append=TRUE)
@@ -376,10 +376,10 @@
     }
     ## hard-coded to have two parameters... FIX LATER
     if (!is.null(predictor.spec$param)) {
-        cat("parameters = ",predictor.spec$param[1]," ",predictor.spec$param[2],"\n", sep = " ", file = file, append=TRUE)
+        cat("parameters = ", predictor.spec$param[1]," ", predictor.spec$param[2],"\n", sep = " ", file = file, append=TRUE)
     }
     if (!is.null(predictor.spec$initial)) {
-        cat("initial = ",predictor.spec$initial,"\n", sep = " ", file = file, append=TRUE)
+        cat("initial = ", predictor.spec$initial,"\n", sep = " ", file = file, append=TRUE)
     } else {
         if (predictor.spec$fixed) {
             cat("initial = 10\n", sep = " ", file = file,  append = TRUE)
@@ -421,7 +421,7 @@
         stopifnot(dim(A)[2] == n)
 
         ## The `I'
-        Aext = list(i = 1L:m, j = 1L:m, x = rep(1.0,m))
+        Aext = list(i = 1L:m, j = 1L:m, x = rep(1.0, m))
 
         ## add -A. Ooops; the internal storage @i etc, are zero-based indexing.
         Aext$i = c(Aext$i, (A@i+1L))
@@ -460,10 +460,10 @@
     function(file , data.dir, result.dir, hyperpar, return.marginals, dic, cpo, mlik, quantiles, smtp, q, strategy)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("inladatadir = ",data.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("inlaresdir = ",result.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("#inladatadir = ",gsub("^.*/","",data.dir), "\n", sep = "", file = file,  append = TRUE) #
-    cat("#inlaresdir = ", gsub("^.*/","",result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+    cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
+    cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
+    cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
+    cat("#inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
@@ -478,10 +478,10 @@
     inla.write.boolean.field("q", q, file)
 
     if (!is.null(smtp)) {
-        cat("smtp = ",smtp, "\n", sep = " ", file = file,  append = TRUE)
+        cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(quantiles)) {
-        cat("quantiles = ",quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("quantiles = ", quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
@@ -509,7 +509,7 @@
     function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
 {
     cat("[", inla.namefix(label), "]\n", sep = "", file = file,  append = TRUE)
-    cat("dir = ",results.dir,"\n", sep = " ", file = file,  append = TRUE)
+    cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = linear\n", sep = " ", file = file,  append = TRUE)
     cat("covariates = ", file.fixed,"\n", sep = " ", file = file,  append = TRUE)
     if (only.hyperparam || !control.fixed$compute) {
@@ -518,10 +518,10 @@
         cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(control.fixed$cdf)) {
-        cat("cdf = ",control.fixed$cdf, "\n", sep = " ", file = file,  append = TRUE)
+        cat("cdf = ", control.fixed$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(control.fixed$quantiles)) {
-        cat("cdf = ",control.fixed$quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("cdf = ", control.fixed$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (length(grep("^[(]Intercept[)]$", inla.trim(label))) == 1) {
         prec = control.fixed$prec.intercept
@@ -615,7 +615,7 @@
     ##
     ## or
     ##
-    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2,3), weight = c(1,2)), ...), ...)
+    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2, 3), weight = c(1, 2)), ...), ...)
     ##       
     ## use the functions 'inla.make.lincomb()' and 'inla.make.lincombs()'
     
@@ -705,7 +705,7 @@
     ##
     ## or
     ##
-    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2,3), weight = c(1,2)), ...), ...)
+    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2, 3), weight = c(1, 2)), ...), ...)
     ##       
 
     ## if use.one.file = TRUE, then use one file for all lincombs and
@@ -835,28 +835,28 @@
     
     for(k in 1:m) {
         kk = k + k.off
-        cat("[",label,".", k, "]\n", sep = "", file = file,  append = TRUE)
+        cat("[", label,".", k, "]\n", sep = "", file = file,  append = TRUE)
         cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
         cat("dir = ", "random.effect", inla.num(kk), "\n", sep = "", file = file, append = TRUE)
         cat("model = ", inla.ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
         cat("n = 1\n", file=file, append = TRUE)
         if (k == 1) {
             if (!is.null(random.spec$param)) {
-                cat("parameters = ",random.spec$param[1]," ",random.spec$param[2],"\n", sep = " ", file = file,
+                cat("parameters = ", random.spec$param[1]," ", random.spec$param[2],"\n", sep = " ", file = file,
                     append = TRUE)
             }
-            cat("prior = ",random.spec$prior.logprec,"\n", sep = " ", file = file,  append = TRUE)
+            cat("prior = ", random.spec$prior.logprec,"\n", sep = " ", file = file,  append = TRUE)
         }
 
         file.cov=inla.tempfile(tmpdir=data.dir)
         file.create(file.cov)
-        write(t(cbind(ind,rep(0,n))),ncolumns=2,file=file.cov,append=FALSE)
+        write(t(cbind(ind, rep(0, n))), ncolumns=2, file=file.cov, append=FALSE)
         file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
         cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
 
         file.w=inla.tempfile(tmpdir=data.dir)
         file.create(file.w)
-        write(t(cbind(ind,random.spec$Z[,k])),ncolumns=2,file=file.w,append=FALSE)
+        write(t(cbind(ind, random.spec$Z[, k])), ncolumns=2, file=file.w, append=FALSE)
         file.w = gsub(data.dir, "$inladatadir", file.w, fixed=TRUE)
         cat("weights = ", file.w,"\n", sep = " ", file = file,  append = TRUE)
 
