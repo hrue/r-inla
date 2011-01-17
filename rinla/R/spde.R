@@ -72,7 +72,7 @@
         inla.write.fmesher.file(inla.affirm.integer(mesh$tv-1L),
                                 filename = paste(prefix, "tv", sep=""))
     }
-    all.args = "--input=s, tv"
+    all.args = "--input=s,tv"
 
     ## additional arguments
     if (!is.null(fem)) {
@@ -85,13 +85,15 @@
         all.args = paste(all.args," --sph=", sph, sep="")
     }
     if (!is.null(bspline)) {
-        all.args = paste(all.args," --bspline=",
-                bspline[1],",", bspline[2],",", bspline[3],
+        all.args = paste(all.args, " --bspline=",
+                bspline[1], ",", bspline[2], ",", bspline[3],
                 sep="")
     }
     if (!is.null(points2mesh)) {
         inla.write.fmesher.file(points2mesh,
-                                filename = paste(prefix, "points2mesh", sep=""))
+                                filename = paste(prefix,
+                                                 "points2mesh",
+                                                 sep=""))
 
         all.args = paste(all.args," --points2mesh=points2mesh", sep="")
     }
