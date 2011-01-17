@@ -216,7 +216,7 @@ namespace fmesh {
 
   MCQsegm::meta_type MCQsegm::erase(const Dart& d)
   {
-    meta_type meta;
+    meta_type meta = meta_type();
     meta_map_type::iterator i = meta_.find(d);
     if (i != meta_.end()) {
       meta = i->second;
