@@ -11,8 +11,9 @@
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
-//#define _LOG(msg) std::cout << WHEREAMI << msg;
 #ifdef DEBUG
+//#define _LOG(msg) std::cout << WHEREAMI << msg;
+#define _LOG(msg)
 #else
 #define _LOG(msg)
 #endif
