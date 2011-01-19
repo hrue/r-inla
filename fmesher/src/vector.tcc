@@ -2,6 +2,7 @@
 #define _FMESH_VECTOR_T_ 1
 
 #include <fstream>
+#include <sstream>
 #include "vector.hh"
 
 namespace fmesh {
