@@ -53,12 +53,7 @@ void print_M(string filename,
 	     const Matrix<T>& M,
 	     fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
 {
-  ofstream O;
-  O.open(filename.c_str(), ios::out | ios::binary);
-  IOHelperM<T> ioh;
-  ioh.cD(&M).matrixtype(matrixt);
-  ioh.binary().OH(O).OD(O);
-  O.close();
+  M.save(filename,matrixt);
 }
 
 template <class T>
@@ -66,42 +61,23 @@ void print_SM(string filename,
 	      const SparseMatrix<T>& M,
 	      fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
 {
-  ofstream O;
-  O.open(filename.c_str(), ios::out | ios::binary);
-  IOHelperSM<T> ioh;
-  ioh.cD(&M).matrixtype(matrixt);
-  ioh.binary().OH(O).OD(O);
-  O.close();
+  M.save(filename,matrixt);
 }
 
 template <class T>
 void print_M_old(string filename,
 		 const Matrix<T>& M,
-		 bool header = true,
 		 fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
 {
-  ofstream O;
-  O.open(filename.c_str(), ios::out);
-  IOHelperM<T> ioh;
-  ioh.cD(&M).ascii().matrixtype(matrixt);
-  if (header) ioh.OH_2009(O);
-  ioh.OD_2009(O);
-  O.close();
+  M.save_ascii_2009(filename,matrixt);
 }
 
 template <class T>
 void print_SM_old(string filename,
 		  const SparseMatrix<T>& M,
-		  bool header = false,
 		  fmesh::IOMatrixtype matrixt = fmesh::IOMatrixtype_general)
 {
-  ofstream O;
-  O.open(filename.c_str(), ios::out);
-  IOHelperSM<T> ioh;
-  ioh.cD(&M).ascii().matrixtype(matrixt);
-  if (header) ioh.OH_2009(O);
-  ioh.OD_2009(O);
-  O.close();
+  M.save_ascii_2009(filename,matrixt);
 }
 
 
@@ -590,7 +566,7 @@ int main(int argc, char* argv[])
     if (false) {
     if (oprefix != "-") {
       print_M_old(oprefix+"S.dat",M.S());
-      print_M_old(oprefix+"FV.dat",M.TV(),false);
+      print_M_old(oprefix+"FV.dat",M.TV());
     }
     }
 
@@ -706,9 +682,9 @@ int main(int argc, char* argv[])
     
     if (false) {
     if (oprefix != "-") {
-      print_SM_old(oprefix+"C.dat",C0,true,fmesh::IOMatrixtype_diagonal);
-      print_SM_old(oprefix+"G.dat",G,false,fmesh::IOMatrixtype_symmetric);
-      print_SM_old(oprefix+"K.dat",K,false,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(oprefix+"C.dat",C0,fmesh::IOMatrixtype_diagonal);
+      print_SM_old(oprefix+"G.dat",G,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(oprefix+"K.dat",K,fmesh::IOMatrixtype_symmetric);
     }
     }
     
@@ -730,7 +706,7 @@ int main(int argc, char* argv[])
       if (oprefix != "-") {
 	Gname = "G"+ss.str();
 	print_SM_old(oprefix+Gname+".dat",*b,
-		     false,fmesh::IOMatrixtype_symmetric);
+		     fmesh::IOMatrixtype_symmetric);
       }
       }
     }
@@ -750,7 +726,7 @@ int main(int argc, char* argv[])
       if (oprefix != "-") {
 	Kname = "K"+ss.str();
 	print_SM_old(oprefix+Kname+".dat",*b,
-		     false,fmesh::IOMatrixtype_symmetric);
+		     fmesh::IOMatrixtype_symmetric);
       }
       }
     }
