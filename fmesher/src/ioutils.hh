@@ -38,10 +38,6 @@ namespace fmesh {
   /*! int/double */
   enum IOValuetype {IOValuetype_int=0,
 		    IOValuetype_double=1};
-  /*! general/symmentric/diagonal */
-  enum IOMatrixtype {IOMatrixtype_general=0,
-		     IOMatrixtype_symmetric=1,
-		     IOMatrixtype_diagonal=2};
   /*! rowmajor/colmajor */
   enum IOStoragetype {IOStoragetype_rowmajor=0,
 		      IOStoragetype_colmajor=1};
@@ -438,7 +434,7 @@ namespace fmesh {
 
     template <class T>
     void input_raw_M(std::istream& input,
-		     Matrix<T>& M);
+		     Matrix<T>& M) const;
 
     void input_raw(std::string name,
 		   std::string specification,
