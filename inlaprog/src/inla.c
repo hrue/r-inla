@@ -2236,7 +2236,15 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 		for (i = 0; i < -m; i++) {
 			double mu = E * exp(x[i] + OFFSET(idx));
 
-			logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
+			if (ISZERO(mu)){
+				if (ISZERO(y)){
+					logll[i] = 1.0;
+				} else {
+					assert(!ISZERO(y));
+				}
+			} else {
+				logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
+			}
 		}
 	}
 	return GMRFLib_SUCCESS;
