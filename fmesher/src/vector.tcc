@@ -1,6 +1,8 @@
 #ifndef _FMESH_VECTOR_T_
 #define _FMESH_VECTOR_T_ 1
 
+#include <fstream>
+#include <sstream>
 #include "vector.hh"
 
 namespace fmesh {
@@ -113,6 +115,147 @@ namespace fmesh {
     return *this;
   };
 
+
+  template <class T>
+  bool Matrix<T>::save(std::string filename,
+		       IOMatrixtype matrixt,
+		       bool binary) const
+  {
+    std::ofstream O;
+    if (binary)
+      O.open(filename.c_str(), std::ios::out | std::ios::binary);
+    else
+      O.open(filename.c_str(), std::ios::out);
+    if (!O.is_open()) 
+      return false;
+    IOHelperM<T> ioh;
+    ioh.cD(this).binary(binary).matrixtype(matrixt);
+    ioh.OH(O).OD(O);
+    O.close();
+    return true;
+  }
+
+  template <class T>
+  bool Matrix<T>::load(std::string filename, bool binary)
+  {
+    std::ifstream I;
+    if (binary)
+      I.open(filename.c_str(), std::ios::in | std::ios::binary);
+    else
+      I.open(filename.c_str(), std::ios::in);
+    if (!I.is_open()) 
+      return false;
+    IOHelperM<T> ioh;
+    ioh.D(this);
+    ioh.binary(binary).IH(I).ID(I);
+    I.close();
+    return true;
+  }
+   
+  template <class T>
+  bool Matrix<T>::save_ascii_2009(std::string filename,
+		       IOMatrixtype matrixt) const
+  {
+    std::ofstream O;
+    O.open(filename.c_str(), std::ios::out);
+    if (!O.is_open()) 
+      return false;
+    IOHelperM<T> ioh;
+    ioh.cD(this).ascii().matrixtype(matrixt);
+    ioh.OD_2009(O);
+    O.close();
+    return true;
+  }
+
+  template <class T>
+  bool Matrix<T>::load_ascii_2009(std::string filename)
+  {
+    std::ifstream I;
+    I.open(filename.c_str(), std::ios::in);
+    if (!I.is_open()) 
+      return false;
+    load_ascii_2009(I);
+    I.close();
+    return true;
+  }
+   
+  template <class T>
+  void Matrix<T>::load_ascii_2009(std::istream& input)
+  {
+    (*this).clear();
+    int r = 0;
+    int cols = 0;
+    while (!input.eof()) {
+      std::string line;
+      getline(input,line);
+      std::stringstream ss(line);
+      int c = 0;
+      if (line.length()>0)
+	while (!ss.eof()) {
+	  ss >> (*this)(r,c);
+	  c++;
+	}
+      if (r==0) {
+	cols = c;
+      }
+      if (c<cols) {
+	(*this).rows(r);
+	r--;
+      }
+      r++;
+    }
+  }
+
+  template <class T>
+  bool SparseMatrix<T>::save(std::string filename,
+			     IOMatrixtype matrixt,
+			     bool binary) const
+  {
+    std::ofstream O;
+    if (binary)
+      O.open(filename.c_str(), std::ios::out | std::ios::binary);
+    else
+      O.open(filename.c_str(), std::ios::out);
+    if (!O.is_open()) 
+      return false;
+    IOHelperSM<T> ioh;
+    ioh.cD(this).binary(binary).matrixtype(matrixt);
+    ioh.OH(O).OD(O);
+    O.close();
+    return true;
+  }
+
+  template <class T>
+  bool SparseMatrix<T>::load(std::string filename, bool binary)
+  {
+    std::ifstream I;
+    if (binary)
+      I.open(filename.c_str(), std::ios::in | std::ios::binary);
+    else
+      I.open(filename.c_str(), std::ios::in);
+    if (!I.is_open()) 
+      return false;
+    IOHelperSM<T> ioh;
+    ioh.D(this);
+    ioh.binary(binary).IH(I).ID(I);
+    I.close();
+    return true;
+  }
+
+  template <class T>
+  bool SparseMatrix<T>::save_ascii_2009(std::string filename,
+					IOMatrixtype matrixt) const
+  {
+    std::ofstream O;
+    O.open(filename.c_str(), std::ios::out);
+    if (!O.is_open()) 
+      return false;
+    IOHelperSM<T> ioh;
+    ioh.cD(this).ascii().matrixtype(matrixt);
+    ioh.OD_2009(O);
+    O.close();
+    return true;
+  }
 
 
 
