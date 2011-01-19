@@ -21,8 +21,15 @@
 
 namespace fmesh {
 
+  /* Note: This definition really belongs in ioutils.hh, but is placed
+     here to avoid chicken-and-egg definition problem. */
+  /*! general/symmentric/diagonal */
+  enum IOMatrixtype {IOMatrixtype_general=0,
+                     IOMatrixtype_symmetric=1,
+                     IOMatrixtype_diagonal=2};
 
-
+  template <class T> class IOHelperM;
+  template <class T> class IOHelperSM;
   template <class T> class Matrix;
   template <class T> class Vector3;
   template <class T> class Matrix3;
@@ -139,6 +146,20 @@ namespace fmesh {
     const T (* raw(void) const) { return data_; }
     T* raw(void) { return data_; }
 
+
+    /*! \brief Store the matrix in a file. */
+    bool save(std::string filename,
+	      IOMatrixtype matrixt = IOMatrixtype_general,
+	      bool binary = true) const;
+    /*! \brief Read a matrix from a file. */
+    bool load(std::string filename, bool binary = true);
+    /*! \brief Store the matrix in a file in old headerless ascii format. */
+    bool save_ascii_2009(std::string filename,
+	      IOMatrixtype matrixt = IOMatrixtype_general) const;
+    /*! \brief Read a matrix from a file in old headerless ascii format. */
+    bool load_ascii_2009(std::string filename);
+    /*! \brief Read a matrix from a stream in old headerless ascii format. */
+    void load_ascii_2009(std::istream& input);
 
     friend
     SparseMatrix<T> diag<T>(const Matrix<T>& M1);
@@ -728,6 +749,16 @@ namespace fmesh {
 	}
       }
     };
+
+    /*! \brief Store the matrix in a file. */
+    bool save(std::string filename,
+	      IOMatrixtype matrixt = IOMatrixtype_general,
+	      bool binary = true) const;
+    /*! \brief Read a matrix from a file. */
+    bool load(std::string filename, bool binary = true);
+    /*! \brief Store the matrix in a file in old headerless ascii format. */
+    bool save_ascii_2009(std::string filename,
+			 IOMatrixtype matrixt = IOMatrixtype_general) const;
     
   };
 
