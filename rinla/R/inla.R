@@ -549,7 +549,13 @@
     } else {
         MPredictor = 0L
     }
-    NPredictor = max(sapply(data, length))
+    if (is.data.frame(data) && min(dim(data)) == 0) {
+        NPredictor = ny
+    } else if (is.list(data) && length(data) == 0) {
+        NPredictor = ny
+    } else {
+        NPredictor = max(sapply(data, length))
+    }
     if (MPredictor > 0) {
         NData = MPredictor
     } else {
