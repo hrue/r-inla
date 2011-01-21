@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "vector.hh"
+#include "ioutils.hh"
 
 namespace fmesh {
 
