@@ -2219,6 +2219,54 @@ namespace fmesh {
   
 
 
+  bool Mesh::save(std::string filename_s,
+		  std::string filename_tv,
+		  bool binary) const
+  {
+    return (S_.save(filename_s,IOMatrixtype_general,binary) &&
+	    TV_.save(filename_tv,IOMatrixtype_general,binary));
+  }
+
+  bool Mesh::load(std::string filename_s,
+		  std::string filename_tv,
+		  bool binary)
+  {
+    Matrix3<double> s;
+    Matrix3<int> tv;
+
+    if (!s.load(filename_s,binary) || !tv.load(filename_tv,binary))
+      return false;
+
+    S_set(s);
+    TV_set(tv);
+
+    return true;
+  }
+
+  bool Mesh::save_ascii_2009(std::string filename_s,
+			     std::string filename_tv) const
+  {
+    return (S_.save_ascii_2009(filename_s) &&
+	    TV_.save_ascii_2009(filename_tv));
+  }
+
+  bool Mesh::load_ascii_2009(std::string filename_s,
+			     std::string filename_tv)
+  {
+    Matrix3<double> s;
+    Matrix3<int> tv;
+
+    if (!s.load_ascii_2009(filename_s) || !tv.load_ascii_2009(filename_tv))
+      return false;
+
+    S_set(s);
+    TV_set(tv);
+
+    return true;
+  }
+
+
+
 
 
 
