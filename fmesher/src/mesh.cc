@@ -575,7 +575,7 @@ namespace fmesh {
    the arctan-formula instead, that should handle all cases
    \f$L\in[0,\pi]\f$.
    \f{align*}{
-   L &= \operatorname{acos}((s_0 \cdot s_1)) \\
+   L &= \operatorname{acos}(s_0 \cdot s_1) \\
    \sin(L/2) &= \|s_1-s_0\|/2 \\
    \cos(L/2) &= \|s_0+s_1\|/2 \\
    L &= 2 \cdot \operatorname{atan2}(\|s_1-s_0\|,\|s_0+s_1\|)

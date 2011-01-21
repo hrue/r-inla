@@ -69,11 +69,11 @@ namespace fmesh {
   private:
     Mesh& rebuildTT();
 
-    /*!< Change VT[v] only if not linked to a triangle */
+    /*! Change VT[v] only if not linked to a triangle */
     Mesh& update_VT(const int v, const int t);
-    /* Overwerite current VT[v] info */
+    /*! Overwrite current VT[v] info */
     Mesh& set_VT(const int v, const int t);
-    /* Set VT[v]=-1 for v>=v_start */
+    /*! Set VT[v]=-1 for v>=v_start */
     Mesh& reset_VT(const int v_start = 0);
 
     Mesh& update_VT_triangle(const int t);
