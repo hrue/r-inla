@@ -585,7 +585,7 @@
             a = cut(x, n)
         } else {
             ## use break-points corresponding to the quantiles
-            aq = quantile(x, probs = c(0, ppoints(n-1), 1))
+            aq = unique(quantile(x, probs = c(0, ppoints(n-1), 1)))
             a = cut(x, breaks = as.numeric(aq), include.lowest=TRUE)
         }
         ## the rest is then the same
