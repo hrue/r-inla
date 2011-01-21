@@ -266,7 +266,7 @@
             if (A) {
                 nm = dim(lp)[1] - n
             } else {
-                nm = 0
+                nm = n
             }
         
             for(m in inla.ifelse(A, 1:2, 1)) {
