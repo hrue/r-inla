@@ -231,19 +231,37 @@ namespace fmesh {
     double edgeEncroached(const Dart& d, const Point& s) const;
     
     /*!
-      Compute dart half-space test for a point.
-      positive if s is to the left of the edge defined by d.
+      \brief Compute dart half-space test for a point.
+
+      Positive if s is to the left of the edge defined by d.
      */
     double inLeftHalfspace(const Point& s0,
 			   const Point& s1,
 			   const Point& s) const;
 
-
+    /*!
+      \brief Calculate FEM matrices.
+     */
     void calcQblocks(SparseMatrix<double>& C0,
 		     SparseMatrix<double>& C1,
 		     SparseMatrix<double>& G1,
 		     SparseMatrix<double>& B1,
 		     Matrix<double>& Tareas) const;
+
+    /*! \brief Store the mesh in files. */
+    bool save(std::string filename_s,
+	      std::string filename_tv,
+	      bool binary = true) const;
+    /*! \brief Read a mesh from files. */
+    bool load(std::string filename_s,
+	      std::string filename_tv,
+	      bool binary = true);
+    /*! \brief Store the mesh in files in old headerless ascii format. */
+    bool save_ascii_2009(std::string filename_s,
+			 std::string filename_tv) const;
+    /*! \brief Read a mesh from files in old headerless ascii format. */
+    bool load_ascii_2009(std::string filename_s,
+			 std::string filename_tv);
 
   };
 
