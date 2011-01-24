@@ -174,10 +174,42 @@
     return (s == ss)
 }
 
+`inla.strncmp` = function(s, ss)
+{
+    ## compare two strings
+    if (length(s) == 1 && length(ss) > 1) {
+        ans = c()
+        for(i in 1:length(ss)) {
+            ans = c(ans,  inla.strncmp(s, ss[i]))
+        }
+        return (ans)
+    } else if (length(s) > 1 && length(ss) > 1) {
+        stop("length(s) > 1 && length(ss) > 1: not allowed.")
+    } else {
+        return (substr(s, 1, nchar(ss)) == ss)
+    }
+}
+
 `inla.strcasecmp` = function(s, ss)
 {
     ## compare two strings, ignore case
     return (tolower(s) == tolower(ss))
+}
+
+`inla.strncasecmp` = function(s, ss)
+{
+    ## compare two strings, ignore case
+    if (length(s) == 1 && length(ss) > 1) {
+        ans = c()
+        for(i in 1:length(ss)) {
+            ans = c(ans,  inla.strncasecmp(s, ss[i]))
+        }
+        return (ans)
+    } else if (length(s) > 1 && length(ss) > 1) {
+        stop("length(s) > 1 && length(ss) > 1: not allowed.")
+    } else {
+        return (substr(tolower(s), 1, nchar(ss)) == tolower(ss))
+    }
 }
 
 `inla.pause` = function(msg = NULL) 
