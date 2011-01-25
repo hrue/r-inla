@@ -1,5 +1,5 @@
 \documentclass[a4paper,11pt]{article}
-\usepackage[compat2]{geometry}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{verbatim}
@@ -49,7 +49,10 @@ example with Poisson responses.
 
 \subsection*{Notes}
 
-None.
+This likelihood also accept $E=0$ and in this case $\log(E)$ is
+\emph{defined} to be $0$. Non-integer values of $y \ge 0$ is accepted
+although the normalising constant of the likelihood is then wrong (but
+its a constant only).
 
 
 \end{document}
