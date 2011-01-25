@@ -20,11 +20,15 @@ where
 
 \subsection*{Hyperparameters}
 
-The precision parameter $\tau$ is represented as
+The precision parameter $\kappa$ is represented as
 \begin{displaymath}
-    \theta_1 =\log(\tau) 
+    \theta_1 =\log(\kappa) 
 \end{displaymath}
-and the parameter $\phi$ is represented as
+where $\kappa$ is the \emph{marginal} precision,
+\begin{displaymath}
+    \kappa = \tau (1-\phi^{2}).
+\end{displaymath}
+The parameter $\phi$ is represented as
 \[
 \theta_2 = \log\left(\frac{1+\phi}{1-\phi}\right)
 \]
@@ -47,17 +51,20 @@ In this exaple we implement a ar1 model where $\theta_1$ has a log-Gamma prior w
 \begin{verbatim}
 
 #simulate data
-n=100
-phi=0.8
-prec=10
+n = 100
+phi = 0.8
+prec = 10
+## note that the marginal precision would be
+marg.prec = prec * (1-phi^2)
+
 E=sample(c(5,4,10,12),size=n,replace=T)
 eta = as.vector(arima.sim(list(order = c(1,0,0), ar = phi), n = n,sd=sqrt(1/prec)))
 y=rpois(n,E*exp(eta))
 data = list(y=y,z=1:n)
 
-#fit the model
+## fit the model
 formula = y~f(z,model="ar1",prior=c("loggamma","gaussian"),param=c(1,0.001,0,0.001))
-result = inla(formula,family="poisson") 
+result = inla(formula,family="poisson", data = data)
 \end{verbatim}
 
 

@@ -1222,10 +1222,14 @@ int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg)
 double Qfunc_ar1(int i, int j, void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
-	double phi, prec;
+	double phi, prec_marginal, prec;
 
+	/* 
+	   the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovation or conditional noise.
+	 */
 	phi = map_phi(a->phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec_marginal = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec = prec_marginal/(1.0-SQR(phi));
 
 	if (a->cyclic) {
 		if (i == j) {
@@ -6981,8 +6985,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_AR1:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi  (lag-1 correlation) */
 		break;
 
 	case F_GENERIC1:
@@ -10877,6 +10881,8 @@ double extra(double *theta, int ntheta, void *argument)
 			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
 			SET_GROUP_RHO(2);
 
+			double log_precision_noise = log_precision - log( 1.0 - SQR(phi));
+
 			if (mb->f_cyclic[i]) {
 				int jj;
 
@@ -10887,10 +10893,10 @@ double extra(double *theta, int ntheta, void *argument)
 					logdet += log(1.0 + SQR(phi) - phi * (cos(tpon * jj) + cos(tpon * (N_orig - 1.0) * jj)));
 				}
 				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i])
-							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * logdet);
+							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * logdet);
 			} else {
 				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i])
-							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * log(1.0 - SQR(phi)));
+							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
 			if (!mb->f_fixed[i][0]) {
 				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
