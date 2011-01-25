@@ -2207,8 +2207,10 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 }
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
+#define logE(E_) (E_ > 0.0 : log(E_) ? 0.0)
+
 	/*
-	 * y ~ Poisson(E*exp(x))
+	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x.
 	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
@@ -2220,7 +2222,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 
 	if (m > 0) {
 		if (m <= 3) {
-			logll[0] = y * ((x[0] + OFFSET(idx)) + log(E)) - E * exp(x[0] + OFFSET(idx)) - normc;
+			logll[0] = y * ((x[0] + OFFSET(idx)) + logE(E)) - E * exp(x[0] + OFFSET(idx)) - normc;
 			if (m > 1) {
 				logll[1] = y - E * exp(x[1] + OFFSET(idx));
 			}
@@ -2229,7 +2231,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 			}
 		} else {
 			for (i = 0; i < m; i++) {
-				logll[i] = y * ((x[i] + OFFSET(idx)) + log(E)) - E * exp(x[i] + OFFSET(idx)) - normc;
+				logll[i] = y * ((x[i] + OFFSET(idx)) + logE(E)) - E * exp(x[i] + OFFSET(idx)) - normc;
 			}
 		}
 	} else {
@@ -2247,6 +2249,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 			}
 		}
 	}
+#undef logE
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5201,7 +5204,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		   ds->data_id == L_ZEROINFLATEDNBINOMIAL1 || ds->data_id == L_ZEROINFLATEDNBINOMIAL2) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
