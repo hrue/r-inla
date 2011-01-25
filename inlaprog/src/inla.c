@@ -2207,7 +2207,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 }
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-#define logE(E_) (E_ > 0.0 : log(E_) ? 0.0)
+#define logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
 
 	/*
 	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x.
