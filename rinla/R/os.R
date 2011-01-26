@@ -8,7 +8,7 @@
     if (type == "windows")
         return (.Platform$OS.type == "windows")
     else if (type == "mac")
-        return (length(grep("mac", .Platform$pkgType)) > 0)
+        return (file.info("/Library")$isdir && file.info("/Applications")$isdir)
     else if (type == "linux")
         return ((.Platform$OS.type == "unix") && !inla.os("mac"))
     else if (type == "else")
