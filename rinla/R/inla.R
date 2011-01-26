@@ -542,7 +542,6 @@
 
     data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
-
     ## need to know MPredictor and NPredictor!
     if (!is.null(control.predictor$A)) {
         MPredictor = ny
