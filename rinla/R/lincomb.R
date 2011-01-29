@@ -6,7 +6,7 @@
 ##!\alias{inla.make.lincomb}
 ##!\alias{inla.make.lincombs}
 ##!\description{Create a linear combination or several linear combinations, as input to \code{inla}}
-##!\usagen{
+##!\usage{
 ##!lincomb = inla.make.lincomb(...)
 ##!lincombs = inla.make.lincombs(...)
 ##!}
