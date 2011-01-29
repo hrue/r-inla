@@ -6,7 +6,7 @@
 ##!\alias{inla.read.graph}
 ##!\alias{inla.write.graph}
 ##!\title{Read a graph-file}
-##!\description{Reads a graph spesification from file and create an R-object for it, and write a graph to file."}
+##!\description{Reads a graph spesification from file and create an R-object for it, and write a graph to file.}
 ##!\usage{
 ##!graph = inla.read.graph(graph.file)
 ##!inla.write.graph(graph, graph.file)}
