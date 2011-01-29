@@ -106,26 +106,135 @@
 
 `inla.fmesher.mesh` = function(
         locations,
-        boundary = NULL,
         dir = tempdir(),
         prefix = NULL,
         rcdt = c(21,-1.0,-0.5),
         cet = c(8,-0.1),
+        boundary = NULL,
+        interior = NULL,
         x11.delay = NULL,
         min.input.distance = 0)
 {
 
-    ## create files using fmesher
+    ## Internal helper function:
+    handle.segment.input = function (input,is.boundary,loc.n,group.index)
+    {
+        k = 1
+        previous.was.locations = FALSE
+        locations = NULL
+        indices = NULL
+        groups = NULL
+        while (k <= length(input)) {
+            if ((class(input[[k]]) != "matrix") &&
+                (class(input[[k]]) != "integer")) {
+                stop("Input information must be a list of matrices or node indices.")
+            }
+            
+            if ((class(input[[k]]) == "matrix") &&
+                (class(input[[k]][1,1]) == "numeric")) {
+                ## Input coordinates
+                previous.locations.length = loc.n
+                loc.n = loc.n + nrow(input[[k]])
+                locations = rbind(locations,input[[k]])
+                ## Look-ahead: if the next matrix is not an index vector,
+                ## insert one.
+                if (!((k < length(input)) &&
+                      ((class(input[[k+1]]) == "integer") ||
+                       ((class(input[[k+1]]) == "matrix") &&
+                        (class(input[[k+1]][1,1]) == "integer"))))) {
+                    if (k < length(input))
+                        if (is.boundary)
+                            input = (c(input[1:k],
+                                       list(c(1:nrow(input[[k]]),1L)),
+                                       input[(k+1):length(input)]))
+                        else
+                            input = (c(input[1:k],
+                                       list(c(1:nrow(input[[k]]))),
+                                       input[(k+1):length(input)]))
+                    else
+                        if (is.boundary)
+                            input = (c(input[1:k],
+                                       list(c(1:nrow(input[[k]]),1L))))
+                        else
+                            input = (c(input[1:k],
+                                       list(c(1:nrow(input[[k]])))))
+                }
+                previous.was.locations = TRUE
+                k = k+1
+            }
+            if ((class(input[[k]]) == "integer") ||
+                ((class(input[[k]]) == "matrix") &&
+                 (class(input[[k]][1,1]) == "integer"))) {
+                ## Input node indices
+                if (class(input[[k]]) != "matrix") {
+                    input[[k]] = matrix(input[[k]],length(input[[k]]),1)
+                }
+                ## If the previous element was locations, shift indices.
+                if (previous.was.locations) {
+                    input[[k]] = (input[[k]]+
+                                  previous.locations.length);
+                }
+
+                indices.n = nrow(input[[k]])
+                indices = rbind(indices,input[[k]])
+
+                ## Look-ahead: if the next matrix is not a group vector,
+                ## insert one.
+                if (!((k < length(input)) &&
+                      ((class(input[[k+1]]) == "integer") ||
+                       ((class(input[[k+1]]) == "matrix") &&
+                        (class(input[[k+1]][1,1]) == "integer"))))) {
+                    group.index = group.index+1L
+                    if (k < length(input))
+                        input = (c(input[1:k],
+                                   list(group.index),
+                                   input[(k+1):length(input)]))
+                    else
+                        input = (c(input[1:k],
+                                   list(group.index)))
+                }
+                previous.was.locations = FALSE
+                k = k+1
+
+                ## Groups:
+                if (class(input[[k]]) != "matrix") {
+                    input[[k]] = matrix(input[[k]],length(input[[k]]),1)
+                }
+                if ((indices.n>1) && (nrow(input[[k]])!=indices.n)) {
+                    input[[k]] = matrix(input[[k]],indices.n,1)
+                }
+                    
+                groups = rbind(groups,input[[k]])
+
+            } else {
+                stop("Unexpected input information type, element ",
+                     as.character(k),".")
+            }
+
+            ## Advance to next input element.
+            k = k+1
+        }
+
+        return (list(locations=locations,indices=indices,
+                     groups=groups,group.index=group.index))
+    }
+    ## End of helper.
 
     stopifnot(is.matrix(locations))
-    loc.n = dim(locations)[1]
-    loc.dim = dim(locations)[2]
+    loc.n = nrow(locations)
+    loc.dim = ncol(locations)
     stopifnot(loc.dim>=2, loc.dim<=3)
 
-    if (!is.null(boundary))
-        stop("Boundary handling is not implemented in the R interface yet.")
-
     prefix = inla.fmesher.make.prefix(dir, prefix)
+
+    segm.bnd.input = (handle.segment.input(boundary,TRUE,nrow(locations),0))
+    locations = rbind(locations,segm.bnd.input$locations)
+    segm.int.input = (handle.segment.input(interior,FALSE,nrow(locations),
+                                           segm.bnd.input$group.index))
+    locations = rbind(locations,segm.int.input$locations)
+
+    loc.n = nrow(locations)
+    loc.dim = ncol(locations)
 
     ## Map locations to nodes, avoiding near-duplicates.
     node.coord = matrix(nrow=loc.n, ncol=loc.dim)
@@ -167,6 +276,38 @@
 
     ## additional arguments
     all.args = ""
+    if (!is.null(boundary)) {
+        bnd.idx = (matrix(idx[segm.bnd.input$indices],
+                          nrow(segm.bnd.input$indices),
+                          ncol(segm.bnd.input$indices)))
+        bnd.idx[is.na(bnd.idx)] = 0L
+        storage.mode(bnd.idx) = "integer"
+        bnd.grp = segm.bnd.input$groups
+        storage.mode(bnd.grp) = "integer"
+        
+        loc.file = inla.write.fmesher.file(bnd.idx-1L,
+            filename = paste(prefix, "segm.bnd0", sep=""))
+        loc.file = inla.write.fmesher.file(bnd.grp,
+            filename = paste(prefix, "segm.bndgrp0", sep=""))
+        all.args = paste(all.args," --boundary=segm.bnd0")
+        all.args = paste(all.args," --boundarygrp=segm.bndgrp0")
+    }
+    if (!is.null(interior)) {
+        int.idx = (matrix(idx[segm.int.input$indices],
+                          nrow(segm.int.input$indices),
+                          ncol(segm.int.input$indices)))
+        int.idx[is.na(int.idx)] = 0L
+        storage.mode(int.idx) = "integer"
+        int.grp = segm.int.input$groups
+        storage.mode(int.grp) = "integer"
+        
+        loc.file = inla.write.fmesher.file(int.idx-1L,
+            filename = paste(prefix, "segm.int0", sep=""))
+        loc.file = inla.write.fmesher.file(int.grp,
+            filename = paste(prefix, "segm.intgrp0", sep=""))
+        all.args = paste(all.args," --interior=segm.int0")
+        all.args = paste(all.args," --interiorgrp=segm.intgrp0")
+    }
     if (!is.null(cet)) {
         all.args = paste(all.args," --cet=", cet[1],",", cet[2], sep="")
     }
@@ -180,9 +321,20 @@
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
     
-    mesh = list(
-            tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
-            s = inla.read.fmesher.file(paste(prefix, "s", sep="")))
+    mesh = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
+                 s = inla.read.fmesher.file(paste(prefix, "s", sep=""))))
+    
+    bnd.info = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
+                     grp = inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep=""))
+                     ))
+    if (!is.null(interior)) {
+        int.info  = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.int", sep="")),
+                          grp = inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep=""))
+                          ))
+    } else {
+        int.info = NULL
+    }
+    mesh$segm = list(bnd=bnd.info,int=int.info)
     
     m = list(prefix = prefix, mesh = mesh, locations.idx = idx,
             call = match.call(expand.dots=TRUE))
