@@ -6,19 +6,22 @@
 ##!\alias{inla.make.lincomb}
 ##!\alias{inla.make.lincombs}
 ##!\description{Create a linear combination or several linear combinations, as input to \code{inla}}
-##!\usage{
+##!\usagen{
 ##!lincomb = inla.make.lincomb(...)
 ##!lincombs = inla.make.lincombs(...)
+##!}
 ##!\arguments{
+##!TODO
 ##!}
 ##!\value{
+##TODO
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!\seealso{}
+##!\seealso{TODO}
 ##!\examples{
 ##!See the worked out examples in the FAQ section on \code{r-inla.org}
 ##!}
-q
+
 `inla.make.lincomb` = function(...)
 {
     arg = match.call(expand.dots=TRUE)
