@@ -1,5 +1,24 @@
 ## utility-functions for creating linear combinations.
 
+##!\name{make.lincomb}
+##!\alias{make.lincomb}
+##!\alias{make.lincombs}
+##!\alias{inla.make.lincomb}
+##!\alias{inla.make.lincombs}
+##!\description{Create a linear combination or several linear combinations, as input to \code{inla}}
+##!\usage{
+##!lincomb = inla.make.lincomb(...)
+##!lincombs = inla.make.lincombs(...)
+##!\arguments{
+##!}
+##!\value{
+##!}
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\seealso{}
+##!\examples{
+##!See the worked out examples in the FAQ section on \code{r-inla.org}
+##!}
+q
 `inla.make.lincomb` = function(...)
 {
     arg = match.call(expand.dots=TRUE)
