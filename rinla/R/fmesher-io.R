@@ -1,3 +1,21 @@
+`inla.is.fmesher.file` = function(filename)
+{
+    ## return TRUE if file exists and is a fmesher file
+    if (!file.exists(filename))
+        return (FALSE)
+    
+    fp = file(filename, "rb")
+    len.h = readBin(fp, what = integer(), n = 1)
+    close(fp)
+    
+    ## the only test we can make now,  is if the length of the header is 8. 
+    if (len.h == 8L) {
+        return (TRUE)
+    } else {
+        return (FALSE)
+    }
+}
+
 `inla.read.fmesher.file` = function(filename, verbose = FALSE, debug = FALSE)
 {
     ##

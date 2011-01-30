@@ -1,4 +1,3 @@
-
 /* fmesher-io.c
  * 
  * Copyright (C) 2010 Havard Rue
@@ -43,9 +42,33 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "fmesher-io.h"
+#include "inla.h"
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
 
+int inla_is_fmesher_file(const char *filename,  long int offset,  int whence)
+{
+	FILE *fp;
+	fp = fopen(filename, "rb");
+	if (!fp) {
+		return INLA_FAIL;
+	}
+	if (VALID_WHENCE(whence)) {
+		fseek(fp, offset, whence);
+	}
+
+	int len_header;
+	int nread;
+
+	nread = fread((void *) &len_header, sizeof(int), (size_t) 1, (FILE *) fp);
+	fclose(fp);
+	
+	if (nread == 1 && len_header == 8) {
+		return INLA_OK;
+	} else {
+		return INLA_FAIL;
+	}
+}
 inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
@@ -502,7 +525,6 @@ int inla_matrix_free(inla_matrix_tp * M)
 	}
 	return (0);
 }
-
 inla_matrix_tp *inla_matrix_1(int n)
 {
 	/*
@@ -563,7 +585,9 @@ int main(int argc, char **argv)
 		printf("\n\n");
 		printf("read testmatrix.dat\n");
 		printf("read testmatrix.dat (appended)\n");
+		P((double) inla_is_fmesher_file("testmatrix.dat", 0, -1));
 		M = inla_read_fmesher_file("testmatrix.dat", 0, -1);
+		P((double)inla_is_fmesher_file("testmatrix.dat", M->tell, SEEK_SET));
 		M = inla_read_fmesher_file("testmatrix.dat", M->tell, SEEK_SET);
 	}
 	return 0;
