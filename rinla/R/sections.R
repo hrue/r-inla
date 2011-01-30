@@ -402,7 +402,7 @@
     if (!is.null(predictor.spec$A)) {
         ## Now we will build the extended Matrix, which is
         ##
-        ## Aextended = [ I, -A; -A^T, A^T A ] (2n x 2x)
+        ## Aextended = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         ##
         ## This matrix is the one that is needed for input to inla. 
     
@@ -443,8 +443,9 @@
         stopifnot(length(Aext$i) == length(Aext$x))
         
         file.A=inla.tempfile(tmpdir=data.dir)
-        Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x)
+        Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x, index1=TRUE, dims=c(n+m, n+m))
         inla.sparse2file(Aext, filename = file.A, c.indexing = TRUE, symmetric = TRUE)
+
         stopifnot(dim(Aext)[1] == m+n)
         stopifnot(dim(Aext)[2] == m+n)
 
