@@ -84,6 +84,7 @@ int inla_matrix_free(inla_matrix_tp *M);
 int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename, long int offset, int whence);
 int inla_file_check(const char *filename, const char *mode);
 inla_matrix_tp *inla_matrix_1(int n);
+int inla_is_fmesher_file(const char *filename,  long int offset,  int whence);
 
 __END_DECLS
 
