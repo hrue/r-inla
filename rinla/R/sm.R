@@ -188,14 +188,17 @@
         filename = tempfile()
     }
 
-    if (!is(A, "dgTMatrix"))
+    if (!is(A, "dgTMatrix")) {
         A = inla.as.dgTMatrix(A)
+    }
+    dims = dim(A)
 
     if (!binary) {
-        if (c.indexing)
+        if (c.indexing) {
             off = 0L
-        else
+        } else {
             off = 1L
+        }
     
         if (symmetric) {
             idx = which(A@i >= A@j)
@@ -205,11 +208,37 @@
 
         opt = options()
         options(digits=16)
-        write(t(cbind(as.integer(A@i[idx]+off), as.integer(A@j[idx]+off), A@x[idx])), ncolumns=3, file = filename)
+
+        ## make sure that at the elements (1, 1) and (n, m) are
+        ## written out (just set them to zero), so the dimension of
+        ## the matrix will be correct. In case they are there in any
+        ## case, the entries will be added up.
+        ##
+        ## FIXME: switch to the fmesher-binary format later, but we
+        ## need a TAG to identify such files uniquely.
+        ##
+
+        write(t(cbind(as.integer(c(0L + off, dims[1]-1L + off, A@i[idx] + off)),
+                      as.integer(c(0L + off, dims[2]-1L + off, A@j[idx] + off)),
+                      c(0.0, 0.0, A@x[idx]))),
+              ncolumns=3, file = filename)
         options(opt)
+
     } else {
+
+        ## make sure that at the elements (1, 1) and (n, m) are
+        ## written out (just set them to zero), so the dimension of
+        ## the matrix will be correct. In case they are there in any
+        ## case, the entries will be added up.
+        ##
+        ## FIXME: switch to the fmesher-binary format ONLY later, but
+        ## we need a TAG to identify such files uniquely.
+        ##
+
         off = 1L
-        Q  =  cbind(as.integer(A@i+off), as.integer(A@j+off), A@x)  ## 1-based indexing
+        Q = list(i = as.integer(c(0L + off, dims[1]-1L + off, A@i + off)),
+                j = as.integer(c(0L + off, dims[2]-1L + off, A@j + off)),
+                values = c(0.0, 0.0, A@x))
         inla.write.fmesher.file(Q, filename = filename)
     }
 
