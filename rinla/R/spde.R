@@ -100,7 +100,11 @@
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
-    
+
+    if (is.null(mesh)) {
+      mesh = list(s=s)
+    }
+
     return (list(prefix = prefix, locations = mesh$s, n = n))
 }
 
@@ -200,8 +204,8 @@
                 if (class(input[[k]]) != "matrix") {
                     input[[k]] = matrix(input[[k]],length(input[[k]]),1)
                 }
-                if ((indices.n>1) && (nrow(input[[k]])!=indices.n)) {
-                    input[[k]] = matrix(input[[k]],indices.n,1)
+                if ((indices.n>1) && (nrow(input[[k]])!=(indices.n-1))) {
+                    input[[k]] = matrix(input[[k]],indices.n-1,1)
                 }
                     
                 groups = rbind(groups,input[[k]])
