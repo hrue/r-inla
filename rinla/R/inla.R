@@ -569,7 +569,7 @@
     }
     if (!is.null(control.predictor$A)) {
         ## Then the dimension of A must match!
-        MN = inla.sparse.dim(A)
+        MN = inla.sparse.dim(control.predictor$A)
         if (MPredictor != MN[1]) {
             stop(paste("From the responce, I found that MPredictor =", MPredictor, ", but dim(A)[1] =", MN[1]))
         }
