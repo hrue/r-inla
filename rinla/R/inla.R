@@ -524,7 +524,7 @@
         ny = max(sapply(y...orig, length))
         nc = length(y...orig)
         if (n.family != nc)
-            stop(paste("Number of families", n.family, "does not match number of responce variables", nc))
+            stop(paste("Number of families", n.family, "does not match number of response variables", nc))
     } else {
         nc = NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
@@ -571,7 +571,7 @@
         ## Then the dimension of A must match!
         MN = inla.sparse.dim(control.predictor$A)
         if (MPredictor != MN[1]) {
-            stop(paste("From the responce, I found that MPredictor =", MPredictor, ", but dim(A)[1] =", MN[1]))
+            stop(paste("From the response, I found that MPredictor =", MPredictor, ", but dim(A)[1] =", MN[1]))
         }
         if (NPredictor != MN[2]) {
             stop(paste("From `data', I found that NPredictor =", NPredictor, ", but dim(A)[2] =", MN[2]))
@@ -592,7 +592,7 @@
 
     if (FALSE) {
         if (n.family != 1)
-            stop(paste("length(family) are", n.family, "but the responce has only one column!"))
+            stop(paste("length(family) are", n.family, "but the response has only one column!"))
         
         y...fake = c(y...orig)
         y...fake[is.na(y...fake)] = Inf ## otherwise model.matrix() fails below
@@ -602,7 +602,7 @@
         cat("n.family", n.family, "\n")
 
     
-    ## ...and then we add the fake to the data-frame after removing the original responce
+    ## ...and then we add the fake to the data-frame after removing the original response
     if (is.data.frame(data)) {
         if (MPredictor > 0)
             stopifnot(MPredictor == NPredictor)
