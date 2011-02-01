@@ -51,9 +51,9 @@ y = rnorm(n,a+b*trend,1)+rnorm(n,0.2*seasonal,1)
 
 data=data.frame(y=y,trend=trend,seasonal=trend)
 
-formula = y~f(trend,model="rw2")+f(seasonal,model="seasonal",season.length=n.seas,param=c(1,0.1))
+formula = y~f(trend,model="rw2")+f(seasonal,model="seasonal",
+              season.length=n.seas,param=c(1,0.1))
 result=inla(formula,family="gaussian",data=data)
-
 \end{verbatim}
 
 
