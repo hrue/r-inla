@@ -39,11 +39,11 @@ The seasonal model is specified inside the {\tt f()} function as
 
 \begin{verbatim}
 
-n=204
+n=203
 n.seas=12
 
 trend=seq(1:n)
-seasonal=rep(1:n.seas,n/n.seas)
+seasonal=rep(1:n.seas, ceiling(n/n.seas))[1:n]
 
 a=1
 b=0.5
