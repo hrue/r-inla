@@ -202,7 +202,9 @@
             kld.fixed = inla.read.binary.file(paste(file, .Platform$file.sep,"symmetric-kld.dat", sep=""))[-1]
             sum = c(sum, kld.fixed)
             col.nam = c(col.nam, "kld")
-            summary.fixed = rbind(summary.fixed, sum)
+            if (!is.null(sum)) {
+                summary.fixed = rbind(summary.fixed, sum)
+            }
             
             ##read the marginals
             xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")),
@@ -213,7 +215,14 @@
         }    
         rm(qq)
         rm(xx)
-        rownames(summary.fixed) = inla.namefix(names.fixed)
+
+        if (dim(summary.fixed)[1] == 1  && length(names.fixed) == 2) {
+            ## this is required for inla.cpo if failure=1 and
+            ## derived.only = FALSE
+            rownames(summary.fixed) = inla.namefix(names.fixed)[-1]
+        } else {
+            rownames(summary.fixed) = inla.namefix(names.fixed)
+        }
         colnames(summary.fixed) = inla.namefix(col.nam)
         if (length(marginals.fixed) > 0) {
             names(marginals.fixed) = inla.namefix(names.fixed)
