@@ -216,10 +216,12 @@
         rm(qq)
         rm(xx)
 
-        if (dim(summary.fixed)[1] == 1  && length(names.fixed) == 2) {
+        if (dim(summary.fixed)[1] * 2L == length(names.fixed)) {
             ## this is required for inla.cpo if failure=1 and
-            ## derived.only = FALSE
-            rownames(summary.fixed) = inla.namefix(names.fixed)[-1]
+            ## derived.only = FALSE. the LC is in names.fixed, but not
+            ## computed. we have to remove those.
+            nm = inla.namefix(names.fixed)
+            rownames(summary.fixed) = nm[ grep("[.]derived$", nm) ]
         } else {
             rownames(summary.fixed) = inla.namefix(names.fixed)
         }
