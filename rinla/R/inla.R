@@ -226,15 +226,16 @@
     ##!\item{marginals.linear.predictor}{
     ##! If \code{compute=TRUE} in
     ##!\code{control.predictor}, a list containing the posterior
-    ##!marginals of the linear predictors \eqn{\eta} in the model }
+    ##!marginals of the linear predictors \eqn{\eta} in the model. }
 
-    ##!\item{summary.fitted.values}{
-    ##! A matrix containing the mean and sd
-    ##!(plus, possibly quantiles and cdf) of the fitted values
-    ##!\eqn{g^{-1}(\eta)} obtained by
-    ##!transforming the linear predictors by the inverse of the link
-    ##!function.
-    ##! }
+    ##!\item{summary.fitted.values}{ A matrix containing the mean and
+    ##! sd (plus, possibly quantiles and cdf) of the fitted values
+    ##! \eqn{g^{-1}(\eta)} obtained by transforming the linear
+    ##! predictors by the inverse of the link function. This quantity
+    ##! is only computed if \code{marginals.fitted.values} is
+    ##! computed. Note that if an observation is \code{NA} then the
+    ##! identity link is used. You can manually transform a marginal
+    ##! using \code{inla.marginal.transform()}.}
 
     ##!\item{marginals.fitted.values}{
     ##! If \code{compute=TRUE} in
