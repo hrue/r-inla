@@ -410,7 +410,7 @@
             x$pit = x$pit[oks]
 
             n.fail = sum(x$failure > 0.0)
-            if (inla.lmodel.properties(x$family)$discrete) {
+            if (!is.null(x$family) && inla.lmodel.properties(x$family)$discrete) {
                 m = "The (modified) PIT-values"
                 pit = x$pit - 0.5*x$cpo
             } else {
