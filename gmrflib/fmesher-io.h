@@ -81,7 +81,7 @@ typedef struct
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);
 double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M);
-int GMRFLib_file_check(const char *filename, const char *mode);
+int GMRFLib_file_exists(const char *filename, const char *mode);
 int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence);
 int GMRFLib_matrix_free(GMRFLib_matrix_tp *M);
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence);

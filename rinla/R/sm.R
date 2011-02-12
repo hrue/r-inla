@@ -182,7 +182,8 @@
     return (list(i=ii, j=jj, values = values))
 }
 
-`inla.sparse2file` = function(A, filename = NULL, c.indexing = FALSE, binary = FALSE, symmetric = FALSE)
+`inla.sparse2file` = function(A, filename = NULL, c.indexing = FALSE,
+        binary = inla.getOption("internal.binary.mode"), symmetric = FALSE)
 {
     if (is.null(filename)) {
         filename = tempfile()

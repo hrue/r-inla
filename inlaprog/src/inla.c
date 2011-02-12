@@ -1662,28 +1662,49 @@ int inla_read_data_all(double **x, int *n, const char *filename)
 	double *c = Calloc(len, double);
 	GMRFLib_io_tp *io = NULL;
 
-	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-	{
-		GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	if (GMRFLib_is_fmesher_file(filename, (long int)0, -1) == GMRFLib_SUCCESS) {
+		/* 
+		   This is the binary-file interface
+		 */
+		GMRFLib_matrix_tp *M = GMRFLib_read_fmesher_file(filename, (long int)0, -1);
+		assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
 
-		while (1) {
-			err = GMRFLib_io_read_next(io, &c[count], "%lf");
-			if (err == GMRFLib_SUCCESS) {
-				count++;
-				if (count >= len) {
-					len += 1000;
-					c = Realloc(c, len, double);
-				}
-			} else {
-				break;
+		*n = M->nrow * M->ncol;
+		*x = Calloc(*n, double);
+
+		int i, j, k;
+		for(i = k = 0; i < M->nrow; i++) {
+			for(j = 0; j < M->ncol; j++) {
+				(*x)[k++] = M->A[i + j * M->nrow];
 			}
 		}
-		GMRFLib_set_error_handler(old_handler);
+		GMRFLib_matrix_free(M);
+		
+		return INLA_OK;
+	} else {
+		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
+		{
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+
+			while (1) {
+				err = GMRFLib_io_read_next(io, &c[count], "%lf");
+				if (err == GMRFLib_SUCCESS) {
+					count++;
+					if (count >= len) {
+						len += 1000;
+						c = Realloc(c, len, double);
+					}
+				} else {
+					break;
+				}
+			}
+			GMRFLib_set_error_handler(old_handler);
+		}
+		GMRFLib_EWRAP0(GMRFLib_io_close(io));
+		*x = c;
+		*n = count;
+		return INLA_OK;
 	}
-	GMRFLib_EWRAP0(GMRFLib_io_close(io));
-	*x = c;
-	*n = count;
-	return INLA_OK;
 }
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 {
@@ -6669,7 +6690,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = FFIELD 
 	 */
-	int i, j, k, jj, order, nlocations, nc, n = 0, s = 0, rd, itmp, id, bvalue = 0, fixed;
+	int i, j, k, jj, nlocations, nc, n = 0, s = 0, rd, itmp, id, bvalue = 0, fixed;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
