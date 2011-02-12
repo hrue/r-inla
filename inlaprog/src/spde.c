@@ -42,7 +42,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
-#include "fmesher-io.h"
 #include "spde.h"
 
 
@@ -53,7 +52,7 @@ extern G_tp G;						       /* import some global parametes from inla */
  */
 static inla_spde_tp *func_smodel = NULL;
 
-inla_spde_points_tp *inla_spde_set_points(inla_matrix_tp * M)
+inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp * M)
 {
 	assert(M->nrow > 0);
 	assert(M->ncol > 0);
@@ -165,7 +164,7 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 	}
 	return value;
 }
-int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, inla_matrix_tp * basis)
+int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp * basis)
 {
 	double ***theta, *hold;
 	int i, j;
@@ -255,7 +254,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	int n, i, j;
 	inla_spde_tp *model;
 	char *fnm;
-	inla_matrix_tp *M;
+	GMRFLib_matrix_tp *M;
 
 	model = Calloc(1, inla_spde_tp);
 
@@ -267,10 +266,10 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 		model->oc[i] = Calloc(1, double);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "c0");
-	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	n = M->nrow;
-	model->C = inla_matrix_get_diagonal(M);
-	inla_matrix_free(M);
+	model->C = GMRFLib_matrix_get_diagonal(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 
 	if (0) {
@@ -280,10 +279,10 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	}
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "s");
-	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	model->s = inla_spde_set_points(M);
 	assert(model->s->n == n);
-	inla_matrix_free(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 	if (0) {
 		for (i = 0; i < n; i++) {
@@ -295,7 +294,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	}
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g1");
-	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	assert(M->nrow == n);
 	if (0) {
 		int imax = 0;
@@ -312,36 +311,36 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G1), &(model->G1_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
 
-	inla_matrix_free(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g2");
-	M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	assert(M->nrow == n);
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, n, NULL, NULL, NULL);
-	inla_matrix_free(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisT");
-	if (inla_file_check(fnm, "rb") == 0) {
-		M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	if (GMRFLib_file_check(fnm, "rb") == GMRFLib_SUCCESS) {
+		M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
-		M = inla_matrix_1(n);
+		M = GMRFLib_matrix_1(n);
 	}
 	model->Tmodel = Calloc(1, inla_spde_theta_tp);
 	inla_spde_KT_model_init(model->Tmodel, M);
-	inla_matrix_free(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisK");
-	if (inla_file_check(fnm, "rb") == 0) {
-		M = inla_read_fmesher_file((const char *) fnm, 0, -1);
+	if (GMRFLib_file_check(fnm, "rb") == GMRFLib_SUCCESS) {
+		M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
-		M = inla_matrix_1(n);
+		M = GMRFLib_matrix_1(n);
 	}
 	model->Kmodel = Calloc(1, inla_spde_theta_tp);
 	inla_spde_KT_model_init(model->Kmodel, M);
-	inla_matrix_free(M);
+	GMRFLib_matrix_free(M);
 	Free(fnm);
 
 	model->Qfunc = inla_spde_Qfunction;
