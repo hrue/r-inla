@@ -1,6 +1,6 @@
 /* fmesher-io.h
  * 
- * Copyright (C) 2010 Havard Rue
+ * Copyright (C) 2010-2011 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,22 +69,22 @@ typedef struct
 
 	/* 
 	   if read from file, add the fileinfo here
-	 */
+	*/
 	char *filename;					       /* filename if any, where this file is read from */
 	long int offset;				       /* offset in the file */
 	int whence;					       /* whence of the file */
 	long int tell;					       /* the position where this matrix ended */
 }
-	inla_matrix_tp;
+	GMRFLib_matrix_tp;
 
 
-double *inla_matrix_get_diagonal(inla_matrix_tp *M);
-inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, int whence);
-int inla_matrix_free(inla_matrix_tp *M);
-int inla_write_fmesher_file(inla_matrix_tp *M, const char *filename, long int offset, int whence);
-int inla_file_check(const char *filename, const char *mode);
-inla_matrix_tp *inla_matrix_1(int n);
-int inla_is_fmesher_file(const char *filename,  long int offset,  int whence);
+GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
+GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);
+double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M);
+int GMRFLib_file_check(const char *filename, const char *mode);
+int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence);
+int GMRFLib_matrix_free(GMRFLib_matrix_tp *M);
+int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence);
 
 __END_DECLS
 
