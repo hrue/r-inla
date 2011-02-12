@@ -394,7 +394,12 @@
         }
         file.cross = inla.tempfile(tmpdir=data.dir)
         predictor.spec$cross[is.na(predictor.spec$cross)] = 0
-        write(predictor.spec$cross, ncol=1, file=file.cross)
+        if (inla.getOption("internal.binary.mode")) {
+            inla.write.fmesher.file(as.matrix(predictor.spec$cross, ncol=1), filename=file.cross)
+        } else {
+            write(predictor.spec$cross, ncol=1, file=file.cross)
+        }
+
         fnm = gsub(data.dir, "$inladatadir", file.cross, fixed=TRUE)
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
     }
@@ -697,91 +702,6 @@
     }
 }
 
-`inla.lincomb.section.OLDFORMAT` =
-    function(file, data.dir, contr, lincomb, use.one.file = TRUE)
-{
-    ## format is either
-    ##
-    ##     list("lc1" = "a 1 1 b 2 1 3 2...", ...)
-    ##
-    ## or
-    ##
-    ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2, 3), weight = c(1, 2)), ...), ...)
-    ##       
-
-    ## if use.one.file = TRUE, then use one file for all lincombs and
-    ## the 'ENTRY keyword', otherwise, use one file for each lincomb.
-
-    if (!is.null(lincomb)) {
-
-        ## I need this to be set upfront
-        fnm = NULL
-
-        numlen = inla.numlen(length(lincomb))
-
-        for(i in 1:length(lincomb)) {
-            
-            if (is.null(names(lincomb[i])) || is.na(names(lincomb[i]))) {
-                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
-                lc = lincomb[[i]]
-            } else if (names(lincomb[i]) == "") {
-                secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
-                lc = lincomb[[i]]
-            } else {
-                secname = paste("lincomb.", names(lincomb[i])[1], sep="")
-                lc = lincomb[[i]]
-            }
-                
-            cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
-            cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
-            if (!is.null(contr$precision)) {
-                cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
-            }
-            if (!is.null(contr$usermap)) {
-                cat("usermap = ", contr$usermap,"\n", sep = " ", file = file,  append = TRUE)
-            }
-
-            if (use.one.file) {
-                ## create file if we havn't done already
-                if (is.null(fnm)) {
-                    fnm = inla.tempfile(tmpdir=data.dir)
-                    file.create(fnm)
-                }
-                ## use the ENTRY option, set option entry and add ENTRY to the file
-                cat("entry = ", secname, "\n", sep = "", file = file, append = TRUE)
-                cat("entryoffset = ", file.info(fnm)$size, "\n", sep="", file = file, append = TRUE)
-                cat("\nENTRY ", secname, "\n", sep= "", file = fnm, append = TRUE)
-            } else {
-                ## need new file for each lincomb
-                fnm = inla.tempfile(tmpdir=data.dir)
-                file.create(fnm)
-            }
-            
-            if (is.character(lc)) {
-                write(lc, file=fnm)
-            } else {
-                for(j in 1:length(lc)) {
-                    lc.j.name = names(lc[[j]])
-                    lc.j = lc[[j]][[1]]
-
-                    ## if $idx is not there, its default 1.
-                    if (is.null(lc.j$idx) && length(lc.j$weight) == 1) {
-                        cat(c( lc.j.name, 1, lc.j$weight), "\n", file=fnm, append=TRUE)
-                    } else {
-                        idx = lc.j$idx[ !is.na(lc.j$idx) ]
-                        weight = lc.j$weight[ !is.na(lc.j$weight) ]
-                        stopifnot(length(idx) == length(weight))
-                        cat(c( lc.j.name, c(rbind( idx, weight))), "\n", file=fnm, append=TRUE)
-                    }
-                }
-            }
-
-            fnm.new = gsub(data.dir, "$inladatadir", fnm, fixed=TRUE)
-            cat("filename = ", fnm.new, "\n", sep = " ", file = file, append = TRUE)
-        }
-    }
-}
-
 `inla.copy.file.for.section` =
     function(filename, data.dir)
 {
@@ -826,6 +746,8 @@
 `inla.z.section` =
     function(file, random.spec, data.dir, results.dir, only.hyperparam, k.off)
 {
+    ## binary io is not yet implemented. I think this model is on its way out...
+
     label= inla.namefix(random.spec$term)
     if (!is.matrix(random.spec$Z)) {
         stop("Argument Z in model=[z]has to be a matrix.")

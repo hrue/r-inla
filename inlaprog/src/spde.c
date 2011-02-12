@@ -322,7 +322,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisT");
-	if (GMRFLib_file_check(fnm, "rb") == GMRFLib_SUCCESS) {
+	if (GMRFLib_file_exists(fnm, "rb") == GMRFLib_SUCCESS) {
 		M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
 		M = GMRFLib_matrix_1(n);
@@ -333,7 +333,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	Free(fnm);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "basisK");
-	if (GMRFLib_file_check(fnm, "rb") == GMRFLib_SUCCESS) {
+	if (GMRFLib_file_exists(fnm, "rb") == GMRFLib_SUCCESS) {
 		M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
 		M = GMRFLib_matrix_1(n);
