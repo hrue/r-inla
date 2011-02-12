@@ -1,6 +1,6 @@
 /* fmesher-io.c
  * 
- * Copyright (C) 2010 Havard Rue
+ * Copyright (C) 2010-2011 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,17 +41,15 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-#include "fmesher-io.h"
-#include "inla.h"
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
 
-int inla_is_fmesher_file(const char *filename,  long int offset,  int whence)
+int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence)
 {
 	FILE *fp;
 	fp = fopen(filename, "rb");
 	if (!fp) {
-		return INLA_FAIL;
+		return !GMRFLib_SUCCESS;
 	}
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
@@ -64,12 +62,12 @@ int inla_is_fmesher_file(const char *filename,  long int offset,  int whence)
 	fclose(fp);
 	
 	if (nread == 1 && len_header == 8) {
-		return INLA_OK;
+		return GMRFLib_SUCCESS;
 	} else {
-		return INLA_FAIL;
+		return !GMRFLib_SUCCESS;
 	}
 }
-inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, int whence)
+GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
 	 * read a fmesher_file, starting from (offset,whence)
@@ -78,8 +76,9 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 #define ERROR(msg)							\
 	{								\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, (GMRFLib_matrix_tp *)NULL);	\
 		exit(EXIT_FAILURE);					\
-		return (inla_matrix_tp *)NULL;				\
+		return (GMRFLib_matrix_tp *)NULL;			\
 	}
 
 #define READ(ptr, n, type)						\
@@ -102,7 +101,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 	int *header = NULL;
 	int len_header = 0;
 	int verbose = 0, debug = 0, i, j, k;
-	inla_matrix_tp *M = NULL;
+	GMRFLib_matrix_tp *M = NULL;
 
 	if (debug) {
 		verbose = 1;
@@ -129,7 +128,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 	header = Calloc(len_header, int);
 	READ(header, len_header, int);
 
-	M = Calloc(1, inla_matrix_tp);
+	M = Calloc(1, GMRFLib_matrix_tp);
 
 	int version = header[0];
 	int elems = header[1];
@@ -375,7 +374,7 @@ inla_matrix_tp *inla_read_fmesher_file(const char *filename, long int offset, in
 
 	return (M);
 }
-int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int offset, int whence)
+int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence)
 {
 	/*
 	 * write fmesher-file at (offset,whence).
@@ -384,6 +383,7 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int o
 #define ERROR(msg)							\
 	{								\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, !GMRFLib_SUCCESS);	\
 		exit(EXIT_FAILURE);					\
 		return 1;						\
 	}
@@ -479,7 +479,7 @@ int inla_write_fmesher_file(inla_matrix_tp * M, const char *filename, long int o
 #undef WRITE
 	return (0);
 }
-double *inla_matrix_get_diagonal(inla_matrix_tp * M)
+double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 {
 	/*
 	 * return the diagonal of the matrix as a new and alloced double vector. 
@@ -511,7 +511,7 @@ double *inla_matrix_get_diagonal(inla_matrix_tp * M)
 	}
 	return diag;
 }
-int inla_matrix_free(inla_matrix_tp * M)
+int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
 	if (M) {
 		Free(M->i);
@@ -525,14 +525,14 @@ int inla_matrix_free(inla_matrix_tp * M)
 	}
 	return (0);
 }
-inla_matrix_tp *inla_matrix_1(int n)
+GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 {
 	/*
 	 * return a 1-matrix with given dimension 
 	 */
 
 	if (n > 0) {
-		inla_matrix_tp *M = Calloc(1, inla_matrix_tp);
+		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
 
 		M->nrow = M->elems = n;
 		M->ncol = 1;
@@ -553,7 +553,7 @@ inla_matrix_tp *inla_matrix_1(int n)
 		return NULL;
 	}
 }
-int inla_file_check(const char *filename, const char *mode)
+int GMRFLib_file_check(const char *filename, const char *mode)
 {
 	/*
 	 * open file with given mode and return 0 if ok, and 1 if failure 
@@ -572,23 +572,23 @@ int inla_file_check(const char *filename, const char *mode)
 int main(int argc, char **argv)
 {
 	int i;
-	inla_matrix_tp *M;
+	GMRFLib_matrix_tp *M;
 
 	for (i = 1; i < argc; i++) {
 		printf("\n\n\n\n *** Check file %s\n\n\n", argv[i]);
-		M = inla_read_fmesher_file(argv[i], 0, -1);
+		M = GMRFLib_read_fmesher_file(argv[i], 0, -1);
 		printf("\n\n");
 		printf("write testmatrix.dat\n");
 		printf("write testmatrix.dat (append)\n");
-		inla_write_fmesher_file(M, "testmatrix.dat", 0, -1);
-		inla_write_fmesher_file(M, "testmatrix.dat", 0, SEEK_END);
+		GMRFLib_write_fmesher_file(M, "testmatrix.dat", 0, -1);
+		GMRFLib_write_fmesher_file(M, "testmatrix.dat", 0, SEEK_END);
 		printf("\n\n");
 		printf("read testmatrix.dat\n");
 		printf("read testmatrix.dat (appended)\n");
-		P((double) inla_is_fmesher_file("testmatrix.dat", 0, -1));
-		M = inla_read_fmesher_file("testmatrix.dat", 0, -1);
-		P((double)inla_is_fmesher_file("testmatrix.dat", M->tell, SEEK_SET));
-		M = inla_read_fmesher_file("testmatrix.dat", M->tell, SEEK_SET);
+		P((double) GMRFLib_is_fmesher_file("testmatrix.dat", 0, -1));
+		M = GMRFLib_read_fmesher_file("testmatrix.dat", 0, -1);
+		P((double)GMRFLib_is_fmesher_file("testmatrix.dat", M->tell, SEEK_SET));
+		M = GMRFLib_read_fmesher_file("testmatrix.dat", M->tell, SEEK_SET);
 	}
 	return 0;
 }
