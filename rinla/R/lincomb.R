@@ -43,7 +43,8 @@
             if (length(value) == 1) {
                 ff.arg = list(list(weight = value))
             } else {
-                ii = which( !is.na(value) )
+                ii = which(!is.na(value) & (value != 0))
+                print(ii)
                 ff.arg = list(list(idx = ii, weight = value[ii]))
             }
         
@@ -81,10 +82,11 @@
             values[[k]] = eval.parent(arg[[k]])
             if (is.matrix(values[[k]]) || is(values[[k]], "dgTMatrix")) {
                 stopifnot(nrow(values[[k]]) == n || n < 0)
-                n = nrow(values[[k]]) 
+                n = nrow(values[[k]])
                 is.m[k] = TRUE
             } else {
                 stopifnot(length(values[[k]]) == n || n < 0)
+                values[[k]][ is.na(values[[k]]) ] = 0
                 n = length(values[[k]])
                 is.m[k] = FALSE
             }
@@ -106,7 +108,6 @@
         ## arguments in the reminder of lapply. There is obviously
         ## something in the memory management of R that I don't
         ## understand....
-
         lc = lapply(1:n,
                 function(idx, ...) {
                     ## preallocate
@@ -121,7 +122,7 @@
                                     ff.arg = list(list(idx = row$j, weight = row$values))
                                 } else {
                                     value = values[[k]][idx,]
-                                    ii = which( !is.na(value) )
+                                    ii = which(!is.na(value) & (value != 0))
                                     ff.arg = list(list(idx = ii, weight = value[ii]))
                                 }
                             } else {
@@ -152,7 +153,7 @@
                     var = names(arg)[k]
                     if (is.m[k]) {
                         value = values[[k]][idx,]
-                        ii = which( !is.na(value) )
+                        ii = which(!is.na(value) & (value != 0))
                         ff.arg = list(list(idx = ii, weight = value[ii]))
                     } else {
                         ff.arg = list(list(weight = values[[k]][idx]))
