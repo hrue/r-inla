@@ -153,10 +153,15 @@
         file.remove(data.dir)
         stop(paste("response family:", family, ", not recognised"))
     }
-    ##create the DATA file
+
+    ## create the DATA file
     file.data = inla.tempfile(tmpdir=data.dir)
-    file.create(file.data)
-    write(t(response), ncolumns=ncol(response), file=file.data, append=FALSE)
+    if (inla.getOption("internal.binary.mode")) {
+        inla.write.fmesher.file(as.matrix(response), filename = file.data, debug=debug)
+    } else {
+        file.create(file.data)
+        write(t(response), ncolumns=ncol(response), file=file.data, append=FALSE)
+    }
 
     file.data = gsub(data.dir, "$inladatadir", file.data, fixed=TRUE)
 

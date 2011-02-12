@@ -2,7 +2,7 @@
 ### Functions to deal with `inla.options'
 
 `inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
-                                    "working.directory", "silent", "debug",
+                                    "working.directory", "silent", "debug", "internal.binary.mode", 
                                     "cygwin", "ssh.auth.sock", "cygwin.home"))
 {
     if (missing(option))
@@ -32,6 +32,7 @@
             working.directory = inla.ifelse(!is.null(opt$working.directory), opt$working.directory, NULL),
             silent = inla.ifelse(!is.null(opt$silent), opt$silent, TRUE),
             debug = inla.ifelse(!is.null(opt$debug), opt$debug, FALSE),
+            internal.binary.mode = inla.ifelse(!is.null(opt$internal.binary.mode),  opt$internal.binary.mode, FALSE), 
             cygwin = inla.ifelse(!is.null(opt$cygwin), gsub("\\\\", "/", opt$cygwin), "C:/cygwin"),
             cygwin.home = inla.ifelse(!is.null(opt$cygwin.home), opt$cygwin.home, paste("/home/", inla.get.USER(), sep="")),
             ssh.auth.sock = inla.ifelse(!is.null(opt$ssh.auth.sock), opt$ssh.auth.sock,
@@ -49,7 +50,7 @@
 }
 
 `inla.setOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
-                                    "working.directory", "silent", "debug",
+                                    "working.directory", "silent", "debug", "internal.binary.mode", 
                                     "cygwin", "ssh.auth.sock", "cygwin.home"), value)
 {
     option = match.arg(option, several.ok = FALSE)

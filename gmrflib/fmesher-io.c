@@ -553,7 +553,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		return NULL;
 	}
 }
-int GMRFLib_file_check(const char *filename, const char *mode)
+int GMRFLib_file_exists(const char *filename, const char *mode)
 {
 	/*
 	 * open file with given mode and return 0 if ok, and 1 if failure 
@@ -562,9 +562,9 @@ int GMRFLib_file_check(const char *filename, const char *mode)
 	FILE *fp = fopen(filename, mode);
 	if (fp) {
 		fclose(fp);
-		return 0;
+		return GMRFLib_SUCCESS;
 	} else {
-		return 1;
+		return !GMRFLib_SUCCESS;
 	}
 }
 

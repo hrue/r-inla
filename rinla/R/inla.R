@@ -950,8 +950,12 @@
             stop("\n\tNo NA values allowed in the offset vector!")
         os = cbind(indD, offset.sum)
         file.offset = inla.tempfile(tmpdir=data.dir)
-        file.create(file.offset)
-        write(t(os), ncolumns=2, file=file.offset, append=FALSE)
+        if (inla.getOption("internal.binary.mode")) {
+            inla.write.fmesher.file(as.matrix(os), filename=file.offset, debug = debug)
+        } else {
+            file.create(file.offset)
+            write(t(os), ncolumns=2, file=file.offset, append=FALSE)
+        }
         file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
     } else {
         file.offset = NULL
@@ -978,8 +982,12 @@
             fixed.eff = fixed.eff[!is.na(fixed.eff[, 2]),, drop=FALSE]
 
             file.fixed=inla.tempfile(tmpdir=data.dir)
-            file.create(file.fixed)
-            write(t(fixed.eff), ncolumns=ncol(fixed.eff), file=file.fixed, append=FALSE)
+            if (inla.getOption("internal.binary.mode")) {
+                inla.write.fmesher.file(as.matrix(fixed.eff), filename = file.fixed, debug=debug)
+            } else {
+                file.create(file.fixed)
+                write(t(fixed.eff), ncolumns=ncol(fixed.eff), file=file.fixed, append=FALSE)
+            }
             file.fixed = gsub(data.dir, "$inladatadir", file.fixed, fixed=TRUE)
 
             if (debug)
@@ -1197,13 +1205,21 @@
 
                 ##create a location and covariate file
                 file.loc=inla.tempfile(tmpdir=data.dir)
-                file.create(file.loc)
-                write(location[[r]], ncolumns=1, file=file.loc, append=FALSE)
+                if (inla.getOption("internal.binary.mode")) {
+                    inla.write.fmesher.file(as.matrix(location[[r]], ncol = 1),  filename = file.loc, debug = debug)
+                } else {
+                    file.create(file.loc)
+                    write(location[[r]], ncolumns=1, file=file.loc, append=FALSE)
+                }
                 file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
                 
                 file.cov=inla.tempfile(tmpdir=data.dir)
-                file.create(file.cov)
-                write(t(cbind(indN, covariate[[r]])), ncolumns=2, file=file.cov, append=FALSE)
+                if (inla.getOption("internal.binary.mode")) {
+                    inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename=file.cov, debug = debug)
+                } else {
+                    file.create(file.cov)
+                    write(t(cbind(indN, covariate[[r]])), ncolumns=2, file=file.cov, append=FALSE)
+                }
                 file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
 
                 if (nrep == 1 && ngroup == 1) {
@@ -1322,8 +1338,12 @@
                                    inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n))
 
                     file.extraconstr=inla.tempfile(tmpdir=data.dir)
-                    file.create(file.extraconstr)
-                    write(c(as.vector(t(A)), e), ncolumns=1, file=file.extraconstr, append=FALSE)
+                    if (inla.getOption("internal.binary.mode")) {
+                        inla.write.fmesher.file(as.matrix(c(as.vector(t(A)), e), ncol=1), filename=file.extraconstr, debug=debug)
+                    } else {
+                        file.create(file.extraconstr)
+                        write(c(as.vector(t(A)), e), ncolumns=1, file=file.extraconstr, append=FALSE)
+                    }
                     file.extraconstr = gsub(data.dir, "$inladatadir", file.extraconstr, fixed=TRUE)
                 } else {
                     file.extraconstr = NULL
@@ -1337,8 +1357,12 @@
 
                     ##create a file for the weights
                     file.weights=inla.tempfile(tmpdir=data.dir)
-                    file.create(file.weights)
-                    write(t(cbind(indN, www)), ncolumns=2, file=file.weights, append=FALSE)
+                    if (inla.getOption("internal.binary.mode")) {
+                        inla.write.fmesher.file(as.matrix(cbind(indN, www)), filename=file.weights, debug = debug)
+                    } else {
+                        file.create(file.weights)
+                        write(t(cbind(indN, www)), ncolumns=2, file=file.weights, append=FALSE)
+                    }
                     file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
 
                     n.weights = n.weights+1
@@ -1357,8 +1381,12 @@
                 count.linear = count.linear+1
                 xx=rf[, r +1]
                 file.linear = inla.tempfile(tmpdir=data.dir)
-                file.create(file.linear)
-                write(t(cbind(indN, xx)), ncolumns=2, file=file.linear, append=FALSE)
+                if (inla.getOption("internal.binary.mode")) {
+                    inla.write.fmesher.file(as.matrix(cbind(indN, xx)), filename=file.linear, debug=debug)
+                } else {
+                    file.create(file.linear)
+                    write(t(cbind(indN, xx)), ncolumns=2, file=file.linear, append=FALSE)
+                }
                 file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
