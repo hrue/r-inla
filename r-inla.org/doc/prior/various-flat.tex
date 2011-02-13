@@ -1,0 +1,44 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Various ``flat''-priors}
+
+\subsection*{Parametrization}
+The flat prior has density
+\begin{equation}
+    \pi(\widetilde{\theta})= 1
+\end{equation}
+(with obvious imprecise notation) for continuous $\widetilde{\theta}$.
+Various transformations gives rise to different priors. The following
+priors are implemented:
+\begin{description}
+\item[flat]  for $\theta = \widetilde{\theta}$
+\item[logflat] for $\widetilde{\theta} = \exp(\theta)$
+\item[logiflat] for $\widetilde{\theta} = \exp(-\theta)$
+\end{description}
+ 
+\subsection*{Specification}
+
+\subsection*{Example}
+
+Assume $\theta = \log \tau$ where $\tau$ is a precision. Then prior
+\texttt{flat} implies that $\pi(\theta) \propto 1$ or $\pi(\tau)
+\propto 1/\tau$, prior \texttt{logflat} implies that the prior for
+$\widetilde{\theta} = \exp(\theta)$ is $\propto 1$ or $\pi(\tau)
+\propto 1$, and prior \texttt{logiflat} implies that the prior for 
+$\widetilde{\theta} = \exp(-\theta)$ is $\propto 1$ or $\pi(1/\tau)
+\propto 1$.
+
+\subsection*{Notes}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
