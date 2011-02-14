@@ -8,12 +8,15 @@
         echoc = system(paste(shQuote(fmesher.call), all.args, prefix))
     }
     else if(inla.os("windows")) {
-        if (!remote) {
+        if (TRUE) {
             echoc = try(system(paste(shQuote(fmesher.call),
                     all.args,
                     prefix)), silent=TRUE)
             echoc = 0
         } else {
+            ## we might need it if we want one day to make the fmesher program run remotely
+            stop("This code is not in use.")
+            ##
             echoc = try(inla.cygwin.run.command(
                     paste(inla.cygwin.map.filename(fmesher.call),
                           all.args,
