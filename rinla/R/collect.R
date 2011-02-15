@@ -1,6 +1,6 @@
 
 ### AUXILIARY FUNCTIONS TO COLLECT RESULTS FROM THE DIRECTORY
-### "inla/results.files" or any directory where the results from a
+### "inla.model/results.files" or any directory where the results from a
 ### inla run are stored
 
 `inla.collect.misc` = function(dir, debug = FALSE)

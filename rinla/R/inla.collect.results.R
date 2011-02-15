@@ -66,10 +66,21 @@
     }
 
     misc = inla.collect.misc(results.dir, debug)
+    theta.tags = NULL
+    if (!is.null(misc)) {
+        ## put also theta.mode in here
+        misc$theta.mode = theta.mode
+        ## we need theta.tags for later usage
+        if (!is.null(misc$theta.tags)) {
+            theta.tags = misc$theta.tags
+        }
+    }
+
     res = c(res.fixed, res.lincomb, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations, res.offset,
             list(misc = misc,
-                 dic=res.dic, mode = list(theta = theta.mode, x=x.mode),
+                 dic=res.dic, mode = list(theta = theta.mode, x=x.mode,
+                                      theta.tags = theta.tags),
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla = hgid, Rinla=inla.version(hgid=TRUE))),
