@@ -1,31 +1,34 @@
 
 `inla.os` = function(type = c("linux", "mac", "windows", "else"))
 {
-    if (missing(type))
+    if (missing(type)) {
         stop("Type of OS is required.")
+    }
     type = match.arg(type)
     
-    if (type == "windows")
+    if (type == "windows") {
         return (.Platform$OS.type == "windows")
-    else if (type == "mac") {
+    } else if (type == "mac") {
         result = (file.info("/Library")$isdir && file.info("/Applications")$isdir)
         if (is.na(result)) {
             result = FALSE
         }
         return (result)
-    }
-    else if (type == "linux")
+    } else if (type == "linux") {
         return ((.Platform$OS.type == "unix") && !inla.os("mac"))
-    else if (type == "else")
+    } else if (type == "else") {
         return (TRUE)
-    else
+    } else {
         stop("This shouldn't happen.")
+    }
 }
 `inla.os.type` = function()
 {
-    for (os in c("windows", "mac", "linux", "else"))
-        if (inla.os(os))
+    for (os in c("windows", "mac", "linux", "else")) {
+        if (inla.os(os)) {
             return (os)
+        }
+    }
     stop("This shouldn't happen.")
 }
 
