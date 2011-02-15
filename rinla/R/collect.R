@@ -14,6 +14,13 @@
     if (is.na(d.info) || (d.info == FALSE))
         return (NULL)
     
+    fnm = paste(d, "/theta-tags", sep="")
+    if (file.exists(fnm)) {
+        tags = readLines(fnm)
+    } else {
+        tags = NULL
+    }
+        
     fnm = paste(d, "/covmat-hyper-internal.dat", sep="")
     if (file.exists(fnm)) {
         siz = inla.read.binary.file(fnm)
@@ -38,7 +45,8 @@
         r = NULL
     }
     
-    return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r))
+    return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r,
+                 theta.tags = tags))
 }
 
 `inla.collect.size` = function(dir, debug = FALSE)
