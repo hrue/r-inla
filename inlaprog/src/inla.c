@@ -3813,8 +3813,8 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
-			prior->parameters[0] = 10.0;
-			prior->parameters[1] = 10.0;
+			prior->parameters[0] = 25.0;
+			prior->parameters[1] = 25.0;
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
