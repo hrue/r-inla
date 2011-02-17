@@ -85,7 +85,7 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
         for (key in keywords) {
 
             key.val = inla.eval(key)
-            
+
             ## start of cmd is here
             if (!is.null(key.val)) {
                 ## known length
@@ -112,13 +112,15 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
                     ## set those NA's to the default ones
 
                     ii = key.val[off[[key]] + 1:len]
-                    idxx = which(!is.na(ii))
-                    hyper.new[[idx.new]][key][idxx] = ii[idxx]
+                    idxx = which(!(is.na(ii) | is.null(ii)))
+                    if (length(idxx) > 0) {
+                        hyper.new[[idx.new]][key][idxx] = ii[idxx]
+                    }
                 }
                 off[[key]] = off[[key]] + len
             }
 
-            if (!is.null(h) && !is.null(h[key])) {
+            if (!is.null(h) && !is.null(h[key]) && !is.na(h[key]) && !any(is.na(names(h[key])))) {
                 ## known length
                 if (key == "param") {
                     len = inla.prior.properties(hyper.new[[idx.new]]$prior)$nparameters
@@ -144,8 +146,10 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
                 
                 if (len > 0) {
                     ## set those NA's to the default ones
-                    idxx = which(!is.na(h[key]))
-                    hyper.new[[idx.new]][key][idxx] = h[key][idxx]
+                    idxx = which(!is.na(h[key]) & !is.null(h[key]))
+                    if (length(idxx) > 0) {
+                        hyper.new[[idx.new]][key][idxx] = h[key][idxx]
+                    }
                 }
             }
 
