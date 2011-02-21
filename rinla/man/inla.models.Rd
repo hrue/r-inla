@@ -77,12 +77,12 @@ The smooth functions of covariates \eqn{f_1}{f1}
 
   \code{y~ x1+x2+f(x3,model="iid")+f(x4,model="iid")}
 
-  specifies both \eqn{x_1}{x1} and \eqn{x_2}{x2} to be random effects,
+  specifies both \eqn{x_1}{x3} and \eqn{x_2}{x4} to be random effects,
   while the formula
 
   \code{y~ x1+x2+f(x3,model="rw2")+f(x4,model="iid")}
 
-  specifies \eqn{x_1}{x1} to have a random walk of order 2 prior and \eqn{x_2}{x2} to be random effect.
+  specifies \eqn{x_1}{x3} to have a random walk of order 2 prior and \eqn{x_2}{x4} to be random effect.
 
 
   
