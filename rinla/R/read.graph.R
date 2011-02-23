@@ -23,6 +23,8 @@
 ##!    \code{graph$cc$id} is a vector with the connected component id for each node (starting from 1)
 ##!    \code{graph$cc$n}  is the number of connected components
 ##!    \code{graph$cc$nodes}  is a list-list of nodes belonging to each connected component
+##!
+##!    Methods implemented for \code{inla.graph} is \code{summary}, \code {print} and \code {plot}.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{inla.debug.graph}
@@ -79,9 +81,12 @@
     g$cc$n = max(g$cc$id)
     g$cc$nodes = lapply(1:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
 
+    class(g) = "inla.graph"
     return (g)
 }
-`inla.write.graph` = function(graph, graph.file = "graph.dat") {
+
+`inla.write.graph` = function(graph, graph.file = "graph.dat")
+{
     ## write a graph read from inla.read.graph, or in that format, to
     ## file.
     fd = file(graph.file , "w")
@@ -94,3 +99,42 @@
     return (invisible())
 }
 
+## I add here some tools to view and summarize a such graphs...
+
+`plot.inla.graph` = function(graph, ...)
+{
+    require(Rgraphviz) || stop("Need library 'Rgraphviz' from the Bioconductor package")
+    require(graph) || stop("Need library 'graph'")
+
+    g <- new("graphNEL", nodes=as.character(1:graph$n), edgemode="undirected")
+
+    for(i in 1L:graph$n) {
+        if (graph$nnbs[i] > 0) {
+            j = graph$nbs[[i]]
+            j = j[ j > i ]
+            if (length(j) > 0) {
+                g = addEdge(as.character(i),  as.character(j), g)
+            }
+        }
+    }
+
+    plot(g, "neato", ...)
+}
+
+`summary.inla.graph` = function(graph)
+{
+    ret = list()
+    ret = c(ret, list(n = graph$n))
+    ret = c(ret, list(ncc = graph$cc$n))
+
+    class(ret) = "inla.graph.summary"
+    return(ret)
+}
+
+`print.inla.graph.summary` = function(go)
+{
+    cat(paste("n = ",  go$n, "\n"))
+    cat(paste("ncc = ",  go$ncc, "\n"))
+
+    return(invisible())
+}
