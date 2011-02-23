@@ -1,7 +1,8 @@
-mesh.segm = function(loc,idx,grp,is.bnd=TRUE)
+mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
 {
-    if (missing(loc) && missing(idx))
-        stop("Only one of 'loc' and 'idx' may be missing.")
+    if ((missing(loc) || is.null(loc)) &&
+        (missing(idx) || is.null(idx)))
+        stop("At most one of 'loc' and 'idx' may be missing or null.")
     if (!missing(loc) && !is.null(loc)) {
         if (!is.matrix(loc))
             stop("'loc' must be a a matrix")
@@ -65,15 +66,22 @@ mesh.segm = function(loc,idx,grp,is.bnd=TRUE)
     return(ret)
 }
 
-mesh.bnd = function(loc,idx,grp)
+
+plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
 {
-    return(mesh.segm(loc,idx,grp,TRUE))
+    if (!is.null(segm$loc))
+        loc = segm$loc
+    stopifnot(!is.null(loc), ncol(loc)>=2)
+
+    print((loc[t(cbind(segm$idx,NA)),1]))
+    print(length(loc[t(cbind(segm$idx,NA)),1]))
+
+    plot(loc[t(cbind(segm$idx,NA)),1],
+         loc[t(cbind(segm$idx,NA)),2],
+         type="l",
+         col=ceiling(100*runif(length(loc[t(cbind(segm$idx,NA)),1]))))
 }
 
-mesh.int = function(loc,idx,grp)
-{
-    return(mesh.segm(loc,idx,grp,FALSE))
-}
 
 `inla.mesh` = function(s,tv=NULL,
                        boundary=NULL, interior=NULL,
@@ -154,16 +162,19 @@ mesh.int = function(loc,idx,grp)
             prev.loc.n = loc.n
             if (!is.null(input[[k]]$loc)) {
                 extra.loc.n = nrow(input[[k]]$loc)
+                idx.offset = loc.n
                 loc.n = loc.n + extra.loc.n
                 loc = (inla.ifelse(is.null(loc),
                                    input[[k]]$loc,
                                    rbind(loc, input[[k]]$loc)))
+            } else {
+                idx.offset = 0L
             }
             if (input[[k]]$is.bnd) {
-                bnd$idx = rbind(bnd$idx, input[[k]]$idx)
+                bnd$idx = rbind(bnd$idx, input[[k]]$idx+idx.offset)
                 bnd$grp = rbind(bnd$grp, input[[k]]$grp)
             } else {
-                int$idx = rbind(int$idx, input[[k]]$idx)
+                int$idx = rbind(int$idx, input[[k]]$idx+idx.offset)
                 int$grp = rbind(int$grp, input[[k]]$grp)
             }
         }
@@ -237,7 +248,9 @@ mesh.int = function(loc,idx,grp)
                                  interior, list(interior)),
                      function(x){homogenise.segm.input(x, FALSE)})))
     segm = homogenise.segm.grp(segm)
+    print(segm)
     segm = parse.segm.input(segm, nrow(s))
+    print(segm)
 
     tmp = filter.locations(rbind(s, segm$loc), cutoff.distance)
     loc0 = tmp$loc
@@ -271,6 +284,7 @@ mesh.int = function(loc,idx,grp)
         all.args = paste(all.args, ",input.tv", sep="")
     }
     if (!is.null(segm$bnd)) {
+        print(segm$bnd)
         inla.write.fmesher.file(segm$bnd$idx-1L,
                                 filename = paste(prefix, "input.segm.bnd.idx", sep=""))
         inla.write.fmesher.file(segm$bnd$grp,
@@ -319,13 +333,15 @@ mesh.int = function(loc,idx,grp)
                  tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep=""))))
 
     ## Read constraint segment information:
-    segm.bnd = (mesh.bnd(NULL,
-                         1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
-                         inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep="")) ))
+    segm.bnd = (mesh.segm(NULL,
+                          1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
+                          inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep="")),
+                          TRUE))
     if (!is.null(segm$int)) {
-        segm.int = (mesh.int(NULL,
-                             1L+inla.read.fmesher.file(paste(prefix, "segm.int", sep="")),
-                             inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep="")) ))
+        segm.int = (mesh.segm(NULL,
+                              1L+inla.read.fmesher.file(paste(prefix, "segm.int", sep="")),
+                              inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep="")),
+                              FALSE))
     } else {
         segm.int = NULL
     }
