@@ -39,7 +39,7 @@ mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 Returns an \code{inla.fmesher.mesh.segm} object that can be used in calls
-to \code{inla.mesh}
+to \code{\link{inla.mesh}}
 }
 \references{
 %% ~put references to the literature/web site here ~
@@ -71,5 +71,4 @@ mesh = inla.mesh(loc, boundary=loc.bnd, interior=loc.bnd[c(2,4),, drop=FALSE])
 mesh = inla.mesh(loc, boundary=list(segm.bnd), interior=list(segm.int))
 mesh = inla.mesh(loc, boundary=segm.bnd, interior=segm.int)
 }
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ fmesher }
