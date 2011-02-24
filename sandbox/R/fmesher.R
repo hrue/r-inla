@@ -73,19 +73,19 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
 
-    print((loc[t(cbind(segm$idx,NA)),1]))
-    print(length(loc[t(cbind(segm$idx,NA)),1]))
-
-    plot(loc[t(cbind(segm$idx,NA)),1],
-         loc[t(cbind(segm$idx,NA)),2],
-         type="l",
-         col=ceiling(100*runif(length(loc[t(cbind(segm$idx,NA)),1]))))
+    for (grp in unique(segm$grp)) {
+        idx = which(segm$grp==grp)
+        lines(loc[t(cbind(segm$idx[idx,,drop=FALSE],NA)),1],
+              loc[t(cbind(segm$idx[idx,,drop=FALSE],NA)),2],
+              type="l",
+              col=c("black","blue","red","green")[1+(grp%%4)],lwd=5)
+    }
 }
 
 
 `inla.mesh` = function(s,tv=NULL,
                        boundary=NULL, interior=NULL,
-                       refine=FALSE,
+                       extend=FALSE, refine=FALSE,
                        grid=NULL, manifold=NULL,
                        cutoff.distance = 0,
                        plot.delay = NULL,
@@ -248,9 +248,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
                                  interior, list(interior)),
                      function(x){homogenise.segm.input(x, FALSE)})))
     segm = homogenise.segm.grp(segm)
-    print(segm)
     segm = parse.segm.input(segm, nrow(s))
-    print(segm)
 
     tmp = filter.locations(rbind(s, segm$loc), cutoff.distance)
     loc0 = tmp$loc
@@ -284,7 +282,6 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
         all.args = paste(all.args, ",input.tv", sep="")
     }
     if (!is.null(segm$bnd)) {
-        print(segm$bnd)
         inla.write.fmesher.file(segm$bnd$idx-1L,
                                 filename = paste(prefix, "input.segm.bnd.idx", sep=""))
         inla.write.fmesher.file(segm$bnd$grp,
@@ -306,6 +303,13 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
 ##        all.args = paste(all.args," --cet=8,-0.15", sep="")
 ##        all.args = paste(all.args," --cet=", cet[1],",", cet[2], sep="")
 ##    }
+    if (inherits(extend,"list")) {
+        cet = c(0,0)
+        cet[1] = inla.ifelse(is.null(extend$n), 8, extend$n)
+        cet[2] = inla.ifelse(is.null(extend$offset), -0.15, extend$offset)
+        all.args = (paste(all.args," --cet=",
+                          cet[1],",", cet[2], sep=""))
+    }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
@@ -315,7 +319,8 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
                                rcdt[2], refine$max.edge.extra))
         rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data),
                                rcdt[2], refine$max.edge.data))
-        all.args = paste(all.args," --rcdt=", rcdt[1],",", rcdt[2],",", rcdt[3], sep="")
+        all.args = (paste(all.args," --rcdt=",
+                          rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
     }
 
     if (!is.null(plot.delay)) {
