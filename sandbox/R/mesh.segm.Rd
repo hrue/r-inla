@@ -59,16 +59,14 @@ to \code{\link{inla.mesh}}
 \examples{
 ## Create a square boundary and a diagonal interior segment
 loc.bnd = matrix(c(0,0, 1,0, 1,1, 0,1), 4, 2, byrow=TRUE)
+loc.int = matrix(c(0.9,0.1, 0.1,0.6), 2, 2, byrow=TRUE)
 segm.bnd = mesh.segm(loc.bnd)
-## Two functionally equivalent interior segments:
-segm.int = mesh.segm(loc.bnd, c(2L,4L), is.bnd=FALSE)
-segm.int = mesh.segm(loc.bnd[c(2,4),, drop=FALSE], is.bnd=FALSE)
+segm.int = mesh.segm(loc.int, is.bnd=FALSE)
 
 ## Points to be meshed
-loc = matrix(runif(10*2),10,2)
-## Three equivalent calls to inla.mesh
-mesh = inla.mesh(loc, boundary=loc.bnd, interior=loc.bnd[c(2,4),, drop=FALSE])
-mesh = inla.mesh(loc, boundary=list(segm.bnd), interior=list(segm.int))
-mesh = inla.mesh(loc, boundary=segm.bnd, interior=segm.int)
+loc = matrix(runif(10*2),10,2)*0.9+0.05
+mesh = inla.mesh(loc, interior=list(segm.bnd, segm.int))
+mesh = inla.mesh(loc, boundary=segm.bnd, interior=segm.int,
+                 refine=list())
 }
 \keyword{ fmesher }
