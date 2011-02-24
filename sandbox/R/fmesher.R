@@ -62,12 +62,12 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
     }
 
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
-    class(ret) <- c("list", "inla.fmesher.mesh.segm")
+    class(ret) <- c("fmesher.segm","list")
     return(ret)
 }
 
 
-plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
+plot.fmesher.segm = function (segm, loc=NULL)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
@@ -85,7 +85,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
 
 `inla.mesh` = function(s,tv=NULL,
                        boundary=NULL, interior=NULL,
-                       extend=FALSE, refine=FALSE,
+                       extend=TRUE, refine=FALSE,
                        grid=NULL, manifold=NULL,
                        cutoff.distance = 0,
                        plot.delay = NULL,
@@ -103,24 +103,13 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
             } else if (is.numeric(x)) { ## Coordinates
                 ret = mesh.segm(x,NULL,NULL,is.bnd)
             } else {
-                stop("Unexpected input.  Segment info matrix must be numeric or integer.")
+                stop("Segment info matrix must be numeric or integer.")
             }
-        } else if (is.list(x) || inherits(x, "inla.fmesher.mesh.segm")) {
-            if (length(x)==1) {
-                ret = mesh.segm(x[[1]],NULL,NULL,is.bnd)
-            } else if (length(x)==2) {
-                ret = mesh.segm(x[[1]],x[[2]],NULL,is.bnd)
-            } else if (length(x)==3) {
-                ret = mesh.segm(x[[1]],x[[2]],x[[3]],is.bnd)
-            } else if (length(x)==4) {
-                if (x[[4]] != is.bnd)
-                    warning("Boundary/interior mismatch in constraint input.")
-                ret = mesh.segm(x[[1]],x[[2]],x[[3]],is.bnd)
-            } else {
-                stop("Unexpected input.  Segment info must have length 1, 2, 3, or 4.")
-            }
+        } else if (inherits(x, "fmesher.segm")) {
+            ## Override x$is.bnd
+            ret = mesh.segm(x$loc,x$idx,x$grp,is.bnd)
         } else if (!is.null(x)) {
-            stop("Unexpected input.  Segment info must be matrix or list.")
+            stop("Segment info must be matrix or 'fmesher.segm' object.")
         } else {
             ret = NULL
         }
@@ -130,7 +119,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
     homogenise.segm.grp = function(input) {
         grp.idx = 0L
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
-            if (!inherits(input[[k]], "inla.fmesher.mesh.segm")) {
+            if (!inherits(input[[k]], "fmesher.segm")) {
                 stop("Segment info is not a segment list. ",
                      "This should not happen.")}
             if (is.null(input[[k]]$grp)) {
@@ -155,7 +144,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
         storage.mode(int$idx) <- "integer"
         storage.mode(int$grp) <- "integer"
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
-            if (!inherits(input[[k]],"inla.fmesher.mesh.segm")) {
+            if (!inherits(input[[k]],"fmesher.segm")) {
                 stop("Segment info is not a segment list. ",
                      "This should not happen.")
             }
@@ -239,12 +228,12 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
 
     segm = (c(lapply(inla.ifelse(inherits(boundary, "list") &&
                                  !inherits(boundary,
-                                           "inla.fmesher.mesh.segm"),
+                                           "fmesher.segm"),
                                  boundary, list(boundary)),
                      function(x){homogenise.segm.input(x, TRUE)}),
               lapply(inla.ifelse(inherits(interior, "list") &&
                                  !inherits(interior,
-                                           "inla.fmesher.mesh.segm"),
+                                           "fmesher.segm"),
                                  interior, list(interior)),
                      function(x){homogenise.segm.input(x, FALSE)})))
     segm = homogenise.segm.grp(segm)
@@ -299,10 +288,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
     }
 
 
-##    if (!inherits(cet)) {
-##        all.args = paste(all.args," --cet=8,-0.15", sep="")
-##        all.args = paste(all.args," --cet=", cet[1],",", cet[2], sep="")
-##    }
+    if (is.logical(extend) && extend) extend = list()
     if (inherits(extend,"list")) {
         cet = c(0,0)
         cet[1] = inla.ifelse(is.null(extend$n), 8, extend$n)
@@ -310,6 +296,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
         all.args = (paste(all.args," --cet=",
                           cet[1],",", cet[2], sep=""))
     }
+    if (is.logical(refine) && refine) refine = list()
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
@@ -318,7 +305,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
         rcdt[2] = (inla.ifelse(is.null(refine$max.edge.extra),
                                rcdt[2], refine$max.edge.extra))
         rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data),
-                               rcdt[2], refine$max.edge.data))
+                               rcdt[3], refine$max.edge.data))
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
     }
@@ -359,7 +346,7 @@ plot.inla.fmesher.mesh.segm = function (segm, loc=NULL)
                  segm = list(bnd=segm.bnd, int=segm.int),
                  node.idx=idx))
 
-    class(mesh) <- "fmesher"
+    class(mesh) <- c("fmesher","list")
 
     return(mesh)
 }
