@@ -137,9 +137,8 @@
 
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(random.spec$control.group$model)) {
+        if (!is.null(random.spec$control.group$model))
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
-        }
         inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
     }
         
