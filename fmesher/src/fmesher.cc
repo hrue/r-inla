@@ -671,7 +671,7 @@ int main(int argc, char* argv[])
     matrices.matrixtype("c1",fmesh::IOMatrixtype_symmetric);
     matrices.matrixtype("b1",fmesh::IOMatrixtype_general);
     matrices.matrixtype("g1",fmesh::IOMatrixtype_symmetric);
-    matrices.matrixtype("k1",fmesh::IOMatrixtype_symmetric);
+    matrices.matrixtype("k1",fmesh::IOMatrixtype_general);
     matrices.output("c0");
     matrices.output("c1");
     matrices.output("b1");
@@ -684,7 +684,7 @@ int main(int argc, char* argv[])
     if (oprefix != "-") {
       print_SM_old(oprefix+"C.dat",C0,fmesh::IOMatrixtype_diagonal);
       print_SM_old(oprefix+"G.dat",G,fmesh::IOMatrixtype_symmetric);
-      print_SM_old(oprefix+"K.dat",K,fmesh::IOMatrixtype_symmetric);
+      print_SM_old(oprefix+"K.dat",K,fmesh::IOMatrixtype_general);
     }
     }
     
@@ -719,14 +719,14 @@ int main(int argc, char* argv[])
       a = b;
       b = &(matrices.SD(Kname).clear());
       *b = (*a)*tmp;
-      matrices.matrixtype(Kname,fmesh::IOMatrixtype_symmetric);
+      matrices.matrixtype(Kname,fmesh::IOMatrixtype_general);
       matrices.output(Kname);
       
       if (false) {
       if (oprefix != "-") {
 	Kname = "K"+ss.str();
 	print_SM_old(oprefix+Kname+".dat",*b,
-		     fmesh::IOMatrixtype_symmetric);
+		     fmesh::IOMatrixtype_general);
       }
       }
     }
