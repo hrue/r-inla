@@ -1378,6 +1378,15 @@ double priorfunc_normal(double *x, double *parameters)
 
 	return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
 }
+double priorfunc_wishart1d(double *x, double *parameters)
+{
+	double p[2];
+
+	p[0] = parameters[0]/2.0;
+	p[1] = parameters[1]/2.0;
+	
+	return priorfunc_loggamma(x, p);
+}
 double priorfunc_wishart2d(double *x, double *parameters)
 {
 	/*
@@ -1740,11 +1749,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_POISSON) {
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
-	} else if (ds->data_id == L_POISSONEXT) {
-		idiv = 5;
-		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
-		a[1] = ds->data_observations.E1 = Calloc(mb->predictor_ndata, double);
-		a[2] = ds->data_observations.E2 = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDPOISSON0) {
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -2275,54 +2279,6 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 		}
 	}
 #undef logE
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_poisson_ext(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y ~ Poisson(E1*theta1 + E2*theta2 + E*exp(x))
-	 */
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
-	}
-
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], mu, mu2, EE,
-	    normc = gsl_sf_lnfact((unsigned int) y),
-	    E1 = ds->data_observations.E1[idx], E2 = ds->data_observations.E2[idx],
-	    theta_E1 = map_exp(ds->data_observations.log_theta_E1[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
-	    theta_E2 = map_exp(ds->data_observations.log_theta_E2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	EE = theta_E1 * E1 + theta_E2 * E2;
-
-	if (m > 0) {
-		if (m <= 3) {
-			mu2 = E * exp((x[0] + OFFSET(idx)));
-			mu = EE + mu2;
-			logll[0] = y * log(mu) - mu - normc;
-			if (m > 1) {
-				mu2 = E * exp((x[1] + OFFSET(idx)));
-				mu = EE + mu2;
-				logll[1] = -(mu2 * (-y + mu)) / mu;
-			}
-			if (m > 2) {
-				mu2 = E * exp((x[2] + OFFSET(idx)));
-				mu = EE + mu2;
-				logll[2] = -(mu2 * (-y * EE + SQR(EE) + 2 * EE * mu2 + SQR(mu2))) / SQR(mu);
-			}
-		} else {
-			for (i = 0; i < m; i++) {
-				mu = EE + E * exp((x[i] + OFFSET(idx)));
-				logll[i] = y * log(mu) - mu - normc;
-			}
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			mu = EE + E1 * exp((x[i] + OFFSET(idx)));
-			logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
-		}
-	}
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5091,10 +5047,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
 		ds->predictor_linkfunc = link_log;
-	} else if (!strcasecmp(ds->data_likelihood, "POISSONEXT")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson_ext;
-		ds->data_id = L_POISSONEXT;
-		ds->predictor_linkfunc = link_log;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson0;
 		ds->data_id = L_ZEROINFLATEDPOISSON0;
@@ -5239,18 +5191,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
-					inla_error_general(msg);
-				}
-			}
-		}
-	} else if (ds->data_id == L_POISSONEXT) {
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0 ||
-				    ds->data_observations.E1[i] < 0.0 || ds->data_observations.E2[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: PoissonExt data[%1d] (E,E1,E2,y) = (%g,%g,%g,%g) is void\n", secname, i,
-							ds->data_observations.E[i], ds->data_observations.E1[i],
-							ds->data_observations.E2[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -5543,89 +5483,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.xi_gev;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-	} else if (ds->data_id == L_POISSONEXT) {
-		/*
-		 * get options related to the PoissonExt
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* YES! */
-		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_theta_E1, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_theta_E1[%g]\n", ds->data_observations.log_theta_E1[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
-		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "NORMAL-std");
-
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap=[%s]\n", um0->name);
-		}
-
-		/*
-		 * add theta_E1
-		 */
-		if (!ds->data_fixed0) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-theta-E1 for PoissonExt observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Theta-E1 PoissonExt observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.log_theta_E1;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);	/* YES! */
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_theta_E2, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_theta_E2[%g]\n", ds->data_observations.log_theta_E2[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
-		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NORMAL-std");
-
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap=[%s]\n", um1->name);
-		}
-
-		/*
-		 * add theta_E2
-		 */
-		if (!ds->data_fixed1) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-theta-E2 for PoissonExt observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Theta-E2 PoissonExt observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = ds->data_observations.log_theta_E2;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
@@ -10363,23 +10220,6 @@ double extra(double *theta, int ntheta, void *argument)
 					double xi = theta[count];
 
 					val += ds->data_prior1.priorfunc(&xi, ds->data_prior1.parameters);
-					count++;
-				}
-			} else if (ds->data_id == L_POISSONEXT) {
-				/*
-				 * we only need to add the prior, since the normalisation constant due to the likelihood, is
-				 * included in the likelihood function. 
-				 */
-				double log_theta;
-
-				if (!ds->data_fixed0) {
-					log_theta = theta[count];
-					val += ds->data_prior0.priorfunc(&log_theta, ds->data_prior0.parameters);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					log_theta = theta[count];
-					val += ds->data_prior1.priorfunc(&log_theta, ds->data_prior1.parameters);
 					count++;
 				}
 			} else if (ds->data_id == L_NBINOMIAL) {

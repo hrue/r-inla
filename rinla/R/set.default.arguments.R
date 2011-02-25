@@ -22,20 +22,24 @@
 {
     ##:NAME: control.group
     list(
-         ##:ARGUMENT: initial The initial value for the group correlation in the internal scale.
+         ##:ARGUMENT: model Group model (one of 'exchangable' or 'ar1')
+         model = "exchangeable",
+
+         ##:ARGUMENT: hyper Definition of the hyperparameter(s)
+         hyper = NULL,
+         
+         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation in the internal scale.
          initial = NULL, 
 
-         ##:ARGUMENT: fixed A boolean variable if the group correction is assumed to be fixed or random.
+         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction is assumed to be fixed or random.
          fixed = NULL,
 
-         ##:ARGUMENT: prior The name of the prior distribution for the group correlation in the internal scale
+         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation in the internal scale
          prior = NULL, 
 
-         ##:ARGUMENT: param Prior parameters
-         param = NULL,
+         ##:ARGUMENT: param (OBSOLETE!) Prior parameters
+         param = NULL)
 
-         ##:ARGUMENT: model Group model (one of 'exchangable' or 'ar1')
-         model = NULL)
     ##:SEEALSO: inla
 }
 
@@ -97,16 +101,19 @@
 {
     ##:NAME: control.data
     list(
-         ##:ARGUMENT: initial Initial value for the hyperparameter(s) of the likelihood in the internal scale.
+         ##:ARGUMENT: hyper Definition of the hyperparameters
+         hyper = NULL,
+         
+         ##:ARGUMENT: initial (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.
          initial=NULL,
 
-         ##:ARGUMENT: prior The name of the prior distribution(s) for othe hyperparameter(s).
+         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).
          prior=NULL,
 
-         ##:ARGUMENT: param The parameters for the prior distribution
+         ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution
          param=NULL,
 
-         ##:ARGUMENT: fixed Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
+         ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
          fixed=NULL,
 
          ##:ARGUMENT: dof.max Maximum degrees of freedom for the student-t distribution before its is considered as Normal (default 100)
@@ -149,7 +156,7 @@
          mean.intercept = 0.0,
          
          ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.  
-         prec=NULL, 
+         prec= 0.001, 
 
          ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
          prec.intercept = 0.0,
@@ -266,6 +273,21 @@
 {
     ##:NAME: control.predictor
     list(
+         ##:ARGUMENT: hyper Definition of the hyperparameters.
+         hyper = NULL,
+         
+         ##:ARGUMENT: fixed (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)
+         fixed=NULL,
+
+         ##:ARGUMENT: prior (OBSOLETE!) The prior for the artificial noise
+         prior=NULL,
+
+         ##:ARGUMENT: param (OBSOLETE!) Prior parameters for the artificial noise
+         param=NULL,
+
+         ##:ARGUMENT: initial (OBSOLETE!) The value of the log precision of the artificial noise
+         initial=NULL,
+
          ##:ARGUMENT: compute A boolean variable; should the marginals for the linear predictor be computed? (Default FALSE.)
          compute=FALSE,
 
@@ -274,18 +296,6 @@
 
          ##:ARGUMENT: quantiles A list of quantiles to compute for the linear predictor
          quantiles = NULL,
-
-         ##:ARGUMENT: fixed If the precision for the artificial noise is fixed or not (defualt TRUE)
-         fixed=TRUE,
-
-         ##:ARGUMENT: prior The prior for the artificial noise
-         prior=NULL,
-
-         ##:ARGUMENT: param Prior parameters for the artificial noise
-         param=NULL,
-
-         ##:ARGUMENT: initial The value of the log precision of the artificial noise
-         initial=11,
 
          ##:ARGUMENT: cross Cross-sum-to-zero constraints
          cross=NULL,
@@ -346,20 +356,23 @@
          ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)
          model = "rw1",
 
-         ##:ARGUMENT: fixed A boolean variable; is the precision for 'model' fixed? (Default FALSE.)
+         ##:ARGUMENT: hyper The definition of the hyperparameters.
+         hyper = NULL, 
+
+         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable; is the precision for 'model' fixed? (Default FALSE.)
          fixed = FALSE,
          
-         ##:ARGUMENT: initial The initial value for the precision.
+         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the precision.
          initial = NULL,
+
+         ##:ARGUMENT: prior (OBSOLETE!) The prior distribution for the precision for 'model'
+         prior = NULL,
+
+         ##:ARGUMENT: param (OBSOLETE!) The parameters in the prior distribution
+         param = NULL,
 
          ##:ARGUMENT: constr A boolean variable; shall the  'model' be constrained to sum to zero?
          constr = TRUE,
-
-         ##:ARGUMENT: prior The prior distribution for the precision for 'model'
-         prior = NULL,
-
-         ##:ARGUMENT: param The parameters in the prior distribution
-         param = NULL,
 
          ##:ARGUMENT: n.intervals Number of intervals in the baseline hazard. (Default 15)
          n.intervals = 15,
@@ -395,6 +408,9 @@
     nm = paste(sys.call()[2])
     f = paste("inla.set.", nm, ".default()", sep="")
     elms = names(inla.eval(f))
+
+    ## if (nm == "control.data")
+    ##    browser()
 
     if (is.null(names(contr)))
         stop(inla.paste(c("Named elements in in control-argument `", nm, "', is required: ", contr,

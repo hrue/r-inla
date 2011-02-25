@@ -1,32 +1,35 @@
-inla.get.hyperparameters.default = function(model) {
-    return (list(theta1 = list(initial = 1,  fixed = TRUE, prior = "normal",  param = c(0, 1),
-                         name = "Precision",  short.name = "prec"), 
-                 theta2 = list(initial = 2,  fixed = FALSE, prior = "NORMAL",  param = c(10, 11),
-                         name = "Lag 1 correlation",  short.name = "rho")))
-}
-
-
-inla.set.hyperparameters = function(model = NULL,  hyper = NULL, 
-        initial = NULL, fixed = NULL,  prior = NULL,  param = NULL)
+inla.set.hyper = function(
+        model = NULL,
+        section = names(inla.models()), 
+        hyper = NULL, 
+        initial = NULL,
+        fixed = NULL,
+        prior = NULL,
+        param = NULL)
 {
     ## name of the list can be in any CASE, and a longer name is ok,
     ## like 'list(precision=list(...))' where the 'name="prec"'.
 
-    hyper.new = inla.get.hyperparameters.default(model)
+    section = match.arg(section)
+    hyper.new = inla.model.properties(model, section)$hyper
     nhyper = length(hyper.new)
 
     if (nhyper == 0) {
         if (!is.null(initial) && length(initial) > 0) {
-            stop(inla.paste(c("Model:", model, ", has none hyperparameters, but 'initial' is:", initial)))
+            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'initial' is: ",
+                              initial), sep=""))
         }
         if (!is.null(fixed) && length(fixed) > 0) {
-            stop(inla.paste(c("Model:", model, ", has none hyperparameters, but 'fixed' is:", fixed)))
+            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'fixed' is:",
+                              fixed), sep=""))
         }
         if (!is.null(param) && length(param) > 0) {
-            stop(inla.paste(c("Model:", model, ", has none hyperparameters, but 'param' is:", param)))
+            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'param' is:",
+                              param), sep=""))
         }
         if (!is.null(prior) && length(prior) > 0) {
-            stop(inla.paste(c("Model:", model, ", has none hyperparameters, but 'prior' is:", param)))
+            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'prior' is:",
+                              param), sep=""))
         }
         return (hyper.new)
     }
@@ -104,7 +107,7 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
             if (!is.null(key.val)) {
                 ## known length
                 if (key == "param") {
-                    len = inla.prior.properties(hyper.new[[idx.new]]$prior)$nparameters
+                    len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
                     if (len < length(hyper.new[[idx.new]][key]) && len > 0) {
                         hyper.new[[idx.new]][key] = hyper.new[[idx.new]][key][1:len]
                     } else if (len < length(hyper.new[[idx.new]][key]) && len == 0) {
@@ -138,7 +141,7 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
             if (!is.null(h) && !is.null(h[key]) && !is.na(h[key]) && !any(is.na(names(h[key])))) {
                 ## known length
                 if (key == "param") {
-                    len = inla.prior.properties(hyper.new[[idx.new]]$prior)$nparameters
+                    len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
                     if (len < length(hyper.new[[idx.new]][key]) && len > 0) {
                         hyper.new[[idx.new]][key] = hyper.new[[idx.new]][key][1:len]
                     } else if (len < length(hyper.new[[idx.new]][key]) && len == 0) {
@@ -154,7 +157,7 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
                 llen = length(h[key])
             
                 if (llen > len) {
-                    stop(paste("model",  model,  ", hyperparam", ih,  ", length(hyper[key]) =",
+                    stop(paste("model",  model, "[", section, "], hyperparam", ih,  ", length(hyper[key]) =",
                                llen,  ">",  len,  sep = " "))
                 } else if (llen < len) {
                     h[key] = c(h[key],  rep(NA,  len - llen))
@@ -169,7 +172,7 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
                 }
             }
 
-            ans = inla.prior.properties(hyper.new[[idx.new]]$prior, stop.on.error = TRUE)
+            ans = inla.model.properties(hyper.new[[idx.new]]$prior, "prior", stop.on.error = TRUE)
         }
         
         if (key == "param") {
@@ -192,3 +195,5 @@ inla.set.hyperparameters = function(model = NULL,  hyper = NULL,
 
     return (hyper.new)
 }
+
+    

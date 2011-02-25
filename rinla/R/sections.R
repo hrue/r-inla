@@ -1,5 +1,30 @@
 ### Functions to write the different sections in the .ini-file
 
+`inla.write.hyper` = function(hyper, file, prefix="")
+{
+    stopifnot(!missing(hyper))
+    stopifnot(!missing(file))
+    
+    len = length(hyper)
+    if (len == 0L) {
+        return ()
+    }
+
+    for(k in 1L:len) {
+        if (len == 1L) {
+            suff = ""
+        } else {
+            suff = as.character(k-1L)
+        }
+        cat(prefix, "initial",    suff, " = ", hyper[[k]]$initial, "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "fixed",      suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "prior",      suff, " = ", hyper[[k]]$prior, "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
+    }
+
+    return ()
+}
+
 `inla.write.boolean.field` =
     function(tag, val, file)
 {
@@ -41,41 +66,8 @@
             sep="", file=file, append=TRUE)
     }
     
-    prop = inla.lmodel.properties(family)
-    if (prop$ntheta > 0) {
-        k = 1
-        for(j in 1:prop$ntheta) {
-            jj = j-1
-            if (!is.null(control$fixed[j])) {
-                cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    inla.ifelse(control$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
-            }
-            if (!is.null(control$initial[j])) {
-                cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    control$initial[j],"\n", sep = "", file = file,  append = TRUE)
-            }
-        }
-    }
-    if (prop$npriors > 0) {
-        k = 1
-        for(j in 1:prop$npriors) {
-            jj = j-1
-            if (!is.null(control$prior) && !is.null(control$prior[j])) {
-                cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
-                    control$prior[j],"\n", sep = "", file = file,  append = TRUE)
-            }
-            if (!is.null(control$param)) {
-                cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ", sep="", file = file, append=TRUE)
-                ## divide equally
-                off = prop$nparameters %/% prop$npriors
-                for(kk in 1:off) {
-                    cat(" ", control$param[k], sep = " ", file = file,  append = TRUE)
-                    k = k + 1
-                }
-                cat("\n", file = file,  append = TRUE)
-            }
-        }
-    }
+    inla.write.hyper(control$hyper, file)
+    
     if (!is.null(control$dof.max))
         cat("dof.max = ", control$dof.max,"\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
@@ -124,41 +116,7 @@
         cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
     }
 
-    if (prop$ntheta > 0) {
-        k = 1
-        for(j in 1:prop$ntheta) {
-            jj = j-1
-            if (!is.null(random.spec$fixed[j])) {
-                cat("fixed", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    inla.ifelse(random.spec$fixed[j], 1, 0),"\n", sep = "", file = file,  append = TRUE)
-            }
-            if (!is.null(random.spec$initial[j])) {
-                cat("initial", inla.ifelse(prop$ntheta==1, "", as.character(jj)), " = ",
-                    random.spec$initial[j],"\n", sep = "", file = file,  append = TRUE)
-            }
-        }
-    }
-    if (prop$npriors > 0) {
-        k = 1
-        for(j in 1:prop$npriors) {
-            jj = j-1
-            if (!is.null(random.spec$prior) && !is.null(random.spec$prior[j])) {
-                cat("prior", inla.ifelse(prop$npriors==1, "", as.character(jj)), " = ",
-                    random.spec$prior[j], "\n", sep = "", file = file,  append = TRUE)
-            }
-            if (!is.null(random.spec$param)) {
-                cat("parameters", inla.ifelse(prop$npriors == 1, "", as.character(jj)), " = ",
-                    sep="", file = file, append=TRUE)
-                ## divide equally
-                off = prop$nparameters %/% prop$npriors
-                for(kk in 1:off) {
-                    cat(" ", random.spec$param[k], sep = " ", file = file,  append = TRUE)
-                    k = k + 1
-                }
-                cat("\n", file = file,  append = TRUE)
-            }
-        }
-    }
+    inla.write.hyper(random.spec$hyper, file)
 
     if (inla.model.properties(random.spec$model)$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
@@ -179,25 +137,10 @@
 
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(random.spec$control.group$prior)) {
-            cat("group.prior = ", random.spec$control.group$prior, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$control.group$param)) {
-            cat("group.parameters = ", random.spec$control.group$param, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$control.group$initial)) {
-            cat("group.initial = ", random.spec$control.group$initial, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(random.spec$control.group$fixed)) {
-            if (random.spec$control.group$fixed) {
-                cat("group.fixed = ", 1, "\n", sep = " ", file = file,  append = TRUE)
-            } else {
-                cat("group.fixed = ", 0, "\n", sep = " ", file = file,  append = TRUE)
-            }
-        }
         if (!is.null(random.spec$control.group$model)) {
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
         }
+        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
     }
         
     if (!is.null(random.spec$cyclic)) {
@@ -371,20 +314,9 @@
     if (!is.null(file.offset)) {
         cat("offset = ", file.offset,"\n", sep = " ", file = file, append=TRUE)
     }
-    if (!is.null(predictor.spec$prior)) {
-        cat("prior = ", predictor.spec$prior, sep = " ", file = file, append=TRUE)
-    }
-    ## hard-coded to have two parameters... FIX LATER
-    if (!is.null(predictor.spec$param)) {
-        cat("parameters = ", predictor.spec$param[1]," ", predictor.spec$param[2],"\n", sep = " ", file = file, append=TRUE)
-    }
-    if (!is.null(predictor.spec$initial)) {
-        cat("initial = ", predictor.spec$initial,"\n", sep = " ", file = file, append=TRUE)
-    } else {
-        if (predictor.spec$fixed) {
-            cat("initial = 10\n", sep = " ", file = file,  append = TRUE)
-        }
-    }
+
+    inla.write.hyper(predictor.spec$hyper, file)
+
     if (!is.null(predictor.spec$predictor.usermap)){
         cat("predictor.usermap=", predictor.spec$predictor.usermap, "\n", sep=" ", file = file, append = TRUE)
     }

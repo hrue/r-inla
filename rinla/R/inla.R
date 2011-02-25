@@ -165,7 +165,7 @@
               ##!output.  }
               debug = inla.getOption("debug"),
 
-              ##!\item{user.hook}{ This defines an optional
+              ##!\item{user.hook}{This defines an optional
               ##!user-defined function, which can be called just after
               ##!the .ini-file is created, usually, to add extra
               ##!information to the .ini-file. See the function
@@ -176,6 +176,7 @@
               ##!\item{user.hook.arg}{ This defines an optional
               ##!argument to \code{user.hook} }
               user.hook.arg = NULL,
+
               ##
               ## these are ``internal'' options, used to transfer info
               ## from expansions
@@ -287,7 +288,6 @@
     ##!standard deviation of the expected number of parameters and the
     ##!number of replicas for parameter are also returned}
     
-    
     ##!\item{mode}{
     ##!A list of two elements: \code{mode$theta} is the
     ##!computed mode of the hyperparameters and \code{mode$x} is the
@@ -313,18 +313,11 @@
     ##!\emph{Approximate Bayesian Inference for latent Gaussian models
     ##!using Integrated Nested Laplace Approximations, JRSS-series B
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
-    ##!
     
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
     ##!- Theory and Applications} Chapman and Hall
     ##!
     
-    ##!Martino, S. and Rue, H. (2008) \emph{Implementing Approximate
-    ##!Bayesian Inference using Integrated Nested Laplace
-    ##!Approximation: a manual for the inla program} Preprint N.2 from
-    ##!Dep. of Mathematical Sciences (NTNU Norway)
-    ##!}
-
     ##!\author{Sara Martino and Havard Rue \email{hrue@math.ntnu.no} }
     
     ##!\seealso{\code{\link{f}}, 
@@ -333,7 +326,6 @@
     ##!\examples{
     ##! \dontrun{See the web page \url{www.r-inla.org} for a series of
     ##!worked out examples}}
-
 
 {
     my.time.used = numeric(4)
@@ -386,7 +378,7 @@
     ##
     have.surv = FALSE
     for(i in 1:n.family)
-        have.surv = have.surv || inla.lmodel.properties(family[i])$survival
+        have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
 
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## in this case, we expand the data-frame into a sequence of
@@ -454,18 +446,15 @@
             baseline.hazard.values = NULL
         }
         
+        cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
+                cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
+
         f.hazard = paste(
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
-                ", fixed = ", cont.hazard$fixed,
-                inla.ifelse(is.null(cont.hazard$initial), ", initial = NULL",
-                            paste(", initial = ", cont.hazard$initial, "", sep="")),
+                ", hyper = ", as.character(enquote(cont.hazard$hyper))[2],
                 ", constr = ", cont.hazard$constr,
-                inla.ifelse(is.null(cont.hazard$prior), ", prior = NULL",
-                            paste(", prior = \"", cont.hazard$prior, "\"", sep="")),
-                inla.ifelse(is.null(cont.hazard$param), ", param = NULL",
-                            paste(", param = ", inla.2list(cont.hazard$param), sep="")),
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
@@ -669,6 +658,10 @@
     ## control predictor section
     cont.pred = inla.set.control.predictor.default()
     cont.pred[names(control.predictor)] = control.predictor
+
+    cont.pred$hyper = inla.set.hyper("predictor", "predictor",
+            cont.pred$hyper, cont.pred$initial,
+            cont.pred$fixed, cont.pred$prior, cont.pred$param)
     if (cont.compute$cpo || cont.compute$dic) 
         cont.pred$compute=TRUE
     if (only.hyperparam) {
@@ -718,6 +711,11 @@
     for(i.family in 1:n.family) {
         cont.data[[i.family]] = inla.set.control.data.default()
         cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
+        cont.data[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
+                                     cont.data[[i.family]]$initial,
+                                     cont.data[[i.family]]$fixed,
+                                     cont.data[[i.family]]$prior,
+                                     cont.data[[i.family]]$param)
     }
 
     ## control results
@@ -902,35 +900,7 @@
                 data.dir=data.dir, file=file.ini, debug=debug)
     
         ## add a section to the file.ini
-        prop = inla.lmodel.properties(family[i.family], stop.on.error=TRUE)
-        if (!is.null(cont.data[[i.family]]$param))
-            if (length(cont.data[[i.family]]$param) != prop$nparameters)
-                stop(paste("\n\tThe length of `param' on `control.data[[", i.family,"]]' has to be ", prop$nparameters))
-
-        ## FIXED and no INITIAL
-        if (is.null(cont.data[[i.family]]$initial) && !is.null(cont.data[[i.family]]$fixed) &&
-            !all(cont.data[[i.family]]$fixed == FALSE))
-            stop(paste("\n\tThe fixed hyperparameters in the likelihood needs initialisation;",
-                       "use control.data[[", i.family,"]]=list(initial=c(...))"))
-
-        if (!is.null(cont.data[[i.family]]$initial))
-            if (length(cont.data[[i.family]]$initial) != prop$ntheta)
-                stop(paste("\n\tThe length of `initial' in `control.data[[", i.family,"]]' has to be ", prop$ntheta))
-
-        if (!is.null(cont.data[[i.family]]$fixed)) {
-            if (length(cont.data[[i.family]]$fixed) != prop$ntheta)
-                stop(paste("\n\tThe length of `fixed' in `control.data[[", i.family, "]]' has to be ", prop$ntheta))
-        } else {
-            if (prop$ntheta)
-                cont.data[[i.family]]$fixed = rep(0, prop$ntheta)
-            else
-                cont.data[[i.family]]$fixed = NULL
-        }
-
-        if (!is.null(cont.data[[i.family]]$fixed))
-            for(j. in 1:prop$ntheta)
-                if (cont.data[[i.family]]$fixed[j.] && !is.numeric(cont.data[[i.family]]$initial[j.]))
-                    stop(paste("\n\tLikelihood model ", i.family," parameter no ", j., " is fixed but has no intial value", sep=""))
+        prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
 
         if (debug) 
             print("prepare data section")

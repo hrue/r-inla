@@ -125,7 +125,7 @@
                 response=cbind(response[, 1], Ntrials, response[, 2])
         }
     } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure"))) {
-        if (!inla.lmodel.properties(family)$survival)
+        if (!inla.model.properties(family, "likelihood")$survival)
             stop("This should not happen.")
 
         if (is.null(y.orig$truncation))
