@@ -722,6 +722,12 @@
     ## x[2], x[3])'' so it can be evaluated using
     ## inla.eval()
 
+    if (is.numeric(x)) {
+        return (as.character(enquote(as.numeric(x)))[2])
+    } else {
+        return (as.character(enquote(x))[2])
+    }
+
     ## example:
     ## > x=1:3
     ## > inla.2list(x)
@@ -751,34 +757,36 @@
 
     path = dirname(searchpaths()[grep("/INLA$", searchpaths())])
     pkg = "package:INLA"
-    if (any(search() == pkg))
+    if (any(search() == pkg)) {
         detach(pos = match(pkg, search()))
-    if (is.null(lib.loc) && length(path) > 0)
+    }
+    if (is.null(lib.loc) && length(path) > 0) {
         lib.loc = path
+    }
     library(INLA, lib.loc = lib.loc)
 }
 
 `inla.even` = function(n)
 {
-    return (inla.divisible(n, by=2))
+    return (inla.divisible(n, by=2L))
 }
 
 `inla.odd` = function(n)
 {
-    return (inla.divisible(n, by=-2))
+    return (inla.divisible(n, by=-2L))
 }
 
-`inla.divisible` = function(n, by=2)
+`inla.divisible` = function(n, by=2L)
 {
     ### if by>0, return TRUE if `n' is divisible by `by', and if by<0,
     ### return TRUE if `n' is not divisible by `-by'. if by==0, return
     ### TRUE.
-    if (by == 0)
+    if (by == 0L)
         return (rep(TRUE, length(n)))
-    if (by > 0)
-        return ((n%%by) == 0)
+    if (by > 0L)
+        return ((n%%by) == 0L)
     else 
-        return ((n%%(-by)) != 0)
+        return ((n%%(-by)) != 0L)
 }
 
 `inla.one.of` = function(family, candidates)

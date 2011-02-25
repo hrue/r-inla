@@ -1,12 +1,3 @@
-
-`hyperpar.inla` =
-function(...)
-{
-    cat("\n\n*** WARNING ***  hyperpar.inla() is now called inla.hyperpar()")
-    return (inla.hyperpar(...))
-}
-
-
 ##!\name{inla.hyperpar}
 ##!\alias{inla.hyperpar}
 ##!\alias{hyperpar.inla}
@@ -168,9 +159,7 @@ function(...)
                        strategy = control.compute$strategy),
                control.predictor = list(compute=FALSE,
                        cdf=NULL, quantiles=NULL,
-                       fixed=control.predictor$fixed,
-                       param=control.predictor$param,
-                       initial = control.predictor$initial,
+                       hyper = control.predictor$hyper, 
                        cross = control.predictor$cross,
                        A = control.predictor$A, 
                        precision = control.predictor$precision), 
@@ -208,5 +197,3 @@ function(...)
             version = rr$version)
     return(ret)
 }
-
-

@@ -1,11 +1,9 @@
-## models and its hyperparameters are defined here
-
 inla.models = function()
 {
     return (
             list(
                  ## latent models
-                 latent = list(
+                 models=list(
 
                          iid = list(
                                  hyper = list(
@@ -349,7 +347,7 @@ inla.models = function()
                                          theta4 = list(
                                                  name = "theta.OC",
                                                  short.name = "OC",
-                                                 initial = -20,
+                                                 initial = 20,
                                                  fixed = TRUE,
                                                  prior = "flat",
                                                  param = c()
@@ -621,84 +619,8 @@ inla.models = function()
                          ##
                          ),
 
-
-                 ## models for group
-                 group = list(
-
-                         exchangeable = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "correlation",
-                                                 short.name = "rho",
-                                                 initial = 1,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         )
-                                 ),
-
-                         ar1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "correlation",
-                                                 short.name = "rho",
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         )
-                                 )
-                         ), 
-
-                 predictor = list(
-
-                         predictor = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 11,
-                                                 fixed = TRUE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00001)
-                                                 )
-                                         )
-                                 )
-                         ), 
-
-                 hazard = list(
-
-                         rw1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.0001)
-                                                 )
-                                         )
-                                 ), 
-
-                         rw2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.0001)
-                                                 )
-                                         )
-                                 )
-                         ), 
-                         
                  ## likelihood models
-                 likelihood = list(
+                 lmodels = list(
 
                          poisson = list(
                                  hyper = list(
@@ -1153,8 +1075,8 @@ inla.models = function()
                                  )
                          ),
                  
-                 prior = list(
-                         ## these are the same
+                 priors = list(
+                         ## the same
                          normal = list(nparameters = 2),
                          gaussian = list(nparameters = 2),
 
@@ -1179,20 +1101,15 @@ inla.models = function()
                  )
             )
 }
-
-inla.is.model = function(model, section = names(inla.models()), 
-        stop.on.error = TRUE, ignore.case = FALSE)
+inla.is.generic = function(model, stop.on.error, models, ignore.case)
 {
-    section = match.arg(section)
-    models = names((inla.models()[ names(inla.models()) == section ])[[1]])
-
     if (is.character(model) && length(model) > 0) {
         if (ignore.case) {
             m = tolower(model)
-            ms = tolower(models)
+            ms = tolower(names(models))
         } else {
             m = model
-            ms = models
+            ms = names(models)
         }
 
         ret = c()
@@ -1203,9 +1120,8 @@ inla.is.model = function(model, section = names(inla.models()),
             } else {
                 if (stop.on.error) {
                     print("Valid models are:")
-                    print(models)
-                    stop(paste(c("\n\tUnknown name [", model[i], "]\n", "\tValid choices are: ",
-                                 models), sep=" ", collapse=" "))
+                    print(names(models))
+                    stop(paste(c("\n\tUnknown name [", model[i], "]\n", "\tValid choices are: ", names(models)), sep=" ", collapse=" "))
                 } else {
                     ret[i] = FALSE
                 }
@@ -1218,47 +1134,84 @@ inla.is.model = function(model, section = names(inla.models()),
     return (ret)
 }
 
-inla.model.properties = function(
-        model,
-        section = names(inla.models()), 
-        stop.on.error = TRUE,
-        ignore.case = FALSE)
+inla.is.model = function(model, stop.on.error = TRUE, ignore.case = FALSE)
 {
-    section = match.arg(section)
-
-    m = inla.model.properties.generic(inla.trim.family(model),
-            (inla.models()[names(inla.models()) == section])[[1]],
-            stop.on.error, ignore.case)
-
-    if (is.null(m)) {
-        return (NULL)
-    }
-    
-    return (m)
+    inla.is.generic(model, stop.on.error, inla.models()$models, ignore.case)
 }
 
-inla.model.properties.generic = function(model, models, stop.on.error = TRUE, ignore.case = TRUE)
+inla.is.lmodel = function(lmodel, stop.on.error = TRUE, ignore.case = FALSE)
+{
+    inla.is.generic(lmodel, stop.on.error, inla.models()$lmodels, ignore.case)
+}
+
+inla.is.prior = function(prior, stop.on.error = TRUE, ignore.case = FALSE)
+{
+    inla.is.generic(prior, stop.on.error, inla.models()$priors, ignore.case)
+}
+
+inla.model.properties.generic = function(model, stop.on.error, models, ignore.case)
 {
     ans = c()
     for(mm in model) {
         m = ifelse(ignore.case, tolower(mm), mm)
-        if (ignore.case) {
+        if (ignore.case)
             ms = tolower(names(models))
-        } else {
+        else
             ms = names(models)
-        }
+        
         if (inla.is.generic(mm, stop.on.error, models, ignore.case)) {
             k = grep(paste("^", m, "$", sep=""), ms)
             ans = c(ans, list(models[[k]]))
-        } else {
-            ans = c(ans, list(NA))
         }
+        else
+            ans = c(ans, list(NA))
     }
     ## treat the case length(ans) == 1 specially. do not need a list
     ## of list then.
-    if (length(ans) == 1) {
+    if (length(ans) == 1)
         return (ans[[1]])
-    } else {
+    else
         return (ans)
-    }
 }
+
+inla.model.properties = function(model = NULL, stop.on.error = TRUE, ignore.case = FALSE)
+{
+    m = inla.model.properties.generic(inla.trim.family(model), stop.on.error, inla.models()$models, ignore.case)
+    if (is.null(m))
+        return (NULL)
+    ##cat("Properties of model:", model, "\n")
+    ##cat("\tNumber of hyperparameters:\t", m$ntheta, "\n")
+    ##cat("\tNames  of hyperparameters:\t", m$theta, "\n")
+    ##cat("\tNumber of priors:\t", m$npriors, "\n")
+    ##cat("\tNumber of parameters in the prior(s):\t", m$nparameters, "\n")
+
+    return (m)
+}
+
+inla.lmodel.properties = function(lmodel, stop.on.error = TRUE, ignore.case = FALSE)
+{
+    inla.model.properties.generic(inla.trim.family(lmodel), stop.on.error, inla.models()$lmodels, ignore.case)
+}
+
+inla.prior.properties = function(prior, stop.on.error = TRUE, ignore.case = FALSE)
+{
+    inla.model.properties.generic(inla.trim.family(prior), stop.on.error, inla.models()$priors, ignore.case)
+}
+
+inla.hyper.default = function(model)
+{
+    ##
+    ## get the default hyperparameters
+    ##
+    if (inla.is.model(model)) {
+        return (inla.model.properties(model)$hyper)
+    }
+    if (inla.is.lmodel(model)) {
+        return (inla.model.properties(model)$hyper)
+    }
+    stop(paste("Unknown (l)model:", model))
+    return (list())
+}
+
+    
+    
