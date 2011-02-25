@@ -398,3 +398,68 @@ plot.fmesher.segm = function (segm, loc=NULL)
     }
 
 }
+
+
+
+
+diag.sparse = function(a)
+{
+    b = as.vector(a)
+    n = length(b)
+    return(sparseMatrix(i=1:n, j=1:n, x=b, dims=c(n,n)))
+}
+
+
+rcbind.sparse.internal = function(..., do.rbind)
+{
+    stopifnot(is.logical(do.rbind))
+    args = list(...)
+    nargs = length(args)
+    if (do.rbind) {
+        dim1 = 1
+        dim2 = 2
+    } else {
+        dim1 = 2
+        dim2 = 1
+    }
+
+    i = c()
+    j = c()
+    x = c()
+    dims = c(0,0)
+    for (k in 1:nargs) {
+        if (inherits(args[[k]],"dgTMatrix")) {
+            temp = args[[k]]
+        } else if (inherits(args[[k]],"Matrix") ||
+                   inherits(args[[k]],"matrix")) {
+            temp = as(args[[k]],"dgTMatrix")
+        } else {
+            stop("Don't know how to convert argument ",k,
+                 " to a sparse matrix object.")
+        }
+        i = c(i, temp@i+dims[dim1]*do.rbind)
+        j = c(j, temp@j+dims[dim1]*(!do.rbind))
+        x = c(x, temp@x)
+        dims[dim1] = dims[dim1] + temp@Dim[dim1]
+        if (dims[dim2]==0) {
+            dims[dim2] = temp@Dim[dim2]
+        } else {
+            if (dims[dim2] != temp@Dim[dim2])
+                stop("number of ",
+                     inla.ifelse(do.rbind, "columns", "rows"),
+                     " of matrices must match (see arg ",k,")")
+        }
+    }
+    return (sparseMatrix(i=i+1L, j=j+1L, x=x, dims=dims))
+}
+
+
+rbind.sparse = function(...)
+{
+    return(rcbind.sparse.internal(...,do.rbind=TRUE))
+}
+
+cbind.sparse = function(...)
+{
+    return(rcbind.sparse.internal(...,do.rbind=FALSE))
+}
