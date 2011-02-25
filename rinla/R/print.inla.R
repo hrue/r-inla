@@ -28,14 +28,17 @@
         cat(paste("Likelihood model",
                   inla.ifelse(length(x$family)>1, paste("[", ii, "]", sep=""), ""),
                   ": ", x$family[ii],"\n", sep=""))
-        prop = inla.lmodel.properties(x$family[ii])
-        if (prop$ntheta > 0)
-            for (i in 1:prop$ntheta) {
-                if(x$control.data[[ii]]$fixed[i])
-                    cat(paste("\t", prop$theta[i], "in the", x$family[ii], "likelihood is fixed\n"))
-                else 
-                    cat(paste("\t", prop$theta[i], "in the", x$family[ii], "likelihood is random\n"))
+        prop = inla.model.properties(x$family[ii], "likelihood")
+        ntheta = length(prop$hyper)
+        if (ntheta > 0) {
+            for (i in 1:ntheta) {
+                if(x$control.data[[ii]]$hyper[[i]]$fixed) {
+                    cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
+                } else {
+                    cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
+                }
             }
+        }
     }
     cat("\n")
   

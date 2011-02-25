@@ -32,6 +32,7 @@
 ##!cat("2 1 1 2 2 1 1\n", file="g.dat")
 ##!g = inla.read.graph("g.dat")
 ##!print(g)
+##!plot(g)
 ##!
 ##!## this function just writes the graph back to file; useful
 ##!## for converting between a 0-based and 1-based graph.
@@ -106,7 +107,7 @@
     require(Rgraphviz) || stop("Need library 'Rgraphviz' from the Bioconductor package")
     require(graph) || stop("Need library 'graph'")
 
-    g <- new("graphNEL", nodes=as.character(1:graph$n), edgemode="undirected")
+    g <- new("graphNEL", nodes = as.character(1:graph$n), edgemode = "undirected")
 
     for(i in 1L:graph$n) {
         if (graph$nnbs[i] > 0) {
@@ -126,15 +127,18 @@
     ret = list()
     ret = c(ret, list(n = graph$n))
     ret = c(ret, list(ncc = graph$cc$n))
-
+    ret = c(ret, list(nbs = table(graph$nnbs)))
+    
     class(ret) = "inla.graph.summary"
     return(ret)
 }
 
 `print.inla.graph.summary` = function(go)
 {
-    cat(paste("n = ",  go$n, "\n"))
-    cat(paste("ncc = ",  go$ncc, "\n"))
-
+    cat(paste("\tn = ",  go$n, "\n"))
+    cat(paste("\tncc = ",  go$ncc, "\n"))
+    cat(inla.paste(c("\tnbs = (names) ",  names(go$nbs), "\n")))
+    cat(inla.paste(c("\t      (count) ",  go$nbs, "\n")))
+    
     return(invisible())
 }
