@@ -2151,8 +2151,6 @@ namespace fmesh {
 	ext.erase(ext_j);
       else
 	ext.erase(ext_i);
-
-      MESHC_LOG(ext << endl);
     }
 
     { /* Remove unused points. */
@@ -2433,6 +2431,8 @@ namespace fmesh {
 
     //    MESHC_LOG("Edge split, boundary segments:" << endl
     //	      << boundary_);
+    //    MESHC_LOG("Edge split, interior segments:" << endl
+    //	      << boundary_);
 
     return dnew;
   }
@@ -2572,14 +2572,14 @@ namespace fmesh {
       boundary_.insert(dh,boundary_.erase(dh_old));
     }
     if (interior_.found(dh_old)) {
-      boundary_.insert(dh,boundary_.erase(dh_old));
+      interior_.insert(dh,interior_.erase(dh_old));
     }
     dh.orbit2(); dh_old.orbit2();
     if (boundary_.found(dh_old)) {
       boundary_.insert(dh,boundary_.erase(dh_old));
     }
     if (interior_.found(dh_old)) {
-      boundary_.insert(dh,boundary_.erase(dh_old));
+      interior_.insert(dh,interior_.erase(dh_old));
     }
     
     return t_relocated;
@@ -2682,11 +2682,11 @@ namespace fmesh {
   std::ostream& operator<<(std::ostream& output,
 			   const MCQsegm::meta_map_type& il)
   {
-    output << "(n = " << il.size() << ")";
+    output << "(n = " << il.size() << ")" << endl;
     if (il.empty()) return output;
     for (MCQsegm::meta_map_type::const_iterator qi = il.begin();
 	 qi != il.end(); qi++) {
-      output << ' ' << qi->first
+      output <<' ' << qi->first
 	     << ' ' << qi->second
 	     << endl;
     }
@@ -2703,9 +2703,10 @@ namespace fmesh {
     if (segm.countQ() > 0)
       output << "(" << segm.countQ() << " encroached)";
     output << endl;
-    //    output << segm.meta_;
 
-    //    output << "Boundary groups:\t" << MC.boundary_.meta_;
+    output << "Darts+quality:" << endl << segm.darts_ << endl;
+    output << "Metadata:" << endl << segm.meta_;
+
     return output;
   }
 
