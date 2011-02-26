@@ -514,22 +514,25 @@ int main(int argc, char* argv[])
     MeshC MC(&M);
     MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
 
+    /* If we don't already have a triangulation, we must create one. */
     if (!TV0)
       MC.CET(cet_sides,cet_margin);
 
-    /* TODO: Check that this is ok even when some or all points are
-       already in the triangulation. */
+    /* It is more robust to add the constraints before the rest of the
+       nodes are added.  This allows points to fall onto contraint
+       segments, subdividing them as needed. */
+    if (cdt_boundary.size()>0)
+      MC.CDTBoundary(cdt_boundary);
+    if (cdt_interior.size()>0)
+      MC.CDTInterior(cdt_interior);
+
+    /* Add the rest of the nodes. */
     vertexListT vertices;
     for (int v=0;v<nV;v++)
       vertices.push_back(v);
     MC.DT(vertices);
     
-    if (cdt_boundary.size()>0) {
-      MC.CDTBoundary(cdt_boundary);
-    }
-    if (cdt_interior.size()>0)
-      MC.CDTInterior(cdt_interior);
-
+    /* Remove everything outside the boundary segments, if any. */
     MC.PruneExterior();
     
     if (args_info.rcdt_given) {
@@ -537,6 +540,9 @@ int main(int argc, char* argv[])
       MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
 	      Quality0.raw(),Quality0.rows());
     }
+
+    /* Done constructing the triangulation. */
+    /* Calculate and collect output. */
 
     if ((MC.segments(true)>0) || (args_info.boundary_given>0)) {
       matrices.attach("segm.bnd",new Matrix<int>(2),
