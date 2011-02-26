@@ -62,7 +62,7 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
     }
 
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
-    class(ret) <- c("fmesher.segm","list")
+    class(ret) <- "fmesher.segm"
     return(ret)
 }
 
@@ -75,24 +75,19 @@ plot.fmesher.segm = function (segm, loc=NULL)
 
     for (grp in unique(segm$grp)) {
         idx = which(segm$grp==grp)
-        lines(loc[t(cbind(segm$idx[idx,,drop=FALSE],NA)),1],
-              loc[t(cbind(segm$idx[idx,,drop=FALSE],NA)),2],
+        lines(loc[t(cbind(segm$idx[idx,,drop=FALSE], NA)), 1],
+              loc[t(cbind(segm$idx[idx,,drop=FALSE], NA)), 2],
               type="l",
-              col=c("black","blue","red","green")[1+(grp%%4)],lwd=5)
+              col=c("black", "blue", "red", "green")[1+(grp%%4)],
+              lwd=5)
     }
 }
 
 
-`inla.mesh` = function(s,tv=NULL,
-                       boundary=NULL, interior=NULL,
-                       extend=TRUE, refine=FALSE,
-                       grid=NULL, manifold=NULL,
-                       cutoff.distance = 0,
-                       plot.delay = NULL,
-                       dir = tempdir(), prefix = NULL)
-{
 
-##################################################
+inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
+{
+###########################################
     homogenise.segm.input = function(x, is.bnd)
     {
         if (is.matrix(x) || is.vector(x)) { ## Coordinates or indices
@@ -171,8 +166,44 @@ plot.fmesher.segm = function (segm, loc=NULL)
             bnd = NULL
         if (nrow(int$idx)==0)
             int = NULL
-        return(list(loc = loc, bnd = bnd, int = int))
+        return(list(loc = loc,
+                    bnd = (inla.ifelse(is.null(bnd),
+                                       NULL,
+                                       mesh.segm(bnd$loc,
+                                                 bnd$idx,
+                                                 bnd$grp,
+                                                 TRUE))),
+                    int = (inla.ifelse(is.null(int),
+                                       NULL,
+                                       mesh.segm(int$loc,
+                                                 int$idx,
+                                                 int$grp,
+                                                 FALSE)))))
     }
+###########################
+
+    segm = (c(lapply(inla.ifelse(inherits(boundary, "list"),
+                                 boundary, list(boundary)),
+                     function(x){homogenise.segm.input(x, TRUE)}),
+              lapply(inla.ifelse(inherits(interior, "list"),
+                                 interior, list(interior)),
+                     function(x){homogenise.segm.input(x, FALSE)})))
+    segm = homogenise.segm.grp(segm)
+    return(parse.segm.input(segm, n))
+}
+
+
+
+`inla.mesh` = function(loc=NULL, tv=NULL,
+                       boundary=NULL, interior=NULL,
+                       extend=(missing(tv) || is.null(tv)),
+                       refine=FALSE,
+                       grid=NULL, manifold=NULL,
+                       cutoff.distance = 0,
+                       plot.delay = NULL,
+                       dir = tempdir(), prefix = NULL)
+{
+
 ################################
     filter.locations = function(loc, cutoff.distance)
     {
@@ -220,26 +251,57 @@ plot.fmesher.segm = function (segm, loc=NULL)
         return(list(loc = node.coord, node.idx = map.loc.to.node))
     }
 ############################
+    parse.grid.input = function(grid)
+    {
+        default = (list(dims=c(10,10),
+                        xlim=c(0,1),
+                        ylim=c(0,1),
+                        units=""))
+        for (name in names(grid))
+            default[name] = grid[name]
+        return(default)
+    }
+############################
 
-    if (!missing(grid))
-        warning("Option 'grid' not implemented.")
     if (!missing(manifold))
         warning("Option 'manifold' not implemented.")
+    if (is.logical(extend) && extend) extend = list()
+    if (is.logical(refine) && refine) refine = list()
 
-    segm = (c(lapply(inla.ifelse(inherits(boundary, "list") &&
-                                 !inherits(boundary,
-                                           "fmesher.segm"),
-                                 boundary, list(boundary)),
-                     function(x){homogenise.segm.input(x, TRUE)}),
-              lapply(inla.ifelse(inherits(interior, "list") &&
-                                 !inherits(interior,
-                                           "fmesher.segm"),
-                                 interior, list(interior)),
-                     function(x){homogenise.segm.input(x, FALSE)})))
-    segm = homogenise.segm.grp(segm)
-    segm = parse.segm.input(segm, nrow(s))
+    grid.loc = NULL
+    if (!missing(grid) && !is.null(grid)) {
+        if (!is.null(tv)) {
+            warning("Both 'grid' and 'tv' specified.  Ignoring 'tv'.")
+            tv = NULL
+        }
+        grid = parse.grid.input(grid)
+        grid.loc = (cbind(rep(seq(grid$xlim[1],
+                                  grid$xlim[2],
+                                  length.out=grid$dims[1]),
+                              times = grid$dims[2]),
+                          rep(seq(grid$ylim[1],
+                                  grid$ylim[2],
+                                  length.out=grid$dims[2]),
+                              each = grid$dims[1])))
+        if (!inherits(extend, "list")) {
+            ## Construct grid boundary
+            grid.segm.idx = (c(1:grid$dims[1],
+                               grid$dims[1]*(2:grid$dims[2]),
+                               grid$dims[1]*grid$dims[2]-(1:(grid$dims[1]-1)),
+                               grid$dims[1]*((grid$dims[2]-2):1)+1))
+            grid.segm = (mesh.segm(grid.loc[grid.segm.idx,,drop=FALSE],
+                                   is.bnd=TRUE))
+            boundary = (c(inla.ifelse(inherits(boundary, "list"),
+                                      boundary, list(boundary)),
+                          list(grid.segm)))
+        }
+    }
+    grid.n = max(0,nrow(grid.loc))
+    loc.n = max(0,nrow(loc))
 
-    tmp = filter.locations(rbind(s, segm$loc), cutoff.distance)
+    segm = inla.mesh.parse.segm.input(boundary, interior, loc.n+grid.n)
+
+    tmp = filter.locations(rbind(loc, grid.loc, segm$loc), cutoff.distance)
     loc0 = tmp$loc
     idx = tmp$node.idx
 
@@ -288,7 +350,6 @@ plot.fmesher.segm = function (segm, loc=NULL)
     }
 
 
-    if (is.logical(extend) && extend) extend = list()
     if (inherits(extend,"list")) {
         cet = c(0,0)
         cet[1] = inla.ifelse(is.null(extend$n), 8, extend$n)
@@ -296,7 +357,6 @@ plot.fmesher.segm = function (segm, loc=NULL)
         all.args = (paste(all.args," --cet=",
                           cet[1],",", cet[2], sep=""))
     }
-    if (is.logical(refine) && refine) refine = list()
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
@@ -346,7 +406,7 @@ plot.fmesher.segm = function (segm, loc=NULL)
                  segm = list(bnd=segm.bnd, int=segm.int),
                  node.idx=idx))
 
-    class(mesh) <- c("fmesher","list")
+    class(mesh) <- "fmesher"
 
     return(mesh)
 }
@@ -384,17 +444,92 @@ plot.fmesher.segm = function (segm, loc=NULL)
     }
 
     if(!is.null(x$mesh$segm)) {
-        cat("Boundary (groups):\t",
-            as.character(max(0,nrow(x$mesh$segm$bnd$idx))),
-            " (", as.character(length(unique(x$mesh$segm$bnd$grp))), ")",
-            "\n", sep="")
-        cat("Interior (groups):\t",
-            as.character(max(0,nrow(x$mesh$segm$int$idx))),
-            " (", as.character(length(unique(x$mesh$segm$int$grp))), ")",
-            "\n", sep="")
+        my.print.segm = function(x) {
+            cat(as.character(max(0,nrow(x$idx))))
+            if (max(0,length(unique(x$grp)))>0) {
+                cat(" (groups:",
+                    unique(x$grp),
+                    ")", sep=" ")
+            }
+            cat("\n", sep="")
+            return(invisible())
+        }
+        if (!is.null(x$mesh$segm$bnd)) {
+            cat("Boundary segments:\t")
+            my.print.segm(x$mesh$segm$bnd)
+        }
+        if (!is.null(x$mesh$segm$int)) {
+            cat("Interior segments:\t")
+            my.print.segm(x$mesh$segm$int)
+        }
         cat("\n")
     } else {
         cat("No segment information\n\n")
     }
 
+}
+
+
+
+
+diag.sparse = function(a)
+{
+    b = as.vector(a)
+    n = length(b)
+    return(sparseMatrix(i=1:n, j=1:n, x=b, dims=c(n,n)))
+}
+
+
+rcbind.sparse.internal = function(..., do.rbind)
+{
+    stopifnot(is.logical(do.rbind))
+    args = list(...)
+    nargs = length(args)
+    if (do.rbind) {
+        dim1 = 1
+        dim2 = 2
+    } else {
+        dim1 = 2
+        dim2 = 1
+    }
+
+    i = c()
+    j = c()
+    x = c()
+    dims = c(0,0)
+    for (k in 1:nargs) {
+        if (inherits(args[[k]],"dgTMatrix")) {
+            temp = args[[k]]
+        } else if (inherits(args[[k]],"Matrix") ||
+                   inherits(args[[k]],"matrix")) {
+            temp = as(args[[k]],"dgTMatrix")
+        } else {
+            stop("Don't know how to convert argument ",k,
+                 " to a sparse matrix object.")
+        }
+        i = c(i, temp@i+dims[dim1]*do.rbind)
+        j = c(j, temp@j+dims[dim1]*(!do.rbind))
+        x = c(x, temp@x)
+        dims[dim1] = dims[dim1] + temp@Dim[dim1]
+        if (dims[dim2]==0) {
+            dims[dim2] = temp@Dim[dim2]
+        } else {
+            if (dims[dim2] != temp@Dim[dim2])
+                stop("number of ",
+                     inla.ifelse(do.rbind, "columns", "rows"),
+                     " of matrices must match (see arg ",k,")")
+        }
+    }
+    return (sparseMatrix(i=i+1L, j=j+1L, x=x, dims=dims))
+}
+
+
+rbind.sparse = function(...)
+{
+    return(rcbind.sparse.internal(...,do.rbind=TRUE))
+}
+
+cbind.sparse = function(...)
+{
+    return(rcbind.sparse.internal(...,do.rbind=FALSE))
 }
