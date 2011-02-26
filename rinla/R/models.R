@@ -1,6 +1,6 @@
 ## models and its hyperparameters are defined here
 
-inla.models = function()
+`inla.models` = function()
 {
     return (
             list(
@@ -202,7 +202,7 @@ inla.models = function()
                                                  param = c(1, 0.0001)
                                                  ), 
                                          theta2 = list(
-                                                 name = "log one correlation",
+                                                 name = "lag-one correlation",
                                                  short.name = "rho",
                                                  initial = 2,
                                                  fixed = FALSE,
@@ -352,7 +352,7 @@ inla.models = function()
                                                  initial = -20,
                                                  fixed = TRUE,
                                                  prior = "flat",
-                                                 param = c()
+                                                 param = numeric()
                                                  )
                                          ),
                                  constr = FALSE,
@@ -408,7 +408,7 @@ inla.models = function()
                                                  initial = 4,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  ), 
                                          theta3 = list(
                                                  name = "correlation",
@@ -416,7 +416,7 @@ inla.models = function()
                                                  initial = 4,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  )
                                          ), 
                                  constr = FALSE,
@@ -445,7 +445,7 @@ inla.models = function()
                                                  initial = 4,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  ), 
                                          theta3 = list(
                                                  name = "precision3",
@@ -453,7 +453,7 @@ inla.models = function()
                                                  initial = 4,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  ), 
                                          theta4= list(
                                                  name = "correlation12",
@@ -461,7 +461,7 @@ inla.models = function()
                                                  initial = 0,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  ), 
                                          theta5 = list(
                                                  name = "correlation13",
@@ -469,7 +469,7 @@ inla.models = function()
                                                  initial = 0,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  ), 
                                          theta5 = list(
                                                  name = "correlation23",
@@ -477,7 +477,7 @@ inla.models = function()
                                                  initial = 0,
                                                  fixed = FALSE,
                                                  prior = "none",
-                                                 param = c()
+                                                 param = numeric()
                                                  )
                                          ), 
                                  constr = FALSE,
@@ -934,10 +934,10 @@ inla.models = function()
                                                  fixed = FALSE,
                                                  prior = "loggamma",
                                                  param = c(1, 0.5)
-                                                 ),
-                                         survival = FALSE,
-                                         discrete = FALSE
-                                         )
+                                                 )
+                                         ), 
+                                 survival = FALSE,
+                                 discrete = FALSE
                                  ),
 
                          zeroinflatedpoisson0 = list(
@@ -1180,7 +1180,7 @@ inla.models = function()
             )
 }
 
-inla.is.model = function(model, section = names(inla.models()), 
+`inla.is.model` = function(model, section = names(inla.models()), 
         stop.on.error = TRUE, ignore.case = FALSE)
 {
     section = match.arg(section)
@@ -1218,7 +1218,7 @@ inla.is.model = function(model, section = names(inla.models()),
     return (ret)
 }
 
-inla.model.properties = function(
+`inla.model.properties` = function(
         model,
         section = c("..invalid.model..", names(inla.models())), 
         stop.on.error = TRUE,
@@ -1239,7 +1239,7 @@ inla.model.properties = function(
     return (m)
 }
 
-inla.model.properties.generic = function(model, models, stop.on.error = TRUE, ignore.case = TRUE)
+`inla.model.properties.generic` = function(model, models, stop.on.error = TRUE, ignore.case = TRUE)
 {
     ans = c()
     for(mm in model) {
@@ -1263,4 +1263,106 @@ inla.model.properties.generic = function(model, models, stop.on.error = TRUE, ig
     } else {
         return (ans)
     }
+}
+
+`inla.models.generate.Rd` = function(file = NULL)
+{
+    ## this function is used to generate the man-page for the models
+
+    if (!is.null(file))
+        sink(file)
+    
+    cat("
+\\name{inla.models}
+\\alias{inla.models}
+\\title{Valid models in INLA}
+\\description{
+This page describe the models implemented in \\code{inla}, divided into sections: ")
+    cat(inla.paste(names(inla.models()), sep=", "), ".\n}\n")
+
+    cat("
+\\usage{
+inla.models()
+}\n")
+    
+    cat("\\value{
+\tValid sections are: ")
+    cat(inla.paste(names(inla.models()),  sep=", "),  "\n")
+    cat("
+\t\\describe{
+")
+
+    for(section in names(inla.models())) {
+        cat("\t\t\\item{Section `", section, "'.}{\n",sep="")
+        cat("\t\t\tValid models in this section are:\n")
+        cat("\t\t\t\\describe{\n")
+        
+        for(model in names(inla.models()[[section]])) {
+            cat("\t\t\t\t\\item{Model `", model, "'.}{",  sep="")
+
+            if (section != "prior") {
+                nhyper = length(inla.models()[[section]][[model]]$hyper)
+                cat("Number of hyperparmeters are ", nhyper, ".\n", sep="")
+                if (nhyper > 0) {
+                    cat("\t\t\t\t\t\\describe{\n")
+                    
+                    h = inla.models()[[section]][[model]]$hyper
+                    nhyper = length(h)
+                    if (nhyper > 0) {
+                        for(nh in 1:nhyper) {
+                            nm = names(h)[nh]
+                            cat("\t\t\t\t\t\t\\item{Hyperparameter `", nm, "'}{\n", sep="")
+                            cat("\t\t\t\t\t\t\t\t\\describe{\n")
+
+                            for(m in names(h[[nm]])) {
+                                mval = h[[nm]][[m]]
+                                if (is.null(mval))
+                                    mval = "NULL"
+                                cat("\t\t\t\t\t\t\t\t\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
+                            }
+
+                            cat("\t\t\t\t\t\t\t\t}\n", sep="")
+                            cat("\t\t\t\t\t\t}\n", sep="")
+                        }
+                        cat("\t\t\t\t\t}\n")
+                    }
+
+                    h = inla.models()[[section]][[model]]
+                    ms = names(h)
+                    ms = ms[ ms != "hyper" ]
+                    
+                    cat("\t\t\t\t\t\\describe{\n")
+                    cat("\t\t\t\t\t\t\\item{Properties:}{\n", sep="")
+                    cat("\t\t\t\t\t\t\t\\describe{\n", sep="")
+                    
+                    for(m in ms) {
+                        mval = h[[m]]
+                        if (is.null(mval))
+                            mval = "NULL"
+                        cat("\t\t\t\t\t\t\t\t\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
+                    }
+                    
+                    cat("\t\t\t\t\t\t\t}\n")
+                    cat("\t\t\t\t\t\t}\n")
+                    cat("\t\t\t\t\t}\n")
+                }
+            } else if (section == "prior") {
+                np = inla.models()[[section]][[model]]$nparameters
+                cat("\t\t\t\t\tNumber of parameters in the prior =", np, "\n")
+            } else {
+                stop("Should not happen.")
+            }
+                
+            cat("\t\t\t\t}\n")
+        }
+        cat("\t\t\t}\n")
+        cat("\t\t}\n")
+    }
+
+    cat("\t} \n")
+    cat("} \n")
+
+    if (!is.null(file))
+        sink()
+
 }
