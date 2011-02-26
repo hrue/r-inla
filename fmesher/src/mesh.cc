@@ -2208,8 +2208,11 @@ namespace fmesh {
 	vij = -1./(4.*fa);
 	for (int i=0; i<3; i++) {
 	  for (int j=0; j<3; j++) {
-	    if ((i != j) && b[j]) {
-	      B1(tv[i],tv[j]) += eij[j][i]*vij;
+	    for (int k=0; k<3; k++) {
+	      if (b[k] && (i != k)) {
+		  B1(tv[i],tv[j]) += eij[k][j]*vij;
+		}
+	      }
 	    }
 	  }
 	}
