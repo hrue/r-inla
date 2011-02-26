@@ -517,6 +517,12 @@ int main(int argc, char* argv[])
     if (!TV0)
       MC.CET(cet_sides,cet_margin);
     
+    if (cdt_boundary.size()>0) {
+      MC.CDTBoundary(cdt_boundary);
+    }
+    if (cdt_interior.size()>0)
+      MC.CDTInterior(cdt_interior);
+
     /* TODO: Check that this is ok even when some or all points are
        already in the triangulation. */
     vertexListT vertices;
@@ -524,11 +530,6 @@ int main(int argc, char* argv[])
       vertices.push_back(v);
     MC.DT(vertices);
 
-    if (cdt_boundary.size()>0) {
-      MC.CDTBoundary(cdt_boundary);
-    }
-    if (cdt_interior.size()>0)
-      MC.CDTInterior(cdt_interior);
     MC.PruneExterior();
     
     if (args_info.rcdt_given) {
