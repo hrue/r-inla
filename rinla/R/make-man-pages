@@ -2,6 +2,10 @@
 
 export MANDIR=../man
 
+echo 'source("models.R")
+      source("utils.R")
+      inla.models.generate.Rd("../man/models.Rd")' | R --vanilla --silent
+
 function mmp ()
 {
     awk '/:NAME:/{
