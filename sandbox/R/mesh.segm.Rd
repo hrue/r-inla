@@ -1,50 +1,51 @@
 \name{mesh.segm}
 \alias{mesh.segm}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  %%  ~~function to do ... ~~
   Create a constraint segment object for fmesher
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Constructs an \code{fmesher.segm} object that can be used to specify
+  boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
 }
 \usage{
 mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{loc}{
-    %%     ~~Describe \code{loc} here~~
     Matrix of point locations.
-}
+  }
   \item{idx}{
-    %%     ~~Describe \code{idx} here~~
-    Segment index sequence vector or index pair matrix.
-}
+    Segment index sequence vector or index pair matrix.  The indices
+    refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices
+    will be interpreted as indices into the point specification supplied
+    to \code{\link{inla.mesh}}.
+    If \code{is.bnd==TRUE}, defaults to linking all the points in
+    \code{loc}, as \code{c(1:nrow(loc),1L)}, otherwise \code{1:nrow(loc)}.  
+  }
   \item{grp}{
-    %%     ~~Describe \code{grp} here~~
     Vector of group labels for each segment.
-}
+    Set to \code{NULL} to let the labels be chosen automatically in a
+    call to \code{\link{inla.mesh}}.
+  }
   \item{is.bnd}{
-    %%     ~~Describe \code{is.bnd} here~~
     \code{TRUE} if the segments are boundary segments, otherwise \code{FALSE}.
+  }
 }
-}
-\details{
-  %%  ~~ If necessary, more details than the description above ~~
-}
+%%\details{
+%%  Some text. \describe{Some more text} Further text.
+%%}
 \value{
+  An \code{fmesher.segm} object.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
-Returns an \code{inla.fmesher.mesh.segm} object that can be used in calls
-to \code{\link{inla.mesh}}
 }
 \references{
 %% ~put references to the literature/web site here ~
 }
 \author{
+  Finn Lindgren <finn.lindgren@gmail.com>
 %%  ~~who you are~~
 }
 \note{
@@ -54,6 +55,7 @@ to \code{\link{inla.mesh}}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
+  \code{\link{inla.mesh}}
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
