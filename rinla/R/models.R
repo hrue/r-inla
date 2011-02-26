@@ -133,7 +133,7 @@ inla.models = function()
                                  set.default.values = TRUE
                                  ), 
 
-                         besag = list(
+                         besag2 = list(
                                  hyper = list(
                                          theta1 = list(
                                                  name = "precision",
@@ -1220,11 +1220,13 @@ inla.is.model = function(model, section = names(inla.models()),
 
 inla.model.properties = function(
         model,
-        section = names(inla.models()), 
+        section = c("..invalid.model..", names(inla.models())), 
         stop.on.error = TRUE,
         ignore.case = FALSE)
 {
     section = match.arg(section)
+    if (section == "..invalid.model..")
+        stop("No section given; please fix...")
 
     m = inla.model.properties.generic(inla.trim.family(model),
             (inla.models()[names(inla.models()) == section])[[1]],
