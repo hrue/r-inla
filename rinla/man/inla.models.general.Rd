@@ -1,5 +1,5 @@
-\name{inla.models}
-\alias{inla.models}
+\name{inla.models.general}
+\alias{inla.models.general}
 
 \title{Specifying generalized additive models to be solved using
   INLA}
