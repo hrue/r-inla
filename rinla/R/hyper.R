@@ -1,3 +1,12 @@
+## this is a bit messy. (model, section) picks out the right model in
+## the correct section. this model has a default setting for
+## 'hyper'. simply replace these entries with given ones, first in
+## 'hyper', then in 'initial', 'fixed', 'prior' and 'param'. somewhat
+## tricky is that the length in 'param' depends on the argument(s) of
+## 'prior' as various priors can have different number of
+## parameters. also, if NA or NULL is given, then we use the default
+## ones.
+
 inla.set.hyper = function(
         model = NULL,
         section = names(inla.models()), 
@@ -108,66 +117,65 @@ inla.set.hyper = function(
                 ## known length
                 if (key == "param") {
                     len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
-                    if (len < length(hyper.new[[idx.new]][key]) && len > 0) {
-                        hyper.new[[idx.new]][key] = hyper.new[[idx.new]][key][1:len]
-                    } else if (len < length(hyper.new[[idx.new]][key]) && len == 0) {
-                        hyper.new[[idx.new]][key] = numeric(0)
-                    } else if (len > length(hyper.new[[idx.new]][key])) {
-                        hyper.new[[idx.new]][key] = c(hyper.new[[idx.new]][key],
-                                                    rep(NA, len - length(hyper.new[[idx.new]][key])))
+                    if (len < length(hyper.new[[idx.new]][[key]]) && len > 0) {
+                        hyper.new[[idx.new]][[key]] = hyper.new[[idx.new]][[key]][1:len]
+                    } else if (len < length(hyper.new[[idx.new]][[key]]) && len == 0) {
+                        hyper.new[[idx.new]][[key]] = numeric(0)
+                    } else if (len > length(hyper.new[[idx.new]][[key]])) {
+                        hyper.new[[idx.new]][[key]] = c(hyper.new[[idx.new]][[key]],
+                                                    rep(NA, len - length(hyper.new[[idx.new]][[key]])))
                     }
                 } else {
-                    len = length(hyper.new[[idx.new]][key])
+                    len = length(hyper.new[[idx.new]][[key]])
                 }
                 ## given length
                 llen = length(key.val) - off[[key]]
             
                 if (llen < len) {
-                    key = c(key.val,  rep(NA,  len - llen))
+                    key.val = c(key.val,  rep(NA,  len - llen))
                 }
 
                 if (len > 0) {
                     ## set those NA's to the default ones
-
                     ii = key.val[off[[key]] + 1:len]
                     idxx = which(!(is.na(ii) | is.null(ii)))
                     if (length(idxx) > 0) {
-                        hyper.new[[idx.new]][key][idxx] = ii[idxx]
+                        hyper.new[[idx.new]][[key]][idxx] = ii[idxx]
                     }
                 }
                 off[[key]] = off[[key]] + len
             }
 
-            if (!is.null(h) && !is.null(h[key]) && !is.na(h[key]) && !any(is.na(names(h[key])))) {
+            if (!is.null(h) && !is.null(h[[key]]) && !is.na(h[[key]])) {
                 ## known length
                 if (key == "param") {
                     len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
-                    if (len < length(hyper.new[[idx.new]][key]) && len > 0) {
-                        hyper.new[[idx.new]][key] = hyper.new[[idx.new]][key][1:len]
-                    } else if (len < length(hyper.new[[idx.new]][key]) && len == 0) {
-                        hyper.new[[idx.new]][key] = NULL
-                    } else if (len > length(hyper.new[[idx.new]][key])) {
-                        hyper.new[[idx.new]][key] = c(hyper.new[[idx.new]][key],
-                                                    rep(NA, len - length(hyper.new[[idx.new]][key])))
+                    if (len < length(hyper.new[[idx.new]][[key]]) && len > 0) {
+                        hyper.new[[idx.new]][[key]] = hyper.new[[idx.new]][[key]][1:len]
+                    } else if (len < length(hyper.new[[idx.new]][[key]]) && len == 0) {
+                        hyper.new[[idx.new]][[key]] = NULL
+                    } else if (len > length(hyper.new[[idx.new]][[key]])) {
+                        hyper.new[[idx.new]][[key]] = c(hyper.new[[idx.new]][[key]],
+                                                    rep(NA, len - length(hyper.new[[idx.new]][[key]])))
                     }
                 } else {
-                    len = length(hyper.new[[idx.new]][key])
+                    len = length(hyper.new[[idx.new]][[key]])
                 }
                 ## given length
-                llen = length(h[key])
+                llen = length(h[[key]])
             
                 if (llen > len) {
-                    stop(paste("model",  model, "[", section, "], hyperparam", ih,  ", length(hyper[key]) =",
+                    stop(paste("model",  model, "[", section, "], hyperparam", ih,  ", length(hyper[[key]]) =",
                                llen,  ">",  len,  sep = " "))
                 } else if (llen < len) {
-                    h[key] = c(h[key],  rep(NA,  len - llen))
+                    h[[key]] = c(h[[key]],  rep(NA,  len - llen))
                 }
                 
                 if (len > 0) {
                     ## set those NA's to the default ones
-                    idxx = which(!is.na(h[key]) & !is.null(h[key]))
+                    idxx = which(!is.na(h[[key]]) & !is.null(h[[key]]))
                     if (length(idxx) > 0) {
-                        hyper.new[[idx.new]][key][idxx] = h[key][idxx]
+                        hyper.new[[idx.new]][[key]][idxx] = h[[key]][idxx]
                     }
                 }
             }
@@ -188,12 +196,10 @@ inla.set.hyper = function(
     for (key in keywords) {
         key.val = inla.eval(key)
         if (!is.null(key.val) && (length(key.val) > off[[key]])) {
-            stop(paste("Length of argument `key':", length(key.val),
-                       ", does not match the total length of `key' in `hyper':", off[[key]], sep=""))
+            stop(paste("Length of argument `", key, "':", length(key.val),
+                       ", does not match the total length of `", key, "' in `hyper':", off[[key]], sep=""))
         }
     }
 
     return (hyper.new)
 }
-
-    

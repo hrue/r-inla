@@ -400,27 +400,29 @@
     ## EX: contr is `control.inla' and default arguments is found in
     ## `inla.set.control.inla.default()'
 
-    if (!is.list(contr))
+    if (!is.list(contr)) {
         stop("argument is not an list")
-    if (length(contr) == 0)
+    }
+    if (length(contr) == 0) {
         return(invisible())
+    }
     
     nm = paste(sys.call()[2])
     f = paste("inla.set.", nm, ".default()", sep="")
     elms = names(inla.eval(f))
 
-    ## if (nm == "control.data")
-    ##    browser()
-
-    if (is.null(names(contr)))
+    if (is.null(names(contr))) {
         stop(inla.paste(c("Named elements in in control-argument `", nm, "', is required: ", contr,
                           "\n\n  Valid ones are:\n\t",
                           inla.paste(sort(elms), sep="\n\t")), sep=""))
+    }
     
-    for(elm in names(contr))
-        if (!is.element(elm, elms))
+    for(elm in names(contr)) {
+        if (!is.element(elm, elms)) {
             stop(inla.paste(c("Name `", elm,"' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",
                               inla.paste(sort(elms), sep="\n\t")), sep=""))
+        }
+    }
 
     return(invisible())
 }
