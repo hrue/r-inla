@@ -708,6 +708,18 @@ namespace fmesh {
     MESHC_LOG("Locating node " << v
 	      << " " << M_->S(v) << endl);
 
+    if (M_->useVT()) {
+      if (M_->VT(v) != -1) {/* Node already inserted! */
+	MESHC_LOG("Node " << v << " already inserted." << endl);
+	td = Dart(*M_,M_->VT(v));
+	for (int k=0; k<3; k++) {
+	  if (td.v() == v)
+	    return td;
+	  td.orbit2();
+	}
+      }
+    }
+
     td = M_->locate_point(ed,M_->S(v),v);
     if (td.isnull()) { /* ERROR, not found! */
       MESHC_LOG("Error, node not found");
@@ -1878,6 +1890,23 @@ namespace fmesh {
     //      MESHC_LOG_("Trying to add segment: "
     //		 << ci->first.first << "," << ci->first.second << endl);
 
+    if (M_->useVT()) { /* Can check if the vertices are present, and
+			  try to add them otherwise. */
+      Dart dh = Dart();
+      if (M_->VT(v0)==-1) {
+	dh = insertNode(v0,dh);
+	if (dh.isnull()) {
+	  MESHC_LOG_("CDT: Failed to insert node " << v0 << endl << *this);
+	}	
+      }
+      if (M_->VT(v1)==-1) {
+	dh = insertNode(v1,dh);
+	if (dh.isnull()) {
+	  MESHC_LOG_("CDT: Failed to insert node " << v1 << endl << *this);
+	}
+      }
+    }
+
     triangleSetT triangles;
     Dart ds(CDTInsertSegment(v0,v1,triangles));
     if (ds.isnull()) {
@@ -1901,6 +1930,11 @@ namespace fmesh {
   bool MeshC::buildCDT()
   {
     if (!prepareCDT()) return false;
+
+    /* Make sure to set useVT true, so that we can easily detect
+       missing vertices and try to add them. */
+    bool M_useVT = M_->useVT();
+    M_->useVT(true);
 
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
@@ -1930,6 +1964,8 @@ namespace fmesh {
 	ci++;
       }
     }
+
+    M_->useVT(M_useVT);
 
     MESHC_LOG("Boundary segments after CDT:" << endl << boundary_);
     MESHC_LOG("Interior segments after CDT:" << endl << interior_);
