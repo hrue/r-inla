@@ -84,6 +84,42 @@ plot.fmesher.segm = function (segm, loc=NULL)
 }
 
 
+############################
+##    parse.grid.input = function(grid)
+##    {
+##        default = (list(dims=c(10,10),
+##                        xlim=c(0,1),
+##                        ylim=c(0,1),
+##                        units=""))
+##        for (name in names(grid))
+##            default[name] = grid[name]
+##        return(default)
+##    }
+
+mesh.grid = function(dims=c(11,11), xlim=c(0,1), ylim=c(0,1))
+{
+    loc = (cbind(rep(seq(xlim[1],
+                         xlim[2],
+                         length.out=dims[1]),
+                     times = dims[2]),
+                 rep(seq(ylim[1],
+                         ylim[2],
+                         length.out=dims[2]),
+                     each = dims[1])))
+    ## Construct grid boundary
+    segm.idx = (c(1:(dims[1]-1),
+                  dims[1]*(1:(dims[2]-1)),
+                  dims[1]*dims[2]-(0:(dims[1]-2)),
+                  dims[1]*((dims[2]-1):1)+1))
+    segm = mesh.segm(loc[segm.idx,, drop=FALSE], is.bnd=TRUE)
+
+    grid = list(loc=loc, segm=segm)
+    class(grid) = "fmesher.grid"
+    return(grid)
+}
+
+
+
 
 inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 {
@@ -251,57 +287,34 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         return(list(loc = node.coord, node.idx = map.loc.to.node))
     }
 ############################
-    parse.grid.input = function(grid)
-    {
-        default = (list(dims=c(10,10),
-                        xlim=c(0,1),
-                        ylim=c(0,1),
-                        units=""))
-        for (name in names(grid))
-            default[name] = grid[name]
-        return(default)
-    }
-############################
 
     if (!missing(manifold))
         warning("Option 'manifold' not implemented.")
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
-    grid.loc = NULL
-    if (!missing(grid) && !is.null(grid)) {
+    grid.n = 0
+    if (missing(grid) || is.null(grid)) {
+        grid = list(loc=NULL, segm=NULL)
+    } else {
+        if (!inherits(grid, "fmesher.grid"))
+            stop("'grid' must be an 'fmesher.grid' object.")
         if (!is.null(tv)) {
             warning("Both 'grid' and 'tv' specified.  Ignoring 'tv'.")
             tv = NULL
         }
-        grid = parse.grid.input(grid)
-        grid.loc = (cbind(rep(seq(grid$xlim[1],
-                                  grid$xlim[2],
-                                  length.out=grid$dims[1]),
-                              times = grid$dims[2]),
-                          rep(seq(grid$ylim[1],
-                                  grid$ylim[2],
-                                  length.out=grid$dims[2]),
-                              each = grid$dims[1])))
         if (!inherits(extend, "list")) {
-            ## Construct grid boundary
-            grid.segm.idx = (c(1:grid$dims[1],
-                               grid$dims[1]*(2:grid$dims[2]),
-                               grid$dims[1]*grid$dims[2]-(1:(grid$dims[1]-1)),
-                               grid$dims[1]*((grid$dims[2]-2):1)+1))
-            grid.segm = (mesh.segm(grid.loc[grid.segm.idx,,drop=FALSE],
-                                   is.bnd=TRUE))
             boundary = (c(inla.ifelse(inherits(boundary, "list"),
                                       boundary, list(boundary)),
-                          list(grid.segm)))
+                          list(grid$segm)))
         }
+        grid.n = max(0,nrow(grid$loc))
     }
-    grid.n = max(0,nrow(grid.loc))
     loc.n = max(0,nrow(loc))
 
     segm = inla.mesh.parse.segm.input(boundary, interior, loc.n+grid.n)
 
-    tmp = filter.locations(rbind(loc, grid.loc, segm$loc), cutoff.distance)
+    tmp = filter.locations(rbind(loc, grid$loc, segm$loc), cutoff.distance)
     loc0 = tmp$loc
     idx = tmp$node.idx
 

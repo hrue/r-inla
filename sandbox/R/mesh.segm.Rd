@@ -45,7 +45,7 @@ mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 %% ~put references to the literature/web site here ~
 }
 \author{
-  Finn Lindgren <finn.lindgren@gmail.com>
+  Finn Lindgren \email{finn.lindgren@gmail.com}
 %%  ~~who you are~~
 }
 \note{
