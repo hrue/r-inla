@@ -282,10 +282,16 @@ function(
     ## so, this lead to an obscoure error later on...
     ##
     ## we first collect all arguments of type `name = value'
-    args.eq = c() 
-    for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots=TRUE))), ","))) {
-        if (length(grep("=", arg)) > 0) {
-            args.eq = c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
+    if (TRUE) {
+        ## New code
+        args.eq = names(match.call(expand.dots = TRUE))
+        args.eq = args.eq[ args.eq != "" ]
+    } else {
+        args.eq = c() 
+        for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots=TRUE))), ","))) {
+            if (length(grep("=", arg)) > 0) {
+                args.eq = c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
+            }
         }
     }
     
@@ -367,21 +373,24 @@ function(
     }
 
     ## is N required?
-    if (is.null(n) && (!is.null(inla.model.properties(model)$n.required) && inla.model.properties(model)$n.required)) {
+    if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
+                       && inla.model.properties(model, "latent")$n.required)) {
         stop(paste("Argument `n' in f() is required for model:", model))
     }
     
     ## special N required?
-    if ((!is.null(inla.model.properties(model)$n.div.by) && inla.model.properties(model)$n.div.by) && !is.null(n)) {
-        if (!inla.divisible(n, inla.model.properties(model)$n.div.by)) {
-            stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model)$n.div.by))
+    if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
+         && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
+        if (!inla.divisible(n, inla.model.properties(model, "latent")$n.div.by)) {
+            stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model, "latent")$n.div.by))
         }
     }
 
     ## set default 'values'?  Do the check for values for nrow.ncol
     ## models further below.
     if (!is.null(n) && is.null(values) &&
-        (!is.null(inla.model.properties(model)$set.default.values) && inla.model.properties(model)$set.default.values)) {
+        (!is.null(inla.model.properties(model, "latent")$set.default.values)
+         && inla.model.properties(model, "latent")$set.default.values)) {
         values = 1:n
     }
 
@@ -452,7 +461,7 @@ function(
         stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2 and rw2d models")
     }
 
-    need.nrow.ncol = inla.model.properties(model)$nrow.ncol
+    need.nrow.ncol = inla.model.properties(model, "latent")$nrow.ncol
     ## nrow/ncol
     if ((!is.null(nrow) || !is.null(ncol)) && !need.nrow.ncol) {
         stop(paste("nrow and ncol are not needed for model = ", model))
@@ -473,7 +482,7 @@ function(
         }
 
         ## and set default values, if required
-        if (inla.model.properties(model)$set.default.values) {
+        if (inla.model.properties(model, "latent")$set.default.values) {
             if (missing(values)) {
                 values = 1:n
             } else {
@@ -502,7 +511,7 @@ function(
     ##for all instrinsic model the constraint has to be ON...
     ##...except if the rw is cyclic!!!!!
     if (is.null(constr)) {
-        constr = inla.model.properties(model)$constr
+        constr = inla.model.properties(model, "latent")$constr
         if (!is.null(cyclic) && cyclic) {
             constr=FALSE
         }
@@ -576,7 +585,7 @@ function(
                 ## constr=TRUE for all connected components with size > 1
 
                 ## like bym place the constr on the second half
-                m = inla.model.properties(model)
+                m = inla.model.properties(model, "latent")
                 if (m$augmented) {
                     N = m$aug.factor * n
                     offset = (m$aug.constr -1L) * n

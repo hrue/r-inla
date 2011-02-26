@@ -1086,7 +1086,7 @@
                     }
                     ##warning(paste("inla: I do not think `n' is required to give...; compute n=", n))
 
-                    N = inla.model.properties(gp$random.spec[[r]]$model)$aug.factor * n
+                    N = inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor * n
                     replicate = gp$random.spec[[r]]$replicate
                     if (is.null(replicate))
                         replicate = rep(1, length(xx))
@@ -1207,7 +1207,7 @@
                     print(paste("nrep", nrep))
                 }
 
-                n.div.by = inla.model.properties(gp$random.spec[[r]]$model)$n.div.by
+                n.div.by = inla.model.properties(gp$random.spec[[r]]$model, "latent")$n.div.by
                 if (!is.null(n.div.by)) {
                     if (!inla.divisible(n, by=n.div.by))
                         stop(paste("Model [", gp$random.spec[[r]]$model,"] require `n'", n, "divisible by", n.div.by))
@@ -1222,9 +1222,9 @@
                 ## implement the constr=TRUE using the argument
                 ## EXTRACONSTR
 
-                if (inla.model.properties(gp$random.spec[[r]]$model)$augmented) {
-                    fac = inla.model.properties(gp$random.spec[[r]]$model)$aug.factor
-                    con = inla.model.properties(gp$random.spec[[r]]$model)$aug.constr
+                if (inla.model.properties(gp$random.spec[[r]]$model, "latent")$augmented) {
+                    fac = inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor
+                    con = inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.constr
 
                     if (fac > 1) {
                         if ((max(con) > fac || min(con) < 1) || is.null(con))
@@ -1302,10 +1302,10 @@
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
                     
-                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n)
+                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
                         stop(paste("\n\tncol in matrix A(extraconstraint) does not correspont to the length of f:",
                                    ncol(A),
-                                   inla.model.properties(gp$random.spec[[r]]$model)$aug.factor*n))
+                                   inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
 
                     file.extraconstr=inla.tempfile(tmpdir=data.dir)
                     if (inla.getOption("internal.binary.mode")) {

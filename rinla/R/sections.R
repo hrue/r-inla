@@ -78,7 +78,7 @@
              file.cov, file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
     label= inla.namefix(random.spec$term)
-    prop = inla.model.properties(random.spec$model, stop.on.error=TRUE)
+    prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
     
     cat("[", label,"]\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
@@ -118,7 +118,7 @@
 
     inla.write.hyper(random.spec$hyper, file)
 
-    if (inla.model.properties(random.spec$model)$nrow.ncol) {
+    if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
         cat("ncol = ", random.spec$ncol, "\n", sep = " ", file = file,  append = TRUE)
 
