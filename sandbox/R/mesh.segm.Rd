@@ -1,8 +1,6 @@
 \name{mesh.segm}
 \alias{mesh.segm}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  %%  ~~function to do ... ~~
   Create a constraint segment object for fmesher
 }
 \description{
@@ -11,27 +9,27 @@
 \usage{
 mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{loc}{
-    %%     ~~Describe \code{loc} here~~
     Matrix of point locations.
-}
+  }
   \item{idx}{
-    %%     ~~Describe \code{idx} here~~
     Segment index sequence vector or index pair matrix.
-}
+    If \code{NULL}, defaults to linking all the points in \code{loc}, as
+    \code{c(1:nrow(loc),1L)} (if \code{is.bnd==TRUE}) or
+    \code{1:nrow(loc)} (if \code{is.bnd==FALSE})
+  }
   \item{grp}{
-    %%     ~~Describe \code{grp} here~~
     Vector of group labels for each segment.
-}
+    Set to \code{NULL} to let the labels to be chosen automatically in a
+    call to \code{\link{inla.mesh}}.
+  }
   \item{is.bnd}{
-    %%     ~~Describe \code{is.bnd} here~~
     \code{TRUE} if the segments are boundary segments, otherwise \code{FALSE}.
-}
+  }
 }
 \details{
-  %%  ~~ If necessary, more details than the description above ~~
+  Some text. \describe{Some more text} Further text.
 }
 \value{
 %%  ~Describe the value returned
