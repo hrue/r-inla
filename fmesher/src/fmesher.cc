@@ -462,126 +462,119 @@ int main(int argc, char* argv[])
     matrices.attach(string("s"),&M.S(),false);
     matrices.attach("tv",&M.TV(),false);
     matrices.output("s").output("tv");
-
+    
     if (isflat || issphere) {
-    
-    Point mini(S0(0));
-    Point maxi(S0(0));
-    for (int v=1; v<nV; v++)
-      for (int i=0; i<3; i++) {
-	mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
-	maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
-      }
-    Point sz;
-    fmesh::Vec::diff(sz,maxi,mini);
-    double diam;
-    diam = (sz[1] < sz[0]
-	    ? (sz[2] < sz[0] ? sz[0] : sz[2])
-	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
-    
-    for (int i=0; i<Quality0.rows(); i++) {
-      if (Quality0[i][0]<0.0) {
-	/* Rudimentary relative biglimit construction: */
-	Quality0(i,0) = diam/std::sqrt(nV)*(-Quality0[i][0]);
-      }
-    }
-    
-    if (useX11) {
-      if (issphere) {
-	if (args_info.x11_zoom_given==0) {
-	  x11_zoom[0] = -1.1;
-	  x11_zoom[1] = 1.1;
-	  x11_zoom[2] = -1.1;
-	  x11_zoom[3] = 1.1;
-	}
-	M.useX11(true,useX11text,500,500,
-		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
-      } else {
-	double w0 = maxi[0]-mini[0];
-	double w1 = maxi[1]-mini[0];
-	if (args_info.x11_zoom_given==0) {
-	  x11_zoom[0] = mini[0]-w0*0.2;
-	  x11_zoom[1] = maxi[0]+w0*0.2;
-	  x11_zoom[2] = mini[1]-w1*0.2;
-	  x11_zoom[3] = maxi[1]+w1*0.2;
-	}
-	M.useX11(true,useX11text,500,500,
-		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
-      }
-      M.setX11delay(x11_delay_factor/M.nV());
-    }
-    
-    MeshC MC(&M);
-    MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
-
-    /* If we don't already have a triangulation, we must create one. */
-    if (!TV0)
-      MC.CET(cet_sides,cet_margin);
-
-    /* It is more robust to add the constraints before the rest of the
-       nodes are added.  This allows points to fall onto contraint
-       segments, subdividing them as needed. */
-    if (cdt_boundary.size()>0)
-      MC.CDTBoundary(cdt_boundary);
-    if (cdt_interior.size()>0)
-      MC.CDTInterior(cdt_interior);
-
-    /* Add the rest of the nodes. */
-    vertexListT vertices;
-    for (int v=0;v<nV;v++)
-      vertices.push_back(v);
-    MC.DT(vertices);
-    
-    /* Remove everything outside the boundary segments, if any. */
-    MC.PruneExterior();
-    
-    if (args_info.rcdt_given) {
-      /* Calculate the RCDT: */
-      MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
-	      Quality0.raw(),Quality0.rows());
-    }
-
-    /* Done constructing the triangulation. */
-    /* Calculate and collect output. */
-
-    if ((MC.segments(true)>0) || (args_info.boundary_given>0)) {
-      matrices.attach("segm.bnd",new Matrix<int>(2),
-		      true,fmesh::IOMatrixtype_general);
-      matrices.attach("segm.bnd.grp",new Matrix<int>(1),
-		      true,fmesh::IOMatrixtype_general);
-      MC.segments(true,
-		  &matrices.DI("segm.bnd"),
-		  &matrices.DI("segm.bnd.grp"));
       
-      matrices.output("segm.bnd").output("segm.bnd.grp");
-    }
-
-    if ((MC.segments(false)>0) || (args_info.interior_given>0)) {
-      matrices.attach("segm.int",new Matrix<int>(2),
-		      true,fmesh::IOMatrixtype_general);
-      matrices.attach("segm.int.grp",new Matrix<int>(1),
-		      true,fmesh::IOMatrixtype_general);
-      MC.segments(false,
-		  &matrices.DI("segm.int"),
-		  &matrices.DI("segm.int.grp"));
+      Point mini(S0(0));
+      Point maxi(S0(0));
+      for (int v=1; v<nV; v++)
+	for (int i=0; i<3; i++) {
+	  mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
+	  maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
+	}
+      Point sz;
+      fmesh::Vec::diff(sz,maxi,mini);
+      double diam;
+      diam = (sz[1] < sz[0]
+	      ? (sz[2] < sz[0] ? sz[0] : sz[2])
+	      : (sz[2] < sz[1] ? sz[1] : sz[2]));
       
-      matrices.output("segm.int").output("segm.int.grp");
-    }
-
+      for (int i=0; i<Quality0.rows(); i++) {
+	if (Quality0[i][0]<0.0) {
+	  /* Rudimentary relative biglimit construction: */
+	  Quality0(i,0) = diam/std::sqrt(nV)*(-Quality0[i][0]);
+	}
+      }
+      
+      if (useX11) {
+	if (issphere) {
+	  if (args_info.x11_zoom_given==0) {
+	    x11_zoom[0] = -1.1;
+	    x11_zoom[1] = 1.1;
+	    x11_zoom[2] = -1.1;
+	    x11_zoom[3] = 1.1;
+	  }
+	  M.useX11(true,useX11text,500,500,
+		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
+	} else {
+	  double w0 = maxi[0]-mini[0];
+	  double w1 = maxi[1]-mini[0];
+	  if (args_info.x11_zoom_given==0) {
+	    x11_zoom[0] = mini[0]-w0*0.2;
+	    x11_zoom[1] = maxi[0]+w0*0.2;
+	    x11_zoom[2] = mini[1]-w1*0.2;
+	    x11_zoom[3] = maxi[1]+w1*0.2;
+	  }
+	  M.useX11(true,useX11text,500,500,
+		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
+	}
+	M.setX11delay(x11_delay_factor/M.nV());
+      }
+      
+      MeshC MC(&M);
+      MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
+      
+      /* If we don't already have a triangulation, we must create one. */
+      if (!TV0)
+	MC.CET(cet_sides,cet_margin);
+      
+      /* It is more robust to add the constraints before the rest of the
+	 nodes are added.  This allows points to fall onto contraint
+	 segments, subdividing them as needed. */
+      if (cdt_boundary.size()>0)
+	MC.CDTBoundary(cdt_boundary);
+      if (cdt_interior.size()>0)
+	MC.CDTInterior(cdt_interior);
+      
+      /* Add the rest of the nodes. */
+      vertexListT vertices;
+      for (int v=0;v<nV;v++)
+	vertices.push_back(v);
+      MC.DT(vertices);
+      
+      /* Remove everything outside the boundary segments, if any. */
+      MC.PruneExterior();
+      
+      if (args_info.rcdt_given) {
+	/* Calculate the RCDT: */
+	MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
+		Quality0.raw(),Quality0.rows());
+      }
+      
+      /* Done constructing the triangulation. */
+      /* Calculate and collect output. */
+      
+      if ((MC.segments(true)>0) || (args_info.boundary_given>0)) {
+	matrices.attach("segm.bnd",new Matrix<int>(2),
+			true,fmesh::IOMatrixtype_general);
+	matrices.attach("segm.bnd.grp",new Matrix<int>(1),
+			true,fmesh::IOMatrixtype_general);
+	MC.segments(true,
+		    &matrices.DI("segm.bnd"),
+		    &matrices.DI("segm.bnd.grp"));
+	
+	matrices.output("segm.bnd").output("segm.bnd.grp");
+      }
+      
+      if ((MC.segments(false)>0) || (args_info.interior_given>0)) {
+	matrices.attach("segm.int",new Matrix<int>(2),
+			true,fmesh::IOMatrixtype_general);
+	matrices.attach("segm.int.grp",new Matrix<int>(1),
+			true,fmesh::IOMatrixtype_general);
+	MC.segments(false,
+		    &matrices.DI("segm.int"),
+		    &matrices.DI("segm.int.grp"));
+	
+	matrices.output("segm.int").output("segm.int.grp");
+      }
+      
     }
     
-    if (false) {
-    if (oprefix != "-") {
-      print_M_old(oprefix+"S.dat",M.S());
-      print_M_old(oprefix+"FV.dat",M.TV());
-    }
-    }
-
     matrices.attach("tt",&M.TT(),false);
     M.useVT(true);
     matrices.attach("vt",&M.VT(),false);
     M.useTTi(true);
-    matrices.attach("tti",&M.TT(),false);
+    matrices.attach("tti",&M.TTi(),false);
     matrices.attach("vv",new SparseMatrix<int>(M.VV()),
 		    true,fmesh::IOMatrixtype_symmetric);
     
@@ -687,14 +680,6 @@ int main(int argc, char* argv[])
     matrices.output("va");
     matrices.output("ta");
     
-    if (false) {
-    if (oprefix != "-") {
-      print_SM_old(oprefix+"C.dat",C0,fmesh::IOMatrixtype_diagonal);
-      print_SM_old(oprefix+"G.dat",G,fmesh::IOMatrixtype_symmetric);
-      print_SM_old(oprefix+"K.dat",K,fmesh::IOMatrixtype_general);
-    }
-    }
-    
     SparseMatrix<double> C0inv = inverse(C0,true);
     SparseMatrix<double> tmp = G*C0inv;
     SparseMatrix<double>* a;
@@ -708,14 +693,6 @@ int main(int argc, char* argv[])
       *b = tmp*(*a);
       matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
       matrices.output(Gname);
-      
-      if (false) {
-      if (oprefix != "-") {
-	Gname = "G"+ss.str();
-	print_SM_old(oprefix+Gname+".dat",*b,
-		     fmesh::IOMatrixtype_symmetric);
-      }
-      }
     }
     tmp = C0inv*K;
     b = &K;
@@ -728,14 +705,6 @@ int main(int argc, char* argv[])
       *b = (*a)*tmp;
       matrices.matrixtype(Kname,fmesh::IOMatrixtype_general);
       matrices.output(Kname);
-      
-      if (false) {
-      if (oprefix != "-") {
-	Kname = "K"+ss.str();
-	print_SM_old(oprefix+Kname+".dat",*b,
-		     fmesh::IOMatrixtype_general);
-      }
-      }
     }
     
   }
