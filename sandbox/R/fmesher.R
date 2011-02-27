@@ -73,7 +73,7 @@ lines.fmesher.segm = function (segm, loc=NULL, ...)
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
 
-    grps = inla.ifelse(is.null(segm$grp), rep(0L,nrow(segm$idx)), grp)
+    grps = inla.ifelse(is.null(segm$grp), rep(0L,nrow(segm$idx)), segm$grp)
     for (grp in unique(grps)) {
         idx = which(grps==grp)
         lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
