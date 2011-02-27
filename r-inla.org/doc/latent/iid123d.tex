@@ -91,7 +91,7 @@ The prior for $\theta$ is {\bf fixed} to be {\tt wishart2d}
 The model \texttt{iid2d}
 is specified as
 \begin{verbatim}
-    y ~ f(i, model="iid2d",n = <length>, param=<param.vector(4 elements)>) + ...
+    y ~ f(i, model="iid2d",n = <length>) + ...
 \end{verbatim}
 and the \texttt{iid2d} model is represented internally as one vector
 of length $n$,
@@ -105,6 +105,10 @@ For this model the argument \texttt{constr=TRUE} is interpreted as
 \begin{displaymath}
     \sum u_{i} = 0, \qquad\text{and}\qquad \sum v_{i} = 0.
 \end{displaymath}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/iid2d.tex}
+
 
 \subsection*{Example}
 In this example we implement the model
@@ -160,7 +164,7 @@ if (TRUE)
     formula = y ~ f(i, model="iid2d", n=N) + f(j,z,copy="i") + zz 
 
     r = inla(formula, data = data.frame(i,j,y,z,zz),
-            control.data=list(initial=10,fixed=TRUE))
+            control.data=list(initial=10,fixed=TRUE),keep=T)
     print(summary(r))
     print(1/diag(cov(yy)))
     print(cor(yy)[1,2])
@@ -185,6 +189,10 @@ where
         R_{11}
     \end{array}\right]
 \end{displaymath}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/iid1d.tex}
+
 
 \subsection*{The case $p=3$}
 
@@ -222,6 +230,9 @@ In this case, the internal representation is given as
 where $n=3m$ is a required argument, and where $(u_{i}, v_{i}, w_{i})$
 are trivariate iid Normal.
 
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/iid3d.tex}
+
 
 \subsection*{Notes}
 
@@ -234,11 +245,11 @@ the precision with parameters
 \end{displaymath}
 hence
 \begin{verbatim}
-    y ~ f(i, model="iid1d", param=c(3, 4))
+    y ~ f(i, model="iid1d", hyper = list(theta=list(param=c(3, 4))))
 \end{verbatim}
 is equivalent to
 \begin{verbatim}
-    y ~ f(i, model="iid", param=c(1.5, 2), prior="loggamma")
+    y ~ f(i, model="iid", hyper = list(theta=list(param=c(1.5, 2), prior="loggamma")))
 \end{verbatim}
 
 

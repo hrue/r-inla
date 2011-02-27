@@ -691,8 +691,7 @@
             tt[[i]] = control.data
         control.data = tt
     } else if (n.family == 1) {
-        if (!inla.is.list.of.lists(control.data))
-            control.data = list(control.data)
+        control.data = list(control.data)
     }
     
     if (length(control.data) == 1 && n.family > 1)
@@ -709,15 +708,20 @@
     
     cont.data = list(list())
     for(i.family in 1:n.family) {
-        cont.data[[i.family]] = inla.set.control.data.default()
-        cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
+        cont.data[[i.family]] = inla.set.control.data.default() 
+        if (n.family == 1) {
+            cont.data[[i.family]][names(control.data)] = control.data
+        } else {
+            cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
+        }
         cont.data[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
-                                     cont.data[[i.family]]$initial,
+                                     cont.data[[i.family]]$hyper, 
+                                     cont.data[[i.family]]$initial, 
                                      cont.data[[i.family]]$fixed,
                                      cont.data[[i.family]]$prior,
                                      cont.data[[i.family]]$param)
     }
-
+    
     ## control results
     cont.result = inla.set.control.results.default()
     cont.result[names(control.results)] = control.results

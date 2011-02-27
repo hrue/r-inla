@@ -263,7 +263,8 @@ typedef enum {
 	P_WISHART2D,
 	P_WISHART3D,
 	P_LOGFLAT, 
-	P_LOGIFLAT, 
+	P_LOGIFLAT,
+	P_NONE, 
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -825,6 +826,8 @@ int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);

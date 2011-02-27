@@ -7,16 +7,20 @@
 \section*{Random walk model of order $2$ (RW2)}
 
 \subsection*{Parametrization}
-The random walk model of order $2$ (RW2) for the Gaussian vector $\mathbf{x}=(x_1,\dots,x_n)$ is constructed assuming independent second-orderincrements:
+The random walk model of order $2$ (RW2) for the Gaussian vector
+$\mathbf{x}=(x_1,\dots,x_n)$ is constructed assuming independent
+second-orderincrements:
 \[
 \Delta^2 x_i = x_i-2\ x_{i+1}+x_{i+2}\sim\mathcal{N}(0,\tau^{-1})
 \]
-The density for $\mathbf{x}$ is derived from its $n-2$ second-order increments as
+The density for $\mathbf{x}$ is derived from its $n-2$ second-order
+increments as
 \begin{eqnarray}
-\pi(\mathbf{x}|\tau) &\propto& \tau^{(n-2)/2} \exp\left\{-\frac{\tau}{2} \sum (\Delta^2 x_i)^2\right\}\\
-& = &\tau^{(n-2)/2}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
+    \pi(\mathbf{x}|\tau) &\propto& \tau^{(n-2)/2} \exp\left\{-\frac{\tau}{2} \sum (\Delta^2 x_i)^2\right\}\\
+    & = &\tau^{(n-2)/2}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
 \end{eqnarray}
-where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure matrix reflecting the neighbourhood structure of the model.
+where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure
+matrix reflecting the neighbourhood structure of the model.
 
 It is also possible to define a {\it cyclic} version of the RW2 model.
 
@@ -26,18 +30,21 @@ The precision parameter $\tau$ is represented as
 \begin{displaymath}
     \theta =\log \tau
 \end{displaymath}
-and the prior is defined on $\theta$. 
+and the prior is defined on $\theta$.
 
 \subsection*{Specification}
 
 The RW2 model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="rw2",values=<values>,cyclic=<TRUE,FALSE>,
-              prior=c(<prior.model.theta>),
-              param=c(<param.prior.theta1>))
 \end{verbatim}
-The (optional) argument {\tt values } is a numeric or factor vector giving the values assumed by the covariate for
- which we want the effect to be estimated. See the example for RW1 for an application. 
+The (optional) argument {\tt values } is a numeric or factor vector
+giving the values assumed by the covariate for which we want the
+effect to be estimated. See the example for RW1 for an application.
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/rw2.tex}
+
 
 \subsection*{Example}
 
@@ -48,16 +55,16 @@ z=seq(0,6,length.out=n)
 y=sin(z)+rnorm(n,mean=0,sd=0.5)
 data=data.frame(y=y,z=z)
 
-formula=y~f(z,model="rw2",prior="loggamma",param=c(1,0.01))
+formula=y~f(z,model="rw2")
 result=inla(formula,data=data,family="gaussian")
 \end{verbatim}
 
 
 \subsection*{Notes}
 
-The RW2 is a intrinsic random field with rank deficiency of 2.
+The RW2 is a intrinsic with rank deficiency 2.
 
-There exist also support to define irregular RW2 models. 
+There model also supports irregular locations or values.
 
 
 \end{document}

@@ -1,38 +1,38 @@
 nrow=20
 ncol=30
 n = nrow*ncol
+s.noise = 1
 
-## two covariates
 zi.mat = matrix(NA,nrow=nrow,ncol=ncol)
 i=1:nrow
 for(j in 1:ncol)
-    zi.mat[i,j] = rnorm(nrow, mean = i, sd=1)
-
-zj.mat = matrix(NA,nrow=nrow,ncol=ncol)
-j=1:ncol
-for(i in 1:nrow)
-    zj.mat[i,j] = rnorm(ncol, mean = j, sd=1)
+    zi.mat[i,j] = 3*exp(-(i-j)^2/4)
 
 ## iid noise
-noise.mat=matrix(rnorm(nrow*ncol, sd=1),nrow,ncol)
+noise.mat=matrix(rnorm(nrow*ncol, sd=s.noise),nrow,ncol)
 
 ## make simulated data with no spatial component
-y.mat = zi.mat + zj.mat + noise.mat
+y.mat = zi.mat + noise.mat
 
 ## convert matrices to the internal representation in INLA
 y = inla.matrix2vector(y.mat)
-zi = inla.matrix2vector(zi.mat)
-zj = inla.matrix2vector(zj.mat)
 node = 1:n
-formula= y ~ 1+zi+zj + f(node, model="matern2d", nu=1, nrow=nrow, ncol=ncol,
-                         param=c(NA,NA,1,1))
-data=data.frame(y=y,node=node,zi=zi,zj=zj)
+formula= y ~ 1+ f(node, model="matern2d", nu=1, nrow=nrow, ncol=ncol,
+        hyper = list(range = list(param =c(1, 1),
+                                  prior = "loggamma",
+                                  initial=1),
+                     prec = list(param=c(1, 1))))
+data=data.frame(y=y,node=node)
 
 ## fit the model
 result=inla(formula, family="gaussian", data=data, verbose=TRUE,
-            control.predictor = list(compute = TRUE))
+        control.predictor = list(compute = TRUE),
+        control.data = list(hyper = list(theta = list(initial = log(1/s.noise^2),
+                                                 fixed = FALSE))),
+        keep=T)
 
-#plot the posterior mean for `predictor' and compare with the truth
-par(mfrow=c(2,1))
-image(zi.mat + zj.mat)
-image(inla.vector2matrix(result$summary.linear.predictor$mean,nrow,ncol))
+## plot the posterior mean for `predictor' and compare with the truth
+dev.new()
+inla.display.matrix(zi.mat + zj.mat)
+dev.new()
+inla.display.matrix(inla.vector2matrix(result$summary.linear.predictor$mean,nrow,ncol))

@@ -53,11 +53,12 @@ the prior are assigned to these quantities.
 The {\tt matern2d} model is specified inside the {\tt f()} function as:
 \begin{verbatim}
 f(<whatever>, model="matern2d",nrow=<n.of rows>,ncol=<n.of columns>,
-              nu = <value for nu, one of 1,2 or 3>,          
-              prior=c(<prior.model.log.tau>, <prior.model.log.range>),
-              param=c(<prior.param.log.tau.1>, <prior.param.log.tau.2>, 
-                      <prior.param.log.range.1>, <prior.param.log.range.2>)
+              nu = <value for nu, one of 1,2 or 3>, hyper = <hyper>)
 \end{verbatim}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/matern2d.tex}
+
 
 \subsection*{Example}
 

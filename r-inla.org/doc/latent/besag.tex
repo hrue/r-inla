@@ -29,14 +29,16 @@ and the prior is defined on $\theta_{1}$.
 
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="besag",graph.file=<graph file name>
-              prior=c(<prior.model.theta1>),
-              param=c(<param.prior.theta1>))
+ f(<whatever>,model="besag",graph.file=<graph file name>, hyper=<hyper>)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
 through the {\tt graph.file} argument.  The structure of this file is
 described below.
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/besag.tex}
+
 
 \subsubsection*{Structure of the graph file}
 
@@ -67,7 +69,7 @@ For examples of application of this model see the {\tt Bym}, {\tt Munich}, {\tt 
 
 \subsection*{Notes}
 
-The besag model is a intrinsic random field.
+The besag model intrinsic with rankdef 1.
 
 The model is modified accordingly is the graph has more than one
 connected components.
