@@ -1,5 +1,6 @@
 \name{mesh.segm}
 \alias{mesh.segm}
+\alias{fmesher.segm}
 \title{
   Create a constraint segment object for fmesher
 }
@@ -67,8 +68,13 @@ segm.int = mesh.segm(loc.int, is.bnd=FALSE)
 
 ## Points to be meshed
 loc = matrix(runif(10*2),10,2)*0.9+0.05
-mesh = inla.mesh(loc, interior=list(segm.bnd, segm.int))
 mesh = inla.mesh(loc, boundary=segm.bnd, interior=segm.int,
                  refine=list())
+plot(mesh)
+
+\dontrun{
+mesh = inla.mesh(loc, interior=list(segm.bnd, segm.int))
+plot(mesh)
+}
 }
 \keyword{ fmesher }
