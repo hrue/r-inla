@@ -73,8 +73,9 @@ lines.fmesher.segm = function (segm, loc=NULL, ...)
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
 
-    for (grp in unique(segm$grp)) {
-        idx = which(segm$grp==grp)
+    grps = inla.ifelse(is.null(segm$grp), rep(0L,nrow(segm$idx)), grp)
+    for (grp in unique(grps)) {
+        idx = which(grps==grp)
         lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
               loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
               type="l",
@@ -108,34 +109,11 @@ plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
 }
 
 
-############################
-##    parse.grid.input = function(grid)
-##    {
-##        default = (list(dims=c(10,10),
-##                        xlim=c(0,1),
-##                        ylim=c(0,1),
-##                        units=""))
-##        for (name in names(grid))
-##            default[name] = grid[name]
-##        return(default)
-##    }
 
-mesh.grid = function(dims=c(2,2), xlim=c(0,1), ylim=c(0,1), x=NULL, y=NULL)
+mesh.grid = function(x=seq(0, 1, length.out=2),
+                     y=seq(0, 1, length.out=2))
 {
-    if (is.null(x)) {
-        x = seq(xlim[1], xlim[2], length.out=dims[1])
-    } else {
-        x = as.vector(x)
-        dims[1] = length(x)
-        xlim = range(x)
-    }
-    if (is.null(y)) {
-        y = seq(ylim[1], ylim[2], length.out=dims[2])
-    } else {
-        y = as.vector(y)
-        dims[2] = length(y)
-        ylim = range(x)
-    }
+    dims = c(length(x), length(y))
     loc = (cbind(rep(x, times = dims[2]),
                  rep(y, each = dims[1])))
     ## Construct grid boundary
