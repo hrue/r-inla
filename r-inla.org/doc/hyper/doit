@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+cat doit.R | R --vanilla --silent
