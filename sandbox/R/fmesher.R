@@ -83,7 +83,7 @@ lines.fmesher.segm = function (segm, loc=NULL, ...)
     }
 }
 
-plot.fmesher = function (mesh, lwd=1, ...)
+plot.fmesher = function (mesh, add=FALSE, lwd=1, ...)
 {
     if (!inherits(mesh, "fmesher"))
         stop("'mesh' bust be an 'fmesher' object.")
@@ -92,11 +92,18 @@ plot.fmesher = function (mesh, lwd=1, ...)
     x = mesh$s[t(idx), 1]
     y = mesh$s[t(idx), 2]
 
-    plot(x,y,type="l", xlim=range(mesh$s[,1]), ylim=range(mesh$s[,2]))
+    if (!add) {
+        plot.new()
+        plot.window(xlim=range(mesh$s[,1]), ylim=range(mesh$s[,2]), "")
+    }
+    lines(x, y, type="l")
     if (!is.null(mesh$segm$bnd))
         lines(mesh$segm$bnd, mesh$s, lwd=lwd+1, ...)
     if (!is.null(mesh$segm$int))
         lines(mesh$segm$int, mesh$s, lwd=lwd+1, ...)
+    if (!add)
+        title("Constrained refined Delaunay triangulation",
+              deparse(substitute(mesh)))
     return(invisible())
 }
 
