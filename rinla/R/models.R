@@ -471,7 +471,7 @@
                                                  prior = "none",
                                                  param = numeric()
                                                  ), 
-                                         theta5 = list(
+                                         theta6 = list(
                                                  name = "correlation23",
                                                  short.name = "cor23",
                                                  initial = 0,
@@ -1272,6 +1272,16 @@
     if (!is.null(file))
         sink(file)
     
+    tab = "\t"
+    tab2 = paste(tab, "\t",  sep="")
+    tab3 = paste(tab2, "\t",  sep="")
+    tab4 = paste(tab3, "\t",  sep="")
+    tab5 = paste(tab4, "\t",  sep="")
+    tab6 = paste(tab5, "\t",  sep="")
+    tab7 = paste(tab6, "\t",  sep="")
+    tab8 = paste(tab7, "\t",  sep="")
+    
+
     cat("
 \\name{inla.models}
 \\alias{inla.models}
@@ -1286,83 +1296,124 @@ inla.models()
 }\n")
     
     cat("\\value{
-\tValid sections are: ")
+", tab, "Valid sections are: ")
     cat(inla.paste(names(inla.models()),  sep=", "),  "\n")
     cat("
-\t\\describe{
+", tab, "\\describe{
 ")
 
     for(section in names(inla.models())) {
-        cat("\t\t\\item{Section `", section, "'.}{\n",sep="")
-        cat("\t\t\tValid models in this section are:\n")
-        cat("\t\t\t\\describe{\n")
+        cat(tab2, "\\item{Section `", section, "'.}{\n",sep="")
+        cat(tab3, "Valid models in this section are:\n")
+        cat(tab3, "\\describe{\n")
         
         for(model in names(inla.models()[[section]])) {
-            cat("\t\t\t\t\\item{Model `", model, "'.}{",  sep="")
+            cat(tab4, "\\item{Model `", model, "'.}{",  sep="")
 
             if (section != "prior") {
                 nhyper = length(inla.models()[[section]][[model]]$hyper)
                 cat("Number of hyperparmeters are ", nhyper, ".\n", sep="")
                 if (nhyper > 0) {
-                    cat("\t\t\t\t\t\\describe{\n")
+                    cat(tab5, "\\describe{\n")
                     
                     h = inla.models()[[section]][[model]]$hyper
                     nhyper = length(h)
                     if (nhyper > 0) {
                         for(nh in 1:nhyper) {
                             nm = names(h)[nh]
-                            cat("\t\t\t\t\t\t\\item{Hyperparameter `", nm, "'}{\n", sep="")
-                            cat("\t\t\t\t\t\t\t\t\\describe{\n")
+                            cat(tab6, "\\item{Hyperparameter `", nm, "'}{\n", sep="")
+                            cat(tab7, "\\describe{\n")
 
                             for(m in names(h[[nm]])) {
                                 mval = h[[nm]][[m]]
                                 if (is.null(mval))
                                     mval = "NULL"
-                                cat("\t\t\t\t\t\t\t\t\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
+                                cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
                             }
 
-                            cat("\t\t\t\t\t\t\t\t}\n", sep="")
-                            cat("\t\t\t\t\t\t}\n", sep="")
+                            cat(tab7, "}\n", sep="")
+                            cat(tab6, "}\n", sep="")
                         }
-                        cat("\t\t\t\t\t}\n")
+                        cat(tab5, "}\n")
                     }
 
                     h = inla.models()[[section]][[model]]
                     ms = names(h)
                     ms = ms[ ms != "hyper" ]
                     
-                    cat("\t\t\t\t\t\\describe{\n")
-                    cat("\t\t\t\t\t\t\\item{Properties:}{\n", sep="")
-                    cat("\t\t\t\t\t\t\t\\describe{\n", sep="")
+                    cat(tab5, "\\describe{\n")
+                    cat(tab6, "\\item{Properties:}{\n", sep="")
+                    cat(tab7, "\\describe{\n", sep="")
                     
                     for(m in ms) {
                         mval = h[[m]]
                         if (is.null(mval))
                             mval = "NULL"
-                        cat("\t\t\t\t\t\t\t\t\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
+                        cat(tab8, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
                     }
                     
-                    cat("\t\t\t\t\t\t\t}\n")
-                    cat("\t\t\t\t\t\t}\n")
-                    cat("\t\t\t\t\t}\n")
+                    cat(tab7, "}\n")
+                    cat(tab6, "}\n")
+                    cat(tab5, "}\n")
                 }
             } else if (section == "prior") {
                 np = inla.models()[[section]][[model]]$nparameters
-                cat("\t\t\t\t\tNumber of parameters in the prior =", np, "\n")
+                cat(tab5, "Number of parameters in the prior =", np, "\n")
             } else {
                 stop("Should not happen.")
             }
                 
-            cat("\t\t\t\t}\n")
+            cat(tab4, "}\n")
         }
-        cat("\t\t\t}\n")
-        cat("\t\t}\n")
+        cat(tab3, "}\n")
+        cat(tab2, "}\n")
     }
 
-    cat("\t} \n")
+    cat(tab, "} \n")
     cat("} \n")
 
     if (!is.null(file))
         sink()
 
+}
+
+`inla.models.generate.tex` = function(a.list = inla.models(), file = NULL)
+{
+    my.doit.recursively = function(a.list, level = 0L)
+    {
+        if (level == 0L)
+            cat("\\begin{description}\n")
+
+        tab = inla.paste(rep("\t", level + 1L))
+
+        for(nm in names(a.list)) {
+            if (is.list(a.list[[nm]])) {
+                if (length(a.list[[nm]]) > 0) {
+                    cat(tab, "\\item[", nm, "]\\ ", "\n", sep="")
+                    cat(tab, "\\begin{description}\n")
+                    my.doit.recursively(a.list[[nm]], level + 1L)
+                    cat(tab, "\\end{description}\n")
+                } else {
+                    cat(tab, "\\item[", nm, "]\\ ", "\n", sep="")
+                }
+            } else {
+                val = a.list[[nm]]
+                cat(tab, "\\item[", nm, "]", as.character(enquote(a.list[[nm]]))[-1], "\n")
+            }
+        }
+
+        if (level == 0L)
+            cat("\\end{description}\n")
+    }
+
+    ##
+    ##
+    
+    if (!is.null(file))
+        sink(file)
+    
+    my.doit.recursively(a.list)
+    
+    if (!is.null(file))
+        sink()
 }
