@@ -67,7 +67,7 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
 }
 
 
-plot.fmesher.segm = function (segm, loc=NULL)
+lines.fmesher.segm = function (segm, loc=NULL, ...)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
@@ -75,12 +75,29 @@ plot.fmesher.segm = function (segm, loc=NULL)
 
     for (grp in unique(segm$grp)) {
         idx = which(segm$grp==grp)
-        lines(loc[t(cbind(segm$idx[idx,,drop=FALSE], NA)), 1],
-              loc[t(cbind(segm$idx[idx,,drop=FALSE], NA)), 2],
+        lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
+              loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
               type="l",
               col=c("black", "blue", "red", "green")[1+(grp%%4)],
-              lwd=5)
+              ...)
     }
+}
+
+plot.fmesher = function (mesh, lwd=1, ...)
+{
+    if (!inherits(mesh, "fmesher"))
+        stop("'mesh' bust be an 'fmesher' object.")
+
+    idx = cbind(mesh$tv[,c(1:3,1), drop=FALSE], NA)
+    x = mesh$s[t(idx), 1]
+    y = mesh$s[t(idx), 2]
+
+    plot(x,y,type="l", xlim=range(mesh$s[,1]), ylim=range(mesh$s[,2]))
+    if (!is.null(mesh$segm$bnd))
+        lines(mesh$segm$bnd, mesh$s, lwd=lwd+1, ...)
+    if (!is.null(mesh$segm$int))
+        lines(mesh$segm$int, mesh$s, lwd=lwd+1, ...)
+    return(invisible())
 }
 
 
@@ -96,16 +113,24 @@ plot.fmesher.segm = function (segm, loc=NULL)
 ##        return(default)
 ##    }
 
-mesh.grid = function(dims=c(11,11), xlim=c(0,1), ylim=c(0,1))
+mesh.grid = function(dims=c(2,2), xlim=c(0,1), ylim=c(0,1), x=NULL, y=NULL)
 {
-    loc = (cbind(rep(seq(xlim[1],
-                         xlim[2],
-                         length.out=dims[1]),
-                     times = dims[2]),
-                 rep(seq(ylim[1],
-                         ylim[2],
-                         length.out=dims[2]),
-                     each = dims[1])))
+    if (is.null(x)) {
+        x = seq(xlim[1], xlim[2], length.out=dims[1])
+    } else {
+        x = as.vector(x)
+        dims[1] = length(x)
+        xlim = range(x)
+    }
+    if (is.null(y)) {
+        y = seq(ylim[1], ylim[2], length.out=dims[2])
+    } else {
+        y = as.vector(y)
+        dims[2] = length(y)
+        ylim = range(x)
+    }
+    loc = (cbind(rep(x, times = dims[2]),
+                 rep(y, each = dims[1])))
     ## Construct grid boundary
     segm.idx = (c(1:(dims[1]-1),
                   dims[1]*(1:(dims[2]-1)),
@@ -424,16 +449,41 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     return(mesh)
 }
 
-`summary.fmesher` = function(x, ...)
+`summary.fmesher` = function(x, verbose=FALSE, ...)
 {
     ## provides a summary for a mesh object
     if (!inherits(x, "fmesher"))
         stop("'x' must inherit from class \"fmesher\"")
 
-    ret = list()
-    ret = c(ret, list(call=x$meta$call))
-    ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
-    ret = c(ret, list(mesh=x))
+    ret = list(verbose=verbose)
+    if (verbose) {
+        ret = c(ret, list(call=x$meta$call))
+        ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
+    }
+    ret = c(ret, list(nV=nrow(mesh$s)))
+    ret = c(ret, list(nT=nrow(mesh$tv)))
+    ret = c(ret, list(xlim=range(mesh$s[,1])))
+    ret = c(ret, list(ylim=range(mesh$s[,2])))
+    ret = c(ret, list(zlim=range(mesh$s[,3])))
+
+    my.segm = function(x) {
+        if (is.null(x))
+            return(list(n=0, grps=NULL))
+        n = max(0, nrow(x$idx))
+        if (max(0, length(unique(x$grp)))>0) {
+            grps = unique(x$grp)
+        } else {
+            grps = NULL
+        }
+        return(list(n=n, grps=grps))
+    }
+    if(!is.null(x$segm)) {
+        ret = c(ret, list(segm.bnd=my.segm(x$segm$bnd)))
+        ret = c(ret, list(segm.int=my.segm(x$segm$int)))
+    } else {
+        ret = c(ret, list(segm.bnd=my.segm(NULL)))
+        ret = c(ret, list(segm.int=my.segm(NULL)))
+    }
 
     class(ret) <- "summary.fmesher"
     return (ret)
@@ -444,41 +494,39 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (!inherits(x, "summary.fmesher"))
         stop("'x' must inherit from class \"summary.fmesher\"")
 
-    cat("\nCall:\n", deparse(x$call), "\n", sep = "")
+    if (x$verbose) {
+        cat("\nCall:\n")
+        print(x$call)
 
-    cat("\nfmesher arguments:\n", x$fmesher.args, "\n", sep = "")
-
-    if(!is.null(x$mesh)) {
-        cat("\nVertices:\t", as.character(nrow(x$mesh$s)), "\n", sep="")
-        cat("Triangles:\t", as.character(nrow(x$mesh$tv)), "\n", sep="")
-        cat("\n")
-    } else {
-        cat("\nThe mesh is empty\n\n")
+        cat("\nfmesher arguments:\n", x$fmesher.args, "\n", sep = "")
     }
 
-    if(!is.null(x$mesh$segm)) {
-        my.print.segm = function(x) {
-            cat(as.character(max(0,nrow(x$idx))))
-            if (max(0,length(unique(x$grp)))>0) {
-                cat(" (groups:",
-                    unique(x$grp),
-                    ")", sep=" ")
+    cat("\nVertices:\t", as.character(x$nV), "\n", sep="")
+    cat("Triangles:\t", as.character(x$nT), "\n", sep="")
+
+    my.print.segm = function(x) {
+        cat(as.character(x$n))
+        if (!is.null(x$grps)) {
+            n = length(x$grps)
+            cat(" (", n, " group", inla.ifelse(n==1, "", "s"), sep="")
+            if (n <= 10) {
+                cat(":", x$grps, sep=" ")
+            } else {
+                cat(":", x$grps[1:10], "...", sep=" ")
             }
-            cat("\n", sep="")
-            return(invisible())
+            cat(")")
         }
-        if (!is.null(x$mesh$segm$bnd)) {
-            cat("Boundary segments:\t")
-            my.print.segm(x$mesh$segm$bnd)
-        }
-        if (!is.null(x$mesh$segm$int)) {
-            cat("Interior segments:\t")
-            my.print.segm(x$mesh$segm$int)
-        }
-        cat("\n")
-    } else {
-        cat("No segment information\n\n")
+        cat("\n", sep="")
+        return(invisible())
     }
+    cat("Boundary segm.:\t")
+    my.print.segm(x$segm.bnd)
+    cat("Interior segm.:\t")
+    my.print.segm(x$segm.int)
+    cat("xlim:\t", x$xlim[1], " ", x$xlim[2], "\n", sep="")
+    cat("ylim:\t", x$ylim[1], " ", x$ylim[2], "\n", sep="")
+    cat("zlim:\t", x$zlim[1], " ", x$zlim[2], "\n", sep="")
+    cat("\n")
 
 }
 
