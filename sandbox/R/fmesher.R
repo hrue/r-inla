@@ -88,19 +88,19 @@ plot.fmesher = function (mesh, add=FALSE, lwd=1, ...)
     if (!inherits(mesh, "fmesher"))
         stop("'mesh' bust be an 'fmesher' object.")
 
-    idx = cbind(mesh$tv[,c(1:3,1), drop=FALSE], NA)
-    x = mesh$s[t(idx), 1]
-    y = mesh$s[t(idx), 2]
+    idx = cbind(mesh$graph$tv[,c(1:3,1), drop=FALSE], NA)
+    x = mesh$loc[t(idx), 1]
+    y = mesh$loc[t(idx), 2]
 
     if (!add) {
         plot.new()
-        plot.window(xlim=range(mesh$s[,1]), ylim=range(mesh$s[,2]), "")
+        plot.window(xlim=range(mesh$loc[,1]), ylim=range(mesh$loc[,2]), "")
     }
     lines(x, y, type="l")
     if (!is.null(mesh$segm$bnd))
-        lines(mesh$segm$bnd, mesh$s, lwd=lwd+1, ...)
+        lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
     if (!is.null(mesh$segm$int))
-        lines(mesh$segm$int, mesh$s, lwd=lwd+1, ...)
+        lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
     if (!add)
         title("Constrained refined Delaunay triangulation",
               deparse(substitute(mesh)))
@@ -325,9 +325,9 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
-    grid.n = 0
     if (missing(grid) || is.null(grid)) {
         grid = list(loc=NULL, segm=NULL)
+        grid.n = 0
     } else {
         if (!inherits(grid, "fmesher.grid"))
             stop("'grid' must be an 'fmesher.grid' object.")
@@ -345,22 +345,28 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     loc.n = max(0,nrow(loc))
 
     segm = inla.mesh.parse.segm.input(boundary, interior, loc.n+grid.n)
+    segm.n = max(0,nrow(segm$loc))
 
     tmp = filter.locations(rbind(loc, grid$loc, segm$loc), cutoff.distance)
     loc0 = tmp$loc
-    idx = tmp$node.idx
+    idx.all = tmp$node.idx
+    idx = (list(loc = inla.ifelse(loc.n>0, idx.all[1:loc.n], NULL),
+                grid = inla.ifelse(grid.n>0, idx.all[loc.n+(1:grid.n)], NULL),
+                segm = (inla.ifelse(segm.n>0,
+                                    idx.all[loc.n+grid.n+(1:segm.n)],
+                                    NULL))))
 
     ## Remap indices
     if (!is.null(tv)) {
-        tv = matrix(idx[as.vector(tv)], nrow=nrow(tv), ncol=ncol(tv))
+        tv = matrix(idx.all[as.vector(tv)], nrow=nrow(tv), ncol=ncol(tv))
     }
     if (!is.null(segm$bnd)) {
-        segm$bnd$idx = (matrix(idx[as.vector(segm$bnd$idx)],
+        segm$bnd$idx = (matrix(idx.all[as.vector(segm$bnd$idx)],
                                nrow=nrow(segm$bnd$idx),
                                ncol=ncol(segm$bnd$idx)))
     }
     if (!is.null(segm$int)) {
-        segm$int$idx = (matrix(idx[as.vector(segm$int$idx)],
+        segm$int$idx = (matrix(idx.all[as.vector(segm$int$idx)],
                                nrow=nrow(segm$int$idx),
                                ncol=ncol(segm$int$idx)))
     }
@@ -426,18 +432,34 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                                    prefix=prefix))})
 
     ## Read the mesh:
-    mesh = (list(s = inla.read.fmesher.file(paste(prefix, "s", sep="")),
-                 tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep=""))))
+    loc = inla.read.fmesher.file(paste(prefix, "s", sep=""))
+    graph = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
+                  vt = 1L+inla.read.fmesher.file(paste(prefix, "vt", sep="")),
+                  tt = 1L+inla.read.fmesher.file(paste(prefix, "tt", sep="")),
+                  tti = 1L+inla.read.fmesher.file(paste(prefix, "tti", sep="")),
+                  vv = inla.read.fmesher.file(paste(prefix, "vv", sep=""))))
+    graph$tv[graph$tv==0L] = NA
+    graph$vt[graph$vt==0L] = NA
+    graph$tt[graph$tt==0L] = NA
+    graph$tti[graph$tti==0L] = NA
 
     ## Read constraint segment information:
     segm.bnd = (mesh.segm(NULL,
-                          1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
-                          inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep="")),
+                          1L+inla.read.fmesher.file(paste(prefix,
+                                                          "segm.bnd",
+                                                          sep="")),
+                          inla.read.fmesher.file(paste(prefix,
+                                                       "segm.bnd.grp",
+                                                       sep="")),
                           TRUE))
     if (!is.null(segm$int)) {
         segm.int = (mesh.segm(NULL,
-                              1L+inla.read.fmesher.file(paste(prefix, "segm.int", sep="")),
-                              inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep="")),
+                              1L+inla.read.fmesher.file(paste(prefix,
+                                                              "segm.int",
+                                                              sep="")),
+                              inla.read.fmesher.file(paste(prefix,
+                                                           "segm.int.grp",
+                                                           sep="")),
                               FALSE))
     } else {
         segm.int = NULL
@@ -447,9 +469,10 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                               fmesher.args = all.args,
                               time = time.used,
                               prefix = prefix)),
-                 s = mesh$s, tv = mesh$tv,
+                 loc = loc,
+                 graph = graph,
                  segm = list(bnd=segm.bnd, int=segm.int),
-                 node.idx=idx))
+                 idx = idx))
 
     class(mesh) <- "fmesher"
 
@@ -467,11 +490,11 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         ret = c(ret, list(call=x$meta$call))
         ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
     }
-    ret = c(ret, list(nV=nrow(mesh$s)))
-    ret = c(ret, list(nT=nrow(mesh$tv)))
-    ret = c(ret, list(xlim=range(mesh$s[,1])))
-    ret = c(ret, list(ylim=range(mesh$s[,2])))
-    ret = c(ret, list(zlim=range(mesh$s[,3])))
+    ret = c(ret, list(nV=nrow(mesh$loc)))
+    ret = c(ret, list(nT=nrow(mesh$graph$tv)))
+    ret = c(ret, list(xlim=range(mesh$loc[,1])))
+    ret = c(ret, list(ylim=range(mesh$loc[,2])))
+    ret = c(ret, list(zlim=range(mesh$loc[,3])))
 
     my.segm = function(x) {
         if (is.null(x))
