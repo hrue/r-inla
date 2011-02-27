@@ -83,10 +83,10 @@ lines.fmesher.segm = function (segm, loc=NULL, ...)
     }
 }
 
-plot.fmesher = function (mesh, add=FALSE, lwd=1, ...)
+plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
 {
-    if (!inherits(mesh, "fmesher"))
-        stop("'mesh' bust be an 'fmesher' object.")
+    if (!inherits(mesh, "fmesher.mesh"))
+        stop("'mesh' bust be an 'fmesher.mesh' object.")
 
     idx = cbind(mesh$graph$tv[,c(1:3,1), drop=FALSE], NA)
     x = mesh$loc[t(idx), 1]
@@ -474,16 +474,16 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                  segm = list(bnd=segm.bnd, int=segm.int),
                  idx = idx))
 
-    class(mesh) <- "fmesher"
+    class(mesh) <- "fmesher.mesh"
 
     return(mesh)
 }
 
-`summary.fmesher` = function(x, verbose=FALSE, ...)
+`summary.fmesher.mesh` = function(x, verbose=FALSE, ...)
 {
     ## provides a summary for a mesh object
-    if (!inherits(x, "fmesher"))
-        stop("'x' must inherit from class \"fmesher\"")
+    if (!inherits(x, "fmesher.mesh"))
+        stop("'x' must inherit from class \"fmesher.mesh\"")
 
     ret = list(verbose=verbose)
     if (verbose) {
@@ -515,14 +515,14 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         ret = c(ret, list(segm.int=my.segm(NULL)))
     }
 
-    class(ret) <- "summary.fmesher"
+    class(ret) <- "summary.fmesher.mesh"
     return (ret)
 }
 
-`print.summary.fmesher` = function(x, ...)
+`print.summary.fmesher.mesh` = function(x, ...)
 {
-    if (!inherits(x, "summary.fmesher"))
-        stop("'x' must inherit from class \"summary.fmesher\"")
+    if (!inherits(x, "summary.fmesher.mesh"))
+        stop("'x' must inherit from class \"summary.fmesher.mesh\"")
 
     if (x$verbose) {
         cat("\nCall:\n")
@@ -558,69 +558,4 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     cat("zlim:\t", x$zlim[1], " ", x$zlim[2], "\n", sep="")
     cat("\n")
 
-}
-
-
-
-
-diag.sparse = function(a)
-{
-    b = as.vector(a)
-    n = length(b)
-    return(sparseMatrix(i=1:n, j=1:n, x=b, dims=c(n,n)))
-}
-
-
-rcbind.sparse.internal = function(..., do.rbind)
-{
-    stopifnot(is.logical(do.rbind))
-    args = list(...)
-    nargs = length(args)
-    if (do.rbind) {
-        dim1 = 1
-        dim2 = 2
-    } else {
-        dim1 = 2
-        dim2 = 1
-    }
-
-    i = c()
-    j = c()
-    x = c()
-    dims = c(0,0)
-    for (k in 1:nargs) {
-        if (inherits(args[[k]],"dgTMatrix")) {
-            temp = args[[k]]
-        } else if (inherits(args[[k]],"Matrix") ||
-                   inherits(args[[k]],"matrix")) {
-            temp = as(args[[k]],"dgTMatrix")
-        } else {
-            stop("Don't know how to convert argument ",k,
-                 " to a sparse matrix object.")
-        }
-        i = c(i, temp@i+dims[dim1]*do.rbind)
-        j = c(j, temp@j+dims[dim1]*(!do.rbind))
-        x = c(x, temp@x)
-        dims[dim1] = dims[dim1] + temp@Dim[dim1]
-        if (dims[dim2]==0) {
-            dims[dim2] = temp@Dim[dim2]
-        } else {
-            if (dims[dim2] != temp@Dim[dim2])
-                stop("number of ",
-                     inla.ifelse(do.rbind, "columns", "rows"),
-                     " of matrices must match (see arg ",k,")")
-        }
-    }
-    return (sparseMatrix(i=i+1L, j=j+1L, x=x, dims=dims))
-}
-
-
-rbind.sparse = function(...)
-{
-    return(rcbind.sparse.internal(...,do.rbind=TRUE))
-}
-
-cbind.sparse = function(...)
-{
-    return(rcbind.sparse.internal(...,do.rbind=FALSE))
 }
