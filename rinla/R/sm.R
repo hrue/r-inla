@@ -6,12 +6,12 @@
 
     if (is.character(A)) {
         Am = read.table(A, col.names = c("i", "j", "Aij"))
-        if (min(A$i) == 0 || min(A$j) == 0) {
+        if (min(Am$i) == 0 || min(Am$j) == 0) {
             cindex = 1
         } else {
             cindex = 0
         }
-        return (c(max(A$i) + cindex, max(A$j) + cindex))
+        return (c(max(Am$i) + cindex, max(Am$j) + cindex))
     } else {
         return (dim(A))
     }

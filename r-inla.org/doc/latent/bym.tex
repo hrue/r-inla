@@ -27,14 +27,16 @@ and the prior is defined on $\mathbf{\theta}$.
 
 The bym model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="bym",graph.file=<graph file name>
-              prior=c(<prior.model.theta1>,<prior.model.theta2>),
-              param=c(<param.prior.theta1>,<param.prior.theta1>,<param.prior.theta2>,<param.prior.theta2>,))
+ f(<whatever>,model="bym",graph.file=<graph file name>, hyper=<hyper>)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
 through the {\tt graph.file} argument.  The structure of this file is
 described below.
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/bym.tex}
+
 
 \subsubsection*{Structure of the graph file}
 

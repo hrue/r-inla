@@ -408,6 +408,7 @@
     }
     
     nm = paste(sys.call()[2])
+
     f = paste("inla.set.", nm, ".default()", sep="")
     elms = names(inla.eval(f))
 

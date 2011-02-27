@@ -25,8 +25,7 @@ data=data.frame(y=y,z=z,node=node)
 result=inla(formula, family="gaussian", data=data)
 
 #plot the posterior mean for `node' with the truth
-par(mfrow=c(2,1))
-image(s.mat)
-image(inla.vector2matrix(result$summary.random$node$mean,nrow,ncol))
-
-
+dev.new()
+inla.display.matrix(s.mat)
+dev.new()
+inla.display.matrix(inla.vector2matrix(result$summary.random$node$mean,nrow,ncol))

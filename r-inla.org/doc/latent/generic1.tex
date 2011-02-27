@@ -28,10 +28,7 @@ and priors are assigned to $(\theta_1,\theta_2)$
 
 The generic1 model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="generic1",Cmatrix = <Cmat>,
-              prior=c(<prior.model.theta1>,<prior.model.theta2>),
-              param=c(<param.prior.theta1>,<param.prior.theta1>,
-                      <param.prior.theta2>,<param.prior.theta2>))
+ f(<whatever>,model="generic1",Cmatrix = <Cmat>, hyper = <hyper>)
 \end{verbatim}
 where {\tt <Cmat>} can be given in two different ways:
 \begin{itemize}
@@ -47,6 +44,10 @@ where {\tt <Cmat>} can be given in two different ways:
     matrix. Only the non-zero elements of the precision matrix need to
     be stored in the file.
 \end{itemize}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/generic1.tex}
+
 
 \subsection*{Example}
 \begin{verbatim}
@@ -84,16 +85,13 @@ for(i in 1:n)
         for(j in (i+1):n)
             cat(i, j, Cm[i,j], "\n", sep = " ", file=file, append=TRUE)
 }
-formula = y ~ f(idx, model = "generic1", Cmatrix = file,
-                initial=c(0,0),fixed=c(F,F) ) + z
+formula = y ~ f(idx, model = "generic1", Cmatrix = file) + z
 
 ## Alternative 2
-## formula = y ~ f(idx, model = "generic1", Cmatrix = Cm,
-##                 initial=c(0,0),fixed=c(F,F) ) + z
+## formula = y ~ f(idx, model = "generic1", Cmatrix = Cm) + z
 
 ## Alternative 3
-## formula = y ~ f(idx, model = "generic1", Cmatrix = as(Cm, "dgTMatrix"),
-##                 initial=c(0,0),fixed=c(F,F) ) + z
+## formula = y ~ f(idx, model = "generic1", Cmatrix = as(Cm, "dgTMatrix"))+z
 
 ###############################################################
 

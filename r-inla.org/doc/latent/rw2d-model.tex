@@ -76,9 +76,12 @@ assigned to $\log\tau$.
 The {\tt rw2d} model is specified insiede the {\tt f()} function as:
 \begin{verbatim}
 f(<whatever>,model="rw2d",nrow=<n.of rows>,ncol=<n.of columns>,
-             prior=<prior.model.theta>,
-             param=c(<param.prior.theta>))
+                          hyper= <hyper>
 \end{verbatim}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/rw2d.tex}
+
 \subsection*{Example}
 
 \verbatiminput{rw2d-example.R}

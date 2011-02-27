@@ -3720,6 +3720,14 @@ int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR4", "PARAMETERS4", default_prior);
 }
+int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR5", "PARAMETERS5", default_prior);
+}
+int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR6", "PARAMETERS6", default_prior);
+}
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *default_prior)
 {
 	char *secname = NULL, *param = NULL;
@@ -3971,6 +3979,13 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 	} else if (!strcasecmp(prior->name, "LOGIFLAT")) {
 		prior->id = P_LOGIFLAT;
 		prior->priorfunc = priorfunc_logiflat;
+		prior->parameters = NULL;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
+		}
+	} else if (!strcasecmp(prior->name,  "NONE")) {
+		prior->id = P_NONE;
+		prior->priorfunc = NULL;
 		prior->parameters = NULL;
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
@@ -6845,7 +6860,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_IID2D:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART2D");
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART2D");
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE");
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE");
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE");
 		if (mb->f_prior[mb->nf][0].id != P_WISHART2D) {
 			char *m;
 			GMRFLib_sprintf(&m, "Model=[IID2D] needs prior=[WISHART2D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
@@ -6855,7 +6873,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_IID3D:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART3D");
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART3D");
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE");
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE");
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE");
+		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE");
+		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE");
+		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "NONE");
 		if (mb->f_prior[mb->nf][0].id != P_WISHART3D) {
 			char *m;
 			GMRFLib_sprintf(&m, "Model=[IID3D] needs prior=[WISHART3D], you have prior=[%s]", mb->f_prior[mb->nf]->name);

@@ -26,9 +26,7 @@ and prior is assigned to $\theta$
 
 The generic0 models is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="generic0",Cmatrix = <Cmat>,
-              prior=c(<prior.model.theta>),
-              param=c(<param.prior.theta1>))
+ f(<whatever>,model="generic0",Cmatrix = <Cmat>, hyper = <hyper>)
 \end{verbatim}
 
 
@@ -47,6 +45,11 @@ where {\tt <Cmat>} can be given in two different ways:
     be stored in the file.  
 \end{itemize}
 See the following example for an application
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/generic0.tex}
+
+
 
 \subsection*{Example}
 In the example below we define a RW1 model first using the {\tt
