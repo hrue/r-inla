@@ -31,17 +31,18 @@ and the prior is defined on $\mathbf{\theta}$.
 The seasonal model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="seasonal",season.length=<season.length>,
-              prior=c(<prior.model.theta>),
-              param=c(<param.prior.theta1>))
+              hyper = <hyper>)
 \end{verbatim}
  
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/seasonal.tex}
+
+
 \subsection*{Example}
 
 \begin{verbatim}
-
 n=203
 n.seas=12
-
 trend=seq(1:n)
 seasonal=rep(1:n.seas, ceiling(n/n.seas))[1:n]
 
@@ -52,14 +53,14 @@ y = rnorm(n,a+b*trend,1)+rnorm(n,0.2*seasonal,1)
 data=data.frame(y=y,trend=trend,seasonal=trend)
 
 formula = y~f(trend,model="rw2")+f(seasonal,model="seasonal",
-              season.length=n.seas,param=c(1,0.1))
+              season.length=n.seas)
 result=inla(formula,family="gaussian",data=data)
 \end{verbatim}
 
 
 \subsection*{Notes}
 
-The seasonal is a intrinsic random field with rank deficiency of $m-1$.
+The seasonal is intrinsic with rank deficiency $m-1$.
 
 \end{document}
 

@@ -8,10 +8,11 @@
 
 \subsection*{Parametrization}
 
-The autoregressive model of order $1$ (AR1) for the Gaussian vector $\mathbf{x}=(x_1,\dots,x_n)$ is defined as:
+The autoregressive model of order $1$ (AR1) for the Gaussian vector
+$\mathbf{x}=(x_1,\dots,x_n)$ is defined as:
 \begin{eqnarray}\nonumber
-x_1&\sim&\mathcal{N}(0,(\tau(1-\phi^2))^{-1}) \\\nonumber
-x_i&=&\phi\ x_{i-1}+\epsilon_i; \qquad \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
+    x_1&\sim&\mathcal{N}(0,(\tau(1-\phi^2))^{-1}) \\\nonumber
+    x_i&=&\phi\ x_{i-1}+\epsilon_i; \qquad \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
 \end{eqnarray}
 where
 \[
@@ -38,18 +39,19 @@ and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$.
 
 The AR1 model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="ar1",values=<values>,prior=c(<prior.model.theta1>,<prior.model.theta2>),
-              param=c(<param.prior.theta1>,<param.prior.theta1>,
-                      <param.prior.theta2>,<param.prior.theta2>))
+ f(<whatever>, model="ar1", values=<values>, hyper = <hyper>)
 \end{verbatim}
-The (optional) argument {\tt values } is a numeric or factor vector giving the values assumed by the covariate for
- which we want the effect to be estimated. See the example for RW1 for an application. 
+The (optional) argument {\tt values } is a numeric or factor vector
+giving the values assumed by the covariate for which we want the
+effect to be estimated. See the example for RW1 for an application.
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/ar1.tex}
 
 \subsection*{Example}
 
-In this exaple we implement a ar1 model where $\theta_1$ has a log-Gamma prior with parameters 1 and 0.001 and $\theta_2$ has a Gaussian prior with parameters 0 and 0.001
+In this exaple we implement an ar1 model observed with Poisson counts
 \begin{verbatim}
-
 #simulate data
 n = 100
 phi = 0.8
@@ -63,7 +65,7 @@ y=rpois(n,E*exp(eta))
 data = list(y=y,z=1:n)
 
 ## fit the model
-formula = y~f(z,model="ar1",prior=c("loggamma","gaussian"),param=c(1,0.001,0,0.001))
+formula = y~f(z,model="ar1")
 result = inla(formula,family="poisson", data = data)
 \end{verbatim}
 

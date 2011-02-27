@@ -8,26 +8,31 @@
 
 \subsection*{Parametrization}
 
-This model simply defines $\mathcal{x}$ to be a vector of independent and Gaussian distributed random variable with precision $\tau$:
+This model simply defines $\mathcal{x}$ to be a vector of independent
+and Gaussian distributed random variable with precision $\tau$:
 \[
-\pi(\mathbf{x}|\tau) \propto \tau^{n/2}\exp\left\{  -\frac{\tau}{2}\mathbf{x}^T\mathbf{I}\mathbf{x} \right\}
+\pi(\mathbf{x}|\tau) \propto \tau^{n/2}\exp\left\{
+  -\frac{\tau}{2}\mathbf{x}^T\mathbf{I}\mathbf{x} \right\}
 \]
-where $\mathbf{I}$  is the identity matrix.
+where $\mathbf{I}$ is the identity matrix.
 \subsection*{Hyperparameters}
 
 The precision parameter $\tau$ is represented as
 \begin{displaymath}
     \theta =\log \tau
 \end{displaymath}
-and the prior is defined on $\mathbf{\theta}$. 
+and the prior is defined on $\mathbf{\theta}$.
 
 \subsection*{Specification}
 
 The independent model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="iid",prior=c(<prior.model.theta>),
-              param=c(<param.prior.theta>))
+ f(<whatever>,model="iid", hyper = <hyper>)
 \end{verbatim}
+
+\subsubsection*{Hyperparameter spesification and defaults}
+\input{../hyper/latent/iid.tex}
+
 \subsection*{Example}
 
 \begin{verbatim}
@@ -39,7 +44,8 @@ y = rbinom(n, size=Ntrials, prob = prob)
 
 data=data.frame(y=y,z=1:n)
 
-formula=y~f(z,model="iid",prior="loggamma",param=c(1,0.01))
+formula=y~f(z,model="iid",
+           hyper=list(theta=list(prior="loggamma",param=c(1,0.01))))
 result=inla(formula,data=data,family="binomial",Ntrials=Ntrials)
 \end{verbatim}
 
