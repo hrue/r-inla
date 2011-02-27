@@ -1,5 +1,6 @@
 \name{mesh.grid}
 \alias{mesh.grid}
+\alias{fmesher.grid}
 \title{
   Construct a lattice grid for fmesher
 }
@@ -58,6 +59,7 @@ mesh = inla.mesh(grid = grid, boundary=grid$segm)
 mesh = inla.mesh(grid = grid, extend=FALSE)
 plot(mesh)
 
+\dontrun{
 ## Refine the triangulation, with limits on triangle angles and edges:
 mesh = inla.mesh(grid = grid, refine=list(max.edge=0.08), extend=FALSE)
 plot(mesh)
@@ -69,7 +71,7 @@ plot(mesh)
 ## Only add extension:
 mesh = inla.mesh(grid = grid, refine=list(max.edge=0.08))
 plot(mesh)
-
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
