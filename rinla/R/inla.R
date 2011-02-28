@@ -1156,7 +1156,7 @@
                     cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
 
                     ## check that not do anything we will regret
-                    i.cov = is.na(cov)
+                    i.cov = is.na(match(xx, location[[r]]))
                     i.xx = is.na(xx)
                     if (!all(i.cov == i.xx)) {
                         stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
@@ -1172,7 +1172,7 @@
                     cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
 
                     ## check that not do anything we will regret
-                    i.cov = is.na(cov)
+                    i.cov = is.na(match(xx, location[[r]]))
                     i.xx = is.na(xx)
                     if (!all(i.cov == i.xx)) {
                         stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
