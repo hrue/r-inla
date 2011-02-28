@@ -15,8 +15,7 @@
 ##!function(..., model=NULL,...)
 ##!}
 ##!\arguments{
-`f` =
-function(
+`f` = function(
          ##!\item{...}{ Name of the covariate and, possibly of the
          ##!weights vector. NB: order counts!!!! The first specified
          ##!term is the covariate and the second one is the vector of
@@ -253,6 +252,30 @@ function(
     }
     inla.is.model(model, "latent", stop.on.error=TRUE)
     
+    ## in ... is the name of the covariate  and possibly the location of the weights
+    ## like f(covariate, weights)
+    vars = as.list(substitute(list(...)))[-1]
+    d = length(vars)
+    term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500)
+    if (debug) {
+        print(vars)
+    }
+    ## the second term in ... is the (possible) weights for the selected covariate!
+    if (d==1) {
+        weights = NULL
+    } else if (d==2) {
+        weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)         
+    } else if (d>2) {
+        stop(paste("To many variables included in f():", inla.paste(vars)))
+    } else if (d==0) {
+        stop("At least one variable in f() needs to be defined")
+    }
+    ## get the weights
+    term = attr(terms(reformulate(term)),"term.labels")
+    if (d > 1) {
+        weigths = attr(terms(reformulate(weights)),"weights.labels")
+    }
+
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent", hyper = hyper, 
             initial = initial, fixed = fixed,  prior = prior,  param = param)
@@ -395,16 +418,14 @@ function(
     }
 
     if (inla.one.of(model, "linear")) {
-        vars = as.list(substitute(list(...)))[-1]
-        d = length(vars)
-        term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500) 
-
         if (d != 1) {
-            stop("Too many or no term specified ")
+            stop("Model = 'linear' do not accept weights. Just set 'z.new = z * weights' as the covariates.")
         }
         term = attr(terms(reformulate(term)),"term.labels")
         ret = list(d=d, term=term, model=model, mean.linear=mean.linear, prec.linear=prec.linear, label=term,
-                cdf=cdf, quantiles = quantiles)
+                cdf=cdf, quantiles = quantiles, compute = compute)
+        ## return here!
+        return (ret)
     }
     
     if (inla.one.of(model, "positive")) {
@@ -428,28 +449,7 @@ function(
         }
     } 
         
-    ## in ... is the name of the covariate  and possibly the location of the weights
-    ## like f(covariate, weights)
-        
-    vars = as.list(substitute(list(...)))[-1]
-    d = length(vars)
-    term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500)
-        
-    if (debug) {
-        print(vars)
-    }
-        
-    ##the second term in ... is the (possible) weights for the selected covariate!
-    if (d==1) {
-        weights = NULL
-    } else if (d==2) {
-        weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)         
-    } else if (d>2) {
-        stop(paste("To many variables included in f():", inla.paste(vars)))
-    } else if (d==0) {
-        stop("At least one variable in f() needs to be defined")
-    }
-        
+
     if (inla.one.of(model,"seasonal") &&
        is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
@@ -502,12 +502,6 @@ function(
         }
     }
         
-    ## get the weights
-    term = attr(terms(reformulate(term)),"term.labels")
-    if (d > 1) {
-        weigths = attr(terms(reformulate(weights)),"weights.labels")
-    }
-
     ##for all instrinsic model the constraint has to be ON...
     ##...except if the rw is cyclic!!!!!
     if (is.null(constr)) {
