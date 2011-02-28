@@ -9,7 +9,12 @@
 }
 \usage{
 mesh.grid(x = seq(0, 1, length.out=2),
-          y = seq(0, 1, length.out=2))
+          y = seq(0, 1, length.out=2),
+          z = NULL,
+          dims = (inla.ifelse(is.matrix(x),
+                              dim(x),
+                              c(length(x), length(y)))),
+          units = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,6 +22,15 @@ mesh.grid(x = seq(0, 1, length.out=2),
 %%     ~~Describe \code{x} here~~
 }
   \item{y}{
+%%     ~~Describe \code{y} here~~
+}
+  \item{z}{
+%%     ~~Describe \code{y} here~~
+}
+  \item{dims}{
+%%     ~~Describe \code{y} here~~
+}
+  \item{units}{
 %%     ~~Describe \code{y} here~~
 }
 }
