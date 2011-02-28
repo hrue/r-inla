@@ -1154,11 +1154,33 @@
                     ## no sort for values here, since they are given as they should be !!!!
                     location[[r]] = unique(gp$random.spec[[r]]$values)
                     cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+
+                    ## check that not do anything we will regret
+                    i.cov = is.na(cov)
+                    i.xx = is.na(xx)
+                    if (!all(i.cov == i.xx)) {
+                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
+                                   sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
+                                   ". This is not what you want. Use NA values in the covariate!",
+                                   sep=""))
+                    }
+                    
                     cov[is.na(cov)] = -1
                     covariate[[r]] = cov
                 } else {
                     location[[r]] = sort(unique(xx))
                     cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+
+                    ## check that not do anything we will regret
+                    i.cov = is.na(cov)
+                    i.xx = is.na(xx)
+                    if (!all(i.cov == i.xx)) {
+                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
+                                   sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
+                                   ". This is not what you want. Use NA values in the covariate!",
+                                   sep=""))
+                    }
+
                     cov[is.na(cov)] = -1
                     covariate[[r]] = cov
                 }
