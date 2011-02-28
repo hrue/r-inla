@@ -544,29 +544,25 @@ int main(int argc, char* argv[])
       /* Done constructing the triangulation. */
       /* Calculate and collect output. */
       
-      if ((MC.segments(true)>0) || (args_info.boundary_given>0)) {
-	matrices.attach("segm.bnd",new Matrix<int>(2),
-			true,fmesh::IOMatrixtype_general);
-	matrices.attach("segm.bnd.grp",new Matrix<int>(1),
-			true,fmesh::IOMatrixtype_general);
-	MC.segments(true,
-		    &matrices.DI("segm.bnd"),
-		    &matrices.DI("segm.bnd.grp"));
-	
-	matrices.output("segm.bnd").output("segm.bnd.grp");
-      }
+      matrices.attach("segm.bnd",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.bnd.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(true,
+		  &matrices.DI("segm.bnd"),
+		  &matrices.DI("segm.bnd.grp"));
       
-      if ((MC.segments(false)>0) || (args_info.interior_given>0)) {
-	matrices.attach("segm.int",new Matrix<int>(2),
-			true,fmesh::IOMatrixtype_general);
-	matrices.attach("segm.int.grp",new Matrix<int>(1),
-			true,fmesh::IOMatrixtype_general);
-	MC.segments(false,
-		    &matrices.DI("segm.int"),
-		    &matrices.DI("segm.int.grp"));
-	
-	matrices.output("segm.int").output("segm.int.grp");
-      }
+      matrices.output("segm.bnd").output("segm.bnd.grp");
+      
+      matrices.attach("segm.int",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.int.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(false,
+		  &matrices.DI("segm.int"),
+		  &matrices.DI("segm.int.grp"));
+      
+      matrices.output("segm.int").output("segm.int.grp");
       
     }
     

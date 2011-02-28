@@ -18,7 +18,7 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
         if (!is.vector(idx) && !is.matrix(idx))
             stop("'idx' must be a vector or a matrix")
         if (is.vector(idx))
-            idx = as.matrix(idx,nrow=length(idx),ncol=1)
+            idx = as.matrix(idx, nrow=length(idx), ncol=1)
         if (ncol(idx)==1) {
             if (nrow(idx)<2)
                 warning("Segment specification must have at least 2 idxices.")
@@ -111,7 +111,8 @@ plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
 
 
 mesh.grid = function(x=seq(0, 1, length.out=2),
-                     y=seq(0, 1, length.out=2))
+                     y=seq(0, 1, length.out=2),
+                     units=NULL)
 {
     dims = c(length(x), length(y))
     loc = (cbind(rep(x, times = dims[2]),
@@ -121,7 +122,18 @@ mesh.grid = function(x=seq(0, 1, length.out=2),
                   dims[1]*(1:(dims[2]-1)),
                   dims[1]*dims[2]-(0:(dims[1]-2)),
                   dims[1]*((dims[2]-1):1)+1))
-    segm = mesh.segm(loc[segm.idx,, drop=FALSE], is.bnd=TRUE)
+    segm.grp = (c(rep(1L, dims[1]-1),
+                  rep(2L, dims[2]-1),
+                  rep(3L, dims[1]-1),
+                  rep(4L, dims[2]-1)))
+    segm = mesh.segm(loc=loc[segm.idx,, drop=FALSE], grp=segm.grp, is.bnd=TRUE)
+
+    if (identical(units, "longlat")) {
+        ## Transform onto a sphere
+        loc = (cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                     sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                     sin(loc[,2]*pi/180)))
+    }
 
     grid = list(loc=loc, segm=segm)
     class(grid) = "fmesher.grid"
@@ -129,6 +141,33 @@ mesh.grid = function(x=seq(0, 1, length.out=2),
 }
 
 
+## R.methodsS3
+setMethodS3("extract.groups", "fmesher.segm", conflict="quiet",
+            function(segm, groups, groups.new=groups, ...)
+{
+    if (!inherits(segm, "fmesher.segm"))
+        stop("'mesh' must inherit from class \"fmesher.segm\"")
+
+    if (length(groups.new)==1L) {
+        groups.new = rep(groups.new, length(groups))
+    }
+    if (length(groups.new)!=length(groups)) {
+        stop("Length of 'groups.new' (", length(groups.new),
+             ") does not match length of 'groups' (",length(groups),")")
+    }
+
+    idx = c()
+    segm.grp = c()
+    for (k in 1:length(groups)) {
+        extract.idx = which(segm$grp==groups[k])
+        idx = c(idx, extract.idx)
+        segm.grp = c(segm.grp, rep(groups.new[k], length(extract.idx)))
+    }
+    segm.idx = segm$idx[idx,, drop=FALSE]
+
+    return(mesh.segm(loc=segm$loc, idx=segm.idx, grp=segm.grp, segm$is.bnd))
+}
+)
 
 
 inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
@@ -140,17 +179,17 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
             x = (inla.ifelse(is.matrix(x),x,
                              as.matrix(x,nrow=length(x),ncol=1)))
             if (is.integer(x)) { ## Indices
-                ret = mesh.segm(NULL,x,NULL,is.bnd)
+                ret = mesh.segm(NULL, x, NULL, is.bnd)
             } else if (is.numeric(x)) { ## Coordinates
-                ret = mesh.segm(x,NULL,NULL,is.bnd)
+                ret = mesh.segm(x, NULL, NULL, is.bnd)
             } else {
                 stop("Segment info matrix must be numeric or integer.")
             }
         } else if (inherits(x, "fmesher.segm")) {
-            ## Override x$is.bnd
-            ret = mesh.segm(x$loc,x$idx,x$grp,is.bnd)
+            ## Override x$is.bnd:
+            ret = mesh.segm(x$loc, x$idx, x$grp, is.bnd)
         } else if (!is.null(x)) {
-            stop("Segment info must be matrix or 'fmesher.segm' object.")
+            stop("Segment info must inherit from class \"matrix\" or \"fmesher.segm\"")
         } else {
             ret = NULL
         }
@@ -271,11 +310,11 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         for (loc.i in 2:loc.n) {
             loc.to.node.dist =
                 sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*%
-                              loc[loc.i,] -
-                              node.coord[1:node.i.max,])^2))
+                              loc[loc.i,, drop=FALSE] -
+                              node.coord[1:node.i.max,, drop=FALSE])^2))
             if (min(loc.to.node.dist) > cutoff.distance) {
                 node.i.max = node.i.max+1L
-                node.coord[node.i.max,] = loc[loc.i,]
+                node.coord[node.i.max,] = loc[loc.i,, drop=FALSE]
                 map.loc.to.node[[loc.i]] = node.i.max
             } else {
                 excluded = c(excluded, loc.i)
@@ -288,10 +327,10 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         for (loc.i in excluded) {
             loc.to.node.dist =
                 sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*%
-                              loc[loc.i,] -
+                              loc[loc.i,, drop=FALSE] -
                               node.coord)^2))
             node.i = which.min(loc.to.node.dist);
-            map.loc.to.node[loc.i] = node.i
+            map.loc.to.node[[loc.i]] = node.i
         }
 
         return(list(loc = node.coord, node.idx = map.loc.to.node))
@@ -308,7 +347,7 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         grid.n = 0
     } else {
         if (!inherits(grid, "fmesher.grid"))
-            stop("'grid' must be an 'fmesher.grid' object.")
+            stop("'grid' must inherit from class \"fmesher.grid\"")
         if (!is.null(tv)) {
             warning("Both 'grid' and 'tv' specified.  Ignoring 'tv'.")
             tv = NULL
@@ -430,18 +469,14 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                                                        "segm.bnd.grp",
                                                        sep="")),
                           TRUE))
-    if (!is.null(segm$int)) {
-        segm.int = (mesh.segm(NULL,
-                              1L+inla.read.fmesher.file(paste(prefix,
-                                                              "segm.int",
-                                                              sep="")),
-                              inla.read.fmesher.file(paste(prefix,
-                                                           "segm.int.grp",
-                                                           sep="")),
-                              FALSE))
-    } else {
-        segm.int = NULL
-    }
+    segm.int = (mesh.segm(NULL,
+                          1L+inla.read.fmesher.file(paste(prefix,
+                                                          "segm.int",
+                                                          sep="")),
+                          inla.read.fmesher.file(paste(prefix,
+                                                       "segm.int.grp",
+                                                       sep="")),
+                          FALSE))
 
     mesh = (list(meta = (list(call=match.call(),
                               fmesher.args = all.args,
