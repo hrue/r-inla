@@ -61,6 +61,17 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
             grp = grp[-i,,drop=FALSE]
     }
 
+    if (!is.null(loc)) {
+        ## Identify unused locations and remap indices accordingly.
+        idx.new = rep(0L, nrow(loc))
+        idx.new[as.vector(idx)] = 1L
+        loc = loc[idx.new==1L,, drop=FALSE]
+        idx.new[idx.new==1L] = 1L:sum(idx.new)
+        idx = (matrix(idx.new[as.vector(idx)],
+                      nrow=nrow(idx),
+                      ncol=ncol(idx)))
+    }
+
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
     class(ret) <- "fmesher.segm"
     return(ret)
@@ -112,11 +123,30 @@ plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
 
 mesh.grid = function(x=seq(0, 1, length.out=2),
                      y=seq(0, 1, length.out=2),
+                     z=NULL,
+                     dims = (inla.ifelse(is.matrix(x),
+                                         dim(x),
+                                         c(length(x), length(y)))),
                      units=NULL)
 {
-    dims = c(length(x), length(y))
-    loc = (cbind(rep(x, times = dims[2]),
-                 rep(y, each = dims[1])))
+    if (is.matrix(x)) {
+        if (!identical(dims, dim(x)) ||
+            !identical(dims, dim(y)) ||
+            (is.matrix(z) && !identical(dims, dim(z))))
+            stop("The size of matrices 'x', 'y', and 'z' must match 'dims'.")
+        loc = cbind(as.vector(x), as.vector(y), as.vector(z))
+    } else {
+        loc = (cbind(rep(x, times = dims[2]),
+                     rep(y, each = dims[1])))
+    }
+
+    if (identical(units, "longlat")) {
+        ## Transform onto a sphere
+        loc = (cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                     sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                     sin(loc[,2]*pi/180)))
+    }
+
     ## Construct grid boundary
     segm.idx = (c(1:(dims[1]-1),
                   dims[1]*(1:(dims[2]-1)),
@@ -126,14 +156,8 @@ mesh.grid = function(x=seq(0, 1, length.out=2),
                   rep(2L, dims[2]-1),
                   rep(3L, dims[1]-1),
                   rep(4L, dims[2]-1)))
-    segm = mesh.segm(loc=loc[segm.idx,, drop=FALSE], grp=segm.grp, is.bnd=TRUE)
 
-    if (identical(units, "longlat")) {
-        ## Transform onto a sphere
-        loc = (cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
-                     sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
-                     sin(loc[,2]*pi/180)))
-    }
+    segm = mesh.segm(loc=loc[segm.idx,, drop=FALSE], grp=segm.grp, is.bnd=TRUE)
 
     grid = list(loc=loc, segm=segm)
     class(grid) = "fmesher.grid"

@@ -720,13 +720,29 @@ namespace fmesh {
       }
     }
 
-    td = M_->locate_point(ed,M_->S(v),v);
+    Dart ed0 = ed;
+    MESHC_LOG("Trying, starting from dart " << ed0
+	      << " " << M_->S(ed0.v())
+	      << endl);
+    if (M_->type() == Mesh::Mtype_sphere) {
+      MESHC_LOG("PI minus distance to target " <<
+		M_PI - M_->edgeLength(M_->S(v),M_->S(ed0.v())) << endl);
+      if (M_PI - M_->edgeLength(M_->S(v),M_->S(ed0.v())) < 1e-6) {
+	ed0.orbit2();
+	MESHC_LOG("Trying, starting from dart " << ed0
+		  << " " << M_->S(ed0.v())
+		  << endl);
+      }
+    }
+
+    td = M_->locate_point(ed0,M_->S(v),v);
+    MESHC_LOG("Done looking." << endl);
     if (td.isnull()) { /* ERROR, not found! */
       MESHC_LOG("Error, node not found");
       return Dart();
     };
     if (td.v() == v) { /* Node already inserted! */
-      MESHC_LOG("Node already inserted");
+      MESHC_LOG("Node already inserted" << endl);
       return td;
     }
     td = Dart(*M_,td.t());
@@ -1892,19 +1908,23 @@ namespace fmesh {
 
     if (M_->useVT()) { /* Can check if the vertices are present, and
 			  try to add them otherwise. */
-      Dart dh = Dart();
+      MESHC_LOG("CDT: Checking vertex " << v0 << endl);
+      Dart dh = Dart(*M_,0);
       if (M_->VT(v0)==-1) {
 	dh = insertNode(v0,dh);
 	if (dh.isnull()) {
-	  MESHC_LOG_("CDT: Failed to insert node " << v0 << endl << *this);
+	  MESHC_LOG("CDT: Failed to insert node " << v0 << endl << *this);
 	}	
       }
+      MESHC_LOG("CDT: Checked" << endl);
+      MESHC_LOG("CDT: Checking vertex " << v1 << endl);
       if (M_->VT(v1)==-1) {
 	dh = insertNode(v1,dh);
 	if (dh.isnull()) {
-	  MESHC_LOG_("CDT: Failed to insert node " << v1 << endl << *this);
+	  MESHC_LOG("CDT: Failed to insert node " << v1 << endl << *this);
 	}
       }
+      MESHC_LOG("CDT: Checked" << endl);
     }
 
     triangleSetT triangles;
@@ -1939,7 +1959,7 @@ namespace fmesh {
     constrListT::iterator ci_next;
     for (constrListT::iterator ci = constr_boundary_.begin();
 	 ci != constr_boundary_.end(); ) {
-      MESHC_LOG("Trying to add segment: "
+      MESHC_LOG("Trying to add boundary segment: "
 		 << ci->first.first << "," << ci->first.second <<
 		 " group=" << ci->second << endl);
       if (!CDTSegment(true,*ci).isnull()) {
@@ -1955,12 +1975,17 @@ namespace fmesh {
     }
     for (constrListT::iterator ci = constr_interior_.begin();
 	 ci != constr_interior_.end(); ) {
+      MESHC_LOG("Trying to add interior segment: "
+		 << ci->first.first << "," << ci->first.second <<
+		 " group=" << ci->second << endl);
       if (!CDTSegment(false,*ci).isnull()) {
+	MESHC_LOG("Success." << endl);
 	ci_next = ci;
 	ci_next++;
 	ci = constr_interior_.erase(ci);
 	ci = ci_next;
       } else {
+	MESHC_LOG("Failure." << endl);
 	ci++;
       }
     }
