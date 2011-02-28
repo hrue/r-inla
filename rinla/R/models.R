@@ -7,6 +7,19 @@
                  ## latent models
                  latent = list(
 
+                         linear = list(
+                                 hyper = list(
+                                         ),
+                                 constr = FALSE,
+                                 nrow.ncol = FALSE,
+                                 augmented = FALSE,
+                                 aug.factor = 1,
+                                 aug.constr = NULL,
+                                 n.div.by = NULL,
+                                 n.required = FALSE,
+                                 set.default.values = FALSE
+                                 ), 
+                                 
                          iid = list(
                                  hyper = list(
                                          theta = list(
