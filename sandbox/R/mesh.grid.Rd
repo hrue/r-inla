@@ -48,10 +48,6 @@ mesh.grid(x = seq(0, 1, length.out=2),
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
 grid = mesh.grid(seq(0, 1, length.out=17), seq(0, 1, length.out=10))
 
 ## Use the grid "as-is", without refinement:
