@@ -1366,7 +1366,9 @@
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
                         quantiles=gp$random.spec[[r]]$quantiles,
                         prec=gp$random.spec[[r]]$prec.linear,
-                        mean=gp$random.spec[[r]]$mean.linear)
+                        mean=gp$random.spec[[r]]$mean.linear,
+                        compute=gp$random.spec[[r]]$compute)
+                        
                 inla.linear.section(file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
                                     results.dir=paste("fixed.effect", inla.num(gp$n.fix.revised+count.linear), sep=""),
                                     control=cont, only.hyperparam=only.hyperparam)
