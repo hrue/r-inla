@@ -77,6 +77,9 @@ struct gengetopt_args_info
   unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s minimum occurreces */
   unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s maximum occurreces */
   const char *input_help; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. help description.  */
+  double cutoff_arg;	/**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. (default='0.0').  */
+  char * cutoff_orig;	/**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. original value given at command line.  */
+  const char *cutoff_help; /**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. help description.  */
   double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
   char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
   unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
@@ -151,6 +154,7 @@ struct gengetopt_args_info
   unsigned int collect_all_given ;	/**< @brief Whether collect-all was given.  */
   unsigned int ir_given ;	/**< @brief Whether ir was given.  */
   unsigned int input_given ;	/**< @brief Whether input was given.  */
+  unsigned int cutoff_given ;	/**< @brief Whether cutoff was given.  */
   unsigned int cet_given ;	/**< @brief Whether cet was given.  */
   unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
   unsigned int quality_given ;	/**< @brief Whether quality was given.  */
