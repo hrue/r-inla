@@ -388,28 +388,33 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     segm = inla.mesh.parse.segm.input(boundary, interior, loc.n+grid.n)
     segm.n = max(0,nrow(segm$loc))
 
-    tmp = filter.locations(rbind(loc, grid$loc, segm$loc), cutoff.distance)
-    loc0 = tmp$loc
-    idx.all = tmp$node.idx
-    idx = (list(loc = inla.ifelse(loc.n>0, idx.all[1:loc.n], NULL),
-                grid = inla.ifelse(grid.n>0, idx.all[loc.n+(1:grid.n)], NULL),
-                segm = (inla.ifelse(segm.n>0,
-                                    idx.all[loc.n+grid.n+(1:segm.n)],
-                                    NULL))))
+    if (FALSE) {
+        time.used.filter = system.time({
+            tmp = (filter.locations(rbind(segm$loc, grid$loc, loc),
+                                    cutoff.distance))})
+        loc0 = tmp$loc
+        idx0 = tmp$node.idx
+    } else {
+        time.used.filter = system.time({
+        loc0 = rbind(segm$loc, grid$loc, loc)
+        idx0 = 1:nrow(loc0) })
+    }
 
     ## Remap indices
-    if (!is.null(tv)) {
-        tv = matrix(idx.all[as.vector(tv)], nrow=nrow(tv), ncol=ncol(tv))
-    }
     if (!is.null(segm$bnd)) {
-        segm$bnd$idx = (matrix(idx.all[as.vector(segm$bnd$idx)],
+        segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %% (segm.n+grid.n+loc.n)+1L],
                                nrow=nrow(segm$bnd$idx),
                                ncol=ncol(segm$bnd$idx)))
     }
     if (!is.null(segm$int)) {
-        segm$int$idx = (matrix(idx.all[as.vector(segm$int$idx)],
+        segm$int$idx = (matrix(idx0[segm.n+as.vector(segm$int$idx)],
                                nrow=nrow(segm$int$idx),
                                ncol=ncol(segm$int$idx)))
+    }
+    if (!is.null(tv)) {
+        tv = (matrix(idx0[segm.n+grid.n+as.vector(tv)],
+                     nrow=nrow(tv),
+                     ncol=ncol(tv)))
     }
 
     ## Where to put the files?
@@ -423,6 +428,9 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (!is.null(tv)) {
         inla.write.fmesher.file(tv-1L, filename = paste(prefix, "input.tv", sep=""))
         all.args = paste(all.args, ",input.tv", sep="")
+    }
+    if (!missing(cutoff.distance)) {
+        all.args = paste(all.args, " --cutoff=", cutoff.distance, sep="")
     }
     if (!is.null(segm$bnd)) {
         inla.write.fmesher.file(segm$bnd$idx-1L,
@@ -445,15 +453,15 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (inherits(extend,"list")) {
         cet = c(0,0)
         cet[1] = inla.ifelse(is.null(extend$n), 8, extend$n)
-        cet[2] = inla.ifelse(is.null(extend$offset), -0.15, extend$offset)
+        cet[2] = inla.ifelse(is.null(extend$offset), -0.1, extend$offset)
         all.args = (paste(all.args," --cet=",
                           cet[1],",", cet[2], sep=""))
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
-        rcdt[2] = inla.ifelse(is.null(refine$max.edge), -1.0, refine$max.edge)
-        rcdt[3] = inla.ifelse(is.null(refine$max.edge), -0.5, refine$max.edge)
+        rcdt[2] = inla.ifelse(is.null(refine$max.edge), Inf, refine$max.edge)
+        rcdt[3] = inla.ifelse(is.null(refine$max.edge), Inf, refine$max.edge)
         rcdt[2] = (inla.ifelse(is.null(refine$max.edge.extra),
                                rcdt[2], refine$max.edge.extra))
         rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data),
@@ -484,6 +492,18 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     graph$tt[graph$tt==0L] = NA
     graph$tti[graph$tti==0L] = NA
 
+    ## Read the vertex input/output mapping:
+    idx.all = 1L+inla.read.fmesher.file(paste(prefix, "idx", sep=""))
+    idx = (list(loc = (inla.ifelse(loc.n>0,
+                                   idx.all[idx0[segm.n+grid.n+(1:loc.n)]],
+                                   NULL)),
+                grid = (inla.ifelse(grid.n>0,
+                                    idx.all[idx0[segm.n+(1:grid.n)]],
+                                    NULL)),
+                segm = (inla.ifelse(segm.n>0,
+                                    idx.all[idx0[(1:segm.n)]],
+                                    NULL))))
+
     ## Read constraint segment information:
     segm.bnd = (mesh.segm(NULL,
                           1L+inla.read.fmesher.file(paste(prefix,
@@ -504,7 +524,8 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 
     mesh = (list(meta = (list(call=match.call(),
                               fmesher.args = all.args,
-                              time = time.used,
+                              time = (list(filter = time.used.filter,
+                                           fmesher = time.used)),
                               prefix = prefix)),
                  loc = loc,
                  graph = graph,
@@ -526,6 +547,7 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (verbose) {
         ret = c(ret, list(call=x$meta$call))
         ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
+        ret = c(ret, list(time = x$meta$time))
     }
     ret = c(ret, list(nV=nrow(mesh$loc)))
     ret = c(ret, list(nT=nrow(mesh$graph$tv)))
@@ -566,6 +588,12 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         print(x$call)
 
         cat("\nfmesher arguments:\n", x$fmesher.args, "\n", sep = "")
+
+        cat("\nTimings:\n")
+        for (k in 1:length(x$time)) {
+            cat(names(x$time)[k], "\n", sep="")
+            print(x$time[[k]])
+        }
     }
 
     cat("\nVertices:\t", as.character(x$nV), "\n", sep="")
@@ -596,3 +624,15 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     cat("\n")
 
 }
+
+
+setMethodS3("old.mesh.class", "fmesher.mesh", conflict="quiet",
+            function(mesh, ...)
+        {
+            fmesh=list(mesh=mesh)
+            fmesh$mesh$s = mesh$loc
+            fmesh$mesh$tv = mesh$graph$tv
+            class(fmesh)="inla.fmesher.mesh"
+            return(fmesh)
+        }
+)
