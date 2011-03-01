@@ -165,9 +165,12 @@ mesh.grid = function(x=seq(0, 1, length.out=2),
 }
 
 
-## R.methodsS3
-setMethodS3("extract.groups", "fmesher.segm", conflict="quiet",
-            function(segm, groups, groups.new=groups, ...)
+extract.groups = function(...)
+{
+    UseMethod("extract.groups")
+}
+
+extract.groups.fmesher.segm = function(segm, groups, groups.new=groups, ...)
 {
     if (!inherits(segm, "fmesher.segm"))
         stop("'mesh' must inherit from class \"fmesher.segm\"")
@@ -191,7 +194,7 @@ setMethodS3("extract.groups", "fmesher.segm", conflict="quiet",
 
     return(mesh.segm(loc=segm$loc, idx=segm.idx, grp=segm.grp, segm$is.bnd))
 }
-)
+
 
 
 inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
@@ -303,6 +306,34 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 
 
 
+inla.fmesher.make.dir = function(dir)
+{
+    dir.start = dir
+
+    ## if this already exists then create one more
+    k = 1
+    while (file.exists(dir)) {
+        dir = paste(dir.start, "-", k, sep="")
+        k=k+1
+    }
+
+    return(dir)
+}
+
+
+
+fmesher.write = function(m, prefix, matrixname)
+{
+    return(inla.write.fmesher.file(m, paste(prefix, matrixname, sep="")))
+}
+
+fmesher.read = function(prefix, matrixname)
+{
+    return(inla.read.fmesher.file(paste(prefix, matrixname, sep="")))
+}
+
+
+
 `inla.mesh` = function(loc=NULL, tv=NULL,
                        boundary=NULL, interior=NULL,
                        extend=(missing(tv) || is.null(tv)),
@@ -310,7 +341,8 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                        grid=NULL, manifold=NULL,
                        cutoff.distance = 0,
                        plot.delay = NULL,
-                       dir = tempdir(), prefix = NULL)
+                       keep = FALSE,
+                       data.dir)
 {
 
 ################################
@@ -366,6 +398,8 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
+    time.pre = system.time({ ## Pre-processing timing start
+
     if (missing(grid) || is.null(grid)) {
         grid = list(loc=NULL, segm=NULL)
         grid.n = 0
@@ -389,62 +423,73 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     segm.n = max(0,nrow(segm$loc))
 
     if (FALSE) {
-        time.used.filter = system.time({
-            tmp = (filter.locations(rbind(segm$loc, grid$loc, loc),
-                                    cutoff.distance))})
+        tmp = (filter.locations(rbind(segm$loc, grid$loc, loc),
+                                cutoff.distance))
         loc0 = tmp$loc
         idx0 = tmp$node.idx
+
+        ## Remap indices
+        if (!is.null(segm$bnd)) {
+            segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %% (segm.n+grid.n+loc.n)+1L],
+                                   nrow=nrow(segm$bnd$idx),
+                                   ncol=ncol(segm$bnd$idx)))
+        }
+        if (!is.null(segm$int)) {
+            segm$int$idx = (matrix(idx0[segm.n+as.vector(segm$int$idx)],
+                                   nrow=nrow(segm$int$idx),
+                                   ncol=ncol(segm$int$idx)))
+        }
+        if (!is.null(tv)) {
+            tv = (matrix(idx0[segm.n+grid.n+as.vector(tv)],
+                         nrow=nrow(tv),
+                         ncol=ncol(tv)))
+        }
     } else {
-        time.used.filter = system.time({
         loc0 = rbind(segm$loc, grid$loc, loc)
-        idx0 = 1:nrow(loc0) })
+        idx0 = 1:nrow(loc0)
     }
 
-    ## Remap indices
-    if (!is.null(segm$bnd)) {
-        segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %% (segm.n+grid.n+loc.n)+1L],
-                               nrow=nrow(segm$bnd$idx),
-                               ncol=ncol(segm$bnd$idx)))
-    }
-    if (!is.null(segm$int)) {
-        segm$int$idx = (matrix(idx0[segm.n+as.vector(segm$int$idx)],
-                               nrow=nrow(segm$int$idx),
-                               ncol=ncol(segm$int$idx)))
-    }
-    if (!is.null(tv)) {
-        tv = (matrix(idx0[segm.n+grid.n+as.vector(tv)],
-                     nrow=nrow(tv),
-                     ncol=ncol(tv)))
-    }
 
     ## Where to put the files?
-    prefix = inla.fmesher.make.prefix(dir, prefix)
+    if (keep) {
+        if (missing(data.dir)) {
+            data.dir = inla.fmesher.make.dir("fmesher.data")
+        }
+        prefix = paste(data.dir, "/mesh.", sep="")
+        keep.dir = TRUE
+    } else {
+        if (missing(data.dir)) {
+            prefix = inla.tempfile(pattern="fmesher", tmpdir=tempdir())
+            prefix = paste(prefix, ".", sep="")
+            keep.dir = TRUE
+        } else {
+            data.dir = inla.fmesher.make.dir(data.dir)
+            prefix = paste(data.dir, "/mesh.", sep="")
+            keep.dir = FALSE
+        }
+    }
+    prefix = inla.fmesher.make.prefix(NULL, prefix)
 
-    ## The default name for the input locations in fmesher is s0:
-    loc.file = inla.write.fmesher.file(loc0,
-      filename = paste(prefix, "input.s", sep=""))
+
+    loc.file = fmesher.write(loc0, prefix, "input.s")
     all.args = "--input=input.s"
 
     if (!is.null(tv)) {
-        inla.write.fmesher.file(tv-1L, filename = paste(prefix, "input.tv", sep=""))
+        fmesher.write(tv-1L, prefix, "input.tv")
         all.args = paste(all.args, ",input.tv", sep="")
     }
     if (!missing(cutoff.distance)) {
         all.args = paste(all.args, " --cutoff=", cutoff.distance, sep="")
     }
     if (!is.null(segm$bnd)) {
-        inla.write.fmesher.file(segm$bnd$idx-1L,
-                                filename = paste(prefix, "input.segm.bnd.idx", sep=""))
-        inla.write.fmesher.file(segm$bnd$grp,
-                                filename = paste(prefix, "input.segm.bnd.grp", sep=""))
+        fmesher.write(segm$bnd$idx-1L, prefix, "input.segm.bnd.idx")
+        fmesher.write(segm$bnd$grp, prefix, "input.segm.bnd.grp")
         all.args = paste(all.args," --boundary=input.segm.bnd.idx")
         all.args = paste(all.args," --boundarygrp=input.segm.bnd.grp")
     }
     if (!is.null(segm$int)) {
-        inla.write.fmesher.file(segm$int$idx-1L,
-                                filename = paste(prefix, "input.segm.int.idx", sep=""))
-        inla.write.fmesher.file(segm$int$grp,
-                                filename = paste(prefix, "input.segm.int.grp", sep=""))
+        fmesher.write(segm$int$idx-1L, prefix, "input.segm.int.idx")
+        fmesher.write(segm$int$grp, prefix, "input.segm.int.grp")
         all.args = paste(all.args," --interior=input.segm.int.idx")
         all.args = paste(all.args," --interiorgrp=input.segm.int.grp")
     }
@@ -452,7 +497,7 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 
     if (inherits(extend,"list")) {
         cet = c(0,0)
-        cet[1] = inla.ifelse(is.null(extend$n), 8, extend$n)
+        cet[1] = inla.ifelse(is.null(extend$n), 16, extend$n)
         cet[2] = inla.ifelse(is.null(extend$offset), -0.1, extend$offset)
         all.args = (paste(all.args," --cet=",
                           cet[1],",", cet[2], sep=""))
@@ -475,25 +520,30 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
+    }) ## Pre-processing timing end
+
     ## Call fmesher:
-    time.used = system.time({
+    time.fmesher = system.time({
         echoc = (inla.fmesher.call(all.args=all.args,
-                                   prefix=prefix))})
+                                   prefix=prefix))
+    })
+
+    time.post = system.time({ ## Post-processing timing start
 
     ## Read the mesh:
-    loc = inla.read.fmesher.file(paste(prefix, "s", sep=""))
-    graph = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
-                  vt = 1L+inla.read.fmesher.file(paste(prefix, "vt", sep="")),
-                  tt = 1L+inla.read.fmesher.file(paste(prefix, "tt", sep="")),
-                  tti = 1L+inla.read.fmesher.file(paste(prefix, "tti", sep="")),
-                  vv = inla.read.fmesher.file(paste(prefix, "vv", sep=""))))
+    loc = fmesher.read(prefix, "s")
+    graph = (list(tv = 1L+fmesher.read(prefix, "tv"),
+                  vt = 1L+fmesher.read(prefix, "vt"),
+                  tt = 1L+fmesher.read(prefix, "tt"),
+                  tti = 1L+fmesher.read(prefix, "tti"),
+                  vv = fmesher.read(prefix, "vv")))
     graph$tv[graph$tv==0L] = NA
     graph$vt[graph$vt==0L] = NA
     graph$tt[graph$tt==0L] = NA
     graph$tti[graph$tti==0L] = NA
 
     ## Read the vertex input/output mapping:
-    idx.all = 1L+inla.read.fmesher.file(paste(prefix, "idx", sep=""))
+    idx.all = 1L+fmesher.read(prefix, "idx")
     idx = (list(loc = (inla.ifelse(loc.n>0,
                                    idx.all[idx0[segm.n+grid.n+(1:loc.n)]],
                                    NULL)),
@@ -506,26 +556,26 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 
     ## Read constraint segment information:
     segm.bnd = (mesh.segm(NULL,
-                          1L+inla.read.fmesher.file(paste(prefix,
-                                                          "segm.bnd",
-                                                          sep="")),
-                          inla.read.fmesher.file(paste(prefix,
-                                                       "segm.bnd.grp",
-                                                       sep="")),
+                          1L+fmesher.read(prefix, "segm.bnd"),
+                          fmesher.read(prefix, "segm.bnd.grp"),
                           TRUE))
     segm.int = (mesh.segm(NULL,
-                          1L+inla.read.fmesher.file(paste(prefix,
-                                                          "segm.int",
-                                                          sep="")),
-                          inla.read.fmesher.file(paste(prefix,
-                                                       "segm.int.grp",
-                                                       sep="")),
+                          1L+fmesher.read(prefix, "segm.int"),
+                          fmesher.read(prefix, "segm.int.grp"),
                           FALSE))
+
+    if (!keep)
+            unlink(paste(prefix, "*", sep=""), recursive=FALSE)
+    if (!keep.dir)
+            unlink(dirname(prefix), recursive=TRUE)
+
+    }) ## Post-processing timing end
 
     mesh = (list(meta = (list(call=match.call(),
                               fmesher.args = all.args,
-                              time = (list(filter = time.used.filter,
-                                           fmesher = time.used)),
+                              time = (rbind(pre = time.pre,
+                                            fmesher = time.fmesher,
+                                            post = time.post)),
                               prefix = prefix)),
                  loc = loc,
                  graph = graph,
@@ -547,6 +597,7 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     if (verbose) {
         ret = c(ret, list(call=x$meta$call))
         ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
+        ret = c(ret, list(prefix=x$meta$prefix))
         ret = c(ret, list(time = x$meta$time))
     }
     ret = c(ret, list(nV=nrow(mesh$loc)))
@@ -580,6 +631,26 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
 
 `print.summary.fmesher.mesh` = function(x, ...)
 {
+    my.print.proc_time = function (x, ...)
+    {
+        if (!is.matrix(x)) {
+            y = matrix(x,1,5)
+        } else {
+            y = x
+        }
+        for (k in 1:nrow(x)) {
+            if (!is.na(y[k,4L]))
+                y[k,1L] <- y[k,1L] + y[k,4L]
+            if (!is.na(y[k,5L]))
+                y[k,2L] <- y[k,2L] + y[k,5L]
+        }
+        y <- y[,1L:3L]
+        colnames(y) <- c(gettext("user"), gettext("system"), gettext("elapsed"))
+        print(y, ...)
+        invisible(x)
+    }
+
+
     if (!inherits(x, "summary.fmesher.mesh"))
         stop("'x' must inherit from class \"summary.fmesher.mesh\"")
 
@@ -587,13 +658,11 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         cat("\nCall:\n")
         print(x$call)
 
-        cat("\nfmesher arguments:\n", x$fmesher.args, "\n", sep = "")
+        cat("\nfmesher:\t", x$fmesher.args, "\n", sep = "")
+        cat("prefix:\t\t", x$prefix, "\n", sep = "")
 
         cat("\nTimings:\n")
-        for (k in 1:length(x$time)) {
-            cat(names(x$time)[k], "\n", sep="")
-            print(x$time[[k]])
-        }
+        my.print.proc_time(x$time)
     }
 
     cat("\nVertices:\t", as.character(x$nV), "\n", sep="")
@@ -623,16 +692,37 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     cat("zlim:\t", x$zlim[1], " ", x$zlim[2], "\n", sep="")
     cat("\n")
 
+    invisible(x)
 }
 
 
-setMethodS3("old.mesh.class", "fmesher.mesh", conflict="quiet",
-            function(mesh, ...)
-        {
-            fmesh=list(mesh=mesh)
-            fmesh$mesh$s = mesh$loc
-            fmesh$mesh$tv = mesh$graph$tv
-            class(fmesh)="inla.fmesher.mesh"
-            return(fmesh)
-        }
-)
+old.mesh.class = function(...)
+{
+    UseMethod("old.mesh.class")
+}
+
+old.mesh.class.fmesher.mesh = function(mesh, ...)
+{
+    fmesh=list(mesh=mesh)
+    fmesh$mesh$s = mesh$loc
+    fmesh$mesh$tv = mesh$graph$tv
+    class(fmesh)="inla.fmesher.mesh"
+    return(fmesh)
+}
+
+
+inla.spde = function(x, ...)
+{
+    if (inherits(x, "fmesher.mesh"))
+        UseMethod("inla.spde", x)
+
+    stop("Only 'fmesher.mesh' objects are supported at the moment.")
+}
+
+inla.spde.fmesher.mesh = function(mesh, ...)
+{
+    spde = list(mesh=mesh)
+    class(spde) = "inla.spde"
+    return(spde)
+}
+
