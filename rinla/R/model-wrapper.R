@@ -1,4 +1,3 @@
-
 `inla.model.wrapper` = function(
         covariates = NULL,
         model = c("joint"),
@@ -47,6 +46,8 @@
                 initial, fixed, prior, param)         
 
         ret = list(Cmatrix = QQ, hyper = hyper, model = "generic")
+        class(ret) = "inla.wrapper.model"
+        
         return (ret)
     } else {
         stop("This should not happen.")
