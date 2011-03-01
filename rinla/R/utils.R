@@ -870,9 +870,13 @@
     return (invisible())
 }
 
-`inla.eval` = function(command)
+`inla.eval` = function(command, data = NULL)
 {
-    eval.parent(parse(text=command))
+    if (is.null(data)) {
+        eval.parent(parse(text=command))
+    } else {
+        eval(parse(text=command), data)
+    }
 }
 
 `inla.tempfile` = function(pattern = "file", tmpdir = tempdir())
