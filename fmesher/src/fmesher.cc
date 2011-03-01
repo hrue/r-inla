@@ -8,6 +8,15 @@
 
 #include "fmesher.hh"
 
+#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
+
+#define LOG_(msg) cout << WHEREAMI << msg;
+#ifdef DEBUG
+#define LOG(msg) MESHC_LOG_(msg)
+#else
+#define LOG(msg)
+#endif
+
 using std::ios;
 using std::ifstream;
 using std::ofstream;
@@ -23,8 +32,6 @@ using fmesh::IOHelper;
 using fmesh::IOHelperM;
 using fmesh::IOHelperSM;
 using fmesh::Matrix;
-using fmesh::Matrix3;
-using fmesh::Matrix3int;
 using fmesh::Matrix3double;
 using fmesh::MatrixC;
 using fmesh::Mesh;
@@ -111,6 +118,87 @@ void map_points_to_mesh(const Mesh& M,
       point2T(i,0) = -1;
     }
   }
+}
+
+
+
+void filter_locations(Matrix<double>& S,
+		      Matrix<int>& idx,
+		      double cutoff)
+{
+  int dim = S.cols();
+  int idx_next = 0;
+  std::list<int> excluded;
+
+  LOG("Filtering locations." << endl);
+
+  /* Extract "unique" points. */
+  double dist;
+  Point s = Point(0.0, 0.0, 0.0);
+  Point diff;
+  for (int v=0; v<S.rows(); v++) {
+    bool was_excluded = false;
+    for (int d=0; d<dim; d++)
+      s[d] = S[v][d];
+    for (int v_try=0; v_try<idx_next; v_try++) {
+      for (int d=0; d<dim; d++)
+	diff[d] = S[v_try][d]-s[d];
+      if (diff.length() <= cutoff) {
+	was_excluded = true;
+	excluded.push_back(v);
+	idx(v,0) = v_try;
+	break;
+      }
+    }
+    if (!was_excluded) {
+      excluded.push_back(v);
+      for (int d=0; d<dim; d++)
+	S(idx_next,d) = s[d];
+      idx(v,0) = idx_next;
+      idx_next++;
+    }
+  }
+
+  LOG("All vertices handled." << endl);
+
+  /* Remove excess storage. */
+  S.rows(idx_next);
+
+  LOG("Excess storage removed." << endl);
+
+  /* Optional: Identify nearest nodes for excluded locations. */
+  //  for (int v=0; v<S.rows(); v++) {
+  //    double nearest_dist = -1.0;
+  //    int nearest_idx = -1;
+  //    for (int v_try=0; v_try<idx_next; v_try++) {
+  //    }
+  //  }
+}
+
+
+void remap_vertex_indices(const Matrix<int>& idx, Matrix<int>& matrix)
+{
+  LOG("Remapping vertex indices for an index matrix." << endl);
+  LOG("Index size: " << idx.rows() << ", " << idx.cols() << endl);
+  LOG("Matrix size: " << matrix.rows() << ", " << matrix.cols() << endl);
+  for (int i=0; i<matrix.rows(); i++) {
+    for (int j=0; j<matrix.cols(); j++) {
+      matrix(i,j) = idx[matrix[i][j]][0];
+    }
+  }
+  LOG("Done." << endl);
+}
+
+void remap_vertex_indices(const Matrix<int>& idx, constrListT& segm)
+{
+  LOG("Remapping vertex indices constraint segments." << endl);
+  LOG("Index size: " << idx.rows() << ", " << idx.cols() << endl);
+  LOG("Segment size: " << segm.size() << endl);
+  for (constrListT::iterator i=segm.begin(); i != segm.end(); i++) {
+    (*i).first.first = idx[(*i).first.first][0];
+    (*i).first.second = idx[(*i).first.second][0];
+  }
+  LOG("Done." << endl);
 }
 
 
@@ -216,6 +304,10 @@ int main(int argc, char* argv[])
   }
 
 
+  double cutoff = 0.0;
+  if (args_info.cutoff_given>0)
+    cutoff = args_info.cutoff_arg;
+  
   int cet_sides = 8;
   double cet_margin = -0.1;
   if (args_info.cet_given>0)
@@ -426,6 +518,18 @@ int main(int argc, char* argv[])
   }
 
 
+  /* Filter out points at distance not greater than 'cutoff' */
+  matrices.attach("idx", new Matrix<int>(iS0.rows(),1), true);
+  matrices.output("idx");
+  Matrix<int>& idx = matrices.DI("idx").clear();
+  filter_locations(iS0, idx, cutoff);
+
+  /* Remap vertex inputreferences */
+  if (TV0)
+    remap_vertex_indices(idx, *TV0);
+  remap_vertex_indices(idx, cdt_boundary);
+  remap_vertex_indices(idx, cdt_interior);
+
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
@@ -498,12 +602,13 @@ int main(int argc, char* argv[])
 		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
 	} else {
 	  double w0 = maxi[0]-mini[0];
-	  double w1 = maxi[1]-mini[0];
+	  double w1 = maxi[1]-mini[1];
+	  double w = (w0 > w1 ? w0 : w1);
 	  if (args_info.x11_zoom_given==0) {
-	    x11_zoom[0] = mini[0]-w0*0.2;
-	    x11_zoom[1] = maxi[0]+w0*0.2;
-	    x11_zoom[2] = mini[1]-w1*0.2;
-	    x11_zoom[3] = maxi[1]+w1*0.2;
+	    x11_zoom[0] = mini[0]-w*0.2;
+	    x11_zoom[1] = maxi[0]+w*0.2;
+	    x11_zoom[2] = mini[1]-w*0.2;
+	    x11_zoom[3] = maxi[1]+w*0.2;
 	  }
 	  M.useX11(true,useX11text,500,500,
 		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
@@ -513,7 +618,7 @@ int main(int argc, char* argv[])
       
       MeshC MC(&M);
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
-      
+
       /* If we don't already have a triangulation, we must create one. */
       if (!TV0)
 	MC.CET(cet_sides,cet_margin);
