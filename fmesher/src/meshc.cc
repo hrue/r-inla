@@ -1277,7 +1277,6 @@ namespace fmesh {
 	margin = -diameter*margin;
       } else {
 	MESHC_LOG("Calculate margin.");
-	NOT_IMPLEMENTED;
 	for (i=0;i<sides/2;i++) {
 	  diam = -d[i]-d[(i+sides/2)%sides];
 	  if (diam>diameter)
