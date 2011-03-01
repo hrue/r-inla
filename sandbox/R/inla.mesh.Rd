@@ -37,7 +37,7 @@ inla.mesh(loc = NULL,
 	(default=8)}
       \item{\code{offset}}{the extension distance.  If negative,
 	interpreted as a factor relative to the approximate data
-	diameter (default=-0.15)}
+	diameter (default=-0.10)}
     }
   }
   \item{refine}{
@@ -46,10 +46,10 @@ inla.mesh(loc = NULL,
     \describe{
       \item{\code{min.angle}}{the minimum allowed interior angle in any
 	triangle.  The algorithm is guaranteed to converge for
-	\code{min.angle} at most 21 (default=21)}
+	\code{min.angle} at most 21 (default=\code{21})}
       \item{\code{max.edge}}{the maximum allowed edge length in any
 	triangle.  If negative, interpreted as a relative factor in an
-	ad hoc formula depending on the data density (default=-0.5)}
+	ad hoc formula depending on the data density (default=\code{Inf})}
     }
   }
   \item{tv}{
