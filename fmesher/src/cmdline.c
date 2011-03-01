@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [-EPARAM|--cet=PARAM] \n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--fem=ORDER] [--sph0=ORDER] [--sph=ORDER] \n         [--bspline=PARAM] [--points2mesh=NAME] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--fem=ORDER] [--sph0=ORDER] [--sph=ORDER] \n         [--bspline=PARAM] [--points2mesh=NAME] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -49,6 +49,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  \n  First SPEC is the name of the matrix\n  Second SPEC is a four letter matrix specification:\n         d/s = dense/sparse\n         i/d = int/double\n         g/s/d = general/symmetric/diagonal\n         r/c = row/column major storage\n         Common format for point lists with one point per line = ddgr\n  Third SPEC the filename, - for standard input\n",
   "\nTriangulation options:",
   "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0, further indicates additional data \n                            point matrices.  Use - for tv0 to only supply \n                            additional points.  (default=`s0')",
+  "      --cutoff=DISTANCE   Treat points in the input data as unique only if they \n                            are further apart than this value. The vector 'idx' \n                            in the output gives the resulting vertex index for \n                            each input point.  (default=`0.0')",
   "  -E, --cet=PARAM         Convex encapsulation parameters",
   "  \n  \tThe parameters are n,m, where n is the number of sides of the \n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
   "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
@@ -88,8 +89,8 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[13] = gengetopt_args_info_detailed_help[15];
   gengetopt_args_info_full_help[14] = gengetopt_args_info_detailed_help[16];
   gengetopt_args_info_full_help[15] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_full_help[16] = gengetopt_args_info_detailed_help[19];
-  gengetopt_args_info_full_help[17] = gengetopt_args_info_detailed_help[21];
+  gengetopt_args_info_full_help[16] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_full_help[17] = gengetopt_args_info_detailed_help[20];
   gengetopt_args_info_full_help[18] = gengetopt_args_info_detailed_help[22];
   gengetopt_args_info_full_help[19] = gengetopt_args_info_detailed_help[23];
   gengetopt_args_info_full_help[20] = gengetopt_args_info_detailed_help[24];
@@ -103,11 +104,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[28] = gengetopt_args_info_detailed_help[32];
   gengetopt_args_info_full_help[29] = gengetopt_args_info_detailed_help[33];
   gengetopt_args_info_full_help[30] = gengetopt_args_info_detailed_help[34];
-  gengetopt_args_info_full_help[31] = 0; 
+  gengetopt_args_info_full_help[31] = gengetopt_args_info_detailed_help[35];
+  gengetopt_args_info_full_help[32] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[32];
+const char *gengetopt_args_info_full_help[33];
 
 static void
 init_help_array(void)
@@ -128,8 +130,8 @@ init_help_array(void)
   gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[15];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[16];
   gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[19];
-  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[21];
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[20];
   gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[22];
   gengetopt_args_info_help[19] = gengetopt_args_info_detailed_help[23];
   gengetopt_args_info_help[20] = gengetopt_args_info_detailed_help[24];
@@ -142,11 +144,12 @@ init_help_array(void)
   gengetopt_args_info_help[27] = gengetopt_args_info_detailed_help[31];
   gengetopt_args_info_help[28] = gengetopt_args_info_detailed_help[32];
   gengetopt_args_info_help[29] = gengetopt_args_info_detailed_help[33];
-  gengetopt_args_info_help[30] = 0; 
+  gengetopt_args_info_help[30] = gengetopt_args_info_detailed_help[34];
+  gengetopt_args_info_help[31] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[31];
+const char *gengetopt_args_info_help[32];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -213,6 +216,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->collect_all_given = 0 ;
   args_info->ir_given = 0 ;
   args_info->input_given = 0 ;
+  args_info->cutoff_given = 0 ;
   args_info->cet_given = 0 ;
   args_info->rcdt_given = 0 ;
   args_info->quality_given = 0 ;
@@ -250,6 +254,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->ir_orig = NULL;
   args_info->input_arg = NULL;
   args_info->input_orig = NULL;
+  args_info->cutoff_arg = 0.0;
+  args_info->cutoff_orig = NULL;
   args_info->cet_arg = NULL;
   args_info->cet_orig = NULL;
   args_info->rcdt_arg = NULL;
@@ -307,36 +313,37 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->input_help = gengetopt_args_info_detailed_help[16] ;
   args_info->input_min = 0;
   args_info->input_max = 0;
-  args_info->cet_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->cutoff_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->cet_help = gengetopt_args_info_detailed_help[18] ;
   args_info->cet_min = 1;
   args_info->cet_max = 2;
-  args_info->rcdt_help = gengetopt_args_info_detailed_help[19] ;
+  args_info->rcdt_help = gengetopt_args_info_detailed_help[20] ;
   args_info->rcdt_min = 0;
   args_info->rcdt_max = 0;
-  args_info->quality_help = gengetopt_args_info_detailed_help[21] ;
+  args_info->quality_help = gengetopt_args_info_detailed_help[22] ;
   args_info->quality_min = 0;
   args_info->quality_max = 0;
-  args_info->boundary_help = gengetopt_args_info_detailed_help[22] ;
+  args_info->boundary_help = gengetopt_args_info_detailed_help[23] ;
   args_info->boundary_min = 0;
   args_info->boundary_max = 0;
-  args_info->interior_help = gengetopt_args_info_detailed_help[23] ;
+  args_info->interior_help = gengetopt_args_info_detailed_help[24] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->boundarygrp_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->boundarygrp_help = gengetopt_args_info_detailed_help[25] ;
   args_info->boundarygrp_min = 0;
   args_info->boundarygrp_max = 0;
-  args_info->interiorgrp_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->interiorgrp_help = gengetopt_args_info_detailed_help[26] ;
   args_info->interiorgrp_min = 0;
   args_info->interiorgrp_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[27] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[28] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[29] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[28] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[31] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[31] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[33] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[34] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[34] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[35] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -515,6 +522,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->collect_given, &(args_info->collect_arg), &(args_info->collect_orig));
   free_multiple_string_field (args_info->ir_given, &(args_info->ir_arg), &(args_info->ir_orig));
   free_multiple_string_field (args_info->input_given, &(args_info->input_arg), &(args_info->input_orig));
+  free_string_field (&(args_info->cutoff_orig));
   free_multiple_field (args_info->cet_given, (void *)(args_info->cet_arg), &(args_info->cet_orig));
   args_info->cet_arg = 0;
   free_multiple_field (args_info->rcdt_given, (void *)(args_info->rcdt_arg), &(args_info->rcdt_orig));
@@ -640,6 +648,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "collect-all", 0, 0 );
   write_multiple_into_file(outfile, args_info->ir_given, "ir", args_info->ir_orig, 0);
   write_multiple_into_file(outfile, args_info->input_given, "input", args_info->input_orig, 0);
+  if (args_info->cutoff_given)
+    write_into_file(outfile, "cutoff", args_info->cutoff_orig, 0);
   write_multiple_into_file(outfile, args_info->cet_given, "cet", args_info->cet_orig, 0);
   write_multiple_into_file(outfile, args_info->rcdt_given, "rcdt", args_info->rcdt_orig, 0);
   write_multiple_into_file(outfile, args_info->quality_given, "quality", args_info->quality_orig, 0);
@@ -1314,6 +1324,7 @@ cmdline_internal (
         { "collect-all",	0, NULL, 0 },
         { "ir",	1, NULL, 0 },
         { "input",	1, NULL, 'T' },
+        { "cutoff",	1, NULL, 0 },
         { "cet",	1, NULL, 'E' },
         { "rcdt",	2, NULL, 'R' },
         { "quality",	1, NULL, 'Q' },
@@ -1518,6 +1529,20 @@ cmdline_internal (
             if (update_multiple_arg_temp(&ir_list, 
                 &(local_args_info.ir_given), optarg, 0, 0, ARG_STRING,
                 "ir", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point..  */
+          else if (strcmp (long_options[option_index].name, "cutoff") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->cutoff_arg), 
+                 &(args_info->cutoff_orig), &(args_info->cutoff_given),
+                &(local_args_info.cutoff_given), optarg, 0, "0.0", ARG_DOUBLE,
+                check_ambiguity, override, 0, 0,
+                "cutoff", '-',
                 additional_error))
               goto failure;
           
