@@ -233,6 +233,19 @@
     ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
     ##!\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
 
+
+    ## first special case. if the model is of this particular class,
+    ## then ***ALL*** parameters that are set here overides the ones
+    ## set in the argument list. (THIS FEATURE IS EXPERIMENTAL FOR THE
+    ## MOMENT).
+    if (class(model) == "inla.wrapper.model") {
+        model.tmp = model
+        for(nm in names(model.tmp)) {
+            inla.eval(paste(nm, "=", "model.tmp$", nm,  sep=""))
+        }
+        rm(model.tmp)
+    }
+
     ## this is a nice trick
     if (!is.null(copy)) {
         if (!missing(model)) {
