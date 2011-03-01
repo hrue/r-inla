@@ -1278,7 +1278,15 @@ namespace fmesh {
       } else {
 	MESHC_LOG("Calculate margin.");
 	NOT_IMPLEMENTED;
-	margin = 1.0;
+	for (i=0;i<sides/2;i++) {
+	  diam = -d[i]-d[(i+sides/2)%sides];
+	  if (diam>diameter)
+	    diameter = diam;
+	  diam = -d[i]-d[(i+sides/2+1)%sides];
+	  if (diam>diameter)
+	    diameter = diam;
+	}
+	margin = -diameter*margin;
       }
     }
     
