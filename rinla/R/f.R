@@ -24,7 +24,7 @@
          
          ##!\item{model}{ A string indicating the choosen model. The
          ##! default is \code{iid}. See
-         ##! \code{names(inla.models()$models)} for a list of possible
+         ##! \code{names(inla.models()$latent)} for a list of possible
          ##! alternatives.}
          model = "iid",
          
@@ -66,7 +66,7 @@
          ##!depends on the number of hyperparamters in the choosen
          ##!\code{model}. If \code{fixed=T} the value at which the
          ##!parameters are fixed is determines through \code{initial}.
-         ##!See \code{inla.models()$models$'model name'} to have info
+         ##!See \code{inla.models()$latent$'model name'} to have info
          ##!about the choosen model.}
          initial=NULL,
 
@@ -83,7 +83,7 @@
          ##!Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
          ##!of the prior distribution for the hyperparameters. The
          ##!length of the vector depends on the choosen \code{model}.
-         ##!See \code{inla.models()$models$'model name'} to have info
+         ##!See \code{inla.models()$latent$'model name'} to have info
          ##!about the choosen model.}
          param = NULL,
 
@@ -91,7 +91,7 @@
          ##!Vector of boolean variables indicating wheater the
          ##!hyperparameters of the model are fixed or random. The
          ##!length of the vector depends on the choosen \code{model}
-         ##!See \code{inla.models()$models$'model name'} to have info
+         ##!See \code{inla.models()$latent$'model name'} to have info
          ##!about the choosen model.}
          fixed = NULL,
 
@@ -421,7 +421,6 @@
         if (d != 1) {
             stop("Model = 'linear' do not accept weights. Just set 'z.new = z * weights' as the covariates.")
         }
-        term = attr(terms(reformulate(term)),"term.labels")
         ret = list(d=d, term=term, model=model, mean.linear=mean.linear, prec.linear=prec.linear, label=term,
                 cdf=cdf, quantiles = quantiles, compute = compute)
         ## return here!
@@ -451,13 +450,13 @@
         
 
     if (inla.one.of(model,"seasonal") &&
-       is.null(season.length)) {
+        is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
     }
         
     ## cyclic is only valid for rw1, rw2 and rw2d-models
     if (!is.null(cyclic) && cyclic &&
-       !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
+        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
         stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2 and rw2d models")
     }
 
