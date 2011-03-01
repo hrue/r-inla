@@ -15,7 +15,8 @@ inla.mesh(loc = NULL,
           tv = NULL, grid = NULL, manifold = NULL,
           cutoff.distance = 0,
           plot.delay = NULL,
-          dir = tempdir(), prefix = NULL)
+          keep = FALSE,
+          data.dir)
 }
 \arguments{
   \item{loc}{
@@ -72,12 +73,16 @@ inla.mesh(loc = NULL,
     in the underlying \code{fmesher} program, showing the triangulation
     algorithm at work.
   }
-  \item{dir}{
-%%     ~~Describe \code{dir} here~~
-}
-  \item{prefix}{
-%%     ~~Describe \code{prefix} here~~
-}
+  \item{keep}{
+    \code{TRUE} if the data files should be kept in \code{data.dir} or
+    deleted afterwards.
+  }
+  \item{data.dir}{
+    If \code{keep} is false, data files are stored in temporary files in
+    \code{tempfile()}, otherwise in \code{"fmesher.data"}.  Use
+    \code{data.dir} to specify an alternative directory.  Warning: If
+    \code{keep} is false, \code{data.dir} and its contents will be deleted.}
+  }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
