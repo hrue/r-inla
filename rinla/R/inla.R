@@ -630,7 +630,16 @@
                 stop(paste(c("Error in the dataframe. INLA does not support factor(s) '",
                              nm, "' having NA's. Please rewrite the factor(s) into fixed effects.")))
             }
-            x[is.na(x)] = 0
+            if (all(dim(x) == dim(as.matrix(x)))) {
+                ## all entries are vectors
+                x[is.na(x)] = 0
+            } else {
+                ## in this case, some of the entries in the data.frame
+                ## could be a matrix itself...
+                for(entry in 1:dim(x)[2]) {
+                    x[[entry]][ is.na(x[[entry]]) ] = 0
+                }
+            }
             return (x)
         }
 
@@ -709,11 +718,7 @@
     cont.data = list(list())
     for(i.family in 1:n.family) {
         cont.data[[i.family]] = inla.set.control.data.default() 
-        if (n.family == 1) {
-            cont.data[[i.family]][names(control.data)] = control.data
-        } else {
-            cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
-        }
+        cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
         cont.data[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
                                      cont.data[[i.family]]$hyper, 
                                      cont.data[[i.family]]$initial, 

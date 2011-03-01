@@ -1188,6 +1188,29 @@
 
                          ## this is the 'no prior needed' prior
                          none = list(nparameters = 0)
+                         ),
+
+                 misc = list(
+                         joint = list(
+                                 hyper = list(
+                                         theta = list(
+                                                 name = "precision",
+                                                 short.name = "prec",
+                                                 initial = 0,
+                                                 fixed = TRUE,
+                                                 prior = "loggamma",
+                                                 param = c(1, 0.0001)
+                                                 )
+                                         ), 
+                                 constr = FALSE,
+                                 nrow.ncol = FALSE,
+                                 augmented = FALSE,
+                                 aug.factor = 1,
+                                 aug.constr = NULL,
+                                 n.div.by = NULL,
+                                 n.required = FALSE,
+                                 set.default.values = FALSE
+                                 )
                          )
                  )
             )
