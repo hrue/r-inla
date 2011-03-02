@@ -234,15 +234,34 @@
     ##!\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
 
 
-    ## first special case. if the model is of this particular class,
-    ## then ***ALL*** parameters that are set here overides the ones
-    ## set in the argument list. (THIS FEATURE IS EXPERIMENTAL FOR THE
-    ## MOMENT).
-    if (inla.one.of("inla.wrapper.model", class(model))) {
+    ## if model is a particular class, then use this to set default
+    ## arguments to all names(formals(INLA::f)) (except the "...").
+    ## THIS FEATURE IS EXPERIMENTAL FOR THE MOMENT!
+    if (any(inherits(model, c("inla.spde", "inla.wrapper.model")))) {
+
+        ## might need to change this if we debug the code
+        if (TRUE) {
+            arguments = names(formals(INLA::f))
+        } else {
+            warning("Recall to revert back to INLA::f")
+            arguments = names(formals(f))
+        }
+        arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
+
+        ## evaluate arguments in 'model' and set those that are in
+        ## 'arguments'. However, due to the 'missing || is.null', the
+        ## argument 'model' does not pass the test and must be set
+        ## manually afterwards.
         model.tmp = model
         for(nm in names(model.tmp)) {
-            inla.eval(paste(nm, "=", "model.tmp$", nm,  sep=""))
+            if (inla.one.of(nm, arguments)) {
+                inla.eval(paste("if (missing(",nm,") || is.null(", nm,")) ",
+                                nm, "=", "model.tmp$", nm,  sep=""))
+            }
         }
+        ## the 'model' argument is required!
+        stopifnot(is.character(model.tmp$model))
+        model = model.tmp$model
         rm(model.tmp)
     }
 
@@ -289,7 +308,6 @@
         weigths = attr(terms(reformulate(weights)),"weights.labels")
     }
 
-    browser()
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent", hyper = hyper, 
             initial = initial, fixed = fixed,  prior = prior,  param = param)
@@ -340,7 +358,7 @@
     if (FALSE) {
         arguments = c(names(formals(INLA::f)), "A", "e")
     } else {
-        warning("Recall to revert back into INLA::f")
+        warning("Recall to revert back to INLA::f")
         arguments = c(names(formals(f)), "A", "e")
     }
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
