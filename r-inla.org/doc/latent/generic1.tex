@@ -51,7 +51,6 @@ where {\tt <Cmat>} can be given in two different ways:
 
 \subsection*{Example}
 \begin{verbatim}
-
 n = 100
 ## build a structure matrix
 Cm = matrix(runif(n^2,min=-1,max=1),n,n)
@@ -98,7 +97,6 @@ formula = y ~ f(idx, model = "generic1", Cmatrix = file) + z
 result = inla(formula, data=d,family="gaussian",
               control.data = list(initial = log(1/sd^2), fixed=TRUE),
               verbose=T, keep=T)
-
 \end{verbatim}
 
 \subsection*{Notes}
