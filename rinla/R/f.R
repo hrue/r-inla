@@ -252,17 +252,15 @@
         ## 'arguments'. However, due to the 'missing || is.null', the
         ## argument 'model' does not pass the test and must be set
         ## manually afterwards.
-        model.tmp = model
-        for(nm in names(model.tmp)) {
+        for(nm in names(model)) {
             if (inla.one.of(nm, arguments)) {
                 inla.eval(paste("if (missing(",nm,") || is.null(", nm,")) ",
-                                nm, "=", "model.tmp$", nm,  sep=""))
+                                nm, "=", "model$", nm,  sep=""))
             }
         }
         ## the 'model' argument is required!
-        stopifnot(is.character(model.tmp$model))
-        model = model.tmp$model
-        rm(model.tmp)
+        stopifnot(is.character(model$model))
+        model = model$model
     }
 
     ## this is a nice trick
