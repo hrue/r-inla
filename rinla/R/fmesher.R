@@ -748,31 +748,74 @@ inla.spde = function(...)
     UseMethod("inla.spde")
 }
 
-inla.spde.inla.mesh = function(mesh, ...)
+inla.spde.inla.mesh =
+    function(mesh,
+             model=c("matern", "imatern", "heat"),
+             param=NULL,
+             ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
-
     warning("'inla.spde' not fully implemented yet.")
+
+    model = match.arg(model)
 
     ## Temporary code built on the old interface:
     old.spde = inla.create.spde(old.mesh.class(mesh)$mesh, fem=2)
 
-    spde = (list(mesh=mesh,
+    spde = (list(model=model,
+                 mesh=mesh,
+                 internal = list(),
                  f=(list(model="spde",
                          spde.prefix=old.spde$prefix,
                          n=nrow(mesh$loc)))
                  ))
     class(spde) = "inla.spde"
-    return(spde)
+
+    spde$internal$c0 = fmesher.read(old.spde$prefix, "c0")
+    spde$internal$g1 = fmesher.read(old.spde$prefix, "g1")
+    spde$internal$g2 = fmesher.read(old.spde$prefix, "g2")
+
+    return(invisible(spde))
 }
 
 inla.spde.inla.spde = function(spde, ...)
 {
     inla.require.inherits(spde, "inla.spde", "'spde'")
 
-    warning("No 'inla.spde' object queries implemented yet.")
+    not.known = function (spde, queryname)
+    {
+        stop(paste("Query '", queryname,
+                   "' unknown." ,sep=""))
+    }
+    not.implemented = function (spde, queryname)
+    {
+        stop(paste("Query '", queryname,
+                   "' not implemented for inla.spde model '",
+                   spde$model, "'." ,sep=""))
+    }
 
-    return(list())
+    result = list()
+    queries = list(...)
+
+    for (query in names(queries)) {
+        if (identical(query, "precision")) {
+            if (identical(spde$model, "matern")) {
+                param = queries[[query]]
+                tau = param$tau
+                kappa = param$kappa
+                answer = (tau^2*(kappa^4*spde$internal$c0+
+                                 2*spde$internal$g1*kappa^2+
+                                 spde$internal$g2))
+                result[[query]] = answer
+            } else {
+                not.implemented(spde,query)
+            }
+        } else {
+            not.known(spde,query)
+        }
+    }
+
+    return(result)
 }
 
 
