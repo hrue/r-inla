@@ -1,11 +1,11 @@
 \name{mesh.grid}
 \alias{mesh.grid}
-\alias{fmesher.grid}
+\alias{inla.mesh.grid}
 \title{
-  Construct a lattice grid for fmesher
+  Lattice grids for inla.mesh
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Construct a lattice grid for \code{\link{inla.mesh}}
 }
 \usage{
 mesh.grid(x = seq(0, 1, length.out=2),
@@ -14,32 +14,25 @@ mesh.grid(x = seq(0, 1, length.out=2),
           dims = (inla.ifelse(is.matrix(x),
                               dim(x),
                               c(length(x), length(y)))),
-          units = NULL)
+          units = "default")
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
-}
+  }
   \item{y}{
-%%     ~~Describe \code{y} here~~
-}
+  }
   \item{z}{
-%%     ~~Describe \code{y} here~~
-}
+  }
   \item{dims}{
-%%     ~~Describe \code{y} here~~
-}
+  }
   \item{units}{
-%%     ~~Describe \code{y} here~~
-}
+    One of \code{c("default", "longlat")}.
+  }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-  An \code{fmesher.grid} object.
-%%  ~Describe the value returned
+  An \code{inla.mesh.grid} object.
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
@@ -59,7 +52,6 @@ mesh.grid(x = seq(0, 1, length.out=2),
 
 \seealso{
   \code{\link{inla.mesh}}
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 grid = mesh.grid(seq(0, 1, length.out=17), seq(0, 1, length.out=10))
@@ -85,4 +77,4 @@ plot(mesh)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ fmesher }
+%\keyword{ fmesher }
