@@ -77,8 +77,8 @@ typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *G2;
 	GMRFLib_graph_tp *G2_graph;
 
-	inla_spde_theta_tp *Kmodel;
 	inla_spde_theta_tp *Tmodel;
+	inla_spde_theta_tp *Kmodel;
 
 	double **oc;					       /* the hyperparameter: ocillating coeff */
 

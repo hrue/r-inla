@@ -55,7 +55,7 @@ inla.set.hyper = function(
                 stop(paste("Missing name/keyword in `hyper'; must be one of: ", inla.paste(valid.keywords),  ".",
                            sep=""))
             }
-            if (!any(inla.strncasecmp(nm, valid.keywords))) {
+            if (!any(inla.strcasecmp(nm, valid.keywords))) {
                 stop(paste("Unknown keyword in `hyper': `",  nm,
                            "'. Must be one of: ",  inla.paste(valid.keywords),  ".",  sep=""))
             }
@@ -87,10 +87,10 @@ inla.set.hyper = function(
                 idx = which(names(hyper) == "theta")
             }
             if (length(idx) == 0) {
-                idx = which(inla.strncasecmp(names(hyper), name))
+                idx = which(inla.strcasecmp(names(hyper), name))
             }
             if (length(idx) == 0) {
-                idx = which(inla.strncasecmp(names(hyper), short.name))
+                idx = which(inla.strcasecmp(names(hyper), short.name))
             }
 
             if (length(idx) == 0) {
