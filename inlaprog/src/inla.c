@@ -6961,6 +6961,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			GMRFLib_sprintf(&fixname, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, fixname), 0);
+P(mb->f_fixed[mb->nf][i]);
 			Free(fixname);
 		}
 	}
@@ -7588,6 +7589,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		mb->f_fixed[mb->nf][3] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED3"), 1);	/* default fixed, yes */
 
+		//P(mb->nf);
+		//P(mb->f_fixed[mb->nf][3]);
+		
 		initial_t = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
 		initial_k = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		initial_rest = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
@@ -7599,7 +7603,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		nT = spde_model->Tmodel->ntheta;
 		nK = spde_model->Kmodel->ntheta;
-		mb->f_ntheta[mb->nf] = nT + nK + 1;
+		mb->f_ntheta[mb->nf] = IMAX(4, nT + nK + 1);
 		mb->f_Tmodel[mb->nf] = GMRFLib_strdup("basisT");
 		mb->f_Kmodel[mb->nf] = GMRFLib_strdup("basisK");
 
@@ -7648,7 +7652,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			HYPER_INIT(spde_model->Kmodel->theta[k], tmp);
 		}
-
 		if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		} else {
@@ -7657,10 +7660,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		HYPER_INIT(spde_model->oc, tmp);
 
 		mb->f_theta[mb->nf] = Calloc(nT + nK + 1, double **);
-		for (k = 0; k < nT; k++)
+		for (k = 0; k < nT; k++){
 			mb->f_theta[mb->nf][k] = spde_model->Tmodel->theta[k];
-		for (k = 0; k < nK; k++)
+		}
+		for (k = 0; k < nK; k++){
 			mb->f_theta[mb->nf][k + nT] = spde_model->Kmodel->theta[k];
+		}
 		mb->f_theta[mb->nf][nK + nT] = spde_model->oc;
 
 		for (k = 0; k < nT + nK + 1; k++) {
@@ -9154,12 +9159,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose && um) {
 				printf("\t\tgroup.usermap=[%s]\n", um->name);
 			}
+
+			P(mb->nf);
+			P(mb->f_ntheta[mb->nf]);
+			P(mb->f_fixed[mb->nf][3]);
+
 			mb->f_theta[mb->nf] = Realloc(mb->f_theta[mb->nf], mb->f_ntheta[mb->nf] + 1, double **);
 			mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], mb->f_ntheta[mb->nf] + 1, int);
 			mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], mb->f_ntheta[mb->nf] + 1, Prior_tp);
 
 			mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_rho_intern;
 			mb->f_fixed[mb->nf][mb->f_ntheta[mb->nf]] = fixed;
+
+			P(mb->f_fixed[mb->nf][3]);
+
 
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
 				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
@@ -10474,7 +10487,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_SPDE:
 		{
-			int k, nT, nK, nt, Toffset = 0, Koffset = 0;
+			int k, nT, nK, nt, Toffset = 0, Koffset = 0, debug=0;
 			double t;
 			inla_spde_tp *spde;
 			double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
@@ -10498,7 +10511,15 @@ double extra(double *theta, int ntheta, void *argument)
 			Tpar = Calloc(nT, double);
 			Kpar = Calloc(nK, double);
 
-			if (0) {
+			if (debug) {
+				P(i);
+				P(mb->f_fixed[i][0]);
+				P(mb->f_fixed[i][1]);
+				P(mb->f_fixed[i][2]);
+				P(mb->f_fixed[i][3]);
+				P(nT);
+				P(nK);
+				P(nt);
 				P(fixed0);
 				P(fixed1);
 				P(fixed2);
@@ -10523,8 +10544,8 @@ double extra(double *theta, int ntheta, void *argument)
 					} else {
 						for (k = 1; k < nT; k++) {
 							Tpar[k] = theta[count + Toffset + k - 1];
+							Toffset++;
 						}
-						Toffset += nT - 1;
 					}
 				}
 				spde->Tmodel->theta_extra[GMRFLib_thread_id] = Tpar;
@@ -10543,8 +10564,8 @@ double extra(double *theta, int ntheta, void *argument)
 					} else {
 						for (k = 1; k < nK; k++) {
 							Kpar[k] = theta[count + Koffset + Toffset + k - 1];
+							Koffset++;
 						}
-						Koffset += nK - 1;
 					}
 				}
 				spde->Kmodel->theta_extra[GMRFLib_thread_id] = Kpar;
@@ -10555,7 +10576,7 @@ double extra(double *theta, int ntheta, void *argument)
 				spde->oc[GMRFLib_thread_id][0] = theta[count + Koffset + Toffset];
 			}
 
-			if (0) {
+			if (debug) {
 				printf("call extra() with\n");
 				for (k = 0; k < nT; k++) {
 					printf("Tmodel %d %g\n", k, spde->Tmodel->theta_extra[GMRFLib_thread_id][k]);
@@ -10575,13 +10596,11 @@ double extra(double *theta, int ntheta, void *argument)
 					val += mb->f_prior[i][0].priorfunc(&t, mb->f_prior[i][0].parameters);
 					count++;
 				}
-				for (k = 1; k < mb->f_ntheta[i]; k++) {
-					if (k < nT) {
-						if (!mb->f_fixed[i][2]) {
-							t = theta[count];
-							val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
-							count++;
-						}
+				for (k = 1; k < nT; k++) {
+					if (!mb->f_fixed[i][2]) {
+						t = theta[count];
+						val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+						count++;
 					}
 				}
 			}
@@ -10595,13 +10614,11 @@ double extra(double *theta, int ntheta, void *argument)
 					val += mb->f_prior[i][1].priorfunc(&t, mb->f_prior[i][1].parameters);
 					count++;
 				}
-				for (k = 1; k < mb->f_ntheta[i]; k++) {
-					if (k > nT && k < nT + nK) {
-						if (!mb->f_fixed[i][2]) {
-							t = theta[count];
-							val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
-							count++;
-						}
+				for (k = 1; k < nK; k++) {
+					if (!mb->f_fixed[i][2]) {
+						t = theta[count];
+						val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+						count++;
 					}
 				}
 			}
@@ -10614,14 +10631,15 @@ double extra(double *theta, int ntheta, void *argument)
 				count++;
 			}
 
-			assert(nT + nK + 1 == mb->f_ntheta[i]);
-
-			// TODO
-			if (mb->f_ngroup[i] > 1){
-				FIXME("Please verify that ngroup works with SPDE!");
+			if (debug)
+			{
+				P(nT);
+				P(nK);
+				P(mb->f_ntheta[i]);
 			}
+			assert(IMAX(4, nT + nK + 1) + (mb->f_ngroup[i] > 1 ? 1 : 0) == mb->f_ntheta[i]);
 
-			SET_GROUP_RHO(nT + nK + 1);
+			SET_GROUP_RHO(IMAX(4, nT + nK + 1));
 
 			static GMRFLib_problem_tp *problem = NULL;
 #pragma omp threadprivate(problem)

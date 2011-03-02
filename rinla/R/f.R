@@ -238,7 +238,7 @@
     ## then ***ALL*** parameters that are set here overides the ones
     ## set in the argument list. (THIS FEATURE IS EXPERIMENTAL FOR THE
     ## MOMENT).
-    if (class(model) == "inla.wrapper.model") {
+    if (inla.one.of("inla.wrapper.model", class(model))) {
         model.tmp = model
         for(nm in names(model.tmp)) {
             inla.eval(paste(nm, "=", "model.tmp$", nm,  sep=""))
@@ -289,6 +289,7 @@
         weigths = attr(terms(reformulate(weights)),"weights.labels")
     }
 
+    browser()
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent", hyper = hyper, 
             initial = initial, fixed = fixed,  prior = prior,  param = param)
