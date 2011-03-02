@@ -1278,27 +1278,17 @@
 
 `inla.model.properties.generic` = function(model, models, stop.on.error = TRUE, ignore.case = TRUE)
 {
-    ans = c()
-    for(mm in model) {
-        m = ifelse(ignore.case, tolower(mm), mm)
-        if (ignore.case) {
-            ms = tolower(names(models))
-        } else {
-            ms = names(models)
-        }
-        if (inla.is.generic(mm, stop.on.error, models, ignore.case)) {
-            k = grep(paste("^", m, "$", sep=""), ms)
-            ans = c(ans, list(models[[k]]))
-        } else {
-            ans = c(ans, list(NA))
-        }
-    }
-    ## treat the case length(ans) == 1 specially. do not need a list
-    ## of list then.
-    if (length(ans) == 1) {
-        return (ans[[1]])
+    m = ifelse(ignore.case, tolower(model), model)
+    if (ignore.case) {
+        ms = tolower(names(models))
     } else {
-        return (ans)
+        ms = names(models)
+    }
+    k = grep(paste("^", m, "$", sep=""), ms)
+    if (length(k) == 0L) {
+        return (NULL)
+    } else {
+        return (models[[k]])
     }
 }
 
