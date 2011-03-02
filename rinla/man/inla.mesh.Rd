@@ -18,7 +18,7 @@ inla.mesh(loc = NULL,
           cutoff = 0,
           plot.delay = NULL,
           data.dir,
-          keep = (missing(data.dir) || is.null(data.dir)))
+          keep = (!missing(data.dir) && !is.null(data.dir)))
 }
 \arguments{
   \item{loc}{

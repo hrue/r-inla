@@ -10,7 +10,10 @@
 }
 \usage{
 ## Create an SPDE model:
-inla.spde(mesh, ...)
+inla.spde(mesh,
+          model = c("matern", "imatern", "heat"),
+          param = NULL,
+          ...)
 ## Query properties of an SPDE model:
 inla.spde(spde, ...)
 }
@@ -18,8 +21,17 @@ inla.spde(spde, ...)
   \item{mesh}{
     The mesh to build the model on, as an \code{\link{inla.mesh}} object.
   }
-  \item{mesh}{
-    The mesh to build the model on, as an \code{\link{inla.mesh}} object.
+  \item{model}{
+    The name of the model.
+  }
+  \item{param}{
+    Model specific parameters.
+  }
+  \item{spde}{
+    The \code{inla.spde} object to query.
+  }
+  \item{...}{
+    
   }
 }
 \details{
@@ -51,14 +63,13 @@ y = rnorm(10)
 lattice = inla.mesh.lattice(x = seq(0, 1, length.out=17),
                             y = seq(0, 1, length.out=10))
 mesh = inla.mesh(loc, lattice=lattice, refine=list(max.edge=0.05))
-spde = inla.spde(mesh)
+spde = inla.spde(mesh, model="matern")
 data = list(y=y, field=mesh$idx$loc)
-formula = y ~f(field, model=spde)
+formula = y ~ f(field, model=spde)
 result = inla(formula, data=data)
 
 plot(mesh)
 plot(old.mesh.class(mesh), result$summary.random$field[,"mean"])
-dev.new()
 image(matrix(result$summary.random$field[mesh$idx$lattice,"mean"], 17, 10))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
