@@ -1576,8 +1576,9 @@ double priorfunc_wishart3d(double *x, double *parameters)
 	gsl_linalg_LU_decomp(J, p, &signum);
 	logdet = gsl_linalg_LU_lndet(J);		       /* log(abs|J|) */
 
-	if (debug)
+	if (debug){
 		P(logdet);
+	}
 
 	gsl_matrix_free(R);
 	gsl_matrix_free(Q);
@@ -6961,7 +6962,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			GMRFLib_sprintf(&fixname, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, fixname), 0);
-P(mb->f_fixed[mb->nf][i]);
 			Free(fixname);
 		}
 	}
@@ -9160,9 +9160,9 @@ P(mb->f_fixed[mb->nf][i]);
 				printf("\t\tgroup.usermap=[%s]\n", um->name);
 			}
 
-			P(mb->nf);
-			P(mb->f_ntheta[mb->nf]);
-			P(mb->f_fixed[mb->nf][3]);
+			//P(mb->nf);
+			//P(mb->f_ntheta[mb->nf]);
+			//P(mb->f_fixed[mb->nf][3]);
 
 			mb->f_theta[mb->nf] = Realloc(mb->f_theta[mb->nf], mb->f_ntheta[mb->nf] + 1, double **);
 			mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], mb->f_ntheta[mb->nf] + 1, int);
@@ -9170,9 +9170,6 @@ P(mb->f_fixed[mb->nf][i]);
 
 			mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_rho_intern;
 			mb->f_fixed[mb->nf][mb->f_ntheta[mb->nf]] = fixed;
-
-			P(mb->f_fixed[mb->nf][3]);
-
 
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
 				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
