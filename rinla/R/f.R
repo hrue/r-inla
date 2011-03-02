@@ -358,7 +358,7 @@
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    if (FALSE) {
+    if (TRUE) {
         arguments = c(names(formals(INLA::f)), "A", "e")
     } else {
         warning("Recall to revert back to INLA::f")
