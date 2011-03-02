@@ -1,4 +1,27 @@
-mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
+inla.require.inherits = function(x, what, name="Object")
+{
+    if (!inherits(x, what))
+        stop(paste(name, " must inherit from class ",
+                   inla.ifelse(length(what)==1,
+                               paste("\"", what, "\".", sed=""),
+                               paste("\"",
+                                     inla.paste(what[1:(length(what)-1)],
+                                                "\", \""),
+                                     "\"",
+                                     inla.ifelse(length(what)==2, "", ","),
+                                     " or \"",
+                                     what[length(what)],
+                                     "\".",
+                                     sep="")),
+                   sep=""))
+    return(invisible())
+}
+
+mesh.segm =
+    function(loc=NULL,
+             idx=NULL,
+             grp=NULL,
+             is.bnd=TRUE)
 {
     if ((missing(loc) || is.null(loc)) &&
         (missing(idx) || is.null(idx)))
@@ -73,12 +96,12 @@ mesh.segm = function(loc=NULL,idx=NULL,grp=NULL,is.bnd=TRUE)
     }
 
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
-    class(ret) <- "fmesher.segm"
+    class(ret) <- "inla.mesh.segm"
     return(ret)
 }
 
 
-lines.fmesher.segm = function (segm, loc=NULL, ...)
+lines.inla.mesh.segm = function(segm, loc=NULL, ...)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
@@ -95,10 +118,9 @@ lines.fmesher.segm = function (segm, loc=NULL, ...)
     }
 }
 
-plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
+plot.inla.mesh = function(mesh, add=FALSE, lwd=1, ...)
 {
-    if (!inherits(mesh, "fmesher.mesh"))
-        stop("'mesh' bust be an 'fmesher.mesh' object.")
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     idx = cbind(mesh$graph$tv[,c(1:3,1), drop=FALSE], NA)
     x = mesh$loc[t(idx), 1]
@@ -121,13 +143,14 @@ plot.fmesher.mesh = function (mesh, add=FALSE, lwd=1, ...)
 
 
 
-mesh.grid = function(x=seq(0, 1, length.out=2),
-                     y=seq(0, 1, length.out=2),
-                     z=NULL,
-                     dims = (inla.ifelse(is.matrix(x),
-                                         dim(x),
-                                         c(length(x), length(y)))),
-                     units=NULL)
+mesh.grid =
+    function(x=seq(0, 1, length.out=2),
+             y=seq(0, 1, length.out=2),
+             z=NULL,
+             dims = (inla.ifelse(is.matrix(x),
+                                 dim(x),
+                                 c(length(x), length(y)))),
+             units = "default")
 {
     if (is.matrix(x)) {
         if (!identical(dims, dim(x)) ||
@@ -160,7 +183,7 @@ mesh.grid = function(x=seq(0, 1, length.out=2),
     segm = mesh.segm(loc=loc[segm.idx,, drop=FALSE], grp=segm.grp, is.bnd=TRUE)
 
     grid = list(loc=loc, segm=segm)
-    class(grid) = "fmesher.grid"
+    class(grid) = "inla.mesh.grid"
     return(grid)
 }
 
@@ -170,10 +193,13 @@ extract.groups = function(...)
     UseMethod("extract.groups")
 }
 
-extract.groups.fmesher.segm = function(segm, groups, groups.new=groups, ...)
+extract.groups.inla.mesh.segm =
+    function(segm,
+             groups,
+             groups.new=groups,
+             ...)
 {
-    if (!inherits(segm, "fmesher.segm"))
-        stop("'mesh' must inherit from class \"fmesher.segm\"")
+    inla.require.inherits(segm, "inla.mesh.segm", "'segm'")
 
     if (length(groups.new)==1L) {
         groups.new = rep(groups.new, length(groups))
@@ -197,7 +223,11 @@ extract.groups.fmesher.segm = function(segm, groups, groups.new=groups, ...)
 
 
 
-inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
+inla.mesh.parse.segm.input =
+    function(boundary=NULL,
+             interior=NULL,
+             segm.offset=0L,
+             loc.offset=0L)
 {
 ###########################################
     homogenise.segm.input = function(x, is.bnd)
@@ -212,11 +242,13 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
             } else {
                 stop("Segment info matrix must be numeric or integer.")
             }
-        } else if (inherits(x, "fmesher.segm")) {
+        } else if (inherits(x, "inla.mesh.segm")) {
             ## Override x$is.bnd:
             ret = mesh.segm(x$loc, x$idx, x$grp, is.bnd)
         } else if (!is.null(x)) {
-            stop("Segment info must inherit from class \"matrix\" or \"fmesher.segm\"")
+            inla.require.inherits(NULL,
+                                  c("matrix", "inla.mesh.segm"),
+                                  "Segment info")
         } else {
             ret = NULL
         }
@@ -226,9 +258,9 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
     homogenise.segm.grp = function(input) {
         grp.idx = 0L
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
-            if (!inherits(input[[k]], "fmesher.segm")) {
-                stop("Segment info is not a segment list. ",
-                     "This should not happen.")}
+            inla.require.inherits(input[[k]],
+                                  "inla.mesh.segm",
+                                  "Segment info list members ")
             if (is.null(input[[k]]$grp)) {
                 grp.idx = grp.idx+1L
                 input[[k]] = (mesh.segm(input[[k]][[1]],
@@ -242,29 +274,28 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
         return(input)
     }
 ##################################################
-    parse.segm.input = function(input, loc.n) {
+    parse.segm.input = function(input, segm.offset=0L, loc.offset=0L)
+    {
         loc = NULL
-        bnd = list(idx = matrix(,0,2), grp = matrix(,0,1))
-        int = list(idx = matrix(,0,2), grp = matrix(,0,1))
+        bnd = list(loc=NULL, idx = matrix(,0,2), grp = matrix(,0,1))
+        int = list(loc=NULL, idx = matrix(,0,2), grp = matrix(,0,1))
         storage.mode(bnd$idx) <- "integer"
         storage.mode(bnd$grp) <- "integer"
         storage.mode(int$idx) <- "integer"
         storage.mode(int$grp) <- "integer"
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
-            if (!inherits(input[[k]],"fmesher.segm")) {
-                stop("Segment info is not a segment list. ",
-                     "This should not happen.")
-            }
-            prev.loc.n = loc.n
+            inla.require.inherits(input[[k]],
+                                  "inla.mesh.segm",
+                                  "Segment info list members ")
             if (!is.null(input[[k]]$loc)) {
                 extra.loc.n = nrow(input[[k]]$loc)
-                idx.offset = loc.n
-                loc.n = loc.n + extra.loc.n
+                idx.offset = segm.offset
+                segm.offset = segm.offset + extra.loc.n
                 loc = (inla.ifelse(is.null(loc),
                                    input[[k]]$loc,
                                    rbind(loc, input[[k]]$loc)))
             } else {
-                idx.offset = 0L
+                idx.offset = loc.offset
             }
             if (input[[k]]$is.bnd) {
                 bnd$idx = rbind(bnd$idx, input[[k]]$idx+idx.offset)
@@ -301,7 +332,7 @@ inla.mesh.parse.segm.input = function(boundary=NULL, interior=NULL, n=0)
                                  interior, list(interior)),
                      function(x){homogenise.segm.input(x, FALSE)})))
     segm = homogenise.segm.grp(segm)
-    return(parse.segm.input(segm, n))
+    return(parse.segm.input(segm, segm.offset, loc.offset))
 }
 
 
@@ -324,29 +355,26 @@ inla.fmesher.make.dir = function(dir)
 
 fmesher.write = function(m, prefix, matrixname)
 {
-    return(inla.write.fmesher.file(m, paste(prefix, matrixname, sep="")))
+    filename = paste(prefix, matrixname, sep="")
+    return(inla.write.fmesher.file(m, filename))
 }
 
 fmesher.read = function(prefix, matrixname)
 {
-    return(inla.read.fmesher.file(paste(prefix, matrixname, sep="")))
+    filename = paste(prefix, matrixname, sep="")
+    if (!file.exists(filename))
+        stop(paste("File '", filename, "' does not exist.", sep=""))
+    return(inla.read.fmesher.file(filename))
 }
 
 
 
-`inla.mesh` = function(loc=NULL, tv=NULL,
-                       boundary=NULL, interior=NULL,
-                       extend=(missing(tv) || is.null(tv)),
-                       refine=FALSE,
-                       grid=NULL, manifold=NULL,
-                       cutoff.distance = 0,
-                       plot.delay = NULL,
-                       keep = FALSE,
-                       data.dir)
-{
-
 ################################
-    filter.locations = function(loc, cutoff.distance)
+##
+## Old code.  Filtering is now done in fmesher itself.
+## Retained for now so that we can check if the results are the same.
+##
+inla.mesh.filter.locations = function(loc, cutoff)
     {
         ## Map locations to nodes, avoiding near-duplicates.
         loc.n = nrow(loc)
@@ -368,7 +396,7 @@ fmesher.read = function(prefix, matrixname)
                 sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*%
                               loc[loc.i,, drop=FALSE] -
                               node.coord[1:node.i.max,, drop=FALSE])^2))
-            if (min(loc.to.node.dist) > cutoff.distance) {
+            if (min(loc.to.node.dist) > cutoff) {
                 node.i.max = node.i.max+1L
                 node.coord[node.i.max,] = loc[loc.i,, drop=FALSE]
                 map.loc.to.node[[loc.i]] = node.i.max
@@ -393,19 +421,34 @@ fmesher.read = function(prefix, matrixname)
     }
 ############################
 
+
+
+inla.mesh =
+    function(loc=NULL, tv=NULL,
+             boundary=NULL, interior=NULL,
+             extend = (missing(tv) || is.null(tv)),
+             refine=FALSE,
+             grid=NULL, manifold=NULL,
+             cutoff = 0,
+             plot.delay = NULL,
+             data.dir,
+             keep = (missing(data.dir) || is.null(data.dir)))
+{
+
+    time.total = system.time({ ## Entire function timing start
+
+    time.pre = system.time({ ## Pre-processing timing start
+
     if (!missing(manifold))
         warning("Option 'manifold' not implemented.")
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
-    time.pre = system.time({ ## Pre-processing timing start
-
     if (missing(grid) || is.null(grid)) {
         grid = list(loc=NULL, segm=NULL)
-        grid.n = 0
+        grid.n = 0L
     } else {
-        if (!inherits(grid, "fmesher.grid"))
-            stop("'grid' must inherit from class \"fmesher.grid\"")
+        inla.require.inherits(grid, "inla.mesh.grid", "'grid'")
         if (!is.null(tv)) {
             warning("Both 'grid' and 'tv' specified.  Ignoring 'tv'.")
             tv = NULL
@@ -415,22 +458,39 @@ fmesher.read = function(prefix, matrixname)
                                       boundary, list(boundary)),
                           list(grid$segm)))
         }
-        grid.n = max(0,nrow(grid$loc))
+        grid.n = max(0L,nrow(grid$loc))
     }
-    loc.n = max(0,nrow(loc))
+    loc.n = max(0L,nrow(loc))
 
-    segm = inla.mesh.parse.segm.input(boundary, interior, loc.n+grid.n)
+    segm = (inla.mesh.parse.segm.input(boundary,
+                                       interior,
+                                       loc.n,
+                                       0L))
     segm.n = max(0,nrow(segm$loc))
+    ## Run parse again now that we know where the indices should point:
+    segm = (inla.mesh.parse.segm.input(boundary,
+                                       interior,
+                                       0L,
+                                       segm.n+grid.n))
 
-    if (FALSE) {
-        tmp = (filter.locations(rbind(segm$loc, grid$loc, loc),
-                                cutoff.distance))
+    if (TRUE) {
+        loc0 = rbind(segm$loc, grid$loc, loc)
+        idx0 = 1:nrow(loc0)
+    } else {
+        ##
+        ## Old code.  Filtering is now done in fmesher itself.
+        ## Retained for now so that we can check if the results are the same.
+        ##
+
+        tmp = (inla.mesh.filter.locations(rbind(segm$loc, grid$loc, loc),
+                                          cutoff))
         loc0 = tmp$loc
         idx0 = tmp$node.idx
 
         ## Remap indices
         if (!is.null(segm$bnd)) {
-            segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %% (segm.n+grid.n+loc.n)+1L],
+            segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %%
+                                        (segm.n+grid.n+loc.n)+1L],
                                    nrow=nrow(segm$bnd$idx),
                                    ncol=ncol(segm$bnd$idx)))
         }
@@ -444,16 +504,13 @@ fmesher.read = function(prefix, matrixname)
                          nrow=nrow(tv),
                          ncol=ncol(tv)))
         }
-    } else {
-        loc0 = rbind(segm$loc, grid$loc, loc)
-        idx0 = 1:nrow(loc0)
     }
 
 
     ## Where to put the files?
     if (keep) {
         if (missing(data.dir)) {
-            data.dir = inla.fmesher.make.dir("fmesher.data")
+            data.dir = inla.fmesher.make.dir("inla.mesh.data")
         }
         prefix = paste(data.dir, "/mesh.", sep="")
         keep.dir = TRUE
@@ -465,7 +522,8 @@ fmesher.read = function(prefix, matrixname)
         } else {
             data.dir = inla.fmesher.make.dir(data.dir)
             prefix = paste(data.dir, "/mesh.", sep="")
-            keep.dir = FALSE
+            ## We should not try to delete the session tempdir...
+            keep.dir = identical(tempdir(), dirname(prefix))
         }
     }
     prefix = inla.fmesher.make.prefix(NULL, prefix)
@@ -478,8 +536,8 @@ fmesher.read = function(prefix, matrixname)
         fmesher.write(tv-1L, prefix, "input.tv")
         all.args = paste(all.args, ",input.tv", sep="")
     }
-    if (!missing(cutoff.distance)) {
-        all.args = paste(all.args, " --cutoff=", cutoff.distance, sep="")
+    if (!missing(cutoff)) {
+        all.args = paste(all.args, " --cutoff=", cutoff, sep="")
     }
     if (!is.null(segm$bnd)) {
         fmesher.write(segm$bnd$idx-1L, prefix, "input.segm.bnd.idx")
@@ -565,12 +623,14 @@ fmesher.read = function(prefix, matrixname)
                           FALSE))
 
     if (!keep)
-            unlink(paste(prefix, "*", sep=""), recursive=FALSE)
-    if (!keep.dir)
-            unlink(dirname(prefix), recursive=TRUE)
+        unlink(paste(prefix, "*", sep=""), recursive=FALSE)
+    if (!keep.dir) {
+        unlink(dirname(prefix), recursive=TRUE)
+    }
 
     }) ## Post-processing timing end
 
+    time.object = system.time({ ## Object construction timing start
     mesh = (list(meta = (list(call=match.call(),
                               fmesher.args = all.args,
                               time = (rbind(pre = time.pre,
@@ -581,17 +641,22 @@ fmesher.read = function(prefix, matrixname)
                  graph = graph,
                  segm = list(bnd=segm.bnd, int=segm.int),
                  idx = idx))
+    class(mesh) <- "inla.mesh"
 
-    class(mesh) <- "fmesher.mesh"
+    }) ## Object construction timing end
 
+    }) ## Entire function timing start
+
+    mesh$meta$time = (rbind(mesh$meta$time,
+                            object=time.object,
+                            total=time.total))
     return(mesh)
 }
 
-`summary.fmesher.mesh` = function(x, verbose=FALSE, ...)
+summary.inla.mesh = function(x, verbose=FALSE, ...)
 {
     ## provides a summary for a mesh object
-    if (!inherits(x, "fmesher.mesh"))
-        stop("'x' must inherit from class \"fmesher.mesh\"")
+    inla.require.inherits(x, "inla.mesh", "'x'")
 
     ret = list(verbose=verbose)
     if (verbose) {
@@ -625,11 +690,11 @@ fmesher.read = function(prefix, matrixname)
         ret = c(ret, list(segm.int=my.segm(NULL)))
     }
 
-    class(ret) <- "summary.fmesher.mesh"
+    class(ret) <- "summary.inla.mesh"
     return (ret)
 }
 
-`print.summary.fmesher.mesh` = function(x, ...)
+print.summary.inla.mesh = function(x, ...)
 {
     my.print.proc_time = function (x, ...)
     {
@@ -651,8 +716,7 @@ fmesher.read = function(prefix, matrixname)
     }
 
 
-    if (!inherits(x, "summary.fmesher.mesh"))
-        stop("'x' must inherit from class \"summary.fmesher.mesh\"")
+    inla.require.inherits(x, "summary.inla.mesh", "'x'")
 
     if (x$verbose) {
         cat("\nCall:\n")
@@ -701,28 +765,46 @@ old.mesh.class = function(...)
     UseMethod("old.mesh.class")
 }
 
-old.mesh.class.fmesher.mesh = function(mesh, ...)
+old.mesh.class.inla.mesh = function(mesh, ...)
 {
     fmesh=list(mesh=mesh)
     fmesh$mesh$s = mesh$loc
     fmesh$mesh$tv = mesh$graph$tv
+    fmesh$node.idx = mesh$idx$loc
     class(fmesh)="inla.fmesher.mesh"
     return(fmesh)
 }
 
 
+
+
 inla.spde = function(x, ...)
 {
-    if (inherits(x, "fmesher.mesh"))
-        UseMethod("inla.spde", x)
-
-    stop("Only 'fmesher.mesh' objects are supported at the moment.")
+    UseMethod("inla.spde", x)
 }
 
-inla.spde.fmesher.mesh = function(mesh, ...)
+inla.spde.inla.mesh = function(mesh, ...)
 {
-    spde = list(mesh=mesh)
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    warning("'inla.spde' not fully implemented yet.")
+
+    spde = (list(mesh=mesh,
+                 f=(list(model="spde",
+                         spde.prefix=mesh$meta$prefix,
+                         n=nrow(mesh$loc)))
+                 ))
     class(spde) = "inla.spde"
     return(spde)
 }
+
+inla.spde.inla.spde = function(spde, ...)
+{
+    inla.require.inherits(mesh, "inla.spde", "'spde'")
+
+    warning("No 'inla.spde' object queries implemented yet.")
+
+    return(list())
+}
+
 
