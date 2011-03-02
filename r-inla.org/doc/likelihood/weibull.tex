@@ -11,7 +11,9 @@
 
 The Weibull distribution is
 \begin{displaymath}
-    \text{Prob}(y) = \alpha y^{\alpha-1} \lambda\exp( - \lambda  y^{\alpha}), \qquad \alpha>0, \qquad \lambda>0
+    \text{Prob}(y) = \alpha y^{\alpha-1}
+    \lambda\exp( - \lambda  y^{\alpha}),
+    \qquad \alpha>0, \qquad \lambda>0
 \end{displaymath}
 where
 \begin{description}
@@ -44,6 +46,10 @@ and the prior is defined on $\theta$.
 \item Required arguments: $y$ (to be given in a format by using
     $\texttt{inla.surv()}$ function )
 \end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/weibull.tex}
+
 
 \subsection*{Example}
 

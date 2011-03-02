@@ -8,9 +8,10 @@
 
 \subsection*{Parametrization}
 
-The Gaussian likelihood for stochastic volatility models is defined as:
+The Gaussian likelihood for stochastic volatility models is defined
+as:
 \[
-\pi(y |\eta )=\sigma \epsilon 
+\pi(y |\eta )=\sigma \epsilon
 \]
 where
 \[
@@ -19,7 +20,8 @@ where
 
 \subsection*{Link-function}
 
-The scale parameter $\sigma $ is linked to the linear predictor $\eta $ as:
+The scale parameter $\sigma $ is linked to the linear predictor $\eta
+$ as:
 \[
 \sigma =\exp(\eta /2)
 \]
@@ -36,8 +38,12 @@ None
 \item Required argument: $y$.
 \end{itemize}
 
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gev.tex}
+
 \subsection*{Example}
-In the following example we specify the likelihood for the stochastic volatility model to be Gaussian 
+In the following example we specify the likelihood for the stochastic
+volatility model to be Gaussian
  
 \begin{verbatim}
 #simulated data
@@ -51,7 +57,8 @@ time=1:n
 data=list(ret=y,time=time)
 
 #fit the model
-formula=ret~f(time,model="ar1",param=c(1,0.001,0,0.4))
+formula=ret~f(time,model="ar1",
+              hyper = list(prec = list(param=c(1,0.001))))
 result=inla(formula,family="stochvol",data=data)
 
 \end{verbatim}

@@ -66,6 +66,9 @@ and the prior and initial value is is given for $\theta_{2}$.
     likelihood.
 \end{itemize}
 
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/zeroinflatedbetabinomial2.tex}
+
 \subsection*{Example}
 
 In the following we estimate the parameters in a simulated example.
@@ -93,10 +96,9 @@ y[abs.pres==1] = rbinom( sum(abs.pres>0), n.trial, rb[abs.pres==1])
 
 formula = y ~ x +1
 r = inla(formula, data = data.frame(x,y), family = "zeroinflatedbetabinomial2",
-        control.data = list(prior = c("flat", "flat"),
-                fixed = c(F,F)),
+        control.data = list(hyper=list(a = list(prior = "flat", param=numeric(0)),
+                                       b = list(prior = "flat", param=numeric(0)))),
         Ntrials = rep(n.trial, nx),
         verbose=TRUE)
 \end{verbatim}
-
 \end{document}
