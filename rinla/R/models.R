@@ -1409,6 +1409,22 @@ inla.models()
     cat(tab, "} \n")
     cat("} \n")
 
+    cat("\\examples{
+## How to set hyperparameters to pass as the argument 'hyper'. This
+## format is compatible with the old style (using 'initial', 'fixed',
+## 'prior', 'param'), but the new style using 'hyper' take preceedence
+## over the old style. The two styles can also be mixed. The old style
+## might be removed from the code in the future...
+
+## Only a subset need to be given
+   hyper = list(theta = list(initial = 2))
+## The `name' can be used instead of 'theta', or 'theta1', 'theta2',...
+   hyper = list(precision = list(initial = 2))
+   hyper = list(precision = list(prior = \"flat\", param = numeric(0)))
+   hyper = list(theta2 = list(initial=3), theta1 = list(prior = \"gaussian\"))
+## The 'short.name' can be used instead of 'name'
+   hyper = list(rho = list(param = c(0,1)))
+}\n")    
     if (!is.null(file))
         sink()
 
