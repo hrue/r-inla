@@ -778,16 +778,16 @@ old.mesh.class.inla.mesh = function(mesh, ...)
 
 
 
-inla.spde = function(x, ...)
+inla.spde = function(...)
 {
-    UseMethod("inla.spde", x)
+    UseMethod("inla.spde")
 }
 
 inla.spde.inla.mesh = function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    warning("'inla.spde' not fully implemented yet.")
+    warning("'inla.spde' not fully implemented yet.  keep=TRUE required in inla.mesh")
 
     spde = (list(mesh=mesh,
                  f=(list(model="spde",
