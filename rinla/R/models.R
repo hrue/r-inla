@@ -1171,7 +1171,6 @@
                          normal = list(nparameters = 2),
                          gaussian = list(nparameters = 2),
 
-                         wishart = list(nparameters = NA),
                          wishart1d = list(nparameters = 2),
                          wishart2d = list(nparameters = 4),
                          wishart3d = list(nparameters = 7),
