@@ -744,11 +744,14 @@ inla.spde.inla.mesh = function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    warning("'inla.spde' not fully implemented yet.  keep=TRUE required in inla.mesh")
+    warning("'inla.spde' not fully implemented yet.")
+
+    ## Temporary code built on the old interface:
+    old.spde = inla.create.spde(old.mesh.class(mesh)$mesh, fem=2)
 
     spde = (list(mesh=mesh,
                  f=(list(model="spde",
-                         spde.prefix=mesh$meta$prefix,
+                         spde.prefix=old.spde$prefix,
                          n=nrow(mesh$loc)))
                  ))
     class(spde) = "inla.spde"
