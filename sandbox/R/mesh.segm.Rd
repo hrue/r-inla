@@ -1,11 +1,11 @@
 \name{mesh.segm}
 \alias{mesh.segm}
-\alias{fmesher.segm}
+\alias{inla.mesh.segm}
 \title{
-  Create a constraint segment object for fmesher
+  Constraint segments for inla.mesh
 }
 \description{
-  Constructs an \code{fmesher.segm} object that can be used to specify
+  Constructs an \code{inla.mesh.segm} object that can be used to specify
   boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
 }
 \usage{
@@ -36,28 +36,23 @@ mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 %%  Some text. \describe{Some more text} Further text.
 %%}
 \value{
-  An \code{fmesher.segm} object.
-%%  ~Describe the value returned
+  An \code{inla.mesh.segm} object.
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 }
 \references{
-%% ~put references to the literature/web site here ~
 }
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
-%%  ~~who you are~~
 }
 \note{
-%%  ~~further notes~~
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
   \code{\link{inla.mesh}}
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 ## Create a square boundary and a diagonal interior segment
@@ -77,4 +72,4 @@ mesh = inla.mesh(loc, interior=list(segm.bnd, segm.int))
 plot(mesh)
 }
 }
-\keyword{ fmesher }
+%\keyword{ fmesher }
