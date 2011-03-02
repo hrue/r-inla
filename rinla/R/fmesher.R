@@ -10,6 +10,8 @@ inla.mesh.segm =
     if (!missing(loc) && !is.null(loc)) {
         if (!is.matrix(loc))
             stop("'loc' must be a a matrix")
+        if (!is.double(loc))
+            storage.mode(loc) = "double"
         if (missing(idx) || is.null(idx))
             idx = (inla.ifelse(is.bnd,
                                c(1:nrow(loc),1),
@@ -143,6 +145,8 @@ inla.mesh.lattice =
         loc = (cbind(rep(x, times = dims[2]),
                      rep(y, each = dims[1])))
     }
+    if (!is.double(loc))
+        storage.mode(loc) = "double"
 
     if (identical(units, "longlat")) {
         ## Transform onto a sphere
@@ -389,12 +393,16 @@ inla.mesh =
              cutoff = 0,
              plot.delay = NULL,
              data.dir,
-             keep = (missing(data.dir) || is.null(data.dir)))
+             keep = (!missing(data.dir) && !is.null(data.dir)))
 {
 
     time.total = system.time({ ## Entire function timing start
 
     time.pre = system.time({ ## Pre-processing timing start
+
+    if (!is.null(loc) && !is.double(loc)) {
+        storage.mode(loc) = "double"
+    }
 
     if (!missing(manifold))
         warning("Option 'manifold' not implemented.")
@@ -766,5 +774,13 @@ inla.spde.inla.spde = function(spde, ...)
 
     return(list())
 }
+
+
+
+
+
+##inla.spde(mesh, model=list("matern"), ...)
+##inla.spde(mesh, model=list("heat", Qw=..., t=...), ...)
+##inla.spde(mesh, model=list("imatern"), ...)
 
 
