@@ -26,7 +26,7 @@ precision for the first order increments.
 
 The CRW2 model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="crw2",values=<values>,hyper = <hyper>)
+ f(<whatever>, model="crw2", values=<values>, hyper = <hyper>)
 \end{verbatim}
 The (optional) argument {\tt values } is a numeric or factor vector
 giving the values assumed by the covariate for which we want the
@@ -39,7 +39,6 @@ effect to be estimated. See next example for an application.
 \subsection*{Example}
 
 \begin{verbatim}
-
 n=100
 z=seq(0,6,length.out=n)
 y=sin(z)+rnorm(n,mean=0,sd=0.5)
