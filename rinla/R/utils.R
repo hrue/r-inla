@@ -791,6 +791,9 @@
 
 `inla.one.of` = function(family, candidates)
 {
+    if (is.null(candidates) || length(candidates) == 0)
+        return (FALSE)
+    
     ## check if family is one of the canidates
     return (any(inla.trim.family(family) == inla.trim.family(candidates)))
 }
