@@ -24,7 +24,7 @@
 ##!    \code{graph$cc$n}  is the number of connected components
 ##!    \code{graph$cc$nodes}  is a list-list of nodes belonging to each connected component
 ##!
-##!    Methods implemented for \code{inla.graph} is \code{summary}, \code {print} and \code {plot}.
+##!    Methods implemented for \code{inla.graph} is \code{summary}, \code{print} and \code{plot}.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{inla.debug.graph}

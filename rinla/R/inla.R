@@ -294,39 +294,33 @@
     ##!mode of the latent field given the modal value of the
     ##!hyperparamters.
     ##!}
-    
+
     ##!\item{call}{
     ##!The matched call.}                   
-    
+
     ##!\item{formula}{
     ##!The formula supplied}
-    
+
     ##!\item{nhyper}{
     ##!The number of hyperparameters in the model}
 
     ##!\item{cpu.used}{
     ##!The cpu time used by the \code{inla} function}
     ##!}
-    
+
     ##!\references{
     ##!Rue, H. and Martino, S. and Chopin, N. (2009)
     ##!\emph{Approximate Bayesian Inference for latent Gaussian models
     ##!using Integrated Nested Laplace Approximations, JRSS-series B
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
-    
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
-    ##!- Theory and Applications} Chapman and Hall
-    ##!
-    
-    ##!\author{Sara Martino and Havard Rue \email{hrue@math.ntnu.no} }
-    
+    ##!- Theory and Applications} Chapman and Hall}
+    ##!\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
-
     ##!\examples{
     ##! \dontrun{See the web page \url{www.r-inla.org} for a series of
     ##!worked out examples}}
-
 {
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
