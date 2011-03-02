@@ -42,10 +42,11 @@
         }
         QQ[(n+1):N, (n+1):N] = precision * t(covariates) %*% covariates + Q
 
-        hyper = inla.set.hyper(model, "misc", hyper, 
+        hyper = inla.set.hyper(model, "wrapper", hyper, 
                 initial, fixed, prior, param)         
 
-        ret = list(f = list(Cmatrix = QQ, hyper = hyper, model = "generic"))
+        ret = list(f = list(Cmatrix = QQ, hyper = hyper, model = "generic",
+                           n = N,  values = 1:N))
         class(ret) = "inla.wrapper.model"
         
         return (ret)

@@ -6,4 +6,3 @@ formula = y ~ z
 r = inla(formula, family = "sn", data = data.frame(z,y),
          control.data = list(sn.shape.max = 5.0))
 summary(r)
-

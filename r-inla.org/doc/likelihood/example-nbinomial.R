@@ -12,5 +12,8 @@ y = rnbinom(n, size=size, prob = prob)
 data = list(y=y,z=z)
 formula = y ~ 1+z
 result = inla(formula, family = "nbinomial", data = data, E=E,
-              control.data = list(prior="gaussian", param = c(0,0.01)))
+              control.data = list(hyper = list(
+                                          theta = list(
+                                                  prior="gaussian",
+                                                  param = c(0,0.01)))))
 summary(result)

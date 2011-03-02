@@ -40,25 +40,26 @@ and the prior is defined on $\theta$
 \item Required argument: $y$.
 \end{itemize}
 
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/stochvolt.tex}
+
 \subsection*{Example}
-In the following example we specify the likelihood for the stochastic volatility model to be Student-$t$ 
+In the following example we specify the likelihood for the stochastic
+volatility model to be Student-$t$
  
 \begin{verbatim}
-#simulated data
 n=1000
-phi=0.53
-eta=rep(0.1,n)
-for(i in 2:n)
-  eta[i]=0.1+phi*(eta[i-1]-0.1)+rnorm(1,0,0.6)
-y=exp(eta/2)*rt(n,df=4)
+x = 0.1 * arima.sim(n = n, model = list(ar = 0.9))
+y=exp(x/2)*rt(n,df=6)
 time=1:n
-data=list(ret=y,time=time)
+data=data.frame(y,time)
 
-#fit the model
-formula=ret~f(time,model="ar1",param=c(1,0.001,0,0.4))
+formula=y~f(time, model="ar1")+1
 result=inla(formula,family="stochvol.t",data=data)
+## sometimes we need to add
+## control.inla = list(cmin = 1e-2)
+## to make it converge
 hyper=inla.hyperpar(result)
-
 \end{verbatim}
 
 \subsection*{Notes}

@@ -146,7 +146,8 @@ inla.set.hyper = function(
                 off[[key]] = off[[key]] + len
             }
 
-            if (!is.null(h) && !is.null(h[[key]]) && !is.na(h[[key]])) {
+            test.val = (!is.null(h) && !is.null(h[[key]]) && !(is.na(h[[key]])))
+            if (is.na(test.val) || test.val) {
                 ## known length
                 if (key == "param") {
                     len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters

@@ -17,7 +17,8 @@ for continuous response $y$ where
 \item[$\tau$]: is the precision parameter
 \item[$w$]: is a foxed weight $w>0$
 \item[$\eta$]: is the linear predictor
-\item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of freedom such that its variace is $1$ for any value of $\nu$.
+\item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of
+    freedom such that its variace is $1$ for any value of $\nu$.
 \end{itemize}
 \subsection*{Link-function}
 
@@ -36,8 +37,12 @@ and the prior is defined on $\theta=(\theta_1,\theta_2)$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{T}$
-\item Required argument: $y$ and $w$ (keyword {\tt weights}, default to 1).
+\item Required argument: $y$ and $w$ (keyword {\tt weights}, default
+    to 1).
 \end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/t.tex}
 
 \subsection*{Example}
 \begin{verbatim}

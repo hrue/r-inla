@@ -1190,7 +1190,8 @@
                          none = list(nparameters = 0)
                          ),
 
-                 misc = list(
+                 ## models that are defined through the wrapper.
+                 wrapper = list(
                          joint = list(
                                  hyper = list(
                                          theta = list(
