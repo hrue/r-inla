@@ -3,12 +3,12 @@
     ## return TRUE if file exists and is a fmesher file
     if (!file.exists(filename))
         return (FALSE)
-    
+
     fp = file(filename, "rb")
     len.h = readBin(fp, what = integer(), n = 1)
     close(fp)
-    
-    ## the only test we can make now,  is if the length of the header is 8. 
+
+    ## the only test we can make now,  is if the length of the header is 8.
     if (len.h == 8L) {
         return (TRUE)
     } else {
@@ -24,7 +24,7 @@
 
     if (debug)
         verbose=TRUE
-    
+
     ## internal simple checking routine, which also do debug output.
     read.check = function(x, h)
     {
@@ -36,19 +36,19 @@
 
         return (invisible())
     }
-               
+
     stopifnot(file.exists(filename))
     fp = file(filename, "rb")
 
     if (verbose)
         print(paste("\nOpen file", filename))
-       
+
     len.h = readBin(fp, what = integer(), n = 1)
     ## currently required
     stopifnot(len.h >= 8)
     if (verbose)
         print(paste("header is", len.h, "integers."))
-    
+
     h.raw = readBin(fp, what = integer(), n = len.h)
     ## negative entries specify something different not yet defined.
     for(i in 1:len.h) {
@@ -63,14 +63,14 @@
             nrow = h.raw[3],
             ncol = h.raw[4],
             datatype = inla.ifelse(h.raw[5] == 0, "dense", "sparse"),
-            valuetype = inla.ifelse(h.raw[6] == 0, integer(), double()), 
+            valuetype = inla.ifelse(h.raw[6] == 0, integer(), double()),
             matrixtype = inla.ifelse(h.raw[7] == 0, "general",
                     inla.ifelse(h.raw[7] == 1, "symmetric", "diagonal")),
             storagetype = inla.ifelse(h.raw[8] == 0, "rowmajor", "columnmajor"))
-    
+
     if (verbose)
         print(h)
-    
+
     if (h$datatype == "dense") {
         ##
         ## dense matrix
@@ -108,8 +108,8 @@
                 read.check(i, h)
                 read.check(j, h)
                 read.check(values, h)
-                
-                ## oops. Matrix adds replicated elements!!! 
+
+                ## oops. Matrix adds replicated elements!!!
                 if (!(all(i >= j) || all(i <= j)))
                     stop(paste("Reading file", filename,
                                ". Both upper and lower part of symmetric sparse matrix",
@@ -163,7 +163,7 @@
                 ## symmetric: lower or upper triangular part is given
                 ##
 
-                ## oops. Matrix adds replicated elements!!! 
+                ## oops. Matrix adds replicated elements!!!
                 if (!(all(i >= j) || all(i <= j)))
                     stop(paste("Reading file", filename,
                                ". Both upper and lower part of symmetric sparse matrix",
@@ -187,7 +187,7 @@
     } else {
         stop("This should not happen.")
     }
-    
+
     close(fp)
 
     return (A)
@@ -201,10 +201,10 @@
 
     if (debug)
         verbose=TRUE
-    
+
     if (verbose)
         print(paste("\nOpen file to write", filename))
-       
+
     version = 0
 
     ## decide how to treat with almost integers...
@@ -221,7 +221,7 @@
             stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
         }
     }
-    
+
     if (is.matrix(A)) {
         ##
         nrow = dim(A)[1]
@@ -279,7 +279,7 @@
         valuetype = inla.ifelse(is.integer(A), integer(), double())
         matrixtype = 2  ## diagonal
         storagetype = 1 ## columnmajor
-        
+
         i = j = 0:(nrow-1)
         values = A
     } else {
@@ -289,7 +289,7 @@
     h = integer(8)
     valuetp = inla.ifelse(identical(valuetype, integer()), 0, 1)
     h = c(version, elems, nrow, ncol, datatype, valuetp, matrixtype, storagetype)
-    if (verbose) 
+    if (verbose)
         print(h)
     if (debug) {
         if (!is.matrix(A)) {
@@ -305,7 +305,7 @@
     fp = file(filename, "wb")
     writeBin(as.integer(length(h)), fp)
     writeBin(as.integer(h), fp)
-    
+
     if (datatype == 0) {
         ## dense
         if (identical(valuetype, integer())) {
@@ -326,4 +326,34 @@
     close(fp)
 
     return (filename)
+}
+
+
+inla.fmesher.make.dir = function(dir)
+{
+    dir.start = dir
+
+    ## if this already exists then create one more
+    k = 1
+    while (file.exists(dir)) {
+        dir = paste(dir.start, "-", k, sep="")
+        k=k+1
+    }
+
+    return(dir)
+}
+
+
+fmesher.write = function(m, prefix, matrixname)
+{
+    filename = paste(prefix, matrixname, sep="")
+    return(inla.write.fmesher.file(m, filename))
+}
+
+fmesher.read = function(prefix, matrixname)
+{
+    filename = paste(prefix, matrixname, sep="")
+    if (!file.exists(filename))
+        stop(paste("File '", filename, "' does not exist.", sep=""))
+    return(inla.read.fmesher.file(filename))
 }

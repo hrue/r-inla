@@ -1,22 +1,3 @@
-inla.require.inherits = function(x, what, name="Object")
-{
-    if (!inherits(x, what))
-        stop(paste(name, " must inherit from class ",
-                   inla.ifelse(length(what)==1,
-                               paste("\"", what, "\".", sed=""),
-                               paste("\"",
-                                     inla.paste(what[1:(length(what)-1)],
-                                                "\", \""),
-                                     "\"",
-                                     inla.ifelse(length(what)==2, "", ","),
-                                     " or \"",
-                                     what[length(what)],
-                                     "\".",
-                                     sep="")),
-                   sep=""))
-    return(invisible())
-}
-
 mesh.segm =
     function(loc=NULL,
              idx=NULL,
@@ -337,35 +318,6 @@ inla.mesh.parse.segm.input =
 
 
 
-inla.fmesher.make.dir = function(dir)
-{
-    dir.start = dir
-
-    ## if this already exists then create one more
-    k = 1
-    while (file.exists(dir)) {
-        dir = paste(dir.start, "-", k, sep="")
-        k=k+1
-    }
-
-    return(dir)
-}
-
-
-
-fmesher.write = function(m, prefix, matrixname)
-{
-    filename = paste(prefix, matrixname, sep="")
-    return(inla.write.fmesher.file(m, filename))
-}
-
-fmesher.read = function(prefix, matrixname)
-{
-    filename = paste(prefix, matrixname, sep="")
-    if (!file.exists(filename))
-        stop(paste("File '", filename, "' does not exist.", sep=""))
-    return(inla.read.fmesher.file(filename))
-}
 
 
 
