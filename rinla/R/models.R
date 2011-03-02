@@ -364,8 +364,8 @@
                                                  short.name = "OC",
                                                  initial = -20,
                                                  fixed = TRUE,
-                                                 prior = "flat",
-                                                 param = numeric()
+                                                 prior = "normal",
+                                                 param = c(0, 0.2)
                                                  )
                                          ),
                                  constr = FALSE,
