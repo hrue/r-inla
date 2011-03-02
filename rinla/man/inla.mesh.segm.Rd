@@ -1,5 +1,4 @@
-\name{mesh.segm}
-\alias{mesh.segm}
+\name{inla.mesh.segm}
 \alias{inla.mesh.segm}
 \title{
   Constraint segments for inla.mesh
@@ -9,7 +8,7 @@
   boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
 }
 \usage{
-mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
+inla.mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 }
 \arguments{
   \item{loc}{
@@ -58,8 +57,8 @@ mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 ## Create a square boundary and a diagonal interior segment
 loc.bnd = matrix(c(0,0, 1,0, 1,1, 0,1), 4, 2, byrow=TRUE)
 loc.int = matrix(c(0.9,0.1, 0.1,0.6), 2, 2, byrow=TRUE)
-segm.bnd = mesh.segm(loc.bnd)
-segm.int = mesh.segm(loc.int, is.bnd=FALSE)
+segm.bnd = inla.mesh.segm(loc.bnd)
+segm.int = inla.mesh.segm(loc.int, is.bnd=FALSE)
 
 ## Points to be meshed
 loc = matrix(runif(10*2),10,2)*0.9+0.05
