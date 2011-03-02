@@ -1,4 +1,4 @@
-mesh.segm =
+inla.mesh.segm =
     function(loc=NULL,
              idx=NULL,
              grp=NULL,
@@ -124,7 +124,7 @@ plot.inla.mesh = function(mesh, add=FALSE, lwd=1, ...)
 
 
 
-mesh.grid =
+inla.mesh.lattice =
     function(x=seq(0, 1, length.out=2),
              y=seq(0, 1, length.out=2),
              z=NULL,
@@ -151,7 +151,7 @@ mesh.grid =
                      sin(loc[,2]*pi/180)))
     }
 
-    ## Construct grid boundary
+    ## Construct lattice boundary
     segm.idx = (c(1:(dims[1]-1),
                   dims[1]*(1:(dims[2]-1)),
                   dims[1]*dims[2]-(0:(dims[1]-2)),
@@ -161,11 +161,13 @@ mesh.grid =
                   rep(3L, dims[1]-1),
                   rep(4L, dims[2]-1)))
 
-    segm = mesh.segm(loc=loc[segm.idx,, drop=FALSE], grp=segm.grp, is.bnd=TRUE)
+    segm = (inla.mesh.segm(loc=loc[segm.idx,, drop=FALSE],
+                           grp=segm.grp,
+                           is.bnd=TRUE))
 
-    grid = list(loc=loc, segm=segm)
-    class(grid) = "inla.mesh.grid"
-    return(grid)
+    lattice = list(loc=loc, segm=segm)
+    class(lattice) = "inla.mesh.lattice"
+    return(lattice)
 }
 
 
@@ -199,7 +201,10 @@ extract.groups.inla.mesh.segm =
     }
     segm.idx = segm$idx[idx,, drop=FALSE]
 
-    return(mesh.segm(loc=segm$loc, idx=segm.idx, grp=segm.grp, segm$is.bnd))
+    return(inla.mesh.segm(loc=segm$loc,
+                          idx=segm.idx,
+                          grp=segm.grp,
+                          segm$is.bnd))
 }
 
 
@@ -217,15 +222,15 @@ inla.mesh.parse.segm.input =
             x = (inla.ifelse(is.matrix(x),x,
                              as.matrix(x,nrow=length(x),ncol=1)))
             if (is.integer(x)) { ## Indices
-                ret = mesh.segm(NULL, x, NULL, is.bnd)
+                ret = inla.mesh.segm(NULL, x, NULL, is.bnd)
             } else if (is.numeric(x)) { ## Coordinates
-                ret = mesh.segm(x, NULL, NULL, is.bnd)
+                ret = inla.mesh.segm(x, NULL, NULL, is.bnd)
             } else {
                 stop("Segment info matrix must be numeric or integer.")
             }
         } else if (inherits(x, "inla.mesh.segm")) {
             ## Override x$is.bnd:
-            ret = mesh.segm(x$loc, x$idx, x$grp, is.bnd)
+            ret = inla.mesh.segm(x$loc, x$idx, x$grp, is.bnd)
         } else if (!is.null(x)) {
             inla.require.inherits(NULL,
                                   c("matrix", "inla.mesh.segm"),
@@ -244,10 +249,10 @@ inla.mesh.parse.segm.input =
                                   "Segment info list members ")
             if (is.null(input[[k]]$grp)) {
                 grp.idx = grp.idx+1L
-                input[[k]] = (mesh.segm(input[[k]][[1]],
-                                        input[[k]][[2]],
-                                        grp.idx,
-                                        input[[k]][[4]]))
+                input[[k]] = (inla.mesh.segm(input[[k]][[1]],
+                                             input[[k]][[2]],
+                                             grp.idx,
+                                             input[[k]][[4]]))
             } else {
                 grp.idx = max(grp.idx, input[[k]]$grp, na.rm=TRUE)
             }
@@ -293,16 +298,16 @@ inla.mesh.parse.segm.input =
         return(list(loc = loc,
                     bnd = (inla.ifelse(is.null(bnd),
                                        NULL,
-                                       mesh.segm(bnd$loc,
-                                                 bnd$idx,
-                                                 bnd$grp,
-                                                 TRUE))),
+                                       inla.mesh.segm(bnd$loc,
+                                                      bnd$idx,
+                                                      bnd$grp,
+                                                      TRUE))),
                     int = (inla.ifelse(is.null(int),
                                        NULL,
-                                       mesh.segm(int$loc,
-                                                 int$idx,
-                                                 int$grp,
-                                                 FALSE)))))
+                                       inla.mesh.segm(int$loc,
+                                                      int$idx,
+                                                      int$grp,
+                                                      FALSE)))))
     }
 ###########################
 
@@ -380,7 +385,7 @@ inla.mesh =
              boundary=NULL, interior=NULL,
              extend = (missing(tv) || is.null(tv)),
              refine=FALSE,
-             grid=NULL, manifold=NULL,
+             lattice=NULL, manifold=NULL,
              cutoff = 0,
              plot.delay = NULL,
              data.dir,
@@ -396,21 +401,21 @@ inla.mesh =
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
-    if (missing(grid) || is.null(grid)) {
-        grid = list(loc=NULL, segm=NULL)
-        grid.n = 0L
+    if (missing(lattice) || is.null(lattice)) {
+        lattice = list(loc=NULL, segm=NULL)
+        lattice.n = 0L
     } else {
-        inla.require.inherits(grid, "inla.mesh.grid", "'grid'")
+        inla.require.inherits(lattice, "inla.mesh.lattice", "'lattice'")
         if (!is.null(tv)) {
-            warning("Both 'grid' and 'tv' specified.  Ignoring 'tv'.")
+            warning("Both 'lattice' and 'tv' specified.  Ignoring 'tv'.")
             tv = NULL
         }
         if (!inherits(extend, "list")) {
             boundary = (c(inla.ifelse(inherits(boundary, "list"),
                                       boundary, list(boundary)),
-                          list(grid$segm)))
+                          list(lattice$segm)))
         }
-        grid.n = max(0L,nrow(grid$loc))
+        lattice.n = max(0L,nrow(lattice$loc))
     }
     loc.n = max(0L,nrow(loc))
 
@@ -423,10 +428,10 @@ inla.mesh =
     segm = (inla.mesh.parse.segm.input(boundary,
                                        interior,
                                        0L,
-                                       segm.n+grid.n))
+                                       segm.n+lattice.n))
 
     if (TRUE) {
-        loc0 = rbind(segm$loc, grid$loc, loc)
+        loc0 = rbind(segm$loc, lattice$loc, loc)
         idx0 = 1:nrow(loc0)
     } else {
         ##
@@ -434,7 +439,7 @@ inla.mesh =
         ## Retained for now so that we can check if the results are the same.
         ##
 
-        tmp = (inla.mesh.filter.locations(rbind(segm$loc, grid$loc, loc),
+        tmp = (inla.mesh.filter.locations(rbind(segm$loc, lattice$loc, loc),
                                           cutoff))
         loc0 = tmp$loc
         idx0 = tmp$node.idx
@@ -442,7 +447,7 @@ inla.mesh =
         ## Remap indices
         if (!is.null(segm$bnd)) {
             segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %%
-                                        (segm.n+grid.n+loc.n)+1L],
+                                        (segm.n+lattice.n+loc.n)+1L],
                                    nrow=nrow(segm$bnd$idx),
                                    ncol=ncol(segm$bnd$idx)))
         }
@@ -452,7 +457,7 @@ inla.mesh =
                                    ncol=ncol(segm$int$idx)))
         }
         if (!is.null(tv)) {
-            tv = (matrix(idx0[segm.n+grid.n+as.vector(tv)],
+            tv = (matrix(idx0[segm.n+lattice.n+as.vector(tv)],
                          nrow=nrow(tv),
                          ncol=ncol(tv)))
         }
@@ -555,24 +560,24 @@ inla.mesh =
     ## Read the vertex input/output mapping:
     idx.all = 1L+fmesher.read(prefix, "idx")
     idx = (list(loc = (inla.ifelse(loc.n>0,
-                                   idx.all[idx0[segm.n+grid.n+(1:loc.n)]],
+                                   idx.all[idx0[segm.n+lattice.n+(1:loc.n)]],
                                    NULL)),
-                grid = (inla.ifelse(grid.n>0,
-                                    idx.all[idx0[segm.n+(1:grid.n)]],
+                lattice = (inla.ifelse(lattice.n>0,
+                                    idx.all[idx0[segm.n+(1:lattice.n)]],
                                     NULL)),
                 segm = (inla.ifelse(segm.n>0,
                                     idx.all[idx0[(1:segm.n)]],
                                     NULL))))
 
     ## Read constraint segment information:
-    segm.bnd = (mesh.segm(NULL,
-                          1L+fmesher.read(prefix, "segm.bnd"),
-                          fmesher.read(prefix, "segm.bnd.grp"),
-                          TRUE))
-    segm.int = (mesh.segm(NULL,
-                          1L+fmesher.read(prefix, "segm.int"),
-                          fmesher.read(prefix, "segm.int.grp"),
-                          FALSE))
+    segm.bnd = (inla.mesh.segm(NULL,
+                               1L+fmesher.read(prefix, "segm.bnd"),
+                               fmesher.read(prefix, "segm.bnd.grp"),
+                               TRUE))
+    segm.int = (inla.mesh.segm(NULL,
+                               1L+fmesher.read(prefix, "segm.int"),
+                               fmesher.read(prefix, "segm.int.grp"),
+                               FALSE))
 
     if (!keep)
         unlink(paste(prefix, "*", sep=""), recursive=FALSE)
@@ -752,7 +757,7 @@ inla.spde.inla.mesh = function(mesh, ...)
 
 inla.spde.inla.spde = function(spde, ...)
 {
-    inla.require.inherits(mesh, "inla.spde", "'spde'")
+    inla.require.inherits(spde, "inla.spde", "'spde'")
 
     warning("No 'inla.spde' object queries implemented yet.")
 
