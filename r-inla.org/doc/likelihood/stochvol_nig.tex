@@ -4,19 +4,21 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{ Normal Inverse Gaussian (NIG) model for Stochastic volatility}
+\section*{ Normal Inverse Gaussian (NIG) model for Stochastic
+    volatility}
 
 \subsection*{Parametrization}
 
 The NIG likelihood for stochastic volatility models is defined as:
 \[
-\pi(y |\eta )=\sigma \epsilon 
+\pi(y |\eta )=\sigma \epsilon
 \]
 where
 \[
 \epsilon \sim\mbox{NIG}(\beta,\psi)
 \]
-and $\mbox{NIG}(\beta,\psi)$ is a standardised NIG distribution with density
+and $\mbox{NIG}(\beta,\psi)$ is a standardised NIG distribution with
+density
 \begin{displaymath}
     \pi(\cdot|\beta,\psi)=\frac{\gamma\psi}{\pi} \sqrt{ \frac{\beta^{2} +
             \psi^{2}}{(\gamma x + \beta)^{2} + \psi^{2}}}
@@ -31,7 +33,8 @@ where $\gamma^{2} = 1 + \beta^{2}/\psi^{2}$.
 
 \subsection*{Link-function}
 
-The scale parameter $\sigma $ is linked to the linear predictor $\eta $ as:
+The scale parameter $\sigma $ is linked to the linear predictor $\eta
+$ as:
 \[
 \sigma =\exp(\eta /2)
 \]
@@ -56,8 +59,15 @@ as the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$
 \item Required argument: $y$.
 \end{itemize}
 
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/stochvolnig.tex}
+
+
+
+
 \subsection*{Example}
-In the following example we specify the likelihood for the stochastic volatility model to be NIG 
+In the following example we specify the likelihood for the stochastic
+volatility model to be NIG
  
 \begin{verbatim}
 #simulated data
@@ -71,9 +81,8 @@ time=1:n
 data=list(ret=y,time=time)
 
 #fit the model
-formula=ret~f(time,model="ar1",param=c(1,0.001,0,0.4))
+formula=ret~f(time,model="ar1")
 result=inla(formula,family="stochvol.nig",data=data)
-
 \end{verbatim}
 
 \subsection*{Notes}

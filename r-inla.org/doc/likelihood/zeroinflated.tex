@@ -66,7 +66,7 @@ $p$, is represented as
 \begin{displaymath}
     p = \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}
 \end{displaymath}
-and the prior and initial value is is given for  $\theta_{2}$.
+and the prior and initial value is is given for $\theta_{2}$.
 
 \subsection*{Specification}
 
@@ -80,6 +80,27 @@ and the prior and initial value is is given for  $\theta_{2}$.
 \item Required arguments: As for the Binomial, the negative Binomial
     and Poisson likelihood.
 \end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\paragraph{Zeroinflated Binomial Type 0}
+\input{../hyper/likelihood/zeroinflatedbinomial0.tex}
+
+\paragraph{Zeroinflated Binomial Type 1}
+\input{../hyper/likelihood/zeroinflatedbinomial1.tex}
+
+\paragraph{Zeroinflated NegBinomial Type 0}
+\input{../hyper/likelihood/zeroinflatednbinomial0.tex}
+
+\paragraph{Zeroinflated NegBinomial Type 1}
+\input{../hyper/likelihood/zeroinflatednbinomial1.tex}
+
+\paragraph{Zeroinflated Poisson Type 0}
+\input{../hyper/likelihood/zeroinflatedpoisson0.tex}
+
+\paragraph{Zeroinflated Poisson Type 1}
+\input{../hyper/likelihood/zeroinflatedpoisson1.tex}
+
+
 
 \subsection*{Example}
 
@@ -115,6 +136,11 @@ implemented for the cases where its needed/requested.
     is defined on $\log(\alpha)$.
 \end{description}
 
+\paragraph{Zeroinflated Poisson Type 2}
+\input{../hyper/likelihood/zeroinflatedpoisson2.tex}
+
+\paragraph{Zeroinflated Negative Binomial Type 2}
+\input{../hyper/likelihood/zeroinflatednbinomial2.tex}
 
 \end{document}
 

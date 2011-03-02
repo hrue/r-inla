@@ -252,6 +252,11 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->numint_rel_err = 1e-3;
 	(*ai_par)->numint_abs_err = 1e-4;
 
+	/*
+	 * for numerical optimisation
+	 */
+	(*ai_par)->cmin = 0.0;
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -374,6 +379,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tMaximum number of function evaluations [%1d]\n", ai_par->numint_max_fn_eval);
 	fprintf(fp, "\t\tRelative error ....................... [%g]\n", ai_par->numint_rel_err);
 	fprintf(fp, "\t\tAbsolute error ....................... [%g]\n", ai_par->numint_abs_err);
+
+	fprintf(fp, "\tTo stabalise the numerical optimisation:\n");
+	fprintf(fp, "\t\tMinimum value of the -Hesssian [%g]\n", ai_par->cmin);
 
 	if (show_expert_options) {
 		/*
@@ -518,12 +526,14 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
+					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data,
+					ai_par->cmin));
 		} else {
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
+					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data,
+					ai_par->cmin));
 		}
 	} else {
 
@@ -533,11 +543,13 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		if (ai_store->mode) {
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-					Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
+					Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
+					ai_par->gaussian_data, ai_par->cmin));
 		} else {
 			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
+					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
+					ai_par->gaussian_data, ai_par->cmin));
 		}
 	}
 
@@ -1361,7 +1373,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 									     (ai_store->mode ? ai_store->mode : x),
 									     b, c, mean, d, loglFunc, loglFunc_arg, fixed_value,
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
-									     ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data));
+									     ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
+									     ai_par->gaussian_data, ai_par->cmin));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		if (ai_par->compute_nparam_eff) {
 			GMRFLib_ai_nparam_eff(&(ai_store->neff), NULL, ai_store->problem, c, Qfunc, Qfunc_arg);
@@ -2263,7 +2276,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		b22 = 1.0 / (c[idx] - ddot_(&nc, v, &one, w, &one));
 		if (b22 <= 0.0){
 			fprintf(stderr, "\n\n*** Warning *** Numerical error gives b22 = %g <= 0.0 for idx=%1d. setting b22=%g\n\n",
-				idx, b22, DBL_EPSILON);
+				b22, idx, DBL_EPSILON);
 			b22 = DBL_EPSILON;
 		}
 
@@ -2404,7 +2417,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data)
+						  double *aa, double *bb, double *cc, int gaussian_data, 
+						  double cmin)
 {
 	/*
 	 * This is copy of the original routine but with optional two last arguments 
@@ -2498,7 +2512,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				if (d[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_thread_id = id;
 					GMRFLib_2order_approx(&aa[i], &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg, &(blockupdate_par->step_len));
-					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
+					cc[i] = DMAX(cmin, cc[i]);	/* do not want negative terms on the diagonal */
 				}
 			}
 			GMRFLib_thread_id = id;
@@ -2572,7 +2586,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 				if (cc_positive) {
 					bb[idx] += bcoof;
-					cc[idx] += DMAX(0.0, ccoof);
+					cc[idx] += DMAX(cmin, ccoof);
 				} else {
 					if (ccoof > 0.0) {
 						bb[idx] += bcoof;
@@ -2713,7 +2727,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			} else {
 				return GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
 										     loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-										     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data);
+										     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
 			}
 		}
 		if (*problem && new_idea) {
@@ -2748,7 +2762,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 					cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 					if (cc_positive) {
-						cc[idx] += DMAX(0.0, ccoof);
+						cc[idx] += DMAX(cmin, ccoof);
 					} else {
 						cc[idx] += ccoof;
 					}
@@ -2797,7 +2811,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				} else {
 					return GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
 											     loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-											     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data);
+											     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
+											     cmin);
 				}
 			}
 		}
