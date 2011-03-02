@@ -10,16 +10,16 @@
         off = 1
     else
         off = 0
-    
+
     xx = max(scan(in.file))
     n = max(xx)
     rm(xx)
-    
+
     lines = readLines(in.file)
     nlines = length(lines)
     nbs = list(list())
     nnbs = numeric(n)
-    
+
     for(i in 1:n)
         nbs[[i]] = NA
 
@@ -41,7 +41,7 @@
         } else {
             cat(i-off, nnbs[i], '\n')
         }
-    }        
+    }
     sink()
     rm(xx)
     return (graph.file)
@@ -89,11 +89,11 @@
 
     if (!is.matrix(Q))
         stop("Argument must be a matrix")
-    
+
     n = dim(Q)
     if (n[1] != n[2])
         stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
-    
+
     n = dim(Q)[1]
     diag(Q) = 0
     sink(graph.file)
@@ -120,7 +120,7 @@
 
 `inla.num` = function(x, width = if (length(x) > 1) inla.numlen(x) else 8, digits=max(4, width))
 {
-    ## format numbers using preceeding zeros. 
+    ## format numbers using preceeding zeros.
     ## > inla.num(sqrt(2))
     ##  [1] "0001.414"
     ## > inla.num(2)
@@ -130,11 +130,11 @@
     ## automatically.> inla.num(1:10)
     ## > inla.num(1:10)
     ##  [1] "01" "02" "03" "04" "05" "06" "07" "08" "09" "10"
-    
+
     return(formatC(x, format="g", width = width, flag = "0", digits=digits))
 }
 
-    
+
 `inla.trim` = function(string)
 {
     ## trim leading and trailing whitespaces and dots. there is a
@@ -212,7 +212,7 @@
     }
 }
 
-`inla.pause` = function(msg = NULL) 
+`inla.pause` = function(msg = NULL)
 {
     ## just print a msg and wait for the next return
     if (!is.null(msg))
@@ -299,7 +299,7 @@
          stop(paste(" *** ERROR *** No such directory ", dir.mcmc))
     if (file.exists(paste(dir.mcmc, "/", "results.files", sep="")))
         dir.mcmc = paste(dir.mcmc, "/", "results.files", sep="")
- 
+
     options(device.ask.default=TRUE)
     dev.new()
 
@@ -336,14 +336,14 @@
 
         if (quit)
             return (invisible())
-            
+
         if (id < 0) {
             hist = TRUE
             id = abs(id)
         } else {
             hist = FALSE
         }
-    
+
         d.inla = paste(dir.inla, "/", dd[id], sep="")
         d.mcmc = paste(dir.mcmc, "/", dd[id], sep="")
 
@@ -372,7 +372,7 @@
                         par(mfrow=c(n.marg, 1))
                     else
                         par(mfrow=c(4, 3))
-        
+
                     for(i in 1:n.marg) {
                         x.values = as.double(marg[i, seq(2, n.points, by=2)])
                         f.values = as.double(marg[i, seq(3, n.points, by=2)])
@@ -430,9 +430,9 @@
 
 `inla.ifelse` = function(test, yes, no)
 {
-    if (length(test) > 1) 
+    if (length(test) > 1)
         stop("oops: len(test) > 1")
-    
+
     if (test)
         return (yes)
     else
@@ -474,7 +474,7 @@
         k = 1:n
         return (sapply(k,
                        function(irow, icol, nrow, ncol, k) {
-                           return (inla.lattice2node(irow[k], icol[k], nrow, ncol)) 
+                           return (inla.lattice2node(irow[k], icol[k], nrow, ncol))
                        }, irow = irow, icol = icol, nrow = nrow, ncol = ncol))
     } else {
         return ((irow-1) + (icol-1)*nrow + 1)
@@ -495,7 +495,7 @@
 
     return (list(irow = irow+1, icol = icol+1))
 }
-            
+
 `inla.matrix2vector` = function(a.matrix)
 {
     ## utility function for mapping a matrix to inla's internal `node'
@@ -519,18 +519,18 @@
         ncol = n %/% nrow
     if (n != nrow*ncol)
         stop(paste("Length of vector", n, "does not equal to nrow*ncol", nrow*ncol))
-    
+
     return (matrix(a.vector, nrow, ncol))
 }
-`inla.squishplot` = function (xlim, ylim, asp = 1, newplot = TRUE) 
+`inla.squishplot` = function (xlim, ylim, asp = 1, newplot = TRUE)
 {
     ## This function is a copy from package TeachingDemos
 
-    if (length(xlim) < 2) 
+    if (length(xlim) < 2)
         stop("xlim must be a vector of length 2")
-    if (length(ylim) < 2) 
+    if (length(ylim) < 2)
         stop("ylim must be a vector of length 2")
-    if (newplot) 
+    if (newplot)
         plot.new()
     tmp <- par(c("plt", "pin", "xaxs", "yaxs"))
     if (tmp$xaxs == "i") {
@@ -561,12 +561,12 @@
 `inla.display.matrix` = function(x, wrap=TRUE, xaxt=FALSE, yaxt=FALSE, col=gray(seq(0, 1, len=256)), ...)
 {
     ## display a matrix as an image with correct layout and autoscaling
-    
+
     if (!is.matrix(x)) stop("First argument must be a matrix")
     n = dim(x)
     y = x
     if (wrap) {
-        for(j in 1:n[2]) 
+        for(j in 1:n[2])
             y[1:n[1], j] = x[n[1]:1, j]
     }
 
@@ -576,7 +576,7 @@
         image.plot(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...)
     } else {
         warning("Please install package `fields'")
-        image(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...) 
+        image(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...)
     }
 
     box()
@@ -607,10 +607,10 @@
 
         if (n < 1)
             stop("Number of groups must be > 0")
-    
+
         if (n == 1)
             return (rep(median(x), length(x)))
-    
+
         method = match.arg(method)
         if (method == "cut") {
             ## use equal length
@@ -625,11 +625,11 @@
         xx = list()
         for(i in 1:nlev)
             xx[[i]] = list()
-    
+
         for(i in 1:length(x))
             xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]), x[i])
         values = numeric(nlev)
-    
+
         ff.local = function(xx) {
             if (length(xx) > 0)
                 return (median(xx))
@@ -732,7 +732,7 @@
     ## > x=1:3
     ## > inla.2list(x)
     ## [1] "c(1, 2, 3)"
-    
+
     if (is.null(x))
         return (NULL)
 
@@ -785,7 +785,7 @@
         return (rep(TRUE, length(n)))
     if (by > 0L)
         return ((n%%by) == 0L)
-    else 
+    else
         return ((n%%(-by)) != 0L)
 }
 
@@ -793,7 +793,7 @@
 {
     if (is.null(candidates) || length(candidates) == 0)
         return (FALSE)
-    
+
     ## check if family is one of the canidates
     return (any(inla.trim.family(family) == inla.trim.family(candidates)))
 }
@@ -803,7 +803,7 @@
 {
     ## this function might be useful to convert from (idx, group, rep)
     ## to idx, in the same way as done internally in inla.R
-    
+
     stopifnot(n >= 1)
     stopifnot(ngroup >= 1)
     stopifnot(nrep >= 1)
@@ -813,7 +813,7 @@
     stopifnot(all(idx <= n))
     stopifnot(ngroup >= max(group))
     stopifnot(nrep >= max(replicate))
-    
+
     return (idx + (group-1)*n + (replicate-1)*n*ngroup)
 }
 
@@ -847,17 +847,17 @@
         cat("\n")
         return (NULL)
     }
-            
+
     inla=system.file("bin/remote/inla.remote", package="INLA")
     inla.setOption("inla.call", inla)
-    
+
     f = paste(inla.get.HOME(), "/.inlarc", sep="")
     if (!file.exists(f)) {
         if (inla.os("windows"))
             ini=system.file("bin/remote/dot.inlarc-example-windows", package="INLA")
         else
             ini=system.file("bin/remote/dot.inlarc-example", package="INLA")
-        
+
         if (!file.exists(ini))
             stop(paste("Missing file in installation:", ini, "This should not happen..."))
         file.copy(ini, f)
@@ -896,7 +896,7 @@
     return (gsub("\\\\", "/", tempdir()))
 }
 
-`inla.ssh.copy.id` = function () 
+`inla.ssh.copy.id` = function ()
 {
     ## print the path to the copy-id script
 
@@ -944,11 +944,11 @@
 
 
     stopifnot(is.matrix(A))
-    
+
     ## we will use the builtin function 'duplicated', but since we
     ## have a matrix, we form a vector where each element is the
     ## character string of that column.
-    
+
     n = dim(A)[1]
     ncol = dim(A)[2]
     a = apply(A, 1, function(x) inla.paste(c(as.character(x)), sep="<|>"))
@@ -1013,11 +1013,11 @@
     ## convert a matrix to a list of list, with columns as the first
     ## index (byrow=FALSE) with with rows as the first index
     ## (byrow=TRUE).
-    
+
     if (byrow) {
         return (inla.matrix2list(t(A)))
     }
-    
+
     stopifnot(is.matrix(A))
     a = c()
     for(i in 1:nrow(A)) {
@@ -1041,4 +1041,23 @@
     }
 
     return (result)
+}
+
+`inla.require.inherits` = function(x, what, name="Object")
+{
+    if (!inherits(x, what))
+        stop(paste(name, " must inherit from class ",
+                   inla.ifelse(length(what)==1,
+                               paste("\"", what, "\".", sed=""),
+                               paste("\"",
+                                     inla.paste(what[1:(length(what)-1)],
+                                                "\", \""),
+                                     "\"",
+                                     inla.ifelse(length(what)==2, "", ","),
+                                     " or \"",
+                                     what[length(what)],
+                                     "\".",
+                                     sep="")),
+                   sep=""))
+    return(invisible())
 }
