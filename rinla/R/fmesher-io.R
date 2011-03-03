@@ -22,8 +22,9 @@
     ## read a binary-file from fmesher in format specified by FL.
     ##
 
-    if (debug)
+    if (debug) {
         verbose=TRUE
+    }
 
     ## internal simple checking routine, which also do debug output.
     read.check = function(x, h)
@@ -46,15 +47,17 @@
     len.h = readBin(fp, what = integer(), n = 1)
     ## currently required
     stopifnot(len.h >= 8)
-    if (verbose)
+    if (verbose) {
         print(paste("header is", len.h, "integers."))
+    }
 
     h.raw = readBin(fp, what = integer(), n = len.h)
     ## negative entries specify something different not yet defined.
     for(i in 1:len.h) {
-        if (h.raw[i] < 0)
+        if (h.raw[i] < 0) {
             stop(paste("Entry ", i, " in the header of file ", filename, " is negative: ", h.raw[i],
                        ". Do not know what to do.", sep=""))
+        }
     }
 
     h = list(filename = filename, verbose = verbose, debug = debug,
@@ -68,8 +71,9 @@
                     inla.ifelse(h.raw[7] == 1, "symmetric", "diagonal")),
             storagetype = inla.ifelse(h.raw[8] == 0, "rowmajor", "columnmajor"))
 
-    if (verbose)
+    if (verbose) {
         print(h)
+    }
 
     if (h$datatype == "dense") {
         ##
@@ -199,8 +203,9 @@
     ## write a binary-file from fmesher in format specified by FL.
     ##
 
-    if (debug)
+    if (debug) {
         verbose=TRUE
+    }
 
     if (verbose)
         print(paste("\nOpen file to write", filename))

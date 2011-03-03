@@ -4924,6 +4924,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			x_vec[ii] = (*density)[ii]->user_mean;
 		}
 
+
+		/* 
+		   find the min length of the data contribution that cover all data points
+		 */
+		int ndev = 0;
+		for (j = 0; j < compute_n; j++) {
+			int ii = compute_idx[j];
+			if (d[ii]){
+				ndev = IMAX(ndev, ii);
+			}
+		}
+		ndev++;
+		double *e_deviance = Calloc(ndev, double);
+		double *deviance_e = Calloc(ndev, double);
+
 		for (j = 0; j < compute_n; j++) {
 			double md, dm;
 			int ii = compute_idx[j];
@@ -4937,13 +4952,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					sum += adj_weights[jj];
 				}
 				md = evalue / sum;
-
+				e_deviance[ii] = md;
+				
 				if (!(density && (*density)[ii])) {
 					fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
 					abort();
 				}
 				loglFunc(&logll, &((*density)[ii]->user_mean), 1, ii, x_vec, loglFunc_arg);
 				dm = -2.0 * logll;
+				deviance_e[ii] = dm;
 			} else {
 				dm = md = 0.0;
 			}
@@ -4957,7 +4974,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		dic->deviance_of_mean = deviance_mean;
 		dic->p = mean_deviance - deviance_mean;
 		dic->dic = dic->p + mean_deviance;
-
+		dic->n_deviance = ndev;
+		dic->e_deviance = e_deviance;
+		dic->deviance_e = deviance_e;
+		
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
 			fprintf(ai_par->fp_log, "\tMean of Deviance................. %g\n", dic->mean_of_deviance);
