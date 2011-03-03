@@ -307,11 +307,30 @@
         if (debug)
             cat(paste("collect dic\n", sep=""))
         file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"dic.dat", sep="")
-        dic = matrix(inla.read.binary.file(file), 4, 1)
-        rownames(dic) = inla.namefix(c("mean of the deviance", "deviance of the mean", "effective number of parameters", "dic"))
-    }
-    else
+        dic.values = inla.read.binary.file(file)
+
+        file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"deviance_e.dat", sep="")
+        if (inla.is.fmesher.file(file)) {
+            dev.e = c(inla.read.fmesher.file(file))
+        } else {
+            dev.e = NULL
+        }
+
+        file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"e_deviance.dat", sep="")
+        if (inla.is.fmesher.file(file)) {
+            e.dev = c(inla.read.fmesher.file(file))
+        } else {
+            e.dev = NULL
+        }
+        dic = list("mean of the deviance" = dic.values[1],
+                "deviance of the mean" = dic.values[2],
+                "effective number of parameters"= dic.values[3],
+                "dic" = dic.values[4],
+                "mean.deviance" = e.dev,
+                "deviance.mean" = dev.e)
+    } else {
         dic = NULL
+    }
     return(dic)     
 }
 

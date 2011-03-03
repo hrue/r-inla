@@ -12893,6 +12893,30 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose
 		fprintf(fp, "dic: %g\n", dic->dic);
 	}
 	fclose(fp);
+
+	if (dic->n_deviance > 0) {
+		GMRFLib_matrix_tp *M = NULL;
+
+		M = Calloc(1, GMRFLib_matrix_tp);
+		M->nrow = dic->n_deviance;
+		M->ncol = 1;
+		M->elems = M->nrow * M->ncol;
+		M->A = dic->e_deviance;
+
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");
+		inla_fnmfix(nndir);
+	
+		GMRFLib_write_fmesher_file(M, nndir, (long int)0, -1);
+		M->A = dic->deviance_e;
+
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
+		inla_fnmfix(nndir);
+		GMRFLib_write_fmesher_file(M, nndir, (long int)0, -1);
+
+		M->A = NULL;
+		GMRFLib_matrix_free(M);
+	}
+	
 	Free(ndir);
 	Free(nndir);
 	return INLA_OK;

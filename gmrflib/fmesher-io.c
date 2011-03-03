@@ -405,7 +405,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 	char *msg = NULL;
 	int *header = NULL;
 	int len_header;
-	int verbose = 1, dense, integer;
+	int verbose = 0, dense, integer;
 	int i;
 
 	if (!M) {
