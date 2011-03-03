@@ -571,6 +571,23 @@ typedef struct {
 	 * \brief The DIC value
 	 */
 	double dic;
+
+	/**
+	 * \brief The length of the E(Deviance) contribution
+	 */
+	int n_deviance;
+	
+	/**
+	 * \brief The E(deviance) contribution
+	 */
+	double *e_deviance;
+	
+	/**
+	 * \brief The deviance(E) contribution
+	 */
+	double *deviance_e;
+	 
+
 } GMRFLib_ai_dic_tp;
 
 /**
