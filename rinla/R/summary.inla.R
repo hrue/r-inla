@@ -47,7 +47,7 @@
                 object$dic[[4]]), 4, 1)
         nm.dic = names(object$dic)
         rownames(dic) = nm.dic[1:4]
-print(dic)
+
         ret = c(ret, list(dic=dic))
     }
 
