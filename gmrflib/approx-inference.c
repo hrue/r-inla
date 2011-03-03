@@ -4939,6 +4939,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		double *e_deviance = Calloc(ndev, double);
 		double *deviance_e = Calloc(ndev, double);
 
+		for (j = 0; j < ndev; j++){
+			e_deviance[j] = NAN;
+			deviance_e[j] = NAN;
+		}
+		
 		for (j = 0; j < compute_n; j++) {
 			double md, dm;
 			int ii = compute_idx[j];
