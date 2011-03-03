@@ -322,12 +322,13 @@
         } else {
             e.dev = NULL
         }
-        dic = list("mean of the deviance" = dic.values[1],
-                "deviance of the mean" = dic.values[2],
-                "effective number of parameters"= dic.values[3],
+        dic = list(
+                "mean.deviance" = dic.values[1],
+                "deviance.mean" = dic.values[2],
+                "p.eff"= dic.values[3],
                 "dic" = dic.values[4],
-                "mean.deviance" = e.dev,
-                "deviance.mean" = dev.e)
+                "data.contribution.mean.deviance" = e.dev,
+                "data.contribution.mean.deviance" = dev.e)
     } else {
         dic = NULL
     }

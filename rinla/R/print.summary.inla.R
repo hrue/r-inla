@@ -55,9 +55,8 @@
     cat("\n")
 
     if(!is.null(x$dic)) {
-        cat(paste("Deviance Information Criterion: ", format(x$dic[4], digits=digits, nsmall=2),
-                  " Effective number of parameters:",
-                  format(x$dic[3], digits=digits, nsmall=2),"\n"))
+        cat(paste("Deviance Information Criterion: ", format(x$dic[4], digits=digits, nsmall=2), "\n", 
+                  "Effective number of parameters: ", format(x$dic[3], digits=digits, nsmall=2), "\n"))
         cat("\n")
     }
      
