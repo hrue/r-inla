@@ -1518,7 +1518,11 @@
             ret$control.compute=cont.compute
             ret$control.predictor=cont.pred
             ret$control.lincomb = control.lincomb
-            ret$control.data=cont.data
+            if (n.family == 1) {
+                ret$control.data=cont.data[[1]]
+            } else {
+                ret$control.data=cont.data
+            }                
             ret$control.inla=cont.inla
             ret$control.results = cont.result
             ret$control.fixed = cont.fixed
