@@ -10,8 +10,8 @@
     else if(inla.os("windows")) {
         if (TRUE) {
             echoc = try(system(paste(shQuote(fmesher.call),
-                    all.args,
-                    shQuote(prefix))), silent=TRUE)
+                                     all.args,
+                                     shQuote(prefix))), silent=TRUE)
             echoc = 0
         } else {
             ## we might need it if we want one day to make the fmesher program run remotely
