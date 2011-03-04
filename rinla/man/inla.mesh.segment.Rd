@@ -1,14 +1,14 @@
-\name{inla.mesh.segm}
-\alias{inla.mesh.segm}
+\name{inla.mesh.segment}
+\alias{inla.mesh.segment}
 \title{
   Constraint segments for inla.mesh
 }
 \description{
-  Constructs an \code{inla.mesh.segm} object that can be used to specify
+  Constructs an \code{inla.mesh.segment} object that can be used to specify
   boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
 }
 \usage{
-inla.mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
+inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 }
 \arguments{
   \item{loc}{
@@ -35,7 +35,7 @@ inla.mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 %%  Some text. \describe{Some more text} Further text.
 %%}
 \value{
-  An \code{inla.mesh.segm} object.
+  An \code{inla.mesh.segment} object.
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
@@ -57,8 +57,8 @@ inla.mesh.segm(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 ## Create a square boundary and a diagonal interior segment
 loc.bnd = matrix(c(0,0, 1,0, 1,1, 0,1), 4, 2, byrow=TRUE)
 loc.int = matrix(c(0.9,0.1, 0.1,0.6), 2, 2, byrow=TRUE)
-segm.bnd = inla.mesh.segm(loc.bnd)
-segm.int = inla.mesh.segm(loc.int, is.bnd=FALSE)
+segm.bnd = inla.mesh.segment(loc.bnd)
+segm.int = inla.mesh.segment(loc.int, is.bnd=FALSE)
 
 ## Points to be meshed
 loc = matrix(runif(10*2),10,2)*0.9+0.05

@@ -9,13 +9,15 @@
   Create and query an \code{inla.spde} model object.
 }
 \usage{
-## Create an SPDE model:
+## Create an SPDE model object:
 inla.spde(mesh,
           model = c("matern", "imatern", "heat"),
           param = NULL,
           ...)
 ## Query properties of an SPDE model:
 inla.spde(spde, ...)
+## Create an SPDE object based on INLA parameter estimates:
+inla.spde(inla, name, spde, ...)
 }
 \arguments{
   \item{mesh}{

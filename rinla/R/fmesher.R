@@ -1,4 +1,11 @@
-inla.mesh.segm =
+inla.mesh.segm = function(...)
+{
+    warning("'inla.mesh.segm' is deprecated.  Use 'inla.mesh.segment' instead.")
+    return(inla.mesh.segment(...))
+}
+
+
+inla.mesh.segment =
     function(loc=NULL,
              idx=NULL,
              grp=NULL,
@@ -79,12 +86,12 @@ inla.mesh.segm =
     }
 
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
-    class(ret) <- "inla.mesh.segm"
+    class(ret) <- "inla.mesh.segment"
     return(ret)
 }
 
 
-lines.inla.mesh.segm = function(segm, loc=NULL, ...)
+lines.inla.mesh.segment = function(segm, loc=NULL, ...)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
@@ -165,9 +172,9 @@ inla.mesh.lattice =
                   rep(3L, dims[1]-1),
                   rep(4L, dims[2]-1)))
 
-    segm = (inla.mesh.segm(loc=loc[segm.idx,, drop=FALSE],
-                           grp=segm.grp,
-                           is.bnd=TRUE))
+    segm = (inla.mesh.segment(loc=loc[segm.idx,, drop=FALSE],
+                              grp=segm.grp,
+                              is.bnd=TRUE))
 
     lattice = list(loc=loc, segm=segm)
     class(lattice) = "inla.mesh.lattice"
@@ -180,13 +187,13 @@ extract.groups = function(...)
     UseMethod("extract.groups")
 }
 
-extract.groups.inla.mesh.segm =
+extract.groups.inla.mesh.segment =
     function(segm,
              groups,
              groups.new=groups,
              ...)
 {
-    inla.require.inherits(segm, "inla.mesh.segm", "'segm'")
+    inla.require.inherits(segm, "inla.mesh.segment", "'segm'")
 
     if (length(groups.new)==1L) {
         groups.new = rep(groups.new, length(groups))
@@ -205,10 +212,10 @@ extract.groups.inla.mesh.segm =
     }
     segm.idx = segm$idx[idx,, drop=FALSE]
 
-    return(inla.mesh.segm(loc=segm$loc,
-                          idx=segm.idx,
-                          grp=segm.grp,
-                          segm$is.bnd))
+    return(inla.mesh.segment(loc=segm$loc,
+                             idx=segm.idx,
+                             grp=segm.grp,
+                             segm$is.bnd))
 }
 
 
@@ -226,18 +233,18 @@ inla.mesh.parse.segm.input =
             x = (inla.ifelse(is.matrix(x),x,
                              as.matrix(x,nrow=length(x),ncol=1)))
             if (is.integer(x)) { ## Indices
-                ret = inla.mesh.segm(NULL, x, NULL, is.bnd)
+                ret = inla.mesh.segment(NULL, x, NULL, is.bnd)
             } else if (is.numeric(x)) { ## Coordinates
-                ret = inla.mesh.segm(x, NULL, NULL, is.bnd)
+                ret = inla.mesh.segment(x, NULL, NULL, is.bnd)
             } else {
                 stop("Segment info matrix must be numeric or integer.")
             }
-        } else if (inherits(x, "inla.mesh.segm")) {
+        } else if (inherits(x, "inla.mesh.segment")) {
             ## Override x$is.bnd:
-            ret = inla.mesh.segm(x$loc, x$idx, x$grp, is.bnd)
+            ret = inla.mesh.segment(x$loc, x$idx, x$grp, is.bnd)
         } else if (!is.null(x)) {
             inla.require.inherits(NULL,
-                                  c("matrix", "inla.mesh.segm"),
+                                  c("matrix", "inla.mesh.segment"),
                                   "Segment info")
         } else {
             ret = NULL
@@ -249,14 +256,14 @@ inla.mesh.parse.segm.input =
         grp.idx = 0L
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
             inla.require.inherits(input[[k]],
-                                  "inla.mesh.segm",
+                                  "inla.mesh.segment",
                                   "Segment info list members ")
             if (is.null(input[[k]]$grp)) {
                 grp.idx = grp.idx+1L
-                input[[k]] = (inla.mesh.segm(input[[k]][[1]],
-                                             input[[k]][[2]],
-                                             grp.idx,
-                                             input[[k]][[4]]))
+                input[[k]] = (inla.mesh.segment(input[[k]][[1]],
+                                                input[[k]][[2]],
+                                                grp.idx,
+                                                input[[k]][[4]]))
             } else {
                 grp.idx = max(grp.idx, input[[k]]$grp, na.rm=TRUE)
             }
@@ -275,7 +282,7 @@ inla.mesh.parse.segm.input =
         storage.mode(int$grp) <- "integer"
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
             inla.require.inherits(input[[k]],
-                                  "inla.mesh.segm",
+                                  "inla.mesh.segment",
                                   "Segment info list members ")
             if (!is.null(input[[k]]$loc)) {
                 extra.loc.n = nrow(input[[k]]$loc)
@@ -302,16 +309,16 @@ inla.mesh.parse.segm.input =
         return(list(loc = loc,
                     bnd = (inla.ifelse(is.null(bnd),
                                        NULL,
-                                       inla.mesh.segm(bnd$loc,
-                                                      bnd$idx,
-                                                      bnd$grp,
-                                                      TRUE))),
+                                       inla.mesh.segment(bnd$loc,
+                                                         bnd$idx,
+                                                         bnd$grp,
+                                                         TRUE))),
                     int = (inla.ifelse(is.null(int),
                                        NULL,
-                                       inla.mesh.segm(int$loc,
-                                                      int$idx,
-                                                      int$grp,
-                                                      FALSE)))))
+                                       inla.mesh.segment(int$loc,
+                                                         int$idx,
+                                                         int$grp,
+                                                         FALSE)))))
     }
 ###########################
 
@@ -384,7 +391,14 @@ inla.mesh.filter.locations = function(loc, cutoff)
 
 
 
-inla.mesh =
+
+inla.mesh = function(...)
+{
+    UseMethod("inla.mesh")
+}
+
+
+inla.mesh.default =
     function(loc=NULL, tv=NULL,
              boundary=NULL, interior=NULL,
              extend = (missing(tv) || is.null(tv)),
@@ -578,14 +592,14 @@ inla.mesh =
                                     NULL))))
 
     ## Read constraint segment information:
-    segm.bnd = (inla.mesh.segm(NULL,
-                               1L+fmesher.read(prefix, "segm.bnd"),
-                               fmesher.read(prefix, "segm.bnd.grp"),
-                               TRUE))
-    segm.int = (inla.mesh.segm(NULL,
-                               1L+fmesher.read(prefix, "segm.int"),
-                               fmesher.read(prefix, "segm.int.grp"),
-                               FALSE))
+    segm.bnd = (inla.mesh.segment(NULL,
+                                  1L+fmesher.read(prefix, "segm.bnd"),
+                                  fmesher.read(prefix, "segm.bnd.grp"),
+                                  TRUE))
+    segm.int = (inla.mesh.segment(NULL,
+                                  1L+fmesher.read(prefix, "segm.int"),
+                                  fmesher.read(prefix, "segm.int.grp"),
+                                  FALSE))
 
     if (!keep)
         unlink(paste(prefix, "*", sep=""), recursive=FALSE)
@@ -616,6 +630,51 @@ inla.mesh =
                             object=time.object,
                             total=time.total))
     return(mesh)
+}
+
+
+inla.mesh.inla.mesh = function(mesh, ...)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    not.known = function (mesh, queryname)
+    {
+        stop(paste("Query '", queryname,
+                   "' unknown.", sep=""))
+    }
+    not.implemented = function (mesh, queryname)
+    {
+        stop(paste("Query '", queryname,
+                   "' not implemented for inla.mesh.", sep=""))
+##        stop(paste("Query '", queryname,
+##                   "' not implemented for inla.mesh for mesh type '",
+##                   model$type, "'.", sep=""))
+    }
+
+    result = list()
+    queries = inla.parse.queries(...)
+    if (length(queries)==0L)
+        return(result)
+
+    for (query.idx in 1:length(queries)) {
+        query = names(queries)[query.idx]
+        param = queries[[query.idx]]
+        answer = NULL
+        if (identical(query, "area")) {
+            answer = 1
+            ##                not.implemented(mesh,query)
+        } else if (!identical(query, "")) {
+            not.known(mesh,query)
+        }
+        ## Expand the result list:
+        result[query.idx] = list(NULL)
+        names(result)[query.idx] = query
+        ## Set the answer:
+        if (!is.null(answer))
+            result[[query.idx]] = answer
+    }
+
+    return(result)
 }
 
 summary.inla.mesh = function(x, verbose=FALSE, ...)
@@ -755,7 +814,7 @@ inla.spde.inla.mesh =
              ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
-    warning("'inla.spde' not fully implemented yet.")
+    warning("'inla.spde.inla.mesh' not fully implemented yet.")
 
     model = match.arg(model)
 
@@ -778,6 +837,42 @@ inla.spde.inla.mesh =
     return(invisible(spde))
 }
 
+
+
+
+inla.parse.queries = function(...)
+{
+    queries = list(...)
+    if (length(queries)==0)
+        return(queries)
+
+    ## Make sure that we have a list of names, empty or not:
+    if (is.null(names(queries))) {
+        q.names = rep("", length(queries))
+    } else {
+        q.names = names(queries)
+    }
+
+    ## All nameless entries must be strings with query names.  Replace
+    ## empty names with those names, and set those entries to NULL.
+    for (query.idx in 1:length(queries)) {
+        if (q.names[[query.idx]]=="") {
+            if (is.character(queries[[query.idx]])) {
+                names(queries)[query.idx] = queries[[query.idx]]
+                queries[query.idx] = list(NULL)
+            } else {
+                queries[query.idx] = list(NULL)
+                warning(paste("Unnamed query ignored.  Check query #",
+                              query.idx, sep=""))
+            }
+        }
+    }
+
+    return(queries)
+}
+
+
+
 inla.spde.inla.spde = function(spde, ...)
 {
     inla.require.inherits(spde, "inla.spde", "'spde'")
@@ -785,37 +880,55 @@ inla.spde.inla.spde = function(spde, ...)
     not.known = function (spde, queryname)
     {
         stop(paste("Query '", queryname,
-                   "' unknown." ,sep=""))
+                   "' unknown.", sep=""))
     }
     not.implemented = function (spde, queryname)
     {
         stop(paste("Query '", queryname,
                    "' not implemented for inla.spde model '",
-                   spde$model, "'." ,sep=""))
+                   spde$model, "'.", sep=""))
     }
 
     result = list()
-    queries = list(...)
+    queries = inla.parse.queries(...)
+    if (length(queries)==0L)
+        return(result)
 
-    for (query in names(queries)) {
+    for (query.idx in 1:length(queries)) {
+        query = names(queries)[query.idx]
+        param = queries[[query.idx]]
+        answer = NULL
         if (identical(query, "precision")) {
             if (identical(spde$model, "matern")) {
-                param = queries[[query]]
                 tau = param$tau
                 kappa = param$kappa
                 answer = (tau^2*(kappa^4*spde$internal$c0+
                                  2*spde$internal$g1*kappa^2+
                                  spde$internal$g2))
-                result[[query]] = answer
             } else {
                 not.implemented(spde,query)
             }
-        } else {
+        } else if (!identical(query, "")) {
             not.known(spde,query)
         }
+        ## Expand the result list:
+        result[query.idx] = list(NULL)
+        names(result)[query.idx] = query
+        ## Set the answer:
+        if (!is.null(answer))
+            result[[query.idx]] = answer
     }
 
     return(result)
+}
+
+
+inla.spde.inla = function(inla, name, spde, ...)
+{
+    inla.require.inherits(inla, "inla", "'inla'")
+    warning("'inla.spde.inla' is not implemented yet.")
+
+    return(spde)
 }
 
 
