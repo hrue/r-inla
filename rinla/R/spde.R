@@ -5,7 +5,7 @@
         all.args, prefix)
 {
     if (inla.os("linux") || inla.os("mac")) {
-        echoc = system(paste(shQuote(fmesher.call), all.args, shQuoteprefix))
+        echoc = system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)))
     }
     else if(inla.os("windows")) {
         if (TRUE) {
