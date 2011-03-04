@@ -63,6 +63,11 @@ inla.models()
                                 mval = h[[nm]][[m]]
                                 if (is.null(mval))
                                     mval = "NULL"
+                                if (is.function(mval)) {
+                                    mval = enquote(mval)[[-1]]
+                                    mval = attr(mval, "source")
+                                    mval = paste("\\code{", mval, "}",  sep="")
+                                }
                                 cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
                             }
 
@@ -149,7 +154,11 @@ inla.models()
                 }
             } else {
                 val = a.list[[nm]]
-                cat(tab, "\\item[", nm, "]", as.character(enquote(a.list[[nm]]))[-1], "\n")
+                if (is.function(val)) {
+                    val = enquote(val)[[-1]]
+                    val = paste("\\verb|", attr(val, "source"), "|", sep="")
+                }               
+                cat(tab, "\\item[", nm, "]", as.character(enquote(val))[-1], "\n")
             }
         }
 
