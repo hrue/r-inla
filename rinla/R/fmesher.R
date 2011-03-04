@@ -414,8 +414,13 @@ inla.mesh.default =
 
     time.pre = system.time({ ## Pre-processing timing start
 
-    if (!is.null(loc) && !is.double(loc)) {
-        storage.mode(loc) = "double"
+    if (!is.null(loc)) {
+        if (!is.matrix(loc)) {
+            loc = as.matrix(loc)
+        }
+        if (!is.double(loc)) {
+            storage.mode(loc) = "double"
+        }
     }
 
     if (!missing(manifold))
