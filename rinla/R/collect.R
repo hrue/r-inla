@@ -328,7 +328,7 @@
                 "p.eff"= dic.values[3],
                 "dic" = dic.values[4],
                 "data.contribution.mean.deviance" = e.dev,
-                "data.contribution.mean.deviance" = dev.e)
+                "data.contribution.deviance.mean" = dev.e)
     } else {
         dic = NULL
     }
