@@ -5,13 +5,13 @@
         all.args, prefix)
 {
     if (inla.os("linux") || inla.os("mac")) {
-        echoc = system(paste(shQuote(fmesher.call), all.args, prefix))
+        echoc = system(paste(shQuote(fmesher.call), all.args, shQuoteprefix))
     }
     else if(inla.os("windows")) {
         if (TRUE) {
             echoc = try(system(paste(shQuote(fmesher.call),
                     all.args,
-                    prefix)), silent=TRUE)
+                    shQuote(prefix))), silent=TRUE)
             echoc = 0
         } else {
             ## we might need it if we want one day to make the fmesher program run remotely
@@ -136,7 +136,7 @@
                 (class(input[[k]]) != "integer")) {
                 stop("Input information must be a list of matrices or node indices.")
             }
-            
+
             if ((class(input[[k]]) == "matrix") &&
                 (class(input[[k]][1,1]) == "numeric")) {
                 ## Input coordinates
@@ -210,7 +210,7 @@
                 if ((indices.n>1) && (nrow(input[[k]])!=(indices.n-1))) {
                     input[[k]] = matrix(input[[k]],indices.n-1,1)
                 }
-                    
+
                 groups = rbind(groups,input[[k]])
 
             } else {
@@ -252,7 +252,7 @@
     node.coord[node.i.max,] = locations[loc.i,]
     map.loc.to.node[[loc.i]] = node.i.max
     for (loc.i in 2:loc.n) {
-        loc.to.node.dist = 
+        loc.to.node.dist =
             sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
                           node.coord[1:node.i.max,])^2))
         if (min(loc.to.node.dist) > min.input.distance) {
@@ -262,12 +262,12 @@
         } else {
             excluded = c(excluded, loc.i)
         }
-    } 
+    }
     ## Remove excess nodes.
     node.coord = node.coord[1:node.i.max,]
     ## Identify nearest nodes for excluded locations.
     for (loc.i in excluded) {
-        loc.to.node.dist = 
+        loc.to.node.dist =
             sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
                           node.coord)^2))
         node.i = which.min(loc.to.node.dist);
@@ -291,7 +291,7 @@
         storage.mode(bnd.idx) = "integer"
         bnd.grp = segm.bnd.input$groups
         storage.mode(bnd.grp) = "integer"
-        
+
         loc.file = inla.write.fmesher.file(bnd.idx-1L,
             filename = paste(prefix, "segm.bnd0", sep=""))
         loc.file = inla.write.fmesher.file(bnd.grp,
@@ -307,7 +307,7 @@
         storage.mode(int.idx) = "integer"
         int.grp = segm.int.input$groups
         storage.mode(int.grp) = "integer"
-        
+
         loc.file = inla.write.fmesher.file(int.idx-1L,
             filename = paste(prefix, "segm.int0", sep=""))
         loc.file = inla.write.fmesher.file(int.grp,
@@ -327,10 +327,10 @@
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
-    
+
     mesh = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
                  s = inla.read.fmesher.file(paste(prefix, "s", sep=""))))
-    
+
     bnd.info = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
                      grp = inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep=""))
                      ))
@@ -342,7 +342,7 @@
         int.info = NULL
     }
     mesh$segm = list(bnd=bnd.info,int=int.info)
-    
+
     m = list(prefix = prefix, mesh = mesh, locations.idx = idx,
             call = match.call(expand.dots=TRUE))
     class(m) = "inla.fmesher.mesh"
