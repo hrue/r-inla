@@ -115,8 +115,7 @@
             stop("coxph with subject only works for fixed covariates")
         subject.first.line[i] = rows[1]
     }
-    dataframe.copy = dataframe[subject.first.line, -c(aa1, aa2, aa3)]
-    ##create cutpoints if not provided
+    dataframe.copy = dataframe[subject.first.line, -c(aa1, aa2, aa3), drop=FALSE]
     if(is.null(cutpoints)) 
         cutpoints = seq(0, max(time), len = n.intervals +1) 
 
