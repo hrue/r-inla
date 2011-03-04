@@ -60,7 +60,6 @@ mesh = inla.mesh(lattice=lattice, boundary=lattice$segm)
 mesh = inla.mesh(lattice=lattice, extend=FALSE)
 plot(mesh)
 
-\dontrun{
 ## Refine the triangulation, with limits on triangle angles and edges:
 mesh = inla.mesh(lattice=lattice, refine=list(max.edge=0.08), extend=FALSE)
 plot(mesh)
@@ -74,7 +73,6 @@ plot(mesh)
 ## Only add extension:
 mesh = inla.mesh(lattice=lattice, refine=list(max.edge=0.08))
 plot(mesh)
-}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
