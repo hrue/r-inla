@@ -59,20 +59,29 @@ inla.spde(inla, name, spde, ...)
   \code{\link{inla.mesh}}
 }
 \examples{
-loc = matrix(runif(10*2),10,2)
-y = rnorm(10)
+n = 20
+field.fcn = function(loc) (10*cos(2*pi*2*(loc[,1]+loc[,2])))
+loc = matrix(runif(n*2),n,2)
+## One field, 2 observations per location
+idx.y = rep(1:n,2)
+y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 
-lattice = inla.mesh.lattice(x = seq(0, 1, length.out=17),
-                            y = seq(0, 1, length.out=10))
-mesh = inla.mesh(loc, lattice=lattice, refine=list(max.edge=0.05))
+mesh = inla.mesh(loc, refine=list(max.edge=0.05))
 spde = inla.spde(mesh, model="matern")
-data = list(y=y, field=mesh$idx$loc)
+data = list(y=y, field=mesh$idx$loc[idx.y])
 formula = y ~ f(field, model=spde)
-result = inla(formula, data=data)
+result = inla(formula, data=data, family="normal")
 
+## Plot the mesh structure:
 plot(mesh)
-plot(old.mesh.class(mesh), result$summary.random$field[,"mean"])
-image(matrix(result$summary.random$field[mesh$idx$lattice,"mean"], 17, 10))
+## For now, use old plotting methods to show fields:
+plot(old.mesh.class(mesh),
+     result$summary.random$field[,"mean"],
+     color.palette = colorRampPalette(c("blue","green","red")))
+## Plot residual field:
+plot(old.mesh.class(mesh),
+     result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
+     color.palette = colorRampPalette(c("blue","green","red")))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

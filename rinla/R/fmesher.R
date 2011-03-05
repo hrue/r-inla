@@ -572,7 +572,6 @@ inla.mesh.default =
 
     ## Read the mesh:
     manifold = 1L+fmesher.read(prefix, "manifold")
-    print(manifold)
     manifold = list("M", "R2", "S2")[[manifold]]
 
     loc = fmesher.read(prefix, "s")
@@ -819,7 +818,7 @@ old.mesh.class.inla.mesh = function(mesh, ...)
     fmesh=list(mesh=mesh)
     fmesh$mesh$s = mesh$loc
     fmesh$mesh$tv = mesh$graph$tv
-    fmesh$node.idx = mesh$idx$loc
+    fmesh$locations.idx = mesh$idx$loc
     class(fmesh)="inla.fmesher.mesh"
     return(fmesh)
 }
@@ -846,18 +845,32 @@ inla.spde.inla.mesh =
     ## Temporary code built on the old interface:
     old.spde = inla.create.spde(old.mesh.class(mesh)$mesh, fem=2)
 
-    spde = (list(model=model,
-                 mesh=mesh,
+    spde = (list(model = model,
+                 mesh = mesh,
                  internal = list(),
-                 f=(list(model="spde",
-                         spde.prefix=old.spde$prefix,
-                         n=nrow(mesh$loc)))
+                 f = (list(model="spde",
+                           spde.prefix=old.spde$prefix,
+                           n=nrow(mesh$loc)
+                           ))
                  ))
     class(spde) = "inla.spde"
 
     spde$internal$c0 = fmesher.read(old.spde$prefix, "c0")
     spde$internal$g1 = fmesher.read(old.spde$prefix, "g1")
     spde$internal$g2 = fmesher.read(old.spde$prefix, "g2")
+
+    mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                        diff(range(mesh$loc[,2])),
+                        diff(range(mesh$loc[,3]))
+                        )))
+
+    kappa0 = sqrt(8)/(mesh.range*0.2)
+    tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
+    spde$f$hyper = (list(theta1=(list(initial=log(tau0),
+                                      param=c(log(tau0), 0.01))),
+                         theta2=(list(initial=log(kappa0^2),
+                                      param=c(log(kappa0^2), 0.1)))
+                         ))
 
     return(invisible(spde))
 }
