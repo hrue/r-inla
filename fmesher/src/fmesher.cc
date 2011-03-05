@@ -649,25 +649,25 @@ int main(int argc, char* argv[])
       /* Done constructing the triangulation. */
       /* Calculate and collect output. */
       
-      matrices.attach("segm.bnd",new Matrix<int>(2),
+      matrices.attach("segm.bnd.idx",new Matrix<int>(2),
 		      true,fmesh::IOMatrixtype_general);
       matrices.attach("segm.bnd.grp",new Matrix<int>(1),
 		      true,fmesh::IOMatrixtype_general);
       MC.segments(true,
-		  &matrices.DI("segm.bnd"),
+		  &matrices.DI("segm.bnd.idx"),
 		  &matrices.DI("segm.bnd.grp"));
       
-      matrices.output("segm.bnd").output("segm.bnd.grp");
+      matrices.output("segm.bnd.idx").output("segm.bnd.grp");
       
-      matrices.attach("segm.int",new Matrix<int>(2),
+      matrices.attach("segm.int.idx",new Matrix<int>(2),
 		      true,fmesh::IOMatrixtype_general);
       matrices.attach("segm.int.grp",new Matrix<int>(1),
 		      true,fmesh::IOMatrixtype_general);
       MC.segments(false,
-		  &matrices.DI("segm.int"),
+		  &matrices.DI("segm.int.idx"),
 		  &matrices.DI("segm.int.grp"));
       
-      matrices.output("segm.int").output("segm.int.grp");
+      matrices.output("segm.int.idx").output("segm.int.grp");
       
     }
     
@@ -683,6 +683,12 @@ int main(int argc, char* argv[])
 
   }
 
+  /* Output the manifold type. */
+  matrices.attach("manifold", new Matrix<int>(1),
+		  true, fmesh::IOMatrixtype_general);
+  Matrix<int>& manifold = matrices.DI("manifold");
+  manifold(0,0) = M.type();
+  matrices.output("manifold");
 
   if (issphere) {
     int sph0_order_max = args_info.sph0_arg;

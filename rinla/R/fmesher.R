@@ -403,7 +403,7 @@ inla.mesh.default =
              boundary=NULL, interior=NULL,
              extend = (missing(tv) || is.null(tv)),
              refine=FALSE,
-             lattice=NULL, manifold=NULL,
+             lattice=NULL,
              cutoff = 0,
              plot.delay = NULL,
              data.dir,
@@ -423,8 +423,6 @@ inla.mesh.default =
         }
     }
 
-    if (!missing(manifold))
-        warning("Option 'manifold' not implemented.")
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
 
@@ -573,6 +571,10 @@ inla.mesh.default =
     time.post = system.time({ ## Post-processing timing start
 
     ## Read the mesh:
+    manifold = 1L+fmesher.read(prefix, "manifold")
+    print(manifold)
+    manifold = list("M", "R2", "S2")[[manifold]]
+
     loc = fmesher.read(prefix, "s")
     graph = (list(tv = 1L+fmesher.read(prefix, "tv"),
                   vt = 1L+fmesher.read(prefix, "vt"),
@@ -598,11 +600,11 @@ inla.mesh.default =
 
     ## Read constraint segment information:
     segm.bnd = (inla.mesh.segment(NULL,
-                                  1L+fmesher.read(prefix, "segm.bnd"),
+                                  1L+fmesher.read(prefix, "segm.bnd.idx"),
                                   fmesher.read(prefix, "segm.bnd.grp"),
                                   TRUE))
     segm.int = (inla.mesh.segment(NULL,
-                                  1L+fmesher.read(prefix, "segm.int"),
+                                  1L+fmesher.read(prefix, "segm.int.idx"),
                                   fmesher.read(prefix, "segm.int.grp"),
                                   FALSE))
 
@@ -621,6 +623,8 @@ inla.mesh.default =
                                             fmesher = time.fmesher,
                                             post = time.post)),
                               prefix = prefix)),
+                 manifold = manifold,
+                 n = nrow(loc),
                  loc = loc,
                  graph = graph,
                  segm = list(bnd=segm.bnd, int=segm.int),
@@ -689,16 +693,17 @@ summary.inla.mesh = function(x, verbose=FALSE, ...)
 
     ret = list(verbose=verbose)
     if (verbose) {
-        ret = c(ret, list(call=x$meta$call))
-        ret = c(ret, list(fmesher.args=x$meta$fmesher.args))
-        ret = c(ret, list(prefix=x$meta$prefix))
-        ret = c(ret, list(time = x$meta$time))
+        ret = (c(ret, list(call=x$meta$call,
+                           fmesher.args=x$meta$fmesher.args,
+                           prefix=x$meta$prefix,
+                           time = x$meta$time)))
     }
-    ret = c(ret, list(nV=nrow(mesh$loc)))
-    ret = c(ret, list(nT=nrow(mesh$graph$tv)))
-    ret = c(ret, list(xlim=range(mesh$loc[,1])))
-    ret = c(ret, list(ylim=range(mesh$loc[,2])))
-    ret = c(ret, list(zlim=range(mesh$loc[,3])))
+    ret = (c(ret, list(manifold=mesh$manifold,
+                       nV=mesh$n,
+                       nT=nrow(mesh$graph$tv),
+                       xlim=range(mesh$loc[,1]),
+                       ylim=range(mesh$loc[,2]),
+                       zlim=range(mesh$loc[,3]))))
 
     my.segm = function(x) {
         if (is.null(x))
@@ -712,11 +717,11 @@ summary.inla.mesh = function(x, verbose=FALSE, ...)
         return(list(n=n, grps=grps))
     }
     if(!is.null(x$segm)) {
-        ret = c(ret, list(segm.bnd=my.segm(x$segm$bnd)))
-        ret = c(ret, list(segm.int=my.segm(x$segm$int)))
+        ret = (c(ret, list(segm.bnd=my.segm(x$segm$bnd),
+                           segm.int=my.segm(x$segm$int))))
     } else {
-        ret = c(ret, list(segm.bnd=my.segm(NULL)))
-        ret = c(ret, list(segm.int=my.segm(NULL)))
+        ret = (c(ret, list(segm.bnd=my.segm(NULL),
+                           segm.int=my.segm(NULL))))
     }
 
     class(ret) <- "summary.inla.mesh"
@@ -758,7 +763,8 @@ print.summary.inla.mesh = function(x, ...)
         my.print.proc_time(x$time)
     }
 
-    cat("\nVertices:\t", as.character(x$nV), "\n", sep="")
+    cat("\nManifold:\t", x$manifold, "\n", sep="")
+    cat("Vertices:\t", as.character(x$nV), "\n", sep="")
     cat("Triangles:\t", as.character(x$nT), "\n", sep="")
 
     my.print.segm = function(x) {
@@ -787,6 +793,20 @@ print.summary.inla.mesh = function(x, ...)
 
     invisible(x)
 }
+
+
+
+inla.mesh.basis =
+    function(mesh,
+             type=c("b.spline", "sph.harm"),
+             order=2,
+             knot.placement=c("uniform.area"),
+             rot.inv=TRUE)
+{
+}
+
+
+
 
 
 old.mesh.class = function(...)
