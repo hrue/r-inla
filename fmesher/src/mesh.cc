@@ -1848,17 +1848,40 @@ namespace fmesh {
     Dart d(d0);
     if (d.isnull())
       return Dart();
+
     int v0(d.v());
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     d.orbit0rev();
     while ((d != d0) && (!d.onBoundary()))
       d.orbit0rev();
+    Dart d00(d);
+
+    MESH_LOG("Finding direction to point or v starting from d00, S:" << endl
+	     << "\t\t" << s << endl
+	     << "\t\t" << v << endl
+	     << "\t\t" << d00 << endl
+	     << "\t\t" << S_[d00.v()] << endl);
+
     d.orbit2();
+    MESH_LOG("Finding direction to point or v starting from dart:" << endl
+	     << "\t\t" << s << endl
+	     << "\t\t" << v << endl
+	     << "\t\t" << d << endl
+	     << "\t\t" << S_[d.v()] << endl
+	     << "\tiLHS\t" << inLeftHalfspace(S_[v0],s,S_[d.v()]) << endl);
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     bool onleft0(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
+    bool onleft2(d.inLeftHalfspace(s) >= -MESH_EPSILON);
+    MESH_LOG(d << endl);
     d.orbit2();
+    MESH_LOG("Finding direction to point or v starting from dart:" << endl
+	     << "\t\t" << s << endl
+	     << "\t\t" << v << endl
+	     << "\t\t" << d << endl
+	     << "\t\t" << S_[d.v()] << endl
+	     << "\tiLHS\t" << inLeftHalfspace(S_[v0],s,S_[d.v()]) << endl);
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     bool onleft1(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
@@ -1866,9 +1889,18 @@ namespace fmesh {
 	     << onleft0 << onleft1 << endl);
     while (!(!onleft0 && onleft1) && (!d.onBoundary())) {
       d.orbit0rev();
-      if (d==d0)
-	return Dart();
+      MESH_LOG(d << endl);
+      if (d.v()==d00.vo()) {
+	if (onleft2) {
+	  MESH_LOG("Went full circle. Point found." << endl);
+	  return d;
+	} else {
+	  MESH_LOG("Went full circle. Point not found." << endl);
+	  return Dart();
+	}
+      }
       onleft0 = onleft1;
+      onleft2 = (onleft2 && (d.inLeftHalfspace(s) >= -MESH_EPSILON));
       d.orbit2();
       onleft1 = (inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
       if (d.v() == v) // Have we found a preexisting vertex?

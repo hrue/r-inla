@@ -128,14 +128,15 @@ void filter_locations(Matrix<double>& S,
 {
   int dim = S.cols();
   int idx_next = 0;
-  std::list<int> excluded;
+  typedef std::list< std::pair<int, Point> > excludedT;
+  excludedT excluded;
 
   LOG("Filtering locations." << endl);
 
   /* Extract "unique" points. */
   double dist;
   Point s = Point(0.0, 0.0, 0.0);
-  Point diff;
+  Point diff = Point(0.0, 0.0, 0.0);
   for (int v=0; v<S.rows(); v++) {
     bool was_excluded = false;
     for (int d=0; d<dim; d++)
@@ -145,13 +146,12 @@ void filter_locations(Matrix<double>& S,
 	diff[d] = S[v_try][d]-s[d];
       if (diff.length() <= cutoff) {
 	was_excluded = true;
-	excluded.push_back(v);
+	excluded.push_back(excludedT::value_type(v,s));
 	idx(v,0) = v_try;
 	break;
       }
     }
     if (!was_excluded) {
-      excluded.push_back(v);
       for (int d=0; d<dim; d++)
 	S(idx_next,d) = s[d];
       idx(v,0) = idx_next;
@@ -165,14 +165,37 @@ void filter_locations(Matrix<double>& S,
   S.rows(idx_next);
 
   LOG("Excess storage removed." << endl);
+  LOG("Identifying nearest points." << endl);
 
-  /* Optional: Identify nearest nodes for excluded locations. */
-  //  for (int v=0; v<S.rows(); v++) {
-  //    double nearest_dist = -1.0;
-  //    int nearest_idx = -1;
-  //    for (int v_try=0; v_try<idx_next; v_try++) {
-  //    }
-  //  }
+  /* Identify nearest nodes for excluded locations. */
+  for (excludedT::const_iterator i=excluded.begin();
+       i != excluded.end();
+       i++) {
+    int v = (*i).first;
+    for (int d=0; d<dim; d++)
+      s[d] = (*i).second[d];
+    double nearest_dist = -1.0;
+    int nearest_idx = -1;
+    for (int v_try=0; v_try<S.rows(); v_try++) {
+      for (int d=0; d<dim; d++)
+	diff[d] = S[v_try][d]-s[d];
+      dist = diff.length();
+      if ((nearest_idx<0) || (dist<nearest_dist)) {
+	nearest_idx = v_try;
+	nearest_dist = dist;
+      }
+    }
+    if (idx(v,0) != nearest_idx) {
+      LOG("Excluded vertex "
+	   << v << " remapped from "
+	   << idx(v,0) << " to "
+	   << nearest_idx << "."
+	   << endl);
+    }
+    idx(v,0) = nearest_idx;
+  }
+
+  LOG("Done identifying nearest points." << endl);
 }
 
 
