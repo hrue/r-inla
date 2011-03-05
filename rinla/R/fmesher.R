@@ -108,11 +108,11 @@ lines.inla.mesh.segment = function(segm, loc=NULL, ...)
     }
 }
 
-plot.inla.mesh = function(mesh, add=FALSE, lwd=1, ...)
+plot.inla.mesh = function(mesh, t.sub=1:nrow(mesh$graph$tt), add=FALSE, lwd=1, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    idx = cbind(mesh$graph$tv[,c(1:3,1), drop=FALSE], NA)
+    idx = cbind(mesh$graph$tv[t.sub,c(1:3,1), drop=FALSE], NA)
     x = mesh$loc[t(idx), 1]
     y = mesh$loc[t(idx), 2]
 
@@ -668,8 +668,74 @@ inla.mesh.inla.mesh = function(mesh, ...)
         query = names(queries)[query.idx]
         param = queries[[query.idx]]
         answer = NULL
-        if (identical(query, "area")) {
-            answer = 1
+        if (identical(query, "tt.neighbours")) {
+            if (is.null(param))
+                param = list(c(1))
+            if (length(param)<2)
+                param = c(as.list(param), list(c(1)))
+            nT = nrow(mesh$graph$tt)
+            i = rep(1:nT,3)
+            j = as.vector(mesh$graph$tt)
+            i = i[!is.na(j)]
+            j = j[!is.na(j)]
+            tt = sparseMatrix(i=i, j=j, x=rep(1,length(i)), dims=c(nT,nT))
+            answer = (sparseMatrix(i=param[[1]],
+                                   j=rep(1,length(param[[1]])),
+                                   x=1,
+                                   dims=c(nT,1)))
+            tt0 = (answer == 0.5)*1
+            tt1 = answer
+            order = 0
+            while (order<min(param[[2]])) {
+                order = order+1
+                tt0 = tt1
+                tt1 = answer
+                answer = ((((tt %*% answer) > 0) - tt1 - tt0) > 0)
+            }
+            while (order<max(param[[2]])) {
+                order = order+1
+                answer = ((((tt %*% answer) > 0) - tt1 - tt0) > 0)
+            }
+
+            ##                not.implemented(mesh,query)
+        } else if (identical(query, "vt.neighbours")) {
+            if (is.null(param))
+                param = list(1)
+            if (length(param)<2)
+                param = c(as.list(param), list(c(1)))
+            nV = nrow(mesh$loc)
+            nT = nrow(mesh$graph$tt)
+            i = rep(1:nT,3)
+            j = as.vector(mesh$graph$tv)
+#            i = i[!is.na(j)]
+#            j = j[!is.na(j)]
+            tv = sparseMatrix(i=i, j=j, x=rep(1,length(i)), dims=c(nT,nV))
+            vv = (sparseMatrix(i=param[[1]],
+                               j=rep(1,length(param[[1]])),
+                               x=1,
+                               dims=c(nV,1)))
+            vt = (tv %*% vv ) > 0
+            vv0 = (vv == 0.5)*1
+            vv1 = vv
+            vt0 = (tv %*% vv0 ) > 0
+            vt1 = vt
+            order = 0
+            while (order<min(param[[2]])) {
+                order = order+1
+                vv0 = vv1
+                vv1 = vv
+                vv = ((((mesh$graph$vv %*% vv) > 0) - vv1 - vv0) > 0)
+                vt0 = vt1
+                vt1 = vt
+                vt = (((tv %*% vv) > 0) - vt1 - vt0 ) > 0
+            }
+            while (order<max(param[[2]])) {
+                order = order+1
+                vv = ((((mesh$graph$vv %*% vv) > 0) - vv1 - vv0) > 0)
+                vt = (((((tv %*% vv) > 0) - vt1 - vt0 ) > 0 ) + vt) > 0
+            }
+            answer = vt
+
             ##                not.implemented(mesh,query)
         } else if (!identical(query, "")) {
             not.known(mesh,query)
