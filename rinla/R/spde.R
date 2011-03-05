@@ -293,10 +293,10 @@
         storage.mode(bnd.grp) = "integer"
 
         loc.file = inla.write.fmesher.file(bnd.idx-1L,
-            filename = paste(prefix, "segm.bnd0", sep=""))
+            filename = paste(prefix, "segm.bndidx0", sep=""))
         loc.file = inla.write.fmesher.file(bnd.grp,
             filename = paste(prefix, "segm.bndgrp0", sep=""))
-        all.args = paste(all.args," --boundary=segm.bnd0")
+        all.args = paste(all.args," --boundary=segm.bndidx0")
         all.args = paste(all.args," --boundarygrp=segm.bndgrp0")
     }
     if (!is.null(interior)) {
@@ -309,10 +309,10 @@
         storage.mode(int.grp) = "integer"
 
         loc.file = inla.write.fmesher.file(int.idx-1L,
-            filename = paste(prefix, "segm.int0", sep=""))
+            filename = paste(prefix, "segm.intidx0", sep=""))
         loc.file = inla.write.fmesher.file(int.grp,
             filename = paste(prefix, "segm.intgrp0", sep=""))
-        all.args = paste(all.args," --interior=segm.int0")
+        all.args = paste(all.args," --interior=segm.intidx0")
         all.args = paste(all.args," --interiorgrp=segm.intgrp0")
     }
     if (!is.null(cet)) {
@@ -331,11 +331,11 @@
     mesh = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
                  s = inla.read.fmesher.file(paste(prefix, "s", sep=""))))
 
-    bnd.info = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.bnd", sep="")),
+    bnd.info = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.bnd.idx", sep="")),
                      grp = inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep=""))
                      ))
     if (!is.null(interior)) {
-        int.info  = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.int", sep="")),
+        int.info  = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.int.idx", sep="")),
                           grp = inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep=""))
                           ))
     } else {
