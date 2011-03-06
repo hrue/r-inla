@@ -323,12 +323,12 @@
             e.dev = NULL
         }
         dic = list(
-                "mean.deviance" = dic.values[1],
-                "deviance.mean" = dic.values[2],
-                "p.eff"= dic.values[3],
                 "dic" = dic.values[4],
-                "data.contribution.mean.deviance" = e.dev,
-                "data.contribution.deviance.mean" = dev.e)
+                "p.eff"= dic.values[3],
+                "local.dic" = 2.0*e.dev - dev.e, 
+                "local.p.eff" = e.dev - dev.e, 
+                "mean.deviance" = dic.values[1],
+                "deviance.mean" = dic.values[2])
     } else {
         dic = NULL
     }
