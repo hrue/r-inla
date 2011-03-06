@@ -870,16 +870,61 @@ print.summary.inla.mesh = function(x, ...)
 
 inla.mesh.basis =
     function(mesh,
-             type=c("b.spline", "sph.harm"),
-             order=2,
-             knot.placement=c("uniform.area"),
+             type="b.spline",
+             n=3,
+             degree=2,
+             knot.placement="uniform.area",
              rot.inv=TRUE)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    smorg.prefix = inla.fmesher.smorg(mesh, sph0=order)
+    type = match.arg(type, c("b.spline", "sph.harm"))
+    knot.placement = (match.arg(knot.placement,
+                                c("uniform.area",
+                                  "uniform.angles")))
 
-    basis = fmesher.read(smorg.prefix, "sph0")
+    if (identical(type, "b.spline")) {
+        if (identical(mesh$manifold, "R2")) {
+            long = ((mesh$loc[,1]-min(mesh$loc[,1]))/
+                    diff(range(mesh$loc[,1])))*90*pi/180
+            sinlat =  (((mesh$loc[,2]-min(mesh$loc[,2]))/
+                       diff(range(mesh$loc[,2])))*2-1)
+            coslat = sapply(sinlat, function(x) sqrt(max(0.0,1.0-x^2)))
+            loc = (matrix(c(cos(long)*coslat,
+                            sin(long)*coslat,
+                            sinlat), mesh$n, 3))
+            knots = 0
+        } else if (identical(mesh$manifold, "S2")) {
+            loc = mesh$loc
+            knots = identical(knot.placement, "uniform.angles")
+        } else {
+            stop("Only know how to make B-splines on R2 and S2.")
+        }
+        degree = max(0L, min(n-1L, degree))
+        smorg.prefix =
+            (inla.fmesher.smorg(loc,
+                                mesh$graph$tv,
+                                bspline = c(n, degree, knots),
+                                fem=-1))
+        smorg.name = "bspline"
+    } else if (identical(type, "sph.harm")) {
+        if (!identical(mesh$manifold, "S2")) {
+            stop("Only know how to make spherical harmonics on S2.")
+        }
+        if (rot.inv) {
+            smorg.prefix = (inla.fmesher.smorg(mesh$loc,
+                                               mesh$graph$tv,
+                                               sph0=n))
+            smorg.name = "sph0"
+        } else {
+            smorg.prefix = (inla.fmesher.smorg(mesh$loc,
+                                               mesh$graph$tv,
+                                               sph=n))
+            smorg.name = "sph"
+        }
+    }
+
+    basis = fmesher.read(smorg.prefix, smorg.name)
 
     return(basis)
 }
@@ -950,7 +995,7 @@ inla.spde.inla.mesh =
             param$basis.K = matrix(0, spde$f$n, 1)
         }
 
-        smorg.prefix = inla.fmesher.smorg(mesh, fem=2)
+        smorg.prefix = inla.fmesher.smorg(mesh$loc, mesh$graph$tv, fem=2)
 
         mesh.range = (max(c(diff(range(mesh$loc[,1])),
                             diff(range(mesh$loc[,2])),
@@ -1110,26 +1155,24 @@ inla.spde.inla = function(inla, name, spde, ...)
 
 
 `inla.fmesher.smorg` =
-    function(mesh,
+    function(loc, tv,
              fem=NULL,
              sph0=NULL,
              sph=NULL,
              bspline=NULL,
              points2mesh=NULL)
 {
-    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
-
     prefix = inla.fmesher.make.prefix(NULL, NULL)
 
-    n = nrow(mesh$loc)
-    s.dim = ncol(mesh$loc)
+    n = nrow(loc)
+    s.dim = ncol(loc)
 
     if (s.dim==1)
         stop("1-D models not implemented yet.")
     stopifnot(s.dim>=2, s.dim<=3)
 
-    fmesher.write(mesh$loc, prefix, "s")
-    fmesher.write(mesh$graph$tv-1L, prefix, "tv")
+    fmesher.write(loc, prefix, "s")
+    fmesher.write(tv-1L, prefix, "tv")
     all.args = "--smorg --input=s,tv"
 
     ## additional arguments

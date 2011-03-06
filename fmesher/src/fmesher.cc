@@ -12,7 +12,7 @@
 
 #define LOG_(msg) cout << WHEREAMI << msg;
 #ifdef DEBUG
-#define LOG(msg) MESHC_LOG_(msg)
+#define LOG(msg) LOG_(msg)
 #else
 #define LOG(msg)
 #endif
@@ -268,14 +268,20 @@ int main(int argc, char* argv[])
   gengetopt_args_info args_info;
   struct cmdline_params params;
   
+  LOG("checkpoint 1." << std::endl)
+
   cmdline_init(&args_info);
   cmdline_params_init(&params);
      
+  LOG("checkpoint 2." << std::endl)
+
   /* call the command line parser */
   if (cmdline_ext(argc, argv, &args_info, &params) != 0) {
     cmdline_free(&args_info);
     return 1;
   }
+
+  LOG("checkpoint 3." << std::endl)
 
   /* Read an optional config file, but don't override given options */
   if (args_info.config_given) {
@@ -288,11 +294,15 @@ int main(int argc, char* argv[])
     }
   }
 
+  LOG("checkpoint 4." << std::endl)
+
   if (args_info.dump_config_given)
     cmdline_dump(stdout,&args_info);
   
   std::vector<string> input_s0_names;
   string input_tv0_name = "-";
+
+  LOG("checkpoint 5." << std::endl)
   
   input_s0_names.push_back(string(args_info.input_arg[0]));
   if (args_info.input_given>1)
@@ -301,10 +311,14 @@ int main(int argc, char* argv[])
     input_s0_names.push_back(string(args_info.input_arg[i+1]));
   }
 
+  LOG("checkpoint 6." << std::endl)
+
   std::vector<string> quality_names;
   for (int i=0; i<int(args_info.quality_given); i++) {
     quality_names.push_back(string(args_info.quality_arg[i]));
   }
+
+  LOG("checkpoint 7." << std::endl)
 
   std::vector<string> boundary_names;
   std::vector<string> boundarygrp_names;
@@ -316,6 +330,8 @@ int main(int argc, char* argv[])
       boundarygrp_names.push_back(boundary_names[i]+"grp");
   }
 
+  LOG("checkpoint 8." << std::endl)
+
   std::vector<string> interior_names;
   std::vector<string> interiorgrp_names;
   for (int i=0; i<int(args_info.interior_given); i++) {
@@ -326,6 +342,7 @@ int main(int argc, char* argv[])
       interiorgrp_names.push_back(interior_names[i]+"grp");
   }
 
+  LOG("checkpoint 9." << std::endl)
 
   double cutoff = 0.0;
   if (args_info.cutoff_given>0)
@@ -397,6 +414,8 @@ int main(int argc, char* argv[])
   cout << "X11 delay factor:\t" << x11_delay_factor << endl;
   */
 
+  LOG("IOprefix init." << std::endl)
+
   string iprefix("-");
   string oprefix("-");
   if (args_info.inputs_num>0) {
@@ -421,6 +440,8 @@ int main(int argc, char* argv[])
        OK; might just want to see the algorithm at work with --x11. */
   }
 
+  LOG("matrix IO init." << std::endl)
+
   matrices.io(((args_info.io_arg == io_arg_ba) ||
 	       (args_info.io_arg == io_arg_bb)),
 	      ((args_info.io_arg == io_arg_ab) ||
@@ -439,11 +460,14 @@ int main(int argc, char* argv[])
 		       string(args_info.ir_arg[i+2]));
   }
 
+  LOG("matrix IO inited." << std::endl)
+
   for (int i=0; i<input_s0_names.size(); i++) {
     if (!matrices.load(input_s0_names[i]).active) {
       cout << "Matrix "+input_s0_names[i]+" not found." << endl;
     }
   }
+  LOG("s0 input read." << std::endl)
   for (int i=0; i<quality_names.size(); i++) {
     if (quality_names[i] != "-")
       if (!matrices.load(quality_names[i]).active) {
@@ -451,6 +475,9 @@ int main(int argc, char* argv[])
 	quality_names[i] = "-";
       }
   }
+  LOG("quality input read." << std::endl)
+
+  LOG("iS0" << std::endl)
 
   Matrix<double>& iS0 = matrices.DD(input_s0_names[0]);
   Matrix<double>* Quality0_ = new Matrix<double>();
@@ -491,6 +518,8 @@ int main(int argc, char* argv[])
   /* OK to overwrite any old quality0 */
   matrices.attach(string("quality0"),Quality0_,true);
 
+
+  LOG("TV0" << std::endl)
 
   Matrix<int>* TV0 = NULL;
   if (input_tv0_name != "-") {
@@ -568,7 +597,7 @@ int main(int argc, char* argv[])
   bool issphere = false;
   if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
-    LOG_("1D data not implemented." << std::endl)
+    LOG("1D data not implemented." << std::endl)
     return 0;
   } else if (nV>0) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
@@ -640,7 +669,7 @@ int main(int argc, char* argv[])
     }
     
     if (args_info.smorg_given>0) {
-      
+      LOG("Calculating smorg output." << std::endl)
       MeshC MC(&M);
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
 
@@ -735,6 +764,7 @@ int main(int argc, char* argv[])
 
   }
 
+  LOG("Manifold output." << std::endl)
   /* Output the manifold type. */
   matrices.attach("manifold", new Matrix<int>(1),
 		  true, fmesh::IOMatrixtype_general);
@@ -743,10 +773,12 @@ int main(int argc, char* argv[])
   matrices.output("manifold");
 
   if (issphere) {
+    LOG("issphere output." << std::endl)
     int sph0_order_max = args_info.sph0_arg;
     int sph_order_max = args_info.sph_arg;
     
     if (sph0_order_max >= 0) {
+      LOG("sph0 output." << std::endl)
       matrices.attach(string("sph0"),
 		      new Matrix<double>(spherical_harmonics(M.S(),
 							     sph0_order_max,
@@ -757,6 +789,7 @@ int main(int argc, char* argv[])
     }
 
     if (sph_order_max >= 0) {
+      LOG("sph output." << std::endl)
       matrices.attach(string("sph"),
 		      new Matrix<double>(spherical_harmonics(M.S(),
 							     sph_order_max,
@@ -767,6 +800,7 @@ int main(int argc, char* argv[])
     }
 
     if (args_info.bspline_given>0) {
+      LOG("bspline output." << std::endl)
       int bspline_n = 2;
       int bspline_degree = 1;
       bool bspline_uniform_knot_angles = true;
@@ -789,6 +823,7 @@ int main(int argc, char* argv[])
   }
 
   if (args_info.points2mesh_given>0) {
+    LOG("points2mesh output." << std::endl)
     string points2mesh_name(args_info.points2mesh_arg);
     if (!matrices.load(points2mesh_name).active) {
       cout << "Matrix "+points2mesh_name+" not found." << endl;
@@ -812,6 +847,7 @@ int main(int argc, char* argv[])
     
   int fem_order_max = args_info.fem_arg;
   if (fem_order_max>0) {
+    LOG("fem output." << std::endl)
     SparseMatrix<double>& C0 = matrices.SD("c0").clear();
     SparseMatrix<double>& C1 = matrices.SD("c1").clear();
     SparseMatrix<double>& B1 = matrices.SD("b1").clear();
