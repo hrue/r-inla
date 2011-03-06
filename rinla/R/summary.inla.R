@@ -38,17 +38,8 @@
     neffp = object$neffp
     ret = c(ret, list(neffp=neffp))
     
-    ## need this as dic is no longer a simple matrix but contains the dev.e and e.dev information as well
     if (!is.null(object$dic)) {
-        dic = matrix(c(
-                object$dic[[1]],
-                object$dic[[2]],
-                object$dic[[3]],
-                object$dic[[4]]), 4, 1)
-        nm.dic = names(object$dic)
-        rownames(dic) = nm.dic[1:4]
-
-        ret = c(ret, list(dic=dic))
+        ret = c(ret, list(dic=object$dic))
     }
 
     if(!is.null(object$mlik))
