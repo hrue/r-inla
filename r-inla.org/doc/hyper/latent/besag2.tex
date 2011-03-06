@@ -3,28 +3,32 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] precision 
+	 	 	 \item[ name ] log precision 
 	 	 	 \item[ short.name ] prec 
+	 	 	 \item[ prior ] loggamma 
+	 	 	 \item[ param ] 1 5e-05 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ prior ] loggamma 
-	 	 	 \item[ param ] c(1, 1e-04) 
+	 	 	 \item[ to.theta ] \verb|| 
+	 	 	 \item[ from.theta ] \verb|| 
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] a 
+	 	 	 \item[ name ] scaling parameter 
 	 	 	 \item[ short.name ] a 
+	 	 	 \item[ prior ] normal 
+	 	 	 \item[ param ] 0 6.25 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ prior ] normal 
-	 	 	 \item[ param ] c(0, 6.25) 
+	 	 	 \item[ to.theta ] \verb|| 
+	 	 	 \item[ from.theta ] \verb|| 
 	 	 \end{description}
 	 \end{description}
 	 \item[ constr ] FALSE 
 	 \item[ nrow.ncol ] FALSE 
 	 \item[ augmented ] FALSE 
 	 \item[ aug.factor ] 1 
-	 \item[ aug.constr ] c(1, 2) 
+	 \item[ aug.constr ] 1 2 
 	 \item[ n.div.by ] 2 
 	 \item[ n.required ] TRUE 
 	 \item[ set.default.values ] TRUE 
