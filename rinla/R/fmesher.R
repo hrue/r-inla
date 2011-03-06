@@ -868,6 +868,31 @@ print.summary.inla.mesh = function(x, ...)
 
 
 
+inla.mesh.project = function(mesh, loc)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    smorg.prefix = (inla.fmesher.smorg(mesh$loc,
+                                       mesh$graph$tv,
+                                       points2mesh=loc, fem=-1))
+
+    ti = fmesher.read(smorg.prefix, "points2mesh.t")+1L
+
+    ok = (ti[,1] > 0L)
+    ti[ti[,1] == 0L,1] = NA
+
+    b = fmesher.read(smorg.prefix, "points2mesh.b")
+
+    ii = which(ok)
+    A = (sparseMatrix(dims=c(nrow(loc),mesh$n),
+                      i = rep(ii, 3),
+                      j = as.vector(mesh$graph$tv[ti[ii,1],]),
+                      x = as.vector(b[ii,]) ))
+
+    return (list(loc=loc,t=ti,bary=b,A=A,ok=ok))
+}
+
+
 inla.mesh.basis =
     function(mesh,
              type="b.spline",
