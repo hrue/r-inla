@@ -6864,7 +6864,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART2D");
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE");
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE");
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE");
 		if (mb->f_prior[mb->nf][0].id != P_WISHART2D) {
 			char *m;
 			GMRFLib_sprintf(&m, "Model=[IID2D] needs prior=[WISHART2D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
@@ -6880,7 +6879,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE");
 		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE");
 		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE");
-		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "NONE");
 		if (mb->f_prior[mb->nf][0].id != P_WISHART3D) {
 			char *m;
 			GMRFLib_sprintf(&m, "Model=[IID3D] needs prior=[WISHART3D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
