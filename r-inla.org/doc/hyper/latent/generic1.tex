@@ -3,12 +3,14 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] precision 
+	 	 	 \item[ name ] log precision 
 	 	 	 \item[ short.name ] prec 
+	 	 	 \item[ prior ] loggamma 
+	 	 	 \item[ param ] 1 5e-05 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ prior ] loggamma 
-	 	 	 \item[ param ] c(1, 1e-04) 
+	 	 	 \item[ to.theta ] \verb|| 
+	 	 	 \item[ from.theta ] \verb|| 
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
@@ -17,15 +19,15 @@
 	 	 	 \item[ initial ] 2 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ prior ] gaussian 
-	 	 	 \item[ param ] c(0, 0.1) 
+	 	 	 \item[ param ] 0 0.1 
 	 	 \end{description}
 	 \end{description}
 	 \item[ constr ] FALSE 
 	 \item[ nrow.ncol ] FALSE 
 	 \item[ augmented ] FALSE 
 	 \item[ aug.factor ] 1 
-	 \item[ aug.constr ] NULL 
-	 \item[ n.div.by ] NULL 
+	 \item[ aug.constr ]  
+	 \item[ n.div.by ]  
 	 \item[ n.required ] TRUE 
 	 \item[ set.default.values ] TRUE 
 \end{description}
