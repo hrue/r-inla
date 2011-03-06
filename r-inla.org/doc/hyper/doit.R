@@ -1,4 +1,5 @@
 source("../../../rinla/R/models.R")
+source("../../../rinla/R/models-generate.R")
 source("../../../rinla/R/utils.R")
 m = inla.models()
 for(nm in names(m)) {
