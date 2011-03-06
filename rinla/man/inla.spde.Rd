@@ -59,7 +59,7 @@ inla.spde(inla, name, spde, ...)
   \code{\link{inla.mesh}}
 }
 \examples{
-n = 20
+n = 100
 field.fcn = function(loc) (10*cos(2*pi*2*(loc[,1]+loc[,2])))
 loc = matrix(runif(n*2),n,2)
 ## One field, 2 observations per location
@@ -69,7 +69,7 @@ y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 mesh = inla.mesh(loc, refine=list(max.edge=0.05))
 spde = inla.spde(mesh, model="matern")
 data = list(y=y, field=mesh$idx$loc[idx.y])
-formula = y ~ f(field, model=spde)
+formula = y ~ -1 + f(field, model=spde)
 result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
