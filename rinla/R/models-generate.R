@@ -156,7 +156,7 @@ inla.models()
                 if (is.function(val)) {
                     val = paste("\\verb|", attr(val, "source"), "|", sep="")
                 }               
-                cat(tab, "\\item[", nm, "]", as.character(enquote(val))[-1], "\n")
+                cat(tab, "\\item[", nm, "]", inla.paste(val), "\n")
             }
         }
 
