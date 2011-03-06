@@ -144,14 +144,18 @@ inla.mesh.lattice =
              dims = (inla.ifelse(is.matrix(x),
                                  dim(x),
                                  c(length(x), length(y)))),
-             units = "default")
+             units = NULL)
 {
+    units = match.arg(units, c("default", "longlat","longsinlat"))
+
     if (is.matrix(x)) {
         if (!identical(dims, dim(x)) ||
             !identical(dims, dim(y)) ||
             (is.matrix(z) && !identical(dims, dim(z))))
             stop("The size of matrices 'x', 'y', and 'z' must match 'dims'.")
         loc = cbind(as.vector(x), as.vector(y), as.vector(z))
+        x = NULL
+        y = NULL
     } else {
         loc = (cbind(rep(x, times = dims[2]),
                      rep(y, each = dims[1])))
@@ -164,6 +168,13 @@ inla.mesh.lattice =
         loc = (cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
                      sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
                      sin(loc[,2]*pi/180)))
+    } else if (identical(units, "longsinlat")) {
+        ## Transform onto a sphere
+        coslat = sapply(loc[,2], function(x) sqrt(max(0, 1-x^2)))
+        loc = (cbind(cos(loc[,1]*pi/180)*coslat,
+                     sin(loc[,1]*pi/180)*coslat,
+                     loc[,2]
+                     ))
     }
 
     ## Construct lattice boundary
@@ -180,7 +191,7 @@ inla.mesh.lattice =
                               grp=segm.grp,
                               is.bnd=TRUE))
 
-    lattice = list(loc=loc, segm=segm)
+    lattice = list(dims=dims, x=x, y=y, loc=loc, segm=segm)
     class(lattice) = "inla.mesh.lattice"
     return(lattice)
 }
@@ -889,7 +900,73 @@ inla.mesh.project = function(mesh, loc)
                       j = as.vector(mesh$graph$tv[ti[ii,1],]),
                       x = as.vector(b[ii,]) ))
 
-    return (list(loc=loc,t=ti,bary=b,A=A,ok=ok))
+    return (list(t=ti, bary=b, A=A, ok=ok))
+}
+
+
+inla.mesh.projector = function(...)
+{
+    UseMethod("inla.mesh.projector")
+}
+
+inla.mesh.projector.inla.mesh.projector =
+    function(projector, field)
+{
+    inla.require.inherits(projector, "inla.mesh.projector", "'projector'")
+
+    if (is.data.frame(field)) {
+        field = as.matrix(field)
+    }
+
+    if (is.null(dim(field))) {
+        return(matrix(as.vector(projector$proj$A %*% as.vector(field)),
+                      projector$lattice$dims[1],
+                      projector$lattice$dims[2]))
+    } else {
+        return(projector$proj$A %*% field)
+    }
+}
+
+
+inla.mesh.projector.inla.mesh =
+    function(mesh,
+             xlim=range(mesh$loc[,1]),
+             ylim=range(mesh$loc[,2]),
+             dims=c(100,100),
+             projection=NULL)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    if (identical(mesh$manifold, "R2")) {
+        units = "default"
+        x = seq(xlim[1], xlim[2], length.out=dims[1])
+        y = seq(ylim[1], ylim[2], length.out=dims[2])
+    } else if (identical(mesh$manifold, "S2")) {
+        projection = match.arg(projection, c("longlat", "longsinlat"))
+        units = projection
+        if (missing(xlim) || is.null(xlim)) {
+            xlim = c(-180,180)
+        }
+        if (missing(ylim) || is.null(ylim)) {
+            ylim = c(-90,90)
+        }
+        x = seq(xlim[1], xlim[2], length.out=dims[1])
+        if (identical(projection, "longlat")) {
+            y = seq(ylim[1], ylim[2], length.out=dims[2])
+        } else {
+            y = (seq(sin(ylim[1]*pi/180),
+                     sin(ylim[2]*pi/2),
+                     length.out=dims[2]))
+        }
+    }
+
+    lattice = (inla.mesh.lattice(x=x, y=y, units = units))
+
+    proj = inla.mesh.project(mesh, lattice$loc)
+    projector = list(x=x, y=y, lattice=lattice, proj=proj)
+    class(projector) = "inla.mesh.projector"
+
+    return (projector)
 }
 
 
@@ -932,6 +1009,9 @@ inla.mesh.basis =
                                 bspline = c(n, degree, knots),
                                 fem=-1))
         smorg.name = "bspline"
+        if (!rot.inv) {
+            warning("Currently only 'rot.inv=TRUE' is supported for B-splines.")
+        }
     } else if (identical(type, "sph.harm")) {
         if (!identical(mesh$manifold, "S2")) {
             stop("Only know how to make spherical harmonics on S2.")
