@@ -260,20 +260,27 @@
         matrixtype = 0  ## general
         storagetype = 1 ## columnmajor
 
-        i = c()
-        j = c()
-        values =c()
-        for(k in 1:nrow) {
-            xx = inla.sparse.get(A, row=k)
-            if (length(xx$j) > 0) {
-                i = c(i, xx$i)
-                j = c(j, xx$j)
-                values = c(values, xx$values)
+        if (FALSE) {
+            ## no need to do this
+            i = c()
+            j = c()
+            values =c()
+            for(k in 1:nrow) {
+                xx = inla.sparse.get(A, row=k)
+                if (length(xx$j) > 0) {
+                    i = c(i, xx$i)
+                    j = c(j, xx$j)
+                    values = c(values, xx$values)
+                }
             }
+            ## zero-based indexing
+            i = i-1L
+            j = j-1L
+        } else {
+            i = A@i
+            j = A@j
+            values = A@x
         }
-        ## zero-based indexing
-        i = i-1L
-        j = j-1L
         elems = length(i)
     } else if (is.vector(A)) {
         ## diagonal
