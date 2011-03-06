@@ -2,1248 +2,1284 @@
 
 `inla.models` = function()
 {
-    return (
-            list(
-                 ## latent models
-                 latent = list(
+    models = list(
+            ## latent models
+            latent = list(
 
-                         linear = list(
-                                 hyper = list(
-                                         ),
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    linear = list(
+                            hyper = list(
+                                    ),
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
                                  
-                         iid = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    iid = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
 
-                         rw1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    rw1 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
 
-                         rw2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005),
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    rw2 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005),
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
 
-                         crw2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 2,
-                                 aug.constr = 1,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    crw2 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 2,
+                            aug.constr = 1,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
 
-                         seasonal = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    seasonal = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
 
-                         besag = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    besag = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         besag2 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "scaling parameter",
-                                                 short.name = "a",
-                                                 prior = "normal",
-                                                 param = c(0, 6.25), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = c(1, 2),
-                                 n.div.by = 2,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    besag2 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            ), 
+                                    theta2 = list(
+                                            name = "scaling parameter",
+                                            short.name = "a",
+                                            prior = "normal",
+                                            param = c(0, 6.25), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = c(1, 2),
+                            n.div.by = 2,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         bym = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "log unstructured precision",
-                                                 short.name = "prec.unstruct",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.001), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "log spatial precision",
-                                                 short.name = "prec.spatial",
-                                                 prior = "normal",
-                                                 param = c(0, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = FALSE,
-                                 augmented = TRUE,
-                                 aug.factor = 2,
-                                 aug.constr = 2,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    bym = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "log unstructured precision",
+                                            short.name = "prec.unstruct",
+                                            prior = "loggamma",
+                                            param = c(1, 0.001), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            ), 
+                                    theta2 = list(
+                                            name = "log spatial precision",
+                                            short.name = "prec.spatial",
+                                            prior = "normal",
+                                            param = c(0, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = FALSE,
+                            augmented = TRUE,
+                            aug.factor = 2,
+                            aug.constr = 2,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         ar1 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "logit lag one correlation",
-                                                 short.name = "rho",
-                                                 prior = "normal",
-                                                 param = c(0, 0.2), 
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log((1+x)/(1-x)), 
-                                                 from.theta = function(x) 2*exp(x)/(1+exp(x))
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    ar1 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            ), 
+                                    theta2 = list(
+                                            name = "logit lag one correlation",
+                                            short.name = "rho",
+                                            prior = "normal",
+                                            param = c(0, 0.2), 
+                                            initial = 2,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log((1+x)/(1-x)), 
+                                            from.theta = function(x) 2*exp(x)/(1+exp(x))
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
                          
-                         generic = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    generic = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
                          
-                         generic0 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    generic0 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
                          
-                         generic1 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "log precision",
-                                                 short.name = "prec",
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005), 
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 to.theta = function(x) log(x),
-                                                 from.theta = function(x) exp(x)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "beta",
-                                                 short.name = "beta",
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 0.1)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    generic1 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "log precision",
+                                            short.name = "prec",
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005), 
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            to.theta = function(x) log(x),
+                                            from.theta = function(x) exp(x)
+                                            ), 
+                                    theta2 = list(
+                                            name = "beta",
+                                            short.name = "beta",
+                                            initial = 2,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 0.1)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         generic2 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision-cmatrix",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "h2",
-                                                 short.name = "h2",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(0, 0.00005)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 2,
-                                 aug.constr = 2,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    generic2 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision-cmatrix",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ), 
+                                    theta2 = list(
+                                            name = "h2",
+                                            short.name = "h2",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(0, 0.00005)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 2,
+                            aug.constr = 2,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         spde = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "theta.T",
-                                                 short.name = "T",
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 1)
-                                                 ),
-                                         theta2 = list(
-                                                 name = "theta.K",
-                                                 short.name = "K",
-                                                 initial = -2,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 1)
-                                                 ), 
-                                         theta3 = list(
-                                                 name = "theta.KT",
-                                                 short.name = "KT",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 1)
-                                                 ), 
-                                         theta4 = list(
-                                                 name = "theta.OC",
-                                                 short.name = "OC",
-                                                 initial = -20,
-                                                 fixed = TRUE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         ),
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    spde = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "theta.T",
+                                            short.name = "T",
+                                            initial = 2,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 1)
+                                            ),
+                                    theta2 = list(
+                                            name = "theta.K",
+                                            short.name = "K",
+                                            initial = -2,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 1)
+                                            ), 
+                                    theta3 = list(
+                                            name = "theta.KT",
+                                            short.name = "KT",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 1)
+                                            ), 
+                                    theta4 = list(
+                                            name = "theta.OC",
+                                            short.name = "OC",
+                                            initial = -20,
+                                            fixed = TRUE,
+                                            prior = "normal",
+                                            param = c(0, 0.2)
+                                            )
+                                    ),
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
 
-                         iid1d = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "wishart1d",
-                                                 ## this is the
-                                                 ## corresponding
-                                                 ## wishart prior for
-                                                 ## the (a, b) gamma
-                                                 ## parameters
-                                                 param = c(2*1, 2*0.00005)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    iid1d = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "wishart1d",
+                                            ## this is the
+                                            ## corresponding
+                                            ## wishart prior for
+                                            ## the (a, b) gamma
+                                            ## parameters
+                                            param = c(2*1, 2*0.00005)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         iid2d = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision1",
-                                                 short.name = "prec1",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "wishart2d",
-                                                 param = c(4, 1, 1, 0)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "precision2",
-                                                 short.name = "prec2",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 ), 
-                                         theta3 = list(
-                                                 name = "correlation",
-                                                 short.name = "cor",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = TRUE,
-                                 aug.factor = 1,
-                                 aug.constr = c(1, 2),
-                                 n.div.by = 2,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    iid2d = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision1",
+                                            short.name = "prec1",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "wishart2d",
+                                            param = c(4, 1, 1, 0)
+                                            ), 
+                                    theta2 = list(
+                                            name = "precision2",
+                                            short.name = "prec2",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            ), 
+                                    theta3 = list(
+                                            name = "correlation",
+                                            short.name = "cor",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = TRUE,
+                            aug.factor = 1,
+                            aug.constr = c(1, 2),
+                            n.div.by = 2,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         iid3d = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision1",
-                                                 short.name = "prec1",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "wishart3d",
-                                                 param = c(7, 1, 1, 1, 0, 0, 0)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "precision2",
-                                                 short.name = "prec2",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 ), 
-                                         theta3 = list(
-                                                 name = "precision3",
-                                                 short.name = "prec3",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 ), 
-                                         theta4= list(
-                                                 name = "correlation12",
-                                                 short.name = "cor12",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 ), 
-                                         theta5 = list(
-                                                 name = "correlation13",
-                                                 short.name = "cor13",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 ), 
-                                         theta6 = list(
-                                                 name = "correlation23",
-                                                 short.name = "cor23",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "none",
-                                                 param = numeric()
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = TRUE,
-                                 aug.factor = 1,
-                                 aug.constr = c(1, 2, 3),
-                                 n.div.by = 3,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    iid3d = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision1",
+                                            short.name = "prec1",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "wishart3d",
+                                            param = c(7, 1, 1, 1, 0, 0, 0)
+                                            ), 
+                                    theta2 = list(
+                                            name = "precision2",
+                                            short.name = "prec2",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            ), 
+                                    theta3 = list(
+                                            name = "precision3",
+                                            short.name = "prec3",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            ), 
+                                    theta4= list(
+                                            name = "correlation12",
+                                            short.name = "cor12",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            ), 
+                                    theta5 = list(
+                                            name = "correlation13",
+                                            short.name = "cor13",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            ), 
+                                    theta6 = list(
+                                            name = "correlation23",
+                                            short.name = "cor23",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "none",
+                                            param = numeric()
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = TRUE,
+                            aug.factor = 1,
+                            aug.constr = c(1, 2, 3),
+                            n.div.by = 3,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
 
-                         "2diid" = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision1",
-                                                 short.name = "prec1",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "precision2",
-                                                 short.name = "prec2",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ), 
-                                         theta3 = list(
-                                                 name = "correlation",
-                                                 short.name = "cor",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = c(1, 2),
-                                 n.div.by = 2,
-                                 n.required = TRUE,
-                                 set.default.values = TRUE
-                                 ), 
+                    "2diid" = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision1",
+                                            short.name = "prec1",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ), 
+                                    theta2 = list(
+                                            name = "precision2",
+                                            short.name = "prec2",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ), 
+                                    theta3 = list(
+                                            name = "correlation",
+                                            short.name = "cor",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 0.2)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = c(1, 2),
+                            n.div.by = 2,
+                            n.required = TRUE,
+                            set.default.values = TRUE
+                            ), 
                          
-                         z = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 ), 
+                    z = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            ), 
                          
-                         rw2d = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = TRUE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = TRUE
-                                 ), 
+                    rw2d = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = TRUE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = TRUE
+                            ), 
 
-                         matern2d = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "range",
-                                                 short.name = "range",
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.01)
-                                                 )
-                                         ), 
-                                 constr = TRUE,
-                                 nrow.ncol = TRUE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = TRUE
-                                 ), 
+                    matern2d = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ), 
+                                    theta2 = list(
+                                            name = "range",
+                                            short.name = "range",
+                                            initial = 2,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.01)
+                                            )
+                                    ), 
+                            constr = TRUE,
+                            nrow.ncol = TRUE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = TRUE
+                            ), 
 
-                         copy = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "beta",
-                                                 short.name = "beta",
-                                                 initial = 1,
-                                                 fixed = TRUE,
-                                                 prior = "normal",
-                                                 param = c(1, 10)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 )
-                         ##
-                         ),
+                    copy = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "beta",
+                                            short.name = "beta",
+                                            initial = 1,
+                                            fixed = TRUE,
+                                            prior = "normal",
+                                            param = c(1, 10)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            )
+                    ##
+                    ),
 
 
-                 ## models for group
-                 group = list(
+            ## models for group
+            group = list(
 
-                         exchangeable = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "correlation",
-                                                 short.name = "rho",
-                                                 initial = 1,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         )
-                                 ),
+                    exchangeable = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "correlation",
+                                            short.name = "rho",
+                                            initial = 1,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 0.2)
+                                            )
+                                    )
+                            ),
 
-                         ar1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "correlation",
-                                                 short.name = "rho",
-                                                 initial = 2,
-                                                 fixed = FALSE,
-                                                 prior = "normal",
-                                                 param = c(0, 0.2)
-                                                 )
-                                         )
-                                 )
-                         ), 
+                    ar1 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "correlation",
+                                            short.name = "rho",
+                                            initial = 2,
+                                            fixed = FALSE,
+                                            prior = "normal",
+                                            param = c(0, 0.2)
+                                            )
+                                    )
+                            )
+                    ), 
 
-                 predictor = list(
+            predictor = list(
 
-                         predictor = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 11,
-                                                 fixed = TRUE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00001)
-                                                 )
-                                         )
-                                 )
-                         ), 
+                    predictor = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 11,
+                                            fixed = TRUE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00001)
+                                            )
+                                    )
+                            )
+                    ), 
 
-                 hazard = list(
+            hazard = list(
 
-                         rw1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         )
-                                 ), 
+                    rw1 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    )
+                            ), 
 
-                         rw2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         )
-                                 )
-                         ), 
+                    rw2 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    )
+                            )
+                    ), 
                          
-                 ## likelihood models
-                 likelihood = list(
+            ## likelihood models
+            likelihood = list(
 
-                         poisson = list(
-                                 hyper = list(
-                                         ),
-                                 survival = FALSE,
-                                 discrete = TRUE
-                                 ),
+                    poisson = list(
+                            hyper = list(
+                                    ),
+                            survival = FALSE,
+                            discrete = TRUE
+                            ),
 
-                         binomial = list(
-                                 hyper = list(
-                                         ),
-                                 survival = FALSE,
-                                 discrete = TRUE
-                                 ), 
+                    binomial = list(
+                            hyper = list(
+                                    ),
+                            survival = FALSE,
+                            discrete = TRUE
+                            ), 
 
-                         nbinomial = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "size",
-                                                 short.name = "size",
-                                                 initial = log(10),
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 100)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = TRUE
-                                 ),
+                    nbinomial = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "size",
+                                            short.name = "size",
+                                            initial = log(10),
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 100)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = TRUE
+                            ),
 
-                         exponential = list(
-                                 hyper = list(
-                                         ), 
-                                 survival = TRUE,
-                                 discrete = FALSE
-                                 ),
+                    exponential = list(
+                            hyper = list(
+                                    ), 
+                            survival = TRUE,
+                            discrete = FALSE
+                            ),
 
-                         coxph = list(
-                                 hyper = list(
-                                         ),
-                                 survival = TRUE,
-                                 discrete = TRUE
-                                 ),
+                    coxph = list(
+                            hyper = list(
+                                    ),
+                            survival = TRUE,
+                            discrete = TRUE
+                            ),
 
-                         gaussian = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    gaussian = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         normal = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    normal = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         skewnormal = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "inverse.scale",
-                                                 short.name = "iscale",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ),
-                                         theta2 = list(
-                                                 name = "skewness",
-                                                 short.name = "skew",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 10)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    skewnormal = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "inverse.scale",
+                                            short.name = "iscale",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ),
+                                    theta2 = list(
+                                            name = "skewness",
+                                            short.name = "skew",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 10)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         sn = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "inverse.scale",
-                                                 short.name = "iscale",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ),
-                                         theta2 = list(
-                                                 name = "skewness",
-                                                 short.name = "skew",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 10)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    sn = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "inverse.scale",
+                                            short.name = "iscale",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ),
+                                    theta2 = list(
+                                            name = "skewness",
+                                            short.name = "skew",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 10)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         gev = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00001)
-                                                 ),
-                                         theta2 = list(
-                                                 name = "GEVparameter",
-                                                 short.name = "gev",
-                                                 initial = 0,
-                                                 fixed = FALSE, 
-                                                 prior = "gaussian",
-                                                 param = c(0, 6.25)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    gev = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00001)
+                                            ),
+                                    theta2 = list(
+                                            name = "GEVparameter",
+                                            short.name = "gev",
+                                            initial = 0,
+                                            fixed = FALSE, 
+                                            prior = "gaussian",
+                                            param = c(0, 6.25)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         laplace = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    laplace = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         weibull = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "alpha",
-                                                 short.name = "a",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(25, 25)
-                                                 )
-                                         ), 
-                                 survival = TRUE,
-                                 discrete = FALSE
-                                 ),
+                    weibull = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "alpha",
+                                            short.name = "a",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(25, 25)
+                                            )
+                                    ), 
+                            survival = TRUE,
+                            discrete = FALSE
+                            ),
 
-                         weibullcure = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "alpha",
-                                                 short.name = "a",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(25, 25)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ), 
-                                 survival = TRUE,
-                                 discrete = FALSE
-                                 ),
+                    weibullcure = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "alpha",
+                                            short.name = "a",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(25, 25)
+                                            ), 
+                                    theta2 = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ), 
+                            survival = TRUE,
+                            discrete = FALSE
+                            ),
 
-                         stochvol = list(
-                                 hyper = list(
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ), 
+                    stochvol = list(
+                            hyper = list(
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ), 
                          
-                         stochvolt = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "degrees of freedom",
-                                                 short.name = "dof",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.5)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    stochvolt = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "degrees of freedom",
+                                            short.name = "dof",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.5)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         stochvolnig = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "skewness",
-                                                 short.name = "skew",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 10)
-                                                 ),
-                                         theta2 = list(
-                                                 name = "shape",
-                                                 short.name = "shape",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.5)
-                                                 )
-                                         ), 
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    stochvolnig = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "skewness",
+                                            short.name = "skew",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 10)
+                                            ),
+                                    theta2 = list(
+                                            name = "shape",
+                                            short.name = "shape",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.5)
+                                            )
+                                    ), 
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         zeroinflatedpoisson0 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedpoisson0 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         zeroinflatedpoisson1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedpoisson1 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         zeroinflatedpoisson2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedpoisson2 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         zeroinflatedbinomial0 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedbinomial0 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         zeroinflatedbinomial1 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedbinomial1 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         zeroinflatedbinomial2 = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = 0,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedbinomial2 = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = 0,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         zeroinflatedbetabinomial2 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "alpha",
-                                                 short.name = "a",
-                                                 initial = log(2),
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "beta",
-                                                 short.name = "b",
-                                                 initial = log(1),
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatedbetabinomial2 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "alpha",
+                                            short.name = "a",
+                                            initial = log(2),
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            ), 
+                                    theta2 = list(
+                                            name = "beta",
+                                            short.name = "b",
+                                            initial = log(1),
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         zeroinflatednbinomial0 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "size",
-                                                 short.name = "size",
-                                                 initial = log(10),
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.01)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = -1,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatednbinomial0 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "size",
+                                            short.name = "size",
+                                            initial = log(10),
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.01)
+                                            ), 
+                                    theta2 = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = -1,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
 
-                         zeroinflatednbinomial1 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "size",
-                                                 short.name = "size",
-                                                 initial = log(10),
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.01)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "probability",
-                                                 short.name = "p",
-                                                 initial = -1,
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatednbinomial1 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "size",
+                                            short.name = "size",
+                                            initial = log(10),
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.01)
+                                            ), 
+                                    theta2 = list(
+                                            name = "probability",
+                                            short.name = "p",
+                                            initial = -1,
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         zeroinflatednbinomial2 = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "size",
-                                                 short.name = "size",
-                                                 initial = log(10),
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.01)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "alpha",
-                                                 short.name = "a",
-                                                 initial = log(2),
-                                                 fixed = FALSE,
-                                                 prior = "gaussian",
-                                                 param = c(0, 1)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    zeroinflatednbinomial2 = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "size",
+                                            short.name = "size",
+                                            initial = log(10),
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.01)
+                                            ), 
+                                    theta2 = list(
+                                            name = "alpha",
+                                            short.name = "a",
+                                            initial = log(2),
+                                            fixed = FALSE,
+                                            prior = "gaussian",
+                                            param = c(0, 1)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         t = list(
-                                 hyper = list(
-                                         theta1 = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 ), 
-                                         theta2 = list(
-                                                 name = "degrees of freedom",
-                                                 short.name = "dof",
-                                                 initial = 4,
-                                                 fixed = FALSE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.5)
-                                                 )
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 ),
+                    t = list(
+                            hyper = list(
+                                    theta1 = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            ), 
+                                    theta2 = list(
+                                            name = "degrees of freedom",
+                                            short.name = "dof",
+                                            initial = 4,
+                                            fixed = FALSE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.5)
+                                            )
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            ),
                          
-                         logperiodogram = list(
-                                 hyper = list(
-                                         ),
-                                 survival = FALSE,
-                                 discrete = FALSE
-                                 )
-                         ),
+                    logperiodogram = list(
+                            hyper = list(
+                                    ),
+                            survival = FALSE,
+                            discrete = FALSE
+                            )
+                    ),
                  
-                 prior = list(
-                         ## these are the same
-                         normal = list(nparameters = 2),
-                         gaussian = list(nparameters = 2),
+            prior = list(
+                    ## these are the same
+                    normal = list(nparameters = 2),
+                    gaussian = list(nparameters = 2),
 
-                         wishart1d = list(nparameters = 2),
-                         wishart2d = list(nparameters = 4),
-                         wishart3d = list(nparameters = 7),
-                         loggamma = list(nparameters = 2),
+                    wishart1d = list(nparameters = 2),
+                    wishart2d = list(nparameters = 4),
+                    wishart3d = list(nparameters = 7),
+                    loggamma = list(nparameters = 2),
 
-                         ## these are the same
-                         minuslogsqrtruncnormal = list(nparameters = 1),
-                         logtnormal = list(nparameters = 1),
-                         logtgaussian = list(nparameters = 1),
+                    ## these are the same
+                    minuslogsqrtruncnormal = list(nparameters = 1),
+                    logtnormal = list(nparameters = 1),
+                    logtgaussian = list(nparameters = 1),
 
-                         flat=list(nparameters = 0),
-                         logflat=list(nparameters = 0),
-                         logiflat=list(nparameters = 0), 
+                    flat=list(nparameters = 0),
+                    logflat=list(nparameters = 0),
+                    logiflat=list(nparameters = 0), 
 
-                         ## this is the 'no prior needed' prior
-                         none = list(nparameters = 0)
-                         ),
+                    ## this is the 'no prior needed' prior
+                    none = list(nparameters = 0)
+                    ),
 
-                 ## models that are defined through the wrapper.
-                 wrapper = list(
-                         joint = list(
-                                 hyper = list(
-                                         theta = list(
-                                                 name = "precision",
-                                                 short.name = "prec",
-                                                 initial = 0,
-                                                 fixed = TRUE,
-                                                 prior = "loggamma",
-                                                 param = c(1, 0.00005)
-                                                 )
-                                         ), 
-                                 constr = FALSE,
-                                 nrow.ncol = FALSE,
-                                 augmented = FALSE,
-                                 aug.factor = 1,
-                                 aug.constr = NULL,
-                                 n.div.by = NULL,
-                                 n.required = FALSE,
-                                 set.default.values = FALSE
-                                 )
-                         )
-                 )
+            ## models that are defined through the wrapper.
+            wrapper = list(
+                    joint = list(
+                            hyper = list(
+                                    theta = list(
+                                            name = "precision",
+                                            short.name = "prec",
+                                            initial = 0,
+                                            fixed = TRUE,
+                                            prior = "loggamma",
+                                            param = c(1, 0.00005)
+                                            )
+                                    ), 
+                            constr = FALSE,
+                            nrow.ncol = FALSE,
+                            augmented = FALSE,
+                            aug.factor = 1,
+                            aug.constr = NULL,
+                            n.div.by = NULL,
+                            n.required = FALSE,
+                            set.default.values = FALSE
+                            )
+                    )
             )
+
+    ## set "read.only" attribute for the `hyper' at those elements
+    ## that cannot be changed.
+    for (section in names(models)) {
+        for (model in names(models[[section]])) {
+            a = models[[section]][[model]]
+            if (!is.null(a$hyper) && length(a$hyper) > 0) {
+                for (theta in names(a$hyper)) {
+                    for (elm in names(a$hyper[[theta]])) {
+                        val = FALSE
+                        if (elm == "prior") {
+                            if (a$hyper[[theta]][[elm]] == "none" || 
+                                a$hyper[[theta]][[elm]] == "wishart1d" ||
+                                a$hyper[[theta]][[elm]] == "wishart2d" ||
+                                a$hyper[[theta]][[elm]] == "wishart3d" ||
+                                a$hyper[[theta]][[elm]] == "wishart4d" ||
+                                a$hyper[[theta]][[elm]] == "wishart5d") {
+                                val = TRUE
+                            } 
+                        }
+                        ## append the new attribute, so the code
+                        ## depends on if the object has an attribute
+                        ## from before or not.
+                        if (is.null(attributes(models[[section]][[model]]$hyper[[theta]][[elm]]))) {
+                            attributes(models[[section]][[model]]$hyper[[theta]][[elm]]) =
+                                list("inla.read.only" = val)
+                        } else {
+                            attributes(models[[section]][[model]]$hyper[[theta]][[elm]]) =
+                                c("inla.read.only" = val, 
+                                  attributes(models[[section]][[model]]$hyper[[theta]][[elm]]))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return (models)
 }
 
 `inla.is.model` = function(model, section = names(inla.models()), 
