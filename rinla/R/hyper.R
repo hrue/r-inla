@@ -112,6 +112,23 @@ inla.set.hyper = function(
 
             key.val = inla.eval(key)
 
+            ## special case. if attribute is set to 'read only' then refuse to change value
+            read.only = attr(hyper.new[[idx.new]][[key]], "inla.read.only")
+            if (!is.null(read.only) && read.only == TRUE) {
+                if (!is.null(h[[key]]) && h[[key]] != hyper.new[[idx.new]][[key]])
+                    stop(paste("Setting hyperparameter `", name,
+                               "'. Key `", key, "' = '", hyper.new[[idx.new]][[key]],
+                               "' is 'read-only', cannot change to `", h[[key]], "'.", sep=""))
+                ii = idx.new + off[[key]]
+                if (!is.null(key.val) && !is.na(key.val[ii])) {
+                    if (key.val[ii] != hyper.new[[idx.new]][[key]]) {
+                        stop(paste("Setting hyperparameter `", name,
+                                   "'. Key `", key,"' = '", hyper.new[[idx.new]][[key]],
+                                   "' is 'read-only', cannot change to `", key.val[ii], "'.", sep=""))
+                    }
+                }
+            }
+
             ## start of cmd is here
             if (!is.null(key.val)) {
                 ## known length
