@@ -2,10 +2,14 @@
 
 export MANDIR=../man
 
-echo 'source("models.R")
-      source("models-generate.R")
-      source("utils.R")
-      inla.models.generate.Rd("../man/models.Rd")' | R --vanilla --silent
+## need option keep.source otherwise there is no attribute 'source'!!!!
+echo '
+options(keep.source=TRUE)
+source("models.R")
+source("models-generate.R")
+source("utils.R")
+inla.models.generate.Rd("../man/models.Rd") ' | R --vanilla
+
 
 function mmp ()
 {
