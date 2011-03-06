@@ -64,7 +64,6 @@ inla.models()
                                 if (is.null(mval))
                                     mval = "NULL"
                                 if (is.function(mval)) {
-                                    mval = enquote(mval)[[-1]]
                                     mval = attr(mval, "source")
                                     mval = paste("\\code{", mval, "}",  sep="")
                                 }
@@ -155,7 +154,6 @@ inla.models()
             } else {
                 val = a.list[[nm]]
                 if (is.function(val)) {
-                    val = enquote(val)[[-1]]
                     val = paste("\\verb|", attr(val, "source"), "|", sep="")
                 }               
                 cat(tab, "\\item[", nm, "]", as.character(enquote(val))[-1], "\n")
