@@ -489,7 +489,7 @@ int main(int argc, char* argv[])
   }
 
   /* OK to overwrite any old quality0 */
-    matrices.attach(string("quality0"),Quality0_,true);
+  matrices.attach(string("quality0"),Quality0_,true);
 
 
   Matrix<int>* TV0 = NULL;
@@ -541,17 +541,25 @@ int main(int argc, char* argv[])
   }
 
 
-  /* Filter out points at distance not greater than 'cutoff' */
+  /* Prepare to filter out points at distance not greater than 'cutoff' */
   matrices.attach("idx", new Matrix<int>(iS0.rows(),1), true);
   matrices.output("idx");
   Matrix<int>& idx = matrices.DI("idx").clear();
-  filter_locations(iS0, idx, cutoff);
 
-  /* Remap vertex inputreferences */
-  if (TV0)
-    remap_vertex_indices(idx, *TV0);
-  remap_vertex_indices(idx, cdt_boundary);
-  remap_vertex_indices(idx, cdt_interior);
+  /* Only filter if "smorg" option inactive */
+  if (args_info.smorg_given==0) {
+    filter_locations(iS0, idx, cutoff);
+
+    /* Remap vertex inputreferences */
+    if (TV0)
+      remap_vertex_indices(idx, *TV0);
+    remap_vertex_indices(idx, cdt_boundary);
+    remap_vertex_indices(idx, cdt_interior);
+  } else {
+    for (int v=0; v < iS0.rows(); v++) {
+      idx(v,0) = v;
+    }
+  }
 
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
@@ -560,6 +568,7 @@ int main(int argc, char* argv[])
   bool issphere = false;
   if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
+    LOG_("1D data not implemented." << std::endl)
     return 0;
   } else if (nV>0) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
@@ -590,54 +599,74 @@ int main(int argc, char* argv[])
     matrices.attach("tv",&M.TV(),false);
     matrices.output("s").output("tv");
     
-    if (isflat || issphere) {
-      
-      Point mini(S0(0));
-      Point maxi(S0(0));
-      for (int v=1; v<nV; v++)
-	for (int i=0; i<3; i++) {
-	  mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
-	  maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
-	}
-      Point sz;
-      fmesh::Vec::diff(sz,maxi,mini);
-      double diam;
-      diam = (sz[1] < sz[0]
-	      ? (sz[2] < sz[0] ? sz[0] : sz[2])
-	      : (sz[2] < sz[1] ? sz[1] : sz[2]));
-      
-      for (int i=0; i<Quality0.rows(); i++) {
-	if (Quality0[i][0]<0.0) {
-	  /* Rudimentary relative biglimit construction: */
-	  Quality0(i,0) = diam/std::sqrt(nV)*(-Quality0[i][0]);
-	}
+    Point mini(S0(0));
+    Point maxi(S0(0));
+    for (int v=1; v<nV; v++)
+      for (int i=0; i<3; i++) {
+	mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
+	maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
       }
-      
-      if (useX11) {
-	if (issphere) {
-	  if (args_info.x11_zoom_given==0) {
-	    x11_zoom[0] = -1.1;
-	    x11_zoom[1] = 1.1;
-	    x11_zoom[2] = -1.1;
-	    x11_zoom[3] = 1.1;
-	  }
-	  M.useX11(true,useX11text,500,500,
-		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
-	} else {
-	  double w0 = maxi[0]-mini[0];
-	  double w1 = maxi[1]-mini[1];
-	  double w = (w0 > w1 ? w0 : w1);
-	  if (args_info.x11_zoom_given==0) {
-	    x11_zoom[0] = mini[0]-w*0.2;
-	    x11_zoom[1] = maxi[0]+w*0.2;
-	    x11_zoom[2] = mini[1]-w*0.2;
-	    x11_zoom[3] = maxi[1]+w*0.2;
-	  }
-	  M.useX11(true,useX11text,500,500,
-		   x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
+    Point sz;
+    fmesh::Vec::diff(sz,maxi,mini);
+    double diam;
+    diam = (sz[1] < sz[0]
+	    ? (sz[2] < sz[0] ? sz[0] : sz[2])
+	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
+    
+    if (useX11) {
+      if (issphere) {
+	if (args_info.x11_zoom_given==0) {
+	  x11_zoom[0] = -1.1;
+	  x11_zoom[1] = 1.1;
+	  x11_zoom[2] = -1.1;
+	  x11_zoom[3] = 1.1;
 	}
-	M.setX11delay(x11_delay_factor/M.nV());
+	M.useX11(true,useX11text,500,500,
+		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
+      } else {
+	double w0 = maxi[0]-mini[0];
+	double w1 = maxi[1]-mini[1];
+	double w = (w0 > w1 ? w0 : w1);
+	if (args_info.x11_zoom_given==0) {
+	  x11_zoom[0] = mini[0]-w*0.2;
+	  x11_zoom[1] = maxi[0]+w*0.2;
+	  x11_zoom[2] = mini[1]-w*0.2;
+	  x11_zoom[3] = maxi[1]+w*0.2;
+	}
+	M.useX11(true,useX11text,500,500,
+		 x11_zoom[0],x11_zoom[1],x11_zoom[2],x11_zoom[3]);
       }
+      M.setX11delay(x11_delay_factor/M.nV());
+    }
+    
+    if (args_info.smorg_given>0) {
+      
+      MeshC MC(&M);
+      MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
+
+      /* Calculate and collect output. */
+      
+      matrices.attach("segm.bnd.idx",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.bnd.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(true,
+		  &matrices.DI("segm.bnd.idx"),
+		  &matrices.DI("segm.bnd.grp"));
+      
+      matrices.output("segm.bnd.idx").output("segm.bnd.grp");
+      
+      matrices.attach("segm.int.idx",new Matrix<int>(2),
+		      true,fmesh::IOMatrixtype_general);
+      matrices.attach("segm.int.grp",new Matrix<int>(1),
+		      true,fmesh::IOMatrixtype_general);
+      MC.segments(false,
+		  &matrices.DI("segm.int.idx"),
+		  &matrices.DI("segm.int.grp"));
+      
+      matrices.output("segm.int.idx").output("segm.int.grp");
+      
+    } else if (isflat || issphere) {
       
       MeshC MC(&M);
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);

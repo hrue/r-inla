@@ -108,7 +108,11 @@ lines.inla.mesh.segment = function(segm, loc=NULL, ...)
     }
 }
 
-plot.inla.mesh = function(mesh, t.sub=1:nrow(mesh$graph$tt), add=FALSE, lwd=1, ...)
+plot.inla.mesh =
+    function(mesh,
+             t.sub=1:nrow(mesh$graph$tt),
+             add=FALSE,
+             lwd=1, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -668,6 +672,9 @@ inla.mesh.inla.mesh = function(mesh, ...)
         query = names(queries)[query.idx]
         param = queries[[query.idx]]
         answer = NULL
+        query = (match.arg(query, c("tt.neighbours",
+                                    "vt.neighbours"
+                                    )))
         if (identical(query, "tt.neighbours")) {
             if (is.null(param))
                 param = list(c(1))
@@ -868,6 +875,13 @@ inla.mesh.basis =
              knot.placement=c("uniform.area"),
              rot.inv=TRUE)
 {
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    smorg.prefix = inla.fmesher.smorg(mesh, sph0=order)
+
+    basis = fmesher.read(smorg.prefix, "sph0")
+
+    return(basis)
 }
 
 
@@ -907,36 +921,76 @@ inla.spde.inla.mesh =
     warning("'inla.spde.inla.mesh' not fully implemented yet.")
 
     model = match.arg(model)
+    if (is.null(param))
+        param = list()
 
-    ## Temporary code built on the old interface:
-    old.spde = inla.create.spde(old.mesh.class(mesh)$mesh, fem=2)
+    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
 
     spde = (list(model = model,
                  mesh = mesh,
                  internal = list(),
                  f = (list(model="spde",
-                           spde.prefix=old.spde$prefix,
+                           spde.prefix=spde.prefix,
                            n=nrow(mesh$loc)
                            ))
                  ))
     class(spde) = "inla.spde"
 
-    spde$internal$c0 = fmesher.read(old.spde$prefix, "c0")
-    spde$internal$g1 = fmesher.read(old.spde$prefix, "g1")
-    spde$internal$g2 = fmesher.read(old.spde$prefix, "g2")
+    if (identical(model, "matern") || identical(model, "imatern")) {
 
-    mesh.range = (max(c(diff(range(mesh$loc[,1])),
-                        diff(range(mesh$loc[,2])),
-                        diff(range(mesh$loc[,3]))
-                        )))
+        if (is.null(param$alpha))
+            param$alpha = 2
+        if (is.null(param$basis.T))
+            param$basis.T = matrix(1, spde$f$n, 1)
+        if (identical(model, "matern")) {
+            if (is.null(param$basis.K)) {
+                param$basis.K = matrix(1, spde$f$n, 1)
+            }
+        } else {
+            param$basis.K = matrix(0, spde$f$n, 1)
+        }
 
-    kappa0 = sqrt(8)/(mesh.range*0.2)
-    tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
-    spde$f$hyper = (list(theta1=(list(initial=log(tau0),
-                                      param=c(log(tau0), 0.01))),
-                         theta2=(list(initial=log(kappa0^2),
-                                      param=c(log(kappa0^2), 0.1)))
-                         ))
+        smorg.prefix = inla.fmesher.smorg(mesh, fem=2)
+
+        mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                            diff(range(mesh$loc[,2])),
+                            diff(range(mesh$loc[,3]))
+                            )))
+
+        spde$internal$c0 = fmesher.read(smorg.prefix, "c0")
+        spde$internal$g1 = fmesher.read(smorg.prefix, "g1")
+        spde$internal$g2 = fmesher.read(smorg.prefix, "g2")
+
+        if (param$alpha==2) {
+            kappa0 = sqrt(8)/(mesh.range*0.2)
+            tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
+        } else if (param$alpha==1) {
+            spde$internal$g2 = spde$internal$g1
+            spde$internal$g1 = spde$internal$g1*0.0
+
+            kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
+            tau0 = 1/sqrt(4*pi)/1.0
+        }
+        fmesher.write(spde$internal$c0, spde.prefix, "c0")
+        fmesher.write(spde$internal$g1, spde.prefix, "g1")
+        fmesher.write(spde$internal$g2, spde.prefix, "g2")
+
+        if (identical(model, "matern")) {
+            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01))),
+                                 theta2=(list(initial=log(kappa0^2),
+                                              param=c(log(kappa0^2), 0.1)))
+                                 ))
+        } else {
+            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01))),
+                                 theta2=(list(initial=-20,
+                                              fixed=TRUE))
+                                 ))
+        }
+    } else {
+        stop(paste("Model '", model, "' unknown or not implemented.", sep=""))
+    }
 
     return(invisible(spde))
 }
@@ -1002,6 +1056,9 @@ inla.spde.inla.spde = function(spde, ...)
         query = names(queries)[query.idx]
         param = queries[[query.idx]]
         answer = NULL
+        query = (match.arg(query, c("precision",
+                                    "sample"
+                                    )))
         if (identical(query, "precision")) {
             if (identical(spde$model, "matern")) {
                 tau = param$tau
@@ -1009,9 +1066,17 @@ inla.spde.inla.spde = function(spde, ...)
                 answer = (tau^2*(kappa^4*spde$internal$c0+
                                  2*spde$internal$g1*kappa^2+
                                  spde$internal$g2))
+            } else if (identical(spde$model, "imatern")) {
+                tau = param$tau
+                answer = (tau^2*((1e-10)*spde$internal$c0+
+                                 spde$internal$g2))
             } else {
                 not.implemented(spde,query)
             }
+        } else if (identical(query, "sample")) {
+            Q = inla.spde(spde, precision=param)$precision
+            finn = inla.finn(Q)
+            answer = finn$sample
         } else if (!identical(query, "")) {
             not.known(spde,query)
         }
@@ -1033,6 +1098,62 @@ inla.spde.inla = function(inla, name, spde, ...)
     warning("'inla.spde.inla' is not implemented yet.")
 
     return(spde)
+}
+
+
+
+
+
+
+
+`inla.fmesher.smorg` =
+    function(mesh,
+             fem=NULL,
+             sph0=NULL,
+             sph=NULL,
+             bspline=NULL,
+             points2mesh=NULL)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    prefix = inla.fmesher.make.prefix(NULL, NULL)
+
+    n = nrow(mesh$loc)
+    s.dim = ncol(mesh$loc)
+
+    if (s.dim==1)
+        stop("1-D models not implemented yet.")
+    stopifnot(s.dim>=2, s.dim<=3)
+
+    fmesher.write(mesh$loc, prefix, "s")
+    fmesher.write(mesh$graph$tv-1L, prefix, "tv")
+    all.args = "--smorg --input=s,tv"
+
+    ## additional arguments
+    if (!is.null(fem)) {
+        all.args = paste(all.args," --fem=", fem, sep="")
+    }
+    if (!is.null(sph0)) {
+        all.args = paste(all.args," --sph0=", sph0, sep="")
+    }
+    if (!is.null(sph)) {
+        all.args = paste(all.args," --sph=", sph, sep="")
+    }
+    if (!is.null(bspline)) {
+        all.args = (paste(all.args, " --bspline=",
+                          bspline[1], ",", bspline[2], ",", bspline[3],
+                          sep=""))
+    }
+    if (!is.null(points2mesh)) {
+        fmesher.write(points2mesh, prefix, "points2mesh")
+
+        all.args = paste(all.args," --points2mesh=points2mesh", sep="")
+    }
+    all.args = paste(all.args, inla.getOption("fmesher.arg"))
+
+    echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
+
+    return (prefix)
 }
 
 
