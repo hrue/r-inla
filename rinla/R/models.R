@@ -1262,6 +1262,8 @@
                                 val = TRUE
                             } 
                         }
+                        if (elm == "to.theta" || elm == "from.theta")
+                            val = TRUE
                         ## append the new attribute, so the code
                         ## depends on if the object has an attribute
                         ## from before or not.
