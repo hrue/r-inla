@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--fem=ORDER] [--sph0=ORDER] [--sph=ORDER] \n         [--bspline=PARAM] [--points2mesh=NAME] [-xDELAY|--x11=DELAY] \n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--smorg] [--fem=ORDER] [--sph0=ORDER] \n         [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -60,6 +60,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --boundarygrp=NAME  Group lables for boundary segments",
   "      --interiorgrp=NAME  Group lables for interior segments",
   "\nSMORG options:",
+  "      --smorg             Smorgasbord queries for a known triangulation.  Uses \n                            the given --input=s,tv directly, without any \n                            filtering or refinement.",
   "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
   "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
   "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
@@ -105,11 +106,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[29] = gengetopt_args_info_detailed_help[33];
   gengetopt_args_info_full_help[30] = gengetopt_args_info_detailed_help[34];
   gengetopt_args_info_full_help[31] = gengetopt_args_info_detailed_help[35];
-  gengetopt_args_info_full_help[32] = 0; 
+  gengetopt_args_info_full_help[32] = gengetopt_args_info_detailed_help[36];
+  gengetopt_args_info_full_help[33] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[33];
+const char *gengetopt_args_info_full_help[34];
 
 static void
 init_help_array(void)
@@ -145,11 +147,12 @@ init_help_array(void)
   gengetopt_args_info_help[28] = gengetopt_args_info_detailed_help[32];
   gengetopt_args_info_help[29] = gengetopt_args_info_detailed_help[33];
   gengetopt_args_info_help[30] = gengetopt_args_info_detailed_help[34];
-  gengetopt_args_info_help[31] = 0; 
+  gengetopt_args_info_help[31] = gengetopt_args_info_detailed_help[35];
+  gengetopt_args_info_help[32] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[32];
+const char *gengetopt_args_info_help[33];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -224,6 +227,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->interior_given = 0 ;
   args_info->boundarygrp_given = 0 ;
   args_info->interiorgrp_given = 0 ;
+  args_info->smorg_given = 0 ;
   args_info->fem_given = 0 ;
   args_info->sph0_given = 0 ;
   args_info->sph_given = 0 ;
@@ -335,15 +339,16 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->interiorgrp_help = gengetopt_args_info_detailed_help[26] ;
   args_info->interiorgrp_min = 0;
   args_info->interiorgrp_max = 0;
-  args_info->fem_help = gengetopt_args_info_detailed_help[28] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[29] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[30] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->smorg_help = gengetopt_args_info_detailed_help[28] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[32] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[32] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[34] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[35] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[33] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[35] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[36] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -657,6 +662,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
   write_multiple_into_file(outfile, args_info->boundarygrp_given, "boundarygrp", args_info->boundarygrp_orig, 0);
   write_multiple_into_file(outfile, args_info->interiorgrp_given, "interiorgrp", args_info->interiorgrp_orig, 0);
+  if (args_info->smorg_given)
+    write_into_file(outfile, "smorg", 0, 0 );
   if (args_info->fem_given)
     write_into_file(outfile, "fem", args_info->fem_orig, 0);
   if (args_info->sph0_given)
@@ -1332,6 +1339,7 @@ cmdline_internal (
         { "interior",	1, NULL, 'I' },
         { "boundarygrp",	1, NULL, 0 },
         { "interiorgrp",	1, NULL, 0 },
+        { "smorg",	0, NULL, 0 },
         { "fem",	1, NULL, 0 },
         { "sph0",	1, NULL, 0 },
         { "sph",	1, NULL, 0 },
@@ -1565,6 +1573,20 @@ cmdline_internal (
             if (update_multiple_arg_temp(&interiorgrp_list, 
                 &(local_args_info.interiorgrp_given), optarg, 0, 0, ARG_STRING,
                 "interiorgrp", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement..  */
+          else if (strcmp (long_options[option_index].name, "smorg") == 0)
+          {
+          
+          
+            if (update_arg( 0 , 
+                 0 , &(args_info->smorg_given),
+                &(local_args_info.smorg_given), optarg, 0, 0, ARG_NO,
+                check_ambiguity, override, 0, 0,
+                "smorg", '-',
                 additional_error))
               goto failure;
           
