@@ -100,12 +100,12 @@ points2mesh.calc = function(prefix,s)
                                        "tv",
                                        sep="")))+1L
     ti = (inla.read.fmesher.file(paste(prefix,
-                                      "points2mesh.t",
+                                      "p2m.t",
                                       sep="")))+1L
     ok = (ti > 0L)
     ti[ti == 0L] = NA
     b = (inla.read.fmesher.file(paste(prefix,
-                                      "points2mesh.b",
+                                      "p2m.b",
                                       sep="")))
     ii = cbind(1:n,1:n,1:n)
     A = (sparseMatrix(dims=c(dim(s)[1],data$n),
