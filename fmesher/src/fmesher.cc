@@ -838,11 +838,22 @@ int main(int argc, char* argv[])
       matrices.attach(string("p2m.b"),
 		      new Matrix<double>(points_n,3),
 		      true);
-    matrices.matrixtype("points2mesh.t",fmesh::IOMatrixtype_general);
-    matrices.matrixtype("points2mesh.b",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("p2m.t",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("p2m.b",fmesh::IOMatrixtype_general);
     matrices.output("p2m.t").output("p2m.b");
     
     map_points_to_mesh(M,points2mesh,points2mesh_t,points2mesh_b);
+
+    matrices.attach(string("points2mesh.b"),
+		    new Matrix<double>(points2mesh_b),
+		    true);
+    matrices.attach(string("points2mesh.t"),
+		    new Matrix<int>(points2mesh_t),
+		    true);
+    matrices.matrixtype("points2mesh.t",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("points2mesh.b",fmesh::IOMatrixtype_general);
+    matrices.output("points2mesh.t").output("points2mesh.b");
+    
   }
     
   int fem_order_max = args_info.fem_arg;
