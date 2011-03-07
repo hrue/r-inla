@@ -11,7 +11,7 @@
 \usage{
 ## Create an SPDE model object:
 inla.spde(mesh,
-          model = c("matern", "imatern", "heat"),
+          model = c("matern", "imatern"),
           param = NULL,
           ...)
 ## Query properties of an SPDE model:
@@ -37,6 +37,33 @@ inla.spde(inla, name, spde, ...)
   }
 }
 \details{
+  This method constructs an object for SPDE models.  Currently implemented:
+
+  \code{model="matern"}
+  
+  \deqn{(\kappa^2(u)-\Delta)^{\alpha/2}(\tau(u)
+    x(u))=W(u)}{(kappa^2(u)-Delta)^(alpha/2) (tau(u) x(u)) = W(u)}
+  
+  \code{param}:
+  \itemize{
+  \item{\code{alpha}}{ = 1 or 2}
+  \item{\code{basis.T}}{ = Matrix of basis functions for
+  \eqn{\log\tau(u)}{log tau(u)}}
+  \item{\code{basis.K}}{ = Matrix of basis functions for
+  \eqn{\log\kappa^2(u)}{log kappa^2(u)}}
+  }
+
+  \code{model="imatern"}
+  
+  \deqn{(-\Delta)^{\alpha/2}(\tau(u)
+    x(u))=W(u)}{(-Delta)^(alpha/2) (tau(u) x(u)) = W(u)}
+  
+  \code{param}:
+  \itemize{
+  \item{\code{alpha}}{ = 1 or 2}
+  \item{\code{basis.T}}{ = Matrix of basis functions for
+  \eqn{\log\tau(u)}{log tau(u)}}
+  }
 }
 \value{
   An \code{inla.spde} object.
@@ -56,7 +83,7 @@ inla.spde(inla, name, spde, ...)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh}}
+  \code{\link{inla.mesh}}, \code{\link{inla.mesh.basis}}
 }
 \examples{
 n = 100
