@@ -831,16 +831,16 @@ int main(int argc, char* argv[])
     Matrix<double>& points2mesh = matrices.DD(points2mesh_name);
     int points_n = points2mesh.rows();
     Matrix<int>& points2mesh_t =
-      matrices.attach(string("points2mesh.t"),
+      matrices.attach(string("p2m.t"),
 		      new Matrix<int>(points_n,1),
 		      true);
     Matrix<double>& points2mesh_b =
-      matrices.attach(string("points2mesh.b"),
+      matrices.attach(string("p2m.b"),
 		      new Matrix<double>(points_n,3),
 		      true);
     matrices.matrixtype("points2mesh.t",fmesh::IOMatrixtype_general);
     matrices.matrixtype("points2mesh.b",fmesh::IOMatrixtype_general);
-    matrices.output("points2mesh.t").output("points2mesh.b");
+    matrices.output("p2m.t").output("p2m.b");
     
     map_points_to_mesh(M,points2mesh,points2mesh_t,points2mesh_b);
   }

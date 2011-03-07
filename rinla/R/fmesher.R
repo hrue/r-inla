@@ -883,16 +883,14 @@ inla.mesh.project = function(mesh, loc)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    smorg.prefix = (inla.fmesher.smorg(mesh$loc,
-                                       mesh$graph$tv,
-                                       points2mesh=loc, fem=-1))
-
-    ti = fmesher.read(smorg.prefix, "points2mesh.t")+1L
+    smorg = (inla.fmesher.smorg(mesh$loc,
+                                mesh$graph$tv,
+                                points2mesh=loc))
+    ti = smorg$p2m.t
+    b = smorg$p2m.b
 
     ok = (ti[,1] > 0L)
     ti[ti[,1] == 0L,1] = NA
-
-    b = fmesher.read(smorg.prefix, "points2mesh.b")
 
     ii = which(ok)
     A = (sparseMatrix(dims=c(nrow(loc),mesh$n),
@@ -1003,12 +1001,10 @@ inla.mesh.basis =
             stop("Only know how to make B-splines on R2 and S2.")
         }
         degree = max(0L, min(n-1L, degree))
-        smorg.prefix =
-            (inla.fmesher.smorg(loc,
-                                mesh$graph$tv,
-                                bspline = c(n, degree, knots),
-                                fem=-1))
-        smorg.name = "bspline"
+        basis = (inla.fmesher.smorg(loc,
+                                    mesh$graph$tv,
+                                    bspline = c(n, degree, knots),
+                                    fem=-1)$bspline)
         if (!rot.inv) {
             warning("Currently only 'rot.inv=TRUE' is supported for B-splines.")
         }
@@ -1017,19 +1013,15 @@ inla.mesh.basis =
             stop("Only know how to make spherical harmonics on S2.")
         }
         if (rot.inv) {
-            smorg.prefix = (inla.fmesher.smorg(mesh$loc,
-                                               mesh$graph$tv,
-                                               sph0=n))
-            smorg.name = "sph0"
+            basis = (inla.fmesher.smorg(mesh$loc,
+                                        mesh$graph$tv,
+                                        sph0=n)$sph0)
         } else {
-            smorg.prefix = (inla.fmesher.smorg(mesh$loc,
-                                               mesh$graph$tv,
-                                               sph=n))
-            smorg.name = "sph"
+            basis = (inla.fmesher.smorg(mesh$loc,
+                                        mesh$graph$tv,
+                                        sph=n)$sph)
         }
     }
-
-    basis = fmesher.read(smorg.prefix, smorg.name)
 
     return(basis)
 }
@@ -1099,16 +1091,16 @@ inla.spde.inla.mesh =
             param$basis.K = matrix(0, spde$f$n, 1)
         }
 
-        smorg.prefix = inla.fmesher.smorg(mesh$loc, mesh$graph$tv, fem=2)
-
         mesh.range = (max(c(diff(range(mesh$loc[,1])),
                             diff(range(mesh$loc[,2])),
                             diff(range(mesh$loc[,3]))
                             )))
 
-        spde$internal$c0 = fmesher.read(smorg.prefix, "c0")
-        spde$internal$g1 = fmesher.read(smorg.prefix, "g1")
-        spde$internal$g2 = fmesher.read(smorg.prefix, "g2")
+        spde$internal = (c(spde$internal,
+                           inla.fmesher.smorg(mesh$loc,
+                                              mesh$graph$tv,
+                                              fem=2,
+                                              output=list("c0", "g1", "g2"))))
 
         if (param$alpha==2) {
             kappa0 = sqrt(8)/(mesh.range*0.2)
@@ -1264,7 +1256,9 @@ inla.spde.inla = function(inla, name, spde, ...)
              sph0=NULL,
              sph=NULL,
              bspline=NULL,
-             points2mesh=NULL)
+             points2mesh=NULL,
+             output=NULL,
+             keep=FALSE)
 {
     prefix = inla.fmesher.make.prefix(NULL, NULL)
 
@@ -1275,35 +1269,63 @@ inla.spde.inla = function(inla, name, spde, ...)
         stop("1-D models not implemented yet.")
     stopifnot(s.dim>=2, s.dim<=3)
 
+    if (missing(output) || is.null(output)) {
+        output.given = FALSE
+        output = NULL
+    } else {
+        output.given = TRUE
+    }
+    output.fem = list("c0", "g1", "g2")
+    output.sph0 = list("sph0")
+    output.sph = list("sph")
+    output.bspline = list("bspline")
+    output.p2m = list("p2m.t", "p2m.b")
+
     fmesher.write(loc, prefix, "s")
     fmesher.write(tv-1L, prefix, "tv")
     all.args = "--smorg --input=s,tv"
 
     ## additional arguments
     if (!is.null(fem)) {
-        all.args = paste(all.args," --fem=", fem, sep="")
+        all.args = paste(all.args," --fem=", max(2,fem), sep="")
+        if (!output.given) output = c(output, output.fem)
     }
     if (!is.null(sph0)) {
         all.args = paste(all.args," --sph0=", sph0, sep="")
+        if (!output.given) output = c(output, output.sph0)
     }
     if (!is.null(sph)) {
         all.args = paste(all.args," --sph=", sph, sep="")
+        if (!output.given) output = c(output, output.sph)
     }
     if (!is.null(bspline)) {
         all.args = (paste(all.args, " --bspline=",
                           bspline[1], ",", bspline[2], ",", bspline[3],
                           sep=""))
+        if (!output.given) output = c(output, output.bspline)
     }
     if (!is.null(points2mesh)) {
-        fmesher.write(points2mesh, prefix, "points2mesh")
+        fmesher.write(points2mesh, prefix, "p2m")
 
-        all.args = paste(all.args," --points2mesh=points2mesh", sep="")
+        all.args = paste(all.args," --points2mesh=p2m", sep="")
+        if (!output.given) output = c(output, output.p2m)
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
 
-    return (prefix)
+    result = list()
+    for (name in output) {
+        if (identical(name, "p2m.t"))
+            result[[name]] = fmesher.read(prefix, name)+1L
+        else
+            result[[name]] = fmesher.read(prefix, name)
+    }
+
+    if (!keep)
+        unlink(paste(prefix, "*", sep=""), recursive=FALSE)
+
+    return (result)
 }
 
 

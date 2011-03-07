@@ -56,7 +56,7 @@
 
     if (is.null(mesh)) {
         ## Need to know the size of the graph.
-        s = inla.read.fmesher.file(paste(prefix, "s", sep=""))
+        s = fmesher.read(prefix, "s")
         stopifnot(is.matrix(s))
         n = nrow(s)
         s.dim = ncol(s)
@@ -72,9 +72,9 @@
 
     if (!is.null(mesh)) {
         stopifnot(is.matrix(mesh$tv))
-        inla.write.fmesher.file(mesh$s, filename = paste(prefix, "s", sep=""))
-        inla.write.fmesher.file(inla.affirm.integer(mesh$tv-1L),
-                                filename = paste(prefix, "tv", sep=""))
+        fmesher.write(mesh$s, prefix, "s")
+        fmesher.write(inla.affirm.integer(mesh$tv-1L),
+                      prefix, "tv")
     }
     all.args = "--input=s,tv"
 
@@ -94,12 +94,9 @@
                 sep="")
     }
     if (!is.null(points2mesh)) {
-        inla.write.fmesher.file(points2mesh,
-                                filename = paste(prefix,
-                                                 "points2mesh",
-                                                 sep=""))
+        fmesher.write(points2mesh, prefix, "p2m")
 
-        all.args = paste(all.args," --points2mesh=points2mesh", sep="")
+        all.args = paste(all.args," --points2mesh=p2m", sep="")
     }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
@@ -280,8 +277,7 @@
     idx = map.loc.to.node
 
     ## The default name for the input locations in fmesher is s0:
-    loc.file = inla.write.fmesher.file(s0,
-            filename = paste(prefix, "s0", sep=""))
+    loc.file = fmesher.write(s0, prefix, "s0")
 
     ## additional arguments
     all.args = ""
@@ -294,10 +290,8 @@
         bnd.grp = segm.bnd.input$groups
         storage.mode(bnd.grp) = "integer"
 
-        loc.file = inla.write.fmesher.file(bnd.idx-1L,
-            filename = paste(prefix, "segm.bndidx0", sep=""))
-        loc.file = inla.write.fmesher.file(bnd.grp,
-            filename = paste(prefix, "segm.bndgrp0", sep=""))
+        loc.file = fmesher.write(bnd.idx-1L, prefix, "segm.bndidx0")
+        loc.file = fmesher.write(bnd.grp, prefix, "segm.bndgrp0")
         all.args = paste(all.args," --boundary=segm.bndidx0")
         all.args = paste(all.args," --boundarygrp=segm.bndgrp0")
     }
@@ -310,10 +304,8 @@
         int.grp = segm.int.input$groups
         storage.mode(int.grp) = "integer"
 
-        loc.file = inla.write.fmesher.file(int.idx-1L,
-            filename = paste(prefix, "segm.intidx0", sep=""))
-        loc.file = inla.write.fmesher.file(int.grp,
-            filename = paste(prefix, "segm.intgrp0", sep=""))
+        loc.file = fmesher.write(int.idx-1L, prefix, "segm.intidx0")
+        loc.file = fmesher.write(int.grp, prefix, "segm.intgrp0")
         all.args = paste(all.args," --interior=segm.intidx0")
         all.args = paste(all.args," --interiorgrp=segm.intgrp0")
     }
@@ -330,15 +322,15 @@
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
 
-    mesh = (list(tv = 1L+inla.read.fmesher.file(paste(prefix, "tv", sep="")),
-                 s = inla.read.fmesher.file(paste(prefix, "s", sep=""))))
+    mesh = (list(tv = 1L+fmesher.read(prefix, "tv"),
+                 s = fmesher.read(prefix, "s")))
 
-    bnd.info = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.bnd.idx", sep="")),
-                     grp = inla.read.fmesher.file(paste(prefix, "segm.bnd.grp", sep=""))
+    bnd.info = (list(idx = 1L+fmesher.read(prefix, "segm.bnd.idx"),
+                     grp = fmesher.read(prefix, "segm.bnd.grp")
                      ))
     if (!is.null(interior)) {
-        int.info  = (list(idx = 1L+inla.read.fmesher.file(paste(prefix, "segm.int.idx", sep="")),
-                          grp = inla.read.fmesher.file(paste(prefix, "segm.int.grp", sep=""))
+        int.info  = (list(idx = 1L+fmesher.read(prefix, "segm.int.idx"),
+                          grp = fmesher.read(prefix, "segm.int.grp")
                           ))
     } else {
         int.info = NULL
