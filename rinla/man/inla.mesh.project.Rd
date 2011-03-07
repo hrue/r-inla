@@ -57,7 +57,7 @@ inla.mesh.projector(projector, field)
   \code{\link{inla.mesh}}
 }
 \examples{
-n = 100
+n = 20
 loc = matrix(runif(n*2), n, 2)
 mesh = inla.mesh(loc, refine=list(max.edge=0.05))
 proj = inla.mesh.projector(mesh)
