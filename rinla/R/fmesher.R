@@ -1083,17 +1083,27 @@ inla.spde.inla.mesh =
 
     if (identical(model, "matern") || identical(model, "imatern")) {
 
+        if (is.null(param))
+            param = list()
         if (is.null(param$alpha))
             param$alpha = 2
         if (is.null(param$basis.T))
             param$basis.T = matrix(1, spde$f$n, 1)
+        else if (!is.matrix(param$basis.T))
+            param$basis.T = as.matrix(param$basis.T)
         if (identical(model, "matern")) {
             if (is.null(param$basis.K)) {
                 param$basis.K = matrix(1, spde$f$n, 1)
-            }
+            } else if (!is.matrix(param$basis.K))
+                param$basis.K = as.matrix(param$basis.K)
         } else {
             param$basis.K = matrix(0, spde$f$n, 1)
         }
+        spde$internal = (c(spde$internal,
+                           list(alpha = param$alpha,
+                                basis.T = param$basis.T,
+                                basis.K = param$basis.K)
+                           ))
 
         mesh.range = (max(c(diff(range(mesh$loc[,1])),
                             diff(range(mesh$loc[,2])),
@@ -1122,6 +1132,8 @@ inla.spde.inla.mesh =
         fmesher.write(spde$internal$c0, spde.prefix, "c0")
         fmesher.write(spde$internal$g1, spde.prefix, "g1")
         fmesher.write(spde$internal$g2, spde.prefix, "g2")
+        fmesher.write(spde$internal$basis.T, spde.prefix, "basisT")
+        fmesher.write(spde$internal$basis.K, spde.prefix, "basisK")
 
         if (identical(model, "matern")) {
             spde$f$hyper = (list(theta1=(list(initial=log(tau0),

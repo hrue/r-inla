@@ -91,30 +91,6 @@ calc.map = function(map, z, border=FALSE, ...)
 }
 
 
-points2mesh.calc = function(prefix,s)
-{
-    n = dim(s)[1]
-    data = (inla.create.spde(prefix=prefix,
-                             points2mesh=s))
-    tv = (inla.read.fmesher.file(paste(prefix,
-                                       "tv",
-                                       sep="")))+1L
-    ti = (inla.read.fmesher.file(paste(prefix,
-                                      "p2m.t",
-                                      sep="")))+1L
-    ok = (ti > 0L)
-    ti[ti == 0L] = NA
-    b = (inla.read.fmesher.file(paste(prefix,
-                                      "p2m.b",
-                                      sep="")))
-    ii = cbind(1:n,1:n,1:n)
-    A = (sparseMatrix(dims=c(dim(s)[1],data$n),
-                  i = as.vector(ii[ok,]),
-                  j = as.vector(tv[ti[ok],]),
-                  x = as.vector(b[ok,])))
-
-    return (list(s=s,t=ti,b=b,A=A,ok=ok))
-}
 
 levelplotmap = function(..., mm) {
     panel.levelplot(...)
@@ -156,39 +132,7 @@ extract.rows = function(M,rowname)
 
 
 
-make.plotdata = function(mapgrid,thedata)
-{
-    plotdata = as.vector(mapgrid$A %*% thedata)
-    plotdata[!mapgrid$ok] = NA
-    plotdata = (matrix(plotdata,length(mapgrid$az),length(mapgrid$el)))
-    return(plotdata)
-}
 
-
-my.levelplot = function(mapgrid,plotdata,map=NULL,yrescale=2,color.palette,...)
-{
-    y.axis = c(-90,-60,-45,-30,-15,0,15,30,45,60,90)
-    y.scale = list(at=sin(y.axis/180*pi)*yrescale,labels=y.axis)
-    x.axis = (-4:4)/4*180
-    x.scale = list(at=x.axis/180*pi,labels=x.axis)
-
-    if (!missing(map)) {
-        map$y = map$y*yrescale
-    }
-    yy = mapgrid$y*yrescale
-
-    if (TRUE) {
-        print(levelplot(row.values=mapgrid$x,column.values=yy,x=plotdata,
-                        mm=list(x=map$x,y=map$y),
-                        panel=levelplotmap,
-                        col.regions=color.palette,
-                        xlim=range(mapgrid$x),ylim=range(yy),aspect="iso",
-                        contour=FALSE,cuts=101,labels=FALSE,pretty=TRUE,
-                        xlab="Longitude",ylab="Latitude",
-                        scales=list(y=y.scale,x=x.scale),...))
-    }
-##    print(contour(row.values=mapgrid$x,column.values=yy,x=plotdata))
-}
 
 
 
@@ -262,52 +206,3 @@ matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
 
     return(covariance*noise.variance)
 }
-
-
-
-rbind.dgTMatrix = function(A,B) {
-  if (class(A) != "dgTMatrix") {
-    A = as(A,"dgTMatrix")
-  }
-  if (class(B) != "dgTMatrix") {
-    B = as(B,"dgTMatrix")
-  }
-  return (sparseMatrix(i=c(A@i+1L,B@i+1L+A@Dim[1]),
-                       j=c(A@j+1L,B@j+1L),
-                       x=c(A@x,B@x),
-                       dims=c(A@Dim[1]+B@Dim[1], max(A@Dim[2], B@Dim[2]))) )
-}
-
-rbind.dgCMatrix = function(A,B) {
-  if (class(A) != "dgTMatrix") {
-    A = as(A,"dgTMatrix")
-  }
-  if (class(B) != "dgTMatrix") {
-    B = as(B,"dgTMatrix")
-  }
-  return (rbind.dgTMatrix(A,B))
-}
-
-cbind.dgTMatrix = function(A,B) {
-  if (class(A) != "dgTMatrix") {
-    A = as(A,"dgTMatrix")
-  }
-  if (class(B) != "dgTMatrix") {
-    B = as(B,"dgTMatrix")
-  }
-  return (sparseMatrix(i=c(A@i+1L,B@i+1L),
-                       j=c(A@j+1L,B@j+1L+A@Dim[2]),
-                       x=c(A@x,B@x),
-                       dims=c(max(A@Dim[1],B@Dim[1]), A@Dim[2]+B@Dim[2])) )
-}
-
-cbind.dgCMatrix = function(A,B) {
-  if (class(A) != "dgTMatrix") {
-    A = as(A,"dgTMatrix")
-  }
-  if (class(B) != "dgTMatrix") {
-    B = as(B,"dgTMatrix")
-  }
-  return (cbind.dgTMatrix(A,B))
-}
-
