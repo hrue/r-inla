@@ -983,7 +983,7 @@ inla.mesh.basis =
     type = match.arg(type, c("b.spline", "sph.harm"))
     knot.placement = (match.arg(knot.placement,
                                 c("uniform.area",
-                                  "uniform.angles")))
+                                  "uniform.latitude")))
 
     if (identical(type, "b.spline")) {
         if (identical(mesh$manifold, "R2")) {
@@ -998,7 +998,7 @@ inla.mesh.basis =
             knots = 0
         } else if (identical(mesh$manifold, "S2")) {
             loc = mesh$loc
-            knots = identical(knot.placement, "uniform.angles")
+            knots = identical(knot.placement, "uniform.latitude")
         } else {
             stop("Only know how to make B-splines on R2 and S2.")
         }
@@ -1063,12 +1063,11 @@ inla.spde = function(...)
 
 inla.spde.inla.mesh =
     function(mesh,
-             model=c("matern", "imatern", "heat"),
+             model=c("matern", "imatern"),
              param=NULL,
              ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
-    warning("'inla.spde.inla.mesh' not fully implemented yet.")
 
     model = match.arg(model)
     if (is.null(param))
