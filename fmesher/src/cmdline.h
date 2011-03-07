@@ -116,7 +116,7 @@ struct gengetopt_args_info
   unsigned int interiorgrp_max; /**< @brief Group lables for interior segments's maximum occurreces */
   const char *interiorgrp_help; /**< @brief Group lables for interior segments help description.  */
   const char *smorg_help; /**< @brief Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement. help description.  */
-  int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='2').  */
+  int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='-1').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
   const char *fem_help; /**< @brief Calculate FEM matrices up through order fem help description.  */
   int sph0_arg;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 (default='-1').  */
