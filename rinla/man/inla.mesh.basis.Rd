@@ -11,7 +11,7 @@ inla.mesh.basis(mesh,
                 type=c("b.spline", "sph.harm"),
                 n=3,
                 degree=2,
-                knot.placement=c("uniform.area","uniform.angles"),
+                knot.placement=c("uniform.area","uniform.latitude"),
                 rot.inv=TRUE)
 }
 \arguments{

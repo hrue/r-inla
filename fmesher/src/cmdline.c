@@ -61,7 +61,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --interiorgrp=NAME  Group lables for interior segments",
   "\nSMORG options:",
   "      --smorg             Smorgasbord queries for a known triangulation.  Uses \n                            the given --input=s,tv directly, without any \n                            filtering or refinement.",
-  "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`2')",
+  "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`-1')",
   "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
   "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
   "      --bspline=PARAM     Calculate rotationally invariant B-spline basis \n                            functions",
@@ -274,7 +274,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->boundarygrp_orig = NULL;
   args_info->interiorgrp_arg = NULL;
   args_info->interiorgrp_orig = NULL;
-  args_info->fem_arg = 2;
+  args_info->fem_arg = -1;
   args_info->fem_orig = NULL;
   args_info->sph0_arg = -1;
   args_info->sph0_orig = NULL;
@@ -1598,7 +1598,7 @@ cmdline_internal (
           
             if (update_arg( (void *)&(args_info->fem_arg), 
                  &(args_info->fem_orig), &(args_info->fem_given),
-                &(local_args_info.fem_given), optarg, 0, "2", ARG_INT,
+                &(local_args_info.fem_given), optarg, 0, "-1", ARG_INT,
                 check_ambiguity, override, 0, 0,
                 "fem", '-',
                 additional_error))
