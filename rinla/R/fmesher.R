@@ -1321,7 +1321,15 @@ inla.spde.inla = function(inla, name, spde, ...)
     result = list()
     for (name in output) {
         if (identical(name, "p2m.t"))
-            result[[name]] = fmesher.read(prefix, name)+1L
+            if (!file.exists(paste(prefix, name, sep="")))
+                result[[name]] = fmesher.read(prefix, "points2mesh.t")+1L
+            else
+                result[[name]] = fmesher.read(prefix, name)+1L
+        else if (identical(name, "p2m.b"))
+            if (!file.exists(paste(prefix, name, sep="")))
+                result[[name]] = fmesher.read(prefix, "points2mesh.b")
+            else
+                result[[name]] = fmesher.read(prefix, name)
         else
             result[[name]] = fmesher.read(prefix, name)
     }
