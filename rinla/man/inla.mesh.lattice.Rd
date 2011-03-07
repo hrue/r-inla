@@ -25,7 +25,7 @@ inla.mesh.lattice(x = seq(0, 1, length.out=2),
   \item{dims}{
   }
   \item{units}{
-    One of \code{c("default", "longlat")}.
+    One of \code{c("default", "longlat", "longsinlat")}.
   }
 }
 \details{

@@ -44,9 +44,10 @@
 }
 
 `inla.create.spde` = function(mesh=NULL, prefix = NULL,
-        fem=NULL, sph0=NULL, sph=NULL, bspline=NULL, points2mesh=NULL)
+        fem=2, sph0=NULL, sph=NULL, bspline=NULL, points2mesh=NULL)
 {
     ## create files using fmesher
+    warning("'inla.create.spde' has been replaced by 'inla.spde', and will be removed in a future update of INLA.")
 
     if (is.null(mesh) && is.null(prefix))
         stop("At least one of mesh and prefix must be specified.")
@@ -122,6 +123,7 @@
         x11.delay = NULL,
         min.input.distance = 0)
 {
+    warning("'inla.fmesher.mesh' has been replaced by 'inla.mesh', and will be removed in a future update of INLA.")
 
     ## Internal helper function:
     handle.segment.input = function (input,is.boundary,loc.n,group.index)
