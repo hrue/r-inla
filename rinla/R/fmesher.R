@@ -879,7 +879,12 @@ print.summary.inla.mesh = function(x, ...)
 
 
 
-inla.mesh.project = function(mesh, loc)
+inla.mesh.project = function(...)
+{
+    UseMethod("inla.mesh.project")
+}
+
+inla.mesh.project.inla.mesh = function(mesh, loc)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -902,12 +907,7 @@ inla.mesh.project = function(mesh, loc)
 }
 
 
-inla.mesh.projector = function(...)
-{
-    UseMethod("inla.mesh.projector")
-}
-
-inla.mesh.projector.inla.mesh.projector =
+inla.mesh.project.inla.mesh.projector =
     function(projector, field)
 {
     inla.require.inherits(projector, "inla.mesh.projector", "'projector'")
@@ -917,16 +917,20 @@ inla.mesh.projector.inla.mesh.projector =
     }
 
     if (is.null(dim(field))) {
-        return(matrix(as.vector(projector$proj$A %*% as.vector(field)),
+        data = as.vector(projector$proj$A %*% as.vector(field))
+        data[!projector$proj$ok] = NA
+        return(matrix(data,
                       projector$lattice$dims[1],
                       projector$lattice$dims[2]))
     } else {
-        return(projector$proj$A %*% field)
+        data = projector$proj$A %*% field
+        data[!projector$proj$ok,,drop=FALSE] = NA
+        return(data)
     }
 }
 
 
-inla.mesh.projector.inla.mesh =
+inla.mesh.projector =
     function(mesh,
              xlim=range(mesh$loc[,1]),
              ylim=range(mesh$loc[,2]),
