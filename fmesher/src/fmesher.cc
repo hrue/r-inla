@@ -846,7 +846,7 @@ int main(int argc, char* argv[])
   }
     
   int fem_order_max = args_info.fem_arg;
-  if (fem_order_max>0) {
+  if (fem_order_max>=0) {
     LOG("fem output." << std::endl)
     SparseMatrix<double>& C0 = matrices.SD("c0").clear();
     SparseMatrix<double>& C1 = matrices.SD("c1").clear();
