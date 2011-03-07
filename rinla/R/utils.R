@@ -401,7 +401,7 @@
 `inla.only.for.developers` = function()
 {
     if (!is.element(Sys.getenv("USER"),
-                    c("hrue", "martino", "finnkrl", "finn")))
+                    c("hrue", "martino", "finnkrl", "finn", "danielsimpson")))
         stop("This function is for developers only.")
     return (invisible())
 }
