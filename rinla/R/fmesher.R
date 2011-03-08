@@ -693,7 +693,7 @@ inla.mesh.inla.mesh = function(mesh, ...)
                 param = c(as.list(param), list(c(1)))
             nT = nrow(mesh$graph$tv)
             i = rep(1:nT,3)
-            j = as.vector(mesh$graph$tv)
+            j = as.vector(mesh$graph$tt)
             i = i[!is.na(j)]
             j = j[!is.na(j)]
             tt = sparseMatrix(i=i, j=j, x=rep(1,length(i)), dims=c(nT,nT))
