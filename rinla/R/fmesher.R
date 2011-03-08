@@ -1096,7 +1096,7 @@ inla.spde.inla.mesh =
             else
                 param$basis.T = as.matrix(param$basis.T)
         }
-        if (nrow(basis.T) != mesh$n)
+        if (nrow(param$basis.T) != mesh$n)
             stop(paste("'basis.T' has ", nrow(basis.T),
                        " rows; expected ", mesh$n, ".", sep=""))
         if (identical(model, "matern")) {
@@ -1112,7 +1112,7 @@ inla.spde.inla.mesh =
         } else {
             param$basis.K = matrix(0, mesh$n, 1)
         }
-        if (nrow(basis.K) != mesh$n)
+        if (nrow(param$basis.K) != mesh$n)
             stop(paste("'basis.K' has ", nrow(basis.K),
                        " rows; expected ", mesh$n, ".", sep=""))
         spde$internal = (c(spde$internal,
@@ -1155,13 +1155,24 @@ inla.spde.inla.mesh =
             spde$f$hyper = (list(theta1=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01))),
                                  theta2=(list(initial=log(kappa0^2),
-                                              param=c(log(kappa0^2), 0.1)))
+                                              param=c(log(kappa0^2), 0.1))),
+                                 theta4=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01)))
+                                 ))
+            spde$f$hyper = (list(theta1=(list(initial=0,
+                                              param=c(0, 0.05))),
+                                 theta2=(list(initial=0,
+                                              param=c(0, 0.05))),
+                                 theta4=(list(initial=0,
+                                              param=c(0, 0.05)))
                                  ))
         } else {
             spde$f$hyper = (list(theta1=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01))),
                                  theta2=(list(initial=-20,
-                                              fixed=TRUE))
+                                              fixed=TRUE)),
+                                 theta4=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01)))
                                  ))
         }
     } else {
@@ -1222,6 +1233,28 @@ inla.spde.inla.spde = function(spde, ...)
                    "' not implemented for inla.spde model '",
                    spde$model, "'.", sep=""))
     }
+    param.to.fcn =
+        function(basis, theta, values, n, name)
+        {
+            if (!is.null(values)) {
+                if ((is.vector(values) &&
+                     (length(values)==n)) ||
+                    (is.matrix(values) &&
+                     (nrow(values)==n))) {
+                    fcn = as.vector(values)
+                } else {
+                    fcn = as.vector(values)
+                }
+                if (length(fcn) == 1L)
+                    fcn = rep(fcn, n)
+                else if (length(fcn) != n)
+                    stop(paste("Length of '", name, "' is ", length(fcn),
+                               ", should be ", n, ".", sep=""))
+            } else {
+                fcn = basis %*% theta
+            }
+            return(fcn)
+        }
 
     result = list()
     queries = inla.parse.queries(...)
@@ -1237,15 +1270,25 @@ inla.spde.inla.spde = function(spde, ...)
                                     )))
         if (identical(query, "precision")) {
             if (identical(spde$model, "matern")) {
-                tau = param$tau
-                kappa = param$kappa
-                answer = (tau^2*(kappa^4*spde$internal$c0+
-                                 2*spde$internal$g1*kappa^2+
-                                 spde$internal$g2))
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                kappa2 = (param.to.fcn(spde$internal$basis.K,
+                                       param$theta.K, param$kappa2,
+                                       spde$mesh$n, "kappa2"))
+                dT = Diagonal(spde$mesh$n, tau)
+                dK2 = Diagonal(spde$mesh$n, kappa2)
+                tmp = dK2 %*% spde$internal$g1
+                answer = (dT %*% (dK2 %*% spde$internal$c0 %*% dK2+
+                                  tmp + t(tmp) +
+                                  spde$internal$g2) %*% dT)
             } else if (identical(spde$model, "imatern")) {
-                tau = param$tau
-                answer = (tau^2*((1e-10)*spde$internal$c0+
-                                 spde$internal$g2))
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                dT = Diagonal(spde$mesh$n, tau)
+                answer = (dT %*% ((1e-10)*spde$internal$c0+
+                                  spde$internal$g2) %*% dT)
             } else {
                 not.implemented(spde,query)
             }
