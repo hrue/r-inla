@@ -1159,13 +1159,6 @@ inla.spde.inla.mesh =
                                  theta4=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01)))
                                  ))
-            spde$f$hyper = (list(theta1=(list(initial=0,
-                                              param=c(0, 0.05))),
-                                 theta2=(list(initial=0,
-                                              param=c(0, 0.05))),
-                                 theta4=(list(initial=0,
-                                              param=c(0, 0.05)))
-                                 ))
         } else {
             spde$f$hyper = (list(theta1=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01))),
