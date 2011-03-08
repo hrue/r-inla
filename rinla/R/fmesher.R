@@ -781,12 +781,12 @@ summary.inla.mesh = function(x, verbose=FALSE, ...)
                            prefix=x$meta$prefix,
                            time = x$meta$time)))
     }
-    ret = (c(ret, list(manifold=mesh$manifold,
-                       nV=mesh$n,
-                       nT=nrow(mesh$graph$tv),
-                       xlim=range(mesh$loc[,1]),
-                       ylim=range(mesh$loc[,2]),
-                       zlim=range(mesh$loc[,3]))))
+    ret = (c(ret, list(manifold=x$manifold,
+                       nV=x$n,
+                       nT=nrow(x$graph$tv),
+                       xlim=range(x$loc[,1]),
+                       ylim=range(x$loc[,2]),
+                       zlim=range(x$loc[,3]))))
 
     my.segm = function(x) {
         if (is.null(x))
