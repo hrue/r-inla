@@ -57,7 +57,7 @@ tau = exp(r$summary.hyperpar[2,"mean"])
 kappa = exp(r$summary.hyperpar[3,"mean"]/2)
 
 ## Get the precision matrix:
-Q = inla.spde(spde, precision=list(tau=tau, kappa=kappa))$precision
+Q = inla.spde(spde, precision=list(tau=tau, kappa2=kappa^2))$precision
 
 
 ## Get a random sample (not used here),
