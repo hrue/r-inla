@@ -1088,17 +1088,33 @@ inla.spde.inla.mesh =
         if (is.null(param$alpha))
             param$alpha = 2
         if (is.null(param$basis.T))
-            param$basis.T = matrix(1, spde$f$n, 1)
-        else if (!is.matrix(param$basis.T))
-            param$basis.T = as.matrix(param$basis.T)
+            param$basis.T = matrix(1, mesh$n, 1)
+        else if (!is.matrix(param$basis.T)) {
+            len = length(as.vector(param$basis.T))
+            if (len == 1L)
+                param$basis.K = matrix(as.vector(param$basis.T), mesh$n, 1)
+            else
+                param$basis.T = as.matrix(param$basis.T)
+        }
+        if (nrow(basis.T) != mesh$n)
+            stop(paste("'basis.T' has ", nrow(basis.T),
+                       " rows; expected ", mesh$n, ".", sep=""))
         if (identical(model, "matern")) {
             if (is.null(param$basis.K)) {
-                param$basis.K = matrix(1, spde$f$n, 1)
-            } else if (!is.matrix(param$basis.K))
-                param$basis.K = as.matrix(param$basis.K)
+                param$basis.K = matrix(1, mesh$n, 1)
+            } else if (!is.matrix(param$basis.K)) {
+                len = length(as.vector(param$basis.K))
+                if (len == 1L)
+                    param$basis.K = matrix(as.vector(param$basis.K), mesh$n, 1)
+                else
+                    param$basis.K = as.matrix(param$basis.K)
+            }
         } else {
-            param$basis.K = matrix(0, spde$f$n, 1)
+            param$basis.K = matrix(0, mesh$n, 1)
         }
+        if (nrow(basis.K) != mesh$n)
+            stop(paste("'basis.K' has ", nrow(basis.K),
+                       " rows; expected ", mesh$n, ".", sep=""))
         spde$internal = (c(spde$internal,
                            list(alpha = param$alpha,
                                 basis.T = param$basis.T,
