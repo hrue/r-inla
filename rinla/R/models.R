@@ -904,7 +904,7 @@
                                     theta = list(
                                             name = "alpha",
                                             short.name = "a",
-                                            initial = 4,
+                                            initial = 0,
                                             fixed = FALSE,
                                             prior = "loggamma",
                                             param = c(25, 25)
