@@ -110,7 +110,7 @@ lines.inla.mesh.segment = function(segm, loc=NULL, ...)
 
 plot.inla.mesh =
     function(mesh,
-             t.sub=1:nrow(mesh$graph$tt),
+             t.sub=1:nrow(mesh$graph$tv),
              add=FALSE,
              lwd=1, ...)
 {
@@ -691,9 +691,9 @@ inla.mesh.inla.mesh = function(mesh, ...)
                 param = list(c(1))
             if (length(param)<2)
                 param = c(as.list(param), list(c(1)))
-            nT = nrow(mesh$graph$tt)
+            nT = nrow(mesh$graph$tv)
             i = rep(1:nT,3)
-            j = as.vector(mesh$graph$tt)
+            j = as.vector(mesh$graph$tv)
             i = i[!is.na(j)]
             j = j[!is.na(j)]
             tt = sparseMatrix(i=i, j=j, x=rep(1,length(i)), dims=c(nT,nT))
@@ -722,7 +722,7 @@ inla.mesh.inla.mesh = function(mesh, ...)
             if (length(param)<2)
                 param = c(as.list(param), list(c(1)))
             nV = nrow(mesh$loc)
-            nT = nrow(mesh$graph$tt)
+            nT = nrow(mesh$graph$tv)
             i = rep(1:nT,3)
             j = as.vector(mesh$graph$tv)
 #            i = i[!is.na(j)]
