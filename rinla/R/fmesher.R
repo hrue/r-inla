@@ -559,9 +559,26 @@ inla.mesh.default =
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
+        max.edge.default = (sqrt(diff(range(loc[,1]))^2+
+                                 diff(range(loc[,1]))^2+
+                                 inla.ifelse(ncol(loc)<3,
+                                             0,
+                                             diff(range(loc[,1]))^2)
+                                 ))
+        if (!is.null(extend$offset)) {
+            max.edge.default = (max.edge.default +
+                                max(0,2*extend$offset))
+            max.edge.default = (max.edge.default *
+                                (1+max(0,-2*extend$offset)))
+        }
+        max.edge.default = max.edge.default*10 ## "*10": Better to be safe.
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
-        rcdt[2] = inla.ifelse(is.null(refine$max.edge), Inf, refine$max.edge)
-        rcdt[3] = inla.ifelse(is.null(refine$max.edge), Inf, refine$max.edge)
+        rcdt[2] = (inla.ifelse(is.null(refine$max.edge),
+                               max.edge.default,
+                               refine$max.edge))
+        rcdt[3] = (inla.ifelse(is.null(refine$max.edge),
+                               max.edge.default,
+                               refine$max.edge))
         rcdt[2] = (inla.ifelse(is.null(refine$max.edge.extra),
                                rcdt[2], refine$max.edge.extra))
         rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data),
