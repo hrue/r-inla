@@ -565,7 +565,7 @@ inla.mesh.default =
                                              0,
                                              diff(range(loc[,1]))^2)
                                  ))
-        if (!is.null(extend$offset)) {
+        if ((inherits(extend,"list")) && (!is.null(extend$offset))) {
             max.edge.default = (max.edge.default +
                                 max(0,2*extend$offset))
             max.edge.default = (max.edge.default *
