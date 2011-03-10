@@ -12582,7 +12582,7 @@ int inla_output(inla_tp * mb)
 					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
 							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-					inla_output_names(mb->dir, newdir2, mb->nlc, mb->lc_tag);
+					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag);
 
 					if (mb->lc_usermap[ii]) {
 						GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
@@ -12590,7 +12590,7 @@ int inla_output(inla_tp * mb)
 						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
 								   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
 						inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
-						inla_output_names(mb->dir, newdir2, mb->nlc, mb->lc_tag);
+						inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag);
 						Free(sdir);
 						Free(newtag);
 					}
@@ -12605,7 +12605,7 @@ int inla_output(inla_tp * mb)
 						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
 								   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 						inla_output_size(mb->dir, newdir2, 1, -1, -1, -1, -1);
-						inla_output_names(mb->dir, newdir2, 1, &(mb->lc_tag[ii]));
+						inla_output_names(mb->dir, newdir2, 1, (const char **) &(mb->lc_tag[ii]));
 						
 						if (mb->lc_usermap[ii]) {
 							GMRFLib_sprintf(&newtag, "%s usermap %s", newtag2, mb->lc_usermap[ii]->name);
@@ -12614,7 +12614,7 @@ int inla_output(inla_tp * mb)
 									   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag,
 									   NULL, local_verbose);
 							inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
-							inla_output_names(mb->dir, newdir2, 1, &(mb->lc_tag[ii]));
+							inla_output_names(mb->dir, newdir2, 1, (const char **) &(mb->lc_tag[ii]));
 
 							Free(sdir);
 							Free(newtag);
