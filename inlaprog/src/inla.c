@@ -12347,6 +12347,27 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 
 	return INLA_OK;
 }
+int inla_output_names(const char *dir, const char *sdir, int n, const char **names)
+{
+	FILE *fp;
+	char *fnm, *ndir;
+
+	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
+	inla_fnmfix(ndir);
+	GMRFLib_sprintf(&fnm, "%s/NAMES", ndir);
+
+	int i;
+	fp = fopen(fnm, "w");
+	for(i=0; i<n; i++){
+		fprintf(fp, "%s\n", names[i]);
+	}
+	fclose(fp);
+
+	Free(fnm);
+	Free(ndir);
+
+	return INLA_OK;
+}
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep)
 {
 	FILE *fp;
@@ -12561,6 +12582,7 @@ int inla_output(inla_tp * mb)
 					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
 							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
+					inla_output_names(mb->dir, newdir2, mb->nlc, mb->lc_tag);
 
 					if (mb->lc_usermap[ii]) {
 						GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
@@ -12568,7 +12590,7 @@ int inla_output(inla_tp * mb)
 						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
 								   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
 						inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
-
+						inla_output_names(mb->dir, newdir2, mb->nlc, mb->lc_tag);
 						Free(sdir);
 						Free(newtag);
 					}
@@ -12583,13 +12605,16 @@ int inla_output(inla_tp * mb)
 						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
 								   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 						inla_output_size(mb->dir, newdir2, 1, -1, -1, -1, -1);
-
+						inla_output_names(mb->dir, newdir2, 1, &(mb->lc_tag[ii]));
+						
 						if (mb->lc_usermap[ii]) {
 							GMRFLib_sprintf(&newtag, "%s usermap %s", newtag2, mb->lc_usermap[ii]->name);
 							GMRFLib_sprintf(&sdir, "%s usermap", newdir2);
 							inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
-									   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
+									   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag,
+									   NULL, local_verbose);
 							inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
+							inla_output_names(mb->dir, newdir2, 1, &(mb->lc_tag[ii]));
 
 							Free(sdir);
 							Free(newtag);
