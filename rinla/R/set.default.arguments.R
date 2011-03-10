@@ -245,7 +245,10 @@
             step.len = .Machine$double.eps^0.25,
 
             ##:ARGUMENT: derived.only A boolen variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
-            derived.only = TRUE,
+            lincomb.derived.only = TRUE,
+
+            ##:ARGUMENT: lincomb.one.output.file A boolen variable: write all lincombs to one output file (the names will then be missing!) (Default FALSE)
+            lincomb.one.output.file= FALSE,
 
             ## NOT DOCUMENTED ONCES (expert only)
             diagonal = NULL,
