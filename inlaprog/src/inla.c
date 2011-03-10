@@ -11783,22 +11783,22 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	}
 	for (i = 0; i < mb_old->ntheta; i++) {
 		j++;
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter %s", mb_old->dir, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter %s/trace.dat", mb_old->dir, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
 		Free(fnm);
 
 		j++;
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter %s user scale", mb_old->dir, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter %s user scale/trace.dat", mb_old->dir, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
@@ -12453,7 +12453,7 @@ int inla_output(inla_tp * mb)
 
 			for (ii = 0; ii < mb->nf; ii++) {
 				int offset = offsets[ii + 1];
-
+				
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->f_locations[ii],
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
