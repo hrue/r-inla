@@ -9662,12 +9662,17 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	inla_setup_ai_par_default(mb);			       /* most likely already done, but... */
 
-	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "DERIVED.ONLY"), 1);
-	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "LC.DERIVED.ONLY"), mb->lc_derived_only);
-	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "DERIVEDONLY"), mb->lc_derived_only);
-	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "LCDERIVEDONLY"), mb->lc_derived_only);
+	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.DERIVED.ONLY"), 1);
 	if (mb->verbose) {
-		printf("\t\t\tlc.derived_only = [%s]\n", (mb->lc_derived_only ? "Yes" : "No"));
+		printf("\t\t\tlincomb.derived.only = [%s]\n", (mb->lc_derived_only ? "Yes" : "No"));
+	}
+	mb->lc_one_output_file = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.ONE.OUTPUT.FILE"), 0);
+	if (mb->verbose) {
+		printf("\t\t\tlc.one.output.file = [%s]\n", (mb->lc_one_output_file ? "Yes" : "No"));
+	}
+
+	if (!(mb->lc_derived_only) && mb->lc_one_output_file){
+		inla_error_general("Cannot have derived.only = FALSE and one.output.file = TRUE!");
 	}
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
@@ -12547,32 +12552,56 @@ int inla_output(inla_tp * mb)
 				}
 			}
 			if (mb->density_lin) {
-				for (ii = 0; ii < mb->nlc; ii++) {
+				if (mb->lc_one_output_file){
 					char *sdir, *newtag, *newtag2, *newdir2;
+					ii = 0;
 
-					GMRFLib_sprintf(&newtag2, "%s.derived", mb->lc_tag[ii]);
-					GMRFLib_sprintf(&newdir2, "%s.derived", mb->lc_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
+					GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
+					GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
+					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
 							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
-					inla_output_size(mb->dir, newdir2, 1, -1, -1, -1, -1);
+					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 
 					if (mb->lc_usermap[ii]) {
-						GMRFLib_sprintf(&newtag, "%s usermap %s", newtag2, mb->lc_usermap[ii]->name);
-						GMRFLib_sprintf(&sdir, "%s usermap", newdir2);
+						GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
+						GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
 						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
 								   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-						inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
+						inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
 
 						Free(sdir);
 						Free(newtag);
 					}
 					Free(newtag2);
 					Free(newdir2);
+				} else {
+					for (ii = 0; ii < mb->nlc; ii++) {
+						char *sdir, *newtag, *newtag2, *newdir2;
+
+						GMRFLib_sprintf(&newtag2, "%s.derived", mb->lc_tag[ii]);
+						GMRFLib_sprintf(&newdir2, "%s.derived", mb->lc_dir[ii]);
+						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
+								   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+						inla_output_size(mb->dir, newdir2, 1, -1, -1, -1, -1);
+
+						if (mb->lc_usermap[ii]) {
+							GMRFLib_sprintf(&newtag, "%s usermap %s", newtag2, mb->lc_usermap[ii]->name);
+							GMRFLib_sprintf(&sdir, "%s usermap", newdir2);
+							inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
+									   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
+							inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
+
+							Free(sdir);
+							Free(newtag);
+						}
+						Free(newtag2);
+						Free(newdir2);
+					}
 				}
 			}
 
 			if (mb->density_hyper) {
-
+				
 				for (ii = 0; ii < mb->ntheta; ii++) {
 					char *sdir, *newtag;
 
@@ -12607,6 +12636,7 @@ int inla_output(inla_tp * mb)
 				 */
 				char *sdir;
 				int dim = GMRFLib_ai_INLA_userfunc0_dim;
+				
 				GMRFLib_density_tp **gd = Calloc(dim, GMRFLib_density_tp *);
 
 				for (ii = 0; ii < dim; ii++) {
@@ -12631,7 +12661,7 @@ int inla_output(inla_tp * mb)
 				char *sdir;
 				int dim = GMRFLib_ai_INLA_userfunc1_dim;
 				GMRFLib_density_tp **gd = Calloc(dim, GMRFLib_density_tp *);
-
+				
 				for (ii = 0; ii < dim; ii++) {
 					GMRFLib_density_create_normal(&(gd[ii]), 0.0, 1.0,
 								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_mean,
