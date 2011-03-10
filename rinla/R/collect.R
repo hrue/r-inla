@@ -172,7 +172,7 @@
         for(i in 1:n.lincomb) {
             tag = paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
-                names.lincomb[i] = "missing NAME"
+                names.lincomb[i] = "missing TAG"
             else
                 names.lincomb[i] = inla.namefix(readLines(tag, n=1))
             modelname = inla.trim(paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"MODEL", sep=""))
@@ -221,11 +221,19 @@
                     dd = cbind(dd, t(qq))
                 }
 
+                if (debug)
+                    cat("...NAMES if any\n")
+                if (length(grep("^NAMES$", dir.lincomb))==1) {
+                    row.names = readLines(paste(file, .Platform$file.sep,"NAMES", sep=""))
+                } else {
+                    row.names = NULL
+                }
+                
                 ##read kld
                 if (debug)
                     cat("...kld\n")
                 kld1 = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"symmetric-kld.dat", sep="")),
-                    ncol=2, byrow=TRUE)
+                        ncol=2, byrow=TRUE)
                 qq = kld1[, 2, drop=FALSE]
                 dd = cbind(dd, qq)
                 if (debug)
@@ -235,6 +243,9 @@
                 col.nam = c(col.nam, "kld")
                 colnames(dd) = inla.namefix(col.nam)
                 summary.lincomb[[i]] = as.data.frame(dd)
+                if (!is.null(row.names)) {
+                    rownames(summary.lincomb[[i]]) = row.names
+                }
 
                 if (TRUE) {
                     xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
@@ -247,10 +258,13 @@
                             colnames(rr[[j]]) = inla.namefix(c("x", "y"))
                     }
                     marginals.lincomb[[i]] = rr
-                }
-                else 
-                    marginals.lincomb=NULL
 
+                    if (!is.null(row.names) && !is.null(marginals.lincomb)) {
+                        names(marginals.lincomb[[i]]) = row.names
+                    }
+                } else {
+                    marginals.lincomb=NULL
+                }
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
                 if (!file.exists(N.file))
@@ -260,7 +274,6 @@
                 summary.lincomb[[i]] = data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
                 marginals.lincomb = NULL
             }
-
             size.lincomb[[i]] = inla.collect.size(file)
         }
         names(summary.lincomb) = inla.namefix(names.lincomb)
