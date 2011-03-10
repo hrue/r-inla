@@ -1,0 +1,58 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Linear}
+
+\subsection*{Parametrization}
+
+This model is just a simplified way of spesifying a ``fixed'' effect
+\begin{displaymath}
+    \eta_{i} = \beta w_{i}
+\end{displaymath}
+where $\beta$ is Normal with mean $\mu$ and precision $\tau$ (which
+are typically unequal to the default values; see
+\texttt{?control.fixed}).
+
+\subsection*{Hyperparameters}
+
+None
+
+\subsection*{Specification}
+
+\begin{verbatim}
+ f(w, model="linear", mean.linear = <mu>, prec.linear = <prec>)
+\end{verbatim}
+where \texttt{<mu>}$ is the prior mean and
+\texttt{<prec>}$ is the prior precision.
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/linear.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+n = 100
+w = runif(n)
+y = 1 + w + rnorm(n)
+r = inla(y ~ f(w, model = "linear",
+               mean.linear=1, prec.linear=1),
+         data = data.frame(y,w))
+summary(r)
+\end{verbatim}
+
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

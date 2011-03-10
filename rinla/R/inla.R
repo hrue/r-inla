@@ -582,9 +582,9 @@
         y...fake[is.na(y...fake)] = Inf ## otherwise model.matrix() fails below
     }
 
-    if (debug)
+    if (debug) {
         cat("n.family", n.family, "\n")
-
+    }
     
     ## ...and then we add the fake to the data-frame after removing the original response
     if (is.data.frame(data)) {
