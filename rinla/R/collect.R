@@ -160,47 +160,47 @@
 {
     ## rewrite from collect.random
     alldir = dir(results.dir)
-    random = alldir[grep("^lincomb", alldir)]
-    n.random = length(random)
+    lincomb = alldir[grep("^lincomb", alldir)]
+    n.lincomb = length(lincomb)
     if (debug)
         print("collect lincombs")
 
-    ##read the names and model of the random effects
-    if (n.random>0) {
-        names.random = inla.namefix(character(n.random))
-        model.random = inla.trim(character(n.random))
-        for(i in 1:n.random) {
-            tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
+    ##read the names and model of the lincomb effects
+    if (n.lincomb>0) {
+        names.lincomb = inla.namefix(character(n.lincomb))
+        model.lincomb = inla.trim(character(n.lincomb))
+        for(i in 1:n.lincomb) {
+            tag = paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
-                names.random[i] = "missing NAME"
+                names.lincomb[i] = "missing NAME"
             else
-                names.random[i] = inla.namefix(readLines(tag, n=1))
-            modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
+                names.lincomb[i] = inla.namefix(readLines(tag, n=1))
+            modelname = inla.trim(paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"MODEL", sep=""))
             if (!file.exists(modelname))
-                model.random[i] = "NoModelName"
+                model.lincomb[i] = "NoModelName"
             else
-                model.random[i] = inla.trim(readLines(modelname, n=1))
+                model.lincomb[i] = inla.trim(readLines(modelname, n=1))
         }
         
-        summary.random = list()
-        marginals.random = list()
-        size.random = list()
+        summary.lincomb = list()
+        marginals.lincomb = list()
+        size.lincomb = list()
         
-        for(i in 1:n.random) {
+        for(i in 1:n.lincomb) {
             if (debug)
-                print(paste("read random ", i , " of ", n.random))
+                print(paste("read lincomb ", i , " of ", n.lincomb))
             ##read the summary
-            file= paste(results.dir, .Platform$file.sep, random[i], sep="")
-            dir.random = dir(file)
+            file= paste(results.dir, .Platform$file.sep, lincomb[i], sep="")
+            dir.lincomb = dir(file)
 
-            if (length(dir.random) > 4) {
+            if (length(dir.lincomb) > 4) {
                 dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")), ncol=3, byrow=TRUE)
                 col.nam = c("ID","mean","sd")
             
                 ##read quantiles if existing
                 if (debug)
                     cat("...quantiles.dat if any\n")
-                if (length(grep("^quantiles.dat$", dir.random))==1) {
+                if (length(grep("^quantiles.dat$", dir.lincomb))==1) {
                     xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"quantiles.dat", sep="")),
                             debug=debug)
                     len = dim(xx)[2]
@@ -212,7 +212,7 @@
                 ##read cdf if existing
                 if (debug)
                     cat("...cdf.dat if any\n")
-                if (length(grep("^cdf.dat$", dir.random))==1) {
+                if (length(grep("^cdf.dat$", dir.lincomb))==1) {
                     xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"cdf.dat", sep="")),
                             debug=debug)
                     len = dim(xx)[2]
@@ -234,7 +234,7 @@
             
                 col.nam = c(col.nam, "kld")
                 colnames(dd) = inla.namefix(col.nam)
-                summary.random[[i]] = as.data.frame(dd)
+                summary.lincomb[[i]] = as.data.frame(dd)
 
                 if (TRUE) {
                     xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
@@ -246,10 +246,10 @@
                         for(j in 1:nd)
                             colnames(rr[[j]]) = inla.namefix(c("x", "y"))
                     }
-                    marginals.random[[i]] = rr
+                    marginals.lincomb[[i]] = rr
                 }
                 else 
-                    marginals.random=NULL
+                    marginals.lincomb=NULL
 
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
@@ -257,26 +257,26 @@
                     N = 0
                 else
                     N = scan(file=N.file, what = numeric(0), quiet=TRUE)
-                summary.random[[i]] = data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
-                marginals.random = NULL
+                summary.lincomb[[i]] = data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
+                marginals.lincomb = NULL
             }
 
-            size.random[[i]] = inla.collect.size(file)
+            size.lincomb[[i]] = inla.collect.size(file)
         }
-        names(summary.random) = inla.namefix(names.random)
-        if (!is.null(marginals.random) && (length(marginals.random) > 0))
-            names(marginals.random) = inla.namefix(names.random)
-    }
-    else {
+        names(summary.lincomb) = inla.namefix(names.lincomb)
+        if (!is.null(marginals.lincomb) && (length(marginals.lincomb) > 0))
+            names(marginals.lincomb) = inla.namefix(names.lincomb)
+    } else {
         if (debug)
-            cat("No random effets\n")
-        model.random=NULL
-        summary.random=NULL
-        marginals.random=NULL
-        size.random = NULL
+            cat("No lincomb effets\n")
+        model.lincomb=NULL
+        summary.lincomb=NULL
+        marginals.lincomb=NULL
+        size.lincomb = NULL
+        names.lincomb = NULL
     }
     
-    res = list(names.lincomb = names.random, summary.lincomb=summary.random, marginals.lincomb=marginals.random, size.lincomb = size.random)
+    res = list(names.lincomb = names.lincomb, summary.lincomb=summary.lincomb, marginals.lincomb=marginals.lincomb, size.lincomb = size.lincomb)
     return(res)
 }
 

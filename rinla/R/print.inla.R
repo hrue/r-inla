@@ -24,6 +24,13 @@
     else
         cat("The model has no fixed effects and no intercept\n\n")
     
+    ## must check x$control.data that its a list of lists, so we can
+    ## treat n.family = 1 the same was as for n.family > 1.
+    if (length(x$family) == 1) {
+        contdata = list(x$control.data)
+    } else {
+        contdata = x$control.data
+    }
     for(ii in 1:length(x$family)) {
         cat(paste("Likelihood model",
                   inla.ifelse(length(x$family)>1, paste("[", ii, "]", sep=""), ""),
@@ -32,7 +39,7 @@
         ntheta = length(prop$hyper)
         if (ntheta > 0) {
             for (i in 1:ntheta) {
-                if(x$control.data[[ii]]$hyper[[i]]$fixed) {
+                if(contdata[[ii]]$hyper[[i]]$fixed) {
                     cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
                 } else {
                     cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
