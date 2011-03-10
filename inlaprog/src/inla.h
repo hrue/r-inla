@@ -514,6 +514,7 @@ struct inla_tp_struct {
 	 */
 	int nlc;					       /* number of linear combinations */
 	int lc_derived_only;				       /* use only the derived lincombs ? */
+	int lc_one_output_file;				       /* Use one output file only ? */
 	char **lc_tag;					       /* the tags */
 	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
