@@ -9666,14 +9666,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\t\tlincomb.derived.only = [%s]\n", (mb->lc_derived_only ? "Yes" : "No"));
 	}
-	mb->lc_one_output_file = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.ONE.OUTPUT.FILE"), 0);
-	if (mb->verbose) {
-		printf("\t\t\tlc.one.output.file = [%s]\n", (mb->lc_one_output_file ? "Yes" : "No"));
-	}
-
-	if (!(mb->lc_derived_only) && mb->lc_one_output_file){
-		inla_error_general("Cannot have derived.only = FALSE and one.output.file = TRUE!");
-	}
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
 	if (!opt) {
@@ -12347,7 +12339,7 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 
 	return INLA_OK;
 }
-int inla_output_names(const char *dir, const char *sdir, int n, const char **names)
+int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix)
 {
 	FILE *fp;
 	char *fnm, *ndir;
@@ -12359,7 +12351,7 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 	int i;
 	fp = fopen(fnm, "w");
 	for(i=0; i<n; i++){
-		fprintf(fp, "%s\n", names[i]);
+		fprintf(fp, "%s%s\n", names[i], (suffix ? suffix : ""));
 	}
 	fclose(fp);
 
@@ -12552,77 +12544,55 @@ int inla_output(inla_tp * mb)
 				}
 			}
 			if (!mb->lc_derived_only) {
-				for (ii = 0; ii < mb->nlc; ii++) {
-					char *sdir, *newtag;
-					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
+				char *sdir, *newtag, *newtag2, *newdir2;
 
+				GMRFLib_sprintf(&newtag2, "lincombs.all");
+				GMRFLib_sprintf(&newdir2, "lincombs.all");
+
+				ii = 0;
+				int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
+				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->nlc, 1,
+						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
+				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
+				
+				if (mb->lc_usermap[ii]) {
+					GMRFLib_sprintf(&newtag, "%s.usermap", newtag2);
+					GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
 					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
-							   mb->lc_output[ii], mb->lc_dir[ii], NULL, NULL, NULL, mb->lc_tag[ii], NULL, local_verbose);
-					inla_output_size(mb->dir, mb->lc_dir[ii], 1, -1, -1, -1, -1);
-
-					if (mb->lc_usermap[ii]) {
-						GMRFLib_sprintf(&newtag, "%s usermap %s", mb->lc_tag[ii], mb->lc_usermap[ii]->name);
-						GMRFLib_sprintf(&sdir, "%s usermap", mb->lc_dir[ii]);
-						inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
-								   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-						inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
-
-						Free(sdir);
-						Free(newtag);
-					}
+							   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
+					inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
+					inla_output_names(mb->dir, sdir, mb->nlc, (const char **) mb->lc_tag, "usermap");
+					
+					Free(sdir);
+					Free(newtag);
 				}
+				Free(newtag2);
+				Free(newdir2);
 			}
 			if (mb->density_lin) {
-				if (mb->lc_one_output_file){
-					char *sdir, *newtag, *newtag2, *newdir2;
-					ii = 0;
+				char *sdir, *newtag, *newtag2, *newdir2;
+				ii = 0;
 
-					GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
-					GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
+				GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
+				GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
+				inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
+						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
+				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
+
+				if (mb->lc_usermap[ii]) {
+					GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
+					GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
 					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
-							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
-					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag);
-
-					if (mb->lc_usermap[ii]) {
-						GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
-						GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
-						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
-								   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-						inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
-						inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag);
-						Free(sdir);
-						Free(newtag);
-					}
-					Free(newtag2);
-					Free(newdir2);
-				} else {
-					for (ii = 0; ii < mb->nlc; ii++) {
-						char *sdir, *newtag, *newtag2, *newdir2;
-
-						GMRFLib_sprintf(&newtag2, "%s.derived", mb->lc_tag[ii]);
-						GMRFLib_sprintf(&newdir2, "%s.derived", mb->lc_dir[ii]);
-						inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
-								   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
-						inla_output_size(mb->dir, newdir2, 1, -1, -1, -1, -1);
-						inla_output_names(mb->dir, newdir2, 1, (const char **) &(mb->lc_tag[ii]));
-						
-						if (mb->lc_usermap[ii]) {
-							GMRFLib_sprintf(&newtag, "%s usermap %s", newtag2, mb->lc_usermap[ii]->name);
-							GMRFLib_sprintf(&sdir, "%s usermap", newdir2);
-							inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, 1, 1,
-									   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag,
-									   NULL, local_verbose);
-							inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
-							inla_output_names(mb->dir, newdir2, 1, (const char **) &(mb->lc_tag[ii]));
-
-							Free(sdir);
-							Free(newtag);
-						}
-						Free(newtag2);
-						Free(newdir2);
-					}
+							   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
+					inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
+					inla_output_names(mb->dir, sdir, mb->nlc, (const char **) mb->lc_tag, "usermap");
+					Free(sdir);
+					Free(newtag);
 				}
+				Free(newtag2);
+				Free(newdir2);
 			}
 
 			if (mb->density_hyper) {

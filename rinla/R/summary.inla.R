@@ -7,18 +7,17 @@
 
     if(!is.null(object$summary.fixed)) {
         fixed = object$summary.fixed
-        if(!is.null(object$kld.fixed))
-            fixed = cbind(fixed, kld=object$kld.fixed)
-        
         ret = c(ret, list(fixed=fixed))
     }
 
-    if(!is.null(object$summary.lincomb)) {
-        lincomb = object$summary.lincomb
-        if(!is.null(object$kld.lincomb))
-            lincomb = cbind(lincomb, kld=object$kld.lincomb)
-        
+    if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")) {
+        lincomb = as.matrix(object$summary.lincomb)
         ret = c(ret, list(lincomb=lincomb))
+    }
+
+    if(!is.null(object$summary.lincomb.derived)) {
+        lincomb = as.matrix(object$summary.lincomb.derived)
+        ret = c(ret, list(lincomb.derived=lincomb))
     }
 
     if(!is.null(object$summary.hyperpar))
@@ -28,10 +27,7 @@
     if(!is.null(object$summary.random)) {
         random.name = names(object$summary.random)
         random.mod =  object$model.random
-        random.max.kld = numeric(length(random.name))
-        for (i in 1:length(random.name))
-            random.max.kld[i] = max(object$summary.random[[i]]$kld)
-        ret = c(ret, list(random.names=random.name, random.model=random.mod, random.max.kld=random.max.kld))
+        ret = c(ret, list(random.names=random.name, random.model=random.mod))
     }
     
     

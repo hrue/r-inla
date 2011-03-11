@@ -227,12 +227,7 @@
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
-
     inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
-    inla.write.boolean.field("lincomb.one.output.file", inla.spec$lincomb.one.output.file, file)
-    if (!inla.spec$lincomb.derived.only && inla.spec$lincomb.one.output.file) {
-        stop("Cannot have ((lincomb.derived.only == FALSE) && (lincomb.one.output.file == TRUE))")
-    }
 
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
         cat("restart = ", as.integer(inla.spec$restart), "\n", file = file, sep = " ", append = TRUE)
