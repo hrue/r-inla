@@ -174,7 +174,7 @@
                        adjust.weights = FALSE,
                        skip.configurations=skip.configurations,
                        tolerance = control.inla$tolerance,
-                       derived.only = control.inla$derived.only,
+                       lincomb.derived.only = control.inla$lincomb.derived.only,
                        step.len = control.inla$step.len),
                control.fixed = control.fixed,
                control.results = list(return.marginals.random=FALSE,
