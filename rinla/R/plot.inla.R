@@ -298,11 +298,9 @@
         if (!is.null(n)) {
             lp = x$summary.linear.predictor
             fv = x$summary.fitted.values
-            fvu = x$summary.linear.predictor.usermap
             ## remove the 'kld' column, we do not need it
             lp = lp[, names(lp) != "kld"]
             fv = fv[, names(fv) != "kld"]
-            fvu = fvu[, names(fvu) != "kld"]
             A = (x$size.linear.predictor$nrep == 2)
 
             if (A) {
@@ -336,9 +334,6 @@
                     if (!is.null(fv)) {
                         par(mfrow=c(2, 1))
                     }
-                    if (!is.null(fvu)) {
-                        par(mfrow=c(3, 1))
-                    }
                     plot(plot.idx, lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx, names(lp) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
                     lq = grep("quan", colnames(lp))
                     if (length(lq)>0) {
@@ -370,24 +365,6 @@
                         else 
                             title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
                     }
-                    if (!is.null(fvu)) {
-                        plot(plot.idx, fvu[idx, colnames(fvu)=="mean"], ylim=range(fvu[idx, names(fvu) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
-                        lq = grep("quan", colnames(fvu))
-                        if (length(lq)>0) {
-                            qq = fvu[, lq]
-                            dq = dim(qq)[2]
-                            sub = paste("Posterior mean together with ")
-                            for(j in 1:dq) {
-                                points(plot.idx, qq[idx, j], type="l", lty=2)
-                                sub = paste(sub, colnames(qq)[j])
-                            }
-                            title(main=paste("Usermap transformed values (usermap(lin.pred))", msg),
-                                  sub = inla.nameunfix(sub))
-                        }
-                        else 
-                            title(main=paste("Usermap transformed values (usermap(lin.pred))", msg,
-                                          inla.nameunfix(labels.random[i])))
-                    }          
                 }
             }
         }

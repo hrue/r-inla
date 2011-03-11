@@ -292,24 +292,6 @@
         size.lincomb = NULL
     }
 
-    ## in case we have 'usermap = exp()' for example,  we need this
-    tmp = summary.lincomb[[1]]
-    if (length(summary.lincomb) > 1) {
-        for (i in 2:length(summary.lincomb)) {
-            tmp = rbind(tmp, summary.lincomb[[i]])
-        }
-    }
-    summary.lincomb = list(tmp)
-
-    tmp = marginals.lincomb[[1]]
-    if (length(marginals.lincomb) > 1) {
-        for(i in 2:length(marginals.lincomb)) {
-            tmp = c(tmp, marginals.lincomb[[i]])
-        }
-    }
-    marginals.lincomb = list(tmp)
-    ##
-    
     if (derived) {
         res = list(summary.lincomb.derived=summary.lincomb[[1]],
                 marginals.lincomb.derived=marginals.lincomb[[1]],
@@ -737,71 +719,10 @@
         marginals.fitted.values = NULL
     }
 
-    ##THIRD: get the linear predictor transformed with the usermap function (if computed)
-    if (length(grep("^predictor-usermap$", alldir))==1) {
-        subdir=paste(results.dir, .Platform$file.sep,"predictor-usermap", sep="")
-        if (length(dir(subdir))>3) {
-            if (debug)
-                cat(paste("collect the values transformed with the usermap function\n", sep=""))
-            
-            file=paste(subdir, .Platform$file.sep,"summary.dat", sep="")
-            dd = matrix(inla.read.binary.file(file=file), ncol=3, byrow=TRUE)[,-1, drop=FALSE]
-            col.nam = c("mean","sd")
-
-            ##get quantiles if computed
-            if (length(grep("^quantiles.dat$", dir(subdir)))==1) {
-                file=paste(subdir, .Platform$file.sep,"quantiles.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
-                len = dim(xx)[2]
-                qq = xx[, seq(2, len, by=2), drop=FALSE]
-                col.nam = c(col.nam, paste(as.character(xx[, 1]),"quant", sep=""))
-                dd = cbind(dd, t(qq))
-                rm(xx)
-            }
-
-            ##get cdf if computed
-            if (length(grep("^cdf.dat$", dir(subdir)))==1) {
-                file=paste(subdir, .Platform$file.sep,"cdf.dat", sep="")
-                xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
-                len = dim(xx)[2]
-                qq = xx[, seq(2, len, by=2), drop=FALSE]
-                col.nam = c(col.nam, paste(as.character(xx[, 1])," cdf", sep=""))
-                dd = cbind(dd, t(qq))
-                rm(xx)
-            }
-       
-            colnames(dd) = inla.namefix(col.nam)
-            summary.usermap.values = as.data.frame(dd)
-            if (return.marginals.predictor) {
-                file=paste(subdir, .Platform$file.sep,"marginal-densities.dat", sep="")
-                xx = inla.read.binary.file(file)
-                rr = inla.interpret.vector.list(xx, debug=debug)
-                rm(xx)
-                if (!is.null(rr)) {
-                    names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-                    for(i in 1:length(rr))
-                        colnames(rr[[i]]) = inla.namefix(c("x", "y"))
-                }
-                marginals.usermap.values = rr
-            } else {
-                marginals.usermap.values = NULL
-            }
-        } else {
-            summary.usermap.values = NULL
-            marginals.usermap.values = NULL
-        }
-    } else {
-        summary.usermap.values = NULL
-        marginals.usermap.values = NULL
-    }
-    
-
     res = list(summary.linear.predictor=summary.linear.predictor,
             marginals.linear.predictor=marginals.linear.predictor,
             summary.fitted.values=summary.fitted.values,
             marginals.fitted.values=marginals.fitted.values,
-            summary.linear.predictor.usermap=summary.usermap.values,
-            marginals.linear.predictor.usermap=marginals.usermap.values,
             size.linear.predictor = size.info)
 
     return(res)
