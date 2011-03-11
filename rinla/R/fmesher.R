@@ -112,7 +112,9 @@ plot.inla.mesh =
     function(mesh,
              t.sub=1:nrow(mesh$graph$tv),
              add=FALSE,
-             lwd=1, ...)
+             lwd=1,
+             col="black",
+             ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -124,7 +126,7 @@ plot.inla.mesh =
         plot.new()
         plot.window(xlim=range(mesh$loc[,1]), ylim=range(mesh$loc[,2]), "")
     }
-    lines(x, y, type="l")
+    lines(x, y, type="l", col=col, lwd=lwd)
     if (!is.null(mesh$segm$bnd))
         lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
     if (!is.null(mesh$segm$int))
