@@ -422,7 +422,6 @@ struct inla_tp_struct {
 	int predictor_fixed;
 	int predictor_user_scale;
 	map_func_tp **predictor_linkfunc;		       /* these are rebuilt */
-	map_table_tp *predictor_usermap;
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 
@@ -491,7 +490,6 @@ struct inla_tp_struct {
 	char **f_same_as;
 	double *f_precision;
 	Output_tp **f_output;
-	map_table_tp **f_usermap;
 
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interactions */
 	void ***ff_Qfunc_arg;
@@ -507,7 +505,6 @@ struct inla_tp_struct {
 	double *linear_mean;
 	int *linear_compute;
 	Output_tp **linear_output;
-	map_table_tp **linear_usermap;
 
 	/*
 	 * linear combinations 
@@ -518,7 +515,6 @@ struct inla_tp_struct {
 	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	Output_tp **lc_output;
-	map_table_tp **lc_usermap;
 	GMRFLib_lc_tp **lc_lc;
 
 	/*
@@ -532,7 +528,6 @@ struct inla_tp_struct {
 	char **theta_dir;
 	map_func_tp **theta_map;
 	void **theta_map_arg;
-	map_table_tp **theta_usermap;
 	int *off_compute;
 	char **off_modelname;
 	int *off_id;

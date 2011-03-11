@@ -85,15 +85,6 @@ static const char RCSId[] = HGVERSION;
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-#define N_MAPFUNC_TABLE 5
-static map_table_tp mapfunc_table[N_MAPFUNC_TABLE] = {
-	{"identity()", map_identity},
-	{"exp()", map_exp},
-	{"1/exp()", map_1exp},
-	{"sqrt(1/exp())", map_sqrt1exp},
-	{"invlogit()", map_invlogit}
-};
-
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, 0, 0 };
 
 /* 
@@ -353,27 +344,6 @@ int inla_print_sha1(FILE * fp, unsigned char *md)
 		return INLA_OK;
 	}
 #endif
-}
-map_table_tp *mapfunc_find(const char *name)
-{
-	if (!name) {
-		return (map_table_tp *) NULL;
-	}
-
-	int i;
-	for (i = 0; i < N_MAPFUNC_TABLE; i++) {
-		if (!strcasecmp(name, mapfunc_table[i].name)) {
-			return &mapfunc_table[i];
-		}
-	}
-	/*
-	 * not found, signal error 
-	 */
-	char *msg;
-	GMRFLib_sprintf(&msg, "illegal usermap = [%s].", name);
-	inla_error_general(msg);
-
-	return (map_table_tp *) NULL;
 }
 double log_apbex(double a, double b)
 {
@@ -4488,7 +4458,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
 	mb->lc_prec = Realloc(mb->lc_prec, mb->nlc + 1, double);
-	mb->lc_usermap = Realloc(mb->lc_usermap, mb->nlc + 1, map_table_tp *);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->lc_tag[mb->nlc]))));
 
@@ -4512,10 +4481,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tprecision [%g]\n", mb->lc_prec[mb->nlc]);
 	}
 
-	mb->lc_usermap[mb->nlc] = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-	if (mb->verbose && mb->lc_usermap[mb->nlc]) {
-		printf("\t\tusermap=[%s]\n", mb->lc_usermap[mb->nlc]->name);
-	}
 	// FORMAT:: se section.R in Rinla...
 
 	GMRFLib_io_open(&io, filename, "rb");
@@ -4826,7 +4791,6 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	char *secname = NULL, *msg = NULL, *filename;
 	int i, noffsets;
 	double tmp;
-	map_table_tp *um;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_predictor ...\n");
@@ -4845,11 +4809,6 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 
 	inla_read_prior(mb, ini, sec, &(mb->predictor_prior), "LOGGAMMA");
 
-	mb->predictor_usermap = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "PREDICTOR.USERMAP"), NULL));
-	if (mb->verbose && mb->predictor_usermap) {
-		printf("\t\tpredictor.usermap=[%s]\n", mb->predictor_usermap->name);
-	}
-
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 	mb->predictor_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 	if (!mb->predictor_fixed && mb->reuse_mode) {
@@ -4859,11 +4818,6 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tinitialise log_precision[%g]\n", mb->predictor_log_prec[0][0]);
 		printf("\t\tfixed=[%1d]\n", mb->predictor_fixed);
-	}
-
-	um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-	if (mb->verbose && um) {
-		printf("\t\tusermap [%s]\n", um->name);
 	}
 
 	if (!mb->predictor_fixed) {
@@ -4879,8 +4833,6 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 		mb->theta_map_arg[mb->ntheta] = NULL;
 		mb->theta_map[mb->ntheta] = map_precision;
-		mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-		mb->theta_usermap[mb->ntheta] = um;
 		mb->ntheta++;
 	}
 	mb->predictor_user_scale = iniparser_getboolean(ini, inla_string_join(secname, "USER.SCALE"), 1);
@@ -5018,7 +4970,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	char *secname = NULL, *msg = NULL;
 	int i;
 	double tmp;
-	map_table_tp *um, *um0, *um1;
 	Data_section_tp *ds;
 
 	mb->nds++;
@@ -5288,11 +5239,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
 
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5310,8 +5256,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5331,11 +5275,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap=[%s]\n", um0->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5353,8 +5292,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5381,12 +5318,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-
-		if (mb->verbose && um1) {
-			printf("\t\tusermap=[%s]\n", um1->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5404,8 +5335,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5434,11 +5363,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap=[%s]\n", um0->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5456,8 +5380,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5478,12 +5400,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a");
 
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-
-		if (mb->verbose && um1) {
-			printf("\t\tusermap=[%s]\n", um1->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5501,8 +5417,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5522,11 +5436,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
 
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5544,8 +5453,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5565,11 +5472,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap=[%s]\n", um0->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5587,8 +5489,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5607,11 +5507,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
-
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap=[%s]\n", um1->name);
-		}
 
 		/*
 		 * add theta 
@@ -5635,8 +5530,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5656,10 +5549,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap=[%s]\n", um0->name);
-		}
 
 		/*
 		 * add theta 
@@ -5678,8 +5567,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5699,11 +5586,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
 
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap=[%s]\n", um1->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5721,8 +5603,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5742,11 +5622,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		ds->data_observations.alpha_laplace = iniparser_getdouble(ini, inla_string_join(secname, "ALPHA"), 0.5);
 		ds->data_observations.epsilon_laplace = iniparser_getdouble(ini, inla_string_join(secname, "EPSILON"), 0.01);
@@ -5774,8 +5649,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_tau_laplace;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5795,11 +5668,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap0=[%s]\n", um->name);
-		}
-
 		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
@@ -5814,8 +5682,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5834,11 +5700,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NORMAL");
 
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
-		}
-
 		if (!ds->data_fixed1) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
@@ -5853,8 +5714,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_dof;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5877,11 +5736,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
 
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -5899,8 +5753,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_dof;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5923,10 +5775,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN");
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial1);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
@@ -5939,10 +5787,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN");
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
-		}
 
 		/*
 		 * add theta 
@@ -5961,8 +5805,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -5980,8 +5822,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_shape_svnig;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6003,10 +5843,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-alpha");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add theta 
@@ -6025,8 +5861,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6047,10 +5881,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA-alpha");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add theta 
@@ -6069,8 +5899,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_alpha_weibull_cure;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6087,10 +5915,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add p
@@ -6109,8 +5933,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_p_weibull_cure;	/* p = exp(p.intern)/(1+exp(p.intern)) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6131,10 +5953,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add theta 
@@ -6158,8 +5976,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6180,11 +5996,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
 		/*
 		 * add theta 
 		 */
@@ -6202,8 +6013,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6224,10 +6033,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add theta 
@@ -6246,8 +6051,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6268,10 +6071,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
 
 		/*
 		 * add theta 
@@ -6290,8 +6089,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6308,10 +6105,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
-		}
 
 		/*
 		 * add theta 
@@ -6330,8 +6123,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6352,10 +6143,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 
 		/*
 		 * add theta 
@@ -6379,8 +6166,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -6570,8 +6355,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		**h2_intern = NULL, **a_intern = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
-	map_table_tp *um, *um0, *um1, *um2, *um3, *um4, *um5;
-
 	inla_spde_tp *spde_model = NULL;
 	inla_spde_tp *spde_model_orig = NULL;
 
@@ -6628,8 +6411,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_same_as = Realloc(mb->f_same_as, mb->nf + 1, char *);
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
-	mb->f_usermap = Realloc(mb->f_usermap, mb->nf + 1, map_table_tp *);
-
 	/*
 	 * set everything to `ZERO' initially 
 	 */
@@ -6667,7 +6448,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(Torder, -1);
 	SET(Kmodel, NULL);
 	SET(Korder, -1);
-	SET(usermap, NULL);
 	SET(of, NULL);
 	SET(precision, 1.0e9);
 	SET(nrep, 1);
@@ -7520,11 +7300,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
 
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
-
 		mb->f_theta[mb->nf] = Calloc(1, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
 		if (!mb->f_fixed[mb->nf][0]) {
@@ -7546,8 +7321,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 		}
 		break;
@@ -7731,8 +7504,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 				mb->theta_map_arg[mb->ntheta] = NULL;
 
-				mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-				mb->theta_usermap[mb->ntheta] = NULL;
 				mb->ntheta++;
 			}
 		}
@@ -7751,10 +7522,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
+
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
 		if (!mb->f_fixed[mb->nf][0]) {
@@ -7776,8 +7544,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -7790,10 +7556,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise phi_intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 		mb->f_theta[mb->nf][1] = phi_intern;
 		if (!mb->f_fixed[mb->nf][1]) {
@@ -7815,8 +7577,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -7833,10 +7593,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
-		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
 		}
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
@@ -7859,8 +7615,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -7873,10 +7627,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise a_intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 		mb->f_theta[mb->nf][1] = a_intern;
 		if (!mb->f_fixed[mb->nf][1]) {
@@ -7898,8 +7648,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -7916,10 +7664,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
-		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
 		}
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
@@ -7942,8 +7686,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -7956,10 +7698,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise beta_intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 		mb->f_theta[mb->nf][1] = beta_intern;
 		if (!mb->f_fixed[mb->nf][1]) {
@@ -7981,8 +7719,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -7999,10 +7735,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
-		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
 		}
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
@@ -8025,8 +7757,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -8039,10 +7769,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise h2-intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 		mb->f_theta[mb->nf][1] = h2_intern;
 		if (!mb->f_fixed[mb->nf][1]) {
@@ -8064,8 +7790,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -8120,10 +7844,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP"), NULL));
-		if (mb->verbose && um) {
-			printf("\t\tusermap=[%s]\n", um->name);
-		}
 		mb->f_theta[mb->nf] = Calloc(1, double **);
 		mb->f_theta[mb->nf][0] = beta;
 
@@ -8151,8 +7871,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = (void *) range;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um;
 			mb->ntheta++;
 		}
 		break;
@@ -8170,11 +7888,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision (iid component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -8185,11 +7898,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision (spatial component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
 		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
-		}
-
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec0;
 		if (!mb->f_fixed[mb->nf][0]) {
@@ -8208,8 +7916,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 		mb->f_theta[mb->nf][1] = log_prec1;
@@ -8229,8 +7935,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -8249,11 +7953,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision (first component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -8263,10 +7962,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision (second component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 
 		mb->f_theta[mb->nf] = Calloc(3, double **);
@@ -8287,8 +7982,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 		mb->f_theta[mb->nf][1] = log_prec1;
@@ -8308,8 +8001,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
@@ -8322,10 +8013,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise rho_intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
 		}
-		um2 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP2"), NULL));
-		if (mb->verbose && um2) {
-			printf("\t\tusermap2=[%s]\n", um2->name);
-		}
+
 		mb->f_theta[mb->nf][2] = rho_intern;
 		if (!mb->f_fixed[mb->nf][2]) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -8343,8 +8031,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um2;
 			mb->ntheta++;
 		}
 		break;
@@ -8362,10 +8048,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision (first component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
@@ -8376,10 +8058,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision (second component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), G.log_prec_initial);
@@ -8392,11 +8070,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision (third component)[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
 		}
-		um2 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP2"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap2=[%s]\n", um2->name);
-		}
-
 		mb->f_theta[mb->nf] = Calloc(6, double **);
 		mb->f_theta[mb->nf][0] = log_prec0;
 		if (!mb->f_fixed[mb->nf][0]) {
@@ -8415,8 +8088,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -8437,8 +8108,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 
@@ -8459,8 +8128,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um2;
 			mb->ntheta++;
 		}
 
@@ -8474,11 +8141,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise rho_intern01[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][3]);
 		}
-		um3 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP3"), NULL));
-		if (mb->verbose && um3) {
-			printf("\t\tusermap3=[%s]\n", um3->name);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL4"), 0.0);
 		if (!mb->f_fixed[mb->nf][4] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -8488,10 +8150,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tinitialise rho_intern02[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][4]);
-		}
-		um4 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP4"), NULL));
-		if (mb->verbose && um4) {
-			printf("\t\tusermap4=[%s]\n", um4->name);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL5"), 0.0);
@@ -8504,10 +8162,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise rho_intern12[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][5]);
 		}
-		um5 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP5"), NULL));
-		if (mb->verbose && um5) {
-			printf("\t\tusermap5=[%s]\n", um5->name);
-		}
+
 
 		mb->f_theta[mb->nf][3] = rho_intern01;
 		if (!mb->f_fixed[mb->nf][3]) {
@@ -8526,8 +8181,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um3;
 			mb->ntheta++;
 		}
 
@@ -8548,8 +8201,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um4;
 			mb->ntheta++;
 		}
 
@@ -8570,8 +8221,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_rho;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um5;
 			mb->ntheta++;
 		}
 		break;
@@ -8597,10 +8246,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
-		um0 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP0"), NULL));
-		if (mb->verbose && um0) {
-			printf("\t\tusermap0=[%s]\n", um0->name);
-		}
 
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
@@ -8623,8 +8268,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um0;
 			mb->ntheta++;
 		}
 
@@ -8638,10 +8281,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise range_intern[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
 		}
-		um1 = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "USERMAP1"), NULL));
-		if (mb->verbose && um1) {
-			printf("\t\tusermap1=[%s]\n", um1->name);
-		}
+
 		mb->f_theta[mb->nf][1] = range_intern;
 		if (!mb->f_fixed[mb->nf][1]) {
 			/*
@@ -8662,8 +8302,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_range;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-			mb->theta_usermap[mb->ntheta] = um1;
 			mb->ntheta++;
 		}
 		break;
@@ -8676,11 +8314,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 ***
 	 */
-
-	mb->f_usermap[mb->nf] = um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "F.USERMAP"), NULL));
-	if (mb->verbose && um) {
-		printf("\t\tf.usermap=[%s]\n", um->name);
-	}
 
 	if (mb->f_id[mb->nf] == F_GENERIC0) {
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -9153,10 +8786,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise group_rho_intern[%g]\n", tmp);
 				printf("\t\tgroup.fixed=[%1d]\n", fixed);
 			}
-			um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "GROUP.USERMAP"), NULL));
-			if (mb->verbose && um) {
-				printf("\t\tgroup.usermap=[%s]\n", um->name);
-			}
 
 			//P(mb->nf);
 			//P(mb->f_ntheta[mb->nf]);
@@ -9212,8 +8841,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					inla_error_general("this should not happen");
 				}
 
-				mb->theta_usermap = Realloc(mb->theta_usermap, mb->ntheta + 1, map_table_tp *);
-				mb->theta_usermap[mb->ntheta] = um;
 				mb->ntheta++;
 			}
 
@@ -9495,7 +9122,6 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i;
 	char *filename = NULL, *secname = NULL, default_tag[100];
-	map_table_tp *um;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_linear...\n");
@@ -9511,7 +9137,6 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	mb->linear_mean = Realloc(mb->linear_mean, mb->nlinear + 1, double);
 	mb->linear_compute = Realloc(mb->linear_compute, mb->nlinear + 1, int);
 	mb->linear_output = Realloc(mb->linear_output, mb->nlinear + 1, Output_tp *);
-	mb->linear_usermap = Realloc(mb->linear_usermap, mb->nlinear + 1, map_table_tp *);
 	sprintf(default_tag, "default tag for linear %d", (int) (10000 * GMRFLib_uniform()));
 	mb->linear_tag[mb->nlinear] = GMRFLib_strdup((secname ? secname : default_tag));
 	mb->linear_dir[mb->nlinear] =
@@ -9553,11 +9178,6 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tcompute=[%1d]\n", mb->linear_compute[mb->nlinear]);
 	}
-	mb->linear_usermap[mb->nlinear] = um = mapfunc_find(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.USERMAP"), NULL));
-	if (mb->verbose && um) {
-		printf("\t\tlinear.usermap=[%s]\n", um->name);
-	}
-
 	inla_parse_output(mb, ini, sec, &(mb->linear_output[mb->nlinear]));
 	mb->nlinear++;
 	return INLA_OK;
@@ -12451,20 +12071,6 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
 						   mb->predictor_output, sdir, NULL, NULL, mb->predictor_linkfunc, newtag, NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
-				Free(sdir);
-				Free(newtag);
-			}
-			if (mb->predictor_usermap) {
-				char *sdir, *newtag;
-
-				GMRFLib_sprintf(&newtag, "%s usermap %s", mb->predictor_tag, mb->predictor_usermap->name);
-				GMRFLib_sprintf(&sdir, "%s usermap", mb->predictor_dir);
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
-						   mb->predictor_output, sdir, mb->predictor_usermap->func, NULL, NULL, newtag, NULL, local_verbose);
-				inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_m, -1,
-						 (mb->predictor_m == 0 ? 1 : 2));
-				Free(sdir);
-				Free(newtag);
 			}
 		} else if (i == 1) {
 			int ii;
@@ -12476,20 +12082,6 @@ int inla_output(inla_tp * mb)
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
-
-				if (mb->f_usermap[ii]) {
-					char *sdir, *newtag;
-
-					GMRFLib_sprintf(&newtag, "%s usermap %s", mb->f_tag[ii], mb->f_usermap[ii]->name);
-					GMRFLib_sprintf(&sdir, "%s usermap", mb->f_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->f_locations[ii],
-							   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii],
-							   mb->f_output[ii], sdir, mb->f_usermap[ii]->func, NULL, NULL, newtag, mb->f_modelname[ii], local_verbose);
-					inla_output_size(mb->dir, sdir, mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
-
-					Free(sdir);
-					Free(newtag);
-				}
 			}
 		} else if (i == 2) {
 			/*
@@ -12525,26 +12117,14 @@ int inla_output(inla_tp * mb)
 			}
 
 			for (ii = 0; ii < mb->nlinear; ii++) {
-				char *sdir, *newtag;
 				int offset = offsets[mb->nf + 1 + ii];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
 						   mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
-
-				if (mb->linear_usermap[ii]) {
-					GMRFLib_sprintf(&newtag, "%s usermap %s", mb->linear_tag[ii], mb->linear_usermap[ii]->name);
-					GMRFLib_sprintf(&sdir, "%s usermap", mb->linear_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
-							   mb->linear_output[ii], sdir, mb->linear_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
-
-					Free(sdir);
-					Free(newtag);
-				}
 			}
 			if (!mb->lc_derived_only) {
-				char *sdir, *newtag, *newtag2, *newdir2;
+				char *newtag2, *newdir2;
 
 				GMRFLib_sprintf(&newtag2, "lincombs.all");
 				GMRFLib_sprintf(&newdir2, "lincombs.all");
@@ -12555,23 +12135,9 @@ int inla_output(inla_tp * mb)
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
-				
-				if (mb->lc_usermap[ii]) {
-					GMRFLib_sprintf(&newtag, "%s.usermap", newtag2);
-					GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
-					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
-							   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-					inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
-					inla_output_names(mb->dir, sdir, mb->nlc, (const char **) mb->lc_tag, "usermap");
-					
-					Free(sdir);
-					Free(newtag);
-				}
-				Free(newtag2);
-				Free(newdir2);
 			}
 			if (mb->density_lin) {
-				char *sdir, *newtag, *newtag2, *newdir2;
+				char *newtag2, *newdir2;
 				ii = 0;
 
 				GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
@@ -12580,48 +12146,21 @@ int inla_output(inla_tp * mb)
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
-
-				if (mb->lc_usermap[ii]) {
-					GMRFLib_sprintf(&newtag, "%s.usermap", newtag2); 
-					GMRFLib_sprintf(&sdir, "%s.usermap", newdir2);
-					inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
-							   mb->lc_output[ii], sdir, mb->lc_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-					inla_output_size(mb->dir, sdir, mb->nlc, -1, -1, -1, -1);
-					inla_output_names(mb->dir, sdir, mb->nlc, (const char **) mb->lc_tag, "usermap");
-					Free(sdir);
-					Free(newtag);
-				}
-				Free(newtag2);
-				Free(newdir2);
 			}
 
 			if (mb->density_hyper) {
 				
 				for (ii = 0; ii < mb->ntheta; ii++) {
-					char *sdir, *newtag;
+					char *sdir;
 
 					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, NULL,
 							   mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
-					Free(sdir);
-
 					GMRFLib_sprintf(&sdir, "hyperparameter 2 %.6d %s user scale", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
 							   mb->theta_map[ii], mb->theta_map_arg[ii], NULL, mb->theta_tag_userscale[ii], NULL, local_verbose);
-					Free(sdir);
-
-					if (mb->theta_usermap[ii]) {
-						GMRFLib_sprintf(&newtag, "%s usermap %s", mb->theta_tag[ii], mb->theta_usermap[ii]->name);
-						GMRFLib_sprintf(&sdir, "hyperparameter 3 %.6d %s usermap", ii, mb->theta_dir[ii]);
-						inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
-								   mb->theta_usermap[ii]->func, NULL, NULL, newtag, NULL, local_verbose);
-						inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
-
-						Free(sdir);
-						Free(newtag);
-					}
 				}
 			}
 
@@ -12643,7 +12182,6 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, gd, NULL, GMRFLib_ai_INLA_userfunc0_dim, 1,
 						   mb->output, sdir, NULL, NULL, NULL, "UserFunction0", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc0_dim, -1, -1, -1, -1);
-
 				Free(sdir);
 				for (ii = 0; ii < dim; ii++)
 					GMRFLib_free_density(gd[ii]);
