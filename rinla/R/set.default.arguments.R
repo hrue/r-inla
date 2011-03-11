@@ -8,9 +8,6 @@
          ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
          precision = NULL, 
 
-         ##:ARGUMENT: usermap One of the predefined functions to transform the linear combinations with. Default NULL.
-         usermap = NULL,
-
          ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
          verbose = TRUE)
 
@@ -303,9 +300,6 @@
          ##:ARGUMENT: cross Cross-sum-to-zero constraints
          cross=NULL,
          
-         ##:ARGUMENT: predictor.usermap One of the predfined mappings to compute new marginals for
-         predictor.usermap=NULL,
-
          ##:ARGUMENT: A The observation matrix A = list(i=..., j=..., values=...) or a filename.
          A = NULL,
 
