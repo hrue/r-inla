@@ -156,32 +156,29 @@
 
 `inla.collect.lincomb` =
     function(results.dir,
-             debug = FALSE)
+             debug = FALSE,
+             derived = TRUE)
 {
     ## rewrite from collect.random
     alldir = dir(results.dir)
-    lincomb = alldir[grep("^lincomb", alldir)]
+    if (derived) {
+        lincomb = alldir[grep("^lincomb.*derived[.]all", alldir)]
+    } else {
+        lincomb1 = alldir[grep("^lincomb.*derived[.]all", alldir)]
+        lincomb2 = alldir[grep("^lincomb", alldir)]
+        lincomb = setdiff(lincomb2, lincomb1)
+        if (debug)
+            print(paste("lincomb",  lincomb))
+    }        
     n.lincomb = length(lincomb)
     if (debug)
         print("collect lincombs")
 
     ##read the names and model of the lincomb effects
-    if (n.lincomb>0) {
+    if (n.lincomb > 0) {
         names.lincomb = inla.namefix(character(n.lincomb))
         model.lincomb = inla.trim(character(n.lincomb))
-        for(i in 1:n.lincomb) {
-            tag = paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"TAG", sep="")
-            if (!file.exists(tag))
-                names.lincomb[i] = "missing TAG"
-            else
-                names.lincomb[i] = inla.namefix(readLines(tag, n=1))
-            modelname = inla.trim(paste(results.dir, .Platform$file.sep, lincomb[i], .Platform$file.sep,"MODEL", sep=""))
-            if (!file.exists(modelname))
-                model.lincomb[i] = "NoModelName"
-            else
-                model.lincomb[i] = inla.trim(readLines(modelname, n=1))
-        }
-        
+
         summary.lincomb = list()
         marginals.lincomb = list()
         size.lincomb = list()
@@ -189,20 +186,25 @@
         for(i in 1:n.lincomb) {
             if (debug)
                 print(paste("read lincomb ", i , " of ", n.lincomb))
+
             ##read the summary
             file= paste(results.dir, .Platform$file.sep, lincomb[i], sep="")
             dir.lincomb = dir(file)
 
+            if (debug)
+                print(paste("read from dir ",  file))
+
             if (length(dir.lincomb) > 4) {
-                dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")), ncol=3, byrow=TRUE)
+                dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")),
+                        ncol=3, byrow=TRUE)
                 col.nam = c("ID","mean","sd")
             
                 ##read quantiles if existing
                 if (debug)
                     cat("...quantiles.dat if any\n")
                 if (length(grep("^quantiles.dat$", dir.lincomb))==1) {
-                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"quantiles.dat", sep="")),
-                            debug=debug)
+                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,
+                            "quantiles.dat", sep="")), debug=debug)
                     len = dim(xx)[2]
                     qq = xx[, seq(2, len, by=2), drop=FALSE]
                     col.nam = c(col.nam, paste(as.character(xx[, 1]),"quant", sep=""))
@@ -225,6 +227,9 @@
                     cat("...NAMES if any\n")
                 if (length(grep("^NAMES$", dir.lincomb))==1) {
                     row.names = readLines(paste(file, .Platform$file.sep,"NAMES", sep=""))
+                    ## remove the prefix 'lincomb.' as we do not need it in the names.
+                    row.names = sapply(row.names, function(x) gsub("^lincomb[.]", "", x))
+                    names(row.names) = NULL
                 } else {
                     row.names = NULL
                 }
@@ -238,7 +243,6 @@
                 dd = cbind(dd, qq)
                 if (debug)
                     cat("...kld done\n")
-
             
                 col.nam = c(col.nam, "kld")
                 colnames(dd) = inla.namefix(col.nam)
@@ -267,10 +271,11 @@
                 }
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
-                if (!file.exists(N.file))
+                if (!file.exists(N.file)) {
                     N = 0
-                else
+                } else {
                     N = scan(file=N.file, what = numeric(0), quiet=TRUE)
+                }
                 summary.lincomb[[i]] = data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
                 marginals.lincomb = NULL
             }
@@ -282,114 +287,39 @@
     } else {
         if (debug)
             cat("No lincomb effets\n")
-        model.lincomb=NULL
         summary.lincomb=NULL
         marginals.lincomb=NULL
         size.lincomb = NULL
-        names.lincomb = NULL
     }
+
+    ## in case we have 'usermap = exp()' for example,  we need this
+    tmp = summary.lincomb[[1]]
+    if (length(summary.lincomb) > 1) {
+        for (i in 2:length(summary.lincomb)) {
+            tmp = rbind(tmp, summary.lincomb[[i]])
+        }
+    }
+    summary.lincomb = list(tmp)
+
+    tmp = marginals.lincomb[[1]]
+    if (length(marginals.lincomb) > 1) {
+        for(i in 2:length(marginals.lincomb)) {
+            tmp = c(tmp, marginals.lincomb[[i]])
+        }
+    }
+    marginals.lincomb = list(tmp)
+    ##
     
-    res = list(names.lincomb = names.lincomb, summary.lincomb=summary.lincomb, marginals.lincomb=marginals.lincomb, size.lincomb = size.lincomb)
+    if (derived) {
+        res = list(summary.lincomb.derived=summary.lincomb[[1]],
+                marginals.lincomb.derived=marginals.lincomb[[1]],
+                size.lincomb.derived = size.lincomb[[1]])
+    } else {
+        res = list(summary.lincomb=summary.lincomb[[1]],
+                marginals.lincomb=marginals.lincomb[[1]],
+                size.lincomb = size.lincomb[[1]])
+    }
     return(res)
-}
-
-`inla.collect.lincomb.OLD` =
-    function(results.dir,
-             debug = FALSE)
-{
-    ### OLD CODE, REMOVE LATER
-    stop("NOT IN USE")
-
-    ## this is just an edit or inla.collect.fixed()...
-
-    alldir=dir(results.dir)
-    if (debug)
-        print("collect lincomb")
-    
-    ## read LINCOMB
-    fix = alldir[grep("^lincomb", alldir)]
-    n.fix = length(fix)
-
-    ##read the names of the lincomb
-    if (n.fix>0) {
-        names.fixed = inla.trim(character(n.fix))
-        for(i in 1:n.fix) {
-            tag = paste(results.dir, .Platform$file.sep, fix[i], .Platform$file.sep,"TAG", sep="")
-            if (!file.exists(tag))
-                names.fixed[i] = "missing NAME"
-            else
-                names.fixed[i] = inla.namefix(readLines(tag, n=1))
-        }
-        ##read summary the fixed effects
-        if (debug)
-            print(names.fixed)
-        
-        summary.fixed = numeric()
-        marginals.fixed = list()
-        for(i in 1:n.fix) {
-            file =  paste(results.dir, .Platform$file.sep, fix[i], sep="")
-            dir.fix = dir(file)
-            sum = inla.read.binary.file(paste(file, .Platform$file.sep,"summary.dat", sep=""))[-1]
-            col.nam = c("mean","sd")
-            
-            ##read quantiles if existing
-            if (length(grep("^quantiles.dat$", dir.fix))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")),
-                        debug=debug)
-                sum = c(sum, qq[, 2])
-                col.nam = c(col.nam, paste(as.character(qq[, 1]),"quant", sep=""))
-            }
-
-            ##read quantiles if existing
-            if (length(grep("^cdf.dat$", dir.fix))>0) {
-                qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")),
-                        debug=debug)
-                sum = c(sum, qq[, 2])
-                col.nam = c(col.nam, paste(as.character(qq[, 1]),"cdf", sep=""))
-            }
-            
-            ##read also kld distance
-            kld.fixed = inla.read.binary.file(paste(file, .Platform$file.sep,"symmetric-kld.dat", sep=""))[-1]
-            sum = c(sum, kld.fixed)
-            col.nam = c(col.nam, "kld")
-            if (!is.null(sum)) {
-                summary.fixed = rbind(summary.fixed, sum)
-            }
-            
-            ##read the marginals
-            xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")),
-                    debug=debug)
-            if (!is.null(xx))
-                colnames(xx) = c("x", "y")
-            marginals.fixed[[i]] = xx
-        }    
-        rm(qq)
-        rm(xx)
-
-        if (dim(summary.fixed)[1] * 2L == length(names.fixed)) {
-            ## this is required for inla.cpo if failure=1 and
-            ## derived.only = FALSE. the LC is in names.fixed, but not
-            ## computed. we have to remove those.
-            nm = inla.namefix(names.fixed)
-            rownames(summary.fixed) = nm[ grep("[.]derived$", nm) ]
-        } else {
-            rownames(summary.fixed) = inla.namefix(names.fixed)
-        }
-        colnames(summary.fixed) = inla.namefix(col.nam)
-        if (length(marginals.fixed) > 0) {
-            names(marginals.fixed) = inla.namefix(names.fixed)
-        }
-    }
-    else {
-        if (debug)
-            print("No fixed effects")
-        names.fixed=NULL
-        summary.fixed=NULL
-        marginals.fixed=NULL
-    }
-    
-    ret = list(names.lincomb=names.fixed, summary.lincomb=summary.fixed, marginals.lincomb=marginals.fixed)
-    return(ret)
 }
 
 `inla.collect.cpo` =
