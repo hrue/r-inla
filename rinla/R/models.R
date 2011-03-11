@@ -344,8 +344,8 @@
                                             param = c(1, 0.00005)
                                             ), 
                                     theta2 = list(
-                                            name = "h2",
-                                            short.name = "h2",
+                                            name = "precision-random",
+                                            short.name = "prec.random",
                                             initial = 4,
                                             fixed = FALSE,
                                             prior = "loggamma",
