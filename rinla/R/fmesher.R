@@ -559,11 +559,11 @@ inla.mesh.default =
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
-        max.edge.default = (sqrt(diff(range(loc[,1]))^2+
-                                 diff(range(loc[,1]))^2+
-                                 inla.ifelse(ncol(loc)<3,
+        max.edge.default = (sqrt(diff(range(loc0[,1]))^2+
+                                 diff(range(loc0[,2]))^2+
+                                 inla.ifelse(ncol(loc0)<3,
                                              0,
-                                             diff(range(loc[,1]))^2)
+                                             diff(range(loc0[,3]))^2)
                                  ))
         if ((inherits(extend,"list")) && (!is.null(extend$offset))) {
             max.edge.default = (max.edge.default +
