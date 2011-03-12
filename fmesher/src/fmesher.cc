@@ -268,20 +268,20 @@ int main(int argc, char* argv[])
   gengetopt_args_info args_info;
   struct cmdline_params params;
   
-  LOG("checkpoint 1." << std::endl)
-
+  LOG("checkpoint 1." << std::endl);
+  
   cmdline_init(&args_info);
   cmdline_params_init(&params);
-     
-  LOG("checkpoint 2." << std::endl)
-
+  
+  LOG("checkpoint 2." << std::endl);
+    
   /* call the command line parser */
   if (cmdline_ext(argc, argv, &args_info, &params) != 0) {
     cmdline_free(&args_info);
     return 1;
   }
 
-  LOG("checkpoint 3." << std::endl)
+  LOG("checkpoint 3." << std::endl);
 
   /* Read an optional config file, but don't override given options */
   if (args_info.config_given) {
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  LOG("checkpoint 4." << std::endl)
+  LOG("checkpoint 4." << std::endl);
 
   if (args_info.dump_config_given)
     cmdline_dump(stdout,&args_info);
@@ -302,23 +302,24 @@ int main(int argc, char* argv[])
   std::vector<string> input_s0_names;
   string input_tv0_name = "-";
 
-  LOG("checkpoint 5." << std::endl)
+  LOG("checkpoint 5." << std::endl);
   
-  input_s0_names.push_back(string(args_info.input_arg[0]));
+  if (args_info.input_given>0)
+    input_s0_names.push_back(string(args_info.input_arg[0]));
   if (args_info.input_given>1)
     input_tv0_name = string(args_info.input_arg[1]);
-  for (int i=1; i<int(args_info.input_given)-1; i++) {
-    input_s0_names.push_back(string(args_info.input_arg[i+1]));
+  for (int i=2; i<int(args_info.input_given); i++) {
+    input_s0_names.push_back(string(args_info.input_arg[i]));
   }
 
-  LOG("checkpoint 6." << std::endl)
+  LOG("checkpoint 6." << std::endl);
 
   std::vector<string> quality_names;
   for (int i=0; i<int(args_info.quality_given); i++) {
     quality_names.push_back(string(args_info.quality_arg[i]));
   }
 
-  LOG("checkpoint 7." << std::endl)
+  LOG("checkpoint 7." << std::endl);
 
   std::vector<string> boundary_names;
   std::vector<string> boundarygrp_names;
@@ -330,7 +331,7 @@ int main(int argc, char* argv[])
       boundarygrp_names.push_back(boundary_names[i]+"grp");
   }
 
-  LOG("checkpoint 8." << std::endl)
+  LOG("checkpoint 8." << std::endl);
 
   std::vector<string> interior_names;
   std::vector<string> interiorgrp_names;
@@ -342,7 +343,7 @@ int main(int argc, char* argv[])
       interiorgrp_names.push_back(interior_names[i]+"grp");
   }
 
-  LOG("checkpoint 9." << std::endl)
+  LOG("checkpoint 9." << std::endl);
 
   double cutoff = 0.0;
   if (args_info.cutoff_given>0)
@@ -354,6 +355,10 @@ int main(int argc, char* argv[])
     cet_sides = args_info.cet_arg[0];
   if (args_info.cet_given>1)
     cet_margin = args_info.cet_arg[1];
+  
+  int globe_subsegments = -1;
+  if (args_info.globe_given>0)
+    globe_subsegments = args_info.globe_arg;
   
   double rcdt_min_angle = 21;
   double rcdt_big_limit_auto_default = -1.0;
@@ -414,7 +419,7 @@ int main(int argc, char* argv[])
   cout << "X11 delay factor:\t" << x11_delay_factor << endl;
   */
 
-  LOG("IOprefix init." << std::endl)
+  LOG("IOprefix init." << std::endl);
 
   string iprefix("-");
   string oprefix("-");
@@ -440,7 +445,7 @@ int main(int argc, char* argv[])
        OK; might just want to see the algorithm at work with --x11. */
   }
 
-  LOG("matrix IO init." << std::endl)
+  LOG("matrix IO init." << std::endl);
 
   matrices.io(((args_info.io_arg == io_arg_ba) ||
 	       (args_info.io_arg == io_arg_bb)),
@@ -460,14 +465,14 @@ int main(int argc, char* argv[])
 		       string(args_info.ir_arg[i+2]));
   }
 
-  LOG("matrix IO inited." << std::endl)
+  LOG("matrix IO inited." << std::endl);
 
   for (int i=0; i<input_s0_names.size(); i++) {
     if (!matrices.load(input_s0_names[i]).active) {
       cout << "Matrix "+input_s0_names[i]+" not found." << endl;
     }
   }
-  LOG("s0 input read." << std::endl)
+  LOG("s0 input read." << std::endl);
   for (int i=0; i<quality_names.size(); i++) {
     if (quality_names[i] != "-")
       if (!matrices.load(quality_names[i]).active) {
@@ -475,10 +480,14 @@ int main(int argc, char* argv[])
 	quality_names[i] = "-";
       }
   }
-  LOG("quality input read." << std::endl)
+  LOG("quality input read." << std::endl);
 
-  LOG("iS0" << std::endl)
+  LOG("iS0" << std::endl);
 
+  if (input_s0_names.size()==0) {
+    input_s0_names.push_back(string("s0"));
+    matrices.attach(string("s0"), new Matrix<double>(3), true);
+  }
   Matrix<double>& iS0 = matrices.DD(input_s0_names[0]);
   Matrix<double>* Quality0_ = new Matrix<double>();
   Matrix<double>& Quality0 = *Quality0_;
@@ -519,7 +528,7 @@ int main(int argc, char* argv[])
   matrices.attach(string("quality0"),Quality0_,true);
 
 
-  LOG("TV0" << std::endl)
+  LOG("TV0" << std::endl);
 
   Matrix<int>* TV0 = NULL;
   if (input_tv0_name != "-") {
@@ -593,21 +602,28 @@ int main(int argc, char* argv[])
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
-  int nV = iS0.rows();
+  int nV = 0;
+  if (globe_subsegments>0) {
+    M.make_globe(globe_subsegments);
+    nV = M.nV();
+  } else {
+    nV = iS0.rows();
+  }
   bool issphere = false;
   if ((nV>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
-    LOG("1D data not implemented." << std::endl)
+    LOG_("1D data not implemented." << std::endl);
     return 0;
   } else if (nV>0) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
+    M.S_append(S0);
 
-    double radius = S0[0].length();
+    double radius = M.S(0).length();
     issphere = true;
-    bool isflat = (std::abs(S0[0][2]) < 1.0e-10);
+    bool isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
     for (int i=1; i<nV; i++) {
-      isflat = (isflat && (std::abs(S0[i][2]) < 1.0e-10));
-      issphere = (issphere && (std::abs(S0[i].length()-radius) < 1.0e-10));
+      isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
+      issphere = (issphere && (std::abs(M.S(i).length()-radius) < 1.0e-10));
     }
     if (!isflat) {
       if (issphere) {
@@ -616,24 +632,30 @@ int main(int argc, char* argv[])
 	M.type(Mesh::Mtype_manifold);
       }
     }
-
-    M.S_set(S0);
-    M.setX11VBigLimit(nV);
     
+    M.setX11VBigLimit(nV);
+      
     if (TV0) {
-      M.TV_set(*TV0);
+      if (globe_subsegments>0) {
+	LOG_("Cannot handle both --globe and predefined triangulation from -T"
+	     << std::endl);
+	LOG_("Ignoring the triangulation, using globe instead."
+	     << std::endl);
+      } else {
+	M.TV_set(*TV0);
+      }
     }
 
     matrices.attach(string("s"),&M.S(),false);
     matrices.attach("tv",&M.TV(),false);
     matrices.output("s").output("tv");
     
-    Point mini(S0(0));
-    Point maxi(S0(0));
+    Point mini(M.S(0));
+    Point maxi(M.S(0));
     for (int v=1; v<nV; v++)
       for (int i=0; i<3; i++) {
-	mini[i] = (S0(v)[i] < mini[i] ? S0(v)[i] : mini[i]);
-	maxi[i] = (S0(v)[i] > maxi[i] ? S0(v)[i] : maxi[i]);
+	mini[i] = (M.S(v)[i] < mini[i] ? M.S(v)[i] : mini[i]);
+	maxi[i] = (M.S(v)[i] > maxi[i] ? M.S(v)[i] : maxi[i]);
       }
     Point sz;
     fmesh::Vec::diff(sz,maxi,mini);
@@ -701,8 +723,9 @@ int main(int argc, char* argv[])
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
 
       /* If we don't already have a triangulation, we must create one. */
-      if (!TV0)
+      if ((!TV0) && (globe_subsegments<0)) {
 	MC.CET(cet_sides,cet_margin);
+      }
       
       /* It is more robust to add the constraints before the rest of the
 	 nodes are added.  This allows points to fall onto contraint

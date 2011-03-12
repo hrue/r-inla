@@ -72,7 +72,7 @@ struct gengetopt_args_info
   unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
   unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
   const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
-  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. (default='s0').  */
+  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points..  */
   char ** input_orig;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. original value given at command line.  */
   unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s minimum occurreces */
   unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s maximum occurreces */
@@ -115,6 +115,9 @@ struct gengetopt_args_info
   unsigned int interiorgrp_min; /**< @brief Group lables for interior segments's minimum occurreces */
   unsigned int interiorgrp_max; /**< @brief Group lables for interior segments's maximum occurreces */
   const char *interiorgrp_help; /**< @brief Group lables for interior segments help description.  */
+  int globe_arg;	/**< @brief Construct a triangulation of a globe.  */
+  char * globe_orig;	/**< @brief Construct a triangulation of a globe original value given at command line.  */
+  const char *globe_help; /**< @brief Construct a triangulation of a globe help description.  */
   const char *smorg_help; /**< @brief Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement. help description.  */
   int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='-1').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
@@ -163,6 +166,7 @@ struct gengetopt_args_info
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
   unsigned int boundarygrp_given ;	/**< @brief Whether boundarygrp was given.  */
   unsigned int interiorgrp_given ;	/**< @brief Whether interiorgrp was given.  */
+  unsigned int globe_given ;	/**< @brief Whether globe was given.  */
   unsigned int smorg_given ;	/**< @brief Whether smorg was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
   unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
