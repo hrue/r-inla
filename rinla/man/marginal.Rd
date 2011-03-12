@@ -9,6 +9,8 @@
 \alias{rmarginal}
 \alias{inla.rmarginal}
 \alias{inla.expectation}
+\alias{inla.marginal.expectation}
+\alias{marginal.expectation}
 \alias{inla.spline}
 \alias{inla.marginal}
 \alias{inla.marginal.transform}
@@ -26,9 +28,9 @@ inla.dmarginal = function(x, marginal, log = FALSE)
 inla.pmarginal = function(q, marginal, normalize = TRUE)
 inla.qmarginal = function(p, marginal, len = 1024)
 inla.rmarginal = function(n, marginal)
-inla.spline = function(marginal, log = FALSE, extrapolate = 0.0)
-inla.expectation = function(fun, marginal, ...)
+inla.marginal.expectation = function(fun, marginal, ...)
 inla.marginal.transform = function(fun, marginal, n, h.diff, ...)
+inla.spline = function(marginal, log = FALSE, extrapolate = 0.0)
 }
 
 \arguments{
@@ -103,8 +105,8 @@ s = inla.rmarginal(1000, m)
 hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
 lines(density(s), lty=2)
 
-m1 = inla.expectation(function(x) x^1, m)
-m2 = inla.expectation(function(x) x^2, m)
+m1 = inla.marginal.expectation(function(x) x^1, m)
+m2 = inla.marginal.expectation(function(x) x^2, m)
 stdev = sqrt(m2 - m1^2)
 q = inla.qmarginal(c(0.025,0.975), m)
 
