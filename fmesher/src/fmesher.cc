@@ -602,28 +602,32 @@ int main(int argc, char* argv[])
 
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
 
-  int nV = 0;
-  if (globe_subsegments>0) {
-    M.make_globe(globe_subsegments);
-    nV = M.nV();
-  } else {
-    nV = iS0.rows();
-  }
+  LOG("checkpoint 10." << std::endl <<
+      "\t" << (iS0.rows()) <<
+      "\t" << (globe_subsegments) << std::endl);
+
   bool issphere = false;
-  if ((nV>0) && (iS0.cols()<2)) {
+  if ((iS0.rows()>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
     LOG_("1D data not implemented." << std::endl);
     return 0;
-  } else if (nV>0) {
+  } else if ((iS0.rows()>0) || (globe_subsegments>0)) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
     M.S_append(S0);
+    int nV = iS0.rows();
 
-    double radius = M.S(0).length();
-    issphere = true;
-    bool isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
-    for (int i=1; i<nV; i++) {
-      isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
-      issphere = (issphere && (std::abs(M.S(i).length()-radius) < 1.0e-10));
+    bool isflat;
+    if (globe_subsegments>0) {
+      issphere = true;
+      isflat = false;
+    } else {
+      isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
+      double radius = M.S(0).length();
+      issphere = true;
+      for (int i=1; i<M.nV(); i++) {
+	isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
+	issphere = (issphere && (std::abs(M.S(i).length()-radius) < 1.0e-10));
+      }
     }
     if (!isflat) {
       if (issphere) {
@@ -633,17 +637,13 @@ int main(int argc, char* argv[])
       }
     }
     
-    M.setX11VBigLimit(nV);
+    M.setX11VBigLimit(M.nV());
       
-    if (TV0) {
-      if (globe_subsegments>0) {
-	LOG_("Cannot handle both --globe and predefined triangulation from -T"
-	     << std::endl);
-	LOG_("Ignoring the triangulation, using globe instead."
-	     << std::endl);
-      } else {
-	M.TV_set(*TV0);
-      }
+    if (globe_subsegments>0) {
+      LOG("Making globe, subsegments=" << globe_subsegments << std::endl);
+      M.make_globe(globe_subsegments);
+    } else if (TV0) {
+      M.TV_set(*TV0);
     }
 
     matrices.attach(string("s"),&M.S(),false);
@@ -652,7 +652,7 @@ int main(int argc, char* argv[])
     
     Point mini(M.S(0));
     Point maxi(M.S(0));
-    for (int v=1; v<nV; v++)
+    for (int v=1; v<M.nV(); v++)
       for (int i=0; i<3; i++) {
 	mini[i] = (M.S(v)[i] < mini[i] ? M.S(v)[i] : mini[i]);
 	maxi[i] = (M.S(v)[i] > maxi[i] ? M.S(v)[i] : maxi[i]);
@@ -723,7 +723,7 @@ int main(int argc, char* argv[])
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
 
       /* If we don't already have a triangulation, we must create one. */
-      if ((!TV0) && (globe_subsegments<0)) {
+      if (M.nT()==0) {
 	MC.CET(cet_sides,cet_margin);
       }
       

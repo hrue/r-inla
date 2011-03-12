@@ -421,6 +421,7 @@ inla.mesh.default =
              extend = (missing(tv) || is.null(tv)),
              refine=FALSE,
              lattice=NULL,
+             globe=NULL,
              cutoff = 0,
              plot.delay = NULL,
              data.dir,
@@ -474,7 +475,10 @@ inla.mesh.default =
 
     if (TRUE) {
         loc0 = rbind(segm$loc, lattice$loc, loc)
-        idx0 = 1:nrow(loc0)
+        if ((!is.null(loc0)) && (nrow(loc0)>0))
+            idx0 = 1:nrow(loc0)
+        else
+            idx0 = c()
     } else {
         ##
         ## Old code.  Filtering is now done in fmesher itself.
@@ -527,13 +531,16 @@ inla.mesh.default =
     }
     prefix = inla.fmesher.make.prefix(NULL, prefix)
 
+    if (is.null(loc0)) {
+        all.args = ""
+    } else {
+        loc.file = fmesher.write(loc0, prefix, "input.s")
+        all.args = "--input=input.s"
 
-    loc.file = fmesher.write(loc0, prefix, "input.s")
-    all.args = "--input=input.s"
-
-    if (!is.null(tv)) {
-        fmesher.write(tv-1L, prefix, "input.tv")
-        all.args = paste(all.args, ",input.tv", sep="")
+        if (!is.null(tv)) {
+            fmesher.write(tv-1L, prefix, "input.tv")
+            all.args = paste(all.args, ",input.tv", sep="")
+        }
     }
     if (!missing(cutoff)) {
         all.args = paste(all.args, " --cutoff=", cutoff, sep="")
@@ -550,6 +557,9 @@ inla.mesh.default =
         all.args = paste(all.args," --interior=input.segm.int.idx")
         all.args = paste(all.args," --interiorgrp=input.segm.int.grp")
     }
+    if (!missing(globe) && !is.null(globe)) {
+        all.args = paste(all.args, " --globe=", globe, sep="")
+    }
 
 
     if (inherits(extend,"list")) {
@@ -561,12 +571,16 @@ inla.mesh.default =
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
-        max.edge.default = (sqrt(diff(range(loc0[,1]))^2+
-                                 diff(range(loc0[,2]))^2+
-                                 inla.ifelse(ncol(loc0)<3,
-                                             0,
-                                             diff(range(loc0[,3]))^2)
-                                 ))
+        if (!missing(globe) && !is.null(globe)) {
+            max.edge.default=10
+        } else {
+            max.edge.default = (sqrt(diff(range(loc0[,1]))^2+
+                                     diff(range(loc0[,2]))^2+
+                                     inla.ifelse(ncol(loc0)<3,
+                                                 0,
+                                                 diff(range(loc0[,3]))^2)
+                                     ))
+        }
         if ((inherits(extend,"list")) && (!is.null(extend$offset))) {
             max.edge.default = (max.edge.default +
                                 max(0,2*extend$offset))
@@ -1078,7 +1092,7 @@ inla.spde = function(...)
 
 inla.spde.inla.mesh =
     function(mesh,
-             model=c("matern", "imatern"),
+             model=c("matern", "imatern", "matern.osc"),
              param=NULL,
              ...)
 {
@@ -1100,7 +1114,10 @@ inla.spde.inla.mesh =
                  ))
     class(spde) = "inla.spde"
 
-    if (identical(model, "matern") || identical(model, "imatern")) {
+    if (identical(model, "matern") ||
+        identical(model, "imatern") ||
+        identical(model, "matern.osc")
+        ) {
 
         if (is.null(param))
             param = list()
@@ -1118,7 +1135,9 @@ inla.spde.inla.mesh =
         if (nrow(param$basis.T) != mesh$n)
             stop(paste("'basis.T' has ", nrow(basis.T),
                        " rows; expected ", mesh$n, ".", sep=""))
-        if (identical(model, "matern")) {
+        if (identical(model, "matern") ||
+            identical(model, "matern.osc")
+            ) {
             if (is.null(param$basis.K)) {
                 param$basis.K = matrix(1, mesh$n, 1)
             } else if (!is.matrix(param$basis.K)) {
@@ -1178,11 +1197,22 @@ inla.spde.inla.mesh =
                                  theta4=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01)))
                                  ))
-        } else {
+        } else if (identical(model, "imatern")) {
             spde$f$hyper = (list(theta1=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01))),
                                  theta2=(list(initial=-20,
                                               fixed=TRUE)),
+                                 theta4=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01)))
+                                 ))
+        } else if (identical(model, "matern.osc")) {
+            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
+                                              param=c(log(tau0), 0.01))),
+                                 theta2=(list(initial=log(kappa0^2),
+                                              param=c(log(kappa0^2), 0.1))),
+                                 theta3=(list(fixed=FALSE,
+                                              initial=0,
+                                              param=c(0, 0.01))),
                                  theta4=(list(initial=log(tau0),
                                               param=c(log(tau0), 0.01)))
                                  ))
@@ -1293,6 +1323,20 @@ inla.spde.inla.spde = function(spde, ...)
                 tmp = dK2 %*% spde$internal$g1
                 answer = (dT %*% (dK2 %*% spde$internal$c0 %*% dK2+
                                   tmp + t(tmp) +
+                                  spde$internal$g2) %*% dT)
+            } else if (identical(spde$model, "matern.osc")) {
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                kappa2 = (param.to.fcn(spde$internal$basis.K,
+                                       param$theta.K, param$kappa2,
+                                       spde$mesh$n, "kappa2"))
+                osc = param$osc
+                dT = Diagonal(spde$mesh$n, tau)
+                dK2 = Diagonal(spde$mesh$n, kappa2)
+                tmp = dK2 %*% spde$internal$g1
+                answer = (dT %*% (dK2 %*% spde$internal$c0 %*% dK2+
+                                  cos(pi*osc)*(tmp + t(tmp)) +
                                   spde$internal$g2) %*% dT)
             } else if (identical(spde$model, "imatern")) {
                 tau = (exp(param.to.fcn(spde$internal$basis.T,
