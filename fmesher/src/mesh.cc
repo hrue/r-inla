@@ -2098,14 +2098,16 @@ namespace fmesh {
 
   Mesh& Mesh::make_globe(int subsegments)
   {
-    empty();
+    TV_set(Matrix3int());
+    int nV0 = (*this).nV();
     type(Mtype_sphere);
     int nT = 20*subsegments*subsegments;
     int nV = 2+nT/2;
-    check_capacity(nV,nT);
+    check_capacity(nV0+nV,nT);
 
-    S_(0) = Point(0.,0.,1.);
-    int offset = 1;
+    int offset = nV0;
+    S_(offset) = Point(0.,0.,1.);
+    offset += 1;
 
     for (int i=1; i <= subsegments; i++) {
       /* #points in this ring: 5*i */
@@ -2116,7 +2118,7 @@ namespace fmesh {
 			     std::sin(longitude)*std::sin(colatitude),
 			     std::cos(colatitude));
       }
-      offset = offset+5*i;
+      offset += 5*i;
     }
 
     for (int i=1; i < subsegments; i++) {
@@ -2128,7 +2130,7 @@ namespace fmesh {
 			     std::sin(longitude)*std::sin(colatitude),
 			     std::cos(colatitude));
       }
-      offset = offset+5*subsegments;
+      offset += 5*subsegments;
     }
 
     for (int i=subsegments; i>0; i--) {
@@ -2140,14 +2142,14 @@ namespace fmesh {
 			     std::sin(longitude)*std::sin(colatitude),
 			     std::cos(colatitude));
       }
-      offset = offset+5*i;
+      offset += 5*i;
     }
     S_(offset) = Point(0.,0.,-1.);
 
     MeshC MC(this);
     vertexListT vertices;
     for (int v=0;v<nV;v++)
-    vertices.push_back(v);
+    vertices.push_back(nV0+v);
     MC.DT(vertices);
 
     /*
