@@ -39,7 +39,10 @@
     r = range(m$x)
     return (list(range = r, fun = splinefun(m$x, log(m$y))))
 }
-`inla.expectation` = function(fun, marginal, ...)
+`inla.expectation` = function(fun, marginal, ...) {
+    return (inla.marginal.expectation(fun, marginal, ...))
+}
+`inla.marginal.expectation` = function(fun, marginal, ...)
 {
     ## compute E(FUN(x)), where the marginal of x is given in
     ## `marginal'; see inla.spline().
