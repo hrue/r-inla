@@ -27,48 +27,49 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--smorg] [--fem=ORDER] [--sph0=ORDER] \n         [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
 
-const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -R prefix.\n  fmesher -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
+const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -Ts0 -R prefix.\n  fmesher -Ts0 -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
 const char *gengetopt_args_info_detailed_help[] = {
-  "  -h, --help              Print help and exit",
-  "      --detailed-help     Print help, including all details and hidden options, \n                            and exit",
-  "      --full-help         Print help, including hidden options, and exit",
-  "  -V, --version           Print version and exit",
-  "  -C, --config=FILE       Read options from file",
-  "      --dump-config=FILE  Dump options to file",
+  "  -h, --help               Print help and exit",
+  "      --detailed-help      Print help, including all details and hidden \n                             options, and exit",
+  "      --full-help          Print help, including hidden options, and exit",
+  "  -V, --version            Print version and exit",
+  "  -C, --config=FILE        Read options from file",
+  "      --dump-config=FILE   Dump options to file",
   "\nI/O options:",
-  "      --io=SPEC           I/O format specification (ascii/binary)  (possible \n                            values=\"aa\", \"ab\", \"ba\", \"bb\" default=`bb')",
-  "  -i, --ic=FILE           Read input as matrix collections in the given files",
-  "  -o, --oc=FILE           Write output as a matrix collection in the given file",
-  "      --collect=NAME      Add named matrices to the output collection  \n                            (default=`-')",
+  "      --io=SPEC            I/O format specification (ascii/binary)  (possible \n                             values=\"aa\", \"ab\", \"ba\", \"bb\" \n                             default=`bb')",
+  "  -i, --ic=FILE            Read input as matrix collections in the given files",
+  "  -o, --oc=FILE            Write output as a matrix collection in the given \n                             file",
+  "      --collect=NAME       Add named matrices to the output collection  \n                             (default=`-')",
   "  \n  If only `-' is specified, all loaded matrices are added.\n  If `-' is followed by other names, only those will be added.\n",
-  "      --collect-all       With --collect=-, load all matrices from the input \n                            collections  (default=off)",
-  "      --ir=SPEC           Import a raw matrix file in ascii format",
+  "      --collect-all        With --collect=-, load all matrices from the input \n                             collections  (default=off)",
+  "      --ir=SPEC            Import a raw matrix file in ascii format",
   "  \n  First SPEC is the name of the matrix\n  Second SPEC is a four letter matrix specification:\n         d/s = dense/sparse\n         i/d = int/double\n         g/s/d = general/symmetric/diagonal\n         r/c = row/column major storage\n         Common format for point lists with one point per line = ddgr\n  Third SPEC the filename, - for standard input\n",
   "\nTriangulation options:",
-  "  -T, --input=NAME        Specify triangulation input data, default=s0.  A \n                            second name indicates a pre-existing triangulation, \n                            as in -Ts0,tv0, further indicates additional data \n                            point matrices.  Use - for tv0 to only supply \n                            additional points.  (default=`s0')",
-  "      --cutoff=DISTANCE   Treat points in the input data as unique only if they \n                            are further apart than this value. The vector 'idx' \n                            in the output gives the resulting vertex index for \n                            each input point.  (default=`0.0')",
-  "  -E, --cet=PARAM         Convex encapsulation parameters",
+  "  -T, --input=NAME         Specify triangulation input data, default=s0.  A \n                             second name indicates a pre-existing \n                             triangulation, as in -Ts0,tv0, further indicates \n                             additional data point matrices.  Use - for tv0 to \n                             only supply additional points.",
+  "      --cutoff=DISTANCE    Treat points in the input data as unique only if \n                             they are further apart than this value. The vector \n                             'idx' in the output gives the resulting vertex \n                             index for each input point.  (default=`0.0')",
+  "  -E, --cet=PARAM          Convex encapsulation parameters",
   "  \n  \tThe parameters are n,m, where n is the number of sides of the \n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
-  "  -R, --rcdt[=PARAM]      Generate RCDT, with optional quality parameters  \n                            (default=`21')",
+  "  -R, --rcdt[=PARAM]       Generate RCDT, with optional quality parameters  \n                             (default=`21')",
   "  \n  \tThe parameter order is min_angle, max_edge_length for added points, \n  max_edge_length for data points. Further values apply to data points added by \n  extra matrices specified with -T|--input\n  \tWhen negative values for the edge_length-parameters, a rudimentary\n  scaling with respect to the initial point density is used.\n  \tPositive values are absolute.\n  \tThe algorithm is only guaranteed to converge for min_angle<=21, but values \n  as high as 34 often work in practice.\n  \tDefaults are 21,-1.,-0.5\n",
-  "  -Q, --quality=NAME      Per vertex RCDT parameters, as one or more one-column \n                            matrices with minimum edge lengths for the points \n                            specified with -T|--input",
-  "  -B, --boundary=NAME     Handle triangulation boundary  (default=`boundary0')",
-  "  -I, --interior=NAME     Handle interior constraints  (default=`interior0')",
-  "      --boundarygrp=NAME  Group lables for boundary segments",
-  "      --interiorgrp=NAME  Group lables for interior segments",
+  "  -Q, --quality=NAME       Per vertex RCDT parameters, as one or more \n                             one-column matrices with minimum edge lengths for \n                             the points specified with -T|--input",
+  "  -B, --boundary=NAME      Handle triangulation boundary  (default=`boundary0')",
+  "  -I, --interior=NAME      Handle interior constraints  (default=`interior0')",
+  "      --boundarygrp=NAME   Group lables for boundary segments",
+  "      --interiorgrp=NAME   Group lables for interior segments",
+  "      --globe=SUBSEGMENTS  Construct a triangulation of a globe",
   "\nSMORG options:",
-  "      --smorg             Smorgasbord queries for a known triangulation.  Uses \n                            the given --input=s,tv directly, without any \n                            filtering or refinement.",
-  "      --fem=ORDER         Calculate FEM matrices up through order fem  \n                            (default=`-1')",
-  "      --sph0=ORDER        Calculate rotationally invariant spherical harmonics \n                            up through order sph0  (default=`-1')",
-  "      --sph=ORDER         Calculate spherical harmonics up through order sph  \n                            (default=`-1')",
-  "      --bspline=PARAM     Calculate rotationally invariant B-spline basis \n                            functions",
-  "      --points2mesh=NAME  Calculate barycentric triangle coordinates for a set \n                            of points  (default=`s')",
+  "      --smorg              Smorgasbord queries for a known triangulation.  Uses \n                             the given --input=s,tv directly, without any \n                             filtering or refinement.",
+  "      --fem=ORDER          Calculate FEM matrices up through order fem  \n                             (default=`-1')",
+  "      --sph0=ORDER         Calculate rotationally invariant spherical harmonics \n                             up through order sph0  (default=`-1')",
+  "      --sph=ORDER          Calculate spherical harmonics up through order sph  \n                             (default=`-1')",
+  "      --bspline=PARAM      Calculate rotationally invariant B-spline basis \n                             functions",
+  "      --points2mesh=NAME   Calculate barycentric triangle coordinates for a set \n                             of points  (default=`s')",
   "\nMiscellaneous options:",
-  "  -x, --x11[=DELAY]       Show progress in an x11 window, with delay factor  \n                            (default=`1.0')",
-  "      --x11-zoom=LIMITS   Zoom into a smaller section of the graph, \n                            [minx,maxx,miny,maxy]",
+  "  -x, --x11[=DELAY]        Show progress in an x11 window, with delay factor  \n                             (default=`1.0')",
+  "      --x11-zoom=LIMITS    Zoom into a smaller section of the graph, \n                             [minx,maxx,miny,maxy]",
     0
 };
 static void
@@ -107,11 +108,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[30] = gengetopt_args_info_detailed_help[34];
   gengetopt_args_info_full_help[31] = gengetopt_args_info_detailed_help[35];
   gengetopt_args_info_full_help[32] = gengetopt_args_info_detailed_help[36];
-  gengetopt_args_info_full_help[33] = 0; 
+  gengetopt_args_info_full_help[33] = gengetopt_args_info_detailed_help[37];
+  gengetopt_args_info_full_help[34] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[34];
+const char *gengetopt_args_info_full_help[35];
 
 static void
 init_help_array(void)
@@ -148,11 +150,12 @@ init_help_array(void)
   gengetopt_args_info_help[29] = gengetopt_args_info_detailed_help[33];
   gengetopt_args_info_help[30] = gengetopt_args_info_detailed_help[34];
   gengetopt_args_info_help[31] = gengetopt_args_info_detailed_help[35];
-  gengetopt_args_info_help[32] = 0; 
+  gengetopt_args_info_help[32] = gengetopt_args_info_detailed_help[36];
+  gengetopt_args_info_help[33] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[33];
+const char *gengetopt_args_info_help[34];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -227,6 +230,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->interior_given = 0 ;
   args_info->boundarygrp_given = 0 ;
   args_info->interiorgrp_given = 0 ;
+  args_info->globe_given = 0 ;
   args_info->smorg_given = 0 ;
   args_info->fem_given = 0 ;
   args_info->sph0_given = 0 ;
@@ -274,6 +278,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->boundarygrp_orig = NULL;
   args_info->interiorgrp_arg = NULL;
   args_info->interiorgrp_orig = NULL;
+  args_info->globe_orig = NULL;
   args_info->fem_arg = -1;
   args_info->fem_orig = NULL;
   args_info->sph0_arg = -1;
@@ -315,7 +320,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->ir_min = 0;
   args_info->ir_max = 0;
   args_info->input_help = gengetopt_args_info_detailed_help[16] ;
-  args_info->input_min = 0;
+  args_info->input_min = 1;
   args_info->input_max = 0;
   args_info->cutoff_help = gengetopt_args_info_detailed_help[17] ;
   args_info->cet_help = gengetopt_args_info_detailed_help[18] ;
@@ -339,16 +344,17 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->interiorgrp_help = gengetopt_args_info_detailed_help[26] ;
   args_info->interiorgrp_min = 0;
   args_info->interiorgrp_max = 0;
-  args_info->smorg_help = gengetopt_args_info_detailed_help[28] ;
-  args_info->fem_help = gengetopt_args_info_detailed_help[29] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[30] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[31] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->globe_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->smorg_help = gengetopt_args_info_detailed_help[29] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[33] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[33] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[35] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[36] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[34] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[36] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[37] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -537,6 +543,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
   free_multiple_string_field (args_info->boundarygrp_given, &(args_info->boundarygrp_arg), &(args_info->boundarygrp_orig));
   free_multiple_string_field (args_info->interiorgrp_given, &(args_info->interiorgrp_arg), &(args_info->interiorgrp_orig));
+  free_string_field (&(args_info->globe_orig));
   free_string_field (&(args_info->fem_orig));
   free_string_field (&(args_info->sph0_orig));
   free_string_field (&(args_info->sph_orig));
@@ -662,6 +669,8 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
   write_multiple_into_file(outfile, args_info->boundarygrp_given, "boundarygrp", args_info->boundarygrp_orig, 0);
   write_multiple_into_file(outfile, args_info->interiorgrp_given, "interiorgrp", args_info->interiorgrp_orig, 0);
+  if (args_info->globe_given)
+    write_into_file(outfile, "globe", args_info->globe_orig, 0);
   if (args_info->smorg_given)
     write_into_file(outfile, "smorg", 0, 0 );
   if (args_info->fem_given)
@@ -1339,6 +1348,7 @@ cmdline_internal (
         { "interior",	1, NULL, 'I' },
         { "boundarygrp",	1, NULL, 0 },
         { "interiorgrp",	1, NULL, 0 },
+        { "globe",	1, NULL, 0 },
         { "smorg",	0, NULL, 0 },
         { "fem",	1, NULL, 0 },
         { "sph0",	1, NULL, 0 },
@@ -1402,7 +1412,7 @@ cmdline_internal (
         case 'T':	/* Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points..  */
         
           if (update_multiple_arg_temp(&input_list, 
-              &(local_args_info.input_given), optarg, 0, "s0", ARG_STRING,
+              &(local_args_info.input_given), optarg, 0, 0, ARG_STRING,
               "input", 'T',
               additional_error))
             goto failure;
@@ -1577,6 +1587,20 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Construct a triangulation of a globe.  */
+          else if (strcmp (long_options[option_index].name, "globe") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->globe_arg), 
+                 &(args_info->globe_orig), &(args_info->globe_given),
+                &(local_args_info.globe_given), optarg, 0, 0, ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "globe", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement..  */
           else if (strcmp (long_options[option_index].name, "smorg") == 0)
           {
@@ -1695,10 +1719,9 @@ cmdline_internal (
     &(args_info->ir_orig), args_info->ir_given,
     local_args_info.ir_given, 0,
     ARG_STRING, ir_list);
-  multiple_default_value.default_string_arg = "s0";
   update_multiple_arg((void *)&(args_info->input_arg),
     &(args_info->input_orig), args_info->input_given,
-    local_args_info.input_given, &multiple_default_value,
+    local_args_info.input_given, 0,
     ARG_STRING, input_list);
   update_multiple_arg((void *)&(args_info->cet_arg),
     &(args_info->cet_orig), args_info->cet_given,
