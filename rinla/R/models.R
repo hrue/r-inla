@@ -336,7 +336,7 @@
                     generic2 = list(
                             hyper = list(
                                     theta1 = list(
-                                            name = "precision-cmatrix",
+                                            name = "log precision-cmatrix",
                                             short.name = "prec",
                                             initial = 4,
                                             fixed = FALSE,
@@ -344,7 +344,7 @@
                                             param = c(1, 0.00005)
                                             ), 
                                     theta2 = list(
-                                            name = "precision-random",
+                                            name = "log precision-random",
                                             short.name = "prec.random",
                                             initial = 4,
                                             fixed = FALSE,
