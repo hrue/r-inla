@@ -13827,7 +13827,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FY")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -13893,6 +13893,26 @@ int main(int argc, char **argv)
 				} else {
 					fprintf(stderr, "Fail to read MCMC_THINNING from %s\n", optarg);
 					exit(EXIT_SUCCESS);
+				}
+			}
+			break;
+		case 'z':
+			if (G.mode != INLA_MODE_FINN) {
+				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
+				exit(1);
+			} else {
+				int int_seed;
+				if (inla_sread_ints(&int_seed, 1, optarg) == INLA_OK) {
+					;
+				} else {
+					fprintf(stderr, "Fail to read FINN_SEED from %s\n", optarg);
+					exit(EXIT_SUCCESS);
+				}
+				if (int_seed != 0) {
+					/* 
+					 * seed = 0 is default which is initialise from /dev/random
+					 */
+					GMRFLib_rng_init((unsigned long int) int_seed);
 				}
 			}
 			break;
