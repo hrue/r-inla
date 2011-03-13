@@ -111,6 +111,8 @@ section "SMORG options"
 option "smorg" - "Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement." optional
 option "fem" - "Calculate FEM matrices up through order fem" int typestr="ORDER"
        default="-1" optional
+option "noniso" - "Calculate non-isotropic Laplacians" string typestr="NAME"
+       multiple(2) optional
 option "sph0" - "Calculate rotationally invariant spherical harmonics up through order sph0" int typestr="ORDER"
        default="-1" optional
 option "sph" - "Calculate spherical harmonics up through order sph" int typestr="ORDER"

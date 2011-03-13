@@ -1384,6 +1384,7 @@ inla.spde.inla = function(inla, name, spde, ...)
 `inla.fmesher.smorg` =
     function(loc, tv,
              fem=NULL,
+             noniso=NULL,
              sph0=NULL,
              sph=NULL,
              bspline=NULL,
@@ -1407,6 +1408,7 @@ inla.spde.inla = function(inla, name, spde, ...)
         output.given = TRUE
     }
     output.fem = list("c0", "g1", "g2")
+    output.noniso = list("g1noniso", "g2noniso")
     output.sph0 = list("sph0")
     output.sph = list("sph")
     output.bspline = list("bspline")
@@ -1420,6 +1422,13 @@ inla.spde.inla = function(inla, name, spde, ...)
     if (!is.null(fem)) {
         all.args = paste(all.args," --fem=", max(2,fem), sep="")
         if (!output.given) output = c(output, output.fem)
+    }
+    if (!is.null(noniso)) {
+        fmesher.write(noniso[[1]], prefix, "noniso.gamma")
+        fmesher.write(noniso[[2]], prefix, "noniso.vec")
+
+        all.args = paste(all.args," --noniso=noniso.gamma,noniso.vec", sep="")
+        if (!output.given) output = c(output, output.noniso)
     }
     if (!is.null(sph0)) {
         all.args = paste(all.args," --sph0=", sph0, sep="")

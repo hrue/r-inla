@@ -122,6 +122,11 @@ struct gengetopt_args_info
   int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='-1').  */
   char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
   const char *fem_help; /**< @brief Calculate FEM matrices up through order fem help description.  */
+  char ** noniso_arg;	/**< @brief Calculate non-isotropic Laplacians.  */
+  char ** noniso_orig;	/**< @brief Calculate non-isotropic Laplacians original value given at command line.  */
+  unsigned int noniso_min; /**< @brief Calculate non-isotropic Laplacians's minimum occurreces */
+  unsigned int noniso_max; /**< @brief Calculate non-isotropic Laplacians's maximum occurreces */
+  const char *noniso_help; /**< @brief Calculate non-isotropic Laplacians help description.  */
   int sph0_arg;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 (default='-1').  */
   char * sph0_orig;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 original value given at command line.  */
   const char *sph0_help; /**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 help description.  */
@@ -169,6 +174,7 @@ struct gengetopt_args_info
   unsigned int globe_given ;	/**< @brief Whether globe was given.  */
   unsigned int smorg_given ;	/**< @brief Whether smorg was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
+  unsigned int noniso_given ;	/**< @brief Whether noniso was given.  */
   unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
   unsigned int sph_given ;	/**< @brief Whether sph was given.  */
   unsigned int bspline_given ;	/**< @brief Whether bspline was given.  */
