@@ -1350,7 +1350,9 @@ inla.spde.inla.spde = function(spde, ...)
             }
         } else if (identical(query, "sample")) {
             Q = inla.spde(spde, precision=param)$precision
-            finn = inla.finn(Q)
+            finn = (inla.finn(Q, seed=(inla.ifelse(is.null(param$seed),
+                                                   0L,
+                                                   param$seed))))
             answer = finn$sample
         } else if (!identical(query, "")) {
             not.known(spde,query)
