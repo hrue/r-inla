@@ -265,6 +265,7 @@ namespace fmesh {
 
   };
 
+  Matrix3double* make_globe_points(int subsegments);
 
 
   class MOAint {
