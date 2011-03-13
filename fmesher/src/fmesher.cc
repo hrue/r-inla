@@ -932,7 +932,6 @@ int main(int argc, char* argv[])
       matrices.output(Kname);
     }
 
-
     if (noniso_names.size()>0) {
       SparseMatrix<double>& Gani  = matrices.SD("g1noniso").clear();
       M.calcQblocksAni(Gani,
@@ -956,7 +955,18 @@ int main(int argc, char* argv[])
     }
     
   }
-  
+
+  if (args_info.grad_given>0) {
+    SparseMatrix<double>* D[3];
+    M.calcGradientMatrices(D);
+    matrices.attach("dx", D[0], true);
+    matrices.attach("dy", D[1], true);
+    matrices.attach("dz", D[2], true);
+    matrices.matrixtype("dx",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("dy",fmesh::IOMatrixtype_general);
+    matrices.matrixtype("dz",fmesh::IOMatrixtype_general);
+    matrices.output("dx").output("dy").output("dz");
+  }
 
   for (int i=0; i<(int)args_info.collect_given; i++) {
     string matrix_name = string(args_info.collect_arg[i]);

@@ -250,9 +250,7 @@ namespace fmesh {
     void calcQblocksAni(SparseMatrix<double>& G1,
 			const Matrix<double>& gamma,
 			const Matrix<double>& vec) const;
-    void calcGradientMatrices(SparseMatrix<double>& Dx,
-			      SparseMatrix<double>& Dy,
-			      SparseMatrix<double>& Dz) const;
+    void calcGradientMatrices(SparseMatrix<double>** D) const;
 
     /*! \brief Store the mesh in files. */
     bool save(std::string filename_s,
