@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER] \n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME] \n         [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version] \n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC] \n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all] \n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE] \n         [-EPARAM|--cet=PARAM] [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME] \n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME] \n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER] \n         [--noniso=NAME] [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] \n         [--points2mesh=NAME] [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_description = "Examples:\n\nBuild a refined triangulation from a set of points stored in prefix.s0:\n  fmesher -Ts0 -R prefix.\n  fmesher -Ts0 -R prefix. output.\n  fmesher collect=-,s,tv prefix.\nThe output is stored in prefix.s and prefix.tv (and other prefix.* files)\nor output.s and putput.tv (in the second version).\nIn the third version, only the s and tv matrices are output, thus\nexcluding any other output matrices.\n\nJoin separate matrix files into collection files:\n  fmesher --collect=s0,s,tv,tt,tti,vv prefix. --oc=graph.col\n  fmesher --collect=c0,c1,g1,g2 prefix. --oc=fem.col\n\nExtract all matrices from two collection files graph.col and fem.col:\n  fmesher --collect=-- --ic=graph.col,fem.col - prefix.\n\n--collect=- outputs all files activated by the program, but since\nwe are only interested in extracting all the matrices,\n--collect=-- indicates that all matrices should be read, regardless of\nwhether they are needed or not.\nThe `-' at the end indicates that no prefix-input is used, only output.\nTo completely disable prefix I/O, omit the prefixes completely, or\nspecify `-' or `- -'\n\nConvert a raw ascii matrix from stdin to fmesher format:\n  fmesher --ir=s0,ddgr,- -R - prefix. < S0.dat\n  fmesher --ir=s0,ddgr,S0.dat -R --collect=s0 - prefix.\n  fmesher --ir=s0,ddgr,S0.dat --collect=-,s0 - prefix.\nIn all cases, s0 is read from S0.dat\nIn the first example, s0 is used for triangulation, but not output.\nIn the second example, s0 is used for triangulation, and added to the output.\nIn the third and fourth example, only s0 is output, and no triangulation made.";
 
@@ -63,6 +63,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "\nSMORG options:",
   "      --smorg              Smorgasbord queries for a known triangulation.  Uses \n                             the given --input=s,tv directly, without any \n                             filtering or refinement.",
   "      --fem=ORDER          Calculate FEM matrices up through order fem  \n                             (default=`-1')",
+  "      --noniso=NAME        Calculate non-isotropic Laplacians",
   "      --sph0=ORDER         Calculate rotationally invariant spherical harmonics \n                             up through order sph0  (default=`-1')",
   "      --sph=ORDER          Calculate spherical harmonics up through order sph  \n                             (default=`-1')",
   "      --bspline=PARAM      Calculate rotationally invariant B-spline basis \n                             functions",
@@ -109,11 +110,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[31] = gengetopt_args_info_detailed_help[35];
   gengetopt_args_info_full_help[32] = gengetopt_args_info_detailed_help[36];
   gengetopt_args_info_full_help[33] = gengetopt_args_info_detailed_help[37];
-  gengetopt_args_info_full_help[34] = 0; 
+  gengetopt_args_info_full_help[34] = gengetopt_args_info_detailed_help[38];
+  gengetopt_args_info_full_help[35] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[35];
+const char *gengetopt_args_info_full_help[36];
 
 static void
 init_help_array(void)
@@ -151,11 +153,12 @@ init_help_array(void)
   gengetopt_args_info_help[30] = gengetopt_args_info_detailed_help[34];
   gengetopt_args_info_help[31] = gengetopt_args_info_detailed_help[35];
   gengetopt_args_info_help[32] = gengetopt_args_info_detailed_help[36];
-  gengetopt_args_info_help[33] = 0; 
+  gengetopt_args_info_help[33] = gengetopt_args_info_detailed_help[37];
+  gengetopt_args_info_help[34] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[34];
+const char *gengetopt_args_info_help[35];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -233,6 +236,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->globe_given = 0 ;
   args_info->smorg_given = 0 ;
   args_info->fem_given = 0 ;
+  args_info->noniso_given = 0 ;
   args_info->sph0_given = 0 ;
   args_info->sph_given = 0 ;
   args_info->bspline_given = 0 ;
@@ -281,6 +285,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->globe_orig = NULL;
   args_info->fem_arg = -1;
   args_info->fem_orig = NULL;
+  args_info->noniso_arg = NULL;
+  args_info->noniso_orig = NULL;
   args_info->sph0_arg = -1;
   args_info->sph0_orig = NULL;
   args_info->sph_arg = -1;
@@ -347,14 +353,17 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->globe_help = gengetopt_args_info_detailed_help[27] ;
   args_info->smorg_help = gengetopt_args_info_detailed_help[29] ;
   args_info->fem_help = gengetopt_args_info_detailed_help[30] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[31] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[32] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[33] ;
+  args_info->noniso_help = gengetopt_args_info_detailed_help[31] ;
+  args_info->noniso_min = 2;
+  args_info->noniso_max = 2;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[33] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[34] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[34] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[36] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[37] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[35] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[37] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[38] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -545,6 +554,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   free_multiple_string_field (args_info->interiorgrp_given, &(args_info->interiorgrp_arg), &(args_info->interiorgrp_orig));
   free_string_field (&(args_info->globe_orig));
   free_string_field (&(args_info->fem_orig));
+  free_multiple_string_field (args_info->noniso_given, &(args_info->noniso_arg), &(args_info->noniso_orig));
   free_string_field (&(args_info->sph0_orig));
   free_string_field (&(args_info->sph_orig));
   free_multiple_field (args_info->bspline_given, (void *)(args_info->bspline_arg), &(args_info->bspline_orig));
@@ -675,6 +685,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "smorg", 0, 0 );
   if (args_info->fem_given)
     write_into_file(outfile, "fem", args_info->fem_orig, 0);
+  write_multiple_into_file(outfile, args_info->noniso_given, "noniso", args_info->noniso_orig, 0);
   if (args_info->sph0_given)
     write_into_file(outfile, "sph0", args_info->sph0_orig, 0);
   if (args_info->sph_given)
@@ -967,6 +978,9 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->interiorgrp_given, args_info->interiorgrp_min, args_info->interiorgrp_max, "'--interiorgrp'"))
+     error = 1;
+  
+  if (check_multiple_option_occurrences(prog_name, args_info->noniso_given, args_info->noniso_min, args_info->noniso_max, "'--noniso'"))
      error = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->bspline_given, args_info->bspline_min, args_info->bspline_max, "'--bspline'"))
@@ -1295,6 +1309,7 @@ cmdline_internal (
   struct generic_list * interior_list = NULL;
   struct generic_list * boundarygrp_list = NULL;
   struct generic_list * interiorgrp_list = NULL;
+  struct generic_list * noniso_list = NULL;
   struct generic_list * bspline_list = NULL;
   struct generic_list * x11_zoom_list = NULL;
   int error = 0;
@@ -1351,6 +1366,7 @@ cmdline_internal (
         { "globe",	1, NULL, 0 },
         { "smorg",	0, NULL, 0 },
         { "fem",	1, NULL, 0 },
+        { "noniso",	1, NULL, 0 },
         { "sph0",	1, NULL, 0 },
         { "sph",	1, NULL, 0 },
         { "bspline",	1, NULL, 0 },
@@ -1629,6 +1645,17 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Calculate non-isotropic Laplacians.  */
+          else if (strcmp (long_options[option_index].name, "noniso") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&noniso_list, 
+                &(local_args_info.noniso_given), optarg, 0, 0, ARG_STRING,
+                "noniso", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Calculate rotationally invariant spherical harmonics up through order sph0.  */
           else if (strcmp (long_options[option_index].name, "sph0") == 0)
           {
@@ -1754,6 +1781,10 @@ cmdline_internal (
     &(args_info->interiorgrp_orig), args_info->interiorgrp_given,
     local_args_info.interiorgrp_given, 0,
     ARG_STRING, interiorgrp_list);
+  update_multiple_arg((void *)&(args_info->noniso_arg),
+    &(args_info->noniso_orig), args_info->noniso_given,
+    local_args_info.noniso_given, 0,
+    ARG_STRING, noniso_list);
   update_multiple_arg((void *)&(args_info->bspline_arg),
     &(args_info->bspline_orig), args_info->bspline_given,
     local_args_info.bspline_given, 0,
@@ -1785,6 +1816,8 @@ cmdline_internal (
   local_args_info.boundarygrp_given = 0;
   args_info->interiorgrp_given += local_args_info.interiorgrp_given;
   local_args_info.interiorgrp_given = 0;
+  args_info->noniso_given += local_args_info.noniso_given;
+  local_args_info.noniso_given = 0;
   args_info->bspline_given += local_args_info.bspline_given;
   local_args_info.bspline_given = 0;
   args_info->x11_zoom_given += local_args_info.x11_zoom_given;
@@ -1838,6 +1871,7 @@ failure:
   free_list (interior_list, 1 );
   free_list (boundarygrp_list, 1 );
   free_list (interiorgrp_list, 1 );
+  free_list (noniso_list, 1 );
   free_list (bspline_list, 0 );
   free_list (x11_zoom_list, 0 );
   

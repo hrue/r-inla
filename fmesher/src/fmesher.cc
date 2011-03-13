@@ -345,6 +345,11 @@ int main(int argc, char* argv[])
 
   LOG("checkpoint 9." << std::endl);
 
+  std::vector<string> noniso_names;
+  for (int i=0; i<int(args_info.noniso_given); i++) {
+    noniso_names.push_back(string(args_info.noniso_arg[i]));
+  }
+
   double cutoff = 0.0;
   if (args_info.cutoff_given>0)
     cutoff = args_info.cutoff_arg;
@@ -565,6 +570,15 @@ int main(int argc, char* argv[])
       matrices.DI(interiorgrp_names[i])(0,0) = i+1;
     }
   }
+
+  for (int i=0; i<noniso_names.size(); i++) {
+    if (!matrices.load(noniso_names[i]).active) {
+      cout << "Matrix "+noniso_names[i]+" not found." << endl;
+    }
+  }
+
+
+
 
 
 
@@ -873,7 +887,7 @@ int main(int argc, char* argv[])
     Matrix<double>& Tareas  = matrices.DD("ta").clear();
     
     M.calcQblocks(C0,C1,G,B1,Tareas);
-    
+
     matrices.attach(string("va"),new Matrix<double>(diag(C0)),true);
     
     K = G-B1;
@@ -916,6 +930,29 @@ int main(int argc, char* argv[])
       *b = (*a)*tmp;
       matrices.matrixtype(Kname,fmesh::IOMatrixtype_general);
       matrices.output(Kname);
+    }
+
+
+    if (noniso_names.size()>0) {
+      SparseMatrix<double>& Gani  = matrices.SD("g1noniso").clear();
+      M.calcQblocksAni(Gani,
+		       matrices.DD(noniso_names[0]),
+		       matrices.DD(noniso_names[1]));
+      matrices.output("g1noniso");
+
+      SparseMatrix<double> tmp = Gani*C0inv;
+      SparseMatrix<double>* a;
+      SparseMatrix<double>* b = &Gani;
+      for (int i=1; i<fem_order_max; i++) {
+	std::stringstream ss;
+	ss << i+1;
+	std::string Gname = "g"+ss.str()+"noniso";
+	a = b;
+	b = &(matrices.SD(Gname).clear());
+	*b = tmp*(*a);
+	matrices.matrixtype(Gname,fmesh::IOMatrixtype_symmetric);
+	matrices.output(Gname);
+      }
     }
     
   }
