@@ -2,7 +2,8 @@
 ## computes whatever Finn wants...
 
 `inla.finn` = function(C,
-        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "md", "mmd"))
+        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "md", "mmd"),
+        seed = 0L)
 {
     reordering = match.arg(reordering)
 
@@ -21,10 +22,10 @@
         
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
-                "-r", reordering, finn.file), intern=TRUE)
+                "-r", reordering, "-z",  seed, finn.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
-                "-r", reordering, finn.file), intern=TRUE)
+                "-r", reordering, "-z",  seed, finn.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
