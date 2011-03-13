@@ -14,11 +14,11 @@
 
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
 
-#define MESH_LOG_(msg) cout << WHEREAMI << msg;
+#define LOG_(msg) cout << WHEREAMI << msg;
 #ifdef DEBUG
-#define MESH_LOG(msg) MESH_LOG_(msg)
+#define LOG(msg) MESH_LOG_(msg)
 #else
-#define MESH_LOG(msg)
+#define LOG(msg)
 #endif
 
 
@@ -257,7 +257,7 @@ namespace fmesh {
 	    TTi_(t)[(vi+2)%3] = (vi2+1)%3;
 	  } else {
 	    /* Error! This should never happen! */
-	    MESH_LOG("ERROR\n");
+	    LOG("ERROR\n");
 	  }
 	} else {
 	  TTi_(t)[(vi+2)%3] = -1;
@@ -474,7 +474,7 @@ namespace fmesh {
       Vec::accum(r0,s[2]);
       Vec::rescale(r0,1/3.);
 
-      MESH_LOG_(arc_split << "\t" << r0[2] << "\t" << n[2] << endl);
+      LOG_(arc_split << "\t" << r0[2] << "\t" << n[2] << endl);
       */
     }
     /* Draw triangle slightly closer to center. */
@@ -795,7 +795,7 @@ namespace fmesh {
       break;
     default:
       /* ERROR: This should never be reached. */
-      MESH_LOG("ERROR: unhandled mesh type.");
+      LOG("ERROR: unhandled mesh type.");
       area = 0.0;
     }
 
@@ -1104,8 +1104,8 @@ namespace fmesh {
     if (onBoundary()) return true; /* Locally optimal, OK. */
     dh.orbit0rev().orbit2();
     int v(dh.v());
-    //    MESH_LOG("circumcircleOK? " << *this << endl);
-    //    MESH_LOG("  result0 = "
+    //    LOG("circumcircleOK? " << *this << endl);
+    //    LOG("  result0 = "
     //	      << std::scientific << inCircumcircle(M_->S_[v]) << endl);
     if (inCircumcircle(M_->S_[v]) <= MESH_EPSILON) return true;
     /* For symmetric robusness, check with the reverse dart as well: */
@@ -1114,7 +1114,7 @@ namespace fmesh {
     v = dh.v();
     dh.orbit2();
     dh.orbit1();
-    //    MESH_LOG("  result1 = "
+    //    LOG("  result1 = "
     //	      << std::scientific << dh.inCircumcircle(M_->S_[v]) << endl);
     return (dh.inCircumcircle(M_->S_[v]) <= MESH_EPSILON);
   }
@@ -1240,17 +1240,17 @@ namespace fmesh {
 
     /* Debug code: */
     /* 
-    MESH_LOG("TT is \n" << TTO());
+    LOG("TT is \n" << TTO());
     rebuildTT();
-    MESH_LOG("TT should be \n" << TTO());
+    LOG("TT should be \n" << TTO());
     if (use_TTi_) {
-      MESH_LOG("TTi is \n" << TTiO());
+      LOG("TTi is \n" << TTiO());
       rebuildTTi();
-      MESH_LOG("TTi should be \n" << TTiO());
+      LOG("TTi should be \n" << TTiO());
     }
     */
 
-    MESH_LOG("Edge swapped" << endl);
+    LOG("Edge swapped" << endl);
 #ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t0,true);
@@ -1454,17 +1454,17 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    MESH_LOG("TT is \n" << TTO());
+    LOG("TT is \n" << TTO());
     rebuildTT();
-    MESH_LOG("TT should be \n" << TTO())
+    LOG("TT should be \n" << TTO())
     if (use_TTi_) {
-      MESH_LOG("TTi is \n" << TTiO());
+      LOG("TTi is \n" << TTiO());
       rebuildTTi();
-      MESH_LOG("TTi should be \n" << TTiO());
+      LOG("TTi should be \n" << TTiO());
     }
     */
 
-    MESH_LOG("Edge split" << endl);
+    LOG("Edge split" << endl);
 #ifndef FMESHER_NO_X
     if (X11_) {
       if (!on_boundary) {
@@ -1534,7 +1534,7 @@ namespace fmesh {
     t2 = nT()+1;
     check_capacity(0,nT()+2);
     
-    MESH_LOG("Capacity (V,T) = ("
+    LOG("Capacity (V,T) = ("
 	     << S_.capacity() << "," << TV_.capacity() << "), T-indices = ("
 	     << t0 << "," << t1 << "," << t2 << ")" << endl);
 
@@ -1607,17 +1607,17 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    MESH_LOG("TT is \n" << TTO());
+    LOG("TT is \n" << TTO());
     rebuildTT();
-    MESH_LOG("TT should be \n" << TTO());
+    LOG("TT should be \n" << TTO());
     if (use_TTi_) {
-      MESH_LOG("TTi is \n" << TTiO());
+      LOG("TTi is \n" << TTiO());
       rebuildTTi();
-      MESH_LOG("TTi should be \n" << TTiO());
+      LOG("TTi should be \n" << TTiO());
     }
     */
     
-    MESH_LOG("Triangle split" << endl);
+    LOG("Triangle split" << endl);
 #ifndef FMESHER_NO_X
     if (X11_) {
       drawX11triangle(t0,true);
@@ -1857,14 +1857,14 @@ namespace fmesh {
       d.orbit0rev();
     Dart d00(d);
 
-    MESH_LOG("Finding direction to point or v starting from d00, S:" << endl
+    LOG("Finding direction to point or v starting from d00, S:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d00 << endl
 	     << "\t\t" << S_[d00.v()] << endl);
 
     d.orbit2();
-    MESH_LOG("Finding direction to point or v starting from dart:" << endl
+    LOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1874,9 +1874,9 @@ namespace fmesh {
       return d;
     bool onleft0(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
     bool onleft2(d.inLeftHalfspace(s) >= -MESH_EPSILON);
-    MESH_LOG(d << endl);
+    LOG(d << endl);
     d.orbit2();
-    MESH_LOG("Finding direction to point or v starting from dart:" << endl
+    LOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1885,17 +1885,17 @@ namespace fmesh {
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     bool onleft1(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
-    MESH_LOG("Locating direction "
+    LOG("Locating direction "
 	     << onleft0 << onleft1 << endl);
     while (!(!onleft0 && onleft1) && (!d.onBoundary())) {
       d.orbit0rev();
-      MESH_LOG(d << endl);
+      LOG(d << endl);
       if (d.v()==d00.vo()) {
 	if (onleft2) {
-	  MESH_LOG("Went full circle. Point found." << endl);
+	  LOG("Went full circle. Point found." << endl);
 	  return d;
 	} else {
-	  MESH_LOG("Went full circle. Point not found." << endl);
+	  LOG("Went full circle. Point not found." << endl);
 	  return Dart();
 	}
       }
@@ -1905,7 +1905,7 @@ namespace fmesh {
       onleft1 = (inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
       if (d.v() == v) // Have we found a preexisting vertex?
 	return d;
-      MESH_LOG("Locating direction "
+      LOG("Locating direction "
 	       << onleft0 << onleft1 << endl);
     }
     if (!onleft0 && onleft1) {
@@ -1962,7 +1962,7 @@ namespace fmesh {
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
     int v0(dh.v());
-    MESH_LOG("Locating point " << s1
+    LOG("Locating point " << s1
 	     << " v0=" << v0
 	     << " v1=" << v1
 	     << endl);
@@ -1972,22 +1972,22 @@ namespace fmesh {
     }
 
     Dart d(find_path_direction(dh,s1,v1));
-    MESH_LOG("Path-direction " << d << endl);
-    MESH_LOG("Starting triangle " << d.t() << " ("
+    LOG("Path-direction " << d << endl);
+    LOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
 	     << endl);
     if (d.isnull()) {
-      MESH_LOG("Not found" << endl);
+      LOG("Not found" << endl);
       return DartPair(Dart(),Dart());
     }
     Dart dstart = d;
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
-    MESH_LOG("Starting dart " << dstart << endl);
+    LOG("Starting dart " << dstart << endl);
     if ((d.v() == v1) || (d.inLeftHalfspace(s1) >= -MESH_EPSILON)) {
-      MESH_LOG("Found " << d << endl);
+      LOG("Found " << d << endl);
       return DartPair(dstart,d);
     }
     while (!d.onBoundary()) {
@@ -1996,9 +1996,9 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      MESH_LOG("In triangle " << d << endl);
+      LOG("In triangle " << d << endl);
       if (d.v() == v1) {
-	MESH_LOG("Found vertex at " << d << endl);
+	LOG("Found vertex at " << d << endl);
 	return DartPair(dstart,d);
       }
       found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
@@ -2010,9 +2010,9 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      MESH_LOG("Go to next triangle, from " << d << endl);
+      LOG("Go to next triangle, from " << d << endl);
     }
-    MESH_LOG("Endpoint not found "
+    LOG("Endpoint not found "
 	     << dstart << " " << d << endl);
     return DartPair(dstart,Dart());
   }
@@ -2063,7 +2063,7 @@ namespace fmesh {
 	return Dart(*this,t,1,1);
       if (TV_[t][2] == v)
 	return Dart(*this,t,1,2);
-      MESH_LOG("ERROR: Inconsistent data structures!" << endl);
+      LOG("ERROR: Inconsistent data structures!" << endl);
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
@@ -2269,14 +2269,15 @@ namespace fmesh {
   
 
 
-  void crossmultiply(const Point* n,
-		     Point* H)
+  void crossmultiply(const Point* ax,
+		     Point* H,
+		     int n)
   {
     for (int i=0; i<3; i++) {
-      for (int j=0; j<3; i++) {
+      for (int j=0; j<3; j++) {
 	H[i][j] = 0.0;
-	for (int k=0; k<3; i++) {
-	  H[i][j] += n[i][k]*n[k][j];
+	for (int k=0; k<n; k++) {
+	  H[i][j] += ax[k][i]*ax[k][j];
 	}
       }
     }
@@ -2342,23 +2343,36 @@ namespace fmesh {
 	break;
       case Mesh::Mtype_sphere:
       case Mesh::Mtype_manifold:
-	Point ax[3];
+	Point ax[4];
+	Point n;
 	Vec::cross(ax[0],e[1],e[2]);
 	Vec::cross(ax[1],e[2],e[0]);
 	Vec::cross(ax[2],e[0],e[1]);
 	Vec::accum(ax[0],ax[1]);
 	Vec::accum(ax[0],ax[2]);
-	ax[0].rescale(1.0/ax[0].length());
-	Point n(ax[0]);
-	arbitrary_perpendicular(ax[1],ax[0]);
+	n.scale(ax[0],1.0/ax[0].length());
+	ax[1] = e[0];
 	ax[1].rescale(1.0/ax[1].length());
-	Vec::cross(ax[2],ax[0],ax[1]);
-	ax[2].rescale(t_gamma/ax[2].length());
+	Vec::cross(ax[2],n,ax[1]);
+	ax[2].rescale(1.0/ax[2].length());
 	ax[1].rescale(t_gamma);
-	ax[0].sum(t_vec,n);
+	ax[2].rescale(t_gamma);
+	ax[0] = n;
 
-	crossmultiply(ax,H);
+	t_vec.accum(n,-Vec::scalar(n,t_vec));
+	ax[3] = t_vec;
+	crossmultiply(ax,H,4);
+
+	LOG("H[0]\t" << H[0] << endl);
+	LOG("H[1]\t" << H[1] << endl);
+	LOG("H[2]\t" << H[2] << endl);
+
 	adjugate(H,aH);
+
+	LOG("aH[0]\t" << aH[0] << endl);
+	LOG("aH[1]\t" << aH[1] << endl);
+	LOG("aH[2]\t" << aH[2] << endl);
+
 	break;
       }
 
@@ -2392,14 +2406,13 @@ namespace fmesh {
   
 
 
-  void Mesh::calcGradientMatrices(SparseMatrix<double>& Dx,
-				  SparseMatrix<double>& Dy,
-				  SparseMatrix<double>& Dz) const
+  void Mesh::calcGradientMatrices(SparseMatrix<double>** D) const
   {
-    Dx.clear().rows(nV()).cols(nV());
-    Dy.clear().rows(nV()).cols(nV());
-    Dz.clear().rows(nV()).cols(nV());
-    Matrix1double weights;
+    SparseMatrix<double> D_[3];
+    D_[0].clear().rows(nV()).cols(nV());
+    D_[1].clear().rows(nV()).cols(nV());
+    D_[2].clear().rows(nV()).cols(nV());
+    Matrix<double> weights(nV(),1);
     Point e[3];
     for (int t = 0; t < (int)nT(); t++) {
       const Int3Raw& tv = TV_[t].raw();
@@ -2419,22 +2432,45 @@ namespace fmesh {
 	}
       }
 
-      /*
-      double a = triangleArea(t);
-      weights(t) += a;
       
-      double vij;
+      /*
+	g0 = e1-e0*(e0*e1)/(e0*e0)
+	|g0| = 2*|T|/|e0|
+	g0 = g0/|g0|^2 = g0*(e0*e0)/(2*|T|)^2
+      */
+      /* "Flat area" . */
+      double fa = Point().cross(e[0],e[1]).length()/2.0;
+
+      Point gr[3];
+      gr[0] = e[1];
+      gr[1] = e[2];
+      gr[2] = e[0];
+      gr[0].accum(e[0],-eij[0][1]/eij[0][0]);
+      gr[1].accum(e[1],-eij[1][2]/eij[1][1]);
+      gr[2].accum(e[2],-eij[2][0]/eij[2][2]);
+      gr[0].rescale(eij[0][0]/(4.0*fa*fa));
+      gr[1].rescale(eij[1][1]/(4.0*fa*fa));
+      gr[2].rescale(eij[2][2]/(4.0*fa*fa));
+
       for (int i=0; i<3; i++) {
-	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
-	for (int j=i+1; j<3; j++) {
-	  vij = eij[i][j]/(4.*fa);
-	  G1(tv[i],tv[j]) += vij;
-	  G1(tv[j],tv[i]) += vij;
+	weights(tv[i],0) += fa;
+	for (int j=0; j<3; j++) {
+	  D_[0](tv[i],tv[j]) += gr[j][0]*fa;
+	  D_[1](tv[i],tv[j]) += gr[j][1]*fa;
+	  D_[2](tv[i],tv[j]) += gr[j][2]*fa;
 	}
       }
-      */
 
     }
+
+    for (int i=0; i<nV(); i++) {
+      weights(i,0) = 1.0/weights(i,0);
+    }
+    SparseMatrix<double> w = diag(weights);
+    D[0] = new SparseMatrix<double>(w*D_[0]);
+    D[1] = new SparseMatrix<double>(w*D_[1]);
+    D[2] = new SparseMatrix<double>(w*D_[2]);
+ 
   }
   
 

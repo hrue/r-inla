@@ -127,6 +127,7 @@ struct gengetopt_args_info
   unsigned int noniso_min; /**< @brief Calculate non-isotropic Laplacians's minimum occurreces */
   unsigned int noniso_max; /**< @brief Calculate non-isotropic Laplacians's maximum occurreces */
   const char *noniso_help; /**< @brief Calculate non-isotropic Laplacians help description.  */
+  const char *grad_help; /**< @brief Calculate gradient weight matrices help description.  */
   int sph0_arg;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 (default='-1').  */
   char * sph0_orig;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 original value given at command line.  */
   const char *sph0_help; /**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 help description.  */
@@ -175,6 +176,7 @@ struct gengetopt_args_info
   unsigned int smorg_given ;	/**< @brief Whether smorg was given.  */
   unsigned int fem_given ;	/**< @brief Whether fem was given.  */
   unsigned int noniso_given ;	/**< @brief Whether noniso was given.  */
+  unsigned int grad_given ;	/**< @brief Whether grad was given.  */
   unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
   unsigned int sph_given ;	/**< @brief Whether sph was given.  */
   unsigned int bspline_given ;	/**< @brief Whether bspline was given.  */

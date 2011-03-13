@@ -1385,6 +1385,7 @@ inla.spde.inla = function(inla, name, spde, ...)
     function(loc, tv,
              fem=NULL,
              noniso=NULL,
+             gradients=FALSE,
              sph0=NULL,
              sph=NULL,
              bspline=NULL,
@@ -1409,6 +1410,7 @@ inla.spde.inla = function(inla, name, spde, ...)
     }
     output.fem = list("c0", "g1", "g2")
     output.noniso = list("g1noniso", "g2noniso")
+    output.gradients = list("dx", "dy", "dz")
     output.sph0 = list("sph0")
     output.sph = list("sph")
     output.bspline = list("bspline")
@@ -1429,6 +1431,10 @@ inla.spde.inla = function(inla, name, spde, ...)
 
         all.args = paste(all.args," --noniso=noniso.gamma,noniso.vec", sep="")
         if (!output.given) output = c(output, output.noniso)
+    }
+    if (!is.null(gradients) && gradients) {
+        all.args = paste(all.args," --grad", sep="")
+        if (!output.given) output = c(output, output.gradients)
     }
     if (!is.null(sph0)) {
         all.args = paste(all.args," --sph0=", sph0, sep="")
