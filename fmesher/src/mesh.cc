@@ -2096,16 +2096,14 @@ namespace fmesh {
   }
 
 
-  Mesh& Mesh::make_globe(int subsegments)
+  Matrix3double* make_globe_points(int subsegments)
   {
-    TV_set(Matrix3int());
-    int nV0 = (*this).nV();
-    type(Mtype_sphere);
     int nT = 20*subsegments*subsegments;
     int nV = 2+nT/2;
-    check_capacity(nV0+nV,nT);
+    Matrix3double* S = new Matrix3double(nV);
+    Matrix3double& S_ = *S;
 
-    int offset = nV0;
+    int offset = 0;
     S_(offset) = Point(0.,0.,1.);
     offset += 1;
 
@@ -2146,10 +2144,26 @@ namespace fmesh {
     }
     S_(offset) = Point(0.,0.,-1.);
 
+    return S;
+  }
+
+  Mesh& Mesh::make_globe(int subsegments)
+  {
+    TV_set(Matrix3int());
+    int nV0 = (*this).nV();
+    type(Mtype_sphere);
+    int nT = 20*subsegments*subsegments;
+    int nV = 2+nT/2;
+    check_capacity(nV0+nV,nT);
+
+    Matrix3double* S = make_globe_points(subsegments);
+    S_append(*S);
+    delete S;
+
     MeshC MC(this);
     vertexListT vertices;
     for (int v=0;v<nV;v++)
-    vertices.push_back(nV0+v);
+      vertices.push_back(nV0+v);
     MC.DT(vertices);
 
     /*
