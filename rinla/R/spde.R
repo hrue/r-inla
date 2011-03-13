@@ -343,7 +343,7 @@
     return (m)
 }
 
-`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, ...)
+`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, add=FALSE, draw.vertices=TRUE, ...)
 {
     ## a simple function that plots the mesh from inla.fmesher.mesh()
 
@@ -351,10 +351,18 @@
         color = rep(color, dim(m$mesh$s)[1])
 
     require(rgl)
-    open3d()
-    view3d(0, 0, fov=0)
-    rgl.points(m$mesh$s[m$locations.idx, ], size=2*size, lwd=lwd, color = "blue", ...)
-    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color, size=size, lwd=lwd, ...)
+    if (!add) {
+        dev=open3d()
+        view3d(0, 0, fov=0)
+    } else {
+        dev = NULL
+    }
+    if (draw.vertices)
+        rgl.points(m$mesh$s[m$locations.idx, ],
+                   size=2*size, lwd=lwd, color = "blue", ...)
+    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
+                      size=size, lwd=lwd,
+                      draw.vertices=draw.vertices, add=add, ...)
 
-    return (invisible())
+    return (invisible(dev))
 }

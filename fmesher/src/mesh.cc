@@ -2269,6 +2269,176 @@ namespace fmesh {
   
 
 
+  void crossmultiply(const Point* n,
+		     Point* H)
+  {
+    for (int i=0; i<3; i++) {
+      for (int j=0; j<3; i++) {
+	H[i][j] = 0.0;
+	for (int k=0; k<3; i++) {
+	  H[i][j] += n[i][k]*n[k][j];
+	}
+      }
+    }
+  }
+
+  void adjugate(const Point* H,
+		Point* aH)
+  {
+    aH[0][0] = H[1][1]*H[2][2]-H[1][2]*H[2][1];
+    aH[0][1] = H[1][2]*H[2][0]-H[1][0]*H[2][2];
+    aH[0][2] = H[1][0]*H[2][1]-H[1][1]*H[2][0];
+    aH[1][1] = H[0][0]*H[2][2]-H[0][2]*H[2][0];
+    aH[1][2] = H[0][1]*H[2][0]-H[0][0]*H[2][1];
+    aH[2][2] = H[0][0]*H[1][1]-H[0][1]*H[1][0];
+    aH[1][0] = aH[0][1];
+    aH[2][0] = aH[0][2];
+    aH[2][1] = aH[1][2];
+  }
+
+
+  void Mesh::calcQblocksAni(SparseMatrix<double>& G1,
+			    const Matrix<double>& gamma,
+			    const Matrix<double>& vec) const
+  {
+    G1.clear().rows(nV()).cols(nV());
+    Matrix<double> Tareas;
+    Tareas.clear().cols(1).rows(nT());
+    Matrix3double vec_(vec);
+    Point e[3];
+    double t_gamma;
+    Point t_vec;
+    for (int t = 0; t < (int)nT(); t++) {
+      const Int3Raw& tv = TV_[t].raw();
+      const Point& s0 = S_[tv[0]];
+      const Point& s1 = S_[tv[1]];
+      const Point& s2 = S_[tv[2]];
+      e[0].diff(s2,s1);
+      e[1].diff(s0,s2);
+      e[2].diff(s1,s0);
+      t_gamma = (gamma[tv[0]][0]+gamma[tv[1]][0]+gamma[tv[2]][0])/3.0;
+      t_vec.sum(vec_(tv[0]),vec_(tv[1])).accum(vec_(tv[2]),1.0);
+      t_vec.rescale(1.0/3.0);
+      
+      Point H[3];
+      Point aH[3];
+      switch (type()) {
+      case Mesh::Mtype_plane:
+	H[0] = Point(t_vec[0]*t_vec[0]+t_gamma*t_gamma,
+		     t_vec[1]*t_vec[0],
+		     0.0);
+	H[1] = Point(t_vec[0]*t_vec[1],
+		     t_vec[1]*t_vec[1]+t_gamma*t_gamma,
+		     0.0);
+	H[2] = Point(0.0, 0.0, 0.0);
+
+	aH[0] = Point(t_vec[1]*t_vec[1]+t_gamma*t_gamma,
+		      -t_vec[1]*t_vec[0],
+		      0.0);
+	aH[1] = Point(-t_vec[0]*t_vec[1],
+		      t_vec[0]*t_vec[0]+t_gamma*t_gamma,
+		      0.0);
+	aH[2] = Point(0.0, 0.0, 0.0);
+	break;
+      case Mesh::Mtype_sphere:
+      case Mesh::Mtype_manifold:
+	Point ax[3];
+	Vec::cross(ax[0],e[1],e[2]);
+	Vec::cross(ax[1],e[2],e[0]);
+	Vec::cross(ax[2],e[0],e[1]);
+	Vec::accum(ax[0],ax[1]);
+	Vec::accum(ax[0],ax[2]);
+	ax[0].rescale(1.0/ax[0].length());
+	Point n(ax[0]);
+	arbitrary_perpendicular(ax[1],ax[0]);
+	ax[1].rescale(1.0/ax[1].length());
+	Vec::cross(ax[2],ax[0],ax[1]);
+	ax[2].rescale(t_gamma/ax[2].length());
+	ax[1].rescale(t_gamma);
+	ax[0].sum(t_vec,n);
+
+	crossmultiply(ax,H);
+	adjugate(H,aH);
+	break;
+      }
+
+      PointRaw eij[3];
+      for (int i=0; i<3; i++) {
+	Point eiH(Vec::scalar(aH[0],e[i]),
+		  Vec::scalar(aH[1],e[i]),
+		  Vec::scalar(aH[2],e[i]));
+	eij[i][i] = Vec::scalar(eiH,e[i]);
+	for (int j=i+1; j<3; j++) {
+	  eij[i][j] = Vec::scalar(eiH,e[j]);
+	  eij[j][i] = eij[i][j];
+	}
+      }
+
+      /* "Flat area" better approximation for use in G-calculation. */
+      double fa = Point().cross(e[0],e[1]).length()/2.0;
+
+      double vij;
+      for (int i=0; i<3; i++) {
+	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
+	for (int j=i+1; j<3; j++) {
+	  vij = eij[i][j]/(4.*fa);
+	  G1(tv[i],tv[j]) += vij;
+	  G1(tv[j],tv[i]) += vij;
+	}
+      }
+
+    }
+  }
+  
+
+
+  void Mesh::calcGradientMatrices(SparseMatrix<double>& Dx,
+				  SparseMatrix<double>& Dy,
+				  SparseMatrix<double>& Dz) const
+  {
+    Dx.clear().rows(nV()).cols(nV());
+    Dy.clear().rows(nV()).cols(nV());
+    Dz.clear().rows(nV()).cols(nV());
+    Matrix1double weights;
+    Point e[3];
+    for (int t = 0; t < (int)nT(); t++) {
+      const Int3Raw& tv = TV_[t].raw();
+      const Point& s0 = S_[tv[0]];
+      const Point& s1 = S_[tv[1]];
+      const Point& s2 = S_[tv[2]];
+      e[0].diff(s2,s1);
+      e[1].diff(s0,s2);
+      e[2].diff(s1,s0);
+
+      PointRaw eij[3];
+      for (int i=0; i<3; i++) {
+	eij[i][i] = Vec::scalar(e[i],e[i]);
+	for (int j=i+1; j<3; j++) {
+	  eij[i][j] = Vec::scalar(e[i],e[j]);
+	  eij[j][i] = eij[i][j];
+	}
+      }
+
+      /*
+      double a = triangleArea(t);
+      weights(t) += a;
+      
+      double vij;
+      for (int i=0; i<3; i++) {
+	G1(tv[i],tv[i]) += eij[i][i]/(4.*fa);
+	for (int j=i+1; j<3; j++) {
+	  vij = eij[i][j]/(4.*fa);
+	  G1(tv[i],tv[j]) += vij;
+	  G1(tv[j],tv[i]) += vij;
+	}
+      }
+      */
+
+    }
+  }
+  
+
+
   bool Mesh::save(std::string filename_s,
 		  std::string filename_tv,
 		  bool binary) const
