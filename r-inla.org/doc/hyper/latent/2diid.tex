@@ -3,21 +3,25 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] precision1 
+	 	 	 \item[ name ] log precision1 
 	 	 	 \item[ short.name ] prec1 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ prior ] loggamma 
 	 	 	 \item[ param ] 1 5e-05 
+	 	 	 \item[ to.theta ] \verb|function(x) log(x)| 
+	 	 	 \item[ from.theta ] \verb|function(x) exp(x)| 
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] precision2 
+	 	 	 \item[ name ] log precision2 
 	 	 	 \item[ short.name ] prec2 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ prior ] loggamma 
 	 	 	 \item[ param ] 1 5e-05 
+	 	 	 \item[ to.theta ] \verb|function(x) log(x)| 
+	 	 	 \item[ from.theta ] \verb|function(x) exp(x)                                            | 
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
@@ -26,7 +30,9 @@
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ prior ] normal 
-	 	 	 \item[ param ] 0 0.2 
+	 	 	 \item[ param ] 0 0.15 
+	 	 	 \item[ to.theta ] \verb|function(x) log((1+x)/(1-x))| 
+	 	 	 \item[ from.theta ] \verb|function(x) 2*exp(x)/(1+exp(x))-1| 
 	 	 \end{description}
 	 \end{description}
 	 \item[ constr ] FALSE 
