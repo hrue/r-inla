@@ -17,11 +17,11 @@
 	 	 	 \item[ name ] logit lag one correlation 
 	 	 	 \item[ short.name ] rho 
 	 	 	 \item[ prior ] normal 
-	 	 	 \item[ param ] 0 0.2 
+	 	 	 \item[ param ] 0 0.15 
 	 	 	 \item[ initial ] 2 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ to.theta ] \verb|function(x) log((1+x)/(1-x))| 
-	 	 	 \item[ from.theta ] \verb|function(x) 2*exp(x)/(1+exp(x))| 
+	 	 	 \item[ from.theta ] \verb|function(x) 2*exp(x)/(1+exp(x))-1| 
 	 	 \end{description}
 	 \end{description}
 	 \item[ constr ] FALSE 
