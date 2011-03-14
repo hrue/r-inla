@@ -37,7 +37,7 @@
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.fixed[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
-                    plot(inla.spline(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
+                    plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
                          sub=sub, xlab="", ylab="", ...)
                 }
             }
@@ -71,7 +71,7 @@
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb.derived[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
-                    plot(inla.spline(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"] (derived)", sep=""),
+                    plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"] (derived)", sep=""),
                          sub=sub, xlab="", ylab="", ...)
                 }
             }
@@ -110,7 +110,7 @@
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
-                    plot(inla.spline(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
+                    plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
                          sub=sub, xlab="", ylab="", ...)
                 }
             }
@@ -248,7 +248,7 @@
                                 ##
                                 if (!is.null(x$marginals.random[[i]])) {
                                     zz = x$marginals.random[[i]][[r.rep]]
-                                    plot(inla.spline(zz), type="l",
+                                    plot(inla.smarginal(zz), type="l",
                                          main=paste("PostDens [", inla.nameunfix(labels.random[i]),"]", " ", rep.txt, sep=""),
                                          xlab=inla.nameunfix(labels.random[i]), ylab="", ...)
                                 }
@@ -284,7 +284,7 @@
                 hh = hyper[[i]]
                 if (!is.null(hh)) {
                     label = inla.nameunfix(names(hyper)[i])
-                    plot(inla.spline(hh), type="l", ylab="", xlab="", ...)
+                    plot(inla.smarginal(hh), type="l", ylab="", xlab="", ...)
                     title(main=paste("PostDens [", label, "]", sep=""))
                 }
             }
@@ -463,6 +463,6 @@
     marg=x$marginals
     for(i in 1:length(marg)) {
         dev.new()
-        plot(inla.spline(marg[[i]]), type="l", xlab="", ylab="dens", main=inla.nameunfix(names[i]), ...)
+        plot(inla.smarginal(marg[[i]]), type="l", xlab="", ylab="dens", main=inla.nameunfix(names[i]), ...)
     }
 }
