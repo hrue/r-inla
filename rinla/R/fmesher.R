@@ -1386,7 +1386,7 @@ inla.spde.inla = function(inla, name, spde, ...)
 `inla.fmesher.smorg` =
     function(loc, tv,
              fem=NULL,
-             noniso=NULL,
+             aniso=NULL,
              gradients=FALSE,
              sph0=NULL,
              sph=NULL,
@@ -1411,7 +1411,7 @@ inla.spde.inla = function(inla, name, spde, ...)
         output.given = TRUE
     }
     output.fem = list("c0", "g1", "g2")
-    output.noniso = list("g1noniso", "g2noniso")
+    output.aniso = list("g1aniso", "g2aniso")
     output.gradients = list("dx", "dy", "dz")
     output.sph0 = list("sph0")
     output.sph = list("sph")
@@ -1427,12 +1427,12 @@ inla.spde.inla = function(inla, name, spde, ...)
         all.args = paste(all.args," --fem=", max(2,fem), sep="")
         if (!output.given) output = c(output, output.fem)
     }
-    if (!is.null(noniso)) {
-        fmesher.write(noniso[[1]], prefix, "noniso.gamma")
-        fmesher.write(noniso[[2]], prefix, "noniso.vec")
+    if (!is.null(aniso)) {
+        fmesher.write(aniso[[1]], prefix, "aniso.gamma")
+        fmesher.write(aniso[[2]], prefix, "aniso.vec")
 
-        all.args = paste(all.args," --noniso=noniso.gamma,noniso.vec", sep="")
-        if (!output.given) output = c(output, output.noniso)
+        all.args = paste(all.args," --aniso=aniso.gamma,aniso.vec", sep="")
+        if (!output.given) output = c(output, output.aniso)
     }
     if (!is.null(gradients) && gradients) {
         all.args = paste(all.args," --grad", sep="")
