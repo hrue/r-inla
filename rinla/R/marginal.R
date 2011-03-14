@@ -1,3 +1,134 @@
+##! \name{marginal}
+##! \alias{inla.marginal}
+##! \alias{marginal}
+##! \alias{pmarginal}
+##! \alias{inla.pmarginal}
+##! \alias{qmarginal}
+##! \alias{inla.qmarginal}
+##! \alias{dmarginal}
+##! \alias{inla.dmarginal}
+##! \alias{rmarginal}
+##! \alias{inla.rmarginal}
+##! \alias{inla.expectation}
+##! \alias{inla.emarginal}
+##! \alias{emarginal}
+##! \alias{inla.marginal.expectation}
+##! \alias{marginal.expectation}
+##! \alias{inla.spline}
+##! \alias{inla.smarginal}
+##! \alias{smarginal}
+##! \alias{inla.marginal.transform}
+##! \alias{marginal.transform}
+##! \alias{inla.tmarginal}
+##! 
+##! \title{Functions which operates on marginals}
+##! 
+##! \description{Density, distribution function, quantile function, random
+##!      generation, interpolation, expectations and transformations of
+##!      marginals obtained by \code{inla} or \code{inla.hyperpar()}.}
+##! 
+##! \usage{
+##! inla.dmarginal = function(x, marginal, log = FALSE)
+##! inla.pmarginal = function(q, marginal, normalize = TRUE)
+##! inla.qmarginal = function(p, marginal, len = 1024)
+##! inla.rmarginal = function(n, marginal)
+##! inla.smarginal = function(marginal, log = FALSE, extrapolate = 0.0)
+##! inla.emarginal = function(fun, marginal, ...)
+##! inla.tmarginal = function(fun, marginal, n, h.diff, ...)
+##!
+##! These functions computes the density (inla.dmarginal), 
+##! the distribution function (inla.pmarginal), 
+##! the quantile function (inla.qmarginal), 
+##! random generation (inla.rmarginal), 
+##! spline smoothing (inla.smarginal), 
+##! computes expected values (inla.emarginal), 
+##! and transforms the marginal (inla.tmarginal).
+##! }
+##! 
+##! \arguments{
+##! 
+##!   \item{marginal}{A marginal object from either \code{inla} or
+##!     \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())}
+##!     with density values \code{y} at locations \code{x}, or a
+##!     \code{matrix(,n,2)} for which the density values are the second
+##!     column and the locations in the first column.}
+##! 
+##!   \item{fun}{A (vectorised) function like \code{function(x) exp(x)} to
+##!     compute the expectation against, or which define the transformation
+##!     new = fun(old)}
+##!   
+##!   \item{x}{Evaluation points}
+##! 
+##!   \item{q}{Quantiles}
+##! 
+##!   \item{p}{Probabilities}
+##! 
+##!   \item{n}{The number of observations. If \code{length(n) > 1}, the
+##!     length is taken to be the number required. For
+##!     \code{inla.marginal.transform}, its the number of points to use
+##!     in the new density.}
+##! 
+##!   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.marginal.transform}}
+##!     
+##!   \item{...}{Further arguments to be passed to function which
+##!     expectation is to be computed.}
+##! 
+##!   \item{log}{Return density or interpolated density in log-scale?}
+##! 
+##!   \item{normalize}{Renormalise the density after interpolation?}
+##!   \item{len}{Number of locations used to interpolate the distribution
+##!   function.}
+##! 
+##! }
+##! 
+##! \value{%%
+##!   \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
+##!   interpolated values do extrapolation using the factor given, whereas
+##!   the remaining function returns what they say they should do.  }
+##! %%
+##! 
+##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! 
+##! \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
+##! 
+##! \examples{
+##! ## a simple linear regression example
+##! n = 10
+##! x = rnorm(n)
+##! sd = 0.1
+##! y = 1+x + rnorm(n,sd=sd)
+##! res = inla(y ~ 1 + x, data = data.frame(x,y),
+##!            control.data=list(initial = log(1/sd^2),fixed=TRUE))
+##! 
+##! ## chose a marginal and compare the with the results computed by the
+##! ## inla-program
+##! r = res$summary.fixed["x",]
+##! m = res$marginals.fixed$x
+##! 
+##! ## compute the the density for exp(r), version 1
+##! r.exp = inla.tmarginal(exp, m)
+##! ## or version 2
+##! r.exp = inla.tmarginal(function(x) exp(x), m)
+##! 
+##! ## to plot the marginal, we use the inla.smarginal, which interpolates (in
+##! ## log-scale). Compare with some samples.
+##! plot(inla.smarginal(m), type="l")
+##! s = inla.rmarginal(1000, m)
+##! hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
+##! lines(density(s), lty=2)
+##! 
+##! m1 = inla.emarginal(function(x) x^1, m)
+##! m2 = inla.emarginal(function(x) x^2, m)
+##! stdev = sqrt(m2 - m1^2)
+##! q = inla.qmarginal(c(0.025,0.975), m)
+##! 
+##! ## inla-program results
+##! print(r)
+##! 
+##! ## inla.marginal-results (they shouldn't be perfect!)
+##! print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2]))
+##! }
+##! 
 
 ### functions to work with the marginal, either defined as a matrix
 ### x[2, n], or a list(x=, y=).  NOTE:: there are NO EXTRAPOLATION, so
@@ -16,7 +147,10 @@
 
     return (m)
 }
-`inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0)
+`inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0) {
+    return (inla.smarginal(marginal, log, extrapolate))
+}
+`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the nice interpolated (x, y) where the interpolation is
@@ -30,7 +164,7 @@
         ans$y = exp(ans$y)
     return (ans)
 }
-`inla.splinefun` = function(marginal)
+`inla.sfmarginal` = function(marginal)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the spline-function which returns the log-density
@@ -40,14 +174,14 @@
     return (list(range = r, fun = splinefun(m$x, log(m$y))))
 }
 `inla.expectation` = function(fun, marginal, ...) {
-    return (inla.marginal.expectation(fun, marginal, ...))
+    return (inla.emarginal(fun, marginal, ...))
 }
-`inla.marginal.expectation` = function(fun, marginal, ...)
+`inla.emarginal` = function(fun, marginal, ...)
 {
     ## compute E(FUN(x)), where the marginal of x is given in
-    ## `marginal'; see inla.spline().
+    ## `marginal'; see inla.smarginal().
 
-    xx = inla.spline(marginal)
+    xx = inla.smarginal(marginal)
     n = length(xx$x)
     if (n%%2 == 0)
         n = n -1
@@ -74,7 +208,7 @@
     ## in some scale).
 
     ## return list(range=, fun=..)
-    f = inla.splinefun(inla.spline(marginal))
+    f = inla.sfmarginal(inla.smarginal(marginal))
 
     n = length(x)
     d = numeric(n)
@@ -96,7 +230,7 @@
 }
 `inla.pmarginal` = function(x, marginal, normalize = TRUE, len = 1024)
 {
-    f = inla.splinefun(inla.spline(marginal))
+    f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
     d = cumsum(exp(f$fun(xx)))
     d = d/d[length(d)]
@@ -112,7 +246,7 @@
 }
 `inla.qmarginal` = function(p, marginal, len = 1024)
 {
-    f = inla.splinefun(inla.spline(marginal))
+    f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
     d = cumsum(exp(f$fun(xx)))
     d = d/d[length(d)]
@@ -131,12 +265,15 @@
     return (inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` = function(fun, marginal, n=256, h.diff = .Machine$double.eps^(1/3), ...)
+`inla.marginal.transform` = function(fun, marginal, n=256, h.diff = .Machine$double.eps^(1/3), ...) {
+    return (inla.tmarginal(fun, marginal, n, h.diff, ...))
+}
+`inla.tmarginal` = function(fun, marginal, n=256, h.diff = .Machine$double.eps^(1/3), ...)
 {
     f = match.fun(fun)
     ff = function(x) f(x, ...)
 
-    m = inla.spline(marginal)
+    m = inla.smarginal(marginal)
     r = range(m$x)
     x = seq(r[1], r[2], length = n)
     xx = ff(x)
