@@ -345,9 +345,9 @@ int main(int argc, char* argv[])
 
   LOG("checkpoint 9." << std::endl);
 
-  std::vector<string> noniso_names;
-  for (int i=0; i<int(args_info.noniso_given); i++) {
-    noniso_names.push_back(string(args_info.noniso_arg[i]));
+  std::vector<string> aniso_names;
+  for (int i=0; i<int(args_info.aniso_given); i++) {
+    aniso_names.push_back(string(args_info.aniso_arg[i]));
   }
 
   double cutoff = 0.0;
@@ -571,9 +571,9 @@ int main(int argc, char* argv[])
     }
   }
 
-  for (int i=0; i<noniso_names.size(); i++) {
-    if (!matrices.load(noniso_names[i]).active) {
-      cout << "Matrix "+noniso_names[i]+" not found." << endl;
+  for (int i=0; i<aniso_names.size(); i++) {
+    if (!matrices.load(aniso_names[i]).active) {
+      cout << "Matrix "+aniso_names[i]+" not found." << endl;
     }
   }
 
@@ -932,12 +932,12 @@ int main(int argc, char* argv[])
       matrices.output(Kname);
     }
 
-    if (noniso_names.size()>0) {
-      SparseMatrix<double>& Gani  = matrices.SD("g1noniso").clear();
+    if (aniso_names.size()>0) {
+      SparseMatrix<double>& Gani  = matrices.SD("g1aniso").clear();
       M.calcQblocksAni(Gani,
-		       matrices.DD(noniso_names[0]),
-		       matrices.DD(noniso_names[1]));
-      matrices.output("g1noniso");
+		       matrices.DD(aniso_names[0]),
+		       matrices.DD(aniso_names[1]));
+      matrices.output("g1aniso");
 
       SparseMatrix<double> tmp = Gani*C0inv;
       SparseMatrix<double>* a;
@@ -945,7 +945,7 @@ int main(int argc, char* argv[])
       for (int i=1; i<fem_order_max; i++) {
 	std::stringstream ss;
 	ss << i+1;
-	std::string Gname = "g"+ss.str()+"noniso";
+	std::string Gname = "g"+ss.str()+"aniso";
 	a = b;
 	b = &(matrices.SD(Gname).clear());
 	*b = tmp*(*a);
