@@ -730,7 +730,7 @@
                                             prior = "normal",
                                             param = c(0, 0.15),
                                             to.theta = function(x) log((1+x)/(1-x)), 
-                                            from.theta = function(x) 2*exp(x)/(1+exp(x))-1, 
+                                            from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                                             )
                                     )
                             ),
@@ -1183,7 +1183,7 @@
                                             prior = "gaussian",
                                             param = c(log(2), 1),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             ), 
                                     theta2 = list(
                                             name = "beta",
@@ -1193,7 +1193,7 @@
                                             prior = "gaussian",
                                             param = c(0, 1), 
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x) 
                                             )
                                     ),
                             survival = FALSE,
@@ -1210,7 +1210,7 @@
                                             prior = "loggamma",
                                             param = c(1, 1),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             ), 
                                     theta2 = list(
                                             name = "logit probability",
@@ -1237,7 +1237,7 @@
                                             prior = "loggamma",
                                             param = c(1, 1),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             ), 
                                     theta2 = list(
                                             name = "logit probability",
@@ -1264,7 +1264,7 @@
                                             prior = "loggamma",
                                             param = c(1, 1),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             ), 
                                     theta2 = list(
                                             name = "log alpha",
@@ -1274,7 +1274,7 @@
                                             prior = "gaussian",
                                             param = c(2, 1),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             )
                                     ),
                             survival = FALSE,
@@ -1291,7 +1291,7 @@
                                             prior = "loggamma",
                                             param = c(1, 0.00005),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x) 
                                             ), 
                                     theta2 = list(
                                             name = "log degrees of freedom",
@@ -1351,7 +1351,7 @@
                                             prior = "loggamma",
                                             param = c(1, 0.00005),
                                             to.theta = function(x) log(x), 
-                                            from.theta = function(x) exp(x), 
+                                            from.theta = function(x) exp(x)
                                             )
                                     ), 
                             constr = FALSE,
