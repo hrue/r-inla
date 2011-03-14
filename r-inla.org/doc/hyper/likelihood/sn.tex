@@ -3,7 +3,7 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] inverse.scale 
+	 	 	 \item[ name ] log inverse scale 
 	 	 	 \item[ short.name ] iscale 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
@@ -12,12 +12,14 @@
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] skewness 
+	 	 	 \item[ name ] logit skewness 
 	 	 	 \item[ short.name ] skew 
 	 	 	 \item[ initial ] 4 
 	 	 	 \item[ fixed ] FALSE 
 	 	 	 \item[ prior ] gaussian 
 	 	 	 \item[ param ] 0 10 
+	 	 	 \item[ to.theta ] \verb|function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max))| 
+	 	 	 \item[ from.theta ] \verb|function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)| 
 	 	 \end{description}
 	 \end{description}
 	 \item[ survival ] FALSE 
