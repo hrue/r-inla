@@ -236,9 +236,10 @@
 
     ## if model is a particular class, then use this to set default
     ## arguments to all names(formals(INLA::f)) (except the "...").
-    ## THIS FEATURE IS EXPERIMENTAL FOR THE MOMENT!
-    if (any(inherits(model, c("inla.spde", "inla.wrapper.model")))) {
-
+    ## THIS FEATURE IS EXPERIMENTAL FOR THE MOMENT!  OOPS: the classes
+    ## are defined in the function inla.model.object.classes() as this
+    ## is also used in the inla() function itself.
+    if (any(inherits(model, inla.model.object.classes()))) {
         ## might need to change this if we debug the code
         if (TRUE) {
             arguments = names(formals(INLA::f))
@@ -687,3 +688,8 @@
 
     return (ret)
 }
+`inla.model.object.classes` = function() {
+    return (c("inla.spde", "inla.wrapper.model"))
+}
+
+

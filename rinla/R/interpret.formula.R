@@ -1,9 +1,22 @@
 
 `inla.interpret.formula` =
-    function (gf, debug=FALSE, data=NULL) 
+    function (gf, debug=FALSE, data=NULL, data.model = NULL) 
 {
-    p.env = environment(gf)
-  
+    ## use a copy if data.model is !NULL, as we have to assign an
+    ## entry to it. otherwise, just use the 
+    if (!is.null(data.model)) {
+        ## make a copy of the environment
+        p.env = new.env(hash = TRUE, parent = environment(gf))
+        ## then add the entries in data.model to that environment
+        for(nm in names(data.model)) {
+            idx = which(names(data.model) == nm)
+            assign(nm, data.model[[idx]], envir = p.env)
+        }
+    } else {
+        ## otherwise, just use (for read-only) this environment
+        p.env = environment(gf)
+    }
+
     tf = terms.formula(gf, specials = c("f"), data=data)
     terms = attr(tf, "term.labels")
     nt = length(terms)
