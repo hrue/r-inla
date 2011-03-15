@@ -333,6 +333,32 @@
     if (is.null(data))
         stop("\t\tMissing data.frame argument `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
 
+    ## if data is a list, then it can contain elements that defines a
+    ## model, like f(idx, model = model.objects). These objects crahs
+    ## the formula routines in R since then the data cannot be cast
+    ## into a data.frame. to solve this, we remove such objects from
+    ## data, and create a second data-object, data.model, which hold
+    ## these.
+    data.model = NULL
+    if (is.list(data)) {
+        i.remove = c()
+        for(i in 1:length(data)) {
+            ## these are the objects which we want to remove:
+            ## inla.model.object.classes()
+            if (any(inherits(data[[i]], inla.model.object.classes()))) {
+                add.to = list(data[[i]])
+                names(add.to) = names(data)[i]
+                data.model = c(data.model,  add.to)
+                i.remove = c(i.remove, i)
+            }
+        }
+        names.remove = names(data)[i.remove]
+        for(nm in names.remove) {
+            idx = which(names(data) == nm)
+            data[[idx]] = NULL
+        }
+    }
+
     ## check all control.xx arguments here...
     inla.check.control(control.compute)
     inla.check.control(control.predictor)
@@ -607,9 +633,9 @@
     formula = update.formula(formula, y...fake ~ .)
     
     ## parse the formula
-    gp = inla.interpret.formula(formula, data=data)
+    gp = inla.interpret.formula(formula, data=data,  data.model = data.model)
     call = deparse(match.call())
-     
+
     if (gp$n.fix > 0) {
         inla.na.action = function(x, ...) {
             ## set fixed effects that are NA to 0. Check that if there
