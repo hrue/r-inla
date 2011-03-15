@@ -264,7 +264,8 @@ typedef enum {
 	P_WISHART3D,
 	P_LOGFLAT, 
 	P_LOGIFLAT,
-	P_NONE, 
+	P_NONE,
+	P_BETACORRELATION, 
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -734,6 +735,7 @@ double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double priorfunc_beta(double *x, double *parameters);
+double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);

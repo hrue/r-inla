@@ -1256,6 +1256,16 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 
 	return val;
 }
+double priorfunc_betacorrelation(double *x, double *parameters)
+{
+        /*
+         * The prior for the correlation coefficient \rho is Beta(a,b), scaled so that it is defined on (-1,1)
+	 * The function returns the log prior for \rho.intern = log((1 +\rho)/(1-\rho))
+         */
+        double val = exp(*x)/(1+exp(*x)), a = parameters[0], b = parameters[1];
+        return log(gsl_ran_beta_pdf(val, a, b)) + (*x) + 2.0*log(1+exp(*x)) ;
+}
+
 double priorfunc_logflat(double *x, double *parameters)
 {
 	return exp(*x);
@@ -3960,6 +3970,15 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->parameters = NULL;
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
+		}
+	} else if (!strcasecmp(prior->name,  "BETACORRELATION")) {
+		prior->id = P_BETACORRELATION;
+		prior->priorfunc = priorfunc_betacorrelation;
+		prior->parameters = Calloc(2, double);
+		prior->parameters[0] = 5.0;
+		prior->parameters[1] = 5.0;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, prior->name);
