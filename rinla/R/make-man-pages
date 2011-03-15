@@ -8,6 +8,7 @@ options(keep.source=TRUE)
 source("models.R")
 source("models-generate.R")
 source("utils.R")
+source("inla.version.R")
 inla.models.generate.Rd("../man/models.Rd") ' | R --vanilla
 
 
