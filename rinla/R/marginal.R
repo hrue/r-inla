@@ -32,7 +32,7 @@
 ##! inla.pmarginal = function(q, marginal, normalize = TRUE)
 ##! inla.qmarginal = function(p, marginal, len = 1024)
 ##! inla.rmarginal = function(n, marginal)
-##! inla.smarginal = function(marginal, log = FALSE, extrapolate = 0.0)
+##! inla.smarginal = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
 ##! inla.emarginal = function(fun, marginal, ...)
 ##! inla.tmarginal = function(fun, marginal, n, h.diff, ...)
 ##!
@@ -78,6 +78,9 @@
 ##!   \item{normalize}{Renormalise the density after interpolation?}
 ##!   \item{len}{Number of locations used to interpolate the distribution
 ##!   function.}
+##!
+##!   \item{keep.type}{If \code{FALSE} then return a \code{list(x=, y=)},  otherwise if \code{TRUE},
+##!                   then return a matrix if the input is a matrix}
 ##! 
 ##! }
 ##! 
@@ -150,19 +153,26 @@
 `inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0) {
     return (inla.smarginal(marginal, log, extrapolate))
 }
-`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0)
+`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the nice interpolated (x, y) where the interpolation is
     ## done in log(y)
 
+    is.mat = is.matrix(marginal)
     m = inla.marginal.fix(marginal)
     r = range(m$x)
     r = r[2] - r[1]
     ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r)
-    if (!log)
+    if (!log) {
         ans$y = exp(ans$y)
-    return (ans)
+    }
+
+    if (is.mat && keep.type) {
+        return (cbind(ans$x, ans$y))
+    } else {
+        return (ans)
+    }
 }
 `inla.sfmarginal` = function(marginal)
 {
@@ -273,6 +283,7 @@
     f = match.fun(fun)
     ff = function(x) f(x, ...)
 
+    is.mat = is.matrix(marginal)
     m = inla.smarginal(marginal)
     r = range(m$x)
     x = seq(r[1], r[2], length = n)
@@ -300,5 +311,9 @@
         log.dens[1:n] = log.dens[n:1]
     }
 
-    return (list(x = xx, y = log.dens))
+    if (is.mat) {
+        return (cbind(x = xx, y = log.dens))
+    } else {
+        return (list(x = xx, y = log.dens))
+    }
 }
