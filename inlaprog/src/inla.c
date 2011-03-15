@@ -723,7 +723,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	case MAP_FORWARD:
 		return (exp(x) - 1.0) / (exp(x) + ngroups - 1.0);
 	case MAP_BACKWARD:
-		return log((1.0 + (ngroups - 1.0) * x) / (1.0 - ngroups));
+		return log((1.0 + (ngroups - 1.0) * x) / (1.0 - x));
 	case MAP_DFORWARD:
 		return (exp(x) * ngroups) / SQR(exp(x) + ngroups - 1.0);
 	case MAP_INCREASING:
