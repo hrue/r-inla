@@ -1,0 +1,54 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Beta prior for correlation parameters: betacorrelation}
+
+This is a prior for the correlation parameter $\rho\in(-1,1)$ which is
+internally represented as
+\[
+\theta = \log\frac{\rho+1}{\rho-1}
+\]
+
+\subsection*{Parametrization}
+
+The prior defined on $\theta$ so that the correlation parameter $\rho$
+has a $\text{Beta}(a,b)$ distribution scaled to have domain in
+$(-1,1)$:
+\[
+\pi(\rho|a,b) = 0.5\ {\Gamma(a+b) \over \Gamma(a) \Gamma(b)}
+\rho^{a-1} (1-\rho)^{b-1} 
+\]  
+
+
+\subsection*{Specification}
+The Beta prior for the correlation is specified either inside the {\tt
+  f()} function or in the {\tt control.group()} option as following:
+\begin{center}
+{\tt theta = list(prior = "betacorrelation", param=c(<a>,<b>),...)}
+\end{center}
+\subsection*{Example}
+
+
+\subsection*{Notes}
+
+The prior is internally defined on the $\theta$ parameter therefore
+initial values have to be provided in the $\theta$-scale. For example
+if the desired initial value is $\rho=0.5$, which means
+$\theta=\log(1/3)=-1.098$ the following specification has to be
+provided:
+\begin{center}
+{\tt theta = list(prior = "betacorrelation", param=c(<a>,<b>),initial=-1.098)}
+\end{center}
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
