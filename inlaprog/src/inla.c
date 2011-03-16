@@ -14017,10 +14017,10 @@ int main(int argc, char **argv)
 	
 
 	if (!silent || verbose) {
-		fprintf(stderr, "\n\t%s\n", RCSId);
+		fprintf(stdout, "\n\t%s\n", RCSId);
 	}
 	if (verbose) {
-		BUGS_intern(stderr);
+		BUGS_intern(stdout);
 	}
 	if (verbose && G.reorder >= 0) {
 		printf("Set reordering to id=[%d] and name=[%s]\n", G.reorder, GMRFLib_reorder_name(G.reorder));
