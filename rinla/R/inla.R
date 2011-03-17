@@ -1469,11 +1469,11 @@
         arg.arg = ""
         arg.nt = inla.ifelse(is.numeric(num.threads), paste(" -t ", num.threads, " ", sep=""), "")
 
-        ## due to the weird behaviour,  we will do the verbose-mode differently for linux and mac
+        ## due to the weird behaviour,  we will do the verbose-mode differently now
         if (inla.os("linux") || inla.os("mac")) {
             arg.v = inla.ifelse(verbose, "-v", "-v")
         } else {
-            arg.v = inla.ifelse(verbose, "-v", "")
+            arg.v = inla.ifelse(verbose, "-v", "-v")
         }
 
         arg.s = inla.ifelse(silent, "-s", "")
@@ -1536,7 +1536,11 @@
         }
         else if (inla.os("windows")) {
             if (!remote) {
-                echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                if (verbose) {
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                } else {
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > NUL")), silent=TRUE)
+                }
                 echoc = 0
             } else {
                 echoc = try(inla.cygwin.run.command(
