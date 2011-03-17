@@ -473,12 +473,12 @@
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
-                ", hyper = ", as.character(enquote(cont.hazard$hyper))[2],
+                ", hyper = ", inla.formula2character(enquote(cont.hazard$hyper))[2],
                 ", constr = ", cont.hazard$constr,
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
-        
+
         inla.eval(paste("surv.formula = .y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
 
         if (debug) {
