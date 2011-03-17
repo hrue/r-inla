@@ -473,12 +473,12 @@
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
-                ", hyper = ", as.character(enquote(cont.hazard$hyper))[2],
+                ", hyper = ", inla.formula2character(enquote(cont.hazard$hyper))[2],
                 ", constr = ", cont.hazard$constr,
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
-        
+
         inla.eval(paste("surv.formula = .y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
 
         if (debug) {
@@ -1468,7 +1468,14 @@
     if (is.null(inla.arg)) {
         arg.arg = ""
         arg.nt = inla.ifelse(is.numeric(num.threads), paste(" -t ", num.threads, " ", sep=""), "")
-        arg.v = inla.ifelse(verbose, "-v", "")
+
+        ## due to the weird behaviour,  we will do the verbose-mode differently for linux and mac
+        if (inla.os("linux") || inla.os("mac")) {
+            arg.v = inla.ifelse(verbose, "-v", "-v")
+        } else {
+            arg.v = inla.ifelse(verbose, "-v", "")
+        }
+
         arg.s = inla.ifelse(silent, "-s", "")
         arg.b = "-b"
     } else {
@@ -1503,7 +1510,29 @@
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
-            echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+            ##
+            ## this is a bit weid, but the performance for num.threads
+            ## > 1 is much better for ``small'' problems when run in
+            ## verbose mode. I have no idea why... Here is an example:
+            ## > y=1:10
+            ## > r=inla(y~1, data = data.frame(y))
+            ## > r$cpu
+            ## Pre-processing    Running inla Post-processing           Total 
+            ## 0.08722209930   1.08543705940   0.07941198349   1.25207114220 
+            ## >
+            ## whereas run in verbose mode,  gives
+            ## > r$cpu
+            ## Pre-processing    Running inla Post-processing           Total 
+            ## 0.06223917007   0.01782798767   0.01382899284   0.09389615059 
+            ##
+            ## So the workaround, is to run in verbose mode put to send stdout to /dev/null.
+            ## I don't know if a similar workaround is doable in Windows, but I have to check...
+            ##
+            if (verbose) {
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+            } else {
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > /dev/null"))
+            }
         }
         else if (inla.os("windows")) {
             if (!remote) {
@@ -1516,20 +1545,22 @@
                               inla.cygwin.map.filename(file.ini))), silent=TRUE)
                 echoc = 0
             }
-        }
-        else
+        } else {
             stop("\n\tNot supported architecture.")
+        }
 
-        if (debug)
+        if (debug) {
             cat("..done\n")
+        }
 
         my.time.used[3] = Sys.time()
 
         if (echoc==0) {
             ret = try(inla.collect.results(results.dir, control.results=cont.result, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
-            if (!is.list(ret))
+            if (!is.list(ret)) {
                 ret = list()
+            }
             
             my.time.used[4] = Sys.time()
             cpu.used = c(
