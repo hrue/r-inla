@@ -456,13 +456,3 @@
     }
 }
 
-`plot.hyperpar.inla` =
-    function(x,...)
-{
-    names=rownames(x$summary)
-    marg=x$marginals
-    for(i in 1:length(marg)) {
-        dev.new()
-        plot(inla.smarginal(marg[[i]]), type="l", xlab="", ylab="dens", main=inla.nameunfix(names[i]), ...)
-    }
-}
