@@ -691,6 +691,9 @@ typedef struct
 
 	int len_reordering;
 	int *reordering;
+
+	double *stdev_corr_pos;
+	double *stdev_corr_neg;
 }
 	GMRFLib_ai_misc_output_tp;
 

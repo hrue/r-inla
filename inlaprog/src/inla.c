@@ -12583,6 +12583,32 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	fclose(fp);
 	Free(nndir);
 
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_pos.dat");
+	inla_fnmfix(nndir);
+	if (mo->stdev_corr_pos){
+		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+		M->nrow = mo->nhyper;
+		M->ncol = 1;
+		M->elems = M->nrow * M->ncol;
+		M->A = Calloc(mo->nhyper, double);
+		memcpy(M->A, mo->stdev_corr_pos, mo->nhyper * sizeof(double));
+		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
+		GMRFLib_matrix_free(M);
+	}
+
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_neg.dat");
+	inla_fnmfix(nndir);
+	if (mo->stdev_corr_pos){
+		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+		M->nrow = mo->nhyper;
+		M->ncol = 1;
+		M->elems = M->nrow * M->ncol;
+		M->A = Calloc(mo->nhyper, double);
+		memcpy(M->A, mo->stdev_corr_neg, mo->nhyper * sizeof(double));
+		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
+		GMRFLib_matrix_free(M);
+	}
+
 	Free(ndir);
 	return INLA_OK;
 }
