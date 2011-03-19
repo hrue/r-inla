@@ -3718,6 +3718,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						"Compute corrected stdev for theta[%1d]: negative %f  positive %f\n", k, stdev_corr_neg[k], stdev_corr_pos[k]);
 				}
 			}
+
+
+			if (misc_output){
+				(*misc_output)->stdev_corr_pos = Calloc(nhyper, double);
+				memcpy((*misc_output)->stdev_corr_pos,  stdev_corr_pos, nhyper * sizeof(double));
+
+				(*misc_output)->stdev_corr_neg = Calloc(nhyper, double);
+				memcpy((*misc_output)->stdev_corr_neg,  stdev_corr_neg, nhyper * sizeof(double));
+			}
 		}
 
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE, NULL);

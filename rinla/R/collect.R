@@ -44,9 +44,23 @@
     } else {
         r = NULL
     }
+
+    fnm = paste(d, "/stdev_corr_pos.dat", sep="")
+    if (file.exists(fnm)) {
+        stdev.corr.positive = as.numeric(inla.read.fmesher.file(fnm))
+    } else {
+        stdev.corr.positive = NULL
+    }
+
+    fnm = paste(d, "/stdev_corr_neg.dat", sep="")
+    if (file.exists(fnm)) {
+        stdev.corr.negative = as.numeric(inla.read.fmesher.file(fnm))
+    } else {
+        stdev.corr.negative = NULL
+    }
     
-    return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r,
-                 theta.tags = tags))
+    return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r, theta.tags = tags,
+                 stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive))
 }
 
 `inla.collect.size` = function(dir, debug = FALSE)
