@@ -599,7 +599,7 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 		GMRFLib_setbit(&bitmap[ ii+(local_jm)*(m)], (unsigned int) (NBitsInByte-1-((local_im)-ii*NBitsInByte))); \
 	}
 
-	int i, j, im, jm, n = graph->n, N, m;
+	int i, j, n = graph->n, N, m;
 	double reduce_factor;
 	unsigned char *bitmap;
 	FILE *fp;
