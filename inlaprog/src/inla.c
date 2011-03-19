@@ -13738,15 +13738,50 @@ int testit(void)
 
 	GMRFLib_matrix_tp *M = NULL;
 
-	int i, j;
+	int i, j, k, kk;
 
 	M = GMRFLib_read_fmesher_file("fmesher-file.dat", 0L, -1);
+
+	if (0)
+		if (M->i)
+			for(k=0; k<M->elems; k++)
+				printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
+
+	if (M->graph){
+		printf("n %d\n", M->graph->n);
+		for(k = 0; k<M->graph->n; k++){
+			printf("%d nnbs %d:\n", k, M->graph->nnbs[k]);
+			for(kk = 0; kk< M->graph->nnbs[k]; kk++)
+				printf("\t\t%d\n", M->graph->nbs[k][kk]);
+		}
+	}
 
 	for(i=0; i<M->nrow; i++)
 		for(j = 0; j<M->ncol; j++)
 			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
-	GMRFLib_matrix_free(M);
+	printf("transpose...\n");
+	GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
 
+	if (0)
+		if (N->i)
+			for(k=0; k<N->elems; k++)
+				printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
+
+	if (0)
+		for(i=0; i<N->nrow; i++)
+			for(j = 0; j<N->ncol; j++)
+				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
+
+	if (N->graph){
+		printf("n %d\n", N->graph->n);
+		for(k = 0; k<N->graph->n; k++){
+			printf("%d nnbs %d:\n", k, N->graph->nnbs[k]);
+			for(kk = 0; kk< N->graph->nnbs[k]; kk++)
+				printf("\t\t%d\n", N->graph->nbs[k][kk]);
+		}
+	}
+	GMRFLib_matrix_free(M);
+	GMRFLib_matrix_free(N);
 	exit(0);
 }
 int inla_divisible(int n, int by)

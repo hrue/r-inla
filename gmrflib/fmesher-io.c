@@ -309,58 +309,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			}
 		}
 
-		/*
-		 * add further info: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the non-square matrix
-		 * case. we just set n = nrow. 
-		 */
-		GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
-
-		g->n = M->nrow;
-		g->nbs = Calloc(g->n, int *);
-		g->nnbs = Calloc(g->n, int);
-
-		for (k = 0; k < M->elems; k++) {
-			g->nnbs[M->i[k]]++;
-		}
-
-		int *hold = Calloc(M->elems, int), offset = 0;
-
-		for (k = 0; k < M->nrow; k++) {
-			if (g->nnbs[k] == 0) {
-				g->nbs[k] = NULL;
-			} else {
-				g->nbs[k] = &hold[offset];
-				offset += g->nnbs[k];
-			}
-		}
-		assert(offset == M->elems);
-
-		for (k = 0; k < M->nrow; k++) {
-			g->nnbs[k] = 0;			       /* will use this array for counting and build it again */
-		}
-
-		for (k = 0; k < M->elems; k++) {
-			if (M->i[k] != M->j[k]) {
-				i = M->i[k];
-				j = M->j[k];
-				g->nbs[i][g->nnbs[i]] = j;
-				g->nnbs[i]++;
-			}
-		}
-		GMRFLib_prepare_graph(g);
-		M->graph = g;
-
-		/*
-		 * build the has table for quick retrival of values 
-		 */
-		M->htable = Calloc(M->nrow, map_id *);
-		for (k = 0; k < M->nrow; k++) {
-			M->htable[k] = Calloc(1, map_id);
-			map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
-		}
-		for (k = 0; k < M->elems; k++) {
-			map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
-		}
+		GMRFLib_matrix_add_graph_and_hash(M);
 
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
@@ -532,6 +481,69 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 #undef WRITE
 	return (0);
 }
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
+{
+	/*
+	 * add further info if this is a sparse matrix: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the
+	 * non-square matrix case. we just set n = nrow.
+	 */
+	if (!(M->i)){
+		return GMRFLib_SUCCESS;
+	}
+
+	int i, j, k;
+	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
+
+	g->n = M->nrow;
+	g->nbs = Calloc(g->n, int *);
+	g->nnbs = Calloc(g->n, int);
+
+	for (k = 0; k < M->elems; k++) {
+		g->nnbs[M->i[k]]++;
+	}
+
+	int *hold = Calloc(M->elems, int), offset = 0;
+
+	for (k = 0; k < M->nrow; k++) {
+		if (g->nnbs[k] == 0) {
+			g->nbs[k] = NULL;
+		} else {
+			g->nbs[k] = &hold[offset];
+			offset += g->nnbs[k];
+		}
+	}
+	assert(offset == M->elems);
+
+	for (k = 0; k < M->nrow; k++) {
+		g->nnbs[k] = 0;			       /* will use this array for counting and build it again */
+	}
+
+	for (k = 0; k < M->elems; k++) {
+		if (M->i[k] != M->j[k]) {
+			i = M->i[k];
+			j = M->j[k];
+			g->nbs[i][g->nnbs[i]] = j;
+			g->nnbs[i]++;
+		}
+	}
+	GMRFLib_prepare_graph(g);
+	M->graph = g;
+
+	/*
+	 * build the has table for quick retrival of values 
+	 */
+	M->htable = Calloc(M->nrow, map_id *);
+	for (k = 0; k < M->nrow; k++) {
+		M->htable[k] = Calloc(1, map_id);
+		map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
+	}
+	for (k = 0; k < M->elems; k++) {
+		map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 {
 	/*
@@ -648,6 +660,64 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 	} else {
 		return !GMRFLib_SUCCESS;
 	}
+}
+GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
+{
+	/* 
+	   return a transpose of the matrix as a new matrix
+	*/
+
+	GMRFLib_matrix_tp *N = Calloc(1, GMRFLib_matrix_tp);
+
+	N->nrow = M->ncol;
+	N->ncol = M->nrow;
+	N->elems = M->elems;
+
+	if (M->i){
+		/* 
+		   sparse
+		*/
+		N->i = Calloc(M->elems, int);
+		memcpy(N->i, M->j, M->elems * sizeof(int));
+
+		N->j = Calloc(M->elems, int);
+		memcpy(N->j, M->i, M->elems * sizeof(int));
+
+		N->values = Calloc(M->elems, double);
+		memcpy(N->values, M->values, M->elems * sizeof(double));
+	} else {
+		int i, j, idx, idx_transpose;
+		
+		if (M->A){
+			N->A = Calloc(M->nrow * N->ncol, double);
+			for(i = 0; i<M->nrow; i++){
+				for(j = 0; j<M->ncol; j++){
+					idx = i + j * M->nrow;
+					idx_transpose = j + i * M->ncol;
+					N->A[idx_transpose] = M->A[idx];
+				}
+			}
+		}
+		if (M->iA){
+			N->iA = Calloc(M->nrow * N->ncol, int);
+			for(i = 0; i<M->nrow; i++){
+				for(j = 0; j<M->ncol; j++){
+					idx = i + j * M->nrow;
+					idx_transpose = j + i * M->ncol;
+					N->iA[idx_transpose] = M->iA[idx];
+				}
+			}
+		}
+	}
+
+	GMRFLib_matrix_add_graph_and_hash(N);
+
+	N->filename = GMRFLib_strdup(M->filename);
+	N->offset = M->offset;
+	N->whence = M->whence;
+	N->tell = M->tell;
+
+	return N;
 }
 
 #ifdef TESTME

@@ -93,6 +93,7 @@ int GMRFLib_file_exists(const char *filename, const char *mode);
 int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence);
 int GMRFLib_matrix_free(GMRFLib_matrix_tp *M);
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence);
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M);
 
 __END_DECLS
 
