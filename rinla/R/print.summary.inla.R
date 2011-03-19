@@ -1,4 +1,3 @@
-
 `print.summary.inla` = function(x, ...)
 {
     digits = 4
