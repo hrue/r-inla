@@ -52,12 +52,3 @@
 
     return (ret)
 }
-
-`summary.hyperpar.inla` =
-    function(object,...)
-{
-    ##provides a summary for a hyperpar inla object
-    ret = object$summary
-    return (ret)
-}
-
