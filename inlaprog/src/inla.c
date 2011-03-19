@@ -13709,7 +13709,19 @@ int inla_endian(void)
 }
 int testit(void)
 {
-	return 0;
+
+	GMRFLib_matrix_tp *M = NULL;
+
+	int i, j;
+
+	M = GMRFLib_read_fmesher_file("fmesher-file.dat", 0L, -1);
+
+	for(i=0; i<M->nrow; i++)
+		for(j = 0; j<M->ncol; j++)
+			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
+	GMRFLib_matrix_free(M);
+
+	exit(0);
 }
 int inla_divisible(int n, int by)
 {

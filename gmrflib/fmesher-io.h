@@ -55,6 +55,13 @@ typedef struct
 	int *i;
 	int *j;
 
+
+	/* 
+	   these are only defined if the matrix is sparse
+	 */
+	GMRFLib_graph_tp *graph;			       /* (possibly nonsymmetric) graph */
+	map_id **htable;				       /* array of hash-tables for the values */
+
 	/* 
 	   on reading; 'values' are always set. on writing; only one of these can be set. 
 	*/
@@ -81,6 +88,7 @@ typedef struct
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);
 double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M);
+double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M);
 int GMRFLib_file_exists(const char *filename, const char *mode);
 int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence);
 int GMRFLib_matrix_free(GMRFLib_matrix_tp *M);

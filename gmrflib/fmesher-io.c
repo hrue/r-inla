@@ -1,3 +1,4 @@
+
 /* fmesher-io.c
  * 
  * Copyright (C) 2010-2011 Havard Rue
@@ -44,7 +45,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
 
-int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence)
+int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
 	FILE *fp;
 	fp = fopen(filename, "rb");
@@ -60,7 +61,7 @@ int GMRFLib_is_fmesher_file(const char *filename,  long int offset,  int whence)
 
 	nread = fread((void *) &len_header, sizeof(int), (size_t) 1, (FILE *) fp);
 	fclose(fp);
-	
+
 	if (nread == 1 && len_header == 8) {
 		return GMRFLib_SUCCESS;
 	} else {
@@ -222,7 +223,6 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		/*
 		 * sparse 
 		 */
-
 		M->i = Calloc(elems, int);
 		M->j = Calloc(elems, int);
 		M->values = Calloc(elems, double);
@@ -307,6 +307,59 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				assert(kk == elems + nneq);
 				M->elems += nneq;
 			}
+		}
+
+		/*
+		 * add further info: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the non-square matrix
+		 * case. we just set n = nrow. 
+		 */
+		GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
+
+		g->n = M->nrow;
+		g->nbs = Calloc(g->n, int *);
+		g->nnbs = Calloc(g->n, int);
+
+		for (k = 0; k < M->elems; k++) {
+			g->nnbs[M->i[k]]++;
+		}
+
+		int *hold = Calloc(M->elems, int), offset = 0;
+
+		for (k = 0; k < M->nrow; k++) {
+			if (g->nnbs[k] == 0) {
+				g->nbs[k] = NULL;
+			} else {
+				g->nbs[k] = &hold[offset];
+				offset += g->nnbs[k];
+			}
+		}
+		assert(offset == M->elems);
+
+		for (k = 0; k < M->nrow; k++) {
+			g->nnbs[k] = 0;			       /* will use this array for counting and build it again */
+		}
+
+		for (k = 0; k < M->elems; k++) {
+			if (M->i[k] != M->j[k]) {
+				i = M->i[k];
+				j = M->j[k];
+				g->nbs[i][g->nnbs[i]] = j;
+				g->nnbs[i]++;
+			}
+		}
+		GMRFLib_prepare_graph(g);
+		M->graph = g;
+
+		/*
+		 * build the has table for quick retrival of values 
+		 */
+		M->htable = Calloc(M->nrow, map_id *);
+		for (k = 0; k < M->nrow; k++) {
+			M->htable[k] = Calloc(1, map_id);
+			map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
+		}
+		for (k = 0; k < M->elems; k++) {
+			map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
 		}
 
 		if (debug) {
@@ -511,6 +564,22 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 	}
 	return diag;
 }
+double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
+{
+	/*
+	 * get element (i,j) of matrix. 
+	 */
+	assert(LEGAL(i, M->nrow));
+	assert(LEGAL(j, M->ncol));
+	
+	if (M->i) {
+		double *d = map_id_ptr(M->htable[i], j);
+		return (d ? *d : 0.0);
+	} else {
+		int idx = i + j * M->nrow;
+		return (M->A ? M->A[idx] : M->iA[idx]);
+	}
+}
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
 	if (M) {
@@ -521,6 +590,19 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 		Free(M->A);
 		Free(M->iA);
 		Free(M->filename);
+
+		GMRFLib_free_graph(M->graph);
+		if (M->htable) {
+			int k;
+			for (k = 0; k < M->nrow; k++) {
+				if (M->htable[k]) {
+					map_id_free(M->htable[k]);
+				}
+				Free(M->htable[k]);
+			}
+			Free(M->htable);
+		}
+
 		Free(M);
 	}
 	return (0);
@@ -587,7 +669,7 @@ int main(int argc, char **argv)
 		printf("read testmatrix.dat (appended)\n");
 		P((double) GMRFLib_is_fmesher_file("testmatrix.dat", 0, -1));
 		M = GMRFLib_read_fmesher_file("testmatrix.dat", 0, -1);
-		P((double)GMRFLib_is_fmesher_file("testmatrix.dat", M->tell, SEEK_SET));
+		P((double) GMRFLib_is_fmesher_file("testmatrix.dat", M->tell, SEEK_SET));
 		M = GMRFLib_read_fmesher_file("testmatrix.dat", M->tell, SEEK_SET);
 	}
 	return 0;
