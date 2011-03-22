@@ -13742,7 +13742,7 @@ int testit(void)
 
 	M = GMRFLib_read_fmesher_file("fmesher-file.dat", 0L, -1);
 
-	if (0)
+	if (1)
 		if (M->i)
 			for(k=0; k<M->elems; k++)
 				printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
@@ -13759,15 +13759,15 @@ int testit(void)
 	for(i=0; i<M->nrow; i++)
 		for(j = 0; j<M->ncol; j++)
 			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
-	printf("transpose...\n");
+	printf("\n\ntranspose...\n\n\n");
 	GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
 
-	if (0)
+	if (1)
 		if (N->i)
 			for(k=0; k<N->elems; k++)
 				printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
 
-	if (0)
+	if (1)
 		for(i=0; i<N->nrow; i++)
 			for(j = 0; j<N->ncol; j++)
 				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
