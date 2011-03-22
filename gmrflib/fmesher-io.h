@@ -59,6 +59,7 @@ typedef struct
 	/* 
 	   these are only defined if the matrix is sparse
 	 */
+	int htable_column_order;			       /* stored by column or row?  default is row which is = 0  */
 	GMRFLib_graph_tp *graph;			       /* (possibly nonsymmetric) graph */
 	map_id **htable;				       /* array of hash-tables for the values */
 
