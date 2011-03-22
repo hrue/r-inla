@@ -530,15 +530,42 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 	M->graph = g;
 
 	/*
-	 * build the has table for quick retrival of values 
+	 * build the has table for quick retrival of values. use row or column indexed hash-table?
 	 */
-	M->htable = Calloc(M->nrow, map_id *);
-	for (k = 0; k < M->nrow; k++) {
-		M->htable[k] = Calloc(1, map_id);
-		map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
+	if (M->nrow >= M->ncol){
+		M->htable_column_order = 0;
+	} else {
+		M->htable_column_order = 1;
 	}
-	for (k = 0; k < M->elems; k++) {
-		map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+	if (M->htable_column_order) {
+		/* 
+		 *   need to count, as we cannot use g->nnbs
+		 */
+		int *nnbs_r = Calloc(M->ncol, int);
+		for (k = 0; k < M->elems; k++) {
+			if (M->i[k] != M->j[k]) {
+				nnbs_r[ M->j[k] ]++;
+			}
+		}
+
+		M->htable = Calloc(M->ncol, map_id *);
+		for (k = 0; k < M->ncol; k++) {
+			M->htable[k] = Calloc(1, map_id);
+			map_id_init_hint(M->htable[k], nnbs_r[k] + 1);
+		}
+		for (k = 0; k < M->elems; k++) {
+			map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
+		}
+		Free(nnbs_r);
+	} else {
+		M->htable = Calloc(M->nrow, map_id *);
+		for (k = 0; k < M->nrow; k++) {
+			M->htable[k] = Calloc(1, map_id);
+			map_id_init_hint(M->htable[k], g->nnbs[k] + 1);
+		}
+		for (k = 0; k < M->elems; k++) {
+			map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
+		}
 	}
 
 	return GMRFLib_SUCCESS;
@@ -585,7 +612,12 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 	assert(LEGAL(j, M->ncol));
 	
 	if (M->i) {
-		double *d = map_id_ptr(M->htable[i], j);
+		double *d;
+		if (M->htable_column_order) {
+			d = map_id_ptr(M->htable[j], i);
+		} else {
+			d = map_id_ptr(M->htable[i], j);
+		}
 		return (d ? *d : 0.0);
 	} else {
 		int idx = i + j * M->nrow;
@@ -606,11 +638,20 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 		GMRFLib_free_graph(M->graph);
 		if (M->htable) {
 			int k;
-			for (k = 0; k < M->nrow; k++) {
-				if (M->htable[k]) {
-					map_id_free(M->htable[k]);
+			if (M->htable_column_order){
+				for (k = 0; k < M->ncol; k++) {
+					if (M->htable[k]) {
+						map_id_free(M->htable[k]);
+					}
+					Free(M->htable[k]);
 				}
-				Free(M->htable[k]);
+			} else {
+				for (k = 0; k < M->nrow; k++) {
+					if (M->htable[k]) {
+						map_id_free(M->htable[k]);
+					}
+					Free(M->htable[k]);
+				}
 			}
 			Free(M->htable);
 		}
