@@ -102,7 +102,7 @@
 
 ## I add here some tools to view and summarize a such graphs...
 
-`plot.inla.graph` = function(graph, ...)
+`plot.inla.graph` = function(graph, attrs = getDefaultAttrs(),  scale = 0.5, ...)
 {
     require(Rgraphviz) || stop("Need library 'Rgraphviz' from the Bioconductor package")
     require(graph) || stop("Need library 'graph'")
@@ -119,7 +119,11 @@
         }
     }
 
-    plot(g, "neato", ...)
+    ## these attributes are scaled
+    attrs$node$height = as.numeric(attrs$node$height) * scale
+    attrs$node$width = as.numeric(attrs$node$width) * scale
+    
+    plot(g, "neato", attrs = attrs, ...)
 }
 
 `summary.inla.graph` = function(graph)
