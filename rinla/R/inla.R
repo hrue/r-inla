@@ -1473,7 +1473,7 @@
         if (inla.os("linux") || inla.os("mac")) {
             arg.v = inla.ifelse(verbose, "-v", "-v")
         } else {
-            arg.v = inla.ifelse(verbose, "-v", "-v")
+            arg.v = inla.ifelse(verbose, "-v", "")
         }
 
         arg.s = inla.ifelse(silent, "-s", "")
@@ -1536,10 +1536,11 @@
         }
         else if (inla.os("windows")) {
             if (!remote) {
+                ##  the `> NUL' does not work well. look this up later!
                 if (verbose) {
                     echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 } else {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > NUL")), silent=TRUE)
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 }
                 echoc = 0
             } else {
