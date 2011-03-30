@@ -1536,12 +1536,7 @@
         }
         else if (inla.os("windows")) {
             if (!remote) {
-                ##  the `> NUL' does not work well. look this up later!
-                if (verbose) {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
-                } else {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
-                }
+                echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 echoc = 0
             } else {
                 echoc = try(inla.cygwin.run.command(
