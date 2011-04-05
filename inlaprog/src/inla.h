@@ -141,12 +141,6 @@ typedef struct {
 	double **log_prec_gaussian;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
-	/* 
-	 * This is the scale for the sqr_gaussian y ~ N(scale * x^2, precision). Not sure how useful this is,
-	 * currently this is just an hidden option for Arnab.
-	 */
-	double **sqr_gaussian_scale;
-
 	/*
 	 * y ~ T_dof(x, 1/(weight*prec)), where T_dof has Variance=1
 	 */
@@ -215,7 +209,6 @@ typedef struct {
 typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
-	L_SQR_GAUSSIAN, 
 	L_SKEWNORMAL,
 	L_GEV,
 	L_T,

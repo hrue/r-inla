@@ -895,29 +895,6 @@
                                 discrete = FALSE
                                 ),
 
-                        sqrnormal = list(
-                                hyper = list(
-                                        theta1 = list(
-                                                name = "log precision",
-                                                short.name = "prec",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "loggamma",
-                                                param = c(1, 0.00005)
-                                                ),
-                                        theta2 = list(
-                                                name = "scale",
-                                                short.name = "scale",
-                                                initial = 1,
-                                                fixed = FALSE,
-                                                prior = "gaussian",
-                                                param = c(1, 100)
-                                                )
-                                        ), 
-                                survival = FALSE,
-                                discrete = FALSE
-                                ),
-
                         skewnormal = list(
                                 hyper = list(
                                         theta1 = list(
