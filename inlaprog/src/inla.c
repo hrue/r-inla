@@ -4738,10 +4738,6 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		exit(1);
 	}
 
-	G.dof_max = iniparser_getdouble(ini, inla_string_join(secname, "DOF.MAX"), G.dof_max);
-	if (mb->verbose) {
-		printf("\t\tdof.max=[%g]\n", G.dof_max);
-	}
 	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"), NULL));
 	if (smtp) {
 		if (!strcasecmp(smtp, "GMRFLib_SMTP_BAND") || !strcasecmp(smtp, "BAND")) {
@@ -5668,6 +5664,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the T
 		 */
+
+		G.dof_max = iniparser_getdouble(ini, inla_string_join(secname, "DOF.MAX"), G.dof_max);
+		if (mb->verbose) {
+			printf("\t\tdof.max=[%g]\n", G.dof_max);
+		}
+		
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
