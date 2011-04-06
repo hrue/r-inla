@@ -3245,8 +3245,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * only one of the marginal are computed with cpo_manual is TRUE. The code depends on the this assumption I think. 
 	 */
 	if (ai_par->cpo_manual) {
-		GMRFLib_ASSERT(compute_n == 1, GMRFLib_ESNH);
-		GMRFLib_ASSERT(d[compute_idx[0]] == 0.0, GMRFLib_ESNH);
+		GMRFLib_ASSERT(compute_n > 0, GMRFLib_ESNH);
+		for(i=0; i<compute_n; i++){
+			GMRFLib_ASSERT(d[compute_idx[i]] == 0.0, GMRFLib_ESNH);
+		}
 		if (dic) {				       /* meaningless to compute the DIC in this case */
 			dic = NULL;
 		}
