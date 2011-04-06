@@ -142,6 +142,12 @@ typedef struct {
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
 	/*
+	 * y ~ Logistic, Variance = 1/ (weight * prec)
+	 */
+	double **log_prec_logistic;
+	double *weight_logistics;
+
+	/*
 	 * y ~ T_dof(x, 1/(weight*prec)), where T_dof has Variance=1
 	 */
 	double **log_prec_t;
@@ -209,6 +215,7 @@ typedef struct {
 typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
+	L_LOGISTIC, 
 	L_SKEWNORMAL,
 	L_GEV,
 	L_T,
@@ -398,7 +405,8 @@ struct inla_tp_struct {
 	 * Expert options 
 	 */
 	int expert_cpo_manual;
-	int expert_cpo_idx;
+	int *expert_cpo_idx;				       /* list of indices */
+	int expert_n_cpo_idx;				       /* the length */
 	double expert_diagonal_emergencey;
 
 	/*
