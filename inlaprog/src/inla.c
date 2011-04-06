@@ -2055,6 +2055,65 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	}
 	return GMRFLib_SUCCESS;
 }
+int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ Logisistc. scaled so that prec = 1 gives variance = 1
+	 *
+	 * A := Pi/sqrt(3)
+	 *
+	 * > F(x);             
+         *                                                     1
+         *                                          ------------------------
+         *                                          1 + exp(-tau A (x - mu))
+	 *
+	 * > solve(F(x) = p,x);
+	 *                                                         -1 + p
+         *                                           tau A mu - ln(- ------)
+         *                                                             p
+         *                                           -----------------------
+         *                                                    tau A
+	 *
+	 * > diff(F(x),x);
+         *                                          tau A exp(-tau A (x - mu))
+         *                                         ---------------------------
+         *                                                                   2
+         *                                         (1 + exp(-tau A (x - mu)))
+	 *
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, lprec, prec, w;
+
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_logistics[idx];
+	lprec = ds->data_observations.log_prec_logistic[GMRFLib_thread_id][0] + log(w);
+	prec = map_precision(ds->data_observations.log_prec_logistic[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+	double A = M_PI/sqrt(3.0);
+	double xx;
+	double precA = prec * A;
+
+	FIXME("TODO");
+	abort();
+	
+	if (m > 0) {
+		if (m <= 3) {
+			for (i = 0; i < m; i++) {
+				xx = x[i] + OFFSET(idx);
+				logll[i] = log(precA) - precA * (0);
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			logll[i] = gsl_cdf_ugaussian_P((y - (x[i] + OFFSET(idx))) * sqrt(prec));
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -9739,13 +9798,23 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO.MANUAL"), mb->expert_cpo_manual);
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPOMANUAL"), mb->expert_cpo_manual);
 
-	mb->expert_cpo_idx = iniparser_getint(ini, inla_string_join(secname, "CPO_IDX"), -1);
-	mb->expert_cpo_idx = iniparser_getint(ini, inla_string_join(secname, "CPO.IDX"), mb->expert_cpo_idx);
-	mb->expert_cpo_idx = iniparser_getint(ini, inla_string_join(secname, "CPOIDX"), mb->expert_cpo_idx);
+	char *str = NULL;
+	str = iniparser_getstring(ini, inla_string_join(secname, "CPO.IDX"), str);
+
+	int n = 0;
+	int *idx = NULL;
+	inla_sread_ints_q(&idx, &n, (const char *) str);
+
+	mb->expert_n_cpo_idx = n;
+	mb->expert_cpo_idx = idx;
 
 	if (mb->verbose) {
+		int i;
+
 		printf("\tcpo.manual=[%1d]\n", mb->expert_cpo_manual);
-		printf("\tcpo.idx=[%1d]\n", mb->expert_cpo_idx);
+		for(i= 0 ; i<mb->expert_n_cpo_idx; i++){
+			printf("\tcpo.idx=[%1d]\n", mb->expert_cpo_idx[i]);
+		}
 	}
 
 	return INLA_OK;
@@ -9755,8 +9824,8 @@ double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
 	double val = 0.0, log_precision, log_precision0, log_precision1, log_precision2, precision0, precision1, precision2,
-	    rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
-	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
+		rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
+		group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 		h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 }; 
 
 	inla_tp *mb = NULL;
@@ -10593,9 +10662,9 @@ double extra(double *theta, int ntheta, void *argument)
 			 * log_precision1, rho_intern). 
 			 */
 			val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-			    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern, MAP_DFORWARD, NULL));
+				+ log(map_precision(log_precision0, MAP_DFORWARD, NULL))
+				+ log(map_precision(log_precision1, MAP_DFORWARD, NULL))
+				+ log(map_rho(rho_intern, MAP_DFORWARD, NULL));
 			break;
 		}
 
@@ -10695,12 +10764,12 @@ double extra(double *theta, int ntheta, void *argument)
 			 * log_precision1, rho_intern). 
 			 */
 			val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-			    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision2, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern01, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern02, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern12, MAP_DFORWARD, NULL));
+				+ log(map_precision(log_precision0, MAP_DFORWARD, NULL))
+				+ log(map_precision(log_precision1, MAP_DFORWARD, NULL))
+				+ log(map_precision(log_precision2, MAP_DFORWARD, NULL))
+				+ log(map_rho(rho_intern01, MAP_DFORWARD, NULL))
+				+ log(map_rho(rho_intern02, MAP_DFORWARD, NULL))
+				+ log(map_rho(rho_intern12, MAP_DFORWARD, NULL));
 			break;
 		}
 
@@ -10996,8 +11065,11 @@ int inla_INLA(inla_tp * mb)
 			compute[count] = (char) 0;
 			count++;
 		}
-		compute[mb->expert_cpo_idx] = (char) 1;
-		mb->d[mb->expert_cpo_idx] = 0.0;
+
+		for(i = 0; i<mb->expert_n_cpo_idx; i++){
+			compute[mb->expert_cpo_idx[i]] = (char) 1;
+			mb->d[mb->expert_cpo_idx[i]] = 0.0;
+		}
 		mb->ai_par->cpo_manual = 1;
 		mb->output->hyperparameters = GMRFLib_FALSE;
 
@@ -11440,7 +11512,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	if (1) {							\
 		int _i, _j;						\
 		for(_i=0; _i < _mb->ntheta; _i++){			\
-			for(_j=0; _j < GMRFLib_MAX_THREADS; _j++) { \
+			for(_j=0; _j < GMRFLib_MAX_THREADS; _j++) {	\
 				_mb->theta[_i][_j][0] = _theta[_i];	\
 			}						\
 		}							\
@@ -11922,7 +11994,6 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	}
 	return INLA_OK;
 }
-
 int inla_computed(GMRFLib_density_tp ** d, int n)
 {
 	/*
