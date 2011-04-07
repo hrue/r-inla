@@ -44,7 +44,6 @@
                 ff.arg = list(list(weight = value))
             } else {
                 ii = which(!is.na(value) & (value != 0))
-                print(ii)
                 ff.arg = list(list(idx = ii, weight = value[ii]))
             }
         
