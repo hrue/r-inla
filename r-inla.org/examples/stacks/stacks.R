@@ -5,8 +5,7 @@ names(data) = c("y","air","temp","acid")
 # set priors
 param.data = list(prec = list(param = c(1.0e-3, 1.0e-3)))
 
-# this is the simple regression model with gaussian data, for the
-# other just change the likelihood
+# this is the simple regression model with gaussian data
 
 formula1 = y ~  air + temp + acid
 mod1 = inla(formula1, data=data,
