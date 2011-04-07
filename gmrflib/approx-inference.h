@@ -419,6 +419,11 @@ typedef struct {
 	FILE *optpar_fp;
 
 	/**
+	 * \brief Step factor for the Newton Raphson algorithm: nr_step_factor
+	 */
+	double optpar_nr_step_factor; 
+
+	/**
 	 * \brief A flag to say that the initial values of the hyperparameters, are the known mode
 	 */
 	int mode_known;

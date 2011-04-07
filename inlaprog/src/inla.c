@@ -2245,6 +2245,21 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 					y_std2 = SQR((y - (x[2] + OFFSET(idx))) * fac);
 					logll[2] = (dof + 1.0) * (y_std2 - dof) / (SQR(dof + y_std2)) * SQR(fac);
 				}
+			ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
+			ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
+			return loglikelihood_gaussian(logll, x, m, idx, x_vec, arg);
+		} else {
+			if (m <= 3) {
+				y_std = (y - (x[0] + OFFSET(idx))) * fac;
+				logll[0] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+				if (m > 1) {
+					y_std = (y - (x[1] + OFFSET(idx))) * fac;
+					logll[1] = -(dof + 1.0) * y_std / (dof + SQR(y_std)) * (-fac);
+				}
+				if (m > 2) {
+					y_std2 = SQR((y - (x[2] + OFFSET(idx))) * fac);
+					logll[2] = (dof + 1.0) * (y_std2 - dof) / (SQR(dof + y_std2)) * SQR(fac);
+				}
 			} else {
 				for (i = 0; i < m; i++) {
 					y_std = (y - (x[i] + OFFSET(idx))) * fac;
@@ -9403,6 +9418,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 
+	mb->ai_par->optpar_nr_step_factor = iniparser_getdouble(ini, inla_string_join(secname, "NR.STEP.FACTOR"), mb->ai_par->optpar_nr_step_factor);
+
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE_KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE.KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
@@ -9799,7 +9816,9 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPOMANUAL"), mb->expert_cpo_manual);
 
 	char *str = NULL;
+	str = iniparser_getstring(ini, inla_string_join(secname, "CPO_IDX"), str);
 	str = iniparser_getstring(ini, inla_string_join(secname, "CPO.IDX"), str);
+	str = iniparser_getstring(ini, inla_string_join(secname, "CPOIDX"), str);
 
 	int n = 0;
 	int *idx = NULL;

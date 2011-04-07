@@ -257,7 +257,10 @@
             numint.abserr = 1e-4,
 
             ##:ARGUMENT: cmin The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)
-            cmin = 0.0)
+            cmin = 0.0,
+
+            ##:ARGUMENT: step.factor The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
+            step.factor = 1.0)
 
     ## use default Gaussian strategy if the observations are gaussian    
     if (all(inla.strcasecmp(family, "gaussian")))
