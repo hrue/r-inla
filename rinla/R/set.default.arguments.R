@@ -260,7 +260,9 @@
             cmin = 0.0,
 
             ##:ARGUMENT: step.factor The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
-            step.factor = 1.0)
+            ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
+            ## This is an hidden option.
+            step.factor = -0.1)
 
     ## use default Gaussian strategy if the observations are gaussian    
     if (all(inla.strcasecmp(family, "gaussian")))
