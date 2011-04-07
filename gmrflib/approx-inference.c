@@ -235,6 +235,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->optpar_abserr_func = 0.01;
 	(*ai_par)->optpar_abserr_step = 0.01;
 	(*ai_par)->optpar_fp = NULL;
+	(*ai_par)->optpar_nr_step_factor = 1.0;
 
 	(*ai_par)->cpo_req_diff_logdens = 3.0;
 
@@ -292,6 +293,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tabserr_func = %.6g\n", ai_par->optpar_abserr_func);
 	fprintf(fp, "\t\tabserr_step = %.6g\n", ai_par->optpar_abserr_step);
 	fprintf(fp, "\t\toptpar_fp = %lx\n", (long unsigned int) (ai_par->optpar_fp));
+	fprintf(fp, "\t\toptpar_nr_step_factor = %.6g\n", ai_par->optpar_nr_step_factor);
 
 	fprintf(fp, "\tGaussian data: %s\n", (ai_par->gaussian_data ? "Yes" : "No"));
 
@@ -487,6 +489,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->fp = ai_par->optpar_fp;
+	optpar->nr_step_factor = ai_par->optpar_nr_step_factor;
+	
 	blockpar->step_len = ai_par->step_len;
 	blockpar->modeoption = GMRFLib_MODEOPTION_MODE;
 	blockpar->fp = ai_par->optpar_fp;
