@@ -470,6 +470,12 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	double ldens;
 	int n, free_ai_par = 0;
 
+	/* 
+	   this is a special option for _INLA(), so it works only when calling it the first time
+	 */
+	static int nr_step_factor_first_time_only = 1;
+#pragma omp threadprivate(nr_step_factor_first_time_only)
+	
 	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_optimize_param_tp *optpar = NULL;
 	GMRFLib_blockupdate_param_tp *blockpar = NULL;
@@ -489,8 +495,21 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->fp = ai_par->optpar_fp;
-	optpar->nr_step_factor = ai_par->optpar_nr_step_factor;
-	
+
+	if (ai_par->optpar_nr_step_factor < 0){
+		/* 
+		 *  then do this only the first time for each thread. This would improve initial values
+		 */
+		if (nr_step_factor_first_time_only){
+			optpar->nr_step_factor = - ai_par->optpar_nr_step_factor;
+			nr_step_factor_first_time_only = 0;
+		} else {
+			optpar->nr_step_factor = 1.0;
+		}
+	} else {
+		optpar->nr_step_factor = ai_par->optpar_nr_step_factor;
+	}
+
 	blockpar->step_len = ai_par->step_len;
 	blockpar->modeoption = GMRFLib_MODEOPTION_MODE;
 	blockpar->fp = ai_par->optpar_fp;

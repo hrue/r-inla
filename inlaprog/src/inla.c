@@ -2225,29 +2225,28 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	fac = sqrt((dof / (dof - 2.0)) * prec);
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+
+	if (dof > G.dof_max) {
+		/*
+		 * It's ok, also the loglikelihood_gaussian() support DERIVATIES_AND_PERCENTILES... 
+		 */
+		ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
+		ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
+		return loglikelihood_gaussian(logll, x, m, idx, x_vec, arg);
+	}
+
 	if (m > 0) {
-		if (dof > G.dof_max) {
-			/*
-			 * It's ok, also the loglikelihood_gaussian() support DERIVATIES_AND_PERCENTILES... 
-			 */
-			ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
-			ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
-			return loglikelihood_gaussian(logll, x, m, idx, x_vec, arg);
-		} else {
-			if (m <= 3) {
-				y_std = (y - (x[0] + OFFSET(idx))) * fac;
-				logll[0] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
-				if (m > 1) {
-					y_std = (y - (x[1] + OFFSET(idx))) * fac;
-					logll[1] = -(dof + 1.0) * y_std / (dof + SQR(y_std)) * (-fac);
-				}
-				if (m > 2) {
-					y_std2 = SQR((y - (x[2] + OFFSET(idx))) * fac);
-					logll[2] = (dof + 1.0) * (y_std2 - dof) / (SQR(dof + y_std2)) * SQR(fac);
-				}
-			ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
-			ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
-			return loglikelihood_gaussian(logll, x, m, idx, x_vec, arg);
+		if (m <= 3) {
+			y_std = (y - (x[0] + OFFSET(idx))) * fac;
+			logll[0] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+			if (m > 1) {
+				y_std = (y - (x[1] + OFFSET(idx))) * fac;
+				logll[1] = -(dof + 1.0) * y_std / (dof + SQR(y_std)) * (-fac);
+			}
+			if (m > 2) {
+				y_std2 = SQR((y - (x[2] + OFFSET(idx))) * fac);
+				logll[2] = (dof + 1.0) * (y_std2 - dof) / (SQR(dof + y_std2)) * SQR(fac);
+			}
 		} else {
 			if (m <= 3) {
 				y_std = (y - (x[0] + OFFSET(idx))) * fac;
@@ -2318,6 +2317,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 			}
 		}
 	}
+
 #undef logE
 	return GMRFLib_SUCCESS;
 }
@@ -11185,6 +11185,7 @@ int inla_INLA(inla_tp * mb)
 			} else {
 				x[i] = 0.0;
 			}
+			//printf("initial value x[%1d] = %g\n", i, x[i]);
 		}
 	}
 
