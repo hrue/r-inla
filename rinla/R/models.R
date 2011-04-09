@@ -6,8 +6,8 @@
     ## inla.models() function takes just to much time!!!
     
     envir = .GlobalEnv
-    if (exists("...inla.hash.inla.models",  envir = envir) &&
-        exists("...inla.hash.inla.models.hgid",  envir = envir) &&
+    if (exists("...inla.hash.inla.models", envir = envir) &&
+        exists("...inla.hash.inla.models.hgid", envir = envir) &&
         get("...inla.hash.inla.models.hgid", envir = envir) == inla.version(hgid = TRUE)) {
 
         return (get("...inla.hash.inla.models", envir = envir))
@@ -815,19 +815,21 @@
                          
                 ## likelihood models
                 likelihood = list(
-
+                        ## the first non-default link-function is the default one.
                         poisson = list(
                                 hyper = list(
                                         ),
                                 survival = FALSE,
-                                discrete = TRUE
+                                discrete = TRUE, 
+                                link = c("default", "log")
                                 ),
 
                         binomial = list(
                                 hyper = list(
                                         ),
                                 survival = FALSE,
-                                discrete = TRUE
+                                discrete = TRUE,
+                                link = c("default", "logit", "probit", "cloglog")
                                 ), 
 
                         nbinomial = list(
@@ -844,21 +846,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = TRUE
-                                ),
-
-                        exponential = list(
-                                hyper = list(
-                                        ), 
-                                survival = TRUE,
-                                discrete = FALSE
-                                ),
-
-                        coxph = list(
-                                hyper = list(
-                                        ),
-                                survival = TRUE,
-                                discrete = TRUE
+                                discrete = TRUE, 
+                                link = c("default", "log")
                                 ),
 
                         gaussian = list(
@@ -875,7 +864,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 ),
 
                         normal = list(
@@ -892,7 +882,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 ),
 
                         skewnormal = list(
@@ -915,7 +906,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 ),
 
                         sn = list(
@@ -940,7 +932,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 ),
 
                         gev = list(
@@ -967,7 +960,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 ),
 
                         laplace = list(
@@ -984,7 +978,24 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
+                                ),
+
+                        exponential = list(
+                                hyper = list(
+                                        ), 
+                                survival = TRUE,
+                                discrete = FALSE,
+                                link = c("default", "log")
+                                ),
+
+                        coxph = list(
+                                hyper = list(
+                                        ),
+                                survival = TRUE,
+                                discrete = TRUE, 
+                                link = c("default", "log")
                                 ),
 
                         weibull = list(
@@ -1001,7 +1012,8 @@
                                                 )
                                         ), 
                                 survival = TRUE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
 
                         weibullcure = list(
@@ -1028,14 +1040,16 @@
                                                 )
                                         ), 
                                 survival = TRUE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
 
                         stochvol = list(
                                 hyper = list(
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ), 
                          
                         stochvolt = list(
@@ -1052,7 +1066,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
 
                         stochvolnig = list(
@@ -1079,7 +1094,8 @@
                                                 )
                                         ), 
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "log")
                                 ),
 
                         zeroinflatedpoisson0 = list(
@@ -1096,7 +1112,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
 
                         zeroinflatedpoisson1 = list(
@@ -1113,7 +1130,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "log")
                                 ),
 
                         zeroinflatedpoisson2 = list(
@@ -1130,7 +1148,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "log")
                                 ),
 
                         zeroinflatedbinomial0 = list(
@@ -1147,7 +1166,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "logit", "probit", "cloglog")
                                 ),
                          
                         zeroinflatedbinomial1 = list(
@@ -1164,7 +1184,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "logit", "probit", "cloglog")
                                 ),
                          
                         zeroinflatedbinomial2 = list(
@@ -1181,7 +1202,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "logit", "probit", "cloglog")
                                 ),
                          
                         zeroinflatedbetabinomial2 = list(
@@ -1208,7 +1230,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "logit", "probit", "cloglog")
                                 ),
                          
                         zeroinflatednbinomial0 = list(
@@ -1235,7 +1258,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
 
                         zeroinflatednbinomial1 = list(
@@ -1262,7 +1286,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "log")
                                 ),
                          
                         zeroinflatednbinomial2 = list(
@@ -1289,7 +1314,8 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "log")
                                 ),
                          
                         t = list(
@@ -1316,14 +1342,16 @@
                                                 )
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE,
+                                link = c("default", "identity")
                                 ),
                          
                         logperiodogram = list(
                                 hyper = list(
                                         ),
                                 survival = FALSE,
-                                discrete = FALSE
+                                discrete = FALSE, 
+                                link = c("default", "identity")
                                 )
                         ),
                  
@@ -1503,3 +1531,28 @@
         return (models[[k]])
     }
 }
+
+`inla.model.validate.link.function` = function(model, link)
+{
+    valid.links = inla.model.properties(model, "likelihood")$link
+
+    stopifnot(!is.null(valid.links))
+    stopifnot(length(valid.links) >= 2)
+    stopifnot(valid.links[1] == "default")
+    
+    link = tolower(link)
+    if (is.element(link, valid.links)) {
+        ## this is the convention: the default link is the second
+        ## entry in the list. the first entry is always "default"
+        if (link == "default") {
+            link = valid.links[2]
+        }
+    } else {
+        stop(inla.paste(c("Link function `", link, "' is not valid or yet implemented.",
+                          "\n",
+                          "Valid ones are: ", inla.paste(valid.links), "\n"), sep=""))
+    }
+
+    return (link)
+}
+               

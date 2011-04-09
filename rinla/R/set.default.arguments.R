@@ -113,6 +113,9 @@
          ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
          fixed=NULL,
 
+         ##:ARGUMENT: link The link function to use.
+         link="default",
+         
          ##:ARGUMENT: dof.max Maximum degrees of freedom for the student-t distribution before its is considered as Normal (default 100)
          dof.max=NULL,
 

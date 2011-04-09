@@ -34,11 +34,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 __BEGIN_DECLS
 #include "iniparser.h"
@@ -46,12 +46,10 @@ __BEGIN_DECLS
 #include "strlib.h"
 #define INLA_FAIL  1
 #define INLA_OK    0
-
 #define FIFO_GET "inla-mcmc-fifo-get"
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-
     typedef enum {
 	/*
 	 * Failure time
@@ -81,8 +79,7 @@ typedef enum {
 	INLA_MODE_QINV,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH
-}
-	inla_mode_tp;
+} inla_mode_tp;
 
 typedef enum {
 	/*
@@ -200,8 +197,8 @@ typedef struct {
 	double **log_prec_skew_normal;
 	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
 
-	/* 
-	   GEV
+	/*
+	 * GEV 
 	 */
 	double *weight_gev;				       /* weights for the skew_normal: Variance propto 1/(weight*prec) */
 	double **log_prec_gev;				       /* log prec for gev */
@@ -215,7 +212,7 @@ typedef struct {
 typedef enum {
 	INVALID_COMPONENT = 0,
 	L_GAUSSIAN,					       /* likelihood-models */
-	L_LOGISTIC, 
+	L_LOGISTIC,
 	L_SKEWNORMAL,
 	L_GEV,
 	L_T,
@@ -270,10 +267,10 @@ typedef enum {
 	P_WISHART1D,
 	P_WISHART2D,
 	P_WISHART3D,
-	P_LOGFLAT, 
+	P_LOGFLAT,
 	P_LOGIFLAT,
 	P_NONE,
-	P_BETACORRELATION, 
+	P_BETACORRELATION,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -336,6 +333,10 @@ typedef struct inla_tp_struct inla_tp;			       /* need it like this as they poi
 
 typedef struct {
 	char *data_likelihood;
+
+	char *link;
+	map_func_tp *predictor_invlinkfunc;
+
 	inla_component_tp data_id;
 	File_tp data_file;
 	Prior_tp data_prior;
@@ -348,7 +349,6 @@ typedef struct {
 	int data_ntheta;
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
-	map_func_tp *predictor_linkfunc;
 	inla_tp *mb;					       /* to get the off_.... */
 } Data_section_tp;
 
@@ -431,11 +431,11 @@ struct inla_tp_struct {
 	int predictor_compute;
 	int predictor_fixed;
 	int predictor_user_scale;
-	map_func_tp **predictor_linkfunc;		       /* these are rebuilt */
+	map_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 
-	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix  */
+	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
 
 	/*
@@ -722,9 +722,15 @@ double exp_taylor(double x, double x0, int order);
 double extra(double *theta, int ntheta, void *argument);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
+double link_this_should_not_happen(double x, map_arg_tp typ, void *param);
 double link_log(double x, map_arg_tp typ, void *param);
+double link_cloglog(double x, map_arg_tp typ, void *param);
 double link_logit(double x, map_arg_tp typ, void *param);
+double link_identity(double x, map_arg_tp typ, void *param);
+double link_probit(double x, map_arg_tp typ, void *param);
 double log_apbex(double a, double b);
+double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
@@ -887,7 +893,7 @@ double inla_log_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
-GMRFLib_lc_tp *inla_vector_to_lc (int len,  double *w);
+GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
 
 
 /* 
