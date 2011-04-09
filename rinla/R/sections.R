@@ -45,6 +45,8 @@
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
+    cat("link = ", inla.model.validate.link.function(family, control$link), "\n", 
+        file = file,  append = TRUE)
 
     if (inla.one.of(family, "laplace")) {
         ## two parameters, alpha and epsilon is require for LAPLACE

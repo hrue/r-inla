@@ -262,7 +262,7 @@
 `inla.paste` = function(strings, sep = " ")
 {
     ## new version (learning more and more...)
-    return (paste(strings, collapse = sep))
+    return (paste(strings, collapse = sep, sep=""))
 
     ## old version::
 
