@@ -2370,7 +2370,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	} else {
 		for (i = 0; i < -m; i++) {
 			lambda = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			if (ISZERO(mu)) {
+			if (ISZERO(E*lambda)) {
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
 				} else {
