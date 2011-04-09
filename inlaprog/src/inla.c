@@ -2950,11 +2950,24 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+			if (p > 1.0){
+				/* 
+				 * need this for the link = "log" that was requested...
+				 */
+				logll[i] = res.val - SQR(DMIN(10.0, n)) * SQR(x[i]+OFFSET(idx) - (-5.0));
+				//printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
+			} else {
+				logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+			}
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			p = ds->predictor_invlinkfunc((x[i] + OFFSET(idx)), MAP_FORWARD, NULL);
+			/* 
+			 * same reason as above: link = "log"
+			 */
+			double pmax = 1.0 - 1.0e-9;
+			p = DMIN(pmax, p);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 		}
 	}
@@ -12243,7 +12256,7 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->nlc, 1,
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
+				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **)((void *)(mb->lc_tag)), NULL);
 			}
 			if (mb->density_lin) {
 				char *newtag2, *newdir2;
@@ -12254,7 +12267,7 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) mb->lc_tag, NULL);
+				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *)mb->lc_tag), NULL);
 			}
 
 			if (mb->density_hyper) {
