@@ -829,7 +829,7 @@
                                         ),
                                 survival = FALSE,
                                 discrete = TRUE,
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog", "log")
                                 ), 
 
                         nbinomial = list(
