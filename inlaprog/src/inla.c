@@ -803,7 +803,7 @@ double link_this_should_not_happen(double x, map_arg_tp typ, void *param)
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	FIXME("This function is called because a wrong link function is used.");
+	FIXMEE("This function is called because a wrong link function is used.");
 	abort();
 	return 0.0;
 }
