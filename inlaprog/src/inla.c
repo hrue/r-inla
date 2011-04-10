@@ -2963,11 +2963,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	} else {
 		for (i = 0; i < -m; i++) {
 			p = ds->predictor_invlinkfunc((x[i] + OFFSET(idx)), MAP_FORWARD, NULL);
-			/* 
-			 * same reason as above: link = "log"
-			 */
-			double pmax = 1.0 - 1.0e-9;
-			p = DMIN(pmax, p);
+			p = DMIN(1.0, p);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 		}
 	}
