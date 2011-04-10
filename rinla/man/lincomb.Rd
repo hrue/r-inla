@@ -1,0 +1,23 @@
+\name{make.lincomb}
+\alias{make.lincomb}
+\alias{make.lincombs}
+\alias{inla.make.lincomb}
+\alias{inla.make.lincombs}
+\title{Create linear combinations}
+\description{Create a linear combination or several
+linear combinations, as input to \code{inla(...,  lincomb = <lincomb>)}}
+\usage{
+lincomb = inla.make.lincomb(...)
+lincombs = inla.make.lincombs(...)
+}
+\arguments{
+TODO
+}
+\value{
+}
+\author{Havard Rue \email{hrue@math.ntnu.no}}
+\seealso{TODO}
+\examples{
+See the worked out examples and description in the FAQ
+section on {www.r-inla.org}
+}

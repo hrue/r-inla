@@ -1,0 +1,18 @@
+\name{inla.doc}
+\alias{inla.doc}
+\alias{inla.doc}
+\alias{inla.inla.doc}
+\title{View documentation}
+\description{View documentation of latent, prior and likelihood models.}
+\usage{
+inla.doc(what)
+}
+\arguments{
+\item{what}{What to view documentation about;
+            name of latent model,  name of prior,  etc.} 
+\author{Havard Rue \email{hrue@math.ntnu.no}}
+\seealso{\code{http://www.r-inla.org}}
+\examples{
+inla.doc("rw2")
+inla.doc("gaussian")
+}

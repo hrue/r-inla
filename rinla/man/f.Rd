@@ -1,0 +1,150 @@
+\name{f}
+\alias{f}
+\title{ Defining smooth and spatial effects in INLA formulae }
+\description{
+
+  Function used in definition of smooth and spatial terms within \code{inla} model
+  formulae. The function does not evaluate a anything - it
+  exists purely to help set up a model. The function specifies one
+  smooth function in the linear predictor (see \code{\link{inla.models}}) as
+  \deqn{w\ f(x)}{weight*f(var)}
+  
+}
+\usage{
+`f` =
+function(..., model=NULL,...)
+}
+\arguments{
+\item{...}{ Name of the covariate and, possibly of the
+weights vector. NB: order counts!!!! The first specified
+term is the covariate and the second one is the vector of
+weights.}
+\item{model}{ A string indicating the choosen model. The
+ default is \code{iid}. See
+ \code{names(inla.models()$latent)} for a list of possible
+ alternatives.}
+\item{copy}{}
+\item{same.as}{}
+\item{n}{An optional argument which defines the dimension
+of the model if this is different from
+\code{length(sort(unique(covariate)))}}
+\item{nrep}{}
+\item{replicate}{}
+\item{group}{}
+\item{group}{}
+\item{control.group}{}
+\item{hyper}{Spesification of the hyperparameter, fixed or
+random, initial values, priors and its parameters. See
+\code{?inla.models} for the list of hyparameters for each
+model and its default options.}
+\item{initial}{THIS OPTION IS OBSOLETE; use
+\code{hyper}!!! Vector indicating the starting values for
+the optimization algorithm. The length of the vector
+depends on the number of hyperparamters in the choosen
+\code{model}. If \code{fixed=T} the value at which the
+parameters are fixed is determines through \code{initial}.
+See \code{inla.models()$latent$'model name'} to have info
+about the choosen model.}
+\item{prior}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+Prior distribution(s) for the hyperparameters of the
+!random model. The default value depends on the type of
+model, see !\url{www.r-inla.org} for a detailed
+description of the models. See
+\code{names(inla.models()$priors)} for possible prior
+choices}
+\item{param}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
+of the prior distribution for the hyperparameters. The
+length of the vector depends on the choosen \code{model}.
+See \code{inla.models()$latent$'model name'} to have info
+about the choosen model.}
+\item{fixed}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+Vector of boolean variables indicating wheater the
+hyperparameters of the model are fixed or random. The
+length of the vector depends on the choosen \code{model}
+See \code{inla.models()$latent$'model name'} to have info
+about the choosen model.}
+\item{season.length}{Lenght of the seasonal compoment
+(ONLY if \code{model="seasonal"}) }
+\item{constr}{A boolean variable indicating whater to set
+a sum to 0 constraint on the term. By default the sum to 0
+constraint is imposed on all intrinsic models
+("iid","rw1","rw1","besag", etc..).}
+\item{extraconstr}{This argument defines extra linear
+constraints. The argument is a list with two elements, a
+matrix \code{A} and a vector \code{e}, which defines the
+extra constraint \code{Ax = e}; for example
+\code{extraconstr = list(A = A, e=e)}. The number of
+columns of \code{A} must correspond to the length of this
+\code{f}-model.  Note that this constraint comes
+additional to the sum-to-zero constraint defined if
+\code{constr = TRUE}.}
+\item{values}{An optional vector giving all values
+assumed by the covariate for which we want estimated the
+effect. It must be a numeric vector, a vector of factors
+or \code{NULL}.}
+\item{cyclic}{A boolean specifying wheather the model is
+cyclical. Only valid for "rw1" and "rw2" models, is
+cyclic=T then the sum to 0 constraint is removed. For the
+correct form of the grah file see \cite{Martinoand Rue
+(2008)}.}
+\item{diagonal}{An extra constant added to the diagonal of
+the precision matrix (default 0.0).}
+\item{graph.file}{Name of the file containing the graph
+of the model.  For the correct for of the graph file see
+\url{http://www.r-inla.org/help/faq}.}
+\item{cdf}{A vector of maximum 10 values between 0 and 1
+\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
+returns, for each posterior marginal the probabilities
+\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
+\item{quantiles}{A vector of maximum 10 quantiles,
+\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
+each posterior marginal. The function returns, for each
+posterior marginal, the values
+\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
+\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
+\item{Cmatrix}{The specification of the precision matrix
+for the generic models (up to a scaling constant).
+\code{Cmatrix} is either a
+(dense) matrix, a matrix create using
+\code{Matrix::sparseMatrix()}, or a filename which stores the
+non-zero elements of \code{Cmatrix}, in three columns:
+\code{i}, \code{j} and \code{Qij}.}
+\item{rankdef}{A number \bold{defining} the rank
+deficiency of the model, with sum-to-zero constraint and
+possible extra-constraints taken into account. See
+details.}
+\item{Z}{}
+\item{nrow}{Number of rows for 2d-models}
+\item{ncol}{Number of columns for 2d-models}
+\item{nu}{Smoothing parameter for the Matern2d-model,
+possible values are \code{c(0, 1, 2, 3)}}
+\item{bvalue}{}
+\item{spde.prefix}{}
+\item{mean.linear}{ Prior mean for the linear component,
+only used if \code{model="linear"}}
+\item{prec.linear}{ Prior precision for the linear
+component, only used if \code{model="linear"}}
+\item{of}{}
+\item{precision}{}
+\item{si}{}
+\item{compute}{ A boolean variable indicating wheather the
+ marginal posterior distribution for the nodes in the
+ \code{f()} model should be computed or not. This is
+ usefull for large models where we are only interested in
+ some posterior marginals.}
+\item{range}{A vector of size two giving the lower and
+upper range for the scaling parameter \code{beta} in the
+model \code{COPY}. If low = high then the identity mapping
+is used.}
+}
+\value{} 
+\details{There is no default value for \code{rankdef}, if it
+is not defined by the user then it is computed by the rank
+deficiency of the prior model (for the generic model, the
+default is zero), plus 1 for the sum-to-zero constraint if the
+prior model is proper, plus the number of extra
+constraints. \bold{Oops:} This can be wrong, and then the user
+must define the \code{rankdef} explicitely.}
+\author{Havard Rue \email{hrue@math.ntnu.no}}
+\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}

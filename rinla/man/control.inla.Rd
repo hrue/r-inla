@@ -1,0 +1,45 @@
+
+\name{control.inla}
+\alias{control.inla}
+\alias{inla.control.inla}
+\title{Control variables in control.inla}
+\description{Control variables in \code{control.inla} for use in \code{inla}}
+\usage{
+inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
+}
+\arguments{
+\item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
+\item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
+\item{interpolator}{  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'gridsum', 'gaussian'. Default is 'auto'.}
+\item{linear.correction}{  Default TRUE for the 'strategy = laplace' option.}
+\item{h}{  The step-length for the gradient calculations for the hyperparameters. Default 0.01.}
+\item{dz}{  The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.}
+\item{diff.logdens}{  The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.}
+\item{print.joint.hyper}{  If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.}
+\item{force.diagonal}{  A boolean variable, if TRUE, then force the Hessian to be diagonal. (Default FALSE.)}
+\item{skip.configurations}{  A boolean variable; skip configurations if the values at the main axis are to small. (Default TRUE.)}
+\item{mode.known}{  A boolean variable: If TRUE then no optimisation is done. (Default FALSE.)}
+\item{adjust.weights}{  A boolean variable; If TRUE then just more accurate integration weights. (Default TRUE.)}
+\item{tolerance}{  The tolerance for the optimisation.}
+\item{restart}{  To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
+\item{optimiser}{  The optimiser to use; one of 'gsl' or 'domin'}
+\item{verbose}{  A boolean variable; run in verbose mode? (Default FALSE)}
+\item{reordering}{  Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")}
+\item{cpo.diff}{  Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}
+\item{npoints}{  Number of points to use in the 'stratey=laplace' approximation}
+\item{adapt.hessian.mode}{  A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)}
+\item{adapt.hessian.max.trails}{  Number of steps in the adaptive Hessian optimisation}
+\item{adapt.hessian.scale}{  The scaling of the 'h' after each trial.}
+\item{huge}{  A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]}
+\item{step.len}{  The step-length used to compute numerical derivaties of the log-likelihood}
+\item{derived.only}{  A boolen variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)}
+\item{numint.maxfeval}{  Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)}
+\item{numint.relerr}{  Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-3)}
+\item{numint.abserr}{  Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-4)}
+\item{cmin}{  The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)}
+\item{step.factor}{  The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
+}
+\seealso{
+\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{inla}}
+}

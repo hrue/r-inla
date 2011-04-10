@@ -1,0 +1,21 @@
+
+\name{control.group}
+\alias{control.group}
+\alias{inla.control.group}
+\title{Control variables in control.group}
+\description{Control variables in \code{control.group} for use in \code{inla}}
+\usage{
+inla(formula, ..., control.group=list( <arg>=<value>[, <arg>=<value>]))
+}
+\arguments{
+\item{model}{  Group model (one of 'exchangable' or 'ar1')}
+\item{hyper}{  Definition of the hyperparameter(s)}
+\item{initial}{  (OBSOLETE!) The initial value for the group correlation in the internal scale.}
+\item{fixed}{  (OBSOLETE!) A boolean variable if the group correction is assumed to be fixed or random.}
+\item{prior}{  (OBSOLETE!) The name of the prior distribution for the group correlation in the internal scale}
+\item{param}{  (OBSOLETE!) Prior parameters}
+}
+\seealso{
+\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{inla}}
+}
