@@ -63,11 +63,12 @@ install: $(INLA)
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/inla; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/inla/examples; 
 
-tags :; etags --output=src/TAGS src/*.c src/*.h
+src/TAGS : $(wildcard src/*.c src/*.h)
+	etags --output=src/TAGS src/*.c src/*.h
 
 clean:; -$(RM) $(OBJ) $(INLA)
 
-.PHONY: depend clean uninstall install tags
+.PHONY: depend clean uninstall install 
 
 
 
