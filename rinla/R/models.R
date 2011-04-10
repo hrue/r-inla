@@ -464,7 +464,7 @@
                                 n.div.by = NULL,
                                 n.required = TRUE,
                                 set.default.values = TRUE,
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ), 
 
                         iid2d = list(
@@ -508,7 +508,7 @@
                                 n.div.by = 2,
                                 n.required = TRUE,
                                 set.default.values = TRUE, 
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ), 
 
                         iid3d = list(
@@ -582,7 +582,7 @@
                                 n.div.by = 3,
                                 n.required = TRUE,
                                 set.default.values = TRUE, 
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ), 
 
                         "2diid" = list(
@@ -626,7 +626,7 @@
                                 n.div.by = 2,
                                 n.required = TRUE,
                                 set.default.values = TRUE,
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ), 
                          
                         z = list(
@@ -1418,15 +1418,15 @@
 
                         wishart1d = list(
                                 nparameters = 2,
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ),
                         wishart2d = list(
                                 nparameters = 4,
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ),
                         wishart3d = list(
                                 nparameters = 7,
-                                pdf = "iid123"
+                                pdf = "iid123d"
                                 ),
                         loggamma = list(
                                 nparameters = 2,
