@@ -217,7 +217,7 @@ hgstamp: dummytarget
 dummytarget: ;
 
 TAGS : $(wildcard *.c *.h)
-	etags *.c *.h
+	etags $^
 
 .PHONY: depend clean clean-deps uninstall install doc dummytarget 
 
