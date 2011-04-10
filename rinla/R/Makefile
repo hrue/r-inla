@@ -1,4 +1,7 @@
 
-tags:; etags *.R
+TAGS : $(wildcard *.R)
+	etags *.R
 
-.PHONY: tags
+doc :; ./make-man-pages
+
+.PHONY: doc

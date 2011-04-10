@@ -216,8 +216,9 @@ hgstamp: dummytarget
 	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
 dummytarget: ;
 
-tags :; etags *.c *.h
+TAGS : $(wildcard *.c *.h)
+	etags *.c *.h
 
-.PHONY: depend clean clean-deps uninstall install doc dummytarget tags
+.PHONY: depend clean clean-deps uninstall install doc dummytarget 
 
 include $(dir $(DEPDIR))dependencies.d $(wildcard $(dir $(DEPDIR))*.d)
