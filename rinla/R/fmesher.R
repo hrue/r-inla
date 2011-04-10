@@ -917,9 +917,14 @@ inla.mesh.project = function(...)
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh = function(mesh, loc)
+inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    if (!missing(field) && !is.null(field)) {
+        proj = inla.mesh.projector(mesh, loc)
+        return(inla.mesh.project(proj, field))
+    }
 
     smorg = (inla.fmesher.smorg(mesh$loc,
                                 mesh$graph$tv,
@@ -950,11 +955,17 @@ inla.mesh.project.inla.mesh.projector =
     }
 
     if (is.null(dim(field))) {
-        data = as.vector(projector$proj$A %*% as.vector(field))
-        data[!projector$proj$ok] = NA
-        return(matrix(data,
-                      projector$lattice$dims[1],
-                      projector$lattice$dims[2]))
+        if (is.null(projector$lattice)) {
+            data = as.vector(projector$proj$A %*% as.vector(field))
+            data[!projector$proj$ok] = NA
+            return(data)
+        } else {
+            data = as.vector(projector$proj$A %*% as.vector(field))
+            data[!projector$proj$ok] = NA
+            return(matrix(data,
+                          projector$lattice$dims[1],
+                          projector$lattice$dims[2]))
+        }
     } else {
         data = projector$proj$A %*% field
         data[!projector$proj$ok,,drop=FALSE] = NA
@@ -965,6 +976,7 @@ inla.mesh.project.inla.mesh.projector =
 
 inla.mesh.projector =
     function(mesh,
+             loc=NULL,
              xlim=range(mesh$loc[,1]),
              ylim=range(mesh$loc[,2]),
              dims=c(100,100),
@@ -972,34 +984,40 @@ inla.mesh.projector =
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    if (identical(mesh$manifold, "R2")) {
-        units = "default"
-        x = seq(xlim[1], xlim[2], length.out=dims[1])
-        y = seq(ylim[1], ylim[2], length.out=dims[2])
-    } else if (identical(mesh$manifold, "S2")) {
-        projection = match.arg(projection, c("longlat", "longsinlat"))
-        units = projection
-        if (missing(xlim) || is.null(xlim)) {
-            xlim = c(-180,180)
-        }
-        if (missing(ylim) || is.null(ylim)) {
-            ylim = c(-90,90)
-        }
-        x = seq(xlim[1], xlim[2], length.out=dims[1])
-        if (identical(projection, "longlat")) {
+    if (missing(loc) || is.null(loc)) {
+        if (identical(mesh$manifold, "R2")) {
+            units = "default"
+            x = seq(xlim[1], xlim[2], length.out=dims[1])
             y = seq(ylim[1], ylim[2], length.out=dims[2])
-        } else {
-            y = (seq(sin(ylim[1]*pi/180),
-                     sin(ylim[2]*pi/2),
-                     length.out=dims[2]))
+        } else if (identical(mesh$manifold, "S2")) {
+            projection = match.arg(projection, c("longlat", "longsinlat"))
+            units = projection
+            if (missing(xlim) || is.null(xlim)) {
+                xlim = c(-180,180)
+            }
+            if (missing(ylim) || is.null(ylim)) {
+                ylim = c(-90,90)
+            }
+            x = seq(xlim[1], xlim[2], length.out=dims[1])
+            if (identical(projection, "longlat")) {
+                y = seq(ylim[1], ylim[2], length.out=dims[2])
+            } else {
+                y = (seq(sin(ylim[1]*pi/180),
+                         sin(ylim[2]*pi/180),
+                         length.out=dims[2]))
+            }
         }
+
+        lattice = (inla.mesh.lattice(x=x, y=y, units = units))
+
+        proj = inla.mesh.project(mesh, lattice$loc)
+        projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
+        class(projector) = "inla.mesh.projector"
+    } else {
+        proj = inla.mesh.project(mesh, loc)
+        projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
+        class(projector) = "inla.mesh.projector"
     }
-
-    lattice = (inla.mesh.lattice(x=x, y=y, units = units))
-
-    proj = inla.mesh.project(mesh, lattice$loc)
-    projector = list(x=x, y=y, lattice=lattice, proj=proj)
-    class(projector) = "inla.mesh.projector"
 
     return (projector)
 }
