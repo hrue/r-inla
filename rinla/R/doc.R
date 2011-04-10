@@ -9,7 +9,8 @@
 ##!}
 ##!\arguments{
 ##!\item{what}{What to view documentation about;
-##!            name of latent model,  name of prior,  etc.} 
+##!            name of latent model,  name of prior,  etc.}
+##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{\code{http://www.r-inla.org}}
 ##!\examples{
