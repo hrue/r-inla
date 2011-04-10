@@ -27,7 +27,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "linear"
                                 ), 
                                  
                         iid = list(
@@ -50,7 +51,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "indep"
                                 ), 
 
                         rw1 = list(
@@ -73,7 +75,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "rw1"
                                 ), 
 
                         rw2 = list(
@@ -96,7 +99,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "rw2"
                                 ), 
 
                         crw2 = list(
@@ -119,7 +123,8 @@
                                 aug.constr = 1,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "crw2"
                                 ), 
 
                         seasonal = list(
@@ -142,7 +147,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "seasonal"
                                 ), 
 
                         besag = list(
@@ -165,7 +171,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "besag"
                                 ), 
 
                         besag2 = list(
@@ -198,7 +205,8 @@
                                 aug.constr = c(1, 2),
                                 n.div.by = 2,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "besag2"
                                 ), 
 
                         bym = list(
@@ -231,7 +239,8 @@
                                 aug.constr = 2,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "bym"
                                 ), 
 
                         ar1 = list(
@@ -264,7 +273,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = "ar1"
                                 ), 
                          
                         generic = list(
@@ -287,7 +297,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "generic0"
                                 ), 
                          
                         generic0 = list(
@@ -310,7 +321,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE, 
+                                pdf = "generic0"
                                 ), 
                          
                         generic1 = list(
@@ -341,7 +353,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "generic1"
                                 ), 
 
                         generic2 = list(
@@ -374,7 +387,8 @@
                                 aug.constr = 2,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "generic2"
                                 ), 
 
                         spde = list(
@@ -420,7 +434,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "spde"
                                 ), 
 
 
@@ -448,7 +463,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "iid123d"
                                 ), 
 
                         iid2d = list(
@@ -491,7 +507,8 @@
                                 aug.constr = c(1, 2),
                                 n.div.by = 2,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE, 
+                                pdf = "iid123d"
                                 ), 
 
                         iid3d = list(
@@ -564,7 +581,8 @@
                                 aug.constr = c(1, 2, 3),
                                 n.div.by = 3,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE, 
+                                pdf = "iid123d"
                                 ), 
 
                         "2diid" = list(
@@ -607,7 +625,8 @@
                                 aug.constr = c(1, 2),
                                 n.div.by = 2,
                                 n.required = TRUE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "iid123d"
                                 ), 
                          
                         z = list(
@@ -629,7 +648,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = NA
                                 ), 
                          
                         rw2d = list(
@@ -652,7 +672,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "rw2d"
                                 ), 
 
                         matern2d = list(
@@ -685,7 +706,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = TRUE
+                                set.default.values = TRUE,
+                                pdf = "matern2d"
                                 ), 
 
                         copy = list(
@@ -722,7 +744,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = NA
                                 )
                         ##
                         ),
@@ -821,7 +844,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = TRUE, 
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "poisson"
                                 ),
 
                         binomial = list(
@@ -829,7 +853,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = TRUE,
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog", "log"),
+                                pdf = "binomial"
                                 ), 
 
                         nbinomial = list(
@@ -847,7 +872,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = TRUE, 
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "nbinomial"
                                 ),
 
                         gaussian = list(
@@ -865,7 +891,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = "gaussian"
                                 ),
 
                         normal = list(
@@ -883,7 +910,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"), 
+                                pdf = "gaussian"
                                 ),
 
                         skewnormal = list(
@@ -907,7 +935,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = "sn"
                                 ),
 
                         sn = list(
@@ -933,7 +962,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"), 
+                                pdf = "sn"
                                 ),
 
                         gev = list(
@@ -961,7 +991,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = "gev"
                                 ),
 
                         laplace = list(
@@ -979,7 +1010,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = "laplace"
                                 ),
 
                         exponential = list(
@@ -987,7 +1019,8 @@
                                         ), 
                                 survival = TRUE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "exponential"
                                 ),
 
                         coxph = list(
@@ -995,7 +1028,8 @@
                                         ),
                                 survival = TRUE,
                                 discrete = TRUE, 
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "coxph"
                                 ),
 
                         weibull = list(
@@ -1013,7 +1047,8 @@
                                         ), 
                                 survival = TRUE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "weibull"
                                 ),
 
                         weibullcure = list(
@@ -1041,7 +1076,8 @@
                                         ), 
                                 survival = TRUE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = NA
                                 ),
 
                         stochvol = list(
@@ -1049,7 +1085,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "stochvolgaussian"
                                 ), 
                          
                         stochvolt = list(
@@ -1067,7 +1104,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "stochvolt"
                                 ),
 
                         stochvolnig = list(
@@ -1095,7 +1133,8 @@
                                         ), 
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "stochvolnig"
                                 ),
 
                         zeroinflatedpoisson0 = list(
@@ -1113,7 +1152,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"),
+                                pdf = "zeroinflated"
                                 ),
 
                         zeroinflatedpoisson1 = list(
@@ -1131,7 +1171,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "log")
+                                link = c("default", "log"), 
+                                pdf = "zeroinflated"
                                 ),
 
                         zeroinflatedpoisson2 = list(
@@ -1149,7 +1190,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "log")
+                                link = c("default", "log"), 
+                                pdf = "zeroinflated"
                                 ),
 
                         zeroinflatedbinomial0 = list(
@@ -1167,7 +1209,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog"), 
+                                pdf = "zeroinflated"
                                 ),
                          
                         zeroinflatedbinomial1 = list(
@@ -1185,7 +1228,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog"),
+                                pdf = "zeroinflated"
                                 ),
                          
                         zeroinflatedbinomial2 = list(
@@ -1203,7 +1247,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog"),
+                                pdf = "zeroinflated"
                                 ),
                          
                         zeroinflatedbetabinomial2 = list(
@@ -1231,7 +1276,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "logit", "probit", "cloglog")
+                                link = c("default", "logit", "probit", "cloglog"), 
+                                pdf = "zeroinflated"
                                 ),
                          
                         zeroinflatednbinomial0 = list(
@@ -1259,7 +1305,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"), 
+                                pdf = "zeroinflated"
                                 ),
 
                         zeroinflatednbinomial1 = list(
@@ -1287,7 +1334,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "log")
+                                link = c("default", "log"), 
+                                pdf = "zeroinflated"
                                 ),
                          
                         zeroinflatednbinomial2 = list(
@@ -1315,7 +1363,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "log")
+                                link = c("default", "log"), 
+                                pdf = "zeroinflated"
                                 ),
                          
                         t = list(
@@ -1343,7 +1392,8 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE,
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = "Student-t"
                                 ),
                          
                         logperiodogram = list(
@@ -1351,33 +1401,71 @@
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
-                                link = c("default", "identity")
+                                link = c("default", "identity"),
+                                pdf = NA
                                 )
                         ),
                  
                 prior = list(
-                        ## these are the same
-                        normal = list(nparameters = 2),
-                        gaussian = list(nparameters = 2),
+                        normal = list(
+                                nparameters = 2,
+                                pdf = "gaussian"
+                                ),
+                        gaussian = list(
+                                nparameters = 2,
+                                pdf = "gaussian"
+                                ),
 
-                        wishart1d = list(nparameters = 2),
-                        wishart2d = list(nparameters = 4),
-                        wishart3d = list(nparameters = 7),
-                        loggamma = list(nparameters = 2),
+                        wishart1d = list(
+                                nparameters = 2,
+                                pdf = "iid123d"
+                                ),
+                        wishart2d = list(
+                                nparameters = 4,
+                                pdf = "iid123d"
+                                ),
+                        wishart3d = list(
+                                nparameters = 7,
+                                pdf = "iid123d"
+                                ),
+                        loggamma = list(
+                                nparameters = 2,
+                                pdf = "prior-loggamma"
+                                ),
 
-                        ## these are the same
-                        minuslogsqrtruncnormal = list(nparameters = 1),
-                        logtnormal = list(nparameters = 1),
-                        logtgaussian = list(nparameters = 1),
+                        minuslogsqrtruncnormal = list(
+                                nparameters = 1,
+                                pdf = "log-tnormal"
+                                ),
+                        logtnormal = list(
+                                nparameters = 1,
+                                pdf = "log-tnormal"
+                                ),
+                        logtgaussian = list(
+                                nparameters = 1,
+                                pdf = "log-tnormal"
+                                ),
 
-                        flat=list(nparameters = 0),
-                        logflat=list(nparameters = 0),
-                        logiflat=list(nparameters = 0), 
+                        flat=list(
+                                nparameters = 0,
+                                pdf = "various-flat"
+                                ),
+                        logflat=list(
+                                nparameters = 0,
+                                pdf = "various-flat"
+                                ),
+                        logiflat=list(
+                                nparameters = 0,
+                                pdf = "various-flat"
+                                ), 
 
                         ## this is the 'no prior needed' prior
                         none = list(nparameters = 0),
 
-                        betacorrelation = list(nparameters = 2)
+                        betacorrelation = list(
+                                nparameters = 2,
+                                pdf = "betacorrelation"
+                                )
                         ),
 
                 ## models that are defined through the wrapper.
@@ -1402,7 +1490,8 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE,
-                                set.default.values = FALSE
+                                set.default.values = FALSE,
+                                pdf = NA
                                 )
                         )
                 )
