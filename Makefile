@@ -5,7 +5,7 @@ all:; \
 	-make -C r-inla.org/doc
 	## update the TAGS-file and the man-files that are generated
 	## automatically 
-	-make -C rinla/R TAGS doc
+	-make -C rinla/R 
 	## update the TAGS-file
 	-make -C gmrflib TAGS
 	## update the TAGS-file
