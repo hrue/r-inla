@@ -308,7 +308,7 @@
          ##:ARGUMENT: cross Cross-sum-to-zero constraints
          cross=NULL,
          
-         ##:ARGUMENT: A The observation matrix A = list(i=..., j=..., values=...) or a filename.
+         ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
          A = NULL,
 
          ##:ARGUMENT precision The precision for eta - A*eta,
