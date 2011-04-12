@@ -18,14 +18,14 @@ inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
     Segment index sequence vector or index pair matrix.  The indices
     refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices
     will be interpreted as indices into the point specification supplied
-    to \code{\link{inla.mesh}}.
+    to \code{\link{inla.mesh.create}}.
     If \code{is.bnd==TRUE}, defaults to linking all the points in
     \code{loc}, as \code{c(1:nrow(loc),1L)}, otherwise \code{1:nrow(loc)}.  
   }
   \item{grp}{
     Vector of group labels for each segment.
     Set to \code{NULL} to let the labels be chosen automatically in a
-    call to \code{\link{inla.mesh}}.
+    call to \code{\link{inla.mesh.create}}.
   }
   \item{is.bnd}{
     \code{TRUE} if the segments are boundary segments, otherwise \code{FALSE}.
@@ -62,12 +62,14 @@ segm.int = inla.mesh.segment(loc.int, is.bnd=FALSE)
 
 ## Points to be meshed
 loc = matrix(runif(10*2),10,2)*0.9+0.05
-mesh = inla.mesh(loc, boundary=segm.bnd, interior=segm.int,
-                 refine=list())
+mesh = inla.mesh.create(loc,
+                        boundary=segm.bnd,
+                        interior=segm.int,
+                        refine=list())
 plot(mesh)
 
 \dontrun{
-mesh = inla.mesh(loc, interior=list(segm.bnd, segm.int))
+mesh = inla.mesh.create(loc, interior=list(segm.bnd, segm.int))
 plot(mesh)
 }
 }
