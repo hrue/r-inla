@@ -33,17 +33,18 @@
         }
     }
 
-    sink(graph.file)
-    cat(n, '\n')
+    fd = file(graph.file, "w")
+    cat(n, '\n', file=fd)
     for(i in 1:n) {
         if (nnbs[i] > 0) {
-            cat(i-off, nnbs[i], nbs[[i]] - off, '\n')
+            cat(i-off, nnbs[i], nbs[[i]] - off, '\n', file=fd)
         } else {
-            cat(i-off, nnbs[i], '\n')
+            cat(i-off, nnbs[i], '\n', file=fd)
         }
     }
-    sink()
+    close(fd)
     rm(xx)
+
     return (graph.file)
 }
 
@@ -62,54 +63,74 @@
     else
         off = 0
 
-    sink(graph.file)
+    fd = file(graph.file,  "w")
     len <- length(num)
-    cat(len, '\n')
+    cat(len, '\n', file=fd)
     k = 1
     for(i in 1:len) {
         if (num[i] > 0) {
-            cat(i - off, num[i], adj[k:(k+num[i]-1)] - off, "\n")
+            cat(i - off, num[i], adj[k:(k+num[i]-1)] - off, "\n", file = fd)
         } else {
-            cat(i - off, num[i], "\n")
+            cat(i - off, num[i], "\n", file=fd)
         }
         k = k + num[i]
     }
-    sink()
+    close(fd)
     return (graph.file)
 }
-
-
 
 `inla.matrix2graph` = function(Q, graph.file = "graph.txt", c.indexing = FALSE)
 {
-    if (c.indexing)
-        off = 1
-    else
-        off = 0
+    if (c.indexing) {
+        off = 1L
+    } else {
+        off = 0L
+    }
 
-    if (!is.matrix(Q))
-        stop("Argument must be a matrix")
-
+    if (!is(Q, "dgTMatrix")) {
+        Q = inla.as.dgTMatrix(Q)
+    }
     n = dim(Q)
-    if (n[1] != n[2])
+
+    if (n[1] != n[2]) {
         stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
+    }
 
     n = dim(Q)[1]
-    diag(Q) = 0
-    sink(graph.file)
+    fd = file(graph.file, "w")
 
-    cat(n, "\n")
+    cat(n, "\n", file=fd)
     for(i in 1:n) {
-        idx = which(Q[i,] != 0)
-        nb = length(idx)
-        if (nb > 0)
-            cat(i-off, nb, idx-off, "\n")
-        else
-            cat(i-off, nb, "\n")
+        row = inla.sparse.get(Q, row = i)
+        nb = length(row$j)
+        if (nb > 0) {
+            ## setting elements of a sparse-matrix to 0 does not
+            ## necessarily remove that entry.
+            row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+            nb = length(row$j)
+        }
+        if (nb > 0) {
+            cat(i-off, nb, row$j - off, "\n", file=fd)
+        } else {
+            cat(i-off, nb, "\n", file=fd)
+        }
     }
-    sink()
+    close(fd)
     return (graph.file)
 }
+
+`inla.graph2matrix` = function(graph.file = "graph.txt")
+{
+    ## create a binary matrix representing the graph in graph.file
+    g = inla.read.graph(graph.file)
+    i = rep(1:g$n,  1L+g$nnbs)
+    j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
+    stopifnot(length(i) == length(j))
+    Q = inla.as.dgTMatrix(sparseMatrix(i = i,  j = j,  x = rep(1, length(i))))
+
+    return (Q)
+}
+
 
 `inla.numlen` = function(n)
 {

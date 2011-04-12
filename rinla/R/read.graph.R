@@ -86,7 +86,7 @@
     return (g)
 }
 
-`inla.write.graph` = function(graph, graph.file = "graph.dat")
+`inla.write.graph` = function(graph, graph.file = "graph.txt")
 {
     ## write a graph read from inla.read.graph, or in that format, to
     ## file.
@@ -96,8 +96,7 @@
         cat(i, graph$nnbs[i], graph$nbs[[i]], "\n", file = fd)
     }
     close(fd)
-
-    return (invisible())
+    return (graph.file)
 }
 
 ## I add here some tools to view and summarize a such graphs...
