@@ -1,4 +1,5 @@
 \name{inla.spde.create}
+\alias{inla.spde.create}
 \alias{inla.spde}
 \title{
   SPDE model objects for INLA
