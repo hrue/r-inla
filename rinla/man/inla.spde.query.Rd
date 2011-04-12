@@ -1,4 +1,5 @@
 \name{inla.spde.query}
+\alias{inla.spde.query}
 \title{
   SPDE model objects for INLA
 }
