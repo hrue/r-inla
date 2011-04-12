@@ -17,7 +17,7 @@ inla(formula, ..., control.predictor=list( <arg>=<value>[, <arg>=<value>]))
 \item{cdf}{  A list of values to compute the CDF for the linear predictor}
 \item{quantiles}{  A list of quantiles to compute for the linear predictor}
 \item{cross}{  Cross-sum-to-zero constraints}
-\item{A}{  The observation matrix A = list(i=..., j=..., values=...) or a filename.}
+\item{A}{  The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.}
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
