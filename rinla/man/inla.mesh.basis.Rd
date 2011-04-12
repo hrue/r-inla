@@ -52,12 +52,12 @@ inla.mesh.basis(mesh,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh}}
+  \code{\link{inla.mesh.create}}
 }
 \examples{
 n = 100
 loc = matrix(runif(n*2), n, 2)
-mesh = inla.mesh(loc, refine=list(max.edge=0.05))
+mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
 basis = inla.mesh.basis(mesh, n=5)
 
 proj = inla.mesh.projector(mesh)

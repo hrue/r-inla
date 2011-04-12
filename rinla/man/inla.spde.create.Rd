@@ -1,23 +1,19 @@
-\name{inla.spde}
+\name{inla.spde.create}
 \alias{inla.spde}
-\alias{inla.spde.inla.mesh}
-\alias{inla.spde.inla.spde}
 \title{
   SPDE model objects for INLA
 }
 \description{
-  Create and query an \code{inla.spde} model object.
+  Create an \code{inla.spde} model object.
 }
 \usage{
 ## Create an SPDE model object:
-inla.spde(mesh,
-          model = c("matern", "imatern"),
-          param = NULL,
-          ...)
-## Query properties of an SPDE model:
-inla.spde(spde, ...)
-## Create an SPDE object based on INLA parameter estimates:
-inla.spde(inla, name, spde, ...)
+inla.spde.create(mesh,
+                 model = c("matern", "imatern"),
+                 param = NULL,
+                 ...)
+%## Create an SPDE object based on INLA parameter estimates:
+%inla.spde.something(inla, name, spde, ...)
 }
 \arguments{
   \item{mesh}{
@@ -28,9 +24,6 @@ inla.spde(inla, name, spde, ...)
   }
   \item{param}{
     Model specific parameters.
-  }
-  \item{spde}{
-    The \code{inla.spde} object to query.
   }
   \item{...}{
     
@@ -83,7 +76,8 @@ inla.spde(inla, name, spde, ...)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh}}, \code{\link{inla.mesh.basis}}
+  \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.basis}},
+  \code{\link{inla.spde.query}}
 }
 \examples{
 n = 100
@@ -93,8 +87,8 @@ loc = matrix(runif(n*2),n,2)
 idx.y = rep(1:n,2)
 y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 
-mesh = inla.mesh(loc, refine=list(max.edge=0.05))
-spde = inla.spde(mesh, model="matern")
+mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
+spde = inla.spde.create(mesh, model="matern")
 data = list(y=y, field=mesh$idx$loc[idx.y])
 formula = y ~ -1 + f(field, model=spde)
 result = inla(formula, data=data, family="normal")

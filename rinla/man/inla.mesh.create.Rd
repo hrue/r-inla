@@ -1,5 +1,6 @@
-\name{inla.mesh}
+\name{inla.mesh.create}
 \alias{inla.mesh}
+\alias{inla.mesh.create}
 \title{
   High-quality triangulations
 }
@@ -8,16 +9,16 @@
   spatial locations.
 }
 \usage{
-inla.mesh(loc = NULL,
-          boundary = NULL, interior = NULL,
-          extend = (missing(tv) || is.null(tv)),
-          refine = FALSE,
-          tv = NULL,
-          lattice = NULL,
-          cutoff = 0,
-          plot.delay = NULL,
-          data.dir,
-          keep = (!missing(data.dir) && !is.null(data.dir)))
+inla.mesh.create(loc = NULL,
+                 boundary = NULL, interior = NULL,
+                 extend = (missing(tv) || is.null(tv)),
+                 refine = FALSE,
+                 tv = NULL,
+                 lattice = NULL,
+                 cutoff = 0,
+                 plot.delay = NULL,
+                 data.dir,
+                 keep = (!missing(data.dir) && !is.null(data.dir)))
 }
 \arguments{
   \item{loc}{
@@ -106,14 +107,14 @@ inla.mesh(loc = NULL,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.lattice}}
+  \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.lattice}}, \code{\link{inla.mesh.query}}
 }
 \examples{
 loc = matrix(runif(10*2),10,2)
-mesh = inla.mesh(loc,
-                 interior=inla.mesh.segment(idx=1:2),
-                 extend=TRUE,
-                 refine=list(max.edge=0.1))
+mesh = inla.mesh.create(loc,
+                        interior=inla.mesh.segment(idx=1:2),
+                        extend=TRUE,
+                        refine=list(max.edge=0.1))
 plot(mesh)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

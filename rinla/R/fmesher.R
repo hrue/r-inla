@@ -411,11 +411,19 @@ inla.mesh.filter.locations = function(loc, cutoff)
 
 inla.mesh = function(...)
 {
-    UseMethod("inla.mesh")
+    args = list(...)
+    if (length(args)>0) {
+        if (inherits(args[[1]],"inla.mesh")) {
+            warning("'inla.mesh(mesh, ...)' is deprecated.  Use 'inla.mesh.query(mesh, ...)' instead.")
+            return(inla.mesh.query(...))
+        }
+    }
+    warning("'inla.mesh(...)' is deprecated.  Use 'inla.mesh.create(...)' instead.")
+    return(inla.mesh.create(...))
 }
 
 
-inla.mesh.default =
+inla.mesh.create =
     function(loc=NULL, tv=NULL,
              boundary=NULL, interior=NULL,
              extend = (missing(tv) || is.null(tv)),
@@ -689,7 +697,7 @@ inla.mesh.default =
 }
 
 
-inla.mesh.inla.mesh = function(mesh, ...)
+inla.mesh.query = function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -802,8 +810,9 @@ inla.mesh.inla.mesh = function(mesh, ...)
     return(result)
 }
 
-summary.inla.mesh = function(x, verbose=FALSE, ...)
+summary.inla.mesh = function(object, verbose=FALSE, ...)
 {
+    x=object
     ## provides a summary for a mesh object
     inla.require.inherits(x, "inla.mesh", "'x'")
 
@@ -917,7 +926,7 @@ inla.mesh.project = function(...)
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL)
+inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -946,7 +955,7 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL)
 
 
 inla.mesh.project.inla.mesh.projector =
-    function(projector, field)
+    function(projector, field, ...)
 {
     inla.require.inherits(projector, "inla.mesh.projector", "'projector'")
 
@@ -1105,10 +1114,18 @@ old.mesh.class.inla.mesh = function(mesh, ...)
 
 inla.spde = function(...)
 {
-    UseMethod("inla.spde")
+    args = list(...)
+    if (length(args)>0) {
+        if (inherits(args[[1]],"inla.spde")) {
+            warning("'inla.spde(spde, ...)' is deprecated.  Use 'inla.spde.query(spde, ...)' instead.")
+            return(inla.spde.query(...))
+        }
+    }
+    warning("'inla.spde(...)' is deprecated.  Use 'inla.spde.create(...)' instead.")
+    return(inla.spde.create(...))
 }
 
-inla.spde.inla.mesh =
+inla.spde.create =
     function(mesh,
              model=c("matern", "imatern", "matern.osc"),
              param=NULL,
@@ -1278,7 +1295,7 @@ inla.parse.queries = function(...)
 
 
 
-inla.spde.inla.spde = function(spde, ...)
+inla.spde.query = function(spde, ...)
 {
     inla.require.inherits(spde, "inla.spde", "'spde'")
 
@@ -1367,7 +1384,7 @@ inla.spde.inla.spde = function(spde, ...)
                 not.implemented(spde,query)
             }
         } else if (identical(query, "sample")) {
-            Q = inla.spde(spde, precision=param)$precision
+            Q = inla.spde.query(spde, precision=param)$precision
             finn = (inla.finn(Q, seed=(inla.ifelse(is.null(param$seed),
                                                    0L,
                                                    param$seed))))
@@ -1387,13 +1404,13 @@ inla.spde.inla.spde = function(spde, ...)
 }
 
 
-inla.spde.inla = function(inla, name, spde, ...)
-{
-    inla.require.inherits(inla, "inla", "'inla'")
-    warning("'inla.spde.inla' is not implemented yet.")
-
-    return(spde)
-}
+##inla.spde.inla = function(inla, name, spde, ...)
+##{
+##    inla.require.inherits(inla, "inla", "'inla'")
+##    warning("'inla.spde.inla' is not implemented yet.")
+##
+##    return(spde)
+##}
 
 
 
@@ -1506,8 +1523,8 @@ inla.spde.inla = function(inla, name, spde, ...)
 
 
 
-##inla.spde(mesh, model=list("matern"), ...)
-##inla.spde(mesh, model=list("heat", Qw=..., t=...), ...)
-##inla.spde(mesh, model=list("imatern"), ...)
+##inla.spde.create(mesh, model=list("matern"), ...)
+##inla.spde.create(mesh, model=list("heat", Qw=..., t=...), ...)
+##inla.spde.create(mesh, model=list("imatern"), ...)
 
 
