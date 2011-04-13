@@ -504,32 +504,78 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
-		for (jm_idx = 0; jm_idx < jm; jm_idx++) {
-			int thread = omp_get_thread_num();
+		/* 
+		   try go get better load-balancing moving the parallell into an inner loop (NEW) instead of making the first loop parallel (OLD)
+		 */
+		if (1) {
+			/* 
+			   NEW VERSION, parallel inner loop
+			*/
 
-			j = j_idx[jm_idx];
-			m = m_idx[jm_idx];
+			//FIXME("************************NEW");
 
-			for (k = 0; k < f_graph[j]->n; k++) {
-				for (l = 0; l < f_graph[m]->n; l++) {
-					value = 0.0;
-					if (nfidx[j][k] < nfidx[m][l]) {
-						for (ii = 0; ii < nfidx[j][k]; ii++) {
-							i = fidx[j][k][ii];
-							if (c[m][i] == l) {
-								value += ww[j][i] * ww[m][i];
+			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
+				j = j_idx[jm_idx];
+				m = m_idx[jm_idx];
+
+#pragma omp parallel for private(k, l, value, ii, i)
+				for (k = 0; k < f_graph[j]->n; k++) {
+					int thread = omp_get_thread_num();
+					for (l = 0; l < f_graph[m]->n; l++) {
+						value = 0.0;
+						if (nfidx[j][k] < nfidx[m][l]) {
+							for (ii = 0; ii < nfidx[j][k]; ii++) {
+								i = fidx[j][k][ii];
+								if (c[m][i] == l) {
+									value += ww[j][i] * ww[m][i];
+								}
+							}
+						} else {
+							for (ii = 0; ii < nfidx[m][l]; ii++) {
+								i = fidx[m][l][ii];
+								if (c[j][i] == k) {
+									value += ww[j][i] * ww[m][i];
+								}
 							}
 						}
-					} else {
-						for (ii = 0; ii < nfidx[m][l]; ii++) {
-							i = fidx[m][l][ii];
-							if (c[j][i] == k) {
-								value += ww[j][i] * ww[m][i];
-							}
-						}
+						SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
 					}
-					SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
+				}
+			}
+		} else {
+			/* 
+			   OLD VERSION, parallel outher loop
+			*/
+
+			//FIXME("*****************OLD");
+
+#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
+			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
+				int thread = omp_get_thread_num();
+
+				j = j_idx[jm_idx];
+				m = m_idx[jm_idx];
+
+				for (k = 0; k < f_graph[j]->n; k++) {
+					for (l = 0; l < f_graph[m]->n; l++) {
+						value = 0.0;
+						if (nfidx[j][k] < nfidx[m][l]) {
+							for (ii = 0; ii < nfidx[j][k]; ii++) {
+								i = fidx[j][k][ii];
+								if (c[m][i] == l) {
+									value += ww[j][i] * ww[m][i];
+								}
+							}
+						} else {
+							for (ii = 0; ii < nfidx[m][l]; ii++) {
+								i = fidx[m][l][ii];
+								if (c[j][i] == k) {
+									value += ww[j][i] * ww[m][i];
+								}
+							}
+						}
+						SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
+					}
 				}
 			}
 		}
