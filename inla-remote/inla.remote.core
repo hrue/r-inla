@@ -98,7 +98,7 @@ tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     tar xfm$compress_put - ; \
-    $RemoteINLA $args Model.ini 1>&2; "
+    $RemoteINLA $args Model.ini"
 
 if [ $verbose == 1 ]; then
    {
