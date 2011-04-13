@@ -165,18 +165,6 @@
               ##!output.  }
               debug = inla.getOption("debug"),
 
-              ##!\item{user.hook}{This defines an optional
-              ##!user-defined function, which can be called just after
-              ##!the .ini-file is created, usually, to add extra
-              ##!information to the .ini-file. See the function
-              ##!\code{inla.user.hook} for an example of a such
-              ##!function, and the arguments to it.  }
-              user.hook = NULL,
-
-              ##!\item{user.hook.arg}{ This defines an optional
-              ##!argument to \code{user.hook} }
-              user.hook.arg = NULL,
-
               ##
               ## these are ``internal'' options, used to transfer info
               ## from expansions
@@ -515,8 +503,6 @@
                      working.directory = working.directory,
                      silent = silent,
                      debug = debug,
-                     user.hook = user.hook,
-                     user.hook.arg = user.hook.arg,
                      ## internal options used to transfer data after expansions
                      .internal = .internal)
 
@@ -805,14 +791,12 @@
 
     ## copy the argument-lists
     mf = match.call(expand.dots = FALSE)
-    ##mf = mf[names(mf) != "user.hook"]
-    ##mf = mf[names(mf) != "user.hook.arg"]
     mf$family = NULL; mf$quantiles=NULL; 
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
     mf$control.data = NULL; mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; 
-    mf$user.hook = NULL; mf$user.hook.arg = NULL; mf$inla.arg = NULL; mf$lincomb=NULL;
+    mf$inla.arg = NULL; mf$lincomb=NULL;
     mf$.internal = NULL; mf$data = data
 
     if (gp$n.fix > 0)
@@ -1454,10 +1438,6 @@
     cont.lincomb[names(control.lincomb)] = control.lincomb
     inla.lincomb.section(file=file.ini, data.dir=data.dir, contr=cont.lincomb, lincomb=lincomb)
     
-    if (!is.null(user.hook) && class(user.hook) == "function")
-        user.hook(file.ini = file.ini, data.dir = data.dir, results.dir = results.dir,
-                  formula = formula.orig, data = data.orig, arg = user.hook.arg)
-
     ## now, do the job
     if (debug) {
         cat("...done\n")
@@ -1533,10 +1513,13 @@
             } else {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > /dev/null"))
             }
-        }
-        else if (inla.os("windows")) {
+        } else if (inla.os("windows")) {
             if (!remote) {
-                echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                if (verbose) {
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > /dev/null")), silent=TRUE)
+                } else {
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                }
                 echoc = 0
             } else {
                 echoc = try(inla.cygwin.run.command(
@@ -1599,11 +1582,10 @@
             ret$formula=formula.orig
             ret$control.fixed=control.fixed
             ret$inla.call = inla.call
+            ret$inla.arg = inla.arg
             ret$silent = silent
             ret$num.threads = num.threads
             ret$model.matrix = gp$model.matrix
-            ret$user.hook = user.hook
-            ret$user.hook.arg = user.hook.arg
             
             ## store also the default control-parameters; just in case
             ret$.control.defaults = list(
@@ -1670,38 +1652,4 @@
     return (ok)
 }
 
-`inla.user.hook` =
-    function(file.ini = NULL, data.dir = NULL, results.dir = NULL, formula = NULL, data = NULL, arg = NULL)
-{
-    cat("\n\ninla.user.hook called with \n")
-
-    ## This is the ini-file that is used
-    cat("\tfile.ini = ", file.ini, "\n")
-
-    ## data.dir also coded in the .ini-file as the variable inladatadir,
-    ## so files in the data.dir should be specified in the .ini-file
-    ## as $inladatadir/file
-    cat("\tdata.dir = ", data.dir, "\n")
-
-    ## results.dir also coded in the .ini-file as the variable inlaresdir,
-    ## is where the result-files are stored. Note that the argument
-    ## 'dir' in the ini-file, like
-    ##
-    ## dir = fixed.effect001
-    ##
-    ## spesify that the results are stored in inlaresdir/fixed.effect001
-    ##
-    cat("\tresults.dir = ", results.dir, "\n")
-
-    ## the formula (of type 'formula') and the data.frame/list that
-    ## was passed to inla().
-    cat("\tformula = ", inla.formula2character(formula), "\n")
-    cat("\tdata = ", names(data), "\n")
-
-    ## arg
-    cat("\targ = ")
-    dput(arg)
-
-    cat("\n")
-}
 
