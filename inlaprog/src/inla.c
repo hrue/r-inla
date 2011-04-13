@@ -11182,7 +11182,6 @@ int inla_INLA(inla_tp * mb)
 			inla_error_general(msg);
 		}
 		memcpy(x, mb->x_file, N * sizeof(double));
-
 		/*
 		 * subtract the offset 
 		 */
