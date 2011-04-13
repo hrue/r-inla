@@ -103,14 +103,6 @@ working files }
 \code{inla}-program should be ``silent''.  }
 \item{debug}{ If \code{TRUE}, then enable some debug
 output.  }
-\item{user.hook}{This defines an optional
-user-defined function, which can be called just after
-the .ini-file is created, usually, to add extra
-information to the .ini-file. See the function
-\code{inla.user.hook} for an example of a such
-function, and the arguments to it.  }
-\item{user.hook.arg}{ This defines an optional
-argument to \code{user.hook} }
 }
 \value{%%
 \code{inla} returns an object of class \code{"inla"}. This is a list
