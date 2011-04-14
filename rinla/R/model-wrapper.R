@@ -45,8 +45,8 @@
         hyper = inla.set.hyper(model, "wrapper", hyper, 
                 initial, fixed, prior, param)         
 
-        ret = list(f = list(Cmatrix = QQ, hyper = hyper, model = "generic",
-                           n = N,  values = 1:N))
+        ret = list(f = list(Cmatrix = QQ, hyper.default = hyper,
+                           model = "generic", n = N,  values = 1:N))
         class(ret) = "inla.wrapper.model"
         
         return (ret)
