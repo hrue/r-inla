@@ -233,6 +233,9 @@
     ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
     ##!\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
 
+    ## this is required. the hyper.defaults can only be changed in the
+    ## model=model.object
+    hyper.default = NULL
 
     ## if model is a particular class, then use this to set default
     ## arguments to all names(formals(INLA::f)) (except the "...").
@@ -248,6 +251,8 @@
             arguments = names(formals(f))
         }
         arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
+        ## add this one manually
+        arguments = c(argument, "hyper.default")
 
         ## evaluate arguments in 'model' and set those that are in
         ## 'arguments'. However, due to the 'missing || is.null', the
@@ -313,7 +318,8 @@
     }
 
     ## set the hyperparameters
-    hyper = inla.set.hyper(model = model,  section = "latent", hyper = hyper, 
+    hyper = inla.set.hyper(model = model,  section = "latent",
+            hyper = hyper, hyper.default = hyper.default, 
             initial = initial, fixed = fixed,  prior = prior,  param = param)
 
     ## for model = copy, its is not allowed to define constr or extraconstr
