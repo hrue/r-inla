@@ -1225,32 +1225,32 @@ inla.spde.create =
         fmesher.write(spde$internal$basis.K, spde.prefix, "basisK")
 
         if (identical(model, "matern")) {
-            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
-                                              param=c(log(tau0), 0.1))),
-                                 theta2=(list(initial=log(kappa0^2),
-                                              param=c(log(kappa0^2), 0.1))),
-                                 theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
-                                              param=c((log(tau0)+log(kappa0^2))/2, 0.1)))
-                                 ))
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1)))
+                                         ))
         } else if (identical(model, "imatern")) {
-            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
-                                              param=c(log(tau0), 0.1))),
-                                 theta2=(list(initial=-20,
-                                              fixed=TRUE)),
-                                 theta3=(list(initial=log(tau0),
-                                              param=c(log(tau0), 0.1)))
-                                 ))
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=-20,
+                                                      fixed=TRUE)),
+                                         theta3=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1)))
+                                         ))
         } else if (identical(model, "matern.osc")) {
-            spde$f$hyper = (list(theta1=(list(initial=log(tau0),
-                                              param=c(log(tau0), 0.1))),
-                                 theta2=(list(initial=log(kappa0^2),
-                                              param=c(log(kappa0^2), 0.1))),
-                                 theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
-                                              param=c((log(tau0)+log(kappa0^2))/2, 0.1))),
-                                 theta4=(list(fixed=FALSE,
-                                              initial=0,
-                                              param=c(0, 0.01)))
-                                 ))
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1))),
+                                         theta4=(list(fixed=FALSE,
+                                                      initial=0,
+                                                      param=c(0, 0.01)))
+                                         ))
         }
     } else {
         stop(paste("Model '", model, "' unknown or not implemented.", sep=""))
