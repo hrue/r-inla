@@ -204,9 +204,9 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value)				\
 	if (gsl_isnan(value)) {						\
-		fprintf(stderr, "\n\n\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. This does not make sense. Abort...\n\n", RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num()); \
-		abort();						\
-		exit(1);						\
+		fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. This does not make sense...\n\n", RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num()); \
+		if (0)abort();						\
+		if (0)exit(1);						\
 	}
 
 #define GMRFLib_SET_PREC(arg_)						\
