@@ -14,30 +14,42 @@ inla.set.hyper = function(
         initial = NULL,
         fixed = NULL,
         prior = NULL,
-        param = NULL)
+        param = NULL,
+        debug = FALSE,
+        hyper.default = NULL)
 {
     ## name of the list can be in any CASE, and a longer name is ok,
     ## like 'list(precision=list(...))' where the 'name="prec"'.
 
     section = match.arg(section)
-    hyper.new = inla.model.properties(model, section)$hyper
+    if (is.null(hyper.default)) {
+        ## default values are given in the inla.models()
+        hyper.new = inla.model.properties(model, section)$hyper
+    } else {
+        ## default values are given by the user. process these 
+        hyper.new = inla.set.hyper(model, section, hyper = hyper.default,  debug = debug)
+    }
     nhyper = length(hyper.new)
+
+    if (debug) {
+        cat(paste("* Get default hyper from model",  model,  "in section",  section), "\n")
+    }
 
     if (nhyper == 0) {
         if (!is.null(initial) && length(initial) > 0) {
-            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'initial' is: ",
+            stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'initial' is ",
                               initial), sep=""))
         }
         if (!is.null(fixed) && length(fixed) > 0) {
-            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'fixed' is:",
+            stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'fixed' is",
                               fixed), sep=""))
         }
         if (!is.null(param) && length(param) > 0) {
-            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'param' is:",
+            stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'param' is",
                               param), sep=""))
         }
         if (!is.null(prior) && length(prior) > 0) {
-            stop(inla.paste(c("Model:", model, "[", section, "], has none hyperparameters, but 'prior' is:",
+            stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'prior' is",
                               param), sep=""))
         }
         return (hyper.new)
@@ -45,6 +57,9 @@ inla.set.hyper = function(
     
     if (!is.null(hyper)) {
         for (nm in names(hyper)) {
+            if (debug) {
+                cat(paste("* Check contents of given hyper$", nm,  sep=""), "\n")
+            }
             valid.keywords = c(
                     "theta",
                     paste("theta",  1:nhyper,  sep=""),
@@ -52,12 +67,12 @@ inla.set.hyper = function(
                     as.character(sapply(hyper.new, function(x) x$name)))
 
             if (is.null(nm)) {
-                stop(paste("Missing name/keyword in `hyper'; must be one of: ", inla.paste(valid.keywords),  ".",
+                stop(paste("Missing name/keyword in `hyper'; must be one of ", inla.paste(valid.keywords),  ".",
                            sep=""))
             }
             if (!any(inla.strcasecmp(nm, valid.keywords))) {
-                stop(paste("Unknown keyword in `hyper': `",  nm,
-                           "'. Must be one of: ",  inla.paste(valid.keywords),  ".",  sep=""))
+                stop(paste("Unknown keyword in `hyper' `",  nm,
+                           "'. Must be one of ",  inla.paste(valid.keywords),  ".",  sep=""))
             }
         }
     }
@@ -70,6 +85,10 @@ inla.set.hyper = function(
     ## do each hyperparameter one by time. fill into `hyper.new'
     for(ih in 1:nhyper) {
         
+        if (debug) {
+            cat(paste("** Check hyperparameter",  ih,  "with name", names(hyper.new)[ih]), "\n")
+        }
+
         ## find idx in the new one
         idx.new = which(names(hyper.new) == paste("theta", ih, sep=""))
         if (ih == 1 && length(idx.new) == 0) {
@@ -80,6 +99,10 @@ inla.set.hyper = function(
         short.name = hyper.new[[idx.new]]$short.name ## short name
         stopifnot(!is.null(short.name))
 
+        if (debug) {
+            cat(paste("** idx.new =",  idx.new), "\n")
+        }
+        
         if (!is.null(hyper)) {
             ## find idx in the given one
             idx = which(names(hyper) == paste("theta", ih, sep=""))
@@ -103,6 +126,16 @@ inla.set.hyper = function(
                                "' or `", name, "', is not a list: ", h,  sep=""))
                 }
             }
+
+            if (debug) {
+                cat(paste("** Corresponding idx in given hyper =",  idx), "\n")
+                if (is.null(h)) {
+                    cat(paste("*** h is NULL"), "\n")
+                } else {
+                    cat(paste("*** h is !NULL"), "\n")
+                }
+            }
+
         } else {
             h = NULL
             idx = NULL
@@ -111,7 +144,11 @@ inla.set.hyper = function(
         for (key in keywords) {
 
             key.val = inla.eval(key)
-
+            if (debug) {
+                cat(paste("*** Process key =",  key), "\n")
+                cat(inla.paste("*** key =", inla.ifelse(is.null(key.val),  "NULL",  as.character(key.val))), "\n")
+            }
+            
             ## special case. if attribute is set to 'read only' then refuse to change value
             read.only = attr(hyper.new[[idx.new]][[key]], "inla.read.only")
             if (!is.null(read.only) && read.only == TRUE) {
@@ -157,6 +194,10 @@ inla.set.hyper = function(
                     ii = key.val[off[[key]] + 1:len]
                     idxx = which(!(is.na(ii) | is.null(ii)))
                     if (length(idxx) > 0) {
+
+                        if (debug) {
+                            cat(inla.paste(c("*** Replace hyper.new|", idx.new, "|", key, "|", idxx, " with ", ii[idxx])), "\n")
+                        }
                         hyper.new[[idx.new]][[key]][idxx] = ii[idxx]
                     }
                 }
@@ -164,10 +205,18 @@ inla.set.hyper = function(
             }
 
             test.val = (!is.null(h) && !is.null(h[[key]]) && !(is.na(h[[key]])))
+
+            if (debug) {
+                cat(paste("*** test.val =", test.val), "\n")
+            }
+
             if (is.na(test.val) || test.val) {
                 ## known length
                 if (key == "param") {
                     len = inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
+                    if (debug) {
+                        cat(paste("*** nparam =", len), "\n")
+                    }
                     if (len < length(hyper.new[[idx.new]][[key]]) && len > 0) {
                         hyper.new[[idx.new]][[key]] = hyper.new[[idx.new]][[key]][1:len]
                     } else if (len < length(hyper.new[[idx.new]][[key]]) && len == 0) {
@@ -193,19 +242,22 @@ inla.set.hyper = function(
                     ## set those NA's to the default ones
                     idxx = which(!is.na(h[[key]]) & !is.null(h[[key]]))
                     if (length(idxx) > 0) {
+                        if (debug) {
+                            cat(inla.paste(c("*** Replace hyper.new|", idx.new, "|", key, "|", idxx, " with h|", key, "|",  idxx,
+                                               "=",  h[[key]][idxx])), "\n")
+                        }
                         hyper.new[[idx.new]][[key]][idxx] = h[[key]][idxx]
                     }
                 }
             }
 
-            ans = inla.model.properties(hyper.new[[idx.new]]$prior, "prior", stop.on.error = TRUE)
-        }
-        
-        if (key == "param") {
-            if (length(hyper.new[[idx.new]]$param) != ans$nparameters) {
-                stop(paste("Wrong length of prior-parameters, prior `", hyper.new[[idx.new]]$prior,  "' needs ",
-                           ans$nparameters,  " parameters, you have ",
-                           length(hyper.new[[idx.new]]$param),  ".",  sep=""))
+            if (key == "param") {
+                ans = inla.model.properties(hyper.new[[idx.new]]$prior, "prior", stop.on.error = TRUE)
+                if (length(hyper.new[[idx.new]]$param) != ans$nparameters) {
+                    stop(paste("Wrong length of prior-parameters, prior `", hyper.new[[idx.new]]$prior,  "' needs ",
+                               ans$nparameters,  " parameters, you have ",
+                               length(hyper.new[[idx.new]]$param),  ".",  sep=""))
+                }
             }
         }
     }
@@ -214,8 +266,8 @@ inla.set.hyper = function(
     for (key in keywords) {
         key.val = inla.eval(key)
         if (!is.null(key.val) && (length(key.val) > off[[key]])) {
-            stop(paste("Length of argument `", key, "':", length(key.val),
-                       ", does not match the total length of `", key, "' in `hyper':", off[[key]], sep=""))
+            stop(paste("Length of argument `", key, "'", length(key.val),
+                       ", does not match the total length of `", key, "' in `hyper'", off[[key]], sep=""))
         }
     }
 
