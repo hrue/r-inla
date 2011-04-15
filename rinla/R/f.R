@@ -8,7 +8,7 @@
 ##!  exists purely to help set up a model. The function specifies one
 ##!  smooth function in the linear predictor (see \code{\link{inla.models}}) as
 ##!  \deqn{w\ f(x)}{weight*f(var)}
-##!  
+##!
 ##!}
 ##!\usage{
 ##!`f` =
@@ -21,13 +21,13 @@
          ##!term is the covariate and the second one is the vector of
          ##!weights.}
          ...,
-         
+
          ##!\item{model}{ A string indicating the choosen model. The
          ##! default is \code{iid}. See
          ##! \code{names(inla.models()$latent)} for a list of possible
          ##! alternatives.}
          model = "iid",
-         
+
          ##!\item{copy}{}
          copy=NULL,
 
@@ -38,7 +38,7 @@
          ##!of the model if this is different from
          ##!\code{length(sort(unique(covariate)))}}
          n=NULL,
-         
+
          ##!\item{nrep}{}
          nrep = NULL,
 
@@ -59,7 +59,7 @@
          ##!\code{?inla.models} for the list of hyparameters for each
          ##!model and its default options.}
          hyper = NULL,
-         
+
          ##!\item{initial}{THIS OPTION IS OBSOLETE; use
          ##!\code{hyper}!!! Vector indicating the starting values for
          ##!the optimization algorithm. The length of the vector
@@ -166,7 +166,7 @@
          ##!possible extra-constraints taken into account. See
          ##!details.}
          rankdef=NULL,
-         
+
          ##!\item{Z}{}
          Z = NULL,
 
@@ -221,7 +221,7 @@
          debug = FALSE)
 {
     ##!}
-    ##!\value{} 
+    ##!\value{}
 
     ##!\details{There is no default value for \code{rankdef}, if it
     ##!is not defined by the user then it is computed by the rank
@@ -252,7 +252,7 @@
         }
         arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
         ## add this one manually
-        arguments = c(argument, "hyper.default")
+        arguments = c(arguments, "hyper.default")
 
         ## evaluate arguments in 'model' and set those that are in
         ## 'arguments'. However, due to the 'missing || is.null', the
@@ -268,7 +268,7 @@
                            " This is likely not what you want!", sep=""))
             }
         }
-        
+
         ## the 'model' argument is required!
         stopifnot(is.character(model$f$model))
         model = model$f$model
@@ -286,13 +286,13 @@
         model = "copy"
         of = copy
         copy = NULL
-    } 
+    }
 
     if (is.null(model)) {
         stop("No model is specified.")
     }
     inla.is.model(model, "latent", stop.on.error=TRUE)
-    
+
     ## in ... is the name of the covariate  and possibly the location of the weights
     ## like f(covariate, weights)
     vars = as.list(substitute(list(...)))[-1]
@@ -305,7 +305,7 @@
     if (d==1) {
         weights = NULL
     } else if (d==2) {
-        weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)         
+        weights = deparse(vars[[2]], backtick = TRUE, width.cutoff = 500)
     } else if (d>2) {
         stop(paste("To many variables included in f():", inla.paste(vars)))
     } else if (d==0) {
@@ -319,7 +319,7 @@
 
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent",
-            hyper = hyper, hyper.default = hyper.default, 
+            hyper = hyper, hyper.default = hyper.default,
             initial = initial, fixed = fixed,  prior = prior,  param = param)
 
     ## for model = copy, its is not allowed to define constr or extraconstr
@@ -327,7 +327,7 @@
         stopifnot(missing(constr))
         stopifnot(missing(extraconstr))
     } else {
-        ## this is only used for model = copy. 
+        ## this is only used for model = copy.
         stopifnot(missing(range))
     }
 
@@ -339,8 +339,8 @@
     cont.group = inla.set.control.group.default()
     cont.group[(namc = names(control.group))] = control.group
     cont.group$hyper = inla.set.hyper(cont.group$model, "group", cont.group$hyper,
-            cont.group$initial, cont.group$fixed, cont.group$prior, cont.group$param) 
-    
+            cont.group$initial, cont.group$fixed, cont.group$prior, cont.group$param)
+
     ## CHECK ARGUMENTS.
     ## This is a bit tricky. We want to check if there are arguments
     ## in `...' which is of type `name = value' which are invalid. If
@@ -352,14 +352,14 @@
         args.eq = names(match.call(expand.dots = TRUE))
         args.eq = args.eq[ args.eq != "" ]
     } else {
-        args.eq = c() 
+        args.eq = c()
         for (arg in unlist(strsplit(as.character(as.expression(match.call(expand.dots=TRUE))), ","))) {
             if (length(grep("=", arg)) > 0) {
                 args.eq = c(args.eq, gsub(" ", "", unlist(strsplit(arg, "="))[1]))
             }
         }
     }
-    
+
     ##
     ## then we compare these with the legal ones in INLA::f(), and
     ## flag an error its not among the legal ones.  OOPS: Need to add
@@ -442,7 +442,7 @@
                        && inla.model.properties(model, "latent")$n.required)) {
         stop(paste("Argument `n' in f() is required for model:", model))
     }
-    
+
     ## special N required?
     if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
          && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
@@ -468,14 +468,14 @@
         ## return here!
         return (ret)
     }
-    
+
     if (inla.one.of(model, "positive")) {
         if (!is.null(n)) {
             stop(paste("model = positive require n = 1, not n =", n))
         }
         n=1
     }
-            
+
     if (!is.null(prec.linear) | !is.null(mean.linear)) {
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
@@ -488,14 +488,14 @@
         if (!(file.exists(paste(spde.prefix, "s", sep="")))) {
             stop(paste("Argument spde.prefix=", spde.prefix, "does not seems to be valid (no file `PREFIXs')"))
         }
-    } 
-        
+    }
+
 
     if (inla.one.of(model,"seasonal") &&
         is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
     }
-        
+
     ## cyclic is only valid for rw1, rw2 and rw2d-models
     if (!is.null(cyclic) && cyclic &&
         !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
@@ -515,7 +515,7 @@
             stop("nrow and ncol must be positive intergers.")
         }
 
-        ## set n as well, makes it easier. 
+        ## set n as well, makes it easier.
         if (!missing(n)) {
             stopifnot(n == nrow*ncol)
         } else {
@@ -542,7 +542,7 @@
             stop("For matern2d/matern2dx2(part0/p1)-model, the NU-parameter must be 0, 1, 2 or 3.")
         }
     }
-        
+
     ##for all instrinsic model the constraint has to be ON...
     ##...except if the rw is cyclic!!!!!
     if (is.null(constr)) {
@@ -550,8 +550,8 @@
         if (!is.null(cyclic) && cyclic) {
             constr=FALSE
         }
-    }   
-        
+    }
+
     ## if diagonal is not set, the set this depending on the constr
     if (is.null(diagonal)) {
         if (constr) {
@@ -560,7 +560,7 @@
             diagonal = 0
         }
     }
-        
+
     if (inla.one.of(model, "z") && is.null(Z)) {
         stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
     }
@@ -576,7 +576,7 @@
                 stop("Dimension of A and e do not correspond")
             }
         }
-        
+
         ##print.extraconstr = paste("list(A=", deparse(extraconstr$A, backtick = TRUE, width.cutoff = 500),",",
         ##    "e=", deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
@@ -614,7 +614,7 @@
                 print(paste("number of connected components", inla.paste(cc.n)))
                 print(paste("number of connected components of size >= 2L", cc.n2))
             }
-        
+
             if (constr) {
                 ## need to redefine the meaning of constr = TRUE to mean
                 ## constr=TRUE for all connected components with size > 1
@@ -632,7 +632,7 @@
                 constr = FALSE
                 AA = matrix(0, cc.n2, N)
                 ee = rep(0, cc.n2)
-            
+
                 if (debug) {
                     print(paste("add new extraconstr, dim = ", cc.n2, "x", n))
                 }
