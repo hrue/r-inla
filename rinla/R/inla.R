@@ -848,7 +848,8 @@
                 inla.eval(paste("mf$", nm, " = NULL", sep=""))
                 inla.eval(paste(nm, " = tmp"))
             } else {
-                inla.eval(paste(nm, "= mf$", nm, " = NULL", sep=""))
+                inla.eval(paste("mf$", nm, " = NULL", sep=""))
+                inla.eval(paste(nm, "= inla.eval(nm)", sep=""))
             }
         }
     }
