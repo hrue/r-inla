@@ -10272,13 +10272,22 @@ double extra(double *theta, int ntheta, void *argument)
 							Tpar[k] = init2;
 					} else {
 						for (k = 1; k < nT; k++) {
-							Tpar[k] = theta[count + Toffset + k - 1];
+							Tpar[k] = theta[count + Toffset];
 							Toffset++;
 						}
 					}
 				}
 				spde->Tmodel->theta_extra[GMRFLib_thread_id] = Tpar;
 			}
+
+			if (debug){
+				P(count);
+				P(Toffset);
+				for(k=0; k<nT; k++){
+					printf("Tpar[%d] = %g\n", k, Tpar[k]);
+				}
+			}
+
 			if (nK) {
 				if (fixed1) {
 					Kpar[0] = init1;
@@ -10292,13 +10301,26 @@ double extra(double *theta, int ntheta, void *argument)
 							Kpar[k] = init2;
 					} else {
 						for (k = 1; k < nK; k++) {
-							Kpar[k] = theta[count + Koffset + Toffset + k - 1];
+							Kpar[k] = theta[count + Koffset + Toffset];
 							Koffset++;
 						}
 					}
 				}
 				spde->Kmodel->theta_extra[GMRFLib_thread_id] = Kpar;
 			}
+
+			if (debug) {
+				P(count);
+				P(Toffset);
+				P(Koffset);
+				for(k=0; k<nT; k++){
+					printf("Tpar[%d] = %g\n", k, Tpar[k]);
+				}
+				for(k=0; k<nK; k++){
+					printf("Kpar[%d] = %g\n", k, Kpar[k]);
+				}
+			}
+
 			if (fixed3) {
 				spde->oc[GMRFLib_thread_id][0] = init3;
 			} else {

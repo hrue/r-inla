@@ -72,7 +72,7 @@ inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp * M)
 
 	for (i = 0; i < M->nrow; i++) {
 		for (j = 0; j < M->ncol; j++) {
-			p->s[i][j] = M->A[i + j * M->nrow];
+			p->s[i][j] = GMRFLib_matrix_get(i, j, M);
 		}
 	}
 
@@ -182,8 +182,9 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp 
 
 	for (i = 0; i < basis->nrow; i++) {
 		theta_model->basis[i] = &(hold[basis->ncol * i]);
-		for (j = 0; j < basis->ncol; j++)
-			theta_model->basis[i][j] = basis->A[i + j * basis->nrow];
+		for (j = 0; j < basis->ncol; j++){
+			theta_model->basis[i][j] = GMRFLib_matrix_get(i, j, basis);
+		}
 	}
 	return INLA_OK;
 }

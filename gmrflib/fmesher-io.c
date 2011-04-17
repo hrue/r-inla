@@ -608,9 +608,11 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 	/*
 	 * get element (i,j) of matrix. 
 	 */
-	assert(LEGAL(i, M->nrow));
-	assert(LEGAL(j, M->ncol));
-	
+
+	if (0) {
+		assert(LEGAL(i, M->nrow));
+		assert(LEGAL(j, M->ncol));
+	}
 	if (M->i) {
 		double *d;
 		if (M->htable_column_order) {
