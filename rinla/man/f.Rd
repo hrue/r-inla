@@ -8,7 +8,7 @@
   exists purely to help set up a model. The function specifies one
   smooth function in the linear predictor (see \code{\link{inla.models}}) as
   \deqn{w\ f(x)}{weight*f(var)}
-  
+
 }
 \usage{
 `f` =
@@ -138,7 +138,7 @@ upper range for the scaling parameter \code{beta} in the
 model \code{COPY}. If low = high then the identity mapping
 is used.}
 }
-\value{} 
+\value{}
 \details{There is no default value for \code{rankdef}, if it
 is not defined by the user then it is computed by the rank
 deficiency of the prior model (for the generic model, the
