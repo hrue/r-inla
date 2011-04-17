@@ -116,13 +116,13 @@
             file.remove(data.dir)
             stop("Number of binomial trials has to be provided")
         } else {
-            if(sum(Ntrials >= response[, 2]) < nrow(response)) {
+            if (any(response[, 2] > Ntrials)) {
                 file.remove(file)
                 file.remove(data.dir)
-                stop("Nnumber of trials have to be larger than y")
-            }
-            else
+                stop("Number of trials have to be larger than y")
+            } else {
                 response=cbind(response[, 1], Ntrials, response[, 2])
+            }
         }
     } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure"))) {
         if (!inla.model.properties(family, "likelihood")$survival)

@@ -73,8 +73,7 @@
     ##!\seealso{\code{\link{inla}}}
 
     stopifnot(class(object) == "inla")
-    
-    result = INLA::inla(
+    result = inla(
             formula = as.formula(object$formula),
             family = object$family, 
             data = object$data,
