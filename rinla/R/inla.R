@@ -848,6 +848,7 @@
                 inla.eval(paste("mf$", nm, " = NULL", sep=""))
                 inla.eval(paste(nm, " = tmp"))
             } else {
+                ## this *is* defined by default,  as all variables are default NULL
                 inla.eval(paste("mf$", nm, " = NULL", sep=""))
                 inla.eval(paste(nm, "= inla.eval(nm)", sep=""))
             }
