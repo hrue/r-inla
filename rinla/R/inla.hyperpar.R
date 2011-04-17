@@ -130,7 +130,9 @@
     for (nm in replace.names) {
         idx.result = which(names(result) == nm)
         idx.object = which(names(object) == nm)
-        object[[idx.object]] = result[[idx.result]]
+        if (length(idx.result) > 0 && length(idx.object) > 0) {
+            object[[idx.object]] = result[[idx.result]]
+        }
     }
 
     ## these are old names that was used before as the output of
