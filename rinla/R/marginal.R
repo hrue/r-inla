@@ -275,10 +275,13 @@
     return (inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` = function(fun, marginal, n=256, h.diff = .Machine$double.eps^(1/3), ...) {
-    return (inla.tmarginal(fun, marginal, n, h.diff, ...))
+`inla.marginal.transform` = function(fun, marginal, n=512, h.diff = .Machine$double.eps^(1/3),
+        method = c("quantile", "linear"),  ...)
+{
+    return (inla.tmarginal(fun, marginal, n, h.diff, method = method, ...))
 }
-`inla.tmarginal` = function(fun, marginal, n=256, h.diff = .Machine$double.eps^(1/3), ...)
+`inla.tmarginal` = function(fun, marginal, n=512, h.diff = .Machine$double.eps^(1/3),
+        method = c("quantile", "linear"),  ...) 
 {
     f = match.fun(fun)
     ff = function(x) f(x, ...)
@@ -286,7 +289,14 @@
     is.mat = is.matrix(marginal)
     m = inla.smarginal(marginal)
     r = range(m$x)
-    x = seq(r[1], r[2], length = n)
+
+    method = match.arg(method)
+    if (method == "quantile") {
+        x = inla.qmarginal((1:n)/(n+1), marginal)
+    } else {
+        ## method == "linear"
+        x = seq(r[1], r[2], length = n)
+    }
     xx = ff(x)
 
     ## use the numDeriv library if present
