@@ -14,18 +14,18 @@ function
 \begin{displaymath}
     F(y; \eta, \tau, \xi) =
     \exp\left(
-      - \left[ 1 + \xi \sqrt{\tau w} (y-\eta)\right]^{-1/\xi}
+      - \left[ 1 + \xi \sqrt{\tau s} (y-\eta)\right]^{-1/\xi}
     \right)
 \end{displaymath}
 for
 \begin{displaymath}
-    1 + \xi \sqrt{\tau w} (y-\eta) > 0
+    1 + \xi \sqrt{\tau s} (y-\eta) > 0
 \end{displaymath}
 and for a continuously response $y$ where
 \begin{description}
 \item[$\eta$:] is the linear predictor
 \item[$\tau$:] is the ``precision''
-\item[$w$:] is a fixed weight, $w>0$.    
+\item[$s$:] is a fixed scaling, $s>0$.    
 \end{description}
 
 \subsection*{Link-function}
@@ -43,19 +43,19 @@ The ``precision'' is represented as
 and the prior is defined on $\theta_{1}$.  The shape parameter $\xi$
 is represented as
 \begin{displaymath}
-    \xi = s\theta_{2}
+    \xi = \xi_{s}\theta_{2}
 \end{displaymath}
-where $s > 0$ is a chosen fixed scaling, and the prior is defined on
+where $\xi_{s} > 0$ is a chosen fixed scaling, and the prior is defined on
 $\theta_{2}$.
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{gev}$
-\item Required arguments: $y$ and $w$ (keyword \texttt{weights})
-\item The scaling $s$ is given by the argument \texttt{scale.xi.gev}
-    and is default set to $0.01$, and provides an more appropriate
-    scale for $\theta_{2}$.
+\item Required arguments: $y$ and $s$ (keyword \texttt{scale})
+\item The scaling $\xi_{s}$ is given by the argument
+    \texttt{gev.xi.scale} and is default set to $0.01$, and provides
+    an more appropriate scale for $\theta_{2}$.
 \end{itemize}
 The weights has default value 1.
 
