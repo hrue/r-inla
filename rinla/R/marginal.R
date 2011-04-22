@@ -280,6 +280,7 @@
 {
     return (inla.tmarginal(fun, marginal, n, h.diff, method = method, ...))
 }
+
 `inla.tmarginal` = function(fun, marginal, n=512, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"),  ...) 
 {
