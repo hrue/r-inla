@@ -142,7 +142,7 @@ typedef struct {
 	 * y ~ Logistic, Variance = 1/ (weight * prec)
 	 */
 	double **log_prec_logistic;
-	double *weight_logistics;
+	double *weight_logistic;
 
 	/*
 	 * y ~ T_dof(x, 1/(weight*prec)), where T_dof has Variance=1

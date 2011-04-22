@@ -1849,6 +1849,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	if (ds->data_id == L_GAUSSIAN) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_LOGISTIC) {
+		idiv = 3;
+		a[0] = ds->data_observations.weight_logistic = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_SKEWNORMAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_ndata, double);
@@ -2194,13 +2197,13 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	 *                                          ------------------------
 	 *                                          1 + exp(-tau A (x - mu))
 	 *
+	 *
 	 * > solve(F(x) = p,x);
 	 *                                                         -1 + p
 	 *                                           tau A mu - ln(- ------)
 	 *                                                             p
 	 *                                           -----------------------
 	 *                                                    tau A
-	 *
 	 * > diff(F(x),x);
 	 *                                          tau A exp(-tau A (x - mu))
 	 *                                         ---------------------------
@@ -2213,29 +2216,23 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w;
+	double y, prec, w, A = M_PI/sqrt(3.0), precA, lprecA, eta;
 
 	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_logistics[idx];
-	lprec = ds->data_observations.log_prec_logistic[GMRFLib_thread_id][0] + log(w);
+	w = ds->data_observations.weight_logistic[idx];
 	prec = map_precision(ds->data_observations.log_prec_logistic[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-
-	double A = M_PI / sqrt(3.0);
-	double eta;
-	double precA = prec * A;
-
-	FIXME("TODO");
-	abort();
+	precA = prec * A;
+	lprecA = log(precA);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			eta = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			logll[i] = log(precA) - precA * (0);
+			logll[i] = lprecA - precA * (y - eta) - 2.0 * log(1.0 + exp(-precA * (y-eta)));
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			eta = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			logll[i] = gsl_cdf_ugaussian_P((y - eta) * sqrt(prec));
+			logll[i] = 1.0/(1.0 + exp(-precA * (y - eta)));
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -5125,6 +5122,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "LOGISTIC")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_logistic;
+		ds->data_id = L_LOGISTIC;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL") || !strcasecmp(ds->data_likelihood, "SN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal;
 		ds->data_id = L_SKEWNORMAL;
@@ -5242,6 +5243,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	} else if (ds->data_id == L_LOGISTIC) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_logistic[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Logistic weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_logistic[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -5384,6 +5394,43 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_LOGISTIC) {
+		/*
+		 * get options related to the LOGISTIC 
+		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_logistic, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_logistic[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the Logistic observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Logistic observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_logistic;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -9975,6 +10022,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 			check += ds->data_ntheta;
 			if (ds->data_id == L_GAUSSIAN) {
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					count++;
+				}
+			} else if (ds->data_id == L_LOGISTIC) {
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood

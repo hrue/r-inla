@@ -1,0 +1,80 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Logistic}
+
+\subsection*{Parametrisation}
+
+The logistic distribution is
+\begin{displaymath}
+    f(y) = \frac{\kappa \exp(-\kappa(y-\mu))}{
+        (1 + \exp(-\kappa(y-\mu)))^{2}}
+\end{displaymath}
+for continuously responses $y$ where
+\begin{description}
+\item[$\mu$:] is the the mean
+\item[$\kappa = \tau s \pi/\sqrt{3}$:] where $\tau$ is the precision
+\item[$s$:] is a fixed scaling, $s>0$.    
+\end{description}
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu \quad\text{and}\qquad \sigma^{2} = \frac{1}{s\tau}
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The precision is represented as
+\begin{displaymath}
+    \theta = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{logistic}$
+\item Required arguments: $y$ and $s$ (keyword \texttt{scale})
+\end{itemize}
+The scalings have default value 1.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/logistic.tex}
+
+
+
+\subsection*{Example}
+
+\verbatiminput{example-logistic.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
