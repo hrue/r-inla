@@ -27,7 +27,7 @@
         cat("inla.create.data.file: n.data = ", n.data, "\n")
 
     ## RESPONSE (gaussian and T can have the weights for the precision: y.i\sim N(\eta, prec\w.i))
-    if (inla.one.of(family, c("gaussian", "normal", "t", "laplace", "sn", "skewnormal", "gev"))) {
+    if (inla.one.of(family, c("gaussian", "normal", "t", "laplace", "sn", "skewnormal", "gev", "logistic"))) {
         if(is.null(scale)) {
             response=cbind(ind, rep(1, n.data), y.orig)
             null.dat = is.na(response[, 3])
