@@ -165,7 +165,7 @@ typedef struct {
 	/*
 	 * survival: event is 1 is y is the failure time or 0 if its right sensored 
 	 */
-	double **alpha_intern;				       /* For the Weibull and PS */
+	double **alpha_intern;				       /* For the Weibull, PS and loglogistic */
 	double *truncation;				       /* for survival */
 	double *event;					       /* one of inla_surv_event_tp */
 	double *lower;					       /* for survival */
@@ -232,6 +232,7 @@ typedef enum {
 	L_LOGPERIODOGRAM,
 	L_EXPONENTIAL,
 	L_WEIBULL,
+	L_LOGLOGISTIC,
 	L_ZEROINFLATEDPOISSON0,
 	L_ZEROINFLATEDPOISSON1,
 	L_ZEROINFLATEDPOISSON2,
@@ -750,6 +751,7 @@ double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
+double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
@@ -871,6 +873,7 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

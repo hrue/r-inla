@@ -1308,6 +1308,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `loglogistic'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`25 25'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`loglogistic'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `weibullcure'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{

@@ -1070,6 +1070,25 @@
                                 pdf = "weibull"
                                 ),
 
+                        loglogistic = list(
+                                hyper = list(
+                                        theta = list(
+                                                name = "log alpha",
+                                                short.name = "alpha",
+                                                initial = 1,
+                                                fixed = FALSE,
+                                                prior = "loggamma",
+                                                param = c(25, 25),
+                                                to.theta = function(x) log(x), 
+                                                from.theta = function(x) exp(x)
+                                                )
+                                        ), 
+                                survival = TRUE,
+                                discrete = FALSE,
+                                link = c("default", "log"),
+                                pdf = "loglogistic"
+                                ),
+
                         weibullcure = list(
                                 hyper = list(
                                         theta1 = list(
