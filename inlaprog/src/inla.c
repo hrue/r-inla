@@ -396,6 +396,39 @@ double map_identity(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_identity_scale(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the idenity map-function
+	 */
+	double scale = *((double *) param);
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return arg*scale;
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return arg/scale;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return scale;
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return (scale > 0 ? 1.0 : 0.0);
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_exp(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -2253,6 +2286,9 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 	w = ds->data_observations.weight_gev[idx];
 	lprec = ds->data_observations.log_prec_gev[GMRFLib_thread_id][0] + log(w);
 	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
+	/* 
+	 * map_identity_scale(theta, MAP_FORWARD, arg...);
+	 */
 	xi = ds->data_observations.gev_scale_xi * ds->data_observations.xi_gev[GMRFLib_thread_id][0];
 
 	if (m > 0) {
@@ -5510,9 +5546,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir[mb->ntheta] = msg;
 			mb->theta[mb->ntheta] = ds->data_observations.xi_gev;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_identity_scale;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) &(ds->data_observations.gev_scale_xi);
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
