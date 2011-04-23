@@ -11,21 +11,21 @@
 
 The LogNormal has density
 \begin{displaymath}
-    f(y) = \frac{1}{y\sqrt{2\Pi}} \sqrt{\tau} \exp\left(
-      -\frac{1}{2} (\log y - \mu)^{2}
+    f(y) = \frac{1}{y\sqrt{2\pi}} \sqrt{\tau} \exp\left(
+      -\frac{1}{2} \tau (\log y - \mu)^{2}
     \right), \qquad y > 0
 \end{displaymath}
 where
 \begin{description}
 \item[$\tau > 0$] is the precision parameter,
-\item[$\mu > 0$] is the mean parameter.
+\item[$\mu$] is the mean parameter.
 \end{description}
 
 \subsection*{Link-function}
 
 The parameter $\mu$ is linked to the linear predictor as:
 \[
-\beta = \mu
+\eta = \mu
 \]
 \subsection*{Hyperparameters}
 
