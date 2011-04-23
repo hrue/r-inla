@@ -1278,6 +1278,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `lognormal'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default identity'}
+								\item{pdf = }{`lognormal'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `exponential'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `coxph'.}{Number of hyperparmeters are 0.

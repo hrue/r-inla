@@ -133,7 +133,7 @@ typedef struct {
 	double **log_size;
 
 	/*
-	 * y ~ Normal(x, 1/(weight*prec)) 
+	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
 	double **log_prec_gaussian;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
@@ -233,6 +233,7 @@ typedef enum {
 	L_EXPONENTIAL,
 	L_WEIBULL,
 	L_LOGLOGISTIC,
+	L_LOGNORMAL,
 	L_ZEROINFLATEDPOISSON0,
 	L_ZEROINFLATEDPOISSON1,
 	L_ZEROINFLATEDPOISSON2,
@@ -885,6 +886,7 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(void);
 map_table_tp *mapfunc_find(const char *name);
@@ -894,6 +896,7 @@ void inla_signal(int sig);
 int inla_read_graph(const char *filename);
 
 double inla_log_Phi(double x);
+double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 

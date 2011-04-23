@@ -1033,6 +1033,25 @@
                                 pdf = "laplace"
                                 ),
 
+                        lognormal = list(
+                                hyper = list(
+                                        theta = list(
+                                                name = "log precision",
+                                                short.name = "prec",
+                                                initial = 2,
+                                                fixed = FALSE,
+                                                prior = "loggamma",
+                                                param = c(1, 0.00005),
+                                                to.theta = function(x) log(x), 
+                                                from.theta = function(x) exp(x)
+                                                )
+                                        ), 
+                                survival = TRUE,
+                                discrete = FALSE, 
+                                link = c("default", "identity"),
+                                pdf = "lognormal"
+                                ),
+                        
                         exponential = list(
                                 hyper = list(
                                         ), 
