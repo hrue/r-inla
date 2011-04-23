@@ -125,7 +125,7 @@
     plot(g, "neato", attrs = attrs, ...)
 }
 
-`summary.inla.graph` = function(graph)
+`summary.inla.graph` = function(graph, ...)
 {
     ret = list()
     ret = c(ret, list(n = graph$n))
@@ -136,7 +136,7 @@
     return(ret)
 }
 
-`print.inla.graph.summary` = function(go)
+`print.inla.graph.summary` = function(go, ...)
 {
     cat(paste("\tn = ",  go$n, "\n"))
     cat(paste("\tncc = ",  go$ncc, "\n"))
