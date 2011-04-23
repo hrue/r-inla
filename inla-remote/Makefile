@@ -16,7 +16,7 @@ inla.remote : inla.remote.core
 
 inla.remote.cygwin : inla.remote.core
 	rm -f $@
-	{ echo '#!/usr/bin/env.exe bash.exe'; echo; echo "CYGWIN=0"; echo HGVERSION=\""$(HGVERSION)"\"; echo; cat $^; } > $@
+	{ echo '#!/usr/bin/env.exe bash.exe'; echo; echo "CYGWIN=1"; echo HGVERSION=\""$(HGVERSION)"\"; echo; cat $^; } > $@
 	chmod 755 $@
 
 .PHONY : all
