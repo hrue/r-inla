@@ -150,9 +150,11 @@
 
     return (m)
 }
+
 `inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0) {
     return (inla.smarginal(marginal, log, extrapolate))
 }
+
 `inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
@@ -174,6 +176,7 @@
         return (ans)
     }
 }
+
 `inla.sfmarginal` = function(marginal)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
@@ -183,13 +186,16 @@
     r = range(m$x)
     return (list(range = r, fun = splinefun(m$x, log(m$y))))
 }
+
 `inla.expectation` = function(fun, marginal, ...) {
     return (inla.emarginal(fun, marginal, ...))
 }
+
 `inla.emarginal` = function(fun, marginal, ...)
 {
     ## compute E(FUN(x)), where the marginal of x is given in
-    ## `marginal'; see inla.smarginal().
+    ## `marginal'; see inla.smarginal(). Also work for FUN(x)
+    ## returning a vector.
 
     xx = inla.smarginal(marginal)
     n = length(xx$x)
@@ -203,7 +209,13 @@
 
     fun = match.fun(fun)
     ff = fun(xx$x[1:n], ...) * xx$y[1:n]
-    e = sum(sum(ff[i.0]) + 4*sum(ff[i.4]) + 2*sum(ff[i.2]))
+    nf = length(ff) %/% n
+    e = numeric(nf)
+    off = 0L
+    for(i in 1:nf) {
+        e[i] = sum(sum(ff[i.0 + off]) + 4*sum(ff[i.4 + off]) + 2*sum(ff[i.2 + off]))
+        off = off + n
+    }
 
     ## normalise, so that E(1) = 1
     ff = 1 * xx$y[1:n] 
@@ -211,6 +223,7 @@
 
     return (e/e.1)
 }
+
 `inla.dmarginal` = function(x, marginal, log = FALSE)
 {
     ## return the density of the marginal. if LOG, in log-scale.  this
@@ -238,6 +251,7 @@
     }
     return (d)
 }
+
 `inla.pmarginal` = function(x, marginal, normalize = TRUE, len = 1024)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
@@ -254,6 +268,7 @@
 
     return (fq(xx))
 }
+
 `inla.qmarginal` = function(p, marginal, len = 1024)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
@@ -309,12 +324,14 @@
     if (present) {
         ## using numDeriv
         dif = numeric(length(x))
-        for(i in 1:length(x))
+        for(i in 1:length(x)) {
             dif[i] = numDeriv::grad(ff, x[i])
+        }
         log.dens = inla.dmarginal(x, marginal, log=FALSE)/ abs(dif)
     } else {
         ## use a simple algorithm
-        log.dens = inla.dmarginal(x, marginal, log=FALSE)/ abs((ff(x + h.diff) - ff(x-h.diff))/(2*h.diff))
+        log.dens = inla.dmarginal(x, marginal, log=FALSE)/
+            abs((ff(x + h.diff) - ff(x-h.diff))/(2*h.diff))
     }
     ## if decreasing function, then reverse
     if (xx[1] > xx[n]) {
@@ -323,8 +340,35 @@
     }
 
     if (is.mat) {
-        return (cbind(x = xx, y = log.dens))
+        ret = cbind(x = xx, y = log.dens)
     } else {
-        return (list(x = xx, y = log.dens))
+        ret = list(x = xx, y = log.dens)
     }
+
+    class(ret) = "inla.marginal"
+    attr(ret, "inla.tag") = paste(attr(marginal, "inla.tag"), "transformed")
+
+    return (ret)
+}
+
+## 'plot' and 'summary'-methods for marginals
+plot.inla.marginal = function(x, ...)
+{
+    m = inla.emarginal(function(xx) c(xx, xx^2), x)
+    xlab = paste("x (mean", format(m[1], digits=4),
+            ", stdev", format(sqrt(max(0, m[2]-m[1]^2)), digits=4), ")")
+    plot(inla.smarginal(x), type = "l", xlab = xlab, ylab = "marginal density", main = attr(x, "inla.tag"), ...)
+}
+summary.inla.marginal = function(x, ...)
+{
+    m = inla.emarginal(function(xx) c(xx, xx^2), x)
+    q = inla.qmarginal(c(0.025, 0.5, 0.975), x)
+
+    cat("Properties of: ", attr(x, "inla.tag"), "\n")
+    cat("+--------------+------------------\n")
+    cat("Mean           ", format(m[1], digits=6), "\n")
+    cat("Stdev          ", format(sqrt(max(0, m[2]-m[1]^2)), digits=6), "\n")
+    cat("Quantile  0.025", format(q[1], digits=6), "\n")
+    cat("Quantile  0.5  ", format(q[2], digits=6), "\n")
+    cat("Quantile  0.975", format(q[3], digits=6), "\n")
 }

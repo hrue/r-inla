@@ -88,5 +88,28 @@
             res.q)
     class(res) = "inla"
 
+    ## set the inla.marginal class to all the marginals,  and add tag used for plotting
+    idxs = grep("marginals", names(res))
+    if (length(idxs) > 0) {
+        for(idx in idxs) {
+            if (!is.null(res[[idx]])) {
+                name.1 = names(res)[idx]
+                if (is.null(name.1)) {
+                    name.1 = ""
+                }
+                for(i in 1:length(res[[idx]])) {
+                    name.2 = names(res[[idx]])[i]
+                    if (is.null(name.2)) {
+                        name.2 = ""
+                    }
+                    if (!is.null(res[[idx]][[i]])) {
+                        attr(res[[idx]][[i]], "inla.tag") = paste(name.1, name.2)
+                        class(res[[idx]][[i]]) = "inla.marginal"
+                    }
+                }
+            }
+        }
+    }
+
     return(res)
 }

@@ -28,13 +28,13 @@
       marginals obtained by \code{inla} or \code{inla.hyperpar()}.}
  
  \usage{
- inla.dmarginal = function(x, marginal, log = FALSE)
- inla.pmarginal = function(q, marginal, normalize = TRUE)
- inla.qmarginal = function(p, marginal, len = 1024)
- inla.rmarginal = function(n, marginal)
- inla.smarginal = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
- inla.emarginal = function(fun, marginal, ...)
- inla.tmarginal = function(fun, marginal, n, h.diff, ...)
+ inla.dmarginal(x, marginal, log = FALSE)
+ inla.pmarginal(q, marginal, normalize = TRUE)
+ inla.qmarginal(p, marginal, len = 1024)
+ inla.rmarginal(n, marginal)
+ inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
+ inla.emarginal(fun, marginal, ...)
+ inla.tmarginal(fun, marginal, n, h.diff, ...)
 
  These functions computes the density (inla.dmarginal), 
  the distribution function (inla.pmarginal), 
