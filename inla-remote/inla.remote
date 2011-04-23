@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CYGWIN=0
-HGVERSION="hgid: 8f8be9b778fd  date: Tue Dec 14 15:39:51 2010 +0100"
+HGVERSION="hgid: 2ce57d376729  date: Sat Apr 23 08:29:48 2011 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -103,7 +103,7 @@ tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     tar xfm$compress_put - ; \
-    $RemoteINLA $args Model.ini 1>&2; "
+    $RemoteINLA $args Model.ini"
 
 if [ $verbose == 1 ]; then
    {
