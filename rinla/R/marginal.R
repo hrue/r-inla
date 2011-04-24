@@ -307,11 +307,12 @@
     r = range(m$x)
 
     method = match.arg(method)
-    if (method == "quantile") {
+    if (inla.strcasecmp(method, "quantile")) {
         x = inla.qmarginal((1:n)/(n+1), marginal)
-    } else {
-        ## method == "linear"
+    } else if (inla.strcasecmp(method, "linear")) {
         x = seq(r[1], r[2], length = n)
+    } else {
+        stop("unknown method")
     }
     xx = ff(x)
 
@@ -357,18 +358,61 @@ plot.inla.marginal = function(x, ...)
     m = inla.emarginal(function(xx) c(xx, xx^2), x)
     xlab = paste("x (mean", format(m[1], digits=4),
             ", stdev", format(sqrt(max(0, m[2]-m[1]^2)), digits=4), ")")
-    plot(inla.smarginal(x), type = "l", xlab = xlab, ylab = "marginal density", main = attr(x, "inla.tag"), ...)
+    plot(inla.smarginal(x, extrapolate=0), type = "l", xlab = xlab, ylab = "marginal density", main = attr(x, "inla.tag"), ...)
+
+    return (invisible())
 }
-summary.inla.marginal = function(x, ...)
+summary.inla.marginal = function(x, silent=FALSE, ...)
 {
     m = inla.emarginal(function(xx) c(xx, xx^2), x)
     q = inla.qmarginal(c(0.025, 0.5, 0.975), x)
+    s = sqrt(max(0, m[2]-m[1]^2))
 
-    cat("Properties of: ", attr(x, "inla.tag"), "\n")
-    cat("+--------------+------------------\n")
-    cat("Mean           ", format(m[1], digits=6), "\n")
-    cat("Stdev          ", format(sqrt(max(0, m[2]-m[1]^2)), digits=6), "\n")
-    cat("Quantile  0.025", format(q[1], digits=6), "\n")
-    cat("Quantile  0.5  ", format(q[2], digits=6), "\n")
-    cat("Quantile  0.975", format(q[3], digits=6), "\n")
+    if (!silent) {
+        cat("Properties of: ", attr(x, "inla.tag"), "\n")
+        cat("+--------------+------------------\n")
+        cat("Mean           ", format(m[1], digits=6), "\n")
+        cat("Stdev          ", format(s, digits=6), "\n")
+        cat("Quantile  0.025", format(q[1], digits=6), "\n")
+        cat("Quantile  0.5  ", format(q[2], digits=6), "\n")
+        cat("Quantile  0.975", format(q[3], digits=6), "\n")
+    }
+    return (invisible(list(mean = m[1],  sd = s,  "quant0.025" = q[1],  "quant0.5" = q[2],  "quant0.975" = q[3])))
+}
+
+plot.inla.marginals = function(x, ...)
+{
+    ## input here is a list of marginals
+
+    n = length(x)
+    if (n == 1) {
+        ## length is 1,  so here we plot the marginal itself
+        plot(x[[1]], ...)
+    } else {
+        xx = sapply(x, summary, silent=TRUE)
+
+        stopifnot(dim(xx)[1] == 5)
+        stopifnot(dim(xx)[2] == n)
+
+        xx.min = min(as.numeric(xx))
+        xx.max = max(as.numeric(xx))
+
+        ylim = range(pretty(c(xx.min, xx.max)))
+        lab = c("mean",  "quant0.5", "quant0.025", "quant0.975")
+        xval = 1:n
+
+        plot(xval, rep(ylim[2]*1000, n),
+             ylim = ylim, main = attr(x, "inla.tag"),
+             xlab = "x", ylab = inla.paste(lab, sep=", "), ...)
+    
+        polygon(c(xval, rev(xval)), c(xx[lab[3], ], rev(xx[lab[4], ])), col="lightgray", border=NA, ...)
+
+        ## mean
+        j=1; lines(xval, xx[lab[j], ], lwd=1, lty=j, ...)
+        j=1; points(xval, xx[lab[j], ], pch=21)
+        ## median
+        j=2; lines(xval, xx[lab[j], ], lwd=1, lty=j, ...)
+    
+        return (invisible())
+    }
 }
