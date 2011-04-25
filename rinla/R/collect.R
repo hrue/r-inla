@@ -277,7 +277,7 @@
                     }
                     marginals.lincomb[[i]] = rr
 
-                    if (!is.null(row.names) && !is.null(marginals.lincomb[[i]])) {
+                    if (!is.null(row.names) && (length(marginals.lincomb)>0)) {
                         names(marginals.lincomb[[i]]) = row.names
                     }
                 } else {
@@ -307,12 +307,12 @@
     }
 
     if (derived) {
-        res = list(summary.lincomb.derived=summary.lincomb[[1]],
-                marginals.lincomb.derived=marginals.lincomb[[1]],
+        res = list(summary.lincomb.derived = summary.lincomb[[1]],
+                marginals.lincomb.derived = inla.ifelse(length(marginals.lincomb) > 0, marginals.lincomb[[1]], NULL), 
                 size.lincomb.derived = size.lincomb[[1]])
     } else {
-        res = list(summary.lincomb=summary.lincomb[[1]],
-                marginals.lincomb=marginals.lincomb[[1]],
+        res = list(summary.lincomb = summary.lincomb[[1]],
+                marginals.lincomb = inla.ifelse(length(marginals.lincomb)>0, marginals.lincomb[[1]], NULL), 
                 size.lincomb = size.lincomb[[1]])
     }
     return(res)
