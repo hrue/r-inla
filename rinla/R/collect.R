@@ -277,7 +277,7 @@
                     }
                     marginals.lincomb[[i]] = rr
 
-                    if (!is.null(row.names) && !is.null(marginals.lincomb)) {
+                    if (!is.null(row.names) && !is.null(marginals.lincomb[[i]])) {
                         names(marginals.lincomb[[i]]) = row.names
                     }
                 } else {
