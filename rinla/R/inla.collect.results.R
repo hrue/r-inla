@@ -88,74 +88,80 @@
             res.q)
     class(res) = "inla"
 
-    ## set the inla.marginal class to all the marginals, and add tag
-    ## used for plotting.  all these have two levels:
-    idxs = grep("marginals[.](fixed|linear[.]predictor|lincomb[.]derived|lincomb|hyperpar|fitted[.]values)", names(res))
-    if (length(idxs) > 0) {
-        for(idx in idxs) {
-            if (!is.null(res[[idx]])) {
-                name.1 = names(res)[idx]
-                if (is.null(name.1)) {
-                    name.1 = ""
-                }
+    if (FALSE) {
 
-                attr(res[[idx]], "inla.tag") = name.1
-                class(res[[idx]]) = "inla.marginals"
+        stop("to slow for the moment")
 
-                if (length(res[[idx]])>0) {
-                    for(i in 1:length(res[[idx]])) {
-                        name.2 = names(res[[idx]])[i]
-                        if (is.null(name.2)) {
-                            name.2 = ""
-                        }
-                        if (!is.null(res[[idx]][[i]])) {
-                            attr(res[[idx]][[i]], "inla.tag") = paste(name.1, name.2)
-                            class(res[[idx]][[i]]) = "inla.marginal"
+        ## set the inla.marginal class to all the marginals, and add tag
+        ## used for plotting.  all these have two levels:
+        idxs = grep("marginals[.](fixed|linear[.]predictor|lincomb[.]derived|lincomb|hyperpar|fitted[.]values)", names(res))
+        if (length(idxs) > 0) {
+            for(idx in idxs) {
+                if (!is.null(res[[idx]])) {
+                    name.1 = names(res)[idx]
+                    if (is.null(name.1)) {
+                        name.1 = ""
+                    }
+
+                    attr(res[[idx]], "inla.tag") = name.1
+                    class(res[[idx]]) = "inla.marginals"
+
+                    if (length(res[[idx]])>0) {
+                        for(i in 1:length(res[[idx]])) {
+                            name.2 = names(res[[idx]])[i]
+                            if (is.null(name.2)) {
+                                name.2 = ""
+                            }
+                            if (!is.null(res[[idx]][[i]])) {
+                                attr(res[[idx]][[i]], "inla.tag") = paste(name.1, name.2)
+                                class(res[[idx]][[i]]) = "inla.marginal"
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    ## all these have three levels:
-    idxs = grep("marginals[.]random", names(res))
-    if (length(idxs) > 0) {
-        for(idx in idxs) {
-            if (!is.null(res[[idx]])) {
-                name.1 = names(res)[idx]
-                if (is.null(name.1)) {
-                    name.1 = ""
-                }
 
-                name.2 = names(res[[idx]])
+        ## all these have three levels:
+        idxs = grep("marginals[.]random", names(res))
+        if (length(idxs) > 0) {
+            for(idx in idxs) {
+                if (!is.null(res[[idx]])) {
+                    name.1 = names(res)[idx]
+                    if (is.null(name.1)) {
+                        name.1 = ""
+                    }
 
-                if (length(res[[idx]])>0) {
-                    for(i in 1:length(res[[idx]])) {
+                    name.2 = names(res[[idx]])
 
-                        if (is.null(name.2)) {
-                            name.3 = ""
-                        } else {
-                            name.3 = name.2[i]
-                        }
+                    if (length(res[[idx]])>0) {
+                        for(i in 1:length(res[[idx]])) {
 
-                        name.4 = names(res[[idx]][[i]])
+                            if (is.null(name.2)) {
+                                name.3 = ""
+                            } else {
+                                name.3 = name.2[i]
+                            }
 
-                        attr(res[[idx]][[i]], "inla.tag") = paste(name.1, name.3)
-                        class(res[[idx]][[i]]) = "inla.marginals"
+                            name.4 = names(res[[idx]][[i]])
 
-                        if (length(res[[idx]][[i]]) > 0) {
-                            for(j in 1:length(res[[idx]][[i]])) {
+                            attr(res[[idx]][[i]], "inla.tag") = paste(name.1, name.3)
+                            class(res[[idx]][[i]]) = "inla.marginals"
+
+                            if (length(res[[idx]][[i]]) > 0) {
+                                for(j in 1:length(res[[idx]][[i]])) {
                         
-                                if (is.null(name.4)) {
-                                    name.5 = ""
-                                } else {
-                                    name.5 = name.4[j]
-                                }
+                                    if (is.null(name.4)) {
+                                        name.5 = ""
+                                    } else {
+                                        name.5 = name.4[j]
+                                    }
                         
-                                if (!is.null(res[[idx]][[i]][[j]])) {
+                                    if (!is.null(res[[idx]][[i]][[j]])) {
 
-                                    attr(res[[idx]][[i]][[j]], "inla.tag") = paste(name.1, name.3, name.5)
-                                    class(res[[idx]][[i]][[j]]) = "inla.marginal"
+                                        attr(res[[idx]][[i]][[j]], "inla.tag") = paste(name.1, name.3, name.5)
+                                        class(res[[idx]][[i]][[j]]) = "inla.marginal"
+                                    }
                                 }
                             }
                         }
@@ -164,6 +170,5 @@
             }
         }
     }
-
     return(res)
 }

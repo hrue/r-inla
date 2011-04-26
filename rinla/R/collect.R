@@ -59,6 +59,9 @@
         stdev.corr.negative = NULL
     }
     
+    if (debug)
+        print(paste("collect misc from", d, "...done"))
+
     return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r, theta.tags = tags,
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive))
 }
