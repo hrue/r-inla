@@ -3,6 +3,10 @@
 ### "inla.model/results.files" or any directory where the results from a
 ### inla run are stored
 
+## temporary only...
+inla.internal.experimental.mode = FALSE
+
+
 `inla.collect.misc` = function(dir, debug = FALSE)
 {
     d = paste(dir,"/misc", sep="")
@@ -145,12 +149,22 @@
                     xx = cbind(c(NA, NA, NA), c(NA, NA, NA))
                 colnames(xx) = c("x", "y")
                 marginals.fixed[[i]] = xx
+
+                if (inla.internal.experimental.mode) {
+                    class(marginals.fixed[[i]]) = "inla.marginal"
+                    attr(marginals.fixed[[i]], "inla.tag") = paste("marginal fixed", names.fixed[i])
+                }
             } else {
                 col.nam = c("mean", "sd", "kld")
                 summary.fixed = rbind(summary.fixed, c(NA, NA, NA))
                 xx = cbind(c(NA, NA, NA), c(NA, NA, NA))
                 colnames(xx) = c("x", "y")
                 marginals.fixed[[i]] = xx
+
+                if (inla.internal.experimental.mode) {
+                    class(marginals.fixed[[i]]) = "inla.marginal"
+                    attr(marginals.fixed[[i]], "inla.tag") = paste("marginal fixed", names.fixed[i])
+                }
             }
         }    
         rownames(summary.fixed) = inla.namefix(names.fixed)
@@ -167,6 +181,11 @@
         marginals.fixed=NULL
     }
     
+    if (inla.internal.experimental.mode) {
+        class(marginals.fixed) = "inla.marginals"
+        attr(marginals.fixed,  "inla.tag", "marginals fixed")
+    }
+
     ret = list(names.fixed=names.fixed, summary.fixed=summary.fixed, marginals.fixed=marginals.fixed)
     return(ret)
 }
@@ -268,23 +287,28 @@
                     rownames(summary.lincomb[[i]]) = row.names
                 }
 
-                if (TRUE) {
-                    xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
-                    rr = inla.interpret.vector.list(xx, debug=debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd = length(rr)
-                        names(rr) = inla.namefix(paste("index.", as.character(1:nd), sep=""))
-                        for(j in 1:nd)
-                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
+                rr = inla.interpret.vector.list(xx, debug=debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd = length(rr)
+                    names(rr) = inla.namefix(paste("index.", as.character(1:nd), sep=""))
+                    for(j in 1:nd) {
+                        colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                        if (inla.internal.experimental.mode) {
+                            class(rr[[j]]) = "inla.marginal"
+                            if (derived) {
+                                attr(rr[[j]], "inla.tag") = paste("marginal lincomb derived", names(rr)[j])
+                            } else {
+                                attr(rr[[j]], "inla.tag") = paste("marginal lincomb", names(rr)[j])
+                            }
+                        }
                     }
-                    marginals.lincomb[[i]] = rr
-
-                    if (!is.null(row.names) && (length(marginals.lincomb)>0)) {
-                        names(marginals.lincomb[[i]]) = row.names
-                    }
-                } else {
-                    marginals.lincomb=NULL
+                }
+                marginals.lincomb[[i]] = rr
+                
+                if (!is.null(row.names) && (length(marginals.lincomb)>0)) {
+                    names(marginals.lincomb[[i]]) = row.names
                 }
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
@@ -297,6 +321,17 @@
                 marginals.lincomb = NULL
             }
             size.lincomb[[i]] = inla.collect.size(file)
+
+            if (inla.internal.experimental.mode) {
+                if (!is.null(marginals.lincomb)) {
+                    class(marginals.lincomb[[i]]) = "inla.marginals"
+                    if (derived) {
+                        attr(marginals.lincomb[[i]], "inla.tag") = "marginal lincomb derived"
+                    } else {
+                        attr(marginals.lincomb[[i]], "inla.tag") = "marginal lincomb"
+                    }                    
+                }
+            }
         }
         names(summary.lincomb) = inla.namefix(names.lincomb)
         if (!is.null(marginals.lincomb) && (length(marginals.lincomb) > 0))
@@ -493,19 +528,32 @@
             xx = inla.read.binary.file(file)
             marg1 = inla.interpret.vector(xx, debug=debug)
             rm(xx)
-            if (!is.null(marg1))
+            if (!is.null(marg1)) {
                 colnames(marg1) = c("x","y")
+            }
+
+            if (inla.internal.experimental.mode) {
+                class(marg1) = "inla.marginal"
+                attr(marg1, "inla.tag") = paste("marginal hyper", names.hyper[i])
+            }
+            
             marginal.hyper = c(marginal.hyper, list(marg1))
         }
         names(marginal.hyper) = inla.namefix(names.hyper)
         rownames(summary.hyper) = inla.namefix(names.hyper)
         colnames(summary.hyper) = inla.namefix(col.nam)
-    }
-    else {
+    } else {
         marginal.hyper=NULL
         summary.hyper=NULL
     }
 
+    if (inla.internal.experimental.mode) {
+        if (!is.null(marginal.hyper)) {
+            class(marginal.hyper) = "inla.marginals"
+            attr(marginal.hyper, "inla.tag") = "marginal hyper"
+        }
+    }
+    
     ## collect also the hyperparameters in the internal scale
     all.hyper = alldir[grep("^hyperparameter", alldir)]
     hyper = all.hyper[-grep("user-scale$", all.hyper)]
@@ -550,6 +598,12 @@
             rm(xx)
             if (!is.null(marg1))
                 colnames(marg1) = c("x","y")
+
+            if (inla.internal.experimental.mode) {
+                class(marg1) = "inla.marginal"
+                attr(marg1, "inla.tag") = paste("marginal hyper internal", names.hyper[i])
+            }
+            
             internal.marginal.hyper = c(internal.marginal.hyper, list(marg1))
         }
         names(internal.marginal.hyper) = inla.namefix(names.hyper)
@@ -559,6 +613,13 @@
     else {
         internal.summary.hyper=NULL
         internal.marginal.hyper=NULL
+    }
+    
+    if (inla.internal.experimental.mode) {
+        if (!is.null(internal.marginal.hyper)) {
+            class(internal.marginal.hyper) = "inla.marginals"
+            attr(internal.marginal.hyper, "inla.tag") = "marginal hyper internal"
+        }
     }
     
     ret=list(summary.hyperpar=summary.hyper,
@@ -661,8 +722,20 @@
             rm(xx)
             if (!is.null(rr)) {
                 names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-                for(i in 1:length(rr))
+                names.rr = names(rr)
+                for(i in 1:length(rr)) {
                     colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+
+                    if (inla.internal.experimental.mode) {
+                        class(rr[[i]]) = "inla.marginal"
+                        attr(rr[[i]], "inla.tag") = paste("marginal linear predictor", names.rr[i])
+                    }
+                }
+            }
+
+            if (inla.internal.experimental.mode) {
+                class(rr) = "inla.marginals"
+                attr(rr, "inla.tag") = "marginals linear predictor"
             }
             marginals.linear.predictor = rr
         } else {
@@ -720,8 +793,19 @@
                 rm(xx)
                 if (!is.null(rr)) {
                     names(rr) = inla.namefix(paste("index.", as.character(1:length(rr)), sep=""))
-                    for(i in 1:length(rr))
+                    names.rr = names(rr)
+                    for(i in 1:length(rr)) {
                         colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                        if (inla.internal.experimental.mode) {
+                            class(rr[[i]]) = "inla.marginal"
+                            attr(rr[[i]], "inla.tag") = paste("marginal fitted values", names.rr[i])
+                        }
+                    }
+                }
+
+                if (inla.internal.experimental.mode) {
+                    class(rr) = "inla.marginals"
+                    attr(rr, "inla.tag") = "marginals fitted values"
                 }
                 marginals.fitted.values = rr
             } else {
@@ -834,14 +918,24 @@
                     if (!is.null(rr)) {
                         nd = length(rr)
                         names(rr) = inla.namefix(paste("index.", as.character(1:nd), sep=""))
-                        for(j in 1:nd)
+                        names.rr = names(rr)
+                        for(j in 1:nd) {
                             colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                            if (inla.internal.experimental.mode) {
+                                class(rr[[j]]) = "inla.marginal"
+                                attr(rr[[j]], "inla.tag") = paste("marginal random", names.random[i], names.rr[j])
+                            }
+                        }
+                    }
+
+                    if (inla.internal.experimental.mode) {
+                        class(rr) = "inla.marginals"
+                        attr(rr, "inla.tag") = paste("marginals random",  names.random[i])
                     }
                     marginals.random[[i]] = rr
-                }
-                else 
+                } else {
                     marginals.random=NULL
-
+                }
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
                 if (!file.exists(N.file))
@@ -857,8 +951,7 @@
         names(summary.random) = inla.namefix(names.random)
         if (!is.null(marginals.random) && (length(marginals.random) > 0))
             names(marginals.random) = inla.namefix(names.random)
-    }
-    else {
+    } else {
         if (debug)
             cat("No random effets\n")
         model.random=NULL
