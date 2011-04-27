@@ -165,7 +165,8 @@
     m = inla.marginal.fix(marginal)
     r = range(m$x)
     r = r[2] - r[1]
-    ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r)
+    ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r,
+            n = 10*length(m$x))
     if (!log) {
         ans$y = exp(ans$y)
     }
@@ -276,6 +277,18 @@
     d = cumsum(exp(f$fun(xx)))
     d = d/d[length(d)]
 
+    ## for the moment, we remove only duplicated zero's and one's.
+    eps = .Machine$double.eps * 1000.0
+    for(val in c(0.0, 1.0)) {
+        is.val = which(abs(d - val) <= eps)
+        if (length(is.val) > 1) {
+            ## keep the first, ie remove it from the list to the removed
+            is.val = is.val[-1]
+            ## and remove the rest
+            d = d[-is.val]
+            xx = xx[-is.val]
+        }
+    }
     ## just spline-interpolate the inverse mapping
     fq = splinefun(d, xx)
 
@@ -290,13 +303,13 @@
     return (inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` = function(fun, marginal, n=512, h.diff = .Machine$double.eps^(1/3),
+`inla.marginal.transform` = function(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"),  ...)
 {
     return (inla.tmarginal(fun, marginal, n, h.diff, method = method, ...))
 }
 
-`inla.tmarginal` = function(fun, marginal, n=512, h.diff = .Machine$double.eps^(1/3),
+`inla.tmarginal` = function(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"),  ...) 
 {
     f = match.fun(fun)
