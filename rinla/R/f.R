@@ -16,209 +16,214 @@
 ##!}
 ##!\arguments{
 `f` = function(
-         ##!\item{...}{ Name of the covariate and, possibly of the
-         ##!weights vector. NB: order counts!!!! The first specified
-         ##!term is the covariate and the second one is the vector of
-         ##!weights.}
-         ...,
+        ##!\item{...}{ Name of the covariate and, possibly of the
+        ##!weights vector. NB: order counts!!!! The first specified
+        ##!term is the covariate and the second one is the vector of
+        ##!weights.}
+        ...,
 
-         ##!\item{model}{ A string indicating the choosen model. The
-         ##! default is \code{iid}. See
-         ##! \code{names(inla.models()$latent)} for a list of possible
-         ##! alternatives.}
-         model = "iid",
+        ##!\item{model}{ A string indicating the choosen model. The
+        ##! default is \code{iid}. See
+        ##! \code{names(inla.models()$latent)} for a list of possible
+        ##! alternatives.}
+        model = "iid",
 
-         ##!\item{copy}{}
-         copy=NULL,
+        ##!\item{copy}{}
+        copy=NULL,
 
-         ##!\item{same.as}{}
-         same.as = NULL,
+        ##!\item{same.as}{}
+        same.as = NULL,
 
-         ##!\item{n}{An optional argument which defines the dimension
-         ##!of the model if this is different from
-         ##!\code{length(sort(unique(covariate)))}}
-         n=NULL,
+        ##!\item{n}{An optional argument which defines the dimension
+        ##!of the model if this is different from
+        ##!\code{length(sort(unique(covariate)))}}
+        n=NULL,
 
-         ##!\item{nrep}{}
-         nrep = NULL,
+        ##!\item{nrep}{}
+        nrep = NULL,
 
-         ##!\item{replicate}{}
-         replicate = NULL,
+        ##!\item{replicate}{}
+        replicate = NULL,
 
-         ##!\item{group}{}
-         ngroup = NULL,
+        ##!\item{group}{}
+        ngroup = NULL,
 
-         ##!\item{group}{}
-         group = NULL,
+        ##!\item{group}{}
+        group = NULL,
 
-         ##!\item{control.group}{}
-         control.group = inla.set.control.group.default(),
+        ##!\item{control.group}{}
+        control.group = inla.set.control.group.default(),
 
-         ##!\item{hyper}{Spesification of the hyperparameter, fixed or
-         ##!random, initial values, priors and its parameters. See
-         ##!\code{?inla.models} for the list of hyparameters for each
-         ##!model and its default options.}
-         hyper = NULL,
+        ##!\item{hyper}{Spesification of the hyperparameter, fixed or
+        ##!random, initial values, priors and its parameters. See
+        ##!\code{?inla.models} for the list of hyparameters for each
+        ##!model and its default options.}
+        hyper = NULL,
 
-         ##!\item{initial}{THIS OPTION IS OBSOLETE; use
-         ##!\code{hyper}!!! Vector indicating the starting values for
-         ##!the optimization algorithm. The length of the vector
-         ##!depends on the number of hyperparamters in the choosen
-         ##!\code{model}. If \code{fixed=T} the value at which the
-         ##!parameters are fixed is determines through \code{initial}.
-         ##!See \code{inla.models()$latent$'model name'} to have info
-         ##!about the choosen model.}
-         initial=NULL,
+        ##!\item{initial}{THIS OPTION IS OBSOLETE; use
+        ##!\code{hyper}!!! Vector indicating the starting values for
+        ##!the optimization algorithm. The length of the vector
+        ##!depends on the number of hyperparamters in the choosen
+        ##!\code{model}. If \code{fixed=T} the value at which the
+        ##!parameters are fixed is determines through \code{initial}.
+        ##!See \code{inla.models()$latent$'model name'} to have info
+        ##!about the choosen model.}
+        initial=NULL,
 
-         ##!\item{prior}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-         ##!Prior distribution(s) for the hyperparameters of the
-         ##!!random model. The default value depends on the type of
-         ##!model, see !\url{www.r-inla.org} for a detailed
-         ##!description of the models. See
-         ##!\code{names(inla.models()$priors)} for possible prior
-         ##!choices}
-         prior=NULL,
+        ##!\item{prior}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+        ##!Prior distribution(s) for the hyperparameters of the
+        ##!!random model. The default value depends on the type of
+        ##!model, see !\url{www.r-inla.org} for a detailed
+        ##!description of the models. See
+        ##!\code{names(inla.models()$priors)} for possible prior
+        ##!choices}
+        prior=NULL,
 
-         ##!\item{param}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-         ##!Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
-         ##!of the prior distribution for the hyperparameters. The
-         ##!length of the vector depends on the choosen \code{model}.
-         ##!See \code{inla.models()$latent$'model name'} to have info
-         ##!about the choosen model.}
-         param = NULL,
+        ##!\item{param}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+        ##!Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
+        ##!of the prior distribution for the hyperparameters. The
+        ##!length of the vector depends on the choosen \code{model}.
+        ##!See \code{inla.models()$latent$'model name'} to have info
+        ##!about the choosen model.}
+        param = NULL,
 
-         ##!\item{fixed}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-         ##!Vector of boolean variables indicating wheater the
-         ##!hyperparameters of the model are fixed or random. The
-         ##!length of the vector depends on the choosen \code{model}
-         ##!See \code{inla.models()$latent$'model name'} to have info
-         ##!about the choosen model.}
-         fixed = NULL,
+        ##!\item{fixed}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
+        ##!Vector of boolean variables indicating wheater the
+        ##!hyperparameters of the model are fixed or random. The
+        ##!length of the vector depends on the choosen \code{model}
+        ##!See \code{inla.models()$latent$'model name'} to have info
+        ##!about the choosen model.}
+        fixed = NULL,
 
-         ##!\item{season.length}{Lenght of the seasonal compoment
-         ##!(ONLY if \code{model="seasonal"}) }
-         season.length=NULL,
+        ##!\item{season.length}{Lenght of the seasonal compoment
+        ##!(ONLY if \code{model="seasonal"}) }
+        season.length=NULL,
 
-         ##!\item{constr}{A boolean variable indicating whater to set
-         ##!a sum to 0 constraint on the term. By default the sum to 0
-         ##!constraint is imposed on all intrinsic models
-         ##!("iid","rw1","rw1","besag", etc..).}
-         constr = NULL,
+        ##!\item{constr}{A boolean variable indicating whater to set
+        ##!a sum to 0 constraint on the term. By default the sum to 0
+        ##!constraint is imposed on all intrinsic models
+        ##!("iid","rw1","rw1","besag", etc..).}
+        constr = NULL,
 
-         ##!\item{extraconstr}{This argument defines extra linear
-         ##!constraints. The argument is a list with two elements, a
-         ##!matrix \code{A} and a vector \code{e}, which defines the
-         ##!extra constraint \code{Ax = e}; for example
-         ##!\code{extraconstr = list(A = A, e=e)}. The number of
-         ##!columns of \code{A} must correspond to the length of this
-         ##!\code{f}-model.  Note that this constraint comes
-         ##!additional to the sum-to-zero constraint defined if
-         ##!\code{constr = TRUE}.}
-         extraconstr=NULL,
+        ##!\item{extraconstr}{This argument defines extra linear
+        ##!constraints. The argument is a list with two elements, a
+        ##!matrix \code{A} and a vector \code{e}, which defines the
+        ##!extra constraint \code{Ax = e}; for example
+        ##!\code{extraconstr = list(A = A, e=e)}. The number of
+        ##!columns of \code{A} must correspond to the length of this
+        ##!\code{f}-model.  Note that this constraint comes
+        ##!additional to the sum-to-zero constraint defined if
+        ##!\code{constr = TRUE}.}
+        extraconstr=NULL,
 
-         ##!\item{values}{An optional vector giving all values
-         ##!assumed by the covariate for which we want estimated the
-         ##!effect. It must be a numeric vector, a vector of factors
-         ##!or \code{NULL}.}
-         values=NULL,
+        ##!\item{values}{An optional vector giving all values
+        ##!assumed by the covariate for which we want estimated the
+        ##!effect. It must be a numeric vector, a vector of factors
+        ##!or \code{NULL}.}
+        values=NULL,
 
-         ##!\item{cyclic}{A boolean specifying wheather the model is
-         ##!cyclical. Only valid for "rw1" and "rw2" models, is
-         ##!cyclic=T then the sum to 0 constraint is removed. For the
-         ##!correct form of the grah file see \cite{Martinoand Rue
-         ##!(2008)}.}
-         cyclic = NULL,
+        ##!\item{cyclic}{A boolean specifying wheather the model is
+        ##!cyclical. Only valid for "rw1" and "rw2" models, is
+        ##!cyclic=T then the sum to 0 constraint is removed. For the
+        ##!correct form of the grah file see \cite{Martinoand Rue
+        ##!(2008)}.}
+        cyclic = NULL,
 
-         ##!\item{diagonal}{An extra constant added to the diagonal of
-         ##!the precision matrix (default 0.0).}
-         diagonal = NULL,
+        ##!\item{diagonal}{An extra constant added to the diagonal of
+        ##!the precision matrix (default 0.0).}
+        diagonal = NULL,
 
-         ##!\item{graph.file}{Name of the file containing the graph
-         ##!of the model.  For the correct for of the graph file see
-         ##!\url{http://www.r-inla.org/help/faq}.}
-         graph.file=NULL,
+        ##!\item{graph.file}{Name of the file containing the graph
+        ##!of the model.  For the correct for of the graph file see
+        ##!\url{http://www.r-inla.org/help/faq}.}
+        graph.file=NULL,
 
-         ##!\item{cdf}{A vector of maximum 10 values between 0 and 1
-         ##!\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
-         ##!returns, for each posterior marginal the probabilities
-         ##!\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
-         cdf=NULL,
+        ##!\item{cdf}{A vector of maximum 10 values between 0 and 1
+        ##!\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
+        ##!returns, for each posterior marginal the probabilities
+        ##!\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
+        cdf=NULL,
 
-         ##!\item{quantiles}{A vector of maximum 10 quantiles,
-         ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
-         ##!each posterior marginal. The function returns, for each
-         ##!posterior marginal, the values
-         ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
-         ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
-         quantiles=NULL,
+        ##!\item{quantiles}{A vector of maximum 10 quantiles,
+        ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
+        ##!each posterior marginal. The function returns, for each
+        ##!posterior marginal, the values
+        ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
+        ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
+        quantiles=NULL,
 
-         ##!\item{Cmatrix}{The specification of the precision matrix
-         ##!for the generic models (up to a scaling constant).
-         ##!\code{Cmatrix} is either a
-         ##!(dense) matrix, a matrix create using
-         ##!\code{Matrix::sparseMatrix()}, or a filename which stores the
-         ##!non-zero elements of \code{Cmatrix}, in three columns:
-         ##!\code{i}, \code{j} and \code{Qij}.}
-         Cmatrix=NULL,
+        ##!\item{Cmatrix}{The specification of the precision matrix
+        ##!for the generic models (up to a scaling constant).
+        ##!\code{Cmatrix} is either a
+        ##!(dense) matrix, a matrix create using
+        ##!\code{Matrix::sparseMatrix()}, or a filename which stores the
+        ##!non-zero elements of \code{Cmatrix}, in three columns:
+        ##!\code{i}, \code{j} and \code{Qij}.}
+        Cmatrix=NULL,
 
-         ##!\item{rankdef}{A number \bold{defining} the rank
-         ##!deficiency of the model, with sum-to-zero constraint and
-         ##!possible extra-constraints taken into account. See
-         ##!details.}
-         rankdef=NULL,
+        ##!\item{rankdef}{A number \bold{defining} the rank
+        ##!deficiency of the model, with sum-to-zero constraint and
+        ##!possible extra-constraints taken into account. See
+        ##!details.}
+        rankdef=NULL,
 
-         ##!\item{Z}{}
-         Z = NULL,
+        ##!\item{Z}{}
+        Z = NULL,
 
-         ##!\item{nrow}{Number of rows for 2d-models}
-         nrow = NULL,
+        ##!\item{nrow}{Number of rows for 2d-models}
+        nrow = NULL,
 
-         ##!\item{ncol}{Number of columns for 2d-models}
-         ncol = NULL,
+        ##!\item{ncol}{Number of columns for 2d-models}
+        ncol = NULL,
 
-         ##!\item{nu}{Smoothing parameter for the Matern2d-model,
-         ##!possible values are \code{c(0, 1, 2, 3)}}
-         nu = NULL,
+        ##!\item{nu}{Smoothing parameter for the Matern2d-model,
+        ##!possible values are \code{c(0, 1, 2, 3)}}
+        nu = NULL,
 
-         ##!\item{bvalue}{}
-         bvalue = NULL,
+        ##!\item{bvalue}{}
+        bvalue = NULL,
 
-         ##!\item{spde.prefix}{}
-         spde.prefix = NULL,
+        ##!\item{spde.prefix}{}
+        spde.prefix = NULL,
 
-         ##!\item{mean.linear}{ Prior mean for the linear component,
-         ##!only used if \code{model="linear"}}
-         mean.linear=NULL,
+        ##!\item{mean.linear}{ Prior mean for the linear component,
+        ##!only used if \code{model="linear"}}
+        mean.linear=NULL,
 
-         ##!\item{prec.linear}{ Prior precision for the linear
-         ##!component, only used if \code{model="linear"}}
-         prec.linear=NULL,
+        ##!\item{prec.linear}{ Prior precision for the linear
+        ##!component, only used if \code{model="linear"}}
+        prec.linear=NULL,
 
-         ##!\item{of}{}
-         of=NULL,
+        ##!\item{of}{}
+        of=NULL,
 
-         ##!\item{precision}{}
-         precision=NULL,
+        ##!\item{precision}{}
+        precision=NULL,
 
-         ##!\item{si}{}
-         si=NULL,
+        ##!\item{si}{}
+        si=NULL,
 
-         ##!\item{compute}{ A boolean variable indicating wheather the
-         ##! marginal posterior distribution for the nodes in the
-         ##! \code{f()} model should be computed or not. This is
-         ##! usefull for large models where we are only interested in
-         ##! some posterior marginals.}
-         compute = TRUE,
+        ##!\item{compute}{ A boolean variable indicating wheather the
+        ##! marginal posterior distribution for the nodes in the
+        ##! \code{f()} model should be computed or not. This is
+        ##! usefull for large models where we are only interested in
+        ##! some posterior marginals.}
+        compute = TRUE,
 
-         ##!\item{range}{A vector of size two giving the lower and
-         ##!upper range for the scaling parameter \code{beta} in the
-         ##!model \code{COPY}. If low = high then the identity mapping
-         ##!is used.}
+        ##!\item{range}{A vector of size two giving the lower and
+        ##!upper range for the scaling parameter \code{beta} in the
+        ##!model \code{COPY}. If low = high then the identity mapping
+        ##!is used.}
+        range = NULL,
 
-         range = NULL,
-
-         ## local debug-flag
-         debug = FALSE)
+        ##!\item{adjust.for.con.comp}{If TRUE (default), adjust some
+        ##!of the models (currently: besag, bym and besag2) if the
+        ##!number of connected components in graph is larger than
+        ##!1. If FALSE, do nothing.}
+        adjust.for.con.comp = TRUE, 
+        
+        ## local debug-flag
+        debug = FALSE)
 {
     ##!}
     ##!\value{}
@@ -581,7 +586,7 @@
         ##    "e=", deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
 
-    if (inla.one.of(model, c("besag", "besag2", "bym"))) {
+    if (adjust.for.con.comp && inla.one.of(model, c("besag", "besag2", "bym"))) {
 
         ## I am not sure if this is the best place to do this, but for
         ## the time being I'll do this here.
