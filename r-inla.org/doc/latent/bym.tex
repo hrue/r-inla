@@ -27,12 +27,17 @@ and the prior is defined on $\mathbf{\theta}$.
 
 The bym model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="bym",graph.file=<graph file name>, hyper=<hyper>)
+ f(<whatever>,model="bym",graph.file=<graph file name>,
+   hyper=<hyper>, adjust.for.con.comp = TRUE)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
 through the {\tt graph.file} argument.  The structure of this file is
 described below.
+
+The option \verb|adjust.for.con.comp| adjust the model if the graph
+has more than one connected compoment, and this adjustment can be
+disabled setting this option to FALSE.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/bym.tex}
@@ -63,9 +68,6 @@ corresponds to node $i-1$ in the 0-indexed graph.
 
 For examples of application of this model see the {\tt Bym} example in
 Volume I.
-
-The model is modified accordingly is the graph has more than one
-connected components.
 
 \subsection*{Notes}
 
