@@ -40,7 +40,8 @@ and the prior is defined on $\theta_{2}$.
 The besag2 model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="besag2",graph.file=<graph file name>
-              precision=<precision>, hyper = <hyper>)
+              precision=<precision>, hyper = <hyper>,
+              adjust.for.con.comp = TRUE)
 \end{verbatim}
 
 The precision is the precision defining how equal the two copies of
@@ -50,6 +51,10 @@ of this file is described below.
 
 Note that the besag2 model has dimension $2 n$, where $n$ is the size
 of the graph.
+
+The option \verb|adjust.for.con.comp| adjust the model if the graph
+has more than one connected compoment, and this adjustment can be
+disabled setting this option to FALSE.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/besag2.tex}
@@ -117,10 +122,6 @@ r = inla(formula, family = "poisson", data = data.frame(E,y,i), E=E, verbose=TRU
 
 The besag2 model has default \texttt{constr=FALSE}, and
 \texttt{constr=TRUE} does not make sense.
-
-The model is modified accordingly is the graph has more than one
-connected components.
-
 
 \end{document}
 
