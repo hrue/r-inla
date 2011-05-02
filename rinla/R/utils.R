@@ -583,7 +583,7 @@
 {
     ## display a matrix as an image with correct layout and autoscaling
 
-    if (!is.matrix(x)) stop("First argument must be a matrix")
+    x = as.matrix(x)
     n = dim(x)
     y = x
     if (wrap) {
@@ -612,6 +612,23 @@
         axis(2, at=c(0,(nn-1)/(n[1]-1), 1), labels=as.character(c(1, nn, n[1])))
     }
 }
+
+`inla.spy` = function(x, reordering = NULL, ...)
+{
+    ## a copy of the matlab's spy-function. display only the non-zero
+    ## pattern of matrix Q
+
+    x = as.matrix(x)
+    y = x
+    y[ y != 0] = 1L
+    y  = 1L -y
+    if (!is.null(reordering)) {
+        y[reordering, reordering] = y
+    }
+
+    inla.display.matrix(y, ...)
+}
+
 
 `inla.group` = function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 {
