@@ -58,6 +58,34 @@ static map_vpvp memcheck_hash_table;
 static int memcheck_verbose = 0;
 static int memcheck_first = 1;
 
+static GMRFLib_meminfo_tp *MemInfo = NULL;
+
+#define MEMINFO(_size) \
+	if (GMRFLib_meminfo_thread_id != 0) {							\
+		assert(IABS(GMRFLib_meminfo_thread_id) < 1+omp_get_max_threads()); \
+		if (!MemInfo){						\
+			_Pragma("omp critial");				\
+			{						\
+				if (!MemInfo)				\
+					MemInfo = calloc(1+omp_get_max_threads(), sizeof(GMRFLib_meminfo_tp)); \
+			}						\
+		}							\
+		if (GMRFLib_meminfo_thread_id > 0) {			\
+			MemInfo[GMRFLib_meminfo_thread_id].n++;	\
+			MemInfo[GMRFLib_meminfo_thread_id].bytes += _size; \
+		} else if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
+			_Pragma("omp critial");				\
+			{						\
+				if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
+					printf("\nMemInfo thread_id %d\n", -GMRFLib_meminfo_thread_id); \
+					printf("\tn %g\n", (double) MemInfo[-GMRFLib_meminfo_thread_id].n); \
+					printf("\tb %g Mb\n\n", ((double) MemInfo[-GMRFLib_meminfo_thread_id].bytes)/1024.0/1024.0); \
+					MemInfo[-GMRFLib_meminfo_thread_id].n = MemInfo[-GMRFLib_meminfo_thread_id].bytes = 0; \
+				}					\
+			}						\
+		}							\
+	}
+
 /* 
    compute with -DGMRFLib_TRACE_MEMORY  to view memory allocation
  */
@@ -70,7 +98,7 @@ char *GMRFLib_rindex(const char *p, int ch)
 	char *save;
 	for (save = NULL;; ++p) {
 		if (*p == ch)
-			save = (char *) p;
+			save = (char *) ((void *)p);
 		if (!*p)
 			return (save);
 	}
@@ -399,6 +427,8 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	MEMINFO(nmemb*size);
+
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
 	ptr = GMRFLib_calloc__(nmemb, size, file, funcname, lineno, id);
 #else
@@ -426,6 +456,8 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	MEMINFO(size);
+
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
 	ptr = GMRFLib_malloc__(size, file, funcname, lineno, id);
 #else
@@ -452,6 +484,8 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 {
 	void *ptr = NULL;
 	char *msg = NULL;
+
+	MEMINFO(size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
 	ptr = GMRFLib_realloc__(old_ptr, size, file, funcname, lineno, id);
@@ -1017,3 +1051,5 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	return GMRFLib_SUCCESS;
 }
+
+#undef MEMINFO

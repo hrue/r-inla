@@ -168,7 +168,7 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 {
 #define DUPLICATE(name,len,type) if (1) {					\
 		if (L->name && len) {					\
-			LL->name = (type *)calloc((size_t)len,sizeof(type)); \
+			LL->name = (type *)Calloc(len, type); \
 			memcpy(LL->name,L->name,(size_t)len*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
@@ -181,7 +181,7 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 	if (!L) {
 		return NULL;
 	}
-	LL = (supernodal_factor_matrix *) calloc((size_t) 1, sizeof(supernodal_factor_matrix));
+	LL = (supernodal_factor_matrix *) Calloc((size_t) 1, supernodal_factor_matrix);
 	LL->flags = L->flags;
 	LL->uplo = L->uplo;
 	LL->n = L->n;
@@ -202,21 +202,21 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 	{
 		{
 			int i;
-			LL->sn_struct = (int **) calloc((size_t) n_sn, sizeof(int *));
+			LL->sn_struct = (int **) Calloc(n_sn, int *);
 			for (i = 0; i < LL->n_sn; i++) {
 				DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
 			}
 		}
 		{
 			int i;
-			LL->sn_blocks = (double **) calloc((size_t) n_sn, sizeof(double *));
+			LL->sn_blocks = (double **) Calloc(n_sn, double *);
 			for (i = 0; i < LL->n_sn; i++) {
 				DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
 			}
 		}
 		{
 			int i;
-			LL->up_blocks = (double **) calloc((size_t) n_sn, sizeof(double *));
+			LL->up_blocks = (double **) Calloc(n_sn, double *);
 			for (i = 0; i < LL->n_sn; i++) {
 				DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * (LL->sn_size)[i], double);
 			}

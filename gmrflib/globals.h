@@ -219,6 +219,12 @@ extern int GMRFLib_bitmap_swap;
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
 
 
+/*
+  Holds the on/off of meminfo collection
+*/
+extern int GMRFLib_meminfo_thread_id;
+#pragma omp threadprivate(GMRFLib_meminfo_thread_id)
+
 #endif
 __END_DECLS
 #endif
