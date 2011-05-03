@@ -1217,9 +1217,15 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	}
 
 	Free(store->remap);
-	GMRFLib_free_graph(store->sub_graph);
-	if (store->symb_fact) {
-		taucs_supernodal_factor_free(store->symb_fact);
+	if (store->copy_ptr){
+		/* 
+		   do nothing
+		 */
+	} else {
+		GMRFLib_free_graph(store->sub_graph);
+		if (store->symb_fact) {
+			taucs_supernodal_factor_free(store->symb_fact);
+		}
 	}
 
 	store->sub_graph = NULL;
@@ -2263,7 +2269,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	return siz;
 }
 
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton)
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr)
 {
 	/*
 	 * duplicate STORE 
@@ -2289,8 +2295,25 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	COPY(bandwidth);
 	DUPLICATE(remap, ns, int, 0);
 
-	GMRFLib_copy_graph(&(new_store->sub_graph), store->sub_graph);
-	new_store->symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->symb_fact);
+	int id = omp_get_thread_num();
+	GMRFLib_meminfo_thread_id = id;
+
+	if (copy_ptr == GMRFLib_TRUE){
+		/* 
+		   just copy ptr's; read only
+		 */
+		new_store->sub_graph = store->sub_graph;
+		new_store->symb_fact = store->symb_fact;
+	} else {
+		GMRFLib_copy_graph(&(new_store->sub_graph), store->sub_graph);
+		new_store->symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->symb_fact);
+	}
+	new_store->copy_ptr = copy_ptr;
+
+	GMRFLib_meminfo_thread_id *= -1;
+	char *tmp = Calloc(1, char);
+	Free(tmp);
+	
 
 	COPY(store_problems);
 	COPY(fixed_hyperparameters);
@@ -2307,10 +2330,10 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	}
 
 	if (store->diag_store) {
-		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton);
+		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton, copy_ptr);
 	}
 	if (store->sub_store) {
-		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton);
+		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton, copy_ptr);
 	}
 #undef DUPLICATE
 #undef COPY

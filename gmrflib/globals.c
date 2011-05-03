@@ -200,3 +200,10 @@ int GMRFLib_bitmap_swap = 0;
    Holds the thread strategy
  */
 GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
+
+
+/* 
+   Holds the MemInfo flag
+ */
+int GMRFLib_meminfo_thread_id = 0;
+#pragma omp threadprivate(GMRFLib_meminfo_thread_id)

@@ -159,10 +159,18 @@ typedef struct {
 	double *log_density;				       /* log_densities */
 } GMRFLib_sn_fit_data_tp;
 
+
 /* 
    the scaling of the weight for SN-fit, stdev = exp(- log_density[i] * GMRFLib_SN_WEIGHT_SCALING )
 */
 #define GMRFLib_SN_WEIGHT_SCALING (0.5)
+
+typedef struct
+{
+	gsl_interp_accel *accel;
+	gsl_spline *spline;
+}
+	GMRFLib_spline_tp;
 
 /**
  * \brief The density-object
@@ -172,22 +180,22 @@ typedef struct {
 	/**
 	 * \brief The mean in standarised scale.
 	 */
-	double mean;
+	float mean;
 
 	/**
 	 * \brief The standard deviation in standardised scale.
 	 */
-	double stdev;
+	float stdev;
 
 	/**
 	 * \brief The mean in users own scale (not standardised).
 	 */
-	double user_mean;
+	float user_mean;
 
 	/**
 	 * \brief The standard deviation in users own scale (not standardised).
 	 */
-	double user_stdev;
+	float user_stdev;
 
 	/**
 	 * \brief The offset that is used for standarisation.
@@ -195,7 +203,7 @@ typedef struct {
 	 * The density is for the random variable (x-m)/sd where \c m is \c GMRFLib_density_tp::std_mean and \c sd is
 	 * GMRFLib_density_tp::std_stdev.
 	 */
-	double std_mean;
+	float std_mean;
 
 	/** 
 	 * \brief The scale that is used for standarisation.
@@ -203,7 +211,7 @@ typedef struct {
 	 * The density is for the random variable (x-m)/sd where \c m is \c GMRFLib_density_tp::std_mean and \c sd is
 	 * GMRFLib_density_tp::std_stdev.
 	 */
-	double std_stdev;				       /* this is the the standarisation */
+	float std_stdev;				       /* this is the the standarisation */
 
 	/*
 	 * The rest of the paramers is for internal use only. 
@@ -214,38 +222,28 @@ typedef struct {
 	 */
 	GMRFLib_density_type_tp type;
 
+	float x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
+
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
 	 */
-	double mean_gaussian;
-	double stdev_gaussian;
+	float mean_gaussian;
+	float stdev_gaussian;
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
 	 */
-	GMRFLib_sn_param_tp sn_param;
+	GMRFLib_sn_param_tp *sn_param;
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-	double log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised density.  */
-	double x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
-	gsl_interp_accel *accel;			       /* spline-object: table-lookup */
-	gsl_spline *log_correction;			       /* spline-object: the correction */
+	float log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised density.  */
+	GMRFLib_spline_tp *log_correction;
 
-	/*
-	 * work-area: parameters for speeding up the _P() and _Pinv() computations 
-	 */
-	double xx;					       /* Previously computed Prob(X < xx) = pp */
-	double pp;					       /* use this to speedup _Pinv(x) */
+	GMRFLib_spline_tp *P;
+	GMRFLib_spline_tp *Pinv;
 
-	/*
-	 * improved version: fast lookup based on interpolation 
-	 */
-	gsl_interp_accel *accel_P;
-	gsl_interp_accel *accel_Pinv;
-	gsl_spline *spline_P;
-	gsl_spline *spline_Pinv;
 } GMRFLib_density_tp;
 
 /* 
@@ -301,7 +299,7 @@ int GMRFLib_sn_fit_df(const gsl_vector * param, void *data, gsl_matrix * J);
 int GMRFLib_sn_fit_f(const gsl_vector * param, void *data, gsl_vector * f);
 int GMRFLib_sn_fit_fdf(const gsl_vector * param, void *data, gsl_vector * f, gsl_matrix * J);
 int GMRFLib_sn_logdensity(double *ldens, double x, void *param);
-int GMRFLib_sn_moments(double *mean, double *stdev, void *param);
+int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp *p);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
 
