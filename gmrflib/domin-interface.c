@@ -163,7 +163,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < nx; i++) {
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -331,7 +331,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double *f = Calloc(G.nhyper + 1, double);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < G.nhyper + 1; i++) {
 			double *xx = NULL;
 			int j, err;
@@ -391,7 +391,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		f = Calloc(G.nhyper, double);
 		fm = Calloc(G.nhyper, double);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < 2 * G.nhyper; i++) {
 			int j, err;
 			double *xx = NULL;
@@ -587,7 +587,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	int *i2thread = Calloc(len_xx_hold, int);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < 2 * n + 1; i++) {
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -719,7 +719,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				}
 			}
 
-#pragma omp parallel for private(k) schedule(static)
+#pragma omp parallel for private(k)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
@@ -863,7 +863,7 @@ int GMRFLib_test_something____omp(void)
 
 		GMRFLib_free_ai_store(ais);
 	}
-#pragma omp parallel for private(i, x, fx) schedule(static)
+#pragma omp parallel for private(i, x, fx)
 	for (i = 0; i < 10; i++) {
 		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 
