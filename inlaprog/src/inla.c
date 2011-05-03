@@ -11382,7 +11382,7 @@ int inla_INLA(inla_tp * mb)
 		 */
 		int ntot = 0;
 
-		ntot += mb->predictor_n + mb->nlinear;
+		ntot += mb->predictor_n + mb->predictor_m + mb->nlinear;
 		for (i = 0; i < mb->nf; i++)
 			ntot += mb->f_graph[i]->n;
 		if (mb->verbose) {

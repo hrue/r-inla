@@ -59,6 +59,13 @@ __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
 
+typedef struct
+{
+	size_t n;
+	size_t bytes;
+}
+	GMRFLib_meminfo_tp;
+
 /*
  */
 
