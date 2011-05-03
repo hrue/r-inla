@@ -127,10 +127,12 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg)
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
-	int i, id;
+	int i, id, mem_id;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
 	id = GMRFLib_thread_id;
+	mem_id = GMRFLib_meminfo_thread_id;
+	
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
@@ -157,6 +159,8 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		int j, k, count;
 
 		GMRFLib_thread_id = id;
+		GMRFLib_meminfo_thread_id = mem_id;
+
 		arg->values[i] = Calloc(1, map_id);	       /* allocate hash-table */
 		for (j = 0, count = 1; j < graph->nnbs[i]; j++) {	/* count the number of terms in the hash-table */
 			if (graph->nbs[i][j] > i) {
@@ -173,7 +177,8 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		}
 	}
 	GMRFLib_thread_id = id;
-
+	GMRFLib_meminfo_thread_id = mem_id;
+	
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
