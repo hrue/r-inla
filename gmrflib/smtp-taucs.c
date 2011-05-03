@@ -1184,7 +1184,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 			nnbs[L->rowind[jp]]++;
 		}
 	}
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		nbs[i] = Calloc(nnbs[i], int);
 		nnbs[i] = 0;
@@ -1204,7 +1204,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 	 */
 	Qinv_L = Calloc(n, map_ii *);
 	missing = Calloc(n, map_ii *);
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* is this needed ???? */
 		Qinv_L[i] = Calloc(1, map_ii);
@@ -1330,7 +1330,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 		}
 	}
 
-#pragma omp parallel for private(i)  schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		Free(nbs[i]);
 		map_ii_free(Qinv_L[i]);
@@ -1345,7 +1345,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 		/*
 		 * free the missing-hash, and set it to NULL so that this function returns NULL 
 		 */
-#pragma omp parallel for private(i)  schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < n; i++) {
 			map_ii_free(missing[i]);
 			Free(missing[i]);
@@ -1468,7 +1468,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	 * sort and setup the hash-table for storing Qinv_L 
 	 */
 	Qinv_L = Calloc(n, map_id *);
-#pragma omp parallel for private(i)  schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
 		Qinv_L[i] = Calloc(1, map_id);
@@ -1593,7 +1593,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
 	 */
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, iii, k, j, jjj, kk, value) schedule(static)
+#pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
 			for (k = -1; (k = map_id_next(Qinv_L[i], k)) != -1;) {
@@ -1628,7 +1628,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	/*
 	 * cleanup 
 	 */
-#pragma omp parallel for private(i)  schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		Free(nbs[i]);
 	}

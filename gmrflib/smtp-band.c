@@ -146,7 +146,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 	nrow = bandwidth + 1;
 	*bandmatrix = Calloc(ncol * nrow, double);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
 		int node = remap[i];
 		int j;
@@ -403,7 +403,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 	 * setup the hash-table for storing Qinv_L 
 	 */
 	Qinv_L = Calloc(n, map_id *);
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], ldim);
@@ -530,7 +530,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
 	 */
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, iii, k, j, jjj, kk, value) schedule(static)
+#pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
 			for (k = -1; (k = map_id_next(Qinv_L[i], k)) != -1;) {

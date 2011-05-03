@@ -154,7 +154,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 	arg->values = Calloc(graph->n, map_id *);
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
 		int j, k, count;
 
