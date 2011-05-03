@@ -3653,7 +3653,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
 			 */
 			if (omp_get_max_threads() > nhyper) {
-#pragma omp parallel for private(k) schedule(static)
+#pragma omp parallel for private(k)
 				for (k = 0; k < 2 * nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					int kk, opt;
@@ -3700,7 +3700,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					Free(ttheta);
 				}
 			} else {
-#pragma omp parallel for private(k) schedule(static)
+#pragma omp parallel for private(k)
 				for (k = 0; k < nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					GMRFLib_ai_store_tp *s = NULL;
@@ -3772,7 +3772,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #pragma omp parallel
 				{
 					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
-#pragma omp for private(i) schedule(static) nowait
+#pragma omp for private(i)
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
 						GMRFLib_density_tp *cpodens = NULL;
@@ -3845,7 +3845,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				CHECK_DENS_STORAGE_FORCE(design->nexperiments);
 				CHECK_HYPER_STORAGE_FORCE(design->nexperiments);
 
-#pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) schedule(static)
+#pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr)
 				for (k = 0; k < design->nexperiments; k++) {
 
 					double *z_local, *theta_local, log_dens_orig;
@@ -4057,7 +4057,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						{
 							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i) schedule(static) nowait
+#pragma omp for private(i)
 							for (i = 0; i < compute_n; i++) {
 								int ii = compute_idx[i];
 								GMRFLib_density_tp *cpodens = NULL;
@@ -4125,7 +4125,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 				GMRFLib_ASSERT(hyper_count == 0, GMRFLib_ESNH);
 
-#pragma omp parallel for private(i, log_dens, tref, tu, ierr) schedule(static)
+#pragma omp parallel for private(i, log_dens, tref, tu, ierr)
 				for (kk = 0; kk < pool->nconfig; kk++) {
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
 					GMRFLib_density_tp **dens_local = NULL;
@@ -4372,7 +4372,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									 */
 									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i) schedule(static) nowait
+#pragma omp for private(i) 
 									for (i = 0; i < compute_n; i++) {
 										int ii = compute_idx[i];
 										GMRFLib_density_tp *cpodens = NULL;
@@ -4518,7 +4518,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									 */
 									GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i) schedule(static) nowait
+#pragma omp for private(i)
 									for (i = 0; i < compute_n; i++) {
 										int ii = compute_idx[i];
 										GMRFLib_density_tp *cpodens = NULL;
@@ -4627,7 +4627,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		if (run_with_omp) {
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
-#pragma omp for private(i) schedule(static) nowait
+#pragma omp for private(i) 
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
 				int ii = compute_idx[i];
@@ -4784,7 +4784,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (density || gdensity) {
-#pragma omp parallel for private(j) schedule(static)
+#pragma omp parallel for private(j)
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			GMRFLib_density_tp *dens_combine, *gdens_combine;
@@ -5220,7 +5220,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						"\tCompute the marginal for theta[%1d] to theta[%1d] using numerical integration...\n", 0, nhyper - 1);
 				}
 			}
-#pragma omp parallel for private(k) schedule(static)
+#pragma omp parallel for private(k)
 			for (k = 0; k < nhyper; k++) {
 				if (!run_with_omp) {
 					if (ai_par->fp_log) {
@@ -6262,7 +6262,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		 */
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
 
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < npoints + NEXTRA; i++) {
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;

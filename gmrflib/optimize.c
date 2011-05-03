@@ -713,7 +713,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 	{
 		double sum = 0.0;
 
-#pragma omp parallel for private(i) reduction(+: sum) schedule(static)
+#pragma omp parallel for private(i) reduction(+: sum)
 		for (i = 0; i < sub_n; i++) {
 			double logll;
 
@@ -770,7 +770,7 @@ int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 		for (i = 0; i < sub_n; i++) {
 			opt_problem->x_vec[opt_problem->map[i]] = opt_problem->mode[i];
 		}
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < sub_n; i++) {
 			GMRFLib_thread_id = id;
 			if (opt_problem->d[i]) {
@@ -906,7 +906,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 				}
 			}
 		}
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 		for (i = 0; i < nidx; i++) {
 			int idx;
 			double bcoof, ccoof;
