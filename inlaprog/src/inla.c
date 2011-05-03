@@ -4882,7 +4882,6 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "THETA"), NULL));
 
-
 	/*
 	 * first try if 'tmp' is a filename, is so, read (using binary format) from that. format: NTHETA theta[0] theta[1] .... theta[ NTHETA-1 ] 
 	 */
@@ -12541,7 +12540,7 @@ int inla_output(inla_tp * mb)
 	 * GOMP_sections_next (in /usr/lib/libgomp.so.1.0.0) ==24889== by 0x805FD42: inla_output.omp_fn.1 (inla.c:4244) ==24889== by 0x805FCC4: inla_output
 	 * (inla.c:4360) ==24889== by 0x80644D2: main (inla.c:5237) 
 	 */
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < 3; i++) {
 		if (i == 0) {
 			/*
@@ -12742,7 +12741,7 @@ int inla_output(inla_tp * mb)
 	 * 
 	 * wheras the ``parallel for'' is ok. 
 	 */
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i)
 	for (i = 0; i < 2; i++) {
 		if (i == 0 && mb->density) {
 			int ii;
@@ -14205,7 +14204,7 @@ int testit(void)
 
 	int i, j, k, kk;
 
-	M = GMRFLib_read_fmesher_file("fmesher-file.dat", 0L, -1);
+	M = GMRFLib_read_fmesher_file("mode.dat", 0L, -1);
 
 	if (1)
 		if (M->i)
