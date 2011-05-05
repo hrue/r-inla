@@ -5599,7 +5599,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-	} if (ds->data_id == L_LOGGAMMA_FRAILTY) {
+	} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 		/*
 		 * get options related to the LOGGAMMAFRAILTY
 		 */
@@ -10341,7 +10341,7 @@ double extra(double *theta, int ntheta, void *argument)
 					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
 					count++;
 				}
-			} if (ds->data_id == L_LOGGAMMA_FRAILTY) {
+			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
