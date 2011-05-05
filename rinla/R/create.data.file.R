@@ -14,10 +14,9 @@
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1])
     } else {
-        if (!inherits(y.orig,"inla.surv")) {
-            y.orig = as.data.frame(y.orig)
+        if (inherits(y.orig,"inla.surv")) {
+            y.orig = as.data.frame(unclass(y.orig))
         } else {
-            class(y.orig) = "list"
             y.orig = as.data.frame(y.orig)
         }
     }
