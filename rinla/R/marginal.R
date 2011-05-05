@@ -139,12 +139,14 @@
 
 `inla.marginal.fix` = function(marginal)
 {
-    ## just remove points where the density is <= 0
+    ## just remove points where the density is <= 0 or where the
+    ## density is to small compared to the maximum density. (othewise
+    ## we can get trouble with the spline interpolation)
     if (is.matrix(marginal)) {
-        i = (marginal[, 2] > 0)
+        i = (marginal[, 2] > 0 & (abs(marginal[, 2]/max(marginal[, 2])) > sqrt(.Machine$double.eps)))
         m = list(x=marginal[i, 1], y=marginal[i, 2])
     } else {
-        i = (marginal$y > 0)
+        i = (marginal$y > 0 & (abs(marginal$y/max(marginal$y)) > sqrt(.Machine$double.eps)))
         m = list(x= marginal$x[i], y = marginal$y[i])
     }
 
