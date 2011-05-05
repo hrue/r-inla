@@ -13465,7 +13465,7 @@ int inla_layout_x(double **x_vec, int *len_x, double xmin, double xmax, double m
 	/*
 	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
 	 */
-	double f, ff = 1.1, dx = 0.05, xx, *x;
+	double f, ff = 1.05, dx = 0.05, xx, *x;
 	int nmax, n = 0;
 
 	nmax = (int) ((xmax - xmin) / dx + 1.0);
