@@ -20,15 +20,18 @@ for continuous $\theta$ where
 
 \subsection*{Specification}
 The Gaussian prior for the hyperparameters is specified inside the
-\texttt{f()} function as following:
+\texttt{f()} function as following using the old style
 \begin{center}
     \texttt{f( <whatever> , prior="normal", param=c(<mean>, <precision>) )}
 \end{center}
-or
 \begin{center}
     \texttt{f( <whatever> , prior="gaussian", param=c(<mean>, <precision>) )}
 \end{center}
-in the case where there is one hyperparameter for that particular
+or better, using the new style
+\begin{center}
+    \texttt{f( <whatever> , hyper = list(<theta> = list(prior="gaussian", param=c(<mean>, <precision>))))}
+\end{center}
+Similar if there are more than one hyperparameter for that particular
 \texttt{f}-model. In the case where we want to specify the prior for
 the hyperparameter of an observation model, for example the negative
 Binomial, the the prior spesification will appear inside the
@@ -36,10 +39,6 @@ Binomial, the the prior spesification will appear inside the
 illustration.
 
 \subsection*{Example}
-In the following example we estimate the parameters in a simulated
-example with negative binomial responses and assign the hyperparameter
-$\theta$ (the dispersion parameter), a Gaussian prior with mean $0$
-and precision $0.01$.%%
 \verbatiminput{example-gaussian.R}
 
 \subsection*{Notes}
