@@ -1510,15 +1510,15 @@
                                 ),
 
                         minuslogsqrtruncnormal = list(
-                                nparameters = 1,
+                                nparameters = 2,
                                 pdf = "log-tnormal"
                                 ),
                         logtnormal = list(
-                                nparameters = 1,
+                                nparameters = 2,
                                 pdf = "log-tnormal"
                                 ),
                         logtgaussian = list(
-                                nparameters = 1,
+                                nparameters = 2,
                                 pdf = "log-tnormal"
                                 ),
 
