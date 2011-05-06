@@ -14,14 +14,21 @@ The flat prior has density
 for continuous $\theta$.
  
 \subsection*{Specification}
-The flat prior for the hyperparameters is specified inside the {\tt f()} function as The following:
+The flat prior for the hyperparameters is specified inside the {\tt
+    f()} function as the following using the old style:
 \begin{center}
-{\tt f(<whatever>,prior=flat)}
+    {\tt f(<whatever>,prior="flat")}
 \end{center}
- In the case where there is one hyperparameter for that particular f-model. In the case where we want
-to specify the prior for the hyperparameter of an observation model, for example the negative Bino-
-mial, the the prior spesification will appear inside the control.data()-argument; see the following
-example for illustration.
+or better, the new style
+\begin{center}
+    {\tt f(<whatever>, hyper = list( <theta> = list(prior="flat",
+        param = numeric())))}
+\end{center}
+In the case where there is one hyperparameter for that particular
+f-model. In the case where we want to specify the prior for the
+hyperparameter of an observation model, for example the negative Bino-
+mial, the the prior spesification will appear inside the
+control.data()-argument; see the following example for illustration.
 
 \subsection*{Example}
 

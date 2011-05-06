@@ -13,11 +13,15 @@ with mean $\mu$ and precision $\kappa$ but truncated to be positive.
 
 \subsection*{Specification}
 This prior for the hyperparameters is specified inside the {\tt
-    f()} function as The following:
+    f()} function as the following using the old style
 \begin{center}
-{\tt f(<whatever>, prior="logtnormal", param=c(<mean $\mu$>, <precision $\kappa$>))}
+    {\tt f(<whatever>, prior="logtnormal", param=c(<mean $\mu$>, <precision $\kappa$>))}
 \end{center}
-or ``logtgaussian''.
+or, better, the new style
+\begin{center}
+    {\tt f(<whatever>, hyper = list( <theta> = list(prior="logtnormal", param=c(<mean $\mu$>, <precision $\kappa$>))))}
+\end{center}
+Similar with "logtgaussian".
 
 \subsection*{Example}
 
@@ -31,7 +35,7 @@ y=rnorm(n,z,1)
 data=list(y=y,z=z)
 formula=y~1+z
 result=inla(formula, family="gaussian", data=data,
-            control.data=list(prior="logtnormal", param = c(0, 0.01)))
+            control.data=list(hyper = list(prec = list(prior="logtnormal", param = c(0, 0.01)))))
 \end{verbatim}
 
 \end{document}
