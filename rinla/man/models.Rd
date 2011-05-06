@@ -1118,6 +1118,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `loggammafrailty'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default identity'}
+								\item{pdf = }{`loggammafrailty'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `logistic'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -1829,11 +1855,11 @@ inla.models()
 				 }
 				\item{Model `loggamma'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `minuslogsqrtruncnormal'.}{					 Number of parameters in the prior = 1 
+				\item{Model `minuslogsqrtruncnormal'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `logtnormal'.}{					 Number of parameters in the prior = 1 
+				\item{Model `logtnormal'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `logtgaussian'.}{					 Number of parameters in the prior = 1 
+				\item{Model `logtgaussian'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `flat'.}{					 Number of parameters in the prior = 0 
 				 }
