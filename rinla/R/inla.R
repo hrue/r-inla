@@ -1407,8 +1407,8 @@
                                     control=cont, only.hyperparam=only.hyperparam)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
-                if (dim(gp$random.spec[[r]]$Z)[1] != tot.data)
-                    stop(paste("\n\tNumber of data is", tot.data, "but dimension of Z is", dim(gp$random.spec[[r]]$Z)))
+                if (dim(gp$random.spec[[r]]$Z)[1] != ny)
+                    stop(paste("\n\tNumber of data is", ny, "but dimension of Z is", dim(gp$random.spec[[r]]$Z)))
 
                 inla.z.section(file=file.ini, random.spec = gp$random.spec[[r]], data.dir = data.dir,
                                results.dir = results.dir, only.hyperparam = only.hyperparam, k.off = count.random)
