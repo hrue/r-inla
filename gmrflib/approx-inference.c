@@ -4999,9 +4999,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
 					abort();
 				}
-				double double_tmp;
+				double double_tmp = (double)((*density)[ii]->user_mean);
 				loglFunc(&logll, &double_tmp, 1, ii, x_vec, loglFunc_arg);
-				(*density)[ii]->user_mean = (float) double_tmp;
 				dm = -2.0 * logll;
 				deviance_e[ii] = dm;
 			} else {
@@ -6015,6 +6014,7 @@ float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, GMRFLib_lo
 	integral = -2.0 * integral / integral_one;
 
 	Free(work);
+
 	return (float) integral;
 }
 
