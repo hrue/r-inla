@@ -214,11 +214,10 @@ inla.internal.experimental.mode = FALSE
     if (n.lincomb > 0) {
         names.lincomb = inla.namefix(character(n.lincomb))
         model.lincomb = inla.trim(character(n.lincomb))
-
         summary.lincomb = list()
         marginals.lincomb = list()
         size.lincomb = list()
-        
+ 
         for(i in 1:n.lincomb) {
             if (debug)
                 print(paste("read lincomb ", i , " of ", n.lincomb))
