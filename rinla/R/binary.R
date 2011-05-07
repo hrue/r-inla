@@ -10,13 +10,13 @@
 
     len = length(xx)
     np = as.integer(xx[2L])
-    stopifnot((len %% (2L*np+2)) == 0L)
-    res.ncol = (2L * len) %/% (2L*np+2)
-    res = matrix(0, np, res.ncol)
+    stopifnot((len %% (2L*np+2L)) == 0L)
+    res.ncol = (2L * len) %/% (2L*np+2L)
+    res = matrix(0.0, np, res.ncol)
     m = 1L
     ii = 1L
     np2 = 2L*np + 2L
-    for (j in 1:(res.ncol %/% 2L)) {
+    for (j in 1L:(res.ncol %/% 2L)) {
         idx = seq.int(ii + 2L, by=2L, len=np)
         res[, c(m, m+1L)] = xx[c(idx, idx+1L)]
         m = m + 2L
@@ -45,12 +45,12 @@
     stopifnot((len %% (2L*np + 2L)) == 0L)
     m = (3L * len) %/% (2L*np+2L)
     res.ncol = m
-    res = matrix(0, np, res.ncol)
+    res = matrix(0.0, np, res.ncol)
 
     m = 1L
     ii = 1L
     np2 = 2L * np + 2L
-    for(j in 1:(m %/% 3L)) {
+    for(j in 1L:(m %/% 3L)) {
         idx = as.integer(xx[ii])
         jj = seq.int(ii + 2L, by=2L, len = np)
         res[, m] = idx
