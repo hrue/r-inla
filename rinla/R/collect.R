@@ -345,6 +345,13 @@ inla.internal.experimental.mode = FALSE
             }
         }
         names(summary.lincomb) = inla.namefix(names.lincomb)
+
+        ## could be that marginals.lincomb is a list of lists of NULL
+        if (!is.null(marginals.lincomb)) {
+            if (all(sapply(marginals.lincomb, is.null)))
+                marginals.lincomb = NULL
+        }
+
         if (!is.null(marginals.lincomb) && (length(marginals.lincomb) > 0))
             names(marginals.lincomb) = inla.namefix(names.lincomb)
     } else {
@@ -982,8 +989,16 @@ inla.internal.experimental.mode = FALSE
             size.random[[i]] = inla.collect.size(file)
         }
         names(summary.random) = inla.namefix(names.random)
-        if (!is.null(marginals.random) && (length(marginals.random) > 0))
+
+        ## could be that marginals.random is a list of lists of NULL
+        if (!is.null(marginals.random)) {
+            if (all(sapply(marginals.random,is.null)))
+                marginals.random = NULL
+        }
+
+        if (!is.null(marginals.random) && (length(marginals.random) > 0)) {
             names(marginals.random) = inla.namefix(names.random)
+        }
     } else {
         if (debug)
             cat("No random effets\n")
