@@ -255,6 +255,12 @@ typedef enum {
 	F_IID1D,
 	F_IID2D,
 	F_IID3D,
+	F_IID1DNEW, 					       /* the new ones with the new general setup */
+	F_IID2DNEW, 
+	F_IID3DNEW, 
+	F_IID4DNEW, 
+	F_IID5DNEW, 
+	F_IID6DNEW, 
 	F_RW1,
 	F_RW2,
 	F_CRW2,
@@ -275,6 +281,7 @@ typedef enum {
 	P_WISHART1D,
 	P_WISHART2D,
 	P_WISHART3D,
+	P_WISHARTNEW,
 	P_LOGFLAT,
 	P_LOGIFLAT,
 	P_NONE,
@@ -663,6 +670,25 @@ typedef struct {
 } inla_iid3d_arg_tp;
 
 typedef struct {
+	double *vec;
+	gsl_matrix *Q;
+} inla_wishart_hold_tp;
+
+
+typedef struct {
+	/*
+	 * iid random effects with a Wishart prior The coding is (x0,x1,..., y0,y1,....,z0,z1,...), so the total length is N=dim*n.
+	 */
+	int n;
+	int N;
+	int dim;
+	double ***log_prec;				       /* 0, 1, 2,.... */
+	double ***rho_intern;				       /* 01,02,... 12, 13, ... , 23, 24... */
+
+	inla_wishart_hold_tp **hold;
+} inla_iid_wishart_arg_tp;
+
+typedef struct {
 	double **log_prec;
 	int n;						       /* number of elements in F_Z and F_ZADD */
 } inla_z_arg_tp;
@@ -809,6 +835,7 @@ int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * gra
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
+int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
@@ -901,11 +928,24 @@ unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
 int inla_read_graph(const char *filename);
+int inla_iid_wishart_nparam(int dim);
+int inla_iid_wishart_adjust(int dim, double *rho);
+double priorfunc_wishart(int dim, double *x, double *parameters);
+int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
 double inla_log_Phi(double x);
 double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+
+double priorfunc_wishartnew_1(double *x, double *parameters);
+double priorfunc_wishartnew_2(double *x, double *parameters);
+double priorfunc_wishartnew_3(double *x, double *parameters);
+double priorfunc_wishartnew_4(double *x, double *parameters);
+double priorfunc_wishartnew_5(double *x, double *parameters);
+double priorfunc_wishartnew_6(double *x, double *parameters);
+double priorfunc_wishart_generic(int idim, double *x, double *parameters);
+double Qfunc_iid_wishart(int node, int nnode, void *arg);
 
 GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
 
