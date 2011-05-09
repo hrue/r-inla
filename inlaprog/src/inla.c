@@ -1302,14 +1302,13 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int fail, i, j, k, n_prec, n_rho, n_theta, id;
-	double *prec = NULL, *rho = NULL, *vec = NULL, *work = NULL;
-	inla_wishart_hold_tp *hold;
+	int fail, i, j, k, n_theta, id, dim, debug=0;
+	double *vec = NULL;
+	inla_wishart_hold_tp *hold = NULL;
 
 	id = omp_get_thread_num();
-	n_prec = a->dim;
-	n_rho = inla_iid_wishart_nparam(a->dim) - n_prec;
-	n_theta = n_prec + n_rho;
+	dim = a->dim;
+	n_theta = inla_iid_wishart_nparam(a->dim);
 	
 	assert(a->hold);
 	if (a->hold[id] == NULL) {
@@ -1325,18 +1324,15 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	/* 
 	   use just one work-space
 	*/
-	work = Calloc(2*n_theta, double);
-	prec = &work[0];
-	rho = &work[n_prec];
-	vec = &work[n_theta];
+	vec = Calloc(n_theta, double);
 
 	k = 0;
-	for (i=0; i < n_prec; i++){
-		prec[i] = vec[k] =  map_precision(a->log_prec[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	for (i=0; i < dim; i++){
+		vec[k] = map_precision(a->log_prec[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		k++;
 	}
-	for (i=0; i < n_rho; i++){
-		rho[i] = vec[k] =  map_rho(a->rho_intern[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	for (i=0; i < n_theta - dim; i++){
+		vec[k] = map_rho(a->rho_intern[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		k++;
 	}
 	assert(k == n_theta);
@@ -1344,30 +1340,44 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
 		memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
 
-		fail = inla_iid_wishart_adjust(a->dim, &vec[n_prec]);
-		if (fail != GMRFLib_SUCCESS) {
-			for (i=0; i<n_rho; i++){
-				rho[i] = vec[n_prec + i];
-			}
+		if (debug){
+			for(i=0; i<n_theta; i++)
+				printf("vec[%1d] = %.12f\n", i, vec[i]);
 		}
-		for(i = 0; i<n_prec; i++){
-			gsl_matrix_set(hold->Q, i, i, 1.0 / prec[i]);
+
+		fail = inla_iid_wishart_adjust(dim, &vec[dim]);
+
+		if (debug){
+			for(i=0; i<n_theta; i++)
+				printf("ifail %1d vec[%1d] = %.12f\n", fail, i, vec[i]);
 		}
-		for(i = k = 0; i<n_prec; i++){
-			for(j = i+1; j<n_prec; j++){
+
+		k = 0;
+		for(i = 0; i<dim; i++){
+			gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
+			k++;
+		}
+		for(i = 0; i<dim; i++){
+			for(j = i+1; j<dim; j++){
 				double value;
 
-				value = rho[k] / sqrt(prec[i] * prec[j]);
+				value = vec[k] / sqrt(vec[i] * vec[j]);
 				gsl_matrix_set(hold->Q, i, j, value);
 				gsl_matrix_set(hold->Q, j, i, value);
 				k++;
 			}
 		}
-		assert(k == n_rho);
+		assert(k == n_theta);
+
+		FIXME("ok?");
+		GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+		FIXME("ok?DONE. inverse:");
 		GMRFLib_gsl_spd_inverse(hold->Q);
+		GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+		FIXME("inverse:DONE");
 	}
 
-	Free(work);
+	Free(vec);
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
@@ -1648,10 +1658,6 @@ double priorfunc_wishart2d(double *x, double *parameters)
 	gsl_matrix_set(Q, 0, 1, -x[2] * t / a);
 	gsl_matrix_set(Q, 1, 0, gsl_matrix_get(Q, 0, 1));
 
-	//FIXME("OLD CODE");
-	//GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);
-	//P(GMRFLib_Wishart_logdens(Q, r, R));
-
 	val = GMRFLib_Wishart_logdens(Q, r, R) + log(t) - 3.0 * log(a);
 	return val;
 }
@@ -1662,7 +1668,7 @@ int inla_iid_wishart_adjust(int dim, double *rho)
 	*/
 #define IDX(_i, _j) ((_i) + (_j)*(dim))
 
-	int i, j, k, ok = 0, n_rho = inla_iid_wishart_nparam(dim) - dim;
+	int i, j, k, ok = 0, n_rho = inla_iid_wishart_nparam(dim) - dim, debug=0;
 	double f = 0.99, *S = NULL,  *chol = NULL;
 
 	S = Calloc(ISQR(dim), double);
@@ -1679,6 +1685,18 @@ int inla_iid_wishart_adjust(int dim, double *rho)
 		}
 		assert(k == n_rho);
 
+		if (debug){
+			FIXME("in the adjust");
+			printf("\n");
+			for(i=0; i<dim; i++){
+				for(j=0; j<dim; j++){
+					printf(" %.12f", S[IDX(i, j)]);
+				}
+				printf("\n");
+			}
+			printf("\n");
+		}
+		
 		if (GMRFLib_comp_chol_general(&chol, S, dim, NULL, !GMRFLib_SUCCESS) != GMRFLib_SUCCESS){
 			for(i = 0; i<n_rho; i++){
 				rho[i] *= f;
@@ -1901,10 +1919,6 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	size_t n_x = (size_t) inla_iid_wishart_nparam(idim);
 	size_t n_param = n_x + 1;
 
-	P(x[0]);
-	P(x[1]);
-	P(x[2]);
-	
 	if (debug) {
 		for (i = 0; i < n_param; i++) {
 			printf("parameters[%d] = %g\n", (int)i, parameters[i]);
@@ -1946,29 +1960,23 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 		}							\
 		for(i=0; i<dim; i++) {					\
 			for(j=i+1; j < dim; j++) {			\
-				P(x[i]);				\
-				P(x[j]);				\
 				double value = x[k] / sqrt(x[i] * x[j]); \
-				gsl_matrix_set(Q_, i, j, value);		\
-				gsl_matrix_set(Q_, j, i, value);		\
+				gsl_matrix_set(Q_, i, j, value);	\
+				gsl_matrix_set(Q_, j, i, value);	\
 				k++;					\
 			}						\
 		}							\
 		assert(k == n_x);					\
 		if (debug) printf("Covmatrix:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL);	\
+		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL); \
 		if (debug) printf("Precision:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL);	\
+		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL); \
 		GMRFLib_gsl_spd_inverse(Q_);				\
 	}
 
 		
 	COMPUTE_Q(Q);
 	val = GMRFLib_Wishart_logdens(Q, r, R) + (fail ? PENALTY : 0.0);
-
-	//FIXME("NEW CODE");
-	//GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);
-	//P(GMRFLib_Wishart_logdens(Q, r, R));
 
 	/*
 	 * tau1 and tau1 are the *MARGINAL* precisions, which it should be.  The jacobian is computed like this:
@@ -1985,12 +1993,12 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	/*
 	 * for the numerical derivatives: compute the `population' variance: Det(Sigma), and set f = (Det(Sigma))^1/dim. 
 	 */
-	f = 1.0e-6 * pow(exp(-GMRFLib_gsl_spd_logdet(Q)), 1.0 / (double)dim);	/* Yes, its a minus... */
+	f = 1.0e-6 * pow(exp(-GMRFLib_gsl_spd_logdet(Q)), 1.0 / (double)idim);	/* Yes, its a minus... */
 	QQ = GMRFLib_gsl_duplicate_matrix(Q);
 	J = gsl_matrix_calloc(n_x, n_x);
 
 	/* 
-	   the precision terms *can* get negative....
+	   the precision terms *can* get negative since we're using a central estimate, so we need to check the step-size
 	 */
 	for(ii = 0; ii < idim; ii++){
 		f = DMIN(f, 0.5*x[ii]);
@@ -2043,9 +2051,6 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	val += logdet;
 
 #undef COMPUTE_Q
-
-	P(val);
-	P(priorfunc_wishart2d(x, parameters));
 
 	return val;
 }
@@ -11793,7 +11798,6 @@ double extra(double *theta, int ntheta, void *argument)
 			gsl_matrix_set(Q, 2, 1, gsl_matrix_get(Q, 1, 2));
 			GMRFLib_gsl_spd_inverse(Q);
 
-			// GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);
 			logdet = GMRFLib_gsl_spd_logdet(Q);
 			gsl_matrix_free(Q);
 
@@ -11839,10 +11843,10 @@ double extra(double *theta, int ntheta, void *argument)
 				       (mb->f_id[i] == F_IID6DNEW ? 6 : -1))))));
 			assert(dim > 0);
 
-			int npar = mb->f_ntheta[i];
-			assert(npar == inla_iid_wishart_nparam(dim));
+			int nt = mb->f_ntheta[i];
+			assert(nt == inla_iid_wishart_nparam(dim));
 			double jacobian = 0.0;
-			double *theta_vec = Calloc(npar, double);
+			double *theta_vec = Calloc(nt, double);
 			int k = 0;
 			nfixed = 0;
 			for(j = 0;  j< dim; j++){
@@ -11857,9 +11861,6 @@ double extra(double *theta, int ntheta, void *argument)
 				theta_vec[k] = map_precision(theta_vec[k], MAP_FORWARD, NULL);
 				k++;
 			}
-			P(theta_vec[0]);
-			P(theta_vec[1]);
-			P(theta_vec[2]);
 			
 			for(j = 0; j<dim; j++){
 				for(jj = j+1; jj<dim; jj++){
@@ -11875,13 +11876,9 @@ double extra(double *theta, int ntheta, void *argument)
 					k++;
 				}
 			}
-			assert(k == npar);
-			P(theta_vec[0]);
-			P(theta_vec[1]);
-			P(theta_vec[2]);
+			assert(k == nt);
 
 			fail = inla_iid_wishart_adjust(dim, &theta_vec[dim]);
-			
 			Q = gsl_matrix_calloc(dim, dim);
 			k = 0;
 			for(j = 0; j<dim; j++){
@@ -11896,14 +11893,13 @@ double extra(double *theta, int ntheta, void *argument)
 					k++;
 				}
 			}
-			assert(k == npar);
-			GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);
-			GMRFLib_gsl_spd_inverse(Q);
+			assert(k == nt);
 
+			GMRFLib_gsl_spd_inverse(Q);
 			logdet = GMRFLib_gsl_spd_logdet(Q);
 			gsl_matrix_free(Q);
 
-			SET_GROUP_RHO(npar);
+			SET_GROUP_RHO(nt);
 
 			/*
 			 * n is the small length 
