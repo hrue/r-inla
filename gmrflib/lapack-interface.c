@@ -154,7 +154,10 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	}
 
 	if (info) {
-		GMRFLib_ERROR(ecode);
+		Free(a);
+		*chol = NULL;
+
+		return ecode;
 	}
 
 	if (logdet) {
@@ -240,7 +243,6 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 
 	x = gsl_vector_calloc(n);
 	L = GMRFLib_gsl_duplicate_matrix(A);
-	GMRFLib_gsl_matrix_fprintf(stdout, L, " %.12f");
 	gsl_linalg_cholesky_decomp(L);
 	for (i = 0; i < n; i++) {
 		gsl_vector_set_basis(x, i);
