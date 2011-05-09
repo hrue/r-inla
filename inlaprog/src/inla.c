@@ -1302,25 +1302,23 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int fail, i, j, k, n_theta, id, dim, debug=0;
+	int fail, i, j, k, n_theta, dim, debug=0;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
-
-	id = omp_get_thread_num();
+	
 	dim = a->dim;
 	n_theta = inla_iid_wishart_nparam(a->dim);
 	
 	assert(a->hold);
-	if (a->hold[id] == NULL) {
-		a->hold[id] = Calloc(1, inla_wishart_hold_tp);
-		hold = a->hold[id];
-		hold->vec = Calloc(n_theta, double);
-		hold->vec[0] = GMRFLib_uniform();	       /* sufficient; a change will be detected. */
-		hold->Q = gsl_matrix_calloc(a->dim, a->dim);
-	} else {
-		hold = a->hold[id];
+	hold = a->hold[GMRFLib_thread_id];
+	if (hold == NULL) {
+		a->hold[GMRFLib_thread_id] = Calloc(1, inla_wishart_hold_tp);
+		a->hold[GMRFLib_thread_id]->vec = Calloc(n_theta, double);
+		a->hold[GMRFLib_thread_id]->vec[0] = GMRFLib_uniform();
+		a->hold[GMRFLib_thread_id]->Q = gsl_matrix_calloc(a->dim, a->dim);
+		hold = a->hold[GMRFLib_thread_id];
 	}
-		
+	
 	/* 
 	   use just one work-space
 	*/
@@ -1338,43 +1336,44 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	assert(k == n_theta);
 	
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-		memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
+#pragma omp critical
+		{
+			if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
+				
+				fail = inla_iid_wishart_adjust(dim, &vec[dim]);
 
-		if (debug){
-			for(i=0; i<n_theta; i++)
-				printf("vec[%1d] = %.12f\n", i, vec[i]);
-		}
+				k = 0;
+				for(i = 0; i<dim; i++){
+					gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
+					k++;
+				}
+				for(i = 0; i<dim; i++){
+					for(j = i+1; j<dim; j++){
+						double value = vec[k] / sqrt(vec[i] * vec[j]);
+						gsl_matrix_set(hold->Q, i, j, value);
+						gsl_matrix_set(hold->Q, j, i, value);
+						k++;
+					}
+				}
+				assert(k == n_theta);
+			
+				if (debug) {
+					for(i=0; i<n_theta; i++)
+						printf("vec[%1d] = %.12f\n", i, vec[i]);
+					FIXME("hold->Q");
+					GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+				}
 
-		fail = inla_iid_wishart_adjust(dim, &vec[dim]);
+				GMRFLib_gsl_spd_inverse(hold->Q);
 
-		if (debug){
-			for(i=0; i<n_theta; i++)
-				printf("ifail %1d vec[%1d] = %.12f\n", fail, i, vec[i]);
-		}
+				if (debug){
+					FIXME("inverse:");
+					GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+				}
 
-		k = 0;
-		for(i = 0; i<dim; i++){
-			gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
-			k++;
-		}
-		for(i = 0; i<dim; i++){
-			for(j = i+1; j<dim; j++){
-				double value;
-
-				value = vec[k] / sqrt(vec[i] * vec[j]);
-				gsl_matrix_set(hold->Q, i, j, value);
-				gsl_matrix_set(hold->Q, j, i, value);
-				k++;
+				memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
 			}
 		}
-		assert(k == n_theta);
-
-		FIXME("ok?");
-		GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
-		FIXME("ok?DONE. inverse:");
-		GMRFLib_gsl_spd_inverse(hold->Q);
-		GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
-		FIXME("inverse:DONE");
 	}
 
 	Free(vec);
@@ -2000,7 +1999,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	/* 
 	   the precision terms *can* get negative since we're using a central estimate, so we need to check the step-size
 	 */
-	for(ii = 0; ii < idim; ii++){
+	for(ii = 0; ii < dim; ii++){
 		f = DMIN(f, 0.5*x[ii]);
 	}
 
