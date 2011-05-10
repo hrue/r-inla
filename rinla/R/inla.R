@@ -1518,7 +1518,7 @@
         } else if (inla.os("windows")) {
             if (!remote) {
                 if (verbose) {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > /dev/null")), silent=TRUE)
+                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 } else {
                     echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                 }
