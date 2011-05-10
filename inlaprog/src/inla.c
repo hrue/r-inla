@@ -973,18 +973,23 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg)
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
-	GMRFLib_ged_tp *ged = NULL;
 
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < n; i++) {
-		for(j = 0; j < dim; j++) {
-			for(k = j+1; k < dim; k++) {
-				GMRFLib_ged_add(ged, i + j*n, i + k*n);
+	if (dim == 1){
+		GMRFLib_make_linear_graph(graph, n, 0, 0);
+	} else {
+		GMRFLib_ged_tp *ged = NULL;
+
+		GMRFLib_ged_init(&ged, NULL);
+		for (i = 0; i < n; i++) {
+			for(j = 0; j < dim; j++) {
+				for(k = j+1; k < dim; k++) {
+					GMRFLib_ged_add(ged, i + j*n, i + k*n);
+				}
 			}
 		}
+		GMRFLib_ged_build(graph, ged);
+		GMRFLib_ged_free(ged);
 	}
-	GMRFLib_ged_build(graph, ged);
-	GMRFLib_ged_free(ged);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1309,6 +1314,14 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	dim = a->dim;
 	n_theta = inla_iid_wishart_nparam(a->dim);
 	
+	if (dim == 1) {
+		/* 
+		   IID1D
+		 */
+		return map_precision(a->log_prec[0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	}
+	
+
 	/* 
 	   using this prevent us for using '#pragma omp critical' below, so its much quicker
 	*/
@@ -1871,7 +1884,12 @@ double priorfunc_wishart3d(double *x, double *parameters)
 }
 double priorfunc_wishartnew_1(double *x, double *parameters)
 {
-	return priorfunc_wishart_generic(1, x, parameters);
+	double p[2];
+
+	p[0] = parameters[0] / 2.0;
+	p[1] = parameters[1] / 2.0;
+
+	return priorfunc_loggamma(x, p);
 }
 double priorfunc_wishartnew_2(double *x, double *parameters)
 {
@@ -1905,7 +1923,6 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	 * 
 	 * output is the logdensity for x!!!! (BE AWARE)
 	 */
-
 	gsl_matrix *R = NULL, *Q = NULL;
 	double r, val;
 	int debug = 0, fail;
@@ -7565,19 +7582,34 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int dim = WISHART_DIM;
 		assert(dim > 0);
 		char *pri, *par, *prifunc;
+		int nt = inla_iid_wishart_nparam(dim);
+		
 		GMRFLib_sprintf(&prifunc, "WISHARTNEW%1dD", dim);
-
 		int kk;
-		for(kk = 0; kk < inla_iid_wishart_nparam(dim); kk++) {
-			GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
-			GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
+		if (nt > 1) {
+			/* 
+			   Not IID1D
+			 */
+			for(kk = 0; kk < nt; kk++) {
+				GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
+				GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
+				inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, (kk == 0 ? prifunc : "NONE"));
+			}
+		} else {
+			/* 
+			   IID1D
+			*/
+			kk = 0;
+			GMRFLib_sprintf(&pri, "PRIOR");
+			GMRFLib_sprintf(&par, "PARAMETERS");
 			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, (kk == 0 ? prifunc : "NONE"));
 		}
+			
 		Free(pri);
 		Free(par);
-		break;
 	}
-
+	break;
+		
 	case F_BYM:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 iid */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* precision1 spatial */
@@ -7610,7 +7642,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_ZADD:
-
 		break;
 
 	default:
@@ -9189,7 +9220,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			   first get all the precisions
 			*/
 			char *init;
-			GMRFLib_sprintf(&init, "INITIAL%1d", k);
+
+			if (dim == 1){
+				GMRFLib_sprintf(&init, "INITIAL");
+			} else {
+				GMRFLib_sprintf(&init, "INITIAL%1d", k);
+			}
+			
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
 
 			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
@@ -11200,6 +11237,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_SEASONAL:
 		case F_IID:
 		case F_IID1D:
+		case F_IID1DNEW:
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
@@ -11831,7 +11869,7 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		case F_IID1DNEW:
+		//case F_IID1DNEW:   SEE ABOVE FOR THIS
 		case F_IID2DNEW:
 		case F_IID3DNEW:
 		case F_IID4DNEW:
@@ -11847,7 +11885,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			int nt = mb->f_ntheta[i];
 			assert(nt == inla_iid_wishart_nparam(dim));
-			double jacobian = 0.0;
+			double log_jacobian = 0.0;
 			double *theta_vec = Calloc(nt, double);
 			int k = 0;
 			nfixed = 0;
@@ -11859,7 +11897,7 @@ double extra(double *theta, int ntheta, void *argument)
 					nfixed++;
 					theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
 				}
-				jacobian += log(map_precision(theta_vec[k], MAP_DFORWARD, NULL));
+				log_jacobian += log(map_precision(theta_vec[k], MAP_DFORWARD, NULL));
 				theta_vec[k] = map_precision(theta_vec[k], MAP_FORWARD, NULL);
 				k++;
 			}
@@ -11873,7 +11911,7 @@ double extra(double *theta, int ntheta, void *argument)
 						nfixed++;
 						theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
 					}
-					jacobian += log(map_rho(theta_vec[k], MAP_DFORWARD, NULL));
+					log_jacobian += log(map_rho(theta_vec[k], MAP_DFORWARD, NULL));
 					theta_vec[k] = map_rho(theta_vec[k], MAP_FORWARD, NULL);
 					k++;
 				}
@@ -11908,7 +11946,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			n = (double) (mb->f_n[i] / dim);	       /* YES! */
 			val += mb->f_nrep[i] * (normc_g + normc * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=3n */
-						+(n - mb->f_rankdef[i]) / 2.0 * logdet);
+						+ (n - mb->f_rankdef[i]) / 2.0 * logdet);
 			if (fail) {
 				val += PENALTY;
 			}
@@ -11924,7 +11962,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
 			 * log_precision1, rho_intern). 
 			 */
-			val += mb->f_prior[i][0].priorfunc(theta_vec, mb->f_prior[i][0].parameters) + jacobian;
+			val += mb->f_prior[i][0].priorfunc(theta_vec, mb->f_prior[i][0].parameters) + log_jacobian;
 			break;
 		}
 
@@ -12266,7 +12304,11 @@ int inla_INLA(inla_tp * mb)
 				compute[count++] = 1;
 			}
 		}
-		assert(count == N);
+		if (count != N) {
+			P(count);
+			P(N);
+			assert(count == N);
+		}
 	}
 
 	if (G.reorder < 0) {
