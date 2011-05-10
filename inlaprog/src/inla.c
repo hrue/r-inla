@@ -1337,7 +1337,7 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	assert(k == n_theta);
 	
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-		fail = inla_iid_wishart_adjust(dim, &vec[dim]);
+		fail = inla_iid_wishart_adjust(dim, vec);
 		k = 0;
 		for(i = 0; i<dim; i++){
 			gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
@@ -1648,29 +1648,31 @@ double priorfunc_wishart2d(double *x, double *parameters)
 	val = GMRFLib_Wishart_logdens(Q, r, R) + log(t) - 3.0 * log(a);
 	return val;
 }
-int inla_iid_wishart_adjust(int dim, double *rho)
+int inla_iid_wishart_adjust(int dim, double *theta)
 {
 	/* 
-	   adjust rho with factor f until the matrix is SPD.
+	   adjust rho's in theta with factor f until the matrix is SPD.
 	*/
 #define IDX(_i, _j) ((_i) + (_j)*(dim))
 
-	int i, j, k, ok = 0, n_rho = inla_iid_wishart_nparam(dim) - dim, debug=0;
-	double f = 0.99, *S = NULL,  *chol = NULL;
+	int i, j, k, ok = 0, debug = 0;
+	int n_theta = inla_iid_wishart_nparam(dim);
+	double f = 0.95, *S = NULL,  *chol = NULL;
 
 	S = Calloc(ISQR(dim), double);
 	while(!ok) {
- 		for(i=0; i<dim; i++) {
-			S[IDX(i, i)] = 1.0;
-		}
 		k = 0;
+ 		for(i=0; i<dim; i++) {
+			S[IDX(i, i)] = 1.0/theta[k];
+			k++;
+		}
 		for(i=0; i<dim; i++) {
 			for(j = i+1; j<dim; j++) {
-				S[ IDX(i, j) ] = S[ IDX(j, i) ] = rho[k];
+				S[ IDX(i, j) ] = S[ IDX(j, i) ] = theta[k] / sqrt( theta[i] * theta[j] );
 				k++;
 			}
 		}
-		assert(k == n_rho);
+		assert(k == n_theta);
 
 		if (debug){
 			FIXME("in the adjust");
@@ -1685,8 +1687,14 @@ int inla_iid_wishart_adjust(int dim, double *rho)
 		}
 		
 		if (GMRFLib_comp_chol_general(&chol, S, dim, NULL, !GMRFLib_SUCCESS) != GMRFLib_SUCCESS){
-			for(i = 0; i<n_rho; i++){
-				rho[i] *= f;
+			/* 
+			   only adjust the rho's
+			*/
+			if (debug){
+				printf("matrix is not spd, adjust with factor %f\n", f);
+			}
+			for(i = dim; i<n_theta; i++){
+				theta[i] *= f;
 			}
 		} else {
 			ok = 1;
@@ -1919,7 +1927,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	R = gsl_matrix_calloc(dim, dim);
 	Q = gsl_matrix_calloc(dim, dim);
 
-	fail = inla_iid_wishart_adjust(idim, &x[idim]);
+	fail = inla_iid_wishart_adjust(idim, x);
 
 	/* 
 	 * offset of 1, since parameters[0] = r
@@ -4570,8 +4578,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 				    (!strcasecmp(prior->name,  "WISHARTNEW2D") ? priorfunc_wishartnew_2 :
 				     (!strcasecmp(prior->name,  "WISHARTNEW3D") ? priorfunc_wishartnew_3 :
 				      (!strcasecmp(prior->name,  "WISHARTNEW4D") ? priorfunc_wishartnew_4 :
-				       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? priorfunc_wishartnew_5 :
-					(!strcasecmp(prior->name,  "WISHARTNEW6D") ? priorfunc_wishartnew_6 : NULL))))));
+				       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? priorfunc_wishartnew_5 : NULL)))));
 		assert(prior->priorfunc);
 
 		double *xx = NULL;
@@ -4580,8 +4587,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			    (!strcasecmp(prior->name,  "WISHARTNEW2D") ? 2 :
 			     (!strcasecmp(prior->name,  "WISHARTNEW3D") ? 3 :
 			      (!strcasecmp(prior->name,  "WISHARTNEW4D") ? 4 :
-			       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? 5 :
-				(!strcasecmp(prior->name,  "WISHARTNEW6D") ? 6 : -1))))));
+			       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? 6 : -1)))));
 		assert(idim > 0);
 
 		inla_sread_doubles_q(&xx, &nxx, param);
@@ -7203,7 +7209,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 {
 #define WISHART_DIM (mb->f_id[mb->nf] == F_IID1DNEW ? 1 :		\
 		     (mb->f_id[mb->nf] == F_IID2DNEW ? 2 :		\
-		      (mb->f_id[mb->nf] == F_IID3DNEW ? 3 : -1)))
+		      (mb->f_id[mb->nf] == F_IID3DNEW ? 3 :		\
+		       (mb->f_id[mb->nf] == F_IID4DNEW ? 4 :		\
+			(mb->f_id[mb->nf] == F_IID5DNEW ? 5 : -1)))))
+
 #define SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
 #define OneOf(a_) (!strcasecmp(model, a_))
 #define OneOf2(a_, b_) (OneOf(a_) || OneOf(b_))
@@ -7412,6 +7421,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else if (OneOf("IID3DNEW")) {
 		mb->f_id[mb->nf] = F_IID3DNEW;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+	} else if (OneOf("IID4DNEW")) {
+		mb->f_id[mb->nf] = F_IID4DNEW;
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+	} else if (OneOf("IID5DNEW")) {
+		mb->f_id[mb->nf] = F_IID5DNEW;
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
 	} else if (OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
@@ -7544,6 +7559,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_IID1DNEW:
 	case F_IID2DNEW:
 	case F_IID3DNEW:
+	case F_IID4DNEW:
+	case F_IID5DNEW:
 	{
 		int dim = WISHART_DIM;
 		assert(dim > 0);
@@ -8099,8 +8116,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			   mb->f_id[mb->nf] == F_IID2DNEW ||
 			   mb->f_id[mb->nf] == F_IID3DNEW ||
 			   mb->f_id[mb->nf] == F_IID4DNEW ||
-			   mb->f_id[mb->nf] == F_IID5DNEW ||
-			   mb->f_id[mb->nf] == F_IID6DNEW) {
+			   mb->f_id[mb->nf] == F_IID5DNEW) {
 			/*
 			 * IID_WISHART-model; need length N
 			 */
@@ -9156,7 +9172,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_IID3DNEW:
 	case F_IID4DNEW:
 	case F_IID5DNEW:
-	case F_IID6DNEW:
 	{
 		int dim = WISHART_DIM;
 		assert(dim>0);
@@ -9545,8 +9560,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		   mb->f_id[mb->nf] == F_IID2DNEW ||
 		   mb->f_id[mb->nf] == F_IID3DNEW ||
 		   mb->f_id[mb->nf] == F_IID4DNEW ||
-		   mb->f_id[mb->nf] == F_IID5DNEW ||
-		   mb->f_id[mb->nf] == F_IID6DNEW) {
+		   mb->f_id[mb->nf] == F_IID5DNEW) {
 		   
 		inla_iid_wishart_arg_tp *arg = NULL;
 		int dim = WISHART_DIM; assert(dim > 0);
@@ -11820,14 +11834,15 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_IID1DNEW:
 		case F_IID2DNEW:
 		case F_IID3DNEW:
+		case F_IID4DNEW:
+		case F_IID5DNEW:
 		{
 			int jj;
 			int dim = (mb->f_id[i] == F_IID1DNEW ? 1 :
 				   (mb->f_id[i] == F_IID2DNEW ? 2 :
 				    (mb->f_id[i] == F_IID3DNEW ? 3 :
 				     (mb->f_id[i] == F_IID4DNEW ? 4 :
-				      (mb->f_id[i] == F_IID5DNEW ? 5 :
-				       (mb->f_id[i] == F_IID6DNEW ? 6 : -1))))));
+				      (mb->f_id[i] == F_IID5DNEW ? 5 : -1)))));
 			assert(dim > 0);
 
 			int nt = mb->f_ntheta[i];
@@ -11865,7 +11880,7 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			assert(k == nt);
 
-			fail = inla_iid_wishart_adjust(dim, &theta_vec[dim]);
+			fail = inla_iid_wishart_adjust(dim, theta_vec);
 			Q = gsl_matrix_calloc(dim, dim);
 			k = 0;
 			for(j = 0; j<dim; j++){
@@ -15310,6 +15325,11 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	if (optind < argc - 1) {
+		fprintf(stderr, "\n");
+		for(i=0; i<argc; i++){
+			fprintf(stderr, "\targv[%1d] = [%s]\n", i, argv[i]);
+		}
+		fprintf(stderr, "\targc=[%1d] optind=[%1d]\n\n", argc, optind);
 		fprintf(stderr, "\n*** Error: Can only process one .INI-file at the time.\n");
 		exit(EXIT_SUCCESS);
 	}

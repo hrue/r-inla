@@ -260,7 +260,6 @@ typedef enum {
 	F_IID3DNEW, 
 	F_IID4DNEW, 
 	F_IID5DNEW, 
-	F_IID6DNEW, 
 	F_RW1,
 	F_RW2,
 	F_CRW2,
