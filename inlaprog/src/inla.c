@@ -1302,28 +1302,29 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int fail, i, j, k, n_theta, dim, debug=0;
+	int fail, i, j, k, n_theta, dim, debug=0, id;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
 	
 	dim = a->dim;
 	n_theta = inla_iid_wishart_nparam(a->dim);
 	
+	/* 
+	   using this prevent us for using '#pragma omp critical' below, so its much quicker
+	*/
+	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+
 	assert(a->hold);
-	hold = a->hold[GMRFLib_thread_id];
+	hold = a->hold[id];
 	if (hold == NULL) {
-		a->hold[GMRFLib_thread_id] = Calloc(1, inla_wishart_hold_tp);
-		a->hold[GMRFLib_thread_id]->vec = Calloc(n_theta, double);
-		a->hold[GMRFLib_thread_id]->vec[0] = GMRFLib_uniform();
-		a->hold[GMRFLib_thread_id]->Q = gsl_matrix_calloc(a->dim, a->dim);
-		hold = a->hold[GMRFLib_thread_id];
+		a->hold[id] = Calloc(1, inla_wishart_hold_tp);
+		a->hold[id]->vec = Calloc(n_theta, double);
+		a->hold[id]->vec[0] = GMRFLib_uniform();
+		a->hold[id]->Q = gsl_matrix_calloc(a->dim, a->dim);
+		hold = a->hold[id];
 	}
 	
-	/* 
-	   use just one work-space
-	*/
 	vec = Calloc(n_theta, double);
-
 	k = 0;
 	for (i=0; i < dim; i++){
 		vec[k] = map_precision(a->log_prec[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -1336,44 +1337,31 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	assert(k == n_theta);
 	
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-#pragma omp critical
-		{
-			if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-				
-				fail = inla_iid_wishart_adjust(dim, &vec[dim]);
-
-				k = 0;
-				for(i = 0; i<dim; i++){
-					gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
-					k++;
-				}
-				for(i = 0; i<dim; i++){
-					for(j = i+1; j<dim; j++){
-						double value = vec[k] / sqrt(vec[i] * vec[j]);
-						gsl_matrix_set(hold->Q, i, j, value);
-						gsl_matrix_set(hold->Q, j, i, value);
-						k++;
-					}
-				}
-				assert(k == n_theta);
-			
-				if (debug) {
-					for(i=0; i<n_theta; i++)
-						printf("vec[%1d] = %.12f\n", i, vec[i]);
-					FIXME("hold->Q");
-					GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
-				}
-
-				GMRFLib_gsl_spd_inverse(hold->Q);
-
-				if (debug){
-					FIXME("inverse:");
-					GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
-				}
-
-				memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
+		fail = inla_iid_wishart_adjust(dim, &vec[dim]);
+		k = 0;
+		for(i = 0; i<dim; i++){
+			gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
+			k++;
+		}
+		for(i = 0; i<dim; i++){
+			for(j = i+1; j<dim; j++){
+				double value = vec[k] / sqrt(vec[i] * vec[j]);
+				gsl_matrix_set(hold->Q, i, j, value);
+				gsl_matrix_set(hold->Q, j, i, value);
+				k++;
 			}
 		}
+		assert(k == n_theta);
+			
+		if (debug) {
+			for(i=0; i<n_theta; i++)
+				printf("vec[%1d] = %.12f\n", i, vec[i]);
+			FIXME("hold->Q");
+			GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+		}
+
+		GMRFLib_gsl_spd_inverse(hold->Q);
+		memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
 	}
 
 	Free(vec);
@@ -9572,7 +9560,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0;
 		arg->log_prec = theta_iidwishart;
 		arg->rho_intern = theta_iidwishart + dim;
-		arg->hold = Calloc(GMRFLib_MAX_THREADS, inla_wishart_hold_tp *);
+		arg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishart;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
