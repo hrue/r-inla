@@ -461,35 +461,7 @@
                                 aug.factor = 1L,
                                 aug.constr = NULL,
                                 n.div.by = NULL,
-                                n.required = TRUE,
-                                set.default.values = TRUE,
-                                pdf = "iid123d"
-                                ), 
-
-                        iid1dnew = list(
-                                hyper = list(
-                                        theta = list(
-                                                name = "precision",
-                                                short.name = "prec",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "wishartnew1d",
-                                                ## this is the
-                                                ## corresponding wishart
-                                                ## prior for the (a, b)
-                                                ## gamma parameters
-                                                param = c(2*1, 2*0.00005),
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)
-                                                )
-                                        ), 
-                                constr = FALSE,
-                                nrow.ncol = FALSE,
-                                augmented = FALSE,
-                                aug.factor = 1L,
-                                aug.constr = NULL,
-                                n.div.by = NULL,
-                                n.required = TRUE,
+                                n.required = FALSE,
                                 set.default.values = TRUE,
                                 pdf = "iid123d"
                                 ), 
@@ -502,50 +474,6 @@
                                                 initial = 4,
                                                 fixed = FALSE,
                                                 prior = "wishart2d",
-                                                param = c(4, 1, 1, 0),
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)
-                                                ), 
-                                        theta2 = list(
-                                                name = "log precision2",
-                                                short.name = "prec2",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(), 
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)
-                                                ), 
-                                        theta3 = list(
-                                                name = "logit correlation",
-                                                short.name = "cor",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log((1+x)/(1-x)), 
-                                                from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                                                )
-                                        ), 
-                                constr = FALSE,
-                                nrow.ncol = FALSE,
-                                augmented = TRUE,
-                                aug.factor = 1L,
-                                aug.constr = c(1L, 2L),
-                                n.div.by = 2L,
-                                n.required = TRUE,
-                                set.default.values = TRUE, 
-                                pdf = "iid123d"
-                                ), 
-
-                        iid2dnew = list(
-                                hyper = list(
-                                        theta1 = list(
-                                                name = "log precision1",
-                                                short.name = "prec1",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "wishartnew2d",
                                                 param = c(4, 1, 1, 0),
                                                 to.theta = function(x) log(x),
                                                 from.theta = function(x) exp(x)
@@ -656,88 +584,14 @@
                                 pdf = "iid123d"
                                 ), 
 
-                        iid3dnew = list(
+                        iid4d = list(
                                 hyper = list(
                                         theta1 = list(
                                                 name = "log precision1",
                                                 short.name = "prec1",
                                                 initial = 4,
                                                 fixed = FALSE,
-                                                prior = "wishartnew3d",
-                                                param = c(7, 1, 1, 1, 0, 0, 0),
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)
-                                                ), 
-                                        theta2 = list(
-                                                name = "log precision2",
-                                                short.name = "prec2",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)                                            
-                                                ), 
-                                        theta3 = list(
-                                                name = "log precision3",
-                                                short.name = "prec3",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log(x),
-                                                from.theta = function(x) exp(x)                                            
-                                                ), 
-                                        theta4= list(
-                                                name = "logit correlation12",
-                                                short.name = "cor12",
-                                                initial = 0,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log((1+x)/(1-x)), 
-                                                from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                                                ), 
-                                        theta5 = list(
-                                                name = "logit correlation13",
-                                                short.name = "cor13",
-                                                initial = 0,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log((1+x)/(1-x)), 
-                                                from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                                                ), 
-                                        theta6 = list(
-                                                name = "logit correlation23",
-                                                short.name = "cor23",
-                                                initial = 0,
-                                                fixed = FALSE,
-                                                prior = "none",
-                                                param = numeric(),
-                                                to.theta = function(x) log((1+x)/(1-x)), 
-                                                from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                                                )
-                                        ), 
-                                constr = FALSE,
-                                nrow.ncol = FALSE,
-                                augmented = TRUE,
-                                aug.factor = 1L,
-                                aug.constr = c(1L, 2L, 3L),
-                                n.div.by = 3L,
-                                n.required = TRUE,
-                                set.default.values = TRUE, 
-                                pdf = "iid123d"
-                                ), 
-
-                        iid4dnew = list(
-                                hyper = list(
-                                        theta1 = list(
-                                                name = "log precision1",
-                                                short.name = "prec1",
-                                                initial = 4,
-                                                fixed = FALSE,
-                                                prior = "wishartnew4d",
+                                                prior = "wishart4d",
                                                 param = c(11, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0), 
                                                 to.theta = function(x) log(x),
                                                 from.theta = function(x) exp(x)
@@ -844,14 +698,14 @@
                                 pdf = "iid123d"
                                 ), 
 
-                        iid5dnew = list(
+                        iid5d = list(
                                 hyper = list(
                                         theta1 = list(
                                                 name = "log precision1",
                                                 short.name = "prec1",
                                                 initial = 4,
                                                 fixed = FALSE,
-                                                prior = "wishartnew5d",
+                                                prior = "wishart5d",
                                                 param = c(16, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
                                                 to.theta = function(x) log(x),
                                                 from.theta = function(x) exp(x)
@@ -1926,23 +1780,11 @@
                                 nparameters = 7,
                                 pdf = "iid123d"
                                 ),
-                        wishartnew1d = list(
-                                nparameters = 2,
-                                pdf = "iid123d"
-                                ),
-                        wishartnew2d = list(
-                                nparameters = 4,
-                                pdf = "iid123d"
-                                ),
-                        wishartnew3d = list(
-                                nparameters = 7,
-                                pdf = "iid123d"
-                                ),
-                        wishartnew4d = list(
+                        wishart4d = list(
                                 nparameters = 11,
                                 pdf = "iid123d"
                                 ),
-                        wishartnew5d = list(
+                        wishart5d = list(
                                 nparameters = 16,
                                 pdf = "iid123d"
                                 ),
@@ -2024,17 +1866,10 @@
                             if (elm == "prior") {
                                 if (a$hyper[[theta]][[elm]] == "none" || 
                                     a$hyper[[theta]][[elm]] == "wishart1d" ||
-                                    a$hyper[[theta]][[elm]] == "wishartnew1d" ||
                                     a$hyper[[theta]][[elm]] == "wishart2d" ||
-                                    a$hyper[[theta]][[elm]] == "wishartnew2d" ||
                                     a$hyper[[theta]][[elm]] == "wishart3d" ||
-                                    a$hyper[[theta]][[elm]] == "wishartnew3d" ||
                                     a$hyper[[theta]][[elm]] == "wishart4d" ||
-                                    a$hyper[[theta]][[elm]] == "wishartnew4d" ||
-                                    a$hyper[[theta]][[elm]] == "wishart5d" ||
-                                    a$hyper[[theta]][[elm]] == "wishartnew5d" || 
-                                    a$hyper[[theta]][[elm]] == "wishart6d" || 
-                                    a$hyper[[theta]][[elm]] == "wishartnew6d") {
+                                    a$hyper[[theta]][[elm]] == "wishart5d") {
                                     val = TRUE
                                 }
                             }

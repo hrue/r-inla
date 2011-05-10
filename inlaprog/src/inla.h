@@ -253,13 +253,10 @@ typedef enum {
 	F_IID,
 	F_2DIID,
 	F_IID1D,
-	F_IID2D,
-	F_IID3D,
-	F_IID1DNEW, 					       /* the new ones with the new general setup */
-	F_IID2DNEW, 
-	F_IID3DNEW, 
-	F_IID4DNEW, 
-	F_IID5DNEW, 
+	F_IID2D, 
+	F_IID3D, 
+	F_IID4D, 
+	F_IID5D, 
 	F_RW1,
 	F_RW2,
 	F_CRW2,
@@ -280,7 +277,8 @@ typedef enum {
 	P_WISHART1D,
 	P_WISHART2D,
 	P_WISHART3D,
-	P_WISHARTNEW,
+	P_WISHART4D,
+	P_WISHART5D,
 	P_LOGFLAT,
 	P_LOGIFLAT,
 	P_NONE,
@@ -745,8 +743,6 @@ double Qfunc_copy_part11(int i, int j, void *arg);
 double Qfunc_generic1(int i, int j, void *arg);
 double Qfunc_generic2(int i, int j, void *arg);
 double Qfunc_group(int i, int j, void *arg);
-double Qfunc_iid2d(int i, int j, void *arg);
-double Qfunc_iid3d(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);
 double ddexp_taylor(double x, double x0, int order);
@@ -937,12 +933,11 @@ double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
-double priorfunc_wishartnew_1(double *x, double *parameters);
-double priorfunc_wishartnew_2(double *x, double *parameters);
-double priorfunc_wishartnew_3(double *x, double *parameters);
-double priorfunc_wishartnew_4(double *x, double *parameters);
-double priorfunc_wishartnew_5(double *x, double *parameters);
-double priorfunc_wishartnew_6(double *x, double *parameters);
+double priorfunc_wishart1d(double *x, double *parameters);
+double priorfunc_wishart2d(double *x, double *parameters);
+double priorfunc_wishart3d(double *x, double *parameters);
+double priorfunc_wishart4d(double *x, double *parameters);
+double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 
