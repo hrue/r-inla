@@ -910,36 +910,6 @@ int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 
 	return GMRFLib_SUCCESS;
 }
-int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg)
-{
-	int i;
-	GMRFLib_ged_tp *ged = NULL;
-
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < arg->n; i++) {
-		GMRFLib_ged_add(ged, i, i + arg->n);
-	}
-	GMRFLib_ged_build(graph, ged);
-	GMRFLib_ged_free(ged);
-
-	return GMRFLib_SUCCESS;
-}
-int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg)
-{
-	int i, n = arg->n;
-	GMRFLib_ged_tp *ged = NULL;
-
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i + n);
-		GMRFLib_ged_add(ged, i, i + 2 * n);
-		GMRFLib_ged_add(ged, i + n, i + 2 * n);
-	}
-	GMRFLib_ged_build(graph, ged);
-	GMRFLib_ged_free(ged);
-
-	return GMRFLib_SUCCESS;
-}
 int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 {
 	int i;
@@ -948,22 +918,6 @@ int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp *
 	GMRFLib_ged_init(&ged, NULL);
 	for (i = 0; i < arg->n; i++) {
 		GMRFLib_ged_add(ged, i, i + arg->n);
-	}
-	GMRFLib_ged_build(graph, ged);
-	GMRFLib_ged_free(ged);
-
-	return GMRFLib_SUCCESS;
-}
-int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg)
-{
-	int i, n = arg->n;
-	GMRFLib_ged_tp *ged = NULL;
-
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i + n);
-		GMRFLib_ged_add(ged, i, i + 2 * n);
-		GMRFLib_ged_add(ged, i + n, i + 2 * n);
 	}
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_ged_free(ged);
@@ -1236,61 +1190,6 @@ double Qfunc_z(int i, int j, void *arg)
 {
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
 	return map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-}
-double Qfunc_iid3d(int node, int nnode, void *arg)
-{
-	/*
-	 * This function returns the ij'th element of thre precision matrix of the three elements in the 3d-vector. The parameterisation is given in the covariance
-	 * matrix, so we need to compute the precision matrix. We store Q to avoid to compute it all the time...
-	 */
-
-	inla_iid3d_arg_tp *a = (inla_iid3d_arg_tp *) arg;
-	typedef struct {
-		double vec[6];
-		gsl_matrix *Q;
-	} Hold_tp;
-
-	static Hold_tp *hold = NULL;
-#pragma omp threadprivate(hold)
-
-	double prec0, prec1, prec2, rho01, rho02, rho12, vec[6];
-	int fail;
-
-	if (!hold) {
-		hold = Calloc(1, Hold_tp);
-		hold->vec[0] = GMRFLib_uniform();
-		hold->Q = gsl_matrix_calloc(3, 3);
-	}
-	prec0 = vec[0] = map_precision(a->log_prec0[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	prec1 = vec[1] = map_precision(a->log_prec1[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	prec2 = vec[2] = map_precision(a->log_prec2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	rho01 = vec[3] = map_rho(a->rho_intern01[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	rho02 = vec[4] = map_rho(a->rho_intern02[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	rho12 = vec[5] = map_rho(a->rho_intern12[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	if (memcmp((void *) vec, (void *) hold->vec, 6 * sizeof(double))) {
-		memcpy((void *) hold->vec, (void *) vec, 6 * sizeof(double));	/* YES! */
-
-		fail = inla_iid3d_adjust(&vec[3]);
-		if (fail != GMRFLib_SUCCESS) {
-			rho01 = vec[3];
-			rho02 = vec[4];
-			rho12 = vec[5];
-		}
-		gsl_matrix_set(hold->Q, 0, 0, 1.0 / prec0);
-		gsl_matrix_set(hold->Q, 1, 1, 1.0 / prec1);
-		gsl_matrix_set(hold->Q, 2, 2, 1.0 / prec2);
-		gsl_matrix_set(hold->Q, 0, 1, rho01 / sqrt(prec0 * prec1));
-		gsl_matrix_set(hold->Q, 0, 2, rho02 / sqrt(prec0 * prec2));
-		gsl_matrix_set(hold->Q, 1, 2, rho12 / sqrt(prec1 * prec2));
-		gsl_matrix_set(hold->Q, 1, 0, gsl_matrix_get(hold->Q, 0, 1));
-		gsl_matrix_set(hold->Q, 2, 0, gsl_matrix_get(hold->Q, 0, 2));
-		gsl_matrix_set(hold->Q, 2, 1, gsl_matrix_get(hold->Q, 1, 2));
-
-		GMRFLib_gsl_spd_inverse(hold->Q);
-	}
-
-	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
 int inla_iid_wishart_nparam(int dim)
 {
@@ -1601,7 +1500,6 @@ double priorfunc_gaussian(double *x, double *parameters)
 {
 	return priorfunc_normal(x, parameters);
 }
-
 double priorfunc_normal(double *x, double *parameters)
 {
 	/*
@@ -1610,56 +1508,6 @@ double priorfunc_normal(double *x, double *parameters)
 	double mean = parameters[0], sigma = sqrt(1.0 / parameters[1]);
 
 	return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
-}
-double priorfunc_wishart1d(double *x, double *parameters)
-{
-	double p[2];
-
-	p[0] = parameters[0] / 2.0;
-	p[1] = parameters[1] / 2.0;
-
-	return priorfunc_loggamma(x, p);
-}
-double priorfunc_wishart2d(double *x, double *parameters)
-{
-	/*
-	 * 
-	 * Q ~ Wishart(r, R^{-1} )
-	 * 
-	 * input is x = [ tau1, tau2, rho ] which parameterise Q.
-	 * 
-	 * prior parameters are p = [ r, R00, R11, R12 ]
-	 * 
-	 * output is the logdensity for x!!!! (BE AWARE)
-	 */
-
-	gsl_matrix *R, *Q;
-	double r, val, a, t;
-
-	r = parameters[0];
-	R = gsl_matrix_calloc(2, 2);
-	Q = gsl_matrix_calloc(2, 2);
-
-	gsl_matrix_set(R, 0, 0, parameters[1]);
-	gsl_matrix_set(R, 1, 1, parameters[2]);
-	gsl_matrix_set(R, 0, 1, parameters[3]);
-	gsl_matrix_set(R, 1, 0, parameters[3]);
-
-	/*
-	 * tau1 and tau1 are the *MARGINAL* precisions, which it should be.  The jacobian is computed like this:
-	 * 
-	 * //with(LinearAlgebra); //with(Student[VectorCalculus]); //S := matrix(2,2, [ 1/tau1, rho/sqrt(tau1*tau2), rho/sqrt(tau1*tau2), 1/tau2] ); //Q :=
-	 * inverse(S); //simplify(Determinant(Jacobian([Q[1,1], Q[2,2], Q[1,2]], [tau1, tau2, rho]))); 
-	 */
-	a = 1.0 - SQR(x[2]);				       /* a = 1 - rho^2 */
-	t = sqrt(x[0] * x[1]);				       /* t = sqrt(tau1*tau2) */
-	gsl_matrix_set(Q, 0, 0, x[0] / a);
-	gsl_matrix_set(Q, 1, 1, x[1] / a);
-	gsl_matrix_set(Q, 0, 1, -x[2] * t / a);
-	gsl_matrix_set(Q, 1, 0, gsl_matrix_get(Q, 0, 1));
-
-	val = GMRFLib_Wishart_logdens(Q, r, R) + log(t) - 3.0 * log(a);
-	return val;
 }
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
@@ -1719,170 +1567,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 #undef IDX
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
-int inla_wishart3d_adjust(double *rho)
-{
-	/*
-	 * return GMRFLib_SUCCESS is Covariance matrix is pos.def, otherwise return !GMRFLib_SUCCESS and adjust coefficients to it is 
-	 */
-	int debug = 0, fail = 0;
-	double f = 0.99;
-
-	while (1.0 - SQR(rho[0]) - SQR(rho[1]) - SQR(rho[2]) + 2.0 * rho[0] * rho[1] * rho[2] < 0.0) {
-		rho[0] *= f;
-		rho[1] *= f;
-		rho[2] *= f;
-		fail++;
-	}
-
-	if (fail && debug) {
-		printf("%s: Had to adjust %d times, f = %g\n", __GMRFLib_FuncName, fail, pow(f, (double) fail));
-	}
-
-	return (fail ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
-}
-int inla_iid3d_adjust(double *rho)
-{
-	/*
-	 * return GMRFLib_SUCCESS is Covariance matrix is pos.def, otherwise return !GMRFLib_SUCCESS and adjust coefficients to it is 
-	 */
-	int debug = 0, fail = 0;
-	double f = 0.99;
-
-	while (1.0 - SQR(rho[0]) - SQR(rho[1]) - SQR(rho[2]) + 2.0 * rho[0] * rho[1] * rho[2] < 0.0) {
-		rho[0] *= f;
-		rho[1] *= f;
-		rho[2] *= f;
-		fail++;
-	}
-
-	if (fail && debug) {
-		printf("%s: Had to adjust %d times, f = %g\n", __GMRFLib_FuncName, fail, pow(f, (double) fail));
-	}
-
-	return (fail ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
-}
-double priorfunc_wishart3d(double *x, double *parameters)
-{
-	/*
-	 * 
-	 * Q ~ Wishart(r, R^{-1} )
-	 * 
-	 * input is x = [ tau0, tau1, tau2, rho01, rho02, rho12 ] which parameterise Q.
-	 * 
-	 * prior parameters are p = [ r, R00, R11, R22, R12, R13, R23 ]
-	 * 
-	 * output is the logdensity for x!!!! (BE AWARE)
-	 */
-
-	gsl_matrix *R, *Q;
-	double r, val;
-	int debug = 0, fail;
-
-	if (debug) {
-		int i;
-		for (i = 0; i < 7; i++) {
-			printf("parameters[%d] = %g\n", i, parameters[i]);
-		}
-		for (i = 0; i < 6; i++) {
-			printf("[%d] = %g\n", i, x[i]);
-		}
-	}
-
-	r = parameters[0];
-	R = gsl_matrix_calloc(3, 3);
-	Q = gsl_matrix_calloc(3, 3);
-
-	fail = inla_wishart3d_adjust(&x[3]);
-
-	gsl_matrix_set(R, 0, 0, parameters[1]);
-	gsl_matrix_set(R, 1, 1, parameters[2]);
-	gsl_matrix_set(R, 2, 2, parameters[3]);
-	gsl_matrix_set(R, 0, 1, parameters[4]);
-	gsl_matrix_set(R, 1, 0, parameters[4]);
-	gsl_matrix_set(R, 0, 2, parameters[5]);
-	gsl_matrix_set(R, 2, 0, parameters[5]);
-	gsl_matrix_set(R, 1, 2, parameters[6]);
-	gsl_matrix_set(R, 2, 1, parameters[6]);
-
-#define COMPUTE_Q if (1) {						\
-		gsl_matrix_set(Q, 0, 0, 1.0/x[0]);			\
-		gsl_matrix_set(Q, 1, 1, 1.0/x[1]);			\
-		gsl_matrix_set(Q, 2, 2, 1.0/x[2]);			\
-		gsl_matrix_set(Q, 0, 1, x[3]/sqrt(x[0]*x[1]));		\
-		gsl_matrix_set(Q, 0, 2, x[4]/sqrt(x[0]*x[2]));		\
-		gsl_matrix_set(Q, 1, 2, x[5]/sqrt(x[1]*x[2]));		\
-		gsl_matrix_set(Q, 1, 0, gsl_matrix_get(Q, 0, 1));	\
-		gsl_matrix_set(Q, 2, 0, gsl_matrix_get(Q, 0, 2));	\
-		gsl_matrix_set(Q, 2, 1, gsl_matrix_get(Q, 1, 2));	\
-		if (debug) printf("Covmatrix:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);	\
-		GMRFLib_gsl_spd_inverse(Q);				\
-		if (debug) printf("Precision:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q, NULL);	\
-	}
-
-	COMPUTE_Q;
-	val = GMRFLib_Wishart_logdens(Q, r, R) + (fail ? PENALTY : 0.0);
-
-	/*
-	 * tau1 and tau1 are the *MARGINAL* precisions, which it should be.  The jacobian is computed like this:
-	 * 
-	 * with(LinearAlgebra); with(Student[VectorCalculus]); S := matrix(3,3, [ 1/tau0, rho01/sqrt(tau0*tau1), rho02/sqrt(tau0*tau2), rho01/sqrt(tau0*tau1),
-	 * 1/tau1, rho12/sqrt(tau1*tau2), rho02/sqrt(tau0*tau2), rho12/sqrt(tau1*tau2), 1/tau2]); Q := inverse(S); simplify(Determinant(Jacobian([Q[1,1], Q[2,2],
-	 * Q[3,3], Q[1,2], Q[1,3],Q[2,3]], [tau0,tau1,tau2,rho01,rho02,rho12])));
-	 * 
-	 * this gives a very long answer of'course; so we have to do this numerically 
-	 */
-	size_t i, n = 6;
-	gsl_matrix *Qref = NULL, *J = NULL;
-	double f, save;
-
-	/*
-	 * for the numerical derivatives: compute the `population' variance: Det(Sigma), and set f = (Det(Sigma))^1/6. 
-	 */
-	f = 1.0e-4 * pow(exp(-GMRFLib_gsl_spd_logdet(Q)), 1.0 / 6.0);	/* Yes, its a minus... */
-
-	Qref = GMRFLib_gsl_duplicate_matrix(Q);
-	J = gsl_matrix_calloc(n, n);
-
-	for (i = 0; i < n; i++) {
-		save = x[i];
-		x[i] += f;
-		COMPUTE_Q;
-		x[i] = save;
-
-		gsl_matrix_set(J, i, 0, (gsl_matrix_get(Q, 0, 0) - gsl_matrix_get(Qref, 0, 0)) / f);
-		gsl_matrix_set(J, i, 1, (gsl_matrix_get(Q, 1, 1) - gsl_matrix_get(Qref, 1, 1)) / f);
-		gsl_matrix_set(J, i, 2, (gsl_matrix_get(Q, 2, 2) - gsl_matrix_get(Qref, 2, 2)) / f);
-		gsl_matrix_set(J, i, 3, (gsl_matrix_get(Q, 0, 1) - gsl_matrix_get(Qref, 0, 1)) / f);
-		gsl_matrix_set(J, i, 4, (gsl_matrix_get(Q, 0, 2) - gsl_matrix_get(Qref, 0, 2)) / f);
-		gsl_matrix_set(J, i, 5, (gsl_matrix_get(Q, 1, 2) - gsl_matrix_get(Qref, 1, 2)) / f);
-	}
-
-	gsl_permutation *p;
-	int signum;
-	double logdet;
-
-	p = gsl_permutation_alloc(n);
-	gsl_linalg_LU_decomp(J, p, &signum);
-	logdet = gsl_linalg_LU_lndet(J);		       /* log(abs|J|) */
-
-	if (debug) {
-		P(logdet);
-	}
-
-	gsl_matrix_free(R);
-	gsl_matrix_free(Q);
-	gsl_matrix_free(Qref);
-	gsl_matrix_free(J);
-	gsl_permutation_free(p);
-
-	val += logdet;
-
-#undef COMPUTE_Q
-	return val;
-}
-double priorfunc_wishartnew_1(double *x, double *parameters)
+double priorfunc_wishart1d(double *x, double *parameters)
 {
 	double p[2];
 
@@ -1891,25 +1576,21 @@ double priorfunc_wishartnew_1(double *x, double *parameters)
 
 	return priorfunc_loggamma(x, p);
 }
-double priorfunc_wishartnew_2(double *x, double *parameters)
+double priorfunc_wishart2d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(2, x, parameters);
 }
-double priorfunc_wishartnew_3(double *x, double *parameters)
+double priorfunc_wishart3d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(3, x, parameters);
 }
-double priorfunc_wishartnew_4(double *x, double *parameters)
+double priorfunc_wishart4d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(4, x, parameters);
 }
-double priorfunc_wishartnew_5(double *x, double *parameters)
+double priorfunc_wishart5d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(5, x, parameters);
-}
-double priorfunc_wishartnew_6(double *x, double *parameters)
-{
-	return priorfunc_wishart_generic(6, x, parameters);
 }
 double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 {
@@ -4583,28 +4264,39 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			printf("\t\t%s->%s=[%g (R12), %g (R13), %g (R23)]\n", prior_tag, param_tag,
 			       prior->parameters[4], prior->parameters[5], prior->parameters[6]);
 		}
-	} else if (!strcasecmp(prior->name, "WISHARTNEW1D") ||
-		   !strcasecmp(prior->name, "WISHARTNEW2D") ||
-		   !strcasecmp(prior->name, "WISHARTNEW3D") ||
-		   !strcasecmp(prior->name, "WISHARTNEW4D") ||
-		   !strcasecmp(prior->name, "WISHARTNEW5D") ||
-		   !strcasecmp(prior->name, "WISHARTNEW6D")) {
+	} else if (!strcasecmp(prior->name, "WISHART1D") ||
+		   !strcasecmp(prior->name, "WISHART2D") ||
+		   !strcasecmp(prior->name, "WISHART3D") ||
+		   !strcasecmp(prior->name, "WISHART4D") ||
+		   !strcasecmp(prior->name, "WISHART5D")) {
 		   
-		prior->id = P_WISHARTNEW;
-		prior->priorfunc = (!strcasecmp(prior->name,  "WISHARTNEW1D") ? priorfunc_wishartnew_1 :
-				    (!strcasecmp(prior->name,  "WISHARTNEW2D") ? priorfunc_wishartnew_2 :
-				     (!strcasecmp(prior->name,  "WISHARTNEW3D") ? priorfunc_wishartnew_3 :
-				      (!strcasecmp(prior->name,  "WISHARTNEW4D") ? priorfunc_wishartnew_4 :
-				       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? priorfunc_wishartnew_5 : NULL)))));
+		if (!strcasecmp(prior->name, "WISHART1D")){
+			prior->id = P_WISHART1D;
+			prior->priorfunc = priorfunc_wishart1d;
+		} else if (!strcasecmp(prior->name, "WISHART2D")){
+			prior->id = P_WISHART2D;
+			prior->priorfunc = priorfunc_wishart2d;
+		} else if (!strcasecmp(prior->name, "WISHART3D")){
+			prior->id = P_WISHART3D;
+			prior->priorfunc = priorfunc_wishart3d;
+		} else if (!strcasecmp(prior->name, "WISHART4D")){
+			prior->id = P_WISHART4D;
+			prior->priorfunc = priorfunc_wishart4d;
+		} else if (!strcasecmp(prior->name, "WISHART5D")){
+			prior->id = P_WISHART5D;
+			prior->priorfunc = priorfunc_wishart5d;
+		} else {
+			assert(0 == 1);
+		}
 		assert(prior->priorfunc);
 
 		double *xx = NULL;
 		int nxx;
-		int idim = (!strcasecmp(prior->name,  "WISHARTNEW1D") ? 1 :
-			    (!strcasecmp(prior->name,  "WISHARTNEW2D") ? 2 :
-			     (!strcasecmp(prior->name,  "WISHARTNEW3D") ? 3 :
-			      (!strcasecmp(prior->name,  "WISHARTNEW4D") ? 4 :
-			       (!strcasecmp(prior->name,  "WISHARTNEW5D") ? 6 : -1)))));
+		int idim = (!strcasecmp(prior->name,  "WISHART1D") ? 1 :
+			    (!strcasecmp(prior->name,  "WISHART2D") ? 2 :
+			     (!strcasecmp(prior->name,  "WISHART3D") ? 3 :
+			      (!strcasecmp(prior->name,  "WISHART4D") ? 4 :
+			       (!strcasecmp(prior->name,  "WISHART5D") ? 5 : -1)))));
 		assert(idim > 0);
 
 		inla_sread_doubles_q(&xx, &nxx, param);
@@ -7224,11 +6916,11 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 }
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 {
-#define WISHART_DIM (mb->f_id[mb->nf] == F_IID1DNEW ? 1 :		\
-		     (mb->f_id[mb->nf] == F_IID2DNEW ? 2 :		\
-		      (mb->f_id[mb->nf] == F_IID3DNEW ? 3 :		\
-		       (mb->f_id[mb->nf] == F_IID4DNEW ? 4 :		\
-			(mb->f_id[mb->nf] == F_IID5DNEW ? 5 : -1)))))
+#define WISHART_DIM (mb->f_id[mb->nf] == F_IID1D ? 1 :			\
+		     (mb->f_id[mb->nf] == F_IID2D ? 2 :			\
+		      (mb->f_id[mb->nf] == F_IID3D ? 3 :		\
+		       (mb->f_id[mb->nf] == F_IID4D ? 4 :		\
+			(mb->f_id[mb->nf] == F_IID5D ? 5 : -1)))))
 
 #define SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
 #define OneOf(a_) (!strcasecmp(model, a_))
@@ -7420,29 +7112,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID model");
 	} else if (OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
-		mb->f_ntheta[mb->nf] = 1;
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
 	} else if (OneOf("IID2D")) {
 		mb->f_id[mb->nf] = F_IID2D;
-		mb->f_ntheta[mb->nf] = 3;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID2D model");
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
 	} else if (OneOf("IID3D")) {
 		mb->f_id[mb->nf] = F_IID3D;
-		mb->f_ntheta[mb->nf] = 6;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID3D model");
-	} else if (OneOf("IID1DNEW")) {
-		mb->f_id[mb->nf] = F_IID1DNEW;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
-	} else if (OneOf("IID2DNEW")) {
-		mb->f_id[mb->nf] = F_IID2DNEW;
+	} else if (OneOf("IID4D")) {
+		mb->f_id[mb->nf] = F_IID4D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
-	} else if (OneOf("IID3DNEW")) {
-		mb->f_id[mb->nf] = F_IID3DNEW;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
-	} else if (OneOf("IID4DNEW")) {
-		mb->f_id[mb->nf] = F_IID4DNEW;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
-	} else if (OneOf("IID5DNEW")) {
-		mb->f_id[mb->nf] = F_IID5DNEW;
+	} else if (OneOf("IID5D")) {
+		mb->f_id[mb->nf] = F_IID5D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
 	} else if (OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
@@ -7537,47 +7218,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_IID1D:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART1D");
-		if (mb->f_prior[mb->nf][0].id != P_LOGGAMMA) { /* This is what it should be, yes! */
-			char *m;
-			GMRFLib_sprintf(&m, "Model=[IID1D] needs prior=[WISHART1D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
-			inla_error_general(m);
-			exit(1);
-		}
-		break;
-
 	case F_IID2D:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART2D");
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE");
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE");
-		if (mb->f_prior[mb->nf][0].id != P_WISHART2D) {
-			char *m;
-			GMRFLib_sprintf(&m, "Model=[IID2D] needs prior=[WISHART2D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
-			inla_error_general(m);
-			exit(1);
-		}
-		break;
-
 	case F_IID3D:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "WISHART3D");
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE");
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE");
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE");
-		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE");
-		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE");
-		if (mb->f_prior[mb->nf][0].id != P_WISHART3D) {
-			char *m;
-			GMRFLib_sprintf(&m, "Model=[IID3D] needs prior=[WISHART3D], you have prior=[%s]", mb->f_prior[mb->nf]->name);
-			inla_error_general(m);
-			exit(1);
-		}
-		break;
-
-	case F_IID1DNEW:
-	case F_IID2DNEW:
-	case F_IID3DNEW:
-	case F_IID4DNEW:
-	case F_IID5DNEW:
+	case F_IID4D:
+	case F_IID5D:
 	{
 		int dim = WISHART_DIM;
 		assert(dim > 0);
@@ -7586,19 +7230,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		
 		GMRFLib_sprintf(&prifunc, "WISHARTNEW%1dD", dim);
 		int kk;
-		if (nt > 1) {
-			/* 
-			   Not IID1D
-			 */
+		if (dim > 1) {
 			for(kk = 0; kk < nt; kk++) {
 				GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
 				GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
 				inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, (kk == 0 ? prifunc : "NONE"));
 			}
 		} else {
-			/* 
-			   IID1D
-			*/
 			kk = 0;
 			GMRFLib_sprintf(&pri, "PRIOR");
 			GMRFLib_sprintf(&par, "PARAMETERS");
@@ -8099,55 +7737,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			Free(ptmp);
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_IID2D) {
-			/*
-			 * IID2D-model; need length N
-			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			if (!ptmp) {
-				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
-			}
-			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
-			if (n <= 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
-			}
-			if (inla_divisible(n, 2) == GMRFLib_FALSE) {
-				GMRFLib_sprintf(&msg, "%s: N=%1d is not divisible by 2", secname, n);
-				inla_error_general(msg);
-				exit(1);
-			}
-			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_IID3D) {
-			/*
-			 * IID3D-model; need length N
-			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			if (!ptmp) {
-				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
-			}
-			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
-			if (n <= 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
-			}
-			if (!inla_divisible(n, 3)) {
-				GMRFLib_sprintf(&msg, "%s: N=%1d is not divisible by 3", secname, n);
-				inla_error_general(msg);
-				exit(1);
-			}
-			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-		} else if (mb->f_id[mb->nf] == F_IID1DNEW ||
-			   mb->f_id[mb->nf] == F_IID2DNEW ||
-			   mb->f_id[mb->nf] == F_IID3DNEW ||
-			   mb->f_id[mb->nf] == F_IID4DNEW ||
-			   mb->f_id[mb->nf] == F_IID5DNEW) {
+		} else if (mb->f_id[mb->nf] == F_IID1D ||
+			   mb->f_id[mb->nf] == F_IID2D ||
+			   mb->f_id[mb->nf] == F_IID3D ||
+			   mb->f_id[mb->nf] == F_IID4D ||
+			   mb->f_id[mb->nf] == F_IID5D) {
 			/*
 			 * IID_WISHART-model; need length N
 			 */
@@ -8912,7 +8506,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_IID2D:
 	case F_2DIID:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
@@ -9008,201 +8601,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_IID2D:
 	case F_IID3D:
-	{
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(0, tmp);
-		HYPER_INIT(log_prec0, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision (first component)[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(1, tmp);
-		HYPER_INIT(log_prec1, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision (second component)[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), G.log_prec_initial);
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(2, tmp);
-		HYPER_INIT(log_prec2, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision (third component)[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
-		}
-		mb->f_theta[mb->nf] = Calloc(6, double **);
-		mb->f_theta[mb->nf][0] = log_prec0;
-		if (!mb->f_fixed[mb->nf][0]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (first component)", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Precision for %s (first component)", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = log_prec0;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-		mb->f_theta[mb->nf][1] = log_prec1;
-		if (!mb->f_fixed[mb->nf][1]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (second component)", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Precision for %s (second component)", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = log_prec1;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-		mb->f_theta[mb->nf][2] = log_prec2;
-		if (!mb->f_fixed[mb->nf][2]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (third component)", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Precision for %s (third component)", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter2", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = log_prec2;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL3"), 0.0);
-		if (!mb->f_fixed[mb->nf][3] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(3, tmp);
-		HYPER_INIT(rho_intern01, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise rho_intern01[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][3]);
-		}
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL4"), 0.0);
-		if (!mb->f_fixed[mb->nf][4] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(4, tmp);
-		HYPER_INIT(rho_intern02, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise rho_intern02[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][4]);
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL5"), 0.0);
-		if (!mb->f_fixed[mb->nf][5] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		SetInitial(5, tmp);
-		HYPER_INIT(rho_intern12, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise rho_intern12[%g]\n", tmp);
-			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][5]);
-		}
-
-
-		mb->f_theta[mb->nf][3] = rho_intern01;
-		if (!mb->f_fixed[mb->nf][3]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Rho_intern01 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Rho01 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter3", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = rho_intern01;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-		mb->f_theta[mb->nf][4] = rho_intern02;
-		if (!mb->f_fixed[mb->nf][4]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Rho_intern02 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Rho02 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter4", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = rho_intern02;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-		mb->f_theta[mb->nf][5] = rho_intern12;
-		if (!mb->f_fixed[mb->nf][3]) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Rho_intern12 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Rho12 for %s", mb->f_tag[mb->nf]);
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter5", mb->f_dir[mb->nf]);
-			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = rho_intern12;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-		break;
-	}
-
-	case F_IID1DNEW:
-	case F_IID2DNEW:
-	case F_IID3DNEW:
-	case F_IID4DNEW:
-	case F_IID5DNEW:
+	case F_IID4D:
+	case F_IID5D:
 	{
 		int dim = WISHART_DIM;
 		assert(dim>0);
@@ -9543,20 +8945,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		assert(mb->f_n[mb->nf] == 1);
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), 1, 0, 0);
-	} else if (mb->f_id[mb->nf] == F_IID2D) {
-		inla_iid2d_arg_tp *arg = NULL;
-
-		assert(mb->f_n[mb->nf] == mb->f_N[mb->nf]);
-		arg = Calloc(1, inla_iid2d_arg_tp);
-		arg->n = mb->f_n[mb->nf] / 2;
-		arg->N = mb->f_N[mb->nf];
-		arg->log_prec0 = log_prec0;
-		arg->log_prec1 = log_prec1;
-		arg->rho_intern = rho_intern;
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_Qfunc[mb->nf] = Qfunc_iid2d;
-		inla_make_iid2d_graph(&(mb->f_graph[mb->nf]), arg);
-		mb->f_rankdef[mb->nf] = 0;
 	} else if (mb->f_id[mb->nf] == F_2DIID) {
 		inla_2diid_arg_tp *arg = NULL;
 
@@ -9575,29 +8963,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_make_2diid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
 		}
 		mb->f_rankdef[mb->nf] = 0;
-	} else if (mb->f_id[mb->nf] == F_IID3D) {
-		inla_iid3d_arg_tp *arg = NULL;
-
-		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
-		arg = Calloc(1, inla_iid3d_arg_tp);
-		arg->n = mb->f_n[mb->nf] / 3;		       /* yes */
-		arg->N = mb->f_N[mb->nf];
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 0;
-		arg->log_prec0 = log_prec0;
-		arg->log_prec1 = log_prec1;
-		arg->log_prec2 = log_prec2;
-		arg->rho_intern01 = rho_intern01;
-		arg->rho_intern02 = rho_intern02;
-		arg->rho_intern12 = rho_intern12;
-		mb->f_Qfunc[mb->nf] = Qfunc_iid3d;
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		inla_make_iid3d_graph(&(mb->f_graph[mb->nf]), arg);
-	} else if (mb->f_id[mb->nf] == F_IID1DNEW ||
-		   mb->f_id[mb->nf] == F_IID2DNEW ||
-		   mb->f_id[mb->nf] == F_IID3DNEW ||
-		   mb->f_id[mb->nf] == F_IID4DNEW ||
-		   mb->f_id[mb->nf] == F_IID5DNEW) {
+	} else if (mb->f_id[mb->nf] == F_IID1D ||
+		   mb->f_id[mb->nf] == F_IID2D ||
+		   mb->f_id[mb->nf] == F_IID3D ||
+		   mb->f_id[mb->nf] == F_IID4D ||
+		   mb->f_id[mb->nf] == F_IID5D) {
 		   
 		inla_iid_wishart_arg_tp *arg = NULL;
 		int dim = WISHART_DIM; assert(dim > 0);
@@ -11237,7 +10607,6 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_SEASONAL:
 		case F_IID:
 		case F_IID1D:
-		case F_IID1DNEW:
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
@@ -11709,178 +11078,18 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+		//case F_IID1D:   SEE ABOVE FOR THIS CASE
 		case F_IID2D:
-		{
-			assert(mb->f_ntheta[i] == 3);	       /* yes */
-			if (!mb->f_fixed[i][0]) {
-				log_precision0 = theta[count];
-				count++;
-			} else {
-				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][1]) {
-				log_precision1 = theta[count];
-				count++;
-			} else {
-				log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][2]) {
-				rho_intern = theta[count];
-				count++;
-			} else {
-				rho_intern = mb->f_theta[i][2][GMRFLib_thread_id][0];
-			}
-			precision0 = map_precision(log_precision0, MAP_FORWARD, NULL);
-			precision1 = map_precision(log_precision1, MAP_FORWARD, NULL);
-			rho = map_rho(rho_intern, MAP_FORWARD, NULL);
-
-			SET_GROUP_RHO(3);
-
-			/*
-			 * n is the small length 
-			 */
-			n = (double) (mb->f_n[i] / 2);	       /* YES!! this is the convension */
-			val += mb->f_nrep[i] * (normc_g + normc * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
-						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
-						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
-
-			nfixed = mb->f_fixed[i][0] + mb->f_fixed[i][1] + mb->f_fixed[i][2];
-			if (nfixed == 1 || nfixed == 2) {
-				static char first = 1;
-				if (first)
-					fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n", nfixed);
-				first = 0;
-			}
-			tvec[0] = precision0;
-			tvec[1] = precision1;
-			tvec[2] = rho;
-			/*
-			 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-			 * log_precision1, rho_intern). 
-			 */
-			val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-			    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern, MAP_DFORWARD, NULL));
-			break;
-		}
-
 		case F_IID3D:
-		{
-			assert(mb->f_ntheta[i] == 6);	       /* yes */
-			if (!mb->f_fixed[i][0]) {
-				log_precision0 = theta[count];
-				count++;
-			} else {
-				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][1]) {
-				log_precision1 = theta[count];
-				count++;
-			} else {
-				log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][2]) {
-				log_precision2 = theta[count];
-				count++;
-			} else {
-				log_precision2 = mb->f_theta[i][2][GMRFLib_thread_id][0];
-			}
-
-			if (!mb->f_fixed[i][3]) {
-				rho_intern01 = theta[count];
-				count++;
-			} else {
-				rho_intern01 = mb->f_theta[i][3][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][4]) {
-				rho_intern02 = theta[count];
-				count++;
-			} else {
-				rho_intern02 = mb->f_theta[i][4][GMRFLib_thread_id][0];
-			}
-			if (!mb->f_fixed[i][5]) {
-				rho_intern12 = theta[count];
-				count++;
-			} else {
-				rho_intern12 = mb->f_theta[i][5][GMRFLib_thread_id][0];
-			}
-
-			precision0 = map_precision(log_precision0, MAP_FORWARD, NULL);
-			precision1 = map_precision(log_precision1, MAP_FORWARD, NULL);
-			precision2 = map_precision(log_precision2, MAP_FORWARD, NULL);
-			rho01 = map_rho(rho_intern01, MAP_FORWARD, NULL);
-			rho02 = map_rho(rho_intern02, MAP_FORWARD, NULL);
-			rho12 = map_rho(rho_intern12, MAP_FORWARD, NULL);
-			tvec[0] = precision0;
-			tvec[1] = precision1;
-			tvec[2] = precision2;
-			tvec[3] = rho01;
-			tvec[4] = rho02;
-			tvec[5] = rho12;
-
-			Q = gsl_matrix_calloc(3, 3);
-			fail = inla_wishart3d_adjust(&tvec[3]);
-			if (fail != GMRFLib_SUCCESS) {
-				rho01 = tvec[3];
-				rho02 = tvec[4];
-				rho12 = tvec[5];
-			}
-			gsl_matrix_set(Q, 0, 0, 1.0 / precision0);
-			gsl_matrix_set(Q, 1, 1, 1.0 / precision1);
-			gsl_matrix_set(Q, 2, 2, 1.0 / precision2);
-			gsl_matrix_set(Q, 0, 1, rho01 / sqrt(precision0 * precision1));
-			gsl_matrix_set(Q, 0, 2, rho02 / sqrt(precision0 * precision2));
-			gsl_matrix_set(Q, 1, 2, rho12 / sqrt(precision1 * precision2));
-			gsl_matrix_set(Q, 1, 0, gsl_matrix_get(Q, 0, 1));
-			gsl_matrix_set(Q, 2, 0, gsl_matrix_get(Q, 0, 2));
-			gsl_matrix_set(Q, 2, 1, gsl_matrix_get(Q, 1, 2));
-			GMRFLib_gsl_spd_inverse(Q);
-
-			logdet = GMRFLib_gsl_spd_logdet(Q);
-			gsl_matrix_free(Q);
-
-			SET_GROUP_RHO(6);
-
-			/*
-			 * n is the small length 
-			 */
-			n = (double) (mb->f_n[i] / 3);	       /* YES! */
-			val += mb->f_nrep[i] * (normc_g + normc * 3.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=3n */
-						+(n - mb->f_rankdef[i]) / 2.0 * logdet);
-			if (fail) {
-				val += PENALTY;
-			}
-			nfixed = mb->f_fixed[i][0] + mb->f_fixed[i][1] + mb->f_fixed[i][2] + mb->f_fixed[i][3] + mb->f_fixed[i][4] + mb->f_fixed[i][5];
-			if (nfixed) {
-				fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n", nfixed);
-			}
-			/*
-			 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-			 * log_precision1, rho_intern). 
-			 */
-			val += mb->f_prior[i][0].priorfunc(tvec, mb->f_prior[i][0].parameters)
-			    + log(map_precision(log_precision0, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision1, MAP_DFORWARD, NULL))
-			    + log(map_precision(log_precision2, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern01, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern02, MAP_DFORWARD, NULL))
-			    + log(map_rho(rho_intern12, MAP_DFORWARD, NULL));
-			break;
-		}
-
-		//case F_IID1DNEW:   SEE ABOVE FOR THIS
-		case F_IID2DNEW:
-		case F_IID3DNEW:
-		case F_IID4DNEW:
-		case F_IID5DNEW:
+		case F_IID4D:
+		case F_IID5D:
 		{
 			int jj;
-			int dim = (mb->f_id[i] == F_IID1DNEW ? 1 :
-				   (mb->f_id[i] == F_IID2DNEW ? 2 :
-				    (mb->f_id[i] == F_IID3DNEW ? 3 :
-				     (mb->f_id[i] == F_IID4DNEW ? 4 :
-				      (mb->f_id[i] == F_IID5DNEW ? 5 : -1)))));
+			int dim = (mb->f_id[i] == F_IID1D ? 1 :
+				   (mb->f_id[i] == F_IID2D ? 2 :
+				    (mb->f_id[i] == F_IID3D ? 3 :
+				     (mb->f_id[i] == F_IID4D ? 4 :
+				      (mb->f_id[i] == F_IID5D ? 5 : -1)))));
 			assert(dim > 0);
 
 			int nt = mb->f_ntheta[i];

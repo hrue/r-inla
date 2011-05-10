@@ -562,38 +562,7 @@ inla.models()
 								\item{aug.factor = }{`1'}
 								\item{aug.constr = }{`NULL'}
 								\item{n.div.by = }{`NULL'}
-								\item{n.required = }{`TRUE'}
-								\item{set.default.values = }{`TRUE'}
-								\item{pdf = }{`iid123d'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `iid1dnew'.}{Number of hyperparmeters are 1.
-					 \describe{
-						\item{Hyperparameter `theta'}{
-							 \describe{
-							\item{name = }{`precision'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`wishartnew1d'}
-							\item{param = }{`2 1e-04'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{constr = }{`FALSE'}
-								\item{nrow.ncol = }{`FALSE'}
-								\item{augmented = }{`FALSE'}
-								\item{aug.factor = }{`1'}
-								\item{aug.constr = }{`NULL'}
-								\item{n.div.by = }{`NULL'}
-								\item{n.required = }{`TRUE'}
+								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`TRUE'}
 								\item{pdf = }{`iid123d'}
 							 }
@@ -609,61 +578,6 @@ inla.models()
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`wishart2d'}
-							\item{param = }{`4 1 1 0'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{name = }{`log precision2'}
-							\item{short.name = }{`prec2'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta3'}{
-							 \describe{
-							\item{name = }{`logit correlation'}
-							\item{short.name = }{`cor'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{constr = }{`FALSE'}
-								\item{nrow.ncol = }{`FALSE'}
-								\item{augmented = }{`TRUE'}
-								\item{aug.factor = }{`1'}
-								\item{aug.constr = }{`1 2'}
-								\item{n.div.by = }{`2'}
-								\item{n.required = }{`TRUE'}
-								\item{set.default.values = }{`TRUE'}
-								\item{pdf = }{`iid123d'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `iid2dnew'.}{Number of hyperparmeters are 3.
-					 \describe{
-						\item{Hyperparameter `theta1'}{
-							 \describe{
-							\item{name = }{`log precision1'}
-							\item{short.name = }{`prec1'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`wishartnew2d'}
 							\item{param = }{`4 1 1 0'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
@@ -801,7 +715,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `iid3dnew'.}{Number of hyperparmeters are 6.
+				\item{Model `iid4d'.}{Number of hyperparmeters are 10.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -809,98 +723,7 @@ inla.models()
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`wishartnew3d'}
-							\item{param = }{`7 1 1 1 0 0 0'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{name = }{`log precision2'}
-							\item{short.name = }{`prec2'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
-							}
-						}
-						\item{Hyperparameter `theta3'}{
-							 \describe{
-							\item{name = }{`log precision3'}
-							\item{short.name = }{`prec3'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
-							}
-						}
-						\item{Hyperparameter `theta4'}{
-							 \describe{
-							\item{name = }{`logit correlation12'}
-							\item{short.name = }{`cor12'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
-							}
-						}
-						\item{Hyperparameter `theta5'}{
-							 \describe{
-							\item{name = }{`logit correlation13'}
-							\item{short.name = }{`cor13'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
-							}
-						}
-						\item{Hyperparameter `theta6'}{
-							 \describe{
-							\item{name = }{`logit correlation23'}
-							\item{short.name = }{`cor23'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{constr = }{`FALSE'}
-								\item{nrow.ncol = }{`FALSE'}
-								\item{augmented = }{`TRUE'}
-								\item{aug.factor = }{`1'}
-								\item{aug.constr = }{`1 2 3'}
-								\item{n.div.by = }{`3'}
-								\item{n.required = }{`TRUE'}
-								\item{set.default.values = }{`TRUE'}
-								\item{pdf = }{`iid123d'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `iid4dnew'.}{Number of hyperparmeters are 10.
-					 \describe{
-						\item{Hyperparameter `theta1'}{
-							 \describe{
-							\item{name = }{`log precision1'}
-							\item{short.name = }{`prec1'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`wishartnew4d'}
+							\item{prior = }{`wishart4d'}
 							\item{param = }{`11 1 1 1 1 0 0 0 0 0 0'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
@@ -1031,7 +854,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `iid5dnew'.}{Number of hyperparmeters are 15.
+				\item{Model `iid5d'.}{Number of hyperparmeters are 15.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -1039,7 +862,7 @@ inla.models()
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`wishartnew5d'}
+							\item{prior = }{`wishart5d'}
 							\item{param = }{`16 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
@@ -2368,15 +2191,9 @@ inla.models()
 				 }
 				\item{Model `wishart3d'.}{					 Number of parameters in the prior = 7 
 				 }
-				\item{Model `wishartnew1d'.}{					 Number of parameters in the prior = 2 
+				\item{Model `wishart4d'.}{					 Number of parameters in the prior = 11 
 				 }
-				\item{Model `wishartnew2d'.}{					 Number of parameters in the prior = 4 
-				 }
-				\item{Model `wishartnew3d'.}{					 Number of parameters in the prior = 7 
-				 }
-				\item{Model `wishartnew4d'.}{					 Number of parameters in the prior = 11 
-				 }
-				\item{Model `wishartnew5d'.}{					 Number of parameters in the prior = 16 
+				\item{Model `wishart5d'.}{					 Number of parameters in the prior = 16 
 				 }
 				\item{Model `loggamma'.}{					 Number of parameters in the prior = 2 
 				 }
