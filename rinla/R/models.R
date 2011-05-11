@@ -215,7 +215,7 @@
                                                 name = "log unstructured precision",
                                                 short.name = "prec.unstruct",
                                                 prior = "loggamma",
-                                                param = c(1, 0.001), 
+                                                param = c(1, 0.0005), 
                                                 initial = 4,
                                                 fixed = FALSE,
                                                 to.theta = function(x) log(x),
@@ -243,6 +243,40 @@
                                 pdf = "bym"
                                 ), 
 
+                        besagproper = list(
+                                hyper = list(
+                                        theta1 = list(
+                                                name = "log precision",
+                                                short.name = "prec",
+                                                prior = "loggamma",
+                                                param = c(1, 0.0005), 
+                                                initial = 2,
+                                                fixed = FALSE,
+                                                to.theta = function(x) log(x),
+                                                from.theta = function(x) exp(x)
+                                                ), 
+                                        theta2 = list(
+                                                name = "log weight",
+                                                short.name = "weight",
+                                                prior = "loggamma",
+                                                param = c(1, 0.1), 
+                                                initial = log(10),
+                                                fixed = FALSE,
+                                                to.theta = function(x) log(x),
+                                                from.theta = function(x) exp(x)
+                                                )
+                                        ), 
+                                constr = FALSE,
+                                nrow.ncol = FALSE,
+                                augmented = FALSE,
+                                aug.factor = 1L,
+                                aug.constr = NULL,
+                                n.div.by = NULL,
+                                n.required = TRUE,
+                                set.default.values = TRUE,
+                                pdf = "besagproper"
+                                ),
+                        
                         ar1 = list(
                                 hyper = list(
                                         theta1 = list(

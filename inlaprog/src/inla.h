@@ -248,6 +248,7 @@ typedef enum {
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
+	F_BESAGPROPER, 
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,
@@ -945,6 +946,7 @@ double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
+double Qfunc_besagproper(int i, int j, void *arg);
 
 GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
 

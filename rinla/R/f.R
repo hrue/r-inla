@@ -403,7 +403,7 @@
     }
 
     ## chech that the graph.file is provided, if required. Set 'n' from the graph.file.
-    if (inla.one.of(model, c("besag", "bym"))) {
+    if (inla.one.of(model, c("besag", "bym", "besagproper"))) {
         if (is.null(graph.file)) {
             stop(paste("The graph.file has to be provided for model", model))
         }
