@@ -447,9 +447,12 @@
                                                 fixed = FALSE,
                                                 prior = "wishart1d",
                                                 ## this is the
-                                                ## corresponding wishart
-                                                ## prior for the (a, b)
-                                                ## gamma parameters
+                                                ## corresponding
+                                                ## wishart prior for
+                                                ## the (a, b) gamma
+                                                ## parameters, so
+                                                ## default we get the
+                                                ## same.
                                                 param = c(2*1, 2*0.00005),
                                                 to.theta = function(x) log(x),
                                                 from.theta = function(x) exp(x)
@@ -461,7 +464,8 @@
                                 aug.factor = 1L,
                                 aug.constr = NULL,
                                 n.div.by = NULL,
-                                n.required = FALSE,
+                                n.required = FALSE, ## TRUE is not
+                                                    ## needed here.
                                 set.default.values = TRUE,
                                 pdf = "iid123d"
                                 ), 
