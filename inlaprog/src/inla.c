@@ -1801,6 +1801,16 @@ double Qfunc_besag2(int i, int j, void *arg)
 		return -aa->precision;
 	}
 }
+double Qfunc_besagproper(int i, int j, void *arg)
+{
+	inla_besag_proper_Qfunc_arg_tp *a;
+	double prec, weight;
+
+	a = (inla_besag_proper_Qfunc_arg_tp *) arg;
+	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	weight = map_exp(a->log_weight[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	return prec * (i == j ? (1.0 + weight * a->graph->nnbs[i]) : -weight);
+}
 int inla_read_data_all(double **x, int *n, const char *filename)
 {
 	int count = 0, err, len = 1000;
@@ -5118,7 +5128,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 		mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 		mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-		mb->theta_tag[mb->ntheta] = GMRFLib_strdup("Log-precision for the linear predictor");
+		mb->theta_tag[mb->ntheta] = GMRFLib_strdup("Log precision for the linear predictor");
 		mb->theta_tag_userscale[mb->ntheta] = GMRFLib_strdup("Precision for the linear predictor");
 		mb->theta_dir[mb->ntheta] = GMRFLib_strdup(mb->predictor_dir);
 		mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -5581,7 +5591,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the Gaussian observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5618,7 +5628,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the Gamma frailty", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gamma frailty", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gamma frailty", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5655,7 +5665,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the LogNormal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the LogNormal observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the LogNormal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5692,7 +5702,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the Logistic observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Logistic observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Logistic observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5728,7 +5738,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for Skew-Normal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for Skew-Normal observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for Skew-Normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5816,7 +5826,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for GEV observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for GEV observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for GEV observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5889,7 +5899,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-size for the nBinomial observations (overdispersion)", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log size for the nBinomial observations (overdispersion)", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Size for the nBinomial observations (overdispersion)", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -5925,7 +5935,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-size for nBinomial Zero-Inflated observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log size for nBinomial Zero-Inflated observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Size for nBinomial Zero-Inflated observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -6003,7 +6013,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-size for nBinomial Zero-Inflated observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log size for nBinomial Zero-Inflated observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Size for nBinomial Zero-Inflated observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -6124,7 +6134,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-precision for the Student-t observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Student-t observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Student-t observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -6848,7 +6858,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 		**rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL;
+		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_weight;
 		
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -6975,6 +6985,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(group_rho_intern, 0.0);
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
+	HYPER_NEW(log_weight, 0.0);
 
 	/*
 	 * start parsing 
@@ -7000,6 +7011,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_BYM;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("BYM model");
+	} else if (OneOf("BESAGPROPER")) {
+		mb->f_id[mb->nf] = F_BESAGPROPER;
+		mb->f_ntheta[mb->nf] = 2;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Proper version of Besags ICAR model");
 	} else if (OneOf2("GENERIC", "GENERIC0")) {
 		mb->f_id[mb->nf] = F_GENERIC0;
 		mb->f_ntheta[mb->nf] = 1;
@@ -7113,6 +7128,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_BESAG2:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// kappa
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL-a");	// a
+		break;
+
+	case F_BESAGPROPER:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	// weight
 		break;
 
 	case F_SPDE:
@@ -7538,6 +7558,25 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 			mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf]; /* yes */
+		}  else if (mb->f_id[mb->nf] == F_BESAGPROPER) {
+			/*
+			 * use field: GRAPH. use this to set field N 
+			 */
+			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
+			if (!filename) {
+				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
+			}
+			if (mb->verbose) {
+				printf("\t\tread graph from file=[%s]\n", filename);
+			}
+			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
+			if (mb->f_graph[mb->nf]->n <= 0) {
+				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
+				inla_error_general(msg);
+			}
+
+			mb->f_locations[mb->nf] = NULL;
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		} else if (mb->f_id[mb->nf] == F_SEASONAL) {
 			/*
 			 * seasonal component; need length N, seasonal length SEASON, and a boolean CYCLIC
@@ -7765,7 +7804,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -7988,7 +8027,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8059,7 +8098,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8108,6 +8147,77 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_BESAGPROPER:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(0, tmp);
+		HYPER_INIT(log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+		mb->f_theta[mb->nf] = Calloc(2, double **);
+		mb->f_theta[mb->nf][0] = log_prec;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(1, tmp);
+		HYPER_INIT(log_weight, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log weight[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+		mb->f_theta[mb->nf][1] = log_weight;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log weight for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Weight for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta[mb->ntheta] = log_weight;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+		break;
+	}
+
 	case F_GENERIC1:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
@@ -8130,7 +8240,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8201,7 +8311,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision-cmatrix for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision-cmatrix for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision-cmatrix for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8360,7 +8470,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (idd component)", mb->f_tag[mb->nf]);
+			GMRFLib_sprintf(&msg, "Log precision for %s (idd component)", mb->f_tag[mb->nf]);
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s (iid component)", mb->f_tag[mb->nf]);
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8379,7 +8489,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (spatial component)", mb->f_tag[mb->nf]);
+			GMRFLib_sprintf(&msg, "Log precision for %s (spatial component)", mb->f_tag[mb->nf]);
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s (spatial component)", mb->f_tag[mb->nf]);
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8425,7 +8535,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (first component)", mb->f_tag[mb->nf]);
+			GMRFLib_sprintf(&msg, "Log precision for %s (first component)", mb->f_tag[mb->nf]);
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s (first component)", mb->f_tag[mb->nf]);
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8444,7 +8554,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s (second component)", mb->f_tag[mb->nf]);
+			GMRFLib_sprintf(&msg, "Log precision for %s (second component)", mb->f_tag[mb->nf]);
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s (second component)", mb->f_tag[mb->nf]);
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8538,7 +8648,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&msg, "Log-precision for %s (component %1d)", mb->f_tag[mb->nf], k+1);
+				GMRFLib_sprintf(&msg, "Log precision for %s (component %1d)", mb->f_tag[mb->nf], k+1);
 				mb->theta_tag[mb->ntheta] = msg;
 				GMRFLib_sprintf(&msg, "Precision for %s (component %1d)", mb->f_tag[mb->nf], k+1);
 				mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8631,7 +8741,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log-precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -8772,6 +8882,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_bym;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 1.0;
+	}  else if (mb->f_id[mb->nf] == F_BESAGPROPER) {
+		inla_besag_proper_Qfunc_arg_tp *arg = NULL, *arg_orig = NULL;
+		arg = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
+		arg_orig = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
+
+		mb->f_Qfunc[mb->nf] = Qfunc_besagproper;
+		mb->f_Qfunc_orig[mb->nf] = Qfunc_besagproper;
+		GMRFLib_copy_graph(&arg->graph, mb->f_graph[mb->nf]);
+		GMRFLib_copy_graph(&arg_orig->graph, mb->f_graph[mb->nf]);
+		GMRFLib_copy_graph(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
+		arg->log_prec = log_prec;
+		arg->log_weight = log_weight;
+ 		arg_orig->log_prec = arg_orig->log_weight = NULL;
+		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
+		mb->f_rankdef[mb->nf] = 0.0;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+		mb->f_id[mb->nf] = F_BESAGPROPER;
 	} else if (mb->f_id[mb->nf] == F_SPDE) {
 		mb->f_Qfunc[mb->nf] = spde_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde_model->Qfunc_arg;
@@ -10103,7 +10231,6 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
-
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
@@ -11149,6 +11276,94 @@ double extra(double *theta, int ntheta, void *argument)
 			if (debug) {
 				P(h->precision);
 				P(h->range);
+				P(h->problem->sub_logdens);
+			}
+			val += h->nrep * (h->problem->sub_logdens * ngroup + normc_g);
+			break;
+		}
+
+		case F_BESAGPROPER:
+		{
+			typedef struct {
+				int n;
+				int N;
+				int ngroup;
+				int nrep;
+				double **log_prec;
+				double **log_weight;
+				double *c;
+				double rankdef1;
+				inla_besag_proper_Qfunc_arg_tp *def;
+				GMRFLib_problem_tp *problem;
+			} Hold_tp;
+			static Hold_tp **hold = NULL;
+#pragma omp threadprivate(hold)
+
+			int debug = 0, jj;
+			Hold_tp *h;
+
+			if (!hold) {
+				hold = Calloc(mb->nf, Hold_tp *);
+			}
+
+			if (!hold[i]) {
+				h = hold[i] = Calloc(1, Hold_tp);
+
+				h->nrep = mb->f_nrep[i];
+				h->ngroup = mb->f_ngroup[i];
+				h->n = mb->f_n[i] / h->ngroup;
+				h->N = mb->f_N[i] / h->ngroup;
+
+				assert(h->N == mb->f_graph_orig[i]->n);
+
+				if (debug) {
+					P(h->n);
+					P(h->N);
+					P(h->nrep);
+					P(h->ngroup);
+				}
+
+				HYPER_NEW(h->log_prec, 0.0);
+				HYPER_NEW(h->log_weight, 0.0);
+					
+				if (mb->f_diag[i]) {
+					h->c = Calloc(h->N, double);
+					for (jj = 0; jj < h->N; jj++) {
+						h->c[jj] = mb->f_diag[i];
+					}
+				}
+
+				h->def = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
+				memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
+				h->def->log_prec = h->log_prec;
+				h->def->log_weight = h->log_weight;
+			} else {
+				h = hold[i];
+			}
+
+			if (!mb->f_fixed[i][0]) {
+				h->log_prec[GMRFLib_thread_id][0] = theta[count];
+				val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
+				count++;
+			} else {
+				h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (!mb->f_fixed[i][1]) {
+				h->log_weight[GMRFLib_thread_id][0] = theta[count];
+				val += mb->f_prior[i][1].priorfunc(&theta[count], mb->f_prior[i][1].parameters);
+				count++;
+			} else {
+				h->log_weight[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+
+			SET_GROUP_RHO(2);
+			
+			GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+					     (void *) h->def, NULL, mb->f_constr_orig[i],
+					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			if (debug) {
+				P(h->log_prec[GMRFLib_thread_id][0]);
+				P(h->log_weight[GMRFLib_thread_id][0]);
 				P(h->problem->sub_logdens);
 			}
 			val += h->nrep * (h->problem->sub_logdens * ngroup + normc_g);
