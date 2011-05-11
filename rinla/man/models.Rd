@@ -254,7 +254,7 @@ inla.models()
 							\item{name = }{`log unstructured precision'}
 							\item{short.name = }{`prec.unstruct'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.001'}
+							\item{param = }{`1 5e-04'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
@@ -286,6 +286,49 @@ inla.models()
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
 								\item{pdf = }{`bym'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `besagproper'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-04'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`log weight'}
+							\item{short.name = }{`weight'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{pdf = }{`besagproper'}
 							 }
 						 }
 					 }

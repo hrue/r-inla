@@ -1,4 +1,3 @@
-
 `inla.interpret.formula` =
     function (gf, debug=FALSE, data=NULL, data.model = NULL) 
 {
