@@ -248,7 +248,6 @@ typedef enum {
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
-	F_BESAGMOD,
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,
@@ -607,6 +606,13 @@ typedef struct {
 } inla_bym_Qfunc_arg_tp;
 
 typedef struct {
+	GMRFLib_graph_tp *graph;
+	double **log_prec;				       /* precision */
+	double **log_weight;				       /* the weight, that for weight = infty is the besag model */
+} inla_besag_proper_Qfunc_arg_tp;
+
+
+typedef struct {
 	/*
 	 * the AR(1) model: X_t = phi * X_t-1 + Z_t. The arguments are Var(Z_t) = 1/exp(log_precision), and phi_intern =
 	 * logit((phi+1)/2). 
@@ -735,7 +741,6 @@ double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
 double Qfunc_besag2(int i, int j, void *arg);
-double Qfunc_besagmod(int i, int j, void *arg);
 double Qfunc_bym(int i, int j, void *arg);
 double Qfunc_copy_part00(int i, int j, void *arg);
 double Qfunc_copy_part01(int i, int j, void *arg);
