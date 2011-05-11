@@ -928,22 +928,19 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
 
-	if (dim == 1){
-		GMRFLib_make_linear_graph(graph, n, 0, 0);
-	} else {
-		GMRFLib_ged_tp *ged = NULL;
+	GMRFLib_ged_tp *ged = NULL;
 
-		GMRFLib_ged_init(&ged, NULL);
-		for (i = 0; i < n; i++) {
-			for(j = 0; j < dim; j++) {
-				for(k = j+1; k < dim; k++) {
-					GMRFLib_ged_add(ged, i + j*n, i + k*n);
-				}
+	GMRFLib_ged_init(&ged, NULL);
+	for (i = 0; i < n; i++) {
+		GMRFLib_ged_add(ged, i, i);
+		for(j = 0; j < dim; j++) {
+			for(k = j+1; k < dim; k++) {
+				GMRFLib_ged_add(ged, i + j*n, i + k*n);
 			}
 		}
-		GMRFLib_ged_build(graph, ged);
-		GMRFLib_ged_free(ged);
 	}
+	GMRFLib_ged_build(graph, ged);
+	GMRFLib_ged_free(ged);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1201,8 +1198,8 @@ int inla_iid_wishart_nparam(int dim)
 double Qfunc_iid_wishart(int node, int nnode, void *arg)
 {
 	/*
-	 * This function returns the ij'th element of thre precision matrix of the dim-dimensional iid. The parameterisation is given in the covariance matrix, so
-	 * we need to compute the precision matrix. We store Q to avoid to compute it all the time.
+	 * This function returns the ij'th element of the precision matrix of the dim-dimensional iid. The parameterisation is given in the covariance matrix, so we
+	 * need to compute the precision matrix. We store Q to avoid to compute it all the time.
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
@@ -1215,8 +1212,8 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	
 	if (dim == 1) {
 		/* 
-		   IID1D
-		 */
+		 *  Fast return for the IID1D model; no need to do complicate things in this case
+		*/
 		return map_precision(a->log_prec[0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	}
 	
@@ -1569,12 +1566,15 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 }
 double priorfunc_wishart1d(double *x, double *parameters)
 {
-	double p[2];
+	// its the same and quicker
+	
+	//return priorfunc_wishart_generic(1, x, parameters);
 
+	double p[2];
 	p[0] = parameters[0] / 2.0;
 	p[1] = parameters[1] / 2.0;
 
-	return priorfunc_loggamma(x, p);
+	return priorfunc_gamma(x, p);
 }
 double priorfunc_wishart2d(double *x, double *parameters)
 {
@@ -4199,71 +4199,6 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->id = P_FLAT;
 		prior->priorfunc = priorfunc_flat;
 		prior->parameters = NULL;
-	} else if (!strcasecmp(prior->name, "WISHART") || !strcasecmp(prior->name, "WISHART1D")) {
-		/*
-		 * Here, we just convert it to an equivalent Gamma(a,b) distribution 
-		 */
-		prior->id = P_LOGGAMMA;
-		prior->priorfunc = priorfunc_loggamma;
-		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
-			prior->parameters = Calloc(2, double);
-			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
-			}
-			prior->parameters[0] /= 2.0;	       /* r/2 = a */
-			prior->parameters[1] /= 2.0;	       /* R11/2 = b */
-
-		} else {
-			prior->parameters = Calloc(2, double);
-			prior->parameters[0] = DEFAULT_GAMMA_PRIOR_A;
-			prior->parameters[1] = DEFAULT_GAMMA_PRIOR_B;
-		}
-		if (mb->verbose) {
-			printf("\t\t%s->%s=[%g (r), %g (R11)\n", prior_tag, param_tag, 2.0 * prior->parameters[0], 2.0 * prior->parameters[1]);
-		}
-	} else if (!strcasecmp(prior->name, "WISHART2D")) {
-		prior->id = P_WISHART2D;
-		prior->priorfunc = priorfunc_wishart2d;
-		if (param && inla_is_NAs(4, param) != GMRFLib_SUCCESS) {
-			prior->parameters = Calloc(4, double);
-			if (inla_sread_doubles(prior->parameters, 4, param) == INLA_FAIL) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
-			}
-		} else {
-			prior->parameters = Calloc(4, double);
-			prior->parameters[0] = 4.0;	       /* r */
-			prior->parameters[1] = 1.0;	       /* R11 */
-			prior->parameters[2] = 1.0;	       /* R22 */
-			prior->parameters[3] = 0.0;	       /* R12 */
-		}
-		if (mb->verbose) {
-			printf("\t\t%s->%s=[%g (r), %g (R11), %g (R22), %g (R12)]\n", prior_tag, param_tag,
-			       prior->parameters[0], prior->parameters[1], prior->parameters[2], prior->parameters[3]);
-		}
-	} else if (!strcasecmp(prior->name, "WISHART3D")) {
-		prior->id = P_WISHART3D;
-		prior->priorfunc = priorfunc_wishart3d;
-		if (param && inla_is_NAs(7, param) != GMRFLib_SUCCESS) {
-			prior->parameters = Calloc(7, double);
-			if (inla_sread_doubles(prior->parameters, 7, param) == INLA_FAIL) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
-			}
-		} else {
-			prior->parameters = Calloc(7, double);
-			prior->parameters[0] = 7.0;	       /* r */
-			prior->parameters[1] = 1.0;	       /* R11 */
-			prior->parameters[2] = 1.0;	       /* R22 */
-			prior->parameters[3] = 1.0;	       /* R33 */
-			prior->parameters[4] = 0.0;	       /* R12 */
-			prior->parameters[5] = 0.0;	       /* R13 */
-			prior->parameters[6] = 0.0;	       /* R23 */
-		}
-		if (mb->verbose) {
-			printf("\t\t%s->%s=[%g (r), %g (R11), %g (R22), %g (R33)]\n", prior_tag, param_tag,
-			       prior->parameters[0], prior->parameters[1], prior->parameters[2], prior->parameters[3]);
-			printf("\t\t%s->%s=[%g (R12), %g (R13), %g (R23)]\n", prior_tag, param_tag,
-			       prior->parameters[4], prior->parameters[5], prior->parameters[6]);
-		}
 	} else if (!strcasecmp(prior->name, "WISHART1D") ||
 		   !strcasecmp(prior->name, "WISHART2D") ||
 		   !strcasecmp(prior->name, "WISHART3D") ||
@@ -7228,7 +7163,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		char *pri, *par, *prifunc;
 		int nt = inla_iid_wishart_nparam(dim);
 		
-		GMRFLib_sprintf(&prifunc, "WISHARTNEW%1dD", dim);
+		GMRFLib_sprintf(&prifunc, "WISHART%1dD", dim);
 		int kk;
 		if (dim > 1) {
 			for(kk = 0; kk < nt; kk++) {
@@ -7849,7 +7784,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
-	case F_IID1D:
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
@@ -8601,6 +8535,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_IID1D:
 	case F_IID2D:
 	case F_IID3D:
 	case F_IID4D:
@@ -9080,7 +9015,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * RW-models. do a special test for cyclic, since this require locations = default
 		 */
-		if ((mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_IID1D || mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2) && mb->f_cyclic[mb->nf]) {
+		if ((mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2) && mb->f_cyclic[mb->nf]) {
 			GMRFLib_rwdef_tp *rwdef = NULL;
 
 			if (mb->f_locations[mb->nf]) {
@@ -9091,7 +9026,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			rwdef = Calloc(1, GMRFLib_rwdef_tp);
 			rwdef->n = mb->f_n[mb->nf];
-			if (mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_IID1D) {
+			if (mb->f_id[mb->nf] == F_IID) {
 				rwdef->order = 0;
 			} else if (mb->f_id[mb->nf] == F_RW1) {
 				rwdef->order = 1;
@@ -9117,7 +9052,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
 			mb->f_Qfunc_arg[mb->nf] = (void *) rwdef;
 			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
-		} else if ((mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_IID1D || mb->f_id[mb->nf] == F_RW1 ||
+		} else if ((mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_RW1 ||
 			    mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) && !mb->f_cyclic[mb->nf]) {
 			crwdef = Calloc(1, GMRFLib_crwdef_tp);
 			crwdef->n = mb->f_n[mb->nf];
@@ -9125,7 +9060,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			crwdef->prec = NULL;
 			crwdef->log_prec = NULL;
 			crwdef->log_prec_omp = log_prec;
-			if (mb->f_id[mb->nf] == F_IID || mb->f_id[mb->nf] == F_IID1D) {
+			if (mb->f_id[mb->nf] == F_IID) {
 				crwdef->order = 0;
 				crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 				mb->f_rankdef[mb->nf] = 0.0;
@@ -10598,6 +10533,7 @@ double extra(double *theta, int ntheta, void *argument)
 		assert(mb->data_ntheta_all == check);
 	}
 
+
 	for (i = 0; i < mb->nf; i++) {
 		switch (mb->f_id[i]) {
 		case F_RW2D:
@@ -10606,7 +10542,6 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_GENERIC0:
 		case F_SEASONAL:
 		case F_IID:
-		case F_IID1D:
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
@@ -11078,7 +11013,7 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		//case F_IID1D:   SEE ABOVE FOR THIS CASE
+		case F_IID1D:   
 		case F_IID2D:
 		case F_IID3D:
 		case F_IID4D:

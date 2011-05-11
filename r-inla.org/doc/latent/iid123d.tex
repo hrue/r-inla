@@ -8,9 +8,9 @@
 \section*{Correlated random effects: \texttt{iid1d}, \texttt{iid2d},
     \texttt{iid3d}}
 
-This model is available for dimensions $p=1$, $2$ and $3$. We describe
-in detail the case for $p=2$, and then the changes required for $p=1$
-and $p=3$.
+This model is available for dimensions $p=1$, $2$, $3$, $4$ and
+$5$. We describe in detail the case for $p=2$, and then the changes
+required for $p=1$, $p=3$, $p=4$ and $p=5$
 
 \subsection*{Parametrization}
 
@@ -233,6 +233,64 @@ are trivariate iid Normal.
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/iid3d.tex}
 
+\subsection*{The case $p=4$}
+
+For $p=4$ the
+hyperparameters are
+\begin{displaymath}
+    \theta = (\log \tau_{1}, \log \tau_{2}, \log \tau_{3}, \log \tau_{4},
+    \tilde\rho_{12},
+    \tilde\rho_{13},
+    \tilde\rho_{14},
+    \tilde\rho_{23},
+    \tilde\rho_{24},
+    \tilde\rho_{34})
+\end{displaymath}
+The prior is fixed to be \texttt{wishart4d} with parameters
+\begin{quote}
+    \emph{param = } $r\;R_{11}\;R_{22}\;R_{33}\; R_{44}\;
+    R_{12}\;
+    R_{13}\;
+    R_{14}\;
+    R_{23}\;
+    R_{24}\;
+    R_{34}$
+\end{quote}
+where
+\begin{displaymath}
+    \mathbf{R} =
+    \left[\begin{array}{cccc}
+        R_{11} &R_{12} & R_{13} & R_{14}\\
+        R_{12} & R_{22} & R_{23} & R_{24}\\
+        R_{13} & R_{23} & R_{33} & R_{34}\\
+        R_{14} & R_{24} & R_{34} & R_{44}\\
+    \end{array}\right]
+\end{displaymath}
+The reported hyperparameters are the marginal precisions $\tau_{1}$,
+$\tau_{2}$, $\tau_{3}$ and $\tau_{4}$, and the correlations
+$\rho_{12}$, $\rho_{13}$, $\rho_{14}$, $\rho_{23}$, $\rho_{24}$ and
+$\rho_{34}$.
+
+In this case, the internal representation is given as
+\begin{displaymath}
+    (u_{1}, u_{2}, \ldots, u_{m}, v_{1}, v_{2}, \ldots, v_{m},
+    w_{1}, w_{2}, \ldots, w_{m},
+    x_{1}, x_{2}, \ldots, x_{m})
+\end{displaymath}
+where $n=4m$ is a required argument, and where $(u_{i}, v_{i}, w_{i}, x_{i})$
+are fourvariate iid Normal.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/iid4d.tex}
+
+
+\subsection*{The case $p=5$}
+
+The case $p=5$ follows by a direct extention of $p=3$ and $p=4$, and
+is therefore not included.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/iid5d.tex}
 
 \subsection*{Notes}
 
