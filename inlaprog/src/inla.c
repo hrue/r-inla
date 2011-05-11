@@ -1801,27 +1801,6 @@ double Qfunc_besag2(int i, int j, void *arg)
 		return -aa->precision;
 	}
 }
-double Qfunc_besagmod(int i, int j, void *arg)
-{
-	inla_besag_Qfunc_arg_tp *a = (inla_besag_Qfunc_arg_tp *) arg;
-	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-#define Q(i, j) ((-tan(M_PI / IMAX(3, a->graph->nnbs[i])) - tan(M_PI/IMAX(3, a->graph->nnbs[j])) ) / 2.0)
-
-	if (i != j) {
-		return prec * Q(i, j);
-	} else {
-		double sum = 0.0;
-		int ii, jj;
-
-		for (ii = 0; ii < a->graph->nnbs[i]; ii++) {
-			jj = a->graph->nbs[i][ii];
-			sum += Q(i, jj);
-		}
-		return prec * (-sum);
-	}
-#undef Q
-}
 int inla_read_data_all(double **x, int *n, const char *filename)
 {
 	int count = 0, err, len = 1000;
@@ -7021,10 +7000,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_BYM;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("BYM model");
-	} else if (OneOf("BESAGMOD")) {
-		mb->f_id[mb->nf] = F_BESAGMOD;
-		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Besags ICAR model (modified)");
 	} else if (OneOf2("GENERIC", "GENERIC0")) {
 		mb->f_id[mb->nf] = F_GENERIC0;
 		mb->f_ntheta[mb->nf] = 1;
@@ -7125,7 +7100,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	switch (id) {
 	case F_RW2D:
 	case F_BESAG:
-	case F_BESAGMOD:
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
@@ -7545,24 +7519,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = 2 * mb->f_graph[mb->nf]->n;	/* YES */
-		} else if (mb->f_id[mb->nf] == F_BESAGMOD) {
-			/*
-			 * use field: GRAPH. use this to set field N 
-			 */
-			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GRAPH"), NULL));
-			if (!filename) {
-				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "graph");
-			}
-			if (mb->verbose) {
-				printf("\t\tread graph from file=[%s]\n", filename);
-			}
-			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
-			if (mb->f_graph[mb->nf]->n <= 0) {
-				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
-				inla_error_general(msg);
-			}
-			mb->f_locations[mb->nf] = NULL;
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		} else if (mb->f_id[mb->nf] == F_BYM) {
 			/*
 			 * use field: GRAPH. use this to set field N 
@@ -7780,7 +7736,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	switch (mb->f_id[mb->nf]) {
 	case F_RW2D:
 	case F_BESAG:
-	case F_BESAGMOD:
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
@@ -8785,17 +8740,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAG2;
-	} else if (mb->f_id[mb->nf] == F_BESAGMOD) {
-		inla_besag_Qfunc_arg_tp *arg = NULL;
-
-		mb->f_Qfunc[mb->nf] = Qfunc_besagmod;
-		arg = Calloc(1, inla_besag_Qfunc_arg_tp);
-		GMRFLib_copy_graph(&(arg->graph), mb->f_graph[mb->nf]);
-		arg->log_prec = log_prec;
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 1.0;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		mb->f_id[mb->nf] = F_BESAGMOD;
 	} else if (mb->f_id[mb->nf] == F_BYM) {
 		inla_bym_Qfunc_arg_tp *arg = NULL;
 		GMRFLib_graph_tp *g = NULL;
@@ -10163,11 +10107,10 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
-	double val = 0.0, log_precision, log_precision0, log_precision1, log_precision2, precision0, precision1, precision2,
-	    rho, rho_intern, rho01, rho02, rho12, rho_intern01, rho_intern02, rho_intern12, tpon, beta, beta_intern,
-	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-	    h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet, tvec[6] = { 0, 0, 0, 0, 0, 0 };
-
+	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern,
+		group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
+		h2_intern, phi, phi_intern, a_intern, n = NAN, normc = -0.9189385332046729, dof_intern, logdet; 
+	
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
 
@@ -10538,7 +10481,6 @@ double extra(double *theta, int ntheta, void *argument)
 		switch (mb->f_id[i]) {
 		case F_RW2D:
 		case F_BESAG:
-		case F_BESAGMOD:
 		case F_GENERIC0:
 		case F_SEASONAL:
 		case F_IID:
