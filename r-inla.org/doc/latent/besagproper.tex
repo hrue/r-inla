@@ -2,22 +2,29 @@
 \usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
 \usepackage{listings}
+\usepackage{verbatim}
 \begin{document}
 
-\section*{Proper Besag model for spatial effects}
+\section*{Proper/Non-intrinsic Besag model for spatial effects}
 
 \subsection*{Parametrization}
 
 The proper version of the Besag model for random vector
 $\mathbf{x}=(x_1,\dots,x_n)$ is defined as
 \begin{equation}\label{eq.besag}
-    x_i|x_{-i},\tau,\phi\quad\sim\quad \mathcal{N}\left(\frac{\phi}{1+\phi
-          n_i}\sum_{i\sim j}x_j,\frac{1}{(1 + \phi n_i)\tau}\right)
+    x_i|x_{-i},\tau,d\quad\sim\quad \mathcal{N}\left(\frac{1}{d+
+          n_i}\sum_{i\sim j}x_j,\frac{1}{\tau(d + n_i)}\right)
 \end{equation}
 where $n_i$ is the number of neighbours of node $i$, $i\sim j$
-indicates that the two nodes $i$ and $j$ are neighbours, $\phi > 0$ is
-as weight parameter and $\tau > 0$ is a ``precision-like'' (or
-scaling) parameter.
+indicates that the two nodes $i$ and $j$ are neighbours, $d > 0$ is an
+extra term added on the diagonal controlling the ``properness'' and
+$\tau > 0$ is a ``precision-like'' (or scaling) parameter.
+
+This parameterisation corresponds to this precision matrix ${Q} =
+(Q_{ij})$, where for $j\not=i$
+\begin{displaymath}
+    Q_{ii} = \tau(n_{i} + d) \qquad\text{and}\qquad Q_{ij} = -\tau.
+\end{displaymath}
 
 
 \subsection*{Hyperparameters}
@@ -26,11 +33,10 @@ The precision parameter $\tau$ is represented as
 \begin{displaymath}
     \theta_{1} =\log \tau
 \end{displaymath}
-and the prior is defined on $\theta_{1}$. 
-
-The weight parameter $\phi$ is represented as
+and the prior is defined on $\theta_{1}$. The diagonal parameter $d$ is
+represented as
 \begin{displaymath}
-    \theta_{2} =\log \phi
+    \theta_{2} =\log d
 \end{displaymath}
 and the prior is defined on $\theta_{2}$. 
 
@@ -38,7 +44,7 @@ and the prior is defined on $\theta_{2}$.
 
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="besagproper",graph.file=<graph file name>,
+ f(<whatever>, model="besagproper", graph.file=<graph file name>,
    hyper=<hyper>)
 \end{verbatim}
 
@@ -75,11 +81,14 @@ corresponds to node $i-1$ in the 0-indexed graph.
 
 \subsection*{Example}
 
-To be added
+\verbatiminput{besagproper-example.R}
 
 \subsection*{Notes}
 
-Add notes later ? 
+If $d=0$ and the parameter \texttt{rankdef=1} is set, then this model
+corresponds to the \texttt{besag} model.
+
+\texttt{constr=FALSE} is default for this model.
 
 \end{document}
 

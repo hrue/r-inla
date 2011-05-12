@@ -306,11 +306,11 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{name = }{`log weight'}
-							\item{short.name = }{`weight'}
+							\item{name = }{`log diagonal'}
+							\item{short.name = }{`diag'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.1'}
-							\item{initial = }{`2.30258509299405'}
+							\item{param = }{`1 100'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}

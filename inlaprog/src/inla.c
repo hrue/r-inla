@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2010 Havard Rue
@@ -1804,12 +1803,16 @@ double Qfunc_besag2(int i, int j, void *arg)
 double Qfunc_besagproper(int i, int j, void *arg)
 {
 	inla_besag_proper_Qfunc_arg_tp *a;
-	double prec, weight;
+	double prec;
 
 	a = (inla_besag_proper_Qfunc_arg_tp *) arg;
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	weight = map_exp(a->log_weight[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	return prec * (i == j ? (1.0 + weight * a->graph->nnbs[i]) : -weight);
+	if (i == j) {
+		double diag = map_exp(a->log_diag[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		return prec * (diag + a->graph->nnbs[i]);
+	} else {
+		return -prec;
+	}
 }
 int inla_read_data_all(double **x, int *n, const char *filename)
 {
@@ -6858,7 +6861,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 		**rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_weight;
+		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
 		
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -6985,7 +6988,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(group_rho_intern, 0.0);
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
-	HYPER_NEW(log_weight, 0.0);
+	HYPER_NEW(log_diag, 0.0);
 
 	/*
 	 * start parsing 
@@ -8188,12 +8191,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		SetInitial(1, tmp);
-		HYPER_INIT(log_weight, tmp);
+		HYPER_INIT(log_diag, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise log weight[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
 		}
-		mb->f_theta[mb->nf][1] = log_weight;
+		mb->f_theta[mb->nf][1] = log_diag;
 		if (!mb->f_fixed[mb->nf][1]) {
 			/*
 			 * add this \theta 
@@ -8202,13 +8205,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Log weight for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Log diagonal for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Weight for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Diagonal for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
-			mb->theta[mb->ntheta] = log_weight;
+			mb->theta[mb->ntheta] = log_diag;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -8893,8 +8896,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_copy_graph(&arg_orig->graph, mb->f_graph[mb->nf]);
 		GMRFLib_copy_graph(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
 		arg->log_prec = log_prec;
-		arg->log_weight = log_weight;
- 		arg_orig->log_prec = arg_orig->log_weight = NULL;
+		arg->log_diag = log_diag;
+ 		arg_orig->log_prec = arg_orig->log_diag = NULL;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -11290,7 +11293,7 @@ double extra(double *theta, int ntheta, void *argument)
 				int ngroup;
 				int nrep;
 				double **log_prec;
-				double **log_weight;
+				double **log_diag;
 				double *c;
 				double rankdef1;
 				inla_besag_proper_Qfunc_arg_tp *def;
@@ -11324,7 +11327,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 
 				HYPER_NEW(h->log_prec, 0.0);
-				HYPER_NEW(h->log_weight, 0.0);
+				HYPER_NEW(h->log_diag, 0.0);
 					
 				if (mb->f_diag[i]) {
 					h->c = Calloc(h->N, double);
@@ -11336,7 +11339,7 @@ double extra(double *theta, int ntheta, void *argument)
 				h->def = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
 				memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
 				h->def->log_prec = h->log_prec;
-				h->def->log_weight = h->log_weight;
+				h->def->log_diag = h->log_diag;
 			} else {
 				h = hold[i];
 			}
@@ -11349,11 +11352,11 @@ double extra(double *theta, int ntheta, void *argument)
 				h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			if (!mb->f_fixed[i][1]) {
-				h->log_weight[GMRFLib_thread_id][0] = theta[count];
+				h->log_diag[GMRFLib_thread_id][0] = theta[count];
 				val += mb->f_prior[i][1].priorfunc(&theta[count], mb->f_prior[i][1].parameters);
 				count++;
 			} else {
-				h->log_weight[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
+				h->log_diag[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
 
 			SET_GROUP_RHO(2);
@@ -11363,7 +11366,7 @@ double extra(double *theta, int ntheta, void *argument)
 					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
 			if (debug) {
 				P(h->log_prec[GMRFLib_thread_id][0]);
-				P(h->log_weight[GMRFLib_thread_id][0]);
+				P(h->log_diag[GMRFLib_thread_id][0]);
 				P(h->problem->sub_logdens);
 			}
 			val += h->nrep * (h->problem->sub_logdens * ngroup + normc_g);
