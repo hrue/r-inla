@@ -309,7 +309,7 @@ inla.models()
 							\item{name = }{`log diagonal'}
 							\item{short.name = }{`diag'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 100'}
+							\item{param = }{`1 1'}
 							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
