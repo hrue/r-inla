@@ -256,11 +256,11 @@
                                                 from.theta = function(x) exp(x)
                                                 ), 
                                         theta2 = list(
-                                                name = "log weight",
-                                                short.name = "weight",
+                                                name = "log diagonal",
+                                                short.name = "diag",
                                                 prior = "loggamma",
-                                                param = c(1, 0.1), 
-                                                initial = log(10),
+                                                param = c(1, 1), 
+                                                initial = 1,
                                                 fixed = FALSE,
                                                 to.theta = function(x) log(x),
                                                 from.theta = function(x) exp(x)

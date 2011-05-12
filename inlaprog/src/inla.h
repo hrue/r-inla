@@ -609,9 +609,8 @@ typedef struct {
 typedef struct {
 	GMRFLib_graph_tp *graph;
 	double **log_prec;				       /* precision */
-	double **log_weight;				       /* the weight, that for weight = infty is the besag model */
+	double **log_diag;				       /* the value added to the diagonal. diag = 0 is the besag model */
 } inla_besag_proper_Qfunc_arg_tp;
-
 
 typedef struct {
 	/*
