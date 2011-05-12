@@ -205,7 +205,7 @@ typedef struct {
 	double **xi_gev;				       /* the shape-parameter */
 	double gev_scale_xi;				       /* scaling of the shape-parameter */
 
-	/* 
+	/*
 	 * Log gamma frailty
 	 */
 	double **log_prec_loggamma_frailty;
@@ -244,19 +244,19 @@ typedef enum {
 	L_ZEROINFLATEDPOISSON2,
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
-	L_LOGGAMMA_FRAILTY, 
+	L_LOGGAMMA_FRAILTY,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
-	F_BESAGPROPER, 
+	F_BESAGPROPER,
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,
 	F_IID1D,
-	F_IID2D, 
-	F_IID3D, 
-	F_IID4D, 
-	F_IID5D, 
+	F_IID2D,
+	F_IID3D,
+	F_IID4D,
+	F_IID5D,
 	F_RW1,
 	F_RW2,
 	F_CRW2,
