@@ -1569,15 +1569,15 @@
                         zeroinflatedpoisson2 = list(
                                 hyper = list(
                                         theta = list(
-                                                name = "logit probability",
-                                                short.name = "prob",
-                                                initial = -1,
+                                                name = "log alpha",
+                                                short.name = "a",
+                                                initial = log(2),
                                                 fixed = FALSE,
                                                 prior = "gaussian",
-                                                param = c(-1, 0.2),
-                                                to.theta = function(x) log(x/(1-x)), 
-                                                from.theta = function(x) exp(x)/(1+exp(x))
-                                                )
+                                                param = c(log(2), 1),
+                                                to.theta = function(x) log(x), 
+                                                from.theta = function(x) exp(x)
+                                                ) 
                                         ),
                                 survival = FALSE,
                                 discrete = FALSE, 
