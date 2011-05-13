@@ -1927,14 +1927,14 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
-							\item{name = }{`logit probability'}
-							\item{short.name = }{`prob'}
-							\item{initial = }{`-1'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`a'}
+							\item{initial = }{`0.693147180559945'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
-							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{param = }{`0.693147180559945 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
