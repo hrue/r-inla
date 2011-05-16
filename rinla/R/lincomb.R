@@ -79,7 +79,10 @@
     for(k in 1:length(arg)) {
         if (names(arg)[k] != "") {
             values[[k]] = eval.parent(arg[[k]])
-            if (is.matrix(values[[k]]) || is(values[[k]], "dgTMatrix")) {
+            if (is.matrix(values[[k]]) || is(values[[k]], "dgTMatrix") || is(values[[k]], "dgCMatrix")) {
+                if (is(values[[k]], "dgCMatrix")) {
+                    values[[k]] = inla.as.dgTMatrix(values[[k]])
+                }
                 stopifnot(nrow(values[[k]]) == n || n < 0)
                 n = nrow(values[[k]])
                 is.m[k] = TRUE
