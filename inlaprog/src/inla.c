@@ -14349,12 +14349,13 @@ int inla_divisible(int n, int by)
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
-int inla_qinv(const char *filename)
+int inla_qinv(const char *filename, const char *outfilename)
 {
 	/*
 	 * Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances 
 	 */
-	int i;
+	int i, j, jj, k;
+	
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
@@ -14365,13 +14366,45 @@ int inla_qinv(const char *filename)
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+
+	/* 
+	   write a fmesher file and just pass the filename
+	*/
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+
+	M->nrow = graph->n;
+	M->ncol = graph->n;
+
+	M->elems = 0;
 	for (i = 0; i < graph->n; i++) {
-		printf("%.20g\n", *GMRFLib_Qinv_get(problem, i, i));
+		M->elems += 1 + graph->nnbs[i];
 	}
+
+	M->i = Calloc(M->elems, int);
+	M->j = Calloc(M->elems, int);
+	M->values = Calloc(M->elems, double);
+
+	k = 0;
+	for(i = 0; i<graph->n; i++) {
+		M->i[k] = i;
+		M->j[k] = i;
+		M->values[k] = *GMRFLib_Qinv_get(problem, i, i);
+		k++;
+		
+		for(jj = 0; jj < graph->nnbs[i]; jj++) {
+			j = graph->nbs[i][jj];
+			M->i[k] = i;
+			M->j[k] = j;
+			M->values[k] = *GMRFLib_Qinv_get(problem, i, j);
+			k++;
+		}
+	}
+	assert(k == M->elems);
+
+	GMRFLib_write_fmesher_file(M, outfilename, (long int) 0, -1);
 
 	return 0;
 }
-
 int inla_finn(const char *filename)
 {
 	/*
@@ -14629,7 +14662,7 @@ int main(int argc, char **argv)
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	if (G.mode == INLA_MODE_QINV) {
-		inla_qinv(argv[optind]);
+		inla_qinv(argv[optind], argv[optind+1]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {
