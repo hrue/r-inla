@@ -18,7 +18,7 @@
 ##!           a (ascii-)filename with entries in the following format \code{i j Qij}.}
 ##!  }
 ##! \value{
-##!   \code{inla.qivn} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
+##!   \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
 ##!   diagonal and values for the neigbours in the inverse. Note that the full inverse is NOT provided!
 ##! }
 ##! \author{Havard Rue \email{hrue@math.ntnu.no}}
