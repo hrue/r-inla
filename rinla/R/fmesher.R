@@ -150,6 +150,14 @@ inla.mesh.lattice =
 {
     units = match.arg(units, c("default", "longlat","longsinlat"))
 
+    if (missing(x) && !missing(dims)) {
+      x = seq(0, 1, length.out=dims[1])
+    }
+    if (missing(y) && !missing(dims)) {
+      y = seq(0, 1, length.out=dims[2])
+    }
+    dims = as.integer(dims)
+
     if (is.matrix(x)) {
         if (!identical(dims, dim(x)) ||
             !identical(dims, dim(y)) ||
@@ -159,6 +167,12 @@ inla.mesh.lattice =
         x = NULL
         y = NULL
     } else {
+        if (!identical(dims[1], length(x)) ||
+            !identical(dims[2], length(y)))
+            stop(paste("The lengths of vectors 'x' and 'y' (",
+                       length(x),",",length(y),
+                       ") must match 'dims' (",dims[1],",",dims[2],").",
+                       sep=""))
         loc = (cbind(rep(x, times = dims[2]),
                      rep(y, each = dims[1])))
     }
