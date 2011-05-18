@@ -1388,9 +1388,9 @@ inla.spde.query = function(spde, ...)
                                   cos(pi*osc)*(tmp + t(tmp)) +
                                   spde$internal$g2) %*% dT)
             } else if (identical(spde$model, "imatern")) {
-                tau = (exp(param.to.fcn(spde$internal$basis.T,
-                                        param$theta.T, param$tau,
-                                        spde$mesh$n, "tau")))
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
                 dT = Diagonal(spde$mesh$n, tau)
                 answer = (dT %*% ((1e-10)*spde$internal$c0+
                                   spde$internal$g2) %*% dT)
