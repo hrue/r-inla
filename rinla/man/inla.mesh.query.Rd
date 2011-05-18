@@ -13,6 +13,14 @@ inla.mesh.query(mesh, ...)
   \item{mesh}{
     An \code{inla.mesh} object.
   }
+  \item{tt.neighbours}{
+    Compute neighbour triangles for triangles; list of vectors:
+    list(triangles, orders)
+  }
+  \item{vt.neighbours}{
+    Compute neighbour triangles for vertices; list of vectors:
+    list(vertices, orders)
+  }
 }
 \details{
 }
@@ -38,6 +46,16 @@ inla.mesh.query(mesh, ...)
   \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.lattice}}
 }
 \examples{
+loc = matrix(c(0.1,0.15),1,2)
+lattice = inla.mesh.lattice(dims=c(10,10))
+mesh = inla.mesh.create(loc=loc, lattice=lattice, extend=FALSE)
+
+vt = which(inla.mesh.query(mesh,
+                           vt.neighbours=list(mesh$idx$loc,
+                                              4:6))$vt.neighbours)
+
+mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
+                         refine=FALSE, extend=FALSE))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
