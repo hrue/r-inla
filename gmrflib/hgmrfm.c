@@ -670,6 +670,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_ASSERT(n_short == idx_map_lc[0], GMRFLib_ESNH);	/* just to make sure we're doing the right thing... he he */
 		GMRFLib_ASSERT(N == n_short + nlc, GMRFLib_ESNH);
 
+		FIXME("SET_ELEMENT_FORCE_LC");
+		P(N);
+		SET_ELEMENT_FORCE_LC(N-1, N-1, 0.0);
 		for (i = 0; i < nlc; i++) {
 			GMRFLib_ASSERT(lc_precision[i] > 0.0, GMRFLib_EPARAMETER);
 			j = i + n_short;
@@ -814,6 +817,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	arg->idx_map_beta = idx_map_beta;
 	arg->idx_map_lc = idx_map_lc;
 	arg->N = (*hgmrfm)->graph->n;
+
+	FIXME("FIX THIS");
+	P(nlc);
+	P(arg->N);
+	P(N);
 	GMRFLib_ASSERT(arg->N == N, GMRFLib_ESNH);
 
 	Free(uniq);
