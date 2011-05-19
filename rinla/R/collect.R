@@ -364,7 +364,6 @@ inla.internal.experimental.mode = FALSE
 
     ## ensure that the results are sorted wrt the name
     if (!is.null(summary.lincomb)) {
-        print(rownames(summary.lincomb[[1L]]))
         o = order(rownames(summary.lincomb[[1L]]))
         summary.lincomb[[1L]] = summary.lincomb[[1L]][o, ]
     }
