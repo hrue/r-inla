@@ -2591,6 +2591,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		double cc_factor_mult = 1.2;
 
 		GMRFLib_problem_tp *lproblem = NULL;
+		double *mode_initial = Calloc(n, double);
+		double err_first = 0;
+		
+		memcpy(mode_initial, mode, n*sizeof(double));  /* store the starting value */
 
 		for (iter = 0; iter < itmax; iter++) {
 
@@ -2653,6 +2657,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 			}
 			err = sqrt(err / n);
+
+			if (iter == 0){
+				err_first = err;
+			} else {
+				if (err > 10.0*err_first){
+					iter += itmax;	       /* so we can restart... */
+				}
+			}
+			
 			if (optpar && optpar->fp)
 				fprintf(optpar->fp, "iteration %d error %.6g\n", iter, err);
 
@@ -2679,46 +2692,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				}
 			}
 
-			if (0) {
-				FIXME("Stop. Not properly tested.");
-				abort();
-
-				if (iter > 0) {
-					/*
-					 * NOT PROPERLY TESTED!!!! do one step more step without touching Q and its factorisation.
-					 */
-					printf("do three extra steps\n");
-
-					for (i = 0; i < n; i++) {
-						mode[i] = lproblem->mean_constr[i];
-					}
-
-					for (j = 0; j < 1; j++) {
-						memcpy(bb, b, n * sizeof(double));
-
-//#pragma omp parallel for private(i) schedule(static)
-						for (i = 0; i < nidx; i++) {
-							int idx;
-							double bcoof;
-
-							GMRFLib_thread_id = id;
-							idx = idxs[i];
-							GMRFLib_2order_approx(&aa[idx], &bcoof, NULL, d[idx], mode[idx], idx,
-									      lproblem->mean_constr, loglFunc, loglFunc_arg, &(optpar->step_len));
-							bb[idx] += bcoof;
-						}
-						GMRFLib_thread_id = id;
-						for (i = 0; i < n; i++) {
-							bb[i] += -c[i] * mean[i];
-						}
-						GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-											  GMRFLib_KEEP_graph | GMRFLib_KEEP_constr | GMRFLib_KEEP_chol, NULL));
-						for (i = 0; i < n; i++) {
-							mode[i] = lproblem->mean_constr[i];
-						}
-					}
-				}
-			}
 			if (gsl_isnan(err))
 				break;
 
@@ -2738,6 +2711,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			/*
 			 * fail to converge. restart with a reduced step_factor. 
 			 */
+
+			memcpy(mode, mode_initial, n*sizeof(double));  /* store the starting value */
+			Free(mode_initial);
+
 			FREE_ALL;
 			optpar->nr_step_factor /= 10.0;
 			optpar->max_iter *= 2;
@@ -2753,6 +2730,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 										     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
 			}
 		}
+
+		Free(mode_initial);
+
 		if (*problem && new_idea) {
 			double *sd = Calloc(n, double), fac = 1.414, step_len, err = 0.0, f, itmax_local = 40;
 
