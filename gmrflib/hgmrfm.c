@@ -670,9 +670,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_ASSERT(n_short == idx_map_lc[0], GMRFLib_ESNH);	/* just to make sure we're doing the right thing... he he */
 		GMRFLib_ASSERT(N == n_short + nlc, GMRFLib_ESNH);
 
-		FIXME("SET_ELEMENT_FORCE_LC");
-		P(N);
-		SET_ELEMENT_FORCE_LC(N-1, N-1, 0.0);
 		for (i = 0; i < nlc; i++) {
 			GMRFLib_ASSERT(lc_precision[i] > 0.0, GMRFLib_EPARAMETER);
 			j = i + n_short;
@@ -688,15 +685,17 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			weight = lc[i]->weight;
 
 			/*
-			 * we have to do this in two steps, as some elements Qij are a sum of contributions 
+			 * we have to do this in two steps, as some elements Qij are a sum of contributions
+			 *
+			 * OOPS: the 'idxs' are already corrected for idx_map_eta!!!!
 			 */
 			for (k = 0; k < nnz; k++) {
 				j = idxs[k];
-				LC_ADDTO(n_short + i, idx_map_eta + j, -lc_precision[i] * weight[k]);	/* lc_i x_j */
-				LC_ADDTO(idx_map_eta + j, idx_map_eta + j, lc_precision[i] * SQR(weight[k]));	/* x_j^2 */
+				LC_ADDTO(n_short + i, j, -lc_precision[i] * weight[k]);	/* lc_i x_j */
+				LC_ADDTO(j, j, lc_precision[i] * SQR(weight[k]));	/* x_j^2 */
 				for (kk = k + 1; kk < nnz; kk++) {
 					jj = idxs[kk];
-					LC_ADDTO(idx_map_eta + j, idx_map_eta + jj, lc_precision[i] * weight[k] * weight[kk]);	/* x_j x_jj */
+					LC_ADDTO(j, jj, lc_precision[i] * weight[k] * weight[kk]);	/* x_j x_jj */
 				}
 			}
 		}
@@ -818,10 +817,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	arg->idx_map_lc = idx_map_lc;
 	arg->N = (*hgmrfm)->graph->n;
 
-	FIXME("FIX THIS");
-	P(nlc);
-	P(arg->N);
-	P(N);
 	GMRFLib_ASSERT(arg->N == N, GMRFLib_ESNH);
 
 	Free(uniq);
