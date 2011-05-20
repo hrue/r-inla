@@ -719,7 +719,18 @@ inla.internal.experimental.mode = FALSE
         dd = matrix(inla.read.binary.file(file=file), ncol=3L, byrow=TRUE)[,-1L, drop=FALSE]
         col.nam = c("mean","sd")
 
-        ##get quantiles if computed
+        ## info about size
+        size.info = inla.collect.size(subdir)
+        if (!is.null(size.info)) {
+            A = (size.info$nrep == 2)
+            n = size.info$n
+            nA = size.info$Ntotal - size.info$n
+        } else {
+            ## should not happen
+            stop("This should not happen")
+        }
+
+        ## get quantiles if computed
         if (length(grep("^quantiles.dat$", dir(subdir)))==1L) {
             if (debug)
                 cat("...read quantiles.dat\n")
@@ -736,7 +747,7 @@ inla.internal.experimental.mode = FALSE
                 cat("predictor: no quantiles.dat\n")
         }
 
-        ##get cdf if computed
+        ## get cdf if computed
         if (length(grep("^cdf.dat$", dir(subdir)))==1L) {
             if (debug)
                 cat("...read cdf.dat\n")
@@ -753,15 +764,24 @@ inla.internal.experimental.mode = FALSE
                 cat("... no cdf.dat\n")
         }
         
-        ##get kld
+        ## get kld
         if (debug)
             cat("...read kld\n")
         kld =  matrix(inla.read.binary.file(file=paste(subdir, .Platform$file.sep,"symmetric-kld.dat", sep="")),
-            ncol=2L, byrow=TRUE)
+                ncol=2L, byrow=TRUE)
         dd = cbind(dd, kld[, 2L, drop=FALSE])
         col.nam = c(col.nam, "kld")
         colnames(dd) = inla.namefix(col.nam)
         summary.linear.predictor = as.data.frame(dd)
+
+        if (A) {
+            rownames(summary.linear.predictor) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
+                            inla.namefix(paste("predictor.", inla.num(1:n), sep="")))
+        } else {
+            rownames(summary.linear.predictor) = inla.namefix(paste("predictor.", inla.num(1L:size.info$Ntotal), sep=""))
+        }
+
+
         
         if (return.marginals.predictor) {
             if (debug)
@@ -771,7 +791,12 @@ inla.internal.experimental.mode = FALSE
             rr = inla.interpret.vector.list(xx, debug=debug)
             rm(xx)
             if (!is.null(rr)) {
-                names(rr) = inla.namefix(paste("index.", as.character(1L:length(rr)), sep=""))
+                if (A) {
+                    names(rr) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
+                                 inla.namefix(paste("predictor.", inla.num(1L:n), sep="")))
+                } else {
+                    names(rr) = inla.namefix(paste("predictor.", as.character(1L:length(rr)), sep=""))
+                }
                 names.rr = names(rr)
                 for(i in 1L:length(rr)) {
                     colnames(rr[[i]]) = inla.namefix(c("x", "y"))
@@ -792,10 +817,7 @@ inla.internal.experimental.mode = FALSE
             marginals.linear.predictor = NULL
         }
 
-        ## info about size
-        size.info = inla.collect.size(subdir)
-    }
-    else {
+    } else {
         summary.linear.predictor = NULL
         marginals.linear.predictor = NULL
         size.info = NULL
@@ -812,7 +834,7 @@ inla.internal.experimental.mode = FALSE
             dd = matrix(inla.read.binary.file(file=file), ncol=3L, byrow=TRUE)[,-1L, drop=FALSE]
             col.nam = c("mean","sd")
 
-            ##get quantiles if computed
+            ## get quantiles if computed
             if (length(grep("^quantiles.dat$", dir(subdir)))==1L) {
                 file=paste(subdir, .Platform$file.sep,"quantiles.dat", sep="")
                 xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
@@ -823,7 +845,7 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
             }
 
-            ##get cdf if computed
+            ## get cdf if computed
             if (length(grep("^cdf.dat$", dir(subdir)))==1L) {
                 file=paste(subdir, .Platform$file.sep,"cdf.dat", sep="")
                 xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
@@ -842,7 +864,12 @@ inla.internal.experimental.mode = FALSE
                 rr = inla.interpret.vector.list(xx, debug=debug)
                 rm(xx)
                 if (!is.null(rr)) {
-                    names(rr) = inla.namefix(paste("index.", as.character(1L:length(rr)), sep=""))
+                    if (A) {
+                        names(rr) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
+                                     inla.namefix(paste("predictor.", inla.num(1:n), sep="")))
+                    } else {
+                        names(rr) = inla.namefix(paste("predictor.", inla.num(1L:length(rr)), sep=""))
+                    }
                     names.rr = names(rr)
                     for(i in 1L:length(rr)) {
                         colnames(rr[[i]]) = inla.namefix(c("x", "y"))
@@ -869,6 +896,7 @@ inla.internal.experimental.mode = FALSE
         summary.fitted.values = NULL
         marginals.fitted.values = NULL
     }
+
 
     res = list(summary.linear.predictor=summary.linear.predictor,
             marginals.linear.predictor=marginals.linear.predictor,
