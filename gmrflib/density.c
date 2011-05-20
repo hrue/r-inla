@@ -230,7 +230,7 @@ double GMRFLib_sn_logdensity_diff_alpha(double x, void *param)
 
 	return t25;
 }
-int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp *p)
+int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp * p)
 {
 	/*
 	 * compute two first moments of the sn 
@@ -484,16 +484,16 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		density->mean = density->mean_gaussian;
 		density->stdev = density->stdev_gaussian;
-		density->x_min = (float)(-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
-		density->x_max = (float)(GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+		density->x_min = (float) (-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+		density->x_max = (float) (GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
 	} else {
 		if (density->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 			/*
 			 * for the skew-normal we know the moments 
 			 */
 			GMRFLib_sn_moments(&(density->mean), &(density->stdev), (void *) density->sn_param);
-			density->x_min = (float)(-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
-			density->x_max = (float)(GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+			density->x_min = (float) (-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+			density->x_max = (float) (GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
 		} else {
 			GMRFLib_ASSERT(density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN, GMRFLib_ESNH);
 
@@ -524,7 +524,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				for (i = 0; i < npm; i++) {
 					ldm[i] -= log_integral;
 				}
-				density->log_norm_const = (float)(log_integral + ldmax);
+				density->log_norm_const = (float) (log_integral + ldmax);
 
 				m1 = xpm[0] * exp(ldm[0]) + xpm[npm - 1] * exp(ldm[npm - 1]);
 				for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
@@ -817,7 +817,7 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 		Free(_s);					\
 	}
 
-		
+
 	if (density) {
 		switch (density->type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
@@ -1113,7 +1113,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	int i, j, n_points = 15, np, np_g, np_max, nf, minp = 3;
 	double mean, stdev, mean_g, stdev_g, *x_points = NULL, *x_points_g = NULL,
-		*log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx, f[] = { 0, 0.5, -0.5, 1.0, -1.0 };
+	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx, f[] = { 0, 0.5, -0.5, 1.0, -1.0 };
 
 	GMRFLib_ENTER_ROUTINE;
 

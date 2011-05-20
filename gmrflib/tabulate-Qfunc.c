@@ -132,7 +132,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 	id = GMRFLib_thread_id;
 	mem_id = GMRFLib_meminfo_thread_id;
-	
+
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
@@ -178,7 +178,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	}
 	GMRFLib_thread_id = id;
 	GMRFLib_meminfo_thread_id = mem_id;
-	
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
@@ -289,13 +289,13 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * 
 	 */
 
-	int i, j, ii, jj, count, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off, sparse=0;
+	int i, j, ii, jj, count, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off, sparse = 0;
 	double value;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	GMRFLib_io_tp *io = NULL;
 	GMRFLib_error_handler_tp *old_handler;
 	GMRFLib_matrix_tp *M = NULL;
-	
+
 	/*
 	 * step 1. build the graph 
 	 */
@@ -312,57 +312,57 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_ged_add(ged, dim - 1, dim - 1);
 	}
 
-	if (GMRFLib_is_fmesher_file(filename, (long int)0, -1) == GMRFLib_SUCCESS) {
-		M = GMRFLib_read_fmesher_file(filename, (long int)0,  -1);
+	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
+		M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		sparse = (M->i && M->j);
-		if (!sparse){
+		if (!sparse) {
 			assert(M->ncol == 3);
 		}
-		if (sparse){
-			for(k=0; k < M->elems; k++){
+		if (sparse) {
+			for (k = 0; k < M->elems; k++) {
 				i = M->i[k];
 				j = M->j[k];
 				imin = IMIN(imin, i);
 				jmin = IMIN(jmin, j);
 			}
 		} else {
-			for(k=0; k < M->nrow; k++){
-				i = (int) M->A[ k + 0 * M->nrow ];
-				j = (int) M->A[ k + 1 * M->nrow ];
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
 				imin = IMIN(imin, i);
 				jmin = IMIN(jmin, j);
 			}
 		}
-			
+
 		GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
 		off = (IMIN(imin, jmin) == 1 ? 1 : 0);
 
-		if (sparse){
+		if (sparse) {
 			ntriples = M->elems;
-			for(k=0; k < M->elems; k++){
+			for (k = 0; k < M->elems; k++) {
 				i = M->i[k];
 				j = M->j[k];
 				value = M->values[k];
-				if (debug){
+				if (debug) {
 					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
 				}
 				GMRFLib_ged_add(ged, i - off, j - off);
 			}
 		} else {
 			ntriples = M->nrow;
-			for(k=0; k < M->nrow; k++){
-				i = (int) M->A[ k + 0 * M->nrow ];
-				j = (int) M->A[ k + 1 * M->nrow ];
-				value = M->A[ k + 2 * M->nrow ];
-				if (debug){
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
+				value = M->A[k + 2 * M->nrow];
+				if (debug) {
 					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
 				}
 				GMRFLib_ged_add(ged, i - off, j - off);
 			}
 		}
-		/* 
-		   I will free matrix M later...
-		*/
+		/*
+		 * I will free matrix M later... 
+		 */
 	} else {
 		/*
 		 * read it first to determine if this is a zero-based or one-based graph 
@@ -414,7 +414,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		}
 		GMRFLib_EWRAP0(GMRFLib_io_close(io));
 	}
-	
+
 	/*
 	 * make sure to add all nodes inbetween 
 	 */
@@ -474,11 +474,11 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * then read the file again 
 	 */
 	if (M) {
-		/* 
-		   ...or we have it already
+		/*
+		 * ...or we have it already 
 		 */
 		if (sparse) {
-			for(k=0; k < M->elems; k++) {
+			for (k = 0; k < M->elems; k++) {
 				i = M->i[k];
 				j = M->j[k];
 				value = M->values[k];
@@ -490,16 +490,16 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 					jj = IMAX(i, j);
 					CHECK_FOR_DOUBLE_SET(arg->values[ii], jj, value);
 					map_id_set(arg->values[ii], jj, value);
-					if (debug){
+					if (debug) {
 						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value);
 					}
 				}
 			}
 		} else {
-			for(k=0; k < M->nrow; k++) {
-				i = (int) M->A[ k + 0 * M->nrow ];
-				j = (int) M->A[ k + 1 * M->nrow ];
-				value = M->A[ k + 2 * M->nrow ];
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
+				value = M->A[k + 2 * M->nrow];
 
 				if (i <= j) {
 					i = i - off;
@@ -508,7 +508,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 					jj = IMAX(i, j);
 					CHECK_FOR_DOUBLE_SET(arg->values[ii], jj, value);
 					map_id_set(arg->values[ii], jj, value);
-					if (debug){
+					if (debug) {
 						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value);
 					}
 				}
@@ -537,7 +537,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	}
 
 	GMRFLib_matrix_free(M);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
