@@ -98,7 +98,7 @@ char *GMRFLib_rindex(const char *p, int ch)
 	char *save;
 	for (save = NULL;; ++p) {
 		if (*p == ch)
-			save = (char *) ((void *)p);
+			save = (char *) ((void *) p);
 		if (!*p)
 			return (save);
 	}
@@ -427,7 +427,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	void *ptr = NULL;
 	char *msg = NULL;
 
-	MEMINFO(nmemb*size);
+	MEMINFO(nmemb * size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
 	ptr = GMRFLib_calloc__(nmemb, size, file, funcname, lineno, id);
@@ -1014,7 +1014,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	if (nx <= 0 || !ix) {
 		*nuniques = 0;
-		if (uniques){
+		if (uniques) {
 			*uniques = NULL;
 		}
 		return GMRFLib_SUCCESS;
