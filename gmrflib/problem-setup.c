@@ -1217,9 +1217,9 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	}
 
 	Free(store->remap);
-	if (store->copy_ptr){
-		/* 
-		   do nothing
+	if (store->copy_ptr) {
+		/*
+		 * do nothing 
 		 */
 	} else {
 		GMRFLib_free_graph(store->sub_graph);
@@ -2298,9 +2298,9 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	int id = omp_get_thread_num();
 	GMRFLib_meminfo_thread_id = id;
 
-	if (copy_ptr == GMRFLib_TRUE){
-		/* 
-		   just copy ptr's; read only
+	if (copy_ptr == GMRFLib_TRUE) {
+		/*
+		 * just copy ptr's; read only 
 		 */
 		new_store->sub_graph = store->sub_graph;
 		new_store->symb_fact = store->symb_fact;
@@ -2313,7 +2313,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
 	Free(tmp);
-	
+
 
 	COPY(store_problems);
 	COPY(fixed_hyperparameters);

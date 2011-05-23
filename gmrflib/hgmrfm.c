@@ -504,15 +504,15 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		/* 
-		   try go get better load-balancing moving the parallell into an inner loop (NEW) instead of making the first loop parallel (OLD)
+		/*
+		 * try go get better load-balancing moving the parallell into an inner loop (NEW) instead of making the first loop parallel (OLD) 
 		 */
 		if (1) {
-			/* 
-			   NEW VERSION, parallel inner loop
-			*/
+			/*
+			 * NEW VERSION, parallel inner loop 
+			 */
 
-			//FIXME("************************NEW");
+			// FIXME("************************NEW");
 
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
 				j = j_idx[jm_idx];
@@ -543,11 +543,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 				}
 			}
 		} else {
-			/* 
-			   OLD VERSION, parallel outher loop
-			*/
+			/*
+			 * OLD VERSION, parallel outher loop 
+			 */
 
-			//FIXME("*****************OLD");
+			// FIXME("*****************OLD");
 
 #pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
