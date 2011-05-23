@@ -1000,6 +1000,7 @@ inla.mesh.project.inla.mesh.projector =
 inla.mesh.projector =
     function(mesh,
              loc=NULL,
+             lattice=NULL,
              xlim=range(mesh$loc[,1]),
              ylim=range(mesh$loc[,2]),
              dims=c(100,100),
@@ -1008,34 +1009,40 @@ inla.mesh.projector =
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     if (missing(loc) || is.null(loc)) {
+      if (missing(lattice) || is.null(lattice)) {
         if (identical(mesh$manifold, "R2")) {
-            units = "default"
-            x = seq(xlim[1], xlim[2], length.out=dims[1])
-            y = seq(ylim[1], ylim[2], length.out=dims[2])
+          units = "default"
+          x = seq(xlim[1], xlim[2], length.out=dims[1])
+          y = seq(ylim[1], ylim[2], length.out=dims[2])
         } else if (identical(mesh$manifold, "S2")) {
-            projection = match.arg(projection, c("longlat", "longsinlat"))
-            units = projection
-            if (missing(xlim) || is.null(xlim)) {
-                xlim = c(-180,180)
-            }
-            if (missing(ylim) || is.null(ylim)) {
-                ylim = c(-90,90)
-            }
-            x = seq(xlim[1], xlim[2], length.out=dims[1])
-            if (identical(projection, "longlat")) {
-                y = seq(ylim[1], ylim[2], length.out=dims[2])
-            } else {
-                y = (seq(sin(ylim[1]*pi/180),
-                         sin(ylim[2]*pi/180),
-                         length.out=dims[2]))
-            }
+          projection = match.arg(projection, c("longlat", "longsinlat"))
+          units = projection
+          if (missing(xlim) || is.null(xlim)) {
+            xlim = c(-180,180)
+          }
+          if (missing(ylim) || is.null(ylim)) {
+            ylim = c(-90,90)
+          }
+          x = seq(xlim[1], xlim[2], length.out=dims[1])
+          if (identical(projection, "longlat")) {
+            y = seq(ylim[1], ylim[2], length.out=dims[2])
+          } else {
+            y = (seq(sin(ylim[1]*pi/180),
+                     sin(ylim[2]*pi/180),
+                     length.out=dims[2]))
+          }
         }
-
+        
         lattice = (inla.mesh.lattice(x=x, y=y, units = units))
+      } else {
+        dims = lattice$dims
+        x = lattice$x
+        y = lattice$y
+      }
 
-        proj = inla.mesh.project(mesh, lattice$loc)
-        projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
-        class(projector) = "inla.mesh.projector"
+      proj = inla.mesh.project(mesh, lattice$loc)
+      projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
+      class(projector) = "inla.mesh.projector"
     } else {
         proj = inla.mesh.project(mesh, loc)
         projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
