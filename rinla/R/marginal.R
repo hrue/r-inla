@@ -373,7 +373,7 @@ plot.inla.marginal = function(x, ...)
     m = inla.emarginal(function(xx) c(xx, xx^2), x)
     xlab = paste("x (mean", format(m[1], digits=4),
             ", stdev", format(sqrt(max(0, m[2]-m[1]^2)), digits=4), ")")
-    plot(inla.smarginal(x, extrapolate=0), type = "l", xlab = xlab, ylab = "marginal density", main = attr(x, "inla.tag"), ...)
+    plot(inla.smarginal(x, extrapolate=0), type = "l", xlab = xlab, ylab = "marginal density", ...)
 
     return (invisible())
 }
@@ -384,7 +384,7 @@ summary.inla.marginal = function(x, silent=FALSE, ...)
     s = sqrt(max(0, m[2]-m[1]^2))
 
     if (!silent) {
-        cat("Properties of: ", attr(x, "inla.tag"), "\n")
+        cat("Properties of: ", "FIXME", "\n")
         cat("+--------------+------------------\n")
         cat("Mean           ", format(m[1], digits=6), "\n")
         cat("Stdev          ", format(s, digits=6), "\n")
@@ -420,7 +420,7 @@ plot.inla.marginals = function(x, ...)
         xval = 1:n
 
         plot(xval, rep(ylim[2]*1000, n),
-             ylim = ylim, main = attr(x, "inla.tag"),
+             ylim = ylim, main = "FIXME", 
              xlab = "x", ylab = inla.paste(lab, sep=", "), ...)
     
         polygon(c(xval, rev(xval)), c(xx[lab[3], ], rev(xx[lab[4], ])), col="lightgray", border=NA, ...)
