@@ -1,7 +1,7 @@
 #!/usr/bin/env.exe bash.exe
 
 CYGWIN=1
-HGVERSION="hgid: 2ce57d376729  date: Sat Apr 23 08:29:48 2011 +0200"
+HGVERSION="hgid: b647cf5d034b  date: Sun May 29 13:45:40 2011 +0200"
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -39,6 +39,7 @@ fi
 RemoteINLA="/usr/local/bin/inla"
 RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
+Port=22
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
 
 if [ -r "$INIFILE" ]; then
@@ -87,7 +88,7 @@ function kill_inla_remote
 	rm -f "$tarfile_to"
     fi
     prog=${RemoteINLA##*/}
-	ssh $sshArguments $RemoteUser@$RemoteHost "\
+	ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
 	    rm -rf $rdir; \
 	    pkill -u $USER $prog; \
 	    sleep 3; \
@@ -99,7 +100,7 @@ trap kill_inla_remote SIGINT SIGTERM
 ## long jobs the pipe gets terminated.
 cd $dir > /dev/null
 
-tar cfm$compress_put - . | ssh $sshArguments $RemoteUser@$RemoteHost "\
+tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     tar xfm$compress_put - ; \
@@ -121,14 +122,14 @@ fi
 ## Cygwin/Windows, so we divide the code here...
 if [ $CYGWIN == 0 ]; then
     ## Linux and Mac
-    ssh $sshArguments $RemoteUser@$RemoteHost "\
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
 else
     ## Cygwin/Windows
     tarfile=results$RANDOM$RANDOM.tar
-    ssh $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
     tarfile_to=$(mktemp).tar
-    scp -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
+    scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
     tar xfm "$tarfile_to"
     rm -f "$tarfile_to"
 fi
