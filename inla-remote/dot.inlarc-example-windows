@@ -13,3 +13,6 @@
 
 ### Arguments to ssh. Usually no need to change this
 #sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
+
+### Port number
+#Port=22
