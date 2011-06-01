@@ -438,6 +438,10 @@
                    c("hrue"))) {
         dir.default = "~/p/inla/google-code/inla/rinla/R"
         bin.default = "/usr/local/bin"
+    } else if (is.element(Sys.getenv("USER"),
+                          c("rieblera", "ariebler"))) {
+        dir.default = "~/inla/rinla/R"
+        bin.default = "~/local/bin"
     } else {
         dir.default = "~/hg/inla/rinla/R"
         bin.default = "~/local/bin"
