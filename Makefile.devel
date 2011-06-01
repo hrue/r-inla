@@ -1,0 +1,60 @@
+#!/usr/bin/make -f
+##
+##  Helper Makefile for local testing of the inla and fmesher programs
+##  To compile and locally install inla and fmesher, run
+##    make -f Makefile.devel
+##
+##  TODO: add targets for taucs and other special libraries.
+##  Current version assumes they are installed and available.
+##
+##  In R, run
+##    inla.my.update(binaries=TRUE)
+##
+##  To change the PREFIX for a given user, add an "ifeq" like
+##  the examples for "finn" and "finnkrl".
+##  The default PREFIX is $(HOME)/local
+##  The default matches the default in inla.my.update
+##
+##  Note:  For faster access, do
+##    chmod a+x Makefile.devel
+##  which enables you to use the shortcut
+##    ./Makefile.devel
+
+## Setup paths:
+
+USERNAME = $(shell whoami)
+## Set PREFIX path, may be different for each user
+## /home/username/local is a good default
+ifeq ($(USERNAME),finn)
+  PREFIX = $(HOME)/local
+endif
+ifeq ($(USERNAME),finnkrl)
+  PREFIX = $(HOME)/local
+endif
+## otherwise use default directory.
+PREFIX ?= $(HOME)/local
+
+## Do the work:
+
+all: gmrflib inla fmesher
+
+## TODO: add proper calls to compile taucs
+##taucs:
+##	make -f build-configs/linux/Makefile taucs
+
+gmrflib:
+	make -C gmrflib clean
+	make -C gmrflib PREFIX=$(PREFIX)
+	make -C gmrflib PREFIX=$(PREFIX) install
+
+inla:
+	make -C inlaprog clean
+	make -C inlaprog PREFIX=$(PREFIX)
+	make -C inlaprog PREFIX=$(PREFIX) install
+
+fmesher:
+	make -C fmesher clean
+	make -C fmesher PREFIX=$(PREFIX)
+	make -C fmesher PREFIX=$(PREFIX) install
+
+.PHONY: gmrflib inla fmesher all
