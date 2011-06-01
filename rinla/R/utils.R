@@ -427,14 +427,45 @@
         stop("This function is for developers only.")
     return (invisible())
 }
-`inla.my.update` = function(dir = "~/p/inla/google-code/inla/rinla/R")
+`inla.my.update` = function(dir, binaries=FALSE)
 {
+    ##  Set binaries=TRUE to set the inla.call and fmesher.call options
+    ##  To override the default binaries path, set binaries="/the/path/bin"
+
     inla.only.for.developers()
+
+    if (is.element(Sys.getenv("USER"),
+                   c("hrue"))) {
+        dir.default = "~/p/inla/google-code/inla/rinla/R"
+        bin.default = "/usr/local/bin"
+    } else {
+        dir.default = "~/hg/inla/rinla/R"
+        bin.default = "~/local/bin"
+    }
+    if (!missing(binaries)) {
+        if (is.character(binaries)) {
+            bin.default = binaries
+        }
+        binaries = TRUE
+    } else {
+        binaries = FALSE
+    }
+    if (missing(dir)) {
+        dir = path.expand(dir.default)
+    }
+    if (binaries) {
+        bin.path = path.expand(bin.default)
+    }
 
     files = dir(dir, pattern = "[.][Rr]$")
     for (f in files)
         source(paste(dir, "/", f, sep=""))
     cat("Source in ", dir, " loaded (", length(files), " files)\n", sep="")
+
+    if (binaries) {
+        inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
+        inla.setOption("fmesher.call", paste(bin.path, "/", "fmesher", sep=""))
+    }
 
     return (invisible())
 }
