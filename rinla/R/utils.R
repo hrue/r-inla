@@ -434,10 +434,9 @@
 
     inla.only.for.developers()
 
-    if (is.element(Sys.getenv("USER"),
-                   c("hrue"))) {
+    if (is.element(Sys.getenv("USER"), c("hrue"))) {
         dir.default = "~/p/inla/google-code/inla/rinla/R"
-        bin.default = "/usr/local/bin"
+        bin.default = "~/p/inla/work/local/bin"
     } else {
         dir.default = "~/hg/inla/rinla/R"
         bin.default = "~/local/bin"
