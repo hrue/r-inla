@@ -685,23 +685,19 @@
     if (!is.matrix(random.spec$Z)) {
         stop("Argument Z in model=[z]has to be a matrix.")
     }
-    n = dim(random.spec$Z)[1]
-    m = dim(random.spec$Z)[2]
-    ind = 0:(n-1)
+    n = dim(random.spec$Z)[1L]
+    m = dim(random.spec$Z)[2L]
+    ind = 0L:(n-1L)
     
-    for(k in 1:m) {
+    for(k in 1L:m) {
         kk = k + k.off
         cat("[", label,".", k, "]\n", sep = "", file = file,  append = TRUE)
         cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
         cat("dir = ", "random.effect", inla.num(kk), "\n", sep = "", file = file, append = TRUE)
         cat("model = ", inla.ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
         cat("n = 1\n", file=file, append = TRUE)
-        if (k == 1) {
-            if (!is.null(random.spec$param)) {
-                cat("parameters = ", random.spec$param[1]," ", random.spec$param[2],"\n", sep = " ", file = file,
-                    append = TRUE)
-            }
-            cat("prior = ", random.spec$prior.logprec,"\n", sep = " ", file = file,  append = TRUE)
+        if (k == 1L) {
+            inla.write.hyper(random.spec$hyper, file)
         }
 
         file.cov=inla.tempfile(tmpdir=data.dir)
