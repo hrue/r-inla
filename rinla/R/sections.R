@@ -20,6 +20,10 @@
         cat(prefix, "fixed",      suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
         cat(prefix, "prior",      suff, " = ", hyper[[k]]$prior, "\n", file = file, append = TRUE, sep="")
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
+
+        ## add support for this later
+        ##cat(prefix, "to.theta",   suff, " = ", attr(hyper[[k]]$to.theta, "source"), "\n", file = file, append = TRUE, sep="")
+        ##cat(prefix, "from.theta", suff, " = ", attr(hyper[[k]]$from.theta, "source"), "\n", file = file, append = TRUE, sep="")
     }
 
     return ()

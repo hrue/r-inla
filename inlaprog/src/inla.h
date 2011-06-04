@@ -298,6 +298,8 @@ typedef struct {
 	inla_component_tp id;				       /* prior Id */
 	char *name;					       /* name of prior */
 	double *parameters;				       /* the parameters */
+	//char *to_theta;					       /* R-code */
+	//char *from_theta;				       /* R-code */
 	inla_priorfunc_tp *priorfunc;			       /* priorfunction */
 	inla_priorfunc2_tp *priorfunc2;			       /* priorfunction2 */
 } Prior_tp;
