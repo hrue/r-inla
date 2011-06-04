@@ -33,6 +33,10 @@
 static const char RCSId[] = HGVERSION;
 
 #if defined(__sun__)
+#if defined(__sun__)
+#include <stdlib.h>
+#endif
+#include <float.h>
 #include <stdlib.h>
 #endif
 #if defined(__FreeBSD__)
