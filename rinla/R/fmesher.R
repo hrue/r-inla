@@ -1550,3 +1550,30 @@ inla.spde.query = function(spde, ...)
 ##inla.spde.create(mesh, model=list("imatern"), ...)
 
 
+require(sp)
+
+inla.sp2segment = function(...)
+{
+    UseMethod("inla.sp2segment")
+}
+
+inla.sp2segment.SpatialPolygons =
+    function(sp, ...)
+{
+    segm = list()
+    for (k in 1:length(sp@polygons))
+        segm = c(segm, inla.sp2segment(sp@polygons[[k]]))
+    return(segm)
+}
+
+inla.sp2segment.Polygons =
+    function(sp, ...)
+{
+    return(as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x))))
+}
+
+inla.sp2segment.Polygon =
+    function(sp, ...)
+{
+    return(inla.mesh.segment(loc=sp@coords))
+}
