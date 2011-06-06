@@ -71,6 +71,20 @@
                 stop("One of more of the nodes are (x[-2]) outside the legal range: [1, ...,", N, "]\n")
             }
         }
+        if (x[2L] > 0L) {
+            check = all(x[1L] != x[-c(1L, 2L)])
+            if (!check) {
+                cat("\n*** ERROR IN THIS LINE: x = ", x, "\n")
+                stop("Node is defined as neighbour to itsef!")
+            }
+        }
+        if (x[2L] > 0L) {
+            check = (length(x) == length(unique(x[-c(1L, 2L)])) + 2L)
+            if (!check) {
+                cat("\n*** ERROR IN THIS LINE: x = ", x, "\n")
+                stop("Some of the neighbours are duplicated!")
+            }
+        }
         cat("  ok\n")
     }
 
