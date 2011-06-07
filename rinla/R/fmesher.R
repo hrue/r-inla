@@ -1575,5 +1575,17 @@ inla.sp2segment.Polygons =
 inla.sp2segment.Polygon =
     function(sp, ...)
 {
-    return(inla.mesh.segment(loc=sp@coords))
+    loc = sp@coords[-dim(sp@coords)[1L],,drop=FALSE]
+    n = dim(loc)[1L]
+    if (sp@hole)
+        if (sp@ringDir==1)
+            idx = c(1L:n,1L)
+        else
+            idx = c(1L,seq(n,1L,length.out=n))
+    else
+        if (sp@ringDir==1)
+            idx = c(1L,seq(n,1L,length.out=n))
+        else
+            idx = c(1L:n,1L)
+    return(inla.mesh.segment(loc=loc, idx=idx, is.bnd=TRUE))
 }
