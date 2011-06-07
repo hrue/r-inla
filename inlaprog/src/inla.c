@@ -31,11 +31,8 @@
 #define HGVERSION
 #endif
 static const char RCSId[] = HGVERSION;
+
 #if defined(__sun__)
-#if defined(__sun__)
-#include <stdlib.h>
-#endif
-#include <float.h>
 #include <stdlib.h>
 #endif
 #if defined(__FreeBSD__)
@@ -44,6 +41,7 @@ static const char RCSId[] = HGVERSION;
 #if defined(__linux__)
 #include <getopt.h>
 #endif
+#include <float.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
