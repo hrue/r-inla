@@ -1078,8 +1078,8 @@
                                                 fixed = FALSE,
                                                 prior = "normal",
                                                 param = c(0, 0.2),
-                                                to.theta = function(x, ngroup=2) log((1+x*(ngroup-1))/(1-x)), 
-                                                from.theta = function(x, ngroup=2) (exp(x)-1)/(exp(x) + ngroup -1)
+                                                to.theta = function(x, ngroup) log((1+x*(ngroup-1))/(1-x)), 
+                                                from.theta = function(x, ngroup) (exp(x)-1)/(exp(x) + ngroup -1)
                                                 )
                                         )
                                 ),

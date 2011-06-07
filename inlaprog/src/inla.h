@@ -298,8 +298,8 @@ typedef struct {
 	inla_component_tp id;				       /* prior Id */
 	char *name;					       /* name of prior */
 	double *parameters;				       /* the parameters */
-	//char *to_theta;					       /* R-code */
-	//char *from_theta;				       /* R-code */
+	char *to_theta;					       /* R-code */
+	char *from_theta;				       /* R-code */
 	inla_priorfunc_tp *priorfunc;			       /* priorfunction */
 	inla_priorfunc2_tp *priorfunc2;			       /* priorfunction2 */
 } Prior_tp;
@@ -550,6 +550,8 @@ struct inla_tp_struct {
 	char **theta_tag;
 	char **theta_tag_userscale;
 	char **theta_dir;
+	char **theta_from;
+	char **theta_to;
 	map_func_tp **theta_map;
 	void **theta_map_arg;
 	int *off_compute;
@@ -853,7 +855,7 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, int verbose);
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, int verbose);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
@@ -880,7 +882,8 @@ int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *default_prior);
+int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
+			    const char *from_theta, const char *to_theta, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);

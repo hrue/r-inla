@@ -24,6 +24,24 @@ inla.internal.experimental.mode = FALSE
     } else {
         tags = NULL
     }
+
+    fnm = paste(d, "/theta-from", sep="")
+    if (file.exists(fnm)) {
+        theta.from = readLines(fnm)
+        ## evaluate these as functions
+        theta.from = lapply(theta.from, function(x) eval(parse(text=x)))
+    } else {
+        theta.from = NULL
+    }
+
+    fnm = paste(d, "/theta-to", sep="")
+    if (file.exists(fnm)) {
+        theta.to = readLines(fnm)
+        ## evaluate these as functions
+        theta.to = lapply(theta.to, function(x) eval(parse(text=x)))
+    } else {
+        theta.to = NULL
+    }
         
     fnm = paste(d, "/covmat-hyper-internal.dat", sep="")
     if (file.exists(fnm)) {
@@ -67,7 +85,8 @@ inla.internal.experimental.mode = FALSE
         print(paste("collect misc from", d, "...done"))
 
     return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r, theta.tags = tags,
-                 stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive))
+                 stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
+                 to.theta = theta.to, from.theta = theta.from))
 }
 
 `inla.collect.size` = function(dir, debug = FALSE)
