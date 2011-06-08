@@ -3504,7 +3504,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			(*misc_output)->eigenvalues = Calloc(nhyper, double);
 			for(i = 0; i < nhyper; i++){
-				(*misc_output)->eigenvalues[i] = gsl_vector_get(eigen_values, i);
+				(*misc_output)->eigenvalues[i] = 1.0/gsl_vector_get(eigen_values, i); /* need the eigenvalues of the cov.mat not hessian */
 			}
 			(*misc_output)->eigenvectors = Calloc(ISQR(nhyper), double);
 			for(i = 0; i < nhyper; i++){
@@ -3577,8 +3577,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * compute the corrected scalings/stdevs, if required. 
 		 */
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD
-		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper && ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD)) {
-
+		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper && ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD)
+		    // as the scalings are used for the inla.sample.hyper() function..
+		    || 1) {
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper);
 
 			stdev_corr_pos = Calloc(nhyper, double);
