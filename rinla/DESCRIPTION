@@ -7,7 +7,7 @@ Author: Havard Rue and Sara Martino
 Maintainer: Havard Rue <hrue@math.ntnu.no>
 Description: This package contains functions which allow to perform a full Bayesian analysis of structured additive models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
 Depends: Matrix
-Suggests: pixmap, mvtnorm, fields, numDeriv
+Suggests: pixmap, mvtnorm, fields, numDeriv, sp
 License: GPL
 LazyLoad: no
 Packaged: The package data is given using 'inla.version()'
