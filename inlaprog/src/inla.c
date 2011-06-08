@@ -13482,6 +13482,49 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	fclose(fp);
 	Free(nndir);
 
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvectors.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	if (G.binary) {
+		DW(mo->nhyper);
+		for (i = 0; i < ISQR(mo->nhyper); i++) {
+			DW(mo->eigenvectors[i]);
+		}
+	} else {
+		fprintf(fp, "%d\n", mo->nhyper);
+		for (i = 0; i < mo->nhyper; i++) {
+			for (j = 0; j < mo->nhyper; j++) {
+				fprintf(fp, " %.12g", mo->eigenvectors[i + j * mo->nhyper]);
+			}
+			fprintf(fp, "\n");
+		}
+	}
+	fclose(fp);
+	Free(nndir);
+
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvalues.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	if (G.binary) {
+		DW(mo->nhyper);
+		for (i = 0; i < mo->nhyper; i++) {
+			DW(mo->eigenvalues[i]);
+		}
+	} else {
+		fprintf(fp, "%d\n", mo->nhyper);
+		for (i = 0; i < mo->nhyper; i++) {
+			fprintf(fp, " %.12g\n", mo->eigenvalues[i]);
+		}
+	}
+	fclose(fp);
+	Free(nndir);
+
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "reordering.dat");
 	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
