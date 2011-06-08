@@ -685,6 +685,11 @@ typedef struct
 	int nhyper;
 	double *cov_m;
 
+	double *eigenvalues;				       /*  Need also the eigen-stuff as the corrections depends on the sign of the eigenvectors. */
+	double *eigenvectors;
+	double *stdev_corr_pos;
+	double *stdev_corr_neg;
+
 	/*
 	 * [0] is the preparation in INLA
 	 * [1] is the optimisation
@@ -697,8 +702,6 @@ typedef struct
 	int len_reordering;
 	int *reordering;
 
-	double *stdev_corr_pos;
-	double *stdev_corr_neg;
 }
 	GMRFLib_ai_misc_output_tp;
 

@@ -3498,6 +3498,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			(*misc_output)->nhyper = nhyper;
 			(*misc_output)->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy((*misc_output)->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
+
+			/* 
+			   I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...).
+			 */
+			(*misc_output)->eigenvalues = Calloc(nhyper, double);
+			for(i = 0; i < nhyper; i++){
+				(*misc_output)->eigenvalues[i] = gsl_vector_get(eigen_values, i);
+			}
+			(*misc_output)->eigenvectors = Calloc(ISQR(nhyper), double);
+			for(i = 0; i < nhyper; i++){
+				for(j = 0; j < nhyper; j++){
+					(*misc_output)->eigenvectors[i + j * nhyper] = gsl_matrix_get(eigen_vectors, i, j);
+				}
+			}
 		}
 
 		if (ai_par->fp_log) {

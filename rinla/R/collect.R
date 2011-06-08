@@ -30,6 +30,9 @@ inla.internal.experimental.mode = FALSE
         theta.from = readLines(fnm)
         ## evaluate these as functions
         theta.from = lapply(theta.from, function(x) eval(parse(text=x)))
+        if (!is.null(tags)) {
+            names(theta.from) = tags
+        }
     } else {
         theta.from = NULL
     }
@@ -39,6 +42,9 @@ inla.internal.experimental.mode = FALSE
         theta.to = readLines(fnm)
         ## evaluate these as functions
         theta.to = lapply(theta.to, function(x) eval(parse(text=x)))
+        if (!is.null(tags)) {
+            names(theta.to) = tags
+        }
     } else {
         theta.to = NULL
     }
@@ -58,6 +64,26 @@ inla.internal.experimental.mode = FALSE
     } else {
         cov.intern = NULL
         cor.intern = NULL
+    }
+
+    fnm = paste(d, "/covmat-eigenvectors.dat", sep="")
+    if (file.exists(fnm)) {
+        siz = inla.read.binary.file(fnm)
+        n = siz[1L]
+        stopifnot(length(siz) == n^2L + 1L)
+        cov.intern.eigenvectors = matrix(siz[-1L], n, n)
+    } else {
+        cov.intern.eigenvectors = NULL
+    }
+
+    fnm = paste(d, "/covmat-eigenvalues.dat", sep="")
+    if (file.exists(fnm)) {
+        siz = inla.read.binary.file(fnm)
+        n = siz[1L]
+        stopifnot(length(siz) == n + 1L)
+        cov.intern.eigenvalues = siz[-1L]
+    } else {
+        cov.intern.eigenvalues = NULL
     }
 
     fnm = paste(d, "/reordering.dat", sep="")
@@ -84,7 +110,9 @@ inla.internal.experimental.mode = FALSE
     if (debug)
         print(paste("collect misc from", d, "...done"))
 
-    return (list(cov.intern = cov.intern, cor.intern = cor.intern, reordering = r, theta.tags = tags,
+    return (list(cov.intern = cov.intern, cor.intern = cor.intern,
+                 cov.intern.eigenvalues = cov.intern.eigenvalues, cov.intern.eigenvectors = cov.intern.eigenvectors, 
+                 reordering = r, theta.tags = tags,
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
                  to.theta = theta.to, from.theta = theta.from))
 }
