@@ -12,11 +12,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -105,8 +105,7 @@ int taucs_ccs_solve_ldlt(void *L, void *x, void *b);
 int taucs_dtl(ccs_solve_ldlt) (void *L, taucs_datatype * x, taucs_datatype * b);
 int taucs_ccs_solve_schur(taucs_ccs_matrix * L,
 			  taucs_ccs_matrix * schur_comp,
-			  int (*schur_precond_fn) (void *, void *x, void *b),
-			  void *schur_precond_args, int maxits, double convratio, void *x, void *b);
+			  int (*schur_precond_fn) (void *, void *x, void *b), void *schur_precond_args, int maxits, double convratio, void *x, void *b);
 int taucs_dtl(ccs_solve_schur) (taucs_ccs_matrix * L,
 				taucs_ccs_matrix * schur_comp,
 				int (*schur_precond_fn) (void *, taucs_datatype * x, taucs_datatype * b),
@@ -126,11 +125,9 @@ taucs_ccs_matrix *taucs_ccs_generate_discontinuous(int X, int Y, int Z, double j
 double *taucs_vec_generate_continuous(int X, int Y, int Z, char *which);
 
 int taucs_conjugate_gradients(taucs_ccs_matrix * A,
-			      int (*precond_fn) (void *, void *x, void *b),
-			      void *precond_args, double *X, double *B, int itermax, double convergetol);
+			      int (*precond_fn) (void *, void *x, void *b), void *precond_args, double *X, double *B, int itermax, double convergetol);
 
-int taucs_minres(taucs_ccs_matrix * A,
-		 int (*precond_fn) (void *, void *x, void *b), void *precond_args, double *X, double *B, int itermax, double convergetol);
+int taucs_minres(taucs_ccs_matrix * A, int (*precond_fn) (void *, void *x, void *b), void *precond_args, double *X, double *B, int itermax, double convergetol);
 
 int taucs_sg_preconditioner_solve(void *P, double *z, double *r);
 
@@ -140,9 +137,7 @@ void taucs_sg_preconditioner_free(void *P);
 taucs_ccs_matrix *taucs_amwb_preconditioner_create(taucs_ccs_matrix * symccs_mtxA, int rnd, double subgraphs);
 
 void *taucs_recursive_amwb_preconditioner_create(taucs_ccs_matrix * A,
-						 double c,
-						 double epsilon,
-						 int nsmall, int maxlevels, int innerits, double convratio, int **perm, int **invperm);
+						 double c, double epsilon, int nsmall, int maxlevels, int innerits, double convratio, int **perm, int **invperm);
 
 int taucs_recursive_amwb_preconditioner_solve(void *P, void *Z, void *R);
 

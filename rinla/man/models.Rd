@@ -460,6 +460,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
 							}
 						}
 					 }
@@ -532,6 +534,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -542,6 +546,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x }'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -552,6 +558,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x }'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -562,6 +570,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
 							}
 						}
 					 }

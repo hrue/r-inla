@@ -600,7 +600,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 }
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id;
+	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
 	id = GMRFLib_thread_id;
@@ -667,6 +667,12 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	}
 	GMRFLib_thread_id = id;
 	Free(ic_idx);
+
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
+		}
+	}
 #else
 	for (i = 0, ic = 0; i < n; i++) {
 		double val;
@@ -695,6 +701,11 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			ne++;
 		}
 		Q->colptr[i + 1] = Q->colptr[i] + ne;
+	}
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
+		}
 	}
 #endif
 	iperm = remap;					       /* yes, this is correct */
@@ -755,7 +766,13 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	if (retval) {
-		GMRFLib_ERROR(GMRFLib_EPOSDEF);
+		if (GMRFLib_catch_error_for_inla) {
+			fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q...\n",
+				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+			return !GMRFLib_SUCCESS;
+		} else {
+			GMRFLib_ERROR(GMRFLib_EPOSDEF);
+		}
 	}
 	taucs_ccs_free(*L);
 

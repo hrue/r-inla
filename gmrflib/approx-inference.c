@@ -2528,6 +2528,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	int cc_is_negative = 0;
 	double cc_factor = 0.1;
 	double cc_factor_mult = 1.2;
+	int catch_error = 0;
 
 	GMRFLib_problem_tp *lproblem = NULL;
 	double *mode_initial = Calloc(n, double);
@@ -2579,14 +2580,28 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * it will always be lproblem = NULL 
 		 */
 		if (!lproblem) {
-			GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-								  GMRFLib_NEW_PROBLEM, store));
+			if (GMRFLib_catch_error_for_inla) {
+				int ret;
+				ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+								 GMRFLib_NEW_PROBLEM, store);
+				if (ret != GMRFLib_SUCCESS) {
+					catch_error = 1;
+				}
+			} else {
+				GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+									  GMRFLib_NEW_PROBLEM, store));
+			}
 		} else {
 			/*
 			 * store could be NULL here I presume...? 
 			 */
 			GMRFLib_EWRAP1(GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
 								  GMRFLib_KEEP_graph, store));
+		}
+
+		if (catch_error) {
+			lproblem = NULL;
+			break;
 		}
 
 		double err = 0.0, f;
@@ -2638,7 +2653,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
-
 	}
 
 	if (iter < itmax) {
@@ -3499,16 +3513,16 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			(*misc_output)->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy((*misc_output)->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
 
-			/* 
-			   I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...).
+			/*
+			 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
 			 */
 			(*misc_output)->eigenvalues = Calloc(nhyper, double);
-			for(i = 0; i < nhyper; i++){
-				(*misc_output)->eigenvalues[i] = 1.0/gsl_vector_get(eigen_values, i); /* need the eigenvalues of the cov.mat not hessian */
+			for (i = 0; i < nhyper; i++) {
+				(*misc_output)->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not hessian */
 			}
 			(*misc_output)->eigenvectors = Calloc(ISQR(nhyper), double);
-			for(i = 0; i < nhyper; i++){
-				for(j = 0; j < nhyper; j++){
+			for (i = 0; i < nhyper; i++) {
+				for (j = 0; j < nhyper; j++) {
 					(*misc_output)->eigenvectors[i + j * nhyper] = gsl_matrix_get(eigen_vectors, i, j);
 				}
 			}
