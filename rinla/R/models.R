@@ -436,7 +436,9 @@
                                                 initial = 2,
                                                 fixed = FALSE,
                                                 prior = "normal",
-                                                param = c(0, 1)
+                                                param = c(0, 1),
+                                                to.theta = function(x) x, 
+                                                from.theta = function(x) x
                                                 ),
                                         theta2 = list(
                                                 name = "theta.K",
@@ -444,7 +446,9 @@
                                                 initial = -2,
                                                 fixed = FALSE,
                                                 prior = "normal",
-                                                param = c(0, 1)
+                                                param = c(0, 1), 
+                                                to.theta = function(x) x, 
+                                                from.theta = function(x) x 
                                                 ), 
                                         theta3 = list(
                                                 name = "theta.KT",
@@ -452,7 +456,9 @@
                                                 initial = 0,
                                                 fixed = FALSE,
                                                 prior = "normal",
-                                                param = c(0, 1)
+                                                param = c(0, 1), 
+                                                to.theta = function(x) x, 
+                                                from.theta = function(x) x 
                                                 ), 
                                         theta4 = list(
                                                 name = "theta.OC",
@@ -460,7 +466,9 @@
                                                 initial = -20,
                                                 fixed = TRUE,
                                                 prior = "normal",
-                                                param = c(0, 0.2)
+                                                param = c(0, 0.2),
+                                                to.theta = function(x) log(x/(1-x)), 
+                                                from.theta = function(x) exp(x)/(1+exp(x))
                                                 )
                                         ),
                                 constr = FALSE,
