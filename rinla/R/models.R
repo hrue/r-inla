@@ -377,7 +377,9 @@
                                                 initial = 2,
                                                 fixed = FALSE,
                                                 prior = "gaussian",
-                                                param = c(0, 0.1)
+                                                param = c(0, 0.1), 
+                                                to.theta = function(x) log(x/(1-x)), 
+                                                from.theta = function(x) exp(x)/(1+exp(x))
                                                 )
                                         ), 
                                 constr = FALSE,
