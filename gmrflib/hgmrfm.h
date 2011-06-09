@@ -41,11 +41,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -53,8 +53,7 @@ __BEGIN_DECLS
 /* 
  * 
  */
-
-typedef struct {
+    typedef struct {
 	int n;						       /* length of the linear predictor */
 	int n_ext;					       /* length of the extended part of the linear predictor */
 	int N;						       /* grand total */
@@ -126,15 +125,14 @@ typedef struct {
 	int tp_idx;
 } GMRFLib_hgmrfm_type_tp;
 
-int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext, 
+int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
-			const char *Aext_fnm, double Aext_precision, 
+			const char *Aext_fnm, double Aext_precision,
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp **lc, double *lc_precision,
-	                GMRFLib_ai_param_tp *ai_par);
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision, GMRFLib_ai_param_tp * ai_par);
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a);
 double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg);
 int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm);

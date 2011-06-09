@@ -47,11 +47,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -193,14 +193,14 @@ int GMRFLib_sort_nodes(GMRFLib_graph_tp * graph);
 int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
 int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph);
-int GMRFLib_write_graph_2(FILE *fp, GMRFLib_graph_tp *graph);
+int GMRFLib_write_graph_2(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph);
 
-int *GMRFLib_connected_components(GMRFLib_graph_tp *g);
-int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp *g, int *cc, char *visited, int *ccc);
+int *GMRFLib_connected_components(GMRFLib_graph_tp * g);
+int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 
 __END_DECLS
 #endif

@@ -48,23 +48,20 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-
-typedef struct
-{
+    typedef struct {
 	size_t n;
 	size_t bytes;
-}
-	GMRFLib_meminfo_tp;
+} GMRFLib_meminfo_tp;
 
 /*
  */
@@ -90,7 +87,7 @@ int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_imax_value(int *x, int n);
 int GMRFLib_imin_value(int *x, int n);
 int GMRFLib_is_int(char *str, int *value);
-int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix,  int nx);
+int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);

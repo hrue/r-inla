@@ -521,9 +521,30 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			(*problem)->sub_sm_fact.symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->symb_fact);
 		}
 
-		GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
-							   (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph));
-		GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph));
+		if (GMRFLib_catch_error_for_inla) {
+			/*
+			 * special version for INLA 
+			 */
+			int ret;
+			ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
+							  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+
+			ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+
+		} else {
+			/*
+			 * plain version 
+			 */
+			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
+								   (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph));
+			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph));
+		}
 
 		if (store_store_symb_fact) {
 			store->symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate((*problem)->sub_sm_fact.symb_fact);

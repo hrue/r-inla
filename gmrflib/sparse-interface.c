@@ -122,16 +122,31 @@ int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
 int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph)
 {
 	GMRFLib_ENTER_ROUTINE;
+	int ret;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth));
+		if (GMRFLib_catch_error_for_inla) {
+			ret = GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+		} else {
+			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth));
+		}
 		break;
 	case GMRFLib_SMTP_PROFILE:
 		GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_PROFILE());
 		break;
 	case GMRFLib_SMTP_TAUCS:
-		GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->L), Qfunc, Qfunc_arg, graph, sm_fact->remap));
+		if (GMRFLib_catch_error_for_inla) {
+			ret = GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+		} else {
+			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->L), Qfunc, Qfunc_arg, graph, sm_fact->remap));
+		}
 		break;
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
@@ -147,17 +162,32 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 */
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
 {
+	int ret;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth));
+		if (GMRFLib_catch_error_for_inla) {
+			ret = GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth);
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+		} else {
+			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth));
+		}
 		break;
 	case GMRFLib_SMTP_PROFILE:
 		GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_PROFILE());
 		break;
 	case GMRFLib_SMTP_TAUCS:
-		GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->L), &(sm_fact->symb_fact), &(sm_fact->finfo), &(sm_fact->L_inv_diag)));
+		if (GMRFLib_catch_error_for_inla) {
+			ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->L), &(sm_fact->symb_fact), &(sm_fact->finfo), &(sm_fact->L_inv_diag));
+			if (ret != GMRFLib_SUCCESS) {
+				return ret;
+			}
+		} else {
+			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->L), &(sm_fact->symb_fact), &(sm_fact->finfo), &(sm_fact->L_inv_diag)));
+		}
 		break;
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);

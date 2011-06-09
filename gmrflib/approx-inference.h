@@ -48,11 +48,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -204,15 +204,13 @@ typedef enum {
 /**
  * \brief SI: Which idices to dump type
  */
-typedef struct
-{
+typedef struct {
 	int nd;
 	int *start;
 	int *len;
 	char **tag;
-}
-	GMRFLib_ai_si_tp;
-	
+} GMRFLib_ai_si_tp;
+
 
 
 
@@ -280,7 +278,7 @@ typedef struct {
 	 * \brief Which indexes to dump
 	 */
 	GMRFLib_ai_si_tp *si_idx;
-	
+
 	/**
 	 * \brief  The integration strategy.
 	 */
@@ -421,7 +419,7 @@ typedef struct {
 	/**
 	 * \brief Step factor for the Newton Raphson algorithm: nr_step_factor
 	 */
-	double optpar_nr_step_factor; 
+	double optpar_nr_step_factor;
 
 	/**
 	 * \brief A flag to say that the initial values of the hyperparameters, are the known mode
@@ -581,17 +579,17 @@ typedef struct {
 	 * \brief The length of the E(Deviance) contribution
 	 */
 	int n_deviance;
-	
+
 	/**
 	 * \brief The E(deviance) contribution
 	 */
 	double *e_deviance;
-	
+
 	/**
 	 * \brief The deviance(E) contribution
 	 */
 	double *deviance_e;
-	 
+
 
 } GMRFLib_ai_dic_tp;
 
@@ -680,12 +678,11 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
-typedef struct 
-{
+typedef struct {
 	int nhyper;
 	double *cov_m;
 
-	double *eigenvalues;				       /*  Need also the eigen-stuff as the corrections depends on the sign of the eigenvectors. */
+	double *eigenvalues;				       /* Need also the eigen-stuff as the corrections depends on the sign of the eigenvectors. */
 	double *eigenvectors;
 	double *stdev_corr_pos;
 	double *stdev_corr_neg;
@@ -702,8 +699,7 @@ typedef struct
 	int len_reordering;
 	int *reordering;
 
-}
-	GMRFLib_ai_misc_output_tp;
+} GMRFLib_ai_misc_output_tp;
 
 typedef struct {
 	size_t nhyper;
@@ -717,8 +713,7 @@ typedef struct {
 	double diff_log_dens;
 } GMRFLib_ai_pool_tp;
 
-typedef struct 
-{
+typedef struct {
 	int n;						       /* length */
 	int first_nonzero;				       /* first nonzero idx = min(idx) */
 	int last_nonzero;				       /* last nonzero idx = max(idx) */
@@ -726,8 +721,7 @@ typedef struct
 	int last_nonzero_mapped;			       /* last nonzero idx of L^-1 a. automatically added */
 	int *idx;					       /* list of indices */
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
-}
-	GMRFLib_lc_tp;
+} GMRFLib_lc_tp;
 
 
 #define GMRFLib_AI_POOL_GET 1
@@ -746,7 +740,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 					      double *hyper_ldens, double *theta_mode, gsl_vector * eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
 					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
-	                                      GMRFLib_ai_param_tp *ai_par);
+					      GMRFLib_ai_param_tp * ai_par);
 double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg);
 double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 double GMRFLib_interpolator_quadratic(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
@@ -799,16 +793,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    int nlin, GMRFLib_lc_tp **Alin, GMRFLib_density_tp *** dlin,
-		    GMRFLib_ai_misc_output_tp **misc_output);
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp ** misc_output);
 
-GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp **Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean);
+GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean);
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr);
-GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp *to, GMRFLib_ai_store_tp * from);
+GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
-float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				   double *x_vec);
+float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
