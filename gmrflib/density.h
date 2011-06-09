@@ -48,11 +48,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -165,12 +165,10 @@ typedef struct {
 */
 #define GMRFLib_SN_WEIGHT_SCALING (0.5)
 
-typedef struct
-{
+typedef struct {
 	gsl_interp_accel *accel;
 	gsl_spline *spline;
-}
-	GMRFLib_spline_tp;
+} GMRFLib_spline_tp;
 
 /**
  * \brief The density-object
@@ -276,7 +274,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev);
 int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density);
-int GMRFLib_density_new_mean(GMRFLib_density_tp **new_density, GMRFLib_density_tp *density,  double new_mean);
+int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean);
 int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * density);
 int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
@@ -299,7 +297,7 @@ int GMRFLib_sn_fit_df(const gsl_vector * param, void *data, gsl_matrix * J);
 int GMRFLib_sn_fit_f(const gsl_vector * param, void *data, gsl_vector * f);
 int GMRFLib_sn_fit_fdf(const gsl_vector * param, void *data, gsl_vector * f, gsl_matrix * J);
 int GMRFLib_sn_logdensity(double *ldens, double x, void *param);
-int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp *p);
+int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp * p);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
 

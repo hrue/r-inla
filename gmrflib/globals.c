@@ -207,3 +207,8 @@ GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
  */
 int GMRFLib_meminfo_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_meminfo_thread_id)
+
+/* 
+   INLA catch error...
+ */
+int GMRFLib_catch_error_for_inla = GMRFLib_FALSE;

@@ -50,11 +50,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -204,10 +204,15 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
 	if (gsl_isnan(value)) {						\
-		fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. idx=%1d jdx=%1d\n", \
-			RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
-		if (1)abort();						\
-		if (1)exit(1);						\
+		if (!nan_error)						\
+			fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. idx=%1d jdx=%1d\n", \
+				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+		if (GMRFLib_catch_error_for_inla) {			\
+			nan_error = 1;					\
+		} else {						\
+			if (1)abort();					\
+			if (1)exit(1);					\
+		}							\
 	}
 
 #define GMRFLib_SET_PREC(arg_)						\
@@ -227,49 +232,49 @@ typedef long unsigned int GMRFLib_sizeof_tp;
    a similar variable called __func__, but prefer the GCC one since it demangles C++ function names.
 */
 #ifndef __GNUC_PRERQ
-#  if defined __GNUC__ && defined __GNUC_MINOR__
-#   define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#  else
-#   define __GNUC_PREREQ(maj, min) 0
-#  endif
+#if defined __GNUC__ && defined __GNUC_MINOR__
+#define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#define __GNUC_PREREQ(maj, min) 0
+#endif
 #endif
 #if defined __GNUC__
-# if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#    define  __GMRFLib_FuncName   __PRETTY_FUNCTION__
-#  else
-#    if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#      define __GMRFLib_FuncName  __func__
-#    else
-#      define __GMRFLib_FuncName  ((const char *) "(function-name unavailable)")
-#    endif
-#  endif
+#if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
+#define  __GMRFLib_FuncName   __PRETTY_FUNCTION__
 #else
-#  if defined(__sun)					       /* it works here */
-#    define __GMRFLib_FuncName __func__
-#  else
-#    define __GMRFLib_FuncName ((const char *) "(function-name unavailable)")
-#  endif
+#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#define __GMRFLib_FuncName  __func__
+#else
+#define __GMRFLib_FuncName  ((const char *) "(function-name unavailable)")
+#endif
+#endif
+#else
+#if defined(__sun)					       /* it works here */
+#define __GMRFLib_FuncName __func__
+#else
+#define __GMRFLib_FuncName ((const char *) "(function-name unavailable)")
+#endif
 #endif
 
 /* 
    parts taken from /usr/include/tcl.h
  */
 #ifdef __STRING
-#  define __GMRFLib_STRINGIFY(x) __STRING(x)
+#define __GMRFLib_STRINGIFY(x) __STRING(x)
 #else
-#  ifdef _MSC_VER
-#    define __GMRFLib_STRINGIFY(x) #x
-# else
-#    ifdef RESOURCE_INCLUDED
-#      define __GMRFLib_STRINGIFY(x) #x
-#    else
-#      ifdef __STDC__
-#        define __GMRFLib_STRINGIFY(x) #x
-#      else
-#        define __GMRFLib_STRINGIFY(x) "x"
-#      endif
-#    endif
-#  endif
+#ifdef _MSC_VER
+#define __GMRFLib_STRINGIFY(x) #x
+#else
+#ifdef RESOURCE_INCLUDED
+#define __GMRFLib_STRINGIFY(x) #x
+#else
+#ifdef __STDC__
+#define __GMRFLib_STRINGIFY(x) #x
+#else
+#define __GMRFLib_STRINGIFY(x) "x"
+#endif
+#endif
+#endif
 #endif
 __END_DECLS
 #endif

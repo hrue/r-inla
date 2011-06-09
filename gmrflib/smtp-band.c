@@ -139,7 +139,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 	 * return a band-matrix BMATRIX in L-storage defining the precision matrix 
 	 */
 
-	int i, ncol, nrow, id;
+	int i, ncol, nrow, id, nan_error = 0;
 
 	id = GMRFLib_thread_id;
 	ncol = graph->n;
@@ -167,6 +167,12 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 				GMRFLib_STOP_IF_NAN_OR_INF(val, i, jj);
 				(*bandmatrix)[BIDX(nnode - node, node)] = val;
 			}
+		}
+	}
+
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
 		}
 	}
 
@@ -219,8 +225,15 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 		dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, 1);
 		break;
 	}
-	if (error)
-		GMRFLib_ERROR(GMRFLib_EPOSDEF);
+	if (error) {
+		if (GMRFLib_catch_error_for_inla) {
+			fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q...\n",
+				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+			return !GMRFLib_SUCCESS;
+		} else {
+			GMRFLib_ERROR(GMRFLib_EPOSDEF);
+		}
+	}
 
 	/*
 	 * provide some info about the factorization 

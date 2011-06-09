@@ -41,11 +41,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -69,31 +69,27 @@ extern double omp_get_wtick(void);
 #endif
 
 typedef enum {
-	GMRFLib_OPENMP_STRATEGY_SMALL = 1, 
-	GMRFLib_OPENMP_STRATEGY_MEDIUM, 
-	GMRFLib_OPENMP_STRATEGY_LARGE, 
-	GMRFLib_OPENMP_STRATEGY_HUGE, 
+	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
+	GMRFLib_OPENMP_STRATEGY_MEDIUM,
+	GMRFLib_OPENMP_STRATEGY_LARGE,
+	GMRFLib_OPENMP_STRATEGY_HUGE,
 	GMRFLib_OPENMP_STRATEGY_DEFAULT
-}
-	GMRFLib_openmp_strategy_tp;
+} GMRFLib_openmp_strategy_tp;
 
 typedef enum {
 	GMRFLib_OPENMP_PLACES_BUILD_MODEL = 1,
 	GMRFLib_OPENMP_PLACES_OPTIMIZE,
 	GMRFLib_OPENMP_PLACES_HESSIAN,
 	GMRFLib_OPENMP_PLACES_HESSIAN_SCALE,
-	GMRFLib_OPENMP_PLACES_INTEGRATE, 
-	GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, 
+	GMRFLib_OPENMP_PLACES_INTEGRATE,
+	GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR,
 	GMRFLib_OPENMP_PLACES_DEFAULT
-}
-	GMRFLib_openmp_place_tp;
+} GMRFLib_openmp_place_tp;
 
-typedef struct
-{
+typedef struct {
 	int max_threads;
 	GMRFLib_openmp_strategy_tp strategy;
-}
-	GMRFLib_openmp_tp;
+} GMRFLib_openmp_tp;
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : omp_get_max_threads())
 
