@@ -202,9 +202,10 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 
 #define GMRFLib_GLOBAL_NODE(n) IMAX(100, (n) / 20)	       /* the limit for a ``global node'' */
 
-#define GMRFLib_STOP_IF_NAN_OR_INF(value)				\
+#define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
 	if (gsl_isnan(value)) {						\
-		fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF\n", RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num()); \
+		fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. idx=%1d jdx=%1d\n", \
+			RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		if (1)abort();						\
 		if (1)exit(1);						\
 	}
