@@ -13420,7 +13420,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
-	int i, j;
+	int i, j, any;
 
 	if (!mo) {
 		return INLA_OK;
@@ -13446,18 +13446,29 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 	fclose(fp);
 
-	GMRFLib_sprintf(&nndir, "%s/theta-from", ndir);
-	fp = fopen(nndir, "w");
-	for (i = 0; i < ntheta; i++) {
-		fprintf(fp, "%s\n", theta_from[i]);
+	for (i = any = 0; i < ntheta; i++) {
+		any = (any || theta_from[i]);
 	}
-	fclose(fp);
-	GMRFLib_sprintf(&nndir, "%s/theta-to", ndir);
-	fp = fopen(nndir, "w");
-	for (i = 0; i < ntheta; i++) {
-		fprintf(fp, "%s\n", theta_to[i]);
+	if (any){
+		GMRFLib_sprintf(&nndir, "%s/theta-from", ndir);
+		fp = fopen(nndir, "w");
+		for (i = 0; i < ntheta; i++) {
+			fprintf(fp, "%s\n", theta_from[i]);
+		}
+		fclose(fp);
 	}
-	fclose(fp);
+
+	for (i = any = 0; i < ntheta; i++) {
+		any = (any || theta_to[i]);
+	}
+	if (any){
+		GMRFLib_sprintf(&nndir, "%s/theta-to", ndir);
+		fp = fopen(nndir, "w");
+		for (i = 0; i < ntheta; i++) {
+			fprintf(fp, "%s\n", theta_to[i]);
+		}
+		fclose(fp);
+	}
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-hyper-internal.dat");
 	inla_fnmfix(nndir);
