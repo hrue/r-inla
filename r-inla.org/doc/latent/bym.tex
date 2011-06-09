@@ -37,7 +37,10 @@ described below.
 
 The option \verb|adjust.for.con.comp| adjust the model if the graph
 has more than one connected compoment, and this adjustment can be
-disabled setting this option to FALSE.
+disabled setting this option to \texttt{FALSE}. This means that
+\texttt{constr=TRUE} is interpreted as a sum-to-zero constraint on
+\emph{each} connected component and the \texttt{rankdef} parameter is
+set accordingly. 
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/bym.tex}
