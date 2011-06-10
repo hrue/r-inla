@@ -2675,8 +2675,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		GMRFLib_optimize_param_tp new_optpar;
 
 		memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
-		new_optpar.nr_step_factor /= 2;
-		new_optpar.max_iter *= 2;
+		new_optpar.nr_step_factor /= 10;
+		new_optpar.max_iter *= 5;
 		if (new_optpar.fp) {
 			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %f\n",
 				__GMRFLib_FuncName, new_optpar.nr_step_factor);
