@@ -2763,7 +2763,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			 */
 			FREE_ALL;
 			optpar->nr_step_factor /= 10.0;
-			optpar->max_iter *= 2;
+			optpar->max_iter *= 5;
 			if (optpar && optpar->fp) {
 				fprintf(stderr, "\n\n%s: Optimisation fail to converge in PART 2.\n\t\t\tRetry with a new optpar->nr_step_factor = %f\n",
 					__GMRFLib_FuncName, optpar->nr_step_factor);
