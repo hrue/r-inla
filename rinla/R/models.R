@@ -1794,7 +1794,7 @@
                                 survival = FALSE,
                                 discrete = FALSE,
                                 link = c("default", "identity"),
-                                pdf = "Student-t"
+                                pdf = "student-t"
                                 ),
                          
                         logperiodogram = list(
