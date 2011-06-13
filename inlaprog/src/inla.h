@@ -209,6 +209,14 @@ typedef struct {
 	 * Log gamma frailty
 	 */
 	double **log_prec_loggamma_frailty;
+
+	/* 
+	 * Sinh-asinh
+	 */
+	double *sas_weight;
+	double **sas_skew;
+	double **sas_log_tail;
+	double **sas_log_prec;
 } Data_tp;
 
 /* 
@@ -245,6 +253,7 @@ typedef enum {
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
+	L_SAS, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -356,10 +365,12 @@ typedef struct {
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
+	Prior_tp data_prior2;
 	Data_tp data_observations;
 	int data_fixed;
 	int data_fixed0;
 	int data_fixed1;
+	int data_fixed2;
 	int data_ntheta;
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
