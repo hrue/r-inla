@@ -251,7 +251,7 @@
             diagonal = NULL,
 
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
-            numint.maxfeval = 10000,
+            numint.maxfeval = 100000,
             
             ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-3)
             numint.relerr = 1e-3,
