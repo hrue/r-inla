@@ -1084,9 +1084,9 @@ inla.internal.experimental.mode = FALSE
         }
         names(summary.random) = inla.namefix(names.random)
 
-        ## could be that marginals.random is a list of lists of NULL
+        ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random,is.null)))
+            if (all(sapply(marginals.random, function(x) (is.null(x) || is.na(x)))))
                 marginals.random = NULL
         }
 
