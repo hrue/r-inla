@@ -253,11 +253,11 @@
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
             numint.maxfeval = 100000,
             
-            ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-3)
-            numint.relerr = 1e-3,
+            ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)
+            numint.relerr = 1e-5,
 
-            ##:ARGUMENT: numint.abserr Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-4)
-            numint.abserr = 1e-4,
+            ##:ARGUMENT: numint.abserr Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)
+            numint.abserr = 1e-6,
 
             ##:ARGUMENT: cmin The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)
             cmin = 0.0,
