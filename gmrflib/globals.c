@@ -173,7 +173,7 @@ int GMRFLib_faster_integration = GMRFLib_TRUE;
 /* 
    number of subdivisions of the faster integration
  */
-int GMRFLib_faster_integration_np = 50;
+int GMRFLib_faster_integration_np = 70;
 
 /* 
    OpenMP spesifics

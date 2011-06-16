@@ -5774,7 +5774,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 1.0);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
 		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
 		if (!ds->data_fixed2 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
