@@ -1244,7 +1244,7 @@
                                         theta1 = list(
                                                 name = "log precision",
                                                 short.name = "prec",
-                                                initial = 4,
+                                                initial = 2,
                                                 fixed = FALSE,
                                                 prior = "loggamma",
                                                 param = c(1, 0.00005),
@@ -1257,7 +1257,7 @@
                                                 initial = 0,
                                                 fixed = FALSE,
                                                 prior = "normal",
-                                                param = c(0, 10),
+                                                param = c(0, 25),
                                                 to.theta = function(x) x, 
                                                 from.theta = function(x) x
                                                 ), 
