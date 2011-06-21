@@ -78,7 +78,8 @@ typedef enum {
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
 	INLA_MODE_FINN,
-	INLA_MODE_GRAPH
+	INLA_MODE_GRAPH,
+	INLA_MODE_TESTIT = 99
 } inla_mode_tp;
 
 typedef enum {
@@ -938,7 +939,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
-int testit(void);
+int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
