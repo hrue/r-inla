@@ -14917,57 +14917,6 @@ int inla_endian(void)
 	int x = 1;
 	return ((*(char *) &x) ? INLA_LITTLE_ENDIAN : INLA_BIG_ENDIAN);
 }
-int testit(void)
-{
-
-	GMRFLib_matrix_tp *M = NULL;
-
-	int i, j, k, kk;
-
-	M = GMRFLib_read_fmesher_file("mode.dat", 0L, -1);
-
-	if (1)
-		if (M->i)
-			for (k = 0; k < M->elems; k++)
-				printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
-
-	if (M->graph) {
-		printf("n %d\n", M->graph->n);
-		for (k = 0; k < M->graph->n; k++) {
-			printf("%d nnbs %d:\n", k, M->graph->nnbs[k]);
-			for (kk = 0; kk < M->graph->nnbs[k]; kk++)
-				printf("\t\t%d\n", M->graph->nbs[k][kk]);
-		}
-	}
-
-	for (i = 0; i < M->nrow; i++)
-		for (j = 0; j < M->ncol; j++)
-			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
-	printf("\n\ntranspose...\n\n\n");
-	GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
-
-	if (1)
-		if (N->i)
-			for (k = 0; k < N->elems; k++)
-				printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
-
-	if (1)
-		for (i = 0; i < N->nrow; i++)
-			for (j = 0; j < N->ncol; j++)
-				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
-
-	if (N->graph) {
-		printf("n %d\n", N->graph->n);
-		for (k = 0; k < N->graph->n; k++) {
-			printf("%d nnbs %d:\n", k, N->graph->nnbs[k]);
-			for (kk = 0; kk < N->graph->nnbs[k]; kk++)
-				printf("\t\t%d\n", N->graph->nbs[k][kk]);
-		}
-	}
-	GMRFLib_matrix_free(M);
-	GMRFLib_matrix_free(N);
-	exit(0);
-}
 int inla_divisible(int n, int by)
 {
 	/*
@@ -14982,7 +14931,6 @@ int inla_divisible(int n, int by)
 	else
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
-
 int inla_qinv(const char *filename, const char *outfilename)
 {
 	/*
@@ -15085,6 +15033,61 @@ int inla_read_graph(const char *filename)
 	return 0;
 }
 
+int testit(int argc, char **argv)
+{
+
+	GMRFLib_matrix_tp *M = NULL;
+
+	int i, j, k, kk;
+
+	
+	printf("read file %s\n", argv[3]);
+	M = GMRFLib_read_fmesher_file(argv[3], 0L, -1);
+
+	if (1)
+		if (M->i)
+			for (k = 0; k < M->elems; k++)
+				printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
+
+	if (M->graph) {
+		printf("n %d\n", M->graph->n);
+		for (k = 0; k < M->graph->n; k++) {
+			printf("%d nnbs %d:\n", k, M->graph->nnbs[k]);
+			for (kk = 0; kk < M->graph->nnbs[k]; kk++)
+				printf("\t\t%d\n", M->graph->nbs[k][kk]);
+		}
+	}
+
+	for (i = 0; i < M->nrow; i++)
+		for (j = 0; j < M->ncol; j++)
+			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
+
+	printf("\n\ntranspose...\n\n\n");
+	GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
+
+	if (1)
+		if (N->i)
+			for (k = 0; k < N->elems; k++)
+				printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
+
+	if (1)
+		for (i = 0; i < N->nrow; i++)
+			for (j = 0; j < N->ncol; j++)
+				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
+
+	if (N->graph) {
+		printf("n %d\n", N->graph->n);
+		for (k = 0; k < N->graph->n; k++) {
+			printf("%d nnbs %d:\n", k, N->graph->nnbs[k]);
+			for (kk = 0; kk < N->graph->nnbs[k]; kk++)
+				printf("\t\t%d\n", N->graph->nbs[k][kk]);
+		}
+	}
+	GMRFLib_matrix_free(M);
+	GMRFLib_matrix_free(N);
+	exit(0);
+}
+
 int main(int argc, char **argv)
 {
 #define USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
@@ -15181,6 +15184,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
 				G.mode = INLA_MODE_GRAPH;
+			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
+				G.mode = INLA_MODE_TESTIT;
 			} else {
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
 				exit(1);
@@ -15306,6 +15311,10 @@ int main(int argc, char **argv)
 	}
 	if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_TESTIT) {
+		testit(argc, argv);
 		exit(0);
 	}
 
