@@ -499,10 +499,12 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	g->nnbs = Calloc(g->n, int);
 
 	for (k = 0; k < M->elems; k++) {
-		g->nnbs[M->i[k]]++;
+		if (M->i[k] != M->j[k]){
+			g->nnbs[M->i[k]]++;
+		}
 	}
-
-	int *hold = Calloc(M->elems, int), offset = 0;
+	int nhold = M->elems;
+	int *hold = Calloc(nhold, int), offset = 0;
 
 	for (k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
@@ -512,7 +514,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 			offset += g->nnbs[k];
 		}
 	}
-	assert(offset == M->elems);
+	assert(offset <=  nhold);
 
 	for (k = 0; k < M->nrow; k++) {
 		g->nnbs[k] = 0;				       /* will use this array for counting and build it again */
