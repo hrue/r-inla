@@ -2260,6 +2260,14 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	skew = ds->data_observations.sas_skew[GMRFLib_thread_id][0];
 	tail = map_exp(ds->data_observations.sas_log_tail[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
+	if (0){
+		/* 
+		   this transformation really helps, and around the gaussian case its really good. but I'm unsure how wise this is really.
+		*/
+		FIXME1("change tail");
+		tail /= pow(prec, 1./3.);
+	}
+	
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
