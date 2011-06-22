@@ -73,7 +73,7 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 			/*
 			 * some savings for i == j 
 			 */
-			phi_i[k] GMRFLib_matrix_get(i, 0, B);
+			phi_i[k] = GMRFLib_matrix_get(i, 0, B);
 			for (kk = 1; kk < B->ncol; kk++) {
 				/*
 				 * '-1' is the correction for the first intercept column in B 
