@@ -81,6 +81,7 @@ static const char RCSId[] = HGVERSION;
 
 #include "inla.h"
 #include "spde.h"
+#include "spde2.h"
 
 #define PREVIEW    5
 #define MODEFILENAME ".inla-mode"
