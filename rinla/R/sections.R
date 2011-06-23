@@ -34,8 +34,7 @@
     return ()
 }
 
-`inla.write.boolean.field` =
-    function(tag, val, file)
+`inla.write.boolean.field` = function(tag, val, file)
 {
     ## write tag = 1 or tag = 0 depending on val. if val is NULL do not write
     if (!is.null(val)) {
@@ -47,8 +46,7 @@
     }
 }
 
-`inla.data.section` =
-    function(file, family, file.data, control, i.family="")
+`inla.data.section` = function(file, family, file.data, control, i.family="")
 {
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
@@ -84,9 +82,8 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.ffield.section` =
-    function(file, file.loc, n, nrep, ngroup, 
-             file.cov, file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
+`inla.ffield.section` = function(file, file.loc, n, nrep, ngroup, file.cov,
+        file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
     label= inla.namefix(random.spec$term)
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
@@ -114,6 +111,12 @@
         ## need a special one, as spde.prefix is not a file or a directory...
         fnm = inla.copy.dir.for.section.spde(random.spec$spde.prefix, data.dir)
         cat("spde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(random.spec$spde2.prefix)) {
+        ## need a special one, as spde2.prefix is not a file or a directory...
+        fnm = inla.copy.dir.for.section.spde(random.spec$spde2.prefix, data.dir)
+        cat("spde2.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        cat("spde2.transform =", spde2.transform, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$of)) {
         cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
@@ -195,8 +198,7 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.inla.section` =
-    function(file, inla.spec)
+`inla.inla.section` = function(file, inla.spec)
 {
     cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
@@ -306,8 +308,7 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.predictor.section` =
-    function(file, n, m, predictor.spec, file.offset, data.dir)
+`inla.predictor.section` = function(file, n, m, predictor.spec, file.offset, data.dir)
 {
     ## n = NPredictor
     ## m = MPredictor
@@ -407,8 +408,8 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.problem.section` =
-    function(file , data.dir, result.dir, hyperpar, return.marginals, dic, cpo, mlik, quantiles, smtp, q, strategy)
+`inla.problem.section` = function(file , data.dir, result.dir, hyperpar, return.marginals, dic,
+        cpo, mlik, quantiles, smtp, q, strategy)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
@@ -456,8 +457,7 @@
     }
 }
 
-`inla.linear.section` =
-    function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
+`inla.linear.section` = function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
 {
     cat("[", inla.namefix(label), "]\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
@@ -496,8 +496,7 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.mode.section` =
-    function(file, args, data.dir)
+`inla.mode.section` = function(file, args, data.dir)
 {
     if (!is.null(args$result) || !is.null(args$theta) || !is.null(args$x)) {
 
@@ -542,8 +541,7 @@
     }
 }
 
-`inla.expert.section` =
-    function(file, args)
+`inla.expert.section` = function(file, args)
 {
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
         cat("\n## If you edit this section it is assumed you know what you're doing ;-)\n", file=file, append=TRUE) #
@@ -555,8 +553,7 @@
     }
 }
 
-`inla.lincomb.section` =
-    function(file, data.dir, contr, lincomb)
+`inla.lincomb.section` = function(file, data.dir, contr, lincomb)
 {
     ## this one write binary format files...
 
@@ -644,8 +641,7 @@
     }
 }
 
-`inla.copy.file.for.section` =
-    function(filename, data.dir)
+`inla.copy.file.for.section` = function(filename, data.dir)
 {
     if (missing(filename)) {
         return (NULL)
@@ -659,8 +655,7 @@
     return (gsub(data.dir, "$inladatadir", fnm, fixed=TRUE))
 }
 
-`inla.copy.dir.for.section` =
-    function(dir.name, data.dir)
+`inla.copy.dir.for.section` = function(dir.name, data.dir)
 {
     d.fnm = inla.tempfile(tmpdir=data.dir)
     inla.dir.create(d.fnm)
@@ -669,8 +664,7 @@
     return (gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE))
 }
 
-`inla.copy.dir.for.section.spde` =
-    function(prefix, data.dir)
+`inla.copy.dir.for.section.spde` = function(prefix, data.dir)
 {
     dir.name = dirname(prefix)
     file.prefix = basename(prefix)
@@ -685,8 +679,7 @@
     return (rprefix)
 }
 
-`inla.z.section` =
-    function(file, random.spec, data.dir, results.dir, only.hyperparam, k.off)
+`inla.z.section` = function(file, random.spec, data.dir, results.dir, only.hyperparam, k.off)
 {
     ## binary io is not yet implemented. I think this model is on its way out...
 
@@ -727,7 +720,3 @@
         cat("\n", sep = " ", file = file,  append = TRUE)
     }
 }
-
-        
-
-    

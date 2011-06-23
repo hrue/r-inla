@@ -8506,7 +8506,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_SPDE2:
 	{
-		char *spde2_prefix;
+		char *spde2_prefix, *transform;
+		
 		int nT, nK;
 
 		spde2_prefix = GMRFLib_strdup(".");
@@ -8517,13 +8518,21 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tspde2.prefix = [%s]\n", spde2_prefix);
 		}
 
-		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix);
+		transform = GMRFLib_strdup("logit");
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2_TRANSFORM"), transform);
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.TRANSFORM"), transform);
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2TRANSFORM"), transform);
+		if (mb->verbose) {
+			printf("\t\tspde2.transform = [%s]\n", transform);
+		}
+
+		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *)transform);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
 
 		/*
 		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
 		 */
-		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix);
+		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
 		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
 		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
 		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */

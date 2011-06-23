@@ -89,10 +89,40 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	}
 
 	/*
-	 * change this later on, need an option here for various 'link' functions. 
+	 * change this later on, need an option here for various 'link' functions. some savings possible for i==j.
 	 */
-	d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-	d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
+	if (i == j) {
+		switch(model->transform) {
+		case SPDE2_TRANSFORM_LOGIT: 
+			d_i[2] = d_j[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+			break;
+		case SPDE2_TRANSFORM_LOG: 
+			d_i[2] = d_j[2] = 2*exp(phi_i[2]) - 1.0;
+			break;
+		case SPDE2_TRANSFORM_IDENTITY: 
+			d_i[2] = d_j[2] = phi_i[2];
+			break;
+		default:
+			assert(0==1);
+		}
+	} else {
+		switch(model->transform) {
+		case SPDE2_TRANSFORM_LOGIT: 
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
+			break;
+		case SPDE2_TRANSFORM_LOG: 
+			d_i[2] = 2*exp(phi_i[2]) - 1.0;
+			d_j[2] = 2*exp(phi_j[2]) - 1.0;
+			break;
+		case SPDE2_TRANSFORM_IDENTITY: 
+			d_i[2] = phi_i[2];
+			d_j[2] = phi_j[2];
+			break;
+		default:
+			assert(0==1);
+		}
+	}
 
 	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
 				   d_i[2] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
@@ -101,13 +131,23 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	return value;
 }
 
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix)
+int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform)
 {
 	int i, debug = 1;
 	inla_spde2_tp *model = NULL;
 	char *fnm = NULL;
 
 	model = Calloc(1, inla_spde2_tp);
+
+	if (strcasecmp(transform, "logit") == 0){
+		model->transform = SPDE2_TRANSFORM_LOGIT;
+	} else if (strcasecmp(transform,  "log") == 0) {
+		model->transform = SPDE2_TRANSFORM_LOG;
+	} else if (strcasecmp(transform, "identity") == 0) {
+		model->transform = SPDE2_TRANSFORM_IDENTITY;
+	} else {
+		assert(0 == 1);
+	}
 
 	model->B = Calloc(3, GMRFLib_matrix_tp);
 	model->M = Calloc(3, GMRFLib_matrix_tp);
