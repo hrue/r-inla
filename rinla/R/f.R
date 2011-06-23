@@ -485,7 +485,7 @@
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
 
-    if (inla.one.of(model, "spde")) {
+    if (inla.one.of(model, c("spde", "spde2"))) {
         if (is.null(spde.prefix)) {
             stop("Argument spde.prefix=NULL is required for model = spde")
         }
@@ -700,7 +700,7 @@
     return (ret)
 }
 `inla.model.object.classes` = function() {
-    return (c("inla.spde", "inla.wrapper.model"))
+    return (c("inla.spde", "inla.wrapper.model", "inla.spde2"))
 }
 
 
