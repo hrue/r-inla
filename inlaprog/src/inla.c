@@ -1508,7 +1508,7 @@ double priorfunc_normal(double *x, double *parameters)
 
 	return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
 }
-double priorfunc_mvgaussian(double *x, double *parameters)
+double priorfunc_mvnorm(double *x, double *parameters)
 {
 	/* 
 	   this is the multivariate normal
@@ -1516,13 +1516,12 @@ double priorfunc_mvgaussian(double *x, double *parameters)
 	int n = (int) parameters[0], i, j;
 	assert(n > 0);
 	
-	double *mean, *Q, *chol, *xx, *tmp, q = 0.0, logdet = 0.0;
+	double *mean, *Q, *chol, *xx, q = 0.0, logdet = 0.0;
 
 	mean = &(parameters[1]);
 	Q = &(parameters[1 + n]);
 	chol = NULL;
 	xx = Calloc(n, double);
-	tmp = Calloc(n, double);
 	
 	GMRFLib_comp_chol_general(&chol, Q, n, &logdet, 0);
 	for(i=0; i<n; i++){
@@ -1530,19 +1529,16 @@ double priorfunc_mvgaussian(double *x, double *parameters)
 	}
 	
 	/* 
-	   Q * xx (I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME later.)
+	   q = xx^T * Q * xx. I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME
+	   later.
 	*/
-	for(i=0; i<n; i++){
+	for(i=0, q=0.0; i<n; i++){
 		for(j = 0; j<n; j++){
-			tmp[i] += Q[ i + n*j ] * xx[j];
+			q += xx[i] * Q[ i + n*j ] * xx[j];
 		}
-	}
-	for(i=0, q = 0.0; i<n; i++){
-		q += xx[i] * tmp[i];
 	}
 
 	Free(xx);
-	Free(tmp);
 	Free(chol);
 	
 	return (-n/2.0*log(2*M_PI) + 0.5 * logdet - 0.5 * q);
@@ -4276,12 +4272,12 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "GAUSSIANSPDE2") || !strcasecmp(prior->name, "NORMALSPDE2")) {
+	} else if (!strcasecmp(prior->name, "MVNORM") || !strcasecmp(prior->name, "MVGAUSSIAN")) {
 		int nparam, i, dim;
 		double *tmp;
 		
-		prior->id = P_MVGAUSSIAN;
-		prior->priorfunc = priorfunc_mvgaussian;
+		prior->id = P_MVNORM;
+		prior->priorfunc = priorfunc_mvnorm;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		if (mb->verbose) {
 			for(i=0; i<nparam; i++){
@@ -7606,7 +7602,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_SPDE2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "GAUSSIANSPDE2"); // Just one prior...
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM"); // Just one prior...
 		break;
 
 	case F_COPY:
@@ -8551,6 +8547,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		   mark all possible as read
 		 */
 		for(i=0; i<100; i++){
+			char *ctmp;
+			
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 

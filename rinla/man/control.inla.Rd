@@ -34,8 +34,8 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{step.len}{  The step-length used to compute numerical derivaties of the log-likelihood}
 \item{derived.only}{  A boolen variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)}
 \item{numint.maxfeval}{  Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)}
-\item{numint.relerr}{  Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-3)}
-\item{numint.abserr}{  Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-4)}
+\item{numint.relerr}{  Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)}
+\item{numint.abserr}{  Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}
 \item{cmin}{  The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)}
 \item{step.factor}{  The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
 }
