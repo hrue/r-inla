@@ -279,9 +279,11 @@ typedef enum {
 	F_GENERIC2,
 	F_MATERN2D,
 	F_SPDE,
+	F_SPDE2,
 	F_COPY,
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
+	P_MVGAUSSIAN,
 	P_MINUSLOGSQRTRUNCGAUSSIAN,
 	P_FLAT,
 	P_WISHART1D,
@@ -302,7 +304,6 @@ typedef enum {
    priors are defined using this template. return log(pi(precision, parameters....))
  */
 typedef double inla_priorfunc_tp(double *param, double *parameters);
-typedef double inla_priorfunc2_tp(double *param0, double *parameters0, double *param1, double *parameters1);
 
 typedef struct {
 	inla_component_tp id;				       /* prior Id */
@@ -311,7 +312,6 @@ typedef struct {
 	char *to_theta;					       /* R-code */
 	char *from_theta;				       /* R-code */
 	inla_priorfunc_tp *priorfunc;			       /* priorfunction */
-	inla_priorfunc2_tp *priorfunc2;			       /* priorfunction2 */
 } Prior_tp;
 
 
@@ -730,7 +730,7 @@ typedef struct {
 /* 
    binary write macros
  */
-#define DW(a) {double da = (a); size_t ret;  ret = fwrite(&da, sizeof(double), (size_t)1, fp); }
+#define DW(a) {double da = (a); fwrite(&da, sizeof(double), (size_t)1, fp); }
 #define D2W(a, b) {DW(a); DW(b);}
 #define D3W(a, b, c) {D2W(a, b); DW(c);}
 #define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
@@ -955,6 +955,7 @@ double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
+double priorfunc_mvgaussian(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart2d(double *x, double *parameters);
 double priorfunc_wishart3d(double *x, double *parameters);
