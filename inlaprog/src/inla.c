@@ -1523,6 +1523,16 @@ double priorfunc_mvnorm(double *x, double *parameters)
 	chol = NULL;
 	xx = Calloc(n, double);
 	
+	if (0){
+		for(i=0; i<n; i++){
+			for(j = 0; j<n; j++)
+				printf("%g ", Q[i+j*n]);
+			printf("\n");
+		}
+		for(i=0; i<n; i++)
+			printf("%g\n", mean[i]);
+	}
+
 	GMRFLib_comp_chol_general(&chol, Q, n, &logdet, 0);
 	for(i=0; i<n; i++){
 		xx[i] = x[i] - mean[i];
@@ -1532,7 +1542,8 @@ double priorfunc_mvnorm(double *x, double *parameters)
 	   q = xx^T * Q * xx. I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME
 	   later.
 	*/
-	for(i=0, q=0.0; i<n; i++){
+	q = 0.0;
+	for(i=0; i<n; i++){
 		for(j = 0; j<n; j++){
 			q += xx[i] * Q[ i + n*j ] * xx[j];
 		}
@@ -7566,8 +7577,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * just allocate this here, as its needed all over 
 	 */
-	mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);
-
+	if (mb->f_ntheta[mb->nf] > 0){
+		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);
+	}
 
 	id = mb->f_id[mb->nf];				       /* shortcut */
 
@@ -7602,6 +7614,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_SPDE2:
+		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM"); // Just one prior...
 		break;
 
@@ -8526,16 +8539,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tspde2.transform = [%s]\n", transform);
 		}
 
+		/* 
+		   need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like for B and M matrices and BLC. maybe
+		   do later
+		 */
 		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *)transform);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
 
-		/*
-		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
-		 */
-		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
-		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
-		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
-		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */
+		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *)transform);
 
 		/* 
 		   now we know the number of hyperparameters ;-)
@@ -8548,7 +8559,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		assert((int) mb->f_prior[mb->nf][0].parameters[0] == ntheta);
 
-		mb->f_prior[mb->nf] = Calloc(ntheta, Prior_tp); /* only first is used, rest is NULL */
+		//mb->f_prior[mb->nf] = Calloc(ntheta, Prior_tp); /* only first is used, rest is NULL */
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 		
@@ -8569,6 +8580,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
 		/* 
@@ -8586,8 +8603,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			theta_initial = iniparser_getboolean(ini, inla_string_join(secname, ctmp), theta_initial);
-
+			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
 			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
 			}
@@ -11623,6 +11639,8 @@ double extra(double *theta, int ntheta, void *argument)
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
 			assert(spde2->Qfunc_arg == spde2);
 
+			spde2->debug=0;
+
 			spde2_ntheta = spde2->ntheta;
 			for(k=0; k<spde2_ntheta; k++){
 				spde2->theta[k][GMRFLib_thread_id][0] = theta[count +k];
@@ -11637,6 +11655,8 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_evaluate(problem);
 			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
 
+			//P(problem->sub_logdens);
+			
 			/* 
 			   this is the mvnormal prior...
 			 */
