@@ -56,12 +56,14 @@ typedef enum {
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
-
+	int debug;
+	
 	spde2_transform_tp transform;
 
 	GMRFLib_matrix_tp **B;
 	GMRFLib_matrix_tp **M;
 	GMRFLib_matrix_tp *BLC;
+
 
 	double ***theta;
 

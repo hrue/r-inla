@@ -696,21 +696,49 @@
         }
     }
 
-    ret=list(d=d, term=term, weights=weights, n=n, nrep = nrep,
-            replicate = replicate, ngroup = ngroup, group = group,
-            control.group = cont.group, Z=Z,
-            model=model, hyper = hyper,
-            same.as = same.as, diagonal = diagonal,
-            cyclic=cyclic, season.length = season.length, constr =
-            constr, label = term, graph.file=graph.file, cdf=cdf,
-            quantiles = quantiles, Cmatrix = Cmatrix, rankdef=rankdef,
-            extraconstr=extraconstr, values=values, nrow = nrow, ncol
-            = ncol, nu = nu, bvalue = bvalue, of = of, precision =
-            precision, si = si, compute = compute, spde.prefix =
-            spde.prefix, spde2.transform = spde2.transform, range = range)
+    ret=list(
+            Cmatrix = Cmatrix,
+            Z=Z,
+            bvalue = bvalue,
+            cdf=cdf,
+            compute = compute,
+            constr = constr,
+            control.group = cont.group,
+            cyclic=cyclic,
+            d=d,
+            diagonal = diagonal,
+            extraconstr=extraconstr,
+            graph.file=graph.file,
+            group = group,
+            hyper = hyper,
+            label = term,
+            model=model,
+            n=n,
+            ncol = ncol,
+            ngroup = ngroup,
+            nrep = nrep,
+            nrow = nrow,
+            nu = nu,
+            of = of,
+            precision = precision,
+            quantiles = quantiles,
+            range = range, 
+            rankdef=rankdef,
+            replicate = replicate,
+            same.as = same.as,
+            season.length = season.length,
+            si = si,
+            spde.prefix = spde.prefix,
+            spde2.prefix = spde2.prefix,
+            spde2.transform = spde2.transform,
+            term=term,
+            values=values,
+            weights=weights
+            )
 
     return (ret)
 }
+
 `inla.model.object.classes` = function() {
     return (c("inla.spde", "inla.wrapper.model", "inla.spde2"))
 }

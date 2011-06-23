@@ -51,6 +51,12 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
 	int k, kk;
 
+	if (model->debug){
+		for(k=0; k<model->ntheta; k++){
+			printf("theta %d %.8g\n", k, model->theta[k][GMRFLib_thread_id][0]);
+		}
+	}
+
 	for (k = 0; k < 3; k++) {
 		GMRFLib_matrix_tp *B;
 
@@ -125,9 +131,19 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	}
 
 	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
-				   d_i[2] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
-				   d_i[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
+				   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
+				   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
 
+	if (model->debug){
+		P(d_i[0]);
+		P(d_j[0]);
+		P(d_i[1]);
+		P(d_j[1]);
+		P(d_i[2]);
+		P(d_j[2]);
+		printf("%d %d %.8g\n", i, j, value);
+	}
+	
 	return value;
 }
 
@@ -149,8 +165,8 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 		assert(0 == 1);
 	}
 
-	model->B = Calloc(3, GMRFLib_matrix_tp);
-	model->M = Calloc(3, GMRFLib_matrix_tp);
+	model->B = Calloc(3, GMRFLib_matrix_tp *);
+	model->M = Calloc(3, GMRFLib_matrix_tp *);
 	for(i = 0; i<3; i++){
 		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "B", i);
 		model->B[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
@@ -182,7 +198,11 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	model->ntheta = model->B[0]->ncol - 1;
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
-	model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	if (GMRFLib_is_fmesher_file((const char *)fnm, 0L, -1) == GMRFLib_SUCCESS){
+		model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	} else {
+		model->BLC = NULL;
+	}
 
 	if (debug) {
 		P(model->n);
