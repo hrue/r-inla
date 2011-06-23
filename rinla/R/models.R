@@ -482,7 +482,7 @@
                                 pdf = "spde"
                                 ), 
 
-                        "spde2" = list(
+                        spde2 = list(
                                 ## to many parameters here, but ...
                                 hyper = list(
                                         theta1 = list(
@@ -490,8 +490,8 @@
                                                 short.name = "t1",
                                                 initial = 0,
                                                 fixed = FALSE,
-                                                prior = "gaussianspde2",
-                                                param = 1 1,
+                                                prior = "mvnorm",
+                                                param = c(1, 1),
                                                 to.theta = function(x) x, 
                                                 from.theta = function(x) x
                                                 ), 
@@ -1524,7 +1524,7 @@
                                 aug.constr = NULL,
                                 n.div.by = NULL,
                                 n.required = FALSE, ## TRUE is not
-                                                    ## needed here.
+                                ## needed here.
                                 set.default.values = TRUE,
                                 pdf = "iid123d"
                                 ), 
@@ -2919,9 +2919,9 @@
                                 pdf = "various-flat"
                                 ), 
 
-                        gaussianspde2 = list(
+                        mvnorm = list(
                                 nparameters = -1L,
-                                pdf = "gaussian-spde2"
+                                pdf = "mvnorm"
                                 ), 
                                 
                         ## this is the 'no prior needed' prior

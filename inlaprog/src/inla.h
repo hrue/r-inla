@@ -284,6 +284,7 @@ typedef enum {
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
+	P_MVNORM,
 	P_MINUSLOGSQRTRUNCGAUSSIAN,
 	P_FLAT,
 	P_WISHART1D,
@@ -955,7 +956,7 @@ double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
-double priorfunc_mvgaussian(double *x, double *parameters);
+double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart2d(double *x, double *parameters);
 double priorfunc_wishart3d(double *x, double *parameters);
