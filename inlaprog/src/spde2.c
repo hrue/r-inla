@@ -1,4 +1,3 @@
-
 /* spde2.c
  * 
  * Copyright (C) 2011  Havard Rue
@@ -55,20 +54,7 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	for (k = 0; k < 3; k++) {
 		GMRFLib_matrix_tp *B;
 
-		switch (k) {
-		case 0:
-			B = model->B0;
-			break;
-		case 1:
-			B = model->B1;
-			break;
-		case 2:
-			B = model->B2;
-			break;
-		default:
-			assert(0 == 1);
-		}
-
+		B = model->B[k];			       /* to simplify the code */
 		if (i == j) {
 			/*
 			 * some savings for i == j 
@@ -108,52 +94,52 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
 	d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
 
-	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M0) +
-				   d_i[2] * d_j[1] * GMRFLib_matrix_get(i, j, model->M1) +
-				   d_i[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M1) + GMRFLib_matrix_get(i, j, model->M2));
+	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
+				   d_i[2] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
+				   d_i[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
 
 	return value;
 }
 
 int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix)
 {
-	int i, j, debug = 1;
+	int i, debug = 1;
 	inla_spde2_tp *model = NULL;
 	char *fnm = NULL;
 
 	model = Calloc(1, inla_spde2_tp);
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "B0");
-	model->B0 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	model->B = Calloc(3, GMRFLib_matrix_tp);
+	model->M = Calloc(3, GMRFLib_matrix_tp);
+	for(i = 0; i<3; i++){
+		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "B", i);
+		model->B[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "B1");
-	model->B1 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "M", i);
+		model->M[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	}
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "B2");
-	model->B2 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	for(i = 1; i < 3; i++){
+		/* 
+		   all need the same dimensions n x (p+1)
+		*/
+		assert(model->B[0]->nrow == model->B[i]->nrow);
+		assert(model->B[0]->ncol == model->B[i]->ncol);
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "M0");
-	model->M0 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+		/* 
+		   all are square with the same dimension n x n
+		*/
+		assert(model->M[i]->nrow == model->M[i]->ncol);
+		assert(model->M[0]->nrow == model->M[i]->nrow);
 
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "M1");
-	model->M1 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "M2");
-	model->M2 = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-
-	assert(model->B0->nrow == model->B1->nrow);
-	assert(model->B0->nrow == model->B2->nrow);
-	assert(model->B0->ncol == model->B1->ncol);
-	assert(model->B0->ncol == model->B2->ncol);
-
-	assert(model->M0->nrow == model->M0->ncol);
-	assert(model->M1->nrow == model->M1->ncol);
-	assert(model->M2->nrow == model->M2->ncol);
-	assert(model->M0->nrow == model->M1->nrow);
-	assert(model->M0->nrow == model->M2->nrow);
-
-	model->n = model->M0->nrow;
-	model->ntheta = model->B0->ncol - 1;
+		/* 
+		   and the number of rows must be the same
+		*/
+		assert(model->B[i]->nrow  == model->M[i]->nrow);
+	}
+	
+	model->n = model->M[0]->nrow;
+	model->ntheta = model->B[0]->ncol - 1;
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
 	model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
@@ -169,20 +155,22 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix)
 	GMRFLib_ged_tp *ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
 
-#define ADD_GRAPH(_G)					\
-	for(i = 0; i< _G->n; i++) {			\
-		GMRFLib_ged_add(ged, i, i);		\
-		int jj;					\
-		for(jj = 0; jj < _G->nnbs[i]; jj++){	\
-			j = _G->nbs[i][jj];		\
-			GMRFLib_ged_add(ged, i, j);	\
-			GMRFLib_ged_add(ged, j, i);	\
-		}					\
+#define ADD_GRAPH(_G)							\
+	{								\
+		int i_, j_, jj_;					\
+		for(i_ = 0; i_ < _G->n; i_++) {				\
+			GMRFLib_ged_add(ged, i_, i_);			\
+			for(jj_ = 0; jj_ < _G->nnbs[i_]; jj_++){	\
+				j_ = _G->nbs[i_][jj_];			\
+				GMRFLib_ged_add(ged, i_, j_);		\
+				GMRFLib_ged_add(ged, j_, i_);		\
+			}						\
+		}							\
 	}
-
-	ADD_GRAPH(model->M0->graph);
-	ADD_GRAPH(model->M1->graph);
-	ADD_GRAPH(model->M2->graph);
+	
+	for(i=0; i<3; i++){
+		ADD_GRAPH(model->M[i]->graph);
+	}
 
 #undef ADD_GRAPH
 
@@ -211,7 +199,8 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix)
 			GMRFLib_problem_tp *problem;
 			GMRFLib_reorder = k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg,
+					     NULL, NULL, GMRFLib_NEW_PROBLEM);
 			char *nm;
 			GMRFLib_sprintf(&nm, "Qspde2-%1d", k);
 			GMRFLib_bitmap_problem(nm, problem);

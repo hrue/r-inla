@@ -1508,6 +1508,45 @@ double priorfunc_normal(double *x, double *parameters)
 
 	return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
 }
+double priorfunc_mvgaussian(double *x, double *parameters)
+{
+	/* 
+	   this is the multivariate normal
+	*/
+	int n = (int) parameters[0], i, j;
+	assert(n > 0);
+	
+	double *mean, *Q, *chol, *xx, *tmp, q = 0.0, logdet = 0.0;
+
+	mean = &(parameters[1]);
+	Q = &(parameters[1 + n]);
+	chol = NULL;
+	xx = Calloc(n, double);
+	tmp = Calloc(n, double);
+	
+	GMRFLib_comp_chol_general(&chol, Q, n, &logdet, 0);
+	for(i=0; i<n; i++){
+		xx[i] = x[i] - mean[i];
+	}
+	
+	/* 
+	   Q * xx (I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME later.)
+	*/
+	for(i=0; i<n; i++){
+		for(j = 0; j<n; j++){
+			tmp[i] += Q[ i + n*j ] * xx[j];
+		}
+	}
+	for(i=0, q = 0.0; i<n; i++){
+		q += xx[i] * tmp[i];
+	}
+
+	Free(xx);
+	Free(tmp);
+	Free(chol);
+	
+	return (-n/2.0*log(2*M_PI) + 0.5 * logdet - 0.5 * q);
+}
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
 	/*
@@ -4237,6 +4276,37 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "GAUSSIANSPDE2") || !strcasecmp(prior->name, "NORMALSPDE2")) {
+		int nparam, i, dim;
+		double *tmp;
+		
+		prior->id = P_MVGAUSSIAN;
+		prior->priorfunc = priorfunc_mvgaussian;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		if (mb->verbose) {
+			for(i=0; i<nparam; i++){
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+		/* 
+		   add the dimension of the mvgaussian as the first argument of the parameter
+		*/
+		dim = -1;
+		for(i = 1;; i++) {		       /* yes, an infinite loop */
+			if (nparam == i + ISQR(i)){
+				dim = i;
+				break;
+			}
+			if (nparam < i + ISQR(i)){
+				inla_error_general("nparam does not match with any dimension of the mvnorm");
+				exit(1);
+			}
+		}
+		tmp = Calloc(nparam + 1, double);
+		tmp[0] = dim;
+		memcpy(&(tmp[1]), prior->parameters,  nparam * sizeof(double));
+		Free(prior->parameters);
+		prior->parameters = tmp;
 	} else if (!strcasecmp(prior->name, "MINUSLOGSQRTRUNCNORMAL") || !strcasecmp(prior->name, "MINUSLOGSQRTRUNCGAUSSIAN") ||
 		   // easier names...
 		   !strcasecmp(prior->name, "LOGTNORMAL") || !strcasecmp(prior->name, "LOGTGAUSSIAN")) {
@@ -7250,6 +7320,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
 	inla_spde_tp *spde_model_orig = NULL;
+	inla_spde2_tp *spde2_model = NULL;
+	inla_spde2_tp *spde2_model_orig = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
@@ -7473,6 +7545,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_SPDE;
 		mb->f_ntheta[mb->nf] = 4;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE model");
+	} else if (OneOf("SPDE2")) {
+		mb->f_id[mb->nf] = F_SPDE2;
+		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE2 model");
 	} else if (OneOf("COPY")) {
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
@@ -7480,7 +7556,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 	}
-	if (mb->f_ntheta[mb->nf]) {
+	if (mb->f_ntheta[mb->nf] > 0) {
 		mb->f_prior[mb->nf] = Calloc(mb->f_ntheta[mb->nf], Prior_tp);
 		mb->f_fixed[mb->nf] = Calloc(mb->f_ntheta[mb->nf], int);
 		mb->f_theta[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double **);
@@ -7527,6 +7603,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// K[0]
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// the rest
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "FLAT");	// the ocillating cooef
+		break;
+
+	case F_SPDE2:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "GAUSSIANSPDE2"); // Just one prior...
 		break;
 
 	case F_COPY:
@@ -8098,6 +8178,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			 */
 
 			// nothing to do
+		} else if (mb->f_id[mb->nf] == F_SPDE2) {
+			/*
+			 * SPDE2
+			 */
+
+			// nothing to do
 		} else {
 			/*
 			 * RW-model: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -8418,6 +8504,119 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				mb->ntheta++;
 			}
+		}
+		break;
+	}
+
+	case F_SPDE2:
+	{
+		char *spde2_prefix;
+		int nT, nK;
+
+		spde2_prefix = GMRFLib_strdup(".");
+		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2_PREFIX"), spde2_prefix);
+		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.PREFIX"), spde2_prefix);
+		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2PREFIX"), spde2_prefix);
+		if (mb->verbose) {
+			printf("\t\tspde2.prefix = [%s]\n", spde2_prefix);
+		}
+
+		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix);
+		mb->f_model[mb->nf] = (void *) spde2_model_orig;
+
+		/*
+		 * The _userfunc0 must be set directly after the _build_model() call. This is a bit dirty; FIXME later. 
+		 */
+		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix);
+		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
+		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
+		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */
+
+		/* 
+		   now we know the number of hyperparameters ;-)
+		*/
+		int ntheta;
+
+		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
+		if (mb->verbose) {
+			printf("\t\tntheta = [%1d]\n", ntheta);
+		}
+		assert((int) mb->f_prior[mb->nf][0].parameters[0] == ntheta);
+
+		mb->f_prior[mb->nf] = Calloc(ntheta, Prior_tp); /* only first is used, rest is NULL */
+		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
+		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		
+		/* 
+		   mark all possible as read
+		 */
+		for(i=0; i<100; i++){
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		/* 
+		   then read those we need
+		 */
+		for(i = 0; i< ntheta; i++) {
+			double theta_initial = 0.0;
+			char *ctmp;
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (mb->f_fixed[mb->nf][i]){
+				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE2 model.");
+				exit(1);
+			}
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			theta_initial = iniparser_getboolean(ini, inla_string_join(secname, ctmp), theta_initial);
+
+			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				theta_initial = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_INIT(spde2_model->theta[i], theta_initial);
+
+			if (mb->verbose) {
+				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
+				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
+			}
+			
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Theta %1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Theta %1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta); /* YES, use prior0 */
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
+
+			mb->theta[mb->ntheta] = spde2_model->theta[i];
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
 		}
 		break;
 	}
@@ -9448,12 +9647,28 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			fp = fopen("spde.graph.dat", "w");
 			GMRFLib_print_graph(fp, spde_model->graph);
 			fclose(fp);
-			FIXME("write graph");
+			FIXME("write graph for spde");
 			exit(0);
 		}
 
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde_model->n;
+	} else if (mb->f_id[mb->nf] == F_SPDE2) {
+		mb->f_Qfunc[mb->nf] = spde2_model->Qfunc;
+		mb->f_Qfunc_arg[mb->nf] = spde2_model->Qfunc_arg;
+		mb->f_graph[mb->nf] = spde2_model->graph;
+
+		if (0) {
+			FILE *fp;
+			fp = fopen("spde2.graph.dat", "w");
+			GMRFLib_print_graph(fp, spde2_model->graph);
+			fclose(fp);
+			FIXME("write graph for spde2");
+			exit(0);
+		}
+
+		mb->f_rankdef[mb->nf] = 0;
+		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde2_model->n;
 	} else if (mb->f_id[mb->nf] == F_RW2D) {
 		GMRFLib_rw2ddef_tp *arg = NULL;
 
@@ -11389,6 +11604,37 @@ double extra(double *theta, int ntheta, void *argument)
 
 			Free(Tpar);
 			Free(Kpar);
+			break;
+		}
+
+		case F_SPDE2:
+		{
+			int k, spde2_ntheta;
+			double t;
+			inla_spde2_tp *spde2;
+
+			spde2 = (inla_spde2_tp *) mb->f_model[i];
+			assert(spde2->Qfunc_arg == spde2);
+
+			spde2_ntheta = spde2->ntheta;
+			for(k=0; k<spde2_ntheta; k++){
+				spde2->theta[k][GMRFLib_thread_id][0] = theta[count +k];
+			}
+			SET_GROUP_RHO(spde2_ntheta);
+
+			static GMRFLib_problem_tp *problem = NULL;
+#pragma omp threadprivate(problem)
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
+					     spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
+					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			GMRFLib_evaluate(problem);
+			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
+
+			/* 
+			   this is the mvnormal prior...
+			 */
+			val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
+			count += spde2_ntheta;
 			break;
 		}
 

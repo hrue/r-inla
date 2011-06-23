@@ -28,8 +28,8 @@
  *
  *
  */
-#ifndef __INLA_SPDE_H__
-#define __INLA_SPDE_H__
+#ifndef __INLA_SPDE2_H__
+#define __INLA_SPDE2_H__
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -51,14 +51,8 @@ typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
 
-	GMRFLib_matrix_tp *B0;
-	GMRFLib_matrix_tp *B1;
-	GMRFLib_matrix_tp *B2;
-
-	GMRFLib_matrix_tp *M0;
-	GMRFLib_matrix_tp *M1;
-	GMRFLib_matrix_tp *M2;
-
+	GMRFLib_matrix_tp **B;
+	GMRFLib_matrix_tp **M;
 	GMRFLib_matrix_tp *BLC;
 
 	double ***theta;
