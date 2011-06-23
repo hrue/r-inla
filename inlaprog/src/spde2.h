@@ -47,9 +47,17 @@ __BEGIN_DECLS
    
  */
 
+typedef enum {
+	SPDE2_TRANSFORM_LOGIT = 1, 			       /* cos(pi/(1+exp(-x)) */
+	SPDE2_TRANSFORM_LOG,				       /* 2*exp(x)-1 */
+	SPDE2_TRANSFORM_IDENTITY			       /* x */
+} spde2_transform_tp;
+
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
+
+	spde2_transform_tp transform;
 
 	GMRFLib_matrix_tp **B;
 	GMRFLib_matrix_tp **M;
@@ -64,7 +72,7 @@ typedef struct {
 
 
 double inla_spde2_Qfunction(int node, int nnode, void *arg);
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix);
+int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform);
 
 __END_DECLS
 #endif
