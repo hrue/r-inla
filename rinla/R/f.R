@@ -186,6 +186,12 @@
         ##!\item{spde.prefix}{}
         spde.prefix = NULL,
 
+        ##!\item{spde2.prefix}{}
+        spde2.prefix = NULL,
+
+        ##!\item{spde2.transform}{}
+        spde2.transform = c("logit", "log", "identity"), 
+
         ##!\item{mean.linear}{ Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
         mean.linear=NULL,
@@ -485,7 +491,7 @@
         stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
 
-    if (inla.one.of(model, c("spde", "spde2"))) {
+    if (inla.one.of(model, c("spde"))) {
         if (is.null(spde.prefix)) {
             stop("Argument spde.prefix=NULL is required for model = spde")
         }
@@ -495,6 +501,12 @@
         }
     }
 
+    if (inla.one.of(model, c("spde2"))) {
+        if (is.null(spde2.prefix)) {
+            stop("Argument spde2.prefix=NULL is required for model = spde2")
+        }
+    }
+    spde2.transform = match.arg(spde2.transform, several.ok = FALSE)
 
     if (inla.one.of(model,"seasonal") &&
         is.null(season.length)) {
@@ -695,7 +707,7 @@
             extraconstr=extraconstr, values=values, nrow = nrow, ncol
             = ncol, nu = nu, bvalue = bvalue, of = of, precision =
             precision, si = si, compute = compute, spde.prefix =
-            spde.prefix, range = range)
+            spde.prefix, spde2.transform = spde2.transform, range = range)
 
     return (ret)
 }
