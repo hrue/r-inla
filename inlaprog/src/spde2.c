@@ -57,6 +57,12 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 		}
 	}
 
+	/* 
+	   to hold the i'th and j'th row of the B-matrices
+	 */
+	double *row_i = Calloc(model->B[0]->ncol, double);
+	double *row_j = Calloc(model->B[0]->ncol, double);
+	
 	for (k = 0; k < 3; k++) {
 		GMRFLib_matrix_tp *B;
 
@@ -65,30 +71,35 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 			/*
 			 * some savings for i == j 
 			 */
-			phi_i[k] = GMRFLib_matrix_get(i, 0, B);
+			GMRFLib_matrix_get_row(row_i, i, B);
+			phi_i[k] = row_i[0];
 			for (kk = 1; kk < B->ncol; kk++) {
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-				phi_i[k] += GMRFLib_matrix_get(i, kk, B) * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
 			}
 			phi_j[k] = phi_i[k];		       /* they are equal in this case */
 		} else {
 			/*
 			 * i != j 
 			 */
-			phi_i[k] = GMRFLib_matrix_get(i, 0, B);
-			phi_j[k] = GMRFLib_matrix_get(j, 0, B);
+			GMRFLib_matrix_get_row(row_i, i, B);
+			GMRFLib_matrix_get_row(row_j, j, B);
+			phi_i[k] = row_i[0];
+			phi_j[k] = row_j[0];
 			for (kk = 1; kk < B->ncol; kk++) {
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-				phi_i[k] += GMRFLib_matrix_get(i, kk, B) * model->theta[kk - 1][GMRFLib_thread_id][0];
-				phi_j[k] += GMRFLib_matrix_get(j, kk, B) * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
 			}
 		}
 	}
-
+	Free(row_i);
+	Free(row_j);
+	
 	for (k = 0; k < 2; k++) {
 		d_i[k] = exp(phi_i[k]);
 		d_j[k] = exp(phi_j[k]);
