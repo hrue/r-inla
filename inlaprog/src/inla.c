@@ -8330,6 +8330,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_spde_build_model(&spde_model, (const char *) spde_prefix);
 		GMRFLib_ai_INLA_userfunc0 = (GMRFLib_ai_INLA_userfunc0_tp *) inla_spde_userfunc0;
 		GMRFLib_ai_INLA_userfunc1 = (GMRFLib_ai_INLA_userfunc1_tp *) inla_spde_userfunc1;
+		//GMRFLib_ai_INLA_userfunc0_dim = mb->ntheta;    NOT NEEDED; set in userfunc0
 		GMRFLib_ai_INLA_userfunc1_dim = mb->ntheta;    /* this is a hack and gives the offset of theta... */
 
 		double initial_t = 0.0, initial_k = 0.0, initial_rest = 0.0, initial_oc = 0.0;
@@ -8537,6 +8538,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
 
+		GMRFLib_ai_INLA_userfunc2_n++;
+		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp);
+		GMRFLib_ai_INLA_userfunc2_args = Realloc(GMRFLib_ai_INLA_userfunc2_args, GMRFLib_ai_INLA_userfunc2_n, void *);
+		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
+		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] =  (void *) spde2_model;
+
 		/*
 		 * now we know the number of hyperparameters ;-) 
 		 */
@@ -8582,6 +8589,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
+
+		/* 
+		   need to know where in the theta-list the spde2 parameters are
+		 */
+		spde2_model->theta_first_idx = mb->ntheta;
 
 		/*
 		 * then read those we need 

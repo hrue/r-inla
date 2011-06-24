@@ -121,6 +121,8 @@ details.}
 possible values are \code{c(0, 1, 2, 3)}}
 \item{bvalue}{}
 \item{spde.prefix}{}
+\item{spde2.prefix}{}
+\item{spde2.transform}{}
 \item{mean.linear}{ Prior mean for the linear component,
 only used if \code{model="linear"}}
 \item{prec.linear}{ Prior precision for the linear
