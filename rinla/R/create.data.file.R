@@ -45,9 +45,9 @@
                 file.remove(file)
                 file.remove(data.dir)
                 stop("Length of scale has to be the same as the length of data")
-            }
-            else
+            } else {
                 response=cbind(response[, 1L], scale, response[, 2L])
+            }
         }   
     } else if (inla.one.of(family, c("poisson",
                                      "zeroinflatedpoisson0",
@@ -66,14 +66,24 @@
             response = cbind(ind, y.orig)
             null.dat = is.na(response[, 2L])
             response = response[!null.dat,]
+
+            if (length(E) == 1) {
+                E = rep(E, n.data)
+            }
+            if (length(E) != length(null.dat)) {
+                stopifnot(length(null.dat) == n.data)
+                warning(paste("Length of 'E' is different from length of response: ",
+                              length(E),  " != ",  length(null.dat)))
+            } 
             E = E[!null.dat]
-            if (length(E)!=nrow(response)) {
+
+            if (length(E) != nrow(response)) {
                 file.remove(file)
                 file.remove(data.dir)
-                stop("Length of E has to be the same as the length of data")
-            }
-            else
+                stop("Length of E has to be the same as the length of the response")
+            } else {
                 response=cbind(response[, 1L], E, response[, 2L])
+            }
         }       
     } else if (inla.one.of(family, c("poissonext"))) {
         ## PoissonExt family has the E field, which is a n x 3L matrix
