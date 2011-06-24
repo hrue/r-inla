@@ -625,8 +625,46 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 		return (d ? *d : 0.0);
 	} else {
 		int idx = i + j * M->nrow;
-		return (M->A ? M->A[idx] : M->iA[idx]);
+		return (M->A ? M->A[idx] : (double) M->iA[idx]);
 	}
+}
+int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
+{
+	/*
+	 * fill the i-th row in 'values'. THIS IS SLOW FOR SPARSE, FAST FOR DENSE!!
+	 */
+
+	int j;
+
+	if (M->i) {
+		/* 
+		   sparse-matrix
+		 */
+		
+		for(j = 0; j<M->ncol; j++) {
+			double *d;
+			if (M->htable_column_order) {
+				d = map_id_ptr(M->htable[j], i);
+			} else {
+				d = map_id_ptr(M->htable[i], j);
+			}
+			values[j] = (d ? *d : 0.0);
+		}
+	} else {
+		int idx = i;
+		
+		if (M->A){
+			for(j = 0; j < M->ncol; j++, idx += M->nrow) {
+				values[j] =  M->A[idx];
+			}
+		} else {
+			for(j = 0; j<M->ncol; j++, idx += M->nrow) {
+				values[j] =  (double) M->iA[idx];
+			}
+		}
+	}
+
+	return GMRFLib_SUCCESS;
 }
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
