@@ -1,3 +1,4 @@
+
 /* spde2.c
  * 
  * Copyright (C) 2011  Havard Rue
@@ -51,27 +52,18 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
 	int k, kk;
 
-	if (model->debug){
-		for(k=0; k<model->ntheta; k++){
-			printf("theta %d %.8g\n", k, model->theta[k][GMRFLib_thread_id][0]);
-		}
-	}
-
-	/* 
-	   to hold the i'th and j'th row of the B-matrices
+	/*
+	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
 	 */
-	double *row_i = Calloc(model->B[0]->ncol, double);
-	double *row_j = Calloc(model->B[0]->ncol, double);
-	
-	for (k = 0; k < 3; k++) {
-		GMRFLib_matrix_tp *B;
+	double *row_i = Calloc(2 * model->B[0]->ncol, double);
+	double *row_j = &row_i[model->B[0]->ncol];
 
-		B = model->B[k];			       /* to simplify the code */
+	for (k = 0; k < 3; k++) {
 		if (i == j) {
 			/*
 			 * some savings for i == j 
 			 */
-			GMRFLib_matrix_get_row(row_i, i, B);
+			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
 			phi_i[k] = row_i[0];
 			for (kk = 1; kk < B->ncol; kk++) {
 				/*
@@ -84,8 +76,8 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 			/*
 			 * i != j 
 			 */
-			GMRFLib_matrix_get_row(row_i, i, B);
-			GMRFLib_matrix_get_row(row_j, j, B);
+			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
+			GMRFLib_matrix_get_row(row_j, j, model->B[k]);
 			phi_i[k] = row_i[0];
 			phi_j[k] = row_j[0];
 			for (kk = 1; kk < B->ncol; kk++) {
@@ -98,8 +90,7 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 		}
 	}
 	Free(row_i);
-	Free(row_j);
-	
+
 	for (k = 0; k < 2; k++) {
 		d_i[k] = exp(phi_i[k]);
 		d_j[k] = exp(phi_j[k]);
@@ -109,35 +100,36 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 	 * change this later on, need an option here for various 'link' functions. some savings possible for i==j.
 	 */
 	if (i == j) {
-		switch(model->transform) {
-		case SPDE2_TRANSFORM_LOGIT: 
-			d_i[2] = d_j[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+		switch (model->transform) {
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
 			break;
-		case SPDE2_TRANSFORM_LOG: 
-			d_i[2] = d_j[2] = 2*exp(phi_i[2]) - 1.0;
+		case SPDE2_TRANSFORM_LOG:
+			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY: 
-			d_i[2] = d_j[2] = phi_i[2];
+		case SPDE2_TRANSFORM_IDENTITY:
+			d_i[2] = phi_i[2];
 			break;
 		default:
-			assert(0==1);
+			assert(0 == 1);
 		}
+		d_j[2] = d_i[2];
 	} else {
-		switch(model->transform) {
-		case SPDE2_TRANSFORM_LOGIT: 
+		switch (model->transform) {
+		case SPDE2_TRANSFORM_LOGIT:
 			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
 			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
 			break;
-		case SPDE2_TRANSFORM_LOG: 
-			d_i[2] = 2*exp(phi_i[2]) - 1.0;
-			d_j[2] = 2*exp(phi_j[2]) - 1.0;
+		case SPDE2_TRANSFORM_LOG:
+			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
+			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY: 
+		case SPDE2_TRANSFORM_IDENTITY:
 			d_i[2] = phi_i[2];
 			d_j[2] = phi_j[2];
 			break;
 		default:
-			assert(0==1);
+			assert(0 == 1);
 		}
 	}
 
@@ -145,30 +137,20 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 				   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
 				   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
 
-	if (model->debug){
-		P(d_i[0]);
-		P(d_j[0]);
-		P(d_i[1]);
-		P(d_j[1]);
-		P(d_i[2]);
-		P(d_j[2]);
-		printf("%d %d %.8g\n", i, j, value);
-	}
-	
 	return value;
 }
 
 int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform)
 {
-	int i, debug = 1;
+	int i, debug = 0;
 	inla_spde2_tp *model = NULL;
 	char *fnm = NULL;
 
 	model = Calloc(1, inla_spde2_tp);
 
-	if (strcasecmp(transform, "logit") == 0){
+	if (strcasecmp(transform, "logit") == 0) {
 		model->transform = SPDE2_TRANSFORM_LOGIT;
-	} else if (strcasecmp(transform,  "log") == 0) {
+	} else if (strcasecmp(transform, "log") == 0) {
 		model->transform = SPDE2_TRANSFORM_LOG;
 	} else if (strcasecmp(transform, "identity") == 0) {
 		model->transform = SPDE2_TRANSFORM_IDENTITY;
@@ -178,7 +160,7 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 
 	model->B = Calloc(3, GMRFLib_matrix_tp *);
 	model->M = Calloc(3, GMRFLib_matrix_tp *);
-	for(i = 0; i<3; i++){
+	for (i = 0; i < 3; i++) {
 		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "B", i);
 		model->B[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 
@@ -186,30 +168,30 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 		model->M[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	}
 
-	for(i = 1; i < 3; i++){
-		/* 
-		   all need the same dimensions n x (p+1)
-		*/
+	for (i = 1; i < 3; i++) {
+		/*
+		 * all need the same dimensions n x (p+1) 
+		 */
 		assert(model->B[0]->nrow == model->B[i]->nrow);
 		assert(model->B[0]->ncol == model->B[i]->ncol);
 
-		/* 
-		   all are square with the same dimension n x n
-		*/
+		/*
+		 * all are square with the same dimension n x n 
+		 */
 		assert(model->M[i]->nrow == model->M[i]->ncol);
 		assert(model->M[0]->nrow == model->M[i]->nrow);
 
-		/* 
-		   and the number of rows must be the same
-		*/
-		assert(model->B[i]->nrow  == model->M[i]->nrow);
+		/*
+		 * and the number of rows must be the same 
+		 */
+		assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
-	
+
 	model->n = model->M[0]->nrow;
 	model->ntheta = model->B[0]->ncol - 1;
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
-	if (GMRFLib_is_fmesher_file((const char *)fnm, 0L, -1) == GMRFLib_SUCCESS){
+	if (GMRFLib_is_fmesher_file((const char *) fnm, 0L, -1) == GMRFLib_SUCCESS) {
 		model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	} else {
 		model->BLC = NULL;
@@ -238,8 +220,8 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 			}						\
 		}							\
 	}
-	
-	for(i=0; i<3; i++){
+
+	for (i = 0; i < 3; i++) {
 		ADD_GRAPH(model->M[i]->graph);
 	}
 
@@ -254,30 +236,6 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
 	// model->theta_extra = Calloc(GMRFLib_MAX_THREADS, double *);
-
-	if (0) {
-		FILE *fp;
-
-		FIXME("write graph to file spde2-graph.dat");
-		fp = fopen("spde2-graph.dat", "w");
-		GMRFLib_print_graph(fp, model->graph);
-		fclose(fp);
-	}
-
-	if (0) {
-		int k;
-		for (k = 1; k < 8; k++) {
-			GMRFLib_problem_tp *problem;
-			GMRFLib_reorder = k;
-			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg,
-					     NULL, NULL, GMRFLib_NEW_PROBLEM);
-			char *nm;
-			GMRFLib_sprintf(&nm, "Qspde2-%1d", k);
-			GMRFLib_bitmap_problem(nm, problem);
-			GMRFLib_free_problem(problem);
-		}
-	}
 
 	*smodel = model;
 
