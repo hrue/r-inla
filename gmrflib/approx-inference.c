@@ -5224,8 +5224,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	/*
 	 * userfunction1 
 	 */
-	if (GMRFLib_ai_INLA_userfunc1)
+	if (GMRFLib_ai_INLA_userfunc1){
 		GMRFLib_ai_INLA_userfunc1(theta_mode, nhyper, inverse_hessian);
+	}
+
+	if (GMRFLib_ai_INLA_userfunc2){
+		/* 
+		   OOPS! This loop CANNOT be run in parallel!!!
+		 */
+		for(i = 0; i < GMRFLib_ai_INLA_userfunc2_n; i++){
+			GMRFLib_ai_INLA_userfunc2[i](i, theta_mode, nhyper, inverse_hessian);
+		}
+	}
 
 	/*
 	 * cleanup 

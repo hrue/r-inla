@@ -65,7 +65,7 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 			 */
 			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
 			phi_i[k] = row_i[0];
-			for (kk = 1; kk < B->ncol; kk++) {
+			for (kk = 1; kk < model->B[k]->ncol; kk++) {
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
@@ -80,7 +80,7 @@ double inla_spde2_Qfunction(int i, int j, void *arg)
 			GMRFLib_matrix_get_row(row_j, j, model->B[k]);
 			phi_i[k] = row_i[0];
 			phi_j[k] = row_j[0];
-			for (kk = 1; kk < B->ncol; kk++) {
+			for (kk = 1; kk < model->B[k]->ncol; kk++) {
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
@@ -235,9 +235,61 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	model->Qfunc_arg = (void *) model;
 
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
-	// model->theta_extra = Calloc(GMRFLib_MAX_THREADS, double *);
-
 	*smodel = model;
+
+	return INLA_OK;
+}
+
+int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
+{
+	/*
+	 * compute the marginals for BLC * theta
+	 */
+
+	if (!covmat || nhyper == 0) {
+		return INLA_OK;
+	}
+
+	int i, ii, jj;
+	inla_spde2_tp *model = (inla_spde2_tp *) GMRFLib_ai_INLA_userfunc2_args[number];
+
+	if (model->BLC == NULL){
+		return INLA_OK;
+	}
+
+	int nrow = model->BLC->nrow;
+	int ncol = model->BLC->ncol;
+	double *row = Calloc(nrow, double);
+	assert(nrow == model->ntheta + 1);
+
+	if (!GMRFLib_ai_INLA_userfunc2_len){
+		GMRFLib_ai_INLA_userfunc2_len = Calloc(GMRFLib_ai_INLA_userfunc2_n, int);
+	}
+	GMRFLib_ai_INLA_userfunc2_len[number] = nrow;
+
+	if (!GMRFLib_ai_INLA_userfunc2_density){
+		GMRFLib_ai_INLA_userfunc2_density = Calloc(GMRFLib_ai_INLA_userfunc2_n, GMRFLib_density_tp **);
+	}
+	GMRFLib_ai_INLA_userfunc2_density[number] = Calloc(nrow, GMRFLib_density_tp *);
+	
+	for(i = 0; i< nrow; i++){
+		double mean = 0.0, var = 0.0;
+		int idx_offset = model->theta_first_idx;
+
+		GMRFLib_matrix_get_row(row, i, model->BLC);
+		mean = row[0];
+		for(ii = 0; ii < model->ntheta; ii++){
+			mean += theta[idx_offset + ii] * row[1+ii];
+			for(jj = 0; jj < model->ntheta; jj++){
+				var += row[1+ii] * row[1+jj] * /* yes the first column is a constant offset */
+					covmat[ (idx_offset + ii) + nhyper * (idx_offset + jj) ] *
+					theta[idx_offset + ii] * theta[idx_offset + jj];
+			}
+		}
+		GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
+	}
+
+	Free(row);
 
 	return INLA_OK;
 }

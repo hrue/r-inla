@@ -56,6 +56,7 @@ typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
 	int debug;
+	int theta_first_idx;
 
 	spde2_transform_tp transform;
 
@@ -74,6 +75,7 @@ typedef struct {
 
 double inla_spde2_Qfunction(int node, int nnode, void *arg);
 int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform);
+int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat);
 
 __END_DECLS
 #endif

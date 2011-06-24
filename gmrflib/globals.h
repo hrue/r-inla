@@ -111,6 +111,7 @@ typedef double GMRFLib_cpu_tp(void);
  */
 typedef double *GMRFLib_ai_INLA_userfunc0_tp(GMRFLib_problem_tp * problem, double *theta, int nhyper);
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(double *theta, int nhyper, double *covmat);
+typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat);
 
 
 /* 
@@ -179,6 +180,12 @@ extern GMRFLib_density_tp **GMRFLib_ai_INLA_userfunc0_density; /* return the mar
 extern GMRFLib_ai_INLA_userfunc1_tp *GMRFLib_ai_INLA_userfunc1;	/* points to the function */
 extern int GMRFLib_ai_INLA_userfunc1_dim;		       /* dimension of func() */
 extern GMRFLib_density_tp **GMRFLib_ai_INLA_userfunc1_density; /* return the marginal densities here */
+
+extern GMRFLib_ai_INLA_userfunc2_tp **GMRFLib_ai_INLA_userfunc2;	
+extern void **GMRFLib_ai_INLA_userfunc2_args;
+extern GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc2_density; 
+extern int GMRFLib_ai_INLA_userfunc2_n;
+extern int *GMRFLib_ai_INLA_userfunc2_len;
 
 /* 
    switch for integration type (TRUE/FALSE)
