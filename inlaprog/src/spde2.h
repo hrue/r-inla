@@ -46,9 +46,8 @@ __BEGIN_DECLS
 /* 
    
  */
-
-typedef enum {
-	SPDE2_TRANSFORM_LOGIT = 1, 			       /* cos(pi/(1+exp(-x)) */
+    typedef enum {
+	SPDE2_TRANSFORM_LOGIT = 1,			       /* cos(pi/(1+exp(-x)) */
 	SPDE2_TRANSFORM_LOG,				       /* 2*exp(x)-1 */
 	SPDE2_TRANSFORM_IDENTITY			       /* x */
 } spde2_transform_tp;
@@ -57,7 +56,7 @@ typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
 	int debug;
-	
+
 	spde2_transform_tp transform;
 
 	GMRFLib_matrix_tp **B;

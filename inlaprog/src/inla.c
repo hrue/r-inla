@@ -1510,49 +1510,49 @@ double priorfunc_normal(double *x, double *parameters)
 }
 double priorfunc_mvnorm(double *x, double *parameters)
 {
-	/* 
-	   this is the multivariate normal
-	*/
+	/*
+	 * this is the multivariate normal 
+	 */
 	int n = (int) parameters[0], i, j;
 	assert(n > 0);
-	
+
 	double *mean, *Q, *chol, *xx, q = 0.0, logdet = 0.0;
 
 	mean = &(parameters[1]);
 	Q = &(parameters[1 + n]);
 	chol = NULL;
 	xx = Calloc(n, double);
-	
-	if (0){
-		for(i=0; i<n; i++){
-			for(j = 0; j<n; j++)
-				printf("%g ", Q[i+j*n]);
+
+	if (0) {
+		for (i = 0; i < n; i++) {
+			for (j = 0; j < n; j++)
+				printf("%g ", Q[i + j * n]);
 			printf("\n");
 		}
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			printf("%g\n", mean[i]);
 	}
 
 	GMRFLib_comp_chol_general(&chol, Q, n, &logdet, 0);
-	for(i=0; i<n; i++){
+	for (i = 0; i < n; i++) {
 		xx[i] = x[i] - mean[i];
 	}
-	
-	/* 
-	   q = xx^T * Q * xx. I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME
-	   later.
-	*/
+
+	/*
+	 * q = xx^T * Q * xx. I dont have any easy function for matrix vector except the messy BLAS-FORTRAN-INTERFACE.... so I just do this manually now. FIXME
+	 * later. 
+	 */
 	q = 0.0;
-	for(i=0; i<n; i++){
-		for(j = 0; j<n; j++){
-			q += xx[i] * Q[ i + n*j ] * xx[j];
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+			q += xx[i] * Q[i + n * j] * xx[j];
 		}
 	}
 
 	Free(xx);
 	Free(chol);
-	
-	return (-n/2.0*log(2*M_PI) + 0.5 * logdet - 0.5 * q);
+
+	return (-n / 2.0 * log(2 * M_PI) + 0.5 * logdet - 0.5 * q);
 }
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
@@ -2289,7 +2289,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 #define S(x_) sinh(skew + tail * asinh(x_))
-	
+
 	/*
 	 * y ~ Sinh-aSinh
 	 */
@@ -2307,26 +2307,26 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	skew = ds->data_observations.sas_skew[GMRFLib_thread_id][0];
 	tail = map_exp(ds->data_observations.sas_log_tail[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
-	if (0){
-		/* 
-		   this transformation really helps, and around the gaussian case its really good. but I'm unsure how wise this is really.
-		*/
+	if (0) {
+		/*
+		 * this transformation really helps, and around the gaussian case its really good. but I'm unsure how wise this is really. 
+		 */
 		FIXME1("change tail");
-		tail /= pow(prec, 1./3.);
+		tail /= pow(prec, 1. / 3.);
 	}
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			xx = (y - ypred)*sqrt(prec);
+			xx = (y - ypred) * sqrt(prec);
 			s = S(xx);
 			s2 = SQR(s);
-			logll[i] = -0.9189385332046726 + log(tail) + 0.5*log(1.0 + s2) - 0.5*log(1.0+SQR(xx)) - 0.5*s2 + 0.5*lprec;
+			logll[i] = -0.9189385332046726 + log(tail) + 0.5 * log(1.0 + s2) - 0.5 * log(1.0 + SQR(xx)) - 0.5 * s2 + 0.5 * lprec;
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			s = S((y - ypred)*sqrt(prec));
+			s = S((y - ypred) * sqrt(prec));
 			logll[i] = inla_Phi(s);
 		}
 	}
@@ -4080,48 +4080,39 @@ int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file)
 }
 int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS",
-				       "FROM.THETA", "TO.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", default_prior);
 }
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR", "GROUP.PARAMETERS",
-				       "GROUP.TO.THETA", "GROUP.FROM.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR", "GROUP.PARAMETERS", "GROUP.TO.THETA", "GROUP.FROM.THETA", default_prior);
 }
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR0", "PARAMETERS0", 
-				       "FROM.THETA0", "TO.THETA0", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR0", "PARAMETERS0", "FROM.THETA0", "TO.THETA0", default_prior);
 }
 int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR1", "PARAMETERS1",
-				       "FROM.THETA1", "TO.THETA1", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR1", "PARAMETERS1", "FROM.THETA1", "TO.THETA1", default_prior);
 }
 int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR2", "PARAMETERS2",
-				       "FROM.THETA2", "TO.THETA2", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR2", "PARAMETERS2", "FROM.THETA2", "TO.THETA2", default_prior);
 }
 int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR3", "PARAMETERS3",
-				       "FROM.THETA3", "TO.THETA3", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR3", "PARAMETERS3", "FROM.THETA3", "TO.THETA3", default_prior);
 }
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR4", "PARAMETERS4",
-				       "FROM.THETA4", "TO.THETA4", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR4", "PARAMETERS4", "FROM.THETA4", "TO.THETA4", default_prior);
 }
 int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR5", "PARAMETERS5",
-				       "FROM.THETA5", "TO.THETA5", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR5", "PARAMETERS5", "FROM.THETA5", "TO.THETA5", default_prior);
 }
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR6", "PARAMETERS6",
-				       "FROM.THETA6", "TO.THETA6", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR6", "PARAMETERS6", "FROM.THETA6", "TO.THETA6", default_prior);
 }
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *default_prior)
@@ -4286,32 +4277,32 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 	} else if (!strcasecmp(prior->name, "MVNORM") || !strcasecmp(prior->name, "MVGAUSSIAN")) {
 		int nparam, i, dim;
 		double *tmp;
-		
+
 		prior->id = P_MVNORM;
 		prior->priorfunc = priorfunc_mvnorm;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		if (mb->verbose) {
-			for(i=0; i<nparam; i++){
+			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
 			}
 		}
-		/* 
-		   add the dimension of the mvgaussian as the first argument of the parameter
-		*/
+		/*
+		 * add the dimension of the mvgaussian as the first argument of the parameter 
+		 */
 		dim = -1;
-		for(i = 1;; i++) {		       /* yes, an infinite loop */
-			if (nparam == i + ISQR(i)){
+		for (i = 1;; i++) {			       /* yes, an infinite loop */
+			if (nparam == i + ISQR(i)) {
 				dim = i;
 				break;
 			}
-			if (nparam < i + ISQR(i)){
+			if (nparam < i + ISQR(i)) {
 				inla_error_general("nparam does not match with any dimension of the mvnorm");
 				exit(1);
 			}
 		}
 		tmp = Calloc(nparam + 1, double);
 		tmp[0] = dim;
-		memcpy(&(tmp[1]), prior->parameters,  nparam * sizeof(double));
+		memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
 		Free(prior->parameters);
 		prior->parameters = tmp;
 	} else if (!strcasecmp(prior->name, "MINUSLOGSQRTRUNCNORMAL") || !strcasecmp(prior->name, "MINUSLOGSQRTRUNCGAUSSIAN") ||
@@ -5806,7 +5797,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision parameter for the SAS observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
@@ -5845,7 +5836,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for the SAS observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
@@ -5884,7 +5875,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail for the SAS observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
@@ -7577,7 +7568,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * just allocate this here, as its needed all over 
 	 */
-	if (mb->f_ntheta[mb->nf] > 0){
+	if (mb->f_ntheta[mb->nf] > 0) {
 		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);
 	}
 
@@ -7615,7 +7606,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_SPDE2:
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM"); // Just one prior...
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
 		break;
 
 	case F_COPY:
@@ -7641,8 +7632,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
 				GMRFLib_sprintf(&from_theta, "FROM.THETA%1d", kk);
 				GMRFLib_sprintf(&to_theta, "TO.THETA%1d", kk);
-				inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta, 
-							(kk == 0 ? prifunc : "NONE"));
+				inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta, (kk == 0 ? prifunc : "NONE"));
 
 				Free(pri);
 				Free(par);
@@ -7655,8 +7645,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&par, "PARAMETERS");
 			GMRFLib_sprintf(&from_theta, "FROM.THETA");
 			GMRFLib_sprintf(&to_theta, "TO.THETA");
-			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta, 
-						(kk == 0 ? prifunc : "NONE"));
+			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta, (kk == 0 ? prifunc : "NONE"));
 		}
 
 		Free(pri);
@@ -8520,7 +8509,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_SPDE2:
 	{
 		char *spde2_prefix, *transform;
-		
+
 		int nT, nK;
 
 		spde2_prefix = GMRFLib_strdup(".");
@@ -8539,36 +8528,42 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tspde2.transform = [%s]\n", transform);
 		}
 
-		/* 
-		   need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like for B and M matrices and BLC. maybe
-		   do later
+		/*
+		 * need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like for B and M matrices and BLC. maybe
+		 * do later 
 		 */
-		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *)transform);
+		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *) transform);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
 
-		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *)transform);
+		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
 
-		/* 
-		   now we know the number of hyperparameters ;-)
-		*/
+		/*
+		 * now we know the number of hyperparameters ;-) 
+		 */
 		int ntheta;
 
 		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
-		assert((int) mb->f_prior[mb->nf][0].parameters[0] == ntheta);
 
-		//mb->f_prior[mb->nf] = Calloc(ntheta, Prior_tp); /* only first is used, rest is NULL */
+		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
+			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
+					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
+			inla_error_general(ptmp);
+			exit(1);
+		}
+
+
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
-		
-		/* 
-		   mark all possible as read
+
+		/*
+		 * mark all possible as read 
 		 */
-		for(i=0; i<100; i++){
+		for (i = 0; i < 100; i++) {
 			char *ctmp;
-			
+
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -8588,16 +8583,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
-		/* 
-		   then read those we need
+		/*
+		 * then read those we need 
 		 */
-		for(i = 0; i< ntheta; i++) {
+		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (mb->f_fixed[mb->nf][i]){
+			if (mb->f_fixed[mb->nf][i]) {
 				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE2 model.");
 				exit(1);
 			}
@@ -8614,7 +8609,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
 				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
 			}
-			
+
 			/*
 			 * add this \theta 
 			 */
@@ -8622,16 +8617,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Theta %1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Theta %1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta); /* YES, use prior0 */
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
 
 			mb->theta[mb->ntheta] = spde2_model->theta[i];
@@ -11639,11 +11634,11 @@ double extra(double *theta, int ntheta, void *argument)
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
 			assert(spde2->Qfunc_arg == spde2);
 
-			spde2->debug=0;
+			spde2->debug = 0;
 
 			spde2_ntheta = spde2->ntheta;
-			for(k=0; k<spde2_ntheta; k++){
-				spde2->theta[k][GMRFLib_thread_id][0] = theta[count +k];
+			for (k = 0; k < spde2_ntheta; k++) {
+				spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
 			}
 			SET_GROUP_RHO(spde2_ntheta);
 
@@ -11655,10 +11650,8 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_evaluate(problem);
 			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
 
-			//P(problem->sub_logdens);
-			
-			/* 
-			   this is the mvnormal prior...
+			/*
+			 * this is the mvnormal prior...
 			 */
 			val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
 			count += spde2_ntheta;
@@ -13935,7 +13928,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	for (i = any = 0; i < ntheta; i++) {
 		any = (any || theta_from[i]);
 	}
-	if (any){
+	if (any) {
 		GMRFLib_sprintf(&nndir, "%s/theta-from", ndir);
 		fp = fopen(nndir, "w");
 		for (i = 0; i < ntheta; i++) {
@@ -13947,7 +13940,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	for (i = any = 0; i < ntheta; i++) {
 		any = (any || theta_to[i]);
 	}
-	if (any){
+	if (any) {
 		GMRFLib_sprintf(&nndir, "%s/theta-to", ndir);
 		fp = fopen(nndir, "w");
 		for (i = 0; i < ntheta; i++) {
@@ -15211,7 +15204,7 @@ int inla_qinv(const char *filename, const char *outfilename)
 	 * Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances 
 	 */
 	int i, j, jj, k;
-	
+
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
@@ -15223,9 +15216,9 @@ int inla_qinv(const char *filename, const char *outfilename)
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
 
-	/* 
-	   write a fmesher file and just pass the filename
-	*/
+	/*
+	 * write a fmesher file and just pass the filename 
+	 */
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
 
 	M->nrow = graph->n;
@@ -15241,13 +15234,13 @@ int inla_qinv(const char *filename, const char *outfilename)
 	M->values = Calloc(M->elems, double);
 
 	k = 0;
-	for(i = 0; i<graph->n; i++) {
+	for (i = 0; i < graph->n; i++) {
 		M->i[k] = i;
 		M->j[k] = i;
 		M->values[k] = *GMRFLib_Qinv_get(problem, i, i);
 		k++;
-		
-		for(jj = 0; jj < graph->nnbs[i]; jj++) {
+
+		for (jj = 0; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			M->i[k] = i;
 			M->j[k] = j;
@@ -15314,7 +15307,7 @@ int testit(int argc, char **argv)
 
 	int i, j, k, kk;
 
-	
+
 	printf("read file %s\n", argv[3]);
 	M = GMRFLib_read_fmesher_file(argv[3], 0L, -1);
 
@@ -15406,7 +15399,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_max_dimension = 128;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
-	
+
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -15576,7 +15569,7 @@ int main(int argc, char **argv)
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	if (G.mode == INLA_MODE_QINV) {
-		inla_qinv(argv[optind], argv[optind+1]);
+		inla_qinv(argv[optind], argv[optind + 1]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {

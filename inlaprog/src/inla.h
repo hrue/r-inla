@@ -211,7 +211,7 @@ typedef struct {
 	 */
 	double **log_prec_loggamma_frailty;
 
-	/* 
+	/*
 	 * Sinh-asinh
 	 */
 	double *sas_weight;
@@ -254,7 +254,7 @@ typedef enum {
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
-	L_SAS, 
+	L_SAS,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
