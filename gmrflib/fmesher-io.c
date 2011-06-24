@@ -499,7 +499,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	g->nnbs = Calloc(g->n, int);
 
 	for (k = 0; k < M->elems; k++) {
-		if (M->i[k] != M->j[k]){
+		if (M->i[k] != M->j[k]) {
 			g->nnbs[M->i[k]]++;
 		}
 	}
@@ -514,7 +514,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 			offset += g->nnbs[k];
 		}
 	}
-	assert(offset <=  nhold);
+	assert(offset <= nhold);
 
 	for (k = 0; k < M->nrow; k++) {
 		g->nnbs[k] = 0;				       /* will use this array for counting and build it again */
@@ -637,11 +637,11 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 	int j;
 
 	if (M->i) {
-		/* 
-		   sparse-matrix
+		/*
+		 * sparse-matrix 
 		 */
-		
-		for(j = 0; j<M->ncol; j++) {
+
+		for (j = 0; j < M->ncol; j++) {
 			double *d;
 			if (M->htable_column_order) {
 				d = map_id_ptr(M->htable[j], i);
@@ -652,14 +652,14 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 		}
 	} else {
 		int idx = i;
-		
-		if (M->A){
-			for(j = 0; j < M->ncol; j++, idx += M->nrow) {
-				values[j] =  M->A[idx];
+
+		if (M->A) {
+			for (j = 0; j < M->ncol; j++, idx += M->nrow) {
+				values[j] = M->A[idx];
 			}
 		} else {
-			for(j = 0; j<M->ncol; j++, idx += M->nrow) {
-				values[j] =  (double) M->iA[idx];
+			for (j = 0; j < M->ncol; j++, idx += M->nrow) {
+				values[j] = (double) M->iA[idx];
 			}
 		}
 	}
