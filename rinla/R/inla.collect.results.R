@@ -16,6 +16,7 @@
         res.random = inla.collect.random(results.dir, control.results$return.marginals.random, debug)
         res.predictor = inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
         res.configurations = inla.collect.configurations(results.dir, debug)
+        res.spde2.blc = inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
 
         file=paste(results.dir,.Platform$file.sep,"neffp",.Platform$file.sep,"neffp.dat", sep="")
         neffp = matrix(inla.read.binary.file(file), 3, 1)
@@ -31,6 +32,7 @@
         res.random=NULL
         res.predictor =NULL
         res.configurations = NULL
+        res.spde2.blc = NULL
         neffp =NULL
     }
     res.mlik = inla.collect.mlik(results.dir, debug)
@@ -77,7 +79,7 @@
     }
 
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
-            res.configurations, res.offset,
+            res.configurations, res.offset, res.spde2.blc, 
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x=x.mode,
                                       theta.tags = theta.tags),

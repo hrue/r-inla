@@ -185,6 +185,7 @@ extern void **GMRFLib_ai_INLA_userfunc2_args;
 extern GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc2_density; 
 extern int GMRFLib_ai_INLA_userfunc2_n;
 extern int *GMRFLib_ai_INLA_userfunc2_len;
+extern char **GMRFLib_ai_INLA_userfunc2_tag;
 
 /* 
    switch for integration type (TRUE/FALSE)

@@ -8531,13 +8531,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
 
+		/* 
+		   set up userfunc2 that computes the marginal of BLC*theta.intern
+		 */
 		GMRFLib_ai_INLA_userfunc2_n++;
+
 		GMRFLib_ai_INLA_userfunc2_args = Realloc(GMRFLib_ai_INLA_userfunc2_args, GMRFLib_ai_INLA_userfunc2_n, void *);
 		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] =  (void *) spde2_model;
-		GMRFLib_ai_INLA_userfunc2 = (GMRFLib_ai_INLA_userfunc2_tp **) Realloc(GMRFLib_ai_INLA_userfunc2,
-										     GMRFLib_ai_INLA_userfunc2_n,
-										     GMRFLib_ai_INLA_userfunc2_tp *);
+		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp *);
 		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
+
+		char *ltag;
+		GMRFLib_sprintf(&ltag, "%s", secname);
+		GMRFLib_ai_INLA_userfunc2_tag = Realloc(GMRFLib_ai_INLA_userfunc2_tag, GMRFLib_ai_INLA_userfunc2_n, char *);
+		GMRFLib_ai_INLA_userfunc2_tag[GMRFLib_ai_INLA_userfunc2_n-1] = ltag;
 
 		/*
 		 * now we know the number of hyperparameters ;-) 
@@ -8624,11 +8631,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i+1, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i+1, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i);
+			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i+1);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -13626,6 +13633,36 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < dim; ii++)
 					GMRFLib_free_density(gd[ii]);
 				Free(gd);
+			}
+			if (GMRFLib_ai_INLA_userfunc2_density && GMRFLib_ai_INLA_userfunc2_n > 0) {
+				for(ii = 0; ii< GMRFLib_ai_INLA_userfunc2_n; ii++){
+					/*
+					 * we need to create the corresponding normal as well 
+					 */
+					char *sdir, *local_tag;
+
+					int dim = GMRFLib_ai_INLA_userfunc2_len[ii];
+					GMRFLib_density_tp **gd = Calloc(dim, GMRFLib_density_tp *);
+					
+					int jj;
+					for (jj = 0; jj < dim; jj++) {
+						GMRFLib_density_create_normal(&(gd[jj]), 0.0, 1.0,
+									      GMRFLib_ai_INLA_userfunc2_density[ii][jj]->user_mean,
+									      GMRFLib_ai_INLA_userfunc2_density[ii][jj]->user_stdev);
+					}
+					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii+1);
+					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc2_tag[ii]);
+					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc2_density[ii], gd, NULL, dim, 1,
+							   mb->output, sdir, NULL, NULL, NULL, local_tag, NULL, local_verbose);
+					inla_output_size(mb->dir, sdir, dim, -1, -1, -1, -1);
+					
+					Free(sdir);
+					Free(local_tag);
+					for (jj = 0; jj < dim; jj++){
+						GMRFLib_free_density(gd[jj]);
+					}
+					Free(gd);
+				}
 			}
 
 			if (mb->misc_output) {

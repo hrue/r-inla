@@ -260,7 +260,8 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 	int nrow = model->BLC->nrow;
 	int ncol = model->BLC->ncol;
 	double *row = Calloc(nrow, double);
-	assert(nrow == model->ntheta + 1);
+	
+	assert(ncol == model->ntheta + 1);
 
 	if (!GMRFLib_ai_INLA_userfunc2_len){
 		GMRFLib_ai_INLA_userfunc2_len = Calloc(GMRFLib_ai_INLA_userfunc2_n, int);

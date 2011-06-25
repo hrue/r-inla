@@ -1106,6 +1106,159 @@ inla.internal.experimental.mode = FALSE
     return(res)
 }
 
+`inla.collect.spde2.blc` =
+    function(results.dir,
+             return.marginals.random,
+             debug = FALSE)
+{
+    ## a copy from collect.random
+    alldir = dir(results.dir)
+    random = alldir[grep("^spde2.blc", alldir)]
+    n.random = length(random)
+    if (debug)
+        print("collect random effects")
+
+    ##read the names and model of the random effects
+    if (n.random > 0L) {
+        names.random = inla.namefix(character(n.random))
+        model.random = inla.trim(character(n.random))
+        for(i in 1L:n.random) {
+            tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
+            if (!file.exists(tag))
+                names.random[i] = "missing NAME"
+            else
+                names.random[i] = inla.namefix(readLines(tag, n=1L))
+            modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
+            if (!file.exists(modelname))
+                model.random[i] = "NoModelName"
+            else
+                model.random[i] = inla.trim(readLines(modelname, n=1L))
+        }
+        
+
+        summary.random = list()
+        summary.random[[n.random]] = NA
+        size.random = list()
+        size.random[[n.random]] = NA
+
+        if (return.marginals.random) {
+            marginals.random = list()
+            marginals.random[[n.random]] = NA
+        } else {
+            marginals.random = NULL
+        }
+        
+        for(i in 1L:n.random) {
+            if (debug)
+                print(paste("read random ", i , " of ", n.random))
+            ##read the summary
+            file= paste(results.dir, .Platform$file.sep, random[i], sep="")
+            dir.random = dir(file)
+
+            if (length(dir.random) > 4L) {
+                dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")), ncol=3L, byrow=TRUE)
+                col.nam = c("ID","mean","sd")
+                ##read quantiles if existing
+                if (debug)
+                    cat("...quantiles.dat if any\n")
+                if (length(grep("^quantiles.dat$", dir.random))==1L) {
+                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"quantiles.dat", sep="")),
+                            debug=debug)
+                    len = dim(xx)[2L]
+                    qq = xx[, seq(2L, len, by=2L), drop=FALSE]
+                    col.nam = c(col.nam, paste(as.character(xx[, 1L]),"quant", sep=""))
+                    dd = cbind(dd, t(qq))
+                }
+
+                ##read cdf if existing
+                if (debug)
+                    cat("...cdf.dat if any\n")
+                if (length(grep("^cdf.dat$", dir.random))==1L) {
+                    xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"cdf.dat", sep="")),
+                            debug=debug)
+                    len = dim(xx)[2L]
+                    qq = xx[, seq(2L, len, by=2L), drop=FALSE]
+                    col.nam = c(col.nam, paste(as.character(xx[, 1L])," cdf", sep=""))
+                    dd = cbind(dd, t(qq))
+                }
+
+                ##read kld
+                if (debug)
+                    cat("...kld\n")
+                kld1 = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"symmetric-kld.dat", sep="")),
+                    ncol=2L, byrow=TRUE)
+                qq = kld1[, 2L, drop=FALSE]
+                dd = cbind(dd, qq)
+                if (debug)
+                    cat("...kld done\n")
+
+            
+                col.nam = c(col.nam, "kld")
+                colnames(dd) = inla.namefix(col.nam)
+                summary.random[[i]] = as.data.frame(dd)
+
+                if (return.marginals.random) {
+                    xx = inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep=""))
+                    rr = inla.interpret.vector.list(xx, debug=debug)
+                    rm(xx)
+                    if (!is.null(rr)) {
+                        nd = length(rr)
+                        names(rr) = inla.namefix(paste("index.", as.character(1L:nd), sep=""))
+                        names.rr = names(rr)
+                        for(j in 1L:nd) {
+                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                            if (inla.internal.experimental.mode) {
+                                class(rr[[j]]) = "inla.marginal"
+                                attr(rr[[j]], "inla.tag") = paste("marginal random", names.random[i], names.rr[j])
+                            }
+                        }
+                    }
+
+                    if (inla.internal.experimental.mode) {
+                        class(rr) = "inla.marginals"
+                        attr(rr, "inla.tag") = paste("marginals random",  names.random[i])
+                    }
+                    marginals.random[[i]] = rr
+                } else {
+                    stopifnot(is.null(marginals.random))
+                }
+            } else {
+                N.file = paste(file, .Platform$file.sep,"N", sep="")
+                if (!file.exists(N.file)) {
+                    N = 0L
+                } else {
+                    N = scan(file=N.file, what = numeric(0L), quiet=TRUE)
+                }
+                summary.random[[i]] = data.frame("mean" = rep(NA, N), "sd" = rep(NA, N), "kld" = rep(NA, N))
+                marginals.random = NULL
+            }
+
+            size.random[[i]] = inla.collect.size(file)
+        }
+        names(summary.random) = inla.namefix(names.random)
+
+        ## could be that marginals.random is a list of lists of NULL or NA
+        if (!is.null(marginals.random)) {
+            if (all(sapply(marginals.random, function(x) (is.null(x) || is.na(x)))))
+                marginals.random = NULL
+        }
+
+        if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
+            names(marginals.random) = inla.namefix(names.random)
+        }
+    } else {
+        if (debug)
+            cat("No random effets\n")
+        model.random=NULL
+        summary.random=NULL
+        marginals.random=NULL
+        size.random = NULL
+    }
+    
+    res = list(model.spde2.blc=model.random, summary.spde2.blc=summary.random, marginals.spde2.blc=marginals.random, size.spde2.blc = size.random)
+    return(res)
+}
+
 `inla.image.reduce` = function(im, image.dim=256)
 {
     ## reduce image IM to image.dim IMAGE.DIM and return the image as a matrix.
