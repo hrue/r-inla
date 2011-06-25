@@ -28,11 +28,11 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 __BEGIN_DECLS
 
@@ -43,7 +43,6 @@ __BEGIN_DECLS
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
@@ -69,15 +68,15 @@ __BEGIN_DECLS
 
 	int size;					       /** Storage size */
 
-	/* 
-	   map key->idx
+	/*
+	 * map key->idx 
 	 */
-	map_stri strihash;				       /* HRue  */
+	map_stri strihash;				       /* HRue */
 
-	/* 
-	   hold free entries
+	/*
+	 * hold free entries 
 	 */
-	map_ii iihash;					       /* HRue  */
+	map_ii iihash;					       /* HRue */
 
 	char *used;					       /* HRue: mark as used */
 

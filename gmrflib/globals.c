@@ -167,7 +167,7 @@ int GMRFLib_ai_INLA_userfunc1_dim = 0;			       /* dimension of func() */
 
 GMRFLib_ai_INLA_userfunc2_tp **GMRFLib_ai_INLA_userfunc2 = NULL;
 void **GMRFLib_ai_INLA_userfunc2_args = NULL;
-GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc2_density = NULL; 
+GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc2_density = NULL;
 int GMRFLib_ai_INLA_userfunc2_n = 0;
 int *GMRFLib_ai_INLA_userfunc2_len = NULL;
 char **GMRFLib_ai_INLA_userfunc2_tag = NULL;
