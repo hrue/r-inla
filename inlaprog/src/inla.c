@@ -168,8 +168,8 @@ unsigned char *inla_inifile_sha1(const char *filename)
 		if (fp){						\
 			ssize_t fd = fileno(fp);			\
 			while (1) {					\
-				ssize_t j = read(fd, buf, BUFSIZE);	\
-				if (j <= 0 )				\
+				ssize_t j = read(fd, buf, (size_t)BUFSIZE); \
+				if (j <= 0L )				\
 					break;				\
 				SHA1_Update(&c, buf, (unsigned long) j); \
 			}						\
@@ -2515,12 +2515,11 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, dof, y_std, fac, lg1, lg2, ypred;
+	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
 
 	dof = map_dof(ds->data_observations.dof_intern_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_t[idx];
-	lprec = ds->data_observations.log_prec_t[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.log_prec_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	fac = sqrt((dof / (dof - 2.0)) * prec);
 	lg1 = gsl_sf_lngamma(dof / 2.0);
@@ -6061,7 +6060,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "SN.SHAPE.MAX"), 5.0);
 		ds->data_observations.shape_max_skew_normal = iniparser_getdouble(ini, inla_string_join(secname, "SNSHAPEMAX"), tmp);
-		ds->data_observations.shape_max_skew_normal = abs(ds->data_observations.shape_max_skew_normal);
+		ds->data_observations.shape_max_skew_normal = fabs(ds->data_observations.shape_max_skew_normal);
 		if (mb->verbose) {
 			printf("\t\tshape.max[%g]\n", ds->data_observations.shape_max_skew_normal);
 		}
@@ -11642,7 +11641,6 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_SPDE2:
 		{
 			int k, spde2_ntheta;
-			double t;
 			inla_spde2_tp *spde2;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
