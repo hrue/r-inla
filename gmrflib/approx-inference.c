@@ -1248,7 +1248,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, sub_n = -1, count, free_ai_par = 0, debug = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
+	int i, j, k, nd = -1, n = -1, count, free_ai_par = 0, debug = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, lc0, lc1, ld0, ld1, c0, c1, deldif =
 	    GMRFLib_eps(1.0 / 3.0), h2 = 0.0, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
@@ -1458,7 +1458,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		abort();
 	}
 
-	sub_n = ai_store->problem->sub_graph->n;
 	n_points = ai_par->n_points;
 	GMRFLib_ghq_abscissas(&x_points, n_points);	       /* get the x-points */
 	qsort(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */

@@ -243,7 +243,7 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 {
 	/*
-	 * compute the marginals for BLC * theta
+	 * compute the marginals for BLC*theta
 	 */
 
 	if (!covmat || nhyper == 0) {
