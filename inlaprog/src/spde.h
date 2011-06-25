@@ -33,21 +33,19 @@
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
 #else
-# define __BEGIN_DECLS					       /* empty */
-# define __END_DECLS					       /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 __BEGIN_DECLS
-
 #include "GMRFLib/GMRFLib.h"
 
 /* 
    
  */
-
-typedef struct {
+    typedef struct {
 	int n;
 	int dim;
 	double **s;					       /* n x dim */
@@ -93,12 +91,12 @@ double inla_spde_Qfunction(int node, int nnode, void *arg);
 double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int *nhyper);
 int inla_spde_userfunc1(double *theta, int nhyper, double *covmat);
 int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp * theta_model, int idx, int iidx);
-int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp *basis);
+int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp * basis);
 int inla_spde_free_points(inla_spde_points_tp * p);
 int inla_spde_basis_eval(int kmax, double *s, double *res_array);
 int inla_spde_basis_n(int kmax);
 int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix);
-inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp *M);
+inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp * M);
 
 __END_DECLS
 #endif

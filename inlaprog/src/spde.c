@@ -182,7 +182,7 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp 
 
 	for (i = 0; i < basis->nrow; i++) {
 		theta_model->basis[i] = &(hold[basis->ncol * i]);
-		for (j = 0; j < basis->ncol; j++){
+		for (j = 0; j < basis->ncol; j++) {
 			theta_model->basis[i][j] = GMRFLib_matrix_get(i, j, basis);
 		}
 	}
