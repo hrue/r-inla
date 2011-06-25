@@ -2441,8 +2441,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	 * This is copy of the original routine but with optional two last arguments 
 	 */
 
-	int i, j, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
-	    *idxs = NULL, nidx = 0, use_old_code = 0;
+	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
+		*idxs = NULL, nidx = 0;
 	double *mode = NULL;
 	static int new_idea = 0;
 
@@ -5332,7 +5332,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	if (eigen_values) {
 		gsl_vector_free(eigen_values);
 	}
-	for (k = -1; (k = map_strd_next(&hash_table, k)) != -1;) {
+	for (k = -1; (k = (int) map_strd_next(&hash_table, k)) != -1;) {
 		Free(hash_table.contents[k].key);	       /* the keys are alloced... */
 	}
 

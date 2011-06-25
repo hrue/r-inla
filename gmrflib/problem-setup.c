@@ -1168,13 +1168,9 @@ int GMRFLib_free_problem(GMRFLib_problem_tp * problem)
 	/*
 	 * free all malloced stuff in 'problem' 
 	 */
-	int n;
-
 	if (!problem) {
 		return GMRFLib_SUCCESS;
 	}
-	n = problem->sub_graph->n;
-
 	GMRFLib_free_Qinv(problem);			       /* do this here, so that `n' is still there... */
 
 	Free(problem->sample);
