@@ -564,7 +564,6 @@ int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
 
 int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
 {
-	int j;
 	spmatrix_storage *sptr;
 	map_ii_storage *iptr;
 	FILE *fpp;
@@ -577,7 +576,7 @@ int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
 		fprintf(fpp, "\tQ[%1d, %1d] = %.1f\n", sptr->key.key1, sptr->key.key2, sptr->value);
 	}
 
-	for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(&(ged->tags), iptr)) != NULL;) {
+	for (iptr = NULL; (iptr = map_ii_nextptr(&(ged->tags), iptr)) != NULL;) {
 		fprintf(fpp, "\ttags[%1d] = %s\n", iptr->key,
 			(iptr->value == GMRFLib_GED_TAG_INDEP ? "Independent" : (iptr->value == GMRFLib_GED_TAG_GLOBAL ? "Global" : "Normal")));
 	}

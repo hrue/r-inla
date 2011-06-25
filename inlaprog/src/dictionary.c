@@ -294,7 +294,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		}
 
 		int j;
-		for (j = -1; (j = map_ii_next(&(d->iihash), j)) != -1;) {
+		for (j = -1; (j = (int)map_ii_next(&(d->iihash), j)) != -1;) {
 			i = d->iihash.contents[j].key;
 			break;
 		}

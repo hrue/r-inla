@@ -141,7 +141,6 @@ int GMRFLib_timer_enter(const char *name)
 		GMRFLib_timer_hashval_tp *p;
 		void *vpp;
 		char *cname;
-		int tp;
 
 		cname = GMRFLib_strdup(name);
 
@@ -162,12 +161,10 @@ int GMRFLib_timer_enter(const char *name)
 		if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
 			p = *((GMRFLib_timer_hashval_tp **) vpp);
 			Free(cname);
-			tp = 0;
 		} else {
 			p = Calloc(1, GMRFLib_timer_hashval_tp);
 			p->name = GMRFLib_strdup(name);
 			map_strvp_set(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname, (void *) p);
-			tp = 1;
 		}
 
 		/*

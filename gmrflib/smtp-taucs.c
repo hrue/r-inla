@@ -1248,7 +1248,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 
 			for (j = n - 1; j >= 0; j--) {
 				nset = 0;
-				for (k = -1; (k = map_ii_next(Qinv_L[j], k)) != -1;) {
+				for (k = -1; (k = (int) map_ii_next(Qinv_L[j], k)) != -1;) {
 					kk = Qinv_L[j]->contents[k].key;
 					Zj[kk] = 1;
 					Zj_set[nset++] = kk;
@@ -1301,7 +1301,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 			Zj = Calloc(n, char);
 
 			for (j = n - 1; j >= 0; j--) {
-				for (k = -1; (k = map_ii_next(Qinv_L[j], k)) != -1;) {
+				for (k = -1; (k = (int) map_ii_next(Qinv_L[j], k)) != -1;) {
 					Zj[Qinv_L[j]->contents[k].key] = 1;
 				}
 
@@ -1388,7 +1388,7 @@ taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, 
 	 * first count the number of missing terms 
 	 */
 	for (i = 0, nmissing = 0; i < n; i++) {
-		for (k = -1; (k = map_ii_next(missing[i], k)) != -1;) {
+		for (k = -1; (k = (int) map_ii_next(missing[i], k)) != -1;) {
 			nmissing++;
 		}
 	}
@@ -1415,7 +1415,7 @@ taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, 
 		/*
 		 * now add new elms to this column 
 		 */
-		for (k = -1; (k = map_ii_next(missing[j], k)) != -1;) {
+		for (k = -1; (k = (int) map_ii_next(missing[j], k)) != -1;) {
 			LL->rowind[jp] = missing[j]->contents[k].key;
 			LL->values.d[jp] = 0.0;
 			jp++;
@@ -1506,7 +1506,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 		nset = 0;
 		q = Qinv_L[j];				       /* just to store the ptr */
 
-		for (k = -1; (k = map_id_next(q, k)) != -1;) {
+		for (k = -1; (k = (int) map_id_next(q, k)) != -1;) {
 			jj = q->contents[k].key;
 			Zj_set[nset++] = jj;
 			Zj[jj] = q->contents[k].value;
@@ -1579,13 +1579,13 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
 			if (storage & GMRFLib_QINV_DIAG) {
-				for (k = -1, nrremove = 0; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 					if ((j = Qinv_L[i]->contents[k].key) != i) {
 						rremove[nrremove++] = j;
 					}
 				}
 			} else {
-				for (k = -1, nrremove = 0; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 					j = Qinv_L[i]->contents[k].key;
 
 					if (j != i) {
@@ -1613,7 +1613,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
-			for (k = -1; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
 				jjj = inv_remap[j];
 

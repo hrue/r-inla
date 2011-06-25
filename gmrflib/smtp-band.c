@@ -513,13 +513,13 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
 			if (storage & GMRFLib_QINV_DIAG) {
-				for (k = -1, nrremove = 0; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 					if ((j = Qinv_L[i]->contents[k].key) != i) {
 						rremove[nrremove++] = j;
 					}
 				}
 			} else {
-				for (k = -1, nrremove = 0; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 					j = Qinv_L[i]->contents[k].key;
 					if (j != i) {
 						jjj = inv_remap[j];
@@ -546,7 +546,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
-			for (k = -1; (k = map_id_next(Qinv_L[i], k)) != -1;) {
+			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
 				jjj = inv_remap[j];
 				map_id_get(Qinv_L[i], j, &value);

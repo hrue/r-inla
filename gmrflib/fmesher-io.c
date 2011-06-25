@@ -57,7 +57,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	}
 
 	int len_header;
-	int nread;
+	size_t nread;
 
 	nread = fread((void *) &len_header, sizeof(int), (size_t) 1, (FILE *) fp);
 	fclose(fp);

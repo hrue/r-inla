@@ -102,7 +102,6 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 	double reduce_factor;
 	unsigned char *bitmap;
 	FILE *fp;
-	size_t ret;
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
@@ -130,7 +129,7 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 	if (fp) {
 		fprintf(fp, "P4\n%1d %1d\n", N, N);
 		for (i = 0; i < N; i++) {
-			ret = fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
+			fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
 		}
 		fclose(fp);
 	} else {

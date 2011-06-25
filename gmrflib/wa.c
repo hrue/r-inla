@@ -90,10 +90,9 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
 {
 	if (wa_problem) {
-		int i, n;
+		int i;
 		GMRFLib_waQfunc_arg_tp *arg = NULL;
 
-		n = wa_problem->graph->n;
 		arg = (GMRFLib_waQfunc_arg_tp *) wa_problem->Qfunc_arg;
 
 		if (arg->neigb_info) {

@@ -91,12 +91,12 @@ int GMRFLib_mixture_lgamma_testing__intern(void)
 	double n;
 
 	n = 9999;
-	int nc, ic, ret;
+	int nc, ic;
 
 	printf("This is a test\n");
 	while (n > 0) {
 		printf("Enter n:\n");
-		ret = scanf("%lf", &n);
+		scanf("%lf", &n);
 		printf("n=%lf\n", n);
 		GMRFLib_mixture_lgamma(&mycoeffs, n);
 		nc = mycoeffs->ncomp;
