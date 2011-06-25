@@ -113,7 +113,6 @@ typedef double *GMRFLib_ai_INLA_userfunc0_tp(GMRFLib_problem_tp * problem, doubl
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(double *theta, int nhyper, double *covmat);
 typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat);
 
-
 /* 
    define the global variables, unless __GMRFLib_DONT_DEFINE_GLOBALS is set
  */

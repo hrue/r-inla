@@ -1205,7 +1205,7 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int fail, i, j, k, n_theta, dim, debug = 0, id;
+	int i, j, k, n_theta, dim, debug = 0, id;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
 
@@ -1248,7 +1248,7 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg)
 	assert(k == n_theta);
 
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-		fail = inla_iid_wishart_adjust(dim, vec);
+		inla_iid_wishart_adjust(dim, vec);
 		k = 0;
 		for (i = 0; i < dim; i++) {
 			gsl_matrix_set(hold->Q, i, i, 1.0 / vec[k]);
@@ -2139,7 +2139,7 @@ double inla_log_Phi(double x)
 	if (fabs(x) < 7.0) {
 		return (log(gsl_cdf_ugaussian_P(x)));
 	} else {
-		double t1, t4, t3, t8, t9, t13, t22, t27, t28, t31, t47;
+		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
 
 		if (fabs(x) < 25.0) {
 			t1 = 1.77245385090551602729816748334;
@@ -2148,7 +2148,6 @@ double inla_log_Phi(double x)
 			t8 = x * x;
 			t9 = t8 * x;
 			t13 = t8 * t8;
-			t22 = t13 * t13;
 			t27 = exp(t8);
 			t28 = sqrt(t27);
 			t31 = 0.1e1 / M_PI;
@@ -2230,11 +2229,10 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, tau, ltau, w, alpha, u, lnc, epsilon, ggamma, a, ypred;
+	double y, tau, w, alpha, u, lnc, epsilon, ggamma, a, ypred;
 
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_laplace[idx];
-	ltau = ds->data_observations.log_tau_laplace[GMRFLib_thread_id][0] + log(w);
 	tau = map_tau_laplace(ds->data_observations.log_tau_laplace[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	alpha = ds->data_observations.alpha_laplace;
 	epsilon = ds->data_observations.epsilon_laplace;
@@ -2449,11 +2447,10 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, xi, xx, ypred;
+	double y, sprec, w, xi, xx, ypred;
 
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gev[idx];
-	lprec = ds->data_observations.log_prec_gev[GMRFLib_thread_id][0] + log(w);
 	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
 	/*
 	 * map_identity_scale(theta, MAP_FORWARD, arg...);
@@ -3749,13 +3746,11 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double dof, y, y2, sd, sd2, isd2, obs, var_u;
+	double dof, y, sd, sd2, obs, var_u;
 
 	dof = map_dof(ds->data_observations.dof_intern_svt[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
-	y2 = SQR(y);
 	sd2 = dof / (dof - 2.0);
-	isd2 = 1.0 / sd2;
 	sd = sqrt(sd2);
 	if (m > 0) {
 		double lg1, lg2, f;
@@ -8511,8 +8506,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 		char *spde2_prefix, *transform;
 
-		int nT, nK;
-
 		spde2_prefix = GMRFLib_strdup(".");
 		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2_PREFIX"), spde2_prefix);
 		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.PREFIX"), spde2_prefix);
@@ -8539,10 +8532,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_spde2_build_model(&spde2_model, (const char *) spde2_prefix, (const char *) transform);
 
 		GMRFLib_ai_INLA_userfunc2_n++;
-		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp);
 		GMRFLib_ai_INLA_userfunc2_args = Realloc(GMRFLib_ai_INLA_userfunc2_args, GMRFLib_ai_INLA_userfunc2_n, void *);
-		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
 		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] =  (void *) spde2_model;
+		GMRFLib_ai_INLA_userfunc2 = (GMRFLib_ai_INLA_userfunc2_tp **) Realloc(GMRFLib_ai_INLA_userfunc2,
+										     GMRFLib_ai_INLA_userfunc2_n,
+										     GMRFLib_ai_INLA_userfunc2_tp *);
+		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
 
 		/*
 		 * now we know the number of hyperparameters ;-) 
