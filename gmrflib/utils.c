@@ -95,12 +95,14 @@ char *GMRFLib_rindex(const char *p, int ch)
 	/*
 	 * as Windows does not have it... 
 	 */
-	char *save, *pp = p;
+	char *save, *pp = (char *)p;
 	for (save = NULL;; ++pp) {
-		if (*pp == ch)
-			save = (char *) ((void *) pp);
-		if (!*pp)
+		if (*pp == ch){
+			save = pp;
+		}
+		if (!*pp){
 			return (save);
+		}
 	}
 	abort();
 	return NULL;
