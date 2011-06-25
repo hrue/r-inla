@@ -955,6 +955,7 @@ double inla_log_Phi(double x);
 double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -965,6 +966,7 @@ double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
+double Qfunc_iid2d(int i, int j, void *arg);
 
 GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
 

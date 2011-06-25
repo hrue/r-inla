@@ -416,9 +416,9 @@ int GMRFLib_sn_fit_df(const gsl_vector * param, void *data, gsl_matrix * J)
 {
 	GMRFLib_sn_fit_data_tp *d = (GMRFLib_sn_fit_data_tp *) data;
 	GMRFLib_sn_param_tp p;
-	double constant;
 	size_t i;
-
+	double constant;
+	
 	p.xi = gsl_vector_get(param, 0);
 	p.omega = gsl_vector_get(param, 1);
 	constant = gsl_vector_get(param, 2);

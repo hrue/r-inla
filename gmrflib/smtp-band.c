@@ -616,7 +616,6 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 	double reduce_factor;
 	unsigned char *bitmap;
 	FILE *fp;
-	size_t ret;
 
 	int nband = bandwidth;
 	int ldim = bandwidth + 1;
@@ -646,7 +645,7 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 	if (fp) {
 		fprintf(fp, "P4\n%1d %1d\n", N, N);
 		for (i = 0; i < N; i++) {
-			ret = fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
+			fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
 		}
 		fclose(fp);
 	} else {
