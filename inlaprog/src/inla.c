@@ -4284,7 +4284,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		 * add the dimension of the mvgaussian as the first argument of the parameter 
 		 */
 		dim = -1;
-		for (i = 1;; i++) {			       /* yes, an infinite loop */
+		for (i = 0;; i++) {			       /* yes, an infinite loop */
 			if (nparam == i + ISQR(i)) {
 				dim = i;
 				break;
