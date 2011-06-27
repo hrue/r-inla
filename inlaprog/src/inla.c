@@ -1514,8 +1514,11 @@ double priorfunc_mvnorm(double *x, double *parameters)
 	 * this is the multivariate normal 
 	 */
 	int n = (int) parameters[0], i, j;
-	assert(n > 0);
 
+	if (n == 0){
+		return 0.0;
+	}
+	
 	double *mean, *Q, *chol, *xx, q = 0.0, logdet = 0.0;
 
 	mean = &(parameters[1]);
@@ -11647,13 +11650,12 @@ double extra(double *theta, int ntheta, void *argument)
 			assert(spde2->Qfunc_arg == spde2);
 
 			spde2->debug = 0;
-
 			spde2_ntheta = spde2->ntheta;
 			for (k = 0; k < spde2_ntheta; k++) {
 				spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
 			}
 			SET_GROUP_RHO(spde2_ntheta);
-
+			
 			static GMRFLib_problem_tp *problem = NULL;
 #pragma omp threadprivate(problem)
 			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
@@ -11661,7 +11663,7 @@ double extra(double *theta, int ntheta, void *argument)
 					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
 			GMRFLib_evaluate(problem);
 			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
-
+			
 			/*
 			 * this is the mvnormal prior...
 			 */
