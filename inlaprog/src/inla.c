@@ -4429,6 +4429,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->sha1_hash = inla_inifile_sha1(dict_filename);
 	inla_read_theta_sha1(&mb->sha1_hash_file, &mb->theta_file, &mb->ntheta_file);
 	mb->reuse_mode = (mb->sha1_hash_file && strcmp((char *) mb->sha1_hash, (char *) mb->sha1_hash_file) == 0 ? 1 : 0);
+	mb->reuse_mode = 0;				       /* disable this feature. creates more trouble than it solves. */
 	if (mb->verbose && mb->reuse_mode) {
 		printf("Reuse stored mode in [%s]\n", MODEFILENAME);
 	}
