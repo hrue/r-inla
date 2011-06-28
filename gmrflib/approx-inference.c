@@ -1580,6 +1580,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}
 			}
 		} else {
+			//printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
 			for (ii = 0; ii < ai_store->nd; ii++) {
 				i = ai_store->d_idx[ii];
 				ai_store->correction_idx[ai_store->nidx++] = i;
