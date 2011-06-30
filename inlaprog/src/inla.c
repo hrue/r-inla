@@ -532,7 +532,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its interpreted as range.low = -INF and
-	 * range.high = INF, ie the mapping is the identity.
+	 * range.high = INF, ie the mapping is the identity. If range.high = INF and range.low != INF, then the mapping is range.low + exp(...).
 	 */
 
 	double *range = (double *) param;
@@ -541,26 +541,56 @@ double map_beta(double x, map_arg_tp typ, void *param)
 		return map_identity(x, typ, param);
 	}
 
-	/*
-	 * Then the mapping is
-	 * 
-	 * range[0] + exp(x)/(1 + exp(x)) * (range[1] - range[0]) 
-	 */
+	if (ISINF(range[1]) && !ISINF(range[0])) {
+		switch (typ) {
+		case MAP_FORWARD:
+			/*
+			 * extern = func(local) 
+			 */
+			return range[0] + exp(x);
+		case MAP_BACKWARD:
+			/*
+			 * local = func(extern) 
+			 */
+			return log(x - range[0]);
+		case MAP_DFORWARD:
+			/*
+			 * d_extern / d_local 
+			 */
+			return exp(x);
+		case MAP_INCREASING:
+			/*
+			 * return 1.0 if montone increasing and 0.0 otherwise 
+			 */
+			return 1.0;
+		default:
+			abort();
+		}
+	} else if (ISINF(range[0]) && !ISINF(range[1])) {
+		FIXME("the case: ISINF(range[0]) && !ISINF(range[1]), is not yet implemented.");
+		exit(1);
+	} else {
+		/*
+		 * Then the mapping is
+		 * 
+		 * range[0] + exp(x)/(1 + exp(x)) * (range[1] - range[0]) 
+		 */
 
-	double d = range[1] - range[0], xx;
+		double d = range[1] - range[0], xx;
 
-	switch (typ) {
-	case MAP_FORWARD:
-		return range[0] + d * exp(x) / (1.0 + exp(x));
-	case MAP_BACKWARD:
-		xx = (x - range[0]) / d;
-		return log(xx / (1.0 - xx));
-	case MAP_DFORWARD:
-		return d * exp(x) / SQR(1 + exp(x));
-	case MAP_INCREASING:
-		return 1.0;
-	default:
-		assert(0 == 1);
+		switch (typ) {
+		case MAP_FORWARD:
+			return range[0] + d * exp(x) / (1.0 + exp(x));
+		case MAP_BACKWARD:
+			xx = (x - range[0]) / d;
+			return log(xx / (1.0 - xx));
+		case MAP_DFORWARD:
+			return d * exp(x) / SQR(1 + exp(x));
+		case MAP_INCREASING:
+			return 1.0;
+		default:
+			assert(0 == 1);
+		}
 	}
 	return 0.0;
 }
