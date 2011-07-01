@@ -10137,6 +10137,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					inla_error_general("this should not happen");
 				}
 
+
+				Prior_tp *pri =  &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]-1]);
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(pri->from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(pri->to_theta);
+
 				mb->ntheta++;
 			}
 
