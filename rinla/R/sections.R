@@ -20,20 +20,8 @@
         cat(prefix, "fixed",      suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
         cat(prefix, "prior",      suff, " = ", hyper[[k]]$prior, "\n", file = file, append = TRUE, sep="")
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
-        
-        src=attr(hyper[[k]]$to.theta, "source")
-        if (!is.null(src) && is.character(src) && nchar(src) > 1L) {
-            cat(prefix, "to.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
-        } else {
-            cat(prefix, "to.theta",   suff, " = ", "\n", file = file, append = TRUE, sep="")
-        }
-        
-        src=attr(hyper[[k]]$from.theta, "source")
-        if (!is.null(src) && is.character(src) && nchar(src) > 1L) {
-            cat(prefix, "from.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
-        } else {
-            cat(prefix, "from.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
-        }
+        cat(prefix, "to.theta",   suff, " = ", inla.function2source(hyper[[k]]$to.theta), "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "from.theta",   suff, " = ", inla.function2source(hyper[[k]]$from.theta), "\n", file = file, append = TRUE, sep="")
     }
 
     return ()
