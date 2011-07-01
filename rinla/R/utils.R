@@ -1147,3 +1147,19 @@
     return(invisible())
 }
 
+
+`inla.function2source` = function(the.function,  newline = "<<NEWLINE>>")
+{
+    ## take a function and return the souce with 'newline' as the
+    ## newline
+    attributes(the.function) = NULL
+    return (paste(deparse(the.function), collapse=newline))
+}
+`inla.source2function` = function(the.source, newline = "<<NEWLINE>>")
+{
+    ## take function source, output from inla.function2source(), and
+    ## return the function, using 'newline' as newline.
+    return (inla.eval(strsplit(the.source, split = newline)[[1]]))
+}
+
+    
