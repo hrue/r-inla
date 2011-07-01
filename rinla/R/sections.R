@@ -24,9 +24,14 @@
         src=attr(hyper[[k]]$to.theta, "source")
         if (!is.null(src) && is.character(src) && nchar(src) > 1L) {
             cat(prefix, "to.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
+        } else {
+            cat(prefix, "to.theta",   suff, " = ", "\n", file = file, append = TRUE, sep="")
         }
+        
         src=attr(hyper[[k]]$from.theta, "source")
         if (!is.null(src) && is.character(src) && nchar(src) > 1L) {
+            cat(prefix, "from.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
+        } else {
             cat(prefix, "from.theta",   suff, " = ", src, "\n", file = file, append = TRUE, sep="")
         }
     }
