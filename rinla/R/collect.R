@@ -29,7 +29,7 @@ inla.internal.experimental.mode = FALSE
     if (file.exists(fnm)) {
         theta.from = readLines(fnm)
         ## evaluate these as functions
-        theta.from = lapply(theta.from, function(x) eval(parse(text=x)))
+        theta.from = lapply(theta.from, inla.source2function)
         if (!is.null(tags)) {
             names(theta.from) = tags
         }
@@ -41,7 +41,7 @@ inla.internal.experimental.mode = FALSE
     if (file.exists(fnm)) {
         theta.to = readLines(fnm)
         ## evaluate these as functions
-        theta.to = lapply(theta.to, function(x) eval(parse(text=x)))
+        theta.to = lapply(theta.to, inla.source2function)
         if (!is.null(tags)) {
             names(theta.to) = tags
         }
