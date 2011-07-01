@@ -243,10 +243,9 @@
 `inla.call.builtin` = function()
 {
     if (inla.os("mac")) {
-        fnm = system.file("bin/mac/inla", package="INLA")
+        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla", sep=""), package="INLA")
     } else if (inla.os("linux")) {
-        fnm = system.file(paste("bin/linux/inla",
-                inla.os.32or64bit(), sep=""), package="INLA")
+        fnm = system.file(paste("bin/linux/inla", inla.os.32or64bit(), sep=""), package="INLA")
     } else if (inla.os("windows")) {
         fnm = system.file("bin/windows/inla.exe", package="INLA")
     } else {
@@ -261,22 +260,20 @@
 }
 `inla.fmesher.call.builtin` = function()
 {
-    if (inla.os("mac"))
-        fnm = system.file("bin/mac/fmesher", package="INLA")
-    else if (inla.os("linux"))
-        fnm = system.file(paste("bin/linux/fmesher",
-                inla.os.32or64bit(), sep=""), package="INLA")
-    else if (inla.os("windows"))
+    if (inla.os("mac")) {
+        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher", sep=""), package="INLA")
+    } else if (inla.os("linux")) {
+        fnm = system.file(paste("bin/linux/fmesher", inla.os.32or64bit(), sep=""), package="INLA")
+    } else if (inla.os("windows")) {
         fnm = system.file("bin/windows/fmesher.exe", package="INLA")
-    else
+    } else {
         stop("Unknown OS")
+    }
 
     if (file.exists(fnm)) {
         return (fnm)
     } else {
-        return (NULL)
-        ## Disable this for the moment....
-        ##stop(paste("INLA installation error; no such file", fnm))
+        stop(paste("INLA installation error; no such file", fnm))
     }
 }
 
