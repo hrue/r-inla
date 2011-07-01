@@ -1,0 +1,13 @@
+#!/bin/bash
+
+case $0 in
+    /*)
+    DIR=${0%/*};;
+    *)
+    DIR=$PWD/${0%/*};;
+esac
+export DYLD_LIBRARY_PATH=$DIR:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
+exec $DIR/inla.binary "$@"
+
+
