@@ -112,6 +112,7 @@
                             "zeroinflatedbinomial0",
                             "zeroinflatedbinomial1",
                             "zeroinflatedbinomial2",
+                            "zeroninflatedbinomial2",
                             "zeroinflatedbetabinomial2"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])

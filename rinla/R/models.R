@@ -2712,6 +2712,35 @@
                       pdf = "zeroinflated"
                       ),
                          
+              zeroninflatedbinomial2 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "alpha1",
+                                      short.name = "alpha1",
+                                      initial = log(0.5),
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(0, 1),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      ), 
+                              theta2 = list(
+                                      name = "alpha2",
+                                      short.name = "alpha2",
+                                      initial = log(0.5),
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(0, 1),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "add-file-here"
+                      ),
+                         
               zeroinflatedbetabinomial2 = list(
                       hyper = list(
                               theta1 = list(

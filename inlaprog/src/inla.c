@@ -2010,6 +2010,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -3360,6 +3363,81 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 
 #undef PROB
 #undef PROBZERO
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * zeroNinflated Binomial : see doc from JS.
+	 */
+#define P1(xx) pow(exp(xx)/(1.0+exp(xx)), alpha1)
+#define P2(xx) pow(1.0 - exp(xx)/(1.0+exp(xx)), alpha2)
+
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], 
+		alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), 
+		alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
+		p, p1, p2;
+
+	assert((int) n > 0);
+
+	if ((int) y == 0) {
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				p1 = P1(x[i] + OFFSET(idx));
+				p2 = P2(x[i] + OFFSET(idx));
+				p = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = log((1.0-p1)*p2 + p1*p2* gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+				}
+			}
+		} else {
+			assert(0 == 1);
+		}
+	} else if ((int) y == (int) n) {
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				p1 = P1(x[i] + OFFSET(idx));
+				p2 = P2(x[i] + OFFSET(idx));
+				p = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = log((1.0-p2)*p1 + p1*p2* gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+				}
+			}
+		} else {
+			assert(0==1);
+		}
+	} else {
+		gsl_sf_result res;
+		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				p1 = P1(x[i] + OFFSET(idx));
+				p2 = P2(x[i] + OFFSET(idx));
+				p = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
+					logll[i] = -DBL_MAX;
+				} else {
+					logll[i] = log(p1*p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+				}
+			}
+		} else {
+			assert(0==1);
+		}
+	}
+
+#undef P1
+#undef P2
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5541,6 +5619,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial2;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL2;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial2;
+		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL2;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial2;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL2;
@@ -5693,7 +5775,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
-		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
+		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 ||
+		   ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -7010,6 +7093,89 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
+		/*
+		 * get options related to the zero_n_inflatedbinomial2
+		 */
+		double initial_value = log(2.0);
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha1_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha1_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha1_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alpha1 parameter for zero-n-inflated binomial_2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha1 parameter for zero-n-inflated binomial_2", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha1_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha2_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha2_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha2_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alpha2 parameter for zero-n-inflated binomial_2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha2 parameter for zero-n-inflated binomial_2", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha2_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -11296,6 +11462,23 @@ double extra(double *theta, int ntheta, void *argument)
 					double alpha_intern = theta[count];
 
 					val += ds->data_prior1.priorfunc(&alpha_intern, ds->data_prior1.parameters);
+					count++;
+				}
+			} else if (ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_alpha1 = theta[count];
+
+					val += ds->data_prior0.priorfunc(&log_alpha1, ds->data_prior0.parameters);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double log_alpha2 = theta[count];
+
+					val += ds->data_prior1.priorfunc(&log_alpha2, ds->data_prior1.parameters);
 					count++;
 				}
 			} else if (ds->data_id == L_LAPLACE) {
