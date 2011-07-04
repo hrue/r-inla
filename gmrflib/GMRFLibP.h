@@ -195,18 +195,19 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define FIXMEE1(msg) if (1) { static int first=1; if (first) { first=0; FIXMEE(msg); }}
 #define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)x); }
 #define PP(msg,pt)  if (1) { printf("%d: %s ptr " #pt " = 0x%x\n",__LINE__,msg,pt); }
-#define ISINF( x)  gsl_isinf(x)
-#define ISZERO(x)  (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
+#define ISINF(x) gsl_isinf(x)
+#define ISNAN(x) gsl_isnan(x)
+#define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define LEGAL(i,n) ((i) >= 0 && (i) < (n))
+#define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 
 #define GMRFLib_GLOBAL_NODE(n) IMAX(100, (n) / 20)	       /* the limit for a ``global node'' */
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
-	if (gsl_isnan(value)) {						\
+	if (ISNAN(value) || ISINF(value)) {				\
 		if (!nan_error)						\
 			fprintf(stderr,					\
-				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN/INF. idx=(%1d,%1d). I will try to fix it...", \
+				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
 				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		if (GMRFLib_catch_error_for_inla) {			\
 			nan_error = 1;					\
