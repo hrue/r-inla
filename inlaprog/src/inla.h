@@ -181,6 +181,13 @@ typedef struct {
 	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
 	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
 
+
+	/* 
+	   the zero-n-inflated binomial 2
+	 */
+	double **zero_n_inflated_alpha1_intern;
+	double **zero_n_inflated_alpha2_intern;
+
 	/*
 	 * for the (asymmetric) laplace
 	 */
@@ -251,6 +258,7 @@ typedef enum {
 	L_ZEROINFLATEDPOISSON0,
 	L_ZEROINFLATEDPOISSON1,
 	L_ZEROINFLATEDPOISSON2,
+	L_ZERO_N_INFLATEDBINOMIAL2,
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
