@@ -2717,20 +2717,20 @@
                               theta1 = list(
                                       name = "alpha1",
                                       short.name = "alpha1",
-                                      initial = log(0.5),
+                                      initial = -1,
                                       fixed = FALSE,
                                       prior = "gaussian",
-                                      param = c(0, 1),
+                                      param = c(-1, 0.2),
                                       to.theta = function(x) log(x), 
                                       from.theta = function(x) exp(x)
                                       ), 
                               theta2 = list(
                                       name = "alpha2",
                                       short.name = "alpha2",
-                                      initial = log(0.5),
+                                      initial = -1,
                                       fixed = FALSE,
                                       prior = "gaussian",
-                                      param = c(0, 1),
+                                      param = c(-1, 0.2),
                                       to.theta = function(x) log(x), 
                                       from.theta = function(x) exp(x)
                                       )
