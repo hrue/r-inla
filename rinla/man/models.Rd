@@ -3306,6 +3306,44 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `zeroninflatedbinomial2'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`alpha1'}
+							\item{short.name = }{`alpha1'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`alpha2'}
+							\item{short.name = }{`alpha2'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default logit probit cloglog'}
+								\item{pdf = }{`add-file-here'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `zeroinflatedbetabinomial2'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
