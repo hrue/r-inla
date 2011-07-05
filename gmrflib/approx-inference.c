@@ -1580,7 +1580,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}
 			}
 		} else {
-			//printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
+			// printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
 			for (ii = 0; ii < ai_store->nd; ii++) {
 				i = ai_store->d_idx[ii];
 				ai_store->correction_idx[ai_store->nidx++] = i;
@@ -2443,7 +2443,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	 */
 
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
-		*idxs = NULL, nidx = 0;
+	    *idxs = NULL, nidx = 0;
 	double *mode = NULL;
 	static int new_idea = 0;
 
@@ -5019,11 +5019,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+			/*
+			 * in this case we integrate the 'ccd' approximation; the normal with stdev corrections. 
+			 */
 			marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 			for (i = 0; i < nhyper; i++) {
 				marginal_likelihood->marginal_likelihood_integration -=
-					0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
-					       0.5 * (log(SQR(stdev_corr_pos[i]))+log(SQR(stdev_corr_neg[i]))));
+				    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) + 0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 			}
 		} else {
 			double integral = 0.0, log_jacobian = 0.0;

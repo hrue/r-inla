@@ -1545,10 +1545,10 @@ double priorfunc_mvnorm(double *x, double *parameters)
 	 */
 	int n = (int) parameters[0], i, j;
 
-	if (n == 0){
+	if (n == 0) {
 		return 0.0;
 	}
-	
+
 	double *mean, *Q, *chol, *xx, q = 0.0, logdet = 0.0;
 
 	mean = &(parameters[1]);
@@ -3379,10 +3379,9 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], 
-		alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), 
-		alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
-		p, p1, p2;
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
+	    alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
+	    alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), p, p1, p2;
 
 	assert((int) n > 0);
 
@@ -3395,7 +3394,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log((1.0-p1)*p2 + p1*p2* gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
 				}
 			}
 		} else {
@@ -3410,11 +3409,11 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log((1.0-p2)*p1 + p1*p2* gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
 				}
 			}
 		} else {
-			assert(0==1);
+			assert(0 == 1);
 		}
 	} else {
 		gsl_sf_result res;
@@ -3428,11 +3427,11 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log(p1*p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					logll[i] = log(p1 * p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 				}
 			}
 		} else {
-			assert(0==1);
+			assert(0 == 1);
 		}
 	}
 
@@ -5775,8 +5774,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
-		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 ||
-		   ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
+		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -10304,7 +10302,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 
 
-				Prior_tp *pri =  &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]-1]);
+				Prior_tp *pri = &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf] - 1]);
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
@@ -11877,7 +11875,7 @@ double extra(double *theta, int ntheta, void *argument)
 				spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
 			}
 			SET_GROUP_RHO(spde2_ntheta);
-			
+
 			static GMRFLib_problem_tp *problem = NULL;
 #pragma omp threadprivate(problem)
 			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
@@ -11885,7 +11883,7 @@ double extra(double *theta, int ntheta, void *argument)
 					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
 			GMRFLib_evaluate(problem);
 			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
-			
+
 			/*
 			 * this is the mvnormal prior...
 			 */
