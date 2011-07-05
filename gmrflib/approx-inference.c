@@ -5019,7 +5019,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
-			marginal_likelihood->marginal_likelihood_integration = marginal_likelihood->marginal_likelihood_gaussian_approx;
+			marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
+			for (i = 0; i < nhyper; i++) {
+				marginal_likelihood->marginal_likelihood_integration -=
+					0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+					       0.5 * (log(SQR(stdev_corr_pos[i]))+log(SQR(stdev_corr_neg[i]))));
+			}
 		} else {
 			double integral = 0.0, log_jacobian = 0.0;
 
