@@ -5548,7 +5548,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	ds->data_likelihood = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LIKELIHOOD"), NULL)));
 	inla_trim_family(ds->data_likelihood);
 
-	ds->link = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK"), NULL)));
+	ds->link = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK"), GMRFLib_strdup("default"))));
 	inla_trim_family(ds->link);
 
 	if (!(ds->data_likelihood)) {
