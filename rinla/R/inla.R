@@ -756,7 +756,7 @@
             working.directory.start= working.directory
         }
 
-        ## if this already exists then create one more 
+        ## if this directory already exists, try the numbered versions
         kk=1
         ans=file.exists(working.directory)
         while(ans) {
@@ -765,6 +765,11 @@
             ans=file.exists(working.directory)
         }
         inla.dir=working.directory
+        ## if several inla()'s are run in parallel, we might have a
+        ## conflict. if so, create a random name
+        if (file.exists(inla.dir)) {
+            inla.dir = paste(inla.dir, "-", substring(as.character(runif(1)), 3), sep="")
+        }
         inla.dir.create(inla.dir)
         cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
     } else {
