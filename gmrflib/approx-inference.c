@@ -2295,8 +2295,8 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 
 		b22 = 1.0 / (c[idx] - ddot_(&nc, v, &one, w, &one));
 		if (b22 <= 0.0) {
-			fprintf(stderr, "\n\n*** Warning *** Numerical error gives b22 = %g <= 0.0 for idx=%1d. setting b22=%g\n\n", b22, idx, DBL_EPSILON);
-			b22 = DBL_EPSILON;
+			fprintf(stderr, "\n\n*** Warning *** Numerical error gives b22 = %g <= 0.0 for idx=%1d. setting b22=%g\n\n", b22, idx, GSL_SQRT_DBL_MIN);
+			b22 = GSL_SQRT_DBL_MIN;
 		}
 
 		for (k = 0; k < nc; k++) {
