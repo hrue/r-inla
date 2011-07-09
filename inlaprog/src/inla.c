@@ -13768,17 +13768,22 @@ int inla_output(inla_tp * mb)
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
 			if (!mb->lc_derived_only) {
-				char *newtag2, *newdir2;
+				/* 
+				   is only added if the derived ones as well are there...
+				 */
+				if (mb->density_lin){
+					char *newtag2, *newdir2;
 
-				GMRFLib_sprintf(&newtag2, "lincombs.all");
-				GMRFLib_sprintf(&newdir2, "lincombs.all");
+					GMRFLib_sprintf(&newtag2, "lincombs.all");
+					GMRFLib_sprintf(&newdir2, "lincombs.all");
 
-				ii = 0;
-				int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->nlc, 1,
-						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
-				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
+					ii = 0;
+					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
+					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->nlc, 1,
+							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
+					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
+				}
 			}
 			if (mb->density_lin) {
 				char *newtag2, *newdir2;
