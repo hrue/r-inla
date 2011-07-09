@@ -361,8 +361,14 @@
     inla.check.control(control.lincomb)
 
     n.family = length(family)
-    for(i. in 1:n.family)
+    for(i. in 1:n.family) {
         family[i.] = inla.trim.family(family[i.])
+
+        ## check if this family is legal.
+        if (is.null(inla.model.properties(family[i.], "likelihood"))) {
+            stop(paste("Unknown family: ", family[i.], ". Do `names(inla.models()$likelihood)' to list available families.", sep=""))
+        }
+    }
 
     ## if the user specify inla.call="remote" or "inla.remote" then
     ## use the internal one
