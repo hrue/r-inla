@@ -405,10 +405,12 @@
         cpo, mlik, quantiles, smtp, q, strategy)
 {
     cat("", sep = "", file = file, append=FALSE)
+    cat("###  ", inla.version(hgid=TRUE), "\n", sep = "", file = file,  append = TRUE) 
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
     cat("#inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+ 
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
