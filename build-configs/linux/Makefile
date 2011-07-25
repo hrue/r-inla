@@ -16,6 +16,7 @@ all :;
 	echo "	$(MAKE) lapack";\
 	echo "	$(MAKE) metis";\
 	echo "	$(MAKE) taucs";\
+	echo "	$(MAKE) muparser";\
 	echo "	$(MAKE) GMRFLib";\
 	echo "	$(MAKE) inla";\
 	echo "";\
@@ -86,6 +87,11 @@ metis :
 	$(MAKE) -C metis-4.0 OPTFLAGS="$(FLAGS)" $(ARGS) -k clean
 	$(MAKE) -C metis-4.0 OPTFLAGS="$(FLAGS)" $(ARGS)
 	cp -v -f metis-4.0/libmetis.a $(PREFIX)/lib
+
+muparser :
+	@ cd muparser_v134;\
+	./configure --prefix=$(PREFIX) --disable-shared;\
+	make CXXFLAGS="$(FLAGS) -DMUPARSER_DLL"; make install
 
 update :; $(MAKE) download;
 	$(MAKE) GMRFLib
