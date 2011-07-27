@@ -202,6 +202,7 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 
 #define GMRFLib_GLOBAL_NODE(n) IMAX(100, (n) / 20)	       /* the limit for a ``global node'' */
+#define GMRFLib_GLOBAL_NODE(n) (n)			       /* maybe we dont need it any more? this choice turn this off */
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
 	if (ISNAN(value) || ISINF(value)) {				\
