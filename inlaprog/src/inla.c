@@ -11080,6 +11080,14 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
 	}
 
+	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node_factor);
+	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_FACTOR"), GMRFLib_global_node_factor);
+	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODEFACTOR"), GMRFLib_global_node_factor);
+	assert(GMRFLib_global_node_factor > 0.0 && GMRFLib_global_node_factor <= 1.0);
+	if (mb->verbose) {
+		printf("\t\tglobal.node.factor = %.3f\n", GMRFLib_global_node_factor);
+	}
+
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
 	if (mb->verbose) {
 		printf("\t\treordering = %s\n", (r ? r : "(default)"));
@@ -15668,7 +15676,8 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_max_dimension = 128;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
-
+	GMRFLib_global_node_factor = 1.0;
+	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
