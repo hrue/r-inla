@@ -409,6 +409,7 @@
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("###  ", inla.version(hgid=TRUE), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", "\n", sep = "", file = file,  append = TRUE) 
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
