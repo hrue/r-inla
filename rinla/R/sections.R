@@ -297,6 +297,9 @@
     if (!is.null(inla.spec$step.factor)) {
         cat("nr.step.factor = ", inla.spec$step.factor, "\n", file = file, append = TRUE)
     }
+    if (!is.null(inla.spec$global.node.factor)) {
+        cat("global.node.factor = ", inla.spec$global.node.factor, "\n", file = file, append = TRUE)
+    }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }

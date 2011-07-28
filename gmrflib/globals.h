@@ -237,6 +237,12 @@ extern int GMRFLib_meminfo_thread_id;
  */
 extern int GMRFLib_catch_error_for_inla;
 
+/* 
+   define global nodes
+ */
+extern double GMRFLib_global_node_factor;
+
+
 #endif
 __END_DECLS
 #endif
