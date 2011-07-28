@@ -265,7 +265,10 @@
             ##:ARGUMENT: step.factor The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
             ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
             ## This is an hidden option.
-            step.factor = -0.1)
+            step.factor = -0.1,
+
+            ##:ARGUMENT: global.node.factor The factor which defines how many neighbors (as a fraction of n-1) that is required to be defined as a global node and numbered last (whatever the reordering routine says).
+            global.node.factor = 0.5)
 
     ## use default Gaussian strategy if the observations are gaussian    
     if (all(inla.strcasecmp(family, "gaussian")))

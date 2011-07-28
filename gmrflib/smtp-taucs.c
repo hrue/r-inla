@@ -435,7 +435,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		 */
 		fixed = Calloc(graph->n, char);
 		for (i = 0; i < graph->n; i++) {
-			fixed[i] = (graph->nnbs[i] > limit ? 1 : 0);
+			fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 		}
 
 		GMRFLib_compute_subgraph(&subgraph, graph, fixed);
