@@ -744,8 +744,12 @@
 
 `inla.trim.family` = function(family)
 {
-    ## remove `_' and `.' and space and tabs... and then convert to lowercase
-    return (tolower(gsub("[_. \t]+", "", family)))
+    ## remove `_' and `.' and space and tabs, and then convert to
+    ## lowercase. remove also everything after a `:', so that "name:
+    ## a" is "name:".
+    family = gsub(":.*$", ":", family)
+    family = tolower(gsub("[_. \t]+", "", family))
+    return (family)
 }
 
 `inla.is.list.of.lists` = function(a.list)

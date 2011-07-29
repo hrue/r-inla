@@ -82,6 +82,7 @@ static const char RCSId[] = HGVERSION;
 #include "inla.h"
 #include "spde.h"
 #include "spde2.h"
+#include "eval.h"
 
 #define PREVIEW    5
 #define MODEFILENAME ".inla-mode"
@@ -4222,12 +4223,16 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *default_prior)
 {
 	char *secname = NULL, *param = NULL;
-
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	prior->name = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, prior_tag), GMRFLib_strdup(default_prior))));
+	prior->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, prior_tag), GMRFLib_strdup(default_prior)));
+
 	if (!prior->name) {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, NULL);
 	}
+
+	prior->priorfunc = NULL;
+	prior->expression = NULL;
+
 	if (mb->verbose) {
 		/*
 		 * remove trailing -[a-zA-Z]*$ 
@@ -4235,6 +4240,10 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		char *p, *new_name;
 		new_name = GMRFLib_strdup(prior->name);
 		p = GMRFLib_rindex((const char *) new_name, '-');
+		if (p) {
+			*p = '\0';
+		}
+		p = GMRFLib_rindex((const char *) new_name, ':');
 		if (p) {
 			*p = '\0';
 		}
@@ -4456,7 +4465,6 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		} else {
 			assert(0 == 1);
 		}
-		assert(prior->priorfunc);
 
 		double *xx = NULL;
 		int nxx;
@@ -4513,6 +4521,16 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
+		prior->id = P_EXPRESSION;
+		prior->expression = GMRFLib_strdup(prior->name + strlen("EXPRESSION:"));
+		prior->name[strlen("EXPRESSION")] = '\0';
+		prior->parameters = NULL;
+
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
+		}
+
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, prior->name);
 	}
@@ -11263,7 +11281,7 @@ double extra(double *theta, int ntheta, void *argument)
 			else						\
 				abort();				\
 			normc_g += ngroup*normc;			\
-			val += mb->f_prior[i][_nt_].priorfunc(&group_rho_intern, mb->f_prior[i][_nt_].parameters); \
+			val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 		} else {						\
 			group_rho_intern = mb->f_theta[i][_nt_][GMRFLib_thread_id][0]; \
 			if (mb->f_group_model[i] == G_EXCHANGEABLE){	\
@@ -11302,7 +11320,7 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 	val = normc * n + n / 2.0 * log_precision;
 	if (!mb->predictor_fixed) {
-		val += mb->predictor_prior.priorfunc(&log_precision, mb->predictor_prior.parameters);
+		val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 	}
 	if (mb->data_ntheta_all) {
 		int check = 0;
@@ -11318,7 +11336,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 			} else if (ds->data_id == L_SAS) {
@@ -11328,7 +11346,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11337,7 +11355,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					double skew = theta[count];
-					val += ds->data_prior1.priorfunc(&skew, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &skew);
 					count++;
 				}
 				if (!ds->data_fixed2) {
@@ -11346,7 +11364,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					double tail = map_exp(theta[count], MAP_FORWARD, NULL);
-					val += ds->data_prior2.priorfunc(&tail, ds->data_prior2.parameters);
+					val += PRIOR_EVAL(ds->data_prior2, &tail);
 					count++;
 				}
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
@@ -11356,7 +11374,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 			} else if (ds->data_id == L_LOGNORMAL) {
@@ -11366,7 +11384,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 			} else if (ds->data_id == L_LOGISTIC) {
@@ -11376,7 +11394,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 			} else if (ds->data_id == L_SKEWNORMAL) {
@@ -11387,7 +11405,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 
-					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11396,7 +11414,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double shape = theta[count];
 
-					val += ds->data_prior1.priorfunc(&shape, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &shape);
 					count++;
 				}
 			} else if (ds->data_id == L_GEV) {
@@ -11407,7 +11425,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 
-					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11416,7 +11434,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double xi = theta[count];
 
-					val += ds->data_prior1.priorfunc(&xi, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &xi);
 					count++;
 				}
 			} else if (ds->data_id == L_NBINOMIAL) {
@@ -11427,7 +11445,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double log_size = theta[count];
 
-					val += ds->data_prior.priorfunc(&log_size, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_size);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDNBINOMIAL0 || ds->data_id == L_ZEROINFLATEDNBINOMIAL1) {
@@ -11438,7 +11456,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double log_size = theta[count];
 
-					val += ds->data_prior0.priorfunc(&log_size, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11447,7 +11465,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double prob_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&prob_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDNBINOMIAL2) {
@@ -11458,7 +11476,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double log_size = theta[count];
 
-					val += ds->data_prior0.priorfunc(&log_size, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11467,7 +11485,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&alpha_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &alpha_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
@@ -11478,13 +11496,13 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double log_alpha1 = theta[count];
 
-					val += ds->data_prior0.priorfunc(&log_alpha1, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_alpha1);
 					count++;
 				}
 				if (!ds->data_fixed1) {
 					double log_alpha2 = theta[count];
 
-					val += ds->data_prior1.priorfunc(&log_alpha2, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &log_alpha2);
 					count++;
 				}
 			} else if (ds->data_id == L_LAPLACE) {
@@ -11494,7 +11512,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += ds->data_prior.priorfunc(&log_precision, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 			} else if (ds->data_id == L_T) {
@@ -11504,12 +11522,12 @@ double extra(double *theta, int ntheta, void *argument)
 				 */
 				if (!ds->data_fixed0) {
 					log_precision = theta[count];
-					val += ds->data_prior0.priorfunc(&log_precision, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
 				if (!ds->data_fixed1) {
 					dof_intern = theta[count];
-					val += ds->data_prior1.priorfunc(&dof_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &dof_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_STOCHVOL_T) {
@@ -11519,7 +11537,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 * included in the likelihood function. 
 					 */
 					dof_intern = theta[count];
-					val += ds->data_prior.priorfunc(&dof_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &dof_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_STOCHVOL_NIG) {
@@ -11529,7 +11547,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double skew = theta[count];
 
-					val += ds->data_prior0.priorfunc(&skew, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &skew);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11538,7 +11556,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double shape_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&shape_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &shape_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_WEIBULL) {
@@ -11548,7 +11566,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&alpha_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_LOGLOGISTIC) {
@@ -11558,7 +11576,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&alpha_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_WEIBULL_CURE) {
@@ -11568,7 +11586,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior0.priorfunc(&alpha_intern, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11577,7 +11595,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double p_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&p_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &p_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDPOISSON0 || ds->data_id == L_ZEROINFLATEDPOISSON1) {
@@ -11587,7 +11605,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double prob_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&prob_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &prob_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDPOISSON2) {
@@ -11597,7 +11615,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&alpha_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL2) {
@@ -11607,7 +11625,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&alpha_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1) {
@@ -11617,7 +11635,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double prob_intern = theta[count];
 
-					val += ds->data_prior.priorfunc(&prob_intern, ds->data_prior.parameters);
+					val += PRIOR_EVAL(ds->data_prior, &prob_intern);
 					count++;
 				}
 			} else if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL2) {
@@ -11627,7 +11645,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double alpha_intern = theta[count];
 
-					val += ds->data_prior0.priorfunc(&alpha_intern, ds->data_prior0.parameters);
+					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -11636,7 +11654,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double delta_intern = theta[count];
 
-					val += ds->data_prior1.priorfunc(&delta_intern, ds->data_prior1.parameters);
+					val += PRIOR_EVAL(ds->data_prior1, &delta_intern);
 					count++;
 				}
 			}
@@ -11666,7 +11684,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i]) + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			break;
 		}
@@ -11801,13 +11819,13 @@ double extra(double *theta, int ntheta, void *argument)
 			if (nT) {
 				if (!mb->f_fixed[i][0]) {
 					t = theta[count];
-					val += mb->f_prior[i][0].priorfunc(&t, mb->f_prior[i][0].parameters);
+					val += PRIOR_EVAL(mb->f_prior[i][0], &t);
 					count++;
 				}
 				for (k = 1; k < nT; k++) {
 					if (!mb->f_fixed[i][2]) {
 						t = theta[count];
-						val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
 						count++;
 					}
 				}
@@ -11819,13 +11837,13 @@ double extra(double *theta, int ntheta, void *argument)
 			if (nK) {
 				if (!mb->f_fixed[i][1]) {
 					t = theta[count];
-					val += mb->f_prior[i][1].priorfunc(&t, mb->f_prior[i][1].parameters);
+					val += PRIOR_EVAL(mb->f_prior[i][1], &t);
 					count++;
 				}
 				for (k = 1; k < nK; k++) {
 					if (!mb->f_fixed[i][2]) {
 						t = theta[count];
-						val += mb->f_prior[i][2].priorfunc(&t, mb->f_prior[i][2].parameters);
+						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
 						count++;
 					}
 				}
@@ -11835,7 +11853,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			if (!fixed3) {
 				t = theta[count];
-				val += mb->f_prior[i][3].priorfunc(&t, mb->f_prior[i][3].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][3], &t);
 				count++;
 			}
 
@@ -11895,7 +11913,7 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * this is the mvnormal prior...
 			 */
-			val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
+			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
 			count += spde2_ntheta;
 			break;
 		}
@@ -11926,10 +11944,10 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + normc * (mb->f_n[i] - mb->f_rankdef[i])
 						+ (mb->f_n[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * logdet_Q);
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&beta_intern, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &beta_intern);
 			}
 			break;
 		}
@@ -11965,10 +11983,10 @@ double extra(double *theta, int ntheta, void *argument)
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision + n / 2.0 * log_prec_unstruct);
 
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&log_prec_unstruct, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_prec_unstruct);
 			}
 			/*
 			 * The Jacobian for the change of variables, is
@@ -11995,7 +12013,7 @@ double extra(double *theta, int ntheta, void *argument)
 			n = aa->n;
 			val += mb->f_nrep[i] * (normc_g + normc * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision);
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			break;
 		}
@@ -12047,10 +12065,10 @@ double extra(double *theta, int ntheta, void *argument)
 							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&phi_intern, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
 			break;
 		}
@@ -12074,10 +12092,10 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
 						+ (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern));
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&a_intern, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &a_intern);
 			}
 			break;
 		}
@@ -12103,10 +12121,10 @@ double extra(double *theta, int ntheta, void *argument)
 						+ n / 2.0 * log_precision0	/* iid */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1);	/* spatial */
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision0, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&log_precision1, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
 			}
 			break;
 		}
@@ -12143,13 +12161,13 @@ double extra(double *theta, int ntheta, void *argument)
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
 			if (!mb->f_fixed[i][0]) {
-				val += mb->f_prior[i][0].priorfunc(&log_precision0, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}
 			if (!mb->f_fixed[i][1]) {
-				val += mb->f_prior[i][1].priorfunc(&log_precision1, mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
 			}
 			if (!mb->f_fixed[i][2]) {
-				val += mb->f_prior[i][2].priorfunc(&rho_intern, mb->f_prior[i][2].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][2], &rho_intern);
 			}
 			break;
 		}
@@ -12244,7 +12262,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
 			 * log_precision1, rho_intern). 
 			 */
-			val += mb->f_prior[i][0].priorfunc(theta_vec, mb->f_prior[i][0].parameters) + log_jacobian;
+			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
 			break;
 		}
 
@@ -12324,14 +12342,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			if (!mb->f_fixed[i][0]) {
 				h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
-				val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
 				count++;
 			} else {
 				h->precision = map_precision(mb->f_theta[i][0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 			}
 			if (!mb->f_fixed[i][1]) {
 				h->range = map_range(theta[count], MAP_FORWARD, NULL);
-				val += mb->f_prior[i][1].priorfunc(&theta[count], mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
 				count++;
 			} else {
 				h->range = map_range(mb->f_theta[i][1][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -12412,14 +12430,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			if (!mb->f_fixed[i][0]) {
 				h->log_prec[GMRFLib_thread_id][0] = theta[count];
-				val += mb->f_prior[i][0].priorfunc(&theta[count], mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
 				count++;
 			} else {
 				h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			if (!mb->f_fixed[i][1]) {
 				h->log_diag[GMRFLib_thread_id][0] = theta[count];
-				val += mb->f_prior[i][1].priorfunc(&theta[count], mb->f_prior[i][1].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
 				count++;
 			} else {
 				h->log_diag[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
@@ -12453,7 +12471,7 @@ double extra(double *theta, int ntheta, void *argument)
 				// }
 			}
 			if (!mb->f_fixed[i][0] && !mb->f_same_as[i]) {
-				val += mb->f_prior[i][0].priorfunc(&beta, mb->f_prior[i][0].parameters);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
 			break;
 		}
@@ -13776,10 +13794,10 @@ int inla_output(inla_tp * mb)
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
 			if (!mb->lc_derived_only) {
-				/* 
-				   is only added if the derived ones as well are there...
+				/*
+				 * is only added if the derived ones as well are there... 
 				 */
-				if (mb->density_lin){
+				if (mb->density_lin) {
 					char *newtag2, *newdir2;
 
 					GMRFLib_sprintf(&newtag2, "lincombs.all");
@@ -15677,7 +15695,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_global_node_factor = 1.0;
-	
+
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */

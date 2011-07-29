@@ -2971,7 +2971,12 @@
               betacorrelation = list(
                       nparameters = 2L,
                       pdf = "betacorrelation"
-                      )
+                      ),
+
+              "expression:" = list(
+                  nparameters = -1L,
+                  pdf = "expression"
+                  )
               )
          )
 }
