@@ -93,10 +93,10 @@ metis :
 muparser :
 	@ cd muparser_v134;\
 	./configure --prefix=$(PREFIX) --disable-shared;\
-	make CXXFLAGS="$(FLAGS) -DMUPARSER_DLL"; make install
+	$(MAKE) -k CXXFLAGS="$(FLAGS) -DMUPARSER_DLL"; $(MAKE) install
 
 update :; $(MAKE) download;
 	$(MAKE) GMRFLib
 	$(MAKE) inla
 
-.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update
+.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update muparser
