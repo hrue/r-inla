@@ -1,3 +1,4 @@
+
 /* eval.c
  * 
  * Copyright (C) 2011  Havard Rue
@@ -48,14 +49,14 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 /* 
    This is the interface to the muparser-library (http://muparser.sourceforge.net).  This code is buildt upon example2.c in the muparser/samples directory.
  */
-    
-typedef struct
-{
+
+typedef struct {
 	muFloat_t **value;
 	char **name;
 	int n;
-}
-	eval_keep_vars_tp;
+} eval_keep_vars_tp;
+
+static unsigned char debug = 0;
 
 /* 
    local functions...
@@ -67,19 +68,19 @@ double Return(double v);
 double Not(double v);
 void OnError(muParserHandle_t hParser);
 char *get_free_variable(muParserHandle_t a_hParser);
-muFloat_t* AddVariable(const muChar_t* a_szName, void *pUserData);
+muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData);
 
-double Gamma(double arg) 
+double Gamma(double arg)
 {
 	return exp(lgamma(arg));
 }
 
-double LogGamma(double arg) 
+double LogGamma(double arg)
 {
 	return lgamma(arg);
 }
 
-double Log(double a_fVal) 
+double Log(double a_fVal)
 {
 	return log(a_fVal);
 }
@@ -94,18 +95,18 @@ double Not(double v)
 	return v == 0.0;
 }
 
-void OnError(muParserHandle_t hParser) 
+void OnError(muParserHandle_t hParser)
 {
-	fprintf(stderr, "\n\n\nError while parsing expression:\n");
+	fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
 	fprintf(stderr, "----------\n");
 	fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
 	fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
 	fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
 	fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
 	exit(1);
-}  
+}
 
-char *get_free_variable(muParserHandle_t a_hParser) 
+char *get_free_variable(muParserHandle_t a_hParser)
 {
 	muInt_t iNumVar = mupGetExprVarNum(a_hParser), i = 0;
 
@@ -114,25 +115,35 @@ char *get_free_variable(muParserHandle_t a_hParser)
 
 	int num_nans = 0;
 	char *name = NULL;
-	for (i = 0; i < iNumVar; ++i)
-	{
+	for (i = 0; i < iNumVar; ++i) {
 		const muChar_t *szName = 0;
-		muFloat_t * pVar = 0;
+		muFloat_t *pVar = 0;
 		mupGetExprVar(a_hParser, i, &szName, &pVar);
-		if (isnan(*pVar)){
-			name = strdup(szName);
-			num_nans++;
+
+		if (debug) {
+			printf("Eval: Free variable [%s] = %g\n", szName, *pVar);
+		}
+
+		if (strncasecmp(szName, "INLA_", 5)) {
+			if (isnan(*pVar)) {
+				name = strdup(szName);
+				num_nans++;
+
+				if (debug) {
+					printf("Eval: value is NAN, num_nans is now %1d\n", num_nans);
+				}
+			}
 		}
 	}
-	if (num_nans != 1){
+	if (num_nans != 1) {
 		fprintf(stderr, "\n\nError: There are %1d free variables in the expression. Only one is allowed.\n\n", num_nans);
 		exit(1);
 	}
 
 	return name;
-}  
+}
 
-muFloat_t* AddVariable(const muChar_t* a_szName, void *pUserData)
+muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
 	if (*aa == NULL) {
@@ -140,23 +151,32 @@ muFloat_t* AddVariable(const muChar_t* a_szName, void *pUserData)
 	}
 	eval_keep_vars_tp *a = *aa;
 
-	a->value = Realloc(a->value, a->n+1,  muFloat_t *);
-	a->name = Realloc(a->name, a->n+1,  char *);
+	a->value = Realloc(a->value, a->n + 1, muFloat_t *);
+	a->name = Realloc(a->name, a->n + 1, char *);
 	a->value[a->n] = Calloc(1, muFloat_t);
 	a->value[a->n][0] = NAN;
 	a->name[a->n] = strdup(a_szName);
+
+	if (debug) {
+		printf("Eval: Add variable [%s] = %g\n", a->name[a->n], a->value[a->n][0]);
+	}
 	a->n++;
 
-	return &(a->value[a->n-1][0]);
+	return &(a->value[a->n - 1][0]);
 }
 
-double inla_eval(char *expression, double x) 
+double inla_eval(char *expression, double *x)
 {
 	muParserHandle_t hParser;
 
-	hParser = mupCreate();	
+	if (debug) {
+		printf("Eval: expression: %s\n", expression);
+		printf("Eval: value: %g\n", *x);
+	}
+
+	hParser = mupCreate();
 	mupSetErrorHandler(hParser, OnError);
-	 
+
 	mupSetArgSep(hParser, ';');
 	mupSetDecSep(hParser, '.');
 	mupSetThousandsSep(hParser, 0);
@@ -170,19 +190,25 @@ double inla_eval(char *expression, double x)
 	eval_keep_vars_tp *keep_vars = NULL;
 	mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
 
-	mupSetExpr(hParser, (muChar_t *)expression);
+	mupSetExpr(hParser, (muChar_t *) expression);
 
 	char *name_x = get_free_variable(hParser);
-	mupDefineVar(hParser, name_x, &x);
+	mupDefineVar(hParser, name_x, x);
+	if (debug) {
+		printf("Eval: define %s = %g\n", name_x, *x);
+	}
+
 	muFloat_t value = mupEval(hParser);
 
 	mupRelease(hParser);
 	Free(name_x);
 	if (keep_vars) {
 		int i;
-		for(i=0; i<keep_vars->n; i++){
+		for (i = 0; i < keep_vars->n; i++) {
 
-			printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
+			if (debug) {
+				printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
+			}
 			Free(keep_vars->value[i]);
 			Free(keep_vars->name[i]);
 		}
@@ -190,6 +216,6 @@ double inla_eval(char *expression, double x)
 		Free(keep_vars->name);
 		Free(keep_vars);
 	}
-	
+
 	return (double) value;
 }
