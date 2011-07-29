@@ -182,8 +182,8 @@ typedef struct {
 	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
 
 
-	/* 
-	   the zero-n-inflated binomial 2
+	/*
+	 * the zero-n-inflated binomial 2 
 	 */
 	double **zero_n_inflated_alpha1_intern;
 	double **zero_n_inflated_alpha2_intern;
@@ -304,6 +304,7 @@ typedef enum {
 	P_LOGIFLAT,
 	P_NONE,
 	P_BETACORRELATION,
+	P_EXPRESSION,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -320,9 +321,16 @@ typedef struct {
 	double *parameters;				       /* the parameters */
 	char *to_theta;					       /* R-code */
 	char *from_theta;				       /* R-code */
-	inla_priorfunc_tp *priorfunc;			       /* priorfunction */
+	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
+	char *expression;				       /* an alternative expression */
 } Prior_tp;
 
+/* 
+   This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
+ */
+#define PRIOR_EVAL(p_, arg_) ((p_).priorfunc ?				\
+			      (p_).priorfunc(arg_, (p_).parameters)  :	\
+			      inla_eval((p_).expression, arg_))
 
 typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *tab;
