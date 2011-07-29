@@ -98,7 +98,7 @@ gsl :
 inla :
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) \
-		EXTLIBS2="-lGMRFLib -lgsl -ltaucs -lmetis $(PREFIX)/lib/liblapack.a $(PREFIX)/lib/libblas.a -lgslcblas $(PREFIX)/lib/libz.a -lgfortran"\
+		EXTLIBS2="-lGMRFLib -lgsl -ltaucs -lmetis $(PREFIX)/lib/liblapack.a $(PREFIX)/lib/libblas.a -lgslcblas $(PREFIX)/lib/libz.a $(PREFIX)/lib/libmuparser.a -lgfortran"\
 		EXTLIBS3=""
 	cp -v -f inlaprog/inla $(PREFIX)/bin
 
@@ -129,7 +129,7 @@ metis :
 muparser :
         @ cd muparser_v134;\
         ./configure --prefix=$(PREFIX) --disable-shared;\
-        make CXXFLAGS="$(FLAGS) -DMUPARSER_DLL"; make install
+	$(MAKE) -k CXXFLAGS="$(FLAGS) -DMUPARSER_DLL"; $(MAKE) install
 
 
 update :; 
@@ -137,4 +137,4 @@ update :;
 	$(MAKE) GMRFLib
 	$(MAKE) inla
 
-.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update testmac
+.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update testmac muparser
