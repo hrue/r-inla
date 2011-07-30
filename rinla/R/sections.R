@@ -18,7 +18,14 @@
         }
         cat(prefix, "initial",    suff, " = ", hyper[[k]]$initial, "\n", file = file, append = TRUE, sep="")
         cat(prefix, "fixed",      suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
-        cat(prefix, "prior",      suff, " = ", hyper[[k]]$prior, "\n", file = file, append = TRUE, sep="")
+
+        ## these are for "expression:"...
+        ## if there are newlines,  remove them
+        tmp.prior = gsub("\n", "", hyper[[k]]$prior)
+        ## if the expression ends with a ";",  remove it
+        tmp.prior = gsub(";[ \t]*$", "", tmp.prior)
+        cat(prefix, "prior",      suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
+
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
         cat(prefix, "to.theta",   suff, " = ", inla.function2source(hyper[[k]]$to.theta), "\n", file = file, append = TRUE, sep="")
         cat(prefix, "from.theta",   suff, " = ", inla.function2source(hyper[[k]]$from.theta), "\n", file = file, append = TRUE, sep="")
