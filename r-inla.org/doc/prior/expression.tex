@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{``Expression'': a do-it-yourself prior}
+
+This prior allow the user to define an expression for the log-density
+of any (univariate) prior, as a function of the corresponding $\theta$
+(which is in the internal scale; be aware).
+
+The expression is evaluated using the \texttt{muparser}\footnote{See
+    \texttt{http://muparser.sourceforge.net/} for more documentation},
+with some local configuration changes to make it more
+``\texttt{R}''-like in style.
+
+The format is
+\begin{quote}
+    \texttt{expression: <statement>; <statement>; ...; return(<value>)}
+\end{quote}
+where ``\texttt{<statement>}'' is any regular statement (more below)
+and ``\texttt{<value>}'' is the value for the log-density of the
+prior, evaluated at the ``free parameter(s)''.
+
+The following expression implements the normal prior
+\begin{verbatim}
+expression: mean = 0; sigma = 1;
+        logdens = 1/sqrt(2*pi) * 1/sigma * exp(-0.5*(x-mean)^2/sigma^2);
+        return(logdens)
+\end{verbatim}
+Since \verb|x| is a variable that is not assigned any value (its a
+``free parameter''), it must the argument (i.e.\ $\theta$) to this
+function. If there are more than one free parameter, then all of them
+are assigned to $\theta$ before the expression is evaluated.
+
+\subsection*{Note}
+\begin{enumerate}
+\item \verb|return (x)| (with a space before ``(.)'') is not allowed,
+    it must be \verb|return(x)|.
+\item You need a ``;'' to terminate each expression, a newline DOES
+    NOT terminate an expression!
+\item You can use a ``\verb|_|'' in variable-names,
+    like \verb|log_precision = ...|; see the following example. 
+\end{enumerate}
+
+\subsection*{Known functions}
+Known functions (besides common math-functions like ``exp'',
+``sin'', etc...) are 
+\begin{itemize}
+\item \verb|gamma(x)| is the Gamma-function and \verb|lgamma(x)| is
+    its log (see \verb|?gamma| in \verb|R|).
+\item \verb|pi| is $\pi$
+\item $x^y$ is expressed as  \verb|x^y| or \verb|pow(x;y)|
+\end{itemize}
+
+\subsection*{Example}
+\verbatiminput{example-expression.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter univariate lgamma
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+% LocalWords:  muparser
