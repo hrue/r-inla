@@ -54,35 +54,30 @@ typedef struct {
 	muFloat_t **value;
 	char **name;
 	int n;
+	double default_value;
 } eval_keep_vars_tp;
 
-static unsigned char debug = 0;
+static unsigned char debug = 1;
 
 /* 
    local functions...
  */
 double Gamma(double arg);
 double LogGamma(double arg);
-double Log(double a_fVal);
 double Return(double v);
 double Not(double v);
 void OnError(muParserHandle_t hParser);
-char *get_free_variable(muParserHandle_t a_hParser);
+int set_free_variable(muParserHandle_t a_hParser, double *x);
 muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData);
 
 double Gamma(double arg)
 {
-	return exp(lgamma(arg));
+	return exp(gsl_sf_lngamma(arg));
 }
 
 double LogGamma(double arg)
 {
-	return lgamma(arg);
-}
-
-double Log(double a_fVal)
-{
-	return log(a_fVal);
+	return gsl_sf_lngamma(arg);
 }
 
 double Return(double v)
@@ -106,43 +101,6 @@ void OnError(muParserHandle_t hParser)
 	exit(1);
 }
 
-char *get_free_variable(muParserHandle_t a_hParser)
-{
-	muInt_t iNumVar = mupGetExprVarNum(a_hParser), i = 0;
-
-	if (iNumVar == 0)
-		return NULL;
-
-	int num_nans = 0;
-	char *name = NULL;
-	for (i = 0; i < iNumVar; ++i) {
-		const muChar_t *szName = 0;
-		muFloat_t *pVar = 0;
-		mupGetExprVar(a_hParser, i, &szName, &pVar);
-
-		if (debug) {
-			printf("Eval: Free variable [%s] = %g\n", szName, *pVar);
-		}
-
-		if (strncasecmp(szName, "INLA_", 5)) {
-			if (isnan(*pVar)) {
-				name = strdup(szName);
-				num_nans++;
-
-				if (debug) {
-					printf("Eval: value is NAN, num_nans is now %1d\n", num_nans);
-				}
-			}
-		}
-	}
-	if (num_nans != 1) {
-		fprintf(stderr, "\n\nError: There are %1d free variables in the expression. Only one is allowed.\n\n", num_nans);
-		exit(1);
-	}
-
-	return name;
-}
-
 muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
@@ -154,8 +112,8 @@ muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 	a->value = Realloc(a->value, a->n + 1, muFloat_t *);
 	a->name = Realloc(a->name, a->n + 1, char *);
 	a->value[a->n] = Calloc(1, muFloat_t);
-	a->value[a->n][0] = NAN;
-	a->name[a->n] = strdup(a_szName);
+	a->value[a->n][0] = a->default_value;
+	a->name[a->n] = GMRFLib_strdup(a_szName);
 
 	if (debug) {
 		printf("Eval: Add variable [%s] = %g\n", a->name[a->n], a->value[a->n][0]);
@@ -183,29 +141,27 @@ double inla_eval(char *expression, double *x)
 	mupDefineConst(hParser, "pi", M_PI);
 	mupDefineInfixOprt(hParser, "!", Not, 0);
 	mupDefineFun1(hParser, "return", Return, 0);
-	mupDefineFun1(hParser, "log", Log, 1);
-	mupDefineFun1(hParser, "gamma", Gamma, 1);
-	mupDefineFun1(hParser, "lgamma", LogGamma, 1);
+	mupDefineFun1(hParser, "gamma", Gamma, 0);
+	mupDefineFun1(hParser, "lgamma", LogGamma, 0);
+	mupDefineFun1(hParser, "log", log, 0);
+	mupDefineFun1(hParser, "ln", log, 0);
+	mupDefineFun1(hParser, "log10", log10, 0);
+	mupDefineFun2(hParser, "pow", pow, 0);
 
-	eval_keep_vars_tp *keep_vars = NULL;
+	eval_keep_vars_tp *keep_vars;
+	muFloat_t value;
+
+	keep_vars = Calloc(1, eval_keep_vars_tp);
+	keep_vars->default_value = *x;
+
 	mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
-
 	mupSetExpr(hParser, (muChar_t *) expression);
-
-	char *name_x = get_free_variable(hParser);
-	mupDefineVar(hParser, name_x, x);
-	if (debug) {
-		printf("Eval: define %s = %g\n", name_x, *x);
-	}
-
-	muFloat_t value = mupEval(hParser);
+	value = mupEval(hParser);
 
 	mupRelease(hParser);
-	Free(name_x);
 	if (keep_vars) {
 		int i;
 		for (i = 0; i < keep_vars->n; i++) {
-
 			if (debug) {
 				printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
 			}
