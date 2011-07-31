@@ -57,7 +57,7 @@ typedef struct {
 	double default_value;
 } eval_keep_vars_tp;
 
-static unsigned char debug = 1;
+static unsigned char debug = 0;
 
 /* 
    local functions...
