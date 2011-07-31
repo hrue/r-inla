@@ -10,12 +10,11 @@ This prior allow the user to define an expression for the log-density
 of any (univariate) prior $\log\pi(\theta)$, as a function of the
 corresponding $\theta$ (which is in the internal scale; be aware).
 
-The expression is evaluated using the \texttt{muparser}\footnote{See
+The expression is evaluated using the
+\texttt{muparser}-library\footnote{See
     \texttt{http://muparser.sourceforge.net/} for more documentation},
 with some local configuration changes to make it more
-``\texttt{R}''-like in style.
-
-The format is
+``\texttt{R}''-like in style. The format is
 \begin{quote}
     \texttt{expression: <statement>; <statement>; ...; return(<value>)}
 \end{quote}
@@ -23,10 +22,13 @@ where ``\texttt{<statement>}'' is any regular statement (more below)
 and value returned, ``\texttt{<value>}'' is the value for the
 log-density of the prior, evaluated at the current value for $\theta$.
 
-The following expression implements the normal prior
+The following expression implements the normal prior (in not a good
+way...)
 \begin{verbatim}
-expression: mean = 0; sigma = 1;
-        logdens = 1/sqrt(2*pi) * 1/sigma * exp(-0.5*(x-mean)^2/sigma^2);
+expression:
+        mean = 0; sigma = 1;
+        dens = 1/sqrt(2*pi) * 1/sigma * exp(-0.5*(x-mean)^2/sigma^2);
+        logdens = log(dens);
         return(logdens)
 \end{verbatim}
 All variables in the expression are initialised with the current value
