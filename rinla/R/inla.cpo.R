@@ -16,9 +16,9 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
     just.args = gsub("[)]$", "", just.args)
 
     ## remove the local arguments
-    just.args = gsub(",[ ]*force.cpo.manual[ ]*=[^,]*", "", just.args)
-    just.args = gsub(",[ ]*be.verbose[ ]*=[^,]*", "", just.args)
-    just.args = gsub(",[ ]*recompute.mode[ ]*=[^,]*", "", just.args)
+    just.args = gsub(",[ ]*force\\.cpo\\.manual[ ]*=[^,]*", "", just.args)
+    just.args = gsub(",[ ]*be\\.verbose[ ]*=[^,]*", "", just.args)
+    just.args = gsub(",[ ]*recompute\\.mode[ ]*=[^,]*", "", just.args)
 
     ## call the standard inla()
     r = inla.eval(paste(lib, "inla(", just.args, ")", sep=""))
