@@ -186,13 +186,19 @@ inla.set.hyper = function(
                         skip.final.check = TRUE
                     } else {
                         ## this is the normal case
-                        if (len < length(hyper.new[[idx.new]][[key]]) && len > 0L) {
-                            hyper.new[[idx.new]][[key]] = hyper.new[[idx.new]][[key]][1L:len]
-                        } else if (len < length(hyper.new[[idx.new]][[key]]) && len == 0L) {
-                            hyper.new[[idx.new]][[key]] = numeric(0L)
+                        if (len <= length(hyper.new[[idx.new]][[key]])) {
+                            if (len > 0L) {
+                                hyper.new[[idx.new]][[key]] = hyper.new[[idx.new]][[key]][1L:len]
+                            } else if (len == 0L) {
+                                hyper.new[[idx.new]][[key]] = numeric(0L)
+                            } else {
+                                stop("SHOULD NOT HAPPEN")
+                            }
                         } else if (len > length(hyper.new[[idx.new]][[key]])) {
                             hyper.new[[idx.new]][[key]] = c(hyper.new[[idx.new]][[key]],
                                                         rep(NA, len - length(hyper.new[[idx.new]][[key]])))
+                        } else {
+                            stop("SHOULD NOT HAPPEN")
                         }
                     }
                 } else {
@@ -212,15 +218,16 @@ inla.set.hyper = function(
                         }
                         hyper.new[[idx.new]][[key]] = key.val
                     } else {
-                        ## set those NA's to the default ones
-                        ii = key.val[off[[key]] + 1L:len]
-                        idxx = which(!(is.na(ii) | is.null(ii)))
-                        if (length(idxx) > 0L) {
-                            
-                            if (debug) {
-                                cat(inla.paste(c("*** Replace hyper.new|", idx.new, "|", key, "|", idxx, " with ", ii[idxx])), "\n")
+                        if (len > 0L) {
+                            ## set those NA's to the default ones
+                            ii = key.val[off[[key]] + 1L:len]
+                            idxx = which(!(is.na(ii) | is.null(ii)))
+                            if (length(idxx) > 0L) {
+                                if (debug) {
+                                    cat(inla.paste(c("*** Replace hyper.new|", idx.new, "|", key, "|", idxx, " with ", ii[idxx])), "\n")
+                                }
+                                hyper.new[[idx.new]][[key]][idxx] = ii[idxx]
                             }
-                            hyper.new[[idx.new]][[key]][idxx] = ii[idxx]
                         }
                     }
                     off[[key]] = off[[key]] + len
@@ -299,8 +306,8 @@ inla.set.hyper = function(
         key.val = inla.eval(key)
         if (key != "param" || (key == "param" && !skip.final.check)) {
             if (!is.null(key.val) && (length(key.val) > off[[key]])) {
-                stop(paste("Length of argument `", key, "'", length(key.val),
-                           ", does not match the total length of `", key, "' in `hyper'", off[[key]], sep=""))
+                stop(paste("Length of argument `", key, "' is ", length(key.val),
+                           ", does not match the total length of `", key, "' in `hyper' which is ", off[[key]], sep=""))
             }
         }
     }
