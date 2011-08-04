@@ -4737,7 +4737,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			GMRFLib_density_tp *dens_combine, *gdens_combine;
-
 			GMRFLib_density_combine((density ? &dens_combine : NULL), (gdensity ? &gdens_combine : NULL), dens_count, dens[ii], adj_weights);
 			if (density) {
 				(*density)[ii] = dens_combine;

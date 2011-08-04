@@ -1201,7 +1201,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	np_tmp = np;
 	memcpy(x_points_tmp, x_points, np * sizeof(double));
-	GMRFLib_unique_additive(&np_tmp, x_points_tmp, stdev / 3.0);
+	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1./4.));
 	if (np_tmp >= minp) {				       /* then its ok */
 		np = np_tmp;
 		memcpy(x_points, x_points_tmp, np * sizeof(double));
@@ -1218,7 +1218,8 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	np_tmp = np_g;
 	memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
-	GMRFLib_unique_additive(&np_tmp, x_points_tmp, stdev_g / 3.0);
+	P(GMRFLib_eps(0.25));
+	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1./4.));
 	if (np_tmp >= minp) {				       /* then its ok */
 		np_g = np_tmp;
 		memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
