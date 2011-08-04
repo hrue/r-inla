@@ -180,7 +180,7 @@ int GMRFLib_faster_integration = GMRFLib_TRUE;
 /* 
    number of subdivisions of the faster integration
  */
-int GMRFLib_faster_integration_np = 70;
+int GMRFLib_faster_integration_np = 80;
 
 /* 
    OpenMP spesifics
@@ -225,3 +225,8 @@ int GMRFLib_catch_error_for_inla = GMRFLib_FALSE;
    define global nodes. a node is defined to be global if nneig(i) >= (n-1) / GMRFLib_global_node_factor
  */
 double GMRFLib_global_node_factor = 1.0;
+
+/* 
+   internal use only; for debugging
+ */
+int GMRFLib_debug_code = 0;
