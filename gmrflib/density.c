@@ -1218,7 +1218,6 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	np_tmp = np_g;
 	memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
-	P(GMRFLib_eps(0.25));
 	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1./4.));
 	if (np_tmp >= minp) {				       /* then its ok */
 		np_g = np_tmp;
