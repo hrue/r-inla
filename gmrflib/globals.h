@@ -242,6 +242,11 @@ extern int GMRFLib_catch_error_for_inla;
  */
 extern double GMRFLib_global_node_factor;
 
+/* 
+   internal use only; for debugging
+ */
+extern int GMRFLib_debug_code;
+
 
 #endif
 __END_DECLS
