@@ -41,7 +41,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include <string.h>
 #include <stdio.h>
 
-#include <muParserDLL.h>
+#include <muParser/muParserDLL.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "eval.h"
@@ -156,9 +156,9 @@ double inla_eval(char *expression, double *x)
 		mupSetThousandsSep(hParser, 0);
 		mupDefineConst(hParser, "pi", M_PI);
 		mupDefineInfixOprt(hParser, "!", Not, 0);
-		mupDefineFun1(hParser, "return", Return, 0);
-		mupDefineFun1(hParser, "gamma", Gamma, 0);
-		mupDefineFun1(hParser, "lgamma", LogGamma, 0);
+		mupDefineFun1(hParser, "return", Return, 1);
+		mupDefineFun1(hParser, "gamma", Gamma, 1);
+		mupDefineFun1(hParser, "lgamma", LogGamma, 1);
 		mupDefineFun1(hParser, "log", log, 1);
 		mupDefineFun1(hParser, "log10", log10, 1);
 		mupDefineFun1(hParser, "ln", log, 1);
