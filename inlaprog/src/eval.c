@@ -54,6 +54,7 @@ typedef struct {
 	muFloat_t **value;
 	char **name;
 	int n;
+	int n_alloc;
 	double default_value;
 } eval_keep_vars_tp;
 
@@ -109,8 +110,15 @@ muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 	}
 	eval_keep_vars_tp *a = *aa;
 
-	a->value = Realloc(a->value, a->n + 1, muFloat_t *);
-	a->name = Realloc(a->name, a->n + 1, char *);
+	if (a->n >= a->n_alloc){
+		a->n_alloc += 16;
+		if (a->n_alloc == 0){
+			assert(a->name == NULL);
+			assert(a->value == NULL);
+		}
+		a->name = Realloc(a->name, a->n_alloc, char *);
+		a->value = Realloc(a->value, a->n_alloc, muFloat_t *);
+	}
 	a->value[a->n] = Calloc(1, muFloat_t);
 	a->value[a->n][0] = a->default_value;
 	a->name[a->n] = GMRFLib_strdup(a_szName);
@@ -125,53 +133,60 @@ muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 
 double inla_eval(char *expression, double *x)
 {
-	muParserHandle_t hParser;
-
-	if (debug) {
-		printf("Eval: expression: %s\n", expression);
-		printf("Eval: value: %g\n", *x);
-	}
-
-	hParser = mupCreate();
-	mupSetErrorHandler(hParser, OnError);
-
-	mupSetArgSep(hParser, ';');
-	mupSetDecSep(hParser, '.');
-	mupSetThousandsSep(hParser, 0);
-	mupDefineConst(hParser, "pi", M_PI);
-	mupDefineInfixOprt(hParser, "!", Not, 0);
-	mupDefineFun1(hParser, "return", Return, 0);
-	mupDefineFun1(hParser, "gamma", Gamma, 0);
-	mupDefineFun1(hParser, "lgamma", LogGamma, 0);
-	mupDefineFun1(hParser, "log", log, 0);
-	mupDefineFun1(hParser, "ln", log, 0);
-	mupDefineFun1(hParser, "log10", log10, 0);
-	mupDefineFun2(hParser, "pow", pow, 0);
-
-	eval_keep_vars_tp *keep_vars;
 	muFloat_t value;
 
-	keep_vars = Calloc(1, eval_keep_vars_tp);
-	keep_vars->default_value = *x;
+	/* 
+	 * I need this until the muparser-library is thread-safe....
+	 */
 
-	mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
-	mupSetExpr(hParser, (muChar_t *) expression);
-	value = mupEval(hParser);
+#pragma omp critical
+	{
+		muParserHandle_t hParser;
 
-	mupRelease(hParser);
-	if (keep_vars) {
-		int i;
-		for (i = 0; i < keep_vars->n; i++) {
-			if (debug) {
-				printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
-			}
-			Free(keep_vars->value[i]);
-			Free(keep_vars->name[i]);
+		if (debug) {
+			printf("Eval: expression: %s\n", expression);
+			printf("Eval: value: %g\n", *x);
 		}
-		Free(keep_vars->value);
-		Free(keep_vars->name);
-		Free(keep_vars);
-	}
 
+		hParser = mupCreate();
+		mupSetErrorHandler(hParser, OnError);
+
+		mupSetArgSep(hParser, ';');
+		mupSetDecSep(hParser, '.');
+		mupSetThousandsSep(hParser, 0);
+		mupDefineConst(hParser, "pi", M_PI);
+		mupDefineInfixOprt(hParser, "!", Not, 0);
+		mupDefineFun1(hParser, "return", Return, 0);
+		mupDefineFun1(hParser, "gamma", Gamma, 0);
+		mupDefineFun1(hParser, "lgamma", LogGamma, 0);
+		mupDefineFun1(hParser, "log", log, 1);
+		mupDefineFun1(hParser, "log10", log10, 1);
+		mupDefineFun1(hParser, "ln", log, 1);
+		mupDefineFun2(hParser, "pow", pow, 1);
+
+		eval_keep_vars_tp *keep_vars;
+
+		keep_vars = Calloc(1, eval_keep_vars_tp);
+		keep_vars->default_value = *x;
+		mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
+		mupSetExpr(hParser, (muChar_t *)expression);
+		value = mupEval(hParser);
+
+		mupRelease(hParser);
+		if (keep_vars) {
+			int i;
+			for (i = 0; i < keep_vars->n; i++) {
+				if (debug) {
+					printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
+				}
+				Free(keep_vars->value[i]);
+				Free(keep_vars->name[i]);
+			}
+			Free(keep_vars->value);
+			Free(keep_vars->name);
+			Free(keep_vars);
+		}
+	}
+	
 	return (double) value;
 }
