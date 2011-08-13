@@ -133,12 +133,11 @@ muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
 
 double inla_eval(char *expression, double *x)
 {
-	muFloat_t value;
+	double value;
 
 	/* 
 	 * I need this until the muparser-library is thread-safe....
 	 */
-
 #pragma omp critical
 	{
 		muParserHandle_t hParser;
@@ -170,7 +169,7 @@ double inla_eval(char *expression, double *x)
 		keep_vars->default_value = *x;
 		mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
 		mupSetExpr(hParser, (muChar_t *)expression);
-		value = mupEval(hParser);
+		value = (double) mupEval(hParser);
 
 		mupRelease(hParser);
 		if (keep_vars) {
@@ -187,6 +186,13 @@ double inla_eval(char *expression, double *x)
 			Free(keep_vars);
 		}
 	}
-	
-	return (double) value;
+
+	if (ISINF(value) || ISNAN(value)) {
+		char *msg;
+
+		GMRFLib_sprintf(&msg, "Expression[%s] evaluate to INF or NAN [%g] for x=%g\n", expression, value, *x);
+		inla_error_general(msg);
+	}
+
+	return value;
 }
