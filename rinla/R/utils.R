@@ -1102,7 +1102,7 @@
     return(a)
 }
 
-`inla.dir.create` = function(dir, showWarnings = TRUE, recursive = FALSE, mode = "0777", StopOnError = TRUE)
+`inla.dir.create` = function(dir, showWarnings = TRUE, recursive = TRUE, mode = "0777", StopOnError = TRUE)
 {
     ## change the default behaviour, so that if DIR exists an error is
     ## NOT flagged, and recursive is default TRUE.
