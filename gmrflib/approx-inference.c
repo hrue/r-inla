@@ -2979,7 +2979,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				improved_mean[_i] = ai_store->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		lin_dens[dens_count] = GMRFLib_ai_compute_lincomb(nlin, Alin, _store, improved_mean); \
+		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), NULL, nlin, Alin, _store, improved_mean); \
 		Free(improved_mean);					\
 	}
 
@@ -5393,7 +5393,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
+int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cov, 
+			       int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
 {
 	/*
 	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
@@ -5626,7 +5627,9 @@ GMRFLib_density_tp **GMRFLib_ai_compute_lincomb(int nlin, GMRFLib_lc_tp ** Alin,
 		}
 	}
 
-	return d;
+	*lindens = d;
+
+	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, int nhyper, GMRFLib_graph_tp * graph, GMRFLib_ai_store_tp * ai_store)
 {
