@@ -9,6 +9,8 @@
 ##! \alias{inla.dmarginal}
 ##! \alias{rmarginal}
 ##! \alias{inla.rmarginal}
+##! \alias{inla.hpdmarginal}
+##! \alias{hpdmarginal}
 ##! \alias{inla.expectation}
 ##! \alias{inla.emarginal}
 ##! \alias{emarginal}
@@ -24,7 +26,7 @@
 ##! \title{Functions which operates on marginals}
 ##! 
 ##! \description{Density, distribution function, quantile function, random
-##!      generation, interpolation, expectations and transformations of
+##!      generation, hpd-interval, interpolation, expectations and transformations of
 ##!      marginals obtained by \code{inla} or \code{inla.hyperpar()}.}
 ##! 
 ##! \usage{
@@ -32,6 +34,7 @@
 ##! inla.pmarginal(q, marginal, normalize = TRUE)
 ##! inla.qmarginal(p, marginal, len = 1024)
 ##! inla.rmarginal(n, marginal)
+##! inla.hpdmarginal(p, marginal)
 ##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
 ##! inla.emarginal(fun, marginal, ...)
 ##! inla.tmarginal(fun, marginal, n, h.diff, ...)
@@ -51,7 +54,9 @@
 ##!     \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())}
 ##!     with density values \code{y} at locations \code{x}, or a
 ##!     \code{matrix(,n,2)} for which the density values are the second
-##!     column and the locations in the first column.}
+##!     column and the locations in the first column.
+##!     The\code{inla.hpdmarginal()}-function
+##!     assumes a unimodal density.}
 ##! 
 ##!   \item{fun}{A (vectorised) function like \code{function(x) exp(x)} to
 ##!     compute the expectation against, or which define the transformation
@@ -107,7 +112,14 @@
 ##! ## inla-program
 ##! r = res$summary.fixed["x",]
 ##! m = res$marginals.fixed$x
-##! 
+##!
+##! ## compute the 95% HPD interval
+##! inla.hpdmarginal(0.95, m)
+##!
+##! x = seq(-6, 6, len = 1000)
+##! y = dnorm(x)
+##! inla.hpdmarginal(0.95, list(x=x, y=y))
+##!
 ##! ## compute the the density for exp(r), version 1
 ##! r.exp = inla.tmarginal(exp, m)
 ##! ## or version 2
@@ -299,6 +311,48 @@
     pp = pmin(pmax(p, rep(0, n)), rep(1, n))
 
     return (fq(pp))
+}
+`inla.hpdmarginal` = function(p, marginal, len = 1024)
+{
+    f = inla.sfmarginal(inla.smarginal(marginal))
+    xx = seq(f$range[1], f$range[2], length = len)
+    d = cumsum(exp(f$fun(xx)))
+    d = d/d[length(d)]
+
+    ## for the moment, we remove only duplicated zero's and one's.
+    eps = .Machine$double.eps * 1000.0
+    for(val in c(0.0, 1.0)) {
+        is.val = which(abs(d - val) <= eps)
+        if (length(is.val) > 1) {
+            ## keep the first, ie remove it from the list to the removed
+            is.val = is.val[-1]
+            ## and remove the rest
+            d = d[-is.val]
+            xx = xx[-is.val]
+        }
+    }
+    ## just spline-interpolate the inverse mapping
+    fq = splinefun(d, xx)
+
+    ## just make sure the p's are in [0, 1]
+    np = length(p)
+    pp = 1-pmin(pmax(p, rep(0, np)), rep(1, np))
+    
+    ## parts of this code below is taken from TeachingDemo::hpd
+    f = function(x, posterior.icdf, conf) {
+        return (posterior.icdf(1 - conf + x) - posterior.icdf(x))
+    }
+
+    tol= sqrt(.Machine$double.eps)
+    result = matrix(NA, np, 2)
+    for(i in 1:np) {
+        out = optimize(f, c(0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
+        result[i, ] = c(fq(out$minimum), fq(1 - pp[i] + out$minimum))
+    }
+    colnames(result) = c("low", "high")
+    rownames(result) = paste("level:", format(1-pp, digits=6, justify="left", trim=TRUE), sep="")
+
+    return (result)
 }
 `inla.rmarginal` = function(n, marginal)
 {
