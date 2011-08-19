@@ -5428,6 +5428,10 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cov,
 
 	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
 
+
+		
+
+
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
 
@@ -6087,10 +6091,10 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
 					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator, GMRFLib_ai_param_tp * ai_par)
 {
-#define NEXTRA 11
+#define NEXTRA 15
 	int i, j;
 	double *points = NULL, *ldens_values, *theta_max, *theta_min, sd;
-	double extra_points[NEXTRA] = { -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0 };
+	double extra_points[NEXTRA] = {-7.0, -5.0, - -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0 };
 	int npoints;
 
 	GMRFLib_ENTER_ROUTINE;
