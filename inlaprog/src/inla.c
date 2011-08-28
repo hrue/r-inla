@@ -1966,6 +1966,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	if (ds->data_id == L_GAUSSIAN) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_IID_GAMMA) {
+		idiv = 3;
+		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_SAS) {
 		idiv = 3;
 		a[0] = ds->data_observations.sas_weight = Calloc(mb->predictor_ndata, double);
@@ -2319,6 +2322,40 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
 	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ iid_gamma
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, shape, rate, w, xx, penalty = 1.0/FLT_EPSILON, cons;
+
+	w = ds->data_observations.iid_gamma_weight[idx];
+	shape = map_exp(ds->data_observations.iid_gamma_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	rate = map_exp(ds->data_observations.iid_gamma_log_rate[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+	cons = -shape * log(rate) -gsl_sf_lngamma(shape);
+	
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			xx = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+			if (xx > FLT_EPSILON) {
+				logll[i] =  cons + (shape-1.0)*log(xx) - rate*xx;
+			} else {
+				/* 
+				   this is the penalty, and should not happen in the end...
+				 */
+				logll[i] = cons + (shape-1.0)*log(FLT_EPSILON) - rate*FLT_EPSILON
+					- penalty * SQR(FLT_EPSILON - xx);
+			}
+		}
+	} 
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5576,6 +5613,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
+		ds->data_id = L_IID_GAMMA;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SAS")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sas;
 		ds->data_id = L_SAS;
@@ -5730,6 +5771,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	} else if (ds->data_id == L_IID_GAMMA) {
+		/* 
+		   ok...
+		 */
 	} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 		/*
 		 * ok...
@@ -5890,6 +5935,90 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_IID_GAMMA) {
+		/*
+		 * get options related to the iid_gamma
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.iid_gamma_log_shape, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_shape[%g]\n", ds->data_observations.iid_gamma_log_shape[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log shape for iid-gamma", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape for iid-gamma", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.iid_gamma_log_shape;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * the 'rate' parameter
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.iid_gamma_log_rate, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_rate[%g]\n", ds->data_observations.iid_gamma_log_rate[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log rate parameter for iid-gamma", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Rate parameter for iid-gamma", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.iid_gamma_log_rate;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -7522,8 +7651,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-	    **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
-
+		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -7653,7 +7781,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
 	HYPER_NEW(log_diag, 0.0);
-
+	
 	/*
 	 * start parsing 
 	 */
@@ -11337,6 +11465,25 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			} else if (ds->data_id == L_IID_GAMMA) {
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_shape = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &log_shape);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_rate = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_rate);
 					count++;
 				}
 			} else if (ds->data_id == L_SAS) {

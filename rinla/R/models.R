@@ -2260,6 +2260,35 @@
                       pdf = "gaussian"
                       ),
 
+              iidgamma = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "logshape",
+                                      short.name = "shape",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(100, 100),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      ), 
+                              theta2 = list(
+                                      name = "lograte",
+                                      short.name = "rate",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(100, 100),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ), 
+                      survival = FALSE,
+                      discrete = FALSE, 
+                      link = c("default", "identity"), 
+                      pdf = "iidgamma"
+                      ),
+
               sas = list(
                       hyper = list(
                               theta1 = list(
