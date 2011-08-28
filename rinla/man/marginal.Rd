@@ -9,6 +9,8 @@
  \alias{inla.dmarginal}
  \alias{rmarginal}
  \alias{inla.rmarginal}
+ \alias{inla.hpdmarginal}
+ \alias{hpdmarginal}
  \alias{inla.expectation}
  \alias{inla.emarginal}
  \alias{emarginal}
@@ -24,7 +26,7 @@
  \title{Functions which operates on marginals}
  
  \description{Density, distribution function, quantile function, random
-      generation, interpolation, expectations and transformations of
+      generation, hpd-interval, interpolation, expectations and transformations of
       marginals obtained by \code{inla} or \code{inla.hyperpar()}.}
  
  \usage{
@@ -32,6 +34,7 @@
  inla.pmarginal(q, marginal, normalize = TRUE)
  inla.qmarginal(p, marginal, len = 1024)
  inla.rmarginal(n, marginal)
+ inla.hpdmarginal(p, marginal)
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
  inla.emarginal(fun, marginal, ...)
  inla.tmarginal(fun, marginal, n, h.diff, ...)
@@ -51,7 +54,9 @@
      \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())}
      with density values \code{y} at locations \code{x}, or a
      \code{matrix(,n,2)} for which the density values are the second
-     column and the locations in the first column.}
+     column and the locations in the first column.
+     The\code{inla.hpdmarginal()}-function
+     assumes a unimodal density.}
  
    \item{fun}{A (vectorised) function like \code{function(x) exp(x)} to
      compute the expectation against, or which define the transformation
@@ -107,7 +112,14 @@
  ## inla-program
  r = res$summary.fixed["x",]
  m = res$marginals.fixed$x
- 
+
+ ## compute the 95% HPD interval
+ inla.hpdmarginal(0.95, m)
+
+ x = seq(-6, 6, len = 1000)
+ y = dnorm(x)
+ inla.hpdmarginal(0.95, list(x=x, y=y))
+
  ## compute the the density for exp(r), version 1
  r.exp = inla.tmarginal(exp, m)
  ## or version 2
