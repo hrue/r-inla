@@ -218,6 +218,13 @@ typedef struct {
 	 */
 	double **log_prec_loggamma_frailty;
 
+	/* 
+	   iid gamma
+	 */
+	double *iid_gamma_weight;
+	double **iid_gamma_log_shape;
+	double **iid_gamma_log_rate;
+
 	/*
 	 * Sinh-asinh
 	 */
@@ -263,6 +270,7 @@ typedef enum {
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
 	L_SAS,
+	L_IID_GAMMA, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -955,6 +963,8 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
