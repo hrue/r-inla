@@ -2373,7 +2373,7 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * eigen_values, gsl_matrix * eigen_vectors)
+int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors)
 {
 	/*
 	 * compute new theta-values for given vector of z (which is N(0,I)), using the relationship
@@ -2382,13 +2382,12 @@ int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z,
 	 */
 
 	size_t i, j;
-	double tmp, v_ij, lambda, *u = NULL;
+	double tmp, v_ij, *u = NULL;
 
 	u = Calloc(nhyper, double);
 
 	for (i = 0; i < (size_t) nhyper; i++) {
-		lambda = gsl_vector_get(eigen_values, i);
-		u[i] = z[i] / sqrt(lambda);
+		u[i] = z[i] / gsl_vector_get(sqrt_eigen_values, i);
 	}
 
 	for (i = 0; i < (size_t) nhyper; i++) {
@@ -2402,16 +2401,16 @@ int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z,
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * eigen_values, gsl_matrix * eigen_vectors)
+int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors)
 {
 	/*
 	 * compute z-values for given vector of theta, using the relationship
 	 * 
-	 * theta = theta_mode + eigen_vectors * diag(1/sqrt(eigen_values)) * z 
+	 * theta = theta_mode + eigen_vectors * diag(1/sqrt_eigen_values) * z 
 	 */
 
 	size_t i, j;
-	double tmp, v_ji, lambda, *u = NULL;
+	double tmp, *u = NULL;
 
 	u = Calloc(nhyper, double);
 
@@ -2421,11 +2420,9 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 
 	for (i = 0; i < (size_t) nhyper; i++) {
 		for (j = 0, tmp = 0.0; j < (size_t) nhyper; j++) {
-			v_ji = gsl_matrix_get(eigen_vectors, j, i);
-			tmp += v_ji * u[j];
+			tmp += gsl_matrix_get(eigen_vectors, j, i) * u[j];
 		}
-		lambda = gsl_vector_get(eigen_values, i);
-		z[i] = tmp * sqrt(lambda);
+		z[i] = tmp * gsl_vector_get(sqrt_eigen_values, i);
 	}
 	Free(u);
 
@@ -3113,6 +3110,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
 	gsl_vector *eigen_values = NULL;
+	gsl_vector *sqrt_eigen_values = NULL;
 	map_strd hash_table;
 	GMRFLib_density_tp ***dens = NULL;
 	GMRFLib_density_tp ***lin_dens = NULL;
@@ -3471,6 +3469,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
+		sqrt_eigen_values = gsl_vector_alloc((unsigned int) nhyper);
+		for (i = 0; i < nhyper; i++) {
+			gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int)i)));
+		}
+
+		
+
 		if (a_change) {
 			/*
 			 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
@@ -3632,14 +3637,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (opt == 0) {
 						zz[kk] = 2.0;
-						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, eigen_values, eigen_vectors);
+						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
 						stdev_corr_pos[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 					} else {
 						zz[kk] = -2.0;
-						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, eigen_values, eigen_vectors);
+						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
@@ -3670,14 +3675,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 
 					zz[k] = 2.0;
-					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, eigen_values, eigen_vectors);
+					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
 					llog_dens *= -1.0;
 					f0 = log_dens_mode - llog_dens;
 					stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 
 					zz[k] = -2.0;
-					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, eigen_values, eigen_vectors);
+					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
 					llog_dens *= -1.0;
 					f0 = log_dens_mode - llog_dens;
@@ -3821,7 +3826,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						z_local[i] = f * design->experiment[k][i]
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 					}
-					GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, eigen_values, eigen_vectors);
+					GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
 					GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id);
 					log_dens *= -1.0;
 					log_dens_orig = log_dens;
@@ -3932,7 +3937,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						z[i] = f * design->experiment[k][i]
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 					}
-					GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, eigen_values, eigen_vectors);
+					GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
 					GMRFLib_domin_f(theta, &log_dens, &ierr);
 					log_dens *= -1.0;
 
@@ -4107,7 +4112,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						for (i = 0; i < nhyper; i++) {
 							z_local[i] = iz_local[i] * ai_par->dz;
 						}
-						GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, eigen_values, eigen_vectors);
+						GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id);
 						log_dens *= -1.0;
 
@@ -4253,7 +4258,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							 * note that _domin_f stores calculations in the ai_store even though its not in the argument
 							 * list 
 							 */
-							GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, eigen_values, eigen_vectors);
+							GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
 							GMRFLib_domin_f(theta, &log_dens, &ierr);
 							log_dens *= -1.0;
 							tag = GMRFLib_ai_tag(iz, nhyper);
@@ -4403,7 +4408,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 */
 					skip = (map_strd_ptr(&hash_table, tag) != NULL ? 1 : 0);
 					if (!skip) {
-						GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, eigen_values, eigen_vectors);
+						GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_domin_f(theta, &log_dens, &ierr);
 						log_dens *= -1.0;
 						if (ai_par->fp_log) {
@@ -5158,7 +5163,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				for (k = 0; k < hyper_count; k++) {
 					int kk;
 
-					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), eigen_values, eigen_vectors);
+					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
 					// fprintf(ai_par->fp_hyperparam, "%s: ", __GMRFLib_FuncName);
 					for (kk = 0; kk < nhyper; kk++) {
 						fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
@@ -5182,7 +5187,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 				}
 				GMRFLib_ai_marginal_for_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
-									  hyper_ldens, theta_mode, eigen_values, eigen_vectors,
+									  hyper_ldens, theta_mode, sqrt_eigen_values, eigen_vectors,
 									  std_stdev_theta, ai_par->dz, stdev_corr_pos, stdev_corr_neg, interpol, ai_par);
 			}
 			if (run_with_omp) {
@@ -6087,7 +6092,7 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
-					      double *hyper_ldens, double *theta_mode, gsl_vector * eigen_values,
+					      double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
 					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator, GMRFLib_ai_param_tp * ai_par)
 {
@@ -6123,7 +6128,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		npoints_j = work + 4 * hyper_count;
 
 		for (i = 0; i < hyper_count; i++) {
-			GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[i * nhyper]), eigen_values, eigen_vectors);
+			GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[i * nhyper]), sqrt_eigen_values, eigen_vectors);
 			j = GMRFLib_which(theta_tmp[idx], points, npoints);
 			if (j >= 0) {
 				/*
@@ -6184,7 +6189,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		double *theta_max_all = Calloc(nhyper, double);
 
 		for (i = 0; i < hyper_count; i++) {
-			GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[i * nhyper]), eigen_values, eigen_vectors);
+			GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[i * nhyper]), sqrt_eigen_values, eigen_vectors);
 			if (i == 0) {
 				for (j = 0; j < nhyper; j++) {
 					theta_max_all[j] = theta_min_all[j] = theta_tmp[j];
@@ -6216,7 +6221,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			arg[i]->hyper_z = hyper_z;
 			arg[i]->hyper_ldens = hyper_ldens;
 			arg[i]->theta_mode = theta_mode;
-			arg[i]->eigen_values = eigen_values;
+			arg[i]->sqrt_eigen_values = sqrt_eigen_values;
 			arg[i]->eigen_vectors = eigen_vectors;
 			arg[i]->z = Calloc(nhyper, double);
 			arg[i]->theta = Calloc(nhyper, double);
@@ -6307,8 +6312,11 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 	} else {
 		memcpy(a->theta, x, a->nhyper * sizeof(double));	/* ndim == nhypera */
 	}
-	GMRFLib_ai_theta2z(a->z, a->nhyper, a->theta_mode, a->theta, a->eigen_values, a->eigen_vectors);
+	GMRFLib_ai_theta2z(a->z, a->nhyper, a->theta_mode, a->theta, a->sqrt_eigen_values, a->eigen_vectors);
 	switch (a->interpolator) {
+	case GMRFLib_AI_INTERPOLATOR_CCD:
+		val = GMRFLib_interpolator_ccd(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) a);
+		break;
 	case GMRFLib_AI_INTERPOLATOR_NEAREST:
 		val = GMRFLib_interpolator_nearest(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
 		break;
@@ -6320,9 +6328,6 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 		break;
 	case GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE:
 		val = GMRFLib_interpolator_wdistance(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
-		break;
-	case GMRFLib_AI_INTERPOLATOR_CCD:
-		val = GMRFLib_interpolator_ccd(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) a);
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
