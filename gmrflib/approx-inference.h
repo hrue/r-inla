@@ -628,7 +628,7 @@ typedef struct {
 	double *hyper_ldens;
 	double theta_fixed;
 	double *theta_mode;
-	gsl_vector *eigen_values;
+	gsl_vector *sqrt_eigen_values;
 	gsl_matrix *eigen_vectors;
 	double dz;
 	double *stdev_corr_pos;
@@ -737,7 +737,7 @@ int GMRFLib_pool_cmp1(const void *a, const void *b);
 
 
 int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
-					      double *hyper_ldens, double *theta_mode, gsl_vector * eigen_values,
+					      double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
 					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
 					      GMRFLib_ai_param_tp * ai_par);
@@ -811,9 +811,9 @@ int GMRFLib_ai_do_MC_error_check(double *statistics, GMRFLib_problem_tp * proble
 int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, int nhyper, GMRFLib_graph_tp * graph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_problem_tp * problem, double *c, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *izz, int *len, int *k_max, int len_length, int nhyper);
-int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * eigen_values, gsl_matrix * eigen_vectors);
+int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
-int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * eigen_values, gsl_matrix * eigen_vectors);
+int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 
 __END_DECLS
 #endif
