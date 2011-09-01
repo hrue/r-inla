@@ -982,6 +982,7 @@ double inla_Phi(double x);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+double eval_logsum_safe(double lA, double lB);
 
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);

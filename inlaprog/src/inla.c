@@ -3403,6 +3403,19 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 #undef PROBZERO
 	return GMRFLib_SUCCESS;
 }
+double eval_logsum_safe(double lA, double lB)
+{
+	/* 
+	   evaluate log( exp(lA) + exp(lB) ) in a safe way
+	 */
+
+	if (lA > lB){
+		return lA + log(1.0 + exp(lB-lA));
+	} else {
+		return lB + log(1.0 + exp(lA-lB));
+	}
+}
+	
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -3423,6 +3436,10 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 
 	assert((int) n > 0);
 
+	gsl_sf_result res;
+	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+	double logA, logB;
+	
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -3432,7 +3449,10 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logA = log((1.0 - p1)) + log(p2);
+					logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					//logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logll[i] = eval_logsum_safe(logA, logB);
 				}
 			}
 		} else {
@@ -3447,16 +3467,16 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logA = log((1.0 - p2)) + log(p1);
+					logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					//logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					logll[i] = eval_logsum_safe(logA, logB);
 				}
 			}
 		} else {
 			assert(0 == 1);
 		}
 	} else {
-		gsl_sf_result res;
-		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				p1 = P1(x[i] + OFFSET(idx));
