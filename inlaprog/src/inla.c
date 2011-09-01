@@ -3485,7 +3485,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log(p1 * p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					logll[i] = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 				}
 			}
 		} else {
