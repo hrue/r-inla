@@ -6310,7 +6310,7 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 		}
 		a->theta[a->idx] = a->theta_fixed;
 	} else {
-		memcpy(a->theta, x, a->nhyper * sizeof(double));	/* ndim == nhypera */
+		memcpy(a->theta, x, a->nhyper * sizeof(double));	/* ndim == nhyper */
 	}
 	GMRFLib_ai_theta2z(a->z, a->nhyper, a->theta_mode, a->theta, a->sqrt_eigen_values, a->eigen_vectors);
 	switch (a->interpolator) {
