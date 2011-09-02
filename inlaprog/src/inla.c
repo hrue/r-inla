@@ -2335,27 +2335,26 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, shape, rate, w, xx, penalty = 1.0/FLT_EPSILON, cons;
+	double y, shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
 
 	w = ds->data_observations.iid_gamma_weight[idx];
 	shape = map_exp(ds->data_observations.iid_gamma_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rate = map_exp(ds->data_observations.iid_gamma_log_rate[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-	cons = -shape * log(rate) -gsl_sf_lngamma(shape);
-	
+	cons = -shape * log(rate) - gsl_sf_lngamma(shape);
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			xx = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 			if (xx > FLT_EPSILON) {
-				logll[i] =  cons + (shape-1.0)*log(xx) - rate*xx;
+				logll[i] = cons + (shape - 1.0) * log(xx) - rate * xx;
 			} else {
-				/* 
-				   this is the penalty, and should not happen in the end...
+				/*
+				 * this is the penalty, and should not happen in the end... 
 				 */
-				logll[i] = cons + (shape-1.0)*log(FLT_EPSILON) - rate*FLT_EPSILON
-					- penalty * SQR(FLT_EPSILON - xx);
+				logll[i] = cons + (shape - 1.0) * log(FLT_EPSILON) - rate * FLT_EPSILON - penalty * SQR(FLT_EPSILON - xx);
 			}
 		}
-	} 
+	}
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2719,14 +2718,17 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda;
+	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
 
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				lambda = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 				mu = E * lambda;
-				logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+				logA = log(p);
+				logB = log(1.0 - p) + y * log(mu) - mu - normc;
+				// logll[i] = log(p + (1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+				logll[i] = eval_logsum_safe(logA, logB);
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
@@ -3302,13 +3304,19 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
-	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), prob = 0.0;
+	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), prob = 0.0, logA, logB;
+
+	gsl_sf_result res;
+	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				prob = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-				logll[i] = log(p + (1.0 - p) * gsl_ran_binomial_pdf((unsigned int) y, prob, (unsigned int) n));
+				logA = log(p);
+				logB = log(1.0 - p) + res.val + y * log(prob) + (n - y) * log(1.0 - prob);
+				// logll[i] = log(p + (1.0 - p) * gsl_ran_binomial_pdf((unsigned int) y, prob, (unsigned int) n));
+				logll[i] = eval_logsum_safe(logA, logB);
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
@@ -3317,9 +3325,6 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 			}
 		}
 	} else {
-		gsl_sf_result res;
-		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				prob = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
@@ -3349,11 +3354,10 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
-	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), logA, logB;
 
 	gsl_sf_result res;
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-	double logA, logB;
 
 	if ((int) y == 0) {
 		if (m > 0) {
@@ -3363,12 +3367,12 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					if (ISZERO(pzero)){
+					if (ISZERO(pzero)) {
 						logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
 					} else {
 						logA = log(pzero);
-						logB = log(1.0-pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-						//logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -3414,17 +3418,16 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 }
 double eval_logsum_safe(double lA, double lB)
 {
-	/* 
-	   evaluate log( exp(lA) + exp(lB) ) in a safe way
+	/*
+	 * evaluate log( exp(lA) + exp(lB) ) in a safe way 
 	 */
 
-	if (lA > lB){
-		return lA + log(1.0 + exp(lB-lA));
+	if (lA > lB) {
+		return lA + log(1.0 + exp(lB - lA));
 	} else {
-		return lB + log(1.0 + exp(lA-lB));
+		return lB + log(1.0 + exp(lA - lB));
 	}
 }
-	
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -3441,14 +3444,13 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
 	    alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
-	    alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), p, p1, p2;
+	    alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), p, p1, p2, logA, logB;
 
 	assert((int) n > 0);
 
 	gsl_sf_result res;
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-	double logA, logB;
-	
+
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -3458,12 +3460,12 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					if (ISZERO(1.0 - p1)){
+					if (ISZERO(1.0 - p1)) {
 						logll[i] = log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 					} else {
 						logA = log((1.0 - p1)) + log(p2);
 						logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-						//logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						// logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -3480,12 +3482,12 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					if (ISZERO(1.0 - p2)){
+					if (ISZERO(1.0 - p2)) {
 						logll[i] = log(p1) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 					} else {
 						logA = log((1.0 - p2)) + log(p1);
 						logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-						//logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						// logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -3535,6 +3537,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 	double pzero, p;
 	double alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double delta = map_exp(ds->data_observations.zeroinflated_delta_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double logA, logB;
 
 	if ((int) y == 0) {
 		for (i = 0; i < m; i++) {
@@ -3543,9 +3546,15 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
 				logll[i] = -DBL_MAX;
 			} else {
-				logll[i] = log(pzero + (1.0 - pzero) * exp(LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1)
-									   + LOGGAMMA(delta * p + y) + LOGGAMMA(n + delta * (1.0 - p) - y) - LOGGAMMA(delta + n)
-									   + LOGGAMMA(delta) - LOGGAMMA(delta * p) - LOGGAMMA(delta * (1.0 - p))));
+				// logll[i] = log(pzero + (1.0 - pzero) * exp(LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1)
+				// + LOGGAMMA(delta * p + y) + LOGGAMMA(n + delta * (1.0 - p) - y) - LOGGAMMA(delta + n)
+				// + LOGGAMMA(delta) - LOGGAMMA(delta * p) - LOGGAMMA(delta * (1.0 - p))));
+
+				logA = log(pzero);
+				logB = log(1.0 - pzero) + (LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1)
+							   + LOGGAMMA(delta * p + y) + LOGGAMMA(n + delta * (1.0 - p) - y) - LOGGAMMA(delta + n)
+							   + LOGGAMMA(delta) - LOGGAMMA(delta * p) - LOGGAMMA(delta * (1.0 - p)));
+				logll[i] = eval_logsum_safe(logA, logB);
 			}
 		}
 	} else {
@@ -3555,10 +3564,9 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
 				logll[i] = -DBL_MAX;
 			} else {
-				logll[i] = log(1.0 - pzero)
-				    + LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1)
-				    + LOGGAMMA(delta * p + y) + LOGGAMMA(n + delta * (1.0 - p) - y) - LOGGAMMA(delta + n)
-				    + LOGGAMMA(delta) - LOGGAMMA(delta * p) - LOGGAMMA(delta * (1.0 - p));
+				logll[i] = log(1.0 - pzero) + (LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1)
+							       + LOGGAMMA(delta * p + y) + LOGGAMMA(n + delta * (1.0 - p) - y) - LOGGAMMA(delta + n)
+							       + LOGGAMMA(delta) - LOGGAMMA(delta * p) - LOGGAMMA(delta * (1.0 - p)));
 			}
 		}
 	}
@@ -5809,8 +5817,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_IID_GAMMA) {
-		/* 
-		   ok...
+		/*
+		 * ok... 
 		 */
 	} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 		/*
@@ -7688,7 +7696,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
+	    **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -7818,7 +7826,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
 	HYPER_NEW(log_diag, 0.0);
-	
+
 	/*
 	 * start parsing 
 	 */
