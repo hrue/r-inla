@@ -3471,10 +3471,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		sqrt_eigen_values = gsl_vector_alloc((unsigned int) nhyper);
 		for (i = 0; i < nhyper; i++) {
-			gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int)i)));
+			gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int) i)));
 		}
 
-		
+
 
 		if (a_change) {
 			/*
@@ -5398,8 +5398,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cov, 
-			       int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
+int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cov, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store, double *improved_mean)
 {
 	/*
 	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
@@ -5413,7 +5412,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cov,
 
 	assert(problem != NULL);
 	if (nlin <= 0)
-		return NULL;
+		return !GMRFLib_SUCCESS;
 
 	n = problem->n;
 	d = Calloc(nlin, GMRFLib_density_tp *);
@@ -5432,10 +5431,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cov,
 	}
 
 	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
-
-
-		
-
 
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
@@ -6099,7 +6094,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 #define NEXTRA 15
 	int i, j;
 	double *points = NULL, *ldens_values, *theta_max, *theta_min, sd;
-	double extra_points[NEXTRA] = {-7.0, -5.0, - -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0 };
+	double extra_points[NEXTRA] = { -7.0, -5.0, - -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0 };
 	int npoints;
 
 	GMRFLib_ENTER_ROUTINE;

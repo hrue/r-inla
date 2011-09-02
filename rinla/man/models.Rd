@@ -2728,16 +2728,28 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `iidexp'.}{Number of hyperparmeters are 1.
+				\item{Model `iidgamma'.}{Number of hyperparmeters are 2.
 					 \describe{
-						\item{Hyperparameter `theta'}{
+						\item{Hyperparameter `theta1'}{
 							 \describe{
-							\item{name = }{`log lambda'}
-							\item{short.name = }{`lambda'}
+							\item{name = }{`logshape'}
+							\item{short.name = }{`shape'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
+							\item{param = }{`100 100'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`lograte'}
+							\item{short.name = }{`rate'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`100 100'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -2749,7 +2761,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
-								\item{pdf = }{`iidexp'}
+								\item{pdf = }{`iidgamma'}
 							 }
 						 }
 					 }
@@ -3310,14 +3322,14 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
-							\item{name = }{`logit probability'}
-							\item{short.name = }{`prob'}
+							\item{name = }{`alpha'}
+							\item{short.name = }{`alpha'}
 							\item{initial = }{`-1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
