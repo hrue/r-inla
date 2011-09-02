@@ -2725,14 +2725,14 @@
               zeroinflatedbinomial2 = list(
                       hyper = list(
                               theta = list(
-                                      name = "logit probability",
-                                      short.name = "prob",
+                                      name = "alpha",
+                                      short.name = "alpha",
                                       initial = -1,
                                       fixed = FALSE,
                                       prior = "gaussian",
                                       param = c(-1, 0.2),
-                                      to.theta = function(x) log(x/(1-x)), 
-                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
                                       )
                               ),
                       survival = FALSE,

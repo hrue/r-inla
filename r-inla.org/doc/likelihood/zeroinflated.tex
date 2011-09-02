@@ -128,8 +128,9 @@ implemented for the cases where its needed/requested.
         p = 1-\left( \frac{E\exp(x)}{1 + E\exp(x)}\right)^{\alpha}
     \end{displaymath}
     where $\alpha > 0$ is the hyperparameter instead of $p$ (and
-    $E\exp(x)$ is the mean).  Available as
-    \texttt{zeroinflatedpoisson2} and for negative binomial as
+    $E\exp(x)$ is the mean).  Available for Poisson as
+    \texttt{zeroinflatedpoisson2}, for binomial as
+    \texttt{zeroinflatedbinomial2} and for the negative binomial as
     \texttt{zeroinflatednbinomial2}.
 
     The internal representation is $\theta = \log(\alpha)$ and prior
@@ -138,6 +139,9 @@ implemented for the cases where its needed/requested.
 
 \paragraph{Zeroinflated Poisson Type 2}
 \input{../hyper/likelihood/zeroinflatedpoisson2.tex}
+
+\paragraph{Zeroinflated Binomial Type 2}
+\input{../hyper/likelihood/zeroinflatedbinomial2.tex}
 
 \paragraph{Zeroinflated Negative Binomial Type 2}
 \input{../hyper/likelihood/zeroinflatednbinomial2.tex}

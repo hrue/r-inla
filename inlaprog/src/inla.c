@@ -3242,6 +3242,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 		}
 	}
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3350,6 +3351,10 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
 	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
+	gsl_sf_result res;
+	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+	double logA, logB;
+
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -3358,7 +3363,14 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+					if (ISZERO(pzero)){
+						logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+					} else {
+						logA = log(pzero);
+						logB = log(1.0-pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+						//logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						logll[i] = eval_logsum_safe(logA, logB);
+					}
 				}
 			}
 		} else {
@@ -3373,9 +3385,6 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 			}
 		}
 	} else {
-		gsl_sf_result res;
-		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				pzero = PROBZERO(x[i] + OFFSET(idx));
@@ -3449,10 +3458,14 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logA = log((1.0 - p1)) + log(p2);
-					logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-					//logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
-					logll[i] = eval_logsum_safe(logA, logB);
+					if (ISZERO(1.0 - p1)){
+						logll[i] = log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					} else {
+						logA = log((1.0 - p1)) + log(p2);
+						logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+						//logll[i] = log((1.0 - p1) * p2 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						logll[i] = eval_logsum_safe(logA, logB);
+					}
 				}
 			}
 		} else {
@@ -3467,10 +3480,14 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
 					logll[i] = -DBL_MAX;
 				} else {
-					logA = log((1.0 - p2)) + log(p1);
-					logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
-					//logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
-					logll[i] = eval_logsum_safe(logA, logB);
+					if (ISZERO(1.0 - p2)){
+						logll[i] = log(p1) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+					} else {
+						logA = log((1.0 - p2)) + log(p1);
+						logB = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+						//logll[i] = log((1.0 - p2) * p1 + p1 * p2 * gsl_ran_binomial_pdf((unsigned int) y, p, (unsigned int) n));
+						logll[i] = eval_logsum_safe(logA, logB);
+					}
 				}
 			}
 		} else {
