@@ -11237,6 +11237,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			mb->ai_par->interpolator = GMRFLib_AI_INTERPOLATOR_QUADRATIC;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INTERPOLATOR_CCD") || !strcasecmp(opt, "CCD")) {
 			mb->ai_par->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE") || !strcasecmp(opt, "CCDINTEGRATE")) {
+			mb->ai_par->interpolator = GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INTERPOLATOR_GRIDSUM") || !strcasecmp(opt, "GRIDSUM")) {
 			mb->ai_par->interpolator = GMRFLib_AI_INTERPOLATOR_GRIDSUM;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INTERPOLATOR_AUTO") || !strcasecmp(opt, "AUTO")) {

@@ -178,7 +178,7 @@
             ##:ARGUMENT: int.strategy  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)
             int.strategy="ccd",
 
-            ##:ARGUMENT: interpolator  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'gridsum', 'gaussian'. Default is 'auto'.
+            ##:ARGUMENT: interpolator  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
             interpolator="auto",
 
             ##:ARGUMENT: linear.correction  Default TRUE for the 'strategy = laplace' option.
