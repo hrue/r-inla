@@ -154,9 +154,14 @@ typedef enum {
 	GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE,
 
 	/**
-	 * \brief Special interpolation for the CCD integration scheme
+	 * \brief Special interpolation for the CCD integration scheme (analytic approximation)
 	 */
 	GMRFLib_AI_INTERPOLATOR_CCD,
+
+	/**
+	 * \brief Special interpolation for the CCD integration scheme (numerical integration)
+	 */
+	GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE,
 
 	/**
 	 * \brief Special interpolation for the GRID integration scheme and when hessian_force_diagonal is TRUE
@@ -175,8 +180,9 @@ typedef enum {
 				     ((interp) == GMRFLib_AI_INTERPOLATOR_LINEAR ? "Linear" : \
 				      ((interp) == GMRFLib_AI_INTERPOLATOR_QUADRATIC ? "Quadratic" : \
 				       ((interp) == GMRFLib_AI_INTERPOLATOR_CCD ? "CCD" : \
-					((interp) == GMRFLib_AI_INTERPOLATOR_GRIDSUM ? "GRIDSUM" : \
-					 ((interp) == GMRFLib_AI_INTERPOLATOR_AUTO ? "Auto" : "Unknown: ERROR"))))))))
+					((interp) == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE ? "CCDIntegrate" : \
+					 ((interp) == GMRFLib_AI_INTERPOLATOR_GRIDSUM ? "GRIDSUM" : \
+					  ((interp) == GMRFLib_AI_INTERPOLATOR_AUTO ? "Auto" : "Unknown: ERROR")))))))))
 
 typedef enum {
 
@@ -624,6 +630,7 @@ typedef struct {
 	int nhyper;
 	int idx;
 	int hyper_count;
+	int return_log;
 	double *hyper_z;
 	double *hyper_ldens;
 	double theta_fixed;
@@ -633,7 +640,7 @@ typedef struct {
 	double dz;
 	double *stdev_corr_pos;
 	double *stdev_corr_neg;
-
+	
 	/*
 	 * for internal use 
 	 */
@@ -740,7 +747,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 					      double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
 					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
 					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
-					      GMRFLib_ai_param_tp * ai_par);
+					      GMRFLib_ai_param_tp * ai_par, double *covmat);
 double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg);
 double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 double GMRFLib_interpolator_quadratic(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
