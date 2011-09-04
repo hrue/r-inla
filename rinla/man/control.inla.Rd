@@ -10,7 +10,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \arguments{
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
 \item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
-\item{interpolator}{  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'gridsum', 'gaussian'. Default is 'auto'.}
+\item{interpolator}{  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}
 \item{linear.correction}{  Default TRUE for the 'strategy = laplace' option.}
 \item{h}{  The step-length for the gradient calculations for the hyperparameters. Default 0.01.}
 \item{dz}{  The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.}
