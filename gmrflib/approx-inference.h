@@ -174,7 +174,7 @@ typedef enum {
 	GMRFLib_AI_INTERPOLATOR_GAUSSIAN
 } GMRFLib_ai_interpolator_tp;
 
-#define INTERPOLATOR_NAME(interp) ((interp) == GMRFLib_AI_INTERPOLATOR_GAUSSIAN ? "Gaussian" :  \
+#define INTERPOLATOR_NAME(interp) ((interp) == GMRFLib_AI_INTERPOLATOR_GAUSSIAN ? "Gaussian" : \
 				   ((interp) == GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE ? "Weigted distance" : \
 				    ((interp) == GMRFLib_AI_INTERPOLATOR_NEAREST ? "Nearest" : \
 				     ((interp) == GMRFLib_AI_INTERPOLATOR_LINEAR ? "Linear" : \
