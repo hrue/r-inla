@@ -9,7 +9,7 @@
 \subsection*{Parametrization}
 The Gamma distribution has density
 \begin{equation}
-\pi(\tau)=\frac{b^a}{\Gamma(a)}\tau^{a-1}\exp(-b\ \tau)
+    \pi(\tau)=\frac{b^a}{\Gamma(a)}\tau^{a-1}\exp(-b\ \tau)
 \end{equation}
 for positeve $\tau$ where:
 \begin{description}
@@ -18,7 +18,8 @@ for positeve $\tau$ where:
 \end{description}
 The mean of $\tau$ is $a/b$ and the variance is $a/b^2$.
 
-The variable $\theta$ has a {\it log-Gamma} distribution if $\tau=\exp\theta$ has a Gamma distribution.
+The variable $\theta$ has a {\it log-Gamma} distribution if
+$\tau=\log(\theta)$ has a Gamma distribution.
 
 \subsection*{Specification}
 The Log-Gamma prior for the hyperparameters is specified inside the
@@ -28,7 +29,8 @@ The Log-Gamma prior for the hyperparameters is specified inside the
 \end{center}
 or better, the new style
 \begin{center}
-    {\tt f(<whatever>, hyper = list(<theta>) = list(prior=loggamma,param=c(<a>,<b>)))}
+    {\tt f(<whatever>, hyper = list(<theta>) =
+        list(prior=loggamma,param=c(<a>,<b>)))}
 \end{center}
 In the case where there is one hyperparameter for that particular
 f-model. In the case where we want to specify the prior for the
