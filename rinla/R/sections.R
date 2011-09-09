@@ -241,6 +241,7 @@
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
     inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
+    inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
         cat("restart = ", as.integer(inla.spec$restart), "\n", file = file, sep = " ", append = TRUE)
