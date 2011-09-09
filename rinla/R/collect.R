@@ -107,6 +107,14 @@ inla.internal.experimental.mode = FALSE
         stdev.corr.negative = NULL
     }
     
+    fnm = paste(d, "/lincomb_derived_correlation_matrix.dat",  sep="")
+    if (file.exists(fnm)) {
+        lincomb.derived.correlation.matrix = inla.read.fmesher.file(fnm)
+    } else {
+        lincomb.derived.correlation.matrix = NULL
+    }
+        
+
     if (debug)
         print(paste("collect misc from", d, "...done"))
 
@@ -114,7 +122,8 @@ inla.internal.experimental.mode = FALSE
                  cov.intern.eigenvalues = cov.intern.eigenvalues, cov.intern.eigenvectors = cov.intern.eigenvectors, 
                  reordering = r, theta.tags = tags,
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
-                 to.theta = theta.to, from.theta = theta.from))
+                 to.theta = theta.to, from.theta = theta.from,
+                 lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix))
 }
 
 `inla.collect.size` = function(dir, debug = FALSE)

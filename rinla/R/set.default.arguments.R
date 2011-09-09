@@ -244,10 +244,13 @@
             ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
             step.len = .Machine$double.eps^0.25,
 
-            ##:ARGUMENT: lincomb.derived.only A boolen variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
+            ##:ARGUMENT: lincomb.derived.only A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
             lincomb.derived.only = TRUE,
 
-            ## NOT DOCUMENTED ONCES (expert only)
+            ##:ARGUMENT: lincomb.derived.correlation.matrix A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
+            lincomb.derived.correlation.matrix = FALSE, 
+
+            ## NOT DOCUMENTED (expert only)
             diagonal = NULL,
 
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)

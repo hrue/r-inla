@@ -572,11 +572,13 @@ struct inla_tp_struct {
 	 */
 	int nlc;					       /* number of linear combinations */
 	int lc_derived_only;				       /* use only the derived lincombs ? */
+	int lc_derived_correlation_matrix;		       /* compute correlations ? */
 	char **lc_tag;					       /* the tags */
 	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	Output_tp **lc_output;
 	GMRFLib_lc_tp **lc_lc;
+	double *lc_derived_c;				       /* optional: correlation for the lincombs (derived) */
 
 	/*
 	 * The final model 
@@ -880,6 +882,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
+int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,

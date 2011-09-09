@@ -706,6 +706,8 @@ typedef struct {
 	int len_reordering;
 	int *reordering;
 
+	int compute_corr_lin;
+	double *corr_lin;				       /* correlation of the lincombs (derived only) */
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
@@ -728,7 +730,20 @@ typedef struct {
 	int last_nonzero_mapped;			       /* last nonzero idx of L^-1 a. automatically added */
 	int *idx;					       /* list of indices */
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
+
+	/* 
+	   this is for Cov-calculations
+	 */
+	int from_idx;
+	int to_idx;
+	double *v;
 } GMRFLib_lc_tp;
+
+typedef struct
+{
+	int i;
+	int j;
+} GMRFLib_lc_ij_tp;
 
 
 #define GMRFLib_AI_POOL_GET 1
@@ -800,7 +815,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp ** misc_output);
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, 
+		    GMRFLib_ai_misc_output_tp * misc_output);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cov, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
