@@ -72,7 +72,7 @@ CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSI
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
-OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o
+OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o locator.o trees.o
 all: $(FMESHER)
 
 
