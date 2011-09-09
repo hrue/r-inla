@@ -10946,6 +10946,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\t\tlincomb.derived.only = [%s]\n", (mb->lc_derived_only ? "Yes" : "No"));
 	}
+	mb->lc_derived_correlation_matrix = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.DERIVED.CORRELATION.MATRIX"), 0);
+	if (mb->verbose) {
+		printf("\t\t\tlincomb.derived.correlation.matrix = [%s]\n", (mb->lc_derived_correlation_matrix ? "Yes" : "No"));
+	}
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
 	if (!opt) {
@@ -12948,6 +12952,16 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 
+	/* 
+	   set the flag to compute correlation-matrix or not
+	 */
+	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
+	if (mb->lc_derived_correlation_matrix){
+		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension  */
+	} else {
+		mb->misc_output->compute_corr_lin = 0;
+	}
+
 	/*
 	 * Finally, let us do the job...
 	 */
@@ -12963,7 +12977,7 @@ int inla_INLA(inla_tp * mb)
 			x, b, c, NULL, mb->d,
 			loglikelihood_inla, (void *) mb, NULL,
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store,
-			mb->nlc, mb->lc_lc, &(mb->density_lin), &(mb->misc_output));
+			mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output);
 
 	/*
 	 * add offset to the linear predictor 
@@ -13823,6 +13837,39 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 
 	return INLA_OK;
 }
+int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix)
+{
+	FILE *fp;
+	char *fnm, *ndir;
+
+	if (sdir){
+		GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
+	} else {
+		GMRFLib_sprintf(&ndir, "%s", dir);
+	}
+		
+	inla_fnmfix(ndir);
+	GMRFLib_sprintf(&fnm, "%s/%s", ndir, filename);
+
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+
+	M->nrow = M->ncol = n;
+	M->elems = ISQR(n);
+	M->A = Calloc(ISQR(n), double);
+	memcpy(M->A, matrix, ISQR(n)*sizeof(double));
+
+	M->offset = 0L;
+	M->whence = SEEK_SET;
+	M->tell = -1L;
+
+	GMRFLib_write_fmesher_file(M, fnm, M->offset, M->whence);
+	GMRFLib_matrix_free(M);
+
+	Free(fnm);
+	Free(ndir);
+
+	return INLA_OK;
+}
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix)
 {
 	FILE *fp;
@@ -14003,6 +14050,9 @@ int inla_output(inla_tp * mb)
 							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
+
+					Free(newtag2);
+					Free(newdir2);
 				}
 			}
 			if (mb->density_lin) {
@@ -14015,6 +14065,9 @@ int inla_output(inla_tp * mb)
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) mb->lc_tag), NULL);
+
+				Free(newtag2);
+				Free(newdir2);
 			}
 
 			if (mb->density_hyper) {
@@ -14547,6 +14600,10 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		memcpy(M->A, mo->stdev_corr_neg, mo->nhyper * sizeof(double));
 		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
 		GMRFLib_matrix_free(M);
+	}
+
+	if (mo->compute_corr_lin && mo->corr_lin){
+		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin);
 	}
 
 	Free(ndir);
