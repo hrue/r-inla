@@ -1545,6 +1545,175 @@ inla.spde.query = function(spde, ...)
 
 
 
+
+
+
+
+
+
+
+inla.spde.create.generic =
+    function(M0, M1, M2, B0, B1, B2, theta.mu, theta.Q,
+             transform=c("logit","log","identity"),
+             theta.initial = theta.mu,
+             fixed = rep(FALSE, length(theta.mu)),
+             theta.fixed = theta.initial[!fixed],
+             ...)
+{
+    transform = match.arg(transform)
+
+    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
+
+    spde = (list(model = "spde2.generic",
+                 internal = list(),
+                 f = (list(model="spde2",
+                           spde2.prefix=spde.prefix,
+                           n=nrow(M0),
+                           spde2.transform=transform
+                           ))
+                 ))
+    class(spde) = "inla.spde"
+
+    param.generic =
+        list(M0=M0, M1=M1, M2=M2,
+             B0=B0, B1=B1, B2=B2,
+             theta.mu=theta.mu, theta.Q=theta.Q,
+             transform=transform,
+             theta.initial = theta.initial,
+             fixed=fixed,
+             theta.fixed=theta.fixed)
+    ## Copy full generic parameters to internal inla-representation.
+    ## TODO: If any "fixed", move information from B*[,2:4] into
+    ## B*[,1], theta.mu, and theta.Q
+    param.inla = param.generic
+
+##    hyper =
+
+    spde$internal =
+        c(spde$internal,
+          list(param.generic=param.generic,
+               param.inla=param.inla)
+          )
+
+
+        if (is.null(param))
+            param = list()
+        if (is.null(param$alpha))
+            param$alpha = 2
+        if (is.null(param$basis.T))
+            param$basis.T = matrix(1, mesh$n, 1)
+        else if (!is.matrix(param$basis.T)) {
+            len = length(as.vector(param$basis.T))
+            if (len == 1L)
+                param$basis.K = matrix(as.vector(param$basis.T), mesh$n, 1)
+            else
+                param$basis.T = as.matrix(param$basis.T)
+        }
+        if (nrow(param$basis.T) != mesh$n)
+            stop(paste("'basis.T' has ", nrow(basis.T),
+                       " rows; expected ", mesh$n, ".", sep=""))
+        if (identical(model, "matern") ||
+            identical(model, "matern.osc")
+            ) {
+            if (is.null(param$basis.K)) {
+                param$basis.K = matrix(1, mesh$n, 1)
+            } else if (!is.matrix(param$basis.K)) {
+                len = length(as.vector(param$basis.K))
+                if (len == 1L)
+                    param$basis.K = matrix(as.vector(param$basis.K), mesh$n, 1)
+                else
+                    param$basis.K = as.matrix(param$basis.K)
+            }
+        } else {
+            param$basis.K = matrix(0, mesh$n, 1)
+        }
+        if (nrow(param$basis.K) != mesh$n)
+            stop(paste("'basis.K' has ", nrow(basis.K),
+                       " rows; expected ", mesh$n, ".", sep=""))
+        spde$internal = (c(spde$internal,
+                           list(alpha = param$alpha,
+                                basis.T = param$basis.T,
+                                basis.K = param$basis.K)
+                           ))
+
+        mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                            diff(range(mesh$loc[,2])),
+                            diff(range(mesh$loc[,3]))
+                            )))
+
+        spde$internal = (c(spde$internal,
+                           inla.fmesher.smorg(mesh$loc,
+                                              mesh$graph$tv,
+                                              fem=2,
+                                              output=list("c0", "g1", "g2"))))
+
+        if (param$alpha==2) {
+            kappa0 = sqrt(8)/(mesh.range*0.2)
+            tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
+        } else if (param$alpha==1) {
+            spde$internal$g2 = spde$internal$g1
+            spde$internal$g1 = spde$internal$g1*0.0
+
+            kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
+            tau0 = 1/sqrt(4*pi)/1.0
+        }
+        ## inla checks PREFIX valididy by looking for "s":
+        fmesher.write(spde$mesh$loc, spde.prefix, "s")
+        ## Write the precision building blocks:
+        fmesher.write(spde$internal$c0, spde.prefix, "c0")
+        fmesher.write(spde$internal$g1, spde.prefix, "g1")
+        fmesher.write(spde$internal$g2, spde.prefix, "g2")
+        fmesher.write(spde$internal$basis.T, spde.prefix, "basisT")
+        fmesher.write(spde$internal$basis.K, spde.prefix, "basisK")
+
+        if (identical(model, "matern")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1)))
+                                         ))
+        } else if (identical(model, "imatern")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=-20,
+                                                      fixed=TRUE)),
+                                         theta3=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1)))
+                                         ))
+        } else if (identical(model, "matern.osc")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1))),
+                                         theta4=(list(fixed=FALSE,
+                                                      initial=0,
+                                                      param=c(0, 0.01)))
+                                         ))
+        }
+    } else {
+        stop(paste("Model '", model, "' unknown or not implemented.", sep=""))
+    }
+
+    return(invisible(spde))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##inla.spde.create(mesh, model=list("matern"), ...)
 ##inla.spde.create(mesh, model=list("heat", Qw=..., t=...), ...)
 ##inla.spde.create(mesh, model=list("imatern"), ...)
