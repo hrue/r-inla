@@ -1224,7 +1224,7 @@
                 ##create a location and covariate file
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
-                    inla.write.fmesher.file(as.matrix(location[[r]], ncol = 1),  filename = file.loc, debug = debug)
+                    inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1),  filename = file.loc, debug = debug)
                 } else {
                     file.create(file.loc)
                     write(location[[r]], ncolumns=1, file=file.loc, append=FALSE)
