@@ -23,5 +23,15 @@ using std::endl;
 namespace fmesh {
 
 
+  std::ostream& TriangleLocator::print(std::ostream& output)
+  {
+    return bbox_locator_.print(output);
+  }
+ 
+  std::ostream& operator<<(std::ostream& output, TriangleLocator& locator)
+  {
+    return locator.print(output);
+  }
+
 
 } /* namespace fmesh */
