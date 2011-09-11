@@ -146,13 +146,16 @@ namespace fmesh {
       };
       
       /*! -1=left, 0=root or null, 1=right */
-      int node_type() const {
+      int node_classification() const {
 	if (current_<=0)
 	  return 0;
 	else if ((current_ % 2) == 0)
 	  return 1;
 	else
 	  return -1;
+      };
+      bool is_null() const {
+	return (current_<0);
       };
       bool is_root() const {
 	return (current_==0);
@@ -175,50 +178,12 @@ namespace fmesh {
       self_type right() {
 	return self_type(tree_,right_idx());
       };
-      self_type leftmost() {
-	self_type i(*this);
-	while (i.left_idx()>=0)
-	  i = i.left();
-	return i;
-      };
-      self_type rightmost() {
-	self_type i(*this);
-	while (i.right_idx()>=0)
-	  i = i.right();
-	return i;
-      };
-      self_type next() {
-	self_type i(*this);
-	if (i.right_idx()>=0)
-	  return i.right().leftmost();
-	else {
-	  while (i.is_right())
-	    i = i.parent();
-	  return i.parent();
-	}
-      };
-      self_type prev() {
-	self_type i(*this);
-	if (i.left_idx()>=0)
-	  return i.left().rightmost();
-	else {
-	  while (i.is_left())
-	    i = i.parent();
-	  return i.parent();
-	}
-      };
-      
-      self_type& operator--() {
-	if (current_<0) {
-	  *this = tree_->root().rightmost();
-	} else
-	  *this = prev();
-	return *this;
-      };
-      self_type& operator++() {
-	*this = next();
-	return *this;
-      };
+      self_type leftmost();
+      self_type rightmost();
+      self_type next();
+      self_type prev();
+      self_type& operator--();
+      self_type& operator++();
       
     }; // SBBTree::Iterator
     
@@ -373,8 +338,6 @@ namespace fmesh {
       if (i.current()<0)
 	return;
       const segment_type& segm = (*multi_segment_iter_)[segm_idx];
-      LOG_("M=(" << (*i).mid_ << ")" <<
-      	   " S=(" << segm.first << "," << segm.second << ")" << std::endl);
       if ((segm.first <= (*i).mid_) && (segm.second >= (*i).mid_)) {
 	/* Segment covers the midpoint */
 	(*i).activate_data(multi_segment_iter_);
@@ -432,7 +395,7 @@ namespace fmesh {
 				std::string prefix) {
       if (i.current()<0)
 	return output;
-      output << "IT " << prefix << i.current() << " = (" << (*i).mid_ << ")" << std::endl;
+      //      output << "IT " << prefix << i.current() << " = (" << (*i).mid_ << ")" << std::endl;
       if ((*i).data_) {
 	output << *(*i).data_;
       }
@@ -592,7 +555,7 @@ namespace fmesh {
 				std::string prefix) {
       if (i.current()<0)
 	return output;
-      output << "ST " << prefix << i.current() << " = (" << (*i).left_ << "," << (*i).right_ << ")" << std::endl;
+      //      output << "ST " << prefix << i.current() << " = (" << (*i).left_ << "," << (*i).right_ << ")" << std::endl;
       if ((*i).data_) {
 	output << *(*i).data_;
       }
@@ -684,6 +647,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-//#include "trees.tcc"
+#include "trees.tcc"
 
 #endif

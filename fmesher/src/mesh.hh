@@ -215,11 +215,14 @@ namespace fmesh {
     double edgeLength(const Point& s0, const Point& s1) const;
     double edgeLength(const Dart& d) const;
     void barycentric(const Dart& d, const Point& s, Point& bary) const;
+    void triangleBoundingBox(const Point& s0, const Point& s1, const Point& s2,
+			     Point& mini, Point& maxi) const;
     double triangleArea(const Point& s0, const Point& s1, const Point& s2) const;
     double triangleCircumcircleRadius(const Point& s0,
 				      const Point& s1,
 				      const Point& s2) const;
 
+    void triangleBoundingBox(int t, Point& mini, Point& maxi) const;
     double triangleArea(int t) const;
     void triangleCircumcenter(int t, Point& c) const;
     double triangleCircumcircleRadius(int t) const;

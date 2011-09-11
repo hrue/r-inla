@@ -72,6 +72,7 @@ CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSI
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
+FMESHER_TEST2 = treetest
 OBJ = xtmpl.o x11utils.o predicates.o mesh.o meshc.o vector.o ioutils.o cmdline.o basis.o locator.o trees.o
 all: $(FMESHER)
 
@@ -102,6 +103,8 @@ $(FMESHER) : $(OBJ) fmesher.o
 	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 $(FMESHER_TEST) : $(OBJ) fmesher_test.o
 	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+$(FMESHER_TEST2) : $(OBJ) treetest.o
+	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 
 cmdline:
 	gengetopt --file-name=cmdline --conf-parser --unamed-opts=PREFIX \
@@ -109,7 +112,7 @@ cmdline:
 
 tags :; etags --output=TAGS *.c *.h *.cc *.hh *.tcc
 
-clean:; -$(RM) $(OBJ) $(FMESHER).o $(FMESHER_TEST).o $(FMESHER) $(FMESHER_TEST)
+clean:; -$(RM) $(OBJ) $(FMESHER).o $(FMESHER_TEST).o $(FMESHER_TEST2).o $(FMESHER) $(FMESHER_TEST) $(FMESHER_TEST2)
 clean-deps:
 	-$(RMR) $(dir $(DEPDIR))
 
