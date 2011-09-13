@@ -31,7 +31,7 @@ RMDIR = rmdir
 HG:= $(shell which hg)
 HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
-
+FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
 all: $(FMESHER)
@@ -41,14 +41,15 @@ all: $(FMESHER)
 
 $(FMESHER) : src/$(FMESHER)
 	cp src/$(FMESHER) .
+
 src/$(FMESHER) :
-	make -C src CC=$(CC) CXX=$(CXX) $(FMESHER)
+	make -C src CC=$(CC) CXX=$(CXX) FLAGS=$(FLAGS) $(FMESHER)
 
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
 	cp src/$(FMESHER_TEST) .
 
 src/$(FMESHER_TEST) :
-	make -C src CC=$(CC) CXX=$(CXX) $(FMESHER_TEST)
+	make -C src CC=$(CC) CXX=$(CXX) FLAGS=$(FLAGS) $(FMESHER_TEST)
 
 doc:
 	$(SED) 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
