@@ -65,9 +65,7 @@ HG:= $(shell which hg)
 HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
 INCL    = -I$(PREFIX)/include
-## LDFLAGS does not work for me (Windows/wine), so I have to move this
-## definition down to where its used. hrue
-##LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
+LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
 CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
@@ -102,10 +100,10 @@ $(DEPDIR):
 
 
 $(FMESHER) : $(OBJ) fmesher.o
-	$(LD) $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 
 $(FMESHER_TEST) : $(OBJ) fmesher_test.o
-	$(LD) $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 $(FMESHER_TEST2) : $(OBJ) treetest.o
 	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 
