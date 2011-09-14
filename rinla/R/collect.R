@@ -1078,6 +1078,15 @@ inla.internal.experimental.mode = FALSE
                 } else {
                     stopifnot(is.null(marginals.random))
                 }
+
+                ## if id.names are present,  override the default names
+                id.names = inla.readLines(paste(file, .Platform$file.sep,"id-names.dat", sep=""))
+                if (!is.null(id.names)) {
+                    len.id.names = length(id.names)
+                    summary.random[[i]]$ID[1L:len.id.names] = id.names
+                    names(marginals.random[[i]][1L:len.id.names]) = id.names
+                }
+                
             } else {
                 N.file = paste(file, .Platform$file.sep,"N", sep="")
                 if (!file.exists(N.file)) {

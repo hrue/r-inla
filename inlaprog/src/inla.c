@@ -88,7 +88,7 @@ static const char RCSId[] = HGVERSION;
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100.0, 0.5, 2, 0, -1, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100000.0, 0.5, 2, 0, -1, 0, 0 };
 
 /* 
    default values for priors
@@ -2600,7 +2600,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 
 	if (dof > G.dof_max) {
 		/*
-		 * It's ok, also the loglikelihood_gaussian() support DERIVATIES_AND_PERCENTILES... 
+		 * Use the loglikelihood_gaussian()
 		 */
 		ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
 		ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
@@ -7757,7 +7757,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_same_as = Realloc(mb->f_same_as, mb->nf + 1, char *);
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
-
+	mb->f_id_names = Realloc(mb->f_id_names, mb->nf+1, inla_file_contents_tp *);
+	
 	/*
 	 * set everything to `ZERO' initially 
 	 */
@@ -7800,6 +7801,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(nrep, 1);
 	SET(ngroup, 1);
 	SET(group_model, G_EXCHANGEABLE);
+	SET(id_names, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
@@ -8086,6 +8088,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tsi=[%1d] (if possible)\n", mb->f_si[mb->nf]);
 	}
+	mb->f_id_names[mb->nf] = inla_read_file_contents(GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ID.NAMES"), NULL)));
+	if (mb->verbose){
+		printf("\t\tid.names=%s\n", (mb->f_id_names[mb->nf] ? "<read>" : "<not present>"));
+	}
+
 	mb->f_compute[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->f_compute[mb->nf]) {
@@ -8096,7 +8103,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tcompute=[%1d]\n", mb->f_compute[mb->nf]);
 	}
-
 	if (mb->f_ntheta[mb->nf] == 1) {
 		mb->f_fixed[mb->nf][0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 	} else {
@@ -13916,6 +13922,26 @@ int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal
 
 	return INLA_OK;
 }
+int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp *fc)
+{
+	if (!fc){
+		return INLA_OK;
+	}
+
+	FILE *fp;
+	char *fnm, *ndir;
+
+	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
+	inla_fnmfix(ndir);
+	GMRFLib_sprintf(&fnm, "%s/id-names.dat", ndir);
+
+	inla_write_file_contents(fnm, fc);
+
+	Free(fnm);
+	Free(ndir);
+
+	return INLA_OK;
+}
 int inla_output(inla_tp * mb)
 {
 	int n = 0, i, j, *offsets = NULL, len_offsets, local_verbose = 0;
@@ -13993,6 +14019,7 @@ int inla_output(inla_tp * mb)
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
+				inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
 			}
 		} else if (i == 2) {
 			/*
@@ -15846,58 +15873,116 @@ int inla_read_graph(const char *filename)
 	return 0;
 }
 
+inla_file_contents_tp *inla_read_file_contents(const char *filename)
+{
+	/* 
+	   just read the hole file into on long character vector
+	 */
+
+	FILE *fp;
+	long len;
+	
+	fp = fopen(filename, "rb");
+	if (!fp){
+		return NULL;
+	}
+	fseek(fp, 0L, SEEK_END);
+	len = ftell(fp);
+
+	inla_file_contents_tp *fc = Calloc(1, inla_file_contents_tp);
+	fc->contents = Calloc((size_t) len, char);
+
+	rewind(fp);
+	fc->len = fread(fc->contents, (size_t) 1, (size_t) len, fp);
+	assert(fc->len == (size_t) len);
+	fclose(fp);
+
+	return fc;
+}
+int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
+{
+	/* 
+	   just dump the file contents to the new file
+	 */
+
+	if (!fc) {
+		return INLA_OK;
+	}
+
+	FILE *fp;
+	size_t len;
+	
+	fp = fopen(filename, "wb");
+	assert(fp);
+	len = fwrite(fc->contents, (size_t) 1, fc->len, fp);
+	assert(len == fc->len);
+
+	fclose(fp);
+	return INLA_OK;
+}
 int testit(int argc, char **argv)
 {
 
-	GMRFLib_matrix_tp *M = NULL;
+	if (0) {
+		inla_file_contents_tp *fc;
 
-	int i, j, k, kk;
-
-
-	printf("read file %s\n", argv[3]);
-	M = GMRFLib_read_fmesher_file(argv[3], 0L, -1);
-
-	if (1)
-		if (M->i)
-			for (k = 0; k < M->elems; k++)
-				printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
-
-	if (M->graph) {
-		printf("n %d\n", M->graph->n);
-		for (k = 0; k < M->graph->n; k++) {
-			printf("%d nnbs %d:\n", k, M->graph->nnbs[k]);
-			for (kk = 0; kk < M->graph->nnbs[k]; kk++)
-				printf("\t\t%d\n", M->graph->nbs[k][kk]);
-		}
+		fc = inla_read_file_contents("aa.dat");
+		inla_write_file_contents("bb.dat", fc);
+		exit(0);
 	}
 
-	for (i = 0; i < M->nrow; i++)
-		for (j = 0; j < M->ncol; j++)
-			printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
+	if (0) {
+		GMRFLib_matrix_tp *M = NULL;
 
-	printf("\n\ntranspose...\n\n\n");
-	GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
+		int i, j, k, kk;
 
-	if (1)
-		if (N->i)
-			for (k = 0; k < N->elems; k++)
-				printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
 
-	if (1)
-		for (i = 0; i < N->nrow; i++)
-			for (j = 0; j < N->ncol; j++)
-				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
+		printf("read file %s\n", argv[3]);
+		M = GMRFLib_read_fmesher_file(argv[3], 0L, -1);
 
-	if (N->graph) {
-		printf("n %d\n", N->graph->n);
-		for (k = 0; k < N->graph->n; k++) {
-			printf("%d nnbs %d:\n", k, N->graph->nnbs[k]);
-			for (kk = 0; kk < N->graph->nnbs[k]; kk++)
-				printf("\t\t%d\n", N->graph->nbs[k][kk]);
+		if (1)
+			if (M->i)
+				for (k = 0; k < M->elems; k++)
+					printf("k %d %d %d %g\n", k, M->i[k], M->j[k], M->values[k]);
+
+		if (M->graph) {
+			printf("n %d\n", M->graph->n);
+			for (k = 0; k < M->graph->n; k++) {
+				printf("%d nnbs %d:\n", k, M->graph->nnbs[k]);
+				for (kk = 0; kk < M->graph->nnbs[k]; kk++)
+					printf("\t\t%d\n", M->graph->nbs[k][kk]);
+			}
 		}
+
+		for (i = 0; i < M->nrow; i++)
+			for (j = 0; j < M->ncol; j++)
+				printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, M));
+
+		printf("\n\ntranspose...\n\n\n");
+		GMRFLib_matrix_tp *N = GMRFLib_matrix_transpose(M);
+
+		if (1)
+			if (N->i)
+				for (k = 0; k < N->elems; k++)
+					printf("k %d %d %d %g\n", k, N->i[k], N->j[k], N->values[k]);
+
+		if (1)
+			for (i = 0; i < N->nrow; i++)
+				for (j = 0; j < N->ncol; j++)
+					printf("%d %d %g\n", i, j, GMRFLib_matrix_get(i, j, N));
+
+		if (N->graph) {
+			printf("n %d\n", N->graph->n);
+			for (k = 0; k < N->graph->n; k++) {
+				printf("%d nnbs %d:\n", k, N->graph->nnbs[k]);
+				for (kk = 0; kk < N->graph->nnbs[k]; kk++)
+					printf("\t\t%d\n", N->graph->nbs[k][kk]);
+			}
+		}
+		GMRFLib_matrix_free(M);
+		GMRFLib_matrix_free(N);
 	}
-	GMRFLib_matrix_free(M);
-	GMRFLib_matrix_free(N);
+	
 	exit(0);
 }
 
