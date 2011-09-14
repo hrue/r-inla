@@ -215,7 +215,7 @@ namespace fmesh {
       data_.insert(segm_idx);
     };
     void add_segment(int start_idx, int end_idx) {
-      for (int i=start_idx; i<end_idx; i++)
+      for (int i=start_idx; i<end_idx; ++i)
 	add_segment(i);
     };
     void build_tree() {
@@ -253,7 +253,7 @@ namespace fmesh {
       R_data_.insert(mapping_type(segm.second, segm_idx));
     };
     void add_segment(int start_idx, int end_idx) {
-      for (int i=start_idx; i<end_idx; i++)
+      for (int i=start_idx; i<end_idx; ++i)
 	add_segment(i);
     };
     void build_tree() {
@@ -316,7 +316,7 @@ namespace fmesh {
 	(*i).mid_ = *breakpoint;
 	{
 	  typename breakpoints_type::const_iterator tmp = breakpoint;
-	  tmp++;
+	  ++tmp;
 	  if (tmp !=breakpoints_.end())
 	    breakpoint = tmp;
 	}
@@ -325,7 +325,7 @@ namespace fmesh {
 	(*i).mid_ = *breakpoint;
 	{
 	  typename breakpoints_type::const_iterator tmp = breakpoint;
-	  tmp++;
+	  ++tmp;
 	  if (tmp !=breakpoints_.end())
 	    breakpoint = tmp;
 	}
@@ -352,7 +352,7 @@ namespace fmesh {
     };
     void distribute_segments() {
       for (typename segment_list_type::const_iterator si = segments_.begin();
-	   si != segments_.end(); si++) {
+	   si != segments_.end(); ++si) {
 	distribute_segment(tree_->root(), (*si));
       }
     }
@@ -374,7 +374,7 @@ namespace fmesh {
       breakpoints_.insert(segm.second);
     };
     void add_segment(int start_idx, int end_idx) {
-      for (int i=start_idx; i<end_idx; i++)
+      for (int i=start_idx; i<end_idx; ++i)
 	add_segment(i);
     };
     void build_tree() {
@@ -441,7 +441,7 @@ namespace fmesh {
       void activate_data(const typename multi_segment_type::iterator& segm_iter) {
 	if (!data_) {
 	  typename multi_segment_type::iterator i = segm_iter;
-	  i++;
+	  ++i;
 	  data_ = new SubTreeType(i);
 	}
       };
@@ -464,7 +464,7 @@ namespace fmesh {
       (*i).left_ = *breakpoint;
       if (i.is_leaf()) {
 	typename breakpoints_type::const_iterator tmp = breakpoint;
-	tmp++;
+	++tmp;
 	if (tmp !=breakpoints_.end())
 	  breakpoint = tmp;
       } else {
@@ -499,7 +499,7 @@ namespace fmesh {
     };
     void distribute_segments() {
       for (typename segment_list_type::const_iterator si = segments_.begin();
-	   si != segments_.end(); si++) {
+	   si != segments_.end(); ++si) {
 	distribute_segment(tree_->root(), (*si));
       }
     }
@@ -530,7 +530,7 @@ namespace fmesh {
       breakpoints_.insert(segm.second);
     };
     void add_segment(int start_idx, int end_idx) {
-      for (int i=start_idx; i<end_idx; i++)
+      for (int i=start_idx; i<end_idx; ++i)
 	add_segment(i);
     };
 
@@ -583,7 +583,7 @@ namespace fmesh {
     output << "(" << segm.data_.size() << ")";
     if (segm.data_.size()>0) {
       output << "  ( ";
-      for (typename SegmentSet<VT>::set_type::iterator i = segm.data_.begin(); i != segm.data_.end(); i++) {
+      for (typename SegmentSet<VT>::set_type::iterator i = segm.data_.begin(); i != segm.data_.end(); ++i) {
 	output << (*i) << " ";
       }
       output << ")" << std::endl;
@@ -600,11 +600,11 @@ namespace fmesh {
     output << "(" << segm.L_data_.size() << ")";
     if (segm.L_data_.size()>0) {
       output << " L=( ";
-      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.L_data_.begin(); i != segm.L_data_.end(); i++) {
+      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.L_data_.begin(); i != segm.L_data_.end(); ++i) {
 	output << (*i).second << " ";
       }
       output << ") R=( ";
-      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.R_data_.begin(); i != segm.R_data_.end(); i++) {
+      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.R_data_.begin(); i != segm.R_data_.end(); ++i) {
 	output << (*i).second << " ";
       }
       output << ")" << std::endl;
