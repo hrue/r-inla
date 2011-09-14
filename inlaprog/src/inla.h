@@ -113,6 +113,13 @@ typedef struct {
 } map_table_tp;
 
 
+typedef struct
+{
+	size_t len;
+	char *contents;
+}
+	inla_file_contents_tp;
+
 typedef struct {
 	double *d;					       /* the d-array */
 	int ndata;					       /* length of data (from file) */
@@ -551,6 +558,7 @@ struct inla_tp_struct {
 	char **f_same_as;
 	double *f_precision;
 	Output_tp **f_output;
+	inla_file_contents_tp **f_id_names;
 
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interactions */
 	void ***ff_Qfunc_arg;
@@ -882,6 +890,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
+int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp *fc);
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
@@ -1000,6 +1009,8 @@ double Qfunc_iid2d(int i, int j, void *arg);
 
 GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
 
+inla_file_contents_tp *inla_read_file_contents(const char *filename);
+int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc);
 
 /* 
 ***

@@ -82,7 +82,7 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.ffield.section` = function(file, file.loc, n, nrep, ngroup, file.cov,
+`inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup, 
         file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
     label= inla.namefix(random.spec$term)
@@ -96,6 +96,9 @@
         cat("same.as = ", random.spec$same.as,"\n", sep = " ", file = file,  append = TRUE)
     }
     cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(file.id.names)) {
+        cat("id.names =", file.id.names,"\n", sep = " ", file = file,  append = TRUE)
+    }
     if (!is.null(random.spec$diagonal)) {
         cat("diagonal =", random.spec$diagonal,"\n", sep = " ", file = file,  append = TRUE)
     }
