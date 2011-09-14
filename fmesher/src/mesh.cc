@@ -564,6 +564,24 @@ namespace fmesh {
 
 
 
+
+  void Mesh::triangleBoundingBox(const Point& s0,
+				 const Point& s1,
+				 const Point& s2,
+				 Point& mini, Point& maxi) const
+  {
+    for (int d=0; d<3; d++) {
+      mini[d] = (s0[d] < s1[d] ?
+		 (s0[d] < s2[d] ? s0[d] : s2[d] ) :
+		 (s2[d] < s1[d] ? s2[d] : s1[d] ) );
+      maxi[d] = (s0[d] > s1[d] ?
+		 (s0[d] > s2[d] ? s0[d] : s2[d] ) :
+		 (s2[d] > s1[d] ? s2[d] : s1[d] ) );
+    }
+  }
+
+
+
   /*!
    \brief Calculate the length of an edge. 
 
@@ -800,6 +818,21 @@ namespace fmesh {
     }
 
     return area;
+  }
+
+  void Mesh::triangleBoundingBox(int t, Point& mini, Point& maxi) const
+  {
+    if ((t<0) || (t>=(int)nT())) {
+      return;
+    }
+
+    Dart dh(Dart(*this,t));
+    int v0 = dh.v();
+    dh.orbit2();
+    int v1 = dh.v();
+    dh.orbit2();
+    int v2 = dh.v();
+    Mesh::triangleBoundingBox(S_[v0],S_[v1],S_[v2],mini,maxi);
   }
 
   double Mesh::triangleArea(int t) const
