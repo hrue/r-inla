@@ -75,6 +75,10 @@ using namespace fmesh;
       TriangleLocator locator1(&M, dimensions, true);
       //TriangleLocator locator2(&M, dimensions, false);
 
+      Point s = Point(1.0,0.0,0.0);
+      int t = locator1.locate(s);
+      std::cout << "Point=" << s << ", triangle=" << t << std::endl;
+
       /*
       std::cout << locator1;
     std::cout << "***********************************" << std::endl;

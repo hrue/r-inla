@@ -22,6 +22,61 @@ using std::endl;
 
 namespace fmesh {
 
+  TriangleLocator::TriangleLocator(const Mesh* mesh,
+				   const std::vector<int>& dimensions,
+				   bool use_interval_tree) : 
+    mesh_(mesh),
+    dim_(dimensions),
+    bbox_(),
+    bbox_locator_(dimensions.size(),use_interval_tree)
+  {
+    bbox_.resize(dim_.size());
+    if (mesh_) {
+      for (int i=0; i<dim_.size(); ++i) {
+	bbox_[i].resize(mesh_->nT());
+      }
+      
+      /* Build boxes: */
+      int d;
+      Point mini;
+      Point maxi;
+      std::pair<double, double> range;
+      for (int t=0; t<mesh_->nT(); ++t) {
+	mesh_->triangleBoundingBox(t,mini,maxi);
+	for (int di=0; di<dim_.size(); ++di) {
+	  d = dim_[di];
+	  range.first = mini[d];
+	  range.second = maxi[d];
+	  bbox_[di][t] = range;
+	}
+      }
+    }
+    
+    bbox_locator_.init(bbox_.begin());
+  }
+
+  TriangleLocator::~TriangleLocator()
+  {
+    /* Nothing to do. */
+  }
+
+
+  int TriangleLocator::locate(const Point& s) const {
+    std::vector<double> loc(dim_.size());
+    for (int di=0; di<dim_.size(); ++di) {
+      loc[di] = s[dim_[di]];
+    }
+    Dart d;
+    for (typename bbox_locator_type::search_iterator si =
+	   bbox_locator_.search_begin(loc);
+	 si != bbox_locator_.search_end();
+	 ++si) {
+      d = mesh_->locate_point(Dart(*mesh_,(*si)),s);
+      if (!d.isnull())
+	return (d.t());
+    }
+    return -1;
+  }
 
   std::ostream& TriangleLocator::print(std::ostream& output)
   {
