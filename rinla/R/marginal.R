@@ -275,7 +275,7 @@
     d = d/d[length(d)]
 
     ## just spline-interpolate the mapping
-    fq = splinefun(xx, d)
+    fq = splinefun(xx, d, method = "monoH.FC")
 
     ## just make sure the p's are in [0, 1]
     n = length(x)
@@ -304,7 +304,7 @@
         }
     }
     ## just spline-interpolate the inverse mapping
-    fq = splinefun(d, xx)
+    fq = splinefun(d, xx, method = "monoH.FC")
 
     ## just make sure the p's are in [0, 1]
     n = length(p)
@@ -332,7 +332,7 @@
         }
     }
     ## just spline-interpolate the inverse mapping
-    fq = splinefun(d, xx)
+    fq = splinefun(d, xx, method = "monoH.FC")
 
     ## just make sure the p's are in [0, 1]
     np = length(p)
