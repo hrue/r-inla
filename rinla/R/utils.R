@@ -1167,3 +1167,47 @@
 }
 
     
+
+`inla.writeLines` = function(filename, lines)
+{
+    ## write a sequence of lines to file in binary format. need to do
+    ## it like this in order to solve the unix->windows encoding
+    ## issue, reading and writing this same file on different
+    ## platforms.
+
+    fp = file(filename, "wb")
+    len = length(lines)
+    writeBin(len, fp)
+    
+    for(i in 1L:len) {
+        nc = nchar(lines[i])
+        writeBin(nc, fp)
+        writeChar(lines[i], fp, nchars = nchar(lines[i]), eos=NULL)
+    }
+    close(fp)
+}
+
+`inla.readLines` = function(filename)
+{
+    ## read a sequence of lines to file in binary format. need to do
+    ## it like this in order to solve the unix->windows encoding
+    ## issue, reading and writing this same file on different
+    ## platforms.
+
+    if (!file.exists(filename)) {
+        return (NULL)
+    }
+    
+    fp = file(filename, "rb")
+    len = readBin(fp, integer(), n = 1L)
+    lines = character(len)
+
+    for(i in 1L:len) {
+        nc = readBin(fp, integer(), n = 1L)
+        lines[i] = readChar(fp, nc)
+    }
+    close(fp)
+
+    return(lines)
+}
+

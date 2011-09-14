@@ -1173,25 +1173,71 @@
                 }
 
                 if (!is.null(gp$random.spec[[r]]$values)) {
-                    ## no sort for values here, since they are given as they should be !!!!
-                    location[[r]] = unique(gp$random.spec[[r]]$values)
-                    cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
 
-                    ## check that not do anything we will regret
-                    i.cov = is.na(match(xx, location[[r]]))
-                    i.xx = is.na(xx)
-                    if (!all(i.cov == i.xx)) {
-                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
-                                   sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
-                                   ". This is not what you want. Use NA values in the covariate!",
+                    ## values are given. then either both must be numeric or a factor,  or factor x character
+
+                    if (is.numeric(xx) && is.numeric(gp$random.spec[[r]]$values)) {
+                        ## case 1: both numeric
+                        
+                        ## no sort for values here, since they are given as they should be !!!!
+                        location[[r]] = unique(gp$random.spec[[r]]$values)
+                        cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1)*N, 0L)
+                        
+                        ## check that not do anything we will regret
+                        i.cov = is.na(match(xx, location[[r]]))
+                        i.xx = is.na(xx)
+                        if (!all(i.cov == i.xx)) {
+                            stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
+                                       sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
+                                       ". This is not what you want. Use NA values in the covariate!",
+                                       sep=""))
+                        }
+                        cov[is.na(cov)] = -1L
+                        covariate[[r]] = cov
+                    } else if ((is.factor(xx) || is.character(xx))
+                               &&
+                               (is.factor(gp$random.spec[[r]]$values) || is.character(gp$random.spec[[r]]$values))) {
+                        ## case 2: both factors or character's
+
+                        if (is.character(xx)) {
+                            ## convert to factor (easier)
+                            xx = factor(xx, unique(xx))
+                        }
+                        if (is.character(gp$random.spec[[r]]$values)) {
+                            ## convert it to a factor
+                            gp$random.spec[[r]]$values = factor(gp$random.spec[[r]]$values, gp$random.spec[[r]]$values)
+                        }
+
+                        gp$random.spec[[r]]$id.names = levels(gp$random.spec[[r]]$values)
+                        location[[r]] = 1L:length(levels(gp$random.spec[[r]]$values))
+
+                        ## let us first check if there are levels in
+                        ## xx that is not present in values. this
+                        ## should not happen as NA's should be used
+                        ## instead
+
+                        if (length(setdiff(levels(xx), gp$random.spec[[r]]$values)) != 0L) {
+                            dif = setdiff(levels(xx), levels(gp$random.spec[[r]]$values))
+                            stop(paste("In f(", gp$random.spec[[r]]$term, "): Covariate does not match 'values' ",
+                                       length(dif), " times. Levels that mismatch:", inla.paste(c(dif),  sep=" "), 
+                                       ".\n  This is not what you want. Use NA values in the covariate!",
+                                       sep=""))
+                        }
+
+                        cov = match(xx, levels(gp$random.spec[[r]]$values)) -1L
+                        cov[is.na(cov)] = -1L
+                        covariate[[r]] = cov
+                    } else {
+                        ## all combinations not covered above is not allowed. 
+                        stop(paste("In f(", gp$random.spec[[r]]$term, "): typeof(covariate) must match the typeof(values)",
+                                   ",  and both must either be 'numeric', or 'factor'/'character'.\n  You have",
+                                   " typeof(covariate) = '", typeof(xx),"' while typeof(values) = '", typeof(gp$random.spec[[r]]$values), "'.",
                                    sep=""))
                     }
-                    
-                    cov[is.na(cov)] = -1
-                    covariate[[r]] = cov
                 } else {
+                    ## values are not given.
                     location[[r]] = sort(unique(xx))
-                    cov = match(xx, location[[r]])-1 + inla.ifelse(nrep > 1 || ngroup > 1,  (replicate-1)*NG + (group-1)*N, 0)
+                    cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1L)*N, 0L)
 
                     ## check that not do anything we will regret
                     i.cov = is.na(match(xx, location[[r]]))
@@ -1203,21 +1249,10 @@
                                    sep=""))
                     }
 
-                    cov[is.na(cov)] = -1
+                    cov[is.na(cov)] = -1L
                     covariate[[r]] = cov
                 }
 
-                ## this case is special.
-                if (is.factor(xx) && is.factor(gp$random.spec[[r]]$values)) {
-                    ## then we need to redefine the values to
-                    ## something numerical. perhaps we need to fix
-                    ## this later on, as then the plotting should take
-                    ## into account the "labels" ???
-                    if (debug)
-                        print("redefine values and locations since both idx and values are factors")
-                    gp$random.spec[[r]]$values = location[[r]]= 1:length(location[[r]])
-                }
-                
                 if (is.null(gp$random.spec[[r]]$values))
                     gp$random.spec[[r]]$values = location[[r]]
 
@@ -1239,6 +1274,25 @@
                     write(t(cbind(indN, covariate[[r]])), ncolumns=2, file=file.cov, append=FALSE)
                 }
                 file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
+
+                ## name of the 'names of the values'
+                if (!is.null(gp$random.spec[[r]]$id.names)) {
+                    file.id.names = inla.tempfile(tmpdir=data.dir)
+                    inla.writeLines(file.id.names, gp$random.spec[[r]]$id.names)
+                    file.id.names = gsub(data.dir, "$inladatadir", file.id.names, fixed=TRUE)
+                } else {
+                    file.id.names = NULL
+                }
+
+                file.cov=inla.tempfile(tmpdir=data.dir)
+                if (inla.getOption("internal.binary.mode")) {
+                    inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename=file.cov, debug = debug)
+                } else {
+                    file.create(file.cov)
+                    write(t(cbind(indN, covariate[[r]])), ncolumns=2, file=file.cov, append=FALSE)
+                }
+                file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
+
 
                 if (nrep == 1 && ngroup == 1) {
                     n = inla.ifelse(is.null(gp$random.spec[[r]]$n), length(location[[r]][!is.na(location[[r]])]),
@@ -1387,6 +1441,7 @@
                 }
                 ##create a FFIELD section
                 inla.ffield.section(file=file.ini, file.loc=file.loc, file.cov=file.cov,
+                                    file.id.names = file.id.names, 
                                     file.extraconstr=file.extraconstr, 
                                     file.weights=file.weights, n=n, nrep = nrep, ngroup = ngroup,
                                     random.spec=gp$random.spec[[r]], 
