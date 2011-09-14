@@ -92,7 +92,10 @@ namespace fmesh {
     };
 
     /*! Container for the bbox search result iterator */
-    class search_iterator {
+    class Iterator : public std::iterator <
+    std::forward_iterator_tag, int > {
+      bool is_null_;
+      std::vector<T> loc_;
       /*
       I_type::search_iterator* I_;
       S_type::search_iterator* S_;
@@ -102,8 +105,33 @@ namespace fmesh {
       SSS_type::search_iterator* SSS_;
       */
     public:
-      search_iterator() {};
+      Iterator(const std::vector<T>& loc) : is_null_(false), loc_(loc) {
+	NOT_IMPLEMENTED;
+	is_null_ = true;
+      };
+      Iterator() : is_null_(true), loc_()  {
+	/* Nothing to do. */
+      };
+      
+      bool operator==(const Iterator& b) const {
+	return (is_null_ == b.is_null_);
+      };
+      bool operator!=(const Iterator& b) const {
+	return (!(*this == b));
+      };
+
+      int operator*() {
+	NOT_IMPLEMENTED;
+	return -1;
+      };
+      Iterator& operator++() {
+	NOT_IMPLEMENTED;
+	is_null_ = true;
+	return (*this);
+      };
+
     };
+    typedef Iterator search_iterator;
     
   private:
     int ndim_; /*! The number of search dimensions, at most 3 */
@@ -124,6 +152,13 @@ namespace fmesh {
     ~BBoxLocator() {
     };
  
+    search_iterator search_begin(const std::vector<double>& loc) const {
+      return search_iterator(loc);
+    };
+    search_iterator search_end() const {
+      return search_iterator();
+    };
+
     std::ostream& print(std::ostream& output);
  
     template <class TT> friend
@@ -135,50 +170,25 @@ namespace fmesh {
 
 
   class TriangleLocator {
-
+    
+    typedef BBoxLocator<double> bbox_locator_type;
+    
   private:
     const Mesh* mesh_; /*! The mesh to be searched */
     std::vector<int> dim_; /*! The order of the search dimensions, at most 3 */
     bbox_type bbox_; /*! Bounding boxes */
-    BBoxLocator<double> bbox_locator_; /*! The bbox searcher object */
-
+    bbox_locator_type bbox_locator_; /*! The bbox searcher object */
+    
+  public:
+    
   public:
     TriangleLocator(const Mesh* mesh,
 		    const std::vector<int>& dimensions,
-		    bool use_interval_tree = true) : 
-      mesh_(mesh),
-      dim_(dimensions),
-      bbox_(),
-      bbox_locator_(dimensions.size(),use_interval_tree)
-    {
-      bbox_.resize(dim_.size());
-      if (mesh_) {
-	for (int i=0; i<dim_.size(); i++) {
-	  bbox_[i].resize(mesh_->nT());
-	}
-	
-	/* Build boxes: */
-	int d;
-	Point mini;
-	Point maxi;
-	std::pair<double, double> range;
-	for (int t=0; t<mesh_->nT(); t++) {
-	    mesh_->triangleBoundingBox(t,mini,maxi);
-	    for (int di=0; di<dim_.size(); di++) {
-	      d = dim_[di];
-	      range.first = mini[d];
-	      range.second = maxi[d];
-	      bbox_[di][t] = range;
-	    }
-	}
-      }
-      
-      bbox_locator_.init(bbox_.begin());
-    };
+		    bool use_interval_tree = true);
 
-    ~TriangleLocator() {
-    };
+    ~TriangleLocator();
 
+    int locate(const Point& s) const;
 
     std::ostream& print(std::ostream& output);
 
