@@ -63,16 +63,16 @@ using namespace fmesh;
       M.type(fmesh::Mesh::Mtype_sphere);
       //      M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
       M.make_globe(50);
-
-    std::cout << M << std::endl;
-
-
-      int the_dimensions[] = {0};
+      
+      std::cout << M << std::endl;
+      
+      
+      int the_dimensions[] = {0,1};
       std::vector<int> dimensions(the_dimensions,
 				  the_dimensions +
 				  sizeof(the_dimensions) / sizeof(int) );
       
-      //TriangleLocator locator1(&M, dimensions, true);
+      TriangleLocator locator1(&M, dimensions, true);
       //TriangleLocator locator2(&M, dimensions, false);
 
       /*
