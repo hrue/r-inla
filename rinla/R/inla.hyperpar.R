@@ -82,6 +82,7 @@
             offset = object$offset, 
             Ntrials = object$Ntrials,
             scale = object$scale,
+            strata = object$strata, 
             verbose = verbose,      
             lincomb = object$lincomb,
             control.lincomb = object$control.lincomb,
