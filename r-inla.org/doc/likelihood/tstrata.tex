@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Student-$t$ with strata}
+
+\subsection*{Parametrization}
+
+This model is an extention to the Student-$t$, where different strata
+have their own precisions but the degrees-of-freedom parameter is
+common.
+
+The Student-$t$ likelihood is defined so that 
+\[
+\sqrt{w\ \tau_{s}}(y - \eta)\sim T_{\nu}
+\]
+for continuous response $y$ where
+\begin{itemize}
+\item[$\tau_{s}$]: is the precision parameter, depending on the
+    stratum $s$
+\item[$w$]: is a fixed weight $w>0$
+\item[$\eta$]: is the linear predictor
+\item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of
+    freedom such that its variace is $1$ for any value of $\nu$,
+    common for all strata.
+\end{itemize}
+\subsection*{Link-function}
+
+Identity
+
+\subsection*{Hyperparameters}
+
+This likelihood $N_{s}+1$ hyperparameters
+\begin{eqnarray*}
+    \theta_1 &=& \log(\nu-2)\\
+    \theta_2 &=& \log(\tau_{1})\\
+    \theta_3 &=& \log(\tau_{2})\\
+    etc....\\
+    \theta_{N_{s}+1} &=& \log(\tau_{N_{s}})\\
+\end{eqnarray*}
+where $N_{s}$ is the number of strata defined.  The current
+implementation limits $N_{s}$ to $10$, but this is easy to fix if
+needed.  The prior is defined on $\theta=(\theta_1,\theta_2, \ldots)$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{tstrata}$
+\item Required argument: $y$ and $w$ (keyword {\tt weights}, default
+    to 1), and \texttt{inla()-argument} ``\texttt{strata}'' which is
+    either a integer vector with elements $1, 2, \ldots, N_{s}$, or
+    factor for which the levels defines the strata.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/tstrata.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-tstrata.tex}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

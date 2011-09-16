@@ -3572,6 +3572,152 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `tstrata'.}{Number of hyperparmeters are 11.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log degrees of freedom'}
+							\item{short.name = }{`dof'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.5'}
+							\item{to.theta = }{`\code{function(x) log(x-2)}'}
+							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`log precision1'}
+							\item{short.name = }{`prec1'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{name = }{`log precision2'}
+							\item{short.name = }{`prec2'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{name = }{`log precision3'}
+							\item{short.name = }{`prec3'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{name = }{`log precision4'}
+							\item{short.name = }{`prec4'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{name = }{`log precision5'}
+							\item{short.name = }{`prec5'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{name = }{`log precision6'}
+							\item{short.name = }{`prec6'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{name = }{`log precision7'}
+							\item{short.name = }{`prec7'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{name = }{`log precision8'}
+							\item{short.name = }{`prec8'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{name = }{`log precision9'}
+							\item{short.name = }{`prec9'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{name = }{`log precision10'}
+							\item{short.name = }{`prec10'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default identity'}
+								\item{pdf = }{`tstrata'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `logperiodogram'.}{Number of hyperparmeters are 0.
 				 }
 			 }

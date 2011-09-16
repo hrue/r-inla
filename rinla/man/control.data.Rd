@@ -14,7 +14,6 @@ inla(formula, ..., control.data=list( <arg>=<value>[, <arg>=<value>]))
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution}
 \item{fixed}{  (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.}
 \item{link}{  The link function to use.}
-\item{dof.max}{  Maximum degrees of freedom for the student-t distribution before its is considered as Normal (default 100)}
 \item{alpha}{  The parameter 'alpha' for the asymmetric Laplace likelihood (default 0.5)}
 \item{epsilon}{  The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)}
 \item{gamma}{  The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)}

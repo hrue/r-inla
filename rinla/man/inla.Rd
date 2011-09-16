@@ -56,6 +56,8 @@ models. Default value is 1.}
 \item{Ntrials}{ A vector containing the number of
 trials for the \code{binomial} likelihood. Default
 value is 1}
+\item{strata}{Fixed (optional) strata indicators 
+for tstrata likelihood model. Must be a factor.}
 \item{verbose}{
 Boolean indicating if the \code{inla}-program should
 run in a verbose mode (default \code{FALSE}).}

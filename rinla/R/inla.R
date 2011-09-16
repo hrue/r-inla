@@ -78,6 +78,10 @@
               ##!value is 1}
               Ntrials = NULL,
 
+              ##!\item{strata}{Fixed (optional) strata indicators 
+              ##!for tstrata likelihood model. Must be a factor.}
+              strata = NULL,
+
               ##!\item{verbose}{
               ##!Boolean indicating if the \code{inla}-program should
               ##!run in a verbose mode (default \code{FALSE}).}
@@ -488,7 +492,8 @@
                      E = .E,
                      offset= offset,
                      scale = scale,
-                     Ntrials = NULL,
+                     Ntrials = NULL,  # Not used for the poisson
+                     strata = NULL,   # Not used for the poisson
                      lincomb = lincomb,
                      verbose = verbose,
                      control.compute = control.compute,
@@ -823,7 +828,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$scale = rf$Ntrials = rf$offset = rf$E =  NULL ## these we do not need
+        rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
         rf$formula = gp$randf
         rf = eval.parent(rf)
     } else {
@@ -832,7 +837,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$scale = wf$Ntrials = wf$offset = wf$E =  NULL ## these we do not need
+        wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
         wf$formula = gp$weightf
         wf = eval.parent(wf)
     } else {
@@ -848,7 +853,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "Ntrials", "offset", "E")) {
+    for (nm in c("scale", "Ntrials", "offset", "E", "strata")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
@@ -922,8 +927,8 @@
         if (MPredictor > 0)
             stopifnot(length(yy) == MPredictor)
         
-        file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, family=family[i.family],
-                data.dir=data.dir, file=file.ini, debug=debug)
+        file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, strata=strata, 
+                family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
     
         ## add a section to the file.ini
         prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
@@ -1646,6 +1651,7 @@
             ret$offset=offset
             ret$Ntrials=Ntrials
             ret$E=E
+            ret$strata=strata
             ret$scale=scale
             ret$formula=formula.orig
             ret$control.fixed=control.fixed

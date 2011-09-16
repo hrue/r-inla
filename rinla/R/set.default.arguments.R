@@ -116,9 +116,6 @@
          ##:ARGUMENT: link The link function to use.
          link="default",
          
-         ##:ARGUMENT: dof.max Maximum degrees of freedom for the student-t distribution before its is considered as Normal (default 100)
-         dof.max=NULL,
-
          ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
          alpha=0.5,
 
