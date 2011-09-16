@@ -4,7 +4,7 @@
 using namespace fmesh;
 
   int main(void) {
-    /*
+    if (true) {
     SBBTree<double> tree(10);
     SBBTree<double>::iterator i = tree.begin();
     SBBTree<double>::const_iterator ci = tree.begin();
@@ -14,6 +14,7 @@ using namespace fmesh;
     typedef std::pair<double,double> segment_type;
     typedef std::vector<segment_type> segment_vector_type;
     typedef std::vector<segment_vector_type> multi_segment_type;
+    typedef SegmentSet<double> Simple_type;
     typedef IntervalTree<double> I_type;
     typedef SegmentTree<double, SegmentSet<double> > S_type;
     typedef SegmentTree<double, I_type > SI_type;
@@ -39,7 +40,8 @@ using namespace fmesh;
     bbox[2][2] = segment_type(1,2);
     bbox[2][3] = segment_type(2,3);
 
-    SSI_type st(bbox.begin());
+    typedef Simple_type test_type;
+    test_type st(bbox.begin());
     std::cout << st;
     st.add_segment(0,4);
     std::cout << st;
@@ -47,7 +49,31 @@ using namespace fmesh;
 
     std::cout << st;
 
-*/
+    Point s = Point(0.5,0.0,0.0);
+    std::vector<double> sv(1);
+    sv[0] = s[0];
+    {
+      for (typename test_type::search_iterator si = st.search(sv.begin()); !si.is_null(); ++si) {
+	std::cout << si.is_null() << " " << *si << std::endl;
+      }
+    }
+    
+    {
+      OrderedSegmentSet<double> oss(bbox.begin());
+      oss.add_segment(0,4);
+      std::cout << oss;
+      oss.build_tree();
+      for (typename OrderedSegmentSet<double>::L_search_iterator si = oss.L_search(sv.begin()); !si.is_null(); ++si) {
+	std::cout << si.is_null() << " " << *si << std::endl;
+      }
+      for (typename OrderedSegmentSet<double>::R_search_iterator si = oss.R_search(sv.begin()); !si.is_null(); ++si) {
+	std::cout << si.is_null() << " " << *si << std::endl;
+      }
+    }
+
+  }
+
+    if (false) {
     /*
     I_type it(bbox.begin());
     it.add_segment(0,4);
@@ -85,5 +111,6 @@ using namespace fmesh;
       std::cout << locator2;
       */
     }
+}
 
   }

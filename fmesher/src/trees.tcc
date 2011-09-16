@@ -85,6 +85,41 @@ namespace fmesh {
   };
   
   
+
+
+
+  template < class T >
+  typename SegmentSet<T>::search_iterator& SegmentSet<T>::search_iterator::search() {
+    if (!this->is_null()) {
+      for ( ; i_ != this->C_->data_.end() ; ++i_) {
+	if (((*this->C_->multi_segment_iter_)[*i_].first <= this->loc_) &&
+	    (this->loc_ <= (*this->C_->multi_segment_iter_)[*i_].second)) {
+	  break;
+	}
+      }
+      this->is_null_ = (i_ == this->C_->data_.end());
+    }
+    return *this;
+  };
+
+  template < class T >
+  template <class map_type, class Compare >
+  typename OrderedSegmentSet<T>::template search_iterator<map_type,Compare>& OrderedSegmentSet<T>::search_iterator<map_type,Compare>::search() {
+    if (!this->is_null()) {
+      for ( ; i_ != the_end_ ; ++i_) {
+	if (!Compare()(this->loc_, (*i_).first)) {
+	  break;
+	}
+      }
+      this->is_null_ = (i_ == the_end_);
+    }
+    return *this;
+  };
+
+
+
+
+
 } /* namespace fmesh */
 
 #endif
