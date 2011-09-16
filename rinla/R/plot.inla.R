@@ -117,7 +117,6 @@
         }
     }
 
-
     if (plot.random.effects) {
         rand = x$summary.random
         labels.random = names(x$summary.random)
@@ -193,14 +192,20 @@
                                     } else {
                                         xval = rr[, colnames(rr)=="ID"][idx]
                                         yval = rr[, colnames(rr)=="mean"][idx]
-                                        plot(xval, yval,
-                                             ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                             xlim=range(xval),
-                                             axes=FALSE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                        if (is.numeric(xval)) {
+                                            plot(xval, yval,
+                                                 ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                 xlim=range(xval),
+                                                 axes=FALSE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                            axis(1)
+                                            axis(2)
+                                            box()
+                                        } else {
+                                            plot(as.factor(xval), yval,
+                                                 ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                 axes=TRUE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                        }
                                     }
-                                    axis(1)
-                                    axis(2)
-                                    box()
                     
                                     lq = grep("quan", colnames(rr))
                                     main=inla.nameunfix(labels.random[i])
@@ -215,7 +220,11 @@
                                             if (length(yval)+1 == length(xval)) {
                                                 yval = c(yval, yval[ length(yval) ])
                                             }
-                                            points(xval, yval, type=tp, lty=2)
+                                            if (is.numeric(xval)) {
+                                                points(xval, yval, type=tp, lty=2)
+                                            } else {
+                                                points(as.factor(xval), yval, pch=19)
+                                            }                                                
                                             sub = gsub("quant", "%", paste(sub, colnames(qq)[j]))
                                         }
                                         title(main=inla.nameunfix(main), sub=paste(inla.nameunfix(sub), rep.txt))

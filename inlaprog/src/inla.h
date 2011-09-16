@@ -156,8 +156,18 @@ typedef struct {
 	 * y ~ T_dof(x, 1/(weight*prec)), where T_dof has Variance=1
 	 */
 	double **log_prec_t;
-	double *weight_t;				       /* weights for the t: Variance = 1/(weight*prec) */
 	double **dof_intern_t;
+	double *weight_t;				       /* weights for the t: Variance = 1/(weight*prec) */
+
+	/* 
+	   y ~ Tstrata
+	 */
+	double ***log_prec_tstrata;			       /* array of log_prec_t */
+	double **dof_intern_tstrata;			       /* common dof */
+	double *weight_tstrata;				       /* weight_t */
+	double *strata_tstrata;				       /* strata_t (type int) */
+
+
 	/*
 	 * stochvol_t: y ~ Student-t_dof (x) with Variance=1. dof_intern_svt = log(dof - 2).
 	 */
@@ -251,6 +261,7 @@ typedef enum {
 	L_SKEWNORMAL,
 	L_GEV,
 	L_T,
+	L_TSTRATA,
 	L_POISSON,
 	L_BINOMIAL,
 	L_ZEROINFLATEDBINOMIAL0,
@@ -399,11 +410,13 @@ typedef struct {
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
 	Prior_tp data_prior2;
+	Prior_tp *data_nprior;
 	Data_tp data_observations;
 	int data_fixed;
 	int data_fixed0;
 	int data_fixed1;
 	int data_fixed2;
+	int *data_nfixed;
 	int data_ntheta;
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
@@ -958,6 +971,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
@@ -1022,7 +1036,6 @@ typedef struct {
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	inla_mode_tp mode;				       /* which mode to run in */
 	double log_prec_initial;			       /* inititial value for log-precisions */
-	double dof_max;					       /* max dof for (additive) student-t */
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */

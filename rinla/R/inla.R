@@ -78,6 +78,10 @@
               ##!value is 1}
               Ntrials = NULL,
 
+              ##!\item{strata}{Fixed (optional) strata indicators 
+              ##!for tstrata likelihood model. Must be a factor.}
+              strata = NULL,
+
               ##!\item{verbose}{
               ##!Boolean indicating if the \code{inla}-program should
               ##!run in a verbose mode (default \code{FALSE}).}
@@ -488,7 +492,8 @@
                      E = .E,
                      offset= offset,
                      scale = scale,
-                     Ntrials = NULL,
+                     Ntrials = NULL,  # Not used for the poisson
+                     strata = NULL,   # Not used for the poisson
                      lincomb = lincomb,
                      verbose = verbose,
                      control.compute = control.compute,
@@ -823,7 +828,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$scale = rf$Ntrials = rf$offset = rf$E =  NULL ## these we do not need
+        rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
         rf$formula = gp$randf
         rf = eval.parent(rf)
     } else {
@@ -832,7 +837,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$scale = wf$Ntrials = wf$offset = wf$E =  NULL ## these we do not need
+        wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
         wf$formula = gp$weightf
         wf = eval.parent(wf)
     } else {
@@ -848,7 +853,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "Ntrials", "offset", "E")) {
+    for (nm in c("scale", "Ntrials", "offset", "E", "strata")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
@@ -922,8 +927,8 @@
         if (MPredictor > 0)
             stopifnot(length(yy) == MPredictor)
         
-        file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, family=family[i.family],
-                data.dir=data.dir, file=file.ini, debug=debug)
+        file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, strata=strata, 
+                family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
     
         ## add a section to the file.ini
         prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
@@ -1235,11 +1240,23 @@
                                    sep=""))
                     }
                 } else {
-                    ## values are not given.
-                    location[[r]] = sort(unique(xx))
+                    ## values are not given. then 'values' depends on the type of the covariate.
+                    if (is.factor(xx)) {
+                        gp$random.spec[[r]]$id.names = levels(xx)
+                        location[[r]] = 1L:length(levels(xx))
+                    } else if (is.character(xx)) {
+                        gp$random.spec[[r]]$id.names = levels(as.factor(xx))
+                        location[[r]] = 1L:length(levels(as.factor(xx)))
+                    } else if (is.numeric(xx)) {
+                        gp$random.spec[[r]]$id.names = NULL
+                        location[[r]] = sort(unique(xx))
+                    } else {
+                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate is of unknown type:", typeof(xx), ".",  sep=""))
+                    }
+
                     cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1L)*N, 0L)
 
-                    ## check that not do anything we will regret
+                    ## check that we do not do anything we will regret
                     i.cov = is.na(match(xx, location[[r]]))
                     i.xx = is.na(xx)
                     if (!all(i.cov == i.xx)) {
@@ -1253,10 +1270,12 @@
                     covariate[[r]] = cov
                 }
 
-                if (is.null(gp$random.spec[[r]]$values))
+                ## just make sure this is all set
+                if (is.null(gp$random.spec[[r]]$values)) {
                     gp$random.spec[[r]]$values = location[[r]]
+                }
 
-                ##create a location and covariate file
+                ## create a location and covariate file
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1),  filename = file.loc, debug = debug)
@@ -1646,6 +1665,7 @@
             ret$offset=offset
             ret$Ntrials=Ntrials
             ret$E=E
+            ret$strata=strata
             ret$scale=scale
             ret$formula=formula.orig
             ret$control.fixed=control.fixed
