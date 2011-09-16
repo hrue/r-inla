@@ -18,8 +18,45 @@
 
 namespace fmesh {
 
+
+  template <class T>
+  BBoxLocator<T>::Search_tree_type::Iterator::Iterator() : is_null_(true), search_tree_(NULL), loc_()
+  {
+    /* Nothing to do. */
+  }
+
+  template <class T>
+  BBoxLocator<T>::Search_tree_type::Iterator::Iterator(const Search_tree_type* search_tree, const std::vector<T>& loc) : is_null_(false), search_tree_(search_tree), loc_(loc)
+  {
+    if (search_tree_->use_interval_tree_)
+      switch (search_tree_->ndim_) {
+      case 1: init(search_tree->I_, &I_); break;
+      case 2: init(search_tree->SI_, &SI_); break;
+      case 3: init(search_tree->SSI_, &SSI_); break;
+      }
+    else
+      switch (search_tree_->ndim_) {
+      case 1: init(search_tree->S_, &S_); break;
+      case 2: init(search_tree->SS_, &SS_); break;
+      case 3: init(search_tree->SSS_, &SSS_); break;
+      }
+  }
+
   template<class T>
-  BBoxLocator<T>::search_tree::~search_tree() {
+  BBoxLocator<T>::Search_tree_type::Search_tree_type::Iterator::~Iterator() {
+    if (I_) delete I_;
+    if (SI_) delete SI_;
+    if (SSI_) delete SSI_;
+    if (S_) delete S_;
+    if (SS_) delete SS_;
+    if (SSS_) delete SSS_;
+  }
+
+
+
+
+  template<class T>
+  BBoxLocator<T>::Search_tree_type::~Search_tree_type() {
     if (I_) delete I_;
     if (SI_) delete SI_;
     if (SSI_) delete SSI_;
@@ -29,7 +66,7 @@ namespace fmesh {
   }
 
   template<class T>
-  void BBoxLocator<T>::search_tree::init(const bbox_type::iterator& bbox) {
+  void BBoxLocator<T>::Search_tree_type::init(const bbox_type::iterator& bbox) {
     if (use_interval_tree_)
       switch (ndim_) {
       case 1: init(&I_, bbox); break;
@@ -72,7 +109,7 @@ namespace fmesh {
   
 
   template <class T>
-  std::ostream& BBoxLocator<T>::search_tree::print(std::ostream& output)
+  std::ostream& BBoxLocator<T>::Search_tree_type::print(std::ostream& output)
   {
     if (use_interval_tree_)
       switch (ndim_) {
