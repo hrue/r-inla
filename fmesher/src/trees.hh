@@ -31,17 +31,17 @@ namespace fmesh {
 
 
   /*! Static Balanced Binary Tree */
-  template < class ValueType >
+  template < class T >
   class SBBTree {
   public:
-    typedef ValueType value_type;
-    template < class RefValueType, class TreeRefType > class Iterator;
-    typedef Iterator< ValueType, SBBTree< ValueType > > iterator;
-    typedef Iterator< const ValueType, const SBBTree< ValueType > > const_iterator;
+    typedef T value_type;
+    template < class RefT, class ContainerRefType > class Iterator;
+    typedef Iterator< T, SBBTree< T > > iterator;
+    typedef Iterator< const T, const SBBTree< T > > const_iterator;
     
   protected:
     const int n_; /*!< The number of nodes */
-    std::vector< ValueType > storage_; /*!< Linear storage of the tree nodes */
+    std::vector< T > storage_; /*!< Linear storage of the tree nodes */
 
   public:
     SBBTree(int n) : n_(n), storage_(n) {};
@@ -73,16 +73,16 @@ namespace fmesh {
 
 
     
-    template < class RefValueType, class TreeRefType >
+    template < class RefT, class ContainerRefType >
     class Iterator : public std::iterator<
-      std::bidirectional_iterator_tag, ValueType, int,
-      RefValueType*, RefValueType& > {
+      std::bidirectional_iterator_tag, T, int,
+      RefT*, RefT& > {
       
-      typedef Iterator< RefValueType, TreeRefType > self_type;
-      typedef SBBTree< ValueType > TreeT;
+      typedef Iterator< RefT, ContainerRefType > self_type;
+      typedef SBBTree< T > TreeT;
       
     protected:
-      TreeRefType* tree_;
+      ContainerRefType* tree_;
       int current_;
       
       int parent_idx() const {
@@ -114,7 +114,7 @@ namespace fmesh {
 	return ret;
       }
     public:
-      Iterator(TreeRefType* tree, int idx=0) : tree_(tree), current_(idx) {
+      Iterator(ContainerRefType* tree, int idx=0) : tree_(tree), current_(idx) {
 	if (current_>=tree_->size())
 	  current_ = -1;
       };
@@ -126,8 +126,8 @@ namespace fmesh {
 	return *this;
       };
       
-      operator SBBTree<ValueType>::const_iterator() const {
-	return SBBTree<ValueType>::const_iterator(tree_, current_);
+      operator SBBTree<T>::const_iterator() const {
+	return SBBTree<T>::const_iterator(tree_, current_);
       };
 
       int current() const { return current_; };
@@ -193,14 +193,136 @@ namespace fmesh {
 
 
 
-  template < class ValueType >
+
+  template < class T, class ContainerType >
+    class Search_iterator : public std::iterator< 
+      std::forward_iterator_tag, int, int, const int*, const int& >
+    {
+      typedef Search_iterator<T,ContainerType> self_type;
+    protected:
+      const ContainerType* C_;
+      const T loc_;
+      typename std::vector<T>::const_iterator loc_next_i_;
+      bool is_null_;
+    public:
+      /*      Search_iterator() : is_null_(true), C_(NULL),
+			  loc_(), loc_next_i_() {};*/
+      Search_iterator(const ContainerType* C,
+		      const typename std::vector<T>::const_iterator& loc_i) :
+	is_null_(true), C_(C), loc_(*loc_i), loc_next_i_(loc_i) {
+	++loc_next_i_;
+      };
+
+      bool is_null() const {
+	return is_null_;
+      };
+
+      self_type& begin() {
+	NOT_IMPLEMENTED;
+	return *this;
+      };
+
+      self_type& look_from_here() {
+	NOT_IMPLEMENTED;
+	return *this;
+      };
+
+      self_type& goto_first() {
+	NOT_IMPLEMENTED;
+	return *this;
+      };
+
+      self_type& operator++() {
+	NOT_IMPLEMENTED;
+	return *this;
+      };
+
+      /*
+      self_type::pointer operator&() const {
+	NOT_IMPLEMENTED;
+	return typename self_type::pointer();
+      };
+      */
+      self_type::reference operator*() const {
+	NOT_IMPLEMENTED;
+	//	return typename self_type::reference();
+      };
+    };
+
+
+
+
+
+
+  template < class T >
   class SegmentSet {
   public:
-    typedef ValueType value_type;
-    typedef std::pair<ValueType,ValueType> segment_type;
+    typedef T value_type;
+    typedef std::pair<T,T> segment_type;
     typedef std::vector<segment_type> segment_vector_type;
     typedef std::vector<segment_vector_type> multi_segment_type;
     typedef std::set<int> set_type;
+
+
+    typedef Search_iterator< T, SegmentSet< T > > Search_iterator_type;
+    class search_iterator : public Search_iterator_type {
+      typename set_type::const_iterator i_;
+
+    protected:
+      search_iterator& search();
+
+    public:
+      search_iterator(const SegmentSet< T >* C,
+		      const typename std::vector<T>::const_iterator& loc_i) :
+	Search_iterator_type(C, loc_i), i_(C->data_.begin()) {
+	this->is_null_ = (i_ == this->C_->data_.end());
+	search();
+      };
+
+      search_iterator& operator++() {
+	if (!this->is_null()) {
+	  ++i_;
+	  this->is_null_ = (i_ == this->C_->data_.end());
+	  search();
+	}
+	return *this;
+      };
+
+      T operator*() const {
+	if (this->is_null()) {
+	  LOG_("Error: dereferencing a null iterator" << std::endl);
+	}
+	return *i_;
+      };
+
+    };
+
+    class const_iterator : public Search_iterator_type {
+      typename set_type::const_iterator i_;
+    public:
+      const_iterator(const SegmentSet< T >* C,
+		     const typename std::vector<T>::const_iterator& loc_i) :
+	Search_iterator_type(C, loc_i), i_(C->data_.begin()) {
+	this->is_null_ = (i_ == this->C_->data_.end());
+      };
+
+      const_iterator& operator++() {
+	if (!this->is_null()) {
+	  ++i_;
+	  this->is_null_ = (i_ == this->C_->data_.end());
+	}
+	return *this;
+      };
+
+      T operator*() const {
+	if (this->is_null()) {
+	  LOG_("Error: dereferencing a null iterator" << std::endl);
+	}
+	return *i_;
+      };
+
+    };
+
 
   protected:
     typename multi_segment_type::iterator multi_segment_iter_;
@@ -222,25 +344,42 @@ namespace fmesh {
       /* Nothing to be done. */
     };
 
+    search_iterator search(const typename std::vector<T>::const_iterator& loc_i) const {
+      return search_iterator(this, loc_i);
+    };
+    const_iterator begin(const typename std::vector<T>::const_iterator& loc_i) const {
+      return const_iterator(this, loc_i);
+    };
+
     template<class VT> friend 
     std::ostream& operator<<(std::ostream& output, SegmentSet<VT>& segm);
   }; // SegmentSet
 
 
-  template < class ValueType >
+  template <class T>
+  class greater {
+  public:
+    bool operator()(const T& a, const T& b) const {
+      return (a>b);
+    };
+  };
+
+  template < class T >
   class OrderedSegmentSet {
   public:
-    typedef ValueType value_type;
-    typedef std::pair<ValueType,ValueType> segment_type;
+    typedef T value_type;
+    typedef std::pair<T,T> segment_type;
     typedef std::vector<segment_type> segment_vector_type;
     typedef std::vector<segment_vector_type> multi_segment_type;
-    typedef std::pair<ValueType, int> mapping_type;
-    typedef std::multimap<ValueType, int > map_type;
+    typedef std::pair<T, int> mapping_type;
+    typedef std::multimap<T, int > L_map_type;
+    typedef std::multimap<T, int, greater<T> > R_map_type;
+
 
   protected:
     typename multi_segment_type::iterator multi_segment_iter_;
-    map_type L_data_;
-    map_type R_data_;
+    L_map_type L_data_;
+    R_map_type R_data_;
   public:
     OrderedSegmentSet(const typename multi_segment_type::iterator& segm_iter) : multi_segment_iter_(segm_iter), L_data_(), R_data_() {
     };
@@ -259,6 +398,55 @@ namespace fmesh {
     void build_tree() {
       /* Nothing to be done. */
     };
+
+    typedef Search_iterator< T, OrderedSegmentSet< T > > Search_iterator_type;
+    template <class map_type, class Compare >
+    class search_iterator : public Search_iterator_type {
+      typename map_type::const_iterator i_;
+      typename map_type::const_iterator the_end_;
+
+    protected:
+
+      search_iterator& search();
+
+    public:
+      search_iterator(const OrderedSegmentSet< T >* C,
+		      const typename std::vector<T>::const_iterator& loc_i,
+		      const typename map_type::const_iterator& the_begin,
+		      const typename map_type::const_iterator& the_end) :
+	Search_iterator_type(C, loc_i),
+	i_(the_begin),
+	the_end_(the_end) {
+	this->is_null_ = (i_ == the_end_);
+	search();
+      };
+
+      search_iterator& operator++() {
+	if (!this->is_null()) {
+	  ++i_;
+	  this->is_null_ = (i_ == the_end_);
+	  search();
+	}
+	return *this;
+      };
+
+      T operator*() const {
+	if (this->is_null()) {
+	  LOG_("Error: dereferencing a null iterator" << std::endl);
+	}
+	return (*i_).second;
+      };
+
+    };
+    typedef search_iterator< L_map_type, std::less<T> > L_search_iterator;
+    typedef search_iterator< R_map_type, greater<T> > R_search_iterator;
+
+    L_search_iterator L_search(const typename std::vector<T>::const_iterator& loc_i) const {
+      return L_search_iterator(this, loc_i, L_data_.begin(), L_data_.end());
+    };
+    R_search_iterator R_search(const typename std::vector<T>::const_iterator& loc_i) const {
+      return R_search_iterator(this, loc_i, R_data_.begin(), R_data_.end());
+    };
     
     template<class VT> friend 
     std::ostream& operator<<(std::ostream& output, OrderedSegmentSet<VT>& segm);
@@ -267,19 +455,19 @@ namespace fmesh {
 
 
 
-  template < class ValueType >
+  template < class T >
   class IntervalTree {
   public:
-    typedef IntervalTree<ValueType> self_type;
-    typedef ValueType value_type;
-    typedef std::pair<ValueType,ValueType> segment_type;
+    typedef IntervalTree<T> self_type;
+    typedef T value_type;
+    typedef std::pair<T,T> segment_type;
     typedef std::vector<segment_type> segment_vector_type;
     typedef std::vector<segment_vector_type> multi_segment_type;
-    typedef std::pair<ValueType, int> data_pair_type;
-    typedef OrderedSegmentSet<ValueType> data_type;
+    typedef std::pair<T, int> data_pair_type;
+    typedef OrderedSegmentSet<T> data_type;
 
     class node_type {
-      friend class IntervalTree<ValueType>;
+      friend class IntervalTree<T>;
     protected:
       value_type mid_;
       data_type* data_;
@@ -406,6 +594,17 @@ namespace fmesh {
       return output;
     };
     
+    typedef Search_iterator< T, IntervalTree< T > > Search_iterator_type;
+    class search_iterator : public Search_iterator_type {
+    public:
+      search_iterator(const IntervalTree< T >* C,
+		      const typename std::vector<T>::const_iterator& loc_i) :
+	Search_iterator_type(C, loc_i) {
+	NOT_IMPLEMENTED;
+      };
+
+    };
+    
     template<class VT> friend 
     std::ostream& operator<<(std::ostream& output, IntervalTree<VT>& segm);
   }; // IntervalTree
@@ -414,14 +613,15 @@ namespace fmesh {
 
 
 
-  template < class ValueType, class SubTreeType >
+  template < class T, class SubTreeType >
   class SegmentTree {
   public:
-    typedef ValueType value_type;
-    typedef SegmentTree<ValueType, SubTreeType> self_type;
-    typedef std::pair<ValueType,ValueType> segment_type;
+    typedef T value_type;
+    typedef SegmentTree<T, SubTreeType> self_type;
+    typedef std::pair<T,T> segment_type;
     typedef std::vector<segment_type> segment_vector_type;
     typedef std::vector<segment_vector_type> multi_segment_type;
+
 
   public:
     class node_type {
@@ -566,8 +766,21 @@ namespace fmesh {
       return output;
     };
 
+    
     template<class VT, class STT> friend 
     std::ostream& operator<<(std::ostream& output, SegmentTree<VT,STT>& segm);
+
+    typedef Search_iterator< T, SegmentTree< T, SubTreeType > > Search_iterator_type;
+    class search_iterator : public Search_iterator_type {
+    public:
+      search_iterator(const SegmentTree< T, SubTreeType >* C,
+		      const typename std::vector<T>::const_iterator& loc_i) :
+	Search_iterator_type(C, loc_i) {
+	NOT_IMPLEMENTED;
+      };
+
+    };
+
   }; // SegmentTree
 
 
@@ -600,11 +813,11 @@ namespace fmesh {
     output << "(" << segm.L_data_.size() << ")";
     if (segm.L_data_.size()>0) {
       output << " L=( ";
-      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.L_data_.begin(); i != segm.L_data_.end(); ++i) {
+      for (typename OrderedSegmentSet<VT>::L_map_type::iterator i = segm.L_data_.begin(); i != segm.L_data_.end(); ++i) {
 	output << (*i).second << " ";
       }
       output << ") R=( ";
-      for (typename OrderedSegmentSet<VT>::map_type::iterator i = segm.R_data_.begin(); i != segm.R_data_.end(); ++i) {
+      for (typename OrderedSegmentSet<VT>::R_map_type::iterator i = segm.R_data_.begin(); i != segm.R_data_.end(); ++i) {
 	output << (*i).second << " ";
       }
       output << ")" << std::endl;
@@ -636,6 +849,19 @@ namespace fmesh {
     }
     return output;
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
