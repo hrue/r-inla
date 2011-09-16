@@ -1240,11 +1240,23 @@
                                    sep=""))
                     }
                 } else {
-                    ## values are not given.
-                    location[[r]] = sort(unique(xx))
+                    ## values are not given. then 'values' depends on the type of the covariate.
+                    if (is.factor(xx)) {
+                        gp$random.spec[[r]]$id.names = levels(xx)
+                        location[[r]] = 1L:length(levels(xx))
+                    } else if (is.character(xx)) {
+                        gp$random.spec[[r]]$id.names = levels(as.factor(xx))
+                        location[[r]] = 1L:length(levels(as.factor(xx)))
+                    } else if (is.numeric(xx)) {
+                        gp$random.spec[[r]]$id.names = NULL
+                        location[[r]] = sort(unique(xx))
+                    } else {
+                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate is of unknown type:", typeof(xx), ".",  sep=""))
+                    }
+
                     cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1L)*N, 0L)
 
-                    ## check that not do anything we will regret
+                    ## check that we do not do anything we will regret
                     i.cov = is.na(match(xx, location[[r]]))
                     i.xx = is.na(xx)
                     if (!all(i.cov == i.xx)) {
@@ -1258,10 +1270,12 @@
                     covariate[[r]] = cov
                 }
 
-                if (is.null(gp$random.spec[[r]]$values))
+                ## just make sure this is all set
+                if (is.null(gp$random.spec[[r]]$values)) {
                     gp$random.spec[[r]]$values = location[[r]]
+                }
 
-                ##create a location and covariate file
+                ## create a location and covariate file
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1),  filename = file.loc, debug = debug)
