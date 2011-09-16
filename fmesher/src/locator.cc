@@ -69,7 +69,7 @@ namespace fmesh {
     Dart d;
     for (typename bbox_locator_type::search_iterator si =
 	   bbox_locator_.search_begin(loc);
-	 si != bbox_locator_.search_end();
+	 !si.is_null();
 	 ++si) {
       d = mesh_->locate_point(Dart(*mesh_,(*si)),s);
       if (!d.isnull())
