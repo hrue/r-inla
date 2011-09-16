@@ -77,8 +77,6 @@
     
     inla.write.hyper(control$hyper, file)
     
-    if (!is.null(control$dof.max))
-        cat("dof.max = ", control$dof.max,"\n", sep = " ", file = file, append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

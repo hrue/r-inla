@@ -88,7 +88,10 @@ static const char RCSId[] = HGVERSION;
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 100000.0, 0.5, 2, 0, -1, 0, 0 };
+#define TSTRATA_MAXTHETA 11				       /* as given in models.R */
+#define SPDE2_MAXTHETA   100				       /* as given in models.R */
+
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
 /* 
    default values for priors
@@ -1990,6 +1993,10 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_T) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_TSTRATA) {
+		idiv = 4;
+		a[0] = ds->data_observations.weight_tstrata = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.strata_tstrata = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_POISSON) {
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -2598,14 +2605,41 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
-	if (dof > G.dof_max) {
-		/*
-		 * Use the loglikelihood_gaussian()
-		 */
-		ds->data_observations.weight_gaussian = ds->data_observations.weight_t;
-		ds->data_observations.log_prec_gaussian = ds->data_observations.log_prec_t;
-		return loglikelihood_gaussian(logll, x, m, idx, x_vec, arg);
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+			y_std = (y - ypred) * fac;
+			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+			logll[i] = gsl_cdf_tdist_P((y - ypred) * fac, dof);
+		}
 	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i, strata;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
+
+	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_tstrata[idx];
+	strata = (int) ds->data_observations.strata_tstrata[idx];
+	prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+	fac = sqrt((dof / (dof - 2.0)) * prec);
+	lg1 = gsl_sf_lngamma(dof / 2.0);
+	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -5690,6 +5724,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_t;
 		ds->data_id = L_T;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "TSTRATA")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tstrata;
+		ds->data_id = L_TSTRATA;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
@@ -5855,7 +5893,20 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_t[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: t weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_t[i]);
+					GMRFLib_sprintf(&msg, "%s: Student-t weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_t[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	} else if (ds->data_id == L_TSTRATA) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_tstrata[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: t weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_tstrata[i]);
+					inla_error_general(msg);
+				}
+				if ((int) (ds->data_observations.strata_tstrata[i]) < 0) {
+					GMRFLib_sprintf(&msg, "%s: tstrata strata[%1d] = %g is void\n", secname, i, ds->data_observations.strata_tstrata[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -6777,11 +6828,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * get options related to the t
 		 */
 
-		G.dof_max = iniparser_getdouble(ini, inla_string_join(secname, "DOF.MAX"), G.dof_max);
-		if (mb->verbose) {
-			printf("\t\tdof.max=[%g]\n", G.dof_max);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
@@ -6855,7 +6901,132 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		ds->data_ntheta = (ds->data_fixed0 ? 0 : 1) + (ds->data_fixed1 ? 0 : 1);
+	} else if (ds->data_id == L_TSTRATA) {
+		/*
+		 * get options related to the tstrata
+		 */
+		int k;
+
+		ds->data_nprior = Calloc(TSTRATA_MAXTHETA, Prior_tp);
+		ds->data_nfixed = Calloc(TSTRATA_MAXTHETA, int);
+
+		/*
+		 * check how many strata we have 
+		 */
+		int nstrata = 0;
+		for (k = 0; k < mb->predictor_ndata; k++) {
+			if (ds->data_observations.weight_tstrata[k] > 0.0) {
+				nstrata = IMAX(nstrata, (int) ds->data_observations.strata_tstrata[k]);
+			}
+		}
+		nstrata++;
+		assert(nstrata <= TSTRATA_MAXTHETA - 1);
+
+		/*
+		 * dof = theta0
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 3.0);
+		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_nfixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.dof_intern_tstrata, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise dof_intern_tstrata[%g]\n", ds->data_observations.dof_intern_tstrata[0][0]);
+			printf("\t\tfixed0=[%1d]\n", ds->data_nfixed[0]);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_nprior[0]), "normal");
+
+		if (!ds->data_nfixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("dof_intern for tstrata", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("degrees of freedom for tstrata", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_tstrata;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_dof;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		ds->data_observations.log_prec_tstrata = Calloc(TSTRATA_MAXTHETA - 1, double **);
+
+		for (k = 1; k < TSTRATA_MAXTHETA; k++) {
+
+			char *ctmp = NULL, *pri = NULL, *par = NULL, *from_theta = NULL, *to_theta = NULL;
+
+			GMRFLib_sprintf(&pri, "PRIOR%1d", k);
+			GMRFLib_sprintf(&par, "PARAMETERS%1d", k);
+			GMRFLib_sprintf(&from_theta, "FROM.THETA%1d", k);
+			GMRFLib_sprintf(&to_theta, "TO.THETA%1d", k);
+			inla_read_prior_generic(mb, ini, sec, &(ds->data_nprior[k]), pri, par, from_theta, to_theta, "normal");
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
+			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			/*
+			 * if above number of stata, then its fixed for sure! 
+			 */
+			if (k > nstrata) {
+				ds->data_nfixed[k] = 1;
+			}
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
+			double initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), G.log_prec_initial);
+
+			if (!ds->data_nfixed[k] && mb->reuse_mode) {
+				initial = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.log_prec_tstrata[k - 1], initial);	/* yes, its a -1, prec0, prec1, etc... */
+			if (mb->verbose) {
+				printf("\t\tinitialise log_prec_tstrata[%1d][%g]\n", ds->data_nfixed[k], ds->data_observations.log_prec_tstrata[k - 1][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", k, ds->data_nfixed[k]);
+			}
+
+			if (!ds->data_nfixed[k]) {
+
+				double *ltag;
+
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Log prec for tstrata strata", k - 1);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Prec tstrata strata", k - 1);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, k);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.log_prec_tstrata[k - 1];	/* yes its a -1 */
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_precision;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+
+			Free(pri);
+			Free(par);
+			Free(from_theta);
+			Free(to_theta);
+			Free(ctmp);
+		}
 	} else if (ds->data_id == L_STOCHVOL_T) {
 		/*
 		 * get options related to the stochvol_t
@@ -7757,8 +7928,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_same_as = Realloc(mb->f_same_as, mb->nf + 1, char *);
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
-	mb->f_id_names = Realloc(mb->f_id_names, mb->nf+1, inla_file_contents_tp *);
-	
+	mb->f_id_names = Realloc(mb->f_id_names, mb->nf + 1, inla_file_contents_tp *);
+
 	/*
 	 * set everything to `ZERO' initially 
 	 */
@@ -8089,7 +8260,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tsi=[%1d] (if possible)\n", mb->f_si[mb->nf]);
 	}
 	mb->f_id_names[mb->nf] = inla_read_file_contents(GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ID.NAMES"), NULL)));
-	if (mb->verbose){
+	if (mb->verbose) {
 		printf("\t\tid.names=%s\n", (mb->f_id_names[mb->nf] ? "<read>" : "<not present>"));
 	}
 
@@ -8964,7 +9135,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read 
 		 */
-		for (i = 0; i < 100; i++) {
+		for (i = 0; i < SPDE2_MAXTHETA; i++) {
 			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
@@ -11734,6 +11905,19 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &dof_intern);
 					count++;
 				}
+			} else if (ds->data_id == L_TSTRATA) {
+				/*
+				 * we only need to add the prior, since the normalisation constant due to the likelihood, is
+				 * included in the likelihood function. 
+				 */
+				int k;
+				for (k = 0; k < TSTRATA_MAXTHETA; k++) {
+					if (!ds->data_nfixed[k]) {
+						double th = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &th);
+						count++;
+					}
+				}
 			} else if (ds->data_id == L_STOCHVOL_T) {
 				if (!ds->data_fixed) {
 					/*
@@ -12958,12 +13142,12 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 
-	/* 
-	   set the flag to compute correlation-matrix or not
+	/*
+	 * set the flag to compute correlation-matrix or not 
 	 */
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
-	if (mb->lc_derived_correlation_matrix){
-		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension  */
+	if (mb->lc_derived_correlation_matrix) {
+		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension */
 	} else {
 		mb->misc_output->compute_corr_lin = 0;
 	}
@@ -13848,12 +14032,12 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 	FILE *fp;
 	char *fnm, *ndir;
 
-	if (sdir){
+	if (sdir) {
 		GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	} else {
 		GMRFLib_sprintf(&ndir, "%s", dir);
 	}
-		
+
 	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/%s", ndir, filename);
 
@@ -13862,7 +14046,7 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 	M->nrow = M->ncol = n;
 	M->elems = ISQR(n);
 	M->A = Calloc(ISQR(n), double);
-	memcpy(M->A, matrix, ISQR(n)*sizeof(double));
+	memcpy(M->A, matrix, ISQR(n) * sizeof(double));
 
 	M->offset = 0L;
 	M->whence = SEEK_SET;
@@ -13922,9 +14106,9 @@ int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal
 
 	return INLA_OK;
 }
-int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp *fc)
+int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc)
 {
-	if (!fc){
+	if (!fc) {
 		return INLA_OK;
 	}
 
@@ -14629,7 +14813,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		GMRFLib_matrix_free(M);
 	}
 
-	if (mo->compute_corr_lin && mo->corr_lin){
+	if (mo->compute_corr_lin && mo->corr_lin) {
 		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin);
 	}
 
@@ -15875,15 +16059,15 @@ int inla_read_graph(const char *filename)
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename)
 {
-	/* 
-	   just read the hole file into on long character vector
+	/*
+	 * just read the hole file into on long character vector 
 	 */
 
 	FILE *fp;
 	long len;
-	
+
 	fp = fopen(filename, "rb");
-	if (!fp){
+	if (!fp) {
 		return NULL;
 	}
 	fseek(fp, 0L, SEEK_END);
@@ -15899,10 +16083,10 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 
 	return fc;
 }
-int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
+int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 {
-	/* 
-	   just dump the file contents to the new file
+	/*
+	 * just dump the file contents to the new file 
 	 */
 
 	if (!fc) {
@@ -15911,7 +16095,7 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
 
 	FILE *fp;
 	size_t len;
-	
+
 	fp = fopen(filename, "wb");
 	assert(fp);
 	len = fwrite(fc->contents, (size_t) 1, fc->len, fp);
@@ -15982,7 +16166,7 @@ int testit(int argc, char **argv)
 		GMRFLib_matrix_free(M);
 		GMRFLib_matrix_free(N);
 	}
-	
+
 	exit(0);
 }
 
