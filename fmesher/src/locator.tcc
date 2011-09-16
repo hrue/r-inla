@@ -43,13 +43,41 @@ namespace fmesh {
   }
 
   template<class T>
-  BBoxLocator<T>::Search_tree_type::Search_tree_type::Iterator::~Iterator() {
-    if (I_) delete I_;
-    if (SI_) delete SI_;
-    if (SSI_) delete SSI_;
-    if (S_) delete S_;
-    if (SS_) delete SS_;
-    if (SSS_) delete SSS_;
+  BBoxLocator<T>::Search_tree_type::Iterator::~Iterator() {
+  }
+
+
+  template<class T>
+  int BBoxLocator<T>::Search_tree_type::Iterator::operator*() const  {
+    if (search_tree_->use_interval_tree_)
+      switch (search_tree_->ndim_) {
+      case 1: return *I_; break;
+      case 2: return *SI_; break;
+      case 3: return *SSI_; break;
+      }
+    else
+      switch (search_tree_->ndim_) {
+      case 1: return *S_; break;
+      case 2: return *SS_; break;
+      case 3: return *SSS_; break;
+      }
+  }
+
+  template<class T>
+  typename BBoxLocator<T>::Search_tree_type::Iterator& BBoxLocator<T>::Search_tree_type::Iterator::operator++() {
+    if (search_tree_->use_interval_tree_)
+      switch (search_tree_->ndim_) {
+      case 1: next(&I_); break;
+      case 2: next(&SI_); break;
+      case 3: next(&SSI_); break;
+      }
+    else
+      switch (search_tree_->ndim_) {
+      case 1: next(&S_); break;
+      case 2: next(&SS_); break;
+      case 3: next(&SSS_); break;
+      }
+    return *this;
   }
 
 

@@ -37,6 +37,9 @@ namespace fmesh {
   typedef std::vector<bbox_side_type> bbox_side_list_type;
   typedef std::vector<bbox_side_list_type> bbox_type;
 
+
+
+
   template <class T>
   class BBoxLocator {
 
@@ -97,20 +100,26 @@ namespace fmesh {
       {
 	bool is_null_;
 	const Search_tree_type* search_tree_;
-	typename I_type::search_iterator* I_;
-	typename S_type::search_iterator* S_;
-	typename SI_type::search_iterator* SI_;
-	typename SS_type::search_iterator* SS_;
-	typename SSI_type::search_iterator* SSI_;
-	typename SSS_type::search_iterator* SSS_;
+	typename I_type::search_iterator I_;
+	typename S_type::search_iterator S_;
+	typename SI_type::search_iterator SI_;
+	typename SS_type::search_iterator SS_;
+	typename SSI_type::search_iterator SSI_;
+	typename SSS_type::search_iterator SSS_;
 	std::vector<T> loc_;
 
-	template <class TreeType>
-	void init(TreeType* t, typename TreeType::search_iterator** i) {
-	  NOT_IMPLEMENTED;
-	  typename std::vector<T>::const_iterator loc_i = loc_.begin();
-	  (*i) =  new typename TreeType::search_iterator(t, loc_i);
-	};
+  template <class TreeType>
+  void init(TreeType* t, typename TreeType::search_iterator* i) {
+    typename std::vector<T>::const_iterator loc_i = loc_.begin();
+    (*i) = t->search(loc_i);
+    is_null_ = (*i).is_null();
+  };
+  
+  template <class TreeType_iter>
+  void next(TreeType_iter* i) {
+    ++(*i);
+    is_null_ = (*i).is_null();
+  };
 
       public:
 	Iterator(const Search_tree_type* search_tree, const std::vector<T>& loc);
@@ -120,24 +129,21 @@ namespace fmesh {
 	bool is_null() const {
 	  return is_null_;
 	};
-	
+
+	/*	
 	bool operator==(const Iterator& b) const {
 	  NOT_IMPLEMENTED;
 	  return (is_null() == b.is_null());
 	};
+	*/
+	/*
 	bool operator!=(const Iterator& b) const {
 	  return (!(*this == b));
 	};
+	*/
 	
-	int operator*() {
-	  NOT_IMPLEMENTED;
-	  return -1;
-	};
-	Iterator& operator++() {
-	  NOT_IMPLEMENTED;
-	  is_null_ = true;
-	  return (*this);
-	};
+	int operator*() const;
+	Iterator& operator++();
 	
       };
       
