@@ -105,7 +105,7 @@ void map_points_to_mesh(const Mesh& M,
   int t;
   Point s;
   Point b;
-  int the_dimensions[] = {0};
+  int the_dimensions[] = {0,1};
   std::vector<int> dimensions(the_dimensions,
 			      the_dimensions +
 			      sizeof(the_dimensions) / sizeof(int) );

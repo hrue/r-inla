@@ -40,7 +40,7 @@ using namespace fmesh;
     bbox[2][2] = segment_type(1,2);
     bbox[2][3] = segment_type(2,3);
 
-    typedef I_type test_type;
+    typedef SI_type test_type;
     test_type st(bbox.begin());
     std::cout << st;
     st.add_segment(0,4);
@@ -88,12 +88,12 @@ using namespace fmesh;
       Mesh M;
       M.type(fmesh::Mesh::Mtype_sphere);
       //      M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-      M.make_globe(50);
+      M.make_globe(25);
       
       std::cout << M << std::endl;
       
       
-      int the_dimensions[] = {0};
+      int the_dimensions[] = {0,1};
       std::vector<int> dimensions(the_dimensions,
 				  the_dimensions +
 				  sizeof(the_dimensions) / sizeof(int) );
@@ -124,18 +124,16 @@ using namespace fmesh;
       }
       }
 
-      if (false) {
+      if (true) {
 	TriangleLocator locator1(&M, dimensions, true);
 	for (int is=0; is < M.nV(); ++is) {
 	  t = locator1.locate(M.S(is));
-	  /*
-	  std::cout << "Point=" << M.S(is) << std::endl;
+	  //	  std::cout << "Point=" << M.S(is) << std::endl;
 	  if (t<0) {
 	    std::cout << "Triangle not found." << std::endl;
 	  } else {
-	    std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+	    //	    std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
 	  }
-	  */
 	}
       }
 
