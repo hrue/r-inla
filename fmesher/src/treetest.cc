@@ -93,17 +93,52 @@ using namespace fmesh;
       std::cout << M << std::endl;
       
       
-      int the_dimensions[] = {1};
+      int the_dimensions[] = {0};
       std::vector<int> dimensions(the_dimensions,
 				  the_dimensions +
 				  sizeof(the_dimensions) / sizeof(int) );
       
-      TriangleLocator locator1(&M, dimensions, true);
-      //TriangleLocator locator2(&M, dimensions, false);
 
       Point s = Point(1.0,0.0,0.0);
-      int t = locator1.locate(s);
-      std::cout << "Point=" << s << ", triangle=" << t << std::endl;
+      int t = -1;
+
+      if (true) {
+	TriangleLocator locator1(&M, dimensions, true);
+	t = locator1.locate(s);
+	std::cout << "Point=" << s << std::endl;
+	if (t<0) {
+	  std::cout << "Triangle not found." << std::endl;
+	} else {
+	  std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+	}
+      }
+
+      if (false) {
+      TriangleLocator locator2(&M, dimensions, false);
+      t = locator2.locate(s);
+      std::cout << "Point=" << s << std::endl;
+      if (t<0) {
+	std::cout << "Triangle not found." << std::endl;
+      } else {
+	std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+      }
+      }
+
+      if (false) {
+	TriangleLocator locator1(&M, dimensions, true);
+	for (int is=0; is < M.nV(); ++is) {
+	  t = locator1.locate(M.S(is));
+	  /*
+	  std::cout << "Point=" << M.S(is) << std::endl;
+	  if (t<0) {
+	    std::cout << "Triangle not found." << std::endl;
+	  } else {
+	    std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+	  }
+	  */
+	}
+      }
+
 
       /*
       std::cout << locator1;
