@@ -839,12 +839,11 @@ namespace fmesh {
 
     if (type_ == Mesh::Mtype_sphere) {
       /* Need to take curvature into account. */
-      /* Calculate the outward normal(s), calculate length. */
+      /* Calculate a tangent point inside the triangle. */
       Point e0, e1, e2;
       Point n0;
-      Vec::diff(e1,s0,s2);
-      Vec::diff(e2,s1,s0);
-      Vec::diff(n0,e1,e2);
+      Vec::sum(n0,s0,s1);
+      Vec::accum(n0,s2,1.0);
       Vec::rescale(n0,1.0/Vec::length(n0));
       
       /* Radially project points onto tangent plane. */
