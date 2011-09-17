@@ -16,7 +16,7 @@ inla(formula, ..., control.predictor=list( <arg>=<value>[, <arg>=<value>]))
 \item{compute}{  A boolean variable; should the marginals for the linear predictor be computed? (Default FALSE.)}
 \item{cdf}{  A list of values to compute the CDF for the linear predictor}
 \item{quantiles}{  A list of quantiles to compute for the linear predictor}
-\item{cross}{  Cross-sum-to-zero constraints}
+\item{cross}{  Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention).}
 \item{A}{  The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.}
 }
 \seealso{

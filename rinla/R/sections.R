@@ -344,11 +344,14 @@
             stop(paste("Length of cross does not match the total length of predictor", length(predictor.spec$cross), "!=", n+m))
         }
         file.cross = inla.tempfile(tmpdir=data.dir)
-        predictor.spec$cross[is.na(predictor.spec$cross)] = 0
+        ## better to go through factor to get levels 1...ncross. 
+        cross = as.factor(predictor.spec$cross)
+        cross = as.integer(cross)
+        cross[is.na(cross)] = 0L ## means not in use
         if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(predictor.spec$cross, ncol=1), filename=file.cross)
+            inla.write.fmesher.file(as.matrix(cross, ncol=1), filename=file.cross)
         } else {
-            write(predictor.spec$cross, ncol=1, file=file.cross)
+            write(cross, ncol=1, file=file.cross)
         }
 
         fnm = gsub(data.dir, "$inladatadir", file.cross, fixed=TRUE)
