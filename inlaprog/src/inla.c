@@ -6915,7 +6915,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		int nstrata = 0;
 		for (k = 0; k < mb->predictor_ndata; k++) {
-			if (ds->data_observations.weight_tstrata[k] > 0.0) {
+			if (ds->data_observations.d[k]) {
 				nstrata = IMAX(nstrata, (int) ds->data_observations.strata_tstrata[k]);
 			}
 		}
