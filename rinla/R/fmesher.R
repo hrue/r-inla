@@ -1605,7 +1605,7 @@ inla.spde.create.generic =
     else if (!is.matrix(param$basis.T)) {
         len = length(as.vector(param$basis.T))
         if (len == 1L)
-            param$basis.K = matrix(as.vector(param$basis.T), mesh$n, 1)
+            param$basis.T = matrix(as.vector(param$basis.T), mesh$n, 1)
         else
             param$basis.T = as.matrix(param$basis.T)
     }
