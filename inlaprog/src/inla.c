@@ -2342,7 +2342,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
+	double shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
 
 	w = ds->data_observations.iid_gamma_weight[idx];
 	shape = map_exp(ds->data_observations.iid_gamma_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -3814,7 +3814,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, event, truncation, lower, upper, alpha, eta, lprec, prec, sprec;
+	double y, event, truncation, lower, upper, eta, lprec, prec, sprec;
 
 	y = ds->data_observations.y[idx];
 	event = ds->data_observations.event[idx];
@@ -6994,8 +6994,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			if (!ds->data_nfixed[k]) {
-
-				double *ltag;
 
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
@@ -13211,6 +13209,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	double *c = NULL, *x_old = NULL, *x_new = NULL, *b = NULL;
 	int N, i, ii, j, n, count;
 	char *fnm, *msg;
+	ssize_t rw_retval;
 
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
@@ -13749,9 +13748,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			/*
 			 * can use the same vector here, but this enable us to see what is changed. 
 			 */
-			write(fifo_put, all_fifo_put, (N + mb_old->ntheta) * sizeof(double));
-			read(fifo_get, all_fifo_get, (N + mb_old->ntheta) * sizeof(double));
-
+			rw_retval = write(fifo_put, all_fifo_put, (N + mb_old->ntheta) * sizeof(double));
+			assert(rw_retval);
+			rw_retval = read(fifo_get, all_fifo_get, (N + mb_old->ntheta) * sizeof(double));
+			assert(rw_retval);
+			
 			if (mb_old->verbose) {
 				if (0) {
 					for (i = 0; i < N + mb_old->ntheta; i++)
@@ -13777,9 +13778,11 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 					       mb_old->data_sections[i].offset, mb_old->predictor_ndata * sizeof(double));
 				}
 
-				write(fifo_put_data, all_data_fifo_put, dlen * sizeof(double));
-				read(fifo_get_data, all_data_fifo_get, dlen * sizeof(double));
-
+				rw_retval = write(fifo_put_data, all_data_fifo_put, dlen * sizeof(double));
+				assert(rw_retval);
+				rw_retval = read(fifo_get_data, all_data_fifo_get, dlen * sizeof(double));
+				assert(rw_retval);
+				
 				if (mb_old->verbose) {
 					if (0) {
 						for (i = 0; i < dlen; i++)
@@ -14029,7 +14032,6 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 }
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix)
 {
-	FILE *fp;
 	char *fnm, *ndir;
 
 	if (sdir) {
@@ -14112,7 +14114,6 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 		return INLA_OK;
 	}
 
-	FILE *fp;
 	char *fnm, *ndir;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
