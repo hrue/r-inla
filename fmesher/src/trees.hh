@@ -114,6 +114,7 @@ namespace fmesh {
 	return ret;
       }
     public:
+      explicit Iterator() : tree_(NULL), current_(-1) { };
       Iterator(ContainerRefType* tree, int idx=0) : tree_(tree), current_(idx) {
 	if (current_>=tree_->size())
 	  current_ = -1;
@@ -201,15 +202,16 @@ namespace fmesh {
       typedef Search_iterator<T,ContainerType> self_type;
     protected:
       const ContainerType* C_;
-      const T loc_;
+      T loc_;
+      typename std::vector<T>::const_iterator loc_i_;
       typename std::vector<T>::const_iterator loc_next_i_;
       bool is_null_;
     public:
-      /*      Search_iterator() : is_null_(true), C_(NULL),
-			  loc_(), loc_next_i_() {};*/
+      explicit Search_iterator() : is_null_(true), C_(NULL),
+				   loc_(), loc_next_i_() {};
       Search_iterator(const ContainerType* C,
 		      const typename std::vector<T>::const_iterator& loc_i) :
-	is_null_(true), C_(C), loc_(*loc_i), loc_next_i_(loc_i) {
+	is_null_(true), C_(C), loc_(*loc_i), loc_i_(loc_i), loc_next_i_(loc_i) {
 	++loc_next_i_;
       };
 
@@ -272,6 +274,7 @@ namespace fmesh {
       search_iterator& search();
 
     public:
+      explicit search_iterator() : Search_iterator_type() {};
       search_iterator(const SegmentSet< T >* C,
 		      const typename std::vector<T>::const_iterator& loc_i) :
 	Search_iterator_type(C, loc_i), i_(C->data_.begin()) {
@@ -360,7 +363,7 @@ namespace fmesh {
   class greater {
   public:
     bool operator()(const T& a, const T& b) const {
-      return (a>b);
+      return std::less<T>()(b,a);
     };
   };
 
@@ -410,6 +413,7 @@ namespace fmesh {
       search_iterator& search();
 
     public:
+      explicit search_iterator() : Search_iterator_type() {};
       search_iterator(const OrderedSegmentSet< T >* C,
 		      const typename std::vector<T>::const_iterator& loc_i,
 		      const typename map_type::const_iterator& the_begin,
@@ -497,53 +501,10 @@ namespace fmesh {
     tree_type* tree_;
 
     void distribute_breakpoints(typename tree_type::iterator i,
-				typename breakpoints_type::const_iterator& breakpoint) {
-      if (i.current()<0)
-	return;
-      if (i.is_leaf()) {
-	(*i).mid_ = *breakpoint;
-	{
-	  typename breakpoints_type::const_iterator tmp = breakpoint;
-	  ++tmp;
-	  if (tmp !=breakpoints_.end())
-	    breakpoint = tmp;
-	}
-      } else {
-	distribute_breakpoints(i.left(),breakpoint);
-	(*i).mid_ = *breakpoint;
-	{
-	  typename breakpoints_type::const_iterator tmp = breakpoint;
-	  ++tmp;
-	  if (tmp !=breakpoints_.end())
-	    breakpoint = tmp;
-	}
-	distribute_breakpoints(i.right(),breakpoint);
-      }
-    };
-
+				typename breakpoints_type::const_iterator& breakpoint);
     void distribute_segment(typename tree_type::iterator i,
-			    int segm_idx) {
-      if (i.current()<0)
-	return;
-      const segment_type& segm = (*multi_segment_iter_)[segm_idx];
-      if ((segm.first <= (*i).mid_) && (segm.second >= (*i).mid_)) {
-	/* Segment covers the midpoint */
-	(*i).activate_data(multi_segment_iter_);
-	(*i).data_->add_segment(segm_idx);
-      } else if (segm.second < (*i).mid_) {
-	/* Segment completely to the left of the midpoint */
-	distribute_segment(i.left(), segm_idx);
-      } else if (segm.first > (*i).mid_) {
-	/* Segment completely to the right of the midpoint */
-	distribute_segment(i.right(), segm_idx);
-      }
-    };
-    void distribute_segments() {
-      for (typename segment_list_type::const_iterator si = segments_.begin();
-	   si != segments_.end(); ++si) {
-	distribute_segment(tree_->root(), (*si));
-      }
-    }
+			    int segm_idx);
+    void distribute_segments();
 
   public:
     IntervalTree(const typename multi_segment_type::iterator& segm_iter) : multi_segment_iter_(segm_iter), tree_(NULL) {
@@ -555,27 +516,49 @@ namespace fmesh {
       }
     };
 
-    void add_segment(int segm_idx) {
-      const segment_type& segm = (*multi_segment_iter_)[segm_idx];
-      segments_.insert(segments_.end(), segm_idx);
-      breakpoints_.insert(segm.first);
-      breakpoints_.insert(segm.second);
-    };
-    void add_segment(int start_idx, int end_idx) {
-      for (int i=start_idx; i<end_idx; ++i)
-	add_segment(i);
-    };
-    void build_tree() {
-      if (tree_) { delete tree_; tree_ = NULL; }
-      if (breakpoints_.size()==0) {
-	return;
-      }
-      tree_ = new tree_type(breakpoints_.size());
-      typename breakpoints_type::const_iterator bi = breakpoints_.begin();
-      distribute_breakpoints(tree_->root(),bi);
-      distribute_segments();
+    void add_segment(int segm_idx);
+    void add_segment(int start_idx, int end_idx);
+    void build_tree();
+
+    typedef Search_iterator< T, IntervalTree< T > > Search_iterator_type;
+    class search_iterator : public Search_iterator_type {
+      typename tree_type::const_iterator i_;
+      typename data_type::L_search_iterator L_i_;
+      typename data_type::R_search_iterator R_i_;
+      int search_mode_;
+
+    protected:
+      search_iterator& search();
+
+    public:
+      explicit search_iterator() : Search_iterator_type() {};
+      search_iterator(const IntervalTree< T >* C,
+		      const typename std::vector<T>::const_iterator& loc_i) :
+	Search_iterator_type(C, loc_i), i_(C->tree_->root()), L_i_(), R_i_(), search_mode_(0) {
+	this->is_null_ = (i_ == this->C_->tree_->end());
+	search();
+      };
+
+      search_iterator& operator++();
+
+      T operator*() const {
+	if (this->is_null()) {
+	  LOG_("Error: dereferencing a null iterator" << std::endl);
+	}
+	if (search_mode_<0) {
+	  return (*L_i_);
+	} else if (search_mode_>0) {
+	  return (*R_i_);
+	} else {
+	  LOG_("Error: undefined dereferencing" << std::endl);
+	}
+      };
+
     };
 
+    search_iterator search(const typename std::vector<T>::const_iterator& loc_i) const {
+      return search_iterator(this, loc_i);
+    };
 
 
     std::ostream& print_subtree(std::ostream& output,
@@ -594,16 +577,6 @@ namespace fmesh {
       return output;
     };
     
-    typedef Search_iterator< T, IntervalTree< T > > Search_iterator_type;
-    class search_iterator : public Search_iterator_type {
-    public:
-      search_iterator(const IntervalTree< T >* C,
-		      const typename std::vector<T>::const_iterator& loc_i) :
-	Search_iterator_type(C, loc_i) {
-	NOT_IMPLEMENTED;
-      };
-
-    };
     
     template<class VT> friend 
     std::ostream& operator<<(std::ostream& output, IntervalTree<VT>& segm);
@@ -770,15 +743,43 @@ namespace fmesh {
     template<class VT, class STT> friend 
     std::ostream& operator<<(std::ostream& output, SegmentTree<VT,STT>& segm);
 
+
+
+
     typedef Search_iterator< T, SegmentTree< T, SubTreeType > > Search_iterator_type;
     class search_iterator : public Search_iterator_type {
+      typename tree_type::const_iterator i_;
+      typename SubTreeType::search_iterator sub_i_;
+      int search_mode_;
+
+    protected:
+      search_iterator& search();
+
     public:
+      explicit search_iterator() : Search_iterator_type() {};
       search_iterator(const SegmentTree< T, SubTreeType >* C,
 		      const typename std::vector<T>::const_iterator& loc_i) :
-	Search_iterator_type(C, loc_i) {
-	NOT_IMPLEMENTED;
+	Search_iterator_type(C, loc_i), i_(C->tree_->root()), sub_i_(), search_mode_(0) {
+	this->is_null_ = (i_ == this->C_->tree_->end());
+	search();
       };
 
+      search_iterator& operator++();
+
+      T operator*() const {
+	if (this->is_null()) {
+	  LOG_("Error: dereferencing a null iterator" << std::endl);
+	}
+	if (sub_i_.is_null()) {
+	  LOG_("Error: unexpected dereferencing of a null iterator" << std::endl);
+	}
+	return (*sub_i_);
+      };
+
+    };
+
+    search_iterator search(const typename std::vector<T>::const_iterator& loc_i) const {
+      return search_iterator(this, loc_i);
     };
 
   }; // SegmentTree
