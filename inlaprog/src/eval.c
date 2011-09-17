@@ -44,6 +44,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include <muParser/muParserDLL.h>
 
 #include "GMRFLib/GMRFLib.h"
+#include "inla.h"
 #include "eval.h"
 
 /* 
