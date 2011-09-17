@@ -72,8 +72,17 @@ namespace fmesh {
 	 !si.is_null();
 	 ++si) {
       d = mesh_->locate_point(Dart(*mesh_,(*si)),s);
-      if (!d.isnull())
-	return (d.t());
+      if (!d.isnull()) {
+	  Point b;
+	  mesh_->barycentric(Dart(*mesh_,d.t()),s,b);
+	  if ((b[0] >= -10.0*MESH_EPSILON) &&
+	      (b[1] >= -10.0*MESH_EPSILON) &&
+	      (b[2] >= -10.0*MESH_EPSILON))
+	    return (d.t());
+	  else {
+	    LOG("Mesh::locate_point reported incorrect finding." << std::endl);
+	  }
+      }
     }
     return -1;
   }

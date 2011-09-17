@@ -600,6 +600,7 @@ namespace fmesh {
     class node_type {
     public:
       value_type left_;
+      value_type mid_;
       value_type right_;
       SubTreeType* data_;
     public:
@@ -640,8 +641,10 @@ namespace fmesh {
 	++tmp;
 	if (tmp !=breakpoints_.end())
 	  breakpoint = tmp;
+	(*i).mid_ = *breakpoint;
       } else {
 	distribute_breakpoints(i.left(),breakpoint);
+	(*i).mid_ = *breakpoint;
 	distribute_breakpoints(i.right(),breakpoint);
       }
       (*i).right_ = *breakpoint;
@@ -750,7 +753,6 @@ namespace fmesh {
     class search_iterator : public Search_iterator_type {
       typename tree_type::const_iterator i_;
       typename SubTreeType::search_iterator sub_i_;
-      int search_mode_;
 
     protected:
       search_iterator& search();
@@ -759,7 +761,7 @@ namespace fmesh {
       explicit search_iterator() : Search_iterator_type() {};
       search_iterator(const SegmentTree< T, SubTreeType >* C,
 		      const typename std::vector<T>::const_iterator& loc_i) :
-	Search_iterator_type(C, loc_i), i_(C->tree_->root()), sub_i_(), search_mode_(0) {
+	Search_iterator_type(C, loc_i), i_(C->tree_->root()), sub_i_() {
 	this->is_null_ = (i_ == this->C_->tree_->end());
 	search();
       };

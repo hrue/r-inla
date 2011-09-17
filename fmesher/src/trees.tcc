@@ -291,87 +291,42 @@ namespace fmesh {
 
   template < class T, class SubTreeType >
   typename SegmentTree<T,SubTreeType>::search_iterator& SegmentTree<T,SubTreeType>::search_iterator::search() {
-    /*
     this->is_null_ = (i_ == this->C_->tree_->end());
     if (!this->is_null()) {
-      if (search_mode_ == 0) {
-	if (this->loc_ <= (*i_).mid_) {
-	  search_mode_ = -1;
-	  if (!(*i_).data_) {
-	    i_ = i_.left();
-	    search_mode_ = 0;
-	    search();
-	    this->is_null_ = (i_ == this->C_->tree_->end());
-	    return *this;
-	  }
-	  L_i_ = (*i_).data_->L_search(this->loc_i_);
-	  if (L_i_.is_null()) {
-	    i_ = i_.left();
-	    search_mode_ = 0;
-	    search();
-	    this->is_null_ = (i_ == this->C_->tree_->end());
-	    return *this;
-	  }
-	} else {
-	  search_mode_ = +1;
-	  if (!(*i_).data_) {
-	    i_ = i_.right();
-	    search_mode_ = 0;
-	    search();
-	    this->is_null_ = (i_ == this->C_->tree_->end());
-	    return *this;
-	  }
-	  R_i_ = (*i_).data_->R_search(this->loc_i_);
-	  if (R_i_.is_null()) {
-	    i_ = i_.right();
-	    search_mode_ = 0;
-	    search();
-	    this->is_null_ = (i_ == this->C_->tree_->end());
-	    return *this;
-	  }
-	}
-      } else if (search_mode_ < 0) {
-	LOG_("Should not be reached." << std::endl);
-	NOT_IMPLEMENTED;
-	} else { *//* (search_mode_ > 0) *//*
-	LOG_("Should not be reached." << std::endl);
-	NOT_IMPLEMENTED;
+      sub_i_ = typename SubTreeType::search_iterator();
+      if ((*i_).data_) {
+	sub_i_ = (*i_).data_->search(this->loc_next_i_);
       }
-
+      if (sub_i_.is_null()) {
+	if (this->loc_ <= (*i_).mid_)
+	  i_ = i_.left();
+	else
+	  i_ = i_.right();
+	search();
+	this->is_null_ = (i_ == this->C_->tree_->end());
+	return *this;
+      }
       this->is_null_ = (i_ == this->C_->tree_->end());
     }
-*/
-NOT_IMPLEMENTED;
     return *this;
   };
   
   template < class T, class SubTreeType >
   typename SegmentTree<T,SubTreeType>::search_iterator& SegmentTree<T,SubTreeType>::search_iterator::operator++() {
-    // if (!this->is_null()) {
-    //   if (search_mode_<0) { /* Searching left */
-    // 	if (!L_i_.is_null()) {
-    // 	  ++L_i_;
-    // 	}
-    // 	if (L_i_.is_null()) {
-    // 	  i_ = i_.left();
-    // 	  search_mode_ = 0;
-    // 	  this->is_null_ = (i_ == this->C_->tree_->end());
-    // 	} else
-    // 	  return *this;
-    //   } else if (search_mode_>0) { /* Searching right */
-    // 	if (!R_i_.is_null()) {
-    // 	  ++R_i_;
-    // 	}
-    // 	if (R_i_.is_null()) {
-    // 	  i_ = i_.right();
-    // 	  search_mode_ = 0;
-    // 	  this->is_null_ = (i_ == this->C_->tree_->end());
-    // 	} else
-    // 	  return *this;
-    //   }
-    //   search();
-    // }
-    NOT_IMPLEMENTED;
+     if (!this->is_null()) {
+       if (!sub_i_.is_null()) {
+	 ++sub_i_;
+       }
+       if (sub_i_.is_null()) {
+	 if (this->loc_ <= (*i_).mid_)
+	   i_ = i_.left();
+	 else
+	   i_ = i_.right();
+	 search();
+	 this->is_null_ = (i_ == this->C_->tree_->end());
+	 return *this;
+       }
+     }
     return *this;
   }
 
