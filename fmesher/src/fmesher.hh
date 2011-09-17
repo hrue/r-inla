@@ -6,5 +6,6 @@
 #include "meshc.hh"
 #include "ioutils.hh"
 #include "basis.hh"
+#include "locator.hh"
 
 #endif
