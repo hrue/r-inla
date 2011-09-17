@@ -8,13 +8,19 @@
 
 #include "fmesher.hh"
 
+#ifndef WHEREAMI
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
+#endif
 
+#ifndef LOG_
 #define LOG_(msg) cout << WHEREAMI << msg;
+#endif
+#ifndef LOG
 #ifdef DEBUG
 #define LOG(msg) LOG_(msg)
 #else
 #define LOG(msg)
+#endif
 #endif
 
 using std::ios;
@@ -44,6 +50,7 @@ using fmesh::constrMetaT;
 using fmesh::constrT;
 using fmesh::constrListT;
 using fmesh::vertexListT;
+using fmesh::TriangleLocator;
 
 const bool useVT = true;
 const bool useTTi = true;
@@ -94,6 +101,40 @@ void map_points_to_mesh(const Mesh& M,
 			const Matrix<double>& points,
 			Matrix<int>& point2T,
 			Matrix<double>& point2bary)
+{
+  int t;
+  Point s;
+  Point b;
+  int the_dimensions[] = {0};
+  std::vector<int> dimensions(the_dimensions,
+			      the_dimensions +
+			      sizeof(the_dimensions) / sizeof(int) );
+  TriangleLocator locator(&M, dimensions, true);
+
+  for (int i=0; i<points.rows(); i++) {
+    s[0] = points[i][0];
+    s[1] = points[i][1];
+    s[2] = points[i][2];
+    t = locator.locate(s);
+    if (t>=0) { /* Point located. */
+      M.barycentric(Dart(M,t),s,b); /* Coordinates relative to
+					   canonical vertex
+					   ordering. */
+      point2T(i,0) = t;
+      point2bary(i,0) = b[0];
+      point2bary(i,1) = b[1];
+      point2bary(i,2) = b[2];
+    } else { /* Point not found. */
+      point2T(i,0) = -1;
+    }
+  }
+}
+
+
+void map_points_to_mesh_convex(const Mesh& M,
+			       const Matrix<double>& points,
+			       Matrix<int>& point2T,
+			       Matrix<double>& point2bary)
 {
   Dart d0(M);
   Dart d;

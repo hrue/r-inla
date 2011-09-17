@@ -4,7 +4,7 @@
 using namespace fmesh;
 
   int main(void) {
-    if (true) {
+    if (false) {
     SBBTree<double> tree(10);
     SBBTree<double>::iterator i = tree.begin();
     SBBTree<double>::const_iterator ci = tree.begin();
@@ -27,7 +27,7 @@ using namespace fmesh;
     bbox[0].resize(4);
     bbox[1].resize(4);
     bbox[2].resize(4);
-    bbox[0][0] = segment_type(0,0);
+    bbox[0][0] = segment_type(0,5);
     bbox[0][1] = segment_type(0.5,3.2);
     bbox[0][2] = segment_type(2.3,3.4);
     bbox[0][3] = segment_type(0.5,4);
@@ -40,7 +40,7 @@ using namespace fmesh;
     bbox[2][2] = segment_type(1,2);
     bbox[2][3] = segment_type(2,3);
 
-    typedef Simple_type test_type;
+    typedef I_type test_type;
     test_type st(bbox.begin());
     std::cout << st;
     st.add_segment(0,4);
@@ -49,7 +49,7 @@ using namespace fmesh;
 
     std::cout << st;
 
-    Point s = Point(0.5,0.0,0.0);
+    Point s = Point(0.55,0.0,0.0);
     std::vector<double> sv(1);
     sv[0] = s[0];
     {
@@ -73,7 +73,7 @@ using namespace fmesh;
 
   }
 
-    if (false) {
+    if (true) {
     /*
     I_type it(bbox.begin());
     it.add_segment(0,4);
@@ -93,17 +93,52 @@ using namespace fmesh;
       std::cout << M << std::endl;
       
       
-      int the_dimensions[] = {0,1};
+      int the_dimensions[] = {0};
       std::vector<int> dimensions(the_dimensions,
 				  the_dimensions +
 				  sizeof(the_dimensions) / sizeof(int) );
       
-      TriangleLocator locator1(&M, dimensions, true);
-      //TriangleLocator locator2(&M, dimensions, false);
 
       Point s = Point(1.0,0.0,0.0);
-      int t = locator1.locate(s);
-      std::cout << "Point=" << s << ", triangle=" << t << std::endl;
+      int t = -1;
+
+      if (true) {
+	TriangleLocator locator1(&M, dimensions, true);
+	t = locator1.locate(s);
+	std::cout << "Point=" << s << std::endl;
+	if (t<0) {
+	  std::cout << "Triangle not found." << std::endl;
+	} else {
+	  std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+	}
+      }
+
+      if (false) {
+      TriangleLocator locator2(&M, dimensions, false);
+      t = locator2.locate(s);
+      std::cout << "Point=" << s << std::endl;
+      if (t<0) {
+	std::cout << "Triangle not found." << std::endl;
+      } else {
+	std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+      }
+      }
+
+      if (false) {
+	TriangleLocator locator1(&M, dimensions, true);
+	for (int is=0; is < M.nV(); ++is) {
+	  t = locator1.locate(M.S(is));
+	  /*
+	  std::cout << "Point=" << M.S(is) << std::endl;
+	  if (t<0) {
+	    std::cout << "Triangle not found." << std::endl;
+	  } else {
+	    std::cout << "Triangle #" << t << " (" << M.TV(t)[0] << "," << M.TV(t)[1] << "," << M.TV(t)[2] << ")" << std::endl;
+	  }
+	  */
+	}
+      }
+
 
       /*
       std::cout << locator1;

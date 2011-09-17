@@ -120,6 +120,262 @@ namespace fmesh {
 
 
 
+
+  template <class T>
+  void IntervalTree<T>::distribute_breakpoints(typename tree_type::iterator i,
+					       typename breakpoints_type::const_iterator& breakpoint)
+  {
+    if (i.current()<0)
+      return;
+    if (i.is_leaf()) {
+      (*i).mid_ = *breakpoint;
+      {
+	typename breakpoints_type::const_iterator tmp = breakpoint;
+	++tmp;
+	if (tmp !=breakpoints_.end())
+	  breakpoint = tmp;
+      }
+    } else {
+      distribute_breakpoints(i.left(),breakpoint);
+      (*i).mid_ = *breakpoint;
+      {
+	typename breakpoints_type::const_iterator tmp = breakpoint;
+	++tmp;
+	if (tmp !=breakpoints_.end())
+	  breakpoint = tmp;
+      }
+      distribute_breakpoints(i.right(),breakpoint);
+    }
+  }
+  
+  template <class T>
+  void IntervalTree<T>::distribute_segment(typename tree_type::iterator i,
+					   int segm_idx)
+  {
+    if (i.current()<0)
+      return;
+    const segment_type& segm = (*multi_segment_iter_)[segm_idx];
+    if ((segm.first <= (*i).mid_) && (segm.second >= (*i).mid_)) {
+      /* Segment covers the midpoint */
+      (*i).activate_data(multi_segment_iter_);
+      (*i).data_->add_segment(segm_idx);
+    } else if (segm.second < (*i).mid_) {
+      /* Segment completely to the left of the midpoint */
+      distribute_segment(i.left(), segm_idx);
+    } else if (segm.first > (*i).mid_) {
+      /* Segment completely to the right of the midpoint */
+      distribute_segment(i.right(), segm_idx);
+    }
+  }
+  
+  template <class T>
+  void IntervalTree<T>::distribute_segments()
+  {
+    for (typename segment_list_type::const_iterator si = segments_.begin();
+	 si != segments_.end(); ++si) {
+      distribute_segment(tree_->root(), (*si));
+    }
+  }
+
+  template <class T>
+  void IntervalTree<T>::add_segment(int segm_idx)
+  {
+    const segment_type& segm = (*multi_segment_iter_)[segm_idx];
+    segments_.insert(segments_.end(), segm_idx);
+    breakpoints_.insert(segm.first);
+    breakpoints_.insert(segm.second);
+  }
+
+  template <class T>
+  void IntervalTree<T>::add_segment(int start_idx, int end_idx)
+  {
+    for (int i=start_idx; i<end_idx; ++i)
+      add_segment(i);
+  }
+  template <class T>
+  void IntervalTree<T>::build_tree()
+  {
+    if (tree_) { delete tree_; tree_ = NULL; }
+    if (breakpoints_.size()==0) {
+      return;
+    }
+    tree_ = new tree_type(breakpoints_.size());
+    typename breakpoints_type::const_iterator bi = breakpoints_.begin();
+    distribute_breakpoints(tree_->root(),bi);
+    distribute_segments();
+  }
+
+
+  template < class T >
+  typename IntervalTree<T>::search_iterator& IntervalTree<T>::search_iterator::search() {
+    this->is_null_ = (i_ == this->C_->tree_->end());
+    if (!this->is_null()) {
+      if (search_mode_ == 0) {
+	if (this->loc_ <= (*i_).mid_) {
+	  search_mode_ = -1;
+	  if (!(*i_).data_) {
+	    i_ = i_.left();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	  L_i_ = (*i_).data_->L_search(this->loc_i_);
+	  if (L_i_.is_null()) {
+	    i_ = i_.left();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	} else {
+	  search_mode_ = +1;
+	  if (!(*i_).data_) {
+	    i_ = i_.right();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	  R_i_ = (*i_).data_->R_search(this->loc_i_);
+	  if (R_i_.is_null()) {
+	    i_ = i_.right();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	}
+      } else if (search_mode_ < 0) {
+	LOG_("Should not be reached." << std::endl);
+	NOT_IMPLEMENTED;
+      } else { /* (search_mode_ > 0) */
+	LOG_("Should not be reached." << std::endl);
+	NOT_IMPLEMENTED;
+      }
+
+      this->is_null_ = (i_ == this->C_->tree_->end());
+    }
+    return *this;
+  };
+  
+  template < class T >
+  typename IntervalTree<T>::search_iterator& IntervalTree<T>::search_iterator::operator++() {
+    if (!this->is_null()) {
+      if (search_mode_<0) { /* Searching left */
+	if (!L_i_.is_null()) {
+	  ++L_i_;
+	}
+	if (L_i_.is_null()) {
+	  i_ = i_.left();
+	  search_mode_ = 0;
+	  this->is_null_ = (i_ == this->C_->tree_->end());
+	} else
+	  return *this;
+      } else if (search_mode_>0) { /* Searching right */
+	if (!R_i_.is_null()) {
+	  ++R_i_;
+	}
+	if (R_i_.is_null()) {
+	  i_ = i_.right();
+	  search_mode_ = 0;
+	  this->is_null_ = (i_ == this->C_->tree_->end());
+	} else
+	  return *this;
+      }
+      search();
+    }
+    return *this;
+  }
+
+
+  template < class T, class SubTreeType >
+  typename SegmentTree<T,SubTreeType>::search_iterator& SegmentTree<T,SubTreeType>::search_iterator::search() {
+    /*
+    this->is_null_ = (i_ == this->C_->tree_->end());
+    if (!this->is_null()) {
+      if (search_mode_ == 0) {
+	if (this->loc_ <= (*i_).mid_) {
+	  search_mode_ = -1;
+	  if (!(*i_).data_) {
+	    i_ = i_.left();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	  L_i_ = (*i_).data_->L_search(this->loc_i_);
+	  if (L_i_.is_null()) {
+	    i_ = i_.left();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	} else {
+	  search_mode_ = +1;
+	  if (!(*i_).data_) {
+	    i_ = i_.right();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	  R_i_ = (*i_).data_->R_search(this->loc_i_);
+	  if (R_i_.is_null()) {
+	    i_ = i_.right();
+	    search_mode_ = 0;
+	    search();
+	    this->is_null_ = (i_ == this->C_->tree_->end());
+	    return *this;
+	  }
+	}
+      } else if (search_mode_ < 0) {
+	LOG_("Should not be reached." << std::endl);
+	NOT_IMPLEMENTED;
+	} else { *//* (search_mode_ > 0) *//*
+	LOG_("Should not be reached." << std::endl);
+	NOT_IMPLEMENTED;
+      }
+
+      this->is_null_ = (i_ == this->C_->tree_->end());
+    }
+*/
+NOT_IMPLEMENTED;
+    return *this;
+  };
+  
+  template < class T, class SubTreeType >
+  typename SegmentTree<T,SubTreeType>::search_iterator& SegmentTree<T,SubTreeType>::search_iterator::operator++() {
+    // if (!this->is_null()) {
+    //   if (search_mode_<0) { /* Searching left */
+    // 	if (!L_i_.is_null()) {
+    // 	  ++L_i_;
+    // 	}
+    // 	if (L_i_.is_null()) {
+    // 	  i_ = i_.left();
+    // 	  search_mode_ = 0;
+    // 	  this->is_null_ = (i_ == this->C_->tree_->end());
+    // 	} else
+    // 	  return *this;
+    //   } else if (search_mode_>0) { /* Searching right */
+    // 	if (!R_i_.is_null()) {
+    // 	  ++R_i_;
+    // 	}
+    // 	if (R_i_.is_null()) {
+    // 	  i_ = i_.right();
+    // 	  search_mode_ = 0;
+    // 	  this->is_null_ = (i_ == this->C_->tree_->end());
+    // 	} else
+    // 	  return *this;
+    //   }
+    //   search();
+    // }
+    NOT_IMPLEMENTED;
+    return *this;
+  }
+
+
 } /* namespace fmesh */
 
 #endif

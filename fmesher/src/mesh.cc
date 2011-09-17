@@ -832,7 +832,37 @@ namespace fmesh {
     int v1 = dh.v();
     dh.orbit2();
     int v2 = dh.v();
-    Mesh::triangleBoundingBox(S_[v0],S_[v1],S_[v2],mini,maxi);
+    const Point& s0 = S_[v0];
+    const Point& s1 = S_[v1];
+    const Point& s2 = S_[v2];
+    Mesh::triangleBoundingBox(s0,s1,s2,mini,maxi);
+
+    if (type_ == Mesh::Mtype_sphere) {
+      /* Need to take curvature into account. */
+      /* Calculate the outward normal(s), calculate length. */
+      Point e0, e1, e2;
+      Point n0;
+      Vec::diff(e1,s0,s2);
+      Vec::diff(e2,s1,s0);
+      Vec::diff(n0,e1,e2);
+      Vec::rescale(n0,1.0/Vec::length(n0));
+      
+      /* Radially project points onto tangent plane. */
+      /* s0_ = x0*s0,  (x0*s0-n0)*n0 = 0,  x0 = 1/(s0*n0) */
+      Vec::scale(e0, s0, 1.0/Vec::scalar(s0,n0));
+      Vec::scale(e1, s1, 1.0/Vec::scalar(s1,n0));
+      Vec::scale(e2, s2, 1.0/Vec::scalar(s2,n0));
+
+      /* Calculate bounding box in tangent plane. */
+      Point mini2, maxi2;
+      Mesh::triangleBoundingBox(e0,e1,e2,mini2,maxi2);
+
+      /* Calculate joint bounding box. */
+      for (int d=0; d<3; d++) {
+	mini[d] = ( mini[d] < mini2[d] ? mini[d] : mini2[d] );
+	maxi[d] = ( maxi[d] > maxi2[d] ? maxi[d] : maxi2[d] );
+      }
+    }
   }
 
   double Mesh::triangleArea(int t) const

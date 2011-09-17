@@ -2,6 +2,7 @@ require(rgl)
 require(INLA)
 require(lattice)
 source("utils.R")
+inla.setOption("fmesher.call", "/home/finnkrl/local/bin/fmesher")
 
 ## Read data:
 map = read.table("Leuk.map")
