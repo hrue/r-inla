@@ -64,35 +64,42 @@ static unsigned char debug = 0;
 /* 
    local functions...
  */
-double Gamma(double arg);
-double LogGamma(double arg);
-double Return(double v);
-double Not(double v);
-void OnError(muParserHandle_t hParser);
-int set_free_variable(muParserHandle_t a_hParser, double *x);
-muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData);
+double inla_eval_Gamma(double arg);
+double inla_eval_LogGamma(double arg);
+double inla_eval_Return(double v);
+double inla_eval_Not(double v);
+void inla_eval_OnError(muParserHandle_t hParser);
+muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData);
+double inla_eval_digamma(double arg);
+double inla_eval_trigamma(double arg);
 
-double Gamma(double arg)
+double inla_eval_Gamma(double arg)
 {
 	return exp(gsl_sf_lngamma(arg));
 }
-
-double LogGamma(double arg)
+double inla_eval_LogGamma(double arg)
 {
 	return gsl_sf_lngamma(arg);
 }
-
-double Return(double v)
+double inla_eval_digamma(double arg)
+{
+	return gsl_sf_psi(arg);
+}
+double inla_eval_trigamma(double arg)
+{
+	return gsl_sf_psi_1(arg);
+}
+double inla_eval_Return(double v)
 {
 	return v;
 }
 
-double Not(double v)
+double inla_eval_Not(double v)
 {
 	return v == 0.0;
 }
 
-void OnError(muParserHandle_t hParser)
+void inla_eval_OnError(muParserHandle_t hParser)
 {
 	fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
 	fprintf(stderr, "----------\n");
@@ -103,7 +110,7 @@ void OnError(muParserHandle_t hParser)
 	exit(1);
 }
 
-muFloat_t *AddVariable(const muChar_t * a_szName, void *pUserData)
+muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
 	if (*aa == NULL) {
@@ -149,16 +156,18 @@ double inla_eval(char *expression, double *x)
 		}
 
 		hParser = mupCreate();
-		mupSetErrorHandler(hParser, OnError);
+		mupSetErrorHandler(hParser, inla_eval_OnError);
 
 		mupSetArgSep(hParser, ';');
 		mupSetDecSep(hParser, '.');
 		mupSetThousandsSep(hParser, 0);
 		mupDefineConst(hParser, "pi", M_PI);
-		mupDefineInfixOprt(hParser, "!", Not, 0);
-		mupDefineFun1(hParser, "return", Return, 1);
-		mupDefineFun1(hParser, "gamma", Gamma, 1);
-		mupDefineFun1(hParser, "lgamma", LogGamma, 1);
+		mupDefineInfixOprt(hParser, "!", inla_eval_Not, 0);
+		mupDefineFun1(hParser, "return", inla_eval_Return, 1);
+		mupDefineFun1(hParser, "gamma", inla_eval_Gamma, 1);
+		mupDefineFun1(hParser, "lgamma", inla_eval_LogGamma, 1);
+		mupDefineFun1(hParser, "digamma", inla_eval_digamma, 1);
+		mupDefineFun1(hParser, "trigamma", inla_eval_trigamma, 1);
 		mupDefineFun1(hParser, "log", log, 1);
 		mupDefineFun1(hParser, "log10", log10, 1);
 		mupDefineFun1(hParser, "ln", log, 1);
@@ -168,7 +177,7 @@ double inla_eval(char *expression, double *x)
 
 		keep_vars = Calloc(1, eval_keep_vars_tp);
 		keep_vars->default_value = *x;
-		mupSetVarFactory(hParser, AddVariable, (void *) &keep_vars);
+		mupSetVarFactory(hParser, inla_eval_AddVariable, (void *) &keep_vars);
 		mupSetExpr(hParser, (muChar_t *)expression);
 		value = (double) mupEval(hParser);
 

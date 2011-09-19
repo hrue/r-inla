@@ -40,7 +40,11 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS double inla_eval(char *expression, double *x);
+__BEGIN_DECLS
+
+// 
+
+double inla_eval(char *expression, double *x);
 
 __END_DECLS
 #endif
