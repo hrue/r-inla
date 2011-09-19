@@ -1406,6 +1406,23 @@ double Qfunc_ar1(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
+{
+	double df = exp(x[0]);
+	double value, log_jacobian;
+	
+#define DIGAMMA(xx) gsl_sf_psi(xx)
+#define TRIGAMMA(xx) gsl_sf_psi_1(xx)
+
+	value = 0.5 * log(df/(df+3.0)) +
+		0.5 * log(TRIGAMMA(df/2.0) - TRIGAMMA((df+1.0)/2.0) - 2.0*(df+3.0)/(df * SQR(df+1.0)))
+		- log(0.7715233664);			       /* normalising constant: computed in R from 2 to infinity */
+	
+	log_jacobian = x[0];				       /* log(df) = theta */
+	return value + log_jacobian;
+#undef DIGAMMA
+#undef TRIGAMMA
+}
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid)
 {
 	/*
@@ -4647,6 +4664,13 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
 		}
 
+	} else if (!strcasecmp(prior->name, "JEFFREYSTDF")) {
+		prior->id = P_JEFFREYS_T_DF;
+		prior->priorfunc = priorfunc_jeffreys_df_student_t;
+		prior->parameters = NULL;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[NULL]\n", prior_tag, param_tag);
+		}
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, prior_tag, prior->name);
 	}

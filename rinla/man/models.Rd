@@ -3759,6 +3759,8 @@ inla.models()
 				 }
 				\item{Model `betacorrelation'.}{					 Number of parameters in the prior = 2 
 				 }
+				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
+				 }
 				\item{Model `expression:'.}{					 Number of parameters in the prior = -1 
 				 }
 			 }

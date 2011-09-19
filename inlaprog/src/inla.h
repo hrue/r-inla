@@ -331,6 +331,7 @@ typedef enum {
 	P_NONE,
 	P_BETACORRELATION,
 	P_EXPRESSION,
+	P_JEFFREYS_T_DF, 
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -863,6 +864,7 @@ double priorfunc_normal(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart2d(double *x, double *parameters);
 double priorfunc_wishart3d(double *x, double *parameters);
+double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
 int count_f(inla_tp * mb, inla_component_tp id);

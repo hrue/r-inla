@@ -22,8 +22,14 @@
         ## these are for "expression:"...
         ## if there are newlines,  remove them
         tmp.prior = gsub("\n", "", hyper[[k]]$prior)
-        ## if the expression ends with a ";",  remove it
-        tmp.prior = gsub(";[ \t]*$", "", tmp.prior)
+        ## remove preceding spaces
+        tmp.prior = gsub("^[ \t]+", "", tmp.prior)
+        ## if the expression ends with a ";" with or without spaces, remove it
+        tmp.prior = gsub(";*[ \t]*$", "", tmp.prior)
+        ## for all priors except the "expression:" one,  then trim the name
+        if (length(grep("^expression[ \t]*:", tolower(tmp.prior))) == 0L) {
+            tmp.prior = inla.trim.family(tmp.prior)
+        }
         cat(prefix, "prior",      suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
