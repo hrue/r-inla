@@ -3121,6 +3121,11 @@
                       pdf = "betacorrelation"
                       ),
 
+              jeffreystdf = list(
+                      nparameters = 0L,
+                      pdf = "jeffreystdf"
+                      ), 
+
               "expression:" = list(
                   nparameters = -1L,
                   pdf = "expression"
@@ -3305,6 +3310,9 @@
     }
     k = grep(paste("^", m, "$", sep=""), ms)
     if (length(k) == 0L) {
+        if (stop.on.error) {
+            stop(paste("Name '", model,  "' is unknown. Valid choices are: ", inla.paste(ms), ".", sep=""))
+        }
         return (NULL)
     } else {
         return (models[[k]])
