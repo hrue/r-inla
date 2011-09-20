@@ -703,6 +703,7 @@
     cont.fixed[names(control.fixed)] = control.fixed
 
     ## control.data
+    control.data.orig = control.data
     if (n.family == 1) {
         if (!missing(control.data) && (inla.is.list.of.lists(control.data) && length(control.data) > 1))
             stop(paste("Argument control.data does not match length(family)=", n.family))
@@ -1645,11 +1646,19 @@
             ret$control.compute=cont.compute
             ret$control.predictor=cont.pred
             ret$control.lincomb = control.lincomb
-            if (n.family == 1) {
-                ret$control.data=cont.data[[1]]
+
+            if (TRUE) {
+                ## do this instead. until the c(param = numeric(0)) issue is solved. 
+                ret$control.data = control.data.orig
             } else {
-                ret$control.data=cont.data
-            }                
+                stop("THIS SHOULD NOT HAPPEN.")
+                if (n.family == 1) {
+                    ret$control.data=cont.data[[1]]
+                } else {
+                    ret$control.data=cont.data
+                }
+            }
+
             ret$control.inla=cont.inla
             ret$control.results = cont.result
             ret$control.fixed = cont.fixed
