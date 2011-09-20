@@ -8,6 +8,7 @@
              plot.predictor = TRUE,
              plot.q = TRUE,
              plot.cpo = TRUE,
+             single = FALSE, 
              ...)
 {
     if (plot.fixed.effects) {
@@ -16,7 +17,7 @@
         labels.fix = names(x$marginals.fixed)
         nf = length(labels.fix)
         if (nf>0) {
-            if (nf == 1) {
+            if (nf == 1 || single) {
                 plot.layout = c(1, 1)
             } else if (nf == 2) {
                 plot.layout = c(2, 1)
@@ -50,7 +51,7 @@
         labels.fix = names(x$marginals.lincomb.derived)
         nf = length(labels.fix)
         if (nf>0) {
-            if (nf == 1) {
+            if (nf == 1 || single) {
                 plot.layout = c(1, 1)
             } else if (nf == 2) {
                 plot.layout = c(2, 1)
@@ -89,7 +90,7 @@
         }
         nf = length(labels.fix)
         if (nf>0) {
-            if (nf == 1) {
+            if (nf == 1 || single) {
                 plot.layout = c(1, 1)
             } else if (nf == 2) {
                 plot.layout = c(2, 1)
@@ -139,7 +140,7 @@
 
                     ## determine the plot-layout here
                     nrr = ngroup*nrep
-                    if (nrr == 1) {
+                    if (nrr == 1 || single) {
                         plot.layout = c(1, 1)
                     } else if (nrr == 2) {
                         plot.layout = c(2, 1)
@@ -273,7 +274,7 @@
         if (!is.null(hyper)) {
             nhyper = length(hyper)
 
-            if (nhyper == 1) {
+            if (nhyper == 1 || single) {
                 plot.layout = c(1, 1)
             } else if (nhyper == 2) {
                 plot.layout = c(2, 1)
@@ -341,7 +342,11 @@
                 if (!is.null(lp)) {
                     dev.new()
                     if (!is.null(fv)) {
-                        par(mfrow=c(2, 1))
+                        if (single) {
+                            par(mfrow=c(1, 1))
+                        } else {
+                            par(mfrow=c(2, 1))
+                        }
                     }
                     plot(plot.idx, lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx, names(lp) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
                     lq = grep("quan", colnames(lp))
@@ -380,7 +385,11 @@
     }
     if (plot.q && !is.null(x$Q.matrix)) {
         dev.new()
-        par(mfrow = c(2, 2))
+        if (single) {
+            par(mfrow = c(1, 1))
+        } else {
+            par(mfrow = c(2, 2))
+        }
         if (!is.null(x$Q.matrix)) {
             if (class(x$Q.matrix) == "matrix") {
                 image(x$Q.matrix, main = "The precision matrix")
@@ -424,7 +433,11 @@
     if (plot.cpo) {
         if (!is.null(x$pit) || !is.null(x$cpo)) {
             dev.new()
-            par(mfrow=c(2, 2))
+            if (single) {
+                par(mfrow=c(1, 1))
+            } else {
+                par(mfrow=c(2, 2))
+            }
         }
         if (!is.null(x$pit)) {
             ## if the observational model is discrete then do some
