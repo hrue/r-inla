@@ -1235,10 +1235,8 @@
                         covariate[[r]] = cov
                     } else {
                         ## all combinations not covered above is not allowed. 
-                        stop(paste("In f(", gp$random.spec[[r]]$term, "): typeof(covariate) must match the typeof(values)",
-                                   ",  and both must either be 'numeric', or 'factor'/'character'.\n  You have",
-                                   " typeof(covariate) = '", typeof(xx),"' while typeof(values) = '", typeof(gp$random.spec[[r]]$values), "'.",
-                                   sep=""))
+                        stop(paste("In f(", gp$random.spec[[r]]$term, "): 'covariate' must match 'values'",
+                                   ",  and both must either be 'numeric', or 'factor'/'character'.",  sep=""))
                     }
                 } else {
                     ## values are not given. then 'values' depends on the type of the covariate.
@@ -1252,7 +1250,7 @@
                         gp$random.spec[[r]]$id.names = NULL
                         location[[r]] = sort(unique(xx))
                     } else {
-                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate is of unknown type:", typeof(xx), ".",  sep=""))
+                        stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate is not of type 'factor', 'character' or 'numeric'.",  sep=""))
                     }
 
                     cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1L)*N, 0L)
