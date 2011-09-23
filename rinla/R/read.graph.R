@@ -100,28 +100,33 @@
 }
 
 ## I add here some tools to view and summarize a such graphs...
-
-`plot.inla.graph` = function(graph, attrs = getDefaultAttrs(),  scale = 0.5, ...)
+plot.inla.graph = function(
+        graph,
+        attrs = getDefaultAttrs(layoutType = "neato"),
+        scale = 0.5,
+        node.names = NULL,
+        ...) 
 {
     require(Rgraphviz) || stop("Need library 'Rgraphviz' from the Bioconductor package")
     require(graph) || stop("Need library 'graph'")
 
-    g <- new("graphNEL", nodes = as.character(1:graph$n), edgemode = "undirected")
-
-    for(i in 1L:graph$n) {
+    if (!is.null(node.names)) {
+        stopifnot(length(node.names) == graph$n)
+    } else {
+        node.names = as.character(1:graph$n)
+    }
+    g <- new("graphNEL", nodes = node.names, edgemode = "undirected")
+    for (i in 1L:graph$n) {
         if (graph$nnbs[i] > 0) {
             j = graph$nbs[[i]]
-            j = j[ j > i ]
+            j = j[j > i]
             if (length(j) > 0) {
-                g = addEdge(as.character(i),  as.character(j), g)
+                g = addEdge(node.names[i], node.names[j], g)
             }
         }
     }
-
-    ## these attributes are scaled
     attrs$node$height = as.numeric(attrs$node$height) * scale
     attrs$node$width = as.numeric(attrs$node$width) * scale
-    
     plot(g, "neato", attrs = attrs, ...)
 }
 
