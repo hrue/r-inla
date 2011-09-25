@@ -530,7 +530,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	ai_store->bb = Calloc(n, double);
 	ai_store->cc = Calloc(n, double);
 
-
 	/*
 	 * tabulate the Qfunction, which speedup... 
 	 */
@@ -2530,7 +2529,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	GMRFLib_problem_tp *lproblem = NULL;
 	double *mode_initial = Calloc(n, double);
-	double err_first = 0;
+	double err_previous = 0;
 
 	memcpy(mode_initial, mode, n * sizeof(double));	       /* store the starting value */
 
@@ -2614,11 +2613,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		err = sqrt(err / n);
 
 		if (iter == 0) {
-			err_first = err;
+			err_previous = err;
 		} else {
-			if (err > 10.0 * err_first) {
+			if (err > 2.0 * err_previous) {
 				iter += itmax;		       /* so we can restart... */
 			}
+			err_previous = err;
 		}
 
 		if (optpar && optpar->fp)
@@ -2673,13 +2673,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		GMRFLib_optimize_param_tp new_optpar;
 
 		memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
-		new_optpar.nr_step_factor /= 10;
-		new_optpar.max_iter *= 5;
+		new_optpar.nr_step_factor /= 2.0;
+		new_optpar.max_iter *= 10;
 		if (new_optpar.fp) {
-			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %f\n",
+			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %g\n",
 				__GMRFLib_FuncName, new_optpar.nr_step_factor);
 		}
-		if (new_optpar.nr_step_factor < 0.00001) {
+		if (new_optpar.nr_step_factor < 1e-8) {
 			return GMRFLib_EOPTNR;
 		} else {
 			return GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,

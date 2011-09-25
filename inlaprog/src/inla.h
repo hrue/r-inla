@@ -367,6 +367,7 @@ typedef struct {
 	int n;
 	double *eigenvalues;
 	double max_eigenvalue;
+	double min_eigenvalue;
 } Generic1_tp;
 
 typedef struct {
