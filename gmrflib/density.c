@@ -907,6 +907,7 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		*xp = density->mean + density->stdev * gsl_cdf_ugaussian_Pinv(p);
 	} else {
+		GMRFLib_ASSERT(density->Pinv, GMRFLib_ESNH);
 		if (density->Pinv->spline) {
 			*xp = gsl_spline_eval(density->Pinv->spline, p, density->Pinv->accel);
 		} else {

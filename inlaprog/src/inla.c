@@ -1411,6 +1411,7 @@ double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 	double df = exp(x[0]);
 	double value, log_jacobian;
 	
+	if (1){
 #define DIGAMMA(xx) gsl_sf_psi(xx)
 #define TRIGAMMA(xx) gsl_sf_psi_1(xx)
 
@@ -1422,6 +1423,11 @@ double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 	return value + log_jacobian;
 #undef DIGAMMA
 #undef TRIGAMMA
+	} else {
+		value = log(1/df);
+		log_jacobian = x[0];
+		return value + log_jacobian;
+	}
 }
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid)
 {
@@ -2645,6 +2651,36 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
+
+	if (0) {
+		static int first = 1;
+		if (first){
+			first = 0;
+
+			Data_section_tp *ds = (Data_section_tp *) arg;
+			ds->data_observations.y[idx] = 0.0;
+			double w = ds->data_observations.weight_tstrata[idx];
+			int strata = (int) ds->data_observations.strata_tstrata[idx];
+
+			ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0] = log(1.3);
+			double prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+			ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0] = log(14.0 -2.0);
+
+			FILE *fp = fopen("l.dat", "w");
+			double xx, ll;
+			for(xx = -20.0/sqrt(prec);  xx < 20.0/sqrt(prec);  xx += 0.0001/sqrt(prec)){
+				loglikelihood_tstrata(&ll, &xx, 1, idx, NULL, arg);
+				//printf("xx %.12g ll %.12g\n", xx, ll);
+				fprintf(fp, "xx %.20g ll %.20g\n", xx, ll);
+			}
+			fclose(fp);
+		
+			exit(0);
+		}
+	}
+
+
 	int i, strata;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
@@ -2652,19 +2688,66 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_tstrata[idx];
-	strata = (int) ds->data_observations.strata_tstrata[idx];
+	strata = (int) (ds->data_observations.strata_tstrata[idx] + FLT_EPSILON);
 	prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-	fac = sqrt((dof / (dof - 2.0)) * prec);
+
+	//printf("idx y x strata prec %d %g %g %d %g\n", idx, y, x[0], strata, prec);
+
+	fac = sqrt(prec);
+	//fac = sqrt((dof / (dof - 2.0)) * prec);
+
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
+	double tail_start = 0.99*sqrt(dof);
+	double tail_prec = (dof+1.0)*(dof - SQR(tail_start))/SQR(dof + SQR(tail_start));
+	double diff = -(dof + 1) * tail_start / (dof + SQR(tail_start));
+	double dev;
+
+	//tail_start = 1000000;
+	
+	//P(tail_prec);
+	//P(diff);
+
 	if (m > 0) {
+		double log_normc, normc1, log_normc2, eff, ef;
+
+		normc1 = 2.0 * gsl_cdf_tdist_P(tail_start, dof) - 1.0;
+		log_normc2 = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac)
+			- 0.5*log(2.0) + 0.5 * log(M_PI/tail_prec)
+			+ 0.5 * SQR(diff)/tail_prec;
+
+		eff = diff/sqrt(2.0*tail_prec);
+		ef = gsl_sf_erf(eff);
+		if (ef == -1.0){
+			log_normc2 += -SQR(eff) - 0.5*log(M_PI) - log(-eff) -1.0/(2.0*SQR(eff));
+		} else if (ef == 1.0) {
+			log_normc2 += log(2.0) - 1.0/(2.0*sqrt(M_PI)*(eff)) * exp(-SQR(eff));
+		} else {
+			log_normc2 += log(ef + 1.0);
+		}
+		log_normc = log(normc1 + 2.0*exp(log_normc2));
+
 		for (i = 0; i < m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 			y_std = (y - ypred) * fac;
-			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+			if (ABS(y_std) > tail_start) {
+				if (y_std > tail_start) {
+					dev = y_std - tail_start;
+				} else {
+					dev = y_std + tail_start;
+					diff *= -1.0;	       /* swap sign */
+				}
+				logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac);
+				logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
+			} else {
+				logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+				//logll[i] += -0.5 * tail_prec * SQR(y_std); /* ADD HERE!! */
+			}
+			logll[i] -= log_normc;	
 		}
 	} else {
+		FIXME1("PIT-VALUES ARE NOT YET CORRECT!!!!");
 		for (i = 0; i < -m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 			logll[i] = gsl_cdf_tdist_P((y - ypred) * fac, dof);
@@ -8488,10 +8571,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			gsl_eigen_symm(C, evalues, w);
 			arg->eigenvalues = Calloc(nn, double);
-			arg->max_eigenvalue = 0.0;
+			arg->max_eigenvalue = arg->eigenvalues[0];
+			arg->min_eigenvalue = arg->eigenvalues[0];
 			for (i = 0; i < nn; i++) {
 				arg->eigenvalues[i] = gsl_vector_get(evalues, i);
 				arg->max_eigenvalue = DMAX(arg->max_eigenvalue, arg->eigenvalues[i]);
+				arg->min_eigenvalue = DMIN(arg->min_eigenvalue, arg->eigenvalues[i]);
 			}
 			assert(arg->max_eigenvalue > 0.0);
 			gsl_eigen_symm_free(w);
@@ -8499,7 +8584,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			gsl_vector_free(evalues);
 
 			if (mb->verbose) {
-				printf("\t\tMaxmimum eigenvalue = %g\n", arg->max_eigenvalue);
+				printf("\t\tMaxmimum eigenvalue = %.12g\n", arg->max_eigenvalue);
+				printf("\t\tMinimum  eigenvalue = %.12g\n", arg->min_eigenvalue);
 			}
 
 			mb->f_Qfunc[mb->nf] = Qfunc_generic1;
