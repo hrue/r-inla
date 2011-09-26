@@ -726,6 +726,38 @@ double map_dof(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_dof5(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the map-function for the degrees of freedom for the student-t 
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return 5.0 + exp(arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(arg - 5.0);
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -7163,7 +7195,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_tstrata;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_dof;
+			mb->theta_map[mb->ntheta] = map_dof5;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
