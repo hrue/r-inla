@@ -2924,8 +2924,8 @@
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.01),
-                                      to.theta = function(x) log(x-2), 
-                                      from.theta = function(x) 2+exp(x)
+                                      to.theta = function(x) log(x-5), 
+                                      from.theta = function(x) 5+exp(x)
                                       ), 
                               theta2 = list(
                                       name = "log precision1",
