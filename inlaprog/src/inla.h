@@ -50,6 +50,7 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
+
     typedef enum {
 	/*
 	 * Failure time
@@ -402,7 +403,8 @@ typedef struct inla_tp_struct inla_tp;			       /* need it like this as they poi
 
 typedef struct {
 	char *data_likelihood;
-
+	GMRFLib_uchar variant;
+	
 	char *link;
 	map_func_tp *predictor_invlinkfunc;
 

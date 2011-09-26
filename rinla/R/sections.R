@@ -61,6 +61,10 @@
     cat("link = ", inla.model.validate.link.function(family, control$link), "\n", 
         file = file,  append = TRUE)
 
+    cat("variant = ",
+        inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
+        "\n", file = file,  append = TRUE)
+
     if (inla.one.of(family, "laplace")) {
         ## two parameters, alpha and epsilon is require for LAPLACE
         cat("alpha = ", inla.ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
