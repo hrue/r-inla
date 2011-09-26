@@ -2650,7 +2650,6 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
 	}
 
-
 	if (0) {
 		static int first = 1;
 		if (first) {
@@ -2692,6 +2691,9 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
 
+	int bit_fac = GMRFLib_getbit(ds->variant, (unsigned int) 0);
+	int bit_tail = GMRFLib_getbit(ds->variant, (unsigned int) 1);
+
 	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_tstrata[idx];
@@ -2700,13 +2702,34 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 
 	// printf("idx y x strata prec %d %g %g %d %g\n", idx, y, x[0], strata, prec);
 
-	fac = sqrt(prec);
-	// fac = sqrt((dof / (dof - 2.0)) * prec);
+	switch (bit_fac) {
+	case 0:
+		fac = sqrt(prec);
+		break;
+	case 1:
+		fac = sqrt((dof / (dof - 2.0)) * prec);
+		break;
+	default:
+		assert(0 == 1);
+	}
+	
 
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
-	int use_tail_correction = GMRFLib_FALSE;
+	int use_tail_correction; 
+
+	switch(bit_tail) {
+	case 0:
+		use_tail_correction = GMRFLib_FALSE;
+		break;
+	case 1:
+		use_tail_correction = GMRFLib_TRUE;
+		break;
+	default:
+		assert(0 == 1);
+	}
+
 	double tail_factor = 0.98;
 	double tail_start = tail_factor * sqrt(dof);
 	double tail_prec = (dof + 1.0) * (dof - SQR(tail_start)) / SQR(dof + SQR(tail_start));
@@ -6162,6 +6185,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
+
+
+	/* 
+	   common for all
+	 */
+	ds->variant = (GMRFLib_uchar) iniparser_getint(ini, inla_string_join(secname, "VARIANT"), 0);
+	if (mb->verbose) {
+		printf("\t\tuse variant [%1u]\n", (unsigned int) ds->variant);
+		unsigned int jj;
+		for(jj=0; jj < 4; jj++){
+			printf("\t\t\tbit %u is %s\n", jj, (GMRFLib_getbit((GMRFLib_uchar) ds->variant, jj) ? "on" : "off"));
+		}
+	}
 
 	/*
 	 * read spesific options and define hyperparameters, if any.
