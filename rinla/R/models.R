@@ -2920,17 +2920,17 @@
                               theta1 = list(
                                       name = "log degrees of freedom",
                                       short.name = "dof",
-                                      initial = 0,
+                                      initial = 4,
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 0.5),
+                                      param = c(1, 0.01),
                                       to.theta = function(x) log(x-2), 
                                       from.theta = function(x) 2+exp(x)
                                       ), 
                               theta2 = list(
                                       name = "log precision1",
                                       short.name = "prec1",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2940,7 +2940,7 @@
                               theta3 = list(
                                       name = "log precision2",
                                       short.name = "prec2",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2950,7 +2950,7 @@
                               theta4 = list(
                                       name = "log precision3",
                                       short.name = "prec3",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2960,7 +2960,7 @@
                               theta5 = list(
                                       name = "log precision4",
                                       short.name = "prec4",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2970,7 +2970,7 @@
                               theta6 = list(
                                       name = "log precision5",
                                       short.name = "prec5",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2980,7 +2980,7 @@
                               theta7 = list(
                                       name = "log precision6",
                                       short.name = "prec6",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -2990,7 +2990,7 @@
                               theta8 = list(
                                       name = "log precision7",
                                       short.name = "prec7",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -3000,7 +3000,7 @@
                               theta9 = list(
                                       name = "log precision8",
                                       short.name = "prec8",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -3010,7 +3010,7 @@
                               theta10 = list(
                                       name = "log precision9",
                                       short.name = "prec9",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -3020,7 +3020,7 @@
                               theta11 = list(
                                       name = "log precision10",
                                       short.name = "prec10",
-                                      initial = 3,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
