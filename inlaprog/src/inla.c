@@ -2698,16 +2698,16 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	strata = (int) (ds->data_observations.strata_tstrata[idx] + FLT_EPSILON);
 	prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 
-	//printf("idx y x strata prec %d %g %g %d %g\n", idx, y, x[0], strata, prec);
+	// printf("idx y x strata prec %d %g %g %d %g\n", idx, y, x[0], strata, prec);
 
 	fac = sqrt(prec);
-	//fac = sqrt((dof / (dof - 2.0)) * prec);
+	// fac = sqrt((dof / (dof - 2.0)) * prec);
 
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
 	int use_tail_correction = GMRFLib_FALSE;
-	double tail_factor = 0.98; 
+	double tail_factor = 0.98;
 	double tail_start = tail_factor * sqrt(dof);
 	double tail_prec = (dof + 1.0) * (dof - SQR(tail_start)) / SQR(dof + SQR(tail_start));
 	double diff = -(dof + 1) * tail_start / (dof + SQR(tail_start));
@@ -2716,10 +2716,9 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	if (m > 0) {
 		if (use_tail_correction) {
 			normc1 = 2.0 * gsl_cdf_tdist_P(tail_start, dof) - 1.0;
-			log_normc2 = lg2 - lg1 - 0.5 * log(M_PI * dof) -
-				(dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac)
-				- 0.5 * log(2.0) + 0.5 * log(M_PI / tail_prec)
-				+ 0.5 * SQR(diff) / tail_prec;
+			log_normc2 = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac)
+			    - 0.5 * log(2.0) + 0.5 * log(M_PI / tail_prec)
+			    + 0.5 * SQR(diff) / tail_prec;
 			eff = diff / sqrt(2.0 * tail_prec);
 			ef = gsl_sf_erf(eff);
 			if (ef == -1.0) {
@@ -2764,7 +2763,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 						logll[i] -= log_normc;
 						break;
 					case 1:
-						if (y_std > tail_start){
+						if (y_std > tail_start) {
 							logll[i] = tail_prec * dev * fac - diff * fac;
 						} else {
 							logll[i] = tail_prec * dev * fac + diff * fac;
