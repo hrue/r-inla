@@ -2601,9 +2601,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			break;
 		}
 
+		int flag_cycle_behaviour = 0;
 		double err = 0.0, f;
 		f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
-
+		
 		// if (f != 1.0) printf("%d:%d: f = %f\n", omp_get_thread_num(), GMRFLib_thread_id, f);
 
 		for (i = 0; i < n; i++) {
@@ -2615,16 +2616,22 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		if (iter == 0) {
 			err_previous = err;
 		} else {
-			if (err > 2.0 * err_previous) {
+			if ((float)(10.0*err) == (float)(10.0*err_previous)){
+				/* 
+				   we're down to some rounding error and cannot get any further. this weird situation has happend.
+				 */
+				flag_cycle_behaviour = 1;
+			}
+			if (err > 4.0 * err_previous) {
 				iter += itmax;		       /* so we can restart... */
 			}
 			err_previous = err;
 		}
 
 		if (optpar && optpar->fp)
-			fprintf(optpar->fp, "iteration %d error %.6g\n", iter, err);
+			fprintf(optpar->fp, "iteration %d error %.12g\n", iter, err);
 
-		if (err < optpar->abserr_step || gaussian_data) {
+		if (err < optpar->abserr_step || gaussian_data || flag_cycle_behaviour) {
 			/*
 			 * we're done!  unless we have negative elements on the diagonal...
 			 */
