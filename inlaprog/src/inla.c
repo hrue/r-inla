@@ -1410,21 +1410,20 @@ double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 {
 	double df = exp(x[0]);
 	double value, log_jacobian;
-	
-	if (1){
+
+	if (1) {
 #define DIGAMMA(xx) gsl_sf_psi(xx)
 #define TRIGAMMA(xx) gsl_sf_psi_1(xx)
 
-	value = 0.5 * log(df/(df+3.0)) +
-		0.5 * log(TRIGAMMA(df/2.0) - TRIGAMMA((df+1.0)/2.0) - 2.0*(df+3.0)/(df * SQR(df+1.0)))
-		- log(0.7715233664);			       /* normalising constant: computed in R from 2 to infinity */
-	
-	log_jacobian = x[0];				       /* log(df) = theta */
-	return value + log_jacobian;
+		value = 0.5 * log(df / (df + 3.0)) + 0.5 * log(TRIGAMMA(df / 2.0) - TRIGAMMA((df + 1.0) / 2.0) - 2.0 * (df + 3.0) / (df * SQR(df + 1.0)))
+		    - log(0.7715233664);		       /* normalising constant: computed in R from 2 to infinity */
+
+		log_jacobian = x[0];			       /* log(df) = theta */
+		return value + log_jacobian;
 #undef DIGAMMA
 #undef TRIGAMMA
 	} else {
-		value = log(1/df);
+		value = log(1 / df);
 		log_jacobian = x[0];
 		return value + log_jacobian;
 	}
@@ -2648,13 +2647,13 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
 	 */
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
+		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
 	}
 
 
 	if (0) {
 		static int first = 1;
-		if (first){
+		if (first) {
 			first = 0;
 
 			Data_section_tp *ds = (Data_section_tp *) arg;
@@ -2665,21 +2664,29 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 			ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0] = log(1.3);
 			double prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 
-			ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0] = log(14.0 -2.0);
+			ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0] = log(14.0 - 2.0);
 
 			FILE *fp = fopen("l.dat", "w");
 			double xx, ll;
-			for(xx = -20.0/sqrt(prec);  xx < 20.0/sqrt(prec);  xx += 0.0001/sqrt(prec)){
+			for (xx = -20.0 / sqrt(prec); xx < 20.0 / sqrt(prec); xx += 0.01 / sqrt(prec)) {
 				loglikelihood_tstrata(&ll, &xx, 1, idx, NULL, arg);
-				//printf("xx %.12g ll %.12g\n", xx, ll);
-				fprintf(fp, "xx %.20g ll %.20g\n", xx, ll);
+				// printf("xx %.12g ll %.12g\n", xx, ll);
+				fprintf(fp, "xx %.20f ll %.20f\n", xx, ll);
 			}
 			fclose(fp);
-		
+
+			fp = fopen("lderiv.dat", "w");
+			double xxx[3], lll[3];
+			for (xx = -20.0 / sqrt(prec); xx < 20.0 / sqrt(prec); xx += 0.01 / sqrt(prec)) {
+				xxx[0] = xxx[1] = xxx[2] = xx;
+				loglikelihood_tstrata(lll, xxx, 3, idx, NULL, arg);
+				fprintf(fp, "xx %.20f %.20f %.20f %.20f \n", xx, lll[0], lll[1], lll[2]);
+			}
+			fclose(fp);
+
 			exit(0);
 		}
 	}
-
 
 	int i, strata;
 	Data_section_tp *ds = (Data_section_tp *) arg;
@@ -2699,55 +2706,115 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
-	double tail_start = 0.99*sqrt(dof);
-	double tail_prec = (dof+1.0)*(dof - SQR(tail_start))/SQR(dof + SQR(tail_start));
+	int use_tail_correction = GMRFLib_FALSE;
+	double tail_factor = 0.98; 
+	double tail_start = tail_factor * sqrt(dof);
+	double tail_prec = (dof + 1.0) * (dof - SQR(tail_start)) / SQR(dof + SQR(tail_start));
 	double diff = -(dof + 1) * tail_start / (dof + SQR(tail_start));
-	double dev;
-
-	//tail_start = 1000000;
-	
-	//P(tail_prec);
-	//P(diff);
+	double dev, log_normc, normc1, log_normc2, eff, ef;
 
 	if (m > 0) {
-		double log_normc, normc1, log_normc2, eff, ef;
-
-		normc1 = 2.0 * gsl_cdf_tdist_P(tail_start, dof) - 1.0;
-		log_normc2 = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac)
-			- 0.5*log(2.0) + 0.5 * log(M_PI/tail_prec)
-			+ 0.5 * SQR(diff)/tail_prec;
-
-		eff = diff/sqrt(2.0*tail_prec);
-		ef = gsl_sf_erf(eff);
-		if (ef == -1.0){
-			log_normc2 += -SQR(eff) - 0.5*log(M_PI) - log(-eff) -1.0/(2.0*SQR(eff));
-		} else if (ef == 1.0) {
-			log_normc2 += log(2.0) - 1.0/(2.0*sqrt(M_PI)*(eff)) * exp(-SQR(eff));
-		} else {
-			log_normc2 += log(ef + 1.0);
-		}
-		log_normc = log(normc1 + 2.0*exp(log_normc2));
-
-		for (i = 0; i < m; i++) {
-			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
-			y_std = (y - ypred) * fac;
-			if (ABS(y_std) > tail_start) {
-				if (y_std > tail_start) {
-					dev = y_std - tail_start;
-				} else {
-					dev = y_std + tail_start;
-					diff *= -1.0;	       /* swap sign */
-				}
-				logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac);
-				logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
+		if (use_tail_correction) {
+			normc1 = 2.0 * gsl_cdf_tdist_P(tail_start, dof) - 1.0;
+			log_normc2 = lg2 - lg1 - 0.5 * log(M_PI * dof) -
+				(dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac)
+				- 0.5 * log(2.0) + 0.5 * log(M_PI / tail_prec)
+				+ 0.5 * SQR(diff) / tail_prec;
+			eff = diff / sqrt(2.0 * tail_prec);
+			ef = gsl_sf_erf(eff);
+			if (ef == -1.0) {
+				/*
+				 * asymptotic expansion 
+				 */
+				log_normc2 += -SQR(eff) - 0.5 * log(M_PI) - log(-eff) - 1.0 / (2.0 * SQR(eff));
+			} else if (ef == 1.0) {
+				/*
+				 * asymptotic expansion 
+				 */
+				log_normc2 += log(2.0) - 1.0 / (2.0 * sqrt(M_PI) * eff) * exp(-SQR(eff));
 			} else {
-				logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
-				//logll[i] += -0.5 * tail_prec * SQR(y_std); /* ADD HERE!! */
+				log_normc2 += log(ef + 1.0);
 			}
-			logll[i] -= log_normc;	
+			log_normc = log(normc1 + 2.0 * exp(log_normc2));
+		} else {
+			log_normc = 0.0;
+		}
+
+		if (m > 0) {
+			/*
+			 * assume this... 
+			 */
+			assert(ds->predictor_invlinkfunc == link_identity);
+
+			for (i = 0; i < m; i++) {
+				ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+				y_std = (y - ypred) * fac;
+				if (ABS(y_std) > tail_start && use_tail_correction) {
+					if (y_std > tail_start) {
+						dev = y_std - tail_start;
+					} else {
+						dev = y_std + tail_start;
+						diff *= -1.0;  /* swap sign */
+					}
+
+					switch (i) {
+					case 0:
+						logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac);
+						logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
+						logll[i] -= log_normc;
+						break;
+					case 1:
+						if (y_std > tail_start){
+							logll[i] = tail_prec * dev * fac - diff * fac;
+						} else {
+							logll[i] = tail_prec * dev * fac + diff * fac;
+						}
+						break;
+					case 2:
+						logll[i] = -tail_prec * SQR(fac);
+						break;
+					default:
+						assert(0 == 1);
+					}
+				} else {
+					switch (i) {
+					case 0:
+						logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+						logll[i] -= log_normc;
+						break;
+					case 1:
+						logll[i] = (dof + 1.0) * fac * y_std / (dof + SQR(y_std));
+						break;
+					case 2:
+						logll[i] = -(dof + 1.0) * SQR(fac) * (dof - SQR(y_std)) / SQR(dof + SQR(y_std));
+						break;
+					default:
+						assert(0 == 1);
+					}
+				}
+
+			}
+		} else {
+			for (i = 0; i < (-m); i++) {
+				ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
+				y_std = (y - ypred) * fac;
+				if (ABS(y_std) > tail_start && use_tail_correction) {
+					if (y_std > tail_start) {
+						dev = y_std - tail_start;
+					} else {
+						dev = y_std + tail_start;
+						diff *= -1.0;  /* swap sign */
+					}
+					logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac);
+					logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
+				} else {
+					logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+				}
+				logll[i] -= log_normc;
+			}
 		}
 	} else {
-		FIXME1("PIT-VALUES ARE NOT YET CORRECT!!!!");
+		FIXME1("PIT-VALUES ARE NOT YET CORRECT AND ASSUME T.");
 		for (i = 0; i < -m; i++) {
 			ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 			logll[i] = gsl_cdf_tdist_P((y - ypred) * fac, dof);
@@ -13862,7 +13929,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			assert(rw_retval);
 			rw_retval = read(fifo_get, all_fifo_get, (N + mb_old->ntheta) * sizeof(double));
 			assert(rw_retval);
-			
+
 			if (mb_old->verbose) {
 				if (0) {
 					for (i = 0; i < N + mb_old->ntheta; i++)
@@ -13892,7 +13959,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 				assert(rw_retval);
 				rw_retval = read(fifo_get_data, all_data_fifo_get, dlen * sizeof(double));
 				assert(rw_retval);
-				
+
 				if (mb_old->verbose) {
 					if (0) {
 						for (i = 0; i < dlen; i++)
