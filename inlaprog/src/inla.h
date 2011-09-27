@@ -393,6 +393,7 @@ typedef struct {
 	int kld;					       /* output the (symmetric) kld between marginals */
 	int mlik;					       /* compute the marginal likelihood? */
 	int q;						       /* output image of the Q-matrix */
+	int graph;					       /* output the graph */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
 	double *quantiles;
@@ -913,6 +914,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
+int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
 		       const char *sdir, map_func_tp * func, void *func_arg, map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose);
 int inla_output_hgid(const char *dir);
