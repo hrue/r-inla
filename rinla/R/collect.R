@@ -575,6 +575,25 @@ inla.internal.experimental.mode = FALSE
     return(q)     
 }
 
+`inla.collect.graph` =
+    function(results.dir,
+             debug = FALSE)
+{
+    alldir = dir(results.dir)
+    if (length(grep("^graph.dat$", alldir))==1L) {
+
+        if (debug) {
+            cat(paste("collect graph\n", sep=""))
+        }
+        file=paste(results.dir, .Platform$file.sep,"graph.dat", sep="")
+        g = inla.read.graph(file)
+    } else {
+        g = NULL
+    }
+
+    return (list(graph = g))
+}
+
 `inla.collect.hyperpar` =
     function(results.dir,
              debug=FALSE)
