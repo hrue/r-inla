@@ -84,12 +84,14 @@
          ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
          cpo=FALSE,
 
-         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. Default FALSE.
+         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
          q=FALSE,
 
          ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default) or 'band'
-         smtp = NULL)
+         smtp = NULL,
 
+         ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
+         graph = FALSE)
     ##:SEEALSO: inla
 }
 

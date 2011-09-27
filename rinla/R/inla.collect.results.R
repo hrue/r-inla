@@ -37,6 +37,7 @@
     }
     res.mlik = inla.collect.mlik(results.dir, debug)
     res.q = inla.collect.q(results.dir, control.results$image.dim, debug)
+    res.graph = inla.collect.graph(results.dir, debug)
     res.offset = inla.collect.offset.linear.predictor(results.dir, debug)
 
     ##get the hyperparameters
@@ -86,7 +87,7 @@
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla = hgid, Rinla=inla.version(hgid=TRUE))),
-            res.q)
+            res.q, res.graph)
     class(res) = "inla"
 
     if (inla.getOption("internal.experimental.mode")) {

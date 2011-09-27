@@ -800,7 +800,7 @@
                          hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
                          dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo,
                          quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
-                         strategy = cont.compute$strategy)
+                         strategy = cont.compute$strategy, graph = cont.compute$graph)
 
     ## PREPARE RESPONSE AND FIXED EFFECTS
     if (debug)
