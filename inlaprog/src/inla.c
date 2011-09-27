@@ -10799,7 +10799,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		mb->f_rankdef[mb->nf] = rd;
 		if (mb->verbose) {
-			printf("\t\trank-deficiency is *defined* [%1d]\n", rd);
+			printf("\t\trank-deficiency is *defined* [%g]\n", rd);
 		}
 	} else {
 		/*
