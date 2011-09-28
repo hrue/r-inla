@@ -716,46 +716,72 @@ inla.mesh.create =
 
 
 
-## Generate nice triangulation, with an inner domain enclosed by an outer domain
-## The inner and outer domains can have different quality parameters
-## At least one of points, points.domain, boundary.inner, boundary.outer
-## must be non-NULL
-
-## Example:
-if (FALSE)
-mesh =
-    inla.mesh.wizard(points=matrix(runif(100),50,2)*200,
-                     offset=c(10,140),
-                     max.edge=c(25,1000),
-                     min.angle=21,
-                     cutoff=0,
-                     plot.delay=-1
-                     )
-}
-##
 
 
 
-inla.boundary <-
-    function(mesh)
+
+inla.mesh.extract.segments <-
+    function(mesh.loc, mesh.idx, mesh.grp, grp=NULL, is.bnd)
 {
-    ## NON FUNCTIONING CODE
-    if (nrow(mesh2$segm$bnd$idx)>0) {
-        edges = mesh2$segm$bnd$idx
-        grp = mesh2$segm$bnd$grp
-        boundary = inla.mesh.segment(mesh2$loc,idx=edges,grp=grp,is.bnd=TRUE)
-    } else {
-        boundary = NULL
+    segments = list()
+    if (nrow(mesh.idx)>0) {
+        if (is.null(grp)) {
+            grp = unique(sort(mesh.grp))
+        }
+        for (g in grp) {
+            extract = (mesh.grp==g)
+            segments =
+                c(segments,
+                  list(inla.mesh.segment(mesh.loc,
+                                         idx=mesh.idx[extract,,drop=FALSE],
+                                         grp=mesh.grp[extract,drop=FALSE],
+                                         is.bnd=is.bnd)) )
+        }
     }
+    if (length(segments)>0)
+        return(segments)
+    else
+        return(NULL)
+}
+
+inla.mesh.boundary <-
+    function(mesh, grp=NULL)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    return(inla.mesh.extract.segments(mesh$loc,
+                                      mesh$segm$bnd$idx,
+                                      mesh$segm$bnd$grp,
+                                      grp,
+                                      TRUE))
+}
+
+inla.mesh.interior <-
+    function(mesh, grp=NULL)
+{
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    return(inla.mesh.extract.segments(mesh$loc,
+                                      mesh$segm$int$idx,
+                                      mesh$segm$int$grp,
+                                      grp,
+                                      FALSE))
 }
 
 
-inla.mesh.helper <-
+## Generate nice triangulation, with an inner domain strictly enclosed
+## by an outer domain
+## The inner and outer domains can have different quality parameters
+## At least one of points, points.domain, boundary[[1]], boundary[[2]], interior
+## must be non-NULL
+## For more complicated multi-step meshings, study the code and write your own.
+inla.mesh.create.helper <-
     function(points=NULL, ## Points to include in final triangulation
              points.domain=NULL, ## Points that determine the automatic domain
              offset=c(-0.05,-0.15), ## Size of automatic extensions
              n=c(8,16), ## Sides of automatic extension polygons
-             boundary=NULL, ## User-specified domains
+             boundary=NULL, ## User-specified domains (list of length 2)
+             interior=NULL, ## User-specified constratints for the inner domain
              max.edge,
              min.angle=c(21,21), ## Angle constraint for the entire domain
              cutoff=0, ## Only add input points further apart than this
@@ -775,18 +801,27 @@ inla.mesh.helper <-
         points.domain = points
     if (missing(boundary))
         boundary = list(NULL,NULL)
-    if (missing(constraints))
-        constraints = list(NULL,NULL)
+    if (missing(interior))
+        interior = list(NULL,NULL)
     if (missing(offset) || is.null(offset))
-        offset.inner = c(-0.05,-0.15)
+        offset = c(-0.05,-0.15)
     if (missing(n) || is.null(n))
-        n.inner = c(8,16)
+        n = c(8,16)
     if (missing(min.angle) || is.null(min.angle))
         min.angle = c(21,21)
     if (missing(cutoff) || is.null(cutoff))
         cutoff = 0
     if (missing(plot.delay) || is.null(plot.delay))
         plot.delay = NULL
+
+    if (length(min.angle)<2)
+        min.angle = c(min.angle, min.angle)
+    if (length(max.edge)<2)
+        max.edge = c(max.edge, max.edge)
+    if (length(offset)<2)
+        offset = c(offset, offset)
+    if (length(n)<2)
+        n = c(n, n)
 
     ## Unify the dimensionality of the point input.
     if (!is.null(points) && (ncol(points)==2))
@@ -799,23 +834,28 @@ inla.mesh.helper <-
     mesh1 =
         inla.mesh.create(loc=points.domain,
                          boundary=boundary[[1]],
-                         interior=constraints[[1]],
+                         interior=interior,
                          cutoff=cutoff,
-                         extend=list(n=n[[1]], offset=offset[[1]]),
+                         extend=list(n=n[1], offset=offset[1]),
                          refine=FALSE,
                          plot.delay=plot.delay)
 
     ## Save the resulting boundary
-    ## TODO: handle the case where this is be empty
-    edges = mesh1$segm$bnd$idx
-    grp = mesh1$segm$bnd$grp
-    boundary.auto = inla.mesh.segment(mesh1$loc,idx=edges,grp=grp,is.bnd=TRUE)
+    boundary1 = inla.mesh.boundary(mesh1)
+    interior1 = inla.mesh.interior(mesh1)
+    print(str(boundary1))
+    print(str(interior1))
+
+    if (!is.null(plot.delay) && (plot.delay<0)) {
+        dev.new()
+        plot(mesh1)
+    }
 
     ## Triangulate inner domain
     mesh2 =
         inla.mesh.create(loc=points,
-                         boundary=boundary.auto,
-                         interior=constraints[[1]],
+                         boundary=boundary1,
+                         interior=interior1,
                          cutoff=cutoff,
                          extend=FALSE, ## Should have no effect
                          refine=
@@ -824,33 +864,27 @@ inla.mesh.helper <-
                                   max.edge.extra=max.edge[1]),
                          plot.delay=plot.delay)
 
-    ## Save the constraints, if any
-    if (nrow(mesh2$segm$bnd$idx)>0) {
-        edges = mesh2$segm$bnd$idx
-        grp = mesh2$segm$bnd$grp
-        boundary = inla.mesh.segment(mesh2$loc,idx=edges,grp=grp,is.bnd=TRUE)
-    } else {
-        boundary = NULL
-    }
-    if (nrow(mesh2$segm$int$idx)>0) {
-        edges = mesh2$segm$int$idx
-        grp = mesh2$segm$int$grp
-        interior = inla.mesh.segment(mesh2$loc,idx=edges,grp=grp,is.bnd=FALSE)
-    } else {
-        interior = NULL
+    boundary2 = inla.mesh.boundary(mesh2)
+    interior2 = inla.mesh.interior(mesh2)
+    print(str(boundary2))
+    print(str(interior2))
+
+    if (!is.null(plot.delay) && (plot.delay<0)) {
+        dev.new()
+        plot(mesh2)
     }
 
     ## Triangulate inner+outer domain
     mesh3 =
         inla.mesh.create(loc=rbind(points,mesh2$loc),
-                         boundary=boundary.outer,
-                         interior=list(boundary, interior),
+                         boundary=boundary[[2]],
+                         interior=list(boundary2[[1]], interior2),
                          cutoff=cutoff,
-                         extend=list(n=n.outer, offset=offset.outer),
+                         extend=list(n=n[2], offset=offset[2]),
                          refine=
-                             list(min.angle=min.angle,
-                                  max.edge=max.edge.outer,
-                                  max.edge.extra=max.edge.outer),
+                             list(min.angle=min.angle[2],
+                                  max.edge=max.edge[2],
+                                  max.edge.extra=max.edge[2]),
                          plot.delay=plot.delay)
 
     ## Hide generated points, to match regular inla.mesh.create output
@@ -858,16 +892,25 @@ inla.mesh.helper <-
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
         dev.new()
-        plot(mesh1)
-        dev.new()
-        plot(mesh2)
-        dev.new()
         plot(mesh3)
     }
 
     return(mesh3)
 }
 
+## Example:
+if (FALSE) {
+    mesh =
+        inla.mesh.create.helper(points=matrix(runif(20),10,2)*200,
+                                n=c(8,16),
+                                offset=c(10,140),
+                                max.edge=c(25,1000),
+                                min.angle=26,
+                                cutoff=0,
+                                plot.delay=-1
+                                )
+}
+##
 
 
 
