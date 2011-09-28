@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
   double cutoff = 0.0;
   if (args_info.cutoff_given>0)
     cutoff = args_info.cutoff_arg;
-  double sphere_tolerance = 0.0;
+  double sphere_tolerance = 1.0e-7;
   if (args_info.spheretolerance_given>0)
     sphere_tolerance = args_info.spheretolerance_arg;
   
