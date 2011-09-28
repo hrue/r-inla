@@ -394,6 +394,9 @@ int main(int argc, char* argv[])
   double cutoff = 0.0;
   if (args_info.cutoff_given>0)
     cutoff = args_info.cutoff_arg;
+  double sphere_tolerance = 0.0;
+  if (args_info.spheretolerance_given>0)
+    sphere_tolerance = args_info.spheretolerance_arg;
   
   int cet_sides = 8;
   double cet_margin = -0.1;
@@ -678,7 +681,7 @@ int main(int argc, char* argv[])
     issphere = true;
     for (int i=1; i<M.nV(); i++) {
       isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
-      issphere = (issphere && (std::abs(M.S(i).length()-radius) < 1.0e-10));
+      issphere = (issphere && (std::abs(M.S(i).length()-radius) < sphere_tolerance));
     }
     if (!isflat) {
       if (issphere) {
@@ -796,6 +799,7 @@ int main(int argc, char* argv[])
 	/* Calculate the RCDT: */
 	MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
 		Quality0.raw(),Quality0.rows());
+	std::cout << MC << std::endl;
       }
       
       /* Done constructing the triangulation. */
@@ -821,6 +825,10 @@ int main(int argc, char* argv[])
       
       matrices.output("segm.int.idx").output("segm.int.grp");
       
+    } else {
+      LOG_("Points not in the plane or on a sphere, and --smorg not specified."  
+	   << std::endl << "No output generated." << std::endl);
+      return 0;
     }
     
     matrices.attach("tt",&M.TT(),false);
