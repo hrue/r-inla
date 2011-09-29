@@ -14294,13 +14294,12 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 
 	fprintf(fp, "%1d\n", graph->n);
 	for(i=0; i<graph->n; i++){
-		fprintf(fp, "%1d ", i);
-		fprintf(fp, "%1d ", graph->nnbs[i]);
+		fprintf(fp, "%1d\n", i);
+		fprintf(fp, "%1d\n", graph->nnbs[i]);
 		for(jj = 0; jj < graph->nnbs[i]; jj++){
 			j = graph->nbs[i][jj];
-			fprintf(fp, "%1d ", j);
+			fprintf(fp, "%1d\n", j);
 		}
-		fprintf(fp, "\n");
 	}
 	fclose(fp);
 
