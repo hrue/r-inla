@@ -799,7 +799,7 @@ int main(int argc, char* argv[])
 	/* Calculate the RCDT: */
 	MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
 		Quality0.raw(),Quality0.rows());
-	std::cout << MC << std::endl;
+	LOG(MC << endl);
       }
       
       /* Done constructing the triangulation. */

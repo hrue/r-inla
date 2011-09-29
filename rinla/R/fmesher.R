@@ -131,9 +131,15 @@ plot.inla.mesh =
         lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
     if (!is.null(mesh$segm$int))
         lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
-    if (!add)
-        title("Constrained refined Delaunay triangulation",
-              deparse(substitute(mesh)))
+    if (!add) {
+        if (mesh$meta$is.refined) {
+            title("Constrained refined Delaunay triangulation",
+                  deparse(substitute(mesh)))
+        } else {
+            title("Constrained Delaunay triangulation",
+                  deparse(substitute(mesh)))
+        }
+    }
     return(invisible())
 }
 
@@ -623,6 +629,9 @@ inla.mesh.create =
                                rcdt[3], refine$max.edge.data))
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
+        is.refined = TRUE
+    } else {
+        is.refined = FALSE
     }
 
     if (!is.null(plot.delay)) {
@@ -691,7 +700,8 @@ inla.mesh.create =
                               time = (rbind(pre = time.pre,
                                             fmesher = time.fmesher,
                                             post = time.post)),
-                              prefix = prefix)),
+                              prefix = prefix,
+                              is.refined = is.refined)),
                  manifold = manifold,
                  n = nrow(loc),
                  loc = loc,
@@ -843,8 +853,6 @@ inla.mesh.create.helper <-
     ## Save the resulting boundary
     boundary1 = inla.mesh.boundary(mesh1)
     interior1 = inla.mesh.interior(mesh1)
-    print(str(boundary1))
-    print(str(interior1))
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
         dev.new()
@@ -866,8 +874,6 @@ inla.mesh.create.helper <-
 
     boundary2 = inla.mesh.boundary(mesh2)
     interior2 = inla.mesh.interior(mesh2)
-    print(str(boundary2))
-    print(str(interior2))
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
         dev.new()
@@ -1044,7 +1050,8 @@ summary.inla.mesh = function(object, verbose=FALSE, ...)
         ret = (c(ret, list(call=x$meta$call,
                            fmesher.args=x$meta$fmesher.args,
                            prefix=x$meta$prefix,
-                           time = x$meta$time)))
+                           time = x$meta$time,
+                           is.refined = x$meta$is.refined)))
     }
     ret = (c(ret, list(manifold=x$manifold,
                        nV=x$n,
@@ -1112,6 +1119,7 @@ print.summary.inla.mesh = function(x, ...)
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
+    cat("\nRefined:\t", x$is.refined, "\n", sep="")
     cat("Vertices:\t", as.character(x$nV), "\n", sep="")
     cat("Triangles:\t", as.character(x$nT), "\n", sep="")
 
