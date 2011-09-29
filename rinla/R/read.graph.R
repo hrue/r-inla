@@ -102,7 +102,8 @@
 ## I add here some tools to view and summarize a such graphs...
 plot.inla.graph = function(
         graph,
-        attrs = getDefaultAttrs(layoutType = "neato"),
+        filter = c("neato", "fdp"), 
+        attrs = NULL, 
         scale = 0.5,
         node.names = NULL,
         ...) 
@@ -110,6 +111,10 @@ plot.inla.graph = function(
     require(Rgraphviz) || stop("Need library 'Rgraphviz' from the Bioconductor package")
     require(graph) || stop("Need library 'graph'")
 
+    filter = match.arg(filter)
+    if (is.null(attrs)) {
+        attrs = getDefaultAttrs(layoutType = filter)
+    }
     if (!is.null(node.names)) {
         stopifnot(length(node.names) == graph$n)
     } else {
@@ -127,7 +132,7 @@ plot.inla.graph = function(
     }
     attrs$node$height = as.numeric(attrs$node$height) * scale
     attrs$node$width = as.numeric(attrs$node$width) * scale
-    plot(g, "neato", attrs = attrs, ...)
+    plot(g, filter, attrs = attrs, ...)
 }
 
 `summary.inla.graph` = function(graph, ...)
