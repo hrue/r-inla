@@ -14129,6 +14129,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->kld = 1;
 		(*out)->mlik = 0;
 		(*out)->q = 0;
+		(*out)->graph = 0;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->nquantiles = 0;
 		(*out)->ncdf = 0;
@@ -14142,6 +14143,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->kld = mb->output->kld;
 		(*out)->mlik = mb->output->mlik;
 		(*out)->q = mb->output->q;
+		(*out)->graph = mb->output->graph;
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->return_marginals = mb->output->return_marginals;
 		(*out)->nquantiles = mb->output->nquantiles;
