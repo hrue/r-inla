@@ -733,7 +733,7 @@ typedef struct {
 
 	/* 
 	   this is for Cov-calculations
-	 */
+	*/
 	int from_idx;
 	int to_idx;
 	double *v;
