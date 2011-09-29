@@ -14675,7 +14675,9 @@ int inla_output(inla_tp * mb)
 				inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
 				mb->verbose = save;
 			}
-			inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+			if (mb->output->graph){
+				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+			}
 		}
 	}
 	int N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
