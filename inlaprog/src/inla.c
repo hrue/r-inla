@@ -16344,13 +16344,14 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 
 	FILE *fp;
 	long len;
-
+	
 	fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;
 	}
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
+	assert(len > 0L);
 
 	inla_file_contents_tp *fc = Calloc(1, inla_file_contents_tp);
 	fc->contents = Calloc((size_t) len, char);
