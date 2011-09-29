@@ -2465,12 +2465,12 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 		}
 
 		nk = (int) (sizeof(rs) / sizeof(int));
-		nnzs = Calloc(nk, GMRFLib_sizeof_tp)
-
-			/* 
-			   Doing this in parallel causes an error sometimes, which goes away setting global.node.factor to a small value.  I have no idea of what is
-			   going on, but since `nk' is only 2, we can disable this without loosing to much.
-			*/
+		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
+		
+		/* 
+		   Doing this in parallel causes an error sometimes, which goes away setting global.node.factor to a small value.  I have no idea of what is going
+		   on, but since `nk' is only 2, we can disable this without loosing to much.
+		*/
 //#pragma omp parallel for private(k)
 		for (k = 0; k < nk; k++) {
 			int *iperm = NULL, *perm = NULL, ii;
