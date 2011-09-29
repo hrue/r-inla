@@ -1119,7 +1119,9 @@ print.summary.inla.mesh = function(x, ...)
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
-    cat("\nRefined:\t", x$is.refined, "\n", sep="")
+    if (x$verbose) {
+        cat("Refined:\t", x$is.refined, "\n", sep="")
+    }
     cat("Vertices:\t", as.character(x$nV), "\n", sep="")
     cat("Triangles:\t", as.character(x$nT), "\n", sep="")
 
