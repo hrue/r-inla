@@ -1773,10 +1773,11 @@ inla.spde.query = function(spde, ...)
 
 inla.spde.create.generic =
     function(M0, M1, M2, B0, B1, B2, theta.mu, theta.Q,
-             transform=c("logit","log","identity"),
+             transform = c("logit","log","identity"),
              theta.initial = theta.mu,
              fixed = rep(FALSE, length(theta.mu)),
-             theta.fixed = theta.initial[!fixed],
+             theta.fixed = theta.initial[fixed],
+             BLC = cbind(0.0, diag(nrow=length(theta.mu))),
              ...)
 {
     transform = match.arg(transform)
@@ -1795,16 +1796,57 @@ inla.spde.create.generic =
 
     param.generic =
         list(M0=M0, M1=M1, M2=M2,
-             B0=B0, B1=B1, B2=B2,
+             B0=B0, B1=B1, B2=B2, BLC=BLC,
              theta.mu=theta.mu, theta.Q=theta.Q,
              transform=transform,
-             theta.initial = theta.initial,
+             theta.initial=theta.initial,
              fixed=fixed,
              theta.fixed=theta.fixed)
     ## Copy full generic parameters to internal inla-representation.
-    ## TODO: If any "fixed", move information from B*[,2:4] into
-    ## B*[,1], theta.mu, and theta.Q
     param.inla = param.generic
+    n.theta = length(theta.mu)
+    ## TODO: Check dimension consistency of inputs
+
+    ## If any "fixed", move information from B[,1+(1:n.theta)] into
+    ## B[,1], theta.mu, and theta.Q
+    ## NOTE: Should this be in the f function instead?
+    if (any(fixed)) {
+        param.inla$theta.initial = theta.initial[!fixed]
+        param.inla$B0[,1] =
+            B0[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+        param.inla$B1[,1] =
+            B1[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+        param.inla$B2[,1] =
+            B2[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+        param.inla$BLC[,1] =
+            BLC[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+        param.inla$B0 = param.inla$B0[,c(TRUE, which(!fixed)), drop=FALSE]
+        param.inla$B1 = param.inla$B1[,c(TRUE, which(!fixed)), drop=FALSE]
+        param.inla$B2 = param.inla$B2[,c(TRUE, which(!fixed)), drop=FALSE]
+        param.inla$BLC = param.inla$BLC[,c(TRUE, which(!fixed)), drop=FALSE]
+        param.inla$theta.Q = param.inla$theta.Q[!fixed, !fixed, drop=FALSE]
+        if (!all(fixed)) {
+            param.inla$theta.mu =
+                theta.mu - solve(param.inla$theta.Q,
+                                 theta.Q[!fixed, fixed, drop=FALSE]
+                                 %*% (theta.fixed[fixed]-theta.mu[fixed]))
+        } else { ## All fixed.
+            param.inla$theta.mu = as.vector(matrix(0.0, 0, 1))
+        }
+    }
+
+    spde$internal$param.generic = param.generic
+    spde$internal$param.inla = param.inla
+
+    fmesher.write(spde$internal$param.inla$M0, spde.prefix, "M0")
+    fmesher.write(spde$internal$param.inla$M1, spde.prefix, "M1")
+    fmesher.write(spde$internal$param.inla$M2, spde.prefix, "M2")
+    fmesher.write(spde$internal$param.inla$B0, spde.prefix, "B0")
+    fmesher.write(spde$internal$param.inla$B1, spde.prefix, "B1")
+    fmesher.write(spde$internal$param.inla$B2, spde.prefix, "B2")
+    fmesher.write(spde$internal$param.inla$BLC, spde.prefix, "BLC")
+
+    return(spde)
 
     ##    hyper =
 
