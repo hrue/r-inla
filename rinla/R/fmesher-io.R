@@ -224,7 +224,11 @@
         } else if (is.vector(A)) {
             A = inla.affirm.integer(A)
         } else {
-            stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
+            stop(inla.paste(c("Unknown type of matrix:",
+                              deparse(match.call()),
+                              "\n class(A) =",
+                              class(A)
+                              )))
         }
     }
 
@@ -277,7 +281,11 @@
         i = j = 0:(nrow-1)
         values = A
     } else {
-        stop(inla.paste(c("Unknown type of matrix:", deparse(match.call()))))
+            stop(inla.paste(c("Unknown type of matrix:",
+                              deparse(match.call()),
+                              "\n class(A) =",
+                              class(A)
+                              )))
     }
 
     h = integer(8)
