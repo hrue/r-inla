@@ -82,7 +82,32 @@ result3 = inla(formula3, data=data, family="gaussian")
 \end{verbatim}
 
 \subsection*{Notes}
-None
+
+INLA uses for this model the following normalizing constant
+\begin{displaymath}
+    \tau^{n/2}\; \left(\frac{1}{2\pi}\right)^{n/2}
+\end{displaymath}
+where $n$ is the dimension of the $C$ matrix, and NOT the correct one
+\begin{displaymath}
+    \tau^{n/2}\; \left(\frac{1}{2\pi}\right)^{n/2}\; \mid C\mid^{1/2}.
+\end{displaymath}
+Different algorithms are required to compute the determinant depending
+on the structure and size of $C$, and therefore this constant is not
+computed. However, for most/near-all use of this \texttt{generic0}
+model, this constant is not of interest.
+
+The missing constant \emph{only matters} for the marginal likelihood
+value.  Say you are comparing two runs with two models, one where this
+generic-component is present, and one where this generic-component is
+not present. Since the marginal likelihood does depend on the
+normalising constant not only the on the ``shape'', then a comparison
+between the two models will be wrong using the reported
+\verb|result$mlik|-values from INLA. You have to add to one of them
+\begin{displaymath}
+    1/2 \log(|C|)
+\end{displaymath}
+to account for this missing constant.
+
 
 \end{document}
 
