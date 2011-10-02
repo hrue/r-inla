@@ -5329,35 +5329,6 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w)
-{
-	int i, k, n;
-	GMRFLib_lc_tp *lc;
-
-	for (i = n = 0; i < len; i++)
-		n += (w[i] != 0.0);
-
-	if (n == 0)
-		return NULL;
-
-	lc = Calloc(1, GMRFLib_lc_tp);
-	lc->n = n;
-	lc->first_nonzero_mapped = -1;
-	lc->last_nonzero_mapped = -1;
-	lc->idx = Calloc(n, int);
-	lc->weight = Calloc(n, float);
-
-	for (i = k = 0; i < len; i++) {
-		if (w[i] != 0.0) {
-			lc->idx[k] = i;
-			lc->weight[k] = (float) w[i];
-			k++;
-		}
-	}
-	assert(k == n);
-
-	return lc;
-}
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -5412,12 +5383,15 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	lc = Calloc(1, GMRFLib_lc_tp);
 	lc->n = 0;
-	lc->first_nonzero = -1;				       /* added below */
-	lc->last_nonzero = -1;				       /* added below */
-	lc->first_nonzero_mapped = -1;
-	lc->last_nonzero_mapped = -1;
 	lc->idx = NULL;
 	lc->weight = NULL;
+	lc->tinfo = Calloc(GMRFLib_MAX_THREADS, GMRFLib_lc_tinfo_tp);
+	for(i=0; i<GMRFLib_MAX_THREADS; i++){
+		lc->tinfo[i].first_nonzero = -1;
+		lc->tinfo[i].last_nonzero = -1;
+		lc->tinfo[i].first_nonzero_mapped = -1;
+		lc->tinfo[i].last_nonzero_mapped = -1;
+	}
 
 	for (sec_no = 0; sec_no < num_sections; sec_no++) {
 
@@ -5485,8 +5459,10 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * add these as well 
 	 */
-	lc->first_nonzero = lc->idx[0];
-	lc->last_nonzero = lc->idx[lc->n - 1];
+	for(i=0; i<GMRFLib_MAX_THREADS; i++){
+		lc->tinfo[i].first_nonzero = lc->idx[0];
+		lc->tinfo[i].last_nonzero = lc->idx[lc->n - 1];
+	}
 
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);

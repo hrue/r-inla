@@ -722,21 +722,20 @@ typedef struct {
 	double diff_log_dens;
 } GMRFLib_ai_pool_tp;
 
-typedef struct {
-	int n;						       /* length */
+typedef struct
+{
 	int first_nonzero;				       /* first nonzero idx = min(idx) */
 	int last_nonzero;				       /* last nonzero idx = max(idx) */
 	int first_nonzero_mapped;			       /* first nonzero idx of L^-1 a = min(remap(idx)). automatically added */
 	int last_nonzero_mapped;			       /* last nonzero idx of L^-1 a. automatically added */
+}
+	GMRFLib_lc_tinfo_tp;
+
+typedef struct {
+	int n;						       /* length */
 	int *idx;					       /* list of indices */
 	float *weight;					       /* yes, I want this to be float to reduce storage!!!! */
-
-	/* 
-	   this is for Cov-calculations
-	*/
-	int from_idx;
-	int to_idx;
-	double *v;
+	GMRFLib_lc_tinfo_tp *tinfo;			       /* thread-info */
 } GMRFLib_lc_tp;
 
 typedef struct

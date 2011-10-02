@@ -1029,8 +1029,6 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
 
-GMRFLib_lc_tp *inla_vector_to_lc(int len, double *w);
-
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc);
 
