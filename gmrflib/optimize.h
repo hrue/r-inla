@@ -122,7 +122,8 @@ __BEGIN_DECLS
     indicate that for for this \b idx, the exact derivatie and second order derivaties are available. When this function is
     called with \f$m=3\f$, then it must return the function value in \f$logl[0]\f$, the derivative in \f$logl[1]\f$ and the
     second order derivative in \f$logl[2]\f$, all those evaluated at \b x_i[0], \b x_i[1] and \b x_i[2], respectively. (However,
-    <em> x_i[0] = x_i[1] = x_i[2]</em> in this case.) If called with \f$m=2\f$, the it must return the two first derivatives \b
+    <em> x_i[0] = x_i[1] = x_i[2]</em> in this case.) If called with \f$m=2\f$, the it must return the function value in \f$logl[0]\f$
+    and the derivative in \f$logl[1]\f$.
     OPS: if called with \f$m>3\f$ or $\f$m=1\f$, then it must return the log-likelihood for all <em>x_i[j]</em> for
     \f$j=0,\ldots, m-1\f$.
 
