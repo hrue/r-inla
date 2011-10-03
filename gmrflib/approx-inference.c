@@ -3152,6 +3152,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	if (misc_output) {
 		timer = misc_output->wall_clock_time_used;
+		misc_output->mode_status = 0;
 	} else {
 		timer = NULL;
 	}
