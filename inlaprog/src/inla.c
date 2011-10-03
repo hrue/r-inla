@@ -15064,6 +15064,16 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	fclose(fp);
 	Free(nndir);
 
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode-status.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	fprintf(fp, "%1d\n", mo->mode_status);
+	fclose(fp);
+	Free(nndir);
+
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_pos.dat");
 	inla_fnmfix(nndir);
 	if (mo->stdev_corr_pos) {

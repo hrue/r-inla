@@ -708,6 +708,8 @@ typedef struct {
 
 	int compute_corr_lin;
 	double *corr_lin;				       /* correlation of the lincombs (derived only) */
+
+	int mode_status;				       /* 0 for ok, 1 not ok. */
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
