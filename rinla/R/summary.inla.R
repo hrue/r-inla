@@ -30,7 +30,6 @@
         ret = c(ret, list(random.names=random.name, random.model=random.mod))
     }
     
-    
     neffp = object$neffp
     ret = c(ret, list(neffp=neffp))
     
