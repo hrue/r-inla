@@ -2604,7 +2604,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		int flag_cycle_behaviour = 0;
 		double err = 0.0, f;
 		f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
-		
+
 		// if (f != 1.0) printf("%d:%d: f = %f\n", omp_get_thread_num(), GMRFLib_thread_id, f);
 
 		for (i = 0; i < n; i++) {
@@ -2616,9 +2616,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		if (iter == 0) {
 			err_previous = err;
 		} else {
-			if ((float)(10.0*err) == (float)(10.0*err_previous)){
-				/* 
-				   we're down to some rounding error and cannot get any further. this weird situation has happend.
+			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
+				/*
+				 * we're down to some rounding error and cannot get any further. this weird situation has happend. 
 				 */
 				flag_cycle_behaviour = 1;
 			}
@@ -3112,8 +3112,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	int i, j, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
 	    NULL, *iz_axes = NULL, skip, dir, len_length, free_ai_par = 0, config_count = 0, free_compute = 0, dens_count =
-		0, dens_max, hyper_len = 0, hyper_count = 0, *compute_idx = NULL, compute_n, tmax, run_with_omp, need_Qinv = 1,
-		mode_status = 0;
+	    0, dens_max, hyper_len = 0, hyper_count = 0, *compute_idx = NULL, compute_n, tmax, run_with_omp, need_Qinv = 1;
+
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer;
@@ -3444,7 +3444,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (i = 0; i < nhyper; i++) {
 			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
 
-			if (eigv > 0.0){
+			if (eigv > 0.0) {
 				min_pos_eigenvalue = DMIN(min_pos_eigenvalue, eigv);
 			}
 		}
@@ -3472,9 +3472,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-		if (a_change){
-			if (misc_output){
-				misc_output->mode_status += a_change;  /* not a 'good mode'... */
+		if (a_change) {
+			if (misc_output) {
+				misc_output->mode_status += a_change;	/* not a 'good mode'... */
 			}
 		}
 
@@ -3719,12 +3719,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-		if (misc_output){
-			for(k=0; k < nhyper; k++) {
-				if (ISEQUAL(misc_output->stdev_corr_pos[k], 1.0)){
+		if (misc_output) {
+			for (k = 0; k < nhyper; k++) {
+				if (ISEQUAL(misc_output->stdev_corr_pos[k], 1.0)) {
 					misc_output->mode_status++;
 				}
-				if (ISEQUAL(misc_output->stdev_corr_neg[k], 1.0)){
+				if (ISEQUAL(misc_output->stdev_corr_neg[k], 1.0)) {
 					misc_output->mode_status++;
 				}
 			}
@@ -5476,13 +5476,11 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	int i, j, k, n, nc = 0, one = 1, use_new_version = 1, id;
 	GMRFLib_density_tp **d;
 
-	typedef struct
-	{
+	typedef struct {
 		double *v;
 		int from_idx;
 		int to_idx;
-	}
-	cross_tp;
+	} cross_tp;
 	cross_tp *cross_store = NULL;
 
 	id = GMRFLib_thread_id;				       /* pickup the callers thread */
@@ -5499,14 +5497,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
 
-		/* 
-		   this version require TAUCS.
+		/*
+		 * this version require TAUCS. 
 		 */
-		
+
 		if (cross) {
 			cross_store = Calloc(nlin, cross_tp);
 		}
-
 
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
@@ -5548,7 +5545,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			 */
 			if (Alin[i]->tinfo[id].first_nonzero_mapped < 0) {
 				int findx = n;
-						
+
 				for (j = 0; j < Alin[i]->n; j++) {
 					k = remap[Alin[i]->idx[j]];
 					findx = IMIN(findx, k);
@@ -5671,10 +5668,10 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			}
 			assert(k == klen);
 
-			/* 
-			   I have no idea of why this loop crash in parallel for a problem of Daniel.SB; see his email and test-case 'strange.R.' In his case
-			   Alin->v[i] is sometimes NULL in the ddot_() call, but not above.
-			*/
+			/*
+			 * I have no idea of why this loop crash in parallel for a problem of Daniel.SB; see his email and test-case 'strange.R.' In his case
+			 * Alin->v[i] is sometimes NULL in the ddot_() call, but not above. 
+			 */
 #pragma omp parallel for private(k, i, j)
 			for (k = 0; k < klen; k++) {
 				i = arr[k].i;
@@ -5729,7 +5726,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 						correction += w * ww;
 					}
 
-					(*cross)[i + j * nlin] +=  -correction;
+					(*cross)[i + j * nlin] += -correction;
 					(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
 				}
 			}
