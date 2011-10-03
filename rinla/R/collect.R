@@ -114,7 +114,13 @@ inla.internal.experimental.mode = FALSE
         lincomb.derived.correlation.matrix = NULL
     }
         
-
+    fnm = paste(d, "/mode-status.dat", sep="")
+    if (file.exists(fnm)) {
+        mode.status = scan(fnm)
+    } else {
+        mode.status = NA
+    }
+    
     if (debug)
         print(paste("collect misc from", d, "...done"))
 
@@ -122,7 +128,7 @@ inla.internal.experimental.mode = FALSE
                  cov.intern.eigenvalues = cov.intern.eigenvalues, cov.intern.eigenvectors = cov.intern.eigenvectors, 
                  reordering = r, theta.tags = tags,
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
-                 to.theta = theta.to, from.theta = theta.from,
+                 to.theta = theta.to, from.theta = theta.from, mode.status = mode.status, 
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix))
 }
 

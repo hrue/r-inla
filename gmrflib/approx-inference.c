@@ -3112,7 +3112,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	int i, j, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
 	    NULL, *iz_axes = NULL, skip, dir, len_length, free_ai_par = 0, config_count = 0, free_compute = 0, dens_count =
-	    0, dens_max, hyper_len = 0, hyper_count = 0, *compute_idx = NULL, compute_n, tmax, run_with_omp, need_Qinv = 1;
+		0, dens_max, hyper_len = 0, hyper_count = 0, *compute_idx = NULL, compute_n, tmax, run_with_omp, need_Qinv = 1,
+		mode_status = 0;
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer;
@@ -3439,21 +3440,16 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * check that the hessian is positive definite 
 		 */
 
-		// OLD CODE:
-		// GMRFLib_ASSERT(gsl_vector_get(eigen_values, (unsigned int) i) > 0.0, GMRFLib_EPOSDEF);
-
-		// NEW:
 		double min_pos_eigenvalue = DBL_MAX;
 		for (i = 0; i < nhyper; i++) {
 			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
 
-			if (eigv > 0.0 && eigv < min_pos_eigenvalue)
-				min_pos_eigenvalue = eigv;
+			if (eigv > 0.0){
+				min_pos_eigenvalue = DMIN(min_pos_eigenvalue, eigv);
+			}
 		}
 		if (min_pos_eigenvalue == DBL_MAX) {
 			min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
-		} else {
-			min_pos_eigenvalue /= 100.0;	       /* JUST A CHOICE */
 		}
 		int a_change = 0, all_negative = 1;
 
@@ -3465,8 +3461,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				fprintf(stderr, "\n");
 				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
 				fprintf(stderr, "\t*** WARNING *** Set this eigenvalue to %.6g\n", min_pos_eigenvalue);
-				fprintf(stderr, "\t*** WARNING *** This might have consequence for the accurancy of\n");
-				fprintf(stderr, "\t*** WARNING *** the approximations; please check!\n");
+				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of\n");
+				fprintf(stderr, "\t*** WARNING *** the approximations; please check!!!\n");
 				fprintf(stderr, "\t*** WARNING *** R-inla: Use option inla(..., control.inla = list(h = h.value), ...) \n");
 				fprintf(stderr, "\t*** WARNING *** R-inla: to chose a different  `h.value'.\n");
 				fprintf(stderr, "\n");
@@ -3476,12 +3472,16 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
+		if (a_change){
+			if (misc_output){
+				misc_output->mode_status += a_change;  /* not a 'good mode'... */
+			}
+		}
+
 		sqrt_eigen_values = gsl_vector_alloc((unsigned int) nhyper);
 		for (i = 0; i < nhyper; i++) {
 			gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int) i)));
 		}
-
-
 
 		if (a_change) {
 			/*
@@ -3510,8 +3510,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
-
-
 
 		/*
 		 * compute the inverse hessian, for scaling purposes 
@@ -3718,6 +3716,17 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 				misc_output->stdev_corr_neg = Calloc(nhyper, double);
 				memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
+			}
+		}
+
+		if (misc_output){
+			for(k=0; k < nhyper; k++) {
+				if (ISEQUAL(misc_output->stdev_corr_pos[k], 1.0)){
+					misc_output->mode_status++;
+				}
+				if (ISEQUAL(misc_output->stdev_corr_neg[k], 1.0)){
+					misc_output->mode_status++;
+				}
 			}
 		}
 
