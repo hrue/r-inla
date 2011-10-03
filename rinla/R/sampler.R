@@ -52,5 +52,12 @@ inla.sample.hyper = function(n, result, intern=FALSE)
         }
     }
 
+    if (intern) {
+        colnames(theta) = names(result$misc$to.theta)
+    } else {
+        colnames(theta) = paste(names(result$misc$to.theta), "in user-scale")
+    }
+    rownames(theta) = paste("sample-", inla.num(1L:n), sep="")
+
     return (theta)
 }
