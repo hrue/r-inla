@@ -2744,14 +2744,14 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	default:
 		assert(0 == 1);
 	}
-	
+
 
 	lg1 = gsl_sf_lngamma(dof / 2.0);
 	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
-	int use_tail_correction; 
+	int use_tail_correction;
 
-	switch(bit_tail) {
+	switch (bit_tail) {
 	case 0:
 		use_tail_correction = GMRFLib_FALSE;
 		break;
@@ -3492,20 +3492,20 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 				// printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
 			} else {
 				if (ISEQUAL(p, 1.0)) {
-					/* 
-					   this is ok if we get a 0*log(0) expression for the reminder
-					*/
-					if (n == (int)y) {
+					/*
+					 * this is ok if we get a 0*log(0) expression for the reminder 
+					 */
+					if (n == (int) y) {
 						logll[i] = res.val + y * log(p);
 					} else {
 						logll[i] = -DBL_MAX;
 					}
 				} else if (ISZERO(p)) {
-					/* 
-					   this is ok if we get a 0*log(0) expression for the reminder
-					*/
-					if ((int)y == 0) {
-						logll[i] = res.val + (n-y) * log(1.0 - p);
+					/*
+					 * this is ok if we get a 0*log(0) expression for the reminder 
+					 */
+					if ((int) y == 0) {
+						logll[i] = res.val + (n - y) * log(1.0 - p);
 					} else {
 						logll[i] = -DBL_MAX;
 					}
@@ -5408,7 +5408,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	lc->idx = NULL;
 	lc->weight = NULL;
 	lc->tinfo = Calloc(GMRFLib_MAX_THREADS, GMRFLib_lc_tinfo_tp);
-	for(i=0; i<GMRFLib_MAX_THREADS; i++){
+	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 		lc->tinfo[i].first_nonzero = -1;
 		lc->tinfo[i].last_nonzero = -1;
 		lc->tinfo[i].first_nonzero_mapped = -1;
@@ -5481,7 +5481,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * add these as well 
 	 */
-	for(i=0; i<GMRFLib_MAX_THREADS; i++){
+	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 		lc->tinfo[i].first_nonzero = lc->idx[0];
 		lc->tinfo[i].last_nonzero = lc->idx[lc->n - 1];
 	}
@@ -6217,14 +6217,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 
 
-	/* 
-	   common for all
+	/*
+	 * common for all 
 	 */
 	ds->variant = (GMRFLib_uchar) iniparser_getint(ini, inla_string_join(secname, "VARIANT"), 0);
 	if (mb->verbose) {
 		printf("\t\tuse variant [%1u]\n", (unsigned int) ds->variant);
 		unsigned int jj;
-		for(jj=0; jj < 4; jj++){
+		for (jj = 0; jj < 4; jj++) {
 			printf("\t\t\tbit %u is %s\n", jj, (GMRFLib_getbit((GMRFLib_uchar) ds->variant, jj) ? "on" : "off"));
 		}
 	}
@@ -14291,10 +14291,10 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 	assert(fp);
 
 	fprintf(fp, "%1d\n", graph->n);
-	for(i=0; i<graph->n; i++){
+	for (i = 0; i < graph->n; i++) {
 		fprintf(fp, "%1d\n", i);
 		fprintf(fp, "%1d\n", graph->nnbs[i]);
-		for(jj = 0; jj < graph->nnbs[i]; jj++){
+		for (jj = 0; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			fprintf(fp, "%1d\n", j);
 		}
@@ -14674,7 +14674,7 @@ int inla_output(inla_tp * mb)
 				inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
 				mb->verbose = save;
 			}
-			if (mb->output->graph){
+			if (mb->output->graph) {
 				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
 			}
 		}
@@ -16352,7 +16352,7 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 
 	FILE *fp;
 	long len;
-	
+
 	fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;
