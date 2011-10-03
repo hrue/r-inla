@@ -2719,7 +2719,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 		}
 	}
 
-	int i, strata;
+	int i, dcode, strata;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
 
@@ -2796,13 +2796,15 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 
 		if (m > 0) {
 			/*
-			 * assume this... 
+			 * assume this for the moment, otherwise we have to add new code...
 			 */
 			assert(ds->predictor_invlinkfunc == link_identity);
 
 			for (i = 0; i < m; i++) {
 				ypred = ds->predictor_invlinkfunc(x[i] + OFFSET(idx), MAP_FORWARD, NULL);
 				y_std = (y - ypred) * fac;
+				dcode = (m <= 3 ? i : 0);      /* if m > 3 we should not compute deriviaties... */
+
 				if (ABS(y_std) > tail_start && use_tail_correction) {
 					if (y_std > tail_start) {
 						dev = y_std - tail_start;
@@ -2811,7 +2813,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 						diff *= -1.0;  /* swap sign */
 					}
 
-					switch (i) {
+					switch (dcode) {
 					case 0:
 						logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(tail_start) / dof) + log(fac);
 						logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
@@ -2831,7 +2833,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 						assert(0 == 1);
 					}
 				} else {
-					switch (i) {
+					switch (dcode) {
 					case 0:
 						logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
 						logll[i] -= log_normc;
@@ -3489,7 +3491,27 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 				logll[i] = res.val - SQR(DMIN(10.0, n)) * SQR(x[i] + OFFSET(idx) - (-5.0));
 				// printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
 			} else {
-				logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+				if (ISEQUAL(p, 1.0)) {
+					/* 
+					   this is ok if we get a 0*log(0) expression for the reminder
+					*/
+					if (n == (int)y) {
+						logll[i] = res.val + y * log(p);
+					} else {
+						logll[i] = -DBL_MAX;
+					}
+				} else if (ISZERO(p)) {
+					/* 
+					   this is ok if we get a 0*log(0) expression for the reminder
+					*/
+					if ((int)y == 0) {
+						logll[i] = res.val + (n-y) * log(1.0 - p);
+					} else {
+						logll[i] = -DBL_MAX;
+					}
+				} else {
+					logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+				}
 			}
 		}
 	} else {
