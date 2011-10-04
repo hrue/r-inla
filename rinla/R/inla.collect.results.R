@@ -70,6 +70,7 @@
 
     misc = inla.collect.misc(results.dir, debug)
     theta.tags = NULL
+    mode.status = NA
     if (!is.null(misc)) {
         ## put also theta.mode in here
         misc$theta.mode = theta.mode
@@ -77,13 +78,14 @@
         if (!is.null(misc$theta.tags)) {
             theta.tags = misc$theta.tags
         }
+        mode.status = misc$mode.status
     }
 
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations, res.offset, res.spde2.blc, 
             list(misc = misc,
-                 dic=res.dic, mode = list(theta = theta.mode, x=x.mode,
-                                      theta.tags = theta.tags),
+                 dic=res.dic, mode = list(theta = theta.mode, x = x.mode,
+                                      theta.tags = theta.tags, mode.status = mode.status),
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla = hgid, Rinla=inla.version(hgid=TRUE))),
