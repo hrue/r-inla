@@ -395,6 +395,7 @@
     ## expand the data-frame and call inla() again.
     ##
     have.surv = FALSE
+    cont.hazard = NULL
     for(i in 1:n.family)
         have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
 
@@ -1663,8 +1664,7 @@
             ret$control.fixed = cont.fixed
             ret$control.mode = cont.mode
             ret$control.expert = cont.expert
-            if (exists("cont.hazard"))
-                ret$control.hazard = cont.hazard
+            ret$control.hazard = cont.hazard
             ret$control.lincomb = cont.lincomb
 
             ret$call=call
