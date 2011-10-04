@@ -1789,7 +1789,11 @@ inla.spde.create.generic =
                  f = (list(model="spde2",
                            spde2.prefix=spde.prefix,
                            n=nrow(M0),
-                           spde2.transform=transform
+                           spde2.transform=transform,
+                           hyper = (list(theta1 =
+                                         list(prior="mvnorm",
+                                              param=c() )
+                                         ))
                            ))
                  ))
     class(spde) = "inla.spde"
@@ -1837,6 +1841,9 @@ inla.spde.create.generic =
 
     spde$internal$param.generic = param.generic
     spde$internal$param.inla = param.inla
+
+    spde$f$hyper$theta1$param =
+        c(param.inla$theta.mu, as.matrix(param.inla$theta.Q))
 
     fmesher.write(spde$internal$param.inla$M0, spde.prefix, "M0")
     fmesher.write(spde$internal$param.inla$M1, spde.prefix, "M1")
