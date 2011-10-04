@@ -14,6 +14,7 @@ if false; then
     echo "INLA_SSH_AUTH_SOCK $INLA_SSH_AUTH_SOCK"
     echo "INLA_OS $INLA_OS"
     echo "INLA_CYGWIN_HOME $INLA_CYGWIN_HOME"
+    echo "INLA_HGVERSION $INLA_HGVERSION"
 fi
 
 if [ "$INLA_OS" == "windows" ]; then
@@ -62,7 +63,7 @@ verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo -e "\n\t$HGVERSION"
+	echo -e "\n\t$INLA_HGVERSION"
 	echo -e "\tRun $RemoteINLA at host $RemoteHost\n" 
     } 1>&2
 fi
