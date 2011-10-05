@@ -1782,21 +1782,66 @@ inla.spde.create.generic =
 {
     transform = match.arg(transform)
 
-    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
+    n.spde=nrow(M0)
+    n.theta = length(theta.mu)
 
+    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
     spde = (list(model = "spde2.generic",
                  internal = list(),
-                 f = (list(model="spde2",
-                           spde2.prefix=spde.prefix,
-                           n=nrow(M0),
-                           spde2.transform=transform,
-                           hyper = (list(theta1 =
-                                         list(prior="mvnorm",
-                                              param=c() )
-                                         ))
-                           ))
+                 f = list()
                  ))
     class(spde) = "inla.spde"
+
+    homogenise_B_matrix = function(B, n.spde, n.theta)
+    {
+        if (!is.numeric(B))
+            stop("B matrix must be numeric.")
+        if (is.matrix(B)) {
+            if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
+                stop(inla.paste(list("B matrix has",
+                                     as.character(nrow(B)),
+                                     "rows but should have 1 or",
+                                     as.character(n.spde),
+                                     sep=" ")))
+            }
+            if ((ncol(B) != 1) && (ncol(B) != 1+n.theta)) {
+                stop(inla.paste(list("B matrix has",
+                                     as.character(ncol(B)),
+                                     "columns but should have 1 or",
+                                     as.character(1+n.theta),
+                                     sep=" ")))
+            }
+            if (ncol(B) == 1) {
+                return(cbind(as.vector(B), matrix(0.0, n.spde, n.theta)))
+            } else if (ncol(B) == 1+n.theta) {
+                if (nrow(B) == 1) {
+                    return(matrix(as.vector(B), n.spde, 1+n.theta, byrow=TRUE))
+                } else if (nrow(B) == n.spde) {
+                    return(B)
+                }
+            }
+        } else { ## !is.matrix(B)
+            if ((length(B) == 1) || (length(B) == n.spde)) {
+                return(cbind(B, matrix(0.0, n.spde, n.theta)))
+            } else if (length(B) == 1+n.theta) {
+                return(matrix(B, n.spde, 1+n.theta, byrow=TRUE))
+            } else {
+                stop(inla.paste(list("Length of B vector is",
+                                     as.character(length(B)),
+                                     "but should be 1,",
+                                     as.character(1+n.theta), "or",
+                                     as.character(n.spde)),
+                                     sep=" "))
+            }
+        }
+        stop(inla.paste(list("Unrecognised structure for B matrix"),
+                        sep=" "))
+    }
+
+    B0 = homogenise_B_matrix(B0, n.spde, n.theta)
+    B1 = homogenise_B_matrix(B1, n.spde, n.theta)
+    B2 = homogenise_B_matrix(B2, n.spde, n.theta)
+    BLC = homogenise_B_matrix(BLC, nrow(BLC), n.theta)
 
     param.generic =
         list(M0=M0, M1=M1, M2=M2,
@@ -1808,7 +1853,6 @@ inla.spde.create.generic =
              theta.fixed=theta.fixed)
     ## Copy full generic parameters to internal inla-representation.
     param.inla = param.generic
-    n.theta = length(theta.mu)
     ## TODO: Check dimension consistency of inputs
 
     ## If any "fixed", move information from B[,1+(1:n.theta)] into
@@ -1842,8 +1886,18 @@ inla.spde.create.generic =
     spde$internal$param.generic = param.generic
     spde$internal$param.inla = param.inla
 
-    spde$f$hyper$theta1$param =
-        c(param.inla$theta.mu, as.matrix(param.inla$theta.Q))
+    spde$f = (list(model="spde2",
+                   spde2.prefix=spde.prefix,
+                   n=n.spde,
+                   spde2.transform=transform,
+                   hyper.default =
+                   (list(theta1 =
+                         list(prior="mvnorm",
+                              param=(c(param.inla$theta.mu,
+                                       as.matrix(param.inla$theta.Q)))
+                              )
+                         ))
+                   ))
 
     fmesher.write(spde$internal$param.inla$M0, spde.prefix, "M0")
     fmesher.write(spde$internal$param.inla$M1, spde.prefix, "M1")
