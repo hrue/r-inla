@@ -4804,19 +4804,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
-			
+
 			double *ptmp_scale = Calloc(ISQR(nlin), double);
 			for (i = 0; i < nlin; i++) {
-				ptmp_scale[i + i * nlin] = 1.0/sqrt(ptmp[i + i * nlin]);
+				ptmp_scale[i + i * nlin] = 1.0 / sqrt(ptmp[i + i * nlin]);
 			}
-			
+
 			for (i = 0; i < nlin; i++) {
-				for (j = i+1; j < nlin; j++) {
-					ptmp[i + j * nlin] = ptmp[i + j * nlin] * ptmp_scale[i + i*nlin] * ptmp_scale[j + j*nlin];
+				for (j = i + 1; j < nlin; j++) {
+					ptmp[i + j * nlin] = ptmp[i + j * nlin] * ptmp_scale[i + i * nlin] * ptmp_scale[j + j * nlin];
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
-			
+
 			for (i = 0; i < nlin; i++) {
 				ptmp[i + i * nlin] = 1.0;
 			}
@@ -5509,7 +5509,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		if (cross) {
 			cross_store = Calloc(nlin, cross_tp);
 		}
-
 #pragma omp parallel for private(i)
 		for (i = 0; i < nlin; i++) {
 
@@ -5517,18 +5516,18 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
 
 			if (Alin[i]->tinfo[id].first_nonzero < 0) {
-				/* 
-				   we know that the idx's are sorted, so its easier to find the first and last non-zero
+				/*
+				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
 				 */
-				//Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
-				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0]; 
+				// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
+				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
 			}
 
 			if (Alin[i]->tinfo[id].last_nonzero < 0) {
-				/* 
-				   we know that the idx's are sorted, so its easier to find the first and last non-zero
+				/*
+				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
 				 */
-				//Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+				// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
 				Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
 			}
 
@@ -5672,8 +5671,8 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			}
 			assert(k == klen);
 
-			/* 
-			   this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
+			/*
+			 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 			 */
 #pragma omp parallel for private(k, i, j) if(nc)
 			for (k = 0; k < klen; k++) {
@@ -5731,10 +5730,10 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 					(*cross)[i + j * nlin] += -correction;
 				}
-				
+
 				(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
 			}
-			
+
 			Free(arr);
 			for (i = 0; i < nlin; i++) {
 				Free(cross_store[i].v);
