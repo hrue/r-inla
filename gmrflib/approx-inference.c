@@ -4796,28 +4796,32 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			double *ptmp;
 			misc_output->corr_lin = ptmp = Calloc(ISQR(nlin), double);
 
-
 			for (i = 0; i < nlin; i++) {
 				for (j = i; j < nlin; j++) {
 					for (k = 0; k < dens_count; k++) {
 						ptmp[i + j * nlin] += adj_weights[k] * lin_cross[k][i + j * nlin];
 					}
-
-					/*
-					 * rescale to correlation 
-					 */
-					if (i != j) {
-						ptmp[i + j * nlin] = (ptmp[i + j * nlin]) / ((*dlin)[i]->user_stdev * (*dlin)[j]->user_stdev);
-					} else {
-						ptmp[i + j * nlin] = 1.0;
-					}
-
-					/*
-					 * just make it symmetric 
-					 */
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
+			
+			double *ptmp_scale = Calloc(ISQR(nlin), double);
+			for (i = 0; i < nlin; i++) {
+				ptmp_scale[i + i * nlin] = 1.0/sqrt(ptmp[i + i * nlin]);
+			}
+			
+			for (i = 0; i < nlin; i++) {
+				for (j = i+1; j < nlin; j++) {
+					ptmp[i + j * nlin] = ptmp[i + j * nlin] * ptmp_scale[i + i*nlin] * ptmp_scale[j + j*nlin];
+					ptmp[j + i * nlin] = ptmp[i + j * nlin];
+				}
+			}
+			
+			for (i = 0; i < nlin; i++) {
+				ptmp[i + i * nlin] = 1.0;
+			}
+
+			Free(ptmp_scale);
 		}
 
 	}
@@ -5513,21 +5517,19 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
 
 			if (Alin[i]->tinfo[id].first_nonzero < 0) {
-				Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
-
-				/*
-				 * Just check this here, as its so much more convenient if this is true, below. If its not, make sure it is true then! 
+				/* 
+				   we know that the idx's are sorted, so its easier to find the first and last non-zero
 				 */
-				int jj;
-				if (Alin[i]->n > 1) {
-					for (jj = 0; jj < Alin[i]->n - 1; jj++) {
-						assert(Alin[i]->idx[jj] < Alin[i]->idx[jj + 1]);
-					}
-				}
+				//Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
+				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0]; 
 			}
 
 			if (Alin[i]->tinfo[id].last_nonzero < 0) {
-				Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+				/* 
+				   we know that the idx's are sorted, so its easier to find the first and last non-zero
+				 */
+				//Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+				Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
 			}
 
 			from_idx_a = Alin[i]->tinfo[id].first_nonzero;
@@ -5602,6 +5604,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 				cross_store[i].from_idx = from_idx;
 				cross_store[i].to_idx = to_idx;
 				cross_store[i].v = v;
+				v = NULL;
 			} else {
 				Free(v);
 			}
@@ -5669,11 +5672,10 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			}
 			assert(k == klen);
 
-			/*
-			 * I have no idea of why this loop crash in parallel for a problem of Daniel.SB; see his email and test-case 'strange.R.' In his case
-			 * Alin->v[i] is sometimes NULL in the ddot_() call, but not above. 
+			/* 
+			   this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 			 */
-#pragma omp parallel for private(k, i, j)
+#pragma omp parallel for private(k, i, j) if(nc)
 			for (k = 0; k < klen; k++) {
 				i = arr[k].i;
 				j = arr[k].j;
@@ -5687,13 +5689,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 					double *v_i = NULL, *v_j = NULL;
 					int ij_len = 0;
 
-					v_i = &(cross_store[i].v[IMAX(0, ij_from - cross_store[i].from_idx)]);
-					v_j = &(cross_store[j].v[IMAX(0, ij_from - cross_store[j].from_idx)]);
+					v_i = &(cross_store[i].v[ij_from - cross_store[i].from_idx]);
+					v_j = &(cross_store[j].v[ij_from - cross_store[j].from_idx]);
 					ij_len = ij_to - ij_from + 1;
 
-					(*cross)[i + j * nlin] = (*cross)[j + i * nlin] = ddot_(&ij_len, v_i, &one, v_j, &one);
+					(*cross)[i + j * nlin] = ddot_(&ij_len, v_i, &one, v_j, &one);
 				} else {
-					(*cross)[i + j * nlin] = (*cross)[j + i * nlin] = 0.0;
+					(*cross)[i + j * nlin] = 0.0;
 				}
 
 				if (nc) {
@@ -5728,10 +5730,11 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 					}
 
 					(*cross)[i + j * nlin] += -correction;
-					(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
 				}
+				
+				(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
 			}
-
+			
 			Free(arr);
 			for (i = 0; i < nlin; i++) {
 				Free(cross_store[i].v);
