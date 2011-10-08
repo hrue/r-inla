@@ -5381,7 +5381,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		printf("\t\tfile.offset [%16.0g]\n", (double) fileoffset);
+		printf("\t\tfile.offset [%lu]\n", (long unsigned) fileoffset);
 	}
 
 	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e9);
@@ -5395,7 +5395,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
 
 	if (mb->verbose) {
-		printf("\t\tOpen file [%s] at location [%16.0g]\n", filename, (double) fileoffset);
+		printf("\t\tOpen file [%s] at location [%lu]\n", filename, (long unsigned) fileoffset);
 	}
 
 	GMRFLib_io_read(io, &num_sections, sizeof(int));
@@ -5477,15 +5477,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
 	 */
 	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
-
-	/*
-	 * add these as well 
-	 */
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
-		lc->tinfo[i].first_nonzero = lc->idx[0];
-		lc->tinfo[i].last_nonzero = lc->idx[lc->n - 1];
-	}
-
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
 		printf("\t\tLincomb = \tidx \tweight\n");
@@ -15101,6 +15092,10 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	if (mo->compute_corr_lin && mo->corr_lin) {
+		/* 
+		   OOPS: this matrix is in its own internal ordering, where the names of the rows/columns are defined as the tags in the lincomb.derived. So we
+		   output this matrix in its raw form, and add the names in 'collect.R'.
+		 */
 		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin);
 	}
 
