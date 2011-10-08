@@ -15092,9 +15092,9 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	if (mo->compute_corr_lin && mo->corr_lin) {
-		/* 
-		   OOPS: this matrix is in its own internal ordering, where the names of the rows/columns are defined as the tags in the lincomb.derived. So we
-		   output this matrix in its raw form, and add the names in 'collect.R'.
+		/*
+		 * OOPS: this matrix is in its own internal ordering, where the names of the rows/columns are defined as the tags in the lincomb.derived. So we
+		 * output this matrix in its raw form, and add the names in 'collect.R'. 
 		 */
 		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin);
 	}
