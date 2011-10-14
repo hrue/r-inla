@@ -1,0 +1,68 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{iid-Exponential}
+
+\subsection*{Parametrisation}
+
+This family is part of the ``iid'' family to emulate non-Gaussian iid
+components.
+
+
+The Exponential distribution is
+\begin{displaymath}
+    f(\mu) = s\lambda \exp(-s\lambda \mu), \;\; \mu\ge 0
+\end{displaymath}
+for the linear predictor $\mu$, and where
+\begin{description}
+\item[$\lambda$:] is the rate
+\item[$s$:] is a fixed scaling, $s>0$.    
+\end{description}
+
+\subsection*{Link-function}
+
+Not relevant
+
+\subsection*{Hyperparameters}
+
+The rate is represented as
+\begin{displaymath}
+    \theta = \log \lambda
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{iidexp}$
+\item Required arguments: $y$ and $s$ (keyword \texttt{scale})
+\end{itemize}
+The scalings have default value 1. Note that the numerical values of
+$y$ is not used, only if its \texttt{NA} or not. 
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/iidexp.tex}
+
+
+
+\subsection*{Example}
+
+\verbatiminput{example-iidexp.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
