@@ -166,6 +166,8 @@ typedef struct {
 #define GMRFLib_SN_WEIGHT_SCALING (0.5)
 
 typedef struct {
+	double xmin;
+	double xmax;
 	gsl_interp_accel *accel;
 	gsl_spline *spline;
 } GMRFLib_spline_tp;
