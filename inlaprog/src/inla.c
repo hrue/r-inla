@@ -2068,6 +2068,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_BINOMIAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_CBINOMIAL) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL0) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -3521,6 +3524,68 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ Binomial(n, p), then z ~ CBinomial(p) where z = 0 if y=0, and z=1 if y > 0. This gives p(z=0) = (1-p)^n, and p(z=1) = 1-(1-p)^n.
+	 * So z ~ Binomial(1, 1-(1-p)^n)
+	 */
+	int i;
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	int status;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p, z, nz = 1.0;
+
+	z = ((int) y == 0 ? 0.0 : 1.0);
+	
+	if (m > 0) {
+		gsl_sf_result res;
+		status = gsl_sf_lnchoose_e((unsigned int) nz, (unsigned int) z, &res);
+		assert(status == GSL_SUCCESS);
+		for (i = 0; i < m; i++) {
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			if (p > 1.0) {
+				/*
+				 * need this for the link = "log" that was requested...
+				 */
+				logll[i] = res.val - SQR(DMIN(10.0, nz)) * SQR(x[i] + OFFSET(idx) - (-5.0));
+			} else {
+				if (ISEQUAL(p, 1.0)) {
+					/*
+					 * this is ok if we get a 0*log(0) expression for the reminder 
+					 */
+					if (1 == (int) z) {
+						logll[i] = res.val + z * log(1.0 - pow(1.0-p, n));
+					} else {
+						logll[i] = -DBL_MAX;
+					}
+				} else if (ISZERO(p)) {
+					/*
+					 * this is ok if we get a 0*log(0) expression for the reminder 
+					 */
+					if ((int) z == 0) {
+						logll[i] = res.val + (nz - z) * n*log(1.0 - p);
+					} else {
+						logll[i] = -DBL_MAX;
+					}
+				} else {
+					logll[i] = res.val + z * log(1.0 - pow(1.0-p, n)) + (nz - z) * n * log(1.0-p);
+				}
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+			p = DMIN(1.0, p);
+			logll[i] = gsl_cdf_binomial_P((unsigned int) z, 1.0 - pow(1.0 - p, n), (unsigned int) nz);
 		}
 	}
 
@@ -5967,6 +6032,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "CBINOMIAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
+		ds->data_id = L_CBINOMIAL;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial0;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL0;
@@ -6152,7 +6221,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
-		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2) {
+		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2 ||
+		   ds->data_id == L_CBINOMIAL) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||

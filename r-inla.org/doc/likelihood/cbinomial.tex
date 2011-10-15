@@ -1,0 +1,70 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{CBinomial}
+
+\subsection*{Parametrisation}
+
+The clustered/clumped-Binomial distribution arrives from a
+transformation of Binomial observations. Let $z$ be Binomial distributed
+\begin{displaymath}
+    \text{Prob}(z) = {n \choose z} \ p^n (1-p)^{n-z}
+\end{displaymath}
+for $z=0, 1, 2, \ldots,n$, where
+\begin{description}
+\item[$n$:] number of trials.
+\item[$p$:] probability of success in each trial.
+\end{description}
+Then the CBinomial distribution is the distribution for $y$, where
+\begin{displaymath}
+    y =
+    \begin{cases}
+        0 & z = 0\\
+        1 & \text{$z > 0$}
+    \end{cases}
+\end{displaymath}
+It then follows that $\text{Prob}(y = 0) = (1-p)^{n}$ and
+$\text{Prob}(y=1) = 1-(1-p)^{n}$, i.e.\ $y$ is Binomial distributed
+with size 1 and probability for success $1-(1-p)^{n}$.
+
+\subsection*{Link-function}
+
+The probability $p$ is linked to the linear predictor by
+\begin{displaymath}
+    p(\eta) = \frac{\exp(\eta)}{1+\exp(\eta)}
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{binomial}$
+\item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with CBinomial responses.
+\verbatiminput{example-cbinomial.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

@@ -265,6 +265,7 @@ typedef enum {
 	L_TSTRATA,
 	L_POISSON,
 	L_BINOMIAL,
+	L_CBINOMIAL, 					       /* clumped binomial */
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
@@ -969,6 +970,7 @@ int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
