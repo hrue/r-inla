@@ -101,8 +101,11 @@ $(DEPDIR):
 
 %.o: %.c $(DEPDIR)
 	$(COMPILE.c) -MMD -MF $(dir $(DEPDIR))$*.d.tmp -o $@ $<
+	##	-@$(SED) -e ':more;/\\/N;s/[ ]*\\\r*\n[ ]*/ /;tmore' \
+	##      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
+	##	  < $(dir $(DEPDIR))$*.d.tmp > $(dir $(DEPDIR))$*.d
 	-@$(SED) -e ':more;/\\/N;s/[ ]*\\\r*\n[ ]*/ /;tmore' \
-	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\),g' \
+	      -e 's,\($*\.o\)[ :]*\(.*\),$@ : \2,g' \
 	  < $(dir $(DEPDIR))$*.d.tmp > $(dir $(DEPDIR))$*.d
 	-$(RM) $(dir $(DEPDIR))$*.d.tmp
 
