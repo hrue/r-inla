@@ -2203,6 +2203,15 @@
                       pdf = "binomial"
                       ), 
 
+              cbinomial = list(
+                      hyper = list(
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      pdf = "cbinomial"
+                      ), 
+
               nbinomial = list(
                       hyper = list(
                               theta = list(
