@@ -1,4 +1,7 @@
 remove(list=ls())
+graphics.off()
+require(rgl)
+rgl.quit()
 require(INLA)
 inla.my.update()
 
@@ -29,15 +32,17 @@ spde1$f$hyper.default =
 ##require(debug)
 ##mtrace(inla.spde.create.generic)
 spde2 =
-    inla.spde.create.generic(M0=spde1$internal$c0,
-                             M1=spde1$internal$g1,
-                             M2=spde1$internal$g2,
-                             B0=matrix(c(0,1,0),1,3),
-                             B1=matrix(c(0,0,1),1,3),
-                             B2=1,
-                             theta.mu = c(0,0),
-                             theta.Q = diag(nrow=2)*prior.prec,
-                             transform="identity")
+    inla.spde.generic2(M0=spde1$internal$c0,
+                       M1=spde1$internal$g1,
+                       M2=spde1$internal$g2,
+                       B0=matrix(c(0,1,0),1,3),
+                       B1=matrix(c(0,0,1),1,3),
+                       B2=1,
+                       theta.mu = c(0,0),
+                       theta.Q = diag(nrow=2)*prior.prec,
+                       transform="identity")
+
+spde3 = inla.spde.matern(mesh)
 
 field = inla.spde.query(spde1, sample=list(tau=tau, kappa2=kappa2))$sample
 Y = 1+rep(field, n.obs.repl)+rnorm(mesh$n*n.obs.repl)/sqrt(prec)
@@ -46,8 +51,10 @@ data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde1)
 formula1 = (as.formula("Y ~ 1 + f(field, model=spde1)"))
 data2 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde2)
 formula2 = (as.formula("Y ~ 1 + f(field, model=spde2)"))
+data3 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde3)
+formula3 = (as.formula("Y ~ 1 + f(field, model=spde3)"))
 
-verbose = FALSE
+verbose = TRUE
 result1 =
     inla(formula=formula1,
          family="gaussian",
@@ -59,6 +66,13 @@ result2 =
     inla(formula=formula2,
          family="gaussian",
          data=data2,
+         control.predictor=list(compute=TRUE),
+         control.compute=list(cpo=TRUE),
+         verbose=verbose)
+result3 =
+    inla(formula=formula3,
+         family="gaussian",
+         data=data3,
          control.predictor=list(compute=TRUE),
          control.compute=list(cpo=TRUE),
          verbose=verbose)
@@ -82,7 +96,37 @@ plot(old.mesh.class(mesh), result2$summary.random$field[,"mean"],
 plot(old.mesh.class(mesh), result2$summary.random$field[,"sd"],
      color.palette=tim.colors,
      draw.edges=FALSE, draw.vertices=FALSE)
-hist(result2$pit,sqrt(length(Y)))
+
+
+ks.plot = function (x, y, ...) {
+    test = ks.test(x, y, ...)
+    n = length(x)
+    Fn = ((1:n)-0.5)/n
+    F = y(sort(x))
+    empirical.diff = (Fn-F)*sqrt(n)
+    T = max(abs(empirical.diff))
+    ylim = c(-1,1)*max(1,T)
+    plot(Fn, empirical.diff, type='l',
+         ylim=ylim,
+         main=paste("K-S-test, p-value = ",test$p.value),
+         ylab="(Fn-F) sqrt(n)",
+         xlab="Quantile"
+         )
+    lines(Fn, 2*sqrt(Fn*(1-Fn)), type='l')
+    lines(Fn, -2*sqrt(Fn*(1-Fn)), type='l')
+    lines(c(0,1), c(1,1)*T, type='l')
+    lines(c(0,1), -c(1,1)*T, type='l')
+    invisible(test)
+}
+
+dev.new()
+ks.plot(result1$pit, punif)
+dev.new()
+ks.plot(result2$pit, punif)
+dev.new()
+ks.plot(result3$pit, punif)
+
+
 
 if (FALSE) {
 ## Option 1:
