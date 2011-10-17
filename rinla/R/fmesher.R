@@ -1769,9 +1769,54 @@ inla.spde.query = function(spde, ...)
 
 
 
+homogenise_B_matrix = function(B, n.spde, n.theta)
+{
+    if (!is.numeric(B))
+        stop("B matrix must be numeric.")
+    if (is.matrix(B)) {
+        if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
+            stop(inla.paste(list("B matrix has",
+                                 as.character(nrow(B)),
+                                 "rows but should have 1 or",
+                                 as.character(n.spde),
+                                 sep=" ")))
+        }
+        if ((ncol(B) != 1) && (ncol(B) != 1+n.theta)) {
+            stop(inla.paste(list("B matrix has",
+                                 as.character(ncol(B)),
+                                 "columns but should have 1 or",
+                                 as.character(1+n.theta),
+                                 sep=" ")))
+        }
+        if (ncol(B) == 1) {
+            return(cbind(as.vector(B), matrix(0.0, n.spde, n.theta)))
+        } else if (ncol(B) == 1+n.theta) {
+            if (nrow(B) == 1) {
+                return(matrix(as.vector(B), n.spde, 1+n.theta, byrow=TRUE))
+            } else if (nrow(B) == n.spde) {
+                return(B)
+            }
+        }
+    } else { ## !is.matrix(B)
+        if ((length(B) == 1) || (length(B) == n.spde)) {
+            return(cbind(B, matrix(0.0, n.spde, n.theta)))
+        } else if (length(B) == 1+n.theta) {
+            return(matrix(B, n.spde, 1+n.theta, byrow=TRUE))
+        } else {
+            stop(inla.paste(list("Length of B vector is",
+                                 as.character(length(B)),
+                                 "but should be 1,",
+                                 as.character(1+n.theta), "or",
+                                 as.character(n.spde)),
+                            sep=" "))
+        }
+    }
+    stop(inla.paste(list("Unrecognised structure for B matrix"),
+                    sep=" "))
+}
 
 
-inla.spde.create.generic =
+inla.spde.generic2 =
     function(M0, M1, M2, B0, B1, B2, theta.mu, theta.Q,
              transform = c("logit","log","identity"),
              theta.initial = theta.mu,
@@ -1791,52 +1836,6 @@ inla.spde.create.generic =
                  f = list()
                  ))
     class(spde) = "inla.spde"
-
-    homogenise_B_matrix = function(B, n.spde, n.theta)
-    {
-        if (!is.numeric(B))
-            stop("B matrix must be numeric.")
-        if (is.matrix(B)) {
-            if ((nrow(B) != 1) && (nrow(B) != n.spde)) {
-                stop(inla.paste(list("B matrix has",
-                                     as.character(nrow(B)),
-                                     "rows but should have 1 or",
-                                     as.character(n.spde),
-                                     sep=" ")))
-            }
-            if ((ncol(B) != 1) && (ncol(B) != 1+n.theta)) {
-                stop(inla.paste(list("B matrix has",
-                                     as.character(ncol(B)),
-                                     "columns but should have 1 or",
-                                     as.character(1+n.theta),
-                                     sep=" ")))
-            }
-            if (ncol(B) == 1) {
-                return(cbind(as.vector(B), matrix(0.0, n.spde, n.theta)))
-            } else if (ncol(B) == 1+n.theta) {
-                if (nrow(B) == 1) {
-                    return(matrix(as.vector(B), n.spde, 1+n.theta, byrow=TRUE))
-                } else if (nrow(B) == n.spde) {
-                    return(B)
-                }
-            }
-        } else { ## !is.matrix(B)
-            if ((length(B) == 1) || (length(B) == n.spde)) {
-                return(cbind(B, matrix(0.0, n.spde, n.theta)))
-            } else if (length(B) == 1+n.theta) {
-                return(matrix(B, n.spde, 1+n.theta, byrow=TRUE))
-            } else {
-                stop(inla.paste(list("Length of B vector is",
-                                     as.character(length(B)),
-                                     "but should be 1,",
-                                     as.character(1+n.theta), "or",
-                                     as.character(n.spde)),
-                                     sep=" "))
-            }
-        }
-        stop(inla.paste(list("Unrecognised structure for B matrix"),
-                        sep=" "))
-    }
 
     B0 = homogenise_B_matrix(B0, n.spde, n.theta)
     B1 = homogenise_B_matrix(B1, n.spde, n.theta)
@@ -1908,66 +1907,99 @@ inla.spde.create.generic =
     fmesher.write(spde$internal$param.inla$BLC, spde.prefix, "BLC")
 
     return(spde)
-
-    ##    hyper =
-
-    spde$internal =
-        c(spde$internal,
-          list(param.generic=param.generic,
-               param.inla=param.inla)
-          )
+}
 
 
-    if (is.null(param))
-        param = list()
-    if (is.null(param$alpha))
-        param$alpha = 2
-    if (is.null(param$basis.T))
-        param$basis.T = matrix(1, mesh$n, 1)
-    else if (!is.matrix(param$basis.T)) {
-        len = length(as.vector(param$basis.T))
-        if (len == 1L)
-            param$basis.T = matrix(as.vector(param$basis.T), mesh$n, 1)
-        else
-            param$basis.T = as.matrix(param$basis.T)
+inla.spde.matern =
+    function(mesh,
+             alpha=2,
+             B.tau = matrix(c(0,1,0),1,3),
+             B.kappa2 = matrix(c(0,0,1),1,3),
+             B.prec = NULL,
+             sigma2.approx = 1,
+             theta.prior.mean = NULL,
+             theta.prior.prec = NULL)
+{
+    if (is.null(B.kappa2))
+        stop("B.kappa2 must be specified.")
+    is.stationary = (nrow(B.kappa2)==1)
+
+    d = 2
+    nu = alpha-d/2
+
+    n.spde = mesh$n
+    n.theta = ncol(B.kappa2)-1L
+
+    if (!is.null(B.tau)) {
+        is.stationary = is.stationary && (nrow(B.tau)==1)
     }
-    if (nrow(param$basis.T) != mesh$n)
-        stop(paste("'basis.T' has ", nrow(basis.T),
-                   " rows; expected ", mesh$n, ".", sep=""))
-    if (identical(model, "matern") ||
-        identical(model, "matern.osc")
-        ) {
-        if (is.null(param$basis.K)) {
-            param$basis.K = matrix(1, mesh$n, 1)
-        } else if (!is.matrix(param$basis.K)) {
-            len = length(as.vector(param$basis.K))
-            if (len == 1L)
-                param$basis.K = matrix(as.vector(param$basis.K), mesh$n, 1)
-            else
-                param$basis.K = as.matrix(param$basis.K)
-        }
+    if (!is.null(B.prec)) {
+        if (!is.null(B.tau))
+            stop("Only one of B.tau and B.prec may be null.")
+        is.stationary = is.stationary && (nrow(B.prec)==1)
+        ## prec = 1/gamma(nu) * gamma(alpha)*(4*pi)^(d/2)*kappa2^nu * tau^2
+        ## 2*log(tau) = - log(gamma(alpha)/gamma(nu)) - (d/2)*log(4*pi)
+        ##             - nu*log(kappa2) + log(prec)
+        ##           = - lgamma(alpha) + lgamma(nu) - (d/2)*log(4*pi)
+        ##             + (- nu * B.kappa2 + B.prec) * c(1,theta)
+        B.kappa2 = homogenise_B_matrix(B.kappa2, n.spde, n.theta)
+        B.prec = homogenise_B_matrix(B.prec, n.spde, n.theta)
+
+        B.tau =
+            cbind(- lgamma(max(1.5,alpha)) + lgamma(max(0.5,nu))
+                  - (d/2)*log(4*pi) - max(0.5,nu)*B.kappa2[,1] + B.prec[,1],
+                  - max(0.5,nu)*B.kappa2[,-1,drop=FALSE]
+                  + B.prec[,-1,drop=FALSE] )
     } else {
-        param$basis.K = matrix(0, mesh$n, 1)
+        if (is.null(B.tau))
+            stop("At most one of B.tau and B.prec may be null.")
+        B.kappa2 = homogenise_B_matrix(B.kappa2, n.spde, n.theta)
+        B.tau = homogenise_B_matrix(B.tau, n.spde, n.theta)
+        B.prec =
+            cbind(+ lgamma(max(1.5,alpha)) - lgamma(max(0.5,nu))
+                  + (d/2)*log(4*pi) + max(0.5,nu)*B.kappa2[,1] + B.tau[,1],
+                  max(0.5,nu)*B.kappa2[,-1,drop=FALSE]
+                  + B.tau[,-1,drop=FALSE] )
     }
-    if (nrow(param$basis.K) != mesh$n)
-        stop(paste("'basis.K' has ", nrow(basis.K),
-                   " rows; expected ", mesh$n, ".", sep=""))
-    spde$internal = (c(spde$internal,
-                       list(alpha = param$alpha,
-                            basis.T = param$basis.T,
-                            basis.K = param$basis.K)
-                       ))
+    if (is.stationary) {
+        B.tau = B.tau[1,,drop=FALSE]
+        B.kappa2 = B.kappa2[1,,drop=FALSE]
+        B.prec = B.prec[1,,drop=FALSE]
+    }
+
+    print(dim(cbind(0,diag(1, n.theta))))
+    print(dim(B.tau))
+    print(dim(B.kappa2))
+    print(dim(B.prec))
+    BLC =
+        rbind(cbind(0,diag(1, n.theta)),
+              B.tau, B.kappa2, B.prec)
+
+    fem =
+        inla.fmesher.smorg(mesh$loc,
+                           mesh$graph$tv,
+                           fem=alpha,
+                           output=list("c0", "g1", "g2"))
+
+    ## TODO: Adjust fem matrices and B* matrices for fractional alpha:s.
+    ## TODO: Construct priors.
+
+    spde =
+        inla.spde.generic2(M0=fem$c0, M1=fem$g1, M2=fem$g2,
+                           B0=B.tau, B1=B.kappa2, B2=1,
+                           theta.mu = rep(0,n.theta),
+                           theta.Q = diag(1,n.theta)*0.1,
+                           transform = "identity",
+                           BLC = BLC)
+
+    spde$B = list(B.tau = B.tau, B.kappa2 = B.kappa2, B.prec = B.prec)
+
+    return(spde)
 
     mesh.range = (max(c(diff(range(mesh$loc[,1])),
                         diff(range(mesh$loc[,2])),
                         diff(range(mesh$loc[,3]))
                         )))
-
-    spde$internal = (c(spde$internal,
-                       inla.fmesher.smorg(mesh$loc,
-                                          mesh$graph$tv,
-                                          fem=2,
-                                          output=list("c0", "g1", "g2"))))
 
     if (param$alpha==2) {
         kappa0 = sqrt(8)/(mesh.range*0.2)
@@ -1979,14 +2011,6 @@ inla.spde.create.generic =
         kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
         tau0 = 1/sqrt(4*pi)/1.0
     }
-    ## inla checks PREFIX valididy by looking for "s":
-    fmesher.write(spde$mesh$loc, spde.prefix, "s")
-    ## Write the precision building blocks:
-    fmesher.write(spde$internal$c0, spde.prefix, "c0")
-    fmesher.write(spde$internal$g1, spde.prefix, "g1")
-    fmesher.write(spde$internal$g2, spde.prefix, "g2")
-    fmesher.write(spde$internal$basis.T, spde.prefix, "basisT")
-    fmesher.write(spde$internal$basis.K, spde.prefix, "basisK")
 
     if (identical(model, "matern")) {
         spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
