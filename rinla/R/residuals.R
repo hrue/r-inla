@@ -15,7 +15,8 @@ inla.ks.plot = function (x, y, diff=TRUE, ...)
     T = max(abs(empirical.diff))
     if (diff) {
         ylim = c(-1,1)*max(1,T)
-        plot(Fn, empirical.diff, type='l',
+        plot(F, empirical.diff, type='l',
+             xlim=c(0,1),
              ylim=ylim,
              main=paste("K-S-test, p-value = ", test$p.value),
              ylab="(Fn-F) sqrt(n)",
