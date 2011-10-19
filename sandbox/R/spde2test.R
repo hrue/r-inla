@@ -84,8 +84,9 @@ result =
           rbind(NA, result2$summary.spde2.blc$field[,c("0.025quant","0.975quant")]))
 colnames(result) <- c("Truth", rep("SPDE1", 2), rep("SPDE2", 2), rep("SPDE2(BLC)", 2))
 rownames(result) <- c("Prec.", "theta1", "theta2")
-print(result)
+print(result[2:3,])
 
+if (FALSE) {
 require(fields)
 plot(old.mesh.class(mesh), field,
      color.palette=tim.colors,
@@ -96,36 +97,23 @@ plot(old.mesh.class(mesh), result2$summary.random$field[,"mean"],
 plot(old.mesh.class(mesh), result2$summary.random$field[,"sd"],
      color.palette=tim.colors,
      draw.edges=FALSE, draw.vertices=FALSE)
-
-
-ks.plot = function (x, y, ...) {
-    test = ks.test(x, y, ...)
-    n = length(x)
-    Fn = ((1:n)-0.5)/n
-    F = y(sort(x))
-    empirical.diff = (Fn-F)*sqrt(n)
-    T = max(abs(empirical.diff))
-    ylim = c(-1,1)*max(1,T)
-    plot(Fn, empirical.diff, type='l',
-         ylim=ylim,
-         main=paste("K-S-test, p-value = ",test$p.value),
-         ylab="(Fn-F) sqrt(n)",
-         xlab="Quantile"
-         )
-    lines(Fn, 2*sqrt(Fn*(1-Fn)), type='l')
-    lines(Fn, -2*sqrt(Fn*(1-Fn)), type='l')
-    lines(c(0,1), c(1,1)*T, type='l')
-    lines(c(0,1), -c(1,1)*T, type='l')
-    invisible(test)
 }
 
 dev.new()
-ks.plot(result1$pit, punif)
+inla.ks.plot(result1$pit, punif)
 dev.new()
-ks.plot(result2$pit, punif)
+inla.ks.plot(result2$pit, punif)
 dev.new()
-ks.plot(result3$pit, punif)
+inla.ks.plot(result3$pit, punif)
 
+dev.new()
+plot(result3$marginals.hyperpar[[2]],
+     main="theta.1: hyperpar (circles), spde2.blc (solid)")
+lines(result3$marginals.spde2.blc$field[[1]])
+dev.new()
+plot(result3$marginals.hyperpar[[3]],
+     main="theta.2: hyperpar (circles), spde2.blc (solid)")
+lines(result3$marginals.spde2.blc$field[[2]])
 
 
 if (FALSE) {
@@ -139,7 +127,7 @@ spde3 = inla.spde.create(mesh, model="matern", alpha=2, basis.T=...)
 Q.epsilon = inla.spde.query(spde3, precision=TRUE, tau=1, kappa2=0.5)$precision
 spde4 = inla.spde.create(mesh, model="heatequation", Q.epsilon=Q.epsilon)
 ## Option 2:
-spde3 = inla.spde.create.matern(mesh, alpha=2)
+spde3 = inla.spde.matern(mesh, alpha=2)
 Q.epsilon = inla.spde.precision(spde3, tau=1, kappa2=0.5)
-spde4 = inla.spde.create.heatequation(mesh, Q.epsilon=Q.epsilon)
+spde4 = inla.spde.heatequation(mesh, Q.epsilon=Q.epsilon)
 }

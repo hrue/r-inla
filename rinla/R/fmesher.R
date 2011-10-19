@@ -1967,13 +1967,12 @@ inla.spde.matern =
         B.prec = B.prec[1,,drop=FALSE]
     }
 
-    print(dim(cbind(0,diag(1, n.theta))))
-    print(dim(B.tau))
-    print(dim(B.kappa2))
-    print(dim(B.prec))
-    BLC =
-        rbind(cbind(0,diag(1, n.theta)),
-              B.tau, B.kappa2, B.prec)
+    B.theta = cbind(0,diag(1, n.theta))
+    rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
+    rownames(B.tau) <- rownames(B.tau, do.NULL=FALSE, prefix="tau.")
+    rownames(B.kappa2) <- rownames(B.kappa2, do.NULL=FALSE, prefix="kappa2.")
+    rownames(B.prec) <- rownames(B.prec, do.NULL=FALSE, prefix="prec.")
+    BLC = rbind(B.theta, B.tau, B.kappa2, B.prec)
 
     fem =
         inla.fmesher.smorg(mesh$loc,
