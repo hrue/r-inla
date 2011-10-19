@@ -259,7 +259,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 
 	int nrow = model->BLC->nrow;
 	int ncol = model->BLC->ncol;
-	double *row = Calloc(nrow, double);
+	double *row = Calloc(ncol, double);		       /* yes, one row has length ncol. */
 
 	assert(ncol == model->ntheta + 1);
 
@@ -283,7 +283,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 			mean += theta[idx_offset + ii] * row[1 + ii];
 			for (jj = 0; jj < model->ntheta; jj++) {
 				var += row[1 + ii] * row[1 + jj] *	/* yes the first column is a constant offset */
-				    covmat[(idx_offset + ii) + nhyper * (idx_offset + jj)] * theta[idx_offset + ii] * theta[idx_offset + jj];
+					covmat[(idx_offset + ii) + nhyper * (idx_offset + jj)];
 			}
 		}
 		GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
