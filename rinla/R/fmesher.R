@@ -1830,7 +1830,6 @@ inla.spde.generic2 =
     n.spde=nrow(M0)
     n.theta = length(theta.mu)
 
-    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
     spde = (list(model = "spde2.generic",
                  internal = list(),
                  f = list()
@@ -1857,20 +1856,21 @@ inla.spde.generic2 =
     ## If any "fixed", move information from B[,1+(1:n.theta)] into
     ## B[,1], theta.mu, and theta.Q
     ## NOTE: Should this be in the f function instead?
+    ##       No, the information is also needed elsewhere.
     if (any(fixed)) {
         param.inla$theta.initial = theta.initial[!fixed]
         param.inla$B0[,1] =
-            B0[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+            B0[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
         param.inla$B1[,1] =
-            B1[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+            B1[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
         param.inla$B2[,1] =
-            B2[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
+            B2[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
         param.inla$BLC[,1] =
-            BLC[,c(TRUE, which(fixed))] %*% c(1.0, theta.fixed)
-        param.inla$B0 = param.inla$B0[,c(TRUE, which(!fixed)), drop=FALSE]
-        param.inla$B1 = param.inla$B1[,c(TRUE, which(!fixed)), drop=FALSE]
-        param.inla$B2 = param.inla$B2[,c(TRUE, which(!fixed)), drop=FALSE]
-        param.inla$BLC = param.inla$BLC[,c(TRUE, which(!fixed)), drop=FALSE]
+            BLC[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
+        param.inla$B0 = param.inla$B0[,c(TRUE, !fixed), drop=FALSE]
+        param.inla$B1 = param.inla$B1[,c(TRUE, !fixed), drop=FALSE]
+        param.inla$B2 = param.inla$B2[,c(TRUE, !fixed), drop=FALSE]
+        param.inla$BLC = param.inla$BLC[,c(TRUE, !fixed), drop=FALSE]
         param.inla$theta.Q = param.inla$theta.Q[!fixed, !fixed, drop=FALSE]
         if (!all(fixed)) {
             param.inla$theta.mu =
@@ -1885,6 +1885,10 @@ inla.spde.generic2 =
     spde$internal$param.generic = param.generic
     spde$internal$param.inla = param.inla
 
+    ## NOTE: Should the prefix be set inside the f function instead?
+    ##       Yes, it should.
+    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
+
     spde$f = (list(model="spde2",
                    spde2.prefix=spde.prefix,
                    n=n.spde,
@@ -1898,6 +1902,8 @@ inla.spde.generic2 =
                          ))
                    ))
 
+    ## NOTE: Should this be in the f function instead?
+    ##       Yes, it should.
     fmesher.write(spde$internal$param.inla$M0, spde.prefix, "M0")
     fmesher.write(spde$internal$param.inla$M1, spde.prefix, "M1")
     fmesher.write(spde$internal$param.inla$M2, spde.prefix, "M2")
