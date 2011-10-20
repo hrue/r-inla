@@ -240,15 +240,19 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	return INLA_OK;
 }
 
-int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
+int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
 	 * compute the marginals for BLC*theta
 	 */
 
+	GMRFLib_userfunc2_arg_tp *a = (GMRFLib_userfunc2_arg_tp *) arg;
+
 	if (!covmat || nhyper == 0) {
 		return INLA_OK;
 	}
+
+	int use_new_version = 1;
 
 	int i, ii, jj;
 	inla_spde2_tp *model = (inla_spde2_tp *) GMRFLib_ai_INLA_userfunc2_args[number];
@@ -261,7 +265,8 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 	int ncol = model->BLC->ncol;
 	double *row = Calloc(ncol, double);		       /* yes, one row has length ncol. */
 
-	assert(ncol == model->ntheta + 1);
+	int ntheta = model->ntheta;
+	assert(ncol - 1 == ntheta);
 
 	if (!GMRFLib_ai_INLA_userfunc2_len) {
 		GMRFLib_ai_INLA_userfunc2_len = Calloc(GMRFLib_ai_INLA_userfunc2_n, int);
@@ -273,23 +278,97 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat)
 	}
 	GMRFLib_ai_INLA_userfunc2_density[number] = Calloc(nrow, GMRFLib_density_tp *);
 
-	for (i = 0; i < nrow; i++) {
-		double mean = 0.0, var = 0.0;
-		int idx_offset = model->theta_first_idx;
+#define Cov(_i, _j) covmat[(idx_offset + (_i)) + nhyper * (idx_offset + (_j))]
+#define Theta(_i) theta[idx_offset + (_i)]
 
-		GMRFLib_matrix_get_row(row, i, model->BLC);
-		mean = row[0];
-		for (ii = 0; ii < model->ntheta; ii++) {
-			mean += theta[idx_offset + ii] * row[1 + ii];
-			for (jj = 0; jj < model->ntheta; jj++) {
-				var += row[1 + ii] * row[1 + jj] *	/* yes the first column is a constant offset */
-					covmat[(idx_offset + ii) + nhyper * (idx_offset + jj)];
+	if (use_new_version) {
+		for (i = 0; i < nrow; i++) {
+			int idx_offset = model->theta_first_idx; 
+
+			GMRFLib_matrix_get_row(row, i, model->BLC);
+
+			double mean = row[0];
+			for (ii = 0; ii < ntheta; ii++) {
+				mean += Theta(ii) * row[1 + ii];
 			}
+
+			/*
+			 * Sigma * a, a = row 
+			 */
+			double *Sigma_a = Calloc(ntheta, double);
+			for (ii = 0; ii < ntheta; ii++) {
+				for (jj = 0; jj < ntheta; jj++) {
+					Sigma_a[ii] += Cov(ii, jj) * row[1 + jj];
+				}
+			}
+
+			double var = 0.0;
+			for (ii = 0; ii < ntheta; ii++) {
+				var += Sigma_a[ii] * row[1 + ii];
+			}
+
+			GMRFLib_ai_integrator_arg_tp *iarg = Calloc(1, GMRFLib_ai_integrator_arg_tp);
+
+			iarg->nhyper = ntheta;		       /* not to be confused by 'nhyper' in the call... */
+			iarg->idx = -1;
+			iarg->return_log = GMRFLib_TRUE;       /* return log(density), yes. */
+			iarg->hyper_count = -1;
+			iarg->hyper_z = NULL;
+			iarg->hyper_ldens = NULL;
+			iarg->theta_mode = &Theta(0);
+			iarg->sqrt_eigen_values = a->sqrt_eigen_values;
+			iarg->eigen_vectors = a->eigen_vectors;
+			iarg->z = Calloc(ntheta, double);
+			iarg->theta = Calloc(ntheta, double);
+			iarg->stdev_corr_pos = a->stdev_corr_pos;
+			iarg->stdev_corr_neg = a->stdev_corr_neg;
+			iarg->dz = -1;
+			iarg->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
+
+			int npoints = 51;
+			double *x = Calloc(ntheta, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
+
+			GMRFLib_ghq_abscissas(&xx, npoints);
+			memcpy(xxx, xx, npoints * sizeof(double));
+			xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
+			xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
+
+			for (ii = 0; ii < npoints; ii++) {
+				for (jj = 0; jj < ntheta; jj++) {
+					x[jj] = Theta(jj) + Sigma_a[jj] * xxx[ii] / sqrt(var);
+				}
+				ldens_values[ii] = GMRFLib_ai_integrator_func(ntheta, x, iarg);
+			}
+			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc2_density[number][i]),
+					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
+
+			Free(Sigma_a);
+			Free(x);
+			Free(xxx);
+			Free(ldens_values);
+			Free(iarg->z);
+			Free(iarg->theta);
+			Free(iarg);
 		}
-		GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
+	} else {
+		for (i = 0; i < nrow; i++) {
+			double mean = 0.0, var = 0.0;
+			int idx_offset = model->theta_first_idx;
+
+			GMRFLib_matrix_get_row(row, i, model->BLC);
+			mean = row[0];
+			for (ii = 0; ii < model->ntheta; ii++) {
+				mean += Theta(ii) * row[1 + ii];
+				for (jj = 0; jj < model->ntheta; jj++) {
+					var += row[1 + ii] * row[1 + jj] * Cov(ii, jj);	/* yes the first column is a constant offset */
+				}
+			}
+			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
+		}
 	}
 
 	Free(row);
-
+#undef Cov
+#undef Theta
 	return INLA_OK;
 }
