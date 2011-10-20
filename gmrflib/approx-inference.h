@@ -747,6 +747,17 @@ typedef struct
 } GMRFLib_lc_ij_tp;
 
 
+typedef struct
+{
+	double *stdev_corr_neg;
+	double *stdev_corr_pos;
+	gsl_vector *sqrt_eigen_values;
+	gsl_matrix *eigen_vectors;
+}
+	GMRFLib_userfunc2_arg_tp;
+	
+
+
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
 

@@ -5303,9 +5303,17 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		/*
 		 * OOPS! This loop CANNOT be run in parallel!!! 
 		 */
+		GMRFLib_userfunc2_arg_tp *arg = Calloc(1, GMRFLib_userfunc2_arg_tp);
+
+		arg->stdev_corr_neg = stdev_corr_neg;
+		arg->stdev_corr_pos = stdev_corr_pos;
+		arg->sqrt_eigen_values = sqrt_eigen_values;
+		arg->eigen_vectors = eigen_vectors;
+
 		for (i = 0; i < GMRFLib_ai_INLA_userfunc2_n; i++) {
-			GMRFLib_ai_INLA_userfunc2[i] (i, theta_mode, nhyper, inverse_hessian);
+			GMRFLib_ai_INLA_userfunc2[i] (i, theta_mode, nhyper, inverse_hessian, (void *)arg);
 		}
+		Free(arg);
 	}
 
 	/*
