@@ -1,368 +1,267 @@
-## create a spde model using fmesher.
-
-`inla.fmesher.call` = function(
-        fmesher.call = inla.getOption("fmesher.call"),
-        all.args, prefix)
+inla.spde.create =
+    function(mesh,
+             model=c("matern", "imatern", "matern.osc"),
+             param=NULL,
+             ...)
 {
-    if (inla.os("linux") || inla.os("mac")) {
-        echoc = system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)))
-    }
-    else if(inla.os("windows")) {
-        if (TRUE) {
-            echoc = try(system(paste(shQuote(fmesher.call),
-                                     all.args,
-                                     shQuote(prefix))), silent=TRUE)
-            echoc = 0
+    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+
+    model = match.arg(model)
+    if (is.null(param))
+        param = list()
+
+    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
+
+    spde = (list(model = model,
+                 mesh = mesh,
+                 internal = list(),
+                 f = (list(model="spde",
+                           spde.prefix=spde.prefix,
+                           n=nrow(mesh$loc)
+                           ))
+                 ))
+    class(spde) = "inla.spde"
+
+    if (identical(model, "matern") ||
+        identical(model, "imatern") ||
+        identical(model, "matern.osc")
+        ) {
+
+        if (is.null(param))
+            param = list()
+        if (is.null(param$alpha))
+            param$alpha = 2
+        if (is.null(param$basis.T))
+            param$basis.T = matrix(1, mesh$n, 1)
+        else if (!is.matrix(param$basis.T)) {
+            len = length(as.vector(param$basis.T))
+            if (len == 1L)
+                param$basis.K = matrix(as.vector(param$basis.T), mesh$n, 1)
+            else
+                param$basis.T = as.matrix(param$basis.T)
+        }
+        if (nrow(param$basis.T) != mesh$n)
+            stop(paste("'basis.T' has ", nrow(basis.T),
+                       " rows; expected ", mesh$n, ".", sep=""))
+        if (identical(model, "matern") ||
+            identical(model, "matern.osc")
+            ) {
+            if (is.null(param$basis.K)) {
+                param$basis.K = matrix(1, mesh$n, 1)
+            } else if (!is.matrix(param$basis.K)) {
+                len = length(as.vector(param$basis.K))
+                if (len == 1L)
+                    param$basis.K = matrix(as.vector(param$basis.K), mesh$n, 1)
+                else
+                    param$basis.K = as.matrix(param$basis.K)
+            }
         } else {
-            ## we might need it if we want one day to make the fmesher program run remotely
-            stop("This code is not in use.")
-            ##
-            echoc = try(inla.cygwin.run.command(
-                    paste(inla.cygwin.map.filename(fmesher.call),
-                          all.args,
-                          inla.cygwin.map.filename(prefix))), silent=TRUE)
-            echoc = 0
+            param$basis.K = matrix(0, mesh$n, 1)
         }
-    }
-    else
-        stop("\n\tNot supported architecture.")
-}
+        if (nrow(param$basis.K) != mesh$n)
+            stop(paste("'basis.K' has ", nrow(basis.K),
+                       " rows; expected ", mesh$n, ".", sep=""))
+        spde$internal = (c(spde$internal,
+                           list(alpha = param$alpha,
+                                basis.T = param$basis.T,
+                                basis.K = param$basis.K)
+                           ))
 
-`inla.fmesher.make.prefix` = function(dir = tempdir(), prefix = NULL)
-{
-    if (is.null(prefix)) {
-        if (is.null(dir))
-            prefix = paste(tempfile(), ".", sep="")
-        else {
-            inla.dir.create(dir)
-            prefix = paste(tempfile(tmpdir=dir), ".", sep="")
+        mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                            diff(range(mesh$loc[,2])),
+                            diff(range(mesh$loc[,3]))
+                            )))
+
+        spde$internal = (c(spde$internal,
+                           inla.fmesher.smorg(mesh$loc,
+                                              mesh$graph$tv,
+                                              fem=2,
+                                              output=list("c0", "g1", "g2"))))
+
+        if (param$alpha==2) {
+            kappa0 = sqrt(8)/(mesh.range*0.2)
+            tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
+        } else if (param$alpha==1) {
+            spde$internal$g2 = spde$internal$g1
+            spde$internal$g1 = spde$internal$g1*0.0
+
+            kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
+            tau0 = 1/sqrt(4*pi)/1.0
+        }
+        ## inla checks PREFIX valididy by looking for "s":
+        fmesher.write(spde$mesh$loc, spde.prefix, "s")
+        ## Write the precision building blocks:
+        fmesher.write(spde$internal$c0, spde.prefix, "c0")
+        fmesher.write(spde$internal$g1, spde.prefix, "g1")
+        fmesher.write(spde$internal$g2, spde.prefix, "g2")
+        fmesher.write(spde$internal$basis.T, spde.prefix, "basisT")
+        fmesher.write(spde$internal$basis.K, spde.prefix, "basisK")
+
+        if (identical(model, "matern")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1)))
+                                         ))
+        } else if (identical(model, "imatern")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=-20,
+                                                      fixed=TRUE)),
+                                         theta3=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1)))
+                                         ))
+        } else if (identical(model, "matern.osc")) {
+            spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
+                                                      param=c(log(tau0), 0.1))),
+                                         theta2=(list(initial=log(kappa0^2),
+                                                      param=c(log(kappa0^2), 0.1))),
+                                         theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
+                                                      param=c((log(tau0)+log(kappa0^2))/2, 0.1))),
+                                         theta4=(list(fixed=FALSE,
+                                                      initial=0,
+                                                      param=c(0, 0.01)))
+                                         ))
         }
     } else {
-        inla.dir.create(inla.dirname(prefix))
+        stop(paste("Model '", model, "' unknown or not implemented.", sep=""))
     }
-    return (prefix)
+
+    return(invisible(spde))
 }
 
-`inla.create.spde` = function(mesh=NULL, prefix = NULL,
-        fem=2, sph0=NULL, sph=NULL, bspline=NULL, points2mesh=NULL)
+
+
+
+
+
+
+
+inla.spde.query = function(spde, ...)
 {
-    ## create files using fmesher
-    warning("'inla.create.spde' has been replaced by 'inla.spde', and will be removed in a future update of INLA.")
+    inla.require.inherits(spde, "inla.spde", "'spde'")
 
-    if (is.null(mesh) && is.null(prefix))
-        stop("At least one of mesh and prefix must be specified.")
-
-    prefix = inla.fmesher.make.prefix(NULL, prefix)
-
-    if (is.null(mesh)) {
-        ## Need to know the size of the graph.
-        s = fmesher.read(prefix, "s")
-        stopifnot(is.matrix(s))
-        n = nrow(s)
-        s.dim = ncol(s)
-    } else {
-        stopifnot(is.matrix(mesh$s))
-        n = nrow(mesh$s)
-        s.dim = ncol(mesh$s)
-    }
-
-    if (s.dim==1)
-        stop("1-D models not implemented yet.")
-    stopifnot(s.dim>=2, s.dim<=3)
-
-    if (!is.null(mesh)) {
-        stopifnot(is.matrix(mesh$tv))
-        fmesher.write(mesh$s, prefix, "s")
-        fmesher.write(inla.affirm.integer(mesh$tv-1L),
-                      prefix, "tv")
-    }
-    all.args = "--input=s,tv"
-
-    ## additional arguments
-    if (!is.null(fem)) {
-        all.args = paste(all.args," --fem=", fem, sep="")
-    }
-    if (!is.null(sph0)) {
-        all.args = paste(all.args," --sph0=", sph0, sep="")
-    }
-    if (!is.null(sph)) {
-        all.args = paste(all.args," --sph=", sph, sep="")
-    }
-    if (!is.null(bspline)) {
-        all.args = paste(all.args, " --bspline=",
-                bspline[1], ",", bspline[2], ",", bspline[3],
-                sep="")
-    }
-    if (!is.null(points2mesh)) {
-        fmesher.write(points2mesh, prefix, "p2m")
-
-        all.args = paste(all.args," --points2mesh=p2m", sep="")
-    }
-    all.args = paste(all.args, inla.getOption("fmesher.arg"))
-
-    echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
-
-    if (is.null(mesh)) {
-      mesh = list(s=s)
-    }
-
-    return (list(prefix = prefix, locations = mesh$s, n = n))
-}
-
-`inla.fmesher.mesh` = function(
-        locations,
-        dir = tempdir(),
-        prefix = NULL,
-        rcdt = c(21,-1.0,-0.5),
-        cet = c(8,-0.1),
-        boundary = NULL,
-        interior = NULL,
-        x11.delay = NULL,
-        min.input.distance = 0)
-{
-    warning("'inla.fmesher.mesh' has been replaced by 'inla.mesh', and will be removed in a future update of INLA.")
-
-    ## Internal helper function:
-    handle.segment.input = function (input,is.boundary,loc.n,group.index)
+    not.known = function (spde, queryname)
     {
-        k = 1
-        previous.was.locations = FALSE
-        locations = NULL
-        indices = NULL
-        groups = NULL
-        while (k <= length(input)) {
-            if ((class(input[[k]]) != "matrix") &&
-                (class(input[[k]]) != "integer")) {
-                stop("Input information must be a list of matrices or node indices.")
-            }
-
-            if ((class(input[[k]]) == "matrix") &&
-                (class(input[[k]][1,1]) == "numeric")) {
-                ## Input coordinates
-                previous.locations.length = loc.n
-                loc.n = loc.n + nrow(input[[k]])
-                locations = rbind(locations,input[[k]])
-                ## Look-ahead: if the next matrix is not an index vector,
-                ## insert one.
-                if (!((k < length(input)) &&
-                      ((class(input[[k+1]]) == "integer") ||
-                       ((class(input[[k+1]]) == "matrix") &&
-                        (class(input[[k+1]][1,1]) == "integer"))))) {
-                    if (k < length(input))
-                        if (is.boundary)
-                            input = (c(input[1:k],
-                                       list(c(1:nrow(input[[k]]),1L)),
-                                       input[(k+1):length(input)]))
-                        else
-                            input = (c(input[1:k],
-                                       list(c(1:nrow(input[[k]]))),
-                                       input[(k+1):length(input)]))
-                    else
-                        if (is.boundary)
-                            input = (c(input[1:k],
-                                       list(c(1:nrow(input[[k]]),1L))))
-                        else
-                            input = (c(input[1:k],
-                                       list(c(1:nrow(input[[k]])))))
+        stop(paste("Query '", queryname,
+                   "' unknown.", sep=""))
+    }
+    not.implemented = function (spde, queryname)
+    {
+        stop(paste("Query '", queryname,
+                   "' not implemented for inla.spde model '",
+                   spde$model, "'.", sep=""))
+    }
+    param.to.fcn =
+        function(basis, theta, values, n, name)
+        {
+            if (!is.null(values)) {
+                if ((is.vector(values) &&
+                     (length(values)==n)) ||
+                    (is.matrix(values) &&
+                     (nrow(values)==n))) {
+                    fcn = as.vector(values)
+                } else {
+                    fcn = as.vector(values)
                 }
-                previous.was.locations = TRUE
-                k = k+1
-            }
-            if ((class(input[[k]]) == "integer") ||
-                ((class(input[[k]]) == "matrix") &&
-                 (class(input[[k]][1,1]) == "integer"))) {
-                ## Input node indices
-                if (class(input[[k]]) != "matrix") {
-                    input[[k]] = matrix(input[[k]],length(input[[k]]),1)
-                }
-                ## If the previous element was locations, shift indices.
-                if (previous.was.locations) {
-                    input[[k]] = (input[[k]]+
-                                  previous.locations.length);
-                }
-
-                indices.n = nrow(input[[k]])
-                indices = rbind(indices,input[[k]])
-
-                ## Look-ahead: if the next matrix is not a group vector,
-                ## insert one.
-                if (!((k < length(input)) &&
-                      ((class(input[[k+1]]) == "integer") ||
-                       ((class(input[[k+1]]) == "matrix") &&
-                        (class(input[[k+1]][1,1]) == "integer"))))) {
-                    group.index = group.index+1L
-                    if (k < length(input))
-                        input = (c(input[1:k],
-                                   list(group.index),
-                                   input[(k+1):length(input)]))
-                    else
-                        input = (c(input[1:k],
-                                   list(group.index)))
-                }
-                previous.was.locations = FALSE
-                k = k+1
-
-                ## Groups:
-                if (class(input[[k]]) != "matrix") {
-                    input[[k]] = matrix(input[[k]],length(input[[k]]),1)
-                }
-                if ((indices.n>1) && (nrow(input[[k]])!=(indices.n-1))) {
-                    input[[k]] = matrix(input[[k]],indices.n-1,1)
-                }
-
-                groups = rbind(groups,input[[k]])
-
+                if (length(fcn) == 1L)
+                    fcn = rep(fcn, n)
+                else if (length(fcn) != n)
+                    stop(paste("Length of '", name, "' is ", length(fcn),
+                               ", should be ", n, ".", sep=""))
             } else {
-                stop("Unexpected input information type, element ",
-                     as.character(k),".")
+                fcn = exp(basis %*% theta)
             }
-
-            ## Advance to next input element.
-            k = k+1
+            return(fcn)
         }
 
-        return (list(locations=locations,indices=indices,
-                     groups=groups,group.index=group.index))
-    }
-    ## End of helper.
+    result = list()
+    queries = inla.parse.queries(...)
+    if (length(queries)==0L)
+        return(result)
 
-    stopifnot(is.matrix(locations))
-    loc.n = nrow(locations)
-    loc.dim = ncol(locations)
-    stopifnot(loc.dim>=2, loc.dim<=3)
-
-    prefix = inla.fmesher.make.prefix(dir, prefix)
-
-    segm.bnd.input = (handle.segment.input(boundary,TRUE,nrow(locations),0))
-    locations = rbind(locations,segm.bnd.input$locations)
-    segm.int.input = (handle.segment.input(interior,FALSE,nrow(locations),
-                                           segm.bnd.input$group.index))
-    locations = rbind(locations,segm.int.input$locations)
-
-    loc.n = nrow(locations)
-    loc.dim = ncol(locations)
-
-    ## Map locations to nodes, avoiding near-duplicates.
-    node.coord = matrix(nrow=loc.n, ncol=loc.dim)
-    map.loc.to.node = rep(0, nrow=loc.n)
-    excluded = c()
-    loc.i = 1
-    node.i.max = 1
-    node.coord[node.i.max,] = locations[loc.i,]
-    map.loc.to.node[[loc.i]] = node.i.max
-    for (loc.i in 2:loc.n) {
-        loc.to.node.dist =
-            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
-                          node.coord[1:node.i.max,])^2))
-        if (min(loc.to.node.dist) > min.input.distance) {
-            node.i.max = node.i.max+1
-            node.coord[node.i.max,] = locations[loc.i,]
-            map.loc.to.node[[loc.i]] = node.i.max
-        } else {
-            excluded = c(excluded, loc.i)
+    for (query.idx in 1:length(queries)) {
+        query = names(queries)[query.idx]
+        param = queries[[query.idx]]
+        answer = NULL
+        query = (match.arg(query, c("precision",
+                                    "sample"
+                                    )))
+        if (identical(query, "precision")) {
+            if (identical(spde$model, "matern")) {
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                kappa2 = (param.to.fcn(spde$internal$basis.K,
+                                       param$theta.K, param$kappa2,
+                                       spde$mesh$n, "kappa2"))
+                dT = Diagonal(spde$mesh$n, tau)
+                dK2 = Diagonal(spde$mesh$n, kappa2)
+                tmp = dK2 %*% spde$internal$g1
+                answer = (dT %*% (dK2 %*% spde$internal$c0 %*% dK2+
+                                  tmp + t(tmp) +
+                                  spde$internal$g2) %*% dT)
+            } else if (identical(spde$model, "matern.osc")) {
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                kappa2 = (param.to.fcn(spde$internal$basis.K,
+                                       param$theta.K, param$kappa2,
+                                       spde$mesh$n, "kappa2"))
+                osc = param$osc
+                dT = Diagonal(spde$mesh$n, tau)
+                dK2 = Diagonal(spde$mesh$n, kappa2)
+                tmp = dK2 %*% spde$internal$g1
+                answer = (dT %*% (dK2 %*% spde$internal$c0 %*% dK2+
+                                  cos(pi*osc)*(tmp + t(tmp)) +
+                                  spde$internal$g2) %*% dT)
+            } else if (identical(spde$model, "imatern")) {
+                tau = (param.to.fcn(spde$internal$basis.T,
+                                    param$theta.T, param$tau,
+                                    spde$mesh$n, "tau"))
+                dT = Diagonal(spde$mesh$n, tau)
+                answer = (dT %*% ((1e-10)*spde$internal$c0+
+                                  spde$internal$g2) %*% dT)
+            } else {
+                not.implemented(spde,query)
+            }
+        } else if (identical(query, "sample")) {
+            Q = inla.spde.query(spde, precision=param)$precision
+            finn = (inla.finn(Q, seed=(inla.ifelse(is.null(param$seed),
+                                                   0L,
+                                                   param$seed))))
+            answer = finn$sample
+        } else if (!identical(query, "")) {
+            not.known(spde,query)
         }
-    }
-    ## Remove excess nodes.
-    node.coord = node.coord[1:node.i.max,]
-    ## Identify nearest nodes for excluded locations.
-    for (loc.i in excluded) {
-        loc.to.node.dist =
-            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*% locations[loc.i,] -
-                          node.coord)^2))
-        node.i = which.min(loc.to.node.dist);
-        map.loc.to.node[loc.i] = node.i
+        ## Expand the result list:
+        result[query.idx] = list(NULL)
+        names(result)[query.idx] = query
+        ## Set the answer:
+        if (!is.null(answer))
+            result[[query.idx]] = answer
     }
 
-    s0 = node.coord
-    idx = map.loc.to.node
-
-    ## The default name for the input locations in fmesher is s0:
-    loc.file = fmesher.write(s0, prefix, "s0")
-
-    ## additional arguments
-    all.args = ""
-    if (!is.null(boundary)) {
-        bnd.idx = (matrix(idx[segm.bnd.input$indices],
-                          nrow(segm.bnd.input$indices),
-                          ncol(segm.bnd.input$indices)))
-        bnd.idx[is.na(bnd.idx)] = 0L
-        storage.mode(bnd.idx) = "integer"
-        bnd.grp = segm.bnd.input$groups
-        storage.mode(bnd.grp) = "integer"
-
-        loc.file = fmesher.write(bnd.idx-1L, prefix, "segm.bndidx0")
-        loc.file = fmesher.write(bnd.grp, prefix, "segm.bndgrp0")
-        all.args = paste(all.args," --boundary=segm.bndidx0")
-        all.args = paste(all.args," --boundarygrp=segm.bndgrp0")
-    }
-    if (!is.null(interior)) {
-        int.idx = (matrix(idx[segm.int.input$indices],
-                          nrow(segm.int.input$indices),
-                          ncol(segm.int.input$indices)))
-        int.idx[is.na(int.idx)] = 0L
-        storage.mode(int.idx) = "integer"
-        int.grp = segm.int.input$groups
-        storage.mode(int.grp) = "integer"
-
-        loc.file = fmesher.write(int.idx-1L, prefix, "segm.intidx0")
-        loc.file = fmesher.write(int.grp, prefix, "segm.intgrp0")
-        all.args = paste(all.args," --interior=segm.intidx0")
-        all.args = paste(all.args," --interiorgrp=segm.intgrp0")
-    }
-    if (!is.null(cet)) {
-        all.args = paste(all.args," --cet=", cet[1],",", cet[2], sep="")
-    }
-    if (!is.null(rcdt)) {
-        all.args = paste(all.args," --rcdt=", rcdt[1],",", rcdt[2],",", rcdt[3], sep="")
-    }
-    if (!is.null(x11.delay)) {
-        all.args = paste(all.args," --x11=", x11.delay, sep="")
-    }
-    all.args = paste(all.args, inla.getOption("fmesher.arg"))
-
-    echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
-
-    mesh = (list(tv = 1L+fmesher.read(prefix, "tv"),
-                 s = fmesher.read(prefix, "s")))
-
-    bnd.info = (list(idx = 1L+fmesher.read(prefix, "segm.bnd.idx"),
-                     grp = fmesher.read(prefix, "segm.bnd.grp")
-                     ))
-    if (!is.null(interior)) {
-        int.info  = (list(idx = 1L+fmesher.read(prefix, "segm.int.idx"),
-                          grp = fmesher.read(prefix, "segm.int.grp")
-                          ))
-    } else {
-        int.info = NULL
-    }
-    mesh$segm = list(bnd=bnd.info,int=int.info)
-
-    m = list(prefix = prefix, mesh = mesh, locations.idx = idx,
-            call = match.call(expand.dots=TRUE))
-    class(m) = "inla.fmesher.mesh"
-    return (m)
+    return(result)
 }
 
-`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, add=FALSE, draw.vertices=TRUE, ...)
+
+
+
+## Deprecated functions:
+
+inla.spde = function(...)
 {
-    ## a simple function that plots the mesh from inla.fmesher.mesh()
-
-    if (length(color) == 1)
-        color = rep(color, dim(m$mesh$s)[1])
-
-    require(rgl)
-    if (!add) {
-        dev=open3d()
-        view3d(0, 0, fov=0)
-    } else {
-        dev = NULL
+    args = list(...)
+    if (length(args)>0) {
+        if (inherits(args[[1]],"inla.spde")) {
+            warning("'inla.spde(spde, ...)' is deprecated.  Use 'inla.spde.query(spde, ...)' instead.")
+            return(inla.spde.query(...))
+        }
     }
-    if (draw.vertices)
-        rgl.points(m$mesh$s[m$locations.idx, ],
-                   size=2*size, lwd=lwd, color = "blue", ...)
-    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
-                      size=size, lwd=lwd,
-                      draw.vertices=draw.vertices, add=add, ...)
-
-    return (invisible(dev))
+    warning("'inla.spde(...)' is deprecated.  Use 'inla.spde.create(...)' instead.")
+    return(inla.spde.create(...))
 }
+
