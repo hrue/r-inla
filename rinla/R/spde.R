@@ -1,3 +1,6 @@
+## 'spde' model functions
+
+
 inla.spde.create =
     function(mesh,
              model=c("matern", "imatern", "matern.osc"),
