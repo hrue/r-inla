@@ -47,21 +47,21 @@ spde3 = inla.spde.matern(mesh)
 field = inla.spde.query(spde1, sample=list(tau=tau, kappa2=kappa2))$sample
 Y = 1+rep(field, n.obs.repl)+rnorm(mesh$n*n.obs.repl)/sqrt(prec)
 
-data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde1)
-formula1 = (as.formula("Y ~ 1 + f(field, model=spde1)"))
+##data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde1)
+##formula1 = (as.formula("Y ~ 1 + f(field, model=spde1)"))
 data2 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde2)
 formula2 = (as.formula("Y ~ 1 + f(field, model=spde2)"))
 data3 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde3)
 formula3 = (as.formula("Y ~ 1 + f(field, model=spde3)"))
 
-verbose = TRUE
-result1 =
-    inla(formula=formula1,
-         family="gaussian",
-         data=data1,
-         control.predictor=list(compute=TRUE),
-         control.compute=list(cpo=TRUE),
-         verbose=verbose)
+verbose = FALSE
+##result1 =
+##    inla(formula=formula1,
+##         family="gaussian",
+##         data=data1,
+##         control.predictor=list(compute=TRUE),
+##         control.compute=list(cpo=TRUE),
+##         verbose=verbose)
 result2 =
     inla(formula=formula2,
          family="gaussian",
@@ -77,12 +77,18 @@ result3 =
          control.compute=list(cpo=TRUE),
          verbose=verbose)
 
+BLC.names = rownames(spde3$internal$param.generic$BLC)
+rownames(result3$summary.spde2.blc$field) <- BLC.names
+names(result3$marginals.spde2.blc$field) <-  BLC.names
+
 result =
     cbind(theta,
-          result1$summary.hyperpar[,c("0.025quant","0.975quant")],
+##          result1$summary.hyperpar[,c("0.025quant","0.975quant")],
           result2$summary.hyperpar[,c("0.025quant","0.975quant")],
-          rbind(NA, result2$summary.spde2.blc$field[,c("0.025quant","0.975quant")]))
-colnames(result) <- c("Truth", rep("SPDE1", 2), rep("SPDE2", 2), rep("SPDE2(BLC)", 2))
+          rbind(NA, result2$summary.spde2.blc$field[1:2,c("0.025quant","0.975quant")]),
+          result3$summary.hyperpar[,c("0.025quant","0.975quant")],
+          rbind(NA, result3$summary.spde2.blc$field[1:2,c("0.025quant","0.975quant")]))
+colnames(result) <- c("Truth", rep("SPDE2", 2), rep("SPDE2(BLC)", 2), rep("SPDE3", 2), rep("SPDE3(BLC)", 2))
 rownames(result) <- c("Prec.", "theta1", "theta2")
 print(result[2:3,])
 
@@ -99,20 +105,28 @@ plot(old.mesh.class(mesh), result2$summary.random$field[,"sd"],
      draw.edges=FALSE, draw.vertices=FALSE)
 }
 
-dev.new()
-inla.ks.plot(result1$pit, punif)
+##dev.new()
+##inla.ks.plot(result1$pit, punif)
 dev.new()
 inla.ks.plot(result2$pit, punif)
 dev.new()
 inla.ks.plot(result3$pit, punif)
 
 dev.new()
+plot(result2$marginals.hyperpar[[2]],
+     main="SPDE2, theta.1: hyperpar (circles), spde2.blc (solid)")
+lines(result2$marginals.spde2.blc$field[[1]])
+##dev.new()
+##plot(result2$marginals.hyperpar[[3]],
+##     main="SPDE2, theta.2: hyperpar (circles), spde2.blc (solid)")
+##lines(result2$marginals.spde2.blc$field[[2]])
+dev.new()
 plot(result3$marginals.hyperpar[[2]],
-     main="theta.1: hyperpar (circles), spde2.blc (solid)")
+     main="SPDE3, theta.1: hyperpar (circles), spde2.blc (solid)")
 lines(result3$marginals.spde2.blc$field[[1]])
 dev.new()
 plot(result3$marginals.hyperpar[[3]],
-     main="theta.2: hyperpar (circles), spde2.blc (solid)")
+     main="SPDE3, theta.2: hyperpar (circles), spde2.blc (solid)")
 lines(result3$marginals.spde2.blc$field[[2]])
 
 
