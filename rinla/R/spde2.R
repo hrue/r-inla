@@ -3,17 +3,6 @@
 
 
 
-##inla.spde.inla = function(inla, name, spde, ...)
-##{
-##    inla.require.inherits(inla, "inla", "'inla'")
-##    warning("'inla.spde.inla' is not implemented yet.")
-##
-##    return(spde)
-##}
-
-
-
-
 homogenise_B_matrix = function(B, n.spde, n.theta)
 {
     if (!is.numeric(B))
@@ -241,8 +230,11 @@ inla.spde.matern =
                            theta.Q = diag(1,n.theta)*0.1,
                            transform = "identity",
                            BLC = BLC)
+    spde$model = "matern"
 
-    spde$B = list(B.tau = B.tau, B.kappa2 = B.kappa2, B.prec = B.prec)
+    spde$B =
+        list(B.tau = B.tau, B.kappa2 = B.kappa2,
+             B.prec = B.prec, BLC = BLC)
 
     return(spde)
 
@@ -295,6 +287,206 @@ inla.spde.matern =
 
     return(invisible(spde))
 }
+
+
+
+
+inla.extract.el = function(M, ...)
+{
+    if (is.null(M))
+        return(NULL)
+    UseMethod("inla.extract.el", M)
+}
+
+inla.regex.match =  function(x, match) {
+    return(strsplit(x, match)[[1]][1]=="")
+}
+
+inla.extract.el.matrix = function(M, match, by.row=TRUE)
+{
+    if (by.row) {
+        return(M[sapply(rownames(M), inla.regex.match, match=match),,drop=FALSE])
+    } else {
+        return(M[,sapply(colnames(M), inla.regex.match, match=match),drop=FALSE])
+    }
+}
+
+inla.extract.el.data.frame = function(M, match, by.row=TRUE)
+{
+    if (by.row) {
+        return(M[sapply(rownames(M), inla.regex.match, match=match),,drop=FALSE])
+    } else {
+        return(M[,sapply(colnames(M), inla.regex.match, match=match),drop=FALSE])
+    }
+}
+
+inla.extract.el.list = function(M, match)
+{
+    return(M[sapply(names(M), inla.regex.match, match=match)])
+}
+
+
+inla.spde.result = function(inla, name, spde, ...)
+{
+    warning("'inla.spde.result' is not fully implemented yet.")
+    inla.require.inherits(inla, "inla", "'inla'")
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+
+    result = list()
+    if (spde$f$model=="spde") {
+        ## Setup rownames for UserFunction1
+        UF.names =
+            c(rownames(rep(list(NULL), spde$mesh$n),
+                       do.NULL=FALSE, prefix="tau."),
+              rownames(rep(list(NULL), spde$mesh$n),
+                       do.NULL=FALSE, prefix="kappa2."))
+        rownames(inla$summary.random[["UserFunction1"]]) <- UF.names
+
+        if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+            names(inla$marginals.random[["UserFunction1"]]) <-
+                UF.names
+        }
+
+        ## Values
+        result$summary.values = inla$summary.random[[name]]
+
+        ## Marginals for values
+        if (!is.null(inla$marginals.random[[name]])) {
+            result$marginals.values = inla$marginals.random[[name]]
+        }
+
+        ## Theta
+        result$summary.theta.tau =
+            inla.extract.el(inla$summary.hyperpar,
+                            paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                                  sep=""))
+        result$summary.theta.kappa2 =
+            inla.extract.el(inla$summary.hyperpar,
+                            paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                                  sep=""))
+        rownames(result$summary.theta.tau) <-
+            rownames(rep(list(NULL), nrow(result$summary.theta.tau)),
+                     do.NULL=FALSE, prefix="theta.")
+        rownames(result$summary.theta.kappa2) <-
+            rownames(rep(list(NULL), nrow(result$summary.theta.kappa2)),
+                     do.NULL=FALSE, prefix="theta.")
+
+        ## Marginals for theta
+        if (!is.null(inla$marginals.hyperpar)) {
+            result$marginals.theta.tau =
+                inla.extract.el(inla$marginals.hyperpar,
+                                paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                                      sep=""))
+            result$marginals.theta.kappa2 =
+                inla.extract.el(inla$marginals.hyperpar,
+                                paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                                      sep=""))
+            names(result$marginals.theta.tau) <-
+                rownames(rep(list(NULL), length(result$marginals.theta.tau)),
+                         do.NULL=FALSE, prefix="theta.")
+            names(result$marginals.theta.kappa2) <-
+                rownames(rep(list(NULL), length(result$marginals.theta.kappa2)),
+                         do.NULL=FALSE, prefix="theta.")
+        }
+
+        ## log-tau/kappa2
+        result$summary.log.tau =
+            inla.extract.el(inla$summary.random[["UserFunction1"]],
+                            paste("^tau´.[^ ]+$",
+                                  sep=""))
+        result$summary.log.tau =
+            inla.extract.el(inla$summary.random[["UserFunction1"]],
+                            paste("^kappa2´.[^ ]+$",
+                                  sep=""))
+
+        ## Marginals for log-tau/kappa2
+        if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+            result$marginals.log.tau =
+                inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                                paste("^tau´.[^ ]+$",
+                                      sep=""))
+            result$marginals.log.tau =
+                inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                                paste("^kappa2´.[^ ]+$",
+                                      sep=""))
+        }
+
+    } else if (spde$f$model=="spde2") {
+        ## Setup rownames
+        BLC.names = rownames(spde$internal$param.inla$BLC)
+
+        ## Values
+        result$summary.values = inla$summary.random[[name]]
+
+        ## Marginals for values
+        if (!is.null(inla$marginals.random[[name]])) {
+            result$marginals.values = inla$marginals.random[[name]]
+        }
+
+        ## Theta
+        result$summary.hyperpar =
+            inla.extract.el(inla$summary.hyperpar,
+                            paste("Theta[^ ]+ for ", name, "$", sep=""))
+
+        ## Marginals for theta
+        if (!is.null(inla$marginals$gyperpar)) {
+            result$marginals.hyperpar =
+                inla.extract.el(inla$marginals.hyperpar,
+                                paste("Theta[^ ]+ for ", name, "$", sep=""))
+        }
+
+        ## log-tau/kappa2/prec
+        if (!is.null(inla$summary.spde2.blc[[name]])) {
+            rownames(inla$summary.spde2.blc[[name]]) <- BLC.names
+
+            result$summary.theta =
+                inla.extract.el(inla$summary.spde2.blc[[name]],
+                                "theta\\.[^ ]+$")
+            result$summary.log.tau =
+                inla.extract.el(inla$summary.spde2.blc[[name]],
+                                "tau\\.[^ ]+$")
+            result$summary.log.kappa2 =
+                inla.extract.el(inla$summary.spde2.blc[[name]],
+                                "kappa2\\.[^ ]+$")
+            result$summary.log.prec =
+                inla.extract.el(inla$summary.spde2.blc[[name]],
+                                "prec\\.[^ ]+$")
+        }
+
+        ## Marginals for log-tau/kappa2/prec
+        if (!is.null(inla$marginals.spde2.blc[[name]])) {
+            names(inla$marginals.spde2.blc[[name]]) <- BLC.names
+
+            result$marginals.theta =
+                inla.extract.el(inla$marginals.spde2.blc[[name]],
+                                "theta\\.[^ ]+$")
+            result$marginals.log.tau =
+                inla.extract.el(inla$marginals.spde2.blc[[name]],
+                                "tau\\.[^ ]+$")
+            result$marginals.log.kappa2 =
+                inla.extract.el(inla$marginals.spde2.blc[[name]],
+                                "kappa2\\.[^ ]+$")
+            result$marginals.log.prec =
+                inla.extract.el(inla$marginals.spde2.blc[[name]],
+                                "prec\\.[^ ]+$")
+            result$marginals.log.range =
+                inla.extract.el(inla$marginals.spde2.blc[["test"]],
+                                "range\\.[^ ]+$")
+        }
+    } else {
+        stop(paste("inla.spde model type '", spde$model,
+                   "' is not supported by inla.spde.result", sep=""))
+    }
+
+    return(result)
+}
+
+
+
+
+
+
+
 
 
 ##inla.spde.create(mesh, model=list("matern"), ...)

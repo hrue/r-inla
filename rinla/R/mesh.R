@@ -1164,7 +1164,7 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     if (!missing(field) && !is.null(field)) {
-        proj = inla.mesh.projector(mesh, loc)
+        proj = inla.mesh.projector(mesh, loc, ...)
         return(inla.mesh.project(proj, field))
     }
 
