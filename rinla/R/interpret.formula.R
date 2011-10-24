@@ -1,8 +1,8 @@
 `inla.interpret.formula` =
-    function (gf, debug=FALSE, data=NULL, data.model = NULL) 
+    function (gf, debug=FALSE, data=NULL, data.model = NULL)
 {
     ## use a copy if data.model is !NULL, as we have to assign an
-    ## entry to it. otherwise, just use the 
+    ## entry to it. otherwise, just use the
     if (!is.null(data.model)) {
         ## make a copy of the environment
         p.env = new.env(hash = TRUE, parent = environment(gf))
@@ -19,7 +19,7 @@
     tf = terms.formula(gf, specials = c("f"), data=data)
     terms = attr(tf, "term.labels")
     nt = length(terms)
-    
+
     if (attr(tf, "response") > 0) {
         ## fixf formula with ONLY fixed effects.  randf formula with
         ## ONLY random effect.  weightf formula where are the names of
@@ -50,7 +50,7 @@
             rt[i] = ind
         }
     }
-       
+
     k =  ks = kp = 1
     len.rt = length(rt)
     random.spec = list()
@@ -117,10 +117,10 @@
 
     ##number of covariate which have weights attached!
     n.weights = 0
-    if (length(random.spec) > 0) 
+    if (length(random.spec) > 0)
         for (i in 1:length(random.spec)) {
             ff1 = paste(random.spec[[i]]$term, collapse = "+")
-        
+
             if(!is.null(random.spec[[i]]$weights)) {
                 ww1 = paste(random.spec[[i]]$weights, collapse = "+")
                 n.weights = n.weights+1
@@ -163,7 +163,7 @@
     }
 
     ret = list(randf=randf,
-        random.spec = random.spec, n.random = len.rt, 
+        random.spec = random.spec, n.random = len.rt,
         fixf=fixf, n.fix = (nt-len.rt),
         weightf=weightf, n.weights=n.weights,
         offset=offset, response = response)
