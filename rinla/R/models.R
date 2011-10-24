@@ -2203,6 +2203,25 @@
                       pdf = "binomial"
                       ), 
 
+              binomialtest = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "psi",
+                                      short.name = "psi",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 100), 
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      pdf = "binomialtest"
+                      ), 
+
               cbinomial = list(
                       hyper = list(
                               ),
