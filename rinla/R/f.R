@@ -190,7 +190,7 @@
         spde2.prefix = NULL,
 
         ##!\item{spde2.transform}{}
-        spde2.transform = c("logit", "log", "identity"), 
+        spde2.transform = c("logit", "log", "identity"),
 
         ##!\item{mean.linear}{ Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
@@ -226,8 +226,8 @@
         ##!of the models (currently: besag, bym and besag2) if the
         ##!number of connected components in graph is larger than
         ##!1. If FALSE, do nothing.}
-        adjust.for.con.comp = TRUE, 
-        
+        adjust.for.con.comp = TRUE,
+
         ## local debug-flag
         debug = FALSE)
 {
@@ -722,7 +722,7 @@
             of = of,
             precision = precision,
             quantiles = quantiles,
-            range = range, 
+            range = range,
             rankdef=rankdef,
             replicate = replicate,
             same.as = same.as,
