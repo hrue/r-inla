@@ -206,13 +206,17 @@ inla.spde.matern =
         B.kappa2 = B.kappa2[1,,drop=FALSE]
         B.prec = B.prec[1,,drop=FALSE]
     }
+    B.range =
+        cbind(0.5*log(8*max(0.5,nu))-B.kappa2[,1]/2,
+              -B.kappa2[,-1,drop=FALSE]/2)
 
     B.theta = cbind(0,diag(1, n.theta))
     rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
     rownames(B.tau) <- rownames(B.tau, do.NULL=FALSE, prefix="tau.")
     rownames(B.kappa2) <- rownames(B.kappa2, do.NULL=FALSE, prefix="kappa2.")
     rownames(B.prec) <- rownames(B.prec, do.NULL=FALSE, prefix="prec.")
-    BLC = rbind(B.theta, B.tau, B.kappa2, B.prec)
+    rownames(B.range) <- rownames(B.range, do.NULL=FALSE, prefix="range.")
+    BLC = rbind(B.theta, B.tau, B.kappa2, B.prec, B.range)
 
     fem =
         inla.fmesher.smorg(mesh$loc,
@@ -234,7 +238,7 @@ inla.spde.matern =
 
     spde$B =
         list(B.tau = B.tau, B.kappa2 = B.kappa2,
-             B.prec = B.prec, BLC = BLC)
+             B.prec = B.prec, B.range = B.range, BLC = BLC)
 
     return(spde)
 
@@ -326,7 +330,7 @@ inla.extract.el.list = function(M, match)
 }
 
 
-inla.spde.result = function(inla, name, spde, ...)
+inla.spde.result = function(inla, name, spde, do.transform=TRUE, ...)
 {
     warning("'inla.spde.result' is not fully implemented yet.")
     inla.require.inherits(inla, "inla", "'inla'")
@@ -435,7 +439,7 @@ inla.spde.result = function(inla, name, spde, ...)
                                 paste("Theta[^ ]+ for ", name, "$", sep=""))
         }
 
-        ## log-tau/kappa2/prec
+        ## log-tau/kappa2/prec/range
         if (!is.null(inla$summary.spde2.blc[[name]])) {
             rownames(inla$summary.spde2.blc[[name]]) <- BLC.names
 
@@ -451,6 +455,9 @@ inla.spde.result = function(inla, name, spde, ...)
             result$summary.log.prec =
                 inla.extract.el(inla$summary.spde2.blc[[name]],
                                 "prec\\.[^ ]+$")
+            result$summary.log.range =
+                inla.extract.el(inla$summary.spde2.blc[[name]],
+                                "range\\.[^ ]+$")
         }
 
         ## Marginals for log-tau/kappa2/prec
@@ -470,8 +477,23 @@ inla.spde.result = function(inla, name, spde, ...)
                 inla.extract.el(inla$marginals.spde2.blc[[name]],
                                 "prec\\.[^ ]+$")
             result$marginals.log.range =
-                inla.extract.el(inla$marginals.spde2.blc[["test"]],
+                inla.extract.el(inla$marginals.spde2.blc[[name]],
                                 "range\\.[^ ]+$")
+
+            if (do.transform) {
+                result$marginals.tau =
+                    lapply(result$marginals.log.tau,
+                           function(x) inla.tmarginal(function(y) exp(y), x))
+                result$marginals.kappa =
+                    lapply(result$marginals.log.kappa,
+                           function(x) inla.tmarginal(function(y) exp(y/2), x))
+                result$marginals.prec =
+                    lapply(result$marginals.log.prec,
+                           function(x) inla.tmarginal(function(y) exp(y), x))
+                result$marginals.range =
+                    lapply(result$marginals.log.range,
+                           function(x) inla.tmarginal(function(y) exp(y), x))
+            }
         }
     } else {
         stop(paste("inla.spde model type '", spde$model,
