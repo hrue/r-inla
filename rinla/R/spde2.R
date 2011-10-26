@@ -65,6 +65,8 @@ inla.spde.generic2 =
     n.theta = length(theta.mu)
 
     spde = (list(model = "spde2.generic",
+                 n.spde = n.spde,
+                 n.theta = n.theta,
                  internal = list(),
                  f = list()
                  ))
@@ -76,7 +78,9 @@ inla.spde.generic2 =
     BLC = homogenise_B_matrix(BLC, nrow(BLC), n.theta)
 
     param.generic =
-        list(M0=M0, M1=M1, M2=M2,
+        list(n = n.spde,
+             n.theta = n.theta,
+             M0=M0, M1=M1, M2=M2,
              B0=B0, B1=B1, B2=B2, BLC=BLC,
              theta.mu=theta.mu, theta.Q=theta.Q,
              transform=transform,
@@ -293,6 +297,73 @@ inla.spde.matern =
 }
 
 
+inla.spde.theta2phi0 = function(spde, theta)
+{
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+
+    if (length(theta)==spde$n.theta)
+        return(exp(spde$internal$param.generic$B0[,1] +
+                   spde$internal$param.generic$B0[,-1] %*% theta))
+    else
+        return(exp(spde$internal$param.inla$B0[,1] +
+                   spde$internal$param.inla$B0[,-1] %*% theta))
+}
+
+inla.spde.theta2phi1 = function(spde, theta)
+{
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+
+    if (length(theta)==spde$n.theta)
+        return(exp(spde$internal$param.generic$B1[,1] +
+                   spde$internal$param.generic$B1[,-1] %*% theta))
+    else
+        return(exp(spde$internal$param.inla$B1[,1] +
+                   spde$internal$param.inla$B1[,-1] %*% theta))
+}
+
+inla.spde.theta2phi2 = function(spde, theta)
+{
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+
+##    warning("TODO: support link functions for phi2")
+    if (length(theta)==spde$n.theta)
+        return((spde$internal$param.generic$B2[,1] +
+                spde$internal$param.generic$B2[,-1] %*% theta))
+    else
+        return((spde$internal$param.inla$B2[,1] +
+                spde$internal$param.inla$B2[,-1] %*% theta))
+}
+
+inla.spde.precision =
+    function(spde, theta=NULL,
+             phi0=inla.spde.theta2phi0(spde, theta),
+             phi1=inla.spde.theta2phi1(spde, theta),
+             phi2=inla.spde.theta2phi2(spde, theta))
+{
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+    if (spde$f$model!="spde2") {
+        stop("'inla.spde.precision' only supports internal intla models 'spde2'")
+    }
+
+    D0 = Diagonal(spde$n.spde, phi0)
+    D1 = Diagonal(spde$n.spde, phi1)
+    D12 = Diagonal(spde$n.spde, phi1*phi2)
+    Q = (D0 %*% (D1 %*% spde$internal$param.generic$M0 %*% D1 +
+                 D12 %*% spde$internal$param.generic$M1 +
+                 t(spde$internal$param.generic$M1) %*% D12 +
+                 spde$internal$param.generic$M2) %*% D0)
+
+    return(Q)
+}
+
+inla.spde.sample =
+    function(precision, seed=NULL)
+{
+    return(inla.finn(precision,
+                     seed=(inla.ifelse(is.null(seed),
+                                       0L,
+                                       seed)))$sample)
+}
 
 
 inla.extract.el = function(M, ...)
