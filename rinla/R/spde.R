@@ -253,6 +253,102 @@ inla.spde.query = function(spde, ...)
 
 
 
+
+inla.spde1.result = function(inla, name, spde, do.transform=TRUE, ...)
+{
+    warning("'inla.spde1.result' is not fully implemented yet.")
+    inla.require.inherits(inla, "inla", "'inla'")
+    inla.require.inherits(spde, "inla.spde", "'spde'")
+    if (!spde$f$model=="spde") {
+        stop("'inla.spde1.result' only supports internal inla models 'spde'")
+    }
+
+    result = list()
+    ## Setup rownames for UserFunction1
+    UF.names =
+        c(rownames(rep(list(NULL), spde$mesh$n),
+                   do.NULL=FALSE, prefix="tau."),
+          rownames(rep(list(NULL), spde$mesh$n),
+                   do.NULL=FALSE, prefix="kappa2."))
+    rownames(inla$summary.random[["UserFunction1"]]) <- UF.names
+
+    if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+        names(inla$marginals.random[["UserFunction1"]]) <-
+            UF.names
+    }
+
+    ## Values
+    result$summary.values = inla$summary.random[[name]]
+
+    ## Marginals for values
+    if (!is.null(inla$marginals.random[[name]])) {
+        result$marginals.values = inla$marginals.random[[name]]
+    }
+
+    ## Theta
+    result$summary.theta.tau =
+        inla.extract.el(inla$summary.hyperpar,
+                        paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                              sep=""))
+    result$summary.theta.kappa2 =
+        inla.extract.el(inla$summary.hyperpar,
+                        paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                              sep=""))
+    rownames(result$summary.theta.tau) <-
+        rownames(rep(list(NULL), nrow(result$summary.theta.tau)),
+                 do.NULL=FALSE, prefix="theta.")
+    rownames(result$summary.theta.kappa2) <-
+        rownames(rep(list(NULL), nrow(result$summary.theta.kappa2)),
+                 do.NULL=FALSE, prefix="theta.")
+
+    ## Marginals for theta
+    if (!is.null(inla$marginals.hyperpar)) {
+        result$marginals.theta.tau =
+            inla.extract.el(inla$marginals.hyperpar,
+                            paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                                  sep=""))
+        result$marginals.theta.kappa2 =
+            inla.extract.el(inla$marginals.hyperpar,
+                            paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                                  sep=""))
+        names(result$marginals.theta.tau) <-
+            rownames(rep(list(NULL), length(result$marginals.theta.tau)),
+                     do.NULL=FALSE, prefix="theta.")
+        names(result$marginals.theta.kappa2) <-
+            rownames(rep(list(NULL), length(result$marginals.theta.kappa2)),
+                     do.NULL=FALSE, prefix="theta.")
+    }
+
+    ## log-tau/kappa2
+    result$summary.log.tau =
+        inla.extract.el(inla$summary.random[["UserFunction1"]],
+                        paste("^tau´.[^ ]+$",
+                              sep=""))
+    result$summary.log.tau =
+        inla.extract.el(inla$summary.random[["UserFunction1"]],
+                        paste("^kappa2´.[^ ]+$",
+                              sep=""))
+
+    ## Marginals for log-tau/kappa2
+    if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+        result$marginals.log.tau =
+            inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                            paste("^tau´.[^ ]+$",
+                                  sep=""))
+        result$marginals.log.tau =
+            inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                            paste("^kappa2´.[^ ]+$",
+                                  sep=""))
+    }
+
+    return(result)
+}
+
+
+
+
+
+
 ## Deprecated functions:
 
 inla.spde = function(...)
