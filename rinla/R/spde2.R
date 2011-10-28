@@ -150,7 +150,7 @@ inla.spde2.matern =
     B.theta = cbind(0,diag(1, n.theta))
     rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
     rownames(B.tau) <- rownames(B.tau, do.NULL=FALSE, prefix="tau.")
-    rownames(B.kappa) <- rownames(B.kappa, do.NULL=FALSE, prefix="kappa2.")
+    rownames(B.kappa) <- rownames(B.kappa, do.NULL=FALSE, prefix="kappa.")
     rownames(B.prec) <- rownames(B.prec, do.NULL=FALSE, prefix="prec.")
     rownames(B.range) <- rownames(B.range, do.NULL=FALSE, prefix="range.")
     BLC = rbind(B.theta, B.tau, B.kappa, B.prec, B.range)
@@ -338,7 +338,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
 
     result = list()
     ## Setup rownames
-    BLC.names = rownames(spde$internal$param.inla$BLC)
+    BLC.names = rownames(spde$param.inla$BLC)
 
     ## Values
     result$summary.values = inla$summary.random[[name]]
@@ -424,7 +424,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
 
 inla.spde2.models = function()
 {
-    return(c("generic","matern"))
+    return(c("generic", "matern"))
 }
 
 
