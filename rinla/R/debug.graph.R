@@ -34,8 +34,8 @@
     ## remove lines starting with '#'
     for(i in 1:length(xx)) {
         xx[i] = gsub("[ \t]+", " ", xx[i])
-        xx[i] = gsub("/#.*/", "", xx[i])
-        if (length(grep("/^[ \t]*$/", xx[i])) > 0) {
+        xx[i] = gsub("#.*$", "", xx[i])
+        if (length(grep("^[ \t]*$", xx[i])) > 0) {
             xx[i] = NA
         }
     }
