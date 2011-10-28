@@ -3,7 +3,7 @@ graphics.off()
 require(rgl)
 rgl.quit()
 require(INLA)
-inla.my.update()
+##inla.my.update()
 
 n.obs.repl = 2
 prec = 10^2
