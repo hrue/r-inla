@@ -739,8 +739,11 @@
     return (ret)
 }
 
+## "inla.model.class" is a generic model class that can be inherited
+## from to mark a class as an inla model object class.
 `inla.model.object.classes` = function() {
-    return (c("inla.spde", "inla.wrapper.model", "inla.spde2"))
+    return (c("inla.model.class", "inla.wrapper.model",
+              "inla.spde", "inla.spde1", "inla.spde2"))
 }
 
 

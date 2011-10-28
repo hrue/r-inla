@@ -22,7 +22,7 @@ mesh =
                      extend=FALSE,
                      plot.delay=NULL)
 
-spde1 = inla.spde.create(mesh)
+spde1 = inla.spde1.create(mesh)
 spde1$f$hyper.default =
     list(theta1 = list(initial=0, param=c(0,prior.prec)),
          theta2 = list(initial=0, param=c(0,prior.prec)),
@@ -32,7 +32,7 @@ spde1$f$hyper.default =
 ##require(debug)
 ##mtrace(inla.spde.create.generic)
 spde2a =
-    inla.spde.generic2(M0=spde1$internal$c0,
+    inla.spde2.generic(M0=spde1$internal$c0,
                        M1=spde1$internal$g1,
                        M2=spde1$internal$g2,
                        B0=matrix(c(0,1,0),1,3),
@@ -42,9 +42,9 @@ spde2a =
                        theta.Q = diag(nrow=2)*prior.prec,
                        transform="identity")
 
-spde2b = inla.spde.matern(mesh)
+spde2b = inla.spde2.matern(mesh)
 
-field = inla.spde.query(spde1, sample=list(tau=tau, kappa2=kappa2))$sample
+field = inla.spde1.query(spde1, sample=list(tau=tau, kappa2=kappa2))$sample
 Y = 1+rep(field, n.obs.repl)+rnorm(mesh$n*n.obs.repl)/sqrt(prec)
 
 data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde1)
