@@ -1,6 +1,6 @@
 remove(list=ls())
 require(INLA)
-inla.my.update()
+##inla.my.update()
 ##source("~/hg/inla/rinla/R/interpret.formula.R")
 ##source("~/hg/inla/rinla/R/f.R")
 ##source("~/hg/inla/rinla/R/hyper.R")
