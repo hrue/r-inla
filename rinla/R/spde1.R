@@ -1,7 +1,7 @@
 ## 'spde' model functions
 
 
-inla.spde.create =
+inla.spde1.create =
     function(mesh,
              model=c("matern", "imatern", "matern.osc"),
              param=NULL,
@@ -23,7 +23,7 @@ inla.spde.create =
                            n=nrow(mesh$loc)
                            ))
                  ))
-    class(spde) = "inla.spde"
+    class(spde) = c("inla.spde1", "inla.spde", "inla.model.class")
 
     if (identical(model, "matern") ||
         identical(model, "imatern") ||
@@ -142,9 +142,9 @@ inla.spde.create =
 
 
 
-inla.spde.query = function(spde, ...)
+inla.spde1.query = function(spde, ...)
 {
-    inla.require.inherits(spde, "inla.spde", "'spde'")
+    inla.require.inherits(spde, "inla.spde1", "'spde'")
 
     not.known = function (spde, queryname)
     {
@@ -154,7 +154,7 @@ inla.spde.query = function(spde, ...)
     not.implemented = function (spde, queryname)
     {
         stop(paste("Query '", queryname,
-                   "' not implemented for inla.spde model '",
+                   "' not implemented for inla.spde1 model '",
                    spde$model, "'.", sep=""))
     }
     param.to.fcn =
@@ -231,7 +231,7 @@ inla.spde.query = function(spde, ...)
                 not.implemented(spde,query)
             }
         } else if (identical(query, "sample")) {
-            Q = inla.spde.query(spde, precision=param)$precision
+            Q = inla.spde1.query(spde, precision=param)$precision
             finn = (inla.finn(Q, seed=(inla.ifelse(is.null(param$seed),
                                                    0L,
                                                    param$seed))))
@@ -253,18 +253,132 @@ inla.spde.query = function(spde, ...)
 
 
 
-## Deprecated functions:
 
-inla.spde = function(...)
+inla.spde1.result = function(inla, name, spde, do.transform=TRUE, ...)
 {
-    args = list(...)
-    if (length(args)>0) {
-        if (inherits(args[[1]],"inla.spde")) {
-            warning("'inla.spde(spde, ...)' is deprecated.  Use 'inla.spde.query(spde, ...)' instead.")
-            return(inla.spde.query(...))
-        }
+    warning("'inla.spde1.result' is not fully implemented yet.")
+    inla.require.inherits(inla, "inla", "'inla'")
+    inla.require.inherits(spde, "inla.spde1", "'spde'")
+    if (!spde$f$model=="spde") {
+        stop("'inla.spde1.result' only supports internal inla models 'spde'")
     }
-    warning("'inla.spde(...)' is deprecated.  Use 'inla.spde.create(...)' instead.")
-    return(inla.spde.create(...))
+
+    result = list()
+    ## Setup rownames for UserFunction1
+    UF.names =
+        c(rownames(rep(list(NULL), spde$mesh$n),
+                   do.NULL=FALSE, prefix="tau."),
+          rownames(rep(list(NULL), spde$mesh$n),
+                   do.NULL=FALSE, prefix="kappa2."))
+    rownames(inla$summary.random[["UserFunction1"]]) <- UF.names
+
+    if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+        names(inla$marginals.random[["UserFunction1"]]) <-
+            UF.names
+    }
+
+    ## Values
+    result$summary.values = inla$summary.random[[name]]
+
+    ## Marginals for values
+    if (!is.null(inla$marginals.random[[name]])) {
+        result$marginals.values = inla$marginals.random[[name]]
+    }
+
+    ## Theta
+    result$summary.theta.tau =
+        inla.extract.el(inla$summary.hyperpar,
+                        paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                              sep=""))
+    result$summary.theta.kappa2 =
+        inla.extract.el(inla$summary.hyperpar,
+                        paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                              sep=""))
+    rownames(result$summary.theta.tau) <-
+        rownames(rep(list(NULL), nrow(result$summary.theta.tau)),
+                 do.NULL=FALSE, prefix="theta.")
+    rownames(result$summary.theta.kappa2) <-
+        rownames(rep(list(NULL), nrow(result$summary.theta.kappa2)),
+                 do.NULL=FALSE, prefix="theta.")
+
+    ## Marginals for theta
+    if (!is.null(inla$marginals.hyperpar)) {
+        result$marginals.theta.tau =
+            inla.extract.el(inla$marginals.hyperpar,
+                            paste("^T\\.[^ ]+ for ", name, "-basisT$",
+                                  sep=""))
+        result$marginals.theta.kappa2 =
+            inla.extract.el(inla$marginals.hyperpar,
+                            paste("^K\\.[^ ]+ for ", name, "-basisK$",
+                                  sep=""))
+        names(result$marginals.theta.tau) <-
+            rownames(rep(list(NULL), length(result$marginals.theta.tau)),
+                     do.NULL=FALSE, prefix="theta.")
+        names(result$marginals.theta.kappa2) <-
+            rownames(rep(list(NULL), length(result$marginals.theta.kappa2)),
+                     do.NULL=FALSE, prefix="theta.")
+    }
+
+    ## log-tau/kappa2
+    result$summary.log.tau =
+        inla.extract.el(inla$summary.random[["UserFunction1"]],
+                        paste("^tau´.[^ ]+$",
+                              sep=""))
+    result$summary.log.tau =
+        inla.extract.el(inla$summary.random[["UserFunction1"]],
+                        paste("^kappa2´.[^ ]+$",
+                              sep=""))
+
+    ## Marginals for log-tau/kappa2
+    if (!is.null(inla$marginals.random[["UserFunction1"]])) {
+        result$marginals.log.tau =
+            inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                            paste("^tau´.[^ ]+$",
+                                  sep=""))
+        result$marginals.log.tau =
+            inla.extract.el(inla$marginals.random[["UserFunction1"]],
+                            paste("^kappa2´.[^ ]+$",
+                                  sep=""))
+    }
+
+    return(result)
 }
+
+
+inla.spde1.precision = function(spde, ...)
+{
+    inla.require.inherits(spde, "inla.spde1", "'spde'")
+
+    return(inla.spde1.query(spde, precision=list(...)))
+}
+
+
+inla.spde1.models = function()
+{
+    return(c("matern", "imatern", "matern.osc"))
+}
+
+inla.spde1.matern = function(mesh, ...)
+{
+    return(inla.spde1.create(mesh, model="matern", ...))
+}
+inla.spde1.imatern = function(mesh, ...)
+{
+    return(inla.spde1.create(mesh, model="imatern", ...))
+}
+inla.spde1.matern.osc = function(mesh, ...)
+{
+    return(inla.spde1.create(mesh, model="matern.osc", ...))
+}
+
+## spde.common-connections:
+##inla.spde.precision.inla.spde1 = inla.spde1.precision
+inla.spde.result.inla.spde1 = inla.spde1.result
+
+
+
+
+## Deprecated functions:
+inla.spde.create = inla.spde1.create
+inla.spde.query = inla.spde1.query
 
