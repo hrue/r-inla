@@ -198,6 +198,20 @@ inla.matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
 }
 
 
+
+inla.spde.models = function()
+{
+    types = c("spde1", "spde2")
+    models = list()
+    for (t in types) {
+        models[[t]] =
+            do.call(what=paste("inla.", t, ".models", sep=""),
+                    args=list())
+    }
+    return(models)
+}
+
+
 inla.spde.sample =
     function(precision, seed=NULL)
 {

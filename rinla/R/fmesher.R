@@ -42,28 +42,3 @@
     }
     return (prefix)
 }
-
-
-
-
-## Obsolete functions.
-
-`inla.create.spde` = function(mesh=NULL, prefix = NULL,
-        fem=2, sph0=NULL, sph=NULL, bspline=NULL, points2mesh=NULL)
-{
-    stop("'inla.create.spde' has been replaced by 'inla.spde.create'.")
-}
-
-`inla.fmesher.mesh` = function(
-        locations,
-        dir = tempdir(),
-        prefix = NULL,
-        rcdt = c(21,-1.0,-0.5),
-        cet = c(8,-0.1),
-        boundary = NULL,
-        interior = NULL,
-        x11.delay = NULL,
-        min.input.distance = 0)
-{
-    stop("'inla.fmesher.mesh' has been replaced by 'inla.mesh.create'.")
-}

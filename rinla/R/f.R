@@ -743,7 +743,7 @@
 ## from to mark a class as an inla model object class.
 `inla.model.object.classes` = function() {
     return (c("inla.model.class", "inla.wrapper.model",
-              "inla.spde", "inla.spde2"))
+              "inla.spde", "inla.spde1", "inla.spde2"))
 }
 
 
