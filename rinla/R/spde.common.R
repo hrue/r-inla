@@ -268,7 +268,7 @@ inla.stack = function(...)
     UseMethod("inla.stack")
 }
 
-inla.stack.default = function(data , A, effects, tag=NULL, ...)
+inla.stack.default = function(data , A, effects, tag=NULL, strict=FALSE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
@@ -318,7 +318,7 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
         warning(paste("Extra argument '", names(list(...)), "' ignored.",
                       collapse="\n", sep=""))
 
-    if ((!is.list(A)) &&(!any(vapply(effects, is.list, TRUE)))) {
+    if ((!is.list(A)) && (!any(vapply(effects, is.list, TRUE)))) {
         A = list(A)
         effects = list(effects)
     }
@@ -333,29 +333,33 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
     }
 
     n = effect.nrow(effects)
-    if (diff(range(n))!=0) {
-        stop(paste("Mismatching nrow(effects) : ",
-                   paste(n, collapse=","), " should all be equal.",
-                   sep=""))
-    }
 
     A.n = length(A)
     A.ncol = input.list.ncol(A)
-    if (any((A.ncol==1) && (n!=1))) {
-        idx = which(A.ncol==1)
+    A.nrow = input.list.nrow(A)
+    if (any((A.ncol==1) & (A.nrow==1) & (n!=1))) {
+        idx = which((A.ncol==1) & (A.nrow==1) & (n!=1))
         for (i in idx) {
             A[[i]] = Diagonal(n[i], A[[i]])
         }
     }
     A.ncol = input.list.ncol(A)
     A.nrow = input.list.nrow(A)
-    if (any(A.nrow != A.nrow[1])) {
-        stop(paste("Mismatching nrow(A) for A[[",
-                   paste(which(A.nrow != A.nrow[1]), collapse=","), "]]: ",
-                   paste(A.nrow[A.nrow != A.nrow[1]], collapse=","),
-                   " should be ", A.nrow, sep=""))
+    if (any((A.ncol==1) & (A.nrow==1) & (n==1))) {
+        idx = which((A.ncol==1) & (A.nrow==1) & (n==1))
+        for (i in idx) {
+            A[[i]] = Matrix(A[[i]], max(A.nrow), 1)
+        }
     }
-    A.nrow = A.nrow[1]
+    A.ncol = input.list.ncol(A)
+    A.nrow = input.list.nrow(A)
+    if (any(A.nrow < max(A.nrow))) {
+        stop(paste("Mismatching nrow(A) for A[[",
+                   paste(which(A.nrow != max(A.nrow)), collapse=","), "]]: ",
+                   paste(A.nrow[A.nrow != max(A.nrow)], collapse=","),
+                   " should be ", max(A.nrow), sep=""))
+    }
+    A.nrow = max(A.nrow)
 
     if (any(n!=A.ncol)) {
         stop(paste("Mismatching ncol(A) vs nrow(effects) for ",
@@ -369,18 +373,39 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
     data.nrow = input.list.nrow(data)
     data.ncol = input.list.ncol(data)
     if (any(data.nrow > A.nrow)) {
-        stop(paste("Mismatching nrow(data) vs nrow(A) for ",
-                   paste(names(data[data.nrow > A.nrow]), collapse=","),
-                   ": ",
-                   paste(data.nrow[data.nrow > A.nrow], collapse=","),
-                   " should be <=", A.nrow,
-                   sep=""))
+        if (strict) {
+            stop(paste("Strict mode:\n",
+                       "Length of data '",
+                       names(data[data.nrow > A.nrow]),
+                       "' is ",
+                       data.nrow[data.nrow > A.nrow],
+                       " but should be ", A.nrow,
+                       collapse="\n",
+                       sep=""))
+        } else {
+            stop(paste("Length of data '",
+                       names(data[data.nrow > A.nrow]),
+                       "' is ",
+                       data.nrow[data.nrow > A.nrow],
+                       " but should be <=", A.nrow,
+                       collapse="\n",
+                       sep=""))
+        }
     }
-
 
     data.output = data
     for (k in 1:length(data)) {
         if (data.nrow[k] < A.nrow) {
+            if (strict) {
+                stop(paste("Strict mode:\n",
+                           "Length of data '",
+                           names(data[data.nrow < A.nrow]),
+                           "' is ",
+                           data.nrow[data.nrow < A.nrow],
+                           " but should be ", A.nrow,
+                           collapse="\n",
+                           sep=""))
+            }
             if (is.matrix(data[[k]]) || is.data.frame(data[[k]])) {
                 data.output[[k]] =
                     rbind(data[[k]],
@@ -399,35 +424,58 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
     for (i in 1:length(effects)) {
         n1 = n0+n[i]-1
         if (is.list(effects[[i]])) {
+            nj = input.list.nrow(effects[[i]])
+            if (strict && (any(nj != n[i]))) {
+                stop("Strict mode:\n",
+                     "Length of effect '", names(effects[[i]])[nj != n[i]],
+                     "' is ",
+                     nj[nj != n[i]],
+                     " but should be ",
+                     n[i], ".",
+                     collapse = "\n",
+                     sep="")
+            }
+            nmissing = n[i]-nj
             for (j in 1:length(effects[[i]])) {
-                nj =  input.nrow(effects[[i]][[j]])
-                if (n[i] != nj)
-                    stop("Each member of the list ",
-                         ,
-                         " must have equal length (",
-                         names(effects[[i]])[j],
-                         ":",
-                         nj,
-                         " should be ",
-                         names(effects[[i]])[1],
-                         ":",
-                         n[i],
-                         ")")
                 if (is.matrix(effects[[i]][[j]]) ||
                     is.data.frame(effects[[i]][[j]])) {
-                    print(names(effects[[i]])[j])
                     for (jj in 1:ncol(effects[[i]][[j]])) {
-                        effects.output[[paste(names(effects[[i]])[j],".",jj,sep="")]] =
-                            c(rep(NA, n0-1), effects[[i]][[j]][,jj], rep(NA, ntot-n1))
+                        thename = paste(names(effects[[i]])[j], ".", jj, sep="")
+                        if (is.null(effects.output[[thename]])) {
+                            effects.output[[thename]] =
+                                c(rep(NA, n0-1),
+                                  effects[[i]][[j]][,jj],
+                                  rep(NA, nmissing[j]+ntot-n1))
+                        } else {
+                            effects.output[[thename]][n0:n1] =
+                                c(effects[[i]][[j]][,jj],
+                                  rep(NA, nmissing[j]))
+                        }
                     }
                 } else {
-                    effects.output[[names(effects[[i]])[j]]] =
-                        c(rep(NA, n0-1), effects[[i]][[j]], rep(NA, ntot-n1))
+                    thename = names(effects[[i]])[j]
+                    if (is.null(effects.output[[thename]])) {
+                        effects.output[[thename]] =
+                            c(rep(NA, n0-1),
+                              effects[[i]][[j]],
+                              rep(NA, nmissing[j]+ntot-n1))
+                    } else {
+                        effects.output[[thename]][n0:n1] =
+                            c(effects[[i]][[j]],
+                              rep(NA, nmissing[j]))
+                    }
                 }
             }
         } else {
-            effects.output[[names(effects)[i]]] =
-                c(rep(NA, n0-1), effects[[i]], rep(NA, ntot-n1))
+            thename = names(effects)[i]
+            if (is.null(effects.output[[thename]])) {
+                effects.output[[thename]] =
+                    c(rep(NA, n0-1),
+                      effects[[i]],
+                      rep(NA, ntot-n1))
+            } else {
+                effects.output[[thename]][n0:n1] = effects[[i]]
+            }
         }
         n0 = n1+1
     }
