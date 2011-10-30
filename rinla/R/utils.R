@@ -1138,7 +1138,7 @@
         n.what = length(as.list(what))
         stop(paste(name, " must inherit from class ",
                    inla.ifelse(n.what==1,
-                               paste("\"", what, "\".", sed=""),
+                               paste("\"", what, "\".", sep=""),
                                paste("\"",
                                      inla.paste(what[1:(n.what-1)],
                                                 "\", \""),

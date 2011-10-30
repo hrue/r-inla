@@ -101,6 +101,63 @@ inla.stack(...)
   \code{\link{inla.spde.make.index}}
 }
 \examples{
+n = 20
+loc = matrix(runif(n*2),n,2)
+mesh = inla.mesh.create.helper(points.domain=loc,
+                               max.edge=c(0.05,0.2))
+proj.obs = inla.mesh.projector(mesh, loc=loc)
+proj.pred = inla.mesh.projector(mesh, loc=mesh$loc)
+spde = inla.spde2.matern(mesh)
+
+covar = rnorm(n)
+field = inla.spde.sample(inla.spde2.precision(spde, theta=c(0,0)))
+y = 2*covar + inla.mesh.project(proj.obs, field)
+
+stack.obs =
+    inla.stack(data=list(y=y),
+               A=list(proj.obs$proj$A, 1),
+               effects=list(c(list(intercept=rep(1, mesh$n)),
+                              inla.spde.make.index("spatial", mesh$n)),
+                            covar=covar),
+               tag="obs")
+stack.pred =
+    inla.stack(data=list(y=NA),
+               A=list(proj.pred$proj$A),
+               effects=list(c(list(intercept=rep(1, mesh$n)),
+                              inla.spde.make.index("spatial", mesh$n))),
+               tag="pred",
+               strict=FALSE)
+stack = inla.stack(stack.obs, stack.pred)
+
+formula = y ~ -1 + intercept + covar + f(spatial, model=spde)
+result1 = inla(formula,
+               data=c(stack.obs$data, list(spde=spde)),
+               family="gaussian",
+               control.predictor=list(A=stack.obs$A, compute=TRUE),
+               verbose=TRUE)
+
+plot(y, result1$summary.fitted.values[stack.obs$index$obs,"mean"])
+
+result2 = inla(formula,
+               data=c(stack$data, list(spde=spde)),
+               family="gaussian",
+               control.predictor=list(A=stack$A, compute=TRUE),
+               verbose=TRUE)
+
+field.pred = inla.mesh.project(proj.pred,
+    result2$summary.fitted.values[stack$index$pred, "mean"])
+
+dev.new()
+plot(field, field.pred)
+dev.new()
+image(inla.mesh.project(mesh,
+    field=field,
+    dims=c(200,200)))
+dev.new()
+image(inla.mesh.project(mesh,
+    field=field.pred,
+    dims=c(200,200)))
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
