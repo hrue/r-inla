@@ -243,7 +243,9 @@ inla.spde.precision = function(...)
 
 inla.spde.result = function(...)
 {
-    UseMethod("inla.spde.result")
+    inla.require.inherits(list(...)[[1]], "inla", "First parameter")
+    inla.require.inherits(list(...)[[2]], "character", "Second parameter")
+    UseMethod("inla.spde.result", list(...)[[3]])
 }
 
 
@@ -645,6 +647,11 @@ inla.stack.inla.data.stack = function(...)
                                 c(rep(NA, size1),
                                       S[[k]]$data[[name]]))
             }
+##            if ((present1[j] && ismat1[[name]]) ||
+##                (present2[j] && ismat2[[name]]))
+##                print(dim(data[[name]]))
+##            else
+##                print(length(data[[name]]))
         }
 
         A = inla.dBind(S1$A, S[[k]]$A)

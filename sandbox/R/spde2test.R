@@ -47,12 +47,12 @@ spde2b = inla.spde2.matern(mesh)
 field = inla.spde1.query(spde1, sample=list(tau=tau, kappa2=kappa2))$sample
 Y = 1+rep(field, n.obs.repl)+rnorm(mesh$n*n.obs.repl)/sqrt(prec)
 
-data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde1)
-formula1 = (as.formula("Y ~ 1 + f(field, model=spde1)"))
-data2 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde2a)
-formula2 = (as.formula("Y ~ 1 + f(field, model=spde2a)"))
-data3 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), model=spde2b)
-formula3 = (as.formula("Y ~ 1 + f(field, model=spde2b)"))
+data1 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), spde=spde1)
+formula1 = (as.formula("Y ~ 1 + f(field, model=spde)"))
+data2 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), spde=spde2a)
+formula2 = (as.formula("Y ~ 1 + f(field, model=spde)"))
+data3 = list(Y=Y, field=rep(1:mesh$n, n.obs.repl), spde=spde2b)
+formula3 = (as.formula("Y ~ 1 + f(field, model=spde)"))
 
 verbose = FALSE
 result1 =
