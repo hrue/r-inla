@@ -318,8 +318,6 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
         warning(paste("Extra argument '", names(list(...)), "' ignored.",
                       collapse="\n", sep=""))
 
-    print("Checking basics")
-
     if ((!is.list(A)) &&(!any(vapply(effects, is.list, TRUE)))) {
         A = list(A)
         effects = list(effects)
@@ -333,8 +331,6 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
         length(data)+length(effect.names(effects))+1) {
         stop("All data and effects must have unique names")
     }
-
-    print("Adjusting A sizes")
 
     n = effect.nrow(effects)
     if (diff(range(n))!=0) {
@@ -369,8 +365,6 @@ inla.stack.default = function(data , A, effects, tag=NULL, ...)
                    paste(n[n!=A.ncol], collapse=","),
                    sep=""))
     }
-
-    print("Adjusting data sizes")
 
     data.nrow = input.list.nrow(data)
     data.ncol = input.list.ncol(data)
