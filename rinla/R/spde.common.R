@@ -297,14 +297,43 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
                       1))
     }
     effect.names = function(l) {
+        islist = sapply(l, is.list)
+        if (!is.null(names(l)))
+            name = as.list(names(l)[!islist])
+        else
+            name = as.list(rep("", sum(!islist)))
         subnames =
             lapply(l,
                    function(x) inla.ifelse(is.list(x),
                                            names(x),
-                                           c("")))
-        return(setdiff(union(names(l),
+                                           NULL))
+        return(setdiff(union(do.call(c, name),
                              do.call(c, subnames)),
                        ""))
+    }
+    data.has.name = function(l) {
+        if (is.null(names(l)))
+            return(FALSE)
+        return(all(vapply(names(l),
+                          function(x) (x!=""),
+                          TRUE)))
+    }
+    effect.has.name = function(l) {
+        islist = sapply(l, is.list)
+        if (!is.null(names(l)))
+            name = as.list(names(l)[!islist])
+        else
+            name = as.list(rep("", sum(!islist)))
+        subnames =
+            lapply(l,
+                   function(x) inla.ifelse(is.list(x),
+                                           inla.ifelse(is.null(names(x)),
+                                                       rep("", length(x)),
+                                                       names(x)),
+                                           NULL))
+        return(all(vapply(c(do.call(c, name), do.call(c, subnames)),
+                          function(x) (x!=""),
+                          TRUE)))
     }
     effect.nrow = function(l) {
         return(vapply(l,
@@ -327,9 +356,21 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
         stop(paste("length(A)=", length(A),
                    " should be equal to length(effects)=", length(effects), sep=""))
 
-    if (length(unique(c(names(data), effect.names(effects), list("")))) <
-        length(data)+length(effect.names(effects))+1) {
-        stop("All data and effects must have unique names")
+    if (!data.has.name(data)) {
+        stop("All data must have names.")
+    }
+    if (!effect.has.name(effects)) {
+        stop("All effects must have names.")
+    }
+    if (length(unique(c(names(data), effect.names(effects)))) <
+        length(data)+length(effect.names(effects))) {
+        stop(paste("Names for data and effects must not coincide.\n",
+                   "data names:   ",
+                   paste(names(data), collapse=", ", sep=""),
+                   "\n",
+                   "effect names: ",
+                   paste(effect.names(effects), collapse=", ", sep=""),
+                   sep=""))
     }
 
     n = effect.nrow(effects)
