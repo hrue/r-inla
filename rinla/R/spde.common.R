@@ -268,7 +268,7 @@ inla.stack = function(...)
     UseMethod("inla.stack")
 }
 
-inla.stack.default = function(data , A, effects, tag=NULL, strict=FALSE, ...)
+inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
