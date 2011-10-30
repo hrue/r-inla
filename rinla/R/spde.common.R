@@ -531,7 +531,7 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
     stack =
         list(data=c(data.output, effects.output), A=A.output,
              data.names = names(data.output),
-             effects.names = names(effects.output),
+             effect.names = names(effects.output),
              n.data = A.nrow,
              index = index)
     class(stack) = "inla.data.stack"
@@ -588,21 +588,21 @@ inla.stack.inla.data.stack = function(...)
 
         ## rbind all the elements of S1 and S[[k]]
         all.data.names = union(S1$data.names, S[[k]]$data.names)
-        all.effects.names = union(S1$effects.names, S[[k]]$effects.names)
-        if (length(intersect(all.data.names, all.effects.names))>0) {
+        all.effect.names = union(S1$effect.names, S[[k]]$effect.names)
+        if (length(intersect(all.data.names, all.effect.names))>0) {
             stop("Name conflict.")
         }
-        all.names = c(all.data.names, all.effects.names)
+        all.names = c(all.data.names, all.effect.names)
 
         present1 =
-            is.element(all.names, c(S1$data.names, S1$effects.names))
+            is.element(all.names, c(S1$data.names, S1$effect.names))
         present2 =
-            is.element(all.names, c(S[[k]]$data.names, S[[k]]$effects.names))
+            is.element(all.names, c(S[[k]]$data.names, S[[k]]$effect.names))
         ismat1 =
-            lapply(S1$data[c(S1$data.names, S1$effects.names)],
+            lapply(S1$data[c(S1$data.names, S1$effect.names)],
                    function(x) (is.matrix(x) || is.data.frame(x)))
         ismat2 =
-            lapply(S[[k]]$data[c(S[[k]]$data.names, S[[k]]$effects.names)],
+            lapply(S[[k]]$data[c(S[[k]]$data.names, S[[k]]$effect.names)],
                    function(x) (is.matrix(x) || is.data.frame(x)))
 
         data = list()
@@ -657,7 +657,7 @@ inla.stack.inla.data.stack = function(...)
         S1 =
             list(data=data, A=A,
                  data.names = all.data.names,
-                 effects.names = all.effects.names,
+                 effect.names = all.effect.names,
                  n.data = S1$n.data + S[[k]]$n.data,
                  index = index)
         class(S1) = "inla.data.stack"
