@@ -1134,20 +1134,22 @@
 
 `inla.require.inherits` = function(x, what, name="Object")
 {
-    if (!inherits(x, what))
+    if (!inherits(x, what)) {
+        n.what = length(as.list(what))
         stop(paste(name, " must inherit from class ",
-                   inla.ifelse(length(what)==1,
+                   inla.ifelse(n.what==1,
                                paste("\"", what, "\".", sed=""),
                                paste("\"",
-                                     inla.paste(what[1:(length(what)-1)],
+                                     inla.paste(what[1:(n.what-1)],
                                                 "\", \""),
                                      "\"",
-                                     inla.ifelse(length(what)==2, "", ","),
+                                     inla.ifelse(n.what==2, "", ","),
                                      " or \"",
-                                     what[length(what)],
+                                     what[n.what],
                                      "\".",
                                      sep="")),
                    sep=""))
+    }
     return(invisible())
 }
 
@@ -1166,7 +1168,7 @@
     return (inla.eval(strsplit(the.source, split = newline)[[1]]))
 }
 
-    
+
 
 `inla.writeLines` = function(filename, lines)
 {
@@ -1178,7 +1180,7 @@
     fp = file(filename, "wb")
     len = length(lines)
     writeBin(len, fp)
-    
+
     for(i in 1L:len) {
         nc = nchar(lines[i])
         writeBin(nc, fp)
@@ -1197,7 +1199,7 @@
     if (!file.exists(filename)) {
         return (NULL)
     }
-    
+
     fp = file(filename, "rb")
     len = readBin(fp, integer(), n = 1L)
     lines = character(len)
