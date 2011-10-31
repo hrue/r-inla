@@ -297,20 +297,14 @@ inla.spde.make.A =
 
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
-        if (is.null(index)) {
-            stop("At least one of 'loc' and 'index' must be supplied")
-        } else {
-            ## In this case, index is assumed to refer to the mesh points.
-            A.loc = Diagonal(n.mesh, 1)
-        }
+        A.loc = Diagonal(n.mesh, 1)
     } else {
         if (is.null(mesh))
             stop("'loc' specified but 'mesh' is NULL.")
         A.loc = inla.mesh.project(mesh, loc=loc)$A
-        if (is.null(index)) {
-            ## In this case, each loc[k,] is for data point k.
-            index = 1:nrow(A.loc)
-        }
+    }
+    if (is.null(index)) {
+        index = 1:nrow(A.loc)
     }
     ## Now 'index' points into the rows of 'A.loc'
 
