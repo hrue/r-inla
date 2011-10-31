@@ -101,13 +101,14 @@ inla.stack(...)
   \code{\link{inla.spde.make.index}}
 }
 \examples{
-n = 20
+n = 200
 loc = matrix(runif(n*2),n,2)
 mesh = inla.mesh.create.helper(points.domain=loc,
                                max.edge=c(0.05,0.2))
 proj.obs = inla.mesh.projector(mesh, loc=loc)
 proj.pred = inla.mesh.projector(mesh, loc=mesh$loc)
-spde = inla.spde2.matern(mesh)
+spde = inla.spde2.matern(mesh,
+                         B.kappa=matrix(c(log(sqrt(8)/0.2),0,1),1,3))
 
 covar = rnorm(n)
 field = inla.spde.sample(inla.spde2.precision(spde, theta=c(0,0)))
