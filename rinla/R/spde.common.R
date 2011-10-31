@@ -277,6 +277,74 @@ inla.spde.make.index = function(name, n.field, n.group=1, n.repl=1)
     return(out)
 }
 
+inla.spde.make.A =
+    function(mesh=NULL,
+             loc=NULL,
+             index=NULL,
+             group=1L,
+             repl=1L,
+             n.mesh=NULL,
+             n.group=max(group),
+             n.repl=max(repl))
+{
+    if (is.null(mesh)) {
+        if (is.null(n.mesh))
+            stop("At least one of 'mesh' and 'n.mesh' must be specified.")
+    } else {
+        inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+        n.mesh = mesh$n
+    }
+
+    ## Handle loc and index input semantics:
+    if (is.null(loc)) {
+        if (is.null(index)) {
+            stop("At least one of 'loc' and 'index' must be supplied")
+        } else {
+            ## In this case, index is assumed to refer to the mesh points.
+            A.loc = Diagonal(n.mesh, 1)
+        }
+    } else {
+        if (is.null(mesh))
+            stop("'loc' specified but 'mesh' is NULL.")
+        A.loc = inla.mesh.project(mesh, loc=loc)$A
+        if (is.null(index)) {
+            ## In this case, each loc[k,] is for data point k.
+            index = 1:nrow(A.loc)
+        }
+    }
+    ## Now 'index' points into the rows of 'A.loc'
+
+    ## Handle group semantics:
+    if (is.null(group))
+        group = rep(1, length(index))
+    else if (length(group) == 1)
+        group = rep(group, length(index))
+    else if (length(group) != length(index))
+        stop(paste("length(group) != length(index): ",
+                   length(group), " != ", length(index),
+                   sep=""))
+
+    ## Handle repl semantics:
+    if (is.null(repl))
+        repl = rep(1, length(index))
+    else if (length(repl) == 1)
+        repl = rep(repl, length(index))
+    else if (length(repl) != length(index))
+        stop(paste("length(repl) != length(index): ",
+                   length(repl), " != ", length(index),
+                   sep=""))
+
+    A.loc = as(as(A.loc[index,,drop=FALSE], "TsparseMatrix"), "dgTMatrix")
+
+    return(sparseMatrix(i=(1L+A.loc@i),
+                        j=(1L+A.loc@j+
+                           n.mesh*(group-1L)+
+                           n.mesh*n.group*(repl-1L)),
+                        x=A.loc@x,
+                        dims=c(length(index), n.mesh*n.group*n.repl)))
+}
+
+
 inla.stack = function(...)
 {
     UseMethod("inla.stack")
