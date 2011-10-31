@@ -25,7 +25,7 @@ inla.spde2.generic =
                  param.inla = list(),
                  f = list()
                  ))
-    class(spde) = c("inla.spde2", "inla.model.class")
+    class(spde) = c("inla.spde2", "inla.spde", "inla.model.class")
 
     B0 = inla.spde.homogenise_B_matrix(B0, n.spde, n.theta)
     B1 = inla.spde.homogenise_B_matrix(B1, n.spde, n.theta)

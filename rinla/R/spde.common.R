@@ -225,13 +225,25 @@ inla.spde.models = function()
 }
 
 
-inla.spde.sample =
+inla.spde.sample = function(...)
+{
+    UseMethod("inla.spde.sample")
+}
+
+inla.spde.sample.default =
     function(precision, seed=NULL)
 {
     return(inla.finn(precision,
                      seed=(inla.ifelse(is.null(seed),
                                        0L,
                                        seed)))$sample)
+}
+
+inla.spde.sample.inla.spde =
+    function(spde, seed=NULL, ...)
+{
+    precision = inla.spde.precision(spde, ...)
+    return(inla.spde.sample(precision, seed=seed))
 }
 
 
@@ -273,14 +285,12 @@ inla.stack = function(...)
 inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
 {
     input.nrow = function(x) {
-        return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
-                           is(x, "Matrix"),
+        return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            nrow(x),
                            length(x)))
     }
     input.ncol = function(x) {
-        return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
-                           is(x, "Matrix"),
+        return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            ncol(x),
                            1))
     }
@@ -312,6 +322,25 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
         return(setdiff(union(do.call(c, name),
                              do.call(c, subnames)),
                        ""))
+    }
+    expand.data.frames = function(l) {
+        data.frames = vapply(l, is.data.frame, TRUE)
+        return(c(l[!data.frames],
+                 do.call(c, lapply(l[data.frames], as.list))))
+    }
+    effects.expand.data.frames = function(l) {
+        result = l
+        lists = vapply(l, is.list, TRUE)
+        data.frames = vapply(l, is.data.frame, TRUE)
+        for (k in which(!lists & !data.frames)) {
+            result[[k]] = list(result[[k]])
+            names(result[[k]])[1] = names(result)[k]
+        }
+        result[lists] = lapply(l[lists], expand.data.frames)
+        result[data.frames] = lapply(l[data.frames], as.list)
+
+        names(result) = rep("", length(result))
+        return(result)
     }
     data.has.name = function(l) {
         if (is.null(names(l)))
@@ -349,28 +378,47 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
         warning(paste("Extra argument '", names(list(...)), "' ignored.",
                       collapse="\n", sep=""))
 
-    if ((!is.list(A)) && (!any(vapply(effects, is.list, TRUE)))) {
+    ## Check if only a single block was specified.
+    if (!is.list(A)) {
         A = list(A)
-        effects = list(effects)
+        effects =
+            inla.ifelse(is.data.frame(effects),
+                        list(expand.data.frames(list(effects))),
+                        effects.expand.data.frames(list(effects)))
+    } else {
+        effects = effects.expand.data.frames(effects)
     }
+    data = expand.data.frames(data)
 
     if (length(A) != length(effects))
         stop(paste("length(A)=", length(A),
                    " should be equal to length(effects)=", length(effects), sep=""))
 
     if (!data.has.name(data)) {
-        stop("All data must have names.")
+        stop(paste("All data must have names\n",
+                   "Data names:   ",
+                   paste(names(data), collapse=", ", sep=""),
+                   "\n",
+                   "Effect names: ",
+                   paste(effect.names(effects), collapse=", ", sep=""),
+                   sep=""))
     }
     if (!effect.has.name(effects)) {
-        stop("All effects must have names.")
+        stop(paste("All effects must have names\n",
+                   "Data names:   ",
+                   paste(names(data), collapse=", ", sep=""),
+                   "\n",
+                   "Effect names: ",
+                   paste(effect.names(effects), collapse=", ", sep=""),
+                   sep=""))
     }
     if (length(unique(c(names(data), effect.names(effects)))) <
         length(data)+length(effect.names(effects))) {
         stop(paste("Names for data and effects must not coincide.\n",
-                   "data names:   ",
+                   "Data names:   ",
                    paste(names(data), collapse=", ", sep=""),
                    "\n",
-                   "effect names: ",
+                   "Effect names: ",
                    paste(effect.names(effects), collapse=", ", sep=""),
                    sep=""))
     }
@@ -449,7 +497,7 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
                            collapse="\n",
                            sep=""))
             }
-            if (is.matrix(data[[k]]) || is.data.frame(data[[k]])) {
+            if (is.matrix(data[[k]])) {
                 data.output[[k]] =
                     rbind(data[[k]],
                           matrix(NA, A.nrow-data.nrow[k], data.ncol[k]))
@@ -466,58 +514,54 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
     ntot = sum(n)
     for (i in 1:length(effects)) {
         n1 = n0+n[i]-1
-        if (is.list(effects[[i]])) {
-            nj = input.list.nrow(effects[[i]])
-            if (strict && (any(nj != n[i]))) {
-                stop("Strict mode:\n",
-                     "Length of effect '", names(effects[[i]])[nj != n[i]],
-                     "' is ",
-                     nj[nj != n[i]],
-                     " but should be ",
-                     n[i], ".",
-                     collapse = "\n",
-                     sep="")
-            }
-            nmissing = n[i]-nj
-            for (j in 1:length(effects[[i]])) {
-                if (is.matrix(effects[[i]][[j]]) ||
-                    is.data.frame(effects[[i]][[j]])) {
-                    for (jj in 1:ncol(effects[[i]][[j]])) {
-                        thename = paste(names(effects[[i]])[j], ".", jj, sep="")
-                        if (is.null(effects.output[[thename]])) {
-                            effects.output[[thename]] =
-                                c(rep(NA, n0-1),
-                                  effects[[i]][[j]][,jj],
-                                  rep(NA, nmissing[j]+ntot-n1))
-                        } else {
-                            effects.output[[thename]][n0:n1] =
-                                c(effects[[i]][[j]][,jj],
-                                  rep(NA, nmissing[j]))
-                        }
-                    }
+        nj = input.list.nrow(effects[[i]])
+        if (strict && (any(nj != n[i]))) {
+            stop("Strict mode:\n",
+                 "Length of effect '", names(effects[[i]])[nj != n[i]],
+                 "' is ",
+                 nj[nj != n[i]],
+                 " but should be ",
+                 n[i], ".",
+                 collapse = "\n",
+                 sep="")
+        }
+        nmissing = n[i]-nj
+        for (j in 1:length(effects[[i]])) {
+            thename = names(effects[[i]])[j]
+            if (is.matrix(effects[[i]][[j]])) {
+                n.col = ncol(effects[[i]][[j]])
+                if (is.null(effects.output[[thename]])) {
+                    effects.output[[thename]] =
+                    rbind(matrix(NA, n0-1, n.col),
+                          effects[[i]][[j]],
+                          matrix(NA, nmissing[j]+ntot-n1, n.col))
                 } else {
-                    thename = names(effects[[i]])[j]
-                    if (is.null(effects.output[[thename]])) {
-                        effects.output[[thename]] =
-                            c(rep(NA, n0-1),
-                              effects[[i]][[j]],
-                              rep(NA, nmissing[j]+ntot-n1))
-                    } else {
-                        effects.output[[thename]][n0:n1] =
-                            c(effects[[i]][[j]],
-                              rep(NA, nmissing[j]))
-                    }
+                    if (!is.matrix(effects.output[[thename]]))
+                        stop(paste("Effect '", thename,
+                                   "' has inconsistent matrix property.",
+                                   sep=""))
+                    if (n.col != ncol(effects.output[[thename]]))
+                        stop(paste("Effect '", thename,
+                                   "' has inconsistent matrix columns: ",
+                                   n.col,
+                                   " previously specified as ",
+                                   ncol(effects.output[[thename]]), ".",
+                                   sep=""))
+                    effects.output[[thename]][n0:n1,] =
+                        rbind(effects[[i]][[j]],
+                              matrix(NA, nmissing[j], n.col))
                 }
-            }
-        } else {
-            thename = names(effects)[i]
-            if (is.null(effects.output[[thename]])) {
-                effects.output[[thename]] =
-                    c(rep(NA, n0-1),
-                      effects[[i]],
-                      rep(NA, ntot-n1))
             } else {
-                effects.output[[thename]][n0:n1] = effects[[i]]
+                if (is.null(effects.output[[thename]])) {
+                    effects.output[[thename]] =
+                        c(rep(NA, n0-1),
+                          effects[[i]][[j]],
+                          rep(NA, nmissing[j]+ntot-n1))
+                } else {
+                    effects.output[[thename]][n0:n1] =
+                        c(effects[[i]][[j]],
+                          rep(NA, nmissing[j]))
+                }
             }
         }
         n0 = n1+1
@@ -544,14 +588,12 @@ inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
 inla.stack.inla.data.stack = function(...)
 {
     input.nrow = function(x) {
-        return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
-                           is(x, "Matrix"),
+        return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            nrow(x),
                            length(x)))
     }
     input.ncol = function(x) {
-        return(inla.ifelse(is.matrix(x) || is.data.frame(x) ||
-                           is(x, "Matrix"),
+        return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            ncol(x),
                            1))
     }
@@ -602,10 +644,10 @@ inla.stack.inla.data.stack = function(...)
             is.element(all.names, c(S[[k]]$data.names, S[[k]]$effect.names))
         ismat1 =
             lapply(S1$data[c(S1$data.names, S1$effect.names)],
-                   function(x) (is.matrix(x) || is.data.frame(x)))
+                   is.matrix)
         ismat2 =
             lapply(S[[k]]$data[c(S[[k]]$data.names, S[[k]]$effect.names)],
-                   function(x) (is.matrix(x) || is.data.frame(x)))
+                   is.matrix)
 
         data = list()
         for (j in 1:length(all.names)) {
