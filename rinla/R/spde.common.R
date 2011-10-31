@@ -328,7 +328,7 @@ inla.spde.make.A =
                    length(repl), " != ", length(index),
                    sep=""))
 
-    A.loc = as(as(A.loc[index,,drop=FALSE], "TsparseMatrix"), "dgTMatrix")
+    A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
 
     return(sparseMatrix(i=(1L+A.loc@i),
                         j=(1L+A.loc@j+
