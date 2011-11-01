@@ -1560,28 +1560,54 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
     }
 
     idx = rep(NA, length(loc))
-    b = rep(NA, length(loc))
+    u = rep(NA, length(loc))
     for (k in 1:(length(mloc)-1L)) {
         found = which((mloc[k] <= loc) & (loc <= mloc[k+1]))
         if (length(found)>0) {
             idx[found] = k
-            b[found] = (loc[found]-mloc[k])/(mloc[k+1]-mloc[k])
+            u[found] = (loc[found]-mloc[k])/(mloc[k+1]-mloc[k])
         }
     }
     if (!mesh$cyclic) {
         if (method=="linear") {
             found = which(idx==mesh$n)
             idx[found] = mesh$n-1L
-            b[found] = 1
+            u[found] = 1
         }
     }
     if (method=="nearest")
-        b = rep(0, length(loc))
+        u = rep(0, length(loc))
 
-    return(list(index=idx, bary=b))
+    if (mesh$cyclic) {
+        index = matrix(c(idx,(idx %% mesh$n)+1L), length(idx), 2)
+        bary = matrix(c(1-u, u), length(idx), 2)
+    } else {
+        index = matrix(c(idx,idx+1L), length(idx), 2)
+        bary = matrix(c(1-u, u), length(idx), 2)
+    }
+
+    return(list(index=index, bary=bary))
 }
 
+inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest"))
+{
+    inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+    method = match.arg(method)
 
+    idx = inla.mesh.1d.bary(mesh, loc, method)
+
+    if (method=="linear") {
+        return(sparseMatrix(i=rep(1:length(loc), times=2),
+                            j=as.vector(idx$index),
+                            x=as.vector(idx$bary),
+                            dims=c(length(loc), mesh$n)))
+    } else {
+        return(sparseMatrix(i=1:length(loc),
+                            j=idx$index[,1],
+                            x=idx$bary[,1],
+                            dims=c(length(loc), mesh$n)))
+    }
+}
 
 
 
