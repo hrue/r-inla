@@ -1508,17 +1508,16 @@ inla.parse.queries = function(...)
 
 inla.mesh.1d = function(loc, interval=range(loc), cyclic=FALSE)
 {
+    if (cyclic)
+        loc = sort(unique(((loc-interval[1]) %% diff(interval)) + interval[1]))
+    else
+        loc = sort(unique(pmax(interval[1], pmin(interval[2], loc))))
     if (length(loc)<2)
-        stop("Meshes must have at least two nodes.")
-    if (min(loc)<interval[1])
+        stop("Meshes must have at least two unique nodes.")
+    if (loc[1]<interval[1])
         stop("All 'loc' must be >= interval[1].")
-    if (max(loc)>interval[2])
+    if (loc[length(loc)]>interval[2])
         stop("All 'loc' must be <= interval[2].")
-
-    if ((cyclic && (length(unique((loc-interval[1]) %% diff(interval))) <
-                    length(loc))) ||
-        (!cyclic && (length(unique(loc)) < length(loc))))
-        stop("'loc' must have distinct elements.")
 
     mesh =
         list(n=length(loc),
@@ -1622,7 +1621,7 @@ inla.mesh.1d.fem = function(mesh)
               mesh$loc[1]+diff(mesh$interval))
         c0 = (loc[3:length(loc)]-loc[1:(length(loc)-2)])/2
         g1.l = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
-        g1.r = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
+        g1.r = -1/(loc[3:length(loc)]-loc[2:(length(loc)-1)])
         g1.0 = -g1.l-g1.r
         i.l = 1:mesh$n
         i.r = 1:mesh$n
