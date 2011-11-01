@@ -1506,6 +1506,86 @@ inla.parse.queries = function(...)
 
 
 
+inla.mesh.1d = function(loc, interval=range(loc), cyclic=FALSE)
+{
+    if (min(loc)<interval[1])
+        stop("All 'loc' must be >= interval[1].")
+    if (max(loc)>interval[2])
+        stop("All 'loc' must be <= interval[2].")
+
+    if ((cyclic && (length(unique((loc-interval[1]) %% diff(interval))) <
+                    length(loc))) ||
+        (!cyclic && (length(unique(loc)) < length(loc))))
+        stop("'loc' must have distinct elements.")
+
+    mesh =
+        list(n=length(loc),
+             loc=loc,
+             interval=interval,
+             cyclic=cyclic)
+    class(mesh) = "inla.mesh.1d"
+
+    return(mesh)
+}
+
+inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
+{
+    inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+    method = match.arg(method)
+
+    if (method=="linear") {
+        if (mesh$cyclic) {
+            mloc = c(mesh$loc-mesh$loc[1], diff(mesh$interval))
+            loc = (loc-mesh$loc[1]) %% diff(mesh$interval)
+        } else {
+            mloc = c(mesh$loc-mesh$loc[1], diff(mesh$interval))
+            loc = pmax(0, pmin(diff(mesh$interval), loc-mesh$loc[1]))
+        }
+    } else {
+        if (mesh$cyclic) {
+            mloc =
+                c(mesh$loc[mesh$n]-diff(mesh$interval),
+                  mesh$loc)
+            mloc = (mloc[1:mesh$n] + mloc[2:(mesh$n+1L)])/2
+            mloc = c(mloc-mesh$loc[1], diff(mesh$interval))
+            loc = (loc-mloc[1]) %% diff(mesh$interval)
+        } else {
+            mloc =
+                c(0,
+                  (mesh$loc[1:(mesh$n-1L)] +
+                   mesh$loc[2:mesh$n])/2-mesh$loc[1],
+                  diff(mesh$interval))
+            loc = pmax(0, pmin(diff(mesh$interval), loc-mloc[1]))
+        }
+    }
+
+    idx = rep(NA, length(loc))
+    b = rep(NA, length(loc))
+    for (k in 1:(length(mloc)-1L)) {
+        found = which((mloc[k] <= loc) & (loc <= mloc[k+1]))
+        if (length(found)>0) {
+            idx[found] = k
+            b[found] = (loc[found]-mloc[k])/(mloc[k+1]-mloc[k])
+        }
+    }
+    if (!mesh$cyclic) {
+        if (method=="linear") {
+            found = which(idx==mesh$n)
+            idx[found] = mesh$n-1L
+            b[found] = 1
+        }
+    }
+    if (method=="nearest")
+        b = rep(0, length(loc))
+
+    return(list(index=idx, bary=b))
+}
+
+
+
+
+
+
 require(sp)
 
 inla.sp2segment = function(...)
