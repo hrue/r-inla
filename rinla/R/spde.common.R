@@ -278,22 +278,28 @@ inla.spde.make.index = function(name, n.field, n.group=1, n.repl=1)
 }
 
 inla.spde.make.A =
-    function(mesh=NULL,
-             loc=NULL,
-             index=NULL,
-             group=1L,
-             repl=1L,
-             n.mesh=NULL,
-             n.group=max(group),
-             n.repl=max(repl))
+    function(mesh = NULL,
+             loc = NULL,
+             index = NULL,
+             group = NULL,
+             repl = 1L,
+             n.mesh = NULL,
+             n.group = max(group),
+             n.repl = max(repl),
+             group.mesh = NULL,
+             group.method = c("nearest", "S0", "S1"))
 {
     if (is.null(mesh)) {
         if (is.null(n.mesh))
             stop("At least one of 'mesh' and 'n.mesh' must be specified.")
     } else {
-        inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+        inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
         n.mesh = mesh$n
     }
+    if (!is.null(group.mesh)) {
+        inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+    }
+    group.method = match.arg(group.method)
 
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
@@ -301,7 +307,11 @@ inla.spde.make.A =
     } else {
         if (is.null(mesh))
             stop("'loc' specified but 'mesh' is NULL.")
-        A.loc = inla.mesh.project(mesh, loc=loc)$A
+        if (inherits(mesh, "inla.mesh.1d")) {
+            A.loc = inla.mesh.1d.A(mesh, loc=loc, method="linear")
+        } else {
+            A.loc = inla.mesh.project(mesh, loc=loc)$A
+        }
     }
     if (is.null(index)) {
         index = 1:nrow(A.loc)
@@ -309,14 +319,39 @@ inla.spde.make.A =
     ## Now 'index' points into the rows of 'A.loc'
 
     ## Handle group semantics:
-    if (is.null(group))
-        group = rep(1, length(index))
-    else if (length(group) == 1)
-        group = rep(group, length(index))
-    else if (length(group) != length(index))
-        stop(paste("length(group) != length(index): ",
-                   length(group), " != ", length(index),
-                   sep=""))
+    if (is.null(group.mesh)) {
+        if (is.null(group))
+            group = rep(1L, length(index))
+        else if (length(group) == 1)
+            group = rep(group, length(index))
+        else if (length(group) != length(index))
+            stop(paste("length(group) != length(index): ",
+                       length(group), " != ", length(index),
+                       sep=""))
+    } else {
+        n.group = group.mesh$n
+        if (is.null(group))
+            group = rep(mesh$loc[1], length(index))
+        else if (length(group) == 1)
+            group = rep(group, length(index))
+        else if (length(group) != length(index))
+            stop(paste("length(group) != length(index): ",
+                       length(group), " != ", length(index),
+                       sep=""))
+        print(group)
+        if (group.method=="nearest") {
+            group.index =
+                inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
+            group = group.index$index[,1]
+        } else {
+            group.index =
+                inla.mesh.1d.bary(group.mesh, loc=group, method="linear")
+            if (group.method=="S0") {
+                group = group.index$index[,1]
+            }
+        }
+        print(group.index)
+    }
 
     ## Handle repl semantics:
     if (is.null(repl))
@@ -330,12 +365,25 @@ inla.spde.make.A =
 
     A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
 
-    return(sparseMatrix(i=(1L+A.loc@i),
-                        j=(1L+A.loc@j+
-                           n.mesh*(group-1L)+
-                           n.mesh*n.group*(repl-1L)),
-                        x=A.loc@x,
-                        dims=c(length(index), n.mesh*n.group*n.repl)))
+    if (!is.null(group.mesh) && (group.method=="S1")) {
+        return(sparseMatrix(i=(1L+c(A.loc@i, A.loc@i)),
+                            j=(1L+c(A.loc@j+
+                                    n.mesh*(group.index$index[,1]-1L)+
+                                    n.mesh*n.group*(repl-1L),
+                                    A.loc@j+
+                                    n.mesh*(group.index$index[,2]-1L)+
+                                    n.mesh*n.group*(repl-1L))),
+                               x=c(A.loc@x*group.index$bary[,1],
+                               A.loc@x*group.index$bary[,2]),
+                            dims=c(length(index), n.mesh*n.group*n.repl)))
+    } else {
+        return(sparseMatrix(i=(1L+A.loc@i),
+                            j=(1L+A.loc@j+
+                               n.mesh*(group-1L)+
+                               n.mesh*n.group*(repl-1L)),
+                            x=A.loc@x,
+                            dims=c(length(index), n.mesh*n.group*n.repl)))
+    }
 }
 
 
