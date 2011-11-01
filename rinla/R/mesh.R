@@ -1508,6 +1508,8 @@ inla.parse.queries = function(...)
 
 inla.mesh.1d = function(loc, interval=range(loc), cyclic=FALSE)
 {
+    if (length(loc)<2)
+        stop("Meshes must have at least two nodes.")
     if (min(loc)<interval[1])
         stop("All 'loc' must be >= interval[1].")
     if (max(loc)>interval[2])
@@ -1609,6 +1611,59 @@ inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest"))
     }
 }
 
+inla.mesh.1d.fem = function(mesh)
+{
+    inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+
+    if (mesh$cyclic) {
+        loc =
+            c(mesh$loc[mesh$n]-diff(mesh$interval),
+              mesh$loc,
+              mesh$loc[1]+diff(mesh$interval))
+        c0 = (loc[3:length(loc)]-loc[1:(length(loc)-2)])/2
+        g1.l = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
+        g1.r = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
+        g1.0 = -g1.l-g1.r
+        i.l = 1:mesh$n
+        i.r = 1:mesh$n
+        i.0 = 1:mesh$n
+        j.l = c(mesh$n, 1:(mesh$n-1))
+        j.r = c(2:mesh$n, 1)
+        j.0 = 1:mesh$n
+    } else {
+        c0 =
+            c(mesh$loc[1]-mesh$interval[1] +
+              (mesh$loc[2]-mesh$loc[1])/2,
+              mesh$interval[2]-mesh$loc[mesh$n] +
+              (mesh$loc[mesh$n]-mesh$loc[mesh$n-1])/2
+              )
+        if (mesh$n>2) {
+            c0 =
+            c(c0[1],
+              (mesh$loc[3:mesh$n]-mesh$loc[1:(mesh$n-2)])/2,
+              c0[2]
+              )
+        }
+        g1.l = -1/(mesh$loc[2:mesh$n]-mesh$loc[1:(mesh$n-1)])
+        g1.r = g1.l
+        g1.0 = -c(0, g1.l)-c(g1.r,0)
+        i.l = 2:mesh$n
+        i.r = 1:(mesh$n-1)
+        i.0 = 1:mesh$n
+        j.l = 1:(mesh$n-1)
+        j.r = 2:mesh$n
+        j.0 = 1:mesh$n
+    }
+
+    c0 = Diagonal(mesh$n, c0)
+    g1 =
+        sparseMatrix(i=c(i.l, i.r, i.0),
+                     j=c(j.l, j.r, j.0),
+                     x=c(g1.l, g1.r, g1.0),
+                     dims=c(mesh$n, mesh$n))
+
+    return(list(c0=c0, g1=g1))
+}
 
 
 
