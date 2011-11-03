@@ -132,17 +132,17 @@ stack = inla.stack(stack.obs, stack.pred)
 
 formula = y ~ -1 + intercept + covar + f(spatial, model=spde)
 result1 = inla(formula,
-               data=c(stack.obs$data, list(spde=spde)),
+               data=inla.stack.data(stack.obs, spde=spde),
                family="gaussian",
-               control.predictor=list(A=stack.obs$A, compute=TRUE),
+               control.predictor=list(A=inla.stack.A(stack.obs), compute=TRUE),
                verbose=TRUE)
 
 plot(y, result1$summary.fitted.values[stack.obs$index$obs,"mean"])
 
 result2 = inla(formula,
-               data=c(stack$data, list(spde=spde)),
+               data=inla.stack.data(stack, spde=spde),
                family="gaussian",
-               control.predictor=list(A=stack$A, compute=TRUE),
+               control.predictor=list(A=inla.stack.A(stack), compute=TRUE),
                verbose=TRUE)
 
 field.pred = inla.mesh.project(proj.pred,
