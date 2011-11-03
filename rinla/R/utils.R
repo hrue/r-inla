@@ -1213,3 +1213,21 @@
     return(lines)
 }
 
+`inla.is.matrix` = function(A)
+{
+    ## return TRUE if A is a 'matrix' neglecting possible formats
+    ## (dense, sparse, etc...)
+    if (is.matrix(A) || is(A,  "dgTMatrix") || is(A,  "dgCMatrix")) {
+        ## the common cases
+        return (TRUE)
+    } else {
+        ## then its something else
+        d = dim(A)
+        if (is.null(d)) {
+            return (FALSE)
+        } else {
+            return (length(d) == 2)
+        }
+    }
+}
+      
