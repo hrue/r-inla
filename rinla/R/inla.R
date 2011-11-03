@@ -561,7 +561,7 @@
     } else if (is.list(data) && length(data) == 0) {
         NPredictor = ny
     } else {
-        NPredictor = max(sapply(data, length))
+        NPredictor = max(sapply(data, function(a) inla.ifelse(is.matrix(a), dim(a)[1L], length(a))))
     }
     if (MPredictor > 0) {
         NData = MPredictor
