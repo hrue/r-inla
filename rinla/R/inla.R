@@ -561,7 +561,35 @@
     } else if (is.list(data) && length(data) == 0) {
         NPredictor = ny
     } else {
-        NPredictor = max(sapply(data, function(a) inla.ifelse(is.matrix(a), dim(a)[1L], length(a))))
+        NPredictor = max(sapply(
+                data, 
+                function(a, Amatrix) {
+                    ## if there's an Amatrix in the predictor,
+                    ## we have to take it out. Since dealing
+                    ## with names is a mess, we check the
+                    ## numerical values only. This means that
+                    ## this model: y ~ ... + A + ..., where
+                    ## control.predictor=list(A=A), ie, the
+                    ## fixed effect matrix and A is numerically
+                    ## the same matrix(!!!) can fail here, and
+                    ## flag an error for incorrect dimensions
+                    ## at some point. 
+                    if (is.null(Amatrix)) {
+                        inla.ifelse(inla.is.matrix(a), dim(a)[1L], length(a))
+                    } else {
+                        if (inla.is.matrix(a)) {
+                            if (all(dim(a) == dim(Amatrix)) && all(a == Amatrix)) {
+                                return (0L)
+                            } else {
+                                return (dim(a)[1L])
+                            }
+                        } else {
+                            return (length(a))
+                        }
+                    }
+                },
+                Amatrix = control.predictor$A)
+                )
     }
     if (MPredictor > 0) {
         NData = MPredictor
