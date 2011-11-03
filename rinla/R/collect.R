@@ -116,7 +116,7 @@ inla.internal.experimental.mode = FALSE
         
     fnm = paste(d, "/mode-status.dat", sep="")
     if (file.exists(fnm)) {
-        mode.status = scan(fnm)
+        mode.status = scan(fnm, quiet=TRUE)
     } else {
         mode.status = NA
     }
