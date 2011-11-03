@@ -228,6 +228,8 @@ inla.spde2.matern =
 
     return(spde)
 
+    stop("This should not happen.")
+
     mesh.range = (max(c(diff(range(mesh$loc[,1])),
                         diff(range(mesh$loc[,2])),
                         diff(range(mesh$loc[,3]))

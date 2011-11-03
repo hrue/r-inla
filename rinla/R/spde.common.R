@@ -266,12 +266,17 @@ inla.spde.result = function(...)
 
 
 
-inla.spde.make.index = function(name, n.field, n.group=1, n.repl=1)
+inla.spde.make.index = function(name, n.mesh, n.group=1, n.repl=1, n.field=n.mesh)
 {
+    if (!missing(n.field)) {
+        warning("'n.field' is deprecated, please use 'n.mesh' instead.")
+        if (missing(n.mesh))
+            n.mesh = n.field
+    }
     name.group = paste(name, ".group", sep="")
     name.repl = paste(name, ".repl", sep="")
     out = list()
-    out[[name]]       = rep(rep(1:n.field, times=n.group), times=n.repl)
+    out[[name]]       = rep(rep(1:n.mesh, times=n.group), times=n.repl)
     out[[name.group]] = rep(rep(1:n.group, each=n.field), times=n.repl)
     out[[name.repl]]  = rep(1:n.repl, each=n.field*n.group)
     return(out)
@@ -823,4 +828,18 @@ inla.stack.inla.data.stack = function(...)
     }
 
     return(S1)
+}
+
+
+
+inla.stack.data = function(stack, ...)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+    return(c(stack$data, list(...)))
+}
+
+inla.stack.A = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+    return(stack$A)
 }
