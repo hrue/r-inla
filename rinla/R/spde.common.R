@@ -270,7 +270,7 @@ inla.spde.make.index = function(name, n.mesh, n.group=1, n.repl=1, n.field=n.mes
 {
     if (!missing(n.field)) {
         warning("'n.field' is deprecated, please use 'n.mesh' instead.")
-        if (missing(n.mesh))
+        if (missing(n.mesh) || is.null(n.mesh))
             n.mesh = n.field
     }
     name.group = paste(name, ".group", sep="")
@@ -397,7 +397,7 @@ inla.stack = function(...)
     UseMethod("inla.stack")
 }
 
-inla.stack.default = function(data , A, effects, tag=NULL, strict=TRUE, ...)
+inla.stack.default = function(data, A, effects, tag=NULL, strict=TRUE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
