@@ -947,13 +947,12 @@
     return (invisible())
 }
 
-`inla.eval` = function(command, data = NULL)
+`inla.eval` = function(command,
+        envir = parent.frame(),
+        enclos = if (is.list(envir) || is.pairlist(envir))
+        parent.frame() else baseenv())
 {
-    if (is.null(data)) {
-        eval.parent(parse(text=command))
-    } else {
-        eval(parse(text=command), data)
-    }
+    return (eval(parse(text=command), envir, enclos))
 }
 
 `inla.tempfile` = function(pattern = "file", tmpdir = tempdir())
