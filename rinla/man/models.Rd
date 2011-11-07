@@ -547,7 +547,7 @@ inla.models()
 							\item{prior = }{`normal'}
 							\item{param = }{`0 1'}
 							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x }'}
+							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -559,7 +559,7 @@ inla.models()
 							\item{prior = }{`normal'}
 							\item{param = }{`0 1'}
 							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x }'}
+							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -1919,7 +1919,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -1931,7 +1931,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -2010,7 +2010,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -2022,7 +2022,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -2034,7 +2034,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -2149,7 +2149,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -2161,7 +2161,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -2173,7 +2173,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -2185,7 +2185,7 @@ inla.models()
 							\item{prior = }{`none'}
 							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -2348,7 +2348,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)                                            }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -2495,7 +2495,7 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                          if (low == -Inf && high == Inf) {} \code{                                              return (x)} \code{                                          } else {} \code{                                              stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                              return (log( - (low - x)/(high -x))) } \code{                                          }} \code{                                      }}'}
+							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                          if (low == -Inf && high == Inf) {} \code{                                              return (x)} \code{                                          } else {} \code{                                              stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                              return (log( - (low - x)/(high -x)))} \code{                                          }} \code{                                      }}'}
 							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                          if (low == -Inf && high == Inf) {} \code{                                              return (x)} \code{                                          } else {} \code{                                              stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                              return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                          }} \code{                                      }}'}
 							}
 						}
@@ -2649,6 +2649,32 @@ inla.models()
 				\item{Model `poisson'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `binomial'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `binomialtest'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`psi'}
+							\item{short.name = }{`psi'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 100'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit probit cloglog log'}
+								\item{pdf = }{`binomialtest'}
+							 }
+						 }
+					 }
 				 }
 				\item{Model `cbinomial'.}{Number of hyperparmeters are 0.
 				 }
@@ -3407,7 +3433,7 @@ inla.models()
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
@@ -3547,7 +3573,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -3597,7 +3623,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -3609,7 +3635,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -3621,7 +3647,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -3633,7 +3659,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -3645,7 +3671,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -3657,7 +3683,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -3669,7 +3695,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -3681,7 +3707,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -3693,7 +3719,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta11'}{
@@ -3705,7 +3731,7 @@ inla.models()
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x) }'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
