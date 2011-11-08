@@ -6,7 +6,7 @@
     ##:NAME: control.lincomb
     list(
          ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
-         precision = NULL, 
+         precision = 10^9, 
 
          ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
          verbose = TRUE)
@@ -253,7 +253,7 @@
             lincomb.derived.correlation.matrix = FALSE, 
 
             ## NOT DOCUMENTED (expert only)
-            diagonal = NULL,
+            diagonal = 0.0,
 
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
             numint.maxfeval = 100000,
@@ -320,7 +320,7 @@
          A = NULL,
 
          ##:ARGUMENT precision The precision for eta - A*eta,
-         precision = exp(11))
+         precision = exp(15))
          
     ##:SEEALSO: inla
 }
