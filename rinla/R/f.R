@@ -131,7 +131,7 @@
 
         ##!\item{diagonal}{An extra constant added to the diagonal of
         ##!the precision matrix (default 0.0).}
-        diagonal = NULL,
+        diagonal = 0.0,
 
         ##!\item{graph.file}{Name of the file containing the graph
         ##!of the model.  For the correct for of the graph file see
@@ -203,11 +203,11 @@
         ##!\item{of}{}
         of=NULL,
 
-        ##!\item{precision}{}
-        precision=NULL,
+        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
+        precision=10^9,
 
         ##!\item{si}{}
-        si=NULL,
+        si=FALSE,
 
         ##!\item{compute}{ A boolean variable indicating wheather the
         ##! marginal posterior distribution for the nodes in the
@@ -220,7 +220,7 @@
         ##!upper range for the scaling parameter \code{beta} in the
         ##!model \code{COPY}. If low = high then the identity mapping
         ##!is used.}
-        range = NULL,
+        range = c(0, 0),
 
         ##!\item{adjust.for.con.comp}{If TRUE (default), adjust some
         ##!of the models (currently: besag, bym and besag2) if the
