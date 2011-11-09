@@ -130,8 +130,8 @@
         cyclic = NULL,
 
         ##!\item{diagonal}{An extra constant added to the diagonal of
-        ##!the precision matrix (default 0.0).}
-        diagonal = 0.0,
+        ##!the precision matrix.}
+        diagonal = NULL,
 
         ##!\item{graph.file}{Name of the file containing the graph
         ##!of the model.  For the correct for of the graph file see
