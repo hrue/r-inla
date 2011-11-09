@@ -200,12 +200,6 @@
         ##!component, only used if \code{model="linear"}}
         prec.linear=NULL,
 
-        ##!\item{of}{}
-        of=NULL,
-
-        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
-        precision=10^9,
-
         ##!\item{si}{}
         si=FALSE,
 
@@ -216,11 +210,17 @@
         ##! some posterior marginals.}
         compute = TRUE,
 
+        ##!\item{of}{}
+        of=NULL,
+
+        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
+        precision=NULL,
+
         ##!\item{range}{A vector of size two giving the lower and
         ##!upper range for the scaling parameter \code{beta} in the
         ##!model \code{COPY}. If low = high then the identity mapping
         ##!is used.}
-        range = c(0, 0),
+        range = NULL,
 
         ##!\item{adjust.for.con.comp}{If TRUE (default), adjust some
         ##!of the models (currently: besag, bym and besag2) if the
