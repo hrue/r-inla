@@ -34,7 +34,6 @@
 ##! ## sparse matrix example
 ##! rho = 0.9
 ##! Q = toeplitz(c(1+rho^2, -rho,  rep(0, n-3), -rho)) / (1-rho^2)
-##! library(Matrix)
 ##! Q = inla.as.dgTMatrix(Q)
 ##! Q.inv = inla.qinv(Q)
 ##! 
