@@ -4,9 +4,6 @@ exportPattern(".")
 # Import all packages listed as Imports or Depends
 import(Matrix)
 import(pixmap)
-import(mvtnorm)
-import(fields)
 import(sp)
-import(rgl)
 
 
