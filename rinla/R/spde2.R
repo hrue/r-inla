@@ -111,7 +111,7 @@ inla.spde2.matern =
              alpha=2,
              B.tau = matrix(c(0,1,0),1,3),
              B.kappa = matrix(c(0,0,1),1,3),
-             sigma2.approx = 1,
+             sigma2.nominal = 1,
              theta.prior.mean = NULL,
              theta.prior.prec = NULL,
              fractional.method = c("parsimonious", "null"))
@@ -126,6 +126,8 @@ inla.spde2.matern =
 
     d = 2
     nu = alpha-d/2
+    alpha.nominal = max(1.5, alpha)
+    nu.nominal = max(0.5, nu)
 
     n.spde = mesh$n
     n.theta = ncol(B.kappa)-1L
@@ -133,10 +135,10 @@ inla.spde2.matern =
     B.kappa = inla.spde.homogenise_B_matrix(B.kappa, n.spde, n.theta)
     B.tau = inla.spde.homogenise_B_matrix(B.tau, n.spde, n.theta)
     B.prec =
-        cbind(+ lgamma(max(1.5,alpha)) - lgamma(max(0.5,nu))
-              + (d/2)*log(4*pi) + 2*max(0.5,nu)*B.kappa[,1]
+        cbind(+ lgamma(alpha.nominal) - lgamma(nu.nominal)
+              + (d/2)*log(4*pi) + 2*nu.nominal*B.kappa[,1]
               + 2*B.tau[,1],
-              2*max(0.5,nu)*B.kappa[,-1,drop=FALSE]
+              2*nu.nominal*B.kappa[,-1,drop=FALSE]
               + 2*B.tau[,-1,drop=FALSE] )
     if (is.stationary) {
         B.tau = B.tau[1,,drop=FALSE]
@@ -144,7 +146,7 @@ inla.spde2.matern =
         B.prec = B.prec[1,,drop=FALSE]
     }
     B.range =
-        cbind(0.5*log(8*max(0.5,nu))-B.kappa[,1],
+        cbind(0.5*log(8*nu.nominal)-B.kappa[,1],
               -B.kappa[,-1,drop=FALSE])
 
     B.theta = cbind(0,diag(1, n.theta))
@@ -210,16 +212,39 @@ inla.spde2.matern =
         M1 = fem$g1*0
         M2 = fem$g1*b[2]
     } else {
-        stop("Unsupported alpha value")
+        stop(paste("Unsupported alpha value (", alpha,
+                   "). Supported values are 0<alpha <= 2", sep=""))
     }
 
-    ## TODO: Construct priors.
+    ## Construct priors.
+    if (is.null(theta.prior.prec)) {
+        theta.prior.prec = diag(1,n.theta)*0.1
+    }
+    if (is.null(theta.prior.mean)) {
+        mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                            diff(range(mesh$loc[,2])),
+                            diff(range(mesh$loc[,3]))
+                            )))
+        kappa.prior = sqrt(8*nu.nominal)/(mesh.range*0.2)
+        tau.prior =
+            sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/
+                 (4*pi*kappa.prior^(2*nu.nominal)*sigma2.nominal))
+
+        if (n.theta>0) {
+            theta.prior.mean =
+                solve(rbind(B.tau[,-1,drop=FALSE], B.tau[,-1,drop=FALSE]),
+                      c(log(tau.prior) - B.tau[,1],
+                        log(kappa.prior) - B.kappa[,1]))
+        } else {
+            theta.prior.mean = rep(0, n.theta) ## Empty vector
+        }
+    }
 
     spde =
         inla.spde2.generic(M0=M0, M1=M1, M2=M2,
                            B0=B.phi0, B1=B.phi1, B2=1,
-                           theta.mu = rep(0,n.theta),
-                           theta.Q = diag(1,n.theta)*0.1,
+                           theta.mu = theta.prior.mean,
+                           theta.Q = theta.prior.prec,
                            transform = "identity",
                            BLC = BLC)
     spde$model = "matern"
