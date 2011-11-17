@@ -102,6 +102,7 @@ plot(old.mesh.class(mesh),
      color.palette = col.pal)
 
 result.field = inla.spde.result(result, "field", spde)
+plot(result.field$marginals.range.nominal[[1]])
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
