@@ -111,9 +111,12 @@ inla.spde2.matern =
              alpha=2,
              B.tau = matrix(c(0,1,0),1,3),
              B.kappa = matrix(c(0,0,1),1,3),
-             sigma2.nominal = 1,
+             prior.variance.nominal = 1,
+             prior.range.nominal = NULL,
+             prior.tau = NULL,
+             prior.kappa = NULL,
              theta.prior.mean = NULL,
-             theta.prior.prec = NULL,
+             theta.prior.prec = 0.1,
              fractional.method = c("parsimonious", "null"))
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -145,6 +148,7 @@ inla.spde2.matern =
         B.kappa = B.kappa[1,,drop=FALSE]
         B.prec = B.prec[1,,drop=FALSE]
     }
+    B.variance = -B.prec
     B.range =
         cbind(0.5*log(8*nu.nominal)-B.kappa[,1],
               -B.kappa[,-1,drop=FALSE])
@@ -153,9 +157,11 @@ inla.spde2.matern =
     rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
     rownames(B.tau) <- rownames(B.tau, do.NULL=FALSE, prefix="tau.")
     rownames(B.kappa) <- rownames(B.kappa, do.NULL=FALSE, prefix="kappa.")
-    rownames(B.prec) <- rownames(B.prec, do.NULL=FALSE, prefix="prec.")
-    rownames(B.range) <- rownames(B.range, do.NULL=FALSE, prefix="range.")
-    BLC = rbind(B.theta, B.tau, B.kappa, B.prec, B.range)
+    rownames(B.variance) <-
+        rownames(B.variance, do.NULL=FALSE, prefix="variance.nominal.")
+    rownames(B.range) <-
+        rownames(B.range, do.NULL=FALSE, prefix="range.nominal.")
+    BLC = rbind(B.theta, B.tau, B.kappa, B.variance, B.range)
 
     fem =
         inla.fmesher.smorg(mesh$loc,
@@ -218,21 +224,44 @@ inla.spde2.matern =
 
     ## Construct priors.
     if (is.null(theta.prior.prec)) {
-        theta.prior.prec = diag(1,n.theta)*0.1
+        theta.prior.prec = diag(0.1, n.theta, n.theta)
+    } else {
+        theta.prior.prec = as.matrix(theta.prior.prec)
+        if (ncol(theta.prior.prec) == 1) {
+            theta.prior.prec =
+                diag(as.vector(theta.prior.prec), n.theta, n.theta)
+        }
+        if ((nrow(theta.prior.prec) != n.theta) ||
+            (ncol(theta.prior.prec) != n.theta)) {
+            stop(paste("Size of theta.prior.prec is (",
+                       paste(dim(theta.prior.prec), collapse=",", sep=""),
+                       ") but should be (",
+                       paste(c(n.theta, n.theta), collapse=",", sep=""),
+                       ")."))
+        }
     }
+
     if (is.null(theta.prior.mean)) {
-        mesh.range = (max(c(diff(range(mesh$loc[,1])),
-                            diff(range(mesh$loc[,2])),
-                            diff(range(mesh$loc[,3]))
-                            )))
-        kappa.prior = sqrt(8*nu.nominal)/(mesh.range*0.2)
-        tau.prior =
-            sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/
-                 (4*pi*kappa.prior^(2*nu.nominal)*sigma2.nominal))
+        if (is.null(prior.range.nominal)) {
+            mesh.range = (max(c(diff(range(mesh$loc[,1])),
+                                diff(range(mesh$loc[,2])),
+                                diff(range(mesh$loc[,3]))
+                                )))
+            prior.range.nominal = mesh.range*0.2
+        }
+
+        if (is.null(prior.kappa)) {
+            kappa.prior = sqrt(8*nu.nominal)/prior.range.nominal
+        }
+        if (is.null(prior.tau)) {
+            tau.prior =
+                sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/
+                     (4*pi*kappa.prior^(2*nu.nominal)*prior.variance.nominal))
+        }
 
         if (n.theta>0) {
             theta.prior.mean =
-                solve(rbind(B.tau[,-1,drop=FALSE], B.tau[,-1,drop=FALSE]),
+                solve(rbind(B.tau[,-1,drop=FALSE], B.kappa[,-1,drop=FALSE]),
                       c(log(tau.prior) - B.tau[,1],
                         log(kappa.prior) - B.kappa[,1]))
         } else {
@@ -250,57 +279,6 @@ inla.spde2.matern =
     spde$model = "matern"
     spde$BLC = BLC
 
-
-    return(spde)
-
-    stop("This should not happen.")
-
-    mesh.range = (max(c(diff(range(mesh$loc[,1])),
-                        diff(range(mesh$loc[,2])),
-                        diff(range(mesh$loc[,3]))
-                        )))
-
-    if (param$alpha==2) {
-        kappa0 = sqrt(8)/(mesh.range*0.2)
-        tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
-    } else if (param$alpha==1) {
-        spde$internal$g2 = spde$internal$g1
-        spde$internal$g1 = spde$internal$g1*0.0
-
-        kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
-        tau0 = 1/sqrt(4*pi)/1.0
-    }
-
-    if (identical(model, "matern")) {
-        spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
-                                                  param=c(log(tau0), 0.1))),
-                                     theta2=(list(initial=log(kappa0^2),
-                                                  param=c(log(kappa0^2), 0.1))),
-                                     theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
-                                                  param=c((log(tau0)+log(kappa0^2))/2, 0.1)))
-                                     ))
-    } else if (identical(model, "imatern")) {
-        spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
-                                                  param=c(log(tau0), 0.1))),
-                                     theta2=(list(initial=-20,
-                                                  fixed=TRUE)),
-                                     theta3=(list(initial=log(tau0),
-                                                  param=c(log(tau0), 0.1)))
-                                     ))
-    } else if (identical(model, "matern.osc")) {
-        spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),
-                                                  param=c(log(tau0), 0.1))),
-                                     theta2=(list(initial=log(kappa0^2),
-                                                  param=c(log(kappa0^2), 0.1))),
-                                     theta3=(list(initial=(log(tau0)+log(kappa0^2))/2,
-                                                  param=c((log(tau0)+log(kappa0^2))/2, 0.1))),
-                                     theta4=(list(fixed=FALSE,
-                                                  initial=0,
-                                                  param=c(0, 0.01)))
-                                     ))
-    } else {
-        stop(paste("Model '", model, "' unknown or not implemented.", sep=""))
-    }
 
     return(invisible(spde))
 }
@@ -387,7 +365,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
                             paste("Theta[^ ]+ for ", name, "$", sep=""))
     }
 
-    ## log-tau/kappa/prec/range
+    ## log-tau/kappa/variance/range
     if (!is.null(inla$summary.spde2.blc[[name]])) {
         rownames(inla$summary.spde2.blc[[name]]) <- BLC.names
 
@@ -400,15 +378,15 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
         result$summary.log.kappa =
             inla.extract.el(inla$summary.spde2.blc[[name]],
                             "kappa\\.[^ ]+$")
-        result$summary.log.prec =
+        result$summary.log.variance.nominal =
             inla.extract.el(inla$summary.spde2.blc[[name]],
-                            "prec\\.[^ ]+$")
-        result$summary.log.range =
+                            "variance.nominal\\.[^ ]+$")
+        result$summary.log.range.nominal =
             inla.extract.el(inla$summary.spde2.blc[[name]],
-                            "range\\.[^ ]+$")
+                            "range.nominal\\.[^ ]+$")
     }
 
-    ## Marginals for log-tau/kappa/prec
+    ## Marginals for log-tau/kappa/variance/range
     if (!is.null(inla$marginals.spde2.blc[[name]])) {
         names(inla$marginals.spde2.blc[[name]]) <- BLC.names
 
@@ -421,12 +399,12 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
         result$marginals.log.kappa =
             inla.extract.el(inla$marginals.spde2.blc[[name]],
                             "kappa\\.[^ ]+$")
-        result$marginals.log.prec =
+        result$marginals.log.variance.nominal =
             inla.extract.el(inla$marginals.spde2.blc[[name]],
-                            "prec\\.[^ ]+$")
-        result$marginals.log.range =
+                            "variance.nominal\\.[^ ]+$")
+        result$marginals.log.range.nominal =
             inla.extract.el(inla$marginals.spde2.blc[[name]],
-                            "range\\.[^ ]+$")
+                            "range.nominal\\.[^ ]+$")
 
         if (do.transform) {
             result$marginals.tau =
@@ -435,11 +413,11 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
             result$marginals.kappa =
                 lapply(result$marginals.log.kappa,
                        function(x) inla.tmarginal(function(y) exp(y/2), x))
-            result$marginals.prec =
-                lapply(result$marginals.log.prec,
+            result$marginals.variance.nominal =
+                lapply(result$marginals.log.variance.nominal,
                        function(x) inla.tmarginal(function(y) exp(y), x))
-            result$marginals.range =
-                lapply(result$marginals.log.range,
+            result$marginals.range.nominal =
+                lapply(result$marginals.log.range.nominal,
                        function(x) inla.tmarginal(function(y) exp(y), x))
         }
     }
