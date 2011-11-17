@@ -11,8 +11,11 @@
 inla.spde2.matern(mesh,
                   alpha = 2,
                   B.tau = matrix(c(0,1,0),1,3),
-                  B.kappa2 = matrix(c(0,0,1),1,3),
-                  sigma2.nominal = 1,
+                  B.kappa = matrix(c(0,0,1),1,3),
+                  prior.sigma2.nominal = 1,
+                  prior.range.nominal = NULL,
+                  prior.tau = NULL,
+                  prior.kappa = NULL,
                   theta.prior.mean = NULL,
                   theta.prior.prec = NULL,
                   fractional.method = c("parsimonious", "null"))
@@ -21,12 +24,16 @@ inla.spde2.matern(mesh,
   \item{mesh}{
     The mesh to build the model on, as an \code{\link{inla.mesh}} object.
   }
-  \item{alpha}{}
-  \item{B.tau}{}
-  \item{B.kappa2}{}
-  \item{sigma2.approx}{}
-  \item{theta.prior.mean}{}
-  \item{theta.prior.prec}{}
+  \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported. (\eqn{\nu=\alpha-d/2})}
+  \item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}.}
+  \item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}.}
+  \item{prior.variance.nominal{Nominal prior mean for the field variance}
+  \item{prior.range.nominal}{Nominal prior mean for the spatial range}
+  \item{prior.tau}{Prior mean for tau (overrides \code{prior.variance.nominal})}
+  \item{prior.kappa}{Prior mean for kappa (overrides \code{prior.range.nominal})}
+  \item{theta.prior.mean}{(overrides \code{prior.*})}
+  \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint prior
+  precision for \eqn{theta}.}
   \item{fractional.method}{}
 }
 \details{
@@ -65,8 +72,8 @@ inla.spde2.matern(mesh,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.generic2}}, \code{\link{inla.mesh.basis}},
-  \code{\link{inla.spde.query}}
+  \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.basis}},
+  \code{\link{inla.spde2.generic}}
 }
 \examples{
 n = 100
@@ -77,7 +84,7 @@ idx.y = rep(1:n,2)
 y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 
 mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
-spde = inla.spde.matern(mesh)
+spde = inla.spde2.matern(mesh)
 data = list(y=y, field=mesh$idx$loc[idx.y])
 formula = y ~ -1 + f(field, model=spde)
 result = inla(formula, data=data, family="normal")
@@ -93,6 +100,8 @@ plot(old.mesh.class(mesh),
 plot(old.mesh.class(mesh),
      result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
      color.palette = col.pal)
+
+result.field = inla.spde.result(result, "field", spde)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
