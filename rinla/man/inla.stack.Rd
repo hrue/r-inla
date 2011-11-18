@@ -1,8 +1,12 @@
 \name{inla.stack}
 \alias{inla.stack}
+\alias{inla.stack.index}
+\alias{inla.stack.data}
+\alias{inla.stack.A}
 \alias{inla.stack.default}
 \alias{inla.stack.inla.data.stack}
 \alias{inla.data.stack}
+\alias{inla.data.stack.info}
 \title{
   Data stacking for advanced INLA models
 }
@@ -15,6 +19,15 @@ inla.stack(data, A, effects, tag = NULL, strict = TRUE, ...)
 
 ## Join two or more data stacks:
 inla.stack(...)
+
+## Extract tagged indices:
+inla.stack.index(stack, tag)
+
+## Extract data for inla call, and join with other variables:
+inla.stack.data(stack, ...)
+
+## Extract "A matrix" for control.predictor:
+inla.stack.A(stack)
 }
 \arguments{
   \item{data}{
@@ -137,7 +150,7 @@ result1 = inla(formula,
                control.predictor=list(A=inla.stack.A(stack.obs), compute=TRUE),
                verbose=TRUE)
 
-plot(y, result1$summary.fitted.values[stack.obs$index$obs,"mean"])
+plot(y,result1$summary.fitted.values[inla.stack.index(stack.obs,"obs")$data,"mean"])
 
 result2 = inla(formula,
                data=inla.stack.data(stack, spde=spde),
@@ -146,7 +159,7 @@ result2 = inla(formula,
                verbose=TRUE)
 
 field.pred = inla.mesh.project(proj.pred,
-    result2$summary.fitted.values[stack$index$pred, "mean"])
+    result2$summary.fitted.values[inla.stack.index(stack,"pred")$data, "mean"])
 
 dev.new()
 plot(field, field.pred)
