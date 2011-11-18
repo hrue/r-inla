@@ -3540,7 +3540,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			misc_output->nhyper = nhyper;
 			misc_output->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy(misc_output->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
-
+			misc_output->log_posterior_mode = log_dens_mode;
+				
 			/*
 			 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
 			 */
