@@ -86,12 +86,16 @@ inla.spde2.generic =
                    hyper.default =
                    (list(theta1 =
                          list(prior="mvnorm",
-                              initial=param.inla$theta.mu,
                               param=(c(param.inla$theta.mu,
                                        as.matrix(param.inla$theta.Q)))
                               )
                          ))
                    ))
+    for (k in 1:n.theta) {
+        eval(parse(text=
+                   paste("spde$f$hyper.default$theta", k,
+                         "$initial = param.inla$theta.mu[k]", sep="")))
+    }
 
     ## NOTE: Should this be in the f function instead?
     ##       Yes, it should.
