@@ -580,7 +580,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	ai_store->mode = Calloc(n, double);
 	memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
-	// FIXME1("use old version");
+	//FIXME1("use old version");
 	if (mean == NULL && 1) {
 		/*
 		 * Here we use the joint expression and take advantage of that we have already evaluated the log-likelihood in the mode.
@@ -596,7 +596,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			A += ai_store->aa[i];
 		}
 		*logdens = A - problem->sub_logdens;
-
 	} else {
 		/*
 		 * then evaluate it in the mode (ie the mean) to get the log-density 
@@ -2535,6 +2534,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	for (iter = 0; iter < itmax; iter++) {
 
+		memset(aa, 0, n * sizeof(double));
 		memcpy(bb, b, n * sizeof(double));
 		memcpy(cc, c, n * sizeof(double));
 
@@ -2563,9 +2563,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 		}
 		GMRFLib_thread_id = id;
-
-		if (!cc_positive)
+		if (!cc_positive){
 			cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
+		}
 
 		for (i = 0; i < n; i++) {
 			bb[i] += -c[i] * mean[i];
@@ -2603,7 +2603,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		int flag_cycle_behaviour = 0;
 		double err = 0.0, f;
-		f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
+		if (gaussian_data) {
+			f = 1.0;
+		} else {
+			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
+		}
 
 		// if (f != 1.0) printf("%d:%d: f = %f\n", omp_get_thread_num(), GMRFLib_thread_id, f);
 
@@ -2630,6 +2634,19 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		if (optpar && optpar->fp)
 			fprintf(optpar->fp, "iteration %d error %.12g\n", iter, err);
+
+		if (gaussian_data) {
+			/* 
+			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
+			 */
+#pragma omp parallel for private(i) schedule(static)
+			for (i = 0; i < nidx; i++) {
+				int idx = idxs[i];
+				GMRFLib_thread_id = id;
+				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &(optpar->step_len));
+			}
+			GMRFLib_thread_id = id;
+		}
 
 		if (err < optpar->abserr_step || gaussian_data || flag_cycle_behaviour) {
 			/*
@@ -3523,7 +3540,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			misc_output->nhyper = nhyper;
 			misc_output->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy(misc_output->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
-
+			misc_output->log_posterior_mode = log_dens_mode;
+				
 			/*
 			 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
 			 */

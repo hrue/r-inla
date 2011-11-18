@@ -8479,11 +8479,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, s = 0, rd, itmp, id, bvalue = 0, fixed;
+	int i, j, k, jj, nlocations, nc, n = 0, s = 0, itmp, id, bvalue = 0, fixed;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-	    **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag;
+		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -11169,7 +11169,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * determine the final rankdef. 
 	 */
-	rd = iniparser_getint(ini, inla_string_join(secname, "RANKDEF"), -1);
+	rd = iniparser_getdouble(ini, inla_string_join(secname, "RANKDEF"), -1.0);
 	if (rd >= 0) {
 		/*
 		 * if RANKDEF is given, then this is used, not matter what! 
@@ -15460,6 +15460,16 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		inla_error_open_file(nndir);
 	}
 	fprintf(fp, "%1d\n", mo->mode_status);
+	fclose(fp);
+	Free(nndir);
+
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "log-posterior-mode.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	fprintf(fp, "%.16f\n", mo->log_posterior_mode);
 	fclose(fp);
 	Free(nndir);
 
