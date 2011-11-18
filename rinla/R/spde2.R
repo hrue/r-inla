@@ -256,19 +256,19 @@ inla.spde2.matern =
         }
 
         if (is.null(prior.kappa)) {
-            kappa.prior = sqrt(8*nu.nominal)/prior.range.nominal
+            prior.kappa = sqrt(8*nu.nominal)/prior.range.nominal
         }
         if (is.null(prior.tau)) {
-            tau.prior =
+            prior.tau =
                 sqrt(gamma(nu.nominal)/gamma(alpha.nominal)/
-                     (4*pi*kappa.prior^(2*nu.nominal)*prior.variance.nominal))
+                     (4*pi*prior.kappa^(2*nu.nominal)*prior.variance.nominal))
         }
 
         if (n.theta>0) {
             theta.prior.mean =
                 solve(rbind(B.tau[,-1,drop=FALSE], B.kappa[,-1,drop=FALSE]),
-                      c(log(tau.prior) - B.tau[,1],
-                        log(kappa.prior) - B.kappa[,1]))
+                      c(log(prior.tau) - B.tau[,1],
+                        log(prior.kappa) - B.kappa[,1]))
         } else {
             theta.prior.mean = rep(0, n.theta) ## Empty vector
         }
