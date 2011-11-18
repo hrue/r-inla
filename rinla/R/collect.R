@@ -120,13 +120,20 @@ inla.internal.experimental.mode = FALSE
     } else {
         mode.status = NA
     }
+
+    fnm = paste(d, "/log-posterior-mode.dat", sep="")
+    if (file.exists(fnm)) {
+        lpm = scan(fnm, quiet=TRUE)
+    } else {
+        lpm = NA
+    }
     
     if (debug)
         print(paste("collect misc from", d, "...done"))
 
     return (list(cov.intern = cov.intern, cor.intern = cor.intern,
                  cov.intern.eigenvalues = cov.intern.eigenvalues, cov.intern.eigenvectors = cov.intern.eigenvectors, 
-                 reordering = r, theta.tags = tags,
+                 reordering = r, theta.tags = tags, log.posterior.mode = lpm, 
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
                  to.theta = theta.to, from.theta = theta.from, mode.status = mode.status, 
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix))

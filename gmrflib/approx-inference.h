@@ -694,6 +694,8 @@ typedef struct {
 	double *stdev_corr_pos;
 	double *stdev_corr_neg;
 
+	double log_posterior_mode;
+
 	/*
 	 * [0] is the preparation in INLA
 	 * [1] is the optimisation
