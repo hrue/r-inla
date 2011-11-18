@@ -89,7 +89,7 @@ cyclic=T then the sum to 0 constraint is removed. For the
 correct form of the grah file see \cite{Martinoand Rue
 (2008)}.}
 \item{diagonal}{An extra constant added to the diagonal of
-the precision matrix (default 0.0).}
+the precision matrix.}
 \item{graph.file}{Name of the file containing the graph
 of the model.  For the correct for of the graph file see
 \url{http://www.r-inla.org/help/faq}.}
@@ -127,14 +127,14 @@ possible values are \code{c(0, 1, 2, 3)}}
 only used if \code{model="linear"}}
 \item{prec.linear}{ Prior precision for the linear
 component, only used if \code{model="linear"}}
-\item{of}{}
-\item{precision}{}
 \item{si}{}
 \item{compute}{ A boolean variable indicating wheather the
  marginal posterior distribution for the nodes in the
  \code{f()} model should be computed or not. This is
  usefull for large models where we are only interested in
  some posterior marginals.}
+\item{of}{}
+\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
 \item{range}{A vector of size two giving the lower and
 upper range for the scaling parameter \code{beta} in the
 model \code{COPY}. If low = high then the identity mapping
