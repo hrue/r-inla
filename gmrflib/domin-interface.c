@@ -61,7 +61,6 @@ typedef struct {
 static Best_tp B = {
 	0.0,
 	NULL,
-	0,
 	1
 };
 
