@@ -27,7 +27,7 @@ inla.spde2.matern(mesh,
   \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported. (\eqn{\nu=\alpha-d/2})}
   \item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}.}
   \item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}.}
-  \item{prior.variance.nominal{Nominal prior mean for the field variance}
+  \item{prior.variance.nominal}{Nominal prior mean for the field variance}
   \item{prior.range.nominal}{Nominal prior mean for the spatial range}
   \item{prior.tau}{Prior mean for tau (overrides \code{prior.variance.nominal})}
   \item{prior.kappa}{Prior mean for kappa (overrides \code{prior.range.nominal})}
