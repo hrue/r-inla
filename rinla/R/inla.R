@@ -1576,7 +1576,7 @@
         if (inla.os("linux") || inla.os("mac")) {
             arg.v = inla.ifelse(verbose, "-v", "-v")
         } else {
-            arg.v = inla.ifelse(verbose, "-v", "")
+            arg.v = inla.ifelse(verbose, "-v", "-v")
         }
 
         arg.s = inla.ifelse(silent, "-s", "")
@@ -1640,11 +1640,18 @@
         } else if (inla.os("windows")) {
             if (!remote) {
                 if (verbose) {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=FALSE, stderr="", wait=TRUE))
                 }
-                echoc = 0
+                if (echoc != 0L) {
+                    if (!verbose) {
+                        warning(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
+                    }
+                }
+                echoc = 0L
             } else {
                 echoc = try(inla.cygwin.run.command(
                         paste(inla.cygwin.map.filename(inla.call),
