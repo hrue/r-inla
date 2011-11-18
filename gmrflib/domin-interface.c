@@ -55,13 +55,11 @@ static GMRFLib_domin_arg_tp G;				       /* hold arguments */
 typedef struct {
 	double f_best;
 	double *f_best_x;
-	int f_busy;
 } Best_tp;
 
 static Best_tp B = {
 	0.0,
-	NULL,
-	1
+	NULL
 };
 
 int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
@@ -116,7 +114,6 @@ int GMRFLib_domin_exit(void)
 	B.f_best = 0.0;
 	if (B.f_best_x)
 		Free(B.f_best_x);
-	B.f_busy = 1;
 	return GMRFLib_SUCCESS;
 }
 int gmrflib_domin_f_(double *x, double *fx, int *ierr)
@@ -240,9 +237,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	if (B.f_best == 0.0 || fx_local < B.f_best) {
 #pragma omp critical
 		{
-			if (B.f_busy == 1)
-				printf("************************* B.f_busy = 1 ******************************\n");
-			B.f_busy = 1;
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 
 				if (debug)
@@ -268,7 +262,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 					fflush(stderr);	       /* helps for remote inla */
 				}
 			}
-			B.f_busy = 0;
 		}
 	}
 	if (G.ai_par->fp_hyperparam) {
