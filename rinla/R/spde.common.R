@@ -212,7 +212,7 @@ inla.matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
 
 
 
-inla.spde.models = function()
+inla.spde.models = function(function.names=FALSE)
 {
     types = c("spde1", "spde2")
     models = list()
@@ -220,7 +220,15 @@ inla.spde.models = function()
         models[[t]] =
             do.call(what=paste("inla.", t, ".models", sep=""),
                     args=list())
+        if (function.names) {
+            models[[t]] = paste("inla.", t, ".", models[[t]], sep="")
+        }
     }
+
+    if (function.names) {
+        models = as.vector(do.call(c, models))
+    }
+
     return(models)
 }
 
@@ -469,7 +477,7 @@ inla.stack = function(...)
 }
 
 
-inla.stack.default = function(data, A, effects, tag=NULL, strict=TRUE, ...)
+inla.stack.default = function(data, A, effects, tag="", ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -581,6 +589,9 @@ inla.stack.default = function(data, A, effects, tag=NULL, strict=TRUE, ...)
         warning(paste("Extra argument '", names(list(...)), "' ignored.",
                       collapse="\n", sep=""))
 
+    if (is.null(tag))
+        stop("'tag' must not be 'NULL'")
+
     ## Check if only a single block was specified.
     if (!is.list(A)) {
         A = list(A)
@@ -649,7 +660,7 @@ inla.stack.default = function(data, A, effects, tag=NULL, strict=TRUE, ...)
                          paste("Effect block ", k, ":\n", sep=""),
                          tag)
 
-    effects = do.call(rbind, eff)
+    effects = do.call(rbind.inla.data.stack.info, eff)
 
     A.matrix = do.call(cBind, A)
     A.nrow = nrow(A.matrix)
@@ -678,10 +689,10 @@ inla.stack.inla.data.stack = function(...)
     S.input = list(...)
 
     data =
-        do.call(rbind,
+        do.call(rbind.inla.data.stack.info,
                 lapply(S.input, function(x) x$data))
     effects =
-        do.call(rbind,
+        do.call(rbind.inla.data.stack.info,
                 lapply(S.input, function(x) x$effects))
     A =
         do.call(inla.dBind,
