@@ -15,7 +15,7 @@
 }
 \usage{
 ## Create data stack:
-inla.stack(data, A, effects, tag = NULL, strict = TRUE, ...)
+inla.stack(data, A, effects, tag = NULL, ...)
 
 ## Join two or more data stacks:
 inla.stack(...)
@@ -42,11 +42,6 @@ inla.stack.A(stack)
   }
   \item{tag}{
     A string specifying a tag for later identification.
-  }
-  \item{strict}{
-    If \code{TRUE}, all input variables must have matching sizes (length of
-    data = rows of A matrices, length of effects = columns of A matrices).
-    If \code{FALSE}, an attempt is made to pad short variables with \code{NA}.
   }
   \item{...}{
     Two or more data stacks of class \code{inla.data.stack}, created by
@@ -139,8 +134,7 @@ stack.pred =
                A=list(proj.pred$proj$A),
                effects=list(c(list(intercept=rep(1, mesh$n)),
                               inla.spde.make.index("spatial", mesh$n))),
-               tag="pred",
-               strict=FALSE)
+               tag="pred")
 stack = inla.stack(stack.obs, stack.pred)
 
 formula = y ~ -1 + intercept + covar + f(spatial, model=spde)
