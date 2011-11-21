@@ -4,7 +4,7 @@
 \alias{inla.spde2.precision}
 \alias{inla.spde.precision.inla.spde1}
 \alias{inla.spde.precision.inla.spde2}
-\title{
+\title{Add title here
 %%  ~~function to do ... ~~
 }
 \description{
