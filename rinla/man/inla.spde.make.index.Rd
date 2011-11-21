@@ -73,7 +73,7 @@ data = inla.stack.data(stack, spde=spde)
 formula = y ~ -1 + intercept + f(spatial, model=spde,
                                  replicate=spatial.repl)
 result = inla(formula, family="gaussian", data=data, 
-              control.predictor(A=inla.stack.A(stack)))
+              control.predictor=list(A=inla.stack.A(stack)))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
