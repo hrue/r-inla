@@ -75,7 +75,7 @@ inla.spde.make.A(mesh = NULL,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+  \code{\link{inla.spde.make.index}}
 }
 \examples{
 loc = matrix(runif(10000*2)*1000,10000,2)

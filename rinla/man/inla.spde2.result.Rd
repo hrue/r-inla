@@ -1,35 +1,35 @@
-\name{inla.spde.make.index}
-\alias{inla.spde.make.index}
+\name{inla.spde2.result}
+\alias{inla.spde2.result}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+  SPDE result extraction
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Exctract field and parameter values and distributions for an
+  \code{inla.spde2} SPDE
+  effect from an inla result object.
 }
 \usage{
-inla.spde.make.index(name,
-                     n.mesh,
-                     n.group = 1,
-                     n.repl = 1)
+inla.spde2.result(inla, name, spde, do.transform = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
+  \item{inla}{
+    An \code{inla} object obtained from a call to \code{\link{inla}}
+  }
   \item{name}{
-%%     ~~Describe \code{name} here~~
-}
-  \item{n.mesh}{
-%%     ~~Describe \code{n.mesh} here~~
-}
-  \item{n.group}{
-%%     ~~Describe \code{n.group} here~~
-}
-  \item{n.repl}{
-%%     ~~Describe \code{n.repl} here~~
-}
-  \item{n.field}{
-%%     ~~Describe \code{n.field} here~~
-}
+    A character string with the name of the SPDE effect in the inla formula.
+  }
+  \item{spde}{
+    The \code{inla.spde2} object used for the effect in the inla
+    formula. (Note: this could have been stored in the inla output, but isn't.)
+  }
+  \item{do.transform}{
+    If \code{TRUE}, also calculate marginals transformed to user-scale.
+  }
+  \item{\dots}{
+    Not used.
+  }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
@@ -54,8 +54,7 @@ inla.spde.make.index(name,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{inla.spde.make.A}},
-\code{\link{inla.spde2.result}}
+%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 loc = matrix(runif(100*2),100,2)
@@ -77,7 +76,7 @@ result = inla(formula, family="gaussian", data=data,
               control.predictor=list(A=inla.stack.A(stack)))
 spde.result = inla.spde2.result(result, "spatial", spde)
 }
-%% Note: the same example is used by inla.spde2.result.Rd
+%% Note: the same example is used by inla.spde.make.index.Rd
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }
