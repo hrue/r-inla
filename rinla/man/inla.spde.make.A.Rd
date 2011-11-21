@@ -1,10 +1,10 @@
 \name{inla.spde.make.A}
 \alias{inla.spde.make.A}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{
+\title{Add title
 %%  ~~function to do ... ~~
 }
-\description{
+\description{Add description
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
