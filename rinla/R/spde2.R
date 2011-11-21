@@ -51,13 +51,13 @@ inla.spde2.generic =
     if (any(fixed)) {
         param.inla$theta.initial = theta.initial[!fixed]
         param.inla$B0[,1] =
-            B0[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
+            B0[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$B1[,1] =
-            B1[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
+            B1[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$B2[,1] =
-            B2[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
+            B2[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$BLC[,1] =
-            BLC[,c(TRUE, fixed)] %*% c(1.0, theta.fixed)
+            BLC[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$B0 = param.inla$B0[,c(TRUE, !fixed), drop=FALSE]
         param.inla$B1 = param.inla$B1[,c(TRUE, !fixed), drop=FALSE]
         param.inla$B2 = param.inla$B2[,c(TRUE, !fixed), drop=FALSE]
@@ -293,16 +293,16 @@ inla.spde2.theta2phi0 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
-    return(exp(spde$param.inla$B0[,1] +
-               spde$param.inla$B0[,-1] %*% theta))
+    return(exp(spde$param.inla$B0[,1, drop=TRUE] +
+               spde$param.inla$B0[,-1, drop=FALSE] %*% theta))
 }
 
 inla.spde2.theta2phi1 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
-    return(exp(spde$param.inla$B1[,1] +
-               spde$param.inla$B1[,-1] %*% theta))
+    return(exp(spde$param.inla$B1[,1, drop=TRUE] +
+               spde$param.inla$B1[,-1, drop=FALSE] %*% theta))
 }
 
 inla.spde2.theta2phi2 = function(spde, theta)
@@ -310,8 +310,8 @@ inla.spde2.theta2phi2 = function(spde, theta)
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
 ##    warning("TODO: support link functions for phi2")
-    return((spde$param.inla$B2[,1] +
-            spde$param.inla$B2[,-1] %*% theta))
+    return((spde$param.inla$B2[,1, drop=TRUE] +
+            spde$param.inla$B2[,-1, drop=FALSE] %*% theta))
 }
 
 inla.spde2.precision =
