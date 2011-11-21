@@ -2,10 +2,10 @@
 \alias{inla.spde.make.index}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+  SPDE model index vector generation
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Generates a list of named index vectors for an SPDE model.
 }
 \usage{
 inla.spde.make.index(name,
@@ -16,7 +16,7 @@ inla.spde.make.index(name,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{name}{
-%%     ~~Describe \code{name} here~~
+    A character string with the base name of the effect.
 }
   \item{n.mesh}{
 %%     ~~Describe \code{n.mesh} here~~
@@ -27,19 +27,15 @@ inla.spde.make.index(name,
   \item{n.repl}{
 %%     ~~Describe \code{n.repl} here~~
 }
-  \item{n.field}{
-%%     ~~Describe \code{n.field} here~~
-}
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+  A list of named index vectors.
+\item{name }{Indices into the mesh}
+\item{name.group }{'group' indices}
+\item{name.repl }{Indices for replicates}
 }
 \references{
 %% ~put references to the literature/web site here ~
@@ -59,7 +55,7 @@ inla.spde.make.index(name,
 }
 \examples{
 loc = matrix(runif(100*2),100,2)
-mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(0.05,0.5))
+mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(0.1,0.5))
 spde = inla.spde2.matern(mesh)
 index = inla.spde.make.index("spatial", mesh$n, n.repl=2)
 spatial.A = inla.spde.make.A(mesh, loc,

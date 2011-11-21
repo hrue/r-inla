@@ -58,7 +58,7 @@ inla.spde2.result(inla, name, spde, do.transform = TRUE, ...)
 }
 \examples{
 loc = matrix(runif(100*2),100,2)
-mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(0.05,0.5))
+mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(0.1,0.5))
 spde = inla.spde2.matern(mesh)
 index = inla.spde.make.index("spatial", mesh$n, n.repl=2)
 spatial.A = inla.spde.make.A(mesh, loc,
@@ -75,6 +75,7 @@ formula = y ~ -1 + intercept + f(spatial, model=spde,
 result = inla(formula, family="gaussian", data=data, 
               control.predictor=list(A=inla.stack.A(stack)))
 spde.result = inla.spde2.result(result, "spatial", spde)
+plot(spde.result$marginals.range.nominal[[1]])
 }
 %% Note: the same example is used by inla.spde.make.index.Rd
 % Add one or more standard keywords, see file 'KEYWORDS' in the
