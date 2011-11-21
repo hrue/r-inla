@@ -417,7 +417,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
                        function(x) inla.tmarginal(function(y) exp(y), x))
             result$marginals.kappa =
                 lapply(result$marginals.log.kappa,
-                       function(x) inla.tmarginal(function(y) exp(y/2), x))
+                       function(x) inla.tmarginal(function(y) exp(y), x))
             result$marginals.variance.nominal =
                 lapply(result$marginals.log.variance.nominal,
                        function(x) inla.tmarginal(function(y) exp(y), x))
