@@ -49,8 +49,8 @@ inla.spde2.matern(mesh,
 	\theta_k}{log tau(u) = B.tau_0(u) + sum_{k=1}^p B.tau_k(u) theta_k}
     }
     \item{}{
-      \eqn{\log\kappa^2(u) = B^{\kappa^2}_0(u) + \sum_{k=1}^p B^{\kappa2}_k(u)
-	\theta_k}{log kappa^2(u) = B.kappa2_0(u) + sum_{k=1}^p B.kappa2_k(u) theta_k}
+      \eqn{\log\kappa(u) = B^{\kappa}_0(u) + \sum_{k=1}^p B^{\kappa}_k(u)
+	\theta_k}{log kappa(u) = B.kappa_0(u) + sum_{k=1}^p B.kappa_k(u) theta_k}
     }
   }
 }
