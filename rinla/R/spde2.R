@@ -171,7 +171,7 @@ inla.spde2.matern =
     fem =
         inla.fmesher.smorg(mesh$loc,
                            mesh$graph$tv,
-                           fem=alpha,
+                           fem=2,
                            output=list("c0", "g1", "g2"))
 
     if (alpha==2) {
