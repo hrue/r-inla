@@ -23,10 +23,12 @@ inla.mesh.create.helper(points = NULL,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{points}{
-%%     ~~Describe \code{points} here~~
+    Locations that should be present in the final mesh.
+    Matrix with one point per row.
 }
   \item{points.domain}{
-%%     ~~Describe \code{points.domain} here~~
+    Locations only used to determine the domain extent.
+    Matrix with one point per row.
 }
   \item{offset}{
 %%     ~~Describe \code{offset} here~~
