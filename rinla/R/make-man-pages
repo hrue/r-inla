@@ -17,7 +17,7 @@ function mmp ()
     awk '/:NAME:/{
 	name=$2
 	f=  MANDIR "/" name ".Rd"
-	print "Make make page", f >> "/dev/stderr"
+	print "Make help page", f >> "/dev/stderr"
 	print "" > f
 	print "\\name{" $2 "}" >> f
 	print "\\alias{" $2 "}" >> f
@@ -59,8 +59,11 @@ for f in *.R; do
     if grep -q '##!' $f; then
 	
 	fname=${f%%.R}
-	awk '/##!/ { gsub(/^.*##!/, ""); print }' $f  > ../man/$fname.Rd
-	echo "Make help-page from $f"
+	echo "## WARNING! DO NOT EDIT!" > ../man/$fname.Rd
+	echo "## File automatically generated from $f" >> ../man/$fname.Rd
+	echo "##" >> ../man/$fname.Rd
+	awk '/##!/ { gsub(/^.*##!/, ""); print }' $f  >> ../man/$fname.Rd
+	echo "Make help page from $f"
 	
     fi
 done
