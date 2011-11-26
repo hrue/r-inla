@@ -2,7 +2,7 @@
 ##!\alias{debug.graph}
 ##!\alias{inla.debug.graph}
 ##!\title{Debug a graph-file}
-##!\description{Debug a graph spesification, by checking the spesification along the way and signal an error if required."}
+##!\description{Debug a graph specification, by checking the specification along the way and signal an error if required."}
 ##!\usage{inla.debug.graph(graph.file)}
 ##!\arguments{
 ##!    \item{graph.file}{The filename of the graph.}
@@ -21,8 +21,8 @@
 `inla.debug.graph` = function(graph.file) {
 
     ## read a graph with verbose output and try to detect any errors
-    ## in the spesification along the way. This is ment as a tool to
-    ## detect errors in the graph spesification only.
+    ## in the specification along the way. This is ment as a tool to
+    ## detect errors in the graph specification only.
 
     stopifnot(file.exists(graph.file))
 

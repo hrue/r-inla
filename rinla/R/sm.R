@@ -71,7 +71,7 @@
 
 `inla.sparse.get` = function(A, row, col)
 {
-    ## extract a list of the a spesific row or col of a dgTMatrix
+    ## extract a list of the a specific row or col of a dgTMatrix
     ## A. the list returned is of type list(i=..., j=..., values=...)
 
     if (missing(row) && missing(col))

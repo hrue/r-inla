@@ -4,7 +4,7 @@
 {
     ## convert a file with each line consist of (1-based) node and all
     ## its neigbours. nodes with zero neighbours need not to be
-    ## spesified.
+    ## specified.
 
     if (c.indexing)
         off = 1
@@ -134,7 +134,7 @@
 
 `inla.numlen` = function(n)
 {
-    ## number of digits required to represent a spesific (integer)
+    ## number of digits required to represent a specific (integer)
     ## number
     return (floor(log10(max(abs(n))))+1)
 }
@@ -1229,4 +1229,4 @@
         }
     }
 }
-      
+
