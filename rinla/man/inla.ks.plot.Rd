@@ -47,7 +47,7 @@ inla.ks.plot(data, pnorm)
 
 \dontrun{
 ## Check the goodness-of-fit of cross-validated predictions
-result = inla(..., control.predictor(cpo=TRUE))
+result = inla(..., control.predictor=list(cpo=TRUE))
 inla.ks.plot(result$pit, punif)
 }
 }

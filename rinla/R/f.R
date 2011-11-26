@@ -130,7 +130,7 @@
         cyclic = NULL,
 
         ##!\item{diagonal}{An extra constant added to the diagonal of
-        ##!the precision matrix (default 0.0).}
+        ##!the precision matrix.}
         diagonal = NULL,
 
         ##!\item{graph.file}{Name of the file containing the graph
@@ -190,7 +190,7 @@
         spde2.prefix = NULL,
 
         ##!\item{spde2.transform}{}
-        spde2.transform = c("logit", "log", "identity"), 
+        spde2.transform = c("logit", "log", "identity"),
 
         ##!\item{mean.linear}{ Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
@@ -200,14 +200,8 @@
         ##!component, only used if \code{model="linear"}}
         prec.linear=NULL,
 
-        ##!\item{of}{}
-        of=NULL,
-
-        ##!\item{precision}{}
-        precision=NULL,
-
         ##!\item{si}{}
-        si=NULL,
+        si=FALSE,
 
         ##!\item{compute}{ A boolean variable indicating wheather the
         ##! marginal posterior distribution for the nodes in the
@@ -215,6 +209,12 @@
         ##! usefull for large models where we are only interested in
         ##! some posterior marginals.}
         compute = TRUE,
+
+        ##!\item{of}{}
+        of=NULL,
+
+        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
+        precision=NULL,
 
         ##!\item{range}{A vector of size two giving the lower and
         ##!upper range for the scaling parameter \code{beta} in the
@@ -226,8 +226,8 @@
         ##!of the models (currently: besag, bym and besag2) if the
         ##!number of connected components in graph is larger than
         ##!1. If FALSE, do nothing.}
-        adjust.for.con.comp = TRUE, 
-        
+        adjust.for.con.comp = TRUE,
+
         ## local debug-flag
         debug = FALSE)
 {
@@ -722,7 +722,7 @@
             of = of,
             precision = precision,
             quantiles = quantiles,
-            range = range, 
+            range = range,
             rankdef=rankdef,
             replicate = replicate,
             same.as = same.as,
@@ -739,8 +739,11 @@
     return (ret)
 }
 
+## "inla.model.class" is a generic model class that can be inherited
+## from to mark a class as an inla model object class.
 `inla.model.object.classes` = function() {
-    return (c("inla.spde", "inla.wrapper.model", "inla.spde2"))
+    return (c("inla.model.class", "inla.wrapper.model",
+              "inla.spde", "inla.spde1", "inla.spde2"))
 }
 
 

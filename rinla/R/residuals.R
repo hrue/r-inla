@@ -7,6 +7,9 @@
 ## inla.ks.plot(result$pit, punif)
 inla.ks.plot = function (x, y, diff=TRUE, ...)
 {
+    if (any(is.na(x))) {
+        x = x[!is.na(x)]
+    }
     test = ks.test(x, y, ...)
     n = length(x)
     Fn = ((1:n)-0.5)/n

@@ -74,7 +74,7 @@
 
     colors = (inla.generate.colors(color, color.axis, color.n,
                                    color.palette, color.truncate, alpha))
-    
+
     tTV = t(TV);
     tETV = t(TV[, c(1, 2, 3, 1, NA)]);
     Tx = S[tTV, 1]
@@ -125,3 +125,29 @@
 ##    Ecol = rgb(Ecol[1,], Ecol[2,], Ecol[3,], maxColorValue = 1)
 ##    Ecol = Ecol[tETV]
 
+
+
+
+`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, add=FALSE, draw.vertices=TRUE, ...)
+{
+    ## a simple function that plots the mesh from inla.fmesher.mesh()
+
+    if (length(color) == 1)
+        color = rep(color, dim(m$mesh$s)[1])
+
+    require(rgl)
+    if (!add) {
+        dev=open3d()
+        view3d(0, 0, fov=0)
+    } else {
+        dev = NULL
+    }
+    if (draw.vertices)
+        rgl.points(m$mesh$s[m$locations.idx, ],
+                   size=2*size, lwd=lwd, color = "blue", ...)
+    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
+                      size=size, lwd=lwd,
+                      draw.vertices=draw.vertices, add=add, ...)
+
+    return (invisible(dev))
+}

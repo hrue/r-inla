@@ -550,6 +550,37 @@
 
     data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
+    if (!is.data.frame(data)) {
+        ## if there's an Amatrix in the predictor, we have to take it
+        ## out from the data. It should not be there really, since the
+        ## A-matrix is evaluated when the inla() call is made, but...
+        ## Dealing with names is a mess, so we check the numerical
+        ## values only. This means that this model: y ~ ... + A + ...,
+        ## where control.predictor=list(A=A), ie, the fixed effect
+        ## matrix and A is numerically the same matrix(!!!) can fail
+        ## here, and flag an error for incorrect dimensions at some
+        ## point.
+        idx.not.A = which(sapply(
+                data, 
+                function(a, Amatrix) {
+                    if (is.null(Amatrix)) {
+                        return (TRUE)
+                    } else {
+                        if (inla.is.matrix(a)) {
+                            if (all(dim(a) == dim(Amatrix)) && all(a == Amatrix)) {
+                                return (FALSE)
+                            } else {
+                                return (TRUE)
+                            }
+                        } else {
+                            return (TRUE)
+                        }
+                    }
+                },
+                Amatrix = control.predictor$A))
+        data = data[idx.not.A]
+    }
+
     ## need to know MPredictor and NPredictor!
     if (!is.null(control.predictor$A)) {
         MPredictor = ny
@@ -561,7 +592,7 @@
     } else if (is.list(data) && length(data) == 0) {
         NPredictor = ny
     } else {
-        NPredictor = max(sapply(data, length))
+        NPredictor = max(sapply(data, function(a) inla.ifelse(inla.is.matrix(a), dim(a)[1L], length(a))))
     }
     if (MPredictor > 0) {
         NData = MPredictor
@@ -609,11 +640,16 @@
     if (debug) {
         cat("n.family", n.family, "\n")
     }
-    
+
     ## ...and then we add the fake to the data-frame after removing the original response
     if (is.data.frame(data)) {
-        if (MPredictor > 0)
-            stopifnot(MPredictor == NPredictor)
+        if (MPredictor > 0) {
+            if (MPredictor != NPredictor) {
+                stop("It can be ``dangerous'' to use a 'data.frame' as data, when the
+  A-matrix is not a square matrix, so you need to pass the data
+  as a list: data = list(...).")
+            }
+        }
         data = as.data.frame(c(as.data.frame(data), list(y...fake=y...fake)))
     } else {
         data = c(data, list(y...fake=y...fake))
@@ -1540,7 +1576,7 @@
         if (inla.os("linux") || inla.os("mac")) {
             arg.v = inla.ifelse(verbose, "-v", "-v")
         } else {
-            arg.v = inla.ifelse(verbose, "-v", "")
+            arg.v = inla.ifelse(verbose, "-v", "-v")
         }
 
         arg.s = inla.ifelse(silent, "-s", "")
@@ -1604,11 +1640,25 @@
         } else if (inla.os("windows")) {
             if (!remote) {
                 if (verbose) {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
-                    echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
+                    ##echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=FALSE, stderr="", wait=TRUE))
+
+                    ## another try for Win-problem with R-2.14...
+                    batfile = paste(tempfile(), ".BAT",  sep="")
+                    cat("@ echo off\n",  file=batfile, append=FALSE)
+                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), " >NUL"), file=batfile, append=TRUE)
+                    echoc = try(shell(paste("@", batfile), wait=TRUE), silent=FALSE)
+                    unlink(batfile)
                 }
-                echoc = 0
+                if (echoc != 0L) {
+                    if (!verbose) {
+                        warning(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
+                    }
+                }
+                echoc = 0L
             } else {
                 echoc = try(inla.cygwin.run.command(
                         paste(inla.cygwin.map.filename(inla.call),
