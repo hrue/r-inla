@@ -67,7 +67,7 @@ namespace fmesh {
       loc[di] = s[dim_[di]];
     }
     Dart d;
-    for (typename bbox_locator_type::search_iterator si =
+    for (bbox_locator_type::search_iterator si =
 	   bbox_locator_.search_begin(loc);
 	 !si.is_null();
 	 ++si) {

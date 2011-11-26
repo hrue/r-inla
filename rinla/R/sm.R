@@ -16,8 +16,8 @@
         return (dim(A))
     }
 }
-    
-    
+
+
 `inla.sparse.check` = function(A, must.be.squared = TRUE)
 {
     ## just check if matrix A exists and return either a filename or a
@@ -28,7 +28,7 @@
         }
         return (A)
     }
-    
+
     if (is.list(A))
         stop("Define matrix using Matrix::sparseMatrix() instead!!! The list(i=, j=, values=)-format is obsolete!")
 
@@ -51,7 +51,9 @@
     if (is(A, "dgTMatrix")) {
         return (A)
     } else {
-        return (as(A, "dgTMatrix"))
+        ## Convert via virtual class TsparseMatrix;
+        ## this allows more general conversions than direct conversion.
+        return (as(as(A, "TsparseMatrix"), "dgTMatrix"))
     }
 }
 
@@ -69,12 +71,12 @@
 
 `inla.sparse.get` = function(A, row, col)
 {
-    ## extract a list of the a spesific row or col of a dgTMatrix
+    ## extract a list of the a specific row or col of a dgTMatrix
     ## A. the list returned is of type list(i=..., j=..., values=...)
 
     if (missing(row) && missing(col))
         return (list(i=numeric(0), j=numeric(0), values=numeric(0)))
-    
+
     if (!missing(row) && !missing(col))
         stop("Only one of 'row' and 'col' can be specified.")
 
@@ -82,9 +84,9 @@
     ## repeated use, as we do not need to duplicate the A matrix in
     ## memory. but perhaps I'm wrong...
     if (!is(A, "dgTMatrix")) {
-        ## This is very slow, so its better to stop and say that the
+        ## This can be slow, so its better to stop and say that the
         ## matrix has to be converted upfront.
-        stop("Matrix is not of type 'dgTMatrix'; please convert it upfront.")
+        stop("Matrix is not of type 'dgTMatrix'; please convert it with inla.as.dgTMatrix().")
         A = inla.as.dgTMatrix(A)
     }
 
@@ -108,7 +110,7 @@
     warning("THIS FUNCTION IS OBSOLETE!!!")
 
     ## convert a sparse-matrix into a matrix.
-    
+
     inla.sparse.check(A)
     stopifnot(length(A$i) == length(A$j))
     stopifnot(length(A$i) == length(A$values))
@@ -135,7 +137,7 @@
     ## list(i=, j=, values=). Q is either a matrix or a dgTMatrix
 
     require(Matrix)
-    
+
     if (is(Q, "dgTMatrix")) {
 
         ii = Q@i + 1L
@@ -156,7 +158,7 @@
         n = dim(Q)
         if (n[1] != n[2])
             stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
-    
+
         n = n[1]
         ii = c()
         jj = c()
@@ -200,7 +202,7 @@
         } else {
             off = 1L
         }
-    
+
         if (symmetric) {
             idx = which(A@i >= A@j)
         } else {

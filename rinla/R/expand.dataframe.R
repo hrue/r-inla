@@ -119,7 +119,7 @@
     if(is.null(cutpoints)) 
         cutpoints = seq(0.0, max(time), len = n.intervals +1L) 
 
-    new.data = inla.get.poisson.data.2L(time=time, subject=subject, event=event, cutpoints=cutpoints)
+    new.data = inla.get.poisson.data.2(time=time, subject=subject, event=event, cutpoints=cutpoints)
    
     ## we want to expand  only covariates 
     aa = table(new.data$indicator)

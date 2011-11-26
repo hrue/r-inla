@@ -188,7 +188,7 @@
             }
         }
         A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol), index1=FALSE)
-        A = as(A,  "dgTMatrix")
+        A = inla.as.dgTMatrix(A)
     } else {
         stop("This should not happen.")
     }
