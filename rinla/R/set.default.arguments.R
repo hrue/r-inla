@@ -6,7 +6,7 @@
     ##:NAME: control.lincomb
     list(
          ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
-         precision = NULL, 
+         precision = 10^9,
 
          ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
          verbose = TRUE)
@@ -24,15 +24,15 @@
 
          ##:ARGUMENT: hyper Definition of the hyperparameter(s)
          hyper = NULL,
-         
+
          ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation in the internal scale.
-         initial = NULL, 
+         initial = NULL,
 
          ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction is assumed to be fixed or random.
          fixed = NULL,
 
          ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation in the internal scale
-         prior = NULL, 
+         prior = NULL,
 
          ##:ARGUMENT: param (OBSOLETE!) Prior parameters
          param = NULL)
@@ -52,7 +52,7 @@
     ##:NAME: control.expert
     list(
          ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)
-         cpo.manual = FALSE, 
+         cpo.manual = FALSE,
 
          ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION.)
          cpo.idx = -1)
@@ -68,13 +68,13 @@
     list(
          ##:ARGUMENT: strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
          strategy = "default",
-         
+
          ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
          hyperpar=TRUE,
 
          ##:ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
          return.marginals=TRUE,
-         
+
          ##:ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
          dic=FALSE,
 
@@ -102,7 +102,7 @@
     list(
          ##:ARGUMENT: hyper Definition of the hyperparameters
          hyper = NULL,
-         
+
          ##:ARGUMENT: initial (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.
          initial=NULL,
 
@@ -117,7 +117,7 @@
 
          ##:ARGUMENT: link The link function to use.
          link="default",
-         
+
          ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
          alpha=0.5,
 
@@ -133,7 +133,7 @@
          ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
          gev.scale.xi = 0.01,
 
-         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods). 
+         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
          variant = 0L
          )
 
@@ -142,7 +142,7 @@
 
 `inla.set.control.fixed.default`=
     function()
-{   
+{
     ##:NAME: control.fixed
     list(
          ##:ARGUMENT: cdf  A list of values to compute the CDF for, for all fixed effects
@@ -151,14 +151,14 @@
          ##:ARGUMENT: quantiles  A list of quantiles to compute for all fixed effects
          quantiles = NULL,
 
-         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.  
+         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.
          mean = 0.0,
-         
+
          ##:ARGUMENT: mean.intercept Prior mean for the intercept
          mean.intercept = 0.0,
-         
-         ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.  
-         prec= 0.001, 
+
+         ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.
+         prec= 0.001,
 
          ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
          prec.intercept = 0.0,
@@ -250,14 +250,14 @@
             lincomb.derived.only = TRUE,
 
             ##:ARGUMENT: lincomb.derived.correlation.matrix A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
-            lincomb.derived.correlation.matrix = FALSE, 
+            lincomb.derived.correlation.matrix = FALSE,
 
             ## NOT DOCUMENTED (expert only)
-            diagonal = NULL,
+            diagonal = 0.0,
 
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
             numint.maxfeval = 100000,
-            
+
             ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)
             numint.relerr = 1e-5,
 
@@ -275,7 +275,7 @@
             ##:ARGUMENT: global.node.factor The factor which defines how many neighbors (as a fraction of n-1) that is required to be defined as a global node and numbered last (whatever the reordering routine says).
             global.node.factor = 0.5)
 
-    ## use default Gaussian strategy if the observations are gaussian    
+    ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))
         ans$strategy = "gaussian"
 
@@ -291,7 +291,7 @@
     list(
          ##:ARGUMENT: hyper Definition of the hyperparameters.
          hyper = NULL,
-         
+
          ##:ARGUMENT: fixed (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)
          fixed=NULL,
 
@@ -315,13 +315,13 @@
 
          ##:ARGUMENT: cross Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention).
          cross=NULL,
-         
+
          ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
          A = NULL,
 
          ##:ARGUMENT precision The precision for eta - A*eta,
-         precision = exp(11))
-         
+         precision = exp(15))
+
     ##:SEEALSO: inla
 }
 
@@ -349,7 +349,7 @@
     list(
          ##:ARGUMENT: result Prevous result from inla(). Use the theta- and x-mode from this run.
          result = NULL,
-         
+
          ##:ARGUMENT: theta The theta-mode/initial values for theta. This option has preference over result$mode$theta.
          theta = NULL,
 
@@ -361,7 +361,7 @@
     ##:SEEALSO: inla
 }
 
-`inla.set.control.hazard.default` = 
+`inla.set.control.hazard.default` =
     function()
 {
     ##:NAME: control.hazard
@@ -370,11 +370,11 @@
          model = "rw1",
 
          ##:ARGUMENT: hyper The definition of the hyperparameters.
-         hyper = NULL, 
+         hyper = NULL,
 
          ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable; is the precision for 'model' fixed? (Default FALSE.)
          fixed = FALSE,
-         
+
          ##:ARGUMENT: initial (OBSOLETE!) The initial value for the precision.
          initial = NULL,
 
@@ -395,7 +395,7 @@
 
          ##:ARGUMENT: strata.name The name of the stratefication variable for the baseline hazard in the data.frame
          strata.name = NULL,
-         
+
          ##:ARGUMENT: si A boolean variable; should all the Gaussian approximations configurations be written to files?
          si = FALSE)
     ##:SEEALSO: inla
@@ -419,7 +419,7 @@
     if (length(contr) == 0) {
         return(invisible())
     }
-    
+
     nm = paste(sys.call()[2])
 
     f = paste("inla.set.", nm, ".default()", sep="")
@@ -430,7 +430,7 @@
                           "\n\n  Valid ones are:\n\t",
                           inla.paste(sort(elms), sep="\n\t")), sep=""))
     }
-    
+
     for(elm in names(contr)) {
         if (!is.element(elm, elms)) {
             stop(inla.paste(c("Name `", elm,"' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",

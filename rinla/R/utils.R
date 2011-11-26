@@ -4,7 +4,7 @@
 {
     ## convert a file with each line consist of (1-based) node and all
     ## its neigbours. nodes with zero neighbours need not to be
-    ## spesified.
+    ## specified.
 
     if (c.indexing)
         off = 1
@@ -134,7 +134,7 @@
 
 `inla.numlen` = function(n)
 {
-    ## number of digits required to represent a spesific (integer)
+    ## number of digits required to represent a specific (integer)
     ## number
     return (floor(log10(max(abs(n))))+1)
 }
@@ -947,13 +947,12 @@
     return (invisible())
 }
 
-`inla.eval` = function(command, data = NULL)
+`inla.eval` = function(command,
+        envir = parent.frame(),
+        enclos = if (is.list(envir) || is.pairlist(envir))
+        parent.frame() else baseenv())
 {
-    if (is.null(data)) {
-        eval.parent(parse(text=command))
-    } else {
-        eval(parse(text=command), data)
-    }
+    return (eval(parse(text=command), envir, enclos))
 }
 
 `inla.tempfile` = function(pattern = "file", tmpdir = tempdir())
@@ -1134,20 +1133,22 @@
 
 `inla.require.inherits` = function(x, what, name="Object")
 {
-    if (!inherits(x, what))
+    if (!inherits(x, what)) {
+        n.what = length(as.list(what))
         stop(paste(name, " must inherit from class ",
-                   inla.ifelse(length(what)==1,
-                               paste("\"", what, "\".", sed=""),
+                   inla.ifelse(n.what==1,
+                               paste("\"", what, "\".", sep=""),
                                paste("\"",
-                                     inla.paste(what[1:(length(what)-1)],
+                                     inla.paste(what[1:(n.what-1)],
                                                 "\", \""),
                                      "\"",
-                                     inla.ifelse(length(what)==2, "", ","),
+                                     inla.ifelse(n.what==2, "", ","),
                                      " or \"",
-                                     what[length(what)],
+                                     what[n.what],
                                      "\".",
                                      sep="")),
                    sep=""))
+    }
     return(invisible())
 }
 
@@ -1166,7 +1167,7 @@
     return (inla.eval(strsplit(the.source, split = newline)[[1]]))
 }
 
-    
+
 
 `inla.writeLines` = function(filename, lines)
 {
@@ -1178,7 +1179,7 @@
     fp = file(filename, "wb")
     len = length(lines)
     writeBin(len, fp)
-    
+
     for(i in 1L:len) {
         nc = nchar(lines[i])
         writeBin(nc, fp)
@@ -1197,7 +1198,7 @@
     if (!file.exists(filename)) {
         return (NULL)
     }
-    
+
     fp = file(filename, "rb")
     len = readBin(fp, integer(), n = 1L)
     lines = character(len)
@@ -1209,5 +1210,23 @@
     close(fp)
 
     return(lines)
+}
+
+`inla.is.matrix` = function(A)
+{
+    ## return TRUE if A is a 'matrix' neglecting possible formats
+    ## (dense, sparse, etc...)
+    if (is.matrix(A) || is(A,  "dgTMatrix") || is(A,  "dgCMatrix")) {
+        ## the common cases
+        return (TRUE)
+    } else {
+        ## then its something else
+        d = dim(A)
+        if (is.null(d)) {
+            return (FALSE)
+        } else {
+            return (length(d) == 2)
+        }
+    }
 }
 

@@ -1,13 +1,12 @@
 Package: INLA
 Type: Package
-Title: Functions which allow to perform a full Bayesian analysis of structured additive models using Integrated Nested Laplace Approximaxion
+Title: Functions which allow to perform a full Bayesian analysis of structured (geo-)additive models using Integrated Nested Laplace Approximaxion
 Version: 0.0
 Date: 2009-01-01
-Author: Havard Rue and Sara Martino
-Maintainer: Havard Rue <hrue@math.ntnu.no>
-Description: This package contains functions which allow to perform a full Bayesian analysis of structured additive models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
-Depends: Matrix
-Suggests: pixmap, mvtnorm, fields, numDeriv, sp
+Author: Havard Rue, Sara Martino and Finn Lindgren
+Maintainer: Havard Rue <hrue@math.ntnu.no> and Finn Lindgren <finn.lindgren@gmail.com>
+Description: This package contains functions which allow to perform a full Bayesian analysis of structured (geo-)additive models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
+Depends: Matrix, pixmap, sp
+Suggests: numDeriv, Rgraphviz, graph, fields, rgl, mvtnorm
 License: GPL
-LazyLoad: no
 Packaged: The package data is given using 'inla.version()'

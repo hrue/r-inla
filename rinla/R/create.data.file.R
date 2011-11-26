@@ -114,6 +114,7 @@
 
     } else if (inla.one.of(family,
                            c("binomial",
+                             "binomialtest", 
                              "cbinomial", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",

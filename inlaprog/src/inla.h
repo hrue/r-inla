@@ -136,6 +136,11 @@ typedef struct {
 	 */
 	double *nb;
 
+	/* 
+	   y ~ Binomial test
+	 */
+	double **link_psi;
+
 	/*
 	 * y ~ Neg.Binomial(n, p(x)), n=size is a hyperparameter (overdispersion)
 	 */
@@ -265,6 +270,7 @@ typedef enum {
 	L_TSTRATA,
 	L_POISSON,
 	L_BINOMIAL,
+	L_BINOMIALTEST,					       /* test-version of the binomial! */
 	L_CBINOMIAL, 					       /* clumped binomial */
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
@@ -849,6 +855,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
+double map_binomialtest_psi(double x, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
@@ -970,6 +977,7 @@ int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

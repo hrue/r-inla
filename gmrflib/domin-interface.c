@@ -55,15 +55,11 @@ static GMRFLib_domin_arg_tp G;				       /* hold arguments */
 typedef struct {
 	double f_best;
 	double *f_best_x;
-	int f_busy;
-	int f_first;
 } Best_tp;
 
 static Best_tp B = {
 	0.0,
-	NULL,
-	0,
-	1
+	NULL
 };
 
 int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
@@ -118,8 +114,6 @@ int GMRFLib_domin_exit(void)
 	B.f_best = 0.0;
 	if (B.f_best_x)
 		Free(B.f_best_x);
-	B.f_first = 1;
-	B.f_busy = 1;
 	return GMRFLib_SUCCESS;
 }
 int gmrflib_domin_f_(double *x, double *fx, int *ierr)
@@ -205,6 +199,8 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	int i, debug = 0;
 	double ffx, fx_local;
 
+	int id = GMRFLib_thread_id;
+	
 #pragma omp parallel sections if (((GMRFLib_openmp && GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_HUGE) ? 1 : 0))
 	{
 		/*
@@ -212,25 +208,22 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		 */
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
 			for (i = 0; i < G.nhyper; i++) {
 				G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
 			}
 
 			GMRFLib_ai_marginal_hyperparam(fx, G.x, G.b, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph, G.Qfunc, G.Qfunc_arg, G.constr, G.ai_par, ais);
-
-			if (B.f_first) {
-				B.f_first = 0;
-				GMRFLib_ai_marginal_hyperparam(fx, G.x, G.b, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
-							       G.graph, G.Qfunc, G.Qfunc_arg, G.constr, G.ai_par, ais);
-			}
 		}
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
 			ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 		}
 	}
-
+	GMRFLib_thread_id = id;
+	
 	*fx += ffx;					       /* add contributions */
 	*fx *= -1.0;					       /* domin() do minimisation */
 	fx_local = *fx;
@@ -244,9 +237,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	if (B.f_best == 0.0 || fx_local < B.f_best) {
 #pragma omp critical
 		{
-			if (B.f_busy == 1)
-				printf("************************* B.f_busy = 1 ******************************\n");
-			B.f_busy = 1;
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 
 				if (debug)
@@ -272,7 +262,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 					fflush(stderr);	       /* helps for remote inla */
 				}
 			}
-			B.f_busy = 0;
 		}
 	}
 	if (G.ai_par->fp_hyperparam) {
@@ -310,7 +299,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 * new implementation more suited for OpenMP. return also, optionally, also f0.
 	 */
 
-	int i, tmax, id, debug = 0;
+	int i, tmax, id, debug = 0, id_save;
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
@@ -319,7 +308,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id = omp_get_thread_num();
-
+	id_save = GMRFLib_thread_id;
+	
 	/*
 	 * this is the one to be copied 
 	 */
@@ -367,7 +357,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Free(xx);
 		}
 		GMRFLib_thread_id = id;
-
+		
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
 		 */
@@ -379,7 +369,6 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		if (f0) {
 			*f0 = f_zero;
 		}
-
 
 		Free(f);
 	} else {
@@ -426,6 +415,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Free(xx);
 			GMRFLib_thread_id = 0;
 		}
+
 		for (i = 0; i < G.nhyper; i++) {
 			gradx[i] = (f[i] - fm[i]) / (2.0 * h);
 		}
@@ -443,6 +433,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		Free(f);
 		Free(fm);
 	}
+
+	GMRFLib_thread_id = id_save;
 
 	GMRFLib_free_ai_store(ai_store_reference);
 	for (i = 0; i < tmax; i++) {
