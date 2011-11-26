@@ -4,13 +4,18 @@
 \alias{inla.spde2.precision}
 \alias{inla.spde.precision.inla.spde1}
 \alias{inla.spde.precision.inla.spde2}
-\title{Add title here
-%%  ~~function to do ... ~~
+\title{
+  Precision matrices for SPDE models
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Calculates the precision matrix for given parameter values based on an
+\code{inla.spde} model object.
 }
 \usage{
+inla.spde.precision(...)
+inla.spde1.precision(spde,
+                     theta.T=NULL, theta.K=NULL,
+                     tau=NULL, kappa2=NULL)
 inla.spde2.precision(spde,
                      theta = NULL,
                      phi0 = inla.spde2.theta2phi0(spde, theta),
@@ -20,25 +25,26 @@ inla.spde2.precision(spde,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{spde}{
-%%     ~~Describe \code{spde} here~~
-}
+    An \code{inla.spde} object.
+  }
   \item{theta}{
-%%     ~~Describe \code{theta} here~~
-}
+    The parameter vector.
+  }
   \item{phi0}{
-%%     ~~Describe \code{phi0} here~~
-}
+    Internal parameter for a generic model.  Expert option only.
+  }
   \item{phi1}{
-%%     ~~Describe \code{phi1} here~~
-}
+    Internal parameter for a generic model.  Expert option only.
+  }
   \item{phi2}{
-%%     ~~Describe \code{phi2} here~~
-}
+    Internal parameter for a generic model.  Expert option only.
+  }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
+  A sparse precision matrix.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
@@ -49,7 +55,7 @@ inla.spde2.precision(spde,
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+  Finn Lindgren \email{finn.lindgren@gmail.com}
 }
 \note{
 %%  ~~further notes~~
@@ -61,29 +67,8 @@ inla.spde2.precision(spde,
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (spde, theta = NULL, phi0 = inla.spde2.theta2phi0(spde, 
-    theta), phi1 = inla.spde2.theta2phi1(spde, theta), phi2 = inla.spde2.theta2phi2(spde, 
-    theta)) 
-{
-    inla.require.inherits(spde, "inla.spde2", "'spde'")
-    if (spde$f$model != "spde2") {
-        stop("'inla.spde2.precision' only supports internal inla models 'spde2'")
-    }
-    D0 = Diagonal(spde$n.spde, phi0)
-    D1 = Diagonal(spde$n.spde, phi1)
-    D12 = Diagonal(spde$n.spde, phi1 * phi2)
-    Q = (D0 \%*\% (D1 \%*\% spde$param.inla$M0 \%*\% D1 + D12 \%*\% spde$param.inla$M1 + 
-        t(spde$param.inla$M1) \%*\% D12 + spde$param.inla$M2) \%*\% 
-        D0)
-    return(Q)
-  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+%\keyword{ ~kwd1 }
+%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
