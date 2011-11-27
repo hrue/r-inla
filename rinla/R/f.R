@@ -308,6 +308,8 @@
     ## like f(covariate, weights)
     vars = as.list(substitute(list(...)))[-1]
     d = length(vars)
+    if (d == 0L)
+        stop(paste("Missing covariate in f(...) for model=", model))
     term = deparse(vars[[1]], backtick = TRUE, width.cutoff = 500)
     if (debug) {
         print(vars)
