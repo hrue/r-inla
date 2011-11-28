@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from inla.hyperpar.R
+##
 \name{inla.hyperpar}
 \alias{inla.hyperpar}
 \alias{hyperpar.inla}
