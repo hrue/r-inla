@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from qinv.R
+##
  \name{qinv}
  \alias{inla.qinv}
  \alias{qinv}

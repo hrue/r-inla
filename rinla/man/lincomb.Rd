@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from lincomb.R
+##
 \name{make.lincomb}
 \alias{make.lincomb}
 \alias{make.lincombs}

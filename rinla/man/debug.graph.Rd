@@ -1,8 +1,11 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from debug.graph.R
+##
 \name{debug.graph}
 \alias{debug.graph}
 \alias{inla.debug.graph}
 \title{Debug a graph-file}
-\description{Debug a graph spesification, by checking the spesification along the way and signal an error if required."}
+\description{Debug a graph specification, by checking the specification along the way and signal an error if required."}
 \usage{inla.debug.graph(graph.file)}
 \arguments{
     \item{graph.file}{The filename of the graph.}
