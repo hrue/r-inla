@@ -670,6 +670,16 @@
     gp = inla.interpret.formula(formula, data=data,  data.model = data.model)
     call = deparse(match.call())
 
+    ## issue a warning if the intercept is spesified while the
+    ## control.predictor A matrix is used.
+    if (length(grep("\\+ ?1($| )", gp$fixf)) && !is.null(control.predictor$A)) {
+        warning("The A-matrix in the predictor (see ?control.predictor) is specified
+  but an intercept is in the formula. This will likely result
+  in the intercept being applied multiple times in the model, and is likely
+  not what you want. See ?inla.stack for more information.
+  You can remove the intercept adding ``-1'' to the formula.")
+    }
+
     if (gp$n.fix > 0) {
         inla.na.action = function(x, ...) {
             ## set fixed effects that are NA to 0. Check that if there
