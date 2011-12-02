@@ -1661,7 +1661,7 @@
                     out.file = paste(tempfile(), ".DAT",  sep="")
                     cat("@ echo off\n",  file=bat.file, append=FALSE)
                     cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(out.file)), file=bat.file, append=TRUE)
-                    echoc = try(shell(paste("@", bat.file), wait=TRUE), silent=FALSE)
+                    echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
                     unlink(bat.file)
                     unlink(out.file)
                 }
