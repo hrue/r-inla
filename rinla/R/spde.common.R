@@ -377,21 +377,28 @@ inla.spde.make.A =
     A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
 
     if (!is.null(group.mesh) && (group.method=="S1")) {
-        return(sparseMatrix(i=(1L+c(A.loc@i, A.loc@i)),
+        i = 1L+A.loc@i
+        group.i1 = group.index$index[i,1]
+        group.i2 = group.index$index[i,2]
+        repl.i = repl[i]
+        return(sparseMatrix(i=c(i,i),
                             j=(1L+c(A.loc@j+
-                                    n.mesh*(group.index$index[,1]-1L)+
-                                    n.mesh*n.group*(repl-1L),
+                                    n.mesh*(group.i1-1L)+
+                                    n.mesh*n.group*(repl.i-1L),
                                     A.loc@j+
-                                    n.mesh*(group.index$index[,2]-1L)+
-                                    n.mesh*n.group*(repl-1L))),
-                               x=c(A.loc@x*group.index$bary[,1],
-                               A.loc@x*group.index$bary[,2]),
+                                    n.mesh*(group.i2-1L)+
+                                    n.mesh*n.group*(repl.i-1L))),
+                            x=(c(A.loc@x*group.index$bary[i,1],
+                                 A.loc@x*group.index$bary[i,2])),
                             dims=c(length(index), n.mesh*n.group*n.repl)))
     } else {
-        return(sparseMatrix(i=(1L+A.loc@i),
+        i = 1L+A.loc@i
+        group.i = group[i]
+        repl.i = repl[i]
+        return(sparseMatrix(i=i,
                             j=(1L+A.loc@j+
-                               n.mesh*(group-1L)+
-                               n.mesh*n.group*(repl-1L)),
+                               n.mesh*(group.i-1L)+
+                               n.mesh*n.group*(repl.i-1L)),
                             x=A.loc@x,
                             dims=c(length(index), n.mesh*n.group*n.repl)))
     }
