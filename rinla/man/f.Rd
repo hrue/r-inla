@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from f.R
+##
 \name{f}
 \alias{f}
 \title{ Defining smooth and spatial effects in INLA formulae }

@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from marginal.R
+##
  \name{marginal}
  \alias{inla.marginal}
  \alias{marginal}

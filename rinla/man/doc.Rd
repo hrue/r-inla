@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from doc.R
+##
 \name{inla.doc}
 \alias{inla.doc}
 \alias{inla.doc}

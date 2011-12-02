@@ -1,3 +1,6 @@
+## WARNING! DO NOT EDIT!
+## File automatically generated from inla.R
+##
  \name{inla}
  \alias{inla}
  \alias{xinla}

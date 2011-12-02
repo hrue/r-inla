@@ -10,9 +10,9 @@ inla(formula, ..., control.fixed=list( <arg>=<value>[, <arg>=<value>]))
 \arguments{
 \item{cdf}{  A list of values to compute the CDF for, for all fixed effects}
 \item{quantiles}{  A list of quantiles to compute for all fixed effects}
-\item{mean}{  Prior mean for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.}
+\item{mean}{  Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.}
 \item{mean.intercept}{  Prior mean for the intercept}
-\item{prec}{  Default precision for all fixed effects except the intercept. Alternatively, a named list with spesific means where name=default applies to unmatched names. For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.}
+\item{prec}{  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.}
 \item{prec.intercept}{  Default precision the intercept (default 0.0)}
 \item{compute}{  Compute marginals for the fixed effects ? (default TRUE)}
 }
