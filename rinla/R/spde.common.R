@@ -351,7 +351,6 @@ inla.spde.make.A =
             stop(paste("length(group) != length(index): ",
                        length(group), " != ", length(index),
                        sep=""))
-        print(group)
         if (group.method=="nearest") {
             group.index =
                 inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
@@ -363,7 +362,6 @@ inla.spde.make.A =
                 group = group.index$index[,1]
             }
         }
-        print(group.index)
     }
 
     ## Handle repl semantics:
@@ -471,13 +469,65 @@ rbind.inla.data.stack.info = function(...)
 }
 
 
+inla.stack.compress = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    if (stack$effects$nrow<2) {
+        return(stack)
+    }
+
+    ii = do.call(order, as.list(stack$effects$data))
+    remove = rep(FALSE, stack$effects$nrow)
+    remove[ii[duplicated(stack$effects$data[ii,,drop=FALSE])]] = TRUE
+    jj.dupl =
+        which(1L==diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+              FALSE)))
+    kk.dupl =
+        which(-1L==diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+              FALSE)))
+    ## which(remove) are all the duplicate rows.
+    ## ii[jj.dupl] are the rows that have duplicates.
+    ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
+
+    index.new = rep(NA, stack$effect$nrow)
+    index.new[!remove] = 1:sum(!remove)
+
+    if (length(jj.dupl)>0) {
+        for (k in 1:length(jj.dupl)) {
+            i = ii[jj.dupl[k]]
+            k = ii[(jj.dupl[k]+1):kk.dupl[k]]
+            stack$A[,i] = rowSums(stack$A[,c(i,k),drop=FALSE])
+
+            index.new[k] = i
+        }
+    }
+
+    ## Also remove components with no effect:
+    remove.unused = which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
+    remove[remove.unused] = TRUE
+    index.new[!remove] = 1:sum(!remove)
+    index.new[remove.unused] = NA
+
+    for (k in 1:length(stack$effects$index)) {
+        stack$effects$index[[k]] = index.new[stack$effects$index[[k]]]
+    }
+
+    stack$A = stack$A[, !remove, drop=FALSE]
+    stack$effects$data = stack$effects$data[!remove,, drop=FALSE]
+    stack$effects$nrow = ncol(stack$A)
+
+    return(stack)
+}
+
+
 inla.stack = function(...)
 {
     UseMethod("inla.stack")
 }
 
 
-inla.stack.default = function(data, A, effects, tag="", ...)
+inla.stack.default = function(data, A, effects, tag="", compress=TRUE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -680,11 +730,14 @@ inla.stack.default = function(data, A, effects, tag="", ...)
     stack = list(A=A.matrix, data=data, effects=effects)
     class(stack) = "inla.data.stack"
 
-    return(stack)
+    if (compress)
+        return(inla.stack.compress(stack))
+    else
+        return(stack)
 
 }
 
-inla.stack.inla.data.stack = function(...)
+inla.stack.inla.data.stack = function(..., compress=TRUE)
 {
     S.input = list(...)
 
@@ -712,7 +765,10 @@ inla.stack.inla.data.stack = function(...)
                    sep=""))
     }
 
-    return(S.output)
+    if (compress)
+        return(inla.stack.compress(S.output))
+    else
+        return(S.output)
 }
 
 
