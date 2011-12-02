@@ -478,8 +478,6 @@ inla.stack.compress = function(stack)
     }
 
     ii = do.call(order, as.list(stack$effects$data))
-    remove = rep(FALSE, stack$effects$nrow)
-    remove[ii[duplicated(stack$effects$data[ii,,drop=FALSE])]] = TRUE
     jj.dupl =
         which(1L==diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
               FALSE)))
@@ -490,8 +488,8 @@ inla.stack.compress = function(stack)
     ## ii[jj.dupl] are the rows that have duplicates.
     ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
 
+    remove = rep(FALSE, stack$effects$nrow)
     index.new = rep(NA, stack$effect$nrow)
-    index.new[!remove] = 1:sum(!remove)
 
     if (length(jj.dupl)>0) {
         for (k in 1:length(jj.dupl)) {
@@ -499,6 +497,7 @@ inla.stack.compress = function(stack)
             k = ii[(jj.dupl[k]+1):kk.dupl[k]]
             stack$A[,i] = rowSums(stack$A[,c(i,k),drop=FALSE])
 
+            remove[k] = TRUE
             index.new[k] = i
         }
     }
@@ -506,8 +505,10 @@ inla.stack.compress = function(stack)
     ## Also remove components with no effect:
     remove.unused = which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
     remove[remove.unused] = TRUE
-    index.new[!remove] = 1:sum(!remove)
-    index.new[remove.unused] = NA
+
+    if (any(!remove))
+        index.new[!remove] = 1:sum(!remove)
+    index.new[remove] = index.new[index.new[remove]]
 
     for (k in 1:length(stack$effects$index)) {
         stack$effects$index[[k]] = index.new[stack$effects$index[[k]]]
