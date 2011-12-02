@@ -670,6 +670,16 @@
     gp = inla.interpret.formula(formula, data=data,  data.model = data.model)
     call = deparse(match.call())
 
+    ## issue a warning if the intercept is spesified while the
+    ## control.predictor A matrix is used.
+    if (length(grep("\\+ ?1($| )", gp$fixf)) && !is.null(control.predictor$A)) {
+        warning("The A-matrix in the predictor (see ?control.predictor) is specified
+  but an intercept is in the formula. This will likely result
+  in the intercept being applied multiple times in the model, and is likely
+  not what you want. See ?inla.stack for more information.
+  You can remove the intercept adding ``-1'' to the formula.")
+    }
+
     if (gp$n.fix > 0) {
         inla.na.action = function(x, ...) {
             ## set fixed effects that are NA to 0. Check that if there
@@ -1647,11 +1657,13 @@
                     ##echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=FALSE, stderr="", wait=TRUE))
 
                     ## another try for Win-problem with R-2.14...
-                    batfile = paste(tempfile(), ".BAT",  sep="")
-                    cat("@ echo off\n",  file=batfile, append=FALSE)
-                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), " >NUL"), file=batfile, append=TRUE)
-                    echoc = try(shell(paste("@", batfile), wait=TRUE), silent=FALSE)
-                    unlink(batfile)
+                    bat.file = paste(tempfile(), ".BAT",  sep="")
+                    out.file = paste(tempfile(), ".DAT",  sep="")
+                    cat("@ echo off\n",  file=bat.file, append=FALSE)
+                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(out.file)), file=bat.file, append=TRUE)
+                    echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
+                    unlink(bat.file)
+                    unlink(out.file)
                 }
                 if (echoc != 0L) {
                     if (!verbose) {
