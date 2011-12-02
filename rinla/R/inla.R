@@ -1657,11 +1657,13 @@
                     ##echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=FALSE, stderr="", wait=TRUE))
 
                     ## another try for Win-problem with R-2.14...
-                    batfile = paste(tempfile(), ".BAT",  sep="")
-                    cat("@ echo off\n",  file=batfile, append=FALSE)
-                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), " >NUL"), file=batfile, append=TRUE)
-                    echoc = try(shell(paste("@", batfile), wait=TRUE), silent=FALSE)
-                    unlink(batfile)
+                    bat.file = paste(tempfile(), ".BAT",  sep="")
+                    out.file = paste(tempfile(), ".DAT",  sep="")
+                    cat("@ echo off\n",  file=bat.file, append=FALSE)
+                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(out.file)), file=bat.file, append=TRUE)
+                    echoc = try(shell(paste("@", bat.file), wait=TRUE), silent=FALSE)
+                    unlink(bat.file)
+                    unlink(out.file)
                 }
                 if (echoc != 0L) {
                     if (!verbose) {
