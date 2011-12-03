@@ -788,8 +788,15 @@ inla.stack.index = function(stack, tag)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
-    return(list(data=as.vector(do.call(c, stack$data$index[tag])),
-                effects=as.vector(do.call(c, stack$effects$index[tag]))))
+    if (is.null(tag)) {
+        return(list(data=as.vector(do.call(c, stack$data$index)),
+                    effects=(stack$data$nrow+
+                             as.vector(do.call(c, stack$effects$index)))))
+    } else {
+        return(list(data=as.vector(do.call(c, stack$data$index[tag])),
+                    effects=(stack$data$nrow+
+                             as.vector(do.call(c, stack$effects$index[tag])))))
+    }
 }
 
 inla.stack.data = function(stack, ...)
