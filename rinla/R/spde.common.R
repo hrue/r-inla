@@ -486,12 +486,13 @@ inla.stack.compress = function(stack)
 
     ii = do.call(order, as.list(stack$effects$data))
     jj.dupl =
-        which(1L==diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
-              FALSE)))
+        which(1L==
+              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+                     FALSE)))
     kk.dupl =
-        which(-1L==diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
-              FALSE)))
-    ## which(remove) are all the duplicate rows.
+        which(-1L==
+              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+                     FALSE)))
     ## ii[jj.dupl] are the rows that have duplicates.
     ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
 
