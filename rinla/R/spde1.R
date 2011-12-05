@@ -322,23 +322,63 @@ inla.spde1.result = function(inla, name, spde, do.transform=TRUE, ...)
     ## log-tau/kappa2
     result$summary.log.tau =
         inla.extract.el(inla$summary.random[["UserFunction1"]],
-                        paste("^tau´.[^ ]+$",
+                        paste("^tau\\.[^ ]+$",
                               sep=""))
-    result$summary.log.tau =
+    result$summary.log.kappa2 =
         inla.extract.el(inla$summary.random[["UserFunction1"]],
-                        paste("^kappa2´.[^ ]+$",
+                        paste("^kappa2\\.[^ ]+$",
                               sep=""))
+
+    ## Approximate log-range:
+    forward.names =
+        c("mean", "0.025quant", "0.5quant", "0.975quant")
+    reverse.names =
+        c("mean", "0.975quant", "0.5quant", "0.025quant")
+    result$summary.log.range.nominal = result$summary.log.kappa2
+    result$summary.log.range.nominal[,forward.names] =
+        (log(sqrt(8)) -
+         result$summary.log.kappa2[,reverse.names]/2)
+    result$summary.log.range.nominal[,"sd"] =
+        result$summary.log.kappa2[,"sd"]/4
+
+    ## Approximate log-variance:
+    result$summary.log.variance.nominal = result$summary.log.kappa2
+    result$summary.log.variance.nominal[,forward.names] =
+        -(log(4*pi) +
+          result$summary.log.tau[,reverse.names]*2 +
+          result$summary.log.kappa2[,reverse.names])
+    result$summary.log.range.nominal[,"sd"] =
+        sqrt(result$summary.log.tau[,"sd"]^2*4 +
+             result$summary.log.kappa2[,"sd"]^2 +
+             2*2*result$summary.log.tau[,"sd"]*
+             result$summary.log.kappa2[,"sd"])
 
     ## Marginals for log-tau/kappa2
     if (!is.null(inla$marginals.random[["UserFunction1"]])) {
         result$marginals.log.tau =
             inla.extract.el(inla$marginals.random[["UserFunction1"]],
-                            paste("^tau´.[^ ]+$",
+                            paste("^tau\\.[^ ]+$",
                                   sep=""))
-        result$marginals.log.tau =
+        result$marginals.log.kappa2 =
             inla.extract.el(inla$marginals.random[["UserFunction1"]],
-                            paste("^kappa2´.[^ ]+$",
+                            paste("^kappa2\\.[^ ]+$",
                                   sep=""))
+
+        if (do.transform) {
+            result$marginals.tau =
+                lapply(result$marginals.log.tau[1],
+                       function(x) inla.tmarginal(function(y) exp(y), x))
+            result$marginals.kappa =
+                lapply(result$marginals.log.kappa2[1],
+                       function(x) inla.tmarginal(function(y) exp(y/2), x))
+##            result$marginals.variance.nominal =
+##                lapply(result$marginals.log.variance.nominal,
+##                       function(x) inla.tmarginal(function(y) exp(y), x))
+            result$marginals.range.nominal =
+                lapply(result$marginals.log.kappa2[1],
+                       function(x) inla.tmarginal(function(y) sqrt(8)*exp(-y/2), x))
+        }
+
     }
 
     return(result)
