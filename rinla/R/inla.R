@@ -1290,9 +1290,11 @@
                     if (is.factor(xx)) {
                         gp$random.spec[[r]]$id.names = levels(xx)
                         location[[r]] = 1L:length(levels(xx))
+                        xx = as.numeric(xx)
                     } else if (is.character(xx)) {
                         gp$random.spec[[r]]$id.names = levels(as.factor(xx))
                         location[[r]] = 1L:length(levels(as.factor(xx)))
+                        xx = as.numeric(sapply(xx, function(xx.i, id.names) which(xx.i == id.names), id.names = gp$random.spec[[r]]$id.names))
                     } else if (is.numeric(xx)) {
                         gp$random.spec[[r]]$id.names = NULL
                         location[[r]] = sort(unique(xx))
