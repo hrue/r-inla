@@ -972,8 +972,15 @@
         else
             yy = y...orig[[i.family]]
         
-        if (MPredictor > 0)
-            stopifnot(length(yy) == MPredictor)
+        if (MPredictor > 0) {
+            if (is.list(yy)) {
+                stopifnot(max(sapply(yy, length)) == MPredictor)
+            } else if (is.matrix(yy)) {
+                stopifnot(dim(yy)[1L] == MPredictor)
+            } else {
+                stopifnot(length(yy) == MPredictor)
+            }
+        }
         
         file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, strata=strata, 
                 family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
