@@ -975,7 +975,7 @@
         if (MPredictor > 0) {
             if (is.list(yy)) {
                 stopifnot(max(sapply(yy, length)) == MPredictor)
-            } else if (is.matrix(yy)) {
+            } else if (inla.is.matrix(yy)) {
                 stopifnot(dim(yy)[1L] == MPredictor)
             } else {
                 stopifnot(length(yy) == MPredictor)
