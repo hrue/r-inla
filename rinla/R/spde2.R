@@ -266,9 +266,9 @@ inla.spde2.matern =
 
         if (n.theta>0) {
             theta.prior.mean =
-                solve(rbind(B.tau[,-1,drop=FALSE], B.kappa[,-1,drop=FALSE]),
-                      c(log(prior.tau) - B.tau[,1],
-                        log(prior.kappa) - B.kappa[,1]))
+                qr.solve(rbind(B.tau[,-1,drop=FALSE], B.kappa[,-1,drop=FALSE]),
+                         c(log(prior.tau) - B.tau[,1],
+                           log(prior.kappa) - B.kappa[,1]))
         } else {
             theta.prior.mean = rep(0, n.theta) ## Empty vector
         }
