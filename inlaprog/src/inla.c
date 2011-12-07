@@ -9736,6 +9736,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int ntheta;
 
 		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
+		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double); /* need to do this here as we do not know n_theta upfront */
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
@@ -11228,7 +11229,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (!fixed && mb->reuse_mode) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
 			}
-			SetInitial(0, tmp);
+			mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], mb->f_ntheta[mb->nf] + 1, double);
+			SetInitial(mb->f_ntheta[mb->nf], tmp);
 			HYPER_INIT(group_rho_intern, tmp);
 			if (mb->verbose) {
 				printf("\t\tinitialise group_rho_intern[%g]\n", tmp);
@@ -12917,10 +12919,14 @@ double extra(double *theta, int ntheta, void *argument)
 			for (k = 0; k < spde2_ntheta; k++) {
 				spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
 			}
+			int count_ref = count;
+
+			count += spde2_ntheta;		       /* as SET_GROUP_RHO need 'count' */
 			SET_GROUP_RHO(spde2_ntheta);
 
 			static GMRFLib_problem_tp *problem = NULL;
 #pragma omp threadprivate(problem)
+
 			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
 					     spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
 					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
@@ -12928,10 +12934,9 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
 
 			/*
-			 * this is the mvnormal prior...
+			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
 			 */
-			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
-			count += spde2_ntheta;
+			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 			break;
 		}
 
