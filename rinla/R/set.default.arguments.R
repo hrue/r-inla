@@ -357,7 +357,10 @@
          x = NULL,
 
          ##:ARGUMENT: restart A boolean variable; should we restart the optimisation from this configuration or fix the mode at this configuration? (Default FALSE.)
-         restart = FALSE)
+         restart = FALSE,
+
+         ##:ARGUMENT: fixed A boolean variable. If TRUE then treat all thetas as known and fixed, and if FALSE then treat all thetas as unknown and random (default).
+         fixed = FALSE)
     ##:SEEALSO: inla
 }
 
