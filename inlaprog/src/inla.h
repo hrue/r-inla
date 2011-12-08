@@ -480,6 +480,7 @@ struct inla_tp_struct {
 	int theta_counter_file;
 	int reuse_mode;
 	int reuse_mode_but_restart;
+	int fixed_mode;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
 	double *theta_file;
 	double *x_file;
 	int nx_file;
