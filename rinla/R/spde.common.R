@@ -502,11 +502,11 @@ inla.stack.compress = function(stack)
     if (length(jj.dupl)>0) {
         for (k in 1:length(jj.dupl)) {
             i = ii[jj.dupl[k]]
-            k = ii[(jj.dupl[k]+1):kk.dupl[k]]
-            stack$A[,i] = rowSums(stack$A[,c(i,k),drop=FALSE])
+            j = ii[(jj.dupl[k]+1):kk.dupl[k]]
+            stack$A[,i] = rowSums(stack$A[,c(i,j),drop=FALSE])
 
-            remove[k] = TRUE
-            index.new[k] = i
+            remove[j] = TRUE
+            index.new[j] = i
         }
     }
 
