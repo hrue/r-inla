@@ -5919,6 +5919,11 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tRestart = %1d\n", mb->reuse_mode_but_restart);
 	}
 
+	mb->fixed_mode = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+	if (mb->verbose) {
+		printf("\t\tFixed mode= %1d\n", mb->fixed_mode);
+	}
+
 	return INLA_OK;
 }
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
@@ -13786,6 +13791,14 @@ int inla_INLA(inla_tp * mb)
 		mb->misc_output->compute_corr_lin = 0;
 	}
 
+	if (mb->fixed_mode) {
+		/* 
+		   then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
+		 */
+		mb->ntheta = 0;
+		mb->theta = NULL;
+	}
+
 	/*
 	 * Finally, let us do the job...
 	 */
@@ -13846,6 +13859,20 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	int N, i, ii, j, n, count;
 	char *fnm, *msg;
 	ssize_t rw_retval;
+
+	if (mb_old->fixed_mode) {
+		/* 
+		   then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
+		 */
+		mb_old->ntheta = 0;
+		mb_old->theta = NULL;
+
+		assert(mb_new->fixed_mode);
+		mb_new->ntheta = 0;
+		mb_new->theta = NULL;
+	}
+
+
 
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
