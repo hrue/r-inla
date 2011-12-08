@@ -561,6 +561,7 @@
             cat("x =", fnm, "\n", file=file, append = TRUE)
         }
         inla.write.boolean.field("restart", args$restart, file)
+        inla.write.boolean.field("fixed", args$fixed, file)
     }
 }
 
