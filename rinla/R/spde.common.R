@@ -497,6 +497,70 @@ inla.stack.compress = function(stack)
     ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
 
     remove = rep(FALSE, stack$effects$nrow)
+    index.new = rep(as.integer(NA), stack$effect$nrow)
+
+    if (length(jj.dupl)>0) {
+        for (k in 1:length(jj.dupl)) {
+            i = ii[jj.dupl[k]]
+            j = ii[(jj.dupl[k]+1):kk.dupl[k]]
+
+            remove[j] = TRUE
+            index.new[j] = i
+        }
+    }
+
+    ## Also remove components with no effect:
+    remove.unused =
+        which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
+    remove[remove.unused] = TRUE
+
+    ncol.A = sum(!remove)
+    if (ncol.A>0)
+        index.new[!remove] = 1:ncol.A
+    index.new[remove] = index.new[index.new[remove]]
+
+    for (k in 1:length(stack$effects$index)) {
+        stack$effects$index[[k]] = index.new[stack$effects$index[[k]]]
+    }
+
+    A = inla.as.dgTMatrix(stack$A)
+    j.new = index.new[A@j+1L]
+    ## Check for any zero-elements in remove.unused-columns:
+    ok = !is.na(j.new)
+    stack$A =
+        sparseMatrix(i=A@i[ok]+1L,
+                     j=j.new[ok],
+                     x=A@x[ok],
+                     dims=c(nrow(A), ncol.A))
+
+    stack$effects$data = stack$effects$data[!remove,, drop=FALSE]
+    stack$effects$nrow = ncol.A
+
+    return(stack)
+}
+
+
+inla.stack.compress.old = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    if (stack$effects$nrow<2) {
+        return(stack)
+    }
+
+    ii = do.call(order, as.list(stack$effects$data))
+    jj.dupl =
+        which(1L==
+              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+                     FALSE)))
+    kk.dupl =
+        which(-1L==
+              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
+                     FALSE)))
+    ## ii[jj.dupl] are the rows that have duplicates.
+    ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
+
+    remove = rep(FALSE, stack$effects$nrow)
     index.new = rep(NA, stack$effect$nrow)
 
     if (length(jj.dupl)>0) {
@@ -511,7 +575,8 @@ inla.stack.compress = function(stack)
     }
 
     ## Also remove components with no effect:
-    remove.unused = which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
+    remove.unused =
+        which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
     remove[remove.unused] = TRUE
 
     if (any(!remove))
