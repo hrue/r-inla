@@ -2151,6 +2151,13 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	ds->data_observations.y = Calloc(mb->predictor_ndata, double);
 	ds->data_observations.d = Calloc(mb->predictor_ndata, double);
 
+	double *w = NULL;
+	int nw = 0;
+	//inla_read_data_all(&w, &nw, ds->weights_file.name);
+	if (nw) {
+		assert(nw == ds->data_observations.ndata);
+	}
+	
 	for (i = j = 0; i < n; i += idiv, j++) {
 		ii = (int) x[i];
 		if (!LEGAL(ii, mb->predictor_ndata)) {
@@ -2160,7 +2167,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 			a[k][ii] = x[i + k + 1];
 		}
 		ds->data_observations.y[ii] = x[i + idiv - 1];
-		ds->data_observations.d[ii] = 1.0;
+		if (w){
+			ds->data_observations.d[ii] = w[ii];
+		} else {
+			ds->data_observations.d[ii] = 1.0;
+		}
 		if (mb->verbose && j < PREVIEW) {
 			switch (na) {
 			case 0:
@@ -2187,6 +2198,10 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	}
+
+	Free(w);
+	Free(x);
+	
 	return INLA_OK;
 }
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value)
@@ -4865,7 +4880,23 @@ int inla_error_file_error2(const char *funcname, const char *filename, int n, in
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
-int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file)
+int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME)
+{
+	char *tag = (FILENAME ? GMRFLib_strdup(FILENAME) : GMRFLib_strdup("FILENAME"));
+	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+
+	file->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, tag), NULL));
+	if (!file->name) {
+		inla_error_missing_required_field(__GMRFLib_FuncName, secname, tag);
+	}
+	if (mb->verbose) {
+		printf("\t\tfile->name=[%s]\n", file->name);
+	}
+	Free(tag);
+
+	return INLA_OK;
+}
+int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file)
 {
 	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 
@@ -5584,7 +5615,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->d = Calloc(mb->predictor_ndata, double);
 
 	for (i = 0; i < mb->predictor_ndata; i++) {
-
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
 				k = j;
@@ -6397,7 +6427,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		mb->gaussian_data = GMRFLib_FALSE;
 	}
 
-	inla_read_fileinfo(mb, ini, sec, &(ds->data_file));
+	inla_read_fileinfo(mb, ini, sec, &(ds->data_file), NULL);
+	//inla_read_fileinfo(mb, ini, sec, &(ds->weights_file), "WEIGHTS");
 	inla_read_data_likelihood(mb, ini, sec);
 	/*
 	 * validate the data 
@@ -7567,7 +7598,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("dof_intern for tstrata", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("degrees of freedom for tstrata", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);

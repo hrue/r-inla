@@ -838,8 +838,8 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
-float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
-float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
+float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
+float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, double **izs, int n, int nhyper, double dz);
