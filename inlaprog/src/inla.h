@@ -418,6 +418,7 @@ typedef struct {
 
 	inla_component_tp data_id;
 	File_tp data_file;
+	File_tp weights_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
@@ -952,7 +953,7 @@ int inla_finn(const char *filename);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
-int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
+int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME);
 int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
