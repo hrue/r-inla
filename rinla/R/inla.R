@@ -550,7 +550,8 @@
 
     data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
-    if (!is.data.frame(data)) {
+    if (!(is.data.frame(data)) &&
+        !(is.list(data) && length(data) == 0L)) {
         ## if there's an Amatrix in the predictor, we have to take it
         ## out from the data. It should not be there really, since the
         ## A-matrix is evaluated when the inla() call is made, but...
