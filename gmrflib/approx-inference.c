@@ -1263,7 +1263,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	if (cpo_density) {						\
 		if (d[idx]) {						\
 			double *xp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
-			int np = 35, _one = 1, _debug = 0;		\
+			int np = 35, _one = 1, _debug = 0, _i;		\
 									\
 			work = Calloc(4*np, double); /* storage */	\
 			xp = &work[0];					\
@@ -1274,9 +1274,10 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 			GMRFLib_density_std2user_n(x_user, xp, np, *density); \
 			loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
+			for(_i=0; _i < np; _i++)			\
+				logcor[_i] *= d[idx];			\
 			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one); /* ld = ld - logcor */ \
 			if (_debug && np && idx == 0) {			\
-				int _i;					\
 				for(_i = 0; _i < np; _i++)		\
 					printf("CPO: %d %g %g\n", idx, xp[_i], ld[_i]);	\
 				printf("CPO: \n");			\
@@ -3081,11 +3082,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (cpo || ai_par->cpo_manual) {			\
 			failure_theta[ii][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[ii][dens_count], \
 										    &pit_theta[ii][dens_count], ii, cpodens, \
-										    loglFunc, loglFunc_arg, xx_mode); \
+										    d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 		if (dic) {						\
 			deviance_theta[ii][dens_count] = GMRFLib_ai_dic_integrate(ii, dens[ii][dens_count], \
-										  loglFunc, loglFunc_arg, xx_mode); \
+										  d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
 
@@ -3094,12 +3095,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (cpo || ai_par->cpo_manual) {			\
 			failure_theta_local[ii] +=			\
 				GMRFLib_ai_cpopit_integrate(&cpo_theta_local[ii], &pit_theta_local[ii],	\
-							    ii, cpodens, loglFunc, loglFunc_arg, xx_mode); \
+							    ii, cpodens, d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 		if (0) printf("COMPUTE cpo for %d %g %g\n", ii,  cpo_theta_local[ii], pit_theta_local[ii]); \
 		if (dic) {						\
 			deviance_theta_local[ii] =			\
-				GMRFLib_ai_dic_integrate(ii, dens_local[ii], loglFunc, loglFunc_arg, xx_mode); \
+				GMRFLib_ai_dic_integrate(ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
 
@@ -5029,6 +5030,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				double double_tmp = (double) ((*density)[ii]->user_mean);
 				loglFunc(&logll, &double_tmp, 1, ii, x_vec, loglFunc_arg);
+				logll *= d[ii];
 				dm = -2.0 * logll;
 				deviance_e[ii] = dm;
 			} else {
@@ -6034,7 +6036,8 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 
 	return GMRFLib_SUCCESS;
 }
-float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
+float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
+				  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
@@ -6082,11 +6085,14 @@ float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_densi
 	GMRFLib_evaluate_ndensity(dens, xpi, np, cpo_density);
 
 	if (compute_cpo) {
-		loglFunc(prob, xp, -np, idx, x_vec, loglFunc_arg);
+		loglFunc(prob, xp, -np, idx, x_vec, loglFunc_arg); /* no correction for 'd' here; should we?  */
 	} else {
 		memset(prob, 0, np * sizeof(double));
 	}
 	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
+	for (i = 0; i < np; i++) {
+		loglik[i] *= d;
+	}
 
 	if (0) {
 		P(idx);
@@ -6138,7 +6144,7 @@ float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_densi
 	Free(work);
 	return fail;
 }
-float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
+float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
 	/*
 	 * compute the integral of -2*loglikelihood * density(x), wrt x
@@ -6167,6 +6173,9 @@ float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, GMRFLib_lo
 	}
 	GMRFLib_evaluate_ndensity(dens, xpi, np, density);
 	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
+	for (i=0; i<np; i++){
+		loglik[i] *= d;
+	}
 
 	integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
 	integral_one = dens[0] + dens[np - 1];
