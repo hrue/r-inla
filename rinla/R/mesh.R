@@ -144,6 +144,102 @@ plot.inla.mesh =
 }
 
 
+inla.mesh.map.lim =
+    function(loc=NULL,
+             projection=c("default", "longlat", "longsinlat", "mollweide"))
+{
+    projection = match.arg(projection)
+    if (identical(projection, "default")) {
+        if (is.null(loc)) {
+            lim = list(xlim=c(0, 1), ylim=c(0, 1))
+        } else {
+            lim =
+                list(xlim=range(loc[,1], na.rm=TRUE),
+                     ylim=range(loc[,2], na.rm=TRUE))
+        }
+    } else if (identical(projection, "longlat")) {
+        lim = list(xlim=c(-180,180), ylim=c(-90,90))
+    } else if (identical(projection, "longsinlat")) {
+        lim = list(xlim=c(-180,180), ylim=c(-1,1))
+    } else if (identical(projection, "mollweide")) {
+        lim = list(xlim=c(-2,2), ylim=c(-1,1))
+    } else {
+        stop(paste("Unknown projection '", projection, "'.", sep=""))
+    }
+    return(lim)
+}
+
+inla.mesh.map =
+    function(loc,
+             projection=c("default", "longlat", "longsinlat", "mollweide"),
+             inverse=TRUE)
+{
+    projection = match.arg(projection)
+    if (identical(projection, "default")) {
+        return(loc)
+    } else if (identical(projection, "longlat")) {
+        if (inverse) {
+            proj =
+                cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                      sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
+                      sin(loc[,2]*pi/180))
+        } else {
+            proj =
+                cbind(atan2(loc[,2], loc[,1])*180/pi,
+                      asin(pmin(-1, pmax(+1, loc[,3])))*180/pi)
+        }
+    } else if (identical(projection, "longsinlat")) {
+        if (inverse) {
+            coslat = sqrt(pmax(0, 1-loc[,2]^2))
+            proj =
+                cbind(cos(loc[,1]*pi/180)*coslat,
+                      sin(loc[,1]*pi/180)*coslat,
+                      loc[,2]
+                      )
+        } else {
+            proj =
+                cbind(atan2(loc[,2], loc[,1])*180/pi,
+                      loc[,3])
+        }
+    } else if (identical(projection, "mollweide")) {
+        if (inverse) {
+            ok = ((loc[,1]^2+4*loc[,2]^2) <= 4)
+            cos.theta = sqrt(pmax(0, 1-loc[ok,2]^2))
+            theta = atan2(loc[ok,2], cos.theta)
+            sin.lat = (2*theta+sin(2*theta))/pi
+            cos.lat = sqrt(pmax(0, 1-sin.lat^2))
+            lon = loc[ok,1]*pi/2/(cos.theta+(cos.theta==0))
+            lon[cos.theta==0] = pi/2*sign(theta[cos.theta==0])
+            proj = matrix(NA, nrow(loc), 3)
+            proj[ok,] = cbind(cos(lon)*cos.lat, sin(lon)*cos.lat, sin.lat)
+        } else {
+            lon = atan2(loc[,2],loc[,1])
+            z = pmin(1, pmax(-1, loc[,3]))
+            sin.theta = z
+            cos.theta = sqrt(pmax(0, 1-sin.theta^2))
+            ## NR-solver for sin.theta.
+            ## Typically finishes after at most 7 iterations.
+            ## When cos.theta=0, sin.theta is already correct, +/- 1.
+            nook = (cos.theta>0)
+            for (k in 1:20) {
+                if (any(nook)) {
+                    delta =
+                        (atan2(sin.theta[nook], cos.theta[nook]) +
+                         sin.theta[nook]*cos.theta[nook] - pi/2*z[nook])/
+                             (2*cos.theta[nook])
+                    sin.theta[nook] = sin.theta[nook] - delta
+                    cos.theta[nook] = sqrt(1-sin.theta[nook]^2)
+                    nook[nook] = (abs(delta)>1e-14)
+                }
+            }
+            proj = cbind(2*lon/pi*cos.theta, sin.theta)
+        }
+    } else {
+        stop(paste("Unknown projection '", projection, "'.", sep=""))
+    }
+    return(proj)
+}
+
 
 inla.mesh.lattice =
     function(x=seq(0, 1, length.out=2),
@@ -154,13 +250,17 @@ inla.mesh.lattice =
                                  c(length(x), length(y)))),
              units = NULL)
 {
-    units = match.arg(units, c("default", "longlat","longsinlat"))
+    units = match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
+
+    lim = inla.mesh.map.lim(projection=units)
+    xlim = lim$xlim
+    ylim = lim$ylim
 
     if (missing(x) && !missing(dims)) {
-      x = seq(0, 1, length.out=dims[1])
+      x = seq(xlim[1], xlim[2], length.out=dims[1])
     }
     if (missing(y) && !missing(dims)) {
-      y = seq(0, 1, length.out=dims[2])
+      y = seq(ylim[1], ylim[2], length.out=dims[2])
     }
     dims = as.integer(dims)
 
@@ -185,19 +285,7 @@ inla.mesh.lattice =
     if (!is.double(loc))
         storage.mode(loc) = "double"
 
-    if (identical(units, "longlat")) {
-        ## Transform onto a sphere
-        loc = (cbind(cos(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
-                     sin(loc[,1]*pi/180)*cos(loc[,2]*pi/180),
-                     sin(loc[,2]*pi/180)))
-    } else if (identical(units, "longsinlat")) {
-        ## Transform onto a sphere
-        coslat = sapply(loc[,2], function(x) sqrt(max(0, 1-x^2)))
-        loc = (cbind(cos(loc[,1]*pi/180)*coslat,
-                     sin(loc[,1]*pi/180)*coslat,
-                     loc[,2]
-                     ))
-    }
+    loc = inla.mesh.map(loc=loc, projection=units, inverse=TRUE)
 
     ## Construct lattice boundary
     segm.idx = (c(1:(dims[1]-1),
@@ -1168,11 +1256,17 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
         return(inla.mesh.project(proj, field))
     }
 
+    jj =
+        which(rowSums(matrix(is.na(as.vector(loc)),
+                             nrow=nrow(loc),
+                             ncol=ncol(loc))) == 0)
     smorg = (inla.fmesher.smorg(mesh$loc,
                                 mesh$graph$tv,
-                                points2mesh=loc))
-    ti = smorg$p2m.t
-    b = smorg$p2m.b
+                                points2mesh=loc[jj,,drop=FALSE]))
+    ti = matrix(0L, nrow(loc), 3)
+    b = matrix(0, nrow(loc), 3)
+    ti[jj,] = smorg$p2m.t
+    b[jj,] = smorg$p2m.b
 
     ok = (ti[,1] > 0L)
     ti[ti[,1] == 0L,1] = NA
@@ -1235,22 +1329,17 @@ inla.mesh.projector =
                 y = seq(ylim[1], ylim[2], length.out=dims[2])
             } else if (identical(mesh$manifold, "S2")) {
                 projection =
-                    match.arg(projection, c("longlat", "longsinlat"))
+                    match.arg(projection, c("longlat", "longsinlat", "mollweide"))
                 units = projection
+                lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
                 if (missing(xlim) || is.null(xlim)) {
-                    xlim = c(-180,180)
+                    xlim = lim$xlim
                 }
                 if (missing(ylim) || is.null(ylim)) {
-                    ylim = c(-90,90)
+                    ylim = lim$ylim
                 }
                 x = seq(xlim[1], xlim[2], length.out=dims[1])
-                if (identical(projection, "longlat")) {
-                    y = seq(ylim[1], ylim[2], length.out=dims[2])
-                } else {
-                    y = (seq(sin(ylim[1]*pi/180),
-                             sin(ylim[2]*pi/180),
-                             length.out=dims[2]))
-                }
+                y = seq(ylim[1], ylim[2], length.out=dims[2])
             }
 
             lattice = (inla.mesh.lattice(x=x, y=y, units = units))
