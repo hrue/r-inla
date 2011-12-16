@@ -654,7 +654,7 @@ inla.mesh.create =
         all.args = "--input=input.s"
 
         if (!is.null(tv)) {
-            fmesher.write(tv-1L, prefix, "input.tv")
+            fmesher.write(inla.affirm.integer(tv)-1L, prefix, "input.tv")
             all.args = paste(all.args, ",input.tv", sep="")
         }
     }
