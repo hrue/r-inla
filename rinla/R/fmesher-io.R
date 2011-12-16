@@ -218,7 +218,7 @@
         if (is.matrix(A)) {
             A = inla.affirm.integer(A)
         } else if (is.list(A)) {
-            A$values = affirm.integer(A$values)
+            A$values = inla.affirm.integer(A$values)
         } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
             A = inla.affirm.integer(A)
         } else if (is.vector(A)) {
