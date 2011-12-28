@@ -297,8 +297,8 @@ inla.spde.make.A =
              group = NULL,
              repl = 1L,
              n.mesh = NULL,
-             n.group = max(1, inla.ifelse(is.null(group), 1, max(group))),
-             n.repl = max(1, inla.ifelse(is.null(repl), 1, max(repl))),
+             n.group = NULL,
+             n.repl = NULL,
              group.mesh = NULL,
              group.method = c("nearest", "S0", "S1"))
 {
@@ -315,11 +315,17 @@ inla.spde.make.A =
     group.method = match.arg(group.method)
 
     n.group =
-        max(1, inla.ifelse(is.null(group), 1,
-                           inla.ifelse(length(group)==0, 1, max(group))))
+        inla.ifelse(is.null(n.group),
+                    max(1, inla.ifelse(is.null(group), 1,
+                                       inla.ifelse(length(group)==0, 1,
+                                                   max(group)))),
+                    n.group)
     n.repl =
-        max(1, inla.ifelse(is.null(repl), 1,
-                           inla.ifelse(length(repl)==0, 1, max(repl))))
+        inla.ifelse(is.null(n.repl),
+                    max(1, inla.ifelse(is.null(repl), 1,
+                                       inla.ifelse(length(repl)==0, 1,
+                                                   max(repl)))),
+                    n.repl)
 
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
