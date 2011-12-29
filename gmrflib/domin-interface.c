@@ -397,7 +397,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
