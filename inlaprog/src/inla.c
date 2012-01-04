@@ -1978,6 +1978,15 @@ double Qfunc_besagproper(int i, int j, void *arg)
 }
 int inla_read_data_all(double **x, int *n, const char *filename)
 {
+	if (!filename) {
+		/* 
+		 * useful for ini-files with no weight file. (backward compatability...)
+		 */
+		*n = 0;
+		*x = NULL;
+		return GMRFLib_SUCCESS;
+	}
+
 	int count = 0, err, len = 1000;
 	double *c = Calloc(len, double);
 	GMRFLib_io_tp *io = NULL;
@@ -2021,8 +2030,15 @@ int inla_read_data_all(double **x, int *n, const char *filename)
 			GMRFLib_set_error_handler(old_handler);
 		}
 		GMRFLib_EWRAP0(GMRFLib_io_close(io));
-		*x = c;
+
 		*n = count;
+		if (count == 0) {
+			Free(c);
+			*x = NULL;
+		} else {
+			*x = c;
+		}
+
 		return INLA_OK;
 	}
 }
@@ -2153,7 +2169,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	double *w = NULL;
 	int nw = 0;
-	//inla_read_data_all(&w, &nw, ds->weights_file.name);
+	inla_read_data_all(&w, &nw, ds->weight_file.name);
 	if (nw) {
 		assert(nw == ds->data_observations.ndata);
 	}
@@ -2175,22 +2191,25 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose && j < PREVIEW) {
 			switch (na) {
 			case 0:
-				printf("\t\t\t%1d/%1d  (idx,y) = (%1d, %g)\n", j, ds->data_observations.ndata, ii, ds->data_observations.y[ii]);
+				printf("\t\t\t%1d/%1d  (idx,y,d) = (%1d, %g, %g)\n", j, ds->data_observations.ndata, ii, ds->data_observations.y[ii],
+				       ds->data_observations.d[ii]);
 				break;
 			case 1:
-				printf("\t\t\t%1d/%1d  (idx,a,y) = (%1d, %g, %g)\n", j, ds->data_observations.ndata, ii, a[0][ii], ds->data_observations.y[ii]);
+				printf("\t\t\t%1d/%1d  (idx,a,y,d) = (%1d, %g, %g, %g)\n", j,
+				       ds->data_observations.ndata, ii, a[0][ii], ds->data_observations.y[ii], ds->data_observations.d[ii]);
 				break;
 			case 2:
-				printf("\t\t\t%1d/%1d (idx,a[0],a[1],y) = (%1d, %g, %g,%g)\n", j,
-				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], ds->data_observations.y[ii]);
+				printf("\t\t\t%1d/%1d (idx,a[0],a[1],y,d) = (%1d, %g, %g, %g, %g)\n", j,
+				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], ds->data_observations.y[ii], ds->data_observations.d[ii]);
 				break;
 			case 3:
-				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],y) = (%1d, %g, %g,%g,%g)\n", j,
-				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], ds->data_observations.y[ii]);
+				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],y,d) = (%1d, %g, %g, %g, %g, %g)\n", j,
+				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], ds->data_observations.y[ii], ds->data_observations.d[ii]);
 				break;
 			case 4:
-				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],a[3],y) = (%1d, %g,%g,%g,%g,%g)\n", j,
-				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii], ds->data_observations.y[ii]);
+				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],a[3],y,d) = (%1d, %g, %g, %g, %g, %g, %g)\n", j,
+				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii], ds->data_observations.y[ii], 
+				       ds->data_observations.d[ii]);
 				break;
 			default:
 				fprintf(stderr, "\n\n\nADD CODE HERE\n\n\n");
@@ -4886,7 +4905,11 @@ int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, 
 	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 
 	file->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, tag), NULL));
-	if (!file->name) {
+
+	/* 
+	   Only signal error if FILENAME is NULL.
+	 */
+	if (!file->name && !FILENAME){
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, tag);
 	}
 	if (mb->verbose) {
@@ -6428,7 +6451,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	inla_read_fileinfo(mb, ini, sec, &(ds->data_file), NULL);
-	//inla_read_fileinfo(mb, ini, sec, &(ds->weights_file), "WEIGHTS");
+	inla_read_fileinfo(mb, ini, sec, &(ds->weight_file), "WEIGHTS");
 	inla_read_data_likelihood(mb, ini, sec);
 	/*
 	 * validate the data 

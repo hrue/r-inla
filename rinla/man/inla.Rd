@@ -45,7 +45,7 @@ for each posterior marginal, the values
 \item{E}{ Known component in the mean for the Poisson
 likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
 exp(eta)} where \deqn{\eta_i}{eta} is the linear
-predictor. If not provided it is set to 1 }
+predictor. If not provided it is set to \code{rep(1, n.data)}.}
 \item{offset}{ This can be used to specify an
 a-priori known component to be included in the linear
 predictor during fitting.  This should be \code{NULL}
@@ -55,10 +55,22 @@ terms can be included in the formula instead or as
 well, and if both are specified their sum is used.}
 \item{scale}{ Fixed (optional) scale parameters of
 the precision for Gaussian and Student-T response
-models. Default value is 1.}
+models. Default value is rep(1, n.data).}
+\item{weights}{ Fixed (optional) weights parameters of
+the likelihood, so the log-likelihood[i] is changed into
+weights[i]*log-likelihood[i]. Default value is rep(1,
+n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
+by default. You can enable this option for the rest of your \code{R} session,
+doing \code{inla.setOption("enable.inla.argument.weights", TRUE)}.
+WARNING1: The normalizing constant for the likelihood is recomputed if the weight is not 1, so
+all marginals (and the marginal likelihood) must be interpreted with great care.
+Possibly,  you may want to set the prior for the hyperparameters to \code{"uniform"}
+and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.
+WARNING2: The CPO, PIT calculation do not make use of the weights,
+and these results should be interpreted with great care.}
 \item{Ntrials}{ A vector containing the number of
 trials for the \code{binomial} likelihood. Default
-value is 1}
+value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model. Must be a factor.}
 \item{verbose}{
@@ -82,8 +94,8 @@ how to define such linear combinations.}
 \item{control.hazard}{ See \code{?control.hazard}}
 \item{control.lincomb}{ See \code{?control.lincomb}}
 \item{only.hyperparam}{ A boolean variable saying if
-only the hyperparameters are to be computed. Mainly
-for internal use.}
+only the hyperparameters should be computed. This option is mainly used
+internally. (TODO: This option should not be located here,  change it!)}
 \item{inla.call}{ The path to, or the name of, the
 \code{inla}-program. This is program is installed
 together with the \code{R}-package, but, for example,

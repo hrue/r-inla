@@ -52,12 +52,13 @@
     }
 }
 
-`inla.data.section` = function(file, family, file.data, control, i.family="")
+`inla.data.section` = function(file, family, file.data, file.weights, control, i.family="")
 {
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
+    cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
     cat("link = ", inla.model.validate.link.function(family, control$link), "\n", 
         file = file,  append = TRUE)
 

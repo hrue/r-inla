@@ -12,6 +12,7 @@ inla(formula, ..., control.mode=list( <arg>=<value>[, <arg>=<value>]))
 \item{theta}{  The theta-mode/initial values for theta. This option has preference over result$mode$theta.}
 \item{x}{  The x-mode/intitial values for x. This option has preference over result$mode$x.}
 \item{restart}{  A boolean variable; should we restart the optimisation from this configuration or fix the mode at this configuration? (Default FALSE.)}
+\item{fixed}{  A boolean variable. If TRUE then treat all thetas as known and fixed, and if FALSE then treat all thetas as unknown and random (default).}
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

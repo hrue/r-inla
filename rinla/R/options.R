@@ -3,7 +3,8 @@
 
 `inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
-                                    "cygwin", "ssh.auth.sock", "cygwin.home"))
+                                    "cygwin", "ssh.auth.sock", "cygwin.home",
+                                    "enable.inla.argument.weights"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -37,7 +38,8 @@
             cygwin = inla.ifelse(!is.null(opt$cygwin), gsub("\\\\", "/", opt$cygwin), "C:/cygwin"),
             cygwin.home = inla.ifelse(!is.null(opt$cygwin.home), opt$cygwin.home, paste("/home/", inla.get.USER(), sep="")),
             ssh.auth.sock = inla.ifelse(!is.null(opt$ssh.auth.sock), opt$ssh.auth.sock,
-                    paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""))
+                    paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep="")),
+            enable.inla.argument.weights = inla.ifelse(is.null(opt$enable.inla.argument.weights), FALSE, opt$enable.inla.argument.weights)
             )
 
     res = c()
@@ -52,7 +54,7 @@
 
 `inla.setOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
-                                    "cygwin", "ssh.auth.sock", "cygwin.home"), value)
+                                    "cygwin", "ssh.auth.sock", "cygwin.home", "enable.inla.argument.weights"), value)
 {
     option = match.arg(option, several.ok = FALSE)
     if (!exists("inla.options", envir = .GlobalEnv))
