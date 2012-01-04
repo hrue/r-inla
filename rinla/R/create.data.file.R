@@ -3,6 +3,7 @@
         MPredictor = NULL,
         mf=NULL,
         scale=NULL,
+        weights=NULL, 
         E=NULL,
         Ntrials=NULL,
         strata=NULL, 
@@ -27,6 +28,17 @@
         cat("inla.create.data.file: n.data = ", n.data, "\n")
     }
     
+    if (!is.null(weights)) {
+        if (length(weights) == 1L) {
+            weights = rep(weights, n.data)
+        }
+        if (length(weights) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of 'weights' has to be the same as the length of the response:", length(weights), n.data))
+        }
+    }
+
     if (inla.one.of(family, c("gaussian",
                               "normal",
                               "t",
@@ -190,7 +202,6 @@
 
     }
 
-
     file.data = inla.tempfile(tmpdir=data.dir)
     if (inla.getOption("internal.binary.mode")) {
         inla.write.fmesher.file(as.matrix(response), filename = file.data, debug=debug)
@@ -198,8 +209,20 @@
         file.create(file.data)
         write(t(response), ncolumns=ncol(response), file=file.data, append=FALSE)
     }
-
     file.data = gsub(data.dir, "$inladatadir", file.data, fixed=TRUE)
 
-    return(file.data)
+    file.weights = inla.tempfile(tmpdir=data.dir)
+    if (!is.null(weights)) {
+        if (inla.getOption("internal.binary.mode")) {
+            inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug=debug)
+        } else {
+            file.create(file.weights)
+            write(weights, ncolumns = 1, file=file.weights, append=FALSE)
+        }
+    } else {
+        file.create(file.weights)
+    }
+    file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
+    
+    return(list(file.data = file.data, file.weights = file.weights))
 }

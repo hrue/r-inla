@@ -418,7 +418,7 @@ typedef struct {
 
 	inla_component_tp data_id;
 	File_tp data_file;
-	File_tp weights_file;
+	File_tp weight_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
