@@ -56,7 +56,7 @@
               ##!\item{E}{ Known component in the mean for the Poisson
               ##!likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
               ##!exp(eta)} where \deqn{\eta_i}{eta} is the linear
-              ##!predictor. If not provided it is set to 1 }
+              ##!predictor. If not provided it is set to \code{rep(1, n.data)}.}
               E = NULL,
 
               ##!\item{offset}{ This can be used to specify an
@@ -70,12 +70,26 @@
 
               ##!\item{scale}{ Fixed (optional) scale parameters of
               ##!the precision for Gaussian and Student-T response
-              ##!models. Default value is 1.}
+              ##!models. Default value is rep(1, n.data).}
               scale = NULL,
+
+              ##!\item{weights}{ Fixed (optional) weights parameters of
+              ##!the likelihood, so the log-likelihood[i] is changed into
+              ##!weights[i]*log-likelihood[i]. Default value is rep(1,
+              ##!n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
+              ##!by default. You can enable this option for the rest of your \code{R} session,
+              ##!doing \code{inla.setOption("enable.inla.argument.weights", TRUE)}.
+              ##!WARNING1: The normalizing constant for the likelihood is recomputed if the weight is not 1, so
+              ##!all marginals (and the marginal likelihood) must be interpreted with great care.
+              ##!Possibly,  you may want to set the prior for the hyperparameters to \code{"uniform"}
+              ##!and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.
+              ##!WARNING2: The CPO, PIT calculation do not make use of the weights,
+              ##!and these results should be interpreted with great care.}
+              weights = NULL,
 
               ##!\item{Ntrials}{ A vector containing the number of
               ##!trials for the \code{binomial} likelihood. Default
-              ##!value is 1}
+              ##!value is \code{rep(1, n.data)}.}
               Ntrials = NULL,
 
               ##!\item{strata}{Fixed (optional) strata indicators 
@@ -127,8 +141,8 @@
               control.lincomb = list(),
 
               ##!\item{only.hyperparam}{ A boolean variable saying if
-              ##!only the hyperparameters are to be computed. Mainly
-              ##!for internal use.}
+              ##!only the hyperparameters should be computed. This option is mainly used
+              ##!internally. (TODO: This option should not be located here,  change it!)}
               only.hyperparam = FALSE,
 
               ##!\item{inla.call}{ The path to, or the name of, the
@@ -317,13 +331,17 @@
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
     
-    if (nargs() == 0) {
-        cat("\tUsage: inla(formula, family, data, other.arguments...); see ?inla\n")
-        return (NULL)
+    if (missing(formula)) {
+        stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
-
-    if (is.null(data))
-        stop("\t\tMissing data.frame argument `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
+    if (is.null(data)) {
+        stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
+    }
+    if (!missing(weights)) {
+        if (!inla.getOption("enable.inla.argument.weights")) {
+            stop("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n  Use 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla")
+        }
+    }
 
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crahs
@@ -332,7 +350,7 @@
     ## data, and create a second data-object, data.model, which hold
     ## these.
     data.model = NULL
-    if (is.list(data)) {
+    if (is.list(data) && length(data) > 0L) {
         i.remove = c()
         for(i in 1:length(data)) {
             ## these are the objects which we want to remove:
@@ -415,12 +433,16 @@
                        class(y.surv), "'", sep=""))
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
+        data.f = as.data.frame(data)
+        if (!missing(weights)) {
+            data.f$.weights = weights
+        }
         if (is.null(y.surv$subject)) {
-            res = inla.expand.dataframe.1(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            res = inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
             new.data = res$data
             .internal$baseline.hazard.cutpoints = res$cutpoints
         } else {
-            res = inla.expand.dataframe.2(y.surv, as.data.frame(data), control.hazard = cont.hazard)
+            res = inla.expand.dataframe.2(y.surv, data.f, control.hazard = cont.hazard)
             new.data = res$data
             .internal$baseline.hazard.cutpoints = res$cutpoints
         }
@@ -493,6 +515,7 @@
                      E = .E,
                      offset= offset,
                      scale = scale,
+                     weights = inla.ifelse(missing(weights), NULL, new.data$.weights), 
                      Ntrials = NULL,  # Not used for the poisson
                      strata = NULL,   # Not used for the poisson
                      lincomb = lincomb,
@@ -877,7 +900,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
+        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
         rf$formula = gp$randf
         rf = eval.parent(rf)
     } else {
@@ -886,7 +909,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
+        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
         wf$formula = gp$weightf
         wf = eval.parent(wf)
     } else {
@@ -902,7 +925,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "Ntrials", "offset", "E", "strata")) {
+    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
@@ -983,7 +1006,7 @@
             }
         }
         
-        file.data = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, Ntrials=Ntrials, strata=strata, 
+        files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, weights=weights, Ntrials=Ntrials, strata=strata, 
                 family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
     
         ## add a section to the file.ini
@@ -993,8 +1016,8 @@
             print("prepare data section")
 
         ##....then create the new section
-        inla.data.section(file=file.ini, family=family[[i.family]], file.data=file.data, control=cont.data[[i.family]],
-                          i.family=i.family)
+        inla.data.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
+                          control=cont.data[[i.family]], i.family=i.family)
     }
 
     ##create the PREDICTOR section. if necessary create a file with
@@ -1496,7 +1519,7 @@
                     file.extraconstr = NULL
                 }
                 
-                ##....also if necessary a file for the weights
+                ##....also if necessary a file for the weights (not to be confused with argument 'weights' in the inla() call...)
                 if (!is.null(gp$random.spec[[r]]$weights)) {
                     ## $weights is the name
                     www = wf[, gp$random.spec[[r]]$weights ]
@@ -1747,6 +1770,7 @@
             ret$E=E
             ret$strata=strata
             ret$scale=scale
+            ret$weights=weights
             ret$formula=formula.orig
             ret$control.fixed=control.fixed
             ret$inla.call = inla.call
