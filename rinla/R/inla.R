@@ -337,7 +337,7 @@
     if (is.null(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
-    if (!missing(weights)) {
+    if (!is.null(weights)) {
         if (!inla.getOption("enable.inla.argument.weights")) {
             stop("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n  Use 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla")
         }
@@ -434,7 +434,7 @@
         data.orig = data
         data = inla.remove(as.character(formula[2]), data)
         data.f = as.data.frame(data)
-        if (!missing(weights)) {
+        if (!is.null(weights)) {
             data.f$.weights = weights
         }
         if (is.null(y.surv$subject)) {
@@ -515,7 +515,7 @@
                      E = .E,
                      offset= offset,
                      scale = scale,
-                     weights = inla.ifelse(missing(weights), NULL, new.data$.weights), 
+                     weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
                      Ntrials = NULL,  # Not used for the poisson
                      strata = NULL,   # Not used for the poisson
                      lincomb = lincomb,
