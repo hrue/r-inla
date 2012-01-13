@@ -319,7 +319,7 @@
         dir.mcmc = paste(dir.mcmc, "/", "results.files", sep="")
 
     options(device.ask.default=TRUE)
-    dev.new()
+    inla.dev.new()
 
     dd = c()
     for(d in dir(dir.inla))
@@ -1230,3 +1230,16 @@
     }
 }
 
+`inla.dev.new` = function()
+{
+    ## If running in RStudio then don't open a new device,  otherwise,  do.
+    dev = getOption("device")
+    if (is.character(dev) && inla.strncasecmp(dev, "RStudioGD")) {
+        return (NULL)
+    } else {
+        return (dev.new())
+    }
+}
+
+
+            
