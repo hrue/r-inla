@@ -30,7 +30,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    dev.new()
+                    inla.dev.new()
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -64,7 +64,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    dev.new()
+                    inla.dev.new()
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -103,7 +103,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    dev.new()
+                    inla.dev.new()
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -156,7 +156,7 @@
                                 for(ii in 1:inla.ifelse(r.N > r.n, r.N %/% r.n, 1)) {
 
                                     if (ip%%np == 0) {
-                                        dev.new()
+                                        inla.dev.new()
                                         par(mfrow=c(plot.layout[1], plot.layout[2]))
                                     }
                                     ip = ip + 1
@@ -239,7 +239,7 @@
                         for (r.rep in 1:nrep) {
                             for(r.group in 1:ngroup) {
                                 if (ip%%np == 0) {
-                                    dev.new()
+                                    inla.dev.new()
                                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                                 }
                                 ip = ip + 1
@@ -286,7 +286,7 @@
             ip = 0
             for(i in 1:nhyper) {
                 if (ip%%np == 0) {
-                    dev.new()
+                    inla.dev.new()
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -340,7 +340,7 @@
                 }
             
                 if (!is.null(lp)) {
-                    dev.new()
+                    inla.dev.new()
                     if (!is.null(fv)) {
                         if (single) {
                             par(mfrow=c(1, 1))
@@ -384,7 +384,7 @@
         }
     }
     if (plot.q && !is.null(x$Q.matrix)) {
-        dev.new()
+        inla.dev.new()
         if (single) {
             par(mfrow = c(1, 1))
         } else {
@@ -432,7 +432,7 @@
     }
     if (plot.cpo) {
         if (!is.null(x$pit) || !is.null(x$cpo)) {
-            dev.new()
+            inla.dev.new()
             if (single) {
                 par(mfrow=c(1, 1))
             } else {
