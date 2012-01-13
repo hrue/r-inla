@@ -943,7 +943,7 @@ inla.mesh.create.helper <-
     interior1 = inla.mesh.interior(mesh1)
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
-        dev.new()
+        inla.dev.new()
         plot(mesh1)
     }
 
@@ -964,7 +964,7 @@ inla.mesh.create.helper <-
     interior2 = inla.mesh.interior(mesh2)
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
-        dev.new()
+        inla.dev.new()
         plot(mesh2)
     }
 
@@ -985,7 +985,7 @@ inla.mesh.create.helper <-
     mesh3$idx$loc = mesh3$idx$loc[1:nrow(points)]
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
-        dev.new()
+        inla.dev.new()
         plot(mesh3)
     }
 
