@@ -505,7 +505,7 @@ rbind.inla.data.stack.info = function(...)
 }
 
 
-inla.stack.compress = function(stack)
+inla.stack.compress = function(stack, remove.unused=TRUE)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -538,10 +538,12 @@ inla.stack.compress = function(stack)
         }
     }
 
-    ## Also remove components with no effect:
-    remove.unused =
-        which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
-    remove[remove.unused] = TRUE
+    if (remove.unused) {
+        ## Also remove components with no effect:
+        remove.unused.indices =
+            which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
+        remove[remove.unused.indices] = TRUE
+    }
 
     ncol.A = sum(!remove)
     if (ncol.A>0)
@@ -569,59 +571,6 @@ inla.stack.compress = function(stack)
 }
 
 
-inla.stack.compress.old = function(stack)
-{
-    inla.require.inherits(stack, "inla.data.stack", "'stack'")
-
-    if (stack$effects$nrow<2) {
-        return(stack)
-    }
-
-    ii = do.call(order, as.list(stack$effects$data))
-    jj.dupl =
-        which(1L==
-              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
-                     FALSE)))
-    kk.dupl =
-        which(-1L==
-              diff(c(duplicated(stack$effects$data[ii,,drop=FALSE]),
-                     FALSE)))
-    ## ii[jj.dupl] are the rows that have duplicates.
-    ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
-
-    remove = rep(FALSE, stack$effects$nrow)
-    index.new = rep(NA, stack$effect$nrow)
-
-    if (length(jj.dupl)>0) {
-        for (k in 1:length(jj.dupl)) {
-            i = ii[jj.dupl[k]]
-            j = ii[(jj.dupl[k]+1):kk.dupl[k]]
-            stack$A[,i] = rowSums(stack$A[,c(i,j),drop=FALSE])
-
-            remove[j] = TRUE
-            index.new[j] = i
-        }
-    }
-
-    ## Also remove components with no effect:
-    remove.unused =
-        which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
-    remove[remove.unused] = TRUE
-
-    if (any(!remove))
-        index.new[!remove] = 1:sum(!remove)
-    index.new[remove] = index.new[index.new[remove]]
-
-    for (k in 1:length(stack$effects$index)) {
-        stack$effects$index[[k]] = index.new[stack$effects$index[[k]]]
-    }
-
-    stack$A = stack$A[, !remove, drop=FALSE]
-    stack$effects$data = stack$effects$data[!remove,, drop=FALSE]
-    stack$effects$nrow = ncol(stack$A)
-
-    return(stack)
-}
 
 
 inla.stack = function(...)
@@ -630,7 +579,7 @@ inla.stack = function(...)
 }
 
 
-inla.stack.default = function(data, A, effects, tag="", compress=TRUE, ...)
+inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -834,13 +783,13 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, ...)
     class(stack) = "inla.data.stack"
 
     if (compress)
-        return(inla.stack.compress(stack))
+        return(inla.stack.compress(stack, remove.unused=remove.unused))
     else
         return(stack)
 
 }
 
-inla.stack.inla.data.stack = function(..., compress=TRUE)
+inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
 
@@ -869,7 +818,7 @@ inla.stack.inla.data.stack = function(..., compress=TRUE)
     }
 
     if (compress)
-        return(inla.stack.compress(S.output))
+        return(inla.stack.compress(S.output, remove.unused=remove.unused))
     else
         return(S.output)
 }
