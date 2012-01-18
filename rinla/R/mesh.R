@@ -1007,7 +1007,16 @@ if (FALSE) {
 ##
 
 
-
+inla.delaunay = function(loc)
+{
+    hull = chull(loc[,1],loc[,2])
+    mesh =
+        inla.mesh.create(loc=loc,
+                         boundary=inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE),
+                         extend=FALSE,
+                         refine=FALSE)
+    return(invisible(mesh))
+}
 
 
 
