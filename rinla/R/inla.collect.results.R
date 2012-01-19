@@ -98,6 +98,11 @@
         }
     }
 
+    ## add the names of the theta's here, as they are available.
+    if (!is.null(misc) && !is.null(joint.hyper)) {
+        colnames(joint.hyper) = c(misc$theta.tags, "Log posterior density")
+    }
+
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
             res.configurations, res.offset, res.spde2.blc, 
             list(misc = misc,
