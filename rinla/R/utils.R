@@ -1,4 +1,4 @@
-### Various utility functions
+## Various utility functions
 
 `inla.graph.convert.1` = function(in.file, graph.file = "graph.txt", c.indexing = FALSE)
 {
@@ -247,7 +247,7 @@
     } else if (inla.os("linux")) {
         fnm = system.file(paste("bin/linux/inla", inla.os.32or64bit(), sep=""), package="INLA")
     } else if (inla.os("windows")) {
-        fnm = system.file("bin/windows/inla.exe", package="INLA")
+        fnm = system.file(paste("bin/windows/inla", inla.os.32or64bit(), ".exe", sep=""), package="INLA")
     } else {
         stop("Unknown OS")
     }
@@ -265,7 +265,7 @@
     } else if (inla.os("linux")) {
         fnm = system.file(paste("bin/linux/fmesher", inla.os.32or64bit(), sep=""), package="INLA")
     } else if (inla.os("windows")) {
-        fnm = system.file("bin/windows/fmesher.exe", package="INLA")
+        fnm = system.file(paste("bin/windows/fmesher", inla.os.32or64bit(), ".exe", sep=""), package="INLA")
     } else {
         stop("Unknown OS")
     }
