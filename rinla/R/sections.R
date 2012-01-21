@@ -385,10 +385,16 @@
         if (!is(A, "dgTMatrix")) {
             A = inla.sparse.check(A, must.be.squared=FALSE)
         }
-
         ## check dimensions
         stopifnot(dim(A)[1] == m)
         stopifnot(dim(A)[2] == n)
+
+        ## replace NA's with zeros.
+        A[ is.na(A) ] = 0.0
+        
+        ## PS: the building of Aext which follows next, could be done
+        ## easier with cBind() and rBind() [which preserve spare
+        ## matrices], which I wasn't aware of at that time.
 
         ## The `I'
         Aext = list(i = 1L:m, j = 1L:m, x = rep(1.0, m))
