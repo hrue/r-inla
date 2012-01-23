@@ -2794,6 +2794,44 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `iidlogbeta'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log.a'}
+							\item{short.name = }{`a'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`log.b'}
+							\item{short.name = }{`b'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default logit'}
+								\item{pdf = }{`iidlogbeta'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `sas'.}{Number of hyperparmeters are 3.
 					 \describe{
 						\item{Hyperparameter `theta1'}{

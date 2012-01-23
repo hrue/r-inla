@@ -50,7 +50,6 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-
     typedef enum {
 	/*
 	 * Failure time
@@ -114,12 +113,10 @@ typedef struct {
 } map_table_tp;
 
 
-typedef struct
-{
+typedef struct {
 	size_t len;
 	char *contents;
-}
-	inla_file_contents_tp;
+} inla_file_contents_tp;
 
 typedef struct {
 	double *d;					       /* the d-array */
@@ -136,8 +133,8 @@ typedef struct {
 	 */
 	double *nb;
 
-	/* 
-	   y ~ Binomial test
+	/*
+	 * y ~ Binomial test 
 	 */
 	double **link_psi;
 
@@ -165,8 +162,8 @@ typedef struct {
 	double **dof_intern_t;
 	double *weight_t;				       /* weights for the t: Variance = 1/(weight*prec) */
 
-	/* 
-	   y ~ Tstrata
+	/*
+	 * y ~ Tstrata 
 	 */
 	double ***log_prec_tstrata;			       /* array of log_prec_t */
 	double **dof_intern_tstrata;			       /* common dof */
@@ -241,12 +238,18 @@ typedef struct {
 	 */
 	double **log_prec_loggamma_frailty;
 
-	/* 
-	   iid gamma
+	/*
+	 * iid gamma 
 	 */
 	double *iid_gamma_weight;
 	double **iid_gamma_log_shape;
 	double **iid_gamma_log_rate;
+
+	/*
+	 * iid beta 
+	 */
+	double **iid_logbeta_log_a;
+	double **iid_logbeta_log_b;
 
 	/*
 	 * Sinh-asinh
@@ -271,7 +274,7 @@ typedef enum {
 	L_POISSON,
 	L_BINOMIAL,
 	L_BINOMIALTEST,					       /* test-version of the binomial! */
-	L_CBINOMIAL, 					       /* clumped binomial */
+	L_CBINOMIAL,					       /* clumped binomial */
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
@@ -296,7 +299,8 @@ typedef enum {
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
 	L_SAS,
-	L_IID_GAMMA, 
+	L_IID_GAMMA,
+	L_IID_LOGBETA,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -339,7 +343,7 @@ typedef enum {
 	P_NONE,
 	P_BETACORRELATION,
 	P_EXPRESSION,
-	P_JEFFREYS_T_DF, 
+	P_JEFFREYS_T_DF,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1
 } inla_component_tp;
@@ -412,7 +416,7 @@ typedef struct inla_tp_struct inla_tp;			       /* need it like this as they poi
 typedef struct {
 	char *data_likelihood;
 	GMRFLib_uchar variant;
-	
+
 	char *link;
 	map_func_tp *predictor_invlinkfunc;
 
@@ -920,7 +924,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
-int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp *fc);
+int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
@@ -1010,6 +1014,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_iid_logbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
@@ -1042,7 +1047,7 @@ double Qfunc_besagproper(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
-int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc);
+int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 
 /* 
 ***
