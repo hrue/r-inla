@@ -776,7 +776,7 @@
     ## control.data
     control.data.orig = control.data
     if (n.family == 1) {
-        if (!missing(control.data) && (inla.is.list.of.lists(control.data) && length(control.data) > 1))
+        if (!missing(control.data) && (inla.is.list.of.lists(control.data) && length(control.data) > 1L))
             stop(paste("Argument control.data does not match length(family)=", n.family))
     } else {
         if (!missing(control.data) && !(inla.is.list.of.lists(control.data) && length(control.data) == n.family))
@@ -1745,6 +1745,15 @@
             if (TRUE) {
                 ## do this instead. until the c(param = numeric(0)) issue is solved. 
                 ret$control.data = control.data.orig
+                if (n.family > 1L) {
+                    ## we need to fix the case where there this option
+                    ## is not set. otherwise, we will get list(),
+                    ## instead of list(list(), list()), say, for
+                    ## n.family=2
+                    if (is.list(ret$control.data) && length(ret$control.data) == 0L) {
+                        ret$control.data = lapply(1:n.family, function(x) list())
+                    }
+                }
             } else {
                 stop("THIS SHOULD NOT HAPPEN.")
                 if (n.family == 1) {

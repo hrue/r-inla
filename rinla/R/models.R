@@ -2317,6 +2317,35 @@
                       pdf = "iidgamma"
                       ),
 
+              iidlogbeta = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "log.a",
+                                      short.name = "a",
+                                      initial = 1,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 1),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      ),
+                              theta2 = list(
+                                      name = "log.b",
+                                      short.name = "b",
+                                      initial = 1,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 1),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "logit"),
+                      pdf = "iidlogbeta"
+                      ),
+
               sas = list(
                       hyper = list(
                               theta1 = list(
