@@ -360,8 +360,6 @@ double log_apbex(double a, double b)
 	 * try to evaluate log(a + exp(b)) safely 
 	 */
 
-	FIXME("TEST ME");
-	abort();
 	if (a == 0.0)
 		return b;
 
@@ -877,7 +875,7 @@ double map_binomialtest_psi(double x, map_arg_tp typ, void *param)
 	case MAP_FORWARD:
 		return 0.5 + exp(x) / (1.0 + exp(x));
 	case MAP_BACKWARD:
-		return log((x-0.5) / (1.0 - (x-0.5)));
+		return log((x - 0.5) / (1.0 - (x - 0.5)));
 	case MAP_DFORWARD:
 		return exp(x) / SQR(1 + exp(x));
 	case MAP_INCREASING:
@@ -1979,7 +1977,7 @@ double Qfunc_besagproper(int i, int j, void *arg)
 int inla_read_data_all(double **x, int *n, const char *filename)
 {
 	if (!filename) {
-		/* 
+		/*
 		 * useful for ini-files with no weight file. (backward compatability...)
 		 */
 		*n = 0;
@@ -2064,6 +2062,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_IID_GAMMA) {
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_IID_LOGBETA) {
+		idiv = 2;
+		a[0] = NULL;
 	} else if (ds->data_id == L_SAS) {
 		idiv = 3;
 		a[0] = ds->data_observations.sas_weight = Calloc(mb->predictor_ndata, double);
@@ -2173,7 +2174,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	if (nw) {
 		assert(nw == ds->data_observations.ndata);
 	}
-	
+
 	for (i = j = 0; i < n; i += idiv, j++) {
 		ii = (int) x[i];
 		if (!LEGAL(ii, mb->predictor_ndata)) {
@@ -2183,7 +2184,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 			a[k][ii] = x[i + k + 1];
 		}
 		ds->data_observations.y[ii] = x[i + idiv - 1];
-		if (w){
+		if (w) {
 			ds->data_observations.d[ii] = w[ii];
 		} else {
 			ds->data_observations.d[ii] = 1.0;
@@ -2208,7 +2209,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 				break;
 			case 4:
 				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],a[3],y,d) = (%1d, %g, %g, %g, %g, %g, %g)\n", j,
-				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii], ds->data_observations.y[ii], 
+				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii], ds->data_observations.y[ii],
 				       ds->data_observations.d[ii]);
 				break;
 			default:
@@ -2220,7 +2221,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	Free(w);
 	Free(x);
-	
+
 	return INLA_OK;
 }
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value)
@@ -2476,6 +2477,35 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 				 */
 				logll[i] = cons + (shape - 1.0) * log(FLT_EPSILON) - rate * FLT_EPSILON - penalty * SQR(FLT_EPSILON - xx);
 			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_iid_logbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ iid_logbeta
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double a, b, xx, cons, log_jacobian, eta;
+
+	a = map_exp(ds->data_observations.iid_logbeta_log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	b = map_exp(ds->data_observations.iid_logbeta_log_b[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	cons = gsl_sf_lngamma(a + b) - (gsl_sf_lngamma(a) + gsl_sf_lngamma(b));
+
+	assert(ds->predictor_invlinkfunc == link_logit);
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			eta = x[i] + OFFSET(idx);
+			xx = PREDICTOR_INVERSE_LINK(eta);
+			log_jacobian = eta - 2.0 * log_apbex(1.0, eta);
+			logll[i] = cons + (a - 1.0) * log(xx) + (b - 1.0) * log(1.0 - xx) + log_jacobian;
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -3592,173 +3622,173 @@ int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double 
 #define LINK_CORRECTION_SD(_psi) inla_spline_eval(_psi, sd_correction)
 
 	double sd_table[] = {
-		0.25 , 0.693014921325142 ,
-		0.26 , 0.696115056356505 ,
-		0.27 , 0.699236606722831 ,
-		0.28 , 0.702379756520325 ,
-		0.29 , 0.705544691908189 ,
-		0.3 , 0.708731600824548 ,
-		0.31 , 0.711940673067147 ,
-		0.32 , 0.715172100313529 ,
-		0.33 , 0.718426076141445 ,
-		0.34 , 0.721702796049492 ,
-		0.35 , 0.725002457477996 ,
-		0.36 , 0.728325259830137 ,
-		0.37 , 0.731671404493312 ,
-		0.38 , 0.735041094860762 ,
-		0.39 , 0.738434536353446 ,
-		0.4 , 0.741851936442179 ,
-		0.41 , 0.745293504670033 ,
-		0.42 , 0.748759452694805 ,
-		0.43 , 0.752249994229717 ,
-		0.44 , 0.75576534519362 ,
-		0.45 , 0.759305723647999 ,
-		0.46 , 0.762871349842126 ,
-		0.47 , 0.766462446236978 ,
-		0.48 , 0.770079237529501 ,
-		0.49 , 0.773721950677251 ,
-		0.5 , 0.777390814923438 ,
-		0.51 , 0.781086061822334 ,
-		0.52 , 0.78480792526498 ,
-		0.53 , 0.788556641505103 ,
-		0.54 , 0.792332449185131 ,
-		0.55 , 0.796135589362263 ,
-		0.56 , 0.799966305534575 ,
-		0.57 , 0.803824843667292 ,
-		0.58 , 0.807711452219392 ,
-		0.59 , 0.811626382170774 ,
-		0.6 , 0.815569887050189 ,
-		0.61 , 0.819542222964038 ,
-		0.62 , 0.823543648574375 ,
-		0.63 , 0.827574425345764 ,
-		0.64 , 0.831634817250016 ,
-		0.65 , 0.835725091002571 ,
-		0.66 , 0.839845516043864 ,
-		0.67 , 0.8439963645696 ,
-		0.68 , 0.848177911561383 ,
-		0.69 , 0.852390434817711 ,
-		0.7 , 0.856634214985331 ,
-		0.71 , 0.860909535577411 ,
-		0.72 , 0.865216683142477 ,
-		0.73 , 0.869555946972965 ,
-		0.74 , 0.873927619409826 ,
-		0.75 , 0.878331995535895 ,
-		0.76 , 0.882769374300315 ,
-		0.77 , 0.887240056967199 ,
-		0.78 , 0.891744348143546 ,
-		0.79 , 0.896282555584029 ,
-		0.8 , 0.900854990226264 ,
-		0.81 , 0.905461966226497 ,
-		0.82 , 0.910103800995717 ,
-		0.83 , 0.914780815236186 ,
-		0.84 , 0.919493332978422 ,
-		0.85 , 0.924241681618602 ,
-		0.86 , 0.929026191956425 ,
-		0.87 , 0.933847198233414 ,
-		0.88 , 0.938705039062825 ,
-		0.89 , 0.943600054290981 ,
-		0.9 , 0.948532587559242 ,
-		0.91 , 0.953502990211054 ,
-		0.92 , 0.958511613009987 ,
-		0.93 , 0.963558811678881 ,
-		0.94 , 0.96864494566363 ,
-		0.95 , 0.973770378175305 ,
-		0.96 , 0.978935476232762 ,
-		0.97 , 0.984140610705782 ,
-		0.98 , 0.989386156358707 ,
-		0.99 , 0.994672491894613 ,
-		1 , 1 ,
-		1.01 , 1.00536906739003 ,
-		1.02 , 1.01078008485429 ,
-		1.03 , 1.01623344730312 ,
-		1.04 , 1.0217295538145 ,
-		1.05 , 1.02726881037486 ,
-		1.06 , 1.03285162078222 ,
-		1.07 , 1.03847839201844 ,
-		1.08 , 1.04414955058486 ,
-		1.09 , 1.04986551279871 ,
-		1.1 , 1.0556267037602 ,
-		1.11 , 1.06143355308149 ,
-		1.12 , 1.06728649493827 ,
-		1.13 , 1.07318596812194 ,
-		1.14 , 1.07913241609245 ,
-		1.15 , 1.08512628703182 ,
-		1.16 , 1.09116803389819 ,
-		1.17 , 1.09725811448063 ,
-		1.18 , 1.10339699145457 ,
-		1.19 , 1.10958513243791 ,
-		1.2 , 1.11582301004779 ,
-		1.21 , 1.12211110195806 ,
-		1.22 , 1.12844989095745 ,
-		1.23 , 1.13483986500847 ,
-		1.24 , 1.14128152165502 ,
-		1.25 , 1.1477753463423 ,
-		1.26 , 1.15432185595875 ,
-		1.27 , 1.16092155541692 ,
-		1.28 , 1.16757495945644 ,
-		1.29 , 1.17428258835926 ,
-		1.3 , 1.18104496801367 ,
-		1.31 , 1.18786262997922 ,
-		1.32 , 1.19473611155224 ,
-		1.33 , 1.2016659558324 ,
-		1.34 , 1.20865271178982 ,
-		1.35 , 1.21569693433322 ,
-		1.36 , 1.22279918437875 ,
-		1.37 , 1.22996002891974 ,
-		1.38 , 1.23718004109726 ,
-		1.39 , 1.2444598002716 ,
-		1.4 , 1.25179989209456 ,
-		1.41 , 1.25920090858272 ,
-		1.42 , 1.26666344819152 ,
-		1.43 , 1.27418811589032 ,
-		1.44 , 1.28177552323834 ,
-		1.45 , 1.28942629247621 ,
-		1.46 , 1.2971410365305 ,
-		1.47 , 1.30492039923899 ,
-		1.48 , 1.31276501528384 ,
-		1.49 , 1.32067553034552 ,
-		1.5 , 1.32865259716979 ,
-		1.51 , 1.33669687565034 ,
-		1.52 , 1.34480903291246 ,
-		1.53 , 1.35298974339776 ,
-		1.54 , 1.36123968894994 ,
-		1.55 , 1.36955955890169 ,
-		1.56 , 1.3779500501627 ,
-		1.57 , 1.38641186730873 ,
-		1.58 , 1.39494572267191 ,
-		1.59 , 1.40355233643205 ,
-		1.6 , 1.41223243670914 ,
-		1.61 , 1.42098675965695 ,
-		1.62 , 1.42981604955765 ,
-		1.63 , 1.4387210589177 ,
-		1.64 , 1.44770254856462 ,
-		1.65 , 1.4567612877451 ,
-		1.66 , 1.46589805422412 ,
-		1.67 , 1.47511363438535 ,
-		1.68 , 1.48440882333274 ,
-		1.69 , 1.49378442499347 ,
-		1.7 , 1.50324125222222 ,
-		1.71 , 1.51278012690688 ,
-		1.72 , 1.52240188007573 ,
-		1.73 , 1.53210735200608 ,
-		1.74 , 1.54189739233438 ,
-		1.75 , 1.55177286016788
+		0.25, 0.693014921325142,
+		0.26, 0.696115056356505,
+		0.27, 0.699236606722831,
+		0.28, 0.702379756520325,
+		0.29, 0.705544691908189,
+		0.3, 0.708731600824548,
+		0.31, 0.711940673067147,
+		0.32, 0.715172100313529,
+		0.33, 0.718426076141445,
+		0.34, 0.721702796049492,
+		0.35, 0.725002457477996,
+		0.36, 0.728325259830137,
+		0.37, 0.731671404493312,
+		0.38, 0.735041094860762,
+		0.39, 0.738434536353446,
+		0.4, 0.741851936442179,
+		0.41, 0.745293504670033,
+		0.42, 0.748759452694805,
+		0.43, 0.752249994229717,
+		0.44, 0.75576534519362,
+		0.45, 0.759305723647999,
+		0.46, 0.762871349842126,
+		0.47, 0.766462446236978,
+		0.48, 0.770079237529501,
+		0.49, 0.773721950677251,
+		0.5, 0.777390814923438,
+		0.51, 0.781086061822334,
+		0.52, 0.78480792526498,
+		0.53, 0.788556641505103,
+		0.54, 0.792332449185131,
+		0.55, 0.796135589362263,
+		0.56, 0.799966305534575,
+		0.57, 0.803824843667292,
+		0.58, 0.807711452219392,
+		0.59, 0.811626382170774,
+		0.6, 0.815569887050189,
+		0.61, 0.819542222964038,
+		0.62, 0.823543648574375,
+		0.63, 0.827574425345764,
+		0.64, 0.831634817250016,
+		0.65, 0.835725091002571,
+		0.66, 0.839845516043864,
+		0.67, 0.8439963645696,
+		0.68, 0.848177911561383,
+		0.69, 0.852390434817711,
+		0.7, 0.856634214985331,
+		0.71, 0.860909535577411,
+		0.72, 0.865216683142477,
+		0.73, 0.869555946972965,
+		0.74, 0.873927619409826,
+		0.75, 0.878331995535895,
+		0.76, 0.882769374300315,
+		0.77, 0.887240056967199,
+		0.78, 0.891744348143546,
+		0.79, 0.896282555584029,
+		0.8, 0.900854990226264,
+		0.81, 0.905461966226497,
+		0.82, 0.910103800995717,
+		0.83, 0.914780815236186,
+		0.84, 0.919493332978422,
+		0.85, 0.924241681618602,
+		0.86, 0.929026191956425,
+		0.87, 0.933847198233414,
+		0.88, 0.938705039062825,
+		0.89, 0.943600054290981,
+		0.9, 0.948532587559242,
+		0.91, 0.953502990211054,
+		0.92, 0.958511613009987,
+		0.93, 0.963558811678881,
+		0.94, 0.96864494566363,
+		0.95, 0.973770378175305,
+		0.96, 0.978935476232762,
+		0.97, 0.984140610705782,
+		0.98, 0.989386156358707,
+		0.99, 0.994672491894613,
+		1, 1,
+		1.01, 1.00536906739003,
+		1.02, 1.01078008485429,
+		1.03, 1.01623344730312,
+		1.04, 1.0217295538145,
+		1.05, 1.02726881037486,
+		1.06, 1.03285162078222,
+		1.07, 1.03847839201844,
+		1.08, 1.04414955058486,
+		1.09, 1.04986551279871,
+		1.1, 1.0556267037602,
+		1.11, 1.06143355308149,
+		1.12, 1.06728649493827,
+		1.13, 1.07318596812194,
+		1.14, 1.07913241609245,
+		1.15, 1.08512628703182,
+		1.16, 1.09116803389819,
+		1.17, 1.09725811448063,
+		1.18, 1.10339699145457,
+		1.19, 1.10958513243791,
+		1.2, 1.11582301004779,
+		1.21, 1.12211110195806,
+		1.22, 1.12844989095745,
+		1.23, 1.13483986500847,
+		1.24, 1.14128152165502,
+		1.25, 1.1477753463423,
+		1.26, 1.15432185595875,
+		1.27, 1.16092155541692,
+		1.28, 1.16757495945644,
+		1.29, 1.17428258835926,
+		1.3, 1.18104496801367,
+		1.31, 1.18786262997922,
+		1.32, 1.19473611155224,
+		1.33, 1.2016659558324,
+		1.34, 1.20865271178982,
+		1.35, 1.21569693433322,
+		1.36, 1.22279918437875,
+		1.37, 1.22996002891974,
+		1.38, 1.23718004109726,
+		1.39, 1.2444598002716,
+		1.4, 1.25179989209456,
+		1.41, 1.25920090858272,
+		1.42, 1.26666344819152,
+		1.43, 1.27418811589032,
+		1.44, 1.28177552323834,
+		1.45, 1.28942629247621,
+		1.46, 1.2971410365305,
+		1.47, 1.30492039923899,
+		1.48, 1.31276501528384,
+		1.49, 1.32067553034552,
+		1.5, 1.32865259716979,
+		1.51, 1.33669687565034,
+		1.52, 1.34480903291246,
+		1.53, 1.35298974339776,
+		1.54, 1.36123968894994,
+		1.55, 1.36955955890169,
+		1.56, 1.3779500501627,
+		1.57, 1.38641186730873,
+		1.58, 1.39494572267191,
+		1.59, 1.40355233643205,
+		1.6, 1.41223243670914,
+		1.61, 1.42098675965695,
+		1.62, 1.42981604955765,
+		1.63, 1.4387210589177,
+		1.64, 1.44770254856462,
+		1.65, 1.4567612877451,
+		1.66, 1.46589805422412,
+		1.67, 1.47511363438535,
+		1.68, 1.48440882333274,
+		1.69, 1.49378442499347,
+		1.7, 1.50324125222222,
+		1.71, 1.51278012690688,
+		1.72, 1.52240188007573,
+		1.73, 1.53210735200608,
+		1.74, 1.54189739233438,
+		1.75, 1.55177286016788
 	};
 
 	static GMRFLib_spline_tp *sd_correction = NULL;
 #pragma omp threadprivate (sd_correction)
 
 	if (!sd_correction) {
-		int n = sizeof(sd_table)/sizeof(double)/2;
-		double *xy = Calloc(2*n, double);
+		int n = sizeof(sd_table) / sizeof(double) / 2;
+		double *xy = Calloc(2 * n, double);
 
 		int i, j;
-		for(i=j=0; i<n; i++, j+=2){
+		for (i = j = 0; i < n; i++, j += 2) {
 			xy[i] = sd_table[j];
-			xy[i+n] = sd_table[j+1];
+			xy[i + n] = sd_table[j + 1];
 		}
 
-		sd_correction = inla_spline_create(xy, xy+n, n);
+		sd_correction = inla_spline_create(xy, xy + n, n);
 		Free(xy);
 	}
 
@@ -3772,25 +3802,24 @@ int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double 
 	int i;
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p, 
-		psi = map_binomialtest_psi(ds->data_observations.link_psi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p,
+	    psi = map_binomialtest_psi(ds->data_observations.link_psi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (0) {
 		static double psi_old = 999.;
 #pragma omp threadprivate(psi_old)
-		if (psi != psi_old){
+		if (psi != psi_old) {
 			printf("psi %.12f\n", psi);
 			psi_old = psi;
 		}
 	}
-	
+
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
-			p = PREDICTOR_INVERSE_LINK(LINK_CORRECTION(x[i] + OFFSET(idx), psi) /
-						   LINK_CORRECTION_SD(psi));
+			p = PREDICTOR_INVERSE_LINK(LINK_CORRECTION(x[i] + OFFSET(idx), psi) / LINK_CORRECTION_SD(psi));
 			if (p > 1.0) {
 				/*
 				 * need this for the link = "log" that was requested...
@@ -3848,7 +3877,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p, z, nz = 1.0;
 
 	z = ((int) y == 0 ? 0.0 : 1.0);
-	
+
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) nz, (unsigned int) z, &res);
@@ -3866,7 +3895,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 					 * this is ok if we get a 0*log(0) expression for the reminder 
 					 */
 					if (1 == (int) z) {
-						logll[i] = res.val + z * log(1.0 - pow(1.0-p, n));
+						logll[i] = res.val + z * log(1.0 - pow(1.0 - p, n));
 					} else {
 						logll[i] = -DBL_MAX;
 					}
@@ -3875,12 +3904,12 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 					 * this is ok if we get a 0*log(0) expression for the reminder 
 					 */
 					if ((int) z == 0) {
-						logll[i] = res.val + (nz - z) * n*log(1.0 - p);
+						logll[i] = res.val + (nz - z) * n * log(1.0 - p);
 					} else {
 						logll[i] = -DBL_MAX;
 					}
 				} else {
-					logll[i] = res.val + z * log(1.0 - pow(1.0-p, n)) + (nz - z) * n * log(1.0-p);
+					logll[i] = res.val + z * log(1.0 - pow(1.0 - p, n)) + (nz - z) * n * log(1.0 - p);
 				}
 			}
 		}
@@ -4906,10 +4935,10 @@ int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, 
 
 	file->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, tag), NULL));
 
-	/* 
-	   Only signal error if FILENAME is NULL.
+	/*
+	 * Only signal error if FILENAME is NULL. 
 	 */
-	if (!file->name && !FILENAME){
+	if (!file->name && !FILENAME) {
 		inla_error_missing_required_field(__GMRFLib_FuncName, secname, tag);
 	}
 	if (mb->verbose) {
@@ -6307,6 +6336,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "IIDLOGBETA")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_logbeta;
+		ds->data_id = L_IID_LOGBETA;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SAS")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sas;
 		ds->data_id = L_SAS;
@@ -6476,7 +6509,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	} else if (ds->data_id == L_IID_GAMMA) {
 		/*
-		 * ok... 
+		 * Ok for the moment...
+		 */
+	} else if (ds->data_id == L_IID_LOGBETA) {
+		/*
+		 * Ok for the moment...
 		 */
 	} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 		/*
@@ -6707,7 +6744,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.link_psi;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_binomialtest_psi; /* experimental */
+			mb->theta_map[mb->ntheta] = map_binomialtest_psi;	/* experimental */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -6737,8 +6774,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log shape for iid-gamma", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape for iid-gamma", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log shape parameter for iid-gamma", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape parameter for iid-gamma", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -6790,6 +6827,90 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.iid_gamma_log_rate;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_IID_LOGBETA) {
+		/*
+		 * get options related to the iid_logbeta. first log(a)
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.iid_logbeta_log_a, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_a[%g]\n", ds->data_observations.iid_logbeta_log_a[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log a parameter for iid-beta", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("a parameter for iid-beta", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.iid_logbeta_log_a;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * log(b)
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.iid_logbeta_log_b, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_b[%g]\n", ds->data_observations.iid_logbeta_log_b[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log b parameter for iid-beta", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("b parameter for iid-beta", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.iid_logbeta_log_b;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -8542,7 +8663,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-		**h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd;
+	    **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -9780,7 +9901,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_ai_INLA_userfunc2_n++;
 
 		GMRFLib_ai_INLA_userfunc2_args = Realloc(GMRFLib_ai_INLA_userfunc2_args, GMRFLib_ai_INLA_userfunc2_n, void *);
-		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] =  (void *) spde2_model;
+		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] = (void *) spde2_model;
 		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp *);
 		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde2_userfunc2;
 
@@ -9795,7 +9916,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int ntheta;
 
 		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
-		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double); /* need to do this here as we do not know n_theta upfront */
+		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);	/* need to do this here as we do not know n_theta upfront */
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
@@ -12404,6 +12525,25 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_rate);
 					count++;
 				}
+			} else if (ds->data_id == L_IID_LOGBETA) {
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_a = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &log_a);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_b = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_b);
+					count++;
+				}
 			} else if (ds->data_id == L_SAS) {
 				if (!ds->data_fixed0) {
 					/*
@@ -13846,8 +13986,8 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	if (mb->fixed_mode) {
-		/* 
-		   then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
+		/*
+		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
 		 */
 		mb->ntheta = 0;
 		mb->theta = NULL;
@@ -13915,8 +14055,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	ssize_t rw_retval;
 
 	if (mb_old->fixed_mode) {
-		/* 
-		   then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
+		/*
+		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
 		 */
 		mb_old->ntheta = 0;
 		mb_old->theta = NULL;
