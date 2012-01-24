@@ -2794,7 +2794,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `iidlogbeta'.}{Number of hyperparmeters are 2.
+				\item{Model `iidlogitbeta'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -2827,7 +2827,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit'}
-								\item{pdf = }{`iidlogbeta'}
+								\item{pdf = }{`iidlogitbeta'}
 							 }
 						 }
 					 }
