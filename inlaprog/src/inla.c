@@ -109,6 +109,7 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define PREDICTOR_INVERSE_LINK(xx_)  ds->predictor_invlinkfunc(xx_, MAP_FORWARD, NULL)
+#define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, NULL)))
 
 #define PENALTY -100.0					       /* wishart3d: going over limit... */
 
@@ -2062,7 +2063,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_IID_GAMMA) {
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
-	} else if (ds->data_id == L_IID_LOGBETA) {
+	} else if (ds->data_id == L_IID_LOGITBETA) {
 		idiv = 2;
 		a[0] = NULL;
 	} else if (ds->data_id == L_SAS) {
@@ -2481,10 +2482,10 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 	}
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_iid_logbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
-	 * y ~ iid_logbeta
+	 * y ~ iid_logitbeta
 	 */
 	if (m == 0) {
 		return GMRFLib_SUCCESS;
@@ -2492,22 +2493,20 @@ int loglikelihood_iid_logbeta(double *logll, double *x, int m, int idx, double *
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double a, b, xx, cons, log_jacobian, eta;
+	double a, b, xx, cons, eta;
 
-	a = map_exp(ds->data_observations.iid_logbeta_log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	b = map_exp(ds->data_observations.iid_logbeta_log_b[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	a = map_exp(ds->data_observations.iid_logitbeta_log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	b = map_exp(ds->data_observations.iid_logitbeta_log_b[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	cons = gsl_sf_lngamma(a + b) - (gsl_sf_lngamma(a) + gsl_sf_lngamma(b));
-
-	assert(ds->predictor_invlinkfunc == link_logit);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			eta = x[i] + OFFSET(idx);
 			xx = PREDICTOR_INVERSE_LINK(eta);
-			log_jacobian = eta - 2.0 * log_apbex(1.0, eta);
-			logll[i] = cons + (a - 1.0) * log(xx) + (b - 1.0) * log(1.0 - xx) + log_jacobian;
+			logll[i] = cons + (a - 1.0) * log(xx) + (b - 1.0) * log(1.0 - xx) + PREDICTOR_INVERSE_LINK_LOGJACOBIAN(eta);
 		}
 	}
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -6336,9 +6335,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
-	} else if (!strcasecmp(ds->data_likelihood, "IIDLOGBETA")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_logbeta;
-		ds->data_id = L_IID_LOGBETA;
+	} else if (!strcasecmp(ds->data_likelihood, "IIDLOGITBETA")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_logitbeta;
+		ds->data_id = L_IID_LOGITBETA;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SAS")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sas;
@@ -6511,7 +6510,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * Ok for the moment...
 		 */
-	} else if (ds->data_id == L_IID_LOGBETA) {
+	} else if (ds->data_id == L_IID_LOGITBETA) {
 		/*
 		 * Ok for the moment...
 		 */
@@ -6834,18 +6833,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-	} else if (ds->data_id == L_IID_LOGBETA) {
+	} else if (ds->data_id == L_IID_LOGITBETA) {
 		/*
-		 * get options related to the iid_logbeta. first log(a)
+		 * get options related to the iid_logitbeta. first log(a)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.iid_logbeta_log_a, tmp);
+		HYPER_NEW(ds->data_observations.iid_logitbeta_log_a, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_a[%g]\n", ds->data_observations.iid_logbeta_log_a[0][0]);
+			printf("\t\tinitialise log_a[%g]\n", ds->data_observations.iid_logitbeta_log_a[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
@@ -6868,7 +6867,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.iid_logbeta_log_a;
+			mb->theta[mb->ntheta] = ds->data_observations.iid_logitbeta_log_a;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -6885,9 +6884,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.iid_logbeta_log_b, tmp);
+		HYPER_NEW(ds->data_observations.iid_logitbeta_log_b, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_b[%g]\n", ds->data_observations.iid_logbeta_log_b[0][0]);
+			printf("\t\tinitialise log_b[%g]\n", ds->data_observations.iid_logitbeta_log_b[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
@@ -6910,7 +6909,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.iid_logbeta_log_b;
+			mb->theta[mb->ntheta] = ds->data_observations.iid_logitbeta_log_b;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -12525,7 +12524,7 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_rate);
 					count++;
 				}
-			} else if (ds->data_id == L_IID_LOGBETA) {
+			} else if (ds->data_id == L_IID_LOGITBETA) {
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
