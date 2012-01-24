@@ -2317,7 +2317,7 @@
                       pdf = "iidgamma"
                       ),
 
-              iidlogbeta = list(
+              iidlogitbeta = list(
                       hyper = list(
                               theta1 = list(
                                       name = "log.a",
@@ -2343,7 +2343,7 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "logit"),
-                      pdf = "iidlogbeta"
+                      pdf = "iidlogitbeta"
                       ),
 
               sas = list(

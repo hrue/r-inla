@@ -246,10 +246,10 @@ typedef struct {
 	double **iid_gamma_log_rate;
 
 	/*
-	 * iid beta 
+	 * iid logitbeta 
 	 */
-	double **iid_logbeta_log_a;
-	double **iid_logbeta_log_b;
+	double **iid_logitbeta_log_a;
+	double **iid_logitbeta_log_b;
 
 	/*
 	 * Sinh-asinh
@@ -300,7 +300,7 @@ typedef enum {
 	L_LOGGAMMA_FRAILTY,
 	L_SAS,
 	L_IID_GAMMA,
-	L_IID_LOGBETA,
+	L_IID_LOGITBETA,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1014,7 +1014,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_iid_logbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
