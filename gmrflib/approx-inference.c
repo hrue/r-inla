@@ -2679,6 +2679,8 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 //			
 		}
 		err = sqrt(err / n);
+		fprintf(optpar->fp,"Iter %i: Err = %g  \n", iter, err);
+		
 		
 		if (iter == 0) {
 			err_previous = err;
@@ -2695,8 +2697,8 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 					mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 				}
 				lambda *= optpar->tr_decrease;
-				//if (optpar && optpar->fp) //Don't say we're going down!
-				//	fprintf(optpar->fp,"Decreasing TR radius!  New lambda=%g\n",lambda);
+				if (optpar && optpar->fp) //Don't say we're going down!
+					fprintf(optpar->fp,"Decreasing TR radius!  New lambda=%g\n",lambda);
 			}
 			
 			if (err > err_previous) {
