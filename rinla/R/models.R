@@ -2239,7 +2239,7 @@
                                       initial = log(10),
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 100),
+                                      param = c(1, 1),
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       )
