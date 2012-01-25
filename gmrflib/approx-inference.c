@@ -2459,21 +2459,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	 */
 	
 	
-	/* Set up trust region parameters.  Need modifications to optpar:
-	 *    lambda0 - initial value for lambda
-	 *    tr_decrease - reduction factor
-	 *    tr_increase - enlargement factor
-	 *    max_tries - number of attempts.
-	 */ 
-	double lambda = optpar->lambda0;
-	double* cc_trust = NULL;
-	cc_trust = Calloc( n, double);
-	/*end trust region parameters*/
+	
 	
 	
 	
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
-	*idxs = NULL, nidx = 0, 
+	*idxs = NULL, nidx = 0;
 	double *mode = NULL;
 	static int new_idea = 0;
 	
@@ -2533,6 +2524,19 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 	}
 	mode = Calloc(n, double);
 	memcpy(mode, x, n * sizeof(double));
+	
+	/* Set up trust region parameters.  Need modifications to optpar:
+	 *    lambda0 - initial value for lambda
+	 *    tr_decrease - reduction factor
+	 *    tr_increase - enlargement factor
+	 *    max_tries - number of attempts.
+	 */ 
+	double lambda = optpar->lambda0;
+	double* cc_trust = NULL;
+	cc_trust = Calloc( n, double);
+	/*end trust region parameters*/
+	
+	
 	
 	/*
 	 * the NEW implementation which do optimisation and GMRF_approximation in the same operation. this is tailored for INLA of'course, and only ment
@@ -2690,13 +2694,13 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 				for (i=0;i<n; i++) {
 					mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 				}
-				lambda *= tr_decrease;
-				if (optpar && optpar->fp)
-					fprintf(optpar->fp,"Decreasing TR radius!  New lambda=%g\n",lambda);
+				lambda *= optpar->tr_decrease;
+				//if (optpar && optpar->fp) //Don't say we're going down!
+				//	fprintf(optpar->fp,"Decreasing TR radius!  New lambda=%g\n",lambda);
 			}
 			
 			if (err > err_previous) {
-				lambda *= tr_increase;
+				lambda *= optpar->tr_increase;
 				if (optpar && optpar->fp)
 					fprintf(optpar->fp,"Increasing TR radius!  New lambda=%g\n",lambda);
 			}
