@@ -426,6 +426,30 @@ typedef struct {
 	 * \brief Step factor for the Newton Raphson algorithm: nr_step_factor
 	 */
 	double optpar_nr_step_factor;
+	
+	/**
+	 * \brief Initial regularisation parameter for Levenberg-Marquardt algorithm
+	 */
+	double optpar_lambda0;
+	
+	
+	/**
+	 * \brief Increase rate for LM algorithm
+	 */
+	double optpar_tr_increase;
+
+	/**
+	 * \brief Decrease rate for LM algorithm
+	 */
+	double optpar_tr_decrease;
+	
+	/**
+	 * \brief Maximum number of regularization increases per step before giving up.
+	 */
+	double optpar_max_tries;
+	
+	
+	
 
 	/**
 	 * \brief A flag to say that the initial values of the hyperparameters, are the known mode
