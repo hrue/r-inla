@@ -258,6 +258,35 @@ typedef struct {
 	 * \c times \c nr_step_factor and \c 1.
 	 */
 	double nr_step_factor;
+	
+	/**
+	 * \brief Initial regularization parameter in the Levenberg-Marquardt algorithm
+	 *
+	 * Initial regulaisation parameter in the Levenberg-Marquardt algorithm, where the update is computed by solving \f$(H + \lambda diag(H))\delta x = \nabla f \f$.
+	 */
+         double lambda0;
+
+	/**
+	 * \brief Multiplicative increase of regularisation parameter in the Levenberg-Marquardt algorithm.
+	 *
+	 * If the Levenberg-Marquardt algorithm requires more regularisation, the regularisation parameter is increased by lambda = tr_increase*lambda.
+	 */
+         double tr_increase;
+
+	/**
+	 * \brief Rate of decrease of regularisation parameter in the Levenberg-Marquardt algorithm.
+	 *
+	 * If the Levenberg-Marquardt algorithm requires less regularisation, the regularisation parameter is decreased by lambda = lambda/tr_decrease.
+	 */
+         double tr_decrease;  
+
+	/**
+	 * \brief Number of times to try to factor matrix before giving up.
+	 *
+	 * If the GMRF approximation fails due to the precisiom matrix being indefinite, we increase the regularisation and try to compute the approximation a second time. 
+	 * This parameter controls how many times we try to do this.
+	 */
+         double max_tries; 
 
 } GMRFLib_optimize_param_tp;
 
