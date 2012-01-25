@@ -2672,7 +2672,7 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 		
 		for (i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
-			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
+//			
 		}
 		err = sqrt(err / n);
 		
@@ -2686,6 +2686,10 @@ if (free_cc) Free(cc); Free(mode); Free(idxs); Free(cc_trust); }
 				flag_cycle_behaviour = 1;
 			}
 			if (err < err_previous) { //this should be better!
+				//Update mode
+				for (i=0;i<n; i++) {
+					mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
+				}
 				lambda *= tr_decrease;
 				if (optpar && optpar->fp)
 					fprintf(optpar->fp,"Decreasing TR radius!  New lambda=%g\n",lambda);
