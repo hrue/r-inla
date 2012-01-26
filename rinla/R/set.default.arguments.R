@@ -273,7 +273,15 @@
             step.factor = -0.1,
 
             ##:ARGUMENT: global.node.factor The factor which defines how many neighbors (as a fraction of n-1) that is required to be defined as a global node and numbered last (whatever the reordering routine says).
-            global.node.factor = 0.5)
+            global.node.factor = 0.5,
+            ##:ARGUMENT: lambda0 The inital regularisation parameter for the Gaussian Approximation.  It is changed adaptively throughout the alborithm
+            lambda0 = 1e-6,
+            ##:ARGUMENT: tr.increase The expansion factor.  If required, lambda = tr.increase*lambda is the new regularisation parameter
+            tr.increase= 10,
+            ##:ARGUMENT: tr.decrease The reduction factor.  If required, lambda = lambda/tr.decrease is the new regularisation parameter
+            tr.decrease= 10,     
+            ##:ARGUMENT: max.tries The maximum number of times to increase lambda in order to ensure a successful matrix factorisation.
+            max.tries = 15)
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))

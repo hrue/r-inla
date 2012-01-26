@@ -14,7 +14,7 @@ GMRFLibNAME = GMRFLib
 CC = gcc
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= -std=gnu99 -Wall -O3 -march=native -mfpmath=sse -msse4 -funroll-loops -ftracer -fopenmp -pipe
+FLAGS= -std=gnu99 -Wall -O3 -march=native -mfpmath=sse -msse4 -funroll-loops -ftracer -fopenmp -pipe 
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local

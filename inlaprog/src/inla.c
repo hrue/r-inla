@@ -11971,6 +11971,15 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
+	mb->ai_par->optpar_lambda0 = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.LAMBDA0"), mb->ai_par->optpar_lambda0);
+	mb->ai_par->optpar_lambda0 = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_LAMBDA0"), mb->ai_par->optpar_lambda0);
+	mb->ai_par->optpar_tr_increase = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.TR.INCREASE"), mb->ai_par->optpar_tr_increase);
+	mb->ai_par->optpar_tr_increase = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_TR_INCREASE"), mb->ai_par->optpar_tr_increase);
+	mb->ai_par->optpar_tr_decrease = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.TR.DECREASE"), mb->ai_par->optpar_tr_decrease);
+	mb->ai_par->optpar_tr_decrease = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_TR_DECREASE"), mb->ai_par->optpar_tr_decrease);
+	mb->ai_par->optpar_max_tries = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.MAX.TRIES"), mb->ai_par->optpar_max_tries);
+	mb->ai_par->optpar_max_tries = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_MAX_TRIES"), mb->ai_par->optpar_max_tries);
+
 
 	mb->ai_par->optpar_nr_step_factor = iniparser_getdouble(ini, inla_string_join(secname, "NR.STEP.FACTOR"), mb->ai_par->optpar_nr_step_factor);
 
