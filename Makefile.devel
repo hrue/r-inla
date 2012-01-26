@@ -35,10 +35,12 @@ ifeq ($(USERNAME),hrue)
   PREFIX = $(HOME)/p/inla/work/local
 endif
 ifeq ($(USERNAME),danielsimpson)
-  PREFIX = /Users/danielsimpson/build-inla-for-mac/builds/build64/local
+  PREFIX = $(PWD)/build-configs/mac/local
 endif
 ## otherwise use default directory.
 PREFIX ?= $(HOME)/local
+
+
 
 ## Do the work:
 
@@ -50,17 +52,17 @@ all: gmrflib inla fmesher
 
 gmrflib:
 	make -C gmrflib clean
-	make -C gmrflib PREFIX=$(PREFIX)
+	make -C gmrflib PREFIX=$(PREFIX) 
 	make -C gmrflib PREFIX=$(PREFIX) install
 
 inla:
 	make -C inlaprog clean
-	make -C inlaprog PREFIX=$(PREFIX)
+	make -C inlaprog PREFIX=$(PREFIX) EXTLIBS3=""
 	make -C inlaprog PREFIX=$(PREFIX) install
 
 fmesher:
 	make -C fmesher clean
-	make -C fmesher PREFIX=$(PREFIX)
+	make -C fmesher PREFIX=$(PREFIX) 
 	make -C fmesher PREFIX=$(PREFIX) install
 
 clean: 

@@ -266,6 +266,19 @@
         cat("optpar.fp = stdout\n", sep = " ", file = file,  append = TRUE)
     }
 
+    if (!is.null(inla.spec$lambda0)) {
+        cat("optpar.lambda0 = ", inla.spec$lambda0,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(inla.spec$tr.increase)) {
+        cat("optpar.tr.increase = ", inla.spec$tr.increase,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(inla.spec$tr.decrease)) {
+        cat("optpar.tr.decrease = ", inla.spec$tr.decrease,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(inla.spec$max.tries)) {
+        cat("optpar.max.tries = ", inla.spec$max.tries,"\n", sep = " ", file = file,  append = TRUE)
+    }
+
     if (!is.null(inla.spec$reordering)) {
         ## reordering could be a number -1, 0, ....  or a string.
         r = inla.spec$reordering

@@ -13,7 +13,7 @@ CC = gcc
 CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
+FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe 
 LD = $(CXX)
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)

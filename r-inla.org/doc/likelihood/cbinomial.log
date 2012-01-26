@@ -1,15 +1,23 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2011.10.6)  15 OCT 2011 09:53
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.10.6)  25 JAN 2012 19:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **cbinomial.tex
 (./cbinomial.tex
-LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, lo
-aded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2009-06-19, ngerman-x-2009-06-19, afrikaans, ancientgreek, ibycus, arabi
+c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
+h, dutch, ukenglish, usenglishmax, esperanto, estonian, farsi, finnish, french,
+ galician, german, ngerman, swissgerman, monogreek, greek, hungarian, icelandic
+, assamese, bengali, gujarati, hindi, kannada, malayalam, marathi, oriya, panja
+bi, tamil, telugu, indonesian, interlingua, irish, italian, kurmanji, lao, lati
+n, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, polish, portu
+guese, romanian, russian, sanskrit, serbian, slovak, slovenian, spanish, swedis
+h, turkish, turkmen, ukrainian, uppersorbian, welsh, loaded.
+(/usr/local/texlive/2009/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
+(/usr/local/texlive/2009/texmf-dist/tex/latex/base/size11.clo
 File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
@@ -24,22 +32,22 @@ File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
 )
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2010/09/12 v5.6 Page Geometry
 
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks14
 )
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty
-Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
-Package ifpdf Info: pdfTeX in PDF mode is detected.
+(/usr/local/texlive/2009/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2010/01/28 v2.1 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in pdf mode detected.
 )
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifvtex.sty
+(/usr/local/texlive/2009/texmf-dist/tex/generic/oberdiek/ifvtex.sty
 Package: ifvtex 2010/03/01 v1.5 Switches for detecting VTeX and its modes (HO)
 Package ifvtex Info: VTeX not detected.
 )
-(/usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+(/usr/local/texlive/2009/texmf-dist/tex/generic/ifxetex/ifxetex.sty
 Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 )
 \Gm@cnth=\count87
@@ -55,24 +63,24 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@layoutvoffset=\dimen110
 \Gm@dimlist=\toks15
 )
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2000/06/29 v2.01
 
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0
 \@emptytoks=\toks16
 \ex@=\dimen111
 ))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2000/07/18 v2.13 AMS math features
 \@mathmargin=\skip43
 
 For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d
 \pmbraise@=\dimen112
 )
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 1999/12/14 v2.01 operator names
 )
 \inf@bad=\count90
@@ -113,12 +121,13 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
 )
-(/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty
+(/usr/local/texlive/2009/texmf-dist/tex/latex/tools/verbatim.sty
 Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks21
 \verbatim@line=\toks22
 \verbatim@in@stream=\read1
-) (./cbinomial.aux)
+)
+(./cbinomial.aux)
 \openout1 = `cbinomial.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
@@ -176,7 +185,7 @@ Package amsmath Warning: Foreign command \atopwithdelims;
 (amsmath)                 on input line 15.
 
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 48.
-(/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+(/usr/local/texlive/2009/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
@@ -184,30 +193,29 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 File: example-cbinomial.R  (verbatim)
  [1
 
-{/usr/share/texlive/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] (./cbino
-mial.aux) ) 
+{/usr/local/texlive/2009/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] (./
+cbinomial.aux) ) 
 Here is how much of TeX's memory you used:
- 1404 strings out of 495066
- 17865 string characters out of 3182278
- 77578 words of memory out of 3000000
- 4614 multiletter control sequences out of 15000+200000
+ 1403 strings out of 493738
+ 18017 string characters out of 3143023
+ 10073528 words of memory out of 13024447
+ 4725 multiletter control sequences out of 15000+200000
  9302 words of font info for 35 fonts, out of 3000000 for 9000
- 14 hyphenation exceptions out of 8191
- 24i,12n,30p,226b,186s stack positions out of 5000i,500n,10000p,200000b,50000s
- </home/hrue/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmtt10
-.657pk> </home/hrue/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmbx10.657
-pk> </home/hrue/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmsy8.600pk> <
-/home/hrue/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmsy10.657pk> </hom
-e/hrue/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmmi8.600pk> </home/hru
-e/.texlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmex10.657pk> </home/hrue/.t
-exlive2011/texmf-var/fonts/pk/ljfour/public/cm/cmmi10.657pk> </home/hrue/.texli
-ve2011/texmf-var/fonts/pk/ljfour/public/cm/cmr10.657pk> </home/hrue/.texlive201
-1/texmf-var/fonts/pk/ljfour/public/cm/cmbx12.600pk> </usr/share/texlive/texmf-d
-ist/fonts/pk/ljfour/public/cm/dpi720/cmbx12.pk>
-Output written on cbinomial.pdf (2 pages, 41060 bytes).
+ 714 hyphenation exceptions out of 8191
+ 24i,12n,30p,226b,186s stack positions out of 30000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmbx10.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmbx12.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmex10.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi10.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmmi8.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+r10.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
+10.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8
+.pfb></usr/local/texlive/2009/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.
+pfb>
+Output written on cbinomial.pdf (2 pages, 99374 bytes).
 PDF statistics:
- 185 PDF objects out of 1000 (max. 8388607)
- 46 compressed objects within 1 object stream
+ 45 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
