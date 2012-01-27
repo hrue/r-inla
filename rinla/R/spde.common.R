@@ -505,7 +505,7 @@ rbind.inla.data.stack.info = function(...)
 }
 
 
-inla.stack.compress = function(stack, remove.unused=TRUE)
+inla.stack.compress = function(stack, remove.unused=FALSE)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -579,7 +579,7 @@ inla.stack = function(...)
 }
 
 
-inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
+inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=FALSE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -789,7 +789,7 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
 
 }
 
-inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=TRUE)
+inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=FALSE)
 {
     S.input = list(...)
 
