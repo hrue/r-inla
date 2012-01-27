@@ -15,32 +15,23 @@ additive mixed models using Integrated Nested Laplace Approximations.
 \tabular{ll}{
 Package: \tab INLA\cr
 Type: \tab Package\cr
-Version: \tab 0.1\cr
-Date: \tab 2009-01-01 \cr
+Version: \tab 0.0\cr
+Date: \tab TODAY\cr
 License: \tab GPL\cr
 NOTE: \tab This package has no version number yet; it is to heavily developed
-at the moment...
+at the moment; see \code{inla.googlecode.com} and \code{www.r-inla.org}
 }
 
-The INLA package is a R interface to the GMRFLib library and the
-\emph{inla} program. These are written in (ANSI) C and both need to be
-downloaded and installed for the INLA package to work.  The \emph{inla}
-program can be downloaded from
-\url{http://www.math.ntnu.no/~hrue/GMRFLib/} in a binary format.
+Please see the web-site \cide{www.r-inla.org} for further details.
 
-The INLA package provides with full Bayesian analysis for generalized
-additive models using Integrated Nested Laplace Approximation. For
-details about Integrated Nested Laplace Approximation see \cite{Rue et
-al. (2008)}, for a wide series of worked out examples solved using INLA
-see \cite{ Martino and Rue (2008)}.%%
 } 
 %%
 
-\author{Sara Martino and Havard Rue.  Maintainer: Havard Rue
-<hrue@math.ntnu.no> (On leave 2008: Sara Martino <martino@math.ntnu.no>)
+\author{Håvard Rue, Finn Lindgren and Sara Martino.
 }
 
-\references{Rue, H. and Martino, S. and Chopin, N. (2009)
+\references{
+  Rue, H. and Martino, S. and Chopin, N. (2009)
   \emph{Approximate Bayesian Inference for latent Gaussian models using
   Integrated Nested Laplace Approximations}, Journal of Royal
   Statistical Society, Series B, with discussion. (To appear.)
@@ -49,11 +40,11 @@ see \cite{ Martino and Rue (2008)}.%%
   Theory and Applications}, Monographs on Statistics and Applied
   Probability, no 104, Chapman \& Hall, London.
   
-  Martino, S. and Rue, H. (2008)
-  \emph{Implementing Approximate Bayesian Inference using Integrated
-    Nested Laplace Approximation: a manual for the inla program}
-  Preprint,  No.2, Dep. of Mathematical Sciences, NTNU,  Norway
+  F. Lindgren, H. Rue, and J.Lindstrom.
+  \emph{An explicit link between Gaussian fields and Gaussian Markov
+  random fields: The SPDE approach (with discussion).}
+  Journal of the Royal Statistical Society, Series B,
+  73 (4): 423--498, 2011.
 }
 
-\keyword{Approximate Bayesian inference, Laplace approximations,
-  Integrated nested Laplace approximations}
+\keyword{}
