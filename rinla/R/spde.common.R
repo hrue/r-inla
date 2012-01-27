@@ -472,6 +472,7 @@ rbind.inla.data.stack.info = function(...)
                     if (length(missing.names)>0) {
                         df = matrix(NA, x$nrow, length(missing.names))
                         colnames(df) = missing.names
+                        df = as.data.frame(df)
                         return(cbind(x$data, df))
                     } else {
                         return(x$data)
@@ -664,7 +665,8 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
         names(nrow) = names(names)
         names(ncol) = names(names)
 
-        data = as.data.frame(do.call(cbind, l))
+##        data = as.data.frame(do.call(cbind, l))
+        data = as.data.frame(l)
         names(data) = do.call(c, names)
         nrow = nrow(data)
         if ((n.A>1) && (nrow != n.A)) {
