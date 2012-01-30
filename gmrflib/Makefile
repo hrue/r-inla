@@ -15,7 +15,7 @@ CC = gcc
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS= -std=gnu99 -Wall -O3 -march=native -mfpmath=sse -msse4 -funroll-loops -ftracer -fopenmp -pipe 
-
+#FLAGS = -O0 -g
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local
 LEXTLIBS = -L$(LEXTPREFIX)/lib 
