@@ -1077,8 +1077,16 @@
     if (is.integer.values(A,...)) {
         A = round(A)
         storage.mode(A) = "integer"
-        return (A)
     }
+    return(A)
+}
+
+`inla.affirm.double` = function(A,...)
+{
+    if (!is(A, "Matrix")) {
+        storage.mode(A) = "double"
+    }
+    return (A)
 }
 
 `inla.matrix2list` = function(A, byrow = FALSE)
@@ -1242,4 +1250,4 @@
 }
 
 
-            
+
