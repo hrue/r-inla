@@ -219,8 +219,8 @@
             A = inla.affirm.integer(A)
         } else if (is.list(A)) {
             A$values = inla.affirm.integer(A$values)
-        } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
-            A = inla.affirm.integer(A)
+        } else if (is(A, "Matrix")) {
+            ## Cannot store Matrix matrices as integers; do nothing.
         } else if (is.vector(A)) {
             A = inla.affirm.integer(A)
         } else {
@@ -253,7 +253,7 @@
         j = A$j-1L
         values = A$values
         elems = length(values)
-    } else if (is(A, "dgCMatrix") || is(A, "dgTMatrix")) {
+    } else if (is(A, "Matrix")) {
         ##
         if (!is(A, "dgTMatrix")) {
             A = inla.as.dgTMatrix(A)

@@ -99,13 +99,13 @@ inla.spde2.generic =
 
     ## NOTE: Should this be in the f function instead?
     ##       Yes, it should.
-    fmesher.write(spde$param.inla$M0, spde.prefix, "M0")
-    fmesher.write(spde$param.inla$M1, spde.prefix, "M1")
-    fmesher.write(spde$param.inla$M2, spde.prefix, "M2")
-    fmesher.write(spde$param.inla$B0, spde.prefix, "B0")
-    fmesher.write(spde$param.inla$B1, spde.prefix, "B1")
-    fmesher.write(spde$param.inla$B2, spde.prefix, "B2")
-    fmesher.write(spde$param.inla$BLC, spde.prefix, "BLC")
+    fmesher.write(inla.affirm.double(spde$param.inla$M0), spde.prefix, "M0")
+    fmesher.write(inla.affirm.double(spde$param.inla$M1), spde.prefix, "M1")
+    fmesher.write(inla.affirm.double(spde$param.inla$M2), spde.prefix, "M2")
+    fmesher.write(inla.affirm.double(spde$param.inla$B0), spde.prefix, "B0")
+    fmesher.write(inla.affirm.double(spde$param.inla$B1), spde.prefix, "B1")
+    fmesher.write(inla.affirm.double(spde$param.inla$B2), spde.prefix, "B2")
+    fmesher.write(inla.affirm.double(spde$param.inla$BLC), spde.prefix, "BLC")
 
     return(spde)
 }

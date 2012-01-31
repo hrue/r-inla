@@ -650,7 +650,7 @@ inla.mesh.create =
     if (is.null(loc0)) {
         all.args = ""
     } else {
-        loc.file = fmesher.write(loc0, prefix, "input.s")
+        loc.file = fmesher.write(inla.affirm.double(loc0), prefix, "input.s")
         all.args = "--input=input.s"
 
         if (!is.null(tv)) {
@@ -662,14 +662,14 @@ inla.mesh.create =
         all.args = paste(all.args, " --cutoff=", cutoff, sep="")
     }
     if (!is.null(segm$bnd)) {
-        fmesher.write(segm$bnd$idx-1L, prefix, "input.segm.bnd.idx")
-        fmesher.write(segm$bnd$grp, prefix, "input.segm.bnd.grp")
+        fmesher.write(inla.affirm.integer(segm$bnd$idx)-1L, prefix, "input.segm.bnd.idx")
+        fmesher.write(inla.affirm.integer(segm$bnd$grp), prefix, "input.segm.bnd.grp")
         all.args = paste(all.args," --boundary=input.segm.bnd.idx")
         all.args = paste(all.args," --boundarygrp=input.segm.bnd.grp")
     }
     if (!is.null(segm$int)) {
-        fmesher.write(segm$int$idx-1L, prefix, "input.segm.int.idx")
-        fmesher.write(segm$int$grp, prefix, "input.segm.int.grp")
+        fmesher.write(inla.affirm.integer(segm$int$idx)-1L, prefix, "input.segm.int.idx")
+        fmesher.write(inla.affirm.integer(segm$int$grp), prefix, "input.segm.int.grp")
         all.args = paste(all.args," --interior=input.segm.int.idx")
         all.args = paste(all.args," --interiorgrp=input.segm.int.grp")
     }
@@ -805,7 +805,7 @@ inla.mesh.create =
     mesh$meta$time = (rbind(mesh$meta$time,
                             object=time.object,
                             total=time.total))
-    return(mesh)
+    return(invisible(mesh))
 }
 
 
@@ -1007,14 +1007,15 @@ if (FALSE) {
 ##
 
 
-inla.delaunay = function(loc)
+inla.delaunay = function(loc, ...)
 {
     hull = chull(loc[,1],loc[,2])
     mesh =
         inla.mesh.create(loc=loc,
                          boundary=inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE),
                          extend=FALSE,
-                         refine=FALSE)
+                         refine=FALSE,
+                         ...)
     return(invisible(mesh))
 }
 
@@ -1533,8 +1534,8 @@ inla.parse.queries = function(...)
     output.bspline = list("bspline")
     output.p2m = list("p2m.t", "p2m.b")
 
-    fmesher.write(loc, prefix, "s")
-    fmesher.write(tv-1L, prefix, "tv")
+    fmesher.write(inla.affirm.double(loc), prefix, "s")
+    fmesher.write(inla.affirm.integer(tv)-1L, prefix, "tv")
     all.args = "--smorg --input=s,tv"
 
     ## additional arguments
@@ -1543,8 +1544,8 @@ inla.parse.queries = function(...)
         if (!output.given) output = c(output, output.fem)
     }
     if (!is.null(aniso)) {
-        fmesher.write(aniso[[1]], prefix, "aniso.gamma")
-        fmesher.write(aniso[[2]], prefix, "aniso.vec")
+        fmesher.write(inla.affirm.double(aniso[[1]]), prefix, "aniso.gamma")
+        fmesher.write(inla.affirm.double(aniso[[2]]), prefix, "aniso.vec")
 
         all.args = paste(all.args," --aniso=aniso.gamma,aniso.vec", sep="")
         if (!output.given) output = c(output, output.aniso)
@@ -1568,7 +1569,7 @@ inla.parse.queries = function(...)
         if (!output.given) output = c(output, output.bspline)
     }
     if (!is.null(points2mesh)) {
-        fmesher.write(points2mesh, prefix, "p2m")
+        fmesher.write(inla.affirm.double(points2mesh), prefix, "p2m")
 
         all.args = paste(all.args," --points2mesh=p2m", sep="")
         if (!output.given) output = c(output, output.p2m)
