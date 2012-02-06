@@ -541,10 +541,15 @@ inla.mesh.create =
              cutoff = 0,
              plot.delay = NULL,
              data.dir,
-             keep = (!missing(data.dir) && !is.null(data.dir)))
+             keep = (!missing(data.dir) && !is.null(data.dir)),
+             timings = FALSE)
 {
-
-    time.total = system.time({ ## Entire function timing start
+    if (!timings) {
+        system.time = function(expr) {
+            expr
+            structure(c(0,0,0,0,0), class = "proc_time")
+        }
+    }
 
     time.pre = system.time({ ## Pre-processing timing start
 
@@ -800,7 +805,8 @@ inla.mesh.create =
 
     }) ## Object construction timing end
 
-    }) ## Entire function timing start
+    ## Entire function timing
+    time.total = time.pre+time.fmesher+time.post+time.object
 
     mesh$meta$time = (rbind(mesh$meta$time,
                             object=time.object,
