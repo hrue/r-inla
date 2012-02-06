@@ -1251,3 +1251,20 @@
 
 
 
+`inla.factor2matrix` = function(f, sparse=FALSE) {
+    ok = !is.na(f)
+    levels = levels(f)
+    if (sparse) {
+        factor.matrix =
+            sparseMatrix(i=which(ok), j=as.integer(f[ok]), x=1,
+                         dims=c(length(f), nlevels(f)))
+    } else {
+        factor.matrix = matrix(0, length(f), nlevels(f))
+        for (k in 1:nlevels(f)) {
+            factor.matrix[ok, k] = (f[ok]==levels[k])
+        }
+    }
+    colnames(factor.matrix) = levels(f)
+    rownames(factor.matrix) = names(f)
+    return(factor.matrix)
+}
