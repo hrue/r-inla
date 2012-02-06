@@ -18,7 +18,8 @@ inla.mesh.create(loc = NULL,
                  cutoff = 0,
                  plot.delay = NULL,
                  data.dir,
-                 keep = (!missing(data.dir) && !is.null(data.dir)))
+                 keep = (!missing(data.dir) && !is.null(data.dir)),
+                 timings = FALSE)
 }
 \arguments{
   \item{loc}{
@@ -85,6 +86,9 @@ inla.mesh.create(loc = NULL,
     specified, otherwise false.  Warning: If
     \code{keep} is false, \code{data.dir} and its contents will be
     deleted (unless set to \code{tempdir()}).
+  }
+  \item{timings}{
+    If \code{TRUE}, obtain timings for the mesh construction.
   }
 }
 \details{
