@@ -596,6 +596,11 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			A += ai_store->aa[i];
 		}
 		*logdens = A - problem->sub_logdens;
+
+		//
+		//FIXME1("FIXME");
+		//printf("thread %d A=%.12f sub_logdens=%.12f\n", omp_get_thread_num(), A, problem->sub_logdens);
+		//
 	} else {
 		/*
 		 * then evaluate it in the mode (ie the mean) to get the log-density 

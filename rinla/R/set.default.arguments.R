@@ -164,7 +164,11 @@
          prec.intercept = 0.0,
 
          ##:ARGUMENT: compute Compute marginals for the fixed effects ? (default TRUE)
-         compute = TRUE)
+         compute = TRUE,
+
+         ##:ARGUMENT: correlation.matrix Compute the posterior correlation matrix for all fixed effects? (default FALSE) OOPS: This option will set up appropriate linear combinations and the results are shown as the posterior correlation matrix of the linear combinations. This option will imply \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.
+         
+         correlation.matrix = FALSE)
 
     ##:SEEALSO: inla
 }
@@ -229,7 +233,7 @@
             cpo.diff = NULL,
 
             ##:ARGUMENT: npoints Number of points to use in the 'stratey=laplace' approximation
-            npoints = NULL,
+            npoints = 9,
 
             ##:ARGUMENT: adapt.hessian.mode A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)
             adapt.hessian.mode = NULL,
