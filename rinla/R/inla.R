@@ -724,7 +724,7 @@
             } else {
                 ## in this case, some of the entries in the data.frame
                 ## could be a matrix itself...
-                for(entry in 1:dim(x)[2]) {
+                for(entry in 1:dim(x)[2L]) {
                     x[[entry]][ is.na(x[[entry]]) ] = 0
                 }
             }
@@ -739,7 +739,33 @@
         gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data, na.action=inla.na.action))
 
         ## n.fix can have been changed here due to a `-1'
-        gp$n.fix = dim(gp$model.matrix)[2]
+        gp$n.fix = dim(gp$model.matrix)[2L]
+
+        ## if reqested, then setup the fixed effects as linear
+        ## combinations, so we can compute their posterior correlation
+        ## matrix. so the lincombs are 'inla.make.lincomb(z=1)'
+        ## etc. we need the quotes \"..\" for the "(Intercept)".
+        if (control.fixed$correlation.matrix && !is.null(gp$model.matrix)) {
+            fix.names = colnames(gp$model.matrix)
+            lc.all.fix = c()
+            for(fix.name in fix.names) {
+                lc.fix = inla.eval(paste("inla.make.lincomb(\"", fix.name,"\"=1)", sep=""))
+                names(lc.fix) = fix.name
+                lc.all.fix = c(lc.all.fix, lc.fix)
+            }
+            ## if we have defined lincomb's also in the inla call,
+            ## then simply append the fixed-effects at the end,
+            ## otherwise set the 'lincomb' argument. however. for this
+            ## to work with repeated calls (like inla.hyperpar()) we
+            ## have to turn off control.fixed$correlation.matrix as we
+            ## have moved that part into 'lincomb'. also, we need to
+            ## make sure that we actually compute the correlation
+            ## matrix for the linear combinations in control.inla$...
+            lincomb = c(lincomb, lc.all.fix)
+            control.fixed$correlation.matrix = FALSE
+            control.inla$lincomb.derived.correlation.matrix = TRUE
+        }
+        
     } else {
         gp$model.matrix = NULL
     }
@@ -766,6 +792,7 @@
         cont.pred$cdf = cont.pred$quantiles = NULL
     }
     
+    ## control inla
     cont.inla =inla.set.control.inla.default(family)
     cont.inla[names(control.inla)] = control.inla
 

@@ -2676,6 +2676,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `betabinomial'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`overdispersion'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 0.4'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit probit cloglog'}
+								\item{pdf = }{`betabinomial'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `cbinomial'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `nbinomial'.}{Number of hyperparmeters are 1.
@@ -2687,7 +2713,7 @@ inla.models()
 							\item{initial = }{`2.30258509299405'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 100'}
+							\item{param = }{`1 1'}
 							\item{to.theta = }{`\code{}'}
 							\item{from.theta = }{`\code{}'}
 							}

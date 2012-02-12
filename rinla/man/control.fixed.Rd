@@ -15,6 +15,7 @@ inla(formula, ..., control.fixed=list( <arg>=<value>[, <arg>=<value>]))
 \item{prec}{  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.}
 \item{prec.intercept}{  Default precision the intercept (default 0.0)}
 \item{compute}{  Compute marginals for the fixed effects ? (default TRUE)}
+\item{correlation.matrix}{  Compute the posterior correlation matrix for all fixed effects? (default FALSE) OOPS: This option will set up appropriate linear combinations and the results are shown as the posterior correlation matrix of the linear combinations. This option will imply \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.}
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

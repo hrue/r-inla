@@ -2112,6 +2112,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_CBINOMIAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_BETABINOMIAL) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_ZEROINFLATEDBINOMIAL0) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -4189,6 +4192,72 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 
 #undef P1
 #undef P2
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
+	 */
+#define LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int y = (int) ds->data_observations.y[idx];
+	int n = (int) ds->data_observations.nb[idx];
+
+	double rho = map_probability(ds->data_observations.betabinomial_overdispersion_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double p, a, b;
+	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			a = p * (1.0 - rho) / rho;
+			b = (p * rho - p - rho + 1.0) / rho;
+			logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			/*
+			 * if 'n' is ``large'', then we need to do something approximate here... I guess we get the question back if so is the case. So we issue a
+			 * warning for the ``extreme case'' only.
+			 */
+			static char give_warning = 1;
+			if (n > 500 && give_warning) {
+				give_warning = 0;
+				fprintf(stderr, "\n*** Warning ***  Version [%s]", RCSId);
+				fprintf(stderr, "\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
+				fprintf(stderr, "\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
+			}
+
+			int yy;
+			double normc2;
+
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			a = p * (1.0 - rho) / rho;
+			b = (p * rho - p - rho + 1.0) / rho;
+			normc2 = LOGGAMMA_INT(n + 1) - gsl_sf_lnbeta(a, b);
+			logll[i] = 0.0;
+
+			if (y <= n / 2) {		       /* integer arithmetic is ok */
+				for (yy = y; yy >= 0; yy--) {
+					logll[i] += exp(normc2 - LOGGAMMA_INT(yy + 1) - LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+				}
+			} else {
+				for (yy = y + 1; yy <= n; yy++) {
+					logll[i] += exp(normc2 - LOGGAMMA_INT(yy + 1) - LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+				}
+				logll[i] = 1.0 - logll[i];
+			}
+		}
+	}
+
+#undef LOGGAMMA_INT
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -6399,6 +6468,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
 		ds->data_id = L_CBINOMIAL;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "BETABINOMIAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_betabinomial;
+		ds->data_id = L_BETABINOMIAL;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial0;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL0;
@@ -6590,7 +6663,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
 		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2 ||
-		   ds->data_id == L_CBINOMIAL || ds->data_id == L_BINOMIALTEST) {
+		   ds->data_id == L_CBINOMIAL || ds->data_id == L_BINOMIALTEST || ds->data_id == L_BETABINOMIAL) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -7349,6 +7422,48 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_identity_scale;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = (void *) &(ds->data_observations.gev_scale_xi);
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_BETABINOMIAL) {
+		/*
+		 * get options related to the betabinomial
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.betabinomial_overdispersion_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise overdispersion_intern[%g]\n", ds->data_observations.betabinomial_overdispersion_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern overdispersion for the betabinomial observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("overdispersion for the betabinomial observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.betabinomial_overdispersion_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -12641,6 +12756,17 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &xi);
 					count++;
 				}
+			} else if (ds->data_id == L_BETABINOMIAL) {
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double intern_overdispersion = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior, &intern_overdispersion);
+					count++;
+				}
 			} else if (ds->data_id == L_NBINOMIAL) {
 				if (!ds->data_fixed) {
 					/*
@@ -17107,7 +17233,7 @@ int main(int argc, char **argv)
 	printf("\t\t\tHUGE\n");						\
 	printf("\t\t-h\t: Print (this) help.\n")
 
-#define BUGS_intern(fp) fprintf(fp, "Report bugs to <hrue@math.ntnu.no>\n")
+#define BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define BUGS BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, err, ncpu;
 	char *program = argv[0];

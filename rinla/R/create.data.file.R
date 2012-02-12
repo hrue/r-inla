@@ -128,6 +128,7 @@
                            c("binomial",
                              "binomialtest", 
                              "cbinomial", 
+                             "betabinomial", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
