@@ -216,6 +216,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_ai_marginal_hyperparam(fx, G.x, G.b, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph, G.Qfunc, G.Qfunc_arg, G.constr, G.ai_par, ais);
 		}
+		
 #pragma omp section
 		{
 			GMRFLib_thread_id = id;

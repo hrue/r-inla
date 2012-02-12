@@ -2222,6 +2222,25 @@
                       pdf = "binomialtest"
                       ),
 
+              betabinomial = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "overdispersion",
+                                      short.name = "rho",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(0.0, 0.4),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "betabinomial"
+                      ),
+
               cbinomial = list(
                       hyper = list(
                               ),
