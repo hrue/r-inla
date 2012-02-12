@@ -745,7 +745,8 @@
         ## combinations, so we can compute their posterior correlation
         ## matrix. so the lincombs are 'inla.make.lincomb(z=1)'
         ## etc. we need the quotes \"..\" for the "(Intercept)".
-        if (control.fixed$correlation.matrix && !is.null(gp$model.matrix)) {
+        if (!is.null(control.fixed$correlation.matrix) &&
+            control.fixed$correlation.matrix && !is.null(gp$model.matrix)) {
             fix.names = colnames(gp$model.matrix)
             lc.all.fix = c()
             for(fix.name in fix.names) {
