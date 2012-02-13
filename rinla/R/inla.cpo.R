@@ -12,7 +12,6 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
     }
 
     arg.char = as.character(as.expression(match.call()))
-    print(arg.char)
     just.args = gsub(paste("^(", lib, ")?inla.cpo[(]", sep=""), "", arg.char)
     just.args = gsub("[)]$", "", just.args)
 
