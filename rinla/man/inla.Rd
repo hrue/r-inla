@@ -186,13 +186,13 @@ deviance information criteria and effective number of parameters,
 otherwise \code{NULL}
 }
 \item{cpo}{
-If \code{cpo}=\code{TRUE} in \code{control.compute}, the
-values of conditional predictive ordinate (CPO) otherwise \code{NULL}.
-}
-\item{pit}{
-If \code{cpo}=\code{TRUE} in \code{control.compute}, the
-values of the probability
-integral transform (PIT) for the model, otherwise \code{NULL}.
+If \code{cpo}=\code{TRUE} in \code{control.compute}, a list
+of three elements: \code{cpo$cpo} are the values of the conditional 
+predictive ordinate (CPO), \code{cpo$pit} are the values of the 
+probability integral transform (PIT) and \code{cpo$failure} 
+indicates whether some assumptions are violated. In short, if 
+cpo$failure[i] > 0 then some assumption is violated, the higher the 
+value (maximum 1) the more seriously.
 }
 \item{mlik}{
 If \code{mlik}=\code{TRUE} in \code{control.compute}, the

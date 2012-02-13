@@ -12,6 +12,7 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
     }
 
     arg.char = as.character(as.expression(match.call()))
+    print(arg.char)
     just.args = gsub(paste("^(", lib, ")?inla.cpo[(]", sep=""), "", arg.char)
     just.args = gsub("[)]$", "", just.args)
 
@@ -24,17 +25,17 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
     r = inla.eval(paste(lib, "inla(", just.args, ")", sep=""))
 
     ## if there is no cpo, then done
-    if (is.null(r$failure))
+    if (is.null(r$cpo))
         return(r)
 
     ## loop over those with failure > 0
     if (!force.cpo.manual)
-        idx.fail = which(r$failure > 0)
+        idx.fail = which(r$cpo$failure > 0)
     else
-        idx.fail = 1:length(r$failure)
+        idx.fail = 1:length(r$cpo$failure)
     if (length(idx.fail) > 0) {
-        cpo.old = r$cpo[idx.fail]
-        pit.old = r$pit[idx.fail]
+        cpo.old = r$cpo$cpo[idx.fail]
+        pit.old = r$cpo$pit[idx.fail]
         k=1
         for(idx in idx.fail) {
             if (be.verbose) {
@@ -47,16 +48,16 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
                     "control.expert = list(cpo.manual = TRUE, cpo.idx =", idx, "),",
                     "control.mode = list(result = r, restart=", inla.ifelse(recompute.mode, "TRUE", "FALSE"), "))")
             rr = inla.eval(argument)
-            r$cpo[idx] = rr$cpo[idx]
-            r$pit[idx] = rr$pit[idx]
-            r$failure[idx] = 0
+            r$cpo$cpo[idx] = rr$cpo$cpo[idx]
+            r$cpo$pit[idx] = rr$cpo$pit[idx]
+            r$cpo$failure[idx] = 0
         }
 
         if (be.verbose)
             cat("\n")
 
-        cpo.new = r$cpo[idx.fail]
-        pit.new = r$pit[idx.fail]
+        cpo.new = r$cpo$cpo[idx.fail]
+        pit.new = r$cpo$pit[idx.fail]
 
         if (be.verbose) {
             print(cbind(index = idx.fail,

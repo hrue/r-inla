@@ -70,7 +70,7 @@
         cat("Warning: Interpret the marginal likelihood with care if the prior model is improper.\n")
     }
 
-    if (inla.is.element("pit", x)) {
+    if (inla.is.element("cpo", x)) {
         cat("CPO and PIT are computed\n")
         cat("\n")
     }
