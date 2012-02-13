@@ -431,7 +431,7 @@
         }
     }
     if (plot.cpo) {
-        if (!is.null(x$pit) || !is.null(x$cpo)) {
+        if (!is.null(x$cpo$pit) || !is.null(x$cpo$cpo)) {
             inla.dev.new()
             if (single) {
                 par(mfrow=c(1, 1))
@@ -439,41 +439,41 @@
                 par(mfrow=c(2, 2))
             }
         }
-        if (!is.null(x$pit)) {
+        if (!is.null(x$cpo$pit)) {
             ## if the observational model is discrete then do some
             ## adjustments: define the modified pit as Prob(y < y_obs)
             ## + 0.5*Prob(y = y_obs).
             ##
 
-            oks = !is.nan(x$failure)
-            x$failure = x$failure[oks]
-            x$cpo = x$cpo[oks]
-            x$pit = x$pit[oks]
+            oks = !is.nan(x$cpo$failure)
+            x$cpo$failure = x$cpo$failure[oks]
+            x$cpo$cpo = x$cpo$cpo[oks]
+            x$cpo$pit = x$cpo$pit[oks]
 
-            n.fail = sum(x$failure > 0.0)
+            n.fail = sum(x$cpo$failure > 0.0)
             if (!is.null(x$family) && inla.model.properties(x$family, "likelihood")$discrete) {
                 m = "The (modified) PIT-values"
-                pit = x$pit - 0.5*x$cpo
+                pit = x$cpo$pit - 0.5*x$cpo$cpo
             } else {
                 m = "The PIT-values"
-                pit = x$pit
+                pit = x$cpo$pit
             }
             plot(pit, main = paste(m, ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
             if (n.fail > 0) {
-                points(pit[ x$failure > 0 ], pch=20)
+                points(pit[ x$cpo$failure > 0 ], pch=20)
             }
 
             hist(pit, main = paste(m, ", n.fail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20, min(round(length(x$pit)/10), 100)))
+                 n = max(20, min(round(length(x$cpo$pit)/10), 100)))
         }
-        if (!is.null(x$cpo)) {
-            n.fail = sum(x$failure != 0.0)
-            plot(x$cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
+        if (!is.null(x$cpo$cpo)) {
+            n.fail = sum(x$cpo$failure != 0.0)
+            plot(x$cpo$cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
             if (n.fail > 0) {
-                points(x$cpo[ x$failure > 0 ], pch=20)
+                points(x$cpo$cpo[ x$cpo$failure > 0 ], pch=20)
             }
-            hist(x$cpo, main = paste("Histogram of the CPO-values", ", n.fail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20, min(round(length(x$pit)/10), 100)))
+            hist(x$cpo$cpo, main = paste("Histogram of the CPO-values", ", n.fail", n.fail, sep=""), xlab = "Probability",
+                 n = max(20, min(round(length(x$cpo$pit)/10), 100)))
         }
     }
 }
