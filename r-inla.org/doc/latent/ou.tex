@@ -1,0 +1,91 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{The Ornstein-Uhlenbeck process}
+
+\subsection*{Parametrization}
+
+The Ornstein-Uhlenbeck process is defined with (mean zero), as the SDE
+\begin{displaymath}
+    dx_{t} = -\phi x_{t} + \sigma dW_{t}
+\end{displaymath}
+where $\phi>0$ and $W_{t}$ is the Wiener process. This is the
+continuous time analogue to the discrete time AR$(1)$ model.
+
+The process has a Markov property. Let ${x} = (x_{1}, x_{2}, \ldots,
+x_{n})$ be value of the process at increasing time-points ${t} =
+(t_{1}, t_{2}, \ldots, t_{n})$, then the conditional distribution
+\begin{displaymath}
+    x_{i} \mid x_{1},  \ldots, x_{i-1}, \qquad i=2, \ldots, n,
+\end{displaymath}
+is Gaussian with mean
+\begin{displaymath}
+    x_{i-1} \exp(-\phi \delta_{i})
+\end{displaymath}
+and precision
+\begin{displaymath}
+    \tau\left(1-\exp(-2\phi \delta_{i})
+    \right)^{-1}
+\end{displaymath}
+where
+\begin{displaymath}
+    \delta_{i} = t_{i} - t_{i-1},\qquad i=2,\ldots, n
+\end{displaymath}
+and
+\begin{displaymath}
+    \tau = 2\phi/\sigma^{2}.
+\end{displaymath}
+The marginal distribution for $x_{1}$ is taken to be the stationary
+distribution, which is a zero mean Gaussian with precision $\tau$.
+
+\subsection*{Hyperparameters}
+
+The precision parameter $\tau$ is represented as
+\begin{displaymath}
+    \theta_1 =\log(\tau) 
+\end{displaymath}
+where $\tau$ is the \emph{marginal} precision for the
+Ornstein-Uhlenbeck process given above.
+
+The parameter $\phi$ is represented as
+\begin{displaymath}
+    \theta_{2} = \log( \phi )
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$.
+
+\subsection*{Specification}
+
+The Ornstein-Uhlenbeck model is specified inside the {\tt f()}
+function as
+\begin{verbatim}
+ f(<whatever>, model="ou", values=<values>, hyper = <hyper>)
+\end{verbatim}
+The argument {\tt values } gives the time-points where the process is
+defined/observed on (default $1, 2, \ldots, n$).
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/latent/ou.tex}
+
+\subsection*{Example}
+
+\verbatiminput{ou-example.R}
+
+\subsection*{Notes}
+
+The Ornstein-Uhlenbeck process is the continuous-time analogue to the
+discrete AR$(1)$ model (for positive lag-one correlation only), but
+they are parameterised slightly different.
+
+\end{document}
+
+
+% LocalWords:  Ornstein Uhlenbeck Parametrization SDE dx dW Hyperparameters ou
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+% LocalWords:  Hyperparameter parameterised

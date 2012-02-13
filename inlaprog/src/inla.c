@@ -1427,6 +1427,10 @@ int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg)
 {
 	return GMRFLib_make_linear_graph(graph, arg->n, 1, arg->cyclic);
 }
+int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
+{
+	return GMRFLib_make_linear_graph(graph, arg->n, 1, 0);
+}
 double Qfunc_ar1(int i, int j, void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
@@ -1454,6 +1458,47 @@ double Qfunc_ar1(int i, int j, void *arg)
 			} else {
 				return prec * (1.0 + SQR(phi));
 			}
+		}
+	}
+	abort();
+	return 0.0;
+}
+double Qfunc_ou(int i, int j, void *arg)
+{
+	inla_ou_arg_tp *a = (inla_ou_arg_tp *) arg;
+	double phi, prec, w, v, delta;
+
+	phi = map_exp(a->phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	if (i != j) {
+		int ii = IMAX(i, j);
+		delta = a->locations[ii] - a->locations[ii - 1];
+		w = 1.0 / (1.0 - exp(-2.0 * phi * delta));
+		v = exp(-phi * delta);
+
+		return -prec * w * v;
+	} else {
+		if (i == 0) {
+			delta = a->locations[i + 1] - a->locations[i];
+			w = 1.0 / (1.0 - exp(-2.0 * phi * delta));
+			v = exp(-phi * delta);
+
+			return prec * (1.0 + w * SQR(v));
+		} else if (i == a->n - 1) {
+			delta = a->locations[i] - a->locations[i - 1];
+			w = 1.0 / (1.0 - exp(-2.0 * phi * delta));
+
+			return prec * w;
+		} else {
+			delta = a->locations[i + 1] - a->locations[i];
+			w = 1.0 / (1.0 - exp(-2.0 * phi * delta));
+			v = exp(-phi * delta);
+
+			double ddelta = a->locations[i] - a->locations[i - 1];
+			double ww = 1.0 / (1.0 - exp(-2.0 * phi * ddelta));
+
+			return prec * (ww + w * SQR(v));
 		}
 	}
 	abort();
@@ -8993,6 +9038,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_AR1;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1 model");
+	} else if (OneOf("OU")) {
+		mb->f_id[mb->nf] = F_OU;
+		mb->f_ntheta[mb->nf] = 2;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Ornstein-Uhlenbeck model");
 	} else if (OneOf("MATERN2D")) {
 		mb->f_id[mb->nf] = F_MATERN2D;
 		mb->f_ntheta[mb->nf] = 2;
@@ -9127,6 +9176,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_AR1:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
+		break;
+
+	case F_OU:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* log(phi) */
 		break;
 
 	case F_GENERIC1:
@@ -9657,7 +9711,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// nothing to do
 		} else {
 			/*
-			 * RW-model: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
+			 * RW-models and OU-model: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
 			filename = GMRFLib_strdup(file_loc);
 			if (!filename) {
@@ -10209,6 +10263,90 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+		break;
+	}
+
+	case F_OU:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(0, tmp);
+		HYPER_INIT(log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		mb->f_theta[mb->nf] = Calloc(2, double **);
+		mb->f_theta[mb->nf][0] = log_prec;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(1, tmp);
+		HYPER_INIT(phi_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise phi_intern[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+		mb->f_theta[mb->nf][1] = phi_intern;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Phi_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Phi for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = phi_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -11312,6 +11450,30 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_make_ar1_graph(&(mb->f_graph[mb->nf]), def);
 		mb->f_Qfunc[mb->nf] = Qfunc_ar1;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+		mb->f_rankdef[mb->nf] = 0.0;
+	} else if (mb->f_id[mb->nf] == F_OU) {
+		/*
+		 * OU
+		 */
+		inla_ou_arg_tp *def = NULL;
+
+		def = Calloc(1, inla_ou_arg_tp);
+		def->n = mb->f_n[mb->nf];
+		def->log_prec = log_prec;
+		def->phi_intern = phi_intern;
+		assert(mb->f_locations[mb->nf]);
+		def->locations = mb->f_locations[mb->nf];
+		inla_make_ou_graph(&(mb->f_graph[mb->nf]), def);
+		mb->f_Qfunc[mb->nf] = Qfunc_ou;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+
+		/*
+		 * need this one later to get 'n'. a copy of the original contents is ok. 
+		 */
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) Calloc(1, inla_ou_arg_tp);
+		memcpy(mb->f_Qfunc_arg_orig[mb->nf], mb->f_Qfunc_arg[mb->nf], sizeof(inla_ou_arg_tp));
+
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
 	} else if (mb->f_id[mb->nf] == F_MATERN2D) {
@@ -13410,6 +13572,41 @@ double extra(double *theta, int ntheta, void *argument)
 				val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i])
 							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
+			if (!mb->f_fixed[i][0]) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (!mb->f_fixed[i][1]) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+			}
+			break;
+		}
+
+		case F_OU:
+		{
+			if (!mb->f_fixed[i][0]) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (!mb->f_fixed[i][1]) {
+				phi_intern = theta[count];
+				count++;
+			} else {
+				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			phi = map_exp(phi_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
+
+			int ii;
+			double ou_nc = 0.0;
+			int nn = ((inla_ou_arg_tp *) mb->f_Qfunc_arg_orig[i])->n;
+			for (ii = 1; ii < nn; ii++) {
+				ou_nc -= log(1.0 - exp(-2.0 * phi * (mb->f_locations[i][ii] - mb->f_locations[i][ii - 1])));
+			}
+			val += mb->f_nrep[i] * (normc_g + normc * (mb->f_N[i] - mb->f_rankdef[i])
+						+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * ou_nc / 2.0);
+
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
