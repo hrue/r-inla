@@ -300,6 +300,40 @@
                       pdf = "ar1"
                       ),
 
+              ou = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      prior = "loggamma",
+                                      param = c(1, 0.00005),
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      ),
+                              theta2 = list(
+                                      name = "log phi",
+                                      short.name = "phi",
+                                      prior = "normal",
+                                      param = c(-2, 1),
+                                      initial = -1,
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      constr = FALSE,
+                      nrow.ncol = FALSE,
+                      augmented = FALSE,
+                      aug.factor = 1L,
+                      aug.constr = NULL,
+                      n.div.by = NULL,
+                      n.required = FALSE,
+                      set.default.values = FALSE,
+                      pdf = "ou"
+                      ),
+
               generic = list(
                       hyper = list(
                               theta = list(
