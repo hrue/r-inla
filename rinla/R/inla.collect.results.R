@@ -103,7 +103,7 @@
         colnames(joint.hyper) = c(misc$theta.tags, "Log posterior density")
     }
 
-    res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, res.cpo.pit, res.random, res.predictor, res.hyper,
+    res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, list(cpo=res.cpo.pit), res.random, res.predictor, res.hyper,
             res.configurations, res.offset, res.spde2.blc, 
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x = x.mode,
