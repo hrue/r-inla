@@ -395,8 +395,8 @@ inla.models()
 							\item{name = }{`log phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 1'}
-							\item{initial = }{`2'}
+							\item{param = }{`-2 1'}
+							\item{initial = }{`-1'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{}'}
 							\item{from.theta = }{`\code{}'}
