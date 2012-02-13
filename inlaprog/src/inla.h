@@ -323,6 +323,7 @@ typedef enum {
 	F_RW2,
 	F_CRW2,
 	F_AR1,
+	F_OU,
 	F_Z,
 	F_ZADD,
 	F_BYM,
@@ -711,6 +712,15 @@ typedef struct {
 	double **phi_intern;				       /* theta[1] */
 } inla_ar1_arg_tp;
 
+typedef struct {
+	/*
+	 * the OU model: dX_t = -phi * X_t-1 + sigma * dW_t. The arguments are phi > 0 and 2*phi/sigma^2 = precision
+	 */
+	int n;
+	double *locations;
+	double **log_prec;				       /* theta[0] */
+	double **phi_intern;				       /* theta[1] */
+} inla_ou_arg_tp;
 
 typedef struct {
 	/*
@@ -827,6 +837,7 @@ const char *inla_string_join(const char *a, const char *b);
 double Qfunc_2diid_wishart(int i, int j, void *arg);
 double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
+double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
 double Qfunc_besag2(int i, int j, void *arg);
 double Qfunc_bym(int i, int j, void *arg);
@@ -921,6 +932,7 @@ int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp *
 int inla_make_3diid_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
+int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type);
