@@ -4609,7 +4609,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				lin_cross = Calloc(1, double *);
 			}
 		}
-		if (need_Qinv) {
+		if (need_Qinv || marginal_likelihood) {
 			/*
 			 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since the contents of ai_store is NULL in
 			 * this case.
@@ -4617,6 +4617,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			double tmp_logdens;
 			GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, b, c, mean, d,
 						       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+			log_dens_mode= tmp_logdens + log_extra(NULL, nhyper, log_extra_arg); /* nhyper=0, so theta=NULL is ok */
+
 			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
 			/*
 			 * if compute_n > 0 it will be written out below, if compute_n=0, we have to do this here. 
@@ -5098,39 +5100,47 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * Compute the marginal likelihood; compute both the Gaussian approximatin and a non-parametric one. The marginal likelhood is the
 	 * normalising constant for the posterior marginal for \theta. 
 	 */
-	if (marginal_likelihood && nhyper) {
-		marginal_likelihood->marginal_likelihood_gaussian_approx = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
-		for (i = 0; i < nhyper; i++) {
-			marginal_likelihood->marginal_likelihood_gaussian_approx -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
-		}
-
-		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
-			/*
-			 * in this case we integrate the 'ccd' approximation; the normal with stdev corrections. 
-			 */
-			marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
+	if (marginal_likelihood) {
+		if (nhyper > 0) {
+			marginal_likelihood->marginal_likelihood_gaussian_approx = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 			for (i = 0; i < nhyper; i++) {
-				marginal_likelihood->marginal_likelihood_integration -=
-				    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) + 0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+				marginal_likelihood->marginal_likelihood_gaussian_approx -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
+			}
+
+			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+				/*
+				 * in this case we integrate the 'ccd' approximation; the normal with stdev corrections. 
+				 */
+				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
+				for (i = 0; i < nhyper; i++) {
+					marginal_likelihood->marginal_likelihood_integration -=
+						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) + 0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+				}
+			} else {
+				double integral = 0.0, log_jacobian = 0.0;
+
+				for (j = 0; j < dens_count; j++) {
+					integral += weights[j];
+				}
+				integral *= ai_par->dz;
+				for (i = 0; i < nhyper; i++) {
+					log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
+				}
+				marginal_likelihood->marginal_likelihood_integration = log(integral) + log_jacobian + log_dens_mode;
+			}
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "Marginal likelihood: Integration %f Gaussian-approx %f\n",
+					marginal_likelihood->marginal_likelihood_integration, marginal_likelihood->marginal_likelihood_gaussian_approx);
 			}
 		} else {
-			double integral = 0.0, log_jacobian = 0.0;
-
-			for (j = 0; j < dens_count; j++) {
-				integral += weights[j];
-			}
-			integral *= ai_par->dz;
-			for (i = 0; i < nhyper; i++) {
-				log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
-			}
-			marginal_likelihood->marginal_likelihood_integration = log(integral) + log_jacobian + log_dens_mode;
-		}
-		if (ai_par->fp_log) {
-			fprintf(ai_par->fp_log, "Marginal likelihood: Integration %f Gaussian-approx %f\n",
-				marginal_likelihood->marginal_likelihood_integration, marginal_likelihood->marginal_likelihood_gaussian_approx);
+			/* 
+			   nhyper = 0
+			*/
+			marginal_likelihood->marginal_likelihood_gaussian_approx = log_dens_mode;
+			marginal_likelihood->marginal_likelihood_integration = log_dens_mode;
 		}
 	}
-
+	
 	/*
 	 * compute the posterior marginals for each hyperparameter, if possible 
 	 */
