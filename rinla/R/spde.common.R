@@ -300,7 +300,8 @@ inla.spde.make.A =
              n.group = NULL,
              n.repl = NULL,
              group.mesh = NULL,
-             group.method = c("nearest", "S0", "S1"))
+             group.method = c("nearest", "S0", "S1"),
+             weights = NULL)
 {
     if (is.null(mesh)) {
         if (is.null(n.mesh))
@@ -391,11 +392,20 @@ inla.spde.make.A =
         A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
 
         if (length(A.loc@i) > 0L) {
+            if (is.null(weights)) {
+                weights = rep(1, length(index))
+            } else {
+                if (length(weights)==1L) {
+                    weights = rep(weights[1], length(index))
+                }
+            }
+
             if (!is.null(group.mesh) && (group.method=="S1")) {
                 i = 1L+A.loc@i
                 group.i1 = group.index$index[i,1]
                 group.i2 = group.index$index[i,2]
                 repl.i = repl[i]
+                weights.ii = weights[c(i,i)]
                 return(sparseMatrix(i=c(i,i),
                                     j=(1L+c(A.loc@j+
                                             n.mesh*(group.i1-1L)+
@@ -403,7 +413,8 @@ inla.spde.make.A =
                                             A.loc@j+
                                             n.mesh*(group.i2-1L)+
                                             n.mesh*n.group*(repl.i-1L))),
-                                    x=(c(A.loc@x*group.index$bary[i,1],
+                                    x=(weights.ii*
+                                       c(A.loc@x*group.index$bary[i,1],
                                          A.loc@x*group.index$bary[i,2])),
                                     dims=c(length(index),
                                     n.mesh*n.group*n.repl)))
@@ -411,11 +422,12 @@ inla.spde.make.A =
                 i = 1L+A.loc@i
                 group.i = group[i]
                 repl.i = repl[i]
+                weights.i = weights[i]
                 return(sparseMatrix(i=i,
                                     j=(1L+A.loc@j+
                                        n.mesh*(group.i-1L)+
                                        n.mesh*n.group*(repl.i-1L)),
-                                    x=A.loc@x,
+                                    x=weights.i*A.loc@x,
                                     dims=c(length(index), n.mesh*n.group*n.repl)))
             }
         } else {
