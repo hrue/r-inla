@@ -17,7 +17,8 @@ inla.spde.make.A(mesh = NULL,
                  n.group = max(group),
                  n.repl = max(repl),
                  group.mesh = NULL,
-                 group.method = c("nearest", "S0", "S1"))
+                 group.method = c("nearest", "S0", "S1"),
+                 weights = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -49,6 +50,9 @@ inla.spde.make.A(mesh = NULL,
 %%     ~~Describe \code{group.mesh} here~~
 }
   \item{group.method}{
+%%     ~~Describe \code{group.method} here~~
+}
+  \item{weights}{
 %%     ~~Describe \code{group.method} here~~
 }
 }
