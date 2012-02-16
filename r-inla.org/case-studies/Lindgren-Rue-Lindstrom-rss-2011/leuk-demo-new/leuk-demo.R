@@ -12,7 +12,6 @@ Leuk$id = 1:dim(Leuk)[1]
 mesh = (inla.mesh.create(
                   ## Data locations:
                   cbind(Leuk$xcoord, Leuk$ycoord),
-                  ## Where to put the mesh/graph files:
                   ## Set to >=0 for visual (not on Windows):
                   plot.delay=NULL,
                   ## Encapsulate data region with a relative margin:
