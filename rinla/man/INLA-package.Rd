@@ -22,7 +22,7 @@ NOTE: \tab This package has no version number yet; it is to heavily developed
 at the moment; see \code{inla.googlecode.com} and \code{www.r-inla.org}
 }
 
-Please see the web-site \cide{www.r-inla.org} for further details.
+Please see the web-site \cite{www.r-inla.org} for further details.
 
 } 
 %%
