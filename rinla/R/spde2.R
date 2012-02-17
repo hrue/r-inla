@@ -91,11 +91,12 @@ inla.spde2.generic =
                               )
                          ))
                    ))
-    for (k in 1:n.theta) {
-        eval(parse(text=
-                   paste("spde$f$hyper.default$theta", k,
-                         "$initial = param.inla$theta.mu[k]", sep="")))
-    }
+    if (n.theta>0)
+        for (k in 1:n.theta) {
+            eval(parse(text=
+                       paste("spde$f$hyper.default$theta", k,
+                             "$initial = param.inla$theta.mu[k]", sep="")))
+        }
 
     ## NOTE: Should this be in the f function instead?
     ##       Yes, it should.
@@ -158,8 +159,12 @@ inla.spde2.matern =
         cbind(0.5*log(8*nu.nominal)-B.kappa[,1],
               -B.kappa[,-1,drop=FALSE])
 
-    B.theta = cbind(0,diag(1, n.theta))
-    rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
+    if (n.theta>0) {
+        B.theta = cbind(0,diag(1, n.theta))
+        rownames(B.theta) <- rownames(B.theta, do.NULL=FALSE, prefix="theta.")
+    } else {
+        B.theta = NULL
+    }
     rownames(B.tau) <- rownames(B.tau, do.NULL=FALSE, prefix="tau.")
     rownames(B.kappa) <- rownames(B.kappa, do.NULL=FALSE, prefix="kappa.")
     rownames(B.variance) <-
@@ -293,16 +298,22 @@ inla.spde2.theta2phi0 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
-    return(exp(spde$param.inla$B0[,1, drop=TRUE] +
-               spde$param.inla$B0[,-1, drop=FALSE] %*% theta))
+    if (spde$n.theta>0)
+        return(exp(spde$param.inla$B0[,1, drop=TRUE] +
+                   spde$param.inla$B0[,-1, drop=FALSE] %*% theta))
+    else
+        return(exp(spde$param.inla$B0[,1, drop=TRUE]))
 }
 
 inla.spde2.theta2phi1 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
-    return(exp(spde$param.inla$B1[,1, drop=TRUE] +
-               spde$param.inla$B1[,-1, drop=FALSE] %*% theta))
+    if (spde$n.theta>0)
+        return(exp(spde$param.inla$B1[,1, drop=TRUE] +
+                   spde$param.inla$B1[,-1, drop=FALSE] %*% theta))
+    else
+        return(exp(spde$param.inla$B1[,1, drop=TRUE]))
 }
 
 inla.spde2.theta2phi2 = function(spde, theta)
@@ -310,8 +321,11 @@ inla.spde2.theta2phi2 = function(spde, theta)
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
 ##    warning("TODO: support link functions for phi2")
-    return((spde$param.inla$B2[,1, drop=TRUE] +
-            spde$param.inla$B2[,-1, drop=FALSE] %*% theta))
+    if (spde$n.theta>0)
+        return((spde$param.inla$B2[,1, drop=TRUE] +
+                spde$param.inla$B2[,-1, drop=FALSE] %*% theta))
+    else
+        return((spde$param.inla$B2[,1, drop=TRUE]))
 }
 
 inla.spde2.precision =
