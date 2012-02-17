@@ -1279,18 +1279,18 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
     smorg = (inla.fmesher.smorg(mesh$loc,
                                 mesh$graph$tv,
                                 points2mesh=loc[jj,,drop=FALSE]))
-    ti = matrix(0L, nrow(loc), 3)
+    ti = matrix(0L, nrow(loc), 1)
     b = matrix(0, nrow(loc), 3)
-    ti[jj,] = smorg$p2m.t
+    ti[jj,1L] = smorg$p2m.t
     b[jj,] = smorg$p2m.b
 
-    ok = (ti[,1] > 0L)
-    ti[ti[,1] == 0L,1] = NA
+    ok = (ti[,1L] > 0L)
+    ti[ti[,1L] == 0L,1L] = NA
 
     ii = which(ok)
     A = (sparseMatrix(dims=c(nrow(loc),mesh$n),
                       i = rep(ii, 3),
-                      j = as.vector(mesh$graph$tv[ti[ii,1],]),
+                      j = as.vector(mesh$graph$tv[ti[ii,1L],]),
                       x = as.vector(b[ii,]) ))
 
     return (list(t=ti, bary=b, A=A, ok=ok))
