@@ -857,28 +857,44 @@ inla.stack.index = function(stack, tag)
     }
 }
 
-inla.stack.data = function(stack, ...)
+inla.stack.do.extract = function(dat)
 {
-    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+    inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
 
-    do.extract = function(dat) {
-        inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
-
-        out =
-            lapply(names(dat$names),
-                   function(x) inla.ifelse(dat$ncol[[x]]>1,
+    out =
+        lapply(names(dat$names),
+               function(x) inla.ifelse(dat$ncol[[x]]>1,
                                        matrix(do.call(c,
                                                       dat$data[dat$names[[x]]]),
                                               dat$nrow,
                                               dat$ncol[[x]]),
-                                           as.vector(as.matrix(dat$data[dat$names[[x]]]))))
-        names(out) = names(dat$names)
+                                       as.vector(as.matrix(dat$data[dat$names[[x]]]))))
+    names(out) = names(dat$names)
 
-        return(out)
-    }
+    return(out)
+}
 
-    return(c(do.extract(stack$data),
-             do.extract(stack$effects),
+
+inla.stack.LHS = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    return(inla.stack.do.extract(stack$data))
+}
+
+inla.stack.RHS = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    return(inla.stack.do.extract(stack$effects))
+}
+
+inla.stack.data = function(stack, ...)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    return(c(inla.stack.do.extract(stack$data),
+             inla.stack.do.extract(stack$effects),
              list(...)))
 }
 
