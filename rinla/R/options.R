@@ -1,5 +1,4 @@
-
-### Functions to deal with `inla.options'
+### Functions to deal with options in INLA
 
 `inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
@@ -8,11 +7,12 @@
 {
     if (missing(option))
         stop("argument is required.")
-    
-    ## get default options from the global list `inla.options'
+
+    envir = inla.get.inlaEnv()
+
     option = match.arg(option, several.ok = TRUE)
-    if (exists("inla.options", envir = .GlobalEnv))
-        opt = get("inla.options", envir = .GlobalEnv)
+    if (exists("inla.options", envir = envir))
+        opt = get("inla.options", envir = envir)
     else
         opt = list()
 
@@ -52,18 +52,54 @@
     return (res)
 }
 
-`inla.setOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
-                                    "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
-                                    "cygwin", "ssh.auth.sock", "cygwin.home", "enable.inla.argument.weights"), value)
+`inla.setOption` = function(...)
 {
-    option = match.arg(option, several.ok = FALSE)
-    if (!exists("inla.options", envir = .GlobalEnv))
-        assign("inla.options", list(), envir = .GlobalEnv)
-    if (is.character(value)) {
-        eval(parse(text=paste("inla.options$", option, "=", shQuote(value), sep="")),
-             envir = .GlobalEnv)
-    } else {
-        eval(parse(text=paste("inla.options$", option, "=", inla.ifelse(is.null(value), "NULL", value), sep="")),
-             envir = .GlobalEnv)
+    ## now supports more formats, and also the common one
+    ##     inla.setOption("keep", TRUE)
+    ## and
+    ##     inla.setOption(keep=TRUE)
+    ## and
+    ##     inla.setOption(keep=TRUE, num.threads=10)
+
+    `inla.setOption.core` = function(option = c("inla.call",
+                                             "inla.arg",
+                                             "fmesher.call",
+                                             "fmesher.arg",
+                                             "num.threads",
+                                             "keep",
+                                             "working.directory",
+                                             "silent",
+                                             "debug",
+                                             "internal.binary.mode",
+                                             "internal.experimental.mode", 
+                                             "cygwin",
+                                             "ssh.auth.sock",
+                                             "cygwin.home",
+                                             "enable.inla.argument.weights"), value)
+    {
+        envir = inla.get.inlaEnv()
+
+        option = match.arg(option, several.ok = FALSE)
+        if (!exists("inla.options", envir = envir))
+            assign("inla.options", list(), envir = envir)
+        if (is.character(value)) {
+            eval(parse(text=paste("inla.options$", option, "=", shQuote(value), sep="")),
+                 envir = envir)
+        } else {
+            eval(parse(text=paste("inla.options$", option, "=", inla.ifelse(is.null(value), "NULL", value), sep="")),
+                 envir = envir)
+        }
+        return (invisible())
     }
+
+    called = list(...)
+    len = length(names(called))
+    if (len > 0L) {
+        for(i in 1L:len) {
+            do.call(inla.setOption.core, args = list(names(called)[i], called[[i]]))
+        }
+    } else {
+        inla.setOption.core(...)
+    }
+    return (invisible())
 }
