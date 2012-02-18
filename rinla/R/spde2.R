@@ -75,7 +75,6 @@ inla.spde2.generic =
 
     ## Remove all BLC rows that would produce point masses, which is
     ## not supported by inla:
-    print(param.inla$BLC)
     if (n.theta==0) {
         param.inla$BLC = matrix(0,0,1)
     } else {
@@ -83,7 +82,6 @@ inla.spde2.generic =
             param.inla$BLC[rowSums(abs(param.inla$BLC[,-1,drop=FALSE]))>0,,
                            drop=FALSE]
     }
-    print(param.inla$BLC)
 
     spde$param.inla = param.inla
 
