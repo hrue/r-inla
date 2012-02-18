@@ -3281,12 +3281,13 @@
     ## this is not very clean solution, but for the moment is ok. the
     ## inla.models() function takes just to much time!!!
 
-    envir = .GlobalEnv
-    if (exists("...inla.hash.inla.models", envir = envir) &&
-        exists("...inla.hash.inla.models.hgid", envir = envir) &&
-        get("...inla.hash.inla.models.hgid", envir = envir) == inla.version(hgid = TRUE)) {
+    envir = inla.get.inlaEnv()
+              
+    if (exists("inla.models", envir = envir) &&
+        exists("hgid", envir = envir) &&
+        get("hgid", envir = envir) == inla.version(hgid = TRUE)) {
 
-        return (get("...inla.hash.inla.models", envir = envir))
+        return (get("inla.models", envir = envir))
 
     } else {
         ## have to split it,  as option keep.source has an upper limit; what a shame...
@@ -3337,11 +3338,8 @@
             }
         }
 
-        ## as said, this is not the way to do this, but for the
-        ## moment...  return and redo this issue properly at some
-        ## point.
-        ...inla.hash.inla.models <<- models
-        ...inla.hash.inla.models.hgid <<- inla.version(hgid=TRUE)
+        assign("inla.models", models, envir = envir)
+        assign("hgid", inla.version(hgid=TRUE), envir = envir)
 
         return (models)
     }
