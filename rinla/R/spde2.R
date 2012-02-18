@@ -73,6 +73,18 @@ inla.spde2.generic =
         }
     }
 
+    ## Remove all BLC rows that would produce point masses, which is
+    ## not supported by inla:
+    print(param.inla$BLC)
+    if (n.theta==0) {
+        param.inla$BLC = matrix(0,0,1)
+    } else {
+        param.inla$BLC =
+            param.inla$BLC[rowSums(abs(param.inla$BLC[,-1,drop=FALSE]))>0,,
+                           drop=FALSE]
+    }
+    print(param.inla$BLC)
+
     spde$param.inla = param.inla
 
     ## NOTE: Should the prefix be set inside the f function instead?
@@ -106,7 +118,10 @@ inla.spde2.generic =
     fmesher.write(inla.affirm.double(spde$param.inla$B0), spde.prefix, "B0")
     fmesher.write(inla.affirm.double(spde$param.inla$B1), spde.prefix, "B1")
     fmesher.write(inla.affirm.double(spde$param.inla$B2), spde.prefix, "B2")
-    fmesher.write(inla.affirm.double(spde$param.inla$BLC), spde.prefix, "BLC")
+    ## Only write BLC if it is non-empty
+    if (nrow(spde$param.inla$BLC)>0)
+        fmesher.write(inla.affirm.double(spde$param.inla$BLC),
+                      spde.prefix, "BLC")
 
     return(spde)
 }
