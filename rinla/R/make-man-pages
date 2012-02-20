@@ -5,6 +5,7 @@ export MANDIR=../man
 ## need option keep.source otherwise there is no attribute 'source'!!!!
 echo '
 options(keep.source=TRUE)
+source("inlaEnv.R")
 source("models.R")
 source("models-generate.R")
 source("utils.R")
@@ -59,10 +60,13 @@ for f in *.R; do
     if grep -q '##!' $f; then
 	
 	fname=${f%%.R}
-	echo "## WARNING! DO NOT EDIT!" > ../man/$fname.Rd
-	echo "## File automatically generated from $f" >> ../man/$fname.Rd
-	echo "##" >> ../man/$fname.Rd
-	awk '/##!/ { gsub(/^.*##!/, ""); print }' $f  >> ../man/$fname.Rd
+	{
+	    echo "##" 
+	    echo "## WARNING! DO NOT EDIT!" 
+	    echo "## File automatically generated from $f" 
+	    echo "##" 
+	    awk '/##!/ { gsub(/^.*##!/, ""); print }' $f  
+	} >> ../man/$fname.Rd
 	echo "Make help page from $f"
 	
     fi
