@@ -12654,7 +12654,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO_MANUAL"), 0);
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO.MANUAL"), mb->expert_cpo_manual);
 	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPOMANUAL"), mb->expert_cpo_manual);
-
+	
 	char *str = NULL;
 	str = iniparser_getstring(ini, inla_string_join(secname, "CPO_IDX"), str);
 	str = iniparser_getstring(ini, inla_string_join(secname, "CPO.IDX"), str);
@@ -12670,9 +12670,9 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		int i;
 
-		printf("\tcpo.manual=[%1d]\n", mb->expert_cpo_manual);
+		printf("\t\t\tcpo.manual=[%1d]\n", mb->expert_cpo_manual);
 		for (i = 0; i < mb->expert_n_cpo_idx; i++) {
-			printf("\tcpo.idx=[%1d]\n", mb->expert_cpo_idx[i]);
+			printf("\t\t\tcpo.idx=[%1d]\n", mb->expert_cpo_idx[i]);
 		}
 	}
 

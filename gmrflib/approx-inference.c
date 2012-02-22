@@ -3082,30 +3082,32 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 
+/* 
+ * if cpo_manual, then by definition, d[ii] = 0, but the observation is still there, so we have set, temporary, d[ii] = 1.
+ */
 #define COMPUTE_CPO_AND_DIC						\
 	if (d[ii] || ai_par->cpo_manual) {				\
 		if (cpo || ai_par->cpo_manual) {			\
 			failure_theta[ii][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[ii][dens_count], \
 										    &pit_theta[ii][dens_count], ii, cpodens, \
-										    d[ii], loglFunc, loglFunc_arg, xx_mode); \
+										    (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 		if (dic) {						\
 			deviance_theta[ii][dens_count] = GMRFLib_ai_dic_integrate(ii, dens[ii][dens_count], \
-										  d[ii], loglFunc, loglFunc_arg, xx_mode); \
+										  (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
-
+	
 #define COMPUTE_CPO_AND_DIC_LOCAL					\
 	if (d[ii] || ai_par->cpo_manual) {				\
 		if (cpo || ai_par->cpo_manual) {			\
 			failure_theta_local[ii] +=			\
 				GMRFLib_ai_cpopit_integrate(&cpo_theta_local[ii], &pit_theta_local[ii],	\
-							    ii, cpodens, d[ii], loglFunc, loglFunc_arg, xx_mode); \
+							    ii, cpodens, (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
 		}							\
-		if (0) printf("COMPUTE cpo for %d %g %g\n", ii,  cpo_theta_local[ii], pit_theta_local[ii]); \
 		if (dic) {						\
 			deviance_theta_local[ii] =			\
-				GMRFLib_ai_dic_integrate(ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode); \
+				GMRFLib_ai_dic_integrate(ii, dens_local[ii], (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
 
