@@ -40,7 +40,7 @@
     if(!is.null(object$mlik))
         ret = c(ret, list(mlik=object$mlik))
     
-    if(!is.null(object$cpo))
+    if(!is.null(object$cpo$cpo))
         ret = c(ret, list(cpo=object$cpo))
 
     if(!is.null(object$summary.linear.predictor))
