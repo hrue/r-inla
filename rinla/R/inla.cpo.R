@@ -49,7 +49,7 @@ inla.cpo = function(...,  force.cpo.manual = FALSE, be.verbose = TRUE, recompute
             rr = inla.eval(argument)
             r$cpo$cpo[idx] = rr$cpo$cpo[idx]
             r$cpo$pit[idx] = rr$cpo$pit[idx]
-            r$cpo$failure[idx] = 0
+            r$cpo$failure[idx] = rr$cpo$failure[idx]
         }
 
         if (be.verbose)
