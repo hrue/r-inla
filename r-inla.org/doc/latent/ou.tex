@@ -64,8 +64,8 @@ function as
 \begin{verbatim}
  f(<whatever>, model="ou", values=<values>, hyper = <hyper>)
 \end{verbatim}
-The argument {\tt values } gives the time-points where the process is
-defined/observed on (default $1, 2, \ldots, n$).
+The optional argument {\tt values } gives the time-points where the process is
+defined/observed on (default is \verb|unique(sort(<whatever>))|).
 
 \subsubsection*{Hyperparameter specification and default values}
 \input{../hyper/latent/ou.tex}
