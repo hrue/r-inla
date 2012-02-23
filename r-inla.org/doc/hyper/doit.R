@@ -1,4 +1,5 @@
 options(keep.source=TRUE)
+source("../../../rinla/R/inlaEnv.R")
 source("../../../rinla/R/models.R")
 source("../../../rinla/R/models-generate.R")
 source("../../../rinla/R/utils.R")
