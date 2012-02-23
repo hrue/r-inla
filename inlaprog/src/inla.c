@@ -9006,18 +9006,23 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else if (OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID1D model");
 	} else if (OneOf("IID2D")) {
 		mb->f_id[mb->nf] = F_IID2D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID2D model");
 	} else if (OneOf("IID3D")) {
 		mb->f_id[mb->nf] = F_IID3D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID3D model");
 	} else if (OneOf("IID4D")) {
 		mb->f_id[mb->nf] = F_IID4D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID4D model");
 	} else if (OneOf("IID5D")) {
 		mb->f_id[mb->nf] = F_IID5D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID5D model");
 	} else if (OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
