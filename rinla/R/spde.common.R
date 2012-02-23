@@ -518,7 +518,48 @@ rbind.inla.data.stack.info = function(...)
 }
 
 
-inla.stack.compress = function(stack, remove.unused=FALSE)
+inla.stack.remove.unused = function(stack)
+{
+    inla.require.inherits(stack, "inla.data.stack", "'stack'")
+
+    if (stack$effects$nrow<2) {
+        return(stack)
+    }
+
+    ## Remove components with no effect:
+    remove = rep(FALSE, stack$effects$nrow)
+    remove.unused.indices =
+        which(colSums(abs(stack$A[,,drop=FALSE]))==0)
+    remove[remove.unused.indices] = TRUE
+
+    index.new = rep(as.integer(NA), stack$effect$nrow)
+
+    ncol.A = sum(!remove)
+    if (ncol.A>0)
+        index.new[!remove] = 1:ncol.A
+    index.new[remove] = index.new[index.new[remove]]
+
+    for (k in 1:length(stack$effects$index)) {
+        stack$effects$index[[k]] = index.new[stack$effects$index[[k]]]
+    }
+
+    A = inla.as.dgTMatrix(stack$A)
+    j.new = index.new[A@j+1L]
+    ## Check for any zero-elements in remove.unused-columns:
+    ok = !is.na(j.new)
+    stack$A =
+        sparseMatrix(i=A@i[ok]+1L,
+                     j=j.new[ok],
+                     x=A@x[ok],
+                     dims=c(nrow(A), ncol.A))
+
+    stack$effects$data = stack$effects$data[!remove,, drop=FALSE]
+    stack$effects$nrow = ncol.A
+
+    return(stack)
+}
+
+inla.stack.compress = function(stack, remove.unused=TRUE)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -551,13 +592,6 @@ inla.stack.compress = function(stack, remove.unused=FALSE)
         }
     }
 
-    if (remove.unused) {
-        ## Also remove components with no effect:
-        remove.unused.indices =
-            which(!remove)[which(colSums(abs(stack$A[,!remove,drop=FALSE]))==0)]
-        remove[remove.unused.indices] = TRUE
-    }
-
     ncol.A = sum(!remove)
     if (ncol.A>0)
         index.new[!remove] = 1:ncol.A
@@ -580,7 +614,11 @@ inla.stack.compress = function(stack, remove.unused=FALSE)
     stack$effects$data = stack$effects$data[!remove,, drop=FALSE]
     stack$effects$nrow = ncol.A
 
-    return(stack)
+    if (remove.unused) {
+        return(inla.stack.remove.unused(stack))
+    } else {
+        return(stack)
+    }
 }
 
 
@@ -592,7 +630,7 @@ inla.stack = function(...)
 }
 
 
-inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=FALSE, ...)
+inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
 {
     input.nrow = function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -803,7 +841,7 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
 
 }
 
-inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=FALSE)
+inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
 
