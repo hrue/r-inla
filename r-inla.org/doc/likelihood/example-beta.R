@@ -3,7 +3,7 @@ phi = 5
 
 ## generate simulated data
 n = 1000
-z = rnorm(n, sd=1)
+z = rnorm(n, sd=0.2)
 eta = 1 + z
 mu = exp(eta)/(1+exp(eta))
 a = mu * phi
