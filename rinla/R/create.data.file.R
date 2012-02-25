@@ -189,7 +189,7 @@
             stop("NA in truncation/event/lower/upper/time is not allowed")
         }
 
-    } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty", "iidlogitbeta"))) {
+    } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty", "iidlogitbeta", "beta"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])

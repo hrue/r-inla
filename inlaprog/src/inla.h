@@ -213,6 +213,11 @@ typedef struct {
 	 */
 	double **betabinomial_overdispersion_intern;
 
+	/* 
+	 * the precision parameter for the beta, \phi = exp(theta)
+	 */
+	double **beta_precision_intern;
+
 	/*
 	 * for the (asymmetric) laplace
 	 */
@@ -284,6 +289,7 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
 	L_ZEROINFLATEDBETABINOMIAL2,
+	L_BETA, 
 	L_BETABINOMIAL, 
 	L_NBINOMIAL,
 	L_ZEROINFLATEDNBINOMIAL0,
@@ -1000,6 +1006,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
+int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
