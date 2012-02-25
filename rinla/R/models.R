@@ -2256,6 +2256,25 @@
                       pdf = "binomialtest"
                       ),
 
+              beta = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "precision parameter",
+                                      short.name = "phi",
+                                      initial = log(10),
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.1),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "beta"
+                      ),
+
               betabinomial = list(
                       hyper = list(
                               theta = list(
