@@ -1,4 +1,4 @@
-all:;  latexmk -pdf *.tex
+all:;  latexmk -pdf -recorder *.tex
 clean:; latexmk -c
 
 .PHONY: all clean
