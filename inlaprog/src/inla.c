@@ -15332,20 +15332,58 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 		printf("\t\tstore graph in[%s]\n", fnm);
 	}
 
-	fp = fopen(fnm, "w+");
-	assert(fp);
+	int *cc;
+	cc = GMRFLib_connected_components(graph);
 
-	fprintf(fp, "%1d\n", graph->n);
-	for (i = 0; i < graph->n; i++) {
-		fprintf(fp, "%1d\n", i);
-		fprintf(fp, "%1d\n", graph->nnbs[i]);
-		for (jj = 0; jj < graph->nnbs[i]; jj++) {
-			j = graph->nbs[i][jj];
-			fprintf(fp, "%1d\n", j);
+	if (G.binary) {
+		fp = fopen(fnm, "wb");
+		assert(fp);
+
+		size_t nw;
+
+		nw = fwrite((void *) &(graph->n), sizeof(int), 1, fp);
+		assert(nw == 1);
+		for (i = 0; i < graph->n; i++) {
+			nw = fwrite((void *) &i, sizeof(int), (size_t) 1, fp);
+			assert(nw == 1);
+
+			nw = fwrite((void *) &(graph->nnbs[i]), sizeof(int), (size_t) 1, fp);
+			assert(nw == 1);
+
+			if (graph->nnbs[i]) {
+				nw = fwrite((void *) graph->nbs[i], sizeof(int), (size_t) graph->nnbs[i], fp);
+				assert(nw == (size_t) graph->nnbs[i]);
+			}
 		}
-	}
-	fclose(fp);
+		if (cc) {
+			nw = fwrite((void *) cc, sizeof(int), (size_t) graph->n, fp);
+			assert(nw == (size_t) graph->n);
+		}
 
+		fclose(fp);
+	} else {
+
+		fp = fopen(fnm, "w");
+		assert(fp);
+
+		fprintf(fp, "%1d\n", graph->n);
+		for (i = 0; i < graph->n; i++) {
+			fprintf(fp, "%1d\n", i);
+			fprintf(fp, "%1d\n", graph->nnbs[i]);
+			for (jj = 0; jj < graph->nnbs[i]; jj++) {
+				j = graph->nbs[i][jj];
+				fprintf(fp, "%1d\n", j);
+			}
+		}
+		if (cc) {
+			for (i = 0; i < graph->n; i++) {
+				fprintf(fp, "%1d\n", cc[i]);
+			}
+		}
+		
+
+		fclose(fp);
+	}
 	return INLA_OK;
 }
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix)
