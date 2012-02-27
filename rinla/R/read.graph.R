@@ -65,20 +65,20 @@
     ## like "2" "0 1 1" "1 1 0" etc...
     s = as.integer(unlist(sapply(s, function(x) strsplit(x, " "))))
 
-    n = s[1]
+    n = s[1L]
     g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = graph.file,
             cc = list(id = NA, n = NA, nodes = NA))
-    k = 2
+    k = 2L
     for(i in 1L:n) {
 
         stopifnot(s[k]+1L == i)
-        k = k+1
+        k = k+1L
 
         g$nnbs[i] = s[k]
-        k = k+1
+        k = k+1L
 
         if (g$nnbs[i] > 0) {
-            g$nbs[[i]] = s[k:(k + g$nnbs[i] -1)] + 1L
+            g$nbs[[i]] = s[k:(k + g$nnbs[i] -1L)] + 1L
             k = k + g$nnbs[i]
         }
     }
@@ -87,7 +87,54 @@
     ## admin the connected components-info
     g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
     g$cc$n = max(g$cc$id)
-    g$cc$nodes = lapply(1:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
+    g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
+
+    class(g) = "inla.graph"
+    return (g)
+}
+
+`inla.read.graph.binary` = function(graph.file)
+{
+    ## read the binary graph file, which is the output from inla().
+    if (missing(graph.file))
+        stop("Need 'graph.file'")
+
+    stopifnot(file.exists(graph.file))
+
+    fp = file(graph.file, "rb")
+    len.in.bytes = file.info(graph.file)$size
+    ## should be 4 for current R-2.14,  but we can compute it like this
+    bytes.pr.int = as.integer(round(log2(2*.Machine$integer.max))) %/% 8L
+    n.ints = len.in.bytes %/% bytes.pr.int
+
+    ## read the hole file into one vector
+    s = as.integer(readBin(fp, integer(), n = n.ints))
+    stopifnot(length(s) == n.ints)
+    close(fp)
+
+    n = s[1L]
+    g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = graph.file,
+            cc = list(id = NA, n = NA, nodes = NA))
+    k = 2L
+    for(i in 1L:n) {
+
+        stopifnot(s[k]+1L == i)
+        k = k+1L
+
+        g$nnbs[i] = s[k]
+        k = k+1L
+
+        if (g$nnbs[i] > 0) {
+            g$nbs[[i]] = s[k:(k + g$nnbs[i] -1L)] + 1L
+            k = k + g$nnbs[i]
+        }
+    }
+    stopifnot(k - 1L + n == length(s))
+
+    ## admin the connected components-info
+    g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
+    g$cc$n = max(g$cc$id)
+    g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
 
     class(g) = "inla.graph"
     return (g)
