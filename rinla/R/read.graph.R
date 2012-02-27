@@ -4,13 +4,17 @@
 ##!\alias{read.graph}
 ##!\alias{write.graph}
 ##!\alias{inla.read.graph}
+##!\alias{inla.read.graph.binary}
 ##!\alias{inla.write.graph}
+##!\alias{inla.write.graph.binary}
 ##!\alias{inla.graph}
 ##!\title{Read a graph-file}
 ##!\description{Reads a graph specification from file and create an R-object for it, and write a graph to file.}
 ##!\usage{
 ##!graph = inla.read.graph(graph.file)
+##!graph = inla.read.graph.binary(graph.file)
 ##!inla.write.graph(graph, graph.file)}
+##!inla.write.graph.binary(graph, graph.file)}
 ##!\arguments{
 ##!    \item{graph.file}{The filename of the graph.}
 ##!    \item{graph}{An \code{inla.graph} object (output from \code{inla.read.graph}).}
@@ -82,13 +86,18 @@
             k = k + g$nnbs[i]
         }
     }
-    stopifnot(k - 1L + n == length(s))
 
-    ## admin the connected components-info
-    g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
-    g$cc$n = max(g$cc$id)
-    g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
-
+    if (k -1L == length(s)) {
+        ## no cc
+        g$cc = list(id = NA, n=NA, nodes=NA)
+    } else {
+        stopifnot(k - 1L + n == length(s))
+        
+        ## admin the connected components-info
+        g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
+        g$cc$n = max(g$cc$id)
+        g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
+    }
     class(g) = "inla.graph"
     return (g)
 }
@@ -129,13 +138,17 @@
             k = k + g$nnbs[i]
         }
     }
-    stopifnot(k - 1L + n == length(s))
-
-    ## admin the connected components-info
-    g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
-    g$cc$n = max(g$cc$id)
-    g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
-
+    if (k -1L == length(s)) {
+        ## no cc
+        g$cc = list(id = NA, n=NA, nodes=NA)
+    } else {
+        ## admin the connected components-info
+        stopifnot(k - 1L + n == length(s))
+        g$cc$id = as.integer(s[k:length(s)]) + 1L # 0-based
+        g$cc$n = max(g$cc$id)
+        g$cc$nodes = lapply(1L:g$cc$n, function(cc.id, id) which(cc.id == id), cc = g$cc$id)
+    }
+    
     class(g) = "inla.graph"
     return (g)
 }
@@ -148,6 +161,23 @@
     cat(graph$n, "\n", file = fd)
     for(i in 1:graph$n) {
         cat(i, graph$nnbs[i], graph$nbs[[i]], "\n", file = fd)
+    }
+    close(fd)
+    return (graph.file)
+}
+`inla.write.graph.binary` = function(graph, graph.file = "graph.txt")
+{
+    ## write a graph to file,  0-based binary format.
+    fd = file(graph.file , "wb")
+    writeBin(as.integer(graph$n), fd)
+    if (graph$n > 0L) {
+        for(i in 1:graph$n) {
+            writeBin(as.integer(i) -1L, fd)
+            writeBin(as.integer(graph$nnbs[i]), fd)
+            if (graph$nnbs[i] > 0L) {
+                writeBin(as.integer(graph$nbs[[i]]) -1L, fd)
+            }
+        }
     }
     close(fd)
     return (graph.file)
