@@ -46,6 +46,8 @@
 #include <malloc.h>
 #endif
 #include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS

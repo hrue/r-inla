@@ -272,6 +272,9 @@ Important defines for MapKit:
 #include <limits.h>
 #include <string.h>
 
+#include <stdint.h>
+#include <inttypes.h>
+
 #define MAPKIT_VERSION "1.4"
 
 /* MS Visual C does not recognize 'inline' */
@@ -349,14 +352,18 @@ extern "C" {
 /* default initial size */
 #define MAPKIT_DEFAULT_EXPECTEDUSED (100)
 
-/* types */
 
-/* sizes, signed to accomodate MAPKIT_KEYNOTFOUND */
-#define mapkit_size_t long
+/* 
+   hrue: need to make sure that the SIZE_T is the same size as a pointer!
+   
+   MAPKIT defines this default as 'long' but long is 4 bit for Windows 64... so we use the new c99 invention instead.
+*/
+	
+#define mapkit_size_t intptr_t /* sizes, signed to accomodate MAPKIT_KEYNOTFOUND */
+#define mapkit_hash_t uintptr_t /* hash values, must be unsigned (for index, decrement) */
 
-/* hash values, must be unsigned (for index, decrement) */
-#define mapkit_hash_t unsigned long
-
+#define MAPKIT_SIZE_T_MAX __INTPTR_MAX__
+	
 /* find the lowest number in mapkit_primes greater than n */
 	extern mapkit_size_t mapkit_nextprime(const mapkit_size_t n);
 
@@ -370,7 +377,7 @@ extern "C" {
 	INLINE mapkit_hash_t mapkit_hash(mapkit_hash_t key);
 
 /* Thomas Wang's integer hash function */
-#if LONG_MAX <= 0x7fffffff
+#if MAPKIT_SIZE_T_MAX <= 0x7fffffff
 
 /* 32 bits version */
 	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
