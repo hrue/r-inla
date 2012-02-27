@@ -119,10 +119,18 @@
     return (graph.file)
 }
 
-`inla.graph2matrix` = function(graph.file = "graph.txt")
+`inla.graph2matrix` = function(graph.file = "graph.txt", graph = NULL, binary=FALSE)
 {
     ## create a binary matrix representing the graph in graph.file
-    g = inla.read.graph(graph.file)
+    if (missing(graph)) {
+        if (binary) {
+            g = inla.read.graph.binary(graph.file)
+        } else {
+            g = inla.read.graph(graph.file)
+        }
+    } else {
+        g = graph
+    }
     i = rep(1:g$n,  1L+g$nnbs)
     j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
     stopifnot(length(i) == length(j))

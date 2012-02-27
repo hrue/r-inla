@@ -11,14 +11,20 @@
 }
 \usage{
 inla.matrix2graph(Q, graph.file = "graph.txt", c.indexing = FALSE)
-inla.graph2matrix(graph.file = "graph.txt")
+inla.graph2matrix(graph.file = "graph.txt", graph=NULL, binary=FALSE)
 }
 \arguments{
   \item{Q}{
     Graph adjacency matrix
   }
   \item{graph.file}{
-    Filename for the INLA graph file.
+    Filename for the INLA graph file (if any)
+  }
+  \item{graph}{
+    An INLA graph-object (used if non-NULL).
+  }
+  \item{binary}{
+    Read/write in binary format.
   }
   \item{c.indexing}{
     If \code{TRUE}, use zero-based indexing, if \code{FALSE} (default)
@@ -40,7 +46,9 @@ inla.graph2matrix(graph.file = "graph.txt")
 %%  ~~who you are~~
 }
 \note{
-%%  ~~further notes~~
+  \code{inla.matrix2graph} should had the option to write binary
+  graph-files. (TODO: the internal graph-object system should be
+  completely rewritten...)
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
