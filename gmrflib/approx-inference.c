@@ -293,7 +293,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\tGaussian approximation:\n");
 	fprintf(fp, "\t\tabserr_func = %.6g\n", ai_par->optpar_abserr_func);
 	fprintf(fp, "\t\tabserr_step = %.6g\n", ai_par->optpar_abserr_step);
-	fprintf(fp, "\t\toptpar_fp = %lx\n", (long unsigned int) (ai_par->optpar_fp));
+	fprintf(fp, "\t\toptpar_fp = %" PRIxPTR "\n", (uintptr_t) (ai_par->optpar_fp));
 	fprintf(fp, "\t\toptpar_nr_step_factor = %.6g\n", ai_par->optpar_nr_step_factor);
 
 	fprintf(fp, "\tGaussian data: %s\n", (ai_par->gaussian_data ? "Yes" : "No"));
