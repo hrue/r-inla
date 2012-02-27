@@ -570,7 +570,7 @@ int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
 
 	fpp = (fp ? fp : stdout);
 
-	fprintf(fpp, "Contents of ged=0x%lx\n", (unsigned long int) ged);
+	fprintf(fpp, "Contents of ged=0x%" PRIxPTR "\n", (uintptr_t) ged);
 	fprintf(fpp, "\tmax_node = %1d\n", ged->max_node);
 	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
 		fprintf(fpp, "\tQ[%1d, %1d] = %.1f\n", sptr->key.key1, sptr->key.key2, sptr->value);

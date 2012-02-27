@@ -599,7 +599,7 @@ char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcn
 }
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id)
 {
-	printf("GMRFLib_memcheck: %s [0x%lx]\n", msg, (unsigned long) p);
+	printf("GMRFLib_memcheck: %s [0x%" PRIxPTR "]\n", msg, (uintptr_t) p);
 	printf("called from file %s funcname %s lineno %d id %s\n", file, funcname, lineno, id);
 	abort();
 	return GMRFLib_SUCCESS;
@@ -623,7 +623,7 @@ int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char
 	}
 
 	if (memcheck_verbose) {
-		printf("%s: 0x%lx %sn\n", __GMRFLib_FuncName, (unsigned long) p, (char *) tag);
+		printf("%s: 0x%" PRIxPTR " %sn\n", __GMRFLib_FuncName, (uintptr_t) p, (char *) tag);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -644,7 +644,7 @@ int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int
 		GMRFLib_memcheck_error("remove ptr not registered", p, file, funcname, lineno, id);
 	}
 	if (memcheck_verbose)
-		printf("%s: 0x%lx %sn\n", __GMRFLib_FuncName, (unsigned long) p, *((char **) ptr));
+		printf("%s: 0x%" PRIxPTR " %sn\n", __GMRFLib_FuncName, (uintptr_t) p, *((char **) ptr));
 
 	free(*((void **) ptr));
 	map_vpvp_remove(&memcheck_hash_table, p);

@@ -352,7 +352,7 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 			Free(cname);
 		} else {
 			map_strvp_element *all;
-			long count, i;
+			mapkit_size_t count, i;
 
 			map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
 			qsort(all, (size_t) count, sizeof(map_strvp_element), GMRFLib_timer_compare);
