@@ -280,7 +280,7 @@
             global.node.factor = 0.25, 
 
             ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
-            global.node.degree = 10^9)
+            global.node.degree = .Machine$integer.max)
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))
