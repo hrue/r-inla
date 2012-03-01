@@ -323,8 +323,8 @@
     if (!is.null(inla.spec$global.node.factor)) {
         cat("global.node.factor = ", inla.spec$global.node.factor, "\n", file = file, append = TRUE)
     }
-    if (!is.null(inla.spec$global.node.nnbs)) {
-        cat("global.node.nnbs = ", inla.spec$global.node.nnbs, "\n", file = file, append = TRUE)
+    if (!is.null(inla.spec$global.node.degree)) {
+        cat("global.node.degree = ", inla.spec$global.node.degree, "\n", file = file, append = TRUE)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

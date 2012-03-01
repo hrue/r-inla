@@ -276,11 +276,11 @@
             ## This is an hidden option.
             step.factor = -0.1,
 
-            ##:ARGUMENT: global.node.factor The factor which defines how many neighbors (as a fraction of n-1) that is required to be defined as a global node and numbered last (whatever the reordering routine says).
+            ##:ARGUMENT: global.node.factor The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph.
             global.node.factor = 0.25, 
 
-            ##:ARGUMENT: global.node.nnbs How many neighbors that is required to be defined as a global node and numbered last (whatever the reordering routine says).
-            global.node.nnbs = 10^9)
+            ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
+            global.node.degree = 10^9)
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))
