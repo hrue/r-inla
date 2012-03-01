@@ -2404,7 +2404,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 			 */
 			fixed = Calloc(graph->n, char);
 			for (i = 0; i < graph->n; i++) {
-				fixed[i] = (graph->nnbs[i] > limit ? 1 : 0);
+				fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 				n_global += fixed[i];
 			}
 
@@ -2413,19 +2413,31 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 
 			GMRFLib_compute_subgraph(&subgraph, graph, fixed);
 			free_subgraph = 1;
-
-			if (subgraph->n == 0) {
-				/*
-				 * this is a weird event: abort treating the global nodes spesifically. 
-				 */
-				GMRFLib_free_graph(subgraph);
-				subgraph = graph;
-				free_subgraph = 0;
-			}
 		} else {
 			subgraph = graph;
 			free_subgraph = 0;
 		}
+
+		if (subgraph->n == 0) {
+			/* 
+			   this is a special case. we have only global nodes. then any reordering is the 'best', as it would not be used in any case.
+			 */
+			GMRFLib_reorder = rs[0];
+			if (debug) {
+				printf("%s: best reordering=[%s]\n", __GMRFLib_FuncName, GMRFLib_reorder_name(GMRFLib_reorder));
+			}
+			if (nnz_opt)
+				*nnz_opt = 0;
+			if (ng)
+				*ng = n_global;
+
+			Free(fixed);
+			if (free_subgraph)
+				GMRFLib_free_graph(subgraph);
+
+			return GMRFLib_SUCCESS;
+		}
+
 
 		n = subgraph->n;
 		id = GMRFLib_thread_id;

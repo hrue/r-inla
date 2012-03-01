@@ -446,6 +446,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		ne = IMAX(ne, graph->nnbs[i]);
 	}
 	limit = GMRFLib_GLOBAL_NODE(graph->n);		       /* this is the limit for a 'global' node */
+
 	if (ne >= limit) {
 		/*
 		 * yes we have global nodes, make a new graph with these removed. 
@@ -457,15 +458,6 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		GMRFLib_compute_subgraph(&subgraph, graph, fixed);
 		free_subgraph = 1;
-
-		if (subgraph->n == 0) {
-			/*
-			 * this is a weird event: abort treating the global nodes spesifically. 
-			 */
-			GMRFLib_free_graph(subgraph);
-			subgraph = graph;
-			free_subgraph = 0;
-		}
 	} else {
 		subgraph = graph;
 		free_subgraph = 0;
@@ -475,68 +467,80 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	 * continue with subgraph, which is the original graph minus global nodes 
 	 */
 	n = subgraph->n;
-	for (i = 0, nnz = n; i < n; i++) {
-		nnz += subgraph->nnbs[i];
-	}
 
-	Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-	Q->flags = (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	Q->colptr[0] = 0;
-
-	for (i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic++] = i;
-		for (k = 0, ne = 1; k < subgraph->nnbs[i]; k++) {
-			j = subgraph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-			Q->rowind[ic++] = j;
-			ne++;
+	if (n > 0) {
+		/* 
+		   only enter here is the subgraph is non-empty.
+		*/
+		
+		for (i = 0, nnz = n; i < n; i++) {
+			nnz += subgraph->nnbs[i];
 		}
-		Q->colptr[i + 1] = Q->colptr[i] + ne;
+
+		Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
+		Q->flags = (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
+		Q->colptr[0] = 0;
+
+		for (i = 0, ic = 0; i < n; i++) {
+			Q->rowind[ic++] = i;
+			for (k = 0, ne = 1; k < subgraph->nnbs[i]; k++) {
+				j = subgraph->nbs[i][k];
+				if (j > i) {
+					break;
+				}
+				Q->rowind[ic++] = j;
+				ne++;
+			}
+			Q->colptr[i + 1] = Q->colptr[i] + ne;
+		}
+
+		switch (reorder) {
+		case GMRFLib_REORDER_IDENTITY:
+			p = GMRFLib_strdup("identity");
+			break;
+		case GMRFLib_REORDER_DEFAULT:
+		case GMRFLib_REORDER_METIS:
+			p = GMRFLib_strdup("metis");
+			break;
+		case GMRFLib_REORDER_GENMMD:
+			p = GMRFLib_strdup("genmmd");
+			break;
+		case GMRFLib_REORDER_AMD:
+			p = GMRFLib_strdup("amd");
+			break;
+		case GMRFLib_REORDER_MD:
+			p = GMRFLib_strdup("md");
+			break;
+		case GMRFLib_REORDER_MMD:
+			p = GMRFLib_strdup("mmd");
+			break;
+		default:
+			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+			p = NULL;
+		}
+		taucs_ccs_order(Q, &perm, &iperm, p);
+		Free(p);
+
+		GMRFLib_ASSERT(iperm, GMRFLib_ESNH);
+		GMRFLib_ASSERT(perm, GMRFLib_ESNH);
+
+		/*
+		 * doit like this to maintain the MEMCHECK facility of GMRFLib 
+		 */
+		free(perm);
+		perm = Calloc(n, int);
+		memcpy(perm, iperm, n * sizeof(int));
+		free(iperm);
+		iperm = perm;
+
+		taucs_ccs_free(Q);
+	} else {
+		/* 
+		   in this case, subgraph is empty and we have only global nodes
+		*/
+		iperm = NULL;
 	}
-
-	switch (reorder) {
-	case GMRFLib_REORDER_IDENTITY:
-		p = GMRFLib_strdup("identity");
-		break;
-	case GMRFLib_REORDER_DEFAULT:
-	case GMRFLib_REORDER_METIS:
-		p = GMRFLib_strdup("metis");
-		break;
-	case GMRFLib_REORDER_GENMMD:
-		p = GMRFLib_strdup("genmmd");
-		break;
-	case GMRFLib_REORDER_AMD:
-		p = GMRFLib_strdup("amd");
-		break;
-	case GMRFLib_REORDER_MD:
-		p = GMRFLib_strdup("md");
-		break;
-	case GMRFLib_REORDER_MMD:
-		p = GMRFLib_strdup("mmd");
-		break;
-	default:
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-		p = NULL;
-	}
-	taucs_ccs_order(Q, &perm, &iperm, p);
-	Free(p);
-
-	GMRFLib_ASSERT(iperm, GMRFLib_ESNH);
-	GMRFLib_ASSERT(perm, GMRFLib_ESNH);
-
-	/*
-	 * doit like this to maintain the MEMCHECK facility of GMRFLib 
-	 */
-	free(perm);
-	perm = Calloc(n, int);
-	memcpy(perm, iperm, n * sizeof(int));
-	free(iperm);
-	iperm = perm;
-
-	taucs_ccs_free(Q);
-
+	
 	if (!free_subgraph) {
 		/*
 		 * no global nodes, then `iperm' is the reordering 
@@ -587,11 +591,12 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		*remap = iperm_new;			       /* this is the reordering */
 
-		Free(iperm);
-		Free(fixed);
-		GMRFLib_free_graph(subgraph);
 	}
 
+	Free(iperm);
+	Free(fixed);
+	GMRFLib_free_graph(subgraph);
+	
 	if (!*remap) {
 		GMRFLib_ERROR(GMRFLib_EREORDER);
 	}
