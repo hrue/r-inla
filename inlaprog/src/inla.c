@@ -12636,12 +12636,12 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tglobal.node.factor = %.3f\n", GMRFLib_global_node_factor);
 	}
 
-	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.NNBS"), GMRFLib_global_node_nnbs);
-	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_NNBS"), GMRFLib_global_node_nnbs);
-	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODENNBS"), GMRFLib_global_node_nnbs);
-	assert(GMRFLib_global_node_nnbs >= 0);
+	GMRFLib_global_node_degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.DEGREE"), GMRFLib_global_node_degree);
+	GMRFLib_global_node_degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_DEGREE"), GMRFLib_global_node_degree);
+	GMRFLib_global_node_degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODEDEGREE"), GMRFLib_global_node_degree);
+	assert(GMRFLib_global_node_degree >= 0);
 	if (mb->verbose) {
-		printf("\t\tglobal.node.nnbs = %.1d\n", GMRFLib_global_node_nnbs);
+		printf("\t\tglobal.node.degree = %.1d\n", GMRFLib_global_node_degree);
 	}
 
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
