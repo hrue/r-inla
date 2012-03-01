@@ -277,7 +277,10 @@
             step.factor = -0.1,
 
             ##:ARGUMENT: global.node.factor The factor which defines how many neighbors (as a fraction of n-1) that is required to be defined as a global node and numbered last (whatever the reordering routine says).
-            global.node.factor = 0.5)
+            global.node.factor = 0.25, 
+
+            ##:ARGUMENT: global.node.nnbs How many neighbors that is required to be defined as a global node and numbered last (whatever the reordering routine says).
+            global.node.nnbs = 10^9)
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))

@@ -133,7 +133,14 @@
         ##!the precision matrix.}
         diagonal = NULL,
 
-        ##!\item{graph.file}{Name of the file containing the graph
+        ##!\item{graph}{Defines the graph-object either as a file, an
+        ##!\code{inla.graph}-object,  or as a (sparse) matrix.
+        graph=NULL,
+
+        ##!\item{graph.file}{THIS OPTION IS OBSOLETE AND REPLACED BY
+        ##!THE MORE GENERAL ARGUMENT \code{graph}. PLEASE CHANGE YOUR
+        ##!CODE.
+        ##!Name of the file containing the graph
         ##!of the model.  For the correct for of the graph file see
         ##!\url{http://www.r-inla.org/help/faq}.}
         graph.file=NULL,
@@ -410,38 +417,46 @@
         }
     }
 
+    if (!is.null(graph) && !is.null(graph.file)) {
+        stop("Don't know what to do, as 'graph' and 'graph.file' is set; please use only argument 'graph'.")
+    }
+    if (is.null(graph) && !is.null(graph.file)) {
+        ## then it is easy and we can just go ahead with 'graph'
+        graph = graph.file
+
+        ## show a warning,  if this hasn't been shown before.
+        if (inla.getOption("show.warning.graph.file")) {
+            warning("Argument 'graph.file' in 'f()' is obsolete; please use the more general argument 'graph' instead.")
+            ## disable this warning from now on.
+            inla.setOption(show.warning.graph.file=FALSE)
+        }
+    }
+
     ## chech that the graph.file is provided, if required. Set 'n' from the graph.file.
     if (inla.one.of(model, c("besag", "bym", "besagproper"))) {
-        if (is.null(graph.file)) {
-            stop(paste("The graph.file has to be provided for model", model))
+        if (is.null(graph)) {
+            stop(paste("The 'graph' has to be provided for model", model))
         }
-        if (!file.exists(graph.file)) {
-            stop(paste("Cannot find graph.file", graph.file))
-        }
-        ## read n from the graph
-        n.from.graph = inla.read.graph(graph.file)$n
+        n.from.graph = inla.read.graph(graph)$n
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         }
         if (!is.null(n) && n != n.from.graph) {
-            stop(paste("Argument 'n' and 'n from graph.file' does not match", n, n.from.graph))
+            stop(paste("Argument 'n' and 'n from graph' does not match", n, n.from.graph))
         }
         n = n.from.graph
     }
     if (inla.one.of(model, c("besag2"))) {
-        if (is.null(graph.file)) {
-            stop(paste("The graph.file has to be provided for model", model))
-        }
-        if (!file.exists(graph.file)) {
-            stop(paste("Cannot find graph.file", graph.file))
+        if (is.null(graph)) {
+            stop(paste("The graph has to be provided for model", model))
         }
         ## read n from the graph
-        n.from.graph = 2*inla.read.graph(graph.file)$n
+        n.from.graph = 2L*inla.read.graph(graph)$n
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
         }
         if (!is.null(n) && n != n.from.graph) {
-            stop(paste("Argument 'n' and 2*'n from graph.file' does not match", n, n.from.graph))
+            stop(paste("Argument 'n' and 2*'n from graph' does not match", n, n.from.graph))
         }
         n = n.from.graph
 
@@ -710,7 +725,7 @@
             d=d,
             diagonal = diagonal,
             extraconstr=extraconstr,
-            graph.file=graph.file,
+            graph=graph,
             group = group,
             hyper = hyper,
             label = term,
@@ -743,9 +758,8 @@
 
 ## "inla.model.class" is a generic model class that can be inherited
 ## from to mark a class as an inla model object class.
-`inla.model.object.classes` = function() {
+`inla.model.object.classes` = function()
+{
     return (c("inla.model.class", "inla.wrapper.model",
               "inla.spde", "inla.spde1", "inla.spde2"))
 }
-
-

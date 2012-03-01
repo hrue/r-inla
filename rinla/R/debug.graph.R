@@ -2,10 +2,10 @@
 ##!\alias{debug.graph}
 ##!\alias{inla.debug.graph}
 ##!\title{Debug a graph-file}
-##!\description{Debug a graph specification, by checking the specification along the way and signal an error if required.}
+##!\description{Debug a graph specification on file (ascii-mode only), by checking the specification along the way.}
 ##!\usage{inla.debug.graph(graph.file)}
 ##!\arguments{
-##!    \item{graph.file}{The filename of the graph.}
+##!    \item{graph.file}{The filename of the graph (ascii-mode)}
 ##!}
 ##!\value{
 ##! If an error is found, then an error message is shows, otherwise the graph-object returned by
@@ -14,12 +14,12 @@
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{inla.read.graph}
 ##!\examples{
-##!cat("2 1 1 2 2 1 1\n", file="g.dat")
+##!cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
 ##!g = inla.debug.graph("g.dat")
 ##!}
 
-`inla.debug.graph` = function(graph.file) {
-
+`inla.debug.graph` = function(graph.file)
+{
     ## read a graph with verbose output and try to detect any errors
     ## in the specification along the way. This is ment as a tool to
     ## detect errors in the graph specification only.
@@ -34,7 +34,7 @@
     ## remove lines starting with '#'
     for(i in 1:length(xx)) {
         xx[i] = gsub("[ \t]+", " ", xx[i])
-        xx[i] = gsub("#.*$", "", xx[i])
+        xx[i] = gsub("#.*$", "", xx[i]) #
         if (length(grep("^[ \t]*$", xx[i])) > 0) {
             xx[i] = NA
         }
@@ -43,7 +43,8 @@
     cat("* Number of lines left after removing empty lines:", length(xx), "\n")
 
     to.ints = function(text) {
-        return (as.integer(unlist(sapply(text, function(x) strsplit(x, " ")))))
+        xx = as.integer(unlist(sapply(text, function(x) strsplit(x, " "))))
+        return (xx[!is.na(xx)])
     }
     
     N = to.ints(xx[1])
@@ -93,6 +94,14 @@
     cat("* I will now try to read the graph properly using inla.read.graph().\n")
     cat("* If there are any errors in the following, then recall\n")
     cat("* that the numbering for lines and nodes, are 0-based (and NOT 1-based)!\n")
+
+    if (inla.os("linux") || inla.os("mac")) {
+        s = system(paste(shQuote(inla.call.builtin()), "-s -m graph", shQuote(graph.file)), intern=TRUE)
+    } else if(inla.os("windows")) {
+        s = system(paste(shQuote(inla.call.builtin()), "-s -m graph", shQuote(graph.file)), intern=TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
 
     return  (inla.read.graph(graph.file))
 }

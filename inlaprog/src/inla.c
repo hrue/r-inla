@@ -12631,9 +12631,17 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node_factor);
 	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_FACTOR"), GMRFLib_global_node_factor);
 	GMRFLib_global_node_factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODEFACTOR"), GMRFLib_global_node_factor);
-	assert(GMRFLib_global_node_factor > 0.0 && GMRFLib_global_node_factor <= 1.0);
+	assert(GMRFLib_global_node_factor >= 0.0);
 	if (mb->verbose) {
 		printf("\t\tglobal.node.factor = %.3f\n", GMRFLib_global_node_factor);
+	}
+
+	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.NNBS"), GMRFLib_global_node_nnbs);
+	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_NNBS"), GMRFLib_global_node_nnbs);
+	GMRFLib_global_node_nnbs = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODENNBS"), GMRFLib_global_node_nnbs);
+	assert(GMRFLib_global_node_nnbs >= 0);
+	if (mb->verbose) {
+		printf("\t\tglobal.node.nnbs = %.1d\n", GMRFLib_global_node_nnbs);
 	}
 
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
@@ -14351,10 +14359,10 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	if (G.reorder < 0) {
-		GMRFLib_sizeof_tp sizeof_L = 0;
-		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &sizeof_L);
+		GMRFLib_sizeof_tp nnz = 0, ng = 0;
+		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &ng);
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] sizeof(L)=[%lu]\n", GMRFLib_reorder_name(GMRFLib_reorder), sizeof_L);
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and nglobal=[%lu]\n", GMRFLib_reorder_name(GMRFLib_reorder), nnz, ng);
 		}
 	}
 	if (mb->verbose) {
@@ -14580,7 +14588,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	assert(count == N);
 
 	if (G.reorder < 0) {
-		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL);
+		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL, NULL);
 		if (mb_new->verbose) {
 			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
 		}
@@ -17352,7 +17360,7 @@ int inla_qinv(const char *filename, const char *outfilename)
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 	if (G.reorder < 0) {
-		GMRFLib_optimize_reorder(graph, NULL);
+		GMRFLib_optimize_reorder(graph, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
@@ -17407,7 +17415,7 @@ int inla_finn(const char *filename)
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 	if (G.reorder < 0) {
-		GMRFLib_optimize_reorder(graph, NULL);
+		GMRFLib_optimize_reorder(graph, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	GMRFLib_sample(problem);
@@ -17427,9 +17435,12 @@ int inla_read_graph(const char *filename)
 	/*
 	 * Read a graph and print it on stdio. Compute also the connected components.
 	 */
-	GMRFLib_graph_tp *graph;
+	GMRFLib_graph_tp *graph = NULL;
 
-	GMRFLib_read_graph(&graph, filename);
+	GMRFLib_read_graph_binary(&graph, filename);
+	if (graph == NULL){
+		GMRFLib_read_graph(&graph, filename);
+	}
 	GMRFLib_write_graph_2(stdout, graph);
 
 	int *cc, i;
@@ -17599,7 +17610,6 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_max_dimension = 128;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
-	GMRFLib_global_node_factor = 1.0;
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 

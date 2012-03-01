@@ -174,8 +174,11 @@
     if (!is.null(random.spec$season.length)) {
         cat("season = ", random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
     }
-    if (!is.null(random.spec$graph.file)) {
-        fnm = inla.copy.file.for.section(random.spec$graph.file, data.dir)
+    if (!is.null(random.spec$graph)) {
+        g = inla.read.graph(random.spec$graph)
+        gfile = inla.write.graph(g, filename = inla.tempfile())
+        fnm = inla.copy.file.for.section(gfile, data.dir)
+        unlink(gfile)
         cat("graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(file.loc)) {
@@ -319,6 +322,9 @@
     }
     if (!is.null(inla.spec$global.node.factor)) {
         cat("global.node.factor = ", inla.spec$global.node.factor, "\n", file = file, append = TRUE)
+    }
+    if (!is.null(inla.spec$global.node.nnbs)) {
+        cat("global.node.nnbs = ", inla.spec$global.node.nnbs, "\n", file = file, append = TRUE)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

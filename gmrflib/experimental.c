@@ -54,13 +54,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/* 
-   TODO:
-
-   the binary-read/write should not be dependent of the byte-ordering. also it should use the io-interface, at least for
-   reading.
-*/
-
 /*!
   \brief Reads a graph from a file, binary format
 
