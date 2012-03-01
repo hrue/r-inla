@@ -245,7 +245,7 @@ extern double GMRFLib_global_node_factor;
 /* 
    define global nodes
  */
-extern int GMRFLib_global_node_nnbs;
+extern int GMRFLib_global_node_degree;
 
 /* 
    internal use only; for debugging

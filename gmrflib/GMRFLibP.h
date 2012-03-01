@@ -203,7 +203,7 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 
-#define GMRFLib_GLOBAL_NODE(n) ((int) IMIN((n-1)*GMRFLib_global_node_factor, GMRFLib_global_node_nnbs))
+#define GMRFLib_GLOBAL_NODE(n) ((int) IMIN((n-1)*GMRFLib_global_node_factor, GMRFLib_global_node_degree))
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
 	if (ISNAN(value) || ISINF(value)) {				\
