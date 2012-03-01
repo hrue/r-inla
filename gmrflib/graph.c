@@ -37,7 +37,7 @@
   - <em> Reading from a file.</em>
   The simplest way to specify a general
   graph is to read the graph specifications from a file, using the
-  function \c GMRFLib_read_graph(). This function allocates
+  function \c GMRFLib_read_graph_ascii(). This function allocates
   and initializes the members based on the information given on the
   input file, and customizes the graph for use in other library
   functions.
@@ -154,6 +154,19 @@ int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
 */
 int GMRFLib_read_graph(GMRFLib_graph_tp ** graph, const char *filename)
 {
+	GMRFLib_read_graph_binary(graph, filename);
+	if (*graph != NULL) {
+		return graph;
+	} else {
+		return GMRFLib_read_graph_ascii(graph, filename);
+	}
+}
+int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
+{
+	/* 
+	   if that fails, try reading in ascii format.
+	 */
+
 	/*
 	 * read a graph in the following format
 	 * 
@@ -362,19 +375,34 @@ int GMRFLib_write_graph_2(FILE * fp, GMRFLib_graph_tp * graph)
  */
 int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph)
 {
-	int i;
+	/* 
+	   use base 1: so the nodes are 1...n, not 0..n-1. this makes the connection to R and R-inla easier. However, the read_graph routines will autodetect if the
+	   nodes are 0..n-1 or 1...n.
+	*/
+	
+	int i, tag = GMRFLib_BINARY_GRAPH_FILE_MAGIC, offset = 1, idx, iidx, j;
 	GMRFLib_io_tp *io = NULL;
 
 	if (!filename || !graph) {
 		return GMRFLib_SUCCESS;
 	}
-
-	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "wb9"));
-	GMRFLib_EWRAP0(GMRFLib_io_write(io, (const void *) &(graph->n), sizeof(int)));
+	
+	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "wb"));
+	GMRFLib_io_write(io, (const void *) &tag, sizeof(int)); /* so we can detect that this is of correct format */
+	GMRFLib_io_write(io, (const void *) &(graph->n), sizeof(int));
 	for (i = 0; i < graph->n; i++) {
-		GMRFLib_EWRAP0(GMRFLib_io_write(io, (const void *) &(graph->nnbs[i]), sizeof(int)));
+		idx = i + offset;
+		GMRFLib_io_write(io, (const void *) &idx, sizeof(int));
+		GMRFLib_io_write(io, (const void *) &(graph->nnbs[i]), sizeof(int));
 		if (graph->nnbs[i]) {
-			GMRFLib_EWRAP0(GMRFLib_io_write(io, (const void *) (graph->nbs[i]), (unsigned int) (graph->nnbs[i] * sizeof(int))));
+			if (offset == 0) {
+				GMRFLib_io_write(io, (const void *) (graph->nbs[i]), (unsigned int) (graph->nnbs[i] * sizeof(int)));
+			} else {
+				for(j=0; j<graph->nnbs[i]; j++){
+					iidx = graph->nbs[i][j] + offset;
+					GMRFLib_io_write(io, (const void *) &iidx, (unsigned int) sizeof(int));
+				}
+			}
 		}
 	}
 	GMRFLib_io_close(io);
@@ -390,35 +418,85 @@ int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph)
  */
 int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
 {
-	int i;
+	int i, j, ii, idx, tag;
 	GMRFLib_io_tp *io = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "rb"));
-	GMRFLib_EWRAP0(GMRFLib_make_empty_graph(&g));
+	GMRFLib_EWRAP0(GMRFLib_io_read(io, (void *) &tag, sizeof(int)));
+	if (tag != GMRFLib_BINARY_GRAPH_FILE_MAGIC){
+		/* 
+		   this is not a binary graph file
+		 */
+		GMRFLib_io_close(io);
+		*graph = NULL;
 
+		return !GMRFLib_SUCCESS;
+	}
+
+	GMRFLib_make_empty_graph(&g);
 	GMRFLib_EWRAP0(GMRFLib_io_read(io, (void *) &(g->n), sizeof(int)));
 	GMRFLib_ASSERT(g->n >= 0, GMRFLib_EPARAMETER);
 
-	g->nnbs = Calloc(g->n, int);
-	g->nbs = Calloc(g->n, int *);
+	g->nnbs = Calloc(g->n+1, int);			       /* yes. */
+	g->nbs = Calloc(g->n+1, int *);			       /* yes. */
 
 	for (i = 0; i < g->n; i++) {
-		GMRFLib_EWRAP0(GMRFLib_io_read(io, (void *) &(g->nnbs[i]), sizeof(int)));
-		if (g->nnbs[i]) {
-			g->nbs[i] = Calloc(g->nnbs[i], int);
-			GMRFLib_EWRAP0(GMRFLib_io_read(io, (void *) (g->nbs[i]), (unsigned int) (g->nnbs[i] * sizeof(int))));
+		GMRFLib_io_read(io, (void *) &ii, sizeof(int));
+		GMRFLib_io_read(io, (void *) &(g->nnbs[ii]), sizeof(int));
+		if (g->nnbs[ii]) {
+			g->nbs[ii] = Calloc(g->nnbs[ii], int);
+			GMRFLib_io_read(io, (void *) (g->nbs[ii]), (unsigned int) (g->nnbs[ii] * sizeof(int)));
+		} else {
+			g->nbs[ii] = Calloc(1, int);	       /* so we can check if this is read */
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_io_close(io));
+	GMRFLib_io_close(io);
 
+	/* 
+	   now we check if this graph is 1-based or 0-based.
+	*/
+	int min_node = g->n+1, max_node = -1;
+
+	for(i=0; i<g->n+1; i++){
+		if (g->nbs[i]){				       /* yes, we check the ptr if this is read or not */
+			min_node = IMIN(min_node, i);
+			max_node = IMAX(max_node, i);
+
+			for(j = 0; j<g->nnbs[i]; j++){
+				idx = g->nbs[i][j];
+				min_node = IMIN(min_node, idx);
+				max_node = IMAX(max_node, idx);
+			}
+		}
+	}
+
+	if (min_node == 1 && max_node == g->n) {
+		/* 
+		   convert to 0-based graph
+		*/
+		Free(g->nbs[0]);
+		for(i=0; i<g->n; i++){
+			g->nnbs[i] = g->nnbs[i+1];
+			g->nbs[i] = g->nbs[i+1];
+			g->nbs[i+1] = NULL;
+			for(j=0; j<g->nnbs[i]; j++)
+				g->nbs[i][j]--;
+		}
+	} else if (min_node == 0 && max_node == g->n -1) {
+		/* 
+		   ok
+		*/
+	} else {
+		fprintf(stderr, "\n\nmin_node = %1d max_node = %1d. this should not happen.\n", min_node, max_node);
+		GMRFLib_ERROR(GMRFLib_ESNH);
+	}
+	
 	GMRFLib_EWRAP0(GMRFLib_prepare_graph(g));
 	GMRFLib_EWRAP0(GMRFLib_copy_graph(graph, g));
 
-	for (i = 0; i < g->n; i++) {
-		if (g->nnbs[i]) {
-			Free(g->nbs[i]);
-		}
+	for (i = 0; i < g->n+1; i++) {			       /* yes, its +1 */
+		Free(g->nbs[i]);
 	}
 	Free(g->nbs);
 	Free(g->nnbs);

@@ -2372,17 +2372,17 @@ double GMRFLib_Qfunc_generic(int i, int j, void *arg)
   This functions factorise a precision matrix (symbolically) using several different reorderings techniques and chose the one with fewest fillins. If sizeof_L is
   non-NULL, then the sizeof_L in bytes, is returned.
 */
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeof_L)
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, GMRFLib_sizeof_tp * ng)
 {
 	if (!graph) {
-		if (sizeof_L)
-			*sizeof_L = 0;
+		if (nnz_opt)
+			*nnz_opt = 0;
 		return GMRFLib_SUCCESS;
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
-		*sizeof_L = 0;
+		*nnz_opt = 0;
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
 		int k, debug = 0, n = -1, nk, r, id, i, free_subgraph = 0, limit, n_global = 0, ne = 0;
@@ -2486,8 +2486,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 			}
 			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
-			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(symb_fact);
-			// nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(symb_fact);
+			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(symb_fact);
 			if (debug) {
 				printf("%s: reorder=[%s] \tSize=%lu\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[k]), nnzs[k]);
 			}
@@ -2514,8 +2513,10 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * sizeo
 			printf("%s: best reordering=[%s]\n", __GMRFLib_FuncName, GMRFLib_reorder_name(GMRFLib_reorder));
 		}
 		taucs_ccs_free(Q);
-		if (sizeof_L)
-			*sizeof_L = nnz_best;
+		if (nnz_opt)
+			*nnz_opt = nnz_best;
+		if (ng)
+			*ng = n_global;
 
 		Free(nnzs);
 		Free(fixed);

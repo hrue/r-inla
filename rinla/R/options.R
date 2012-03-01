@@ -3,7 +3,8 @@
 `inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
                                     "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
                                     "cygwin", "ssh.auth.sock", "cygwin.home",
-                                    "enable.inla.argument.weights"))
+                                    "enable.inla.argument.weights",
+                                    "show.warning.graph.file"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -39,7 +40,8 @@
             cygwin.home = inla.ifelse(!is.null(opt$cygwin.home), opt$cygwin.home, paste("/home/", inla.get.USER(), sep="")),
             ssh.auth.sock = inla.ifelse(!is.null(opt$ssh.auth.sock), opt$ssh.auth.sock,
                     paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep="")),
-            enable.inla.argument.weights = inla.ifelse(is.null(opt$enable.inla.argument.weights), FALSE, opt$enable.inla.argument.weights)
+            enable.inla.argument.weights = inla.ifelse(is.null(opt$enable.inla.argument.weights), FALSE, opt$enable.inla.argument.weights), 
+            show.warning.graph.file = inla.ifelse(is.null(opt$show.warning.graph.file), TRUE, opt$show.warning.graph.file)
             )
 
     res = c()
@@ -75,7 +77,8 @@
                                              "cygwin",
                                              "ssh.auth.sock",
                                              "cygwin.home",
-                                             "enable.inla.argument.weights"), value)
+                                             "enable.inla.argument.weights",
+                                             "show.warning.graph.file"), value)
     {
         envir = inla.get.inlaEnv()
 
