@@ -1,145 +1,5 @@
 ## Various utility functions
 
-`inla.graph.convert.1` = function(in.file, graph.file = "graph.txt", c.indexing = FALSE)
-{
-    ## convert a file with each line consist of (1-based) node and all
-    ## its neigbours. nodes with zero neighbours need not to be
-    ## specified.
-
-    if (c.indexing)
-        off = 1
-    else
-        off = 0
-
-    xx = max(scan(in.file))
-    n = max(xx)
-    rm(xx)
-
-    lines = readLines(in.file)
-    nlines = length(lines)
-    nbs = list(list())
-    nnbs = numeric(n)
-
-    for(i in 1:n)
-        nbs[[i]] = NA
-
-    for(i in 1:nlines) {
-        xx = as.integer(unlist(strsplit(readLines("tt")[i], "  *")))
-        xx = xx[!is.na(xx)]
-        m = length(xx)
-        if (m > 0) {
-            nnbs[ xx[1] ] = m -1
-            nbs[[ xx[1] ]] =  xx[-1]
-        }
-    }
-
-    fd = file(graph.file, "w")
-    cat(n, '\n', file=fd)
-    for(i in 1:n) {
-        if (nnbs[i] > 0) {
-            cat(i-off, nnbs[i], nbs[[i]] - off, '\n', file=fd)
-        } else {
-            cat(i-off, nnbs[i], '\n', file=fd)
-        }
-    }
-    close(fd)
-    rm(xx)
-
-    return (graph.file)
-}
-
-`geobugs2inla` = function(adj, num, graph.file="graph.txt", c.indexing = FALSE)
-{
-    inla.graph.convert.2(adj, num, graph.file, c.indexing = c.indexing)
-}
-
-`inla.graph.convert.2` = function(adj, num, graph.file="graph.txt", c.indexing = FALSE)
-{
-    ## A function for converting GeoBUGS adjacency data into the INLA
-    ## graph format. Kindly provided by Aki Havunlinna tkk.fi; thanks.
-
-    if (c.indexing)
-        off = 1
-    else
-        off = 0
-
-    fd = file(graph.file,  "w")
-    len <- length(num)
-    cat(len, '\n', file=fd)
-    k = 1
-    for(i in 1:len) {
-        if (num[i] > 0) {
-            cat(i - off, num[i], adj[k:(k+num[i]-1)] - off, "\n", file = fd)
-        } else {
-            cat(i - off, num[i], "\n", file=fd)
-        }
-        k = k + num[i]
-    }
-    close(fd)
-    return (graph.file)
-}
-
-`inla.matrix2graph` = function(Q, graph.file = "graph.txt", c.indexing = FALSE)
-{
-    if (c.indexing) {
-        off = 1L
-    } else {
-        off = 0L
-    }
-
-    if (!is(Q, "dgTMatrix")) {
-        Q = inla.as.dgTMatrix(Q)
-    }
-    n = dim(Q)
-
-    if (n[1] != n[2]) {
-        stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
-    }
-
-    n = dim(Q)[1]
-    fd = file(graph.file, "w")
-
-    cat(n, "\n", file=fd)
-    for(i in 1:n) {
-        row = inla.sparse.get(Q, row = i)
-        nb = length(row$j)
-        if (nb > 0) {
-            ## setting elements of a sparse-matrix to 0 does not
-            ## necessarily remove that entry.
-            row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
-            nb = length(row$j)
-        }
-        if (nb > 0) {
-            cat(i-off, nb, row$j - off, "\n", file=fd)
-        } else {
-            cat(i-off, nb, "\n", file=fd)
-        }
-    }
-    close(fd)
-    return (graph.file)
-}
-
-`inla.graph2matrix` = function(graph.file = "graph.txt", graph = NULL, binary=FALSE)
-{
-    ## create a binary matrix representing the graph in graph.file
-    if (missing(graph)) {
-        if (binary) {
-            g = inla.read.graph.binary(graph.file)
-        } else {
-            g = inla.read.graph(graph.file)
-        }
-    } else {
-        g = graph
-    }
-    i = rep(1:g$n,  1L+g$nnbs)
-    j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
-    stopifnot(length(i) == length(j))
-    Q = inla.as.dgTMatrix(sparseMatrix(i = i,  j = j,  x = rep(1, length(i))))
-
-    return (Q)
-}
-
-
 `inla.numlen` = function(n)
 {
     ## number of digits required to represent a specific (integer)
@@ -303,127 +163,6 @@
     return(res)
 }
 
-`inla.compare.results` = function(dir.inla = NULL, dir.mcmc = NULL)
-{
-    ## This function is useful for comparing the results of INLA with
-    ## those obtained from a MCMC run (ie running `inla -m mcmc ...')
-
-    if (is.null(dir.inla)) {
-        print("Enter directory for INLA results ")
-        dir.inla = scan(nmax=1, what = character(0))
-    }
-    if (!file.exists(dir.inla))
-         stop(paste(" *** ERROR *** No such directory ", dir.inla))
-    if (file.exists(paste(dir.inla, "/", "results.files", sep="")))
-        dir.inla = paste(dir.inla, "/", "results.files", sep="")
-
-    if (is.null(dir.mcmc)) {
-        print("Enter directory for MCMC (from ``inla -m mcmc'') results ")
-        dir.mcmc = scan(nmax=1, what = character(0))
-    }
-    if (!file.exists(dir.mcmc))
-         stop(paste(" *** ERROR *** No such directory ", dir.mcmc))
-    if (file.exists(paste(dir.mcmc, "/", "results.files", sep="")))
-        dir.mcmc = paste(dir.mcmc, "/", "results.files", sep="")
-
-    options(device.ask.default=TRUE)
-    inla.dev.new()
-
-    dd = c()
-    for(d in dir(dir.inla))
-        if (file.exists(paste(dir.inla, "/", d, "/marginal-densities.dat", sep="")))
-            dd = c(dd, d)
-
-    quit = FALSE
-    while(TRUE) {
-
-        cat("\nChose directory to view\n")
-        i=1
-        for(a in dd) {
-            cat("[", i,"] ", a, "\n", sep="")
-            i = i+1
-        }
-        cat("\n(<0: histogram, >0: density: q:quit) : ")
-
-        ok = FALSE
-        while(!ok) {
-            id = readline("")
-            if (id == "q" || id == "quit") {
-                ok = TRUE
-                quit = TRUE
-            } else {
-                id = as.integer(id)
-                if (!is.na(id))
-                    ok = TRUE
-                else
-                    cat("***Input error.\n")
-            }
-        }
-
-        if (quit)
-            return (invisible())
-
-        if (id < 0) {
-            hist = TRUE
-            id = abs(id)
-        } else {
-            hist = FALSE
-        }
-
-        d.inla = paste(dir.inla, "/", dd[id], sep="")
-        d.mcmc = paste(dir.mcmc, "/", dd[id], sep="")
-
-        fnm = paste(d.inla,"/","marginal-densities.dat", sep="")
-        f = paste(d.inla,"/","TAG", sep="")
-        TAG = inla.ifelse(file.exists(f), inla.paste(scan(paste(d.inla,"/","TAG", sep=""),
-            what=as.character())), "TAG")
-        if (file.exists(fnm)) {
-            ##print(paste("read marginals from ", fnm))
-            marg = read.table(fnm)
-
-            n.marg = dim(marg)[1]
-            n.points = dim(marg)[2]
-
-            fnm = paste(d.mcmc,"/","trace.dat", sep="")
-            if (file.exists(fnm)) {
-                samples = read.table(fnm)
-                di = dim(samples)
-                samples = samples[-dim(samples)[1],]
-                ## with ncol=1, the previous line remove dimension attributes
-                samples = as.matrix(samples, nrow=di[1]-1, ncol=di[2])
-                n.samples = dim(samples)[1]
-
-                if (dim(samples)[2] == n.marg) {
-                    if (n.marg <= 4)
-                        par(mfrow=c(n.marg, 1))
-                    else
-                        par(mfrow=c(4, 3))
-
-                    for(i in 1:n.marg) {
-                        x.values = as.double(marg[i, seq(2, n.points, by=2)])
-                        f.values = as.double(marg[i, seq(3, n.points, by=2)])
-                        plot(x.values, f.values, type="l", lty=1, lwd=2,
-                             main=paste("Marginal for ", marg[i, 1]," ", TAG, sep=""),
-                             sub = fnm, frame.plot = FALSE)
-                        if (hist)
-                            hist(samples[, i], n = 50, add = TRUE, probability = TRUE)
-                        else
-                            lines(density(samples[, i]), lty=3, lwd=2)
-                    }
-                }
-                else
-                    print("n.marg != columns(samples) ", n.marg, dim(samples)[2])
-            }
-            else
-                print(paste(" *** ERROR *** file does not exists: ", fnm))
-
-            rm(marg)
-            rm(samples)
-        }
-        else
-            print(paste(" *** ERROR *** file does not exits: ", fnm))
-    }
-}
 `inla.only.for.developers` = function()
 {
     if (!is.element(Sys.getenv("USER"),
@@ -432,6 +171,7 @@
         stop("This function is for developers only.")
     return (invisible())
 }
+
 `inla.my.update` = function(dir, binaries=FALSE)
 {
     ##  Set binaries=TRUE to set the inla.call and fmesher.call options
@@ -477,6 +217,7 @@
 
     return (invisible())
 }
+
 `inla.remove` = function(name, from)
 {
     ## remove NAME FROM. Works for both lists and data.frames
@@ -513,6 +254,7 @@
     }
     return (mapping)
 }
+
 `inla.node2lattice.mapping` = function(nrow, ncol)
 {
     stopifnot( nrow > 0 && ncol > 0 )
@@ -583,6 +325,7 @@
 
     return (matrix(a.vector, nrow, ncol))
 }
+
 `inla.squishplot` = function (xlim, ylim, asp = 1, newplot = TRUE)
 {
     ## This function is a copy from package TeachingDemos
@@ -651,22 +394,6 @@
         nn = (n[1]+1)%/%2
         axis(2, at=c(0,(nn-1)/(n[1]-1), 1), labels=as.character(c(1, nn, n[1])))
     }
-}
-
-`inla.spy` = function(x, reordering = NULL, ...)
-{
-    ## a copy of the matlab's spy-function. display only the non-zero
-    ## pattern of matrix Q
-
-    x = as.matrix(x)
-    y = x
-    y[ y != 0] = 1L
-    y  = 1L -y
-    if (!is.null(reordering)) {
-        y[reordering, reordering] = y
-    }
-
-    inla.display.matrix(y, ...)
 }
 
 
@@ -918,42 +645,6 @@
     return (as.character(u))
 }
 
-`inla.remote` = function()
-{
-    if (inla.os("windows") && !inla.cygwin.check.path()) {
-        cat("\n\n\tRemote computing in INLA from Windows require CYGWIN.\n")
-        cat("\tThe CYGWIN-installation is not found. Please install it from www.cygwin.com\n")
-        cat("\tMake sure to install also all `ssh' components; search for it, select them and install.\n")
-        cat("\tIts easiest to use the standard installation path; c:/cygwin, otherwise give the new path using\n")
-        cat("\t\tinla.setOption(\"cygwin\", \"NEWPATH\")\n")
-        cat("\n")
-        return (NULL)
-    }
-
-    inla=system.file("bin/remote/inla.remote", package="INLA")
-    inla.setOption("inla.call", inla)
-
-    f = paste(inla.get.HOME(), "/.inlarc", sep="")
-    if (!file.exists(f)) {
-        if (inla.os("windows"))
-            ini=system.file("bin/remote/dot.inlarc-example-windows", package="INLA")
-        else
-            ini=system.file("bin/remote/dot.inlarc-example", package="INLA")
-
-        if (!file.exists(ini))
-            stop(paste("Missing file in installation:", ini, "This should not happen..."))
-        file.copy(ini, f)
-        cat(paste("Remote computing: Please edit remote-host details in\n\t\t", f, "\n"))
-    } else {
-        cat(paste("Remote computing is defined in\n\t\t", f, "\n"))
-    }
-    if (inla.os("windows")) {
-        cat("\n\tIf you need to copy ssh-keys, you can do that using this script from within a cygwin-terminal\n")
-        cat(paste("\t\t", inla.cygwin.map.filename(system.file("bin/remote/ssh-copy-id", package="INLA")), "\n\n"))
-    }
-
-    return (invisible())
-}
 
 `inla.eval` = function(command,
         envir = parent.frame(),
@@ -977,16 +668,6 @@
     return (gsub("\\\\", "/", tempdir()))
 }
 
-`inla.ssh.copy.id` = function ()
-{
-    ## print the path to the copy-id script
-
-    f = system.file("bin/remote/ssh-copy-id", package="INLA")
-    if (inla.os("windows"))
-        return (inla.cygwin.map.filename(f))
-    else
-        return (f)
-}
 
 `inla.formula2character` = function(formula)
 {
@@ -1132,7 +813,8 @@
     return (result)
 }
 
-`inla.is.element` = function(name, list) {
+`inla.is.element` = function(name, list)
+{
     ## return TRUE if element with name NAME is a member of LIST and
     ## the value is non null and not NA.
     if (any(names(list) == name)) {
@@ -1176,14 +858,13 @@
     attributes(the.function) = NULL
     return (paste(deparse(the.function), collapse=newline))
 }
+
 `inla.source2function` = function(the.source, newline = "<<NEWLINE>>")
 {
     ## take function source, output from inla.function2source(), and
     ## return the function, using 'newline' as newline.
     return (inla.eval(strsplit(the.source, split = newline)[[1]]))
 }
-
-
 
 `inla.writeLines` = function(filename, lines)
 {
@@ -1257,9 +938,8 @@
     }
 }
 
-
-
-`inla.factor2matrix` = function(f, sparse=FALSE) {
+`inla.factor2matrix` = function(f, sparse=FALSE)
+{
     ok = !is.na(f)
     levels = levels(f)
     if (sparse) {

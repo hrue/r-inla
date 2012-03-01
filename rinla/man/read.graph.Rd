@@ -8,42 +8,58 @@
 \alias{inla.read.graph}
 \alias{inla.write.graph}
 \alias{inla.graph}
-\title{Read a graph-file}
-\description{Reads a graph specification from file and create an R-object for it, and write a graph to file.}
+\title{Read and write a graph-object}
+\description{Reads a graph-object to a file and write graph-object to file}
 \usage{
-graph = inla.read.graph(graph.file)
-inla.write.graph(graph, graph.file)}
+g = inla.read.graph(graph)
+inla.write.graph(graph, filename, mode = c("binary", "ascii""))
+summary(graph)
+plot(graph)
 \arguments{
-    \item{graph.file}{The filename of the graph.}
-    \item{graph}{An \code{inla.graph} object (output from \code{inla.read.graph}).}
+    \item{filename}{The filename of the graph.}
+    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix or a filename containing the graph.}
+    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
+                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 }
 \value{
-    The output of \code{inla.read.graph} is an \code{inla.graph} object, with elements
-    \item{n }{is the size of the graph}
-    \item{nnbs }{is a vector with the number of neigbours}
-    \item{nbs }{is a list-list with the neigbours}
-    \item{graph.file }{is the name of the file on which this graph is based}
-    \item{cc }{list with connected component information
+    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
+    \item{n}{is the size of the graph}
+    \item{nnbs}{is a vector with the number of neigbours}
+    \item{nbs}{is a list-list with the neigbours}
+    \item{filename}{is the name of the file if this \code{inla.graph}-object was read from a file}
+    \item{cc}{list with connected component information (this entry can be auto-generated; see below)
         \itemize{
-            \item{\code{id} }{is a vector with the connected component id for each node (starting from 1)}
-            \item{\code{n} }{is the number of connected components}
-            \item{\code{nodes} }{is a list-list of nodes belonging to each connected component}
+            \item{\code{id}}{is a vector with the connected component id for each node (starting from 1)}
+            \item{\code{n}}{is the number of connected components}
+            \item{\code{nodes}}{is a list-list of nodes belonging to each connected component}
         }
     }
-    Methods implemented for \code{inla.graph} are \code{summary}, \code{print} and \code{plot}.
+    The connected component information,  can be generated from the rest of the graph-structure,
+    using \code{graph = inla.add.graph.cc(graph)}.
+    Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
+    The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
+    see \code{http://www.bioconductor.org}.
+
+    The \code{graph} is either a filename containing the \code{inla.graph}-object (previously written using
+    \code{inla.write.graph()},  or an \code{inla.graph}-object,  or a (sparse) symmetric matrix whos non-zero pattern
+    determines the graph.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{
-    \code{\link{inla.debug.graph}},
     \code{\link{inla.matrix2graph}}
+    \code{\link{inla.graph2matrix}} 
+    \code{\link{inla.spy}}
 }
 \examples{
-cat("2 1 1 2 2 1 1\n", file="g.dat")
+cat("3 1 1 2 2 1 1 3 0\n", file="g.dat")
 g = inla.read.graph("g.dat")
-print(g)
-plot(g)
-
-## this function just writes the graph back to file; useful
-## for converting between a 0-based and 1-based graph.
-inla.write.graph(g, "gg.graph")
+g.file = inla.write.graph(g, mode="binary")
+gg = inla.read.graph(g.file)
+summary(g)
+summary(gg)
+plot(gg)
+inla.spy(gg)
+ggg = inla.graph2matrix(gg)
+ggg.file = inla.write.graph(ggg)
+inla.spy(ggg.file)
 }

@@ -56,6 +56,9 @@
 
 __BEGIN_DECLS
 
+
+#define GMRFLib_BINARY_GRAPH_FILE_MAGIC (-1)		       /* the first sizeof(int) bytes of the binary graph file */
+
 /*
   unsigned char
  */
@@ -186,6 +189,7 @@ int GMRFLib_print_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c);
 int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_read_graph(GMRFLib_graph_tp ** graph, const char *filename);
+int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_remap_graph(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);

@@ -227,6 +227,23 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 	return LL;
 }
 
+GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L)
+{
+	/* 
+	   return the number of non-zeros in the matrix
+	 */
+	GMRFLib_sizeof_tp nnz = 0;
+	int i, jp, sn;
+	
+	for (sn = 0; sn < L->n_sn; sn++) {
+		for (jp = 0; jp < L->sn_size[sn]; jp++) {
+			nnz += L->sn_size[sn] - jp;
+			nnz += L->sn_up_size[sn] - L->sn_size[sn];
+		}
+	}
+	return(nnz);
+}
+
 GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L)
 {
 	/*
@@ -534,57 +551,40 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		iperm_new = Calloc(n, int);
 
 		for (i = 0; i < ns; i++) {
-			iperm_new[i] = subgraph->mothergraph_idx[iperm[i]];
+			iperm_new[subgraph->mothergraph_idx[iperm[i]]] = i;
 		}
+		
+		/*
+		 * in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are
+		 * given highest node-number. 
+		 */
+		int ng = n - ns;
+		int *node = Calloc(ng, int);
+		int *nnbs = Calloc(ng, int);
 
-		if (1) {
-			/*
-			 * in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are
-			 * given highest node-number. 
-			 */
-			int ng = n - ns;
-			int *node = Calloc(ng, int);
-			int *nnbs = Calloc(ng, int);
-
-			for (i = 0, j = 0; i < n; i++) {
-				if (fixed[i]) {
-					node[j] = i;
-					nnbs[j] = graph->nnbs[i];
-					j++;
-				}
-			}
-			assert(j == ng);
-
-			/*
-			 * sort with respect to number of neigbours and carry the node-number along 
-			 */
-			GMRFLib_qsorts((void *) nnbs, (size_t) ng, sizeof(int), (void *) node, sizeof(int), NULL, 0, GMRFLib_icmp);
-			if (0) {
-#pragma omp critical
-				{
-					for (i = 0; i < ng; i++)
-						printf("thread %1d nnbs %d node %d\n", omp_get_thread_num(), nnbs[i], node[i]);
-				}
-			}
-
-			for (i = 0, j = ns; i < ng; i++, j++) {
-				iperm_new[j] = node[i];
-			}
-			assert(j == n);
-
-			Free(node);
-			Free(nnbs);
-		} else {
-			/*
-			 * this is the old version which just place the global node in the order that they appear. 
-			 */
-			for (i = 0, j = ns; i < n; i++) {
-				if (fixed[i]) {
-					iperm_new[j++] = i;
-				}
+		for (i = 0, j = 0; i < n; i++) {
+			if (fixed[i]) {
+				node[j] = i;
+				nnbs[j] = graph->nnbs[i];
+				j++;
 			}
 		}
+		assert(j == ng);
+
+		/*
+		 * sort with respect to number of neigbours and carry the node-number along 
+		 */
+		GMRFLib_qsorts((void *) nnbs, (size_t) ng, sizeof(int), (void *) node, sizeof(int), NULL, 0, GMRFLib_icmp);
+
+		for (i = 0, j = ns; i < ng; i++, j++) {
+			iperm_new[node[i]] = j;
+		}
+		assert(j == n);
+
+		Free(node);
+		Free(nnbs);
 		GMRFLib_ASSERT(j == n, GMRFLib_ESNH);	       /* just a check... */
+
 		*remap = iperm_new;			       /* this is the reordering */
 
 		Free(iperm);
@@ -1084,12 +1084,6 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 	}
 	Free(y);
 
-	if (0) {
-		for (i = 0; i < n; i++) {
-			printf("i %d x %.8g\n", i, x[i]);
-		}
-	}
-
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
@@ -1499,10 +1493,6 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 		/*
 		 * store those indices that are used and set only those to zero 
 		 */
-		if (0) {
-			memset(Zj, 0, n * sizeof(double));     /* old and slow(er) solution */
-		}
-
 		nset = 0;
 		q = Qinv_L[j];				       /* just to store the ptr */
 

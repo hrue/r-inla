@@ -6,10 +6,10 @@
 \alias{debug.graph}
 \alias{inla.debug.graph}
 \title{Debug a graph-file}
-\description{Debug a graph specification, by checking the specification along the way and signal an error if required.}
+\description{Debug a graph specification on file (ascii-mode only), by checking the specification along the way.}
 \usage{inla.debug.graph(graph.file)}
 \arguments{
-    \item{graph.file}{The filename of the graph.}
+    \item{graph.file}{The filename of the graph (ascii-mode)}
 }
 \value{
  If an error is found, then an error message is shows, otherwise the graph-object returned by
@@ -18,6 +18,6 @@
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{inla.read.graph}
 \examples{
-cat("2 1 1 2 2 1 1\n", file="g.dat")
+cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
 g = inla.debug.graph("g.dat")
 }
