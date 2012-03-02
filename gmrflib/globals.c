@@ -78,6 +78,7 @@ GMRFLib_smtp_tp GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
   - #GMRFLib_REORDER_METIS, nested dissection
   - #GMRFLib_REORDER_GENMMD, multiple minimum degree
   - #GMRFLib_REORDER_AMD, approximate minimum degree
+  - #GMRFLib_REORDER_AMDBAR, approximate minimum degree, without agressive absorption
   - #GMRFLib_REORDER_MD, true minimum degree
   - #GMRFLib_REORDER_MMD, multiple minimum degree
 

@@ -156,7 +156,7 @@ int GMRFLib_read_graph(GMRFLib_graph_tp ** graph, const char *filename)
 {
 	GMRFLib_read_graph_binary(graph, filename);
 	if (*graph != NULL) {
-		return graph;
+		return GMRFLib_SUCCESS;
 	} else {
 		return GMRFLib_read_graph_ascii(graph, filename);
 	}
