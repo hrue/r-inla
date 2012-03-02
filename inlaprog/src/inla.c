@@ -14359,10 +14359,12 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	if (G.reorder < 0) {
-		GMRFLib_sizeof_tp nnz = 0, ng = 0;
-		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &ng);
+		GMRFLib_sizeof_tp nnz = 0;
+		int use_g = 0;
+		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g);
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and nglobal=[%lu]\n", GMRFLib_reorder_name(GMRFLib_reorder), nnz, ng);
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder), nnz,
+			       (use_g ? "yes" : "no"));
 		}
 	}
 	if (mb->verbose) {
@@ -15388,7 +15390,7 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 				fprintf(fp, "%1d\n", cc[i]);
 			}
 		}
-		
+
 
 		fclose(fp);
 	}
@@ -17438,7 +17440,7 @@ int inla_read_graph(const char *filename)
 	GMRFLib_graph_tp *graph = NULL;
 
 	GMRFLib_read_graph_binary(&graph, filename);
-	if (graph == NULL){
+	if (graph == NULL) {
 		GMRFLib_read_graph(&graph, filename);
 	}
 	GMRFLib_write_graph_2(stdout, graph);

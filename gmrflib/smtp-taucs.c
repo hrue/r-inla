@@ -229,19 +229,19 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 
 GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L)
 {
-	/* 
-	   return the number of non-zeros in the matrix
+	/*
+	 * return the number of non-zeros in the matrix 
 	 */
 	GMRFLib_sizeof_tp nnz = 0;
 	int i, jp, sn;
-	
+
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < L->sn_size[sn]; jp++) {
 			nnz += L->sn_size[sn] - jp;
 			nnz += L->sn_up_size[sn] - L->sn_size[sn];
 		}
 	}
-	return(nnz);
+	return (nnz);
 }
 
 GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L)
@@ -469,10 +469,10 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	n = subgraph->n;
 
 	if (n > 0) {
-		/* 
-		   only enter here is the subgraph is non-empty.
-		*/
-		
+		/*
+		 * only enter here is the subgraph is non-empty. 
+		 */
+
 		for (i = 0, nnz = n; i < n; i++) {
 			nnz += subgraph->nnbs[i];
 		}
@@ -538,12 +538,12 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		taucs_ccs_free(Q);
 	} else {
-		/* 
-		   in this case, subgraph is empty and we have only global nodes
-		*/
+		/*
+		 * in this case, subgraph is empty and we have only global nodes 
+		 */
 		iperm = NULL;
 	}
-	
+
 	if (!free_subgraph) {
 		/*
 		 * no global nodes, then `iperm' is the reordering 
@@ -560,7 +560,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		for (i = 0; i < ns; i++) {
 			iperm_new[subgraph->mothergraph_idx[iperm[i]]] = i;
 		}
-		
+
 		/*
 		 * in this new code, we sort the global nodes according to the number of neighbours, so the ones with largest number of neighbours are
 		 * given highest node-number. 
