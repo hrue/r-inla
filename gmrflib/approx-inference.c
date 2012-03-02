@@ -580,7 +580,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	ai_store->mode = Calloc(n, double);
 	memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
-	//FIXME1("use old version");
+	// FIXME1("use old version");
 	if (mean == NULL && 1) {
 		/*
 		 * Here we use the joint expression and take advantage of that we have already evaluated the log-likelihood in the mode.
@@ -597,10 +597,10 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		}
 		*logdens = A - problem->sub_logdens;
 
-		//
-		//FIXME1("FIXME");
-		//printf("thread %d A=%.12f sub_logdens=%.12f\n", omp_get_thread_num(), A, problem->sub_logdens);
-		//
+		// 
+		// FIXME1("FIXME");
+		// printf("thread %d A=%.12f sub_logdens=%.12f\n", omp_get_thread_num(), A, problem->sub_logdens);
+		// 
 	} else {
 		/*
 		 * then evaluate it in the mode (ie the mean) to get the log-density 
@@ -2569,7 +2569,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 		}
 		GMRFLib_thread_id = id;
-		if (!cc_positive){
+		if (!cc_positive) {
 			cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
 		}
 
@@ -2642,7 +2642,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			fprintf(optpar->fp, "iteration %d error %.12g\n", iter, err);
 
 		if (gaussian_data) {
-			/* 
+			/*
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
 			 */
 #pragma omp parallel for private(i) schedule(static)
@@ -3097,7 +3097,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 										  (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
-	
+
 #define COMPUTE_CPO_AND_DIC_LOCAL					\
 	if (d[ii] || ai_par->cpo_manual) {				\
 		if (cpo || ai_par->cpo_manual) {			\
@@ -3549,7 +3549,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			misc_output->cov_m = Calloc(ISQR(nhyper), double);
 			memcpy(misc_output->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
 			misc_output->log_posterior_mode = log_dens_mode;
-				
+
 			/*
 			 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
 			 */
@@ -4619,7 +4619,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			double tmp_logdens;
 			GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, b, c, mean, d,
 						       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
-			log_dens_mode= tmp_logdens + log_extra(NULL, nhyper, log_extra_arg); /* nhyper=0, so theta=NULL is ok */
+			log_dens_mode = tmp_logdens + log_extra(NULL, nhyper, log_extra_arg);	/* nhyper=0, so theta=NULL is ok */
 
 			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
 			/*
@@ -5116,7 +5116,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 				for (i = 0; i < nhyper; i++) {
 					marginal_likelihood->marginal_likelihood_integration -=
-						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) + 0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+					    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+						   0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 				}
 			} else {
 				double integral = 0.0, log_jacobian = 0.0;
@@ -5135,14 +5136,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					marginal_likelihood->marginal_likelihood_integration, marginal_likelihood->marginal_likelihood_gaussian_approx);
 			}
 		} else {
-			/* 
-			   nhyper = 0
-			*/
+			/*
+			 * nhyper = 0 
+			 */
 			marginal_likelihood->marginal_likelihood_gaussian_approx = log_dens_mode;
 			marginal_likelihood->marginal_likelihood_integration = log_dens_mode;
 		}
 	}
-	
+
 	/*
 	 * compute the posterior marginals for each hyperparameter, if possible 
 	 */
@@ -5348,7 +5349,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		arg->eigen_vectors = eigen_vectors;
 
 		for (i = 0; i < GMRFLib_ai_INLA_userfunc2_n; i++) {
-			GMRFLib_ai_INLA_userfunc2[i] (i, theta_mode, nhyper, inverse_hessian, (void *)arg);
+			GMRFLib_ai_INLA_userfunc2[i] (i, theta_mode, nhyper, inverse_hessian, (void *) arg);
 		}
 		Free(arg);
 	}
@@ -6102,7 +6103,7 @@ float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_densi
 	GMRFLib_evaluate_ndensity(dens, xpi, np, cpo_density);
 
 	if (compute_cpo) {
-		loglFunc(prob, xp, -np, idx, x_vec, loglFunc_arg); /* no correction for 'd' here; should we?  */
+		loglFunc(prob, xp, -np, idx, x_vec, loglFunc_arg);	/* no correction for 'd' here; should we? */
 	} else {
 		memset(prob, 0, np * sizeof(double));
 	}
@@ -6190,7 +6191,7 @@ float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, 
 	}
 	GMRFLib_evaluate_ndensity(dens, xpi, np, density);
 	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
-	for (i=0; i<np; i++){
+	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
 

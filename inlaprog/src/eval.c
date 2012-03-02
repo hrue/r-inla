@@ -118,9 +118,9 @@ muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 	}
 	eval_keep_vars_tp *a = *aa;
 
-	if (a->n >= a->n_alloc){
+	if (a->n >= a->n_alloc) {
 		a->n_alloc += 16;
-		if (a->n_alloc == 0){
+		if (a->n_alloc == 0) {
 			assert(a->name == NULL);
 			assert(a->value == NULL);
 		}
@@ -143,7 +143,7 @@ double inla_eval(char *expression, double *x)
 {
 	double value;
 
-	/* 
+	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
 #pragma omp critical
@@ -178,7 +178,7 @@ double inla_eval(char *expression, double *x)
 		keep_vars = Calloc(1, eval_keep_vars_tp);
 		keep_vars->default_value = *x;
 		mupSetVarFactory(hParser, inla_eval_AddVariable, (void *) &keep_vars);
-		mupSetExpr(hParser, (muChar_t *)expression);
+		mupSetExpr(hParser, (muChar_t *) expression);
 		value = (double) mupEval(hParser);
 
 		mupRelease(hParser);

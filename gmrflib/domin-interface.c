@@ -200,7 +200,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	double ffx, fx_local;
 
 	int id = GMRFLib_thread_id;
-	
+
 #pragma omp parallel sections if (((GMRFLib_openmp && GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_HUGE) ? 1 : 0))
 	{
 		/*
@@ -216,7 +216,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_ai_marginal_hyperparam(fx, G.x, G.b, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph, G.Qfunc, G.Qfunc_arg, G.constr, G.ai_par, ais);
 		}
-		
+
 #pragma omp section
 		{
 			GMRFLib_thread_id = id;
@@ -224,7 +224,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		}
 	}
 	GMRFLib_thread_id = id;
-	
+
 	*fx += ffx;					       /* add contributions */
 	*fx *= -1.0;					       /* domin() do minimisation */
 	fx_local = *fx;
@@ -310,7 +310,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id = omp_get_thread_num();
 	id_save = GMRFLib_thread_id;
-	
+
 	/*
 	 * this is the one to be copied 
 	 */
@@ -358,7 +358,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Free(xx);
 		}
 		GMRFLib_thread_id = id;
-		
+
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
 		 */
