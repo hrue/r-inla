@@ -508,6 +508,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		case GMRFLib_REORDER_AMD:
 			p = GMRFLib_strdup("amd");
 			break;
+		case GMRFLib_REORDER_AMDBAR:
+			p = GMRFLib_strdup("amdbar");
+			break;
 		case GMRFLib_REORDER_MD:
 			p = GMRFLib_strdup("md");
 			break;
@@ -528,7 +531,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		 * doit like this to maintain the MEMCHECK facility of GMRFLib 
 		 */
 		free(perm);
-		perm = Calloc(n, int);
+		perm = Calloc(graph->n, int);		       /* yes, need graph->n. */
 		memcpy(perm, iperm, n * sizeof(int));
 		free(iperm);
 		iperm = perm;
@@ -552,7 +555,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		 */
 		ns = subgraph->n;
 		n = graph->n;
-		iperm_new = Calloc(n, int);
+		iperm_new = Calloc(graph->n, int);
 
 		for (i = 0; i < ns; i++) {
 			iperm_new[subgraph->mothergraph_idx[iperm[i]]] = i;
@@ -591,12 +594,12 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		*remap = iperm_new;			       /* this is the reordering */
 
+		GMRFLib_free_graph(subgraph);
+		Free(iperm);
 	}
 
-	Free(iperm);
 	Free(fixed);
-	GMRFLib_free_graph(subgraph);
-	
+
 	if (!*remap) {
 		GMRFLib_ERROR(GMRFLib_EREORDER);
 	}

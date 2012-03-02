@@ -6430,6 +6430,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			}
 			ldens_values[i] = GMRFLib_ai_integrator_func(nhyper, x, arg);
 		}
+
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);
 
 		Free(x);
