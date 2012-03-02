@@ -53,7 +53,22 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS typedef enum {
+__BEGIN_DECLS 
+
+/* 
+   
+ */
+
+typedef struct
+{
+	double factor;
+	int degree;
+}
+	GMRFLib_global_node_tp;
+
+
+
+typedef enum {
 
 	/**
 	 * \brief Lapack's band-solver
@@ -193,7 +208,7 @@ typedef struct {
    
  */
 
-int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp *gn);
 int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact);
 int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph);
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);

@@ -408,7 +408,8 @@ int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder)
+int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder,
+	GMRFLib_global_node_tp *gn_ptr)
 {
 	/*
 	 * new improved version which treats global nodes spesifically. 
@@ -445,7 +446,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	for (i = 0, ne = 0; i < graph->n; i++) {
 		ne = IMAX(ne, graph->nnbs[i]);
 	}
-	limit = GMRFLib_GLOBAL_NODE(graph->n);		       /* this is the limit for a 'global' node */
+	limit = GMRFLib_GLOBAL_NODE(graph->n, gn_ptr);		       /* this is the limit for a 'global' node */
 
 	if (ne >= limit) {
 		/*
