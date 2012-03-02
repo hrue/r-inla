@@ -2372,7 +2372,7 @@ double GMRFLib_Qfunc_generic(int i, int j, void *arg)
   This functions factorise a precision matrix (symbolically) using several different reorderings techniques and chose the one with fewest fillins. If sizeof_L is
   non-NULL, then the sizeof_L in bytes, is returned.
 */
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, GMRFLib_sizeof_tp * ng)
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global)
 {
 	if (!graph) {
 		if (nnz_opt)
@@ -2385,128 +2385,102 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		*nnz_opt = 0;
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
-		int k, debug = 1, n = -1, nk, r, id, i, free_subgraph = 0, limit, n_global = 0, ne = 0;
-		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD, GMRFLib_REORDER_AMD, GMRFLib_REORDER_AMDBAR };
+		int k, debug = 1, n = -1, nk, r, i, limit, n_global = 0, ne = 0, use_global_nodes;
+		// GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD, GMRFLib_REORDER_AMD, GMRFLib_REORDER_AMDBAR };
+		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMD };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
-		GMRFLib_graph_tp *subgraph = NULL;
+
+		n = graph->n;
 
 		/*
-		 * check if we have 'global' nodes 
+		 * build the Q-matrix; just symbolically, so I set Q_ij = 1. this matrix is common for all reordering
+		 * schemes. 
 		 */
-		for (i = 0, ne = 0; i < graph->n; i++) {
-			ne = IMAX(ne, graph->nnbs[i]);
+		int ic, kk, j, nnz;
+
+		for (i = 0, nnz = n; i < n; i++) {
+			nnz += graph->nnbs[i];
 		}
-		limit = GMRFLib_GLOBAL_NODE(graph->n);	       /* this is the limit for a 'global' node */
-		if (ne >= limit) {
-			/*
-			 * yes we have global nodes, make a new graph with these removed. 
-			 */
-			fixed = Calloc(graph->n, char);
-			for (i = 0; i < graph->n; i++) {
-				fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
-				n_global += fixed[i];
-			}
+		Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
+		GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
+		Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER | TAUCS_PATTERN);
+		Q->colptr[0] = 0;
 
-			if (debug)
-				printf("%s:n_global = %d\n", __GMRFLib_FuncName, n_global);
+		for (i = 0, ic = 0; i < n; i++) {
+			Q->rowind[ic] = i;
+			Q->values.d[ic] = 1.0;
+			ic++;
+			ne = 1;
 
-			GMRFLib_compute_subgraph(&subgraph, graph, fixed);
-			free_subgraph = 1;
-		} else {
-			subgraph = graph;
-			free_subgraph = 0;
-		}
-
-		if (subgraph->n == 0) {
-			/* 
-			   this is a special case. we have only global nodes. then any reordering is the 'best', as it would not be used in any case.
-			 */
-			GMRFLib_reorder = rs[0];
-			if (debug) {
-				printf("%s: best reordering=[%s]\n", __GMRFLib_FuncName, GMRFLib_reorder_name(GMRFLib_reorder));
-			}
-			if (nnz_opt)
-				*nnz_opt = 0;
-			if (ng)
-				*ng = n_global;
-
-			Free(fixed);
-			if (free_subgraph)
-				GMRFLib_free_graph(subgraph);
-
-			return GMRFLib_SUCCESS;
-		}
-
-
-		n = subgraph->n;
-		id = GMRFLib_thread_id;
-		{
-			/*
-			 * build the Q-matrix; just symbolically, so I set Q_ij = 1. this matrix is common for all reordering
-			 * schemes. 
-			 */
-			int ic, kk, j, nnz;
-
-			for (i = 0, nnz = n; i < n; i++) {
-				nnz += subgraph->nnbs[i];
-			}
-			Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-			GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
-			Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER | TAUCS_PATTERN);
-			Q->colptr[0] = 0;
-
-			for (i = 0, ic = 0; i < n; i++) {
-				Q->rowind[ic] = i;
+			for (kk = 0; kk < graph->nnbs[i]; kk++) {
+				j = graph->nbs[i][kk];
+				if (j > i) {
+					break;
+				}
+				Q->rowind[ic] = j;
 				Q->values.d[ic] = 1.0;
 				ic++;
-				ne = 1;
-
-				for (kk = 0; kk < subgraph->nnbs[i]; kk++) {
-					j = subgraph->nbs[i][kk];
-					if (j > i) {
-						break;
-					}
-					Q->rowind[ic] = j;
-					Q->values.d[ic] = 1.0;
-					ic++;
-					ne++;
-				}
-				Q->colptr[i + 1] = Q->colptr[i] + ne;
+				ne++;
 			}
+			Q->colptr[i + 1] = Q->colptr[i] + ne;
 		}
 
-		nk = (int) (sizeof(rs) / sizeof(int));
+		/*
+		 * do this for all reorderings, first with global node detection and then without global nodes detection 
+		 */
+		nk = 2 * (int) (sizeof(rs) / sizeof(int));     /* yes, twice... */
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
-		
-		/* 
-		   Doing this in parallel causes an error sometimes, which goes away setting global.node.factor to a small value.  I have no idea of what is going
-		   on, but since `nk' is only 2, we can disable this without loosing to much.
-		*/
-//#pragma omp parallel for private(k)
+
 		for (k = 0; k < nk; k++) {
-			int *iperm = NULL, *perm = NULL, ii;
+			int *iperm = NULL, *perm = NULL, ii, kk, use_global_nodes;
 			supernodal_factor_matrix *symb_fact;
 			taucs_ccs_matrix *L = NULL;
 
-			GMRFLib_thread_id = id;
-			GMRFLib_compute_reordering_TAUCS(&iperm, subgraph, rs[k]);
+			double global_node_factor = GMRFLib_global_node_factor;
+			int global_node_degree = GMRFLib_global_node_degree;
+
+			/*
+			 * first half is with, second half is without, the detection of global nodes 
+			 */
+			kk = k % (nk / 2);
+			use_global_nodes = (k < nk / 2);
+
+			if (!use_global_nodes) {
+				/*
+				 * currently disable 
+				 */
+				GMRFLib_global_node_factor = 2.;
+				GMRFLib_global_node_degree = INT_MAX;
+			}
+
+			GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kk]);
+
+			if (!use_global_nodes) {
+				/*
+				 * enable again
+				 */
+				GMRFLib_global_node_factor = global_node_factor;
+				GMRFLib_global_node_degree = global_node_degree;
+			}
+
 			perm = Calloc(n, int);
 			for (ii = 0; ii < n; ii++) {
 				perm[iperm[ii]] = ii;
 			}
+
 			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
 			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(symb_fact);
 			if (debug) {
-				printf("%s: reorder=[%s] \tSize=%lu\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[k]), nnzs[k]);
+				printf("%s: reorder=[%s] \tSize=%lu \tUseGlobalNodes=%1d\n", __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kk]), nnzs[k],
+				       use_global_nodes);
 			}
 			Free(perm);
 			Free(iperm);
 			taucs_ccs_free(L);
 			taucs_supernodal_factor_free(symb_fact);
 		}
-		GMRFLib_thread_id = id;
 
 		/*
 		 * find the best one 
@@ -2519,20 +2493,33 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				nnz_best = nnzs[r];
 			}
 		}
+
+		/*
+		 * find out which one this is 
+		 */
+		use_global_nodes = (r < (nk / 2));
+		r = r % (nk / 2);
+
+		if (!use_global_nodes) {
+			/*
+			 * then disable the use of global nodes.
+			 */
+			GMRFLib_global_node_factor = 2.;
+			GMRFLib_global_node_degree = INT_MAX;
+		}
+
 		GMRFLib_reorder = rs[r];
 		if (debug) {
-			printf("%s: best reordering=[%s]\n", __GMRFLib_FuncName, GMRFLib_reorder_name(GMRFLib_reorder));
+			printf("%s: best reordering=[%s] UseGlobalNodes=%1d\n", __GMRFLib_FuncName, GMRFLib_reorder_name(GMRFLib_reorder), use_global_nodes);
 		}
 		taucs_ccs_free(Q);
 		if (nnz_opt)
 			*nnz_opt = nnz_best;
-		if (ng)
-			*ng = n_global;
+		if (use_global)
+			*use_global = use_global_nodes;
 
 		Free(nnzs);
 		Free(fixed);
-		if (free_subgraph)
-			GMRFLib_free_graph(subgraph);
 	}
 	return GMRFLib_SUCCESS;
 }
