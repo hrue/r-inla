@@ -327,7 +327,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 		if (0)
 			printf("use users remap with bandw %d\n", tmp_fact.bandwidth);
 	} else {
-		GMRFLib_EWRAP1(GMRFLib_compute_reordering(&tmp_fact, tmp_graph));
+		GMRFLib_EWRAP1(GMRFLib_compute_reordering(&tmp_fact, tmp_graph, NULL));
 	}
 
 	/*

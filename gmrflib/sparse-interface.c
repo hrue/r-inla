@@ -46,9 +46,21 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 /*!
   \brief Compute the reordering
 */
-int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp *gn)
 {
 	GMRFLib_ENTER_ROUTINE;
+
+	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
+	
+	if (gn){
+		/* 
+		   then this defines the global node definition
+		*/
+		gn_ptr = (GMRFLib_global_node_tp *) gn;
+	} else {
+		lgn = GMRFLib_global_node;
+		gn_ptr = &lgn;
+	}
 
 	switch (GMRFLib_reorder) {
 	case GMRFLib_REORDER_DEFAULT:
@@ -63,7 +75,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			GMRFLib_EWRAP1(GMRFLib_compute_reordering_PROFILE());
 			break;
 		case GMRFLib_SMTP_TAUCS:
-			GMRFLib_EWRAP1(GMRFLib_compute_reordering_TAUCS(&(sm_fact->remap), graph, GMRFLib_reorder));
+			GMRFLib_EWRAP1(GMRFLib_compute_reordering_TAUCS(&(sm_fact->remap), graph, GMRFLib_reorder, gn_ptr));
 			break;
 		default:
 			GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
@@ -85,7 +97,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 	case GMRFLib_REORDER_AMDBAR:
 	case GMRFLib_REORDER_MD:
 	case GMRFLib_REORDER_MMD:
-		GMRFLib_EWRAP1(GMRFLib_compute_reordering_TAUCS(&(sm_fact->remap), graph, GMRFLib_reorder));
+		GMRFLib_EWRAP1(GMRFLib_compute_reordering_TAUCS(&(sm_fact->remap), graph, GMRFLib_reorder, gn_ptr));
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);

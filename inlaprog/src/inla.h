@@ -489,6 +489,11 @@ struct inla_tp_struct {
 	int verbose;
 	int strategy;
 
+	/* 
+	 * parameters for global_nodes
+	 */
+	GMRFLib_global_node_tp gn;
+
 	/*
 	 * reuse the mode-stuff 
 	 */
