@@ -113,7 +113,12 @@ typedef enum {
 	/**
 	 * \brief Multiple minimum degree reordering 
 	 */
-	GMRFLib_REORDER_MMD
+	GMRFLib_REORDER_MMD, 
+
+	/**
+	 * \brief Approximate minimum degree, without aggressive absorption
+	 */
+	GMRFLib_REORDER_AMDBAR
 } GMRFLib_reorder_tp;
 
 /*! 
