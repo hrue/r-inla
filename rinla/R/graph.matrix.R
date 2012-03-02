@@ -83,5 +83,5 @@
         Q = Q[r, r]
     }
 
-    inla.display.matrix(Q, ...)
+    inla.display.matrix(Q, nlevel = 2, ...)
 }

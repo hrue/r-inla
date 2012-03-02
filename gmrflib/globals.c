@@ -223,15 +223,10 @@ int GMRFLib_catch_error_for_inla = GMRFLib_FALSE;
 
 
 /* 
-   define global nodes. a node is defined to be global if nneig(i) >= (n-1) / GMRFLib_global_node_factor
+   define global nodes = {factor, degree}. factor: a node is defined to be global if nneig(i) >= (n-1) *factor degree :node is define to be global if nneig(i) >=
+   degree.
  */
-double GMRFLib_global_node_factor = 1.0;
-
-/*
-  define global nodes. a node is define to be global if nneig(i) >= GMRFLib_global_node_degree
-*/
-int GMRFLib_global_node_degree = INT_MAX;
-
+GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
 
 /* 
    internal use only; for debugging

@@ -240,12 +240,8 @@ extern int GMRFLib_catch_error_for_inla;
 /* 
    define global nodes
  */
-extern double GMRFLib_global_node_factor;
+extern GMRFLib_global_node_tp GMRFLib_global_node; 
 
-/* 
-   define global nodes
- */
-extern int GMRFLib_global_node_degree;
 
 /* 
    internal use only; for debugging
