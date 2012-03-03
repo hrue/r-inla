@@ -432,14 +432,14 @@
         }
     }
 
-    ## chech that the graph.file is provided, if required. Set 'n' from the graph.file.
+    ## chech that the graph is provided, if required. Set 'n' from the graph.
     if (inla.one.of(model, c("besag", "bym", "besagproper"))) {
         if (is.null(graph)) {
             stop(paste("The 'graph' has to be provided for model", model))
         }
         n.from.graph = inla.read.graph(graph)$n
         if (n.from.graph <= 0) {
-            stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
+            stop(paste("Argument 'n from graph' is void:", n.from.graph))
         }
         if (!is.null(n) && n != n.from.graph) {
             stop(paste("Argument 'n' and 'n from graph' does not match", n, n.from.graph))
@@ -453,7 +453,7 @@
         ## read n from the graph
         n.from.graph = 2L*inla.read.graph(graph)$n
         if (n.from.graph <= 0) {
-            stop(paste("Argument 'n from graph.file' is void:", n.from.graph))
+            stop(paste("Argument 'n from graph' is void:", n.from.graph))
         }
         if (!is.null(n) && n != n.from.graph) {
             stop(paste("Argument 'n' and 2*'n from graph' does not match", n, n.from.graph))
@@ -629,7 +629,7 @@
         ## not common to do it like this, so therefore, I issue a
         ## warning.
 
-        g = inla.read.graph(graph.file)
+        g = inla.read.graph(graph)
         if (g$cc$n == 1) {
             ## hole graph is just one connected component. all is
             ## fine, no need to do anything

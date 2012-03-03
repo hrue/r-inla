@@ -55,8 +55,8 @@
     }
 
     g = inla.read.graph(graph)
-    i = rep(1:graph$n,  1L+graph$nnbs)
-    j = unlist(sapply(1:graph$n, function(i,g) return (c(i, graph$nbs[[i]])), g))
+    i = rep(1:g$n,  1L+g$nnbs)
+    j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
     stopifnot(length(i) == length(j))
     Q = inla.as.dgTMatrix(sparseMatrix(i = i,  j = j,  x = rep(1, length(i))))
 
@@ -69,7 +69,7 @@
         return (NULL)
     }
 
-    Q = inla.graph2matrix(inla.read.graph(graph))
+    Q = inla.graph2matrix(graph)
     Q[ Q != 0 ] = 1L
     Q  = 1L -Q
     if (!is.null(reordering)) {

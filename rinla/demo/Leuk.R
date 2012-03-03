@@ -7,7 +7,7 @@ g = system.file("demodata/Leuk.graph", package="INLA")
 formula = inla.surv(Leuk$time, Leuk$cens) ~ sex + age +
     f(inla.group(wbc), model="rw1")+
     f(inla.group(tpi), model="rw2")+
-    f(district,model="besag",graph.file = g)
+    f(district,model="besag",graph = g)
 
 result = inla(formula, family="coxph",
         data=Leuk, verbose=TRUE, 

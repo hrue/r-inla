@@ -7,19 +7,19 @@ summary(Germany)
 Germany = cbind(Germany,region.struct=Germany$region)
 
 # standard BYM model
-formula1 = Y ~ f(region.struct,model="besag",graph.file=g) +
+formula1 = Y ~ f(region.struct,model="besag",graph=g) +
                f(region,model="iid")
 
 result1  =  inla(formula1,family="poisson",data=Germany,E=E)
 
 # with linear covariate
-formula2 = Y ~ f(region.struct,model="besag",graph.file=g) +
+formula2 = Y ~ f(region.struct,model="besag",graph=g) +
                f(region,model="iid") + x
 
 result2 =  inla(formula2,family="poisson",data=Germany,E=E)
 
 # with smooth covariate
-formula3 = Y ~ f(region.struct,model="besag",graph.file=g) +
+formula3 = Y ~ f(region.struct,model="besag",graph=g) +
                f(region,model="iid") + f(x, model="rw2")
 
 result3 =  inla(formula3,family="poisson",data=Germany,E=E)
@@ -46,7 +46,7 @@ prior.besag = c(1,0.001)
 initial.iid = 4
 initial.besag = 3
 
-formula1.bym = Y ~ f(region, model = "bym", graph.file = g,
+formula1.bym = Y ~ f(region, model = "bym", graph = g,
                      param = c(prior.iid, prior.besag),
                      initial = c(initial.iid, initial.besag))
 result1.bym = inla(formula1.bym,family="poisson",data=Germany,E=E)

@@ -341,9 +341,9 @@
     }
 
     if (mode == "binary") {
-        return (inla.write.graph.binary(g, filename))
+        return (invisible(inla.write.graph.binary(g, filename)))
     } else if (mode == "ascii") {
-        return (inla.write.graph.ascii(g, filename))
+        return (invisible(inla.write.graph.ascii(g, filename)))
     } else {
         stopifnot(FALSE)
     }
@@ -395,7 +395,7 @@
         ret = c(ret, list(ncc = NA))
     }
     ret = c(ret, list(filename = graph$filename))
-    ret = c(ret, list(nbs = table(graph$nnbs)))
+    ret = c(ret, list(nnbs = table(graph$nnbs)))
 
     class(ret) = "inla.graph.summary"
     return(ret)
@@ -406,8 +406,8 @@
     cat(paste("\tn = ",  go$n, "\n"))
     cat(paste("\tncc = ",  go$ncc, "\n"))
     cat(paste("\tfilename = ", shQuote(go$filename), "\n"))
-    cat(inla.paste(c("\tnbs = (names) ",  names(go$nbs), "\n")))
-    cat(inla.paste(c("\t      (count) ",  go$nbs, "\n")))
-
+    w = max(nchar(names(go$nnbs)))
+    cat(inla.paste(c("\tnnbs = (names) ",  format(names(go$nnbs), width = w, justify = "right"), "\n")))
+    cat(inla.paste(c("\t       (count) ",  format(go$nnbs, width = w, justify = "right"), "\n")))
     return(invisible())
 }
