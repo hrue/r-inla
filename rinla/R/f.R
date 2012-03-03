@@ -133,15 +133,16 @@
         ##!the precision matrix.}
         diagonal = NULL,
 
-        ##!\item{graph}{Defines the graph-object either as a file, an
-        ##!\code{inla.graph}-object,  or as a (sparse) matrix.
+        ##!\item{graph}{Defines the graph-object either as a file with
+        ##!a graph-description, an \code{inla.graph}-object, or as a
+        ##!(sparse) symmetric matrix.}
         graph=NULL,
 
         ##!\item{graph.file}{THIS OPTION IS OBSOLETE AND REPLACED BY
         ##!THE MORE GENERAL ARGUMENT \code{graph}. PLEASE CHANGE YOUR
         ##!CODE.
         ##!Name of the file containing the graph
-        ##!of the model.  For the correct for of the graph file see
+        ##!of the model; see
         ##!\url{http://www.r-inla.org/help/faq}.}
         graph.file=NULL,
 
