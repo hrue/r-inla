@@ -126,9 +126,8 @@
     }
 
     ## remove old library before installing the new one
-    pkg = "package:INLA"
-    if (any(search() == pkg))
-        detach(pos = match(pkg, search()))
+    detach(package:INLA)
+    unloadNamespace("INLA")
 
     install.packages(dfile, lib = lib, repos=NULL, type = tp)
     library(INLA, lib.loc = lib)
