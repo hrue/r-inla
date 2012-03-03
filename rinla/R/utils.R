@@ -559,22 +559,6 @@
     }
 }
 
-`inla.reload` = function(lib.loc = NULL)
-{
-    ## detach the INLA-library if its already loaded and then reload
-    ## load the INLA-library
-
-    path = dirname(searchpaths()[grep("/INLA$", searchpaths())])
-    pkg = "package:INLA"
-    if (any(search() == pkg)) {
-        detach(pos = match(pkg, search()))
-    }
-    if (is.null(lib.loc) && length(path) > 0) {
-        lib.loc = path
-    }
-    library(INLA, lib.loc = lib.loc)
-}
-
 `inla.even` = function(n)
 {
     return (inla.divisible(n, by=2L))
