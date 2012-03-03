@@ -8,9 +8,10 @@
 ##!\description{Reads a graph-object to a file and write graph-object to file}
 ##!\usage{
 ##!g = inla.read.graph(graph)
-##!inla.write.graph(graph, filename, mode = c("binary", "ascii""))
+##!inla.write.graph(graph, filename, mode = c("binary", "ascii"))
 ##!summary(graph)
 ##!plot(graph)
+##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
 ##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix or a filename containing the graph.}
@@ -34,10 +35,9 @@
 ##!    using \code{graph = inla.add.graph.cc(graph)}.
 ##!    Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
 ##!    The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
-##!    see \code{http://www.bioconductor.org}.
-##!
+##!    see \url{http://www.bioconductor.org}.
 ##!    The \code{graph} is either a filename containing the \code{inla.graph}-object (previously written using
-##!    \code{inla.write.graph()},  or an \code{inla.graph}-object,  or a (sparse) symmetric matrix whos non-zero pattern
+##!    \code{inla.write.graph}),  or an \code{inla.graph}-object,  or a (sparse) symmetric matrix where the non-zero pattern
 ##!    determines the graph.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
