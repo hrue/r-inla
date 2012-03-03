@@ -10,6 +10,7 @@
 ##!Q = inla.graph2matrix(graph)
 ##!g = inla.matrix2graph(Q)
 ##!inla.spy(graph, ...)
+##!}
 ##!\arguments{
 ##!    \item{graph}{An \code{inla.graph}-object, a filename containing an \code{inla.graph}-object,  or a (sparse) symmetric matrix}
 ##!    \item{g}{An \code{inla.graph}-object}
