@@ -269,13 +269,26 @@
     ## code starts here, really...
     ##
     if (is.character(graph)) {
-        stopifnot(file.exists(graph))
-         ## try binary first, if it fail, try ascii
-        g = inla.read.graph.binary(graph)
-        if (is.null(g)) {
-            g = inla.read.graph.ascii(graph)
+        ## if the file exists, its a file
+        if (file.exists(graph)) {
+            ## try binary first, if it fail, try ascii
+            g = inla.read.graph.binary(graph)
+            if (is.null(g)) {
+                g = inla.read.graph.ascii(graph)
+            }
+            return (g)
+        } else {
+            ## otherwise, its the definition itself
+            tfile = tempfile()
+            cat(graph, "\n", file = tfile)
+            ## try binary first, if it fail, try ascii
+            g = inla.read.graph.binary(tfile)
+            if (is.null(g)) {
+                g = inla.read.graph.ascii(tfile)
+            }
+            unlink(tfile)
+            return (g)
         }
-        return (g)
     } else if (class(graph) == "inla.graph") {
         ## no need to do anything. 
         return (graph)
