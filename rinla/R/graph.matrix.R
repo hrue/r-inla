@@ -1,26 +1,25 @@
 ##!\name{graph2matrix}
 ##!\alias{graph2matrix}
 ##!\alias{inla.graph2matrix}
-##!\alias{inla.matrix2graph}
 ##!\alias{spy}
 ##!\alias{inla.spy}
-##!\title{Convert between a (possible) sparse symmetric matrix and an \code{inla.graph}-object}
-##!\description{Convert between a (possible) sparse symmetric matrix and an \code{inla.graph}-object}
+##!\title{Construct a neighbour-matrix from a \code{graph}}
+##!\description{Construct a neighbour-matrix from a \code{graph} and disaply it}
 ##!\usage{
 ##!Q = inla.graph2matrix(graph)
-##!g = inla.matrix2graph(Q)
-##!inla.spy(graph, ...)
+##!inla.spy(graph, reordering = NULL)
 ##!}
 ##!\arguments{
-##!    \item{graph}{An \code{inla.graph}-object, a filename containing an \code{inla.graph}-object,  or a (sparse) symmetric matrix}
+##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
+##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{g}{An \code{inla.graph}-object}
 ##!    \item{Q}{An (possible) sparse symmtric matrix}
+##!    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}.}
 ##!}
 ##!\value{
 ##!     \code{inla.graph2matrix} returns a sparse symmetric matrix where the non-zero pattern is defined by the \code{graph}.
-##!     The \code{inla.spy} function, plots a binary image of a \code{graph}.
-##!
-##!     The function\code{inla.read.graph}-function is the same as the function \code{inla.matrix2graph}.
+##!     The \code{inla.spy} function, plots a binary image of a \code{graph}. The \code{reordering} argument
+##!     is typically the reordering used by \code{inla}, found in \code{result$misc$reordering}.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{
@@ -32,30 +31,35 @@
 ##!idx = sample(1:n, 2*n, replace=TRUE)
 ##!Q[idx, idx] = 1
 ##!diag(Q) = 1
-##!inla.dev.new()
-##!inla.spy(Q)
-##!
-##!g = inla.matrix2graph(Q)
-##!inla.dev.new()
-##!inla.spy(g)
+##!g = inla.read.graph(Q)
+##!QQ = inla.graph2matrix(g)
+##!inla.spy(QQ)
+##!print(all.equal(as.matrix(Q), as.matrix(QQ)))
 ##!
 ##!g.file = inla.write.graph(g)
 ##!inla.dev.new()
 ##!inla.spy(g.file)
+##!
+##!g = inla.read.graph(g.file)
+##!inla.dev.new()
+##!inla.spy(g)
+##!
+##!inla.dev.new()
+##!inla.spy(3, 1, "1 2 2 1 1 3 0")
+##!inla.dev.new()
+##!inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 ##!}
 
 `inla.matrix2graph` = function(...)
 {
+    ## this function is not really needed, but is included for
+    ## backwards compatibility
     return (inla.read.graph(...))
 }
 
-`inla.graph2matrix` = function(graph)
+`inla.graph2matrix` = function(...)
 {
-    if (missing(graph)) {
-        return (NULL)
-    }
-
-    g = inla.read.graph(graph)
+    g = inla.read.graph(...)
     i = rep(1:g$n,  1L+g$nnbs)
     j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
     stopifnot(length(i) == length(j))
@@ -64,13 +68,9 @@
     return (Q)
 }
 
-`inla.spy` = function(graph, reordering = NULL, ...)
+`inla.spy` = function(..., reordering = NULL)
 {
-    if (missing(graph)) {
-        return (NULL)
-    }
-
-    Q = inla.graph2matrix(graph)
+    Q = inla.graph2matrix(...)
     Q[ Q != 0 ] = 1L
     Q  = 1L -Q
     if (!is.null(reordering)) {
@@ -84,5 +84,5 @@
         Q = Q[r, r]
     }
 
-    inla.display.matrix(Q, nlevel = 2, ...)
+    inla.display.matrix(Q, nlevel = 2)
 }

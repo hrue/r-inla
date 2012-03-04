@@ -175,8 +175,7 @@
         cat("season = ", random.spec$season.length,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$graph)) {
-        g = inla.read.graph(random.spec$graph)
-        gfile = inla.write.graph(g, filename = inla.tempfile())
+        gfile = inla.write.graph(random.spec$graph, filename = inla.tempfile())
         fnm = inla.copy.file.for.section(gfile, data.dir)
         unlink(gfile)
         cat("graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
