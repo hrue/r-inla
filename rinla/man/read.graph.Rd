@@ -18,7 +18,8 @@ plot(graph)
 }
 \arguments{
     \item{filename}{The filename of the graph.}
-    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix or a filename containing the graph.}
+    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
+                 or a list or collection of characters and/or numbers defining the graph.}
     \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
                 the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 }
@@ -27,7 +28,6 @@ plot(graph)
     \item{n}{is the size of the graph}
     \item{nnbs}{is a vector with the number of neigbours}
     \item{nbs}{is a list-list with the neigbours}
-    \item{filename}{is the name of the file if this \code{inla.graph}-object was read from a file}
     \item{cc}{list with connected component information (this entry can be auto-generated; see below)
         \itemize{
             \item{\code{id}}{is a vector with the connected component id for each node (starting from 1)}
@@ -36,13 +36,10 @@ plot(graph)
         }
     }
     The connected component information,  can be generated from the rest of the graph-structure,
-    using \code{graph = inla.add.graph.cc(graph)}.
+    using \code{graph = inla.add.graph.cc(graph)} if you manually construct the \code{inla.graph}-object.
     Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
     The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
     see \url{http://www.bioconductor.org}.
-    The \code{graph} is either a filename containing the \code{inla.graph}-object (previously written using
-    \code{inla.write.graph}),  or an \code{inla.graph}-object,  or a (sparse) symmetric matrix where the non-zero pattern
-    determines the graph.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{
@@ -51,15 +48,19 @@ plot(graph)
     \code{\link{inla.spy}}
 }
 \examples{
+## a graph on a file
 cat("3 1 1 2 2 1 1 3 0\n", file="g.dat")
 g = inla.read.graph("g.dat")
+## writing an inla.graph-object to file
 g.file = inla.write.graph(g, mode="binary")
+## re-reading it from that file
 gg = inla.read.graph(g.file)
 summary(g)
-summary(gg)
-plot(gg)
-inla.spy(gg)
-ggg = inla.graph2matrix(gg)
-ggg.file = inla.write.graph(ggg)
-inla.spy(ggg.file)
+plot(g)
+inla.spy(g)
+## when defining the graph directly in the call, we can use a mix of character and numbers
+g = inla.read.graph(3, 1, "1 2 2 1 1 3", 0)
+inla.spy(3, 1, "1 2 2 1 1 3 0")
+inla.spy(3, 1, "1 2 2 1 1 3 0",  reordering=3:1)
+inla.write.graph(3, 1, "1 2 2 1 1 3 0")
 }

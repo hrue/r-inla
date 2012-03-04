@@ -14,7 +14,8 @@
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
-##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix or a filename containing the graph.}
+##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
+##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 ##!}
@@ -23,7 +24,6 @@
 ##!    \item{n}{is the size of the graph}
 ##!    \item{nnbs}{is a vector with the number of neigbours}
 ##!    \item{nbs}{is a list-list with the neigbours}
-##!    \item{filename}{is the name of the file if this \code{inla.graph}-object was read from a file}
 ##!    \item{cc}{list with connected component information (this entry can be auto-generated; see below)
 ##!        \itemize{
 ##!            \item{\code{id}}{is a vector with the connected component id for each node (starting from 1)}
@@ -32,13 +32,10 @@
 ##!        }
 ##!    }
 ##!    The connected component information,  can be generated from the rest of the graph-structure,
-##!    using \code{graph = inla.add.graph.cc(graph)}.
+##!    using \code{graph = inla.add.graph.cc(graph)} if you manually construct the \code{inla.graph}-object.
 ##!    Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
 ##!    The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
 ##!    see \url{http://www.bioconductor.org}.
-##!    The \code{graph} is either a filename containing the \code{inla.graph}-object (previously written using
-##!    \code{inla.write.graph}),  or an \code{inla.graph}-object,  or a (sparse) symmetric matrix where the non-zero pattern
-##!    determines the graph.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{
@@ -47,17 +44,21 @@
 ##!    \code{\link{inla.spy}}
 ##!}
 ##!\examples{
+##!## a graph on a file
 ##!cat("3 1 1 2 2 1 1 3 0\n", file="g.dat")
 ##!g = inla.read.graph("g.dat")
+##!## writing an inla.graph-object to file
 ##!g.file = inla.write.graph(g, mode="binary")
+##!## re-reading it from that file
 ##!gg = inla.read.graph(g.file)
 ##!summary(g)
-##!summary(gg)
-##!plot(gg)
-##!inla.spy(gg)
-##!ggg = inla.graph2matrix(gg)
-##!ggg.file = inla.write.graph(ggg)
-##!inla.spy(ggg.file)
+##!plot(g)
+##!inla.spy(g)
+##!## when defining the graph directly in the call, we can use a mix of character and numbers
+##!g = inla.read.graph(3, 1, "1 2 2 1 1 3", 0)
+##!inla.spy(3, 1, "1 2 2 1 1 3 0")
+##!inla.spy(3, 1, "1 2 2 1 1 3 0",  reordering=3:1)
+##!inla.write.graph(3, 1, "1 2 2 1 1 3 0")
 ##!}
 
 `inla.graph.binary.file.magic` = function()
@@ -69,10 +70,22 @@
     return (-1L)
 }
 
-`inla.add.graph.cc` = function(graph)
+`inla.add.graph.cc` = function(...)
 {
     ## add the cc information to a graph
-    
+
+    args = list(...)
+    if (length(args) == 0L) {
+        return (NULL)
+    }
+
+    ## need this test to avoid infinite recursion, as inla.read.graph also call inla.add.graph.cc!
+    if (class(args[[1L]]) == "inla.graph") {
+        graph = args[[1L]]
+    } else {
+        graph = inla.read.graph(...)
+    }
+
     cc = list(id = NA, n = NA, nodes = NA)
     n = graph$n
 
@@ -114,12 +127,15 @@
     return(graph)
 }
 
-`inla.read.graph` = function(graph)
+`inla.read.graph` = function(...)
 {
-    ## graph is either a filename, a graph-object, or a (sparse) matrix.
+    ## graph is either a filename, a graph-object, a (sparse) matrix,
+    ## or a list of integers or strings defining the graph.
 
-    `inla.read.graph.ascii` = function(filename)
+    `inla.read.graph.ascii` = function(filename, offset = 0L)
     {
+        ## offset it needed if the graph is zero-based, then offset is
+        ## set to 1.
         stopifnot(file.exists(filename))
 
         s = readLines(filename)
@@ -135,24 +151,25 @@
         s = s[!is.na(s)]
     
         n = s[1L]
-        g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), filename = filename)
+        g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
 
         k = 2L
         for(i in 1L:n) {
 
-            if (s[k] == 0L) {
-                stop("The nodes of the graph must be numbered from 1...n,  not 0...n-1. Please fix.")
+            if (s[k] + offset == 0L) {
+                ## this is a zero-based graph
+                return (inla.read.graph.ascii(filename, offset=1L))
             }
 
-            stopifnot(s[k] >= 1L && s[k] <= n)
-            idx = s[k]
+            stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
+            idx = s[k] + offset
             k = k+1L
 
             g$nnbs[idx] = s[k]
             k = k+1L
 
             if (g$nnbs[idx] > 0L) {
-                g$nbs[[idx]] = s[k:(k + g$nnbs[idx] -1L)]
+                g$nbs[[idx]] = s[k:(k + g$nnbs[idx] -1L)] + offset
                 k = k + g$nnbs[idx]
             }
         }
@@ -164,8 +181,11 @@
         return (g)
     }
 
-    `inla.read.graph.binary` = function(filename)
+    `inla.read.graph.binary` = function(filename, offset=0L)
     {
+        ## offset it needed if the graph is zero-based, then offset is
+        ## set to 1.
+
         ## read the binary filename, which is the output from inla().
         stopifnot(file.exists(filename))
 
@@ -198,25 +218,26 @@
 
         ## then the rest is the graph
         n = s[1L]
-        g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), filename = filename)
+        g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
 
         ## graphs are always 1-based by definition
         k = 2L
         for(i in 1L:n) {
 
-            if (s[k] == 0L) {
-                stop("The nodes of the graph must be numbered from 1...n,  not 0...n-1. Please fix.")
+            if (s[k] + offset == 0L) {
+                ## this is a zero-based graph
+                return (inla.read.graph.binary(filename, offset=1L))
             }
 
-            stopifnot(s[k] >= 1L && s[k] <= n)
-            idx = s[k]
+            stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
+            idx = s[k] + offset
             k = k+1L
         
             g$nnbs[idx] = s[k]
             k = k+1L
 
             if (g$nnbs[idx] > 0L) {
-                g$nbs[[idx]] = s[k:(k + g$nnbs[idx] -1L)] 
+                g$nbs[[idx]] = s[k:(k + g$nnbs[idx] -1L)] + offset
                 k = k + g$nnbs[idx]
             }
         }
@@ -268,9 +289,15 @@
     ##
     ## code starts here, really...
     ##
-    if (is.character(graph)) {
+
+    args = list(...)
+    graph = args[[1L]]
+
+    if (is.character(graph) || length(args) > 1L) {
+        graph = paste(as.character(graph))
+
         ## if the file exists, its a file
-        if (file.exists(graph)) {
+        if (length(graph) == 1L && file.exists(graph)) {
             ## try binary first, if it fail, try ascii
             g = inla.read.graph.binary(graph)
             if (is.null(g)) {
@@ -280,12 +307,9 @@
         } else {
             ## otherwise, its the definition itself
             tfile = tempfile()
-            cat(graph, "\n", file = tfile)
-            ## try binary first, if it fail, try ascii
-            g = inla.read.graph.binary(tfile)
-            if (is.null(g)) {
-                g = inla.read.graph.ascii(tfile)
-            }
+            cat(unlist(args), sep = "\n", file=tfile,  append=FALSE)
+            ## recursive call
+            g = inla.read.graph(tfile)
             unlink(tfile)
             return (g)
         }
@@ -300,7 +324,7 @@
     return (NULL)
 }
 
-`inla.write.graph` = function(graph,  filename = "graph.dat", mode = c("binary", "ascii"))
+`inla.write.graph` = function(...,  filename = "graph.dat", mode = c("binary", "ascii"))
 {
     `inla.write.graph.ascii` = function(graph, filename = "graph.dat")
     {
@@ -344,14 +368,7 @@
         mode = inla.ifelse(inla.getOption("internal.binary.mode"), "binary", "ascii")
     }
     mode = match.arg(mode)
-
-    if (is.character(graph)) {
-        g = inla.read.graph(graph)
-    } else if (class(graph) == "inla.graph") {
-        g = graph
-    } else {
-        g = inla.matrix2graph(graph)
-    }
+    g = inla.read.graph(...)
 
     if (mode == "binary") {
         return (invisible(inla.write.graph.binary(g, filename)))
@@ -407,7 +424,6 @@
     } else {
         ret = c(ret, list(ncc = NA))
     }
-    ret = c(ret, list(filename = graph$filename))
     ret = c(ret, list(nnbs = table(graph$nnbs)))
 
     class(ret) = "inla.graph.summary"
@@ -418,7 +434,6 @@
 {
     cat(paste("\tn = ",  go$n, "\n"))
     cat(paste("\tncc = ",  go$ncc, "\n"))
-    cat(paste("\tfilename = ", shQuote(go$filename), "\n"))
     w = max(nchar(names(go$nnbs)))
     cat(inla.paste(c("\tnnbs = (names) ",  format(names(go$nnbs), width = w, justify = "right"), "\n")))
     cat(inla.paste(c("\t       (count) ",  format(go$nnbs, width = w, justify = "right"), "\n")))

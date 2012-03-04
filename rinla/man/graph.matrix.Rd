@@ -5,26 +5,25 @@
 \name{graph2matrix}
 \alias{graph2matrix}
 \alias{inla.graph2matrix}
-\alias{inla.matrix2graph}
 \alias{spy}
 \alias{inla.spy}
-\title{Convert between a (possible) sparse symmetric matrix and an \code{inla.graph}-object}
-\description{Convert between a (possible) sparse symmetric matrix and an \code{inla.graph}-object}
+\title{Construct a neighbour-matrix from a \code{graph}}
+\description{Construct a neighbour-matrix from a \code{graph} and disaply it}
 \usage{
 Q = inla.graph2matrix(graph)
-g = inla.matrix2graph(Q)
-inla.spy(graph, ...)
+inla.spy(graph, reordering = NULL)
 }
 \arguments{
-    \item{graph}{An \code{inla.graph}-object, a filename containing an \code{inla.graph}-object,  or a (sparse) symmetric matrix}
+    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
+                 or a list or collection of characters and/or numbers defining the graph.}
     \item{g}{An \code{inla.graph}-object}
     \item{Q}{An (possible) sparse symmtric matrix}
+    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}.}
 }
 \value{
      \code{inla.graph2matrix} returns a sparse symmetric matrix where the non-zero pattern is defined by the \code{graph}.
-     The \code{inla.spy} function, plots a binary image of a \code{graph}.
-
-     The function\code{inla.read.graph}-function is the same as the function \code{inla.matrix2graph}.
+     The \code{inla.spy} function, plots a binary image of a \code{graph}. The \code{reordering} argument
+     is typically the reordering used by \code{inla}, found in \code{result$misc$reordering}.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{
@@ -36,14 +35,21 @@ Q = matrix(0, n, n)
 idx = sample(1:n, 2*n, replace=TRUE)
 Q[idx, idx] = 1
 diag(Q) = 1
-inla.dev.new()
-inla.spy(Q)
-
-g = inla.matrix2graph(Q)
-inla.dev.new()
-inla.spy(g)
+g = inla.read.graph(Q)
+QQ = inla.graph2matrix(g)
+inla.spy(QQ)
+print(all.equal(as.matrix(Q), as.matrix(QQ)))
 
 g.file = inla.write.graph(g)
 inla.dev.new()
 inla.spy(g.file)
+
+g = inla.read.graph(g.file)
+inla.dev.new()
+inla.spy(g)
+
+inla.dev.new()
+inla.spy(3, 1, "1 2 2 1 1 3 0")
+inla.dev.new()
+inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 }
