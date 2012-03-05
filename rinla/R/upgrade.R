@@ -126,12 +126,12 @@
     }
 
     ## remove old library before installing the new one
-    detach(package:INLA)
-    unloadNamespace("INLA")
+    try(detach(package:INLA), silent = TRUE)
+    try(unloadNamespace("INLA"), silent = TRUE)
 
     install.packages(dfile, lib = lib, repos=NULL, type = tp)
     library(INLA, lib.loc = lib)
 
-    cat(inla.version())
+    cat("\nType\n\tinla.version()\nto display the new version of R-INLA. Thanks for upgrading.n\n")
     return (invisible())
 }
