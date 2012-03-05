@@ -599,7 +599,7 @@ inla.internal.experimental.mode = FALSE
             cat(paste("collect graph\n", sep=""))
         }
         file=paste(results.dir, .Platform$file.sep, "graph.dat", sep="")
-        g = inla.read.graph.binary(file)
+        g = inla.read.graph(file)
     } else {
         g = NULL
     }
