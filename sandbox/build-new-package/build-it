@@ -1,0 +1,336 @@
+#!/usr/bin/env bash
+
+## This is the build script for building a new R-INLA package
+
+verbose=0
+ronly=0
+variant="testing"
+
+myprog=${0##*/}
+mydir=${0%/*}
+mypid=$$
+pwd=$PWD
+case "$mydir" in 
+    /*) ;;
+    *) mydir=$pwd/$mydir;;
+esac
+
+## In case the path for R is not in the regular path on Mac
+if [ $(uname) == "Darwin" ]; then
+    d=/Library/Frameworks/R.framework/Resources/bin/R
+    test -d $d && export PATH=$PATH:$d
+fi
+
+## XXX redef TMPDIR
+TMPDIR=$(mktemp -t -d $myprog-$mypid-XXXXXXXX)
+TMPDIR=$mydir/$myprog-tmp
+
+## This function is called at exit and also at interupts
+cleanup () {
+    echo ""
+    echo " *** Cleanup..."
+    if test -d "$TMPDIR"; then
+	echo rm -rf "$TMPDIR"
+    fi
+    exit 1
+}
+trap cleanup SIGINT SIGTERM
+mkdir -p "$TMPDIR" 
+
+OPTIND=1 
+OPTERR=1
+while getopts vrhV: arg; do
+    case $arg in
+        v) verbose=1;;
+	r) ronly=1;;
+	V) case "$OPTARG" in
+ 	       testing) variant="testing";;
+	       main) variant="main";;
+               *)  echo "Unknown argument to option '-V': [$OPTARG]. Must be 'testing' or 'main'"
+	       exit 1;;
+           esac;;
+	h) 
+	echo ""
+	echo "Usage: $myprog [-v] [-r]"
+	echo "    -v : Run in verbose mode"
+	echo "    -r : Only rebuild the R-code"
+	echo "    -V testing|main : Variant to build. Default 'testing'."
+	echo "    -h : Show this help"
+	exit 0;;
+    esac
+    done
+shift $[ $OPTIND - 1 ]
+
+if [ $verbose == 1 ]; then
+    vbose="v"
+else
+    vbose=""
+fi
+
+## echo an error message
+got_error () {
+    { 
+	echo
+	echo " *** ERROR ***  $@" 
+	echo 
+    } 1>&2
+    kill $mypid
+}
+
+## Each user of this script has to map its username, on whatever host,
+## to his/her username on the WWW_HOST. These are the known users of
+## this script. Same with the sudo-user for the LINUX_HOST
+define_www_user () 
+{
+    user="unknown"
+    case "$1" in
+	*hrue*) user="hrue";;
+        *finn*) user="finnkrl";;
+        *dani*) user="daniesi";;
+	     *) user="";;
+     esac
+     if [ "$user" == "" ]; then
+	 got_error "Unknown user[$1] in define_www_user(); please fix!"
+     fi
+     echo "$user"
+}
+
+define_linux_sudo_user () 
+{
+    user="unknown"
+    case "$1" in
+	*hrue*) user="hrue";;
+	*finn*) user="finnkrl";;
+        *dani*) user="daniesi";;
+	       *) user="";;
+     esac
+     if [ "$user" == "" ]; then
+	 got_error "Unknown user[$1] in define_linux_sudo_users(); please fix!"
+     fi
+     echo "$user"
+}
+
+## make sure that permissions are set right
+fix_permissions () 
+{
+    for d in "$@"; do
+	if [ $verbose == 1 ]; then
+	    echo "Working with [$d]"
+	fi
+	find $d -print | while read f; do
+	    if [ -d "$f" -o -x "$f" ]; then
+		chmod 755 "$f"
+	    elif [ -f "$f" ]; then
+		chmod 644 "$f"
+	    elif [ -L "$f" ]; then
+		if [ $verbose == 1 ]; then
+		    echo dont change links ["$f"]
+		fi
+	    else
+		if [ $verobse == 1 ]; then
+		    echo unknown type ["$f"]
+		fi
+	    fi
+	done
+    done
+}
+
+## return the hg-version using the format used in the inla-source
+hgversion () 
+{
+    { cd "$mydir" && hg parents --template 'hgid: {node|short}  date: {date|date}'; }
+}
+
+
+## definitions of hosts, users, etc...
+WWW_HOST=syvert.math.ntnu.no
+WWW_USER=$(define_www_user $USER)
+## XXX added NEW to the name here!
+WWW_PATH="/global/www/webroot/inla/NEW"
+LINUX_HOST=inla.math.ntnu.no
+## XXX change here later
+LINUX_USER=inla-build
+LINUX_SUDO_USER=$(define_linux_sudo_user $USER)
+LINUX_BUILDS="builds/build builds/build32 builds/build64 
+              builds/build.debug builds/build-size"
+WINDOWS_HOST=inla.math.ntnu.no
+WINDOWS_USER=inla-build
+WINDOWS_BUILDS="builds/windows32 builds/windows64"
+MAC_HOST=darwin.math.ntnu.no
+MAC_USER=inla-build
+MAC_BUILDS="builds/build32 builds/build64"
+
+
+## do a remote compile of the inla-program and fmesher
+do_compile () {
+    host=$1
+    user=$2
+    dir=$3
+    
+    echo -n "* Compile at $user@$host in $dir ... "
+    if [ $verbose == 1 ]; then
+	ssh $user@$host make -C "$dir" update
+	exitcode=$?
+    else
+	ssh $user@$host make -C "$dir" update > /dev/null 2>&1
+	exitcode=$?
+    fi
+    echo "[$exitcode]"
+    if [ $exitcode != 0 ]; then
+	got_error "Error in compile..."
+    fi
+}
+
+## XXX disable this for the moment
+if false; then
+    for d in $LINUX_BUILDS; do
+	do_compile $LINUX_HOST $LINUX_USER "$d"
+    done
+    for d in $WINDOWS_BUILDS; do
+	do_compile $WINDOWS_HOST $WINDOWS_USER "$d"
+    done
+    for d in $MAC_BUILDS; do
+	do_compile $MAC_HOST $MAC_USER "$d"
+    done
+fi
+
+## setup the binaries for the fmesher and the inla-program
+BINARIES="$TMPDIR/extern"
+mkdir -p "$BINARIES/"{mac32,mac64}
+cd "$BINARIES" || got_error "Cannot cd to $BINARIES"
+
+for m in 32 64; do
+    for f in inla fmesher; do
+	file=$LINUX_USER@$LINUX_HOST:builds/build$m/local/bin/$f
+	echo "* Copy $file ..."
+	rsync -au $file $f$m.linux
+    done
+    for f in inla$m.exe fmesher$m.exe; do
+	file=$WINDOWS_USER@$WINDOWS_HOST:builds/windows/local/bin/$f
+	echo "* Copy $file ..."
+	rsync -au $file .
+    done
+    for f in $(ssh $MAC_USER@$MAC_HOST bin/my.otool builds/build$m/local/bin/inla)  \
+        $(ssh $MAC_USER@$MAC_HOST bin/my.otool builds/build$m/local/bin/fmesher) \
+        builds/build$m/local/bin/{inla,fmesher}; do 
+	file="$MAC_USER@$MAC_HOST:$f"
+	echo "* Copy $file ..."
+	rsync -au $file mac$m
+    done
+done
+
+cd $TMPDIR || got_error "Cannot cd to $TMPDIR"
+
+D=rinla/rinla/R
+export hg=$(hgversion)
+
+test -d rinla && rm -rf rinla
+mkdir rinla
+rsync -au$vbose "$mydir/../rinla" rinla
+rsync -au$vbose "$mydir/../r-inla.org" rinla
+fix_permissions rinla
+
+bdate=$(date  +%Y%m%d%H%M)
+{
+    echo '`inla.version` = function(details=FALSE, quiet =FALSE, hgid=FALSE) {'
+    echo "    if (hgid && missing(details) && missing(quiet)){"
+    echo "        return (inla.trim(\"$hg\"))"
+    echo "    }"
+    echo "    if (!quiet) {"
+    echo "        cat(\"\\n\\tINLA build date ...:" $(date) "\\n\")"
+    echo "        cat(\"\\tRevision...........:" $hg "\\n\")"
+    echo "        cat(\"\\tMaintainers........: Havard Rue <hrue@math.ntnu.no>\\n\")"
+    echo "        cat(\"\\t                     Finn Lindgren <finn.lindgren@gmail.com>\\n\")"
+    echo "        cat(\"\\tWeb-page.. ........: http://www.r-inla.org\\n\")"
+    echo "        cat(\"\\tSource-code........: http://inla.googlecode.com\\n\")"
+    echo "        return (invisible())"
+    echo "    } else {"
+    echo "        return($bdate)"
+    echo "    }"
+    echo "}"
+} > $D/inla.version.R
+
+
+test -d INLA && rm -rf INLA
+mkdir INLA
+rsync -auL$vbose --delete --exclude '/*~'--exclude TAGS $D/.. INLA/. 
+fix_permissions INLA
+
+INLAsrc=INLA-source.tgz
+tar cfzh$vbose $INLAsrc.tgz INLA
+
+type -path $R || got_error "No 'R' in path."
+echo "* Building R-package..."
+if [ $verbose == 1 ]; then
+    R --vanilla CMD build INLA || got_error "Building package"
+else
+    R --vanilla CMD build INLA >/dev/null 2>&1 || got_error "Building package"
+fi
+
+tmp=$(echo INLA_*.tar.gz)
+INLAtgz=${tmp%%.tar.gz}.tgz
+INLAzip=${tmp%%.tar.gz}.zip ## for later use
+mv $tmp $INLAtgz 
+
+rm -rf INLA
+tar xf$vbose $INLAtgz
+zip -r$vbose $INLAzip INLA
+
+bdatefile=build.date
+echo $bdate > $bdatefile
+allfiles="$INLAtgz $INLAzip $INLAsrc $bdatefile"
+{
+    for f in $allfiles; do
+	sha1sum $f
+    done
+} > SHA1SUM
+allfiles="$allfiles SHA1SUM"
+    
+for f in $allfiles; do
+    echo "* Copy [$f] to $WWW_USER@$WWW_HOST:$WWW_PATH/binaries/testing"
+    rsync -auz$vbose $f $WWW_USER@$WWW_HOST:$WWW_PATH/binaries/testing/$f
+done
+
+if [ $variant == "main" ]; then
+    for f in $allfiles; do
+	echo "* Copy [$f] to $WWW_USER@$WWW_HOST:$WWW_PATH/binaries"
+	rsync -auz$vbose $f $WWW_USER@$WWW_HOST:$WWW_PATH/binaries/$f
+    done
+fi
+
+echo "* Copy [r-inla.org] to $WWW_USER@$WWW_HOST:$WWW_PATH"
+rsync -auz$vbose --delete rinla/r-inla.org $WWW_USER@$WWW_HOST:$WWW_PATH
+
+givemeINLA="givemeINLA.R"
+{
+    cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' 
+    cat $D/os.R
+    echo '`givemeINLA` = function(...) inla.installer(...)'
+    echo 'givemeINLA()'
+    echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
+    echo 'cat("You can later upgrade INLA to its testing-version using: inla.upgrade(testing=TRUE)\n")'
+} | sed 's/inla.os/inla.installer.os/g' >  $givemeINLA
+
+echo "* Copy [$givemeINLA] to $WWW_USER@$WWW_HOST:$WWW_PATH"
+rsync -au$vbose $givemeINLA $WWW_USER@$WWW_HOST:$WWW_PATH/$givemeINLA
+
+## make sure the 'inla'-group is set as the owner
+ssh $WWW_USER@$WWW_HOST "chgrp -R inla $WWW_PATH"
+
+## update the inla-binaries and the INLA-package on the LINUX, if the user has sudo-rights on the LINUX machine
+## XX
+if false; then
+if [ "$LINUX_SUDO_USER" != "" ]; then
+    echo "* Update the inla-program and the R-INLA package at $LINUX_SUDO_USER@$LINUX_HOST"
+
+    ssh -t $LINUX_SUDO_USER@$LINUX_HOST "
+    sudo install --verbose --mode=755 /home/$LINUX_USER/builds/build-size/local/bin/inla /usr/local/bin/inla.binary;
+    sudo install --verbose --mode=755 /home/$LINUX_USER/builds/build.debug/local/bin/inla /usr/local/bin/inla.debug.binary;
+    p=INLA.tgz; test -f $p && rm $p; 
+    wget http://www.math.ntnu.no/inla/binaries/$p; 
+    sudo R CMD INSTALL --library=/usr/lib64/R/library $p"
+fi
+fi
+
+echo "* Bye..."
+cleanup
