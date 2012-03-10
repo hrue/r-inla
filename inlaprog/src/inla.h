@@ -44,6 +44,9 @@ __BEGIN_DECLS
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
+
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi)  */
+
 #define INLA_FAIL  1
 #define INLA_OK    0
 #define FIFO_GET "inla-mcmc-fifo-get"
@@ -268,6 +271,12 @@ typedef struct {
 	double **sas_skew;
 	double **sas_log_tail;
 	double **sas_log_prec;
+
+	/* 
+	 * Measurement error. Fixed effect
+	 */
+	double **me_fixed_effect_beta;
+	double **me_fixed_effect_log_prec;
 } Data_tp;
 
 /* 
@@ -313,6 +322,7 @@ typedef enum {
 	L_SAS,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
+	L_ME_FIXED_EFFECET, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1047,6 +1057,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
