@@ -34,6 +34,8 @@ variable, a list or the output of the function
  family. The default is \code{gaussian} with identity
  link. See \code{names(inla.models()$lmodels)} for a
  list of possible alternatives.}
+\item{contrasts}{Optional contrasts for the fixed
+effects; see \code{?lm} or \code{?glm} for details.}
 \item{data}{ A data frame or list containing the
 variables in the model.  The data frame MUST be
 provided}
