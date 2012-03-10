@@ -77,6 +77,7 @@
             formula = as.formula(object$formula),
             family = object$family, 
             data = object$data,
+            contrasts = object$contrasts, 
             quantiles = quantiles,
             E = object$E,
             offset = object$offset, 
