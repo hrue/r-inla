@@ -442,7 +442,7 @@
         cpo, mlik, quantiles, smtp, q, strategy, graph)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("###  ", inla.version(hgid=TRUE), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
     cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
