@@ -40,6 +40,10 @@
               ##! list of possible alternatives.}
               family = "gaussian", 
 
+              ##!\item{contrasts}{Optional contrasts for the fixed
+              ##!effects; see \code{?lm} or \code{?glm} for details.}
+              contrasts = NULL,
+
               ##!\item{data}{ A data frame or list containing the
               ##!variables in the model.  The data frame MUST be
               ##!provided}
@@ -510,6 +514,7 @@
         result = inla(surv.formula,
                      family = "poisson",
                      data = new.data, 
+                     contrasts = contrasts, 
                      quantiles=quantiles,
                      E = .E,
                      offset= offset,
@@ -735,7 +740,8 @@
         new.fix.formula = gp$fixf
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula = update.formula(new.fix.formula, y...fake ~ .)
-        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data, na.action=inla.na.action))
+        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data, na.action=inla.na.action),
+                contrasts.arg = contrasts)
 
         ## n.fix can have been changed here due to a `-1'
         gp$n.fix = dim(gp$model.matrix)[2L]
@@ -910,7 +916,7 @@
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
     mf$control.data = NULL; mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
-    mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; 
+    mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL;
     mf$inla.arg = NULL; mf$lincomb=NULL;
     mf$.internal = NULL; mf$data = data
 
@@ -1801,6 +1807,7 @@
             ret$call=call
             ret$family=family
             ret$data=data.orig
+            ret$contrasts = contrasts
             ret$offset=offset
             ret$Ntrials=Ntrials
             ret$E=E
