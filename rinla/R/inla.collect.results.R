@@ -111,7 +111,7 @@
                                       log.posterior.mode = misc$log.posterior.mode),
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
-                 version = list(inla = hgid, Rinla=inla.version(hgid=TRUE))),
+                 version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))), 
             res.q, res.graph)
     class(res) = "inla"
 

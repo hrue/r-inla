@@ -21,9 +21,7 @@
         www = "http://www.math.ntnu.no/inla/binaries"
 
     b.date = scan(paste(www,"/build.date", sep=""), quiet=TRUE, what = character(0))
-    bb.date = try(inla.version(quiet = TRUE), silent =TRUE)
-    if (is.null(bb.date))
-        bb.date = "UnknownDate"
+    bb.date = inla.version("bdate")
 
     if (b.date == as.character(bb.date)) {
         cat("\nYou have the newest version of INLA:\n")

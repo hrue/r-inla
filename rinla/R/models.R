@@ -2360,6 +2360,35 @@
                       pdf = "gaussian"
                       ),
 
+              mefixedeffect = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "beta",
+                                      short.name = "beta",
+                                      initial = 1,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 0.01),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta2 = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.0005),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "identity"),
+                      pdf = "mefixedeffect"
+                      ),
+
               iidgamma = list(
                       hyper = list(
                               theta1 = list(
@@ -3304,7 +3333,7 @@
               
     if (exists("inla.models", envir = envir) &&
         exists("hgid", envir = envir) &&
-        get("hgid", envir = envir) == inla.version(hgid = TRUE)) {
+        get("hgid", envir = envir) == inla.version("hgid")) {
 
         return (get("inla.models", envir = envir))
 
@@ -3358,7 +3387,7 @@
         }
 
         assign("inla.models", models, envir = envir)
-        assign("hgid", inla.version(hgid=TRUE), envir = envir)
+        assign("hgid", inla.version("hgid"), envir = envir)
 
         return (models)
     }
