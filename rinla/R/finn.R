@@ -9,7 +9,7 @@
 
     if (!is(C, "dgTMatrix"))
         C = inla.sparse.check(C)
-    
+
     if (is(C, "dgTMatrix")) {
         finn.file = inla.sparse2file(C, c.indexing = TRUE)
         remove = TRUE
@@ -19,7 +19,7 @@
     } else {
         stop("This should not happen.")
     }
-        
+
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
                 "-r", reordering, "-z",  seed, finn.file), intern=TRUE)
@@ -36,5 +36,12 @@
 
     s = as.numeric(s)
     n = length(s) %/% 2L
-    return ( list(sample = s[1L:n], reordering = s[n + (1L:n)] + 1L))
+
+    reordering = s[n + (1L:n)] + 1L
+    ireordering = reordering
+    ireordering[reordering] = 1:length(reordering)
+
+    return ( list(sample = s[1L:n],
+                  reordering = reordering,
+                  ireordering = ireordering) )
 }
