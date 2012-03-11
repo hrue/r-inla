@@ -389,7 +389,7 @@ inla.spde1.precision = function(spde, ...)
 {
     inla.require.inherits(spde, "inla.spde1", "'spde'")
 
-    return(inla.spde1.query(spde, precision=list(...)))
+    return(inla.spde1.query(spde, precision=list(...))$precision)
 }
 
 
@@ -412,7 +412,7 @@ inla.spde1.matern.osc = function(mesh, ...)
 }
 
 ## spde.common-connections:
-##inla.spde.precision.inla.spde1 = inla.spde1.precision
+inla.spde.precision.inla.spde1 = inla.spde1.precision
 inla.spde.result.inla.spde1 = inla.spde1.result
 
 
