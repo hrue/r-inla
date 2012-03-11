@@ -326,6 +326,28 @@
     return (matrix(a.vector, nrow, ncol))
 }
 
+## Calculate sparse matrix pattern, with optional resolution reduction
+`inla.sparse.matrix.pattern` = function(A, factor=1, size=NULL)
+{
+    A = inla.as.dgTMatrix(A)
+    n = dim(A)
+    AA = list(i=A@i+1L, j=A@j+1L, values=A@x)
+
+    if (is.null(size)) {
+        ## Resize by factor:
+        size = ceiling(n*factor)
+    } else if (length(size)==1L) {
+        ## Keep aspect ratio:
+        size = c(size, size/n[1]*n[2])
+    }
+    factor = size/n
+
+    return( sparseMatrix(i=ceiling(AA$i*factor[1]),
+                         j=ceiling(AA$j*factor[2]),
+                         x=1,
+                         dims=size) )
+}
+
 `inla.squishplot` = function (xlim, ylim, asp = 1, newplot = TRUE)
 {
     ## This function is a copy from package TeachingDemos
@@ -395,6 +417,11 @@
         axis(2, at=c(0,(nn-1)/(n[1]-1), 1), labels=as.character(c(1, nn, n[1])))
     }
 }
+
+
+
+
+
 
 
 `inla.group` = function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
