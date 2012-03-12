@@ -326,7 +326,8 @@
     return (matrix(a.vector, nrow, ncol))
 }
 
-`inla.sparse.matrix.pattern` = function(A, factor=1.0, size=NULL, reordering = NULL)
+`inla.sparse.matrix.pattern` = function(A, factor=1.0, size=NULL, reordering = NULL,
+        binary.pattern = TRUE)
 {
     ## Calculate sparse matrix pattern, with optional resolution reduction
     A = inla.as.dgTMatrix(A)
@@ -346,9 +347,10 @@
     }
     fac = size/n
 
-    ## duplicated entries will simply add up, so we need to truncate afterwards
+    ## duplicated entries will simply add up, so we need to truncate
     M = inla.as.dgTMatrix(sparseMatrix(i=pmin(size[1], ceiling(AA$i*fac[1])), j=pmin(size[2], ceiling(AA$j*fac[2])), x=1, dims=size))
-    M[ M != 0 ] = 1
+    if (binary.pattern)
+        M[ M != 0 ] = 1
 
     return (M)
 }

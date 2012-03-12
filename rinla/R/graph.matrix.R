@@ -77,7 +77,7 @@
     ## add this test here, as otherwise, this can be very inefficient
     ## for large matrices. this is because we convert it into a graph
     ## and then back to a matrix.
-    M = try(inla.as.dgTMatrix(...), silent=FALSE)
+    M = try(inla.as.dgTMatrix(...), silent=TRUE)
     if (inherits(M, "try-error")) {
         M = inla.graph2matrix(...)
     } 
