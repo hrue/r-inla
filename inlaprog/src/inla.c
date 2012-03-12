@@ -17512,6 +17512,10 @@ int inla_finn(const char *filename)
 	GMRFLib_problem_tp *problem;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+
+	FILE *fp = fopen("/home/hrue/Q.finn",  "w");
+	GMRFLib_print_Qfunc(fp, graph, tab->Qfunc, tab->Qfunc_arg);
+
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}

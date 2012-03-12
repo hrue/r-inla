@@ -32,28 +32,34 @@
     if (is.list(A))
         stop("Define matrix using Matrix::sparseMatrix() instead!!! The list(i=, j=, values=)-format is obsolete!")
 
-    if (!is(A, "dgTMatrix")) {
-        A = inla.as.dgTMatrix(A)
-    }
-
     if (must.be.squared) {
         if (dim(A)[1] != dim(A)[2]) {
             stop(paste(c("Matrix is not a square matrix:", dim(A)[1], "x", dim(A)[2])))
         }
     }
 
-    return (A)
+    return (inla.as.dgTMatrix(A))
 }
 
-`inla.as.dgTMatrix` = function(A)
+`inla.as.dgTMatrix` = function(A, unique = TRUE)
 {
-    ## convert into dgTMatrix format of Matrix. Argument A is any matrix
-    if (is(A, "dgTMatrix")) {
-        return (A)
+    ## convert into dgTMatrix format of Matrix. Argument A is any
+    ## matrix.  make sure the representation is unique if the UNIQUE
+    ## flag it TRUE. (ie no double triplets etc)
+
+    if (unique) {
+        ## convert through the 'dgCMatrix'-class to make it unique;
+        ## (there is no method or default for coercing "dtTMatrix" to
+        ## "dgCMatrix"). Yes: its 'CsparseMatrix'.
+        return (as(as(as(A, "CsparseMatrix"), "dgCMatrix"), "dgTMatrix"))
     } else {
-        ## Convert via virtual class TsparseMatrix;
-        ## this allows more general conversions than direct conversion.
-        return (as(as(A, "TsparseMatrix"), "dgTMatrix"))
+        if (is(A, "dgTMatrix")) {
+            return (A)
+        } else {
+            ## Convert via virtual class TsparseMatrix;
+            ## this allows more general conversions than direct conversion.
+            return (as(as(A, "TsparseMatrix"), "dgTMatrix"))
+        }
     }
 }
 
@@ -191,9 +197,7 @@
         filename = tempfile()
     }
 
-    if (!is(A, "dgTMatrix")) {
-        A = inla.as.dgTMatrix(A)
-    }
+    A = inla.as.dgTMatrix(A)
     dims = dim(A)
 
     if (!binary) {
