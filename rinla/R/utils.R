@@ -326,12 +326,16 @@
     return (matrix(a.vector, nrow, ncol))
 }
 
-## Calculate sparse matrix pattern, with optional resolution reduction
-`inla.sparse.matrix.pattern` = function(A, factor=1, size=NULL)
+`inla.sparse.matrix.pattern` = function(A, factor=1.0, size=NULL, reordering = NULL)
 {
+    ## Calculate sparse matrix pattern, with optional resolution reduction
     A = inla.as.dgTMatrix(A)
     n = dim(A)
-    AA = list(i=A@i+1L, j=A@j+1L, values=A@x)
+    if (is.null(reordering)) {
+        AA = list(i=A@i+1L, j=A@j+1L, values=A@x)
+    } else {
+        AA = list(i=reordering[A@i+1L], j=reordering[A@j+1L], values=A@x)
+    }
 
     if (is.null(size)) {
         ## Resize by factor:
@@ -340,12 +344,13 @@
         ## Keep aspect ratio:
         size = c(size, size/n[1]*n[2])
     }
-    factor = size/n
+    fac = size/n
 
-    return( sparseMatrix(i=ceiling(AA$i*factor[1]),
-                         j=ceiling(AA$j*factor[2]),
-                         x=1,
-                         dims=size) )
+    ## duplicated entries will simply add up, so we need to truncate afterwards
+    M = inla.as.dgTMatrix(sparseMatrix(i=ceiling(AA$i*fac[1]), j=ceiling(AA$j*fac[2]), x=1, dims=size))
+    M[ M != 0 ] = 1
+
+    return (M)
 }
 
 `inla.squishplot` = function (xlim, ylim, asp = 1, newplot = TRUE)
@@ -392,8 +397,10 @@
     n = dim(x)
     y = x
     if (wrap) {
-        for(j in 1:n[2])
-            y[1:n[1], j] = x[n[1]:1, j]
+        ii = 1L:n[1L]
+        jj = n[1L]:1L
+        for(j in 1L:n[2L])
+            y[ii, j] = x[jj, j]
     }
 
     ## use the image.plot-function in package fields; its much better...

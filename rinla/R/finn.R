@@ -7,8 +7,7 @@
 {
     reordering = match.arg(reordering)
 
-    if (!is(C, "dgTMatrix"))
-        C = inla.sparse.check(C)
+    C = inla.sparse.check(C)
 
     if (is(C, "dgTMatrix")) {
         finn.file = inla.sparse2file(C, c.indexing = TRUE)
@@ -37,11 +36,9 @@
     s = as.numeric(s)
     n = length(s) %/% 2L
 
-    reordering = s[n + (1L:n)] + 1L
-    ireordering = reordering
-    ireordering[reordering] = 1:length(reordering)
+    r = s[n + (1L:n)] + 1L
+    ir = r
+    ir[r] = 1:length(r)
 
-    return ( list(sample = s[1L:n],
-                  reordering = reordering,
-                  ireordering = ireordering) )
+    return ( list(sample = s[1L:n], reordering = r, ireordering = ir) )
 }

@@ -103,8 +103,16 @@
                 ## this is ok,  as it picks up 's' from within the if(TRUE) {...} 
                 s[idx] <<- k
                 if (graph$nnbs[idx] > 0L) {
-                    for(iidx in graph$nbs[[idx]]) {
-                        do.visit(iidx)
+                    ## only visit larger neigbours; that is sufficient
+                    lnbs = graph$nbs[[idx]]
+                    lnbs = lnbs[ lnbs > idx ]
+                    if (length(lnbs) > 0L) {
+                        for(iidx in lnbs) {
+                            ## check also here, as it saves time
+                            if (s[iidx] == 0L) {
+                                do.visit(iidx)
+                            }
+                        }
                     }
                 }
             } 
@@ -132,7 +140,7 @@
     ## graph is either a filename, a graph-object, a (sparse) matrix,
     ## or a list of integers or strings defining the graph.
 
-    `inla.read.graph.ascii` = function(filename, offset = 0L)
+    `inla.read.graph.ascii.internal` = function(filename, offset = 0L)
     {
         ## offset it needed if the graph is zero-based, then offset is
         ## set to 1.
@@ -158,7 +166,7 @@
 
             if (s[k] + offset == 0L) {
                 ## this is a zero-based graph
-                return (inla.read.graph.ascii(filename, offset=1L))
+                return (inla.read.graph.ascii.internal(filename, offset=1L))
             }
 
             stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
@@ -181,7 +189,7 @@
         return (g)
     }
 
-    `inla.read.graph.binary` = function(filename, offset=0L)
+    `inla.read.graph.binary.internal` = function(filename, offset=0L)
     {
         ## offset it needed if the graph is zero-based, then offset is
         ## set to 1.
@@ -226,7 +234,7 @@
 
             if (s[k] + offset == 0L) {
                 ## this is a zero-based graph
-                return (inla.read.graph.binary(filename, offset=1L))
+                return (inla.read.graph.binary.internal(filename, offset=1L))
             }
 
             stopifnot(s[k] + offset >= 1L && s[k] + offset <= n)
@@ -248,7 +256,7 @@
         return (g)
     }
 
-    `inla.matrix2graph` = function(Q)
+    `inla.matrix2graph.internal` = function(Q)
     {
         if (missing(Q)) {
             return (NULL)
@@ -266,20 +274,35 @@
         n = dim(Q)[1]
         g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = NA)
 
-        for(i in 1L:n) {
-            row = inla.sparse.get(Q, row = i)
-            nb = length(row$j)
-            if (nb > 0) {
-                ## setting elements of a sparse-matrix to 0 does not
-                ## necessarily remove that entry.
-                row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+        if (TRUE) {
+            ## new improved version, using apply
+            g$nbs = lapply(1L:n,
+                    function(i, Q) {
+                        row = inla.sparse.get(Q, row = i)
+                        if (length(row$j) > 0) {
+                            row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+                        }
+                        return (row$j)
+                    }, Q=Q)
+            g$nnbs = sapply(g$nbs, length)
+        } else {
+            ## keep old version...
+            for(i in 1L:n) {
+                row = inla.sparse.get(Q, row = i)
                 nb = length(row$j)
-            }
-            g$nnbs[i] = nb
-            if (g$nnbs[i] > 0L) {
-                g$nbs[[i]] = row$j
+                if (nb > 0) {
+                    ## setting elements of a sparse-matrix to 0 does not
+                    ## necessarily remove that entry.
+                    row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+                    nb = length(row$j)
+                }
+                g$nnbs[i] = nb
+                if (g$nnbs[i] > 0L) {
+                    g$nbs[[i]] = row$j
+                }
             }
         }
+        
         class(g) = "inla.graph"
         g = inla.add.graph.cc(g)
     
@@ -299,9 +322,9 @@
         ## if the file exists, its a file
         if (length(graph) == 1L && file.exists(graph)) {
             ## try binary first, if it fail, try ascii
-            g = inla.read.graph.binary(graph)
+            g = inla.read.graph.binary.internal(...)
             if (is.null(g)) {
-                g = inla.read.graph.ascii(graph)
+                g = inla.read.graph.ascii.internal(...)
             }
             return (g)
         } else {
@@ -317,7 +340,7 @@
         ## no need to do anything. 
         return (graph)
     } else {
-        return (inla.matrix2graph(graph))
+        return (inla.matrix2graph.internal(...))
     }
 
     stopifnot(FALSE)
@@ -326,7 +349,7 @@
 
 `inla.write.graph` = function(...,  filename = "graph.dat", mode = c("binary", "ascii"))
 {
-    `inla.write.graph.ascii` = function(graph, filename = "graph.dat")
+    `inla.write.graph.ascii.internal` = function(graph, filename = "graph.dat")
     {
         ## write a graph read from inla.read.graph, or in that format, to
         ## file.
@@ -339,7 +362,7 @@
         return (filename)
     }
 
-    `inla.write.graph.binary` = function(graph, filename = "graph.dat")
+    `inla.write.graph.binary.internal` = function(graph, filename = "graph.dat")
     {
         ## write a graph to file,  1-based binary format.
         fd = file(filename , "wb")
@@ -371,9 +394,9 @@
     g = inla.read.graph(...)
 
     if (mode == "binary") {
-        return (invisible(inla.write.graph.binary(g, filename)))
+        return (invisible(inla.write.graph.binary.internal(g, filename)))
     } else if (mode == "ascii") {
-        return (invisible(inla.write.graph.ascii(g, filename)))
+        return (invisible(inla.write.graph.ascii.internal(g, filename)))
     } else {
         stopifnot(FALSE)
     }

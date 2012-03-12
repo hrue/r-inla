@@ -7,7 +7,7 @@
 ##!\description{Construct a neighbour-matrix from a \code{graph} and disaply it}
 ##!\usage{
 ##!Q = inla.graph2matrix(graph)
-##!inla.spy(graph, reordering = NULL)
+##!inla.spy(graph, reordering = NULL, factor = 1.0, max.dim = NULL)
 ##!}
 ##!\arguments{
 ##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
@@ -15,6 +15,10 @@
 ##!    \item{g}{An \code{inla.graph}-object}
 ##!    \item{Q}{An (possible) sparse symmtric matrix}
 ##!    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}.}
+##!    \item{factor}{A scaling of the \code{inla.graph}-object to reduce the size.}
+##!    \item{max.dim}{Maximum dimension of the \code{inla.graph}-object plotted;
+##!                   if \code{missing(factor)} and \code{max.dim} is set,  then \code{factor}
+##!                   is computed automatically to give the given \code{max.dim}.}
 ##!}
 ##!\value{
 ##!     \code{inla.graph2matrix} returns a sparse symmetric matrix where the non-zero pattern is defined by the \code{graph}.
@@ -68,21 +72,24 @@
     return (Q)
 }
 
-`inla.spy` = function(..., reordering = NULL)
+`inla.spy` = function(..., reordering = NULL, factor = 1.0, max.dim = NULL)
 {
-    Q = inla.graph2matrix(...)
-    Q[ Q != 0 ] = 1L
-    Q  = 1L -Q
-    if (!is.null(reordering)) {
-        ## I don't know why this code fail *sometimes*:
-        ##     Q[reordering, reordering] = Q
-        ## giving this error:
-        ##     Error in which(sel)[!vN0] : invalid subscript type 'S4'".
-        ## So we need to work around the problem defining the inverse reordering instead
-        r = reordering
-        r[reordering] = 1:length(r)
-        Q = Q[r, r]
-    }
+    ## add this test here, as otherwise, this can be very inefficient
+    ## for large matrices. this is because we convert it into a graph
+    ## and then back to a matrix.
+    M = try(inla.as.dgTMatrix(...), silent=FALSE)
+    if (inherits(M, "try-error")) {
+        M = inla.graph2matrix(...)
+    } 
 
-    inla.display.matrix(Q, nlevel = 2)
+    ## if max.dim is set, compute the corresponding factor
+    if (missing(factor) && !is.null(max.dim) && max.dim > 0) {
+        d.max = max(dim(M))
+        factor = min(1.0, max.dim / d.max)
+    }
+    
+    M = inla.sparse.matrix.pattern(M, factor=factor, reordering = reordering)
+
+    ## plot -M,  to make the background white
+    inla.display.matrix(-M, nlevel = 2)
 }
