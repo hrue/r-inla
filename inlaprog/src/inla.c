@@ -17536,10 +17536,7 @@ int inla_read_graph(const char *filename)
 	 */
 	GMRFLib_graph_tp *graph = NULL;
 
-	GMRFLib_read_graph_binary(&graph, filename);
-	if (graph == NULL) {
-		GMRFLib_read_graph(&graph, filename);
-	}
+	GMRFLib_read_graph(&graph, filename);
 	GMRFLib_write_graph_2(stdout, graph);
 
 	int *cc, i;
