@@ -82,13 +82,11 @@
               ##!weights[i]*log-likelihood[i]. Default value is rep(1,
               ##!n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
               ##!by default. You can enable this option for the rest of your \code{R} session,
-              ##!doing \code{inla.setOption("enable.inla.argument.weights", TRUE)}.
-              ##!WARNING1: The normalizing constant for the likelihood is recomputed if the weight is not 1, so
-              ##!all marginals (and the marginal likelihood) must be interpreted with great care.
-              ##!Possibly,  you may want to set the prior for the hyperparameters to \code{"uniform"}
-              ##!and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.
-              ##!WARNING2: The CPO, PIT calculation do not make use of the weights,
-              ##!and these results should be interpreted with great care.}
+              ##!doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+              ##!WARNING: The normalizing constant for the likelihood is NOT recomputed, so
+              ##!ALL marginals (and the marginal likelihood) must be interpreted with great care.
+              ##!Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
+              ##!and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
               weights = NULL,
 
               ##!\item{Ntrials}{ A vector containing the number of
