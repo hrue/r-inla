@@ -290,6 +290,9 @@
     if (!is.null(inla.spec$npoints)) {
         cat("npoints = ", inla.spec$npoints, "\n", sep = " ", file = file,  append = TRUE)
     }
+    if (!is.null(inla.spec$cutoff)) {
+        cat("cutoff = ", inla.spec$cutoff, "\n", sep = " ", file = file,  append = TRUE)
+    }
     inla.write.boolean.field("adapt.hessian.mode", inla.spec$adapt.hessian.mode, file)
 
     if (!is.null(inla.spec$adapt.hessian.max.trials) && inla.spec$adapt.hessian.max.trials >= 0) {

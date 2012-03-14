@@ -854,11 +854,11 @@ int GMRFLib_ai_log_posterior(double *logdens,
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta,
-					double *b, double *c, double *mean, double *d,
-					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store)
+int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *x_mode, double *x_gradient, double delta,
+					    double *b, double *c, double *mean, double *d,
+					    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+					    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					    GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store)
 {
 	/*
 	 * this is the same function as GMRFLib_ai_log_posterior, BUT we only include those terms where at least one component
@@ -992,11 +992,11 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_log_posterior_restricted_ORIG(double *logdens,
-					     double *x, double *b, double *c, double *mean, double *d,
-					     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-					     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					     GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph)
+int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta,
+					double *b, double *c, double *mean, double *d,
+					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store)
 {
 	/*
 	 * this is the same function as GMRFLib_ai_log_posterior, BUT we only include those terms where at least one component
@@ -1004,102 +1004,100 @@ int GMRFLib_ai_log_posterior_restricted_ORIG(double *logdens,
 	 * 
 	 * the added last argument, subgraph, is added as an argument since its fixed for many repeated calls to this function.
 	 * 
-	 * if subgraph == NULL, then we use the GMRFLib_ai_log_posterior()-function 
+	 * if logdens==NULL, then the routine is initialised and the linear and quadratic term are computed. these terms are
+	 * used for later successive calls.
 	 */
 
 	int i, j, ii, jj, ns;
-	double *xx = NULL, val, tmp, logll = 0.0, sqr_term = 0.0;
+	double xx, *f = NULL, *g = NULL, val, tmp, logll = 0.0, q_value;
 
-	/*
-	 * if subgraph is not available, use the default routine 
-	 */
-	if (!subgraph) {
-		GMRFLib_EWRAP0(GMRFLib_ai_log_posterior(logdens, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr));
-		return GMRFLib_SUCCESS;
-	}
+	static double quadratic_term = 0.0, linear_term = 0.0; /* compute those if logdens == NULL */
+#pragma omp threadprivate(quadratic_term, linear_term)
+
 	GMRFLib_ENTER_ROUTINE;
 
+	assert(subgraph);
 	ns = subgraph->n;
-	xx = Calloc(ns, double);			       /* xx = x - mean */
-	if (mean) {
-		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
-			xx[ii] = x[i] - mean[i];
-		}
-	} else {
-		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
-			xx[ii] = x[i];
-		}
-	}
 
-	sqr_term = 0.0;
-	for (ii = 0; ii < ns; ii++) {
-		i = subgraph->mothergraph_idx[ii];
-		if (c) {
-			sqr_term += SQR(xx[ii]) * (Qfunc(i, i, Qfunc_arg) + c[i]);
-		} else {
-			sqr_term += SQR(xx[ii]) * Qfunc(i, i, Qfunc_arg);
+	if (!logdens) {
+		/*
+		 * compute the quadratic and linear term 
+		 */
+		f = Calloc(ns, double);
+		g = Calloc(ns, double);
+
+
+		for (ii = 0; ii < ns; ii++) {
+			i = subgraph->mothergraph_idx[ii];
+			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
+
+			if (c) {
+				q_value = (Qfunc(i, i, Qfunc_arg) + c[i]);
+				f[ii] += x_gradient[i] * q_value;
+				g[ii] += xx * q_value;
+			} else {
+				q_value = Qfunc(i, i, Qfunc_arg);
+				f[ii] += x_gradient[i] * q_value;
+				g[ii] += xx * q_value;
+			}
+			if (mean) {
+				for (jj = 0; jj < graph->nnbs[i]; jj++) {
+					j = graph->nbs[i][jj];
+					q_value = Qfunc(i, j, Qfunc_arg);
+					f[ii] += x_gradient[j] * q_value;
+					g[ii] += (x_mode[j] - mean[j]) * q_value;
+				}
+			} else {
+				for (jj = 0; jj < graph->nnbs[i]; jj++) {
+					j = graph->nbs[i][jj];
+					q_value = Qfunc(i, j, Qfunc_arg);
+					f[ii] += x_gradient[j] * q_value;
+					g[ii] += x_mode[j] * q_value;
+				}
+			}
+		}
+
+		linear_term = 0.0;
+		quadratic_term = 0.0;
+		for (ii = 0; ii < ns; ii++) {
+			i = subgraph->mothergraph_idx[ii];
+			linear_term -= g[ii] * x_gradient[i];
+			quadratic_term += f[ii] * x_gradient[i];
+		}
+		if (b) {
+			for (ii = 0; ii < ns; ii++) {
+				i = subgraph->mothergraph_idx[ii];
+				linear_term += x_gradient[i] * b[i];
+			}
+		}
+		Free(f);
+		Free(g);
+	} else {
+		val = -0.5 * SQR(delta) * quadratic_term + delta * linear_term;
+		if (d) {
+			tmp = 0.0;
+			for (ii = 0; ii < ns; ii++) {
+				i = subgraph->mothergraph_idx[ii];
+				if (d[i]) {
+					loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+					tmp += d[i] * logll;
+				}
+			}
+			val += tmp;
 		}
 
 		/*
-		 * we have to compute the quadratic term like this, at least one of the components can be !fixed.
-		 * 
-		 * we need a term `2.0' for some cross-terms because we only loop over those `i' which are not fixed. 
+		 * adjust if stochastic constraint 
 		 */
-		if (mean) {
-			for (jj = 0; jj < graph->nnbs[i]; jj++) {
-				j = graph->nbs[i][jj];
-				if (fixed_value[j]) {
-					sqr_term += 2.0 * xx[ii] * (x[j] - mean[j]) * Qfunc(i, j, Qfunc_arg);
-				} else {
-					sqr_term += xx[ii] * (x[j] - mean[j]) * Qfunc(i, j, Qfunc_arg);
-				}
-			}
-		} else {
-			for (jj = 0; jj < graph->nnbs[i]; jj++) {
-				j = graph->nbs[i][jj];
-				if (fixed_value[j]) {
-					sqr_term += 2.0 * xx[ii] * x[j] * Qfunc(i, j, Qfunc_arg);
-				} else {
-					sqr_term += xx[ii] * x[j] * Qfunc(i, j, Qfunc_arg);
-				}
-			}
+		if (STOCHASTIC_CONSTR(constr)) {
+			double sqr_term = 0.0;
+
+			GMRFLib_EWRAP0(GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph));
+			val += -0.5 * sqr_term;
 		}
-	}
-	val = -0.5 * sqr_term;				       /* val = -1/2 * x^T (Q + diag(c)) x */
-
-	if (b) {
-		tmp = 0.0;
-		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
-			tmp += b[i] * x[i];
-		}
-		val += tmp;
-	}
-	if (d) {
-		tmp = 0.0;
-		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
-			if (d[i]) {
-				loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
-				tmp += d[i] * logll;
-			}
-		}
-		val += tmp;
+		*logdens = val;
 	}
 
-	/*
-	 * adjust if stochastic constraint 
-	 */
-	if (STOCHASTIC_CONSTR(constr)) {
-		GMRFLib_EWRAP0(GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph));
-		val += -0.5 * sqr_term;
-	}
-
-	*logdens = val;
-
-	Free(xx);
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -1244,7 +1242,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
+			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
+			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store)
 {
 	/*
 	 * compute the approximation to the marginal for the hidden field at index 'idx' and return the density in *density. if
@@ -1505,14 +1504,28 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			memcpy(fixx, fixed_value, n * sizeof(char));
 		}
 	} else {
-		/*
-		 * here we need the 'neigbours'.... 
-		 */
 
-		if (!ISZERO(ai_par->cutoff)) {
-			if (fixed_value) {
-				for (i = 0; i < n; i++) {
-					if (!fixed_value[i]) {
+		if (marginal_hidden_store->subgraphs && marginal_hidden_store->subgraphs[idx]) {
+			subgraph = marginal_hidden_store->subgraphs[idx];
+			ns = subgraph->n;
+		} else {
+			/*
+			 * here we need the 'neigbours'.... 
+			 */
+
+			if (!ISZERO(ai_par->cutoff)) {
+				if (fixed_value) {
+					for (i = 0; i < n; i++) {
+						if (!fixed_value[i]) {
+							a = x_sd * derivative[i] / ai_store->stdev[i];
+							if (ABS(a) < ai_par->cutoff) {
+								fix[i] = fixx[i] = 1;
+								derivative[i] = 0.0;
+							}
+						}
+					}
+				} else {
+					for (i = 0; i < n; i++) {
 						a = x_sd * derivative[i] / ai_store->stdev[i];
 						if (ABS(a) < ai_par->cutoff) {
 							fix[i] = fixx[i] = 1;
@@ -1520,37 +1533,27 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 						}
 					}
 				}
-			} else {
+			}
+			if (fixed_value) {		       /* if there are fixed values already: add these */
 				for (i = 0; i < n; i++) {
-					a = x_sd * derivative[i] / ai_store->stdev[i];
-					if (ABS(a) < ai_par->cutoff) {
+					if (fixed_value[i]) {
 						fix[i] = fixx[i] = 1;
 						derivative[i] = 0.0;
 					}
 				}
 			}
-		}
-		if (fixed_value) {			       /* if there are fixed values already: add these */
-			for (i = 0; i < n; i++) {
-				if (fixed_value[i]) {
-					fix[i] = fixx[i] = 1;
-					derivative[i] = 0.0;
-				}
-			}
-		}
 
-		if (debug) {
-			for (i = count = 0; i < n; i++)
-				if (fix[i]) {
-					count++;
-				}
-		}
+			/*
+			 * note that idx is included in subgraph 
+			 */
+			GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&subgraph, graph, fixx));
 
-		/*
-		 * note that idx is included in subgraph 
-		 */
-		GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&subgraph, graph, fixx));
-		ns = subgraph->n;
+			/*
+			 * store it for lated usage
+			 */
+			marginal_hidden_store->subgraphs[idx] = subgraph;
+			ns = subgraph->n;
+		}
 	}
 
 	fixx[idx] = 0;					       /* this is how 'fix' and 'fixx' differ */
@@ -1746,37 +1749,24 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 					printf("true x %f log_dens_cond %f\n", x_points[k], log_dens_cond);
 			}
 
-			if (0) {
-				/*
-				 * this is the old version which is slow(er) 
-				 */
-
-				GMRFLib_EWRAP1(GMRFLib_ai_log_posterior_restricted_ORIG
-					       (&log_density[k], cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, fixx, graph,
-						Qfunc, Qfunc_arg, constr, subgraph));
-			} else {
-				/*
-				 * this is the fast version that take into account that x = x_mode + delta * gradient for the
-				 * quadratic term
-				 * 
-				 * we first initialise the routine computing the linear and quadratic term, and then we can get
-				 * the speedup for successive calls
-				 *
-				 * TODO: we should be able to speedup this, as we know what the linear and quadratic term is for
-				 * the full conditional where the likelihood-term is included as well.
-				 */
-				if (k == 0) {
-					GMRFLib_EWRAP1(GMRFLib_ai_log_posterior_restricted(NULL,
-											   fixed_mode, fixed_mode, derivative,
-											   0.0, b, c, mean, d, loglFunc,
-											   loglFunc_arg, fixx, graph, Qfunc, Qfunc_arg, constr,
-											   subgraph, ai_store));
-				}
-				GMRFLib_EWRAP1(GMRFLib_ai_log_posterior_restricted(&log_density[k],
-										   cond_mode, fixed_mode, derivative,
-										   x_points[k] * x_sd, b, c, mean, d, loglFunc,
-										   loglFunc_arg, fixx, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store));
+			/*
+			 * this is the fast version that take into account that x = x_mode + delta * gradient for the
+			 * quadratic term
+			 * 
+			 * we first initialise the routine computing the linear and quadratic term, and then we can get
+			 * the speedup for successive calls
+			 */
+			assert(subgraph);
+			if (k == 0) {
+				GMRFLib_ai_log_posterior_restricted(NULL,
+								    fixed_mode, fixed_mode, derivative,
+								    0.0, b, c, mean, d, loglFunc,
+								    loglFunc_arg, fixx, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store);
 			}
+			GMRFLib_ai_log_posterior_restricted(&log_density[k],
+							    cond_mode, fixed_mode, derivative,
+							    x_points[k] * x_sd, b, c, mean, d, loglFunc,
+							    loglFunc_arg, fixx, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store);
 			log_density[k] -= log_dens_cond;
 		}
 	}
@@ -1861,7 +1851,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		Free(ai_par);
 	}
 	Free(mean_and_variance);
-	GMRFLib_free_graph(subgraph);
 	if (free_ai_store) {
 		GMRFLib_free_ai_store(ai_store);
 	}
@@ -3153,6 +3142,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	GMRFLib_density_tp ***lin_dens = NULL;
 	GMRFLib_ai_store_tp **ais = NULL;
 	double **lin_cross = NULL;
+	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
 	if (fixed_value) {
 		FIXME("\n\n\n\nGMRFLib_INLA() do not longer work with FIXED_VALUE; please write a wrapper.\n");
@@ -3277,6 +3267,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	x_mode = Calloc(graph->n, double);
 
+	marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
+	if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN) {
+		marginal_hidden_store->n = graph->n;
+		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
+	} else {
+		marginal_hidden_store->n = 0;
+		marginal_hidden_store->subgraphs = NULL;
+	}
 
 	if (timer) {
 		/*
@@ -3784,7 +3782,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 									   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
 									   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-									   Qfunc_arg, constr, ai_par, ai_store_id);
+									   Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
 						double *xx_mode = ai_store_id->mode;
 
 						COMPUTE;
@@ -3802,7 +3800,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 								   ii, x, b, c, mean, d,
-								   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+								   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+								   marginal_hidden_store);
 					double *xx_mode = ai_store->mode;
 					COMPUTE;
 					GMRFLib_free_density(cpodens);
@@ -3939,7 +3938,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 									   ii, x, b, c, mean, d,
 									   loglFunc, loglFunc_arg, fixed_value,
-									   graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+									   graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
 						double *xx_mode = ai_store_id->mode;
 						COMPUTE;
 						GMRFLib_free_density(cpodens);
@@ -4070,7 +4069,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 											   (cpo
 											    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b,
 											   c, mean, d, loglFunc, loglFunc_arg,
-											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+											   marginal_hidden_store);
 								double *xx_mode = ai_store_id->mode;
 								COMPUTE;
 								GMRFLib_free_density(cpodens);
@@ -4089,7 +4089,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 										   (cpo
 										    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean,
 										   d, loglFunc, loglFunc_arg, fixed_value, graph,
-										   Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+										   Qfunc, Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
 
 							double *xx_mode = ai_store->mode;
 							COMPUTE;
@@ -4206,7 +4206,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								GMRFLib_ai_marginal_hidden(&dens_local[ii],
 											   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b,
 											   c, mean, d, loglFunc, loglFunc_arg,
-											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+											   marginal_hidden_store);
 								xx_mode = ai_store_id->mode;
 
 								COMPUTE_LOCAL;
@@ -4388,7 +4389,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 													   mean, d, loglFunc,
 													   loglFunc_arg,
 													   fixed_value, graph,
-													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+													   marginal_hidden_store);
 										double *xx_mode = ai_store_id->mode;
 										COMPUTE;
 										GMRFLib_free_density(cpodens);
@@ -4407,7 +4409,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, b, c, mean, d,
 												   loglFunc, loglFunc_arg,
-												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+												   marginal_hidden_store);
 									double *xx_mode = ai_store->mode;
 									COMPUTE;
 									GMRFLib_free_density(cpodens);
@@ -4535,7 +4538,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 													   mean, d, loglFunc,
 													   loglFunc_arg,
 													   fixed_value, graph,
-													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id);
+													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+													   marginal_hidden_store);
 										double *xx_mode = ai_store_id->mode;
 										COMPUTE;
 										GMRFLib_free_density(cpodens);
@@ -4554,7 +4558,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, b, c, mean, d,
 												   loglFunc, loglFunc_arg,
-												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+												   marginal_hidden_store);
 
 									double *xx_mode = ai_store->mode;
 									COMPUTE;
@@ -4645,7 +4650,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_thread_id = 0;
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 							   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
-							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id]);
+							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id],
+							   marginal_hidden_store);
 
 				double *xx_mode = ai_store_id[id]->mode;
 				COMPUTE2;
@@ -4679,7 +4685,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 							   ii, x, b, c, mean, d,
-							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+							   marginal_hidden_store);
 
 				if (0) {
 					GMRFLib_problem_tp *p = ai_store->problem;
@@ -5405,6 +5412,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	Free(weights);
 	Free(z);
 	Free(neff);
+	GMRFLib_free_marginal_hidden_store(marginal_hidden_store);
 	if (cpo_theta) {
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -5512,6 +5520,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
 
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
+{
+	int i;
+
+	if (m) {
+		if (m->subgraphs) {
+			for (i = 0; i < m->n; i++)
+				GMRFLib_free_graph(m->subgraphs[i]);
+			Free(m->subgraphs);
+		}
+		Free(m);
+	}
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
