@@ -235,6 +235,9 @@
             ##:ARGUMENT: npoints Number of points to use in the 'stratey=laplace' approximation
             npoints = 9,
 
+            ##:ARGUMENT: cutoff The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)
+            cutoff = 1e-4,
+
             ##:ARGUMENT: adapt.hessian.mode A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)
             adapt.hessian.mode = NULL,
 
