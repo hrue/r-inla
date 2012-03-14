@@ -27,6 +27,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{reordering}{  Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")}
 \item{cpo.diff}{  Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}
 \item{npoints}{  Number of points to use in the 'stratey=laplace' approximation}
+\item{cutoff}{  The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)}
 \item{adapt.hessian.mode}{  A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)}
 \item{adapt.hessian.max.trails}{  Number of steps in the adaptive Hessian optimisation}
 \item{adapt.hessian.scale}{  The scaling of the 'h' after each trial.}

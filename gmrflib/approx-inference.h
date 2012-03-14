@@ -536,9 +536,19 @@ typedef struct {
 	 * \brief The effective number of parameters
 	 */
 	double neff;
+
 } GMRFLib_ai_store_tp;
 
 #define GMRFLib_AI_STORE_NEFF_NOT_COMPUTED (-1.23456789)
+
+typedef struct {
+
+	/**
+	 * \brief Store reduced subgraphs for the marginal
+	 */
+	int n;
+	GMRFLib_graph_tp **subgraphs;
+} GMRFLib_marginal_hidden_store_tp;
 
 /**
  * \brief Store the integrated likelihood for the model
@@ -726,14 +736,12 @@ typedef struct {
 	double diff_log_dens;
 } GMRFLib_ai_pool_tp;
 
-typedef struct
-{
+typedef struct {
 	int first_nonzero;				       /* first nonzero idx = min(idx) */
 	int last_nonzero;				       /* last nonzero idx = max(idx) */
 	int first_nonzero_mapped;			       /* first nonzero idx of L^-1 a = min(remap(idx)). automatically added */
 	int last_nonzero_mapped;			       /* last nonzero idx of L^-1 a. automatically added */
-}
-	GMRFLib_lc_tinfo_tp;
+} GMRFLib_lc_tinfo_tp;
 
 typedef struct {
 	int n;						       /* length */
@@ -742,22 +750,19 @@ typedef struct {
 	GMRFLib_lc_tinfo_tp *tinfo;			       /* thread-info */
 } GMRFLib_lc_tp;
 
-typedef struct
-{
+typedef struct {
 	int i;
 	int j;
 } GMRFLib_lc_ij_tp;
 
 
-typedef struct
-{
+typedef struct {
 	double *stdev_corr_neg;
 	double *stdev_corr_pos;
 	gsl_vector *sqrt_eigen_values;
 	gsl_matrix *eigen_vectors;
-}
-	GMRFLib_userfunc2_arg_tp;
-	
+} GMRFLib_userfunc2_arg_tp;
+
 
 
 #define GMRFLib_AI_POOL_GET 1
@@ -796,19 +801,20 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
 			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * constr);
+int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *x_mode, double *x_gradient, double delta, double *b,
+					    double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+					    char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					    GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta, double *b,
 					double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
-int GMRFLib_ai_log_posterior_restricted_ORIG(double *logdens, double *x, double *b, double *c, double *mean, double *d,
-					     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-					     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					     GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph);
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store);
+			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
+			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store);
 int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x, double *mean, char *fixed_value,
 				       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp * constr, double *bbb, double *ccc, double **covariances, int idx);
@@ -829,8 +835,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, 
-		    GMRFLib_ai_misc_output_tp * misc_output);
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
@@ -838,7 +843,8 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
-float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
+float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				  double *x_vec);
 float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
@@ -852,6 +858,7 @@ int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *i
 int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
+int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
 
 __END_DECLS
 #endif
