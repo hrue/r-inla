@@ -98,7 +98,7 @@
         s[] = 0L
         k = 1L
         
-        ## this is the version and much better suited for R. it use sets of neigbours
+        ## this is the new version which is much better suited for R. 
         do.visit = function(idxs) {
             if (any(s[idxs] == 0L)) {
                 which.idxs = idxs[which(s[idxs] == 0L)]

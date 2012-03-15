@@ -531,46 +531,17 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	ai_store->cc = Calloc(n, double);
 
 	/*
-	 * tabulate the Qfunction, which speedup... 
-	 */
-	GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
-	int use_tabulated_Qfunc = 1;
-
-	GMRFLib_tabulate_Qfunc(&tabQfunc, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL);
-
-	/*
 	 * first compute the GMRF-approximation 
 	 */
-	if (use_tabulated_Qfunc) {
-		/*
-		 * Use the tabulated Qfunc here 
-		 */
-		if (ai_store->mode) {
-			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
-					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
-					tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
-		}
+	if (ai_store->mode) {
+		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
+			       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
+				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
+				ai_par->gaussian_data, ai_par->cmin));
 	} else {
-
-		/*
-		 * old version! 
-		 */
-		if (ai_store->mode) {
-			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-				       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-					Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-					ai_par->gaussian_data, ai_par->cmin));
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
-				       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-					constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
-		}
+		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
+			       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
+				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
 	}
 
 	/*
@@ -607,30 +578,12 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		 */
 		memcpy(problem->sample, problem->mean_constr, n * sizeof(double));
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));
-
-		if (use_tabulated_Qfunc) {
-			/*
-			 * Use the tabulated Qfunction 
-			 */
-			GMRFLib_ai_log_posterior(&ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
-						 tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr);
-		} else {
-			/*
-			 * old code 
-			 */
-			GMRFLib_ai_log_posterior(&ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr);
-		}
+		GMRFLib_ai_log_posterior(&ldens, problem->mean_constr, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr);
 
 		// printf("ai_marginal_hyper thread_id %d ldens %.12f sub_logdens %.12f\n", GMRFLib_thread_id, ldens, problem->sub_logdens);
 
 		*logdens = ldens - problem->sub_logdens;
 	}
-
-	/*
-	 * End of tabulate_Qfunc 
-	 */
-	GMRFLib_free_tabulate_Qfunc(tabQfunc);
-	tabQfunc = NULL;
 
 	/*
 	 * store the GMRF-approximation in store 
@@ -1251,7 +1204,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, count, free_ai_par = 0, debug = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
+	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, lc0, lc1, ld0, ld1, c0, c1, deldif =
 	    GMRFLib_eps(1.0 / 3.0), h2 = 0.0, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
@@ -3357,7 +3310,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				fprintf(ai_par->fp_log, "]\n");
 			}
-			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr);
+			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr, NULL);
 			log_dens_mode *= -1.0;
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Compute mode: %10.4f\n", log_dens_mode);
@@ -3424,7 +3377,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			for (i = 0; i < nhyper; i++) {
 				theta_mode[i] = hyperparam[i][0][0];
 			}
-			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr);
+			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr, NULL);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
 			if (x) {
@@ -3672,14 +3625,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (opt == 0) {
 						zz[kk] = 2.0;
 						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
+						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s, NULL);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
 						stdev_corr_pos[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 					} else {
 						zz[kk] = -2.0;
 						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
+						GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s, NULL);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
 						stdev_corr_neg[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
@@ -3710,14 +3663,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					zz[k] = 2.0;
 					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
+					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s, NULL);
 					llog_dens *= -1.0;
 					f0 = log_dens_mode - llog_dens;
 					stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 
 					zz[k] = -2.0;
 					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s);
+					GMRFLib_domin_f_intern(ttheta, &llog_dens, &ierr, s, NULL);
 					llog_dens *= -1.0;
 					f0 = log_dens_mode - llog_dens;
 					stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
@@ -3851,6 +3804,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					double *z_local, *theta_local, log_dens_orig;
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
+					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 
 					dens_count = k;
 					hyper_count = k;
@@ -3873,7 +3827,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 					}
 					GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id);
+					GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id, &tabQfunc);
 					log_dens *= -1.0;
 					log_dens_orig = log_dens;
 
@@ -3938,7 +3892,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 									   ii, x, b, c, mean, d,
 									   loglFunc, loglFunc_arg, fixed_value,
-									   graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
+									   graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
+									   constr, ai_par, ai_store_id, marginal_hidden_store);
 						double *xx_mode = ai_store_id->mode;
 						COMPUTE;
 						GMRFLib_free_density(cpodens);
@@ -3964,6 +3919,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						}
 					}
 
+					GMRFLib_free_tabulate_Qfunc(tabQfunc);
 					Free(z_local);
 					Free(theta_local);
 				}
@@ -3979,12 +3935,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				 * old code, which parallelise within each configuration only. 
 				 */
 				for (k = 0; k < design->nexperiments; k++) {
+
+					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
+
 					for (i = 0; i < nhyper; i++) {
 						z[i] = f * design->experiment[k][i]
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 					}
 					GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_domin_f(theta, &log_dens, &ierr);
+					GMRFLib_domin_f(theta, &log_dens, &ierr, &tabQfunc);
 					log_dens *= -1.0;
 
 					if (ai_par->fp_log) {
@@ -4069,8 +4028,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 											   (cpo
 											    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b,
 											   c, mean, d, loglFunc, loglFunc_arg,
-											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
-											   marginal_hidden_store);
+											   fixed_value, graph, tabQfunc->Qfunc,
+											   tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
 								double *xx_mode = ai_store_id->mode;
 								COMPUTE;
 								GMRFLib_free_density(cpodens);
@@ -4089,13 +4048,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 										   (cpo
 										    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean,
 										   d, loglFunc, loglFunc_arg, fixed_value, graph,
-										   Qfunc, Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
+										   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
+										   marginal_hidden_store);
 
 							double *xx_mode = ai_store->mode;
 							COMPUTE;
 							GMRFLib_free_density(cpodens);
 						}
 					}
+
 					if (GMRFLib_ai_INLA_userfunc0) {
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 					}
@@ -4104,6 +4065,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, " %.2fs\n", tu);
 					}
+					GMRFLib_free_tabulate_Qfunc(tabQfunc);
 					dens_count++;
 				}
 			}
@@ -4135,6 +4097,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					float *cpo_theta_local = NULL, *pit_theta_local = NULL, *failure_theta_local = NULL, *deviance_theta_local = NULL;
 					int err, *iz_local = NULL;
 					size_t idx;
+					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 
 					iz_local = Calloc(nhyper, int);
 					err = GMRFLib_ai_pool_get(pool, iz_local, &idx);
@@ -4160,7 +4123,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							z_local[i] = iz_local[i] * ai_par->dz;
 						}
 						GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
-						GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id);
+						GMRFLib_domin_f_intern(theta_local, &log_dens, &ierr, ai_store_id, &tabQfunc);
 						log_dens *= -1.0;
 
 						val = log_dens - log_dens_mode;
@@ -4206,7 +4169,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								GMRFLib_ai_marginal_hidden(&dens_local[ii],
 											   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b,
 											   c, mean, d, loglFunc, loglFunc_arg,
-											   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+											   fixed_value, graph,
+											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id,
 											   marginal_hidden_store);
 								xx_mode = ai_store_id->mode;
 
@@ -4282,6 +4246,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					Free(failure_theta_local);
 					Free(theta_local);
 					Free(z_local);
+					GMRFLib_free_tabulate_Qfunc(tabQfunc);
 				}
 			} else {
 				k_max = Calloc(nhyper, int);
@@ -4299,6 +4264,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						memset(z, 0, nhyper * sizeof(double));
 						memset(iz, 0, nhyper * sizeof(int));
 						while (1) {
+							GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
+
 							z[k] += dir * ai_par->dz;
 							iz[k] += dir;
 
@@ -4307,7 +4274,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							 * list 
 							 */
 							GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
-							GMRFLib_domin_f(theta, &log_dens, &ierr);
+							GMRFLib_domin_f(theta, &log_dens, &ierr, &tabQfunc);
 							log_dens *= -1.0;
 							tag = GMRFLib_ai_tag(iz, nhyper);
 
@@ -4389,8 +4356,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 													   mean, d, loglFunc,
 													   loglFunc_arg,
 													   fixed_value, graph,
-													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
-													   marginal_hidden_store);
+													   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
+													   ai_store_id, marginal_hidden_store);
 										double *xx_mode = ai_store_id->mode;
 										COMPUTE;
 										GMRFLib_free_density(cpodens);
@@ -4409,7 +4376,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, b, c, mean, d,
 												   loglFunc, loglFunc_arg,
-												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+												   fixed_value, graph,
+												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
 												   marginal_hidden_store);
 									double *xx_mode = ai_store->mode;
 									COMPUTE;
@@ -4424,6 +4392,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log, " %.2fs\n", tu);
 							}
+
+							GMRFLib_free_tabulate_Qfunc(tabQfunc);
 							dens_count++;
 						}
 					}
@@ -4447,6 +4417,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					/*
 					 * this is bit special as i want for k_max=2, the ordering 0,1,2,-1,.. 
 					 */
+
 					for (i = 0; i < nhyper; i++) {
 						iz[i] = (izz[i] <= k_max[i] ? izz[i] : k_max[i] - izz[i]);
 						z[i] = iz[i] * ai_par->dz;
@@ -4458,8 +4429,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 */
 					skip = (map_strd_ptr(&hash_table, tag) != NULL ? 1 : 0);
 					if (!skip) {
+						GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
+
 						GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
-						GMRFLib_domin_f(theta, &log_dens, &ierr);
+						GMRFLib_domin_f(theta, &log_dens, &ierr, &tabQfunc);
 						log_dens *= -1.0;
 						if (ai_par->fp_log) {
 							fprintf(ai_par->fp_log, "\tconfig %2d=[%s] log(rel.dens)=%6.2f,",
@@ -4538,8 +4511,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 													   mean, d, loglFunc,
 													   loglFunc_arg,
 													   fixed_value, graph,
-													   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
-													   marginal_hidden_store);
+													   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
+													   ai_store_id, marginal_hidden_store);
 										double *xx_mode = ai_store_id->mode;
 										COMPUTE;
 										GMRFLib_free_density(cpodens);
@@ -4558,7 +4531,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, b, c, mean, d,
 												   loglFunc, loglFunc_arg,
-												   fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+												   fixed_value, graph,
+												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
 												   marginal_hidden_store);
 
 									double *xx_mode = ai_store->mode;
@@ -4576,6 +4550,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							}
 							dens_count++;
 						}
+						GMRFLib_free_tabulate_Qfunc(tabQfunc);
 					}
 					Free(tag);
 
