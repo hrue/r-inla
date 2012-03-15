@@ -64,8 +64,8 @@
 `inla.graph.binary.file.magic` = function()
 {
     ## the value of the first integer (read binary) in a binary
-    ## filename. this value must be the same as the 'define
-    ## GMRFLib_BINARY_GRAPH_FILE_MAGIC' in GMRFLib/graph.h
+    ## filename. this value must be the same as
+    ## 'GMRFLib_BINARY_GRAPH_FILE_MAGIC' in GMRFLib/graph.h
 
     return (-1L)
 }
@@ -97,33 +97,34 @@
         s = integer(n)
         s[] = 0L
         k = 1L
+        
+        ## this is the version and much better suited for R. it use sets of neigbours
+        do.visit = function(idxs) {
+            if (any(s[idxs] == 0L)) {
+                which.idxs = idxs[which(s[idxs] == 0L)]
+                s[which.idxs] <<- k
+                ## its ok to refer to 'graph' here:
+                visit.nodes = unique(unlist(lapply(which.idxs, function(x) graph$nbs[[x]])))
 
-        do.visit = function(idx) {
-            if (s[idx] == 0L) {
-                ## this is ok,  as it picks up 's' from within the if(TRUE) {...} 
-                s[idx] <<- k
-                if (graph$nnbs[idx] > 0L) {
-                    lnbs = graph$nbs[[idx]]
-                    if (length(lnbs) > 0L) {
-                        for(iidx in lnbs) {
-                            ## check also here, as it saves time
-                            if (s[iidx] == 0L) {
-                                do.visit(iidx)
-                            }
-                        }
-                    }
+                ## check which of the visit.nodes that needs to be
+                ## visited. although this is done already in the
+                ## beginning of this routine, but we do that also here
+                ## to reduce the depth of the recursive call
+                visit.nodes = visit.nodes[which(s[visit.nodes] == 0L)]
+                if (length(visit.nodes) > 0L) {
+                    do.visit(visit.nodes)
                 }
-            } 
+            }
             return (invisible())
         }
 
-        for (i in 1:n) {
+        for (i in 1L:n) {
             if (s[i] == 0L) {
                 do.visit(i)
                 k = k + 1L
             }
         }
-    
+
         cc$id = s
         cc$n = max(s)
         cc$nodes = lapply(1L:cc$n, function(cc.id, cs) which(cc.id == cs), cs = s)
