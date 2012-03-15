@@ -88,6 +88,7 @@ typedef struct {
 } GMRFLib_tabulate_Qfunc_tp;
 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg);
+double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg);
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulated_Qfunc);
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulated_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp);
