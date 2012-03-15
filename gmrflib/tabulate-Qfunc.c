@@ -105,6 +105,11 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg)
 
 	return prec * (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
 }
+double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
+{
+	GMRFLib_tabulate_Qfunc_arg_tp *args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
+	return (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
+}
 
 /*!
   \brief Tabulate a Qfunction to gain speedup.
@@ -139,12 +144,15 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	mem_id = GMRFLib_meminfo_thread_id;
 
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
+	if (prec == NULL && log_prec == NULL && log_prec_omp == NULL) {
+		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction_std;	/* no scaling, faster... */
+	} else {
+		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* global scaling */
+	}
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
 	arg->n = graph->n;
-
 	arg->prec = prec;
 	arg->log_prec = (prec == NULL ? log_prec : NULL);
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
