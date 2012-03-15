@@ -103,9 +103,7 @@
                 ## this is ok,  as it picks up 's' from within the if(TRUE) {...} 
                 s[idx] <<- k
                 if (graph$nnbs[idx] > 0L) {
-                    ## only visit larger neigbours; that is sufficient
                     lnbs = graph$nbs[[idx]]
-                    lnbs = lnbs[ lnbs > idx ]
                     if (length(lnbs) > 0L) {
                         for(iidx in lnbs) {
                             ## check also here, as it saves time
