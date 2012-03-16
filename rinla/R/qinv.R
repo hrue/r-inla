@@ -49,10 +49,7 @@
 
 `inla.qinv` = function(C)
 {
-    if (!is(C, "dgTMatrix")) {
-        C = inla.sparse.check(C)
-    }
-    
+    C = inla.sparse.check(C)
     if (is(C, "dgTMatrix")) {
         qinv.file = inla.sparse2file(C, c.indexing = TRUE, symmetric = TRUE)
         remove = TRUE

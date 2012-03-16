@@ -687,9 +687,9 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		int ii, jj;
 		double *prev;
 
-		ii = IMIN(ilist[i] - off, jlist[i] - off);
-		jj = IMAX(ilist[i] - off, jlist[i] - off);
-		if (ii <= jj) {
+		if (ilist[i] <= jlist[i]) {
+			ii = ilist[i] - off;
+			jj = jlist[i] - off;
 			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
 			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
 		}

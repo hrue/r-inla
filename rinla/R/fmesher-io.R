@@ -255,9 +255,7 @@
         elems = length(values)
     } else if (is(A, "Matrix")) {
         ##
-        if (!is(A, "dgTMatrix")) {
-            A = inla.as.dgTMatrix(A)
-        }
+        A = inla.as.dgTMatrix(A)
         nrow = dim(A)[1]
         ncol = dim(A)[2]
         datatype = 1 ## sparse
