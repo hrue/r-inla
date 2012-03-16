@@ -261,9 +261,7 @@
             return (NULL)
         }
     
-        if (!is(Q, "dgTMatrix")) {
-            Q = inla.as.dgTMatrix(Q)
-        }
+        Q = inla.as.dgTMatrix(Q)
         n = dim(Q)
 
         if (n[1] != n[2]) {
