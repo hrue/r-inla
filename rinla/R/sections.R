@@ -390,9 +390,8 @@
         } else {
             A = predictor.spec$A
         }
-        if (!is(A, "dgTMatrix")) {
-            A = inla.sparse.check(A, must.be.squared=FALSE)
-        }
+        A = inla.sparse.check(A, must.be.squared=FALSE)
+
         ## check dimensions
         stopifnot(dim(A)[1] == m)
         stopifnot(dim(A)[2] == n)

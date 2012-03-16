@@ -137,7 +137,7 @@
 
 `inla.matrix2sparse` = function(Q, symmetric = TRUE)
 {
-    warning("THIS FUNCTION IS OBSOLETE!!!")
+    stop("THIS FUNCTION IS OBSOLETE!!!")
 
     ## convert a possibly symmetric martix matrix into the form:
     ## list(i=, j=, values=). Q is either a matrix or a dgTMatrix
