@@ -1,5 +1,5 @@
 n = 1000
-beta.x = -2
+beta.x = 2
 prec.x = 100
 prec.y = 1000 ## fixed
 
