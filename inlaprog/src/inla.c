@@ -2517,7 +2517,9 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 	double beta, prec, lprec, y, ypred, mean;
 	
 	beta = ds->data_observations.me_fixed_effect_beta[GMRFLib_thread_id][0];
-	lprec = ds->data_observations.me_fixed_effect_log_prec[GMRFLib_thread_id][0];
+	assert(beta != 0.0);
+
+	lprec = ds->data_observations.me_fixed_effect_log_prec[GMRFLib_thread_id][0] - log(SQR(beta));
 	prec = map_precision(lprec, MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];		       /* this is the covariate 'x' */
 	mean = beta * y;
