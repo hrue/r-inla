@@ -78,7 +78,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 int GMRFLib_rng_set_default_seed(void)
 {
-	unsigned long int seed_default = 27041965L;
+	unsigned long int seed_default = (unsigned long int) time(NULL);
 	unsigned long int seed;
 	int fd;
 	ssize_t nb;

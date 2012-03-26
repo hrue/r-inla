@@ -17807,8 +17807,8 @@ int main(int argc, char **argv)
 					exit(EXIT_SUCCESS);
 				}
 				if (int_seed != 0) {
-					/*
-					 * seed = 0 is default which is initialise from /dev/random
+					/* 
+					 * this is only for the main thread...
 					 */
 					GMRFLib_rng_init((unsigned long int) int_seed);
 				}

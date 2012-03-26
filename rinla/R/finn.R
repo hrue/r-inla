@@ -19,12 +19,21 @@
         stop("This should not happen.")
     }
 
+    ## due to an mysterious 'segfault' on win32 when seed!=0; which
+    ## happens sometimes... seed = 0L gives the default seed which is
+    ## read from /dev/random or time().
+    if (seed == 0L) {
+        seed.arg = ""
+    } else {
+        seed.arg = paste("-z",  seed)
+    }
+    
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
-                "-r", reordering, "-z",  seed, finn.file), intern=TRUE)
+                "-r", reordering, seed.arg, finn.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
-                "-r", reordering, "-z",  seed, finn.file), intern=TRUE)
+                "-r", reordering, seed.arg, finn.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
