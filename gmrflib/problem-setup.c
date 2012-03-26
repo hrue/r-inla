@@ -2433,7 +2433,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
 
 // still problems in TAUCS when doing this in parallel
-//#pragma omp parallel for private(k) schedule(dynamic)
+#pragma omp parallel for private(k) schedule(dynamic)
 		for (k = 0; k < nk; k++) {
 
 			int *iperm = NULL, *perm = NULL, ii, kk, use_global_nodes;
@@ -2512,7 +2512,9 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				memcpy((void *) gn, (void *) &g, sizeof(GMRFLib_global_node));
 			}
 		} else {
-			memcpy((void *) &GMRFLib_global_node, (void *)gn, sizeof(GMRFLib_global_node));
+			if (gn) {
+				memcpy((void *) &GMRFLib_global_node, (void *)gn, sizeof(GMRFLib_global_node));
+			}
 		}
 		GMRFLib_reorder = rs[r];
 
