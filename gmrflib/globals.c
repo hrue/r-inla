@@ -143,11 +143,9 @@ GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
    so each thread has its own copy.
  */
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
-
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
 unsigned long int GMRFLib_rng_seed;			       /* this holds a copy of the last seed */
-
 #pragma omp threadprivate(GMRFLib_rng_seed)
 
 GMRFLib_uniform_tp *GMRFLib_uniform = GMRFLib_rng_uniform;
