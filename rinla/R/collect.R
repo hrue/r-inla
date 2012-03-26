@@ -549,7 +549,6 @@ inla.internal.experimental.mode = FALSE
 
 `inla.collect.q` =
     function(results.dir,
-             image.dim = 256,
              debug = FALSE)
 {
     alldir = dir(results.dir)
@@ -564,26 +563,26 @@ inla.internal.experimental.mode = FALSE
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix.pbm", sep="")
         if (file.exists(file) && pixm)
-            Q.matrix = inla.image.reduce(read.pnm(file), image.dim = image.dim)
+            Q.matrix = read.pnm(file)
         else
             Q.matrix = NULL
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix-reordered.pbm", sep="")
         if (file.exists(file) && pixm)
-            Q.matrix.reorder = inla.image.reduce(read.pnm(file), image.dim = image.dim)
+            Q.matrix.reorder = read.pnm(file)
         else
             Q.matrix.reorder = NULL
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix_L.pbm", sep="")
         if (file.exists(file) && pixm)
-            L = inla.image.reduce(read.pnm(file), image.dim = image.dim)
+            L = read.pnm(file)
         else
             L = NULL
 
         if (is.null(Q.matrix) && is.null(Q.matrix.reorder) && is.null(L))
             q = NULL
         else
-            q = list(Q.matrix = Q.matrix, Q.matrix.reorder = Q.matrix.reorder, L = L)
+            q = list(Q = Q.matrix, Q.reorder = Q.matrix.reorder, L = L)
     }
     return(q)     
 }

@@ -36,7 +36,7 @@
         neffp =NULL
     }
     res.mlik = inla.collect.mlik(results.dir, debug)
-    res.q = inla.collect.q(results.dir, control.results$image.dim, debug)
+    res.q = inla.collect.q(results.dir, debug)
     res.graph = inla.collect.graph(results.dir, debug)
     res.offset = inla.collect.offset.linear.predictor(results.dir, debug)
 
@@ -112,7 +112,8 @@
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))), 
-            res.q, res.graph)
+            list(Q=res.q),
+            res.graph)
     class(res) = "inla"
 
     if (inla.getOption("internal.experimental.mode")) {
