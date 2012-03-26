@@ -344,10 +344,7 @@
          return.marginals.random=TRUE,
 
          ##:ARGUMENT: return.marginals.predictor A boolean variable; read the marginals for the linear predictor? (Default TRUE)
-         return.marginals.predictor=TRUE,
-
-         ##:ARGUMENT: image.dim The dimension to reduce the matrix-images returned by the argument 'control.compute(q=TRUE)' when displaying the images
-         image.dim = 256)
+         return.marginals.predictor=TRUE)
     ##:SEEALSO: inla
 }
 

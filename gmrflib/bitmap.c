@@ -79,29 +79,50 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: bitmap.c,v 1.23 2008/12/28 19:43:43 hrue Exp $ */
 
-/* 
-   THIS IS A MESS; rewrite the corresponding routines in smtp-taucs/band to call this one!!!!
- */
+
+int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar * image, int nx, int ny)
+{
+	/*
+	 * Create a PNB file of image, x-based storage 
+	 */
+
+	FILE *fp;
+	int i, j, k, bit;
+	GMRFLib_uchar c = 0, *iptr = image;
+
+	fp = fopen(filename, "wb");
+	if (fp) {
+		fprintf(fp, "P4 %1d %1d ", nx, ny);
+		for (j = 0; j < ny; j++) {
+			for (i = 0; i < nx; i++) {
+				k = 7 - i % 8;
+				bit = (*iptr ? 1 : 0);
+				c = c | (bit << k);
+				iptr++;
+				if ((i + 1) % 8 == 0 || i == (nx - 1)) {
+					fputc(c, fp);
+					c = 0;
+				}
+
+			}
+		}
+		fclose(fp);
+	} else {
+		GMRFLib_ERROR(GMRFLib_EOPENFILE);
+	}
+	return GMRFLib_SUCCESS;
+}
 
 int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename, int *mapping)
 {
-#define NBitsInByte 8
-#define SETBIT(im, jm, m, N) {						\
-		int local_im = (int)((im)*reduce_factor);		\
-		int local_jm = (int)((jm)*reduce_factor);		\
-		if (GMRFLib_bitmap_swap){				\
-			int itmp = local_im;				\
-			local_im = N-1-local_jm;			\
-			local_jm = itmp;				\
-		}							\
-		int ii = (local_im)/NBitsInByte;			\
-		GMRFLib_setbit(&bitmap[ ii+(local_jm)*(m)], (unsigned int) (NBitsInByte-1-((local_im)-ii*NBitsInByte))); \
-	}
+#define ROUND(_i) ((int) ((_i) * reduce_factor))
+#define SET(_i, _j) bitmap[ROUND(_i) + ROUND(_j) * N] = 1
 
-	int i, j, im, jm, n = graph->n, N, m;
+	int i, j, n, N, err, im, jm;
 	double reduce_factor;
-	unsigned char *bitmap;
-	FILE *fp;
+	GMRFLib_uchar *bitmap = NULL;
+
+	n = graph->n;
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
@@ -111,34 +132,22 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 		reduce_factor = 1.0;
 	}
 
-	m = N / NBitsInByte;
-	if (m * NBitsInByte != N)
-		m++;
-	bitmap = Calloc(m * N, unsigned char);
-
+	bitmap = Calloc(ISQR(N), GMRFLib_uchar);
 	for (i = 0; i < graph->n; i++) {
 		im = mapping[i];
-		SETBIT(im, im, m, N);
+		SET(im, im);
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jm = mapping[graph->nbs[i][j]];
-			SETBIT(im, jm, m, N);
+			SET(im, jm);
 		}
 	}
 
-	fp = fopen(filename, "w");
-	if (fp) {
-		fprintf(fp, "P4\n%1d %1d\n", N, N);
-		for (i = 0; i < N; i++) {
-			fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
-		}
-		fclose(fp);
-	} else {
-		GMRFLib_ERROR(GMRFLib_EOPENFILE);
-	}
+	err = GMRFLib_bitmap_image(filename, bitmap, N, N);
 	Free(bitmap);
-	return GMRFLib_SUCCESS;
-#undef SETBIT
-#undef NBitsInByte
+
+#undef SET
+#undef ROUND
+	return err;
 }
 
 /*!
@@ -167,7 +176,6 @@ int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp
 	char *filename;
 
 	mapping = Calloc(graph->n, int);
-
 	for (i = 0; i < graph->n; i++) {
 		mapping[i] = i;
 	}

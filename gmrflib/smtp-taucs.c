@@ -408,8 +408,7 @@ int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder,
-	GMRFLib_global_node_tp *gn_ptr)
+int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp * gn_ptr)
 {
 	/*
 	 * new improved version which treats global nodes spesifically. 
@@ -446,7 +445,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	for (i = 0, ne = 0; i < graph->n; i++) {
 		ne = IMAX(ne, graph->nnbs[i]);
 	}
-	limit = GMRFLib_GLOBAL_NODE(graph->n, gn_ptr);		       /* this is the limit for a 'global' node */
+	limit = GMRFLib_GLOBAL_NODE(graph->n, gn_ptr);	       /* this is the limit for a 'global' node */
 
 	if (ne >= limit) {
 		/*
@@ -1844,23 +1843,12 @@ int GMRFLib_my_taucs_check_flags(int flags)
 }
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename)
 {
-#define NBitsInByte 8
-#define SETBIT(im, jm, m, N) {						\
-		int local_im = (int)((im)*reduce_factor);		\
-		int local_jm = (int)((jm)*reduce_factor);		\
-		if (GMRFLib_bitmap_swap){				\
-			int itmp = local_im;				\
-			local_im = N-1-local_jm;			\
-			local_jm = itmp;				\
-		}							\
-		int ii = (local_im)/NBitsInByte;			\
-		GMRFLib_setbit(&bitmap[ ii+(local_jm)*(m)], (unsigned int) (NBitsInByte-1-((local_im)-ii*NBitsInByte))); \
-	}
+#define ROUND(_i) ((int) ((_i) * reduce_factor))
+#define SET(_i, _j) bitmap[ROUND(_i) + ROUND(_j) * N] = 1
 
-	int i, j, jp, n = L->n, N, m;
+	int i, j, jp, n = L->n, N, err;
 	double reduce_factor;
-	unsigned char *bitmap;
-	FILE *fp;
+	GMRFLib_uchar *bitmap;
 
 	if (GMRFLib_bitmap_max_dimension > 0 && n > GMRFLib_bitmap_max_dimension) {
 		N = GMRFLib_bitmap_max_dimension;
@@ -1870,34 +1858,19 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 		reduce_factor = 1.0;
 	}
 
-	m = N / NBitsInByte;
-	if (m * NBitsInByte != N)
-		m++;
-	bitmap = Calloc(m * N, unsigned char);
-
+	bitmap = Calloc(ISQR(N), GMRFLib_uchar);
 	for (i = 0; i < n; i++) {
-		SETBIT(i, i, m, N);
+		SET(i, i);
 		for (jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			j = L->rowind[jp];
-			SETBIT(i, j, m, N);
+			SET(i, j);
 		}
 	}
 
-
-	fp = fopen(filename, "w");
-	if (fp) {
-		fprintf(fp, "P4\n%1d %1d\n", N, N);
-		for (i = 0; i < N; i++) {
-			fwrite(&bitmap[i * m], (unsigned int) m, 1, fp);
-		}
-		fclose(fp);
-	} else {
-		GMRFLib_ERROR(GMRFLib_EOPENFILE);
-	}
+	err = GMRFLib_bitmap_image(filename, bitmap, N, N);
 	Free(bitmap);
-	return GMRFLib_SUCCESS;
-#undef SETBIT
-#undef NBitsInByte
+
+	return err;
 }
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L)
 {

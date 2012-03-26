@@ -383,51 +383,27 @@
             }
         }
     }
-    if (plot.q && !is.null(x$Q.matrix)) {
+    if (plot.q && !is.null(x$Q)) {
         inla.dev.new()
         if (single) {
             par(mfrow = c(1, 1))
         } else {
             par(mfrow = c(2, 2))
         }
-        if (!is.null(x$Q.matrix)) {
-            if (class(x$Q.matrix) == "matrix") {
-                image(x$Q.matrix, main = "The precision matrix")
-            } else {
-                ## old style format
-                xx = x$Q.matrix
-                xx@grey = 1-xx@grey
-                plot(xx, main = "The precision matrix",
-                     axes = TRUE, asp = 1, xlim = c(1, xx@size[1]), ylim = c(1, xx@size[2]), ...)
-                box()
-                rm(xx)
-            }
+        if (!is.null(x$Q$Q)) {
+            plot(x$Q$Q, main = "The precision matrix", ...)
+            nx = x$Q$Q@size[1L]
+            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
         }
-        if (!is.null(x$Q.matrix.reorder)) {
-            if (class(x$Q.matrix.reorder) == "matrix") {
-                image(x$Q.matrix.reorder, main = "The reordered precision matrix")
-            } else {
-                ## old style format
-                xx = x$Q.matrix.reorder
-                xx@grey = 1-xx@grey
-                plot(xx, main = "The reordered precision matrix",
-                     axes = TRUE, asp = 1, xlim = c(1, xx@size[1]), ylim = c(1, xx@size[2]), ...)
-                box()
-                rm(xx)
-            }
+        if (!is.null(x$Q$Q.reorder)) {
+            plot(x$Q$Q.reorder, main = "The reordered precision matrix", ...)
+            nx = x$Q$Q.reorder@size[1L]
+            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
         }
-        if (!is.null(x$L)) {
-            if (class(x$L) == "matrix") {
-                image(x$L, main = "The Cholesky triangle")
-            } else {
-                ## old style format
-                xx = x$L
-                xx@grey = 1-xx@grey
-                plot(xx, main = "The Cholesky triangle",
-                     axes = TRUE, asp = 1, xlim = c(1, xx@size[1]), ylim = c(1, xx@size[2]), ...)
-                box()
-                rm(xx)
-            }
+        if (!is.null(x$Q$L)) {
+            plot(x$Q$L, main = "The Cholesky triangle", ...)
+            nx = x$Q$L@size[1L]
+            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
         }
     }
     if (plot.cpo) {
