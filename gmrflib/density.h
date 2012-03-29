@@ -222,7 +222,7 @@ typedef struct {
 	 */
 	GMRFLib_density_type_tp type;
 
-	float x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
+	double x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
