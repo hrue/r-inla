@@ -482,16 +482,16 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		density->mean = density->mean_gaussian;
 		density->stdev = density->stdev_gaussian;
-		density->x_min = (float) (-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
-		density->x_max = (float) (GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		density->x_max =  GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 	} else {
 		if (density->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 			/*
 			 * for the skew-normal we know the moments 
 			 */
 			GMRFLib_sn_moments(&(density->mean), &(density->stdev), (void *) density->sn_param);
-			density->x_min = (float) (-GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
-			density->x_max = (float) (GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean);
+			density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+			density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		} else {
 			GMRFLib_ASSERT(density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN, GMRFLib_ESNH);
 
@@ -1399,8 +1399,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->type = GMRFLib_DENSITY_TYPE_SCGAUSSIAN;
 			(*density)->std_mean = (float) std_mean;
 			(*density)->std_stdev = (float) std_stdev;
-			(*density)->x_min = (float) GMRFLib_min_value(xx, n);
-			(*density)->x_max = (float) GMRFLib_max_value(xx, n);
+			(*density)->x_min = GMRFLib_min_value(xx, n);
+			(*density)->x_max = GMRFLib_max_value(xx, n);
 
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
