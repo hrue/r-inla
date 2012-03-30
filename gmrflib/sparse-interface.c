@@ -46,16 +46,16 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 /*!
   \brief Compute the reordering
 */
-int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp *gn)
+int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp * gn)
 {
 	GMRFLib_ENTER_ROUTINE;
 
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
-	
-	if (gn){
-		/* 
-		   then this defines the global node definition
-		*/
+
+	if (gn) {
+		/*
+		 * then this defines the global node definition 
+		 */
 		gn_ptr = (GMRFLib_global_node_tp *) gn;
 	} else {
 		lgn = GMRFLib_global_node;

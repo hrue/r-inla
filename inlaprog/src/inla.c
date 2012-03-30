@@ -929,20 +929,20 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 }
 double map_invtan(double x, map_arg_tp typ, void *param)
 {
-	/* 
-	   2*atan(x) + Pi
+	/*
+	 * 2*atan(x) + Pi 
 	 */
 	switch (typ) {
 	case MAP_FORWARD:
-		/* 
-		   extern = func(local)
+		/*
+		 * extern = func(local) 
 		 */
-		return 2.0*atan(x)+M_PI;
+		return 2.0 * atan(x) + M_PI;
 	case MAP_BACKWARD:
-		/* 
-		   local = func(extern)
+		/*
+		 * local = func(extern) 
 		 */
-		return tan((x-M_PI)/2.0);
+		return tan((x - M_PI) / 2.0);
 	case MAP_DFORWARD:
 		return 2.0 / (1 + SQR(x));
 	case MAP_INCREASING:
@@ -2552,13 +2552,13 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	lprec = ds->data_observations.log_prec_circular_normal[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.log_prec_circular_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 
-	/* 
+	/*
 	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa))
 	 */
 	static double log_norm_const = 0.0, log_norm_const_arg = DBL_MAX;
 #pragma omp threadprivate(log_norm_const, log_norm_const_arg)
 
-	if (!ISEQUAL(prec, log_norm_const_arg)) {	       
+	if (!ISEQUAL(prec, log_norm_const_arg)) {
 		log_norm_const_arg = prec;
 		log_norm_const = -log(2.0 * M_PI * gsl_sf_bessel_I0(prec));
 	}
@@ -2582,7 +2582,7 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double beta, prec, lprec, y, ypred, mean;
-	
+
 	beta = ds->data_observations.me_fixed_effect_beta[GMRFLib_thread_id][0];
 	assert(beta != 0.0);
 
@@ -2590,7 +2590,7 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 	prec = map_precision(lprec, MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];		       /* this is the covariate 'x' */
 	mean = beta * y;
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -6766,7 +6766,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] < 0.0 || ds->data_observations.y[i] > 2.0*M_PI) {
+				if (ds->data_observations.y[i] < 0.0 || ds->data_observations.y[i] > 2.0 * M_PI) {
 					GMRFLib_sprintf(&msg, "%s: Circular Normal observation y[%1d] = %g is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -6994,9 +6994,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-	}
-	else if (ds->data_id == L_CIRCULAR_NORMAL) {
-                /*
+	} else if (ds->data_id == L_CIRCULAR_NORMAL) {
+		/*
 		 * get options related to the circular normal
 		 */
 
@@ -13582,7 +13581,9 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			SET_GROUP_RHO(1);
 
-			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
+			val +=
+			    mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+					     (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
@@ -15625,7 +15626,7 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 	}
 
 	Free(fnm);
-	
+
 	return INLA_OK;
 }
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix)
@@ -17941,7 +17942,7 @@ int main(int argc, char **argv)
 					exit(EXIT_SUCCESS);
 				}
 				if (int_seed != 0) {
-					/* 
+					/*
 					 * this is only for the main thread...
 					 */
 					GMRFLib_rng_init((unsigned long int) int_seed);

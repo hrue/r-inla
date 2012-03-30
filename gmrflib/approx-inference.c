@@ -1565,7 +1565,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		 */
 		deriv_log_dens_cond = 0.0;
 		inv_stdev = 1.0 / x_sd;
-		
+
 		if (covariances) {
 			for (j = 0; j < ai_store->nidx; j++) {
 				i = ai_store->correction_idx[j];
