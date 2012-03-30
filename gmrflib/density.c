@@ -483,7 +483,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		density->mean = density->mean_gaussian;
 		density->stdev = density->stdev_gaussian;
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
-		density->x_max =  GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 	} else {
 		if (density->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 			/*

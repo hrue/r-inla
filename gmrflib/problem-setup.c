@@ -2372,7 +2372,7 @@ double GMRFLib_Qfunc_generic(int i, int j, void *arg)
   This functions factorise a precision matrix (symbolically) using several different reorderings techniques and chose the one with fewest fillins. If sizeof_L is
   non-NULL, then the sizeof_L in bytes, is returned.
 */
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp *gn)
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn)
 {
 	if (!graph) {
 		if (nnz_opt)
@@ -2386,7 +2386,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
 		int k, debug = 0, n = -1, nk, r, i, ne = 0, use_global_nodes;
-		//GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD, GMRFLib_REORDER_AMD, GMRFLib_REORDER_AMDBAR };
+		// GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_GENMMD, GMRFLib_REORDER_AMD, GMRFLib_REORDER_AMDBAR };
 		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMD };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
@@ -2440,7 +2440,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 			taucs_ccs_matrix *L = NULL;
 
 			GMRFLib_global_node_tp lgn;
-			if (gn){
+			if (gn) {
 				memcpy((void *) &lgn, (void *) gn, sizeof(GMRFLib_global_node_tp));
 			} else {
 				memcpy((void *) &lgn, (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
@@ -2460,11 +2460,11 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				lgn.degree = INT_MAX;
 			}
 
-			/* 
+			/*
 			 * if we run with global nodes, it can be that the settings are so that they are not in effect. we check for this here, and if so, we do not
 			 * need to try it, as it will be tried again in the second half where the global_nodes are disabled.
 			 */
-			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n-1))) {
+			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n - 1))) {
 				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kk], &lgn);
 
 				perm = Calloc(n, int);
@@ -2476,7 +2476,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
 				nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(symb_fact);
 				if (debug) {
-#pragma omp critical 
+#pragma omp critical
 					{
 						printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d\n", __GMRFLib_FuncName,
 						       GMRFLib_reorder_name(rs[kk]), nnzs[k], use_global_nodes);
@@ -2510,17 +2510,17 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		r = r % (nk / 2);
 
 		if (!use_global_nodes) {
-			GMRFLib_global_node_tp g = { 2.0, INT_MAX};
+			GMRFLib_global_node_tp g = { 2.0, INT_MAX };
 			GMRFLib_global_node = g;
-			if (gn){
-				/* 
+			if (gn) {
+				/*
 				 * if so, copy the result over there as well
 				 */
 				memcpy((void *) gn, (void *) &g, sizeof(GMRFLib_global_node));
 			}
 		} else {
 			if (gn) {
-				memcpy((void *) &GMRFLib_global_node, (void *)gn, sizeof(GMRFLib_global_node));
+				memcpy((void *) &GMRFLib_global_node, (void *) gn, sizeof(GMRFLib_global_node));
 			}
 		}
 		GMRFLib_reorder = rs[r];
