@@ -2337,7 +2337,7 @@
                               ),
                       survival = FALSE,
                       discrete = FALSE,
-                      link = c("default", "identity"),
+                      link = c("default", "identity", "logit"),
                       pdf = "gaussian"
                       ),
 
@@ -2360,6 +2360,25 @@
                       pdf = "gaussian"
                       ),
 
+              circularnormal = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision parameter",
+                                      short.name = "prec",
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.005),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "tan"),
+                      pdf = "circular-normal"
+                      ),
+              
               mefixedeffect = list(
                       hyper = list(
                               theta1 = list(

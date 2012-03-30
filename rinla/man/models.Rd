@@ -2819,7 +2819,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity'}
+								\item{link = }{`default identity logit'}
 								\item{pdf = }{`gaussian'}
 							 }
 						 }
@@ -2847,6 +2847,32 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`gaussian'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `circularnormal'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision parameter'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.005'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default tan'}
+								\item{pdf = }{`circular-normal'}
 							 }
 						 }
 					 }
