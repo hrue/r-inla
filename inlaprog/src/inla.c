@@ -927,6 +927,30 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
+double map_invtan(double x, map_arg_tp typ, void *param)
+{
+	/* 
+	   2*atan(x) + Pi
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/* 
+		   extern = func(local)
+		 */
+		return 2.0*atan(x)+M_PI;
+	case MAP_BACKWARD:
+		/* 
+		   local = func(extern)
+		 */
+		return tan((x-M_PI)/2.0);
+	case MAP_DFORWARD:
+		return 2.0 / (1 + SQR(x));
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		assert(0 == 1);
+	}
+}
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -942,6 +966,10 @@ double link_probit(double x, map_arg_tp typ, void *param)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invprobit(x, typ, param);
+}
+double link_tan(double x, map_arg_tp typ, void *param)
+{
+	return map_invtan(x, typ, param);
 }
 double link_cloglog(double x, map_arg_tp typ, void *param)
 {
@@ -2212,6 +2240,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.lower = Calloc(mb->predictor_ndata, double);
 		a[3] = ds->data_observations.upper = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_CIRCULAR_NORMAL) {
+		idiv = 3;
+		a[0] = ds->data_observations.weight_circular_normal = Calloc(mb->predictor_ndata, double);
 	} else {
 		assert(0 == 1);
 	}
@@ -2501,6 +2532,42 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
 	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ circular normal
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, lprec, prec, w, ypred;
+
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_circular_normal[idx];
+	lprec = ds->data_observations.log_prec_circular_normal[GMRFLib_thread_id][0] + log(w);
+	prec = map_precision(ds->data_observations.log_prec_circular_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+	/* 
+	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa))
+	 */
+	static double log_norm_const = 0.0, log_norm_const_arg = DBL_MAX;
+#pragma omp threadprivate(log_norm_const, log_norm_const_arg)
+
+	if (!ISEQUAL(prec, log_norm_const_arg)) {	       
+		log_norm_const_arg = prec;
+		log_norm_const = -log(2.0 * M_PI * gsl_sf_bessel_I0(prec));
+	}
+
+	for (i = 0; i < m; i++) {
+		ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		logll[i] = log_norm_const + prec * cos(y - ypred);
+	}
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -6476,13 +6543,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = DATA 
 	 */
-#define CHOSE_LINK(link)						\
-	(strcasecmp(link, "identity") == 0 ? link_identity :		\
-	 (strcasecmp(link, "log") == 0 ? link_log :			\
-	  (strcasecmp(link, "probit") == 0 ? link_probit :		\
-	   (strcasecmp(link, "cloglog") == 0 ? link_cloglog :		\
-	    (strcasecmp(link, "logit") == 0 ? link_logit :		\
-	     link_this_should_not_happen)))))
 
 	char *secname = NULL, *msg = NULL;
 	int i;
@@ -6666,6 +6726,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull_cure;
 		ds->data_id = L_WEIBULL_CURE;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "CIRCULARNORMAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_circular_normal;
+		ds->data_id = L_CIRCULAR_NORMAL;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
 	}
@@ -6688,6 +6752,22 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	} else if (ds->data_id == L_CIRCULAR_NORMAL) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_circular_normal[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Circular Normal weight[%1d] = %g is void\n", secname, i,
+							ds->data_observations.weight_circular_normal[i]);
+					inla_error_general(msg);
+				}
+			}
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0 || ds->data_observations.y[i] > 2.0*M_PI) {
+					GMRFLib_sprintf(&msg, "%s: Circular Normal observation y[%1d] = %g is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -6907,6 +6987,50 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	}
+	else if (ds->data_id == L_CIRCULAR_NORMAL) {
+                /*
+		 * get options related to the circular normal
+		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_circular_normal, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision parameter[%g]\n", ds->data_observations.log_prec_circular_normal[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision parameter for the Circular Normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision parameter for the Circular Normal observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_circular_normal;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -12994,6 +13118,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 			check += ds->data_ntheta;
 			if (ds->data_id == L_GAUSSIAN) {
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			} else if (ds->data_id == L_CIRCULAR_NORMAL) {
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood

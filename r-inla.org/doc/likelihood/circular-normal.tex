@@ -1,0 +1,69 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Circular Normal (von Mises distribution)}
+
+\subsection*{Parametrisation}
+
+The circular Normal or von Mises distribution, has density
+\begin{displaymath}
+    f(y) = \frac{1}{2\pi  I_{0}(\kappa)} \exp(\kappa \cos(y-\mu)), 
+\end{displaymath}
+for continuously responses $y$ where
+$|y| \le \pi$ and $|\mu| \le \pi$. Here, 
+\begin{description}
+\item[$\mu$] is a measure of location, and 
+\item[$\kappa$] is a measure of the precision.
+\end{description}
+
+\subsection*{Link-function}
+
+The ``mean'' of $y$ is given as $\mu$ and the mean is linked to the
+linear predictor as
+\begin{displaymath}
+    \mu = 2\arctan(\eta)
+\end{displaymath}
+(Link function ``tan'')
+
+\subsection*{Hyperparameters}
+
+The ``precision'' $\kappa$ is represented as
+\begin{displaymath}
+    \theta = \log \kappa
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{circularnormal}$
+\item Required arguments: $y$
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/circularnormal.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with circular Normal responses.
+%%
+%%\verbatiminput{example-circularnormal.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

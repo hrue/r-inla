@@ -48,6 +48,7 @@
                               "gev",
                               "logistic",
                               "sas",
+                              "circularnormal",
                               "iidgamma"))) {
 
         if (is.null(scale)) {
