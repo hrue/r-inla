@@ -277,6 +277,13 @@ typedef struct {
 	 */
 	double **me_fixed_effect_beta;
 	double **me_fixed_effect_log_prec;
+
+	/*
+	 * y ~ Circular Normal, with precision parameter: weight*prec
+	 */
+	double **log_prec_circular_normal;
+	double *weight_circular_normal;	
+
 } Data_tp;
 
 /* 
@@ -323,6 +330,8 @@ typedef enum {
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
 	L_ME_FIXED_EFFECET, 
+	L_CIRCULAR_NORMAL, 
+	L_CIRCULAR_CAUCHY, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -845,6 +854,19 @@ typedef struct {
 #define IDW(a, b)  {IW(a); DW(b);}
 #define ID2W(a, b, c)  {IW(a); D2W(b, c);}
 
+
+/* 
+   The chose-a-link function
+ */
+#define CHOSE_LINK(link)						\
+	(strcasecmp(link, "identity") == 0 ? link_identity :		\
+	 (strcasecmp(link, "log") == 0 ? link_log :			\
+	  (strcasecmp(link, "probit") == 0 ? link_probit :		\
+	   (strcasecmp(link, "cloglog") == 0 ? link_cloglog :		\
+	    (strcasecmp(link, "logit") == 0 ? link_logit :		\
+	     (strcasecmp(link, "tan") == 0 ? link_tan :			\
+	      link_this_should_not_happen))))))
+
 /* 
    functions
  */
@@ -882,7 +904,9 @@ double link_cloglog(double x, map_arg_tp typ, void *param);
 double link_logit(double x, map_arg_tp typ, void *param);
 double link_identity(double x, map_arg_tp typ, void *param);
 double link_probit(double x, map_arg_tp typ, void *param);
+double link_tan(double x, map_arg_tp typ, void *param);
 double log_apbex(double a, double b);
+double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
@@ -1058,6 +1082,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);

@@ -2432,7 +2432,6 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		nk = 2 * (int) (sizeof(rs) / sizeof(int));     /* yes, twice... */
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
 
-// still problems in TAUCS when doing this in parallel
 #pragma omp parallel for private(k) schedule(dynamic)
 		for (k = 0; k < nk; k++) {
 
@@ -2461,27 +2460,35 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				lgn.degree = INT_MAX;
 			}
 
-			GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kk], &lgn);
+			/* 
+			 * if we run with global nodes, it can be that the settings are so that they are not in effect. we check for this here, and if so, we do not
+			 * need to try it, as it will be tried again in the second half where the global_nodes are disabled.
+			 */
+			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n-1))) {
+				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kk], &lgn);
 
-			perm = Calloc(n, int);
-			for (ii = 0; ii < n; ii++) {
-				perm[iperm[ii]] = ii;
-			}
-
-			L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
-			symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
-			nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(symb_fact);
-			if (debug) {
-#pragma omp critical 
-				{
-					printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d\n", __GMRFLib_FuncName,
-					       GMRFLib_reorder_name(rs[kk]), nnzs[k], use_global_nodes);
+				perm = Calloc(n, int);
+				for (ii = 0; ii < n; ii++) {
+					perm[iperm[ii]] = ii;
 				}
+
+				L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
+				symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
+				nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(symb_fact);
+				if (debug) {
+#pragma omp critical 
+					{
+						printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d\n", __GMRFLib_FuncName,
+						       GMRFLib_reorder_name(rs[kk]), nnzs[k], use_global_nodes);
+					}
+				}
+				Free(perm);
+				Free(iperm);
+				taucs_ccs_free(L);
+				taucs_supernodal_factor_free(symb_fact);
+			} else {
+				nnzs[k] = UINT_MAX;
 			}
-			Free(perm);
-			Free(iperm);
-			taucs_ccs_free(L);
-			taucs_supernodal_factor_free(symb_fact);
 		}
 
 		/*
