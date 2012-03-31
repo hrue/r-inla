@@ -67,7 +67,7 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 			_Pragma("omp critial");				\
 			{						\
 				if (!MemInfo)				\
-					MemInfo = calloc(1+omp_get_max_threads(), sizeof(GMRFLib_meminfo_tp)); \
+					MemInfo = (GMRFLib_meminfo_tp *) calloc(1+omp_get_max_threads(), sizeof(GMRFLib_meminfo_tp)); \
 			}						\
 		}							\
 		if (GMRFLib_meminfo_thread_id > 0) {			\
