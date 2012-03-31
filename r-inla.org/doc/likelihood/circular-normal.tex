@@ -9,15 +9,16 @@
 
 \subsection*{Parametrisation}
 
-The circular Normal or von Mises distribution, has density
+The circular/wrapped Normal or von Mises distribution, has density
 \begin{displaymath}
-    f(y) = \frac{1}{2\pi  I_{0}(\kappa)} \exp(\kappa \cos(y-\mu)), 
+    f(y) = \frac{1}{2\pi  I_{0}(\kappa s)} \exp(\kappa s \cos(y-\mu)), 
 \end{displaymath}
 for continuously responses $y$ where
-$|y| \le \pi$ and $|\mu| \le \pi$. Here, 
+$0\le y < 2\pi$ and $0 \le \mu < 2\pi$. Here, 
 \begin{description}
 \item[$\mu$] is a measure of location, and 
-\item[$\kappa$] is a measure of the precision.
+\item[$\kappa$] is a measure of the precision, and
+\item[$s$] is a fixed scaling (default 1), $s>0$.
 \end{description}
 
 \subsection*{Link-function}
@@ -25,9 +26,9 @@ $|y| \le \pi$ and $|\mu| \le \pi$. Here,
 The ``mean'' of $y$ is given as $\mu$ and the mean is linked to the
 linear predictor as
 \begin{displaymath}
-    \mu = 2\arctan(\eta)
+    \mu = 2\arctan(\eta) + \pi
 \end{displaymath}
-(Link function ``tan'')
+(Link function ``\texttt{tan}'')
 
 \subsection*{Hyperparameters}
 
@@ -41,8 +42,9 @@ and the prior is defined on $\theta$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{circularnormal}$
-\item Required arguments: $y$
+\item Required arguments: $y$ and $s$ (keyword \texttt{scale}).
 \end{itemize}
+The scaling have default value $1$. 
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/circularnormal.tex}
@@ -51,8 +53,7 @@ and the prior is defined on $\theta$.
 
 In the following example we estimate the parameters in a simulated
 example with circular Normal responses.
-%%
-%%\verbatiminput{example-circularnormal.R}
+\verbatiminput{example-circularnormal.R}
 
 \subsection*{Notes}
 
