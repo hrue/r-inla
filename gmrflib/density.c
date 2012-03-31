@@ -489,7 +489,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			/*
 			 * for the skew-normal we know the moments 
 			 */
-			GMRFLib_sn_moments(&(density->mean), &(density->stdev), (void *) density->sn_param);
+			GMRFLib_sn_moments(&(density->mean), &(density->stdev), density->sn_param);
 			density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 			density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		} else {
