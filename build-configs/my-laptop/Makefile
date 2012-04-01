@@ -15,6 +15,7 @@ all :;
 	echo "	$(MAKE) lapack";\
 	echo "	$(MAKE) metis";\
 	echo "	$(MAKE) taucs";\
+	echo "	$(MAKE) amd";\
 	echo "	$(MAKE) muparser";\
 	echo "	$(MAKE) GMRFLib";\
 	echo "	$(MAKE) inla";\
@@ -65,7 +66,7 @@ inla :
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp -static" $(ARGS) -k clean
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp -static" $(ARGS) \
 	        EXTLIBS2="-lgsl -ltaucs -lmetis -llapack-atlas \
-			  -llapack -lf77blas -lcblas -latlas -lmuparser -lz -lgfortran"
+			  -llapack -lf77blas -lcblas -latlas -lamd -lmuparser -lz -lgfortran"
 	cp -v -f inlaprog/inla $(PREFIX)/bin
 
 lapack :
@@ -89,6 +90,11 @@ metis :
 	$(MAKE) -C metis-4.0 OPTFLAGS="$(FLAGS)" $(ARGS)
 	cp -v -f metis-4.0/libmetis.a $(PREFIX)/lib
 
+amd:
+	-$(MAKE) -C amd -k clean
+	$(MAKE) -C amd FLAGS="$(FLAGS)" PREFIX=$(PREFIX) CC="$(CC)"
+	$(MAKE) -C amd FLAGS="$(FLAGS)" PREFIX=$(PREFIX) install
+
 muparser :
 	@ cd muparser_v134;\
 	./configure --prefix=$(PREFIX) --disable-shared;\
@@ -98,4 +104,4 @@ update :; $(MAKE) download;
 	$(MAKE) GMRFLib
 	$(MAKE) inla
 
-.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update muparser
+.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update muparser amd

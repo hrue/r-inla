@@ -16,6 +16,7 @@ all :;
 	echo "	$(MAKE) lapack";\
 	echo "	$(MAKE) metis";\
 	echo "	$(MAKE) taucs";\
+	echo "	$(MAKE) amd";\
 	echo "	$(MAKE) muparser";\
 	echo "	$(MAKE) GMRFLib";\
 	echo "	$(MAKE) inla";\
@@ -98,7 +99,7 @@ gsl :
 inla :
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
 	$(MAKE) -C inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) \
-		EXTLIBS2="-lGMRFLib -lgsl -ltaucs -lmetis $(PREFIX)/lib/liblapack.a $(PREFIX)/lib/libblas.a -lgslcblas $(PREFIX)/lib/libz.a $(PREFIX)/lib/libmuparser.a -lgfortran"\
+		EXTLIBS2="-lGMRFLib -lgsl -ltaucs -lmetis $(PREFIX)/lib/liblapack.a $(PREFIX)/lib/libblas.a -lgslcblas $(PREFIX)/lib/libz.a $(PREFIX)/lib/libamd.a $(PREFIX)/lib/libmuparser.a -lgfortran"\
 		EXTLIBS3=""
 	cp -v -f inlaprog/inla $(PREFIX)/bin
 
@@ -126,6 +127,11 @@ metis :
 	$(MAKE) -C metis-4.0 OPTFLAGS="$(FLAGS)" $(ARGS)
 	cp -v -f metis-4.0/libmetis.a $(PREFIX)/lib
 
+amd:
+	-$(MAKE) -C amd -k clean
+	$(MAKE) -C amd FLAGS="$(FLAGS)" PREFIX=$(PREFIX) CC="$(CC)"
+	$(MAKE) -C amd FLAGS="$(FLAGS)" PREFIX=$(PREFIX) install
+
 muparser :
         @ cd muparser_v134;\
         ./configure --prefix=$(PREFIX) --disable-shared;\
@@ -137,4 +143,5 @@ update :;
 	$(MAKE) GMRFLib
 	$(MAKE) inla
 
-.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update testmac muparser
+.PHONY: all zlib gsl inla lapack GMRFLib taucs metis download update testmac muparser amd
+
