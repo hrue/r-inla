@@ -46,6 +46,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+#include "amd.h"
 
 #ifndef HGVERSION
 #define HGVERSION
@@ -507,6 +508,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			break;
 		case GMRFLib_REORDER_AMD:
 			p = GMRFLib_strdup("amd");
+			break;
+		case GMRFLib_REORDER_AMDC:
+			p = GMRFLib_strdup("amdc");
 			break;
 		case GMRFLib_REORDER_AMDBAR:
 			p = GMRFLib_strdup("amdbar");
@@ -1885,5 +1889,26 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
+		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
+{
+	/* 
+	   we use the Fortran interface to amdNEW_() for simplicity.
+	*/
+	int result, i;
+	double control[AMD_CONTROL], info[AMD_INFO] ;
+
+	amd_defaults(control) ;
+	result = amd_order(n, pe, iw, last, control, info) ;
+	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
+
+	for(i = 0;  i<n; i++){
+		last[i]++;				       /* to Fortran indexing. */
+	}
+
+	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
+}
+	
 
 #undef GMRFLib_NSET_LIMIT
+

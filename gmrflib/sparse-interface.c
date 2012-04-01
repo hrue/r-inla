@@ -94,6 +94,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 	case GMRFLib_REORDER_METIS:
 	case GMRFLib_REORDER_GENMMD:
 	case GMRFLib_REORDER_AMD:
+	case GMRFLib_REORDER_AMDC:
 	case GMRFLib_REORDER_AMDBAR:
 	case GMRFLib_REORDER_MD:
 	case GMRFLib_REORDER_MMD:
@@ -554,6 +555,8 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 		return "mmd";
 	case GMRFLib_REORDER_AMDBAR:
 		return "amdbar";
+	case GMRFLib_REORDER_AMDC:
+		return "amdc";
 	default:
 		fprintf(stderr, "\n\t*** ERROR *** Reordering [%d] not defined.\n", r);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, "(unknown reording)");
@@ -585,6 +588,8 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_MD;
 	else if (!strcasecmp(name, "mmd"))
 		return GMRFLib_REORDER_MMD;
+	else if (!strcasecmp(name, "amdc"))
+		return GMRFLib_REORDER_AMDC;
 	else if (!strcasecmp(name, "auto"))
 		return -1;				       /* THIS IS SPECIAL */
 	else {
