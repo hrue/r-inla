@@ -2431,7 +2431,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		nk = 2 * (int) (sizeof(rs) / sizeof(int));     /* yes, twice... */
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
 
-#pragma omp parallel for private(k) schedule(dynamic)
+//#pragma omp parallel for private(k) schedule(dynamic)
 		for (k = 0; k < nk; k++) {
 
 			int *iperm = NULL, *perm = NULL, ii, kk, use_global_nodes;
