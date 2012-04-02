@@ -29,6 +29,7 @@
 #include "../external/src/colamd.h"
 
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w);
+int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w);
 
 static void taucs_ccs_colamd(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
 {
@@ -182,12 +183,9 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 	 * assert(iw && pe && degree && nv && next && last && head && elen && w && len); 
 	 */
 
-	/* 
-	   added hrue
-	 */
 	int offset;
 
-	if (!strcmp(which, "amdc")){
+	if (!strcmp(which, "amdc") || !strcmp(which, "amdbarc")){
 		offset = 0;				       /* C */
 	} else {
 		offset = 1;				       /* Fortran */
@@ -215,9 +213,6 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 	pfree = pe[n - 1] + len[n - 1];
 
 	if (offset == 0) {
-		/* 
-		   hrue
-		 */
 		pe[n] = pfree;
 	}
 
@@ -247,13 +242,13 @@ static void taucs_ccs_amd(taucs_ccs_matrix * m, int **perm, int **invperm, char 
 	else if (!strcmp(which, "md"))
 		amdtru_(&n, pe, iw, len, &iwlen, &pfree, nv, next, last, head, elen, degree, &ncmpa, w, &iovflo);
 	else if (!strcmp(which, "amdbar"))
-		// NEW UPDATED CODE hrue
 		amdbarnew_(&n, pe, iw, len, &iwlen, &pfree, nv, next, last, head, elen, degree, &ncmpa, w);
 	else if (!strcmp(which, "amd"))
-		// NEW UPDATED CODE hrue
 		amdnew_(&n, pe, iw, len, &iwlen, &pfree, nv, next, last, head, elen, degree, &ncmpa, w);
 	else if (!strcmp(which, "amdc"))
 		GMRFLib_amdc(n, pe, iw, len, iwlen, pfree, nv, next, last, head, elen, degree, ncmpa, w);
+	else if (!strcmp(which, "amdbarc"))
+		GMRFLib_amdbarc(n, pe, iw, len, iwlen, pfree, nv, next, last, head, elen, degree, ncmpa, w);
 	else {
 		taucs_printf("taucs_ccs_amd: WARNING - invalid ordering requested (%s)\n", which);
 		return;
@@ -712,7 +707,7 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 	int *xadj;
 	int *adj;
 	int num_flag = 0;
-	int options_flag = 0;
+	int options_flag[8];
 	int *len;
 	int *ptr;
 
@@ -743,15 +738,6 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 	*invperm = (int *) taucs_malloc(n * sizeof(int));
 
 	xadj = (int *) taucs_malloc((n + 1) * sizeof(int));
-	/*
-	 * Change suggested by Yifan Hu for diagonal matrices 
-	 */
-	/*
-	 * and for matrices with no diagonal 
-	 */
-	/*
-	 * adj = (int*) taucs_malloc(2*(nnz-n) * sizeof(int));
-	 */
 	adj = (int *) taucs_malloc(2 * nnz * sizeof(int));
 
 	if (!(*perm) || !(*invperm) || !xadj || !adj) {
@@ -763,12 +749,7 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 		return;
 	}
 
-	/*
-	 * assert(*perm && *invperm && xadj && adj);
-	 */
-
 	ptr = len = *perm;
-
 	for (i = 0; i < n; i++)
 		len[i] = 0;
 
@@ -807,22 +788,16 @@ static void taucs_ccs_metis(taucs_ccs_matrix * m, int **perm, int **invperm, cha
 		}
 	}
 
-	/*
-	 * taucs_printf("taucs_ccs_metis: calling metis matrix is %dx%d, nnz=%d\n", 
-	 */
-	/*
-	 * n,n,nnz); 
-	 */
+	options_flag[0] = 1;				       /* use these options */
+	options_flag[1] = 3;				       /* default */
+	options_flag[2] = 1;				       /* default */
+	options_flag[3] = 1;				       /* two-side refinement */
+	options_flag[4] = 0;				       /* no debug */
+	options_flag[5] = 1;				       /* default */
+	options_flag[6] = 0; 				       /* THIS IS SLOW if non-zero. global nodes */
+	options_flag[7] = 3;				       /* number of separators */
 
-	METIS_NodeND(&n, xadj, adj, &num_flag, &options_flag, *perm, *invperm);
-
-	/*
-	 * taucs_printf("taucs_ccs_metis: metis returned\n"); 
-	 */
-
-	/*
-	 * { FILE* f; f=fopen("p.ijv","w"); for (i=0; i<n; i++) fprintf(f,"%d\n",last[i]); fclose(f); } 
-	 */
+	METIS_NodeND(&n, xadj, adj, &num_flag, options_flag, *perm, *invperm);
 
 	taucs_free(xadj);
 	taucs_free(adj);
@@ -877,7 +852,8 @@ static void taucs_ccs_randomperm(int n, int **perm, int **invperm)
 
 void taucs_ccs_order(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
 {
-	if (!strcmp(which, "mmd") || !strcmp(which, "amd") || !strcmp(which, "md") || !strcmp(which, "amdbar") || !strcmp(which, "amdc"))
+	if (!strcmp(which, "mmd") || !strcmp(which, "amd") || !strcmp(which, "md") || !strcmp(which, "amdbar") ||
+	    !strcmp(which, "amdc") || !strcmp(which, "amdbarc"))
 		taucs_ccs_amd(m, perm, invperm, which);
 	else if (!strcmp(which, "metis"))
 		taucs_ccs_metis(m, perm, invperm, which);
