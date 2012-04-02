@@ -234,7 +234,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_facto
 	 * return the number of non-zeros in the matrix 
 	 */
 	GMRFLib_sizeof_tp nnz = 0;
-	int i, jp, sn;
+	int jp, sn;
 
 	for (sn = 0; sn < L->n_sn; sn++) {
 		for (jp = 0; jp < L->sn_size[sn]; jp++) {
@@ -514,6 +514,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			break;
 		case GMRFLib_REORDER_AMDBAR:
 			p = GMRFLib_strdup("amdbar");
+			break;
+		case GMRFLib_REORDER_AMDBARC:
+			p = GMRFLib_strdup("amdbarc");
 			break;
 		case GMRFLib_REORDER_MD:
 			p = GMRFLib_strdup("md");
@@ -1892,9 +1895,6 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
 {
-	/* 
-	   we use the Fortran interface to amdNEW_() for simplicity.
-	*/
 	int result, i;
 	double control[AMD_CONTROL], info[AMD_INFO] ;
 
@@ -1908,7 +1908,23 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
 }
-	
+int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
+		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
+{
+	int result, i;
+	double control[AMD_CONTROL], info[AMD_INFO] ;
+
+	amd_defaults(control) ;
+	control[AMD_AGGRESSIVE] = 0;			       /* turn this off */
+	result = amd_order(n, pe, iw, last, control, info) ;
+	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
+
+	for(i = 0;  i<n; i++){
+		last[i]++;				       /* to Fortran indexing. */
+	}
+
+	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
+}
 
 #undef GMRFLib_NSET_LIMIT
 

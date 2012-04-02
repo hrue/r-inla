@@ -14643,7 +14643,7 @@ int inla_INLA(inla_tp * mb)
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder), nnz,
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder), nnz,
 			       (use_g ? "yes" : "no"));
 		}
 	}
