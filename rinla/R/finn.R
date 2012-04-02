@@ -2,7 +2,7 @@
 ## computes whatever Finn wants...
 
 `inla.finn` = function(C,
-        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc"),
+        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc", "amdbarc"),
         seed = 0L)
 {
     reordering = match.arg(reordering)

@@ -279,8 +279,8 @@
             ## This is an hidden option.
             step.factor = -0.1,
 
-            ##:ARGUMENT: global.node.factor The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph.
-            global.node.factor = 0.25, 
+            ##:ARGUMENT: global.node.factor The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.)
+            global.node.factor = 2.0, 
 
             ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
             global.node.degree = .Machine$integer.max)
