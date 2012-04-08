@@ -165,7 +165,7 @@
 
 `inla.only.for.developers` = function()
 {
-    if (!is.element(Sys.getenv("USER"),
+    if (!(Sys.getenv("USER") %in%
                     c("hrue", "martino", "finnkrl", "finn",
                       "danielsimpson", "rieblera", "ariebler")))
         stop("This function is for developers only.")
@@ -179,11 +179,10 @@
 
     inla.only.for.developers()
 
-    if (is.element(Sys.getenv("USER"), c("hrue"))) {
+    if (Sys.getenv("USER") %in% c("hrue")) {
         dir.default = "~/p/inla/google-code/inla/rinla/R"
         bin.default = "~/p/inla/work/local/bin"
-    } else if (is.element(Sys.getenv("USER"),
-                          c("rieblera", "ariebler"))) {
+    } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
         dir.default = "~/inla/rinla/R"
         bin.default = "~/local/bin"
     } else {

@@ -1,0 +1,71 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Wrapped Cauchy}
+
+\subsection*{Parametrisation}
+
+The wrapped Cauchy distribution has density
+\begin{displaymath}
+    f(y) =\frac{1}{2\pi}\frac{1-{(s\rho)^2}}{1+(s\rho)^2-2(s\rho)\cos(y-\mu)} 
+\end{displaymath}
+for continuously responses $y$ where
+$|y| \le \pi$ and $|\mu| \le \pi$. Here, 
+\begin{description}
+\item[$\mu$] is a measure of location, 
+\item[$\rho$] is a measure of the precision ($0<\rho<1$),
+\item[$s$] is a fixed scaling ($0<s\le1$).
+\end{description}
+
+\subsection*{Link-function}
+
+The ``mean'' of $y$ is given as $\mu$ and the mean is linked to the
+linear predictor as
+\begin{displaymath}
+    \mu = 2\arctan(\eta)
+\end{displaymath}
+(Link function ``tan'')
+
+\subsection*{Hyperparameters}
+
+The ``precision'' $\rho$ is represented as
+\begin{displaymath}
+    \rho = \frac{\exp(\theta)}{1+\exp(\theta)}
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{wrappedcauchy}$
+\item Required arguments: $y$ and $s$ (argument \texttt{scale}).
+\end{itemize}
+The scalings have default value $1$.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/wrappedcauchy.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with wrapped Cauchy responses.
+%%
+\verbatiminput{example-wrappedcauchy.R}
+
+\subsection*{Notes}
+
+{\LARGE\textbf{This likelihood is currently disabled.}}
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials gaussian
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

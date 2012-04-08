@@ -2857,7 +2857,34 @@ inla.models()
 							 \describe{
 							\item{name = }{`log precision parameter'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.01'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default tan'}
+								\item{pdf = }{`circular-normal'}
+								\item{status = }{`experimental'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `wrappedcauchy'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision parameter'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.005'}
@@ -2872,7 +2899,8 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default tan'}
-								\item{pdf = }{`circular-normal'}
+								\item{pdf = }{`wrapped-cauchy'}
+								\item{status = }{`disabled'}
 							 }
 						 }
 					 }

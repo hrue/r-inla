@@ -40,7 +40,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{numint.abserr}{  Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}
 \item{cmin}{  The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)}
 \item{step.factor}{  The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
-\item{global.node.factor}{  The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here, n, is the size of the graph.}
+\item{global.node.factor}{  The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here, n, is the size of the graph. (Disabled if larger than 1.)}
 \item{global.node.degree}{  The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).}
 }
 \seealso{
