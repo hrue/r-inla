@@ -49,6 +49,7 @@
                               "logistic",
                               "sas",
                               "circularnormal",
+                              "wrappedcauchy",
                               "iidgamma"))) {
 
         if (is.null(scale)) {

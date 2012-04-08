@@ -9,16 +9,19 @@
 
 \subsection*{Parametrisation}
 
-The circular/wrapped Normal or von Mises distribution, has density
+The circular Normal or von Mises distribution, has density
 \begin{displaymath}
-    f(y) = \frac{1}{2\pi  I_{0}(\kappa s)} \exp(\kappa s \cos(y-\mu)), 
+    f(y) = \frac{1}{2\pi  I_{0}(\kappa s)} \exp(\kappa s\cos(y-\mu)), 
 \end{displaymath}
-for continuously responses $y$ where
-$0\le y < 2\pi$ and $0 \le \mu < 2\pi$. Here, 
+for continuously responses $y$ where $|y-\mu| \le \pi$ and $|\mu| \le
+\pi$. Here,
 \begin{description}
-\item[$\mu$] is a measure of location, and 
-\item[$\kappa$] is a measure of the precision, and
-\item[$s$] is a fixed scaling (default 1), $s>0$.
+\item[$\mu$] is a measure of location, and
+\item[$\kappa$] is a measure of the precision, 
+\item[$s$] is a fixed scaling, $s>0$, and
+\item[$I_0$] is the modified Bessel of first kind and order zero
+    $$I_0(\tau)=\frac{1}{2\pi}\int_0^{2\pi}
+    e^{\tau{\mathrm{cos}\alpha}}\mathrm{d}\alpha.$$
 \end{description}
 
 \subsection*{Link-function}
@@ -26,9 +29,9 @@ $0\le y < 2\pi$ and $0 \le \mu < 2\pi$. Here,
 The ``mean'' of $y$ is given as $\mu$ and the mean is linked to the
 linear predictor as
 \begin{displaymath}
-    \mu = 2\arctan(\eta) + \pi
+    \mu = 2\arctan(\eta)
 \end{displaymath}
-(Link function ``\texttt{tan}'')
+(Link function ``tan'')
 
 \subsection*{Hyperparameters}
 
@@ -36,15 +39,15 @@ The ``precision'' $\kappa$ is represented as
 \begin{displaymath}
     \theta = \log \kappa
 \end{displaymath}
-and the prior is defined on $\theta$. 
+and the prior is defined on $\theta$.
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{circularnormal}$
-\item Required arguments: $y$ and $s$ (keyword \texttt{scale}).
+\item Required arguments: $y$ and $s$ (argument \texttt{scale})
 \end{itemize}
-The scaling have default value $1$. 
+The scalings have default value $1$.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/circularnormal.tex}
@@ -53,12 +56,16 @@ The scaling have default value $1$.
 
 In the following example we estimate the parameters in a simulated
 example with circular Normal responses.
+%%
 \verbatiminput{example-circularnormal.R}
 
 \subsection*{Notes}
 
-None.
-
+Try to use
+\begin{verbatim}
+    control.inla=list(cmin = -Inf)
+\end{verbatim}
+to avoid systematic-errors for low precisions.
 
 \end{document}
 

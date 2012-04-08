@@ -2365,10 +2365,10 @@
                               theta = list(
                                       name = "log precision parameter",
                                       short.name = "prec",
-                                      initial = 4,
+                                      initial = 2,
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 0.005),
+                                      param = c(1, 0.01),
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       )
@@ -2376,7 +2376,28 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "tan"),
-                      pdf = "circular-normal"
+                      pdf = "circular-normal",
+                      status = "experimental"
+                      ),
+              
+              wrappedcauchy = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision parameter",
+                                      short.name = "prec",
+                                      initial = 2,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.005),
+                                      to.theta = function(x) log(x/(1-x)), 
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "tan"),
+                      pdf = "wrapped-cauchy",
+                      status = "disabled"
                       ),
               
               mefixedeffect = list(
@@ -3466,7 +3487,9 @@
     mm = inla.models()
     m = inla.model.properties.generic(inla.trim.family(model),
             (mm[names(mm) == section])[[1]],
-            stop.on.error, ignore.case)
+            stop.on.error, ignore.case,
+            ## would like to know the section for a possible warning/error if the status says so.
+            section = section)
 
     if (is.null(m)) {
         return (NULL)
@@ -3475,8 +3498,10 @@
     return (m)
 }
 
-`inla.model.properties.generic` = function(model, models, stop.on.error = TRUE, ignore.case = TRUE)
+`inla.model.properties.generic` = function(model, models, stop.on.error = TRUE, ignore.case = TRUE, section = "UKNOWN")
 {
+    ## argument 'section' is for 'status' only...
+    
     m = ifelse(ignore.case, tolower(model), model)
     if (ignore.case) {
         ms = tolower(names(models))
@@ -3490,6 +3515,36 @@
         }
         return (NULL)
     } else {
+        ## if 'status' is set, then issue a warning/error depending on
+        ## 'status'. do this the first time only if status is
+        ## 'experimental'.
+        status = models[[k]]$status
+        if (is.null(status)) {
+            ## do nothing; all ok.
+        } else {
+            stopifnot(any(inla.strcasecmp(status, c("experimental", "disabled"))))
+            envir = inla.get.inlaEnv()
+            var = paste("processed.status.for.model.", model, ".in.section.", section, sep="")
+
+            if (inla.strcasecmp(status, "experimental")) {
+                if (!(exists(var, envir = envir) && get(var, envir = envir))) {
+                    assign(var, TRUE, envir = envir)
+                    msg = paste("Model '", model, "' in section '", section, "' is marked as '", status, 
+                            "'; changes may appear at any time.",
+                            "\n  ",
+                            "Use this model with extra care!!! Further warnings are disabled.", sep="")
+                    warning(msg)
+                } else {
+                    ## the warning is already given; do nothing
+                }
+            } else if (inla.strcasecmp(status, "disabled")) {
+                assign(var, TRUE, envir = envir)
+                msg = paste("Model '", model, "' in section '", section, "' is marked as '", status,
+                        "'; do not use.", sep="")
+                stop(msg)
+            }
+        }
+        
         return (models[[k]])
     }
 }
