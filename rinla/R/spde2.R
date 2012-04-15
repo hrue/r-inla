@@ -391,7 +391,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
                         paste("Theta[^ ]+ for ", name, "$", sep=""))
 
     ## Marginals for theta
-    if (!is.null(inla$marginals$gyperpar)) {
+    if (!is.null(inla$marginals$hyperpar)) {
         result$marginals.hyperpar =
             inla.extract.el(inla$marginals.hyperpar,
                             paste("Theta[^ ]+ for ", name, "$", sep=""))
