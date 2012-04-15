@@ -241,15 +241,27 @@
     if (!is.null(inla.spec$print.joint.hyper)) {
         cat("fp.hyperparam = $inlaresdir/joint.dat\n", sep = "", file = file,  append = TRUE)
     }
-    if (!is.null(inla.spec$tolerance)) {
-        ## tolerance is a generic option, which sets 'all' tolerance to the given value
-        cat("epsg = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
-        cat("epsf = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
-        cat("epsx = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
-        cat("abserr.func = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
-        cat("abserr.step = ", inla.spec$tol,"\n", sep = " ", file = file,  append = TRUE)
+
+    if (is.null(inla.spec$tolerance) || is.na(inla.spec$tolerance)) {
+        ## we need a default value
+        inla.spec$tolerance = 0.005
     }
-    
+
+    if (is.null(inla.spec$tolerance.f) || is.na(inla.spec$tolerance.f)) {
+        inla.spec$tolerance.f = inla.spec$tolerance^(3/2) ## yes. 
+    }
+    cat("tolerance.f = ", inla.spec$tolerance.f,"\n", sep = " ", file = file,  append = TRUE)
+
+    if (is.null(inla.spec$tolerance.g) || is.na(inla.spec$tolerance.g)) {
+        inla.spec$tolerance.g = inla.spec$tolerance
+    }
+    cat("tolerance.g = ", inla.spec$tolerance.g,"\n", sep = " ", file = file,  append = TRUE)
+
+    if (is.null(inla.spec$tolerance.x) || is.na(inla.spec$tolerance.x)) {
+        inla.spec$tolerance.x = inla.spec$tolerance
+    }
+    cat("tolerance.x = ", inla.spec$tolerance.x,"\n", sep = " ", file = file,  append = TRUE)
+
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)

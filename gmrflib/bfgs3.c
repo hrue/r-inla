@@ -309,11 +309,10 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= 1.0e-5) {	       /* hrue */
+		if ((a - alpha) * fpa <= GMRFLib_eps(2.0/3.0)) {	       /* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */
-
 			if (debug)
 				printf("BFGS3: minimizer: abort search as we do not seem to get any longer...\n");
 
