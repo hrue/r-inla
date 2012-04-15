@@ -223,18 +223,20 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
 	(*ai_par)->restart = 0;
 	(*ai_par)->domin_epsx = 0.005;
-	(*ai_par)->domin_epsf = 0.005;
+	(*ai_par)->domin_epsf = 0.00001;		       /* rounding error */
 	(*ai_par)->domin_epsg = 0.005;
 	(*ai_par)->gsl_tol = 0.1;
 	(*ai_par)->gsl_epsg = 0.005;
+	(*ai_par)->gsl_epsf = pow(0.005, 1.5);		       /* this is the default relationship used in R-INLA */
+	(*ai_par)->gsl_epsx = 0.005;
 	(*ai_par)->gsl_step_size = 1.0;
 	(*ai_par)->mode_known = 0;
 
 	/*
 	 * parameters for the Gaussian approximations 
 	 */
-	(*ai_par)->optpar_abserr_func = 0.01;
-	(*ai_par)->optpar_abserr_step = 0.01;
+	(*ai_par)->optpar_abserr_func = 0.0005;
+	(*ai_par)->optpar_abserr_step = 0.0005;
 	(*ai_par)->optpar_fp = NULL;
 	(*ai_par)->optpar_nr_step_factor = 1.0;
 
@@ -282,11 +284,13 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	fprintf(fp, "\tOptimiser: %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
 	fprintf(fp, "\t\tOption for %s: epsx = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsx);
-	fprintf(fp, "\t\tOption for %s: epsf = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsf);
+	fprintf(fp, "\t\tOption for %s: epsf = %.6g (rounding error)\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsf);
 	fprintf(fp, "\t\tOption for %s: epsg = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsg);
 	fprintf(fp, "\t\tOption for %s: tol  = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_tol);
-	fprintf(fp, "\t\tOption for %s: epsg = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsg);
 	fprintf(fp, "\t\tOption for %s: step_size = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_step_size);
+	fprintf(fp, "\t\tOption for %s: epsx = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsx);
+	fprintf(fp, "\t\tOption for %s: epsf = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsf);
+	fprintf(fp, "\t\tOption for %s: epsg = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsg);
 	fprintf(fp, "\t\tRestart: %1d\n", ai_par->restart);
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
 
@@ -493,7 +497,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	}
 	optpar->step_len = ai_par->step_len;
 	optpar->abserr_func = ai_par->optpar_abserr_func;
-	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->abserr_step = ai_par->optpar_abserr_func;
 	optpar->fp = ai_par->optpar_fp;
 

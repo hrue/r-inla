@@ -12673,6 +12673,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMISER"), NULL));
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTIMIZER"), opt));
 	if (!opt) {
 		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
 	} else if (!strcasecmp(opt, "DEFAULT")) {
@@ -12684,32 +12685,46 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "optimiser", opt);
 	}
+
 	/*
 	 * if eps. < 0.0 then factory defaults are used. 
 	 */
 	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSX"), mb->ai_par->domin_epsx);
 	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSX"), mb->ai_par->domin_epsx);
-	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "EPSX"), mb->ai_par->domin_epsx);
+	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->domin_epsx);
+
 	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSF"), mb->ai_par->domin_epsf);
 	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSF"), mb->ai_par->domin_epsf);
-	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "EPSF"), mb->ai_par->domin_epsf);
+	// as this means the rounding error... in domin()
+	//mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->domin_epsf);
+
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSG"), mb->ai_par->domin_epsg);
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSG"), mb->ai_par->domin_epsg);
-	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "EPSG"), mb->ai_par->domin_epsg);
+	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->domin_epsg);
+
 	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "GSL_TOL"), mb->ai_par->gsl_tol);
 	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "GSL.TOL"), mb->ai_par->gsl_tol);
-	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "TOL"), mb->ai_par->gsl_tol);
-	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSG"), mb->ai_par->gsl_epsg);
-	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSG"), mb->ai_par->gsl_epsg);
-	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "EPSG"), mb->ai_par->gsl_epsg);
+
 	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "GSL_STEP_SIZE"), mb->ai_par->gsl_step_size);
 	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "GSL.STEP.SIZE"), mb->ai_par->gsl_step_size);
-	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "STEP_SIZE"), mb->ai_par->gsl_step_size);
-	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "STEP.SIZE"), mb->ai_par->gsl_step_size);
+
+	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSG"), mb->ai_par->gsl_epsg);
+	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSG"), mb->ai_par->gsl_epsg);
+	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->gsl_epsg);
+
+	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSF"), mb->ai_par->gsl_epsf);
+	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSF"), mb->ai_par->gsl_epsf);
+	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->gsl_epsf);
+
+	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSX"), mb->ai_par->gsl_epsx);
+	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSX"), mb->ai_par->gsl_epsx);
+	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->gsl_epsx);
+
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR_FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
+
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
@@ -12721,10 +12736,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE.KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
 
-	if (mb->verbose > 1)
+	if (mb->verbose > 1){
 		ctmp = GMRFLib_strdup("STDOUT");
-	else
+	} else {
 		ctmp = NULL;
+	}
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR_FP"), ctmp));
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR.FP"), filename));
 

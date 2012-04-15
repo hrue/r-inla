@@ -20,9 +20,12 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{skip.configurations}{  A boolean variable; skip configurations if the values at the main axis are to small. (Default TRUE.)}
 \item{mode.known}{  A boolean variable: If TRUE then no optimisation is done. (Default FALSE.)}
 \item{adjust.weights}{  A boolean variable; If TRUE then just more accurate integration weights. (Default TRUE.)}
-\item{tolerance}{  The tolerance for the optimisation.}
+\item{tolerance}{  The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)', 'tolerance.g' and 'tolerance.x'; see below.}
+\item{tolerance.f}{  The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.}
+\item{tolerance.g}{  The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.}
+\item{tolerance.x}{  The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.}
 \item{restart}{  To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
-\item{optimiser}{  The optimiser to use; one of 'gsl' or 'domin'}
+\item{optimiser}{  The optimiser to use; one of 'gsl', 'domin' or 'default'.}
 \item{verbose}{  A boolean variable; run in verbose mode? (Default FALSE)}
 \item{reordering}{  Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")}
 \item{cpo.diff}{  Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}

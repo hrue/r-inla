@@ -402,6 +402,16 @@ typedef struct {
 	double gsl_epsg;
 
 	/**
+	 * \brief GSL parameter epsf. Stopping parameter for |f|.
+	 */
+	double gsl_epsf;
+
+	/**
+	 * \brief GSL parameter epsg. Stopping parameter for |x|.
+	 */
+	double gsl_epsx;
+
+	/**
 	 * \brief GSL parameter step_size. Size of the initial step in the line-search
 	 */
 	double gsl_step_size;

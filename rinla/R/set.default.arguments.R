@@ -214,14 +214,23 @@
             ##:ARGUMENT: adjust.weights A boolean variable; If TRUE then just more accurate integration weights. (Default TRUE.)
             adjust.weights=TRUE,
 
-            ##:ARGUMENT: tolerance The tolerance for the optimisation.
-            tolerance = 0.5e-3,
+            ##:ARGUMENT: tolerance The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)',  'tolerance.g' and  'tolerance.x'; see below.
+            tolerance = 0.005,
+
+            ##:ARGUMENT: tolerance.f The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.
+            tolerance.f = NULL,
+
+            ##:ARGUMENT: tolerance.g The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.
+            tolerance.g = NULL,
+
+            ##:ARGUMENT: tolerance.x The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.
+            tolerance.x = NULL, 
 
             ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
             restart = NULL,
 
-            ##:ARGUMENT: optimiser The optimiser to use; one of 'gsl' or 'domin'
-            optimiser = NULL,
+            ##:ARGUMENT: optimiser The optimiser to use; one of 'gsl', 'domin' or 'default'.
+            optimiser = "default",
 
             ##:ARGUMENT: verbose A boolean variable; run in verbose mode? (Default FALSE)
             verbose = NULL,
