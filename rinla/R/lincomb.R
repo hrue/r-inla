@@ -39,14 +39,14 @@
         var = names(arg)[k]
         if (var != "") {
             value = eval.parent(arg[[k]])
-        
+
             if (length(value) == 1) {
                 ff.arg = list(list(weight = value))
             } else {
                 ii = which(!is.na(value) & (value != 0))
                 ff.arg = list(list(idx = ii, weight = value[ii]))
             }
-        
+
             names(ff.arg) = var
             f.arg[[k]] = ff.arg
         }
@@ -56,7 +56,7 @@
 
     lc = list(f.arg)
     names(lc) = "lc"
-    
+
     return (lc)
 }
 
@@ -64,7 +64,7 @@
 {
     ## this is the more general version, which constructs one lincomb
     ## for each row
-    
+
     arg = match.call(expand.dots=TRUE)
 
     ## we might need to expand arguments?
@@ -79,8 +79,9 @@
     for(k in 1:length(arg)) {
         if (names(arg)[k] != "") {
             values[[k]] = eval.parent(arg[[k]])
-            if (is.matrix(values[[k]]) || is(values[[k]], "dgTMatrix") || is(values[[k]], "dgCMatrix")) {
-                if (is(values[[k]], "dgCMatrix")) {
+            if (is.matrix(values[[k]]) || is(values[[k]], "Matrix")) {
+                if (is(values[[k]], "Matrix")) {
+                    ## Make sure we have a dgTMatrix with unique representation:
                     values[[k]] = inla.as.dgTMatrix(values[[k]])
                 }
                 stopifnot(nrow(values[[k]]) == n || n < 0)
@@ -146,7 +147,7 @@
 
         ## this is the slow version for which the lapply-version is
         ## buildt upon.
-        
+
         for(idx in 1:n) {
 
             f.arg = list()
@@ -181,13 +182,13 @@
 
     if (!is.matrix(A))
         return (NULL)
-    
+
     result = list()
 
     ## it's easier to check names of the matrix upfront...
     rownames(A) = NULL
     if (is.null(colnames(A))) {
-        colnames(A) = 
+        colnames(A) =
             paste(name.prefix,
                   inla.num(1:ncol(A), width = inla.numlen(ncol(A))),
                   sep="")
