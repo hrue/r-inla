@@ -932,7 +932,7 @@
 {
     ## return TRUE if A is a 'matrix' neglecting possible formats
     ## (dense, sparse, etc...)
-    if (is.matrix(A) || is(A,  "dgTMatrix") || is(A,  "dgCMatrix")) {
+    if (is.matrix(A) || is(A,  "Matrix")) {
         ## the common cases
         return (TRUE)
     } else {
