@@ -2253,7 +2253,8 @@
                       survival = FALSE,
                       discrete = TRUE,
                       link = c("default", "logit", "probit", "cloglog", "log"),
-                      pdf = "binomialtest"
+                      pdf = "binomialtest",
+                      status = "experimental"
                       ),
 
               beta = list(
@@ -2426,7 +2427,8 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "identity"),
-                      pdf = "mefixedeffect"
+                      pdf = "mefixedeffect",
+                      status = "experimental"
                       ),
 
               iidgamma = list(
@@ -2455,7 +2457,8 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "identity"),
-                      pdf = "iidgamma"
+                      pdf = "iidgamma",
+                      status = "experimental"
                       ),
 
               iidlogitbeta = list(
@@ -2484,7 +2487,8 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "logit"),
-                      pdf = "iidlogitbeta"
+                      pdf = "iidlogitbeta",
+                      status = "experimental"
                       ),
 
               sas = list(
@@ -2523,7 +2527,8 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "identity"),
-                      pdf = "sas"
+                      pdf = "sas",
+                      status = "experimental"
                       ),
 
               loggammafrailty = list(
