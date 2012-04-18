@@ -2638,20 +2638,19 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double beta, prec, lprec, y, ypred, mean;
+	double beta, prec, lprec, y, ypred;
 
 	beta = ds->data_observations.me_fixed_effect_beta[GMRFLib_thread_id][0];
-	assert(beta != 0.0);
+	assert(!ISZERO(beta));
 
-	lprec = ds->data_observations.me_fixed_effect_log_prec[GMRFLib_thread_id][0] - log(SQR(beta));
+	lprec = ds->data_observations.me_fixed_effect_log_prec[GMRFLib_thread_id][0];
 	prec = map_precision(lprec, MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];		       /* this is the covariate 'x' */
-	mean = beta * y;
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - mean) * prec));
+			ypred = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx))/beta);
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y - ypred) * prec));
 		}
 	}
 	return GMRFLib_SUCCESS;
