@@ -2650,7 +2650,8 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx))/beta);
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(y - ypred) * prec));
+			// the '-log(|beta|)' is the Jacobian from going from (x, beta) to (u, beta), where u=beta*x.
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - prec * SQR(y - ypred)) - log(ABS(beta));
 		}
 	}
 	return GMRFLib_SUCCESS;
