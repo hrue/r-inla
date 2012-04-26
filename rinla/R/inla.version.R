@@ -33,8 +33,8 @@
 
         cat("\n")
         cat(paste("\n\tINLA build date .........: ",  date, "\n",  sep=""))
-        cat(paste(  "\tINLA hgid ...............: hgid: ", rinla.hgid, "\n", sep=""))
-        cat(paste(  "\tINLA-program hgid .......: hgid: ", inla.hgid, "\n", sep=""))
+        cat(paste(  "\tINLA hgid ...............: ", rinla.hgid, "\n", sep=""))
+        cat(paste(  "\tINLA-program hgid .......: ", inla.hgid, "\n", sep=""))
         cat(        "\tMaintainers .............: Havard Rue <hrue@math.ntnu.no>\n")
         cat(        "\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
         cat(        "\t                         : Daniel Simpson <dp.simpson@gmail.com>\n")
