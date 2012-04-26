@@ -3381,8 +3381,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr, NULL);
 			log_dens_mode *= -1.0;
 			SET_THETA_MODE;
-			if (x) {
-				memcpy(x_mode, x, graph->n * sizeof(double));
+			if (x_mode) {
+				memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 			}
 		}
 
@@ -5293,11 +5293,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	SET_THETA_MODE;
 	if (x && x_mode) {
 		memcpy(x, x_mode, graph->n * sizeof(double));
-
-		if (0) {
-			for (i = 0; i < graph->n; i++)
-				printf("xmode[%1d] = %.12g\n", i, x_mode[i]);
-		}
 	}
 
 	if (misc_output) {
