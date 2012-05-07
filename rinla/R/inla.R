@@ -783,17 +783,17 @@
     } 
     
     ## control predictor section
-    cont.pred = inla.set.control.predictor.default()
-    cont.pred[names(control.predictor)] = control.predictor
+    cont.predictor = inla.set.control.predictor.default()
+    cont.predictor[names(control.predictor)] = control.predictor
 
-    cont.pred$hyper = inla.set.hyper("predictor", "predictor",
-            cont.pred$hyper, cont.pred$initial,
-            cont.pred$fixed, cont.pred$prior, cont.pred$param)
+    cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
+            cont.predictor$hyper, cont.predictor$initial,
+            cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     if (cont.compute$cpo || cont.compute$dic) 
-        cont.pred$compute=TRUE
+        cont.predictor$compute=TRUE
     if (only.hyperparam) {
-        cont.pred$compute = cont.pred$return.marginals = FALSE
-        cont.pred$cdf = cont.pred$quantiles = NULL
+        cont.predictor$compute = cont.predictor$return.marginals = FALSE
+        cont.predictor$cdf = cont.predictor$quantiles = NULL
     }
     
     ## control inla
@@ -848,8 +848,8 @@
     }
     
     ## control results
-    cont.result = inla.set.control.results.default()
-    cont.result[names(control.results)] = control.results
+    cont.results = inla.set.control.results.default()
+    cont.results[names(control.results)] = control.results
     
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
@@ -1073,11 +1073,11 @@
     }
 
     inla.predictor.section(file=file.ini, n=NPredictor, m=MPredictor,
-                           predictor.spec=cont.pred, file.offset=file.offset, data.dir = data.dir)
+                           predictor.spec=cont.predictor, file.offset=file.offset, data.dir = data.dir)
 
     ##
     all.labels = character(0)
-    if (!is.null(cont.pred$compute) && cont.pred$compute)
+    if (!is.null(cont.predictor$compute) && cont.predictor$compute)
         all.labels = c(all.labels,"predictor")
 
     ##FIXED EFFECTS
@@ -1753,7 +1753,7 @@
         my.time.used[3] = Sys.time()
 
         if (echoc==0) {
-            ret = try(inla.collect.results(results.dir, control.results=cont.result, debug=debug,
+            ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
                     only.hyperparam=only.hyperparam), silent=TRUE)
             if (!is.list(ret)) {
                 ret = list()
@@ -1767,74 +1767,33 @@
                     "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
-            ret$lincomb = lincomb
 
-            ret$control.compute=cont.compute
-            ret$control.predictor=cont.pred
-            ret$control.lincomb = control.lincomb
-
-            if (TRUE) {
-                ## do this instead. until the c(param = numeric(0)) issue is solved. 
-                ret$control.data = control.data.orig
-                if (n.family > 1L) {
-                    ## we need to fix the case where there this option
-                    ## is not set. otherwise, we will get list(),
-                    ## instead of list(list(), list()), say, for
-                    ## n.family=2
-                    if (is.list(ret$control.data) && length(ret$control.data) == 0L) {
-                        ret$control.data = lapply(1:n.family, function(x) list())
-                    }
-                }
-            } else {
-                stop("THIS SHOULD NOT HAPPEN.")
-                if (n.family == 1) {
-                    ret$control.data=cont.data[[1]]
-                } else {
-                    ret$control.data=cont.data
-                }
+            ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
+            the.args = list()
+            for (nm in names(formals(inla))) {
+                nnm = nm
+                nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
+                nnm = gsub("^data$", "data.orig", nnm) 
+                nnm = gsub("^formula$", "formula.orig", nnm) 
+                nnm = gsub("^cont(rol)?\\.data$", "control.data.orig", nnm)
+                inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
             }
 
-            ret$control.inla=cont.inla
-            ret$control.results = cont.result
-            ret$control.fixed = cont.fixed
-            ret$control.mode = cont.mode
-            ret$control.expert = cont.expert
-            ret$control.hazard = cont.hazard
-            ret$control.lincomb = cont.lincomb
+            ## further fix for $control.data until the c(param = numeric(0)) issue is solved. 
+            if (n.family > 1L) {
+                ## we need to fix the case where there this option is
+                ## not set. otherwise, we will get list(), instead of
+                ## list(list(), list()), say, for n.family=2
+                if (is.list(the.args$control.data) && length(the.args$control.data) == 0L) {
+                    the.args$control.data = lapply(1:n.family, function(x) list())
+                }
+            }
+            ## OLD CODE: if (n.family == 1) the.args$control.data = the.args$control.data[[1L]]
 
-            ret$call=call
-            ret$family=family
-            ret$data=data.orig
-            ret$contrasts = contrasts
-            ret$offset=offset
-            ret$Ntrials=Ntrials
-            ret$E=E
-            ret$strata=strata
-            ret$scale=scale
-            ret$weights=weights
-            ret$formula=formula.orig
-            ret$control.fixed=control.fixed
-            ret$inla.call = inla.call
-            ret$inla.arg = inla.arg
-            ret$silent = silent
-            ret$num.threads = num.threads
+            ret$.args = the.args
+            ret$call = call
             ret$model.matrix = gp$model.matrix
             
-            ## store also the default control-parameters; just in case
-            ret$.control.defaults = list(
-                    control.compute = inla.set.control.compute.default(),
-                    control.predictor = inla.set.control.predictor.default(),
-                    control.data = inla.set.control.data.default(),
-                    control.inla = inla.set.control.inla.default(),
-                    control.results = inla.set.control.results.default(),
-                    control.fixed = inla.set.control.fixed.default(),
-                    control.mode = inla.set.control.mode.default(),
-                    control.expert = inla.set.control.expert.default(),
-                    control.hazard = inla.set.control.hazard.default(),
-                    control.lincomb = inla.set.control.lincomb.default())
-            ##
-            ret$.internal = .internal
-            ##
             class(ret) = "inla"
         } else {
             ret = NULL
@@ -1850,39 +1809,8 @@
     return (ret)
 }
 
-`inla.check.inla.call` =
-    function(inla.call = inla.getOption("inla.call"))
+`inla.self.call` = function(object)
 {
-    ##
-    ## Signal an error if the inla-program cannot be started
-    ##
-
-    ok = TRUE
-    
-    ## this is a special option: inla.call = ""
-    if (is.character(inla.call) && nchar(inla.call) == 0)
-        return (ok)
-
-    if (inla.os("windows")) {
-        ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
-                wait = TRUE, input = NULL, show.output.on.console = FALSE, minimized = TRUE,
-                invisible = TRUE), silent = TRUE)
-        if (class(ret) == "try-error")
-            ok = FALSE
-    }
-    else if (inla.os("linux") || inla.os("mac")) {
-        ret = try(system(paste(shQuote(inla.call), " --ping"), intern = TRUE, ignore.stderr = TRUE,
-                wait = TRUE, input = NULL), silent = TRUE)
-        ok =  (length(grep("ALIVE", ret)) > 0 || length(grep("unknown option", ret)) > 0)
-    } else {
-        stop("Not supported OS")
-    }
-    
-    if (!ok)
-        stop(paste("\n\n***ERROR*** Cannot find the inla-program[", inla.call, "].\n",
-                   "            Please modify the [inla.call] argument\n\n", sep=""))
-
-    return (ok)
+    ## call inla() again with the same arguments as stored inside the object,  ie object$.args
+    return (do.call("inla",  args = object$.args))
 }
-
-
