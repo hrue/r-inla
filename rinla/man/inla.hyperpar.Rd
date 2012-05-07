@@ -18,7 +18,7 @@
 }
 
 \arguments{
-\item{object}{An object of class
+\item{result}{An object of class
 \code{inla},  ie a result of a call to
 \code{inla()}}
 \item{skip.configurations}{ A boolean variable; skip

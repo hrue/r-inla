@@ -1,4 +1,3 @@
-
 `print.inla` = function(x, ...)
 {
     cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
@@ -6,15 +5,15 @@
     print(x$cpu.used)
     cat("\nIntegration Strategy: ")
    
-    if(is.null(x$control.inla$int.strategy))
+    if(is.null(x$.args$control.inla$int.strategy))
         cat("DEFAULT\n\n ")
-    else if(x$control.inla$int.strategy=="EB")
+    else if(x$.args$control.inla$int.strategy=="EB")
         cat("Empirical Bayes\n\n")
-    else if(x$control.inla$int.strategy=="CCD")
+    else if(x$.args$control.inla$int.strategy=="CCD")
         cat("Central Composit Design\n\n")
-    else if(x$control.inla$int.strategy=="GRID") {
+    else if(x$.args$control.inla$int.strategy=="GRID") {
         cat("Integration on a regular grid\n")
-        cat("with parameters dz=", x$control.inla$dz," and diff.logdens=", x$control.inla$diff.logdens,"\n\n")
+        cat("with parameters dz=", x$.args$control.inla$dz," and diff.logdens=", x$.args$control.inla$diff.logdens,"\n\n")
     }
     
     cat(paste("Model contains ", x$nhyper," hyperparameters\n", sep=""))
@@ -26,16 +25,16 @@
     
     ## must check x$control.data that its a list of lists, so we can
     ## treat n.family = 1 the same was as for n.family > 1.
-    if (length(x$family) == 1) {
-        contdata = list(x$control.data)
+    if (length(x$.args$family) == 1) {
+        contdata = list(x$.args$control.data)
     } else {
-        contdata = x$control.data
+        contdata = x$.args$control.data
     }
-    for(ii in 1:length(x$family)) {
+    for(ii in 1:length(x$.args$family)) {
         cat(paste("Likelihood model",
-                  inla.ifelse(length(x$family)>1, paste("[", ii, "]", sep=""), ""),
-                  ": ", x$family[ii],"\n", sep=""))
-        prop = inla.model.properties(x$family[ii], "likelihood")
+                  inla.ifelse(length(x$.args$family)>1, paste("[", ii, "]", sep=""), ""),
+                  ": ", x$.args$family[ii],"\n", sep=""))
+        prop = inla.model.properties(x$.args$family[ii], "likelihood")
         ntheta = length(prop$hyper)
         if (ntheta > 0) {
             for (i in 1:ntheta) {
