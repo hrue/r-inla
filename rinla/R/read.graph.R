@@ -153,7 +153,7 @@
         ## remove comment lines
         s = sapply(s, function(x) return (gsub("#.*$", "", x))) #
         ## convert "1 2 3" into 1 2 3
-        s = as.integer(unlist(sapply(s, function(x) strsplit(x, " "))))
+        s = as.integer(unlist(sapply(s, function(x) strsplit(x, "[ \t]+"))))
         ## remove possibe NA's that might appear due to spaces at the end of the file
         s = s[!is.na(s)]
     
