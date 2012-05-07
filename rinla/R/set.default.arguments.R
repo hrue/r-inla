@@ -250,8 +250,8 @@
             ##:ARGUMENT: adapt.hessian.mode A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)
             adapt.hessian.mode = NULL,
 
-            ##:ARGUMENT: adapt.hessian.max.trails Number of steps in the adaptive Hessian optimisation
-            adapt.hessian.max.trails = NULL,
+            ##:ARGUMENT: adapt.hessian.max.trials Number of steps in the adaptive Hessian optimisation
+            adapt.hessian.max.trials = NULL,
 
             ##:ARGUMENT: adapt.hessian.scale The scaling of the 'h' after each trial.
             adapt.hessian.scale = NULL,
