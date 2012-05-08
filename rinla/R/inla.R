@@ -1059,7 +1059,7 @@
     if (!is.null(offset.sum)) {
         if (any(is.na(offset.sum)))
             stop("\n\tNo NA values allowed in the offset vector!")
-        os = cbind(indD, offset.sum)
+        os = cbind(indN, offset.sum)
         file.offset = inla.tempfile(tmpdir=data.dir)
         if (inla.getOption("internal.binary.mode")) {
             inla.write.fmesher.file(as.matrix(os), filename=file.offset, debug = debug)
