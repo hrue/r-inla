@@ -117,7 +117,7 @@ int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 	(*optpar)->nr_step_factor = 1.0;
 	(*optpar)->nsearch_dir = 1;
 	(*optpar)->restart_interval = 10;
-	(*optpar)->max_iter = 25;
+	(*optpar)->max_iter = 50;
 	(*optpar)->fixed_iter = 0;
 	(*optpar)->max_linesearch_iter = 50;
 	(*optpar)->step_len = GMRFLib_eps(0.25);
