@@ -51,8 +51,6 @@
         cat("Expected number of effective parameters(std dev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
             format(x$neffp[2], digits=digits, nsmall=2),")\n", sep="")
         cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n")
-        if(x$neffp[3]<2)
-            cat("WARNING: The approximations could be not very accurate\n")
         cat("\n")
     } else {
         cat("Expected number of effective parameters and Number of equivalent replicates not computed\n")
@@ -67,7 +65,6 @@
      
     if (inla.is.element("mlik", x)) {
         cat(paste("Marginal Likelihood: ", format(x$mlik[2], digits=digits, nsmall=2),"\n"))
-        cat("Warning: Interpret the marginal likelihood with care if the prior model is improper.\n")
     }
 
     if (inla.is.element("cpo", x)) {
@@ -79,4 +76,3 @@
         cat("Posterior marginals for linear predictor and fitted values computed\n\n")
     }
 }
-
