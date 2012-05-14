@@ -449,6 +449,7 @@ inla.spde.make.A =
 rbind.inla.data.stack.info = function(...)
 {
     l = list(...)
+    names(l) = NULL
     names.tmp = do.call(c, lapply(l, function(x) x$names))
     ncol.tmp = do.call(c, lapply(l, function(x) x$ncol))
 
