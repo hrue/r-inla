@@ -2715,6 +2715,7 @@ inla.models()
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit probit cloglog log'}
 								\item{pdf = }{`binomialtest'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
@@ -2939,6 +2940,7 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`mefixedeffect'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
@@ -2977,6 +2979,7 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`iidgamma'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
@@ -3015,6 +3018,7 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit'}
 								\item{pdf = }{`iidlogitbeta'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
@@ -3065,6 +3069,7 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`sas'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
