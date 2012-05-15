@@ -388,7 +388,9 @@ typedef enum {
 	P_EXPRESSION,
 	P_JEFFREYS_T_DF,
 	G_EXCHANGEABLE,					       /* group models */
-	G_AR1
+	G_AR1,
+	G_RW1,
+	G_RW2
 } inla_component_tp;
 
 
@@ -498,6 +500,8 @@ typedef struct {
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
 	double **group_rho_intern;
+	double **group_prec_intern;
+	GMRFLib_rwdef_tp *rwdef;
 } inla_group_def_tp;
 
 typedef struct {
