@@ -2148,6 +2148,36 @@
                                       from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                                       )
                               )
+                      ),
+
+              rw1 = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      prior = "loggamma",
+                                      param = c(1, 0.00005),
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              )
+                      ), 
+
+              rw2 = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      prior = "loggamma",
+                                      param = c(1, 0.00005),
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              )
                       )
               )
          )

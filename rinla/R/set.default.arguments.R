@@ -19,19 +19,19 @@
 {
     ##:NAME: control.group
     list(
-         ##:ARGUMENT: model Group model (one of 'exchangable' or 'ar1')
+         ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'rw1' or 'rw2')
          model = "exchangeable",
 
          ##:ARGUMENT: hyper Definition of the hyperparameter(s)
          hyper = NULL,
 
-         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation in the internal scale.
+         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.
          initial = NULL,
 
-         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction is assumed to be fixed or random.
+         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.
          fixed = NULL,
 
-         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation in the internal scale
+         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale
          prior = NULL,
 
          ##:ARGUMENT: param (OBSOLETE!) Prior parameters

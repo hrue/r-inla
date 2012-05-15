@@ -8,11 +8,11 @@
 inla(formula, ..., control.group=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
-\item{model}{  Group model (one of 'exchangable' or 'ar1')}
+\item{model}{  Group model (one of 'exchangable', 'ar1', 'rw1' or 'rw2')}
 \item{hyper}{  Definition of the hyperparameter(s)}
-\item{initial}{  (OBSOLETE!) The initial value for the group correlation in the internal scale.}
-\item{fixed}{  (OBSOLETE!) A boolean variable if the group correction is assumed to be fixed or random.}
-\item{prior}{  (OBSOLETE!) The name of the prior distribution for the group correlation in the internal scale}
+\item{initial}{  (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.}
+\item{fixed}{  (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}
+\item{prior}{  (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale}
 \item{param}{  (OBSOLETE!) Prior parameters}
 }
 \seealso{

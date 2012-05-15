@@ -15,7 +15,7 @@ The negative Binomial distribution is
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots$, where
 \begin{description}
-\item[$n$:] number of successful trials, or dispersion
+\item[$n$:] number of successful trials (\emph{size}), or dispersion
     parameter. Must be strictly positive, need not be integer.
 \item[$p$:] probability of success in each trial.
 \end{description}
@@ -30,13 +30,13 @@ and the mean is linked to the linear predictor by
 \begin{displaymath}
     \mu = E \exp(\eta)
 \end{displaymath}
-where the hyperparameter $n$ (or the \emph{size}) plays the role of an
+where the hyperparameter $n$ (\emph{size}) plays the role of an
 overdispersion parameter. $E$ represents knows constant and $\log(E)$
 is the offset of $\eta$.
 
 \subsection*{Hyperparameters}
 
-The overdispersion parameter $n$ is represented as
+The overdispersion parameter $n$ (\emph{size}) is represented as
 \begin{displaymath}
     \theta = \log(n)
 \end{displaymath}
