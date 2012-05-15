@@ -1121,7 +1121,7 @@ double Qfunc_bym(int i, int j, void *arg)
 double Qfunc_group(int i, int j, void *arg)
 {
 	inla_group_def_tp *a = (inla_group_def_tp *) arg;
-	double rho, val, fac, ngroup;
+	double rho = 0, val, fac, ngroup, prec = 0;
 	int igroup, irem, jgroup, jrem, n;
 
 	if (a->type == G_EXCHANGEABLE) {
@@ -1129,6 +1129,8 @@ double Qfunc_group(int i, int j, void *arg)
 		rho = map_group_rho(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
 	} else if (a->type == G_AR1) {
 		rho = map_rho(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	} else if (a->type == G_RW1 || a->type == G_RW2) {
+		prec = map_precision(a->group_prec_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	} else {
 		inla_error_general("This should not happen.");
 		abort();
@@ -1152,6 +1154,8 @@ double Qfunc_group(int i, int j, void *arg)
 			} else {
 				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
 			}
+		} else if (a->type == G_RW1 || a->type == G_RW2) {
+			fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
 		} else {
 			inla_error_general("This should not happen.");
 			abort();
@@ -1163,6 +1167,8 @@ double Qfunc_group(int i, int j, void *arg)
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else if (a->type == G_AR1) {
 			fac = -rho / (1.0 - SQR(rho));
+		} else if (a->type == G_RW1 || a->type == G_RW2) {
+			fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
 		} else {
 			inla_error_general("This should not happen.");
 			abort();
@@ -1172,7 +1178,7 @@ double Qfunc_group(int i, int j, void *arg)
 	}
 
 	if (0) {
-		printf("rho %g %d %d %g\n", rho, i, j, val);
+		printf("rho %g prec %g %d %d %g\n", rho, prec, i, j, val);
 		{
 			static int c = 1;
 			c++;
@@ -1202,6 +1208,18 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 		}
+	} else if (type == G_RW1) {
+		assert(ngroup >= 2);
+		for (i = 0; i < ngroup - 1; i++) {
+			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
+		}
+	} else if (type == G_RW2) {
+		assert(ngroup >= 3);
+		for (i = 0; i < ngroup - 2; i++) {
+			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
+			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 2) * n);
+		}
+		GMRFLib_ged_insert_graph2(ged, graph, (ngroup - 2) * n, (ngroup - 1) * n);
 	} else {
 		inla_error_general("This should not happen");
 		abort();
@@ -1212,7 +1230,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 	GMRFLib_ged_build(new_graph, ged);
 	GMRFLib_ged_free(ged);
 
-	// GMRFLib_print_graph(stdout, new_graph[0]);
+	GMRFLib_print_graph(stdout, new_graph[0]);
 
 	return GMRFLib_SUCCESS;
 }
@@ -2649,7 +2667,7 @@ int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, doub
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx))/beta);
+			ypred = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)) / beta);
 			// the '-log(|beta|)' is the Jacobian from going from (x, beta) to (u, beta), where u=beta*x.
 			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - prec * SQR(y - ypred)) - log(ABS(beta));
 		}
@@ -2961,7 +2979,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			y_std = (y - ypred) * fac;
-			//logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
+			// logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
 			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * gsl_log1p(SQR(y_std) / dof) + log(fac);
 		}
 	} else {
@@ -9284,8 +9302,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	int i, j, k, jj, nlocations, nc, n = 0, s = 0, itmp, id, bvalue = 0, fixed;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
-	    **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL,
-	    **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd;
+	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
+	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -9414,6 +9432,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(beta_intern, 0.0);
 	HYPER_NEW(beta, 1.0);
 	HYPER_NEW(group_rho_intern, 0.0);
+	HYPER_NEW(group_prec_intern, 0.0);
 	HYPER_NEW(h2_intern, 0.0);
 	HYPER_NEW(a_intern, 0.0);
 	HYPER_NEW(log_diag, 0.0);
@@ -12139,6 +12158,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_group_model[mb->nf] = G_EXCHANGEABLE;
 			} else if (!strcasecmp(ptmp, "AR1")) {
 				mb->f_group_model[mb->nf] = G_AR1;
+			} else if (!strcasecmp(ptmp, "RW1")) {
+				mb->f_group_model[mb->nf] = G_RW1;
+			} else if (!strcasecmp(ptmp, "RW2")) {
+				mb->f_group_model[mb->nf] = G_RW2;
 			} else {
 				GMRFLib_sprintf(&msg, "%s: Unknown GROUP.TYPE: %s\n", secname, ptmp);
 				inla_error_general(msg);
@@ -12155,10 +12178,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], mb->f_ntheta[mb->nf] + 1, double);
 			SetInitial(mb->f_ntheta[mb->nf], tmp);
-			HYPER_INIT(group_rho_intern, tmp);
-			if (mb->verbose) {
-				printf("\t\tinitialise group_rho_intern[%g]\n", tmp);
-				printf("\t\tgroup.fixed=[%1d]\n", fixed);
+			if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+				HYPER_INIT(group_rho_intern, tmp);
+				if (mb->verbose) {
+					printf("\t\tinitialise group_rho_intern[%g]\n", tmp);
+					printf("\t\tgroup.fixed=[%1d]\n", fixed);
+				}
+			} else {
+				HYPER_INIT(group_prec_intern, tmp);
+				if (mb->verbose) {
+					printf("\t\tinitialise group_prec_intern[%g]\n", tmp);
+					printf("\t\tgroup.fixed=[%1d]\n", fixed);
+				}
 			}
 			// P(mb->nf);
 			// P(mb->f_ntheta[mb->nf]);
@@ -12168,13 +12199,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], mb->f_ntheta[mb->nf] + 1, int);
 			mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], mb->f_ntheta[mb->nf] + 1, Prior_tp);
 
-			mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_rho_intern;
+			if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+				mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_rho_intern;
+			} else {
+				mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_prec_intern;
+			}
+
 			mb->f_fixed[mb->nf][mb->f_ntheta[mb->nf]] = fixed;
 
-			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
+			if (mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
 				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
-			} else if (!strcasecmp(ptmp, "AR1")) {
+			} else if (mb->f_group_model[mb->nf] == G_AR1) {
 				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-rho");
+			} else if (mb->f_group_model[mb->nf] == G_RW1) {
+				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA");
+			} else if (mb->f_group_model[mb->nf] == G_RW2) {
+				inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA");
 			} else {
 				abort();
 			}
@@ -12188,13 +12228,28 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&msg, "Group rho_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
-				mb->theta_tag[mb->ntheta] = msg;
-				GMRFLib_sprintf(&msg, "GroupRho for %s", (secname ? secname : mb->f_tag[mb->nf]));
-				mb->theta_tag_userscale[mb->ntheta] = msg;
+
+
+				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+					GMRFLib_sprintf(&msg, "Group rho_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "GroupRho for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+				} else {
+					GMRFLib_sprintf(&msg, "Group prec_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "GroupPrec for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+				}
+
 				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], mb->f_ntheta[mb->nf] - 1);
 				mb->theta_dir[mb->ntheta] = msg;
-				mb->theta[mb->ntheta] = group_rho_intern;
+				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+					mb->theta[mb->ntheta] = group_rho_intern;
+				} else {
+					mb->theta[mb->ntheta] = group_prec_intern;
+				}
+
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 
@@ -12209,6 +12264,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				} else if (mb->f_group_model[mb->nf] == G_AR1) {
 					mb->theta_map[mb->ntheta] = map_rho;
+					mb->theta_map_arg[mb->ntheta] = NULL;
+				} else if (mb->f_group_model[mb->nf] == G_RW1 || mb->f_group_model[mb->nf] == G_RW2) {
+					mb->theta_map[mb->ntheta] = map_precision;
 					mb->theta_map_arg[mb->ntheta] = NULL;
 				} else {
 					inla_error_general("this should not happen");
@@ -12267,6 +12325,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			def->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
 			mb->f_Qfunc_arg[mb->nf] = (void *) def;
 			def->group_rho_intern = group_rho_intern;
+			def->group_prec_intern = group_prec_intern;
+			if (mb->f_group_model[mb->nf] == G_RW1 || mb->f_group_model[mb->nf] == G_RW2) {
+				def->rwdef = Calloc(1, GMRFLib_rwdef_tp);
+				def->rwdef->n = ng;
+				def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
+				def->rwdef->cyclic = GMRFLib_FALSE;
+				def->rwdef->si = GMRFLib_FALSE;
+				def->rwdef->prec = Calloc(1, double);
+				def->rwdef->prec[0] = 1.0;
+				def->rwdef->log_prec = def->rwdef->log_prec_omp = NULL;
+			} else {
+				def->rwdef = NULL;
+			}
 		}
 
 		/*
@@ -12697,7 +12768,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSF"), mb->ai_par->domin_epsf);
 	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSF"), mb->ai_par->domin_epsf);
 	// as this means the rounding error... in domin()
-	//mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->domin_epsf);
+	// mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->domin_epsf);
 
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSG"), mb->ai_par->domin_epsg);
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSG"), mb->ai_par->domin_epsg);
@@ -12737,7 +12808,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE.KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
 
-	if (mb->verbose > 1){
+	if (mb->verbose > 1) {
 		ctmp = GMRFLib_strdup("STDOUT");
 	} else {
 		ctmp = NULL;
@@ -13177,7 +13248,7 @@ double extra(double *theta, int ntheta, void *argument)
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-	    h2_intern, phi, phi_intern, a_intern, n = NAN, dof_intern, logdet;
+	    h2_intern, phi, phi_intern, a_intern, n = NAN, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN;
 
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
@@ -13194,38 +13265,41 @@ double extra(double *theta, int ntheta, void *argument)
 		N_orig = mb->f_N[i]/ngroup;				\
 		rankdef_orig = mb->f_rankdef[i]/ngroup;			\
 		if (!mb->f_fixed[i][_nt_]){				\
-			group_rho_intern = theta[count];		\
+			group_rho_intern = group_prec_intern = theta[count]; \
 			count++;					\
 			if (mb->f_group_model[i] == G_EXCHANGEABLE){	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				if(0)normc_g = -(N_orig - rankdef_orig)/2.0 * log(fabs((1.0+(ngroup - 1.0) * group_rho)*pow(group_rho - 1.0, ngroup - 1.0))); \
 				normc_g = -(N_orig - rankdef_orig)/2.0 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
+				normc_g += ngroup*LOG_NORMC_GAUSSIAN;	\
+				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
 				normc_g = -(N_orig - rankdef_orig)/2.0 * (ngroup - 1.0) * log(1.0 - SQR(group_rho)); \
-			}						\
-			else						\
+				normc_g += ngroup*LOG_NORMC_GAUSSIAN;	\
+				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
+			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2) { \
+				double grankdef = (mb->f_group_model[i] == G_RW1 ? 1.0 : 2.0); \
+				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
+				normc_g = (N_orig - rankdef_orig)/2.0 * (ngroup - grankdef) * log(group_prec); \
+				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_prec_intern); \
+			} else {					\
 				abort();				\
-			normc_g += ngroup*LOG_NORMC_GAUSSIAN;			\
-			val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
+			}						\
 		} else {						\
-			group_rho_intern = mb->f_theta[i][_nt_][GMRFLib_thread_id][0]; \
+			group_rho_intern = group_prec_intern= mb->f_theta[i][_nt_][GMRFLib_thread_id][0]; \
 			if (mb->f_group_model[i] == G_EXCHANGEABLE){	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
+				GMRFLib_ASSERT_RETVAL(group_rho >= -1.0/(ngroup - 1.0), GMRFLib_EPARAMETER, 0.0); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-			}						\
-			else						\
+			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2) { \
+				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
+			} else {					\
 				abort();				\
-			normc_g = 0.0;					\
-			GMRFLib_ASSERT_RETVAL(group_rho >= -1.0/(ngroup - 1.0), GMRFLib_EPARAMETER, 0.0); \
-		}							\
-		if (0){							\
-			if (group_rho <= -1.0/(ngroup - 1.0)){		\
-				normc_g += PENALTY;			\
 			}						\
+			normc_g = 0.0;					\
 		}							\
 	} else {							\
 		group_rho = group_rho_intern = 0.0;			\
@@ -13235,7 +13309,6 @@ double extra(double *theta, int ntheta, void *argument)
 		N_orig = mb->f_N[i];					\
 		rankdef_orig = mb->f_rankdef[i];			\
 	}
-
 
 	mb = (inla_tp *) argument;
 	n = mb->predictor_n;
