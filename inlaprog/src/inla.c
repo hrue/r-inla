@@ -14029,14 +14029,22 @@ double extra(double *theta, int ntheta, void *argument)
 			count += spde2_ntheta;		       /* as SET_GROUP_RHO need 'count' */
 			SET_GROUP_RHO(spde2_ntheta);
 
-			static GMRFLib_problem_tp *problem = NULL;
+			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL){
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+			GMRFLib_init_problem(&problem[i], NULL, NULL, NULL, NULL,
 					     spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
-					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
+					     (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * ngroup + normc_g);
 
 			/*
 			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
