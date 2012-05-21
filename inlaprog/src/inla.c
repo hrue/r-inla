@@ -13990,14 +13990,23 @@ double extra(double *theta, int ntheta, void *argument)
 
 			SET_GROUP_RHO(IMAX(4, nT + nK + 1));
 
-			static GMRFLib_problem_tp *problem = NULL;
+			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL){
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			GMRFLib_init_problem(&problem[i], NULL, NULL, NULL, NULL,
 					     spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
-					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
-			GMRFLib_evaluate(problem);
-			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
+					     (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * ngroup + normc_g);
 
 			if (nT) {
 				spde->Tmodel->theta_extra[GMRFLib_thread_id] = NULL;
