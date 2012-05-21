@@ -13996,7 +13996,7 @@ double extra(double *theta, int ntheta, void *argument)
 			if (problem == NULL) {
 #pragma omp critical
 				{
-					if (problem == NULL){
+					if (problem == NULL) {
 						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 					}
 				}
@@ -14044,7 +14044,7 @@ double extra(double *theta, int ntheta, void *argument)
 			if (problem == NULL) {
 #pragma omp critical
 				{
-					if (problem == NULL){
+					if (problem == NULL) {
 						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 					}
 				}
