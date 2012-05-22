@@ -1230,7 +1230,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 	GMRFLib_ged_build(new_graph, ged);
 	GMRFLib_ged_free(ged);
 
-	GMRFLib_print_graph(stdout, new_graph[0]);
+	//GMRFLib_print_graph(stdout, new_graph[0]);
 
 	return GMRFLib_SUCCESS;
 }
