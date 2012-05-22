@@ -26,7 +26,6 @@
 ##! Q = inla.as.dgTMatrix(Q %*% t(Q))
 ##! B = matrix(runif(n^2 -n), n, n-1)
 ##! A = inla.qsolve(Q, B)
-##! print(sum(abs(Q %*% A - B)))
 ##!}
 
 `inla.qsolve` = function(Q, B)
