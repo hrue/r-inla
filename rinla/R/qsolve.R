@@ -11,24 +11,23 @@
 ##! }
 ##! 
 ##! \arguments{
-##! 
 ##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix  or a filename
 ##!            containing the matrix.}
 ##!   \item{B}{The right hand side matrix. (Must be a matrix even if ncol is 1.)}
-##! \value{
-##!   \code{inla.qsolve} returns a matrix A,  which is the solution of QA=B.
-##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##!}
+##!\value{
+##!  \code{inla.qsolve} returns a matrix A,  which is the solution of QA=B.
+##!}
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! 
-##! \examples{
+##!\examples{
 ##! n = 5
-##! Q = matrix(runif(n^2), n, n);
+##! Q = matrix(runif(n^2), n, n)
 ##! Q = inla.as.dgTMatrix(Q %*% t(Q))
 ##! B = matrix(runif(n^2 -n), n, n-1)
 ##! A = inla.qsolve(Q, B)
 ##! print(sum(abs(Q %*% A - B)))
-##! 
-##! }
+##!}
 
 `inla.qsolve` = function(Q, B)
 {
