@@ -1230,7 +1230,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 	GMRFLib_ged_build(new_graph, ged);
 	GMRFLib_ged_free(ged);
 
-	//GMRFLib_print_graph(stdout, new_graph[0]);
+	// GMRFLib_print_graph(stdout, new_graph[0]);
 
 	return GMRFLib_SUCCESS;
 }
@@ -14002,9 +14002,56 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			GMRFLib_init_problem(&problem[i], NULL, NULL, NULL, NULL,
-					     spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
-					     (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(spde->graph->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
+							      (problem[i] ==
+							       NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+				switch(retval){
+				case GMRFLib_EPOSDEF: 
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.5);
+
+					for (ii = 0; ii < spde->graph->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+				case GMRFLib_SUCCESS: 
+					ok = 1;
+					break;
+
+				default: 
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
 			GMRFLib_evaluate(problem[i]);
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * ngroup + normc_g);
 
@@ -14049,9 +14096,58 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 			}
-			GMRFLib_init_problem(&problem[i], NULL, NULL, NULL, NULL,
-					     spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
-					     (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(spde2->graph->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM :
+							       GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+				switch(retval){
+				case GMRFLib_EPOSDEF: 
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.5);
+
+					for (ii = 0; ii < spde2->graph->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+				
+				case GMRFLib_SUCCESS: 
+					ok = 1;
+					break;
+
+				default: 
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
 			GMRFLib_evaluate(problem[i]);
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * ngroup + normc_g);
 

@@ -114,8 +114,8 @@ const char *GMRFLib_error_reason(int errorno)
 #define NMSG 25
 	static const char *reasons[NMSG] = { "No error, please ignore",
 		"Alloc failed",
-		"Matrix is not positive definite",
-		"Matrix is singular",
+		"Matrix is not (numerical) positive definite",
+		"Matrix is (numerical) singular",
 		"Invalid argument or argument combination",
 		"Graph is invalid",
 		"Error reordering the graph",
