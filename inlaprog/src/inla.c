@@ -17974,6 +17974,40 @@ int inla_qinv(const char *filename, const char *outfilename)
 
 	return 0;
 }
+int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename)
+{
+	/*
+	 * Solve Q A = B, 
+	 */
+
+	GMRFLib_tabulate_Qfunc_tp *tab;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_problem_tp *problem;
+	int i;
+	
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
+	if (G.reorder < 0) {
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+
+	/* 
+	   I need B to be dense
+	 */
+	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
+	assert(B->i == NULL);				       /* I want B as dense matrix */
+	assert(problem->n == B->nrow);
+	
+#pragma omp parallel for private(i)
+	for(i = 0; i < B->ncol; i++) {
+		GMRFLib_solve_llt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+	}
+
+	B->iA = NULL;
+	GMRFLib_write_fmesher_file(B, Afilename, (long int) 0, -1);
+
+	return 0;
+}
 int inla_finn(const char *filename)
 {
 	/*
@@ -18227,6 +18261,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_HYPER;
 			} else if (!strncasecmp(optarg, "QINV", 4)) {
 				G.mode = INLA_MODE_QINV;
+			} else if (!strncasecmp(optarg, "QSOLVE", 6)) {
+				G.mode = INLA_MODE_QSOLVE;
 			} else if (!strncasecmp(optarg, "FINN", 4)) {
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
@@ -18350,6 +18386,10 @@ int main(int argc, char **argv)
 	 */
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind], argv[optind + 1]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_QSOLVE) {
+		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {
