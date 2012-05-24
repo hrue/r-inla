@@ -23,7 +23,7 @@
 ##!\examples{
 ##! n = 5
 ##! Q = matrix(runif(n^2), n, n)
-##! Q = inla.as.dgTMatrix(Q %*% t(Q))
+##! Q = inla.as.dgTMatrix(Q \%*\% t(Q))
 ##! B = matrix(runif(n^2 -n), n, n-1)
 ##! A = inla.qsolve(Q, B)
 ##!}
