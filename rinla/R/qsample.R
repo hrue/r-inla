@@ -31,9 +31,7 @@
 ##! matplot(x)
 ##!}
 
-`inla.qsample` = function(n = 1L, Q,
-        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc", "amdbarc"),
-        seed = 0L)
+`inla.qsample` = function(n = 1L, Q, reordering = inla.reorderings(), seed = 0L)
 {
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
