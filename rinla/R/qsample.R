@@ -1,0 +1,77 @@
+##! \name{qsample}
+##! \alias{inla.qsample}
+##! \alias{qsample}
+##! 
+##! \title{Generate samples from a GMRF using the GMRFLib implementation}
+##! 
+##! \description{This function generate samples from a GMRF using the GMRFLib implementation}
+##! \usage{
+##!     inla.qsample(n, Q, reordering = "auto",  seed = 0L)
+##! }
+##! 
+##! \arguments{
+##!   \item{n}{Number of samples}
+##!   \item{Q}{The precision matrix or a filename containing it.}
+##!   \item{reordering}{The type of reordering algorithm to be used,  one of
+##!        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc", or
+##!        the output from \code{inla.qreordering(Q)}.
+##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
+##!   \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
+##!}
+##!\value{
+##!  \code{inla.qsample} returns a matrix where each column is a sample.
+##!}
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##! 
+##!\examples{
+##! g = system.file("demodata/germany.graph", package="INLA")
+##! G = inla.graph2matrix(g)
+##! diag(G) = dim(G)[1L]
+##! x = inla.qsample(10, G)
+##! matplot(x)
+##!}
+
+`inla.qsample` = function(n = 1L, Q,
+        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc", "amdbarc"),
+        seed = 0L)
+{
+    stopifnot(!missing(Q))
+    stopifnot(n >= 1L)
+
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering = reordering$name
+    }
+    reordering = match.arg(reordering)
+
+    Q = inla.sparse.check(Q)
+    if (is(Q, "dgTMatrix")) {
+        Q.file = inla.sparse2file(Q, c.indexing = TRUE)
+        remove = TRUE
+    } else if (is.character(Q)) {
+        Q.file = Q
+        remove = FALSE
+    } else {
+        stop("This should not happen.")
+    }
+
+    x.file = inla.tempfile()
+    if (inla.os("linux") || inla.os("mac")) {
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample", 
+                "-r", reordering, "-z", seed, Q.file, x.file, n), intern=TRUE)
+    } else if(inla.os("windows")) {
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
+                "-r", reordering, "-z", seed, Q.file, x.file, n), intern=TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
+
+    if (remove) {
+        unlink(Q.file)
+    }
+
+    x = inla.read.fmesher.file(x.file)
+    unlink(x.file)
+    
+    return (x)
+}
