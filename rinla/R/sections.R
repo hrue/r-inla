@@ -190,7 +190,7 @@
             cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
         } else {
             file.C = inla.tempfile(tmpdir=data.dir)
-            inla.sparse2file(random.spec$Cmatrix, file.C, c.indexing = TRUE, symmetric = TRUE)
+            inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
             file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
             cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
         }
@@ -442,7 +442,7 @@
         
         file.A=inla.tempfile(tmpdir=data.dir)
         Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x, index1=TRUE, dims=c(n+m, n+m))
-        inla.sparse2file(Aext, filename = file.A, c.indexing = TRUE, symmetric = TRUE)
+        inla.write.fmesher.file(Aext, filename = file.A)
 
         stopifnot(dim(Aext)[1] == m+n)
         stopifnot(dim(Aext)[2] == m+n)
