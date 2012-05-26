@@ -11,13 +11,17 @@
  \description{This routine use the GMRFLib implementation
               to solve linear systems with a SPD matrix.}
  \usage{
-     inla.qsolve(Q, B)
+     inla.qsolve(Q, B, reordering)
  }
  
  \arguments{
    \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix  or a filename
             containing the matrix.}
    \item{B}{The right hand side matrix. (Must be a matrix even if ncol is 1.)}
+   \item{reordering}{The type of reordering algorithm to be used,  one of
+        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc", or
+        the output from \code{inla.qreordering(Q)}.
+        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 }
 \value{
   \code{inla.qsolve} returns a matrix A,  which is the solution of QA=B.

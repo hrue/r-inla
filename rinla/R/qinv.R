@@ -9,13 +9,17 @@
 ##!              The diagonal and values for the neighbours in the inverse, are provided.}
 ##! 
 ##! \usage{
-##!     inla.qinv(Q)
+##!     inla.qinv(Q, reordering)
 ##! }
 ##! 
 ##! \arguments{
 ##! 
 ##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix,  or
 ##!           a (ascii-)filename with entries in the following format \code{i j Qij}.}
+##!   \item{reordering}{The type of reordering algorithm to be used,  one of
+##!        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc", or
+##!        the output from \code{inla.qreordering(Q)}.
+##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!  }
 ##! \value{
 ##!   \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
@@ -47,24 +51,30 @@
 ##! unlink(filename)
 ##! }
 
-`inla.qinv` = function(C)
+`inla.qinv` = function(Q, reordering = inla.reorderings())
 {
-    C = inla.sparse.check(C)
-    if (is(C, "dgTMatrix")) {
-        qinv.file = inla.sparse2file(C, c.indexing = TRUE, symmetric = TRUE)
+    Q = inla.sparse.check(Q)
+    if (is(Q, "dgTMatrix")) {
+        qinv.file = inla.sparse2file(Q, c.indexing = TRUE, symmetric = TRUE)
         remove = TRUE
-    } else if (is.character(C)) {
-        qinv.file = C
+    } else if (is.character(Q)) {
+        qinv.file = Q
         remove = FALSE
     } else {
         stop("This chould not happen.")
     }
         
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering = reordering$name
+    }
+    reordering = match.arg(reordering)
+
     out.file = inla.tempfile()
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file, out.file), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering, qinv.file, out.file), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", qinv.file, out.file), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering, qinv.file, out.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

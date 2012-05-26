@@ -1,19 +1,17 @@
 ## this function interface with mode = finn in the inlaprogram, which
 ## computes whatever Finn wants...
 
-`inla.finn` = function(C,
-        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc", "amdbarc"),
-        seed = 0L)
+`inla.finn` = function(Q, reordering = inla.reorderings(), seed = 0L)
 {
     reordering = match.arg(reordering)
 
-    C = inla.sparse.check(C)
+    Q = inla.sparse.check(Q)
 
-    if (is(C, "dgTMatrix")) {
-        finn.file = inla.sparse2file(C, c.indexing = TRUE)
+    if (is(Q, "dgTMatrix")) {
+        finn.file = inla.sparse2file(Q, c.indexing = TRUE)
         remove = TRUE
-    } else if (is.character(C)) {
-        finn.file = C
+    } else if (is.character(Q)) {
+        finn.file = Q
         remove = FALSE
     } else {
         stop("This should not happen.")

@@ -7,13 +7,17 @@
 ##! \description{This routine use the GMRFLib implementation
 ##!              to solve linear systems with a SPD matrix.}
 ##! \usage{
-##!     inla.qsolve(Q, B)
+##!     inla.qsolve(Q, B, reordering)
 ##! }
 ##! 
 ##! \arguments{
 ##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix  or a filename
 ##!            containing the matrix.}
 ##!   \item{B}{The right hand side matrix. (Must be a matrix even if ncol is 1.)}
+##!   \item{reordering}{The type of reordering algorithm to be used,  one of
+##!        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc", or
+##!        the output from \code{inla.qreordering(Q)}.
+##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!}
 ##!\value{
 ##!  \code{inla.qsolve} returns a matrix A,  which is the solution of QA=B.
@@ -28,7 +32,7 @@
 ##! A = inla.qsolve(Q, B)
 ##!}
 
-`inla.qsolve` = function(Q, B)
+`inla.qsolve` = function(Q, B, reordering = inla.reorderings())
 {
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
@@ -51,11 +55,17 @@
         stop("This should not happen.")
     }
         
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering = reordering$name
+    }
+    reordering = match.arg(reordering)
+
     Afile = inla.tempfile()
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", Qfile, Afile, Bfile), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",  reordering, Qfile, Afile, Bfile), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", Qfile, Afile, Bfile), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",  reordering, Qfile, Afile, Bfile), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

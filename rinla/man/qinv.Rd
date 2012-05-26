@@ -13,13 +13,17 @@
               The diagonal and values for the neighbours in the inverse, are provided.}
  
  \usage{
-     inla.qinv(Q)
+     inla.qinv(Q, reordering)
  }
  
  \arguments{
  
    \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix,  or
            a (ascii-)filename with entries in the following format \code{i j Qij}.}
+   \item{reordering}{The type of reordering algorithm to be used,  one of
+        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc", or
+        the output from \code{inla.qreordering(Q)}.
+        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
   }
  \value{
    \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
