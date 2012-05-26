@@ -193,6 +193,9 @@
 `inla.sparse2file` = function(A, filename = NULL, c.indexing = FALSE,
         binary = inla.getOption("internal.binary.mode"), symmetric = FALSE)
 {
+    ## FIXME: switch to the fmesher-binary format ONLY later, but we
+    ## need a TAG to identify such files uniquely.
+
     if (is.null(filename)) {
         filename = tempfile()
     }
@@ -235,12 +238,7 @@
 
         ## make sure that at the elements (1, 1) and (n, m) are
         ## written out (just set them to zero), so the dimension of
-        ## the matrix will be correct. In case they are there in any
-        ## case, the entries will be added up.
-        ##
-        ## FIXME: switch to the fmesher-binary format ONLY later, but
-        ## we need a TAG to identify such files uniquely.
-        ##
+        ## the matrix will be correct. 
 
         off = 1L
         Q = list(i = as.integer(c(0L + off, dims[1]-1L + off, A@i + off)),

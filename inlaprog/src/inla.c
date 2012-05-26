@@ -18008,6 +18008,37 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 	return 0;
 }
+
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples)
+{
+	int i, ns = atoi(nsamples);
+	GMRFLib_tabulate_Qfunc_tp *tab;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_problem_tp *problem;
+
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+
+	if (G.reorder < 0) {
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	M->nrow = graph->n;
+	M->ncol = ns;
+	M->elems = M->ncol * M->nrow;
+	M->A = Calloc(M->nrow * M->ncol, double);
+	
+	for(i = 0; i < ns; i++){
+		GMRFLib_sample(problem);
+		memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
+	}
+
+	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
+
+	return 0;
+}
+
 int inla_finn(const char *filename)
 {
 	/*
@@ -18031,6 +18062,32 @@ int inla_finn(const char *filename)
 	}
 	for (i = 0; i < graph->n; i++) {
 		printf("%1d\n", problem->sub_sm_fact.remap[i]);
+	}
+
+	return 0;
+}
+
+int inla_qreordering(const char *filename)
+{
+	/*
+	 * return the reordering either given or computed
+	 */
+	int i;
+	GMRFLib_tabulate_Qfunc_tp *tab;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_problem_tp *problem;
+
+	GMRFLib_read_graph(&graph, filename);
+	if (G.reorder < 0) {
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+	GMRFLib_sm_fact_tp sm_fact;
+	GMRFLib_compute_reordering(&sm_fact, graph, NULL);
+
+	printf("%s\n", GMRFLib_reorder_name(GMRFLib_reorder));
+	printf("%1d\n", GMRFLib_reorder);
+	for (i = 0; i < graph->n; i++) {
+		printf("%1d\n", sm_fact.remap[i]);
 	}
 
 	return 0;
@@ -18263,6 +18320,10 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_QINV;
 			} else if (!strncasecmp(optarg, "QSOLVE", 6)) {
 				G.mode = INLA_MODE_QSOLVE;
+			} else if (!strncasecmp(optarg, "QREORDERING", 11)) {
+				G.mode = INLA_MODE_QREORDERING;
+			} else if (!strncasecmp(optarg, "QSAMPLE", 7)) {
+				G.mode = INLA_MODE_QSAMPLE;
 			} else if (!strncasecmp(optarg, "FINN", 4)) {
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
@@ -18302,7 +18363,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'z':
-			if (G.mode != INLA_MODE_FINN) {
+			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
 				exit(1);
 			} else {
@@ -18390,6 +18451,14 @@ int main(int argc, char **argv)
 	}
 	if (G.mode == INLA_MODE_QSOLVE) {
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_QREORDERING) {
+		inla_qreordering(argv[optind]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_QSAMPLE) {
+		inla_qsample(argv[optind], argv[optind+1], argv[optind+2]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {

@@ -86,6 +86,8 @@ typedef enum {
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
 	INLA_MODE_QSOLVE, 
+	INLA_MODE_QREORDERING, 
+	INLA_MODE_QSAMPLE, 
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
 	INLA_MODE_TESTIT = 99
@@ -1033,6 +1035,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
 int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfilename);
 int inla_finn(const char *filename);
+int inla_qreordering(const char *filename);
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
