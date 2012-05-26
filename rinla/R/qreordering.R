@@ -11,7 +11,7 @@
 ##! }
 ##! 
 ##! \arguments{
-##!   \item{graph}{A (inla-)graph object, a filename containing the graph (or matrix) or a matrix defining it.}
+##!   \item{graph}{A (inla-)graph object, a filename containing the graph or a matrix/Matrix defining it.}
 ##!   \item{reordering}{The type of reordering algorithm,  one of
 ##!        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc".
 ##!        The default is "auto" which try several and find the best one.}
@@ -37,6 +37,7 @@
     reordering = match.arg(reordering)
     
     if (inla.is.matrix(graph)) {
+        graph = inla.sparse.check(graph)
         g.file = inla.write.fmesher.file(graph)
         g.remove = TRUE
     } else if (inla.is.fmesher.file(graph)) {
