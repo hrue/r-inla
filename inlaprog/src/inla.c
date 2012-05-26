@@ -18078,7 +18078,14 @@ int inla_qreordering(const char *filename)
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
 
-	GMRFLib_read_graph(&graph, filename);
+	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
+		GMRFLib_tabulate_Qfunc_tp *qtab = NULL;
+		GMRFLib_tabulate_Qfunc_from_file(&qtab, &graph, filename, -1, NULL, NULL, NULL);
+		GMRFLib_free_tabulate_Qfunc(qtab);
+	} else {
+		GMRFLib_read_graph(&graph, filename);
+	}
+
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}

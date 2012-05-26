@@ -11,13 +11,13 @@
 ##! }
 ##! 
 ##! \arguments{
-##!   \item{graph}{A (inla-)graph object, a filename containing the graph or a matrix defining it.}
+##!   \item{graph}{A (inla-)graph object, a filename containing the graph (or matrix) or a matrix defining it.}
 ##!   \item{reordering}{The type of reordering algorithm,  one of
 ##!        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc".
 ##!        The default is "auto" which try several and find the best one.}
 ##!}
 ##!\value{
-##!  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found,  the reordering code for the reordering algorithm,
+##!  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found, the reordering code for the reordering algorithm,
 ##!                          the actual reordering and its inverse.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
@@ -25,14 +25,28 @@
 ##!\examples{
 ##! g = system.file("demodata/germany.graph", package="INLA")
 ##! r = inla.qreordering(g)
+##! m = inla.graph2matrix(g)
+##! r = inla.qreordering(m)
+##! m.file = inla.write.fmesher.file(m)
+##! r = inla.qreordering(m.file)
+##! unlink(m.file)
 ##!}
 
 `inla.qreordering` = function(graph, reordering = inla.reorderings())
 {
     reordering = match.arg(reordering)
-
-    g = inla.read.graph(graph)
-    g.file = inla.write.graph(g)
+    
+    if (inla.is.matrix(graph)) {
+        g.file = inla.write.fmesher.file(graph)
+        g.remove = TRUE
+    } else if (inla.is.fmesher.file(graph)) {
+        g.file = graph
+        g.remove = FALSE
+    } else {
+        g = inla.read.graph(graph)
+        g.file = inla.write.graph(g)
+        g.remove = FALSE
+    }
 
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qreordering", 
@@ -44,7 +58,9 @@
         stop("\n\tNot supported architecture.")
     }
 
-    unlink(g.file)
+    if (g.remove) {
+        unlink(g.file)
+    }
 
     nm = as.character(s[1L])
     code = as.numeric(s[2L])
