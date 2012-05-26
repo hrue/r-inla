@@ -12334,7 +12334,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				def->rwdef->si = GMRFLib_FALSE;
 				def->rwdef->prec = Calloc(1, double);
 				def->rwdef->prec[0] = 1.0;
-				def->rwdef->log_prec = def->rwdef->log_prec_omp = NULL;
+				def->rwdef->log_prec = NULL;
+				def->rwdef->log_prec_omp = NULL;
 			} else {
 				def->rwdef = NULL;
 			}
