@@ -27,8 +27,7 @@
 ##! r = inla.qreordering(g)
 ##!}
 
-`inla.qreordering` = function(graph,
-        reordering = c("auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc", "amdbarc"))
+`inla.qreordering` = function(graph, reordering = inla.reorderings())
 {
     reordering = match.arg(reordering)
 
