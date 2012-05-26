@@ -334,7 +334,14 @@
     if (is.null(reordering)) {
         AA = list(i=A@i+1L, j=A@j+1L, values=A@x)
     } else {
-        AA = list(i=reordering[A@i+1L], j=reordering[A@j+1L], values=A@x)
+        if (is.numeric(reordering)) {
+            AA = list(i=reordering[A@i+1L], j=reordering[A@j+1L], values=A@x)
+        }
+        else if (inla.is.element("reordering", reordering)) {
+            AA = list(i=reordering$reordering[A@i+1L], j=reordering$reordering[A@j+1L], values=A@x)
+        } else {
+            stop("This should not happen.")
+        }
     }
 
     if (is.null(size)) {

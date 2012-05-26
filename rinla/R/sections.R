@@ -281,14 +281,19 @@
     }
 
     if (!is.null(inla.spec$reordering)) {
-        ## reordering could be a number -1, 0, ....  or a string.
+        ## reordering could be a number -1, 0, ....  or a string,  or the output from inla.qreordering
         r = inla.spec$reordering
+        if (is.list(r)) {
+            ## output from inla.qreordering
+            r = r$name
+        }
         if (is.character(r)) {
-            r.idx = which(tolower(r) == tolower(c("AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD")))
+            r.idx = which(tolower(r) == tolower(c("AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD",
+                                         "MMD", "AMDBAR", "AMDC", "AMDBARC")))
             if (length(r.idx) > 0) {
-                r.idx = r.idx - 2
+                r.idx = r.idx - 2L
             } else {
-                r.idx = -1
+                r.idx = -1L
             }
         } else {
             r.idx = r

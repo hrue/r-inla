@@ -14,7 +14,8 @@
 ##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{g}{An \code{inla.graph}-object}
 ##!    \item{Q}{An (possible) sparse symmtric matrix}
-##!    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}.}
+##!    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}, 
+##!                      or the result of \code{inla.qreordering}.}
 ##!    \item{factor}{A scaling of the \code{inla.graph}-object to reduce the size.}
 ##!    \item{max.dim}{Maximum dimension of the \code{inla.graph}-object plotted;
 ##!                   if \code{missing(factor)} and \code{max.dim} is set,  then \code{factor}
@@ -27,7 +28,7 @@
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{
-##!    \code{\link{inla.read.graph}}
+##!    \code{\link{inla.read.graph}}, \code{inla.qreordering}
 ##!}
 ##!\examples{
 ##!n = 50
@@ -43,6 +44,7 @@
 ##!g.file = inla.write.graph(g)
 ##!inla.dev.new()
 ##!inla.spy(g.file)
+##!inla.spy(g.file,  reordering = inla.qreordering(g))
 ##!
 ##!g = inla.read.graph(g.file)
 ##!inla.dev.new()
