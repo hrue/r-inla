@@ -36,10 +36,10 @@
 {
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        Qfile = inla.sparse2file(Q, c.indexing = TRUE, symmetric = TRUE)
+        Qfile = inla.write.fmesher.file(Q)
         Qremove = TRUE
     } else if (is.character(Q)) {
-        qsolve.file = Q
+        Qfile = Q
         Qremove = FALSE
     } else {
         stop("This should not happen.")
