@@ -55,7 +55,7 @@
 {
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        qinv.file = inla.sparse2file(Q, c.indexing = TRUE, symmetric = TRUE)
+        qinv.file = inla.write.fmesher.file(Q)
         remove = TRUE
     } else if (is.character(Q)) {
         qinv.file = Q

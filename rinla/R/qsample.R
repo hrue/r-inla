@@ -44,7 +44,7 @@
 
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        Q.file = inla.sparse2file(Q, c.indexing = TRUE)
+        Q.file = inla.write.fmesher.file(Q)
         remove = TRUE
     } else if (is.character(Q)) {
         Q.file = Q
