@@ -1771,16 +1771,24 @@ inla.mesh.1d.fem = function(mesh)
 
 
 
-require(sp)
+
+inla.mesh.fem = function(mesh, order=2)
+{
+    return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv, fem=order))
+}
+
+
 
 inla.sp2segment = function(...)
 {
+    require(sp)
     UseMethod("inla.sp2segment")
 }
 
 inla.sp2segment.SpatialPolygons =
     function(sp, ...)
 {
+    require(sp)
     segm = list()
     for (k in 1:length(sp@polygons))
         segm = c(segm, inla.sp2segment(sp@polygons[[k]]))
@@ -1790,12 +1798,14 @@ inla.sp2segment.SpatialPolygons =
 inla.sp2segment.Polygons =
     function(sp, ...)
 {
+    require(sp)
     return(as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x))))
 }
 
 inla.sp2segment.Polygon =
     function(sp, ...)
 {
+    require(sp)
     loc = sp@coords[-dim(sp@coords)[1L],,drop=FALSE]
     n = dim(loc)[1L]
     if (sp@hole)
