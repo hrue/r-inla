@@ -8,7 +8,7 @@
     C = inla.sparse.check(C)
 
     if (is(C, "dgTMatrix")) {
-        finn.file = inla.sparse2file(C, c.indexing = TRUE)
+        finn.file = inla.write.fmesher.file(C)
         remove = TRUE
     } else if (is.character(C)) {
         finn.file = C
