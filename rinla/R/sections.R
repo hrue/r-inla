@@ -344,6 +344,17 @@
         cat("global.node.degree = ", inla.spec$global.node.degree, "\n", file = file, append = TRUE)
     }
 
+    ## options related to 'stupid search'.
+    inla.write.boolean.field("stupid.search", inla.spec$stupid.search, file)
+    if (!is.null(inla.spec$stupid.search.max.iter)) {
+        cat("stupid.search.max.iter = ", as.integer(inla.spec$stupid.search.max.iter), "\n", file = file,  append = TRUE)
+    }
+    if (!is.null(inla.spec$stupid.search.factor)) {
+        fac = as.numeric(inla.spec$stupid.search.factor)
+        stopifnot(fac >= 1.0)
+        cat("stupid.search.factor = ", fac, "\n", file = file,  append = TRUE)
+    }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
