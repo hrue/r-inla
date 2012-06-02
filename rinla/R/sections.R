@@ -303,7 +303,7 @@
         cat("cpo.diff = ", inla.spec$cpo.diff, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$npoints)) {
-        cat("npoints = ", inla.spec$npoints, "\n", sep = " ", file = file,  append = TRUE)
+        cat("n.points = ", inla.spec$npoints, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(inla.spec$cutoff)) {
         cat("cutoff = ", inla.spec$cutoff, "\n", sep = " ", file = file,  append = TRUE)
