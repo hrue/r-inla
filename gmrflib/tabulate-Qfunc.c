@@ -334,6 +334,12 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		sparse = (M->i && M->j);
 		if (!sparse) {
 			assert(M->ncol == 3);
+		} else {
+			/* 
+			 * make sure to fix the dimension of the matrix
+			 */
+			assert(M->nrow == M->ncol);
+			GMRFLib_ged_add(ged, M->nrow-1,  M->ncol-1);
 		}
 		if (sparse) {
 			for (k = 0; k < M->elems; k++) {
