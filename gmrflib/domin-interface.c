@@ -607,7 +607,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 
-	h *= pow(1.01, count);				       /* increase h with the number of trials */
+	h *= pow(G.ai_par->stupid_search_factor, count);       /* increase h with the number of trials */
 	len_xx_hold = 2 * n + 1;
 	ALLOC_XX_HOLD(len_xx_hold);
 
@@ -691,13 +691,16 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min], GMRFLib_TRUE);
 	// }
 
-	if (G.ai_par->adaptive_hessian_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
+	if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
 		if (debug)
 			fprintf(stderr, "%s: (I) Mode not found sufficiently accurate %.8g %.8g\n\n", __GMRFLib_FuncName, f0, f0min);
 		f0 = f0min;
 		memcpy(x, xx_min, G.nhyper * sizeof(double));
 		*log_dens_mode = -f0;
 		ok = 0;
+		for (i = 0; i < n; i++) {
+			hessian[i + i * n] = (f1[i] - 2 * f0 + fm1[i]) / SQR(h);
+		}
 	} else {
 		/*
 		 * just set the mode to the best in any case 
@@ -778,7 +781,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			Free(idx);
 		}
 
-		if (G.ai_par->adaptive_hessian_mode && !G.ai_par->mode_known && !ISEQUAL(f_best_save, B.f_best)) {
+		if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f_best_save, B.f_best)) {
 			/*
 			 * There is a change 
 			 */

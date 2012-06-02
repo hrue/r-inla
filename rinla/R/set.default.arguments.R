@@ -292,7 +292,17 @@
             global.node.factor = 2.0, 
 
             ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
-            global.node.degree = .Machine$integer.max)
+            global.node.degree = .Machine$integer.max,
+
+            ##:ARGUMENT: stupid.search Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code {TRUE}.)
+            stupid.search = TRUE,
+            
+            ##:ARGUMENT: stupid.search.max.iter Maximum number of iterations allowed for the stupid-search-algorithm.
+            stupid.search.max.iter = 1000L, 
+
+            ##:ARGUMENT: stupid.search.factor Factor (>=1) to increase the step-length with after each new interation.
+            stupid.search.factor = 1.01)
+            
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(inla.strcasecmp(family, "gaussian")))

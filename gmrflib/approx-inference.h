@@ -450,19 +450,19 @@ typedef struct {
 	double cpo_req_diff_logdens;
 
 	/**
-	 * \brief Use adaptive estimation of the Hessian
+	 * \brief Use the stupid search algorithm
 	 */
-	int adaptive_hessian_mode;
+	int stupid_search_mode;
 
 	/**
-	 * \brief Maximum number of trials when doing adaptive estimation of the Hessian
+	 * \brief Maximum number of iterations when for the stupid search algorithm
 	 */
-	int adaptive_hessian_max_trials;
+	int stupid_search_max_iter;
 
 	/**
-	 * \brief Hessian scale of `h' for adaptive mode
+	 * \brief The scale-factor for the stupid-search algorithm
 	 */
-	double adaptive_hessian_scale;
+	double stupid_search_factor;
 
 	/**
 	 * \brief Flag for manual-cpo calculation. (Expert use only.)
