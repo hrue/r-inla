@@ -16,7 +16,7 @@
 ##! 
 ##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix,  or
 ##!           a (ascii-)filename with entries in the following format \code{i j Qij}.}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code {inla.reorderings()} 
+##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!  }

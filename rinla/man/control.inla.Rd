@@ -45,7 +45,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{step.factor}{  The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
 \item{global.node.factor}{  The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here, n, is the size of the graph. (Disabled if larger than 1.)}
 \item{global.node.degree}{  The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).}
-\item{stupid.search}{  Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code {TRUE}.)}
+\item{stupid.search}{  Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)}
 \item{stupid.search.max.iter}{  Maximum number of iterations allowed for the stupid-search-algorithm.}
 \item{stupid.search.factor}{  Factor (>=1) to increase the step-length with after each new interation.}
 }

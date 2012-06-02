@@ -16,7 +16,7 @@
  \arguments{
    \item{n}{Number of samples}
    \item{Q}{The precision matrix or a filename containing it.}
-   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code {inla.reorderings()}
+   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
    \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
