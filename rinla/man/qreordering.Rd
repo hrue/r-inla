@@ -15,10 +15,9 @@
  }
  
  \arguments{
-   \item{graph}{A (inla-)graph object, a filename containing the graph or a matrix/Matrix defining it.}
-   \item{reordering}{The type of reordering algorithm,  one of
-        "auto", "default", "identity", "band", "metis", "genmmd", "amd", "amdbar", "md", "mmd", "amdc" and "amdbarc".
-        The default is "auto" which try several and find the best one.}
+   \item{graph}{A \code{(inla-)graph} object, a filename containing the graph or a matrix/Matrix defining it.}
+   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code {inla.reorderings()}.
+        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 }
 \value{
   \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found, the reordering code for the reordering algorithm,

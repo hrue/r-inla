@@ -3358,10 +3358,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
 				break;
 			}
-			if (hess_count >= ai_par->adaptive_hessian_max_trials) {
+			if (hess_count >= count_log_dens_mode_fail_max) {
 				fprintf(stderr, "\n\n*** Mode not found using the stupid local search strategy; I give up.\n");
 				fprintf(stderr, "*** Try to modify the initial values.\n");
-				GMRFLib_ASSERT(hess_count < ai_par->adaptive_hessian_max_trials, GMRFLib_EMISC);
+				GMRFLib_ASSERT(hess_count < count_log_dens_mode_fail_max, GMRFLib_EMISC);
 			}
 		}
 
