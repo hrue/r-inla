@@ -17975,10 +17975,10 @@ int inla_qinv(const char *filename, const char *outfilename)
 
 	return 0;
 }
-int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename)
+int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method)
 {
 	/*
-	 * Solve Q A = B, 
+	 * Solve Q X = B, L^T X = B, or L X = B
 	 */
 
 	GMRFLib_tabulate_Qfunc_tp *tab;
@@ -17994,14 +17994,22 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 	/* 
 	   I need B to be dense
-	 */
+	*/
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
 	
 #pragma omp parallel for private(i)
 	for(i = 0; i < B->ncol; i++) {
-		GMRFLib_solve_llt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+		if (!strcasecmp(method, "solve")) {
+			GMRFLib_solve_llt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+		} else if (!strcasecmp(method, "forward")) {
+			GMRFLib_solve_l_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+		} else if (!strcasecmp(method, "backward")) {
+			GMRFLib_solve_lt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+		} else {
+			assert(0 == 1);
+		}
 	}
 
 	B->iA = NULL;
@@ -18129,6 +18137,9 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	FILE *fp;
 	long len;
 
+	if (!filename){
+		return NULL;
+	}
 	fp = fopen(filename, "rb");
 	if (!fp) {
 		return NULL;
@@ -18458,7 +18469,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_QSOLVE) {
-		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2]);
+		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_QREORDERING) {
