@@ -413,39 +413,14 @@
 
         ## replace NA's with zeros.
         A[ is.na(A) ] = 0.0
-        
-        ## PS: the building of Aext which follows next, could be done
-        ## easier with cBind() and rBind() [which preserve spare
-        ## matrices], which I wasn't aware of at that time.
 
-        ## The `I'
-        Aext = list(i = 1L:m, j = 1L:m, x = rep(1.0, m))
-
-        ## add -A. Ooops; the internal storage @i etc, are zero-based indexing.
-        Aext$i = c(Aext$i, (A@i+1L))
-        Aext$j = c(Aext$j, (A@j+1L) + m)
-        Aext$x = c(Aext$x, -A@x)
-
-        ## add -A^T. Ooops; the internal storage @i etc, are zero-based indexing.
-        Aext$i = c(Aext$i, (A@j+1L) + m)
-        Aext$j = c(Aext$j, (A@i+1L))
-        Aext$x = c(Aext$x, -A@x)
-
-        ## add A^T A. Ooops; the internal storage @i etc, are zero-based indexing.
-        ATA = inla.as.dgTMatrix( t(A) %*% A )
-        Aext$i = c(Aext$i, (ATA@i+1L) + m)
-        Aext$j = c(Aext$j, (ATA@j+1L) + m)
-        Aext$x = c(Aext$x, ATA@x)
-
-        stopifnot(length(Aext$i) == length(Aext$j))
-        stopifnot(length(Aext$i) == length(Aext$x))
-        
-        file.A=inla.tempfile(tmpdir=data.dir)
-        Aext = sparseMatrix(i = Aext$i, j = Aext$j, x = Aext$x, index1=TRUE, dims=c(n+m, n+m))
-        inla.write.fmesher.file(Aext, filename = file.A)
-
+        ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
+        Aext = rBind(cBind(Diagonal(m), -A), cBind(-t(A), t(A) %*% A))
         stopifnot(dim(Aext)[1] == m+n)
         stopifnot(dim(Aext)[2] == m+n)
+
+        file.A=inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(Aext, filename = file.A)
 
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
