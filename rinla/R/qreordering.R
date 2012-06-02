@@ -12,7 +12,7 @@
 ##! 
 ##! \arguments{
 ##!   \item{graph}{A \code{(inla-)graph} object, a filename containing the graph or a matrix/Matrix defining it.}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code {inla.reorderings()}.
+##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!}
 ##!\value{

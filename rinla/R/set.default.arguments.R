@@ -294,7 +294,7 @@
             ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
             global.node.degree = .Machine$integer.max,
 
-            ##:ARGUMENT: stupid.search Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code {TRUE}.)
+            ##:ARGUMENT: stupid.search Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)
             stupid.search = TRUE,
             
             ##:ARGUMENT: stupid.search.max.iter Maximum number of iterations allowed for the stupid-search-algorithm.
