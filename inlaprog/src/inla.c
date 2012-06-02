@@ -12762,50 +12762,37 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * if eps. < 0.0 then factory defaults are used. 
 	 */
-	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSX"), mb->ai_par->domin_epsx);
 	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSX"), mb->ai_par->domin_epsx);
 	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->domin_epsx);
 
-	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSF"), mb->ai_par->domin_epsf);
 	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSF"), mb->ai_par->domin_epsf);
 	// as this means the rounding error... in domin()
 	// mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->domin_epsf);
 
-	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN_EPSG"), mb->ai_par->domin_epsg);
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSG"), mb->ai_par->domin_epsg);
 	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->domin_epsg);
 
-	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "GSL_TOL"), mb->ai_par->gsl_tol);
 	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "GSL.TOL"), mb->ai_par->gsl_tol);
 
-	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "GSL_STEP_SIZE"), mb->ai_par->gsl_step_size);
 	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "GSL.STEP.SIZE"), mb->ai_par->gsl_step_size);
 
-	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSG"), mb->ai_par->gsl_epsg);
 	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSG"), mb->ai_par->gsl_epsg);
 	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->gsl_epsg);
 
-	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSF"), mb->ai_par->gsl_epsf);
 	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSF"), mb->ai_par->gsl_epsf);
 	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->gsl_epsf);
 
-	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "GSL_EPSX"), mb->ai_par->gsl_epsx);
 	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSX"), mb->ai_par->gsl_epsx);
 	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->gsl_epsx);
 
-	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR_FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
-	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
 
-	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
-	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR_ABSERR_STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 
 	mb->ai_par->optpar_nr_step_factor = iniparser_getdouble(ini, inla_string_join(secname, "NR.STEP.FACTOR"), mb->ai_par->optpar_nr_step_factor);
 
-	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE_KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE.KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
 
@@ -12814,8 +12801,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	} else {
 		ctmp = NULL;
 	}
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR_FP"), ctmp));
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR.FP"), filename));
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPTPAR.FP"), ctmp));
 
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
@@ -12871,14 +12857,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "strategy", opt);
 		}
 	}
-	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "NPOINTS"), mb->ai_par->n_points);
-	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "N_POINTS"), mb->ai_par->n_points);
-	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "N.POINTS"), mb->ai_par->n_points);
 
 	mb->ai_par->fast = iniparser_getboolean(ini, inla_string_join(secname, "FAST"), mb->ai_par->fast);
-
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR_CORRECTION"), NULL));
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), opt));
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE") || !strcasecmp(opt, "CENTRAL_DIFFERENCE")) {
 			mb->ai_par->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE;
@@ -12892,15 +12873,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "linear_correction", opt);
 		}
 	}
-	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "N_POINTS"), mb->ai_par->n_points);
 	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "N.POINTS"), mb->ai_par->n_points);
-	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP_LEN"), mb->ai_par->step_len);
+	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "NPOINTS"), mb->ai_par->n_points);
 	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
 	mb->ai_par->cutoff = iniparser_getdouble(ini, inla_string_join(secname, "CUTOFF"), mb->ai_par->cutoff);
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP_LOG"), NULL));
-	if (!filename) {
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.LOG"), NULL));
-	}
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.LOG"), NULL));
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
 			mb->ai_par->fp_log = stdout;
@@ -12922,12 +12899,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 	GMRFLib_sprintf(&defname, ".inla_hyper");
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP_HYPERPARAM"), defname));
-	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), filename));
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), defname));
 	Free(defname);
 	if (!filename) {
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP_HYPERPARAM"), NULL));
-		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), filename));
+		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.HYPERPARAM"), NULL));
 	}
 	if (filename) {
 		if (!strcasecmp(filename, "STDOUT")) {
@@ -12949,8 +12924,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			mb->ai_par->fp_hyperparam = fp;
 		}
 	}
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT_STRATEGY"), default_int_strategy));
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.STRATEGY"), opt));
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.STRATEGY"), default_int_strategy));
 	if (opt) {
 		if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_GRID") || !strcasecmp(opt, "GRID")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
@@ -12980,20 +12954,15 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	} else {
 		mb->ai_par->dz = tmp;
 	}
-	mb->ai_par->adjust_weights = iniparser_getboolean(ini, inla_string_join(secname, "ADJUST_WEIGHTS"), mb->ai_par->adjust_weights);
 	mb->ai_par->adjust_weights = iniparser_getboolean(ini, inla_string_join(secname, "ADJUST.WEIGHTS"), mb->ai_par->adjust_weights);
 
 	tmp_ref = mb->ai_par->diff_log_dens;
-	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF_LOG_DENS"), mb->ai_par->diff_log_dens);
-	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF_LOGDENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOG.DENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOGDENS"), mb->ai_par->diff_log_dens);
-	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFFLOGDENS"), mb->ai_par->diff_log_dens);
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->diff_log_dens < tmp_ref) {
 		fprintf(stderr, "*** Warning: HYPER_MODE require diff_log_dens >= %f\n", tmp_ref);
 		mb->ai_par->diff_log_dens = tmp_ref;
 	}
-	mb->ai_par->skip_configurations = iniparser_getboolean(ini, inla_string_join(secname, "SKIP_CONFIGURATIONS"), mb->ai_par->skip_configurations);
 	mb->ai_par->skip_configurations = iniparser_getboolean(ini, inla_string_join(secname, "SKIP.CONFIGURATIONS"), mb->ai_par->skip_configurations);
 
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->skip_configurations) {
@@ -13021,22 +12990,13 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * ...which is overrided by the original names 
 	 */
 	mb->ai_par->gradient_forward_finite_difference =
-	    iniparser_getboolean(ini, inla_string_join(secname, "GRADIENT_FORWARD_FINITE_DIFFERENCE"), mb->ai_par->gradient_forward_finite_difference);
-	mb->ai_par->gradient_forward_finite_difference =
 	    iniparser_getboolean(ini, inla_string_join(secname, "GRADIENT.FORWARD.FINITE.DIFFERENCE"), mb->ai_par->gradient_forward_finite_difference);
-	mb->ai_par->gradient_finite_difference_step_len =
-	    iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT_FINITE_DIFFERENCE_STEP_LEN"), mb->ai_par->gradient_finite_difference_step_len);
 	mb->ai_par->gradient_finite_difference_step_len =
 	    iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT.FINITE.DIFFERENCE.STEP.LEN"), mb->ai_par->gradient_finite_difference_step_len);
 	mb->ai_par->hessian_forward_finite_difference =
-	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN_FORWARD_FINITE_DIFFERENCE"), mb->ai_par->hessian_forward_finite_difference);
-	mb->ai_par->hessian_forward_finite_difference =
 	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORWARD.FINITE.DIFFERENCE"), mb->ai_par->hessian_forward_finite_difference);
 	mb->ai_par->hessian_finite_difference_step_len =
-	    iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN_FINITE_DIFFERENCE_STEP_LEN"), mb->ai_par->hessian_finite_difference_step_len);
-	mb->ai_par->hessian_finite_difference_step_len =
 	    iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN.FINITE.DIFFERENCE.STEP.LEN"), mb->ai_par->hessian_finite_difference_step_len);
-	mb->ai_par->hessian_force_diagonal = iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN_FORCE_DIAGONAL"), mb->ai_par->hessian_force_diagonal);
 	mb->ai_par->hessian_force_diagonal = iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
@@ -13069,9 +13029,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_general(msg);
 		}
 	}
-	mb->ai_par->do_MC_error_check = iniparser_getboolean(ini, inla_string_join(secname, "DO_MC_ERROR_CHECK"), mb->ai_par->do_MC_error_check);
 	mb->ai_par->do_MC_error_check = iniparser_getboolean(ini, inla_string_join(secname, "DO.MC.ERROR.CHECK"), mb->ai_par->do_MC_error_check);
-	mb->ai_par->compute_nparam_eff = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE_NPARAM_EFF"), mb->ai_par->compute_nparam_eff);
 	mb->ai_par->compute_nparam_eff = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE.NPARAM.EFF"), mb->ai_par->compute_nparam_eff);
 
 	if (G.mode == INLA_MODE_HYPER) {
@@ -13088,16 +13046,12 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node.factor);
-	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_FACTOR"), GMRFLib_global_node.factor);
-	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODEFACTOR"), GMRFLib_global_node.factor);
 	assert(GMRFLib_global_node.factor >= 0.0);
 	if (mb->verbose) {
 		printf("\t\tglobal_node.factor = %.3f\n", GMRFLib_global_node.factor);
 	}
 
 	GMRFLib_global_node.degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.DEGREE"), GMRFLib_global_node.degree);
-	GMRFLib_global_node.degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL_NODE_DEGREE"), GMRFLib_global_node.degree);
-	GMRFLib_global_node.degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBALNODEDEGREE"), GMRFLib_global_node.degree);
 	assert(GMRFLib_global_node.degree >= 0);
 	if (mb->verbose) {
 		printf("\t\tglobal_node.degree = %.1d\n", GMRFLib_global_node.degree);
@@ -13165,7 +13119,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->si_idx = NULL;
 	}
 
-	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO_REQ_DIFF_LOGDENS"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO.REQ.DIFF.LOGDENS"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO.DIFF"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = DMAX(0.0, mb->ai_par->cpo_req_diff_logdens);
