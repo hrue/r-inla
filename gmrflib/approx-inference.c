@@ -242,10 +242,10 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 
 	(*ai_par)->cpo_req_diff_logdens = 3.0;
 
-	(*ai_par)->adaptive_hessian_mode = GMRFLib_FALSE;
-	(*ai_par)->adaptive_hessian_mode = GMRFLib_TRUE;
-	(*ai_par)->adaptive_hessian_max_trials = 1000;
-	(*ai_par)->adaptive_hessian_scale = 1.01;
+	(*ai_par)->stupid_search_mode = GMRFLib_FALSE;
+	(*ai_par)->stupid_search_mode = GMRFLib_TRUE;
+	(*ai_par)->stupid_search_max_iter = 1000;
+	(*ai_par)->stupid_search_factor = 1.01;
 
 	(*ai_par)->cpo_manual = GMRFLib_FALSE;
 
@@ -377,10 +377,10 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\tInterpolator [%s]\n", INTERPOLATOR_NAME(ai_par->interpolator));
 	fprintf(fp, "\tCPO required diff in log-density [%g]\n", ai_par->cpo_req_diff_logdens);
 
-	fprintf(fp, "\tAdaptive estimation of the Hessian:\n");
-	fprintf(fp, "\t\tStatus     [%s]\n", (ai_par->adaptive_hessian_mode ? "On" : "Off"));
-	fprintf(fp, "\t\tMax trials [%d]\n", ai_par->adaptive_hessian_max_trials);
-	fprintf(fp, "\t\tScale      [%g]\n", ai_par->adaptive_hessian_scale);
+	fprintf(fp, "\tStupid search mode:\n");
+	fprintf(fp, "\t\tStatus     [%s]\n", (ai_par->stupid_search_mode ? "On" : "Off"));
+	fprintf(fp, "\t\tMax iter   [%d]\n", ai_par->stupid_search_max_iter);
+	fprintf(fp, "\t\tFactor     [%g]\n", ai_par->stupid_search_factor);
 
 	fprintf(fp, "\tNumerical integration of hyperparameters:\n");
 	fprintf(fp, "\t\tMaximum number of function evaluations [%1d]\n", ai_par->numint_max_fn_eval);
@@ -3331,21 +3331,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		/*
 		 * The parameters for the adaptive hessian estimation is set in ai_par (hence G.ai_par in domin-interface.c).
 		 */
-		int hess_count = 0;
 		double log_dens_mode_save = log_dens_mode;
-		int count_log_dens_mode_fail = 0;
-		int count_log_dens_mode_fail_max = ai_par->adaptive_hessian_max_trials;
+		int stupid_mode_iter = 0;
 
 		hessian = Calloc(ISQR(nhyper), double);
-		while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, hess_count) != GMRFLib_SUCCESS) {
-			if (!hess_count) {
+		while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
+			if (!stupid_mode_iter) {
 				if (ai_par->fp_log)
 					fprintf(ai_par->fp_log, "Mode not sufficient accurate; switch to a stupid local search strategy.\n");
 			}
-			hess_count++;
+			stupid_mode_iter++;
 
-			count_log_dens_mode_fail += (log_dens_mode_save > log_dens_mode ? 1 : 0);
-			if (log_dens_mode_save > log_dens_mode && count_log_dens_mode_fail > count_log_dens_mode_fail_max) {
+			if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
 				if (ai_par->fp_log) {
 					fprintf(stderr, "\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
 				}
@@ -3358,14 +3355,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
 				break;
 			}
-			if (hess_count >= count_log_dens_mode_fail_max) {
-				fprintf(stderr, "\n\n*** Mode not found using the stupid local search strategy; I give up.\n");
-				fprintf(stderr, "*** Try to modify the initial values.\n");
-				GMRFLib_ASSERT(hess_count < count_log_dens_mode_fail_max, GMRFLib_EMISC);
+			if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+				fprintf(stderr, "\n\n");
+				fprintf(stderr, "***\n");
+				fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+				fprintf(stderr, "***\n");
+				fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+				fprintf(stderr, "*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+				fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+				fprintf(stderr, "***\n");
+				fprintf(stderr, "\n\n");
+				break;
+				//GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
 			}
 		}
-
-		/*
+/*
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
@@ -3373,7 +3377,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
 
-		if (hess_count) {
+		if (stupid_mode_iter) {
 			// FIXME("------------> do one function call");
 			for (i = 0; i < nhyper; i++) {
 				theta_mode[i] = hyperparam[i][0][0];

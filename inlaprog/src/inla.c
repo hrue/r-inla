@@ -13170,16 +13170,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO.DIFF"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = DMAX(0.0, mb->ai_par->cpo_req_diff_logdens);
 
-	mb->ai_par->adaptive_hessian_mode = iniparser_getboolean(ini, inla_string_join(secname, "ADAPT.HESSIAN.MODE"), mb->ai_par->adaptive_hessian_mode);
-	mb->ai_par->adaptive_hessian_mode = iniparser_getboolean(ini, inla_string_join(secname, "ADAPT_HESSIAN_MODE"), mb->ai_par->adaptive_hessian_mode);
-
-	mb->ai_par->adaptive_hessian_max_trials = iniparser_getint(ini, inla_string_join(secname, "ADAPT.HESSIAN.MAX.TRIALS"),
-								   mb->ai_par->adaptive_hessian_max_trials);
-	mb->ai_par->adaptive_hessian_max_trials = iniparser_getint(ini, inla_string_join(secname, "ADAPT_HESSIAN_MAX_TRIALS"),
-								   mb->ai_par->adaptive_hessian_max_trials);
-
-	mb->ai_par->adaptive_hessian_scale = iniparser_getdouble(ini, inla_string_join(secname, "ADAPT_HESSIAN_SCALE"), mb->ai_par->adaptive_hessian_scale);
-	mb->ai_par->adaptive_hessian_scale = iniparser_getdouble(ini, inla_string_join(secname, "ADAPT.HESSIAN.SCALE"), mb->ai_par->adaptive_hessian_scale);
+	mb->ai_par->stupid_search_mode = iniparser_getboolean(ini, inla_string_join(secname, "STUPID.SEARCH"), mb->ai_par->stupid_search_mode);
+	mb->ai_par->stupid_search_max_iter = iniparser_getint(ini, inla_string_join(secname, "STUPID.SEARCH.MAX.ITER"),
+								   mb->ai_par->stupid_search_max_iter);
+	mb->ai_par->stupid_search_factor = iniparser_getdouble(ini, inla_string_join(secname, "STUPID.SEARCH.FACTOR"), mb->ai_par->stupid_search_factor);
 
 	mb->expert_diagonal_emergencey = 0.0;
 	mb->expert_diagonal_emergencey = iniparser_getdouble(ini, inla_string_join(secname, "DIAGONAL"), mb->expert_diagonal_emergencey);
