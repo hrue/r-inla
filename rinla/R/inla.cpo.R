@@ -59,39 +59,33 @@
     }
 
     result.new = result
-    
     if (length(idx.fail) > 0L) {
+        k=1L
         cpo.old = result$cpo$cpo[idx.fail]
         pit.old = result$cpo$pit[idx.fail]
-        k=1L
 
-        for(idx in idx.fail) {
-            if (verbose) {
-                cat("\r                                       ", inla.tictac(k))
-                cat("\rCompute manually CPO/PIT for ", length(idx.fail), " nodes:\r", sep="")
-                k = k+1
-            }
-            result$.args$control.expert = list(cpo.manual = TRUE, cpo.idx = idx)
-            result$.args$control.mode = list(result = result, restart = recompute.mode)
-
-            rr = inla.self.call(result)
-
-            result.new$cpo$cpo[idx] = rr$cpo$cpo[idx]
-            result.new$cpo$pit[idx] = rr$cpo$pit[idx]
-            result.new$cpo$failure[idx] = rr$cpo$failure[idx]
+        if (verbose) {
+            cat("Compute new CPO/PIT values manually, for", length(idx.fail), "cases...\n")
         }
-        if (verbose)
-            cat("\n")
+
+        res = lapply(idx.fail,
+                function(idx, result) {
+                    result$.args$control.expert = list(cpo.manual = TRUE, cpo.idx = idx)
+                    result$.args$control.mode = list(result = result, restart = recompute.mode)
+                    rr = inla.self.call(result)$cpo
+                    return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
+                }, result = result)
         
-        cpo.new = result.new$cpo$cpo[idx.fail]
-        pit.new = result.new$cpo$pit[idx.fail]
+        result.new$cpo$cpo[idx.fail] = unlist(lapply(res, function(xx) return (xx$cpo)))
+        result.new$cpo$pit[idx.fail] = unlist(lapply(res, function(xx) return (xx$pit)))
+        result.new$cpo$failure[idx.fail] = unlist(lapply(res, function(xx) return (xx$failure)))
         
         if (verbose) {
             dig = getOption("digits")
-            options(digits = 4)
+            options(digits = 6)
             print(cbind(index = idx.fail,
-                        cpo.old = cpo.old, cpo.new = cpo.new,
-                        pit.old = pit.old, pit.new = pit.new))
+                        cpo.old = cpo.old, cpo.new = result.new$cpo$cpo[idx.fail],
+                        pit.old = pit.old, pit.new = result.new$cpo$pit[idx.fail]))
             cat("\nThe retured result contain the new values.\n")
             options(digits = dig)
         }
