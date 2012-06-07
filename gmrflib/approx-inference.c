@@ -1222,23 +1222,26 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 #define COMPUTE_CPO_DENSITY						\
 	if (cpo_density) {						\
 		if (d[idx]) {						\
-			double *xp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
-			int np = 35, _one = 1, _debug = 0, _i;		\
-									\
-			work = Calloc(4*np, double); /* storage */	\
-			xp = &work[0];					\
-			ld = &work[np];					\
-			logcor = &work[2*np];				\
-			x_user = &work[3*np];				\
-			GMRFLib_ghq_abscissas(&xp, np);			\
+			double *xp = NULL, *xp_tmp = NULL, fac = 2.0, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
+			int np = 51, _one = 1, _debug = 1, _i, ex = 2;	\
+			 						\
+			work = Calloc(4*np+ex, double); /* storage */	\
+			ld = &work[0];					\
+			logcor = &work[np];				\
+			x_user = &work[2*np];				\
+			xp = &work[3*np];				\
+			GMRFLib_ghq_abscissas(&xp_tmp, np);		\
+			memcpy(xp+1, xp_tmp, np*sizeof(double));	\
+			xp[0] = xp[1]*fac;				\
+			xp[np+1] = xp[np]*fac;				\
 			GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 			GMRFLib_density_std2user_n(x_user, xp, np, *density); \
 			loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
 			for(_i=0; _i < np; _i++)			\
 				logcor[_i] *= d[idx];			\
 			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one); /* ld = ld - logcor */ \
-			if (_debug && np && idx == 0) {			\
-				for(_i = 0; _i < np; _i++)		\
+			if (_debug && np) {			\
+				for(_i = 0; _i < np + ex; _i++)		\
 					printf("CPO: %d %g %g\n", idx, xp[_i], ld[_i]);	\
 				printf("CPO: \n");			\
 			}						\
