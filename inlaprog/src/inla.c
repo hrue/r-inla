@@ -1613,8 +1613,16 @@ double priorfunc_betacorrelation(double *x, double *parameters)
 	 * The prior for the correlation coefficient \rho is Beta(a,b), scaled so that it is defined on (-1,1)
 	 * The function returns the log prior for \rho.intern = log((1 +\rho)/(1-\rho))
 	 */
-	double val = exp(*x) / (1 + exp(*x)), a = parameters[0], b = parameters[1];
-	return log(gsl_ran_beta_pdf(val, a, b)) + (*x) - 2.0 * log(1.0 + exp(*x));
+	double p = exp(*x) / (1 + exp(*x)), a = parameters[0], b = parameters[1];
+	return log(gsl_ran_beta_pdf(p, a, b)) + 2.0 * (*x) - 2.0 * log(1.0 + exp(*x));
+}
+double priorfunc_logitbeta(double *x, double *parameters)
+{
+	/*
+	 * The prior for the the logit of a Beta(a,b), logit(p) = log(p/(1-p))
+	 */
+	double p = exp(*x) / (1 + exp(*x)), a = parameters[0], b = parameters[1];
+	return log(gsl_ran_beta_pdf(p, a, b)) + (*x) - 2.0 * log(1.0 + exp(*x));
 }
 
 double priorfunc_logflat(double *x, double *parameters)
@@ -5611,6 +5619,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 	} else if (!strcasecmp(prior->name, "BETACORRELATION")) {
 		prior->id = P_BETACORRELATION;
 		prior->priorfunc = priorfunc_betacorrelation;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 5.0;
+			prior->parameters[1] = 5.0;
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
+	} else if (!strcasecmp(prior->name, "LOGITBETA")) {
+		prior->id = P_LOGITBETA;
+		prior->priorfunc = priorfunc_logitbeta;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {

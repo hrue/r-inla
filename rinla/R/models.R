@@ -3354,6 +3354,11 @@
                       pdf = "betacorrelation"
                       ),
 
+              logitbeta = list(
+                      nparameters = 2L,
+                      pdf = "logitbeta"
+                      ),
+
               jeffreystdf = list(
                       nparameters = 0L,
                       pdf = "jeffreystdf"

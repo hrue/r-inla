@@ -1,0 +1,52 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Logit-Beta prior: logitbeta}
+
+This is a prior for a probability parameter $p\in(0,1)$ which is
+internally represented as
+\[
+\theta = \log\frac{p}{1-p}  = \text{logit}(p)
+\]
+and $p$ is Beta-distributed. 
+
+\subsection*{Parametrization}
+
+The logitbeta-prior is defined on $\theta$ so that the probability parameter $p$
+has a $\text{Beta}(a,b)$ distribution with density
+\begin{displaymath}
+   {\Gamma(a+b) \over \Gamma(a) \Gamma(b)} p^{a-1} (1-p)^{b-1} 
+\end{displaymath}
+
+\subsection*{Specification}
+
+The prior is specified in the {\tt hyper} argument as follows:
+\begin{center}
+    {\tt hyper = list(<theta> = list(prior = "logitbeta", param=c(<a>,<b>)))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+The prior is internally defined on the $\theta$ parameter therefore
+initial values have to be provided in the $\theta$-scale. For example
+if the desired initial value is $p=0.5$, which means
+$\theta=\log(0.5 / (1-0.5))=0$, and 
+\begin{center}
+    {\tt hyper = list(<theta> = list(prior = "logitbeta",
+        param=c(<a>,<b>), initial=0))}
+\end{center}
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
