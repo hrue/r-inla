@@ -388,6 +388,7 @@ typedef enum {
 	P_LOGIFLAT,
 	P_NONE,
 	P_BETACORRELATION,
+	P_LOGITBETA,
 	P_EXPRESSION,
 	P_JEFFREYS_T_DF,
 	G_EXCHANGEABLE,					       /* group models */
@@ -951,6 +952,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
+double priorfunc_logitbeta(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
