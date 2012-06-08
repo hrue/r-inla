@@ -230,7 +230,7 @@ double GMRFLib_sn_logdensity_diff_alpha(double x, void *param)
 
 	return t25;
 }
-int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp * p)
+int GMRFLib_sn_moments(double *mean, double *stdev, GMRFLib_sn_param_tp * p)
 {
 	/*
 	 * compute two first moments of the sn 
@@ -239,10 +239,10 @@ int GMRFLib_sn_moments(float *mean, float *stdev, GMRFLib_sn_param_tp * p)
 		double delta = p->alpha / sqrt(1.0 + SQR(p->alpha));
 
 		if (mean) {
-			*mean = (float) (p->xi + p->omega * sqrt(2.0 / M_PI) * delta);
+			*mean = p->xi + p->omega * sqrt(2.0 / M_PI) * delta;
 		}
 		if (stdev) {
-			*stdev = (float) (p->omega * sqrt(1.0 - 2.0 * SQR(delta) / M_PI));
+			*stdev = p->omega * sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -522,7 +522,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				for (i = 0; i < npm; i++) {
 					ldm[i] -= log_integral;
 				}
-				density->log_norm_const = (float) (log_integral + ldmax);
+				density->log_norm_const = log_integral + ldmax;
 
 				m1 = xpm[0] * exp(ldm[0]) + xpm[npm - 1] * exp(ldm[npm - 1]);
 				for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
@@ -536,8 +536,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				}
 				m2 *= dx / 3.0;
 
-				density->mean = (float) m1;
-				density->stdev = (float) sqrt(DMAX(0.0, m2 - SQR(m1)));
+				density->mean =  m1;
+				density->stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 			} else {
 				double ldens;
 				GMRFLib_density_properties_tp prop;
@@ -561,9 +561,9 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 						ldens_max = ldens;
 					}
 				}
-				density->log_norm_const = (float) ldens_max;
+				density->log_norm_const =  ldens_max;
 				GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
-				density->log_norm_const = (float) (log(result) + ldens_max);
+				density->log_norm_const = log(result) + ldens_max;
 
 				/*
 				 * ...and from now on, the density is normalised 
@@ -572,12 +572,12 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 				prop.power = 1;
 				GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
-				density->mean = (float) result;
+				density->mean = result;
 
 				prop.power = 2;
 				GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
 				tmp = result - SQR(density->mean);
-				density->stdev = (float) sqrt(DMAX(tmp, 0.0));
+				density->stdev = sqrt(DMAX(tmp, 0.0));
 			}
 		}
 	}
@@ -718,13 +718,16 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
-			if (x[i] >= density->x_min && x[i] <= density->x_max) {
+			/* 
+			 * put it some saftety margins for x_min and x_max
+			 */
+			if (x[i] >= density->x_min + DBL_EPSILON && x[i] <= density->x_max - DBL_EPSILON) {
 				logdens[i] = gsl_spline_eval(density->log_correction->spline, x[i], density->log_correction->accel)
-				    - 0.5 * SQR(x[i]) - density->log_norm_const;
+					- 0.5 * SQR(x[i]) - density->log_norm_const;
 			} else {
 				double diff, cor, f0;
 
-				if (x[i] > density->x_max) {
+				if (x[i] >= density->x_max - DBL_EPSILON) {
 					f0 = gsl_spline_eval(density->log_correction->spline, density->x_max, density->log_correction->accel);
 					diff = gsl_spline_eval_deriv(density->log_correction->spline, density->x_max, density->log_correction->accel);
 					cor = f0 + DMIN(0.0, diff) * (x[i] - density->x_max);
@@ -1300,10 +1303,10 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 
 	(*density) = Calloc(1, GMRFLib_density_tp);
 	(*density)->type = GMRFLib_DENSITY_TYPE_GAUSSIAN;
-	(*density)->std_mean = (float) std_mean;
-	(*density)->std_stdev = (float) std_stdev;
-	(*density)->mean_gaussian = (float) mean;
-	(*density)->stdev_gaussian = (float) stdev;
+	(*density)->std_mean =  std_mean;
+	(*density)->std_stdev = std_stdev;
+	(*density)->mean_gaussian =  mean;
+	(*density)->stdev_gaussian = stdev;
 
 	GMRFLib_EWRAP0(GMRFLib_init_density(*density, GMRFLib_FALSE));
 
@@ -1319,8 +1322,8 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 
 	(*density) = Calloc(1, GMRFLib_density_tp);
 	(*density)->type = GMRFLib_DENSITY_TYPE_SKEWNORMAL;
-	(*density)->std_mean = (float) std_mean;
-	(*density)->std_stdev = (float) std_stdev;
+	(*density)->std_mean =  std_mean;
+	(*density)->std_stdev =  std_stdev;
 	(*density)->sn_param = Calloc(1, GMRFLib_sn_param_tp);
 	memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
 
@@ -1397,8 +1400,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			 */
 			(*density) = Calloc(1, GMRFLib_density_tp);
 			(*density)->type = GMRFLib_DENSITY_TYPE_SCGAUSSIAN;
-			(*density)->std_mean = (float) std_mean;
-			(*density)->std_stdev = (float) std_stdev;
+			(*density)->std_mean = std_mean;
+			(*density)->std_stdev = std_stdev;
 			(*density)->x_min = GMRFLib_min_value(xx, n);
 			(*density)->x_max = GMRFLib_max_value(xx, n);
 
