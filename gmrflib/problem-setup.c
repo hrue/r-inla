@@ -2435,7 +2435,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 
 //#pragma omp parallel for private(k) schedule(dynamic)
 		for (k = 0; k < nk; k++) {
-			int *iperm = NULL, *perm = NULL, ii, kk, use_global_nodes;
+			int *iperm = NULL, *perm = NULL, ii, kkk, use_global_nodes;
 			supernodal_factor_matrix *symb_fact = NULL;
 			taucs_ccs_matrix *L = NULL;
 
@@ -2449,7 +2449,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 			/*
 			 * first half is with, second half is without, the detection of global nodes 
 			 */
-			kk = k % (nk / 2);
+			kkk = k % (nk / 2);
 			use_global_nodes = (k < nk / 2);
 
 			if (!use_global_nodes) {
@@ -2467,7 +2467,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 			if (!use_global_nodes || !(use_global_nodes && (lgn.factor > 1.0) && (lgn.degree > graph->n - 1))) {
 
 				cputime[k] = GMRFLib_cpu();
-				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kk], &lgn);
+				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kkk], &lgn);
 
 				perm = Calloc(n, int);
 				for (ii = 0; ii < n; ii++) {
@@ -2488,7 +2488,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 #pragma omp critical
 					{
 						printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d cpu=%.4f\n", __GMRFLib_FuncName,
-						       GMRFLib_reorder_name(rs[kk]), nnzs[k], use_global_nodes, cputime[k]);
+						       GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);
 					}
 				}
 
