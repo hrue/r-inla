@@ -13347,8 +13347,8 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double beta = theta[count];
-					val += PRIOR_EVAL(ds->data_prior0, &beta);
+					double bbeta = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &bbeta);
 					count++;
 				}
 				if (!ds->data_fixed1) {
@@ -18053,9 +18053,7 @@ int inla_qreordering(const char *filename)
 	 * return the reordering either given or computed
 	 */
 	int i;
-	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
-	GMRFLib_problem_tp *problem;
 
 	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
 		GMRFLib_tabulate_Qfunc_tp *qtab = NULL;
