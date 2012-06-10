@@ -553,11 +553,7 @@ inla.internal.experimental.mode = FALSE
 {
     alldir = dir(results.dir)
     if (length(grep("^Q$", alldir))==1L) {
-        w = getOption("warn")
-        options(warn = -1L)
-        pixm = require("pixmap", quietly = TRUE)
-        options(warn = w)
-        
+        pixm = inla.require("pixmap")
         if (debug)
             cat(paste("collect q\n", sep=""))
         

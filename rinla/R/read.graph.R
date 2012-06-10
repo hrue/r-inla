@@ -408,8 +408,8 @@
         ...)
 {
     ## I add here some tools to view and summarize a such graphs...
-    require(Rgraphviz) || stop("Need library 'Rgraphviz' from Bioconductor: see http://www.bioconductor.org")
-    require(graph) || stop("Need library 'graph' from Bioconductor: see http://www.bioconductor.org")
+    inla.require("Rgraphviz") || stop("Need library 'Rgraphviz' from Bioconductor: see http://www.bioconductor.org")
+    inla.require("graph") || stop("Need library 'graph' from Bioconductor: see http://www.bioconductor.org")
 
     filter = match.arg(filter)
     if (is.null(attrs)) {
