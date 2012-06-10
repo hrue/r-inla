@@ -4,8 +4,9 @@
     if (debug) {
         print("enter inla.si")
     }
-    require("mvtnorm")
+    stopifnot(inla.require("mvtnorm"))
     stopifnot(!is.null(result$si))
+
     quantiles = quantiles[ quantiles < 0.5 ]
     if (length(quantiles) == 0)
         return (result)

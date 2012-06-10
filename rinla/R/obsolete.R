@@ -66,8 +66,6 @@
     ## convert a possibly symmetric martix matrix into the form:
     ## list(i=, j=, values=). Q is either a matrix or a dgTMatrix
 
-    require(Matrix)
-
     if (is(Q, "dgTMatrix")) {
 
         ii = Q@i + 1L

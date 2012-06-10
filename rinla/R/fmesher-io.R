@@ -90,8 +90,6 @@
         ##
         ## sparse matrix
         ##
-        require(Matrix)
-
         if (h$storagetype == "rowmajor") {
             ##
             ## rowmajor format
