@@ -135,7 +135,7 @@
     if (length(color) == 1)
         color = rep(color, dim(m$mesh$s)[1])
 
-    require(rgl)
+    stopifnot(inla.require("rgl"))
     if (!add) {
         dev=open3d()
         view3d(0, 0, fov=0)

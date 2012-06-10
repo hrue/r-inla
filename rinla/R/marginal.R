@@ -386,10 +386,7 @@
     xx = ff(x)
 
     ## use the numDeriv library if present
-    w = getOption("warn")
-    options(warn = -1)
-    present = require("numDeriv", quietly = TRUE)
-    options(warn = w)
+    present = inla.require("numDeriv")
 
     if (present) {
         ## using numDeriv

@@ -413,7 +413,7 @@
 
     ## use the image.plot-function in package fields; its much better...
     inla.squishplot(c(0, 1), c(0, 1), n[1]/n[2])
-    if (require("fields", quietly = TRUE)) {
+    if (inla.require("fields")) {
         image.plot(t(y), col=col, bty="n", xaxt="n", yaxt="n", ...)
     } else {
         warning("Please install package `fields'")
@@ -981,4 +981,21 @@
     colnames(factor.matrix) = levels(f)
     rownames(factor.matrix) = names(f)
     return(factor.matrix)
+}
+
+`inla.is.installed` = function(pkg) 
+{
+    ## return TRUE if PKG is installed and FALSE if not
+    return (is.element(pkg, installed.packages()[,1L]))
+}
+
+`inla.require` = function(pkg)
+{
+    ## load PKG if it exists, but be silent. return status
+    w = getOption("warn")
+    options(warn = -1L)
+    value = (inla.is.installed(pkg) && require(pkg, quietly = TRUE))
+    options(warn = w)
+
+    return (value)
 }
