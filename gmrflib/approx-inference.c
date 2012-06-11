@@ -1223,7 +1223,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	if (cpo_density) {						\
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL, fac = 2.0, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
-			int np = 51, _one = 1, _debug = 1, _i, ex = 2;	\
+			int np = 51, _one = 1, _debug = 0, _i, ex = 2;	\
 			 						\
 			work = Calloc(4*np+ex, double); /* storage */	\
 			ld = &work[0];					\
