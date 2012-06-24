@@ -1,11 +1,10 @@
 # Fdb version 3
-["pdflatex"] 1334903937 "iidlogitbeta.tex" "iidlogitbeta.pdf" "iidlogitbeta" 
-  "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
+["pdflatex"] 1340559008 "iidlogitbeta.tex" "iidlogitbeta.pdf" "iidlogitbeta" 1340559008
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1136768653 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1284331290 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty" 1303254447 7140 ece2cc23d9f20e1f53975ac167f42d3e ""
-  "/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifvtex.sty" 1303254447 6808 95985d5dca9417a66d19bd8b8dc087d1 ""
+  "/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifvtex.sty" 1335995445 6797 68c89f65e01894df882dd523d3fc0a8f ""
   "/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty" 1156703163 3535 ce75ca6de8380293f2081dec8ab08a93 ""
   "/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty" 1156703163 5453 08b555fa01ef74ce33d74813d74c2362 ""
   "/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty" 1156703163 79756 c9b39210cd9d3168825ff6f880d43821 ""
@@ -16,10 +15,10 @@
   "/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty" 1284422013 40502 e003406220954b0716679d7928aedd8a ""
   "/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty" 1156702488 2266 7054435e4584a41cf53b0a7ca624d0cb ""
   "/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty" 1312409015 7125 6b8323deb5c5c3a19b248762654143eb ""
-  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1326712195 713674 383b359df0c1e2e4057fe1b634ba5b5e ""
-  "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1327980612 832826 d67b8eca45ac386f2b4ca9a4e7b06197 ""
-  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1326631544 29944 67de7a6e706ed5d55135f44658bbed1a ""
-  "iidlogitbeta.aux" 1334903937 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1340398611 713803 a1a4fb389b8e7ddafe845d28c086754d ""
+  "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1338518106 846119 04865babdebedf4c0cce2d0dae45f19d ""
+  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1339920268 31299 729e216d9b945005c0d4b079c0500bc9 ""
+  "iidlogitbeta.aux" 1340559008 8 a94a2480d3289e625eea47cd1b285758 ""
   "iidlogitbeta.tex" 1334903934 208 b1bd1459af74d39bcf75373e166f1de2 ""
   (generated)
   "iidlogitbeta.log"
