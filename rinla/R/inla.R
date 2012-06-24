@@ -36,7 +36,7 @@
 
               ##!\item{family}{ A string indicating the likelihood
               ##! family. The default is \code{gaussian} with identity
-              ##! link. See \code{names(inla.models()$lmodels)} for a
+              ##! link. See \code{names(inla.models()$likelihood)} for a
               ##! list of possible alternatives.}
               family = "gaussian", 
 
