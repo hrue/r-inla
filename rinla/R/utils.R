@@ -994,7 +994,10 @@
     ## load PKG if it exists, but be silent. return status
     w = getOption("warn")
     options(warn = -1L)
-    value = (inla.is.installed(pkg) && require(pkg, quietly = TRUE))
+    ## nthis does not work as 'pkg' is not expanded, weird.... (thanks to GAF)
+    ## value = (inla.is.installed(pkg) && require(pkg, quietly = TRUE))
+    ## this is a workaround which expands 'pkg'... 
+    value = (inla.is.installed(pkg) && inla.eval(paste("require(", pkg, ", quietly = TRUE)")))
     options(warn = w)
 
     return (value)
