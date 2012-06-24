@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2012.1.16)  20 APR 2012 08:38
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.22)  24 JUN 2012 19:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -36,7 +36,7 @@ Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
 Package ifpdf Info: pdfTeX in PDF mode is detected.
 )
 (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifvtex.sty
-Package: ifvtex 2010/03/01 v1.5 Switches for detecting VTeX and its modes (HO)
+Package: ifvtex 2010/03/01 v1.5 Detect VTeX and its facilities (HO)
 Package ifvtex Info: VTeX not detected.
 )
 (/usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty
@@ -176,10 +176,10 @@ LaTeX Font Info:    ... okay on input line 7.
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 (./iidlogitbeta.aux) ) 
 Here is how much of TeX's memory you used:
- 1351 strings out of 495066
- 17184 string characters out of 3182278
- 72578 words of memory out of 3000000
- 4579 multiletter control sequences out of 15000+200000
+ 1351 strings out of 495063
+ 17184 string characters out of 3182201
+ 72567 words of memory out of 3000000
+ 4581 multiletter control sequences out of 15000+200000
  3940 words of font info for 15 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  24i,4n,30p,229b,111s stack positions out of 5000i,500n,10000p,200000b,50000s

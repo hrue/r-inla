@@ -32,7 +32,7 @@ variable, a list or the output of the function
 \code{inla.surf} for survival analysis models.}
 \item{family}{ A string indicating the likelihood
  family. The default is \code{gaussian} with identity
- link. See \code{names(inla.models()$lmodels)} for a
+ link. See \code{names(inla.models()$likelihood)} for a
  list of possible alternatives.}
 \item{contrasts}{Optional contrasts for the fixed
 effects; see \code{?lm} or \code{?glm} for details.}
