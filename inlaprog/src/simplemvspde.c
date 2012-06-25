@@ -54,8 +54,8 @@ double inla_simplemvspde_Qfunction(int node, int nnode, void *arg) {
   double kappa2[3], b[3];
   int i_;
   for (i_ =0; i_<3; i_++) {
-    kappa2[i] = model->theta[i][GMRFLib_thread_id][0];
-    b[i] = model->theta[i+3][GMRFLib_thread_id][0];
+    kappa2[i_] = model->theta[i_][GMRFLib_thread_id][0];
+    b[i_] = model->theta[i_+3][GMRFLib_thread_id][0];
   }
 
   int i,j;
@@ -122,6 +122,7 @@ int inla_simplemvspde_build_model(inla_simplemvspde_tp ** smodel, const char *pr
   model = Calloc(1, inla_simplemvspde_tp);
 
   model->M = Calloc(3, GMRFLib_matrix_tp *);
+  int i;
        for (i = 0; i < 3; i++) {
 		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "M", i);
 		model->M[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
@@ -172,6 +173,8 @@ int inla_simplemvspde_build_model(inla_simplemvspde_tp ** smodel, const char *pr
 	GMRFLib_ged_tp *ged2 = NULL;
 	GMRFLib_ged_init(&ged2, tmp_graph);
 	GMRFLib_ged_append_graph(ged,tmp_graph);
+
+	int n = model->n_block;
 	
 	int i_,j_,jj_;
 	for (i_ = 0; i_ < tmp_graph->n; i_++) {
@@ -185,7 +188,7 @@ int inla_simplemvspde_build_model(inla_simplemvspde_tp ** smodel, const char *pr
 	GMRFLib_ged_build(&(model->graph), ged2);
 	assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
-	GMRFLib_ged_frree(ged2);  
+	GMRFLib_ged_free(ged2);  
 
 	model->Qfunc = inla_simplemvspde_Qfunction;
 	model->Qfunc_arg = (void *) model;
@@ -198,4 +201,4 @@ int inla_simplemvspde_build_model(inla_simplemvspde_tp ** smodel, const char *pr
 
 
 
-}
+

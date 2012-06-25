@@ -60,8 +60,8 @@ typedef struct {
 } inla_simplemvspde_tp;
 
 
-double inla_spde2_Qfunction(int node, int nnode, void *arg);
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix);
+double inla_simplemvspde_Qfunction(int node, int nnode, void *arg);
+int inla_simplemvspde_build_model(inla_simplemvspde_tp ** smodel, const char *prefix);
 
 __END_DECLS
 #endif

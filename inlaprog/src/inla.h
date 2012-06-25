@@ -349,6 +349,7 @@ typedef enum {
 	F_MATERN2D,
 	F_SPDE,
 	F_SPDE2,
+	F_SIMPLEMVSPDE,
 	F_COPY,
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,

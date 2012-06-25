@@ -84,6 +84,8 @@ static const char RCSId[] = HGVERSION;
 #include "spde2.h"
 #include "eval.h"
 #include "interpol.h"
+#include "simplemvspde.h"
+
 
 #define PREVIEW    5
 #define MODEFILENAME ".inla-mode"
@@ -9348,12 +9350,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
         case F_SIMPLEMVSPDE: //Dan's crazy thing
+	  /*
+	    DUMPING THIS BECAUSE IT'S DONE LATER!
 	  inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL"); //kappa11
 	  inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL"); //kappa21
 	  inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL"); //kappa22
 	  inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NORMAL"); //b11
 	  inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NORMAL"); //b21
-	  inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NORMAL"); //b22
+	  inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NORMAL"); //b22
+	  */
 	  break;
  
 	case F_SPDE2:
@@ -10434,6 +10439,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 case F_SIMPLEMVSPDE:
 	{
 		char *simplemvspde_prefix;
+		
 
 		simplemvspde_prefix = GMRFLib_strdup(".");
 		simplemvspde_prefix = iniparser_getstring(ini, inla_string_join(secname, "SIMPLEMVSPDE_PREFIX"), simplemvspde_prefix);
@@ -10442,6 +10448,8 @@ case F_SIMPLEMVSPDE:
 		if (mb->verbose) {
 			printf("\t\tsimplemvspde.prefix = [%s]\n", simplemvspde_prefix);
 		}
+
+		
 
 
 		/*
@@ -10459,8 +10467,8 @@ case F_SIMPLEMVSPDE:
 		 */
 	        int ntheta=6;
 
-		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
-		assert(mb->f_ntheta[mb->nf] == 6) //check that this is correct!
+		mb->f_ntheta[mb->nf] = ntheta = simplemvspde_model->ntheta;
+		assert(mb->f_ntheta[mb->nf] == 6); //check that this is correct!
 		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);	/* need to do this here as we do not know n_theta upfront */
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
@@ -10469,11 +10477,11 @@ case F_SIMPLEMVSPDE:
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
-
-		//HERE HERE HERE HERE		/*
+	       
+		/*
 		 * mark all possible as read 
 		 */
-		for (i = 0; i < SPDE2_MAXTHETA; i++) {
+		for (i = 0; i < 6; i++) {
 			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
@@ -10496,9 +10504,12 @@ case F_SIMPLEMVSPDE:
 		}
 
 		/*
-		 * need to know where in the theta-list the spde2 parameters are 
+		 * need to know where in the theta-list the spde2 parameters are +
+		 * DAN: There is almost certainly an easier way to to this, but I don't
+		 * want to think about it, so for the moment I'm sticking with the SPDE2
+		 * specification. 
 		 */
-		spde2_model->theta_first_idx = mb->ntheta;
+		//  i don't think we need this!@		simplemvspde_model->theta_first_idx = mb->ntheta;
 
 		/*
 		 * then read those we need 
@@ -10510,7 +10521,7 @@ case F_SIMPLEMVSPDE:
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 			if (mb->f_fixed[mb->nf][i]) {
-				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE2 model.");
+				inla_error_general("Fixed hyperparmaters is not allowed in the simplemvspde model.");
 				exit(1);
 			}
 
@@ -10520,7 +10531,7 @@ case F_SIMPLEMVSPDE:
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
 			}
 
-			HYPER_INIT(spde2_model->theta[i], theta_initial);
+			HYPER_INIT(simplemvspde_model->theta[i], theta_initial);
 
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
@@ -10546,7 +10557,7 @@ case F_SIMPLEMVSPDE:
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
 
-			mb->theta[mb->ntheta] = spde2_model->theta[i];
+			mb->theta[mb->ntheta] = simplemvspde_model->theta[i];
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -10557,7 +10568,7 @@ case F_SIMPLEMVSPDE:
 	}
 
 
-	// END END END
+   
 
 
 
@@ -11695,6 +11706,16 @@ case F_SIMPLEMVSPDE:
 
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde2_model->n;
+	} else if (mb->f_id[mb->nf] == F_SIMPLEMVSPDE) { //DAN'S CRAZY THING
+	        mb->f_Qfunc[mb->nf] = simplemvspde_model->Qfunc;
+		mb->f_Qfunc_arg[mb->nf] = simplemvspde_model->Qfunc_arg;
+		mb->f_graph[mb->nf] = simplemvspde_model->graph;
+
+		mb->f_rankdef[mb->nf] = 0;
+		mb->f_n[mb->nf] = mb->f_N[mb->nf] = simplemvspde_model->n;
+
+
+
 	} else if (mb->f_id[mb->nf] == F_RW2D) {
 		GMRFLib_rw2ddef_tp *arg = NULL;
 
@@ -13842,6 +13863,44 @@ double extra(double *theta, int ntheta, void *argument)
 			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 			break;
 		}
+
+		case F_SIMPLEMVSPDE: //Dan's crazy thing11
+		  {
+
+
+			int k, simplemvspde_ntheta;
+			inla_simplemvspde_tp *simplemvspde;
+
+			simplemvspde = (inla_simplemvspde_tp *) mb->f_model[i];
+			assert(simplemvspde->Qfunc_arg == simplemvspde);
+
+			simplemvspde->debug = 0;
+			simplemvspde_ntheta = simplemvspde->ntheta;
+			for (k = 0; k < simplemvspde_ntheta; k++) {
+				simplemvspde->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+			}
+			int count_ref = count;
+
+			count += simplemvspde_ntheta;		       /* as SET_GROUP_RHO need 'count' */
+			SET_GROUP_RHO(simplemvspde_ntheta);
+
+			static GMRFLib_problem_tp *problem = NULL;
+#pragma omp threadprivate(problem)
+
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL,
+					     simplemvspde->graph, simplemvspde->Qfunc, simplemvspde->Qfunc_arg, NULL, mb->f_constr_orig[i],
+					     (problem == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+			GMRFLib_evaluate(problem);
+			val += mb->f_nrep[i] * (problem->sub_logdens * ngroup + normc_g);
+
+			/*
+//HERE HERE HERE			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 */
+			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+			break;    
+
+		   
+		  }
 
 		case F_GENERIC1:
 		{
