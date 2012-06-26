@@ -200,6 +200,13 @@
         ##!\item{spde2.transform}{}
         spde2.transform = c("logit", "log", "identity"),
 
+	##!\item{simplemvspde.prefix}{}
+        simplemvspde.prefix = NULL,
+
+        ##!\item{spde2.transform}{}
+        simplemvspde.transform = c( "identity"),
+
+
         ##!\item{mean.linear}{ Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
         mean.linear=NULL,

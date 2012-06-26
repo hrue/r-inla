@@ -167,7 +167,7 @@
 {
     if (!is.element(Sys.getenv("USER"),
                     c("hrue", "martino", "finnkrl", "finn",
-                      "danielsimpson", "rieblera", "ariebler")))
+                      "danielsimpson","dan", "rieblera", "ariebler")))
         stop("This function is for developers only.")
     return (invisible())
 }
