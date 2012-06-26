@@ -35,7 +35,7 @@ inla.simplemvspde.create = function(mesh)
 	kappa0 = sqrt(8)/(mesh.range*0.2)
         tau0 = 1/sqrt(4*pi*kappa0^2)/1.0
 	
-	theta.initial=c(-2*log(kappa0),2*log(kappa0),2*log(kappa0),2*log(tau0),0-,2*log(tau0))  ## set b21 = 0 initially!
+	theta.initial=c(-2*log(kappa0),2*log(kappa0),2*log(kappa0),2*log(tau0),0.0,2*log(tau0))  ## set b21 = 0 initially!
 
 
 	param.inla = list( n = mesh$n, n.theta=6,
@@ -61,4 +61,11 @@ inla.simplemvspde.create = function(mesh)
 
 
 	return(invisible(simplemvspde))
+}
+
+inla.simplemvspde.precision = function(simplemvspde,kappas,bs)
+{
+	// make this function
+	precision =NULL
+	return(invisible(precision))
 }
