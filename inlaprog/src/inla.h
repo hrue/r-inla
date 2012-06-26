@@ -298,6 +298,13 @@ typedef struct {
 	double **log_prec_wrapped_cauchy;
 	double *weight_wrapped_cauchy;	
 
+
+	/* 
+	 * test-implementations  
+	 */
+	double **test_binomial_1_s, **test_binomial_1_e;
+	
+
 } Data_tp;
 
 /* 
@@ -346,6 +353,7 @@ typedef enum {
 	L_ME_FIXED_EFFECET, 
 	L_CIRCULAR_NORMAL, 
 	L_WRAPPED_CAUCHY, 
+	L_TEST_BINOMIAL_1, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1108,6 +1116,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int my_setenv(char *str);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
