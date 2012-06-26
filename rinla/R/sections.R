@@ -136,7 +136,7 @@
         fnm = inla.copy.dir.for.section.spde(random.spec$simplemvspde.prefix, data.dir)
         cat("simplemvspde.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         cat("simplemvspde.transform =", random.spec$simplemvspde.transform, "\n", sep = " ", file = file,  append = TRUE)
-    
+    }
 
     if (!is.null(random.spec$of)) {
         cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
