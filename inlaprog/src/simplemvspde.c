@@ -1,7 +1,11 @@
 
 /* simplemvspde.c
  * WRITTEN BY DAN.  DON'T EXPECT THIS TO WORK! 
- * Copyright (C) 2011  Havard Rue
+ * This is a really experimental feature, just for one paper. 
+ * Please do not expect it to be stable or sensible.  It is not!
+ *
+ 
+ * Copyright (C) 2012  Daniel Simpson, H\aa{}vard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
