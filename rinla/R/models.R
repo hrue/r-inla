@@ -2267,6 +2267,36 @@
                       pdf = "binomial"
                       ),
 
+              testbinomial1 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "sensitivity",
+                                      short.name = "s",
+                                      initial = 3,
+                                      fixed = FALSE,
+                                      prior = "logitbeta",
+                                      param = c(2, 1),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      ), 
+                              theta2 = list(
+                                      name = "spesificity",
+                                      short.name = "e",
+                                      initial = 3,
+                                      fixed = FALSE,
+                                      prior = "logitbeta",
+                                      param = c(2, 1),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      status = "experimental", 
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      pdf = "testbinomial1"
+                      ),
+
               binomialtest = list(
                       hyper = list(
                               theta = list(

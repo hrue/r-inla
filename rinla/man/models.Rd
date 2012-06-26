@@ -2737,6 +2737,45 @@ inla.models()
 				 }
 				\item{Model `binomial'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `testbinomial1'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`sensitivity'}
+							\item{short.name = }{`s'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`logitbeta'}
+							\item{param = }{`2 1'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`spesificity'}
+							\item{short.name = }{`e'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`logitbeta'}
+							\item{param = }{`2 1'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit probit cloglog log'}
+								\item{pdf = }{`testbinomial1'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `binomialtest'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
