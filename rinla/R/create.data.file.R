@@ -135,7 +135,8 @@
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
                              "zeroninflatedbinomial2",
-                             "zeroinflatedbetabinomial2"))) {
+                             "zeroinflatedbetabinomial2",
+                             "testbinomial1"))) {
 
         if (is.null(Ntrials)) {
             Ntrials = rep(1L, n.data)
