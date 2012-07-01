@@ -1,7 +1,7 @@
 `inla.is.fmesher.file` = function(filename)
 {
     ## return TRUE if file exists and is a fmesher file
-    if (!file.exists(filename))
+    if (!is.character(filename) || !file.exists(filename))
         return (FALSE)
 
     fp = file(filename, "rb")
