@@ -11,7 +11,7 @@
  \description{This routine use the GMRFLib implementation
               to solve linear systems with a SPD matrix.}
  \usage{
-     inla.qsolve(Q, B, reordering)
+     inla.qsolve(Q, B, reordering, method = c("solve", "forward", "backward"))
  }
  
  \arguments{
