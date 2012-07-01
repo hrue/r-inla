@@ -34,23 +34,23 @@
 ##!\examples{
 ##!n = 10
 ##!QQ = matrix(runif(n^2), n, n)
-##!Q = inla.as.dgTMatrix(QQ %*% t(QQ))
+##!Q = inla.as.dgTMatrix(QQ \%*\% t(QQ))
 ##!B = matrix(runif(n^2-n), n, n-1)
 ##!
 ##!X = inla.qsolve(Q, B, method = "solve")
-##!print(paste("err", sum(abs( Q %*% X - B))))
+##!print(paste("err", sum(abs( Q \%*\% X - B))))
 ##!
 ##!L = t(chol(Q))
 ##!X = inla.qsolve(Q, B, method = "forward")
-##!print(paste("err", sum(abs( L %*% X - B))))
+##!print(paste("err", sum(abs( L \%*\% X - B))))
 ##!
 ##!X = inla.qsolve(Q, B, method = "backward")
-##!print(paste("err", sum(abs( t(L) %*% X - B))))
+##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
 ##!
 ##!Q.file = inla.write.fmesher.file(Q)
 ##!B.file = inla.write.fmesher.file(B)
 ##!X = inla.qsolve(Q.file, B.file, method = "backward")
-##!print(paste("err", sum(abs( t(L) %*% X - B))))
+##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
 ##!unlink(Q.file)
 ##!unlink(B.file)
 ##!}
