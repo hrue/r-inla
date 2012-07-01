@@ -16474,7 +16474,8 @@ int inla_output(inla_tp * mb)
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
 			inla_output_hgid(mb->dir);
 			if ((!mb->reuse_mode) || (mb->reuse_mode && mb->reuse_mode_but_restart)) {
-				inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
+				// disable output theta-mode to file '.inla-mode'
+				// inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
 			}
 			if (local_verbose == 0) {
 				int save = mb->verbose;
