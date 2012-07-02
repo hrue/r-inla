@@ -28,7 +28,7 @@ In the case where there is one hyperparameter for that particular
 f-model. In the case where we want to specify the prior for the
 hyperparameter of an observation model, for example the negative Bino-
 mial, the the prior spesification will appear inside the
-control.data()-argument; see the following example for illustration.
+control.family()-argument; see the following example for illustration.
 
 \subsection*{Example}
 
@@ -41,7 +41,7 @@ z=rnorm(n)
 y=rnorm(n,z,1)
 data=list(y=y,z=z)
 formula=y~1+z
-result=inla(formula,family="gaussian",data=data,control.data=list(prior="flat"))
+result=inla(formula,family="gaussian",data=data,control.family=list(prior="flat"))
 \end{verbatim}
 
 \subsection*{Notes}

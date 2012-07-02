@@ -106,7 +106,7 @@
 ##! sd = 0.1
 ##! y = 1+x + rnorm(n,sd=sd)
 ##! res = inla(y ~ 1 + x, data = data.frame(x,y),
-##!            control.data=list(initial = log(1/sd^2),fixed=TRUE))
+##!            control.family=list(initial = log(1/sd^2),fixed=TRUE))
 ##! 
 ##! ## chose a marginal and compare the with the results computed by the
 ##! ## inla-program

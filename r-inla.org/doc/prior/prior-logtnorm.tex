@@ -35,7 +35,7 @@ y=rnorm(n,z,1)
 data=list(y=y,z=z)
 formula=y~1+z
 result=inla(formula, family="gaussian", data=data,
-            control.data=list(hyper = list(prec = list(prior="logtnormal", param = c(0, 0.01)))))
+            control.family=list(hyper = list(prec = list(prior="logtnormal", param = c(0, 0.01)))))
 \end{verbatim}
 
 \end{document}

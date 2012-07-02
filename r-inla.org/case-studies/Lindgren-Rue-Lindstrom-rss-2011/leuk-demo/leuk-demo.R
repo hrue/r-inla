@@ -41,7 +41,7 @@ formula = inla.surv(Leuk$time, Leuk$cens) ~ 1 + sex + age + wbc + tpi +
 r  = (inla(formula, family="weibull",
            data = Leuk,
            ## Prior specification:
-           control.data = list(param=c(0.05,0.1)),
+           control.family = list(param=c(0.05,0.1)),
            ## Reasonable starting point for the optimisation:
            control.mode = list(theta=c(0,-2,5),restart=TRUE),
            ## We don't need the marginals:

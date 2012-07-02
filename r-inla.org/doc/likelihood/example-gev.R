@@ -18,7 +18,7 @@ formula = y ~ 1 + f(inla.group(z), model="rw1")
 data = data.frame(y,z)
 
 r = inla(formula, data = data, family = "gev",
-        control.data = list(gev.scale.xi = 0.01,
+        control.family = list(gev.scale.xi = 0.01,
                 ## just to show how to set an initial value
                 hyper = list(prec=list(initial=2))))
 

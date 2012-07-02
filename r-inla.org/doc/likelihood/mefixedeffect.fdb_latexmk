@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1340559009 "mefixedeffect.tex" "mefixedeffect.pdf" "mefixedeffect" 1341145112
+["pdflatex"] 1341241066 "mefixedeffect.tex" "mefixedeffect.pdf" "mefixedeffect" 1341241487
   "../hyper/likelihood/mefixedeffect.tex" 1340739544 864 6e53773f0051914063fb3adfd40538d7 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -42,8 +42,8 @@
   "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1340398611 713803 a1a4fb389b8e7ddafe845d28c086754d ""
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1338518106 846119 04865babdebedf4c0cce2d0dae45f19d ""
   "/usr/share/texlive/texmf/web2c/texmf.cnf" 1339920268 31299 729e216d9b945005c0d4b079c0500bc9 ""
-  "example-mefixedeffect.R" 1332354525 887 c4451b5dbda3ab3f06eccab4c3f09110 ""
-  "mefixedeffect.aux" 1340559009 8 a94a2480d3289e625eea47cd1b285758 ""
+  "example-mefixedeffect.R" 1341240897 889 e84795b1dc2a0011636952f47b155062 ""
+  "mefixedeffect.aux" 1341241066 8 a94a2480d3289e625eea47cd1b285758 ""
   "mefixedeffect.tex" 1331364885 1649 9157a3ffca941e196df2c42b3aece102 ""
   (generated)
   "mefixedeffect.log"

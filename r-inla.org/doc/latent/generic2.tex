@@ -122,7 +122,7 @@ formula = y ~ f(idx, model = "generic2", Cmatrix = file,
 ###################################################################
 
 result = inla(formula, data=data.frame(y,idx),
-              control.data = list(initial = log(1/sd^2), fixed=TRUE),
+              control.family = list(initial = log(1/sd^2), fixed=TRUE),
               verbose = TRUE)
 
 

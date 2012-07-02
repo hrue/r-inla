@@ -10,7 +10,7 @@ param.data = list(prec = list(param = c(1.0e-3, 1.0e-3)))
 formula1 = y ~  air + temp + acid
 mod1 = inla(formula1, data=data,
         control.fixed = list(prec = 0.00001),
-        control.data = list(hyper = param.data))
+        control.family = list(hyper = param.data))
 
 
 # for the ridge regression the three parameters beta1..beta3 have a
