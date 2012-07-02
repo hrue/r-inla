@@ -4,7 +4,8 @@
                                     "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
                                     "cygwin", "ssh.auth.sock", "cygwin.home",
                                     "enable.inla.argument.weights",
-                                    "show.warning.graph.file"))
+                                    "show.warning.graph.file",
+                                    "show.warning.control.data"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -41,7 +42,8 @@
             ssh.auth.sock = inla.ifelse(!is.null(opt$ssh.auth.sock), opt$ssh.auth.sock,
                     paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep="")),
             enable.inla.argument.weights = inla.ifelse(is.null(opt$enable.inla.argument.weights), FALSE, opt$enable.inla.argument.weights), 
-            show.warning.graph.file = inla.ifelse(is.null(opt$show.warning.graph.file), TRUE, opt$show.warning.graph.file)
+            show.warning.graph.file = inla.ifelse(is.null(opt$show.warning.graph.file), TRUE, opt$show.warning.graph.file), 
+            show.warning.control.data = inla.ifelse(is.null(opt$show.warning.control.data), TRUE, opt$show.warning.control.data)
             )
 
     res = c()
@@ -78,7 +80,8 @@
                                              "ssh.auth.sock",
                                              "cygwin.home",
                                              "enable.inla.argument.weights",
-                                             "show.warning.graph.file"), value)
+                                             "show.warning.graph.file", 
+                                             "show.warning.control.data"), value)
     {
         envir = inla.get.inlaEnv()
 

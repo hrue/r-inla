@@ -15,7 +15,7 @@ formula = y ~ b12.time + b13.timedrug + b14.sex + b15.prevoi + b16.stratum +
 
 mod1 = inla(formula, family = "gaussian", verbose = TRUE, data = data1,
   control.fixed = list(prec = 0.01, prec.intercept = 0.01),
-  control.data = list(param =c(0.1,0.1), initial = log(0.345)))
+  control.family = list(param =c(0.1,0.1), initial = log(0.345)))
 
 
 

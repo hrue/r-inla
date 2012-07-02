@@ -86,7 +86,9 @@ how to define such linear combinations.}
 \item{control.compute}{ See \code{?control.compute}}
 \item{control.predictor}{ See
 \code{?control.predictor}}
-\item{control.data}{ See \code{?control.data}}
+\item{control.family}{ See \code{?control.family}}
+\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
+      see \code{?control.family}}
 \item{control.inla}{ See \code{?control.inla}}
 \item{control.results}{ See \code{?control.result}}
 \item{control.fixed}{ See \code{?control.fixed}}

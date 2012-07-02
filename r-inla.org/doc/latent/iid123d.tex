@@ -144,7 +144,7 @@ if (TRUE)
     formula = y ~ f(i, model="iid2d", n=N)
 
     r = inla(formula, data = data.frame(i,y),
-            control.data=list(initial=10,fixed=TRUE))
+            control.family=list(initial=10,fixed=TRUE))
     print(summary(r))
 
     print(1/diag(cov(yy)))
@@ -164,7 +164,7 @@ if (TRUE)
     formula = y ~ f(i, model="iid2d", n=N) + f(j,z,copy="i") + zz 
 
     r = inla(formula, data = data.frame(i,j,y,z,zz),
-            control.data=list(initial=10,fixed=TRUE),keep=T)
+            control.family=list(initial=10,fixed=TRUE),keep=T)
     print(summary(r))
     print(1/diag(cov(yy)))
     print(cor(yy)[1,2])

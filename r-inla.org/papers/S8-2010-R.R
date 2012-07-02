@@ -73,7 +73,7 @@ for(i in 1:iter){
 ####
 	hdc.2 <- inla(y.k ~ x1.k + x2.k +
 	f(f.k,model="iid"),family = "poisson",data = clone.data,
-	control.data=list(prior="flat"))
+	control.family=list(prior="flat"))
 	hyp.hdc.2 = inla.hyperpar(hdc.2)
 	vc.mean.2 = inla.expectation(function(x) 1/x^.5, hyp.hdc.2$marginals[[1]])
 	vc.m2.2 = inla.expectation(function(x) 1/x, hyp.hdc.2$marginals[[1]])
@@ -253,7 +253,7 @@ stdev.clone.1 = sqrt(k*(m2.clone- mean.clone.1^2))
 
 formula.clone.1.2 = r.k ~ x1.k+x2.k+f(plate.k,model="iid")
 mod.seeds.clone.1.2 = inla(formula.clone.1.2,data=clone.data,
-control.data=list(prior="flat"), family="binomial",Ntrials=n.k,
+control.family=list(prior="flat"), family="binomial",Ntrials=n.k,
 control.fixed=list(mean=c(1,1),prec=c(0.001,0.001)))
 
 seeds.hyperpar.clone.1.2 = inla.hyperpar(mod.seeds.clone.1.2)
@@ -386,7 +386,7 @@ stdev.clone.int.1 = sqrt(k*(m2.clone.int.1- mean.clone.int.1^2))
 
 formula.clone.int.2 = r.k ~ x1.k+x2.k+I(x1.k*x2.k)+f(plate.k,model="iid")
 mod.seeds.clone.int.2 = inla(formula.clone.int.2,data=clone.data,
-control.data=list(prior="flat"), family="binomial",Ntrials=n.k,
+control.family=list(prior="flat"), family="binomial",Ntrials=n.k,
 control.fixed=list(mean=c(-1,-2,-1),prec=c(0.1,0.1,0.1)))
 
 seeds.hyperpar.clone.int.2 = inla.hyperpar(mod.seeds.clone.int.2)
@@ -629,7 +629,7 @@ hyp.clone.1<-epil.dc.hyperpar.1$marginals$`Precision for id.k`
 ### Fitting by HDC method with flat prior
 
 epil.dc.fit.2 = inla(Seizure.k ~ Base.k + Trt.k + I(Base.k*Trt.k)
-+Age.k + V4.k+f(id.k,model="iid"), data=clone.data,control.data=list(prior="flat"),
++Age.k + V4.k+f(id.k,model="iid"), data=clone.data,control.family=list(prior="flat"),
 family="poisson",control.fixed=list(mean=c(1,1,1,1,0),prec=c(0.001,0.001,0.01,0.001,
 0.01)))
 
@@ -812,7 +812,7 @@ hyp.clone.2.1.2<-epil.dc.hyperpar.2.1$marginals$`Precision for rand.k`
 ### Fitting by HDC method with flat prior
 
 epil.dc.fit.2.2 = inla(Seizure.k ~ Base.k + Trt.k + I(Base.k*Trt.k) + Age.k + V4.k +
-        f(id.k,model="iid")+f(rand.k,model="iid"),control.data=list(prior="flat"),
+        f(id.k,model="iid")+f(rand.k,model="iid"),control.family=list(prior="flat"),
 	  data=clone.data,family="poisson",
 control.fixed=list(mean=c(1,1,1,1,0),prec=c(0.001,0.001,0.01,0.001,0.01)))
 
@@ -1352,7 +1352,7 @@ hyp.M.1<-salamander.clone.e1.hyperpar.1$marginals[[2]]
 ### Fitting by HDC approach with flat prior set 
 
 salamander.e1.clone.2 = inla(aa[,1]~aa[,2]+aa[,3]+aa[,4]+f(aa[,5],model="iid")+ 
-f(aa[,6], model="iid"), control.data=list(prior="flat"),
+f(aa[,6], model="iid"), control.family=list(prior="flat"),
         family="binomial", data=aa, Ntrials=rep(1,nrow(aa)))
 salamander.clone.e1.hyperpar.2 = inla.hyperpar (salamander.e1.clone.2)
 

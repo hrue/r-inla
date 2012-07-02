@@ -96,7 +96,7 @@ y[abs.pres==1] = rbinom( sum(abs.pres>0), n.trial, rb[abs.pres==1])
 
 formula = y ~ x +1
 r = inla(formula, data = data.frame(x,y), family = "zeroinflatedbetabinomial2",
-        control.data = list(hyper=list(a = list(prior = "flat", param=numeric(0)),
+        control.family = list(hyper=list(a = list(prior = "flat", param=numeric(0)),
                                        b = list(prior = "flat", param=numeric(0)))),
         Ntrials = rep(n.trial, nx),
         verbose=TRUE)

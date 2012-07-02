@@ -27,7 +27,7 @@ data=data.frame(y=y,node=node)
 ## fit the model
 result=inla(formula, family="gaussian", data=data, verbose=TRUE,
         control.predictor = list(compute = TRUE),
-        control.data = list(hyper = list(theta = list(initial = log(1/s.noise^2),
+        control.family = list(hyper = list(theta = list(initial = log(1/s.noise^2),
                                                  fixed = FALSE))),
         keep=T)
 

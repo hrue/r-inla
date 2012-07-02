@@ -40,7 +40,7 @@ In the case where there is one hyperparameter for that particular
 f-model. In the case where we want to specify the prior for the
 hyperparameter of an observation model, for example the
 Gaussian, the the prior spesification will appear inside the
-control.data()-argument; see the following example for illustration.
+control.family()-argument; see the following example for illustration.
 
 \subsection*{Example}
 
@@ -58,7 +58,7 @@ y=rnorm(n,z,1)
 data=list(y=y,z=z)
 formula=y~1+z
 result=inla(formula,family="gaussian",data=data,
-       control.data=list(hyper = list(prec = list(prior="loggamma",param=c(0.1,0.1)))))
+       control.family=list(hyper = list(prec = list(prior="loggamma",param=c(0.1,0.1)))))
 \end{verbatim}
 
 \subsection*{Notes}

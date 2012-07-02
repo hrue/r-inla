@@ -96,7 +96,7 @@ formula = yy ~ alpha + mu0 + mu1 -1 +
       fixed=FALSE, param=c(0,0.1))
 
 res = inla(formula, family = c("gaussian", "poisson"), data = data, 
-        control.data = list(list(initial=1), list()),
+        control.family = list(list(initial=1), list()),
         control.inla= list(strategy = "gaussian", int.strategy = "eb"),
         control.predictor=list(compute=TRUE),verbose = TRUE, keep=TRUE)
 
@@ -108,7 +108,7 @@ formula.mat = yy ~ alpha + mu0 + mu1 -1 +
     f(jj, copy="ii", replicate=replicates, fixed=FALSE, param=c(0,0.1))
 
 res.mat = inla(formula.mat, family = c("gaussian", "poisson"), data=data,
-        control.data = list(list(initial=1), list()),
+        control.family = list(list(initial=1), list()),
         control.inla= list(strategy = "gaussian", int.strategy = "eb"),
         control.predictor=list(compute=TRUE),verbose = TRUE)
 

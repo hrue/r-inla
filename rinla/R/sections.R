@@ -52,8 +52,14 @@
     }
 }
 
+`inla.family.section` = function(...) {
+    ## this is just a wrapper to make the naming better
+    return (inla.data.section(...))
+}
+    
 `inla.data.section` = function(file, family, file.data, file.weights, control, i.family="")
 {
+    ## this function is called from 'inla.family.section' only.
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)

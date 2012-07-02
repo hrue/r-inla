@@ -65,7 +65,7 @@ require(INLA)
 r <- inla(formula, data = data.frame(i,j,w1,l),
           family = rep("gaussian", 2),
 #          control.inla=list(strategy="laplace", int.strategy="grid"),
-          control.data = list(list(), list(initial=log(2000), fixed=T)),
+          control.family = list(list(), list(initial=log(2000), fixed=T)),
           control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 # elapsed time
@@ -218,7 +218,7 @@ require(INLA)
 r = inla(formula, data = data.frame(i,j,weight1,k,weight2,l,q,s),
          family = rep("gaussian", 3),
 #          control.inla=list(strategy="laplace", int.strategy="grid"),
-         control.data = list(list(),list(initial=10, fixed=T),list(initial=10, fixed=T)),
+         control.family = list(list(),list(initial=10, fixed=T),list(initial=10, fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 
@@ -439,7 +439,7 @@ require(INLA)
 r = inla(formula, data = data.frame(i,weight0,j,weight1,l,weight2,o,weight3,q,s),
          family = rep("gaussian", 3),
 #          control.inla=list(strategy="laplace", int.strategy="grid"),
-         control.data = list(list(param=c(1,0.01),initial=log(20)),list(initial=log(10), fixed=T),list(initial=log(20), fixed=T)),
+         control.family = list(list(param=c(1,0.01),initial=log(20)),list(initial=log(10), fixed=T),list(initial=log(20), fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 # elapsed time
@@ -691,7 +691,7 @@ require(INLA)
 r = inla(formula, data = data.frame(k,l,weight2,u),
          family = c("poisson", "gaussian"),
 #         control.inla=list(strategy="gaussian"),
-         control.data = list(list(), list(initial=10, fixed=T)),
+         control.family = list(list(), list(initial=10, fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 
@@ -985,17 +985,17 @@ require(INLA)
 # ---------------------
 r = inla(formula, data = data.frame(iv,ix,ix2,iw,w.iw),
          family = rep("gaussian",2), 
-         control.data = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
+         control.family = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 r1 = inla(formula1, data = data.frame(iv,ix,ix2,iw),
          family = rep("gaussian",2), 
-         control.data = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
+         control.family = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 r2 = inla(formula2, data = data.frame(iv,ix,ix2,iw),
          family = rep("gaussian",2), 
-         control.data = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
+         control.family = list(list(initial=10, fixed=T),list(initial=10, fixed=T)),
          control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 # elapsed time
@@ -1335,14 +1335,14 @@ require(INLA)
 r7 = inla(formula7, data = data.frame(ix1,ix1b,wx1b,ix2,ix2b,wx2b,iw1,iw2,iw3),
           family = rep("gaussian",3),
           control.inla = list(h=0.1), 
-          control.data = list(list(initial=10, fixed=T),
+          control.family = list(list(initial=10, fixed=T),
           list(initial=10, fixed=T), list(initial=10, fixed=T)),
           control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
 #r12 = inla(formula12, data = data.frame(ix1,ix1b,wx1b,ix2,ix2b,wx2b,iw1,iw2,iw3),
 #         family = rep("gaussian",3),
 #         control.inla = list(h=0.1), 
-#         control.data = list(list(initial=10, fixed=T),
+#         control.family = list(list(initial=10, fixed=T),
 #         list(initial=10, fixed=T), list(initial=10, fixed=T)),
 #         control.predictor=list(compute=TRUE, cdf=c(.025, .975)))
 
@@ -1538,7 +1538,7 @@ require(INLA)
 # ---------------------
 r = inla(formula, data = data.frame(i,j,weight1,l,weight2,q,w1),
          family = rep("gaussian",2),
-         control.data = list(list(),list(initial=10, fixed=TRUE)),
+         control.family = list(list(),list(initial=10, fixed=TRUE)),
          control.predictor=list(compute=TRUE))
 
 
@@ -1813,7 +1813,7 @@ require(INLA)
 # ---------------------
 r = inla(formula, data = data.frame(cosine,sine,i,j,weight1,l,weight2,q,rr,w1),
          family = c("poisson","gaussian"),
-         control.data = list(list(),list(initial=10, fixed=TRUE)),
+         control.family = list(list(),list(initial=10, fixed=TRUE)),
          control.predictor=list(compute=TRUE))
 
 
