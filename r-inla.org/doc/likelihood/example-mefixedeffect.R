@@ -22,7 +22,7 @@ r = inla(formula,
         data = list(Y=Y, intercept=intercept,
                 me.fixed.effect = me.fixed.effect),
         family = c("gaussian", "mefixedeffect"),
-        control.data = list(list(
+        control.family = list(list(
                 hyper = list(
                         prec = list(
                                 initial = log(prec.y),

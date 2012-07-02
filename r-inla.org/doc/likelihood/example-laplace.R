@@ -18,5 +18,5 @@ y <- rald(n, tau, mu, delta)
 
 formula <- y ~ mu - 1
 r <- inla(formula, family = "laplace", data = data.frame(mu,y), 
-			control.data = list(alpha=tau, gamma=2, epsilon=0.01))
+			control.family = list(alpha=tau, gamma=2, epsilon=0.01))
 summary(r)

@@ -23,12 +23,12 @@
     else
         cat("The model has no fixed effects and no intercept\n\n")
     
-    ## must check x$control.data that its a list of lists, so we can
+    ## must check x$control.family that its a list of lists, so we can
     ## treat n.family = 1 the same was as for n.family > 1.
     if (length(x$.args$family) == 1) {
-        contdata = list(x$.args$control.data)
+        contfamily = list(x$.args$control.family)
     } else {
-        contdata = x$.args$control.data
+        contfamily = x$.args$control.family
     }
     for(ii in 1:length(x$.args$family)) {
         cat(paste("Likelihood model",
@@ -39,8 +39,8 @@
         if (ntheta > 0) {
             for (i in 1:ntheta) {
                 ## need a fix here for the 'numeric(0)' problem.
-                if (!is.null(contdata[[ii]]$hyper[[i]]$fixed)) {
-                    if (contdata[[ii]]$hyper[[i]]$fixed) {
+                if (!is.null(contfamily[[ii]]$hyper[[i]]$fixed)) {
+                    if (contfamily[[ii]]$hyper[[i]]$fixed) {
                         cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
                     } else {
                         cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))

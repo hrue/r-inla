@@ -164,17 +164,17 @@ formula.pref = yy ~ alpha + mu + f(ii, model = "rw2d", nrow=nrow, ncol=ncol,
     f(jj, copy="ii", fixed=FALSE, param=c(0,0.1)) -1
 
 pref.model.pref = inla(formula.pref, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.pref, verbose = TRUE)
 
 pref.model.rand = inla(formula.pref, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.rand, verbose = TRUE)
 
 pref.model.clust = inla(formula.pref, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.clust, verbose = TRUE)
 
@@ -186,17 +186,17 @@ formula.pref1 = yy ~ alpha + mu + f(ii, model = "matern2d", nrow=nrow, ncol=ncol
     f(jj, copy="ii", fixed=FALSE, param=c(0,0.1)) -1
 
 pref.model.pref1 = inla(formula.pref1, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.pref, verbose = TRUE)
 
 pref.model.rand1 = inla(formula.pref1, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.rand, verbose = TRUE)
 
 pref.model.clust1 = inla(formula.pref1, family = c("gaussian", "poisson"),
-        control.data = list(list(initial = 4, fixed=FALSE), list()),
+        control.family = list(list(initial = 4, fixed=FALSE), list()),
         control.inla= list(strategy = "gaussian"),
         data = data.pref.clust, verbose = TRUE)
 

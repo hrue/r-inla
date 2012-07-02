@@ -118,7 +118,11 @@
               ##!\code{?control.predictor}}
               control.predictor = list(),
 
-              ##!\item{control.data}{ See \code{?control.data}}
+              ##!\item{control.family}{ See \code{?control.family}}
+              control.family = list(),
+
+              ##!\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
+              ##!      see \code{?control.family}}
               control.data = list(),
 
               ##!\item{control.inla}{ See \code{?control.inla}}
@@ -344,6 +348,18 @@
         }
     }
 
+    ## if 'control.data' is set and not 'control.family', do the swap here. if both are set,  give an error
+    if (!missing(control.family) && !missing(control.data)) {
+        stop("Argument 'control.data' have been renamed to 'control.family'; please use only 'control.family'.")
+    }
+    if (missing(control.family) && !missing(control.data)) {
+        control.family = control.data
+        if (inla.getOption("show.warning.control.data")) {
+            inla.setOption("show.warning.control.data", FALSE)
+            warning("Argument 'control.data' have been renamed to 'control.family'; please use 'control.family' in the future.")
+        }
+    }
+
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crahs
     ## the formula routines in R since then the data cannot be cast
@@ -373,8 +389,8 @@
     ## check all control.xx arguments here...
     inla.check.control(control.compute)
     inla.check.control(control.predictor)
-    ## do not check control.data here, as we need to know n.family
-    ## first. do this later: inla.check.control(control.data)
+    ## do not check control.family here, as we need to know n.family
+    ## first. do this later: inla.check.control(control.family)
     inla.check.control(control.inla)
     inla.check.control(control.results)
     inla.check.control(control.fixed)
@@ -524,7 +540,7 @@
                      verbose = verbose,
                      control.compute = control.compute,
                      control.predictor = control.predictor,
-                     control.data = control.data,
+                     control.family = control.family,
                      control.inla = control.inla,
                      control.results = control.results,
                      control.fixed = control.fixed,
@@ -804,47 +820,47 @@
     cont.fixed = inla.set.control.fixed.default()
     cont.fixed[names(control.fixed)] = control.fixed
 
-    ## control.data
-    control.data.orig = control.data
+    ## control.family
+    control.family.orig = control.family
     if (n.family == 1) {
-        if (!missing(control.data) && (inla.is.list.of.lists(control.data) && length(control.data) > 1L))
-            stop(paste("Argument control.data does not match length(family)=", n.family))
+        if (!missing(control.family) && (inla.is.list.of.lists(control.family) && length(control.family) > 1L))
+            stop(paste("Argument 'control.family' does not match length(family)=", n.family))
     } else {
-        if (!missing(control.data) && !(inla.is.list.of.lists(control.data) && length(control.data) == n.family))
-            stop(paste("Argument control.data does not match lengt)h(family)=", n.family))
+        if (!missing(control.family) && !(inla.is.list.of.lists(control.family) && length(control.family) == n.family))
+            stop(paste("Argument 'control.family' does not match length(family)=", n.family))
     }
     
-    if (missing(control.data)) {
+    if (missing(control.family)) {
         tt = list(list())
         for(i in 1:n.family)
-            tt[[i]] = control.data
-        control.data = tt
+            tt[[i]] = control.family
+        control.family = tt
     } else if (n.family == 1) {
-        control.data = list(control.data)
+        control.family = list(control.family)
     }
     
-    if (length(control.data) == 1 && n.family > 1)
-        stop(paste("length(control.data) = 1 while length(family) > 1."))
+    if (length(control.family) == 1 && n.family > 1)
+        stop(paste("length(control.family) = 1 while length(family) > 1."))
 
     ## finally, do the check. Note that the name of the argument is
     ## also used in this function, so we need to borrow the name.
-    control.data.save = control.data
+    control.family.save = control.family
     for(ii in 1:n.family) {
-        control.data = control.data.save[[ii]]
-        inla.check.control(control.data)
+        control.family = control.family.save[[ii]]
+        inla.check.control(control.family)
     }
-    control.data = control.data.save
+    control.family = control.family.save
     
-    cont.data = list(list())
+    cont.family = list(list())
     for(i.family in 1:n.family) {
-        cont.data[[i.family]] = inla.set.control.data.default() 
-        cont.data[[i.family]][names(control.data[[i.family]])] = control.data[[i.family]]
-        cont.data[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
-                                     cont.data[[i.family]]$hyper, 
-                                     cont.data[[i.family]]$initial, 
-                                     cont.data[[i.family]]$fixed,
-                                     cont.data[[i.family]]$prior,
-                                     cont.data[[i.family]]$param)
+        cont.family[[i.family]] = inla.set.control.family.default() 
+        cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
+        cont.family[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
+                                     cont.family[[i.family]]$hyper, 
+                                     cont.family[[i.family]]$initial, 
+                                     cont.family[[i.family]]$fixed,
+                                     cont.family[[i.family]]$prior,
+                                     cont.family[[i.family]]$param)
     }
     
     ## control results
@@ -912,7 +928,8 @@
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
-    mf$control.data = NULL; mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
+    mf$control.family = NULL; mf$control.data = NULL;
+    mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL;
     mf$inla.arg = NULL; mf$lincomb=NULL;
@@ -1046,9 +1063,9 @@
         if (debug) 
             print("prepare data section")
 
-        ##....then create the new section
-        inla.data.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
-                          control=cont.data[[i.family]], i.family=i.family)
+        ##....then create the new section 
+        inla.family.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
+                          control=cont.family[[i.family]], i.family=i.family)
     }
 
     ##create the PREDICTOR section. if necessary create a file with
@@ -1771,24 +1788,26 @@
             ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
             the.args = list()
             for (nm in names(formals(inla))) {
-                nnm = nm
-                nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
-                nnm = gsub("^data$", "data.orig", nnm) 
-                nnm = gsub("^formula$", "formula.orig", nnm) 
-                nnm = gsub("^cont(rol)?\\.data$", "control.data.orig", nnm)
-                inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
+                if (!(nm %in% "control.data")) {
+                    nnm = nm
+                    nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
+                    nnm = gsub("^data$", "data.orig", nnm) 
+                    nnm = gsub("^formula$", "formula.orig", nnm) 
+                    nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
+                    inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
+                }
             }
 
-            ## further fix for $control.data until the c(param = numeric(0)) issue is solved. 
+            ## further fix for $control.family until the c(param = numeric(0)) issue is solved. 
             if (n.family > 1L) {
                 ## we need to fix the case where there this option is
                 ## not set. otherwise, we will get list(), instead of
                 ## list(list(), list()), say, for n.family=2
-                if (is.list(the.args$control.data) && length(the.args$control.data) == 0L) {
-                    the.args$control.data = lapply(1:n.family, function(x) list())
+                if (is.list(the.args$control.family) && length(the.args$control.family) == 0L) {
+                    the.args$control.family = lapply(1:n.family, function(x) list())
                 }
             }
-            ## OLD CODE: if (n.family == 1) the.args$control.data = the.args$control.data[[1L]]
+            ## OLD CODE: if (n.family == 1) the.args$control.family = the.args$control.family[[1L]]
 
             ret$.args = the.args
             ret$call = call

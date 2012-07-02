@@ -11,7 +11,7 @@ y = rnorm(n, mean = eta, sd = 1/sqrt(prec))
 data = list(y=y, z=z)
 formula = y ~ 1+z
 result = inla(formula, family = "gaussian", data = data,
-        control.data = list(hyper = list(
+        control.family = list(hyper = list(
                                     prec = list(
                                             prior = "loggamma",
                                             param = c(1.0,0.01),

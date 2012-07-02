@@ -95,10 +95,10 @@
     ##:SEEALSO: inla
 }
 
-`inla.set.control.data.default`=
+`inla.set.control.family.default`=
     function()
 {
-    ##:NAME: control.data
+    ##:NAME: control.family
     list(
          ##:ARGUMENT: hyper Definition of the hyperparameters
          hyper = NULL,
@@ -138,6 +138,14 @@
          )
 
     ##:SEEALSO: inla
+}
+
+`inla.set.control.data.default`=
+    function()
+{
+    ##:NAME: control.data
+    ##:SEEALSO: inla
+    return (inla.set.control.family.default())
 }
 
 `inla.set.control.fixed.default`=

@@ -69,7 +69,6 @@ formula = yy ~ alpha + mu0 + mu1 -1 +
     f(jj, copy = "ii", replicate=replicates, fixed=FALSE, param=c(0,0.1), initial=0)
 
 res = inla(formula, family = c("gaussian", "poisson"), data = data, verbose = TRUE,
-           control.data = list(list(), list()),
            control.inla= list(strategy = "gaussian", huge=TRUE))
 
 dev.new()

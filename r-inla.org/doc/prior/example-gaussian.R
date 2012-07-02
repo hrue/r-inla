@@ -1,7 +1,7 @@
 n = 10
 y = rnorm(n)
 r = inla(y ~ 1, data = data.frame(y),
-        control.data = list(
+        control.family = list(
                 hyper = list(
                         prec = list(
                                 prior = "normal",

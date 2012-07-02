@@ -5,7 +5,7 @@ a = 1
 b = 0.1
 hyper = list(prec = list(prior = "loggamma", param = c(a, b)))
 r = inla(y ~ 1,  data = data.frame(y),
-        control.data = list(hyper = hyper))
+        control.family = list(hyper = hyper))
 
 ## implementing the loggamma-prior using "expression:"
 loggamma = "expression:
@@ -19,7 +19,7 @@ loggamma = "expression:
 
 hyper.new = list(prec = list(prior = loggamma))
 r.new = inla(y ~ 1,  data = data.frame(y),
-        control.data = list(hyper = hyper.new))
+        control.family = list(hyper = hyper.new))
 
 ## and we verify that we get the same result...
 print(r$summary.hyperpar[1,"mean"])
