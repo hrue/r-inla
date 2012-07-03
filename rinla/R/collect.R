@@ -1368,5 +1368,5 @@ inla.internal.experimental.mode = FALSE
     stopifnot(file.exists(filename))
 
     xx = inla.read.binary.file(filename)
-    return (list(total.offset = xx))
+    return (list(offset.linear.predictor = xx))
 }

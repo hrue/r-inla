@@ -1001,6 +1001,7 @@
 
     mf = eval.parent(mf)
     indN = seq(0, NPredictor-1)
+    indM = seq(0, MPredictor-1)
     indD = seq(0, NData-1)
 
 
@@ -1076,7 +1077,16 @@
     if (!is.null(offset.sum)) {
         if (any(is.na(offset.sum)))
             stop("\n\tNo NA values allowed in the offset vector!")
-        os = cbind(indN, offset.sum)
+        if (!is.null(control.predictor$A)) {
+            ## since the offset if currently defined as a correction
+            ## in the likelihood, we need to compute the new offset
+            ## which is A %*% offset.sum, and this is the one we'll
+            ## pass through.
+            stopifnot(length(offset.sum) == NPredictor)
+            os = cbind(c(indM, MPredictor + indN), c(control.predictor$A %*% offset.sum, offset.sum))
+        } else {
+            os = cbind(indN, offset.sum)
+        }
         file.offset = inla.tempfile(tmpdir=data.dir)
         if (inla.getOption("internal.binary.mode")) {
             inla.write.fmesher.file(as.matrix(os), filename=file.offset, debug = debug)
