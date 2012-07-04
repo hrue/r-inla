@@ -3859,15 +3859,15 @@ int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, doub
 	 */
 	int i;
 #define SE(_p) (s * (_p) + (1.0 - (_p)) * (1.0 - e))
-	
+
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p,
-		s = map_probability(ds->data_observations.test_binomial_1_s[GMRFLib_thread_id][0], MAP_FORWARD, NULL), 
-		e = map_probability(ds->data_observations.test_binomial_1_e[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	    s = map_probability(ds->data_observations.test_binomial_1_s[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
+	    e = map_probability(ds->data_observations.test_binomial_1_e[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (m > 0) {
 		gsl_sf_result res;
@@ -6624,7 +6624,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tread offsets from file=[%s]\n", filename);
 		}
-		//inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_ndata, 0, 1, mb->verbose, 0.0);
+		// inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_ndata, 0, 1, mb->verbose, 0.0);
 		inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->offset = Calloc(mb->predictor_n + mb->predictor_m, double);
@@ -13305,8 +13305,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cpo_req_diff_logdens = DMAX(0.0, mb->ai_par->cpo_req_diff_logdens);
 
 	mb->ai_par->stupid_search_mode = iniparser_getboolean(ini, inla_string_join(secname, "STUPID.SEARCH"), mb->ai_par->stupid_search_mode);
-	mb->ai_par->stupid_search_max_iter = iniparser_getint(ini, inla_string_join(secname, "STUPID.SEARCH.MAX.ITER"),
-								   mb->ai_par->stupid_search_max_iter);
+	mb->ai_par->stupid_search_max_iter = iniparser_getint(ini, inla_string_join(secname, "STUPID.SEARCH.MAX.ITER"), mb->ai_par->stupid_search_max_iter);
 	mb->ai_par->stupid_search_factor = iniparser_getdouble(ini, inla_string_join(secname, "STUPID.SEARCH.FACTOR"), mb->ai_par->stupid_search_factor);
 
 	mb->expert_diagonal_emergencey = 0.0;
@@ -13396,28 +13395,27 @@ double extra(double *theta, int ntheta, void *argument)
 		if (!mb->f_fixed[i][_nt_]){				\
 			group_rho_intern = group_prec_intern = theta[count]; \
 			count++;					\
-			if (mb->f_group_model[i] == G_EXCHANGEABLE){	\
+			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				normc_g = -(N_orig - rankdef_orig)/2.0 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
-				normc_g += ngroup*LOG_NORMC_GAUSSIAN;	\
+				normc_g = ngroup * LOG_NORMC_GAUSSIAN + 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-				normc_g = -(N_orig - rankdef_orig)/2.0 * (ngroup - 1.0) * log(1.0 - SQR(group_rho)); \
-				normc_g += ngroup*LOG_NORMC_GAUSSIAN;	\
+				normc_g = ngroup * LOG_NORMC_GAUSSIAN - 0.5 * (ngroup - 1.0) * log(1.0 - SQR(group_rho)); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2) { \
 				double grankdef = (mb->f_group_model[i] == G_RW1 ? 1.0 : 2.0); \
 				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
-				normc_g = (N_orig - rankdef_orig)/2.0 * (ngroup - grankdef) * log(group_prec); \
+				normc_g = (ngroup - grankdef) * LOG_NORMC_GAUSSIAN + 0.5 * (ngroup - grankdef) * log(group_prec); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_prec_intern); \
 			} else {					\
 				abort();				\
 			}						\
+			normc_g *= (N_orig - rankdef_orig);		\
 		} else {						\
 			group_rho_intern = group_prec_intern= mb->f_theta[i][_nt_][GMRFLib_thread_id][0]; \
-			if (mb->f_group_model[i] == G_EXCHANGEABLE){	\
+			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
 				GMRFLib_ASSERT_RETVAL(group_rho >= -1.0/(ngroup - 1.0), GMRFLib_EPARAMETER, 0.0); \
@@ -14162,8 +14160,8 @@ double extra(double *theta, int ntheta, void *argument)
 							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
 							      (problem[i] ==
 							       NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
-				switch(retval){
-				case GMRFLib_EPOSDEF: 
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
 				{
 					int ii;
 					double eps = GMRFLib_eps(0.5);
@@ -14178,11 +14176,11 @@ double extra(double *theta, int ntheta, void *argument)
 					problem[i] = NULL;
 					break;
 				}
-				case GMRFLib_SUCCESS: 
+				case GMRFLib_SUCCESS:
 					ok = 1;
 					break;
 
-				default: 
+				default:
 					/*
 					 * some other error 
 					 */
@@ -14257,8 +14255,8 @@ double extra(double *theta, int ntheta, void *argument)
 							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
 							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM :
 							       GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
-				switch(retval){
-				case GMRFLib_EPOSDEF: 
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
 				{
 					int ii;
 					double eps = GMRFLib_eps(0.5);
@@ -14273,12 +14271,12 @@ double extra(double *theta, int ntheta, void *argument)
 					problem[i] = NULL;
 					break;
 				}
-				
-				case GMRFLib_SUCCESS: 
+
+				case GMRFLib_SUCCESS:
 					ok = 1;
 					break;
 
-				default: 
+				default:
 					/*
 					 * some other error 
 					 */
@@ -18130,28 +18128,28 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
 	int i;
-	
+
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 
-	/* 
-	   I need B to be dense
-	*/
+	/*
+	 * I need B to be dense 
+	 */
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
-	
+
 #pragma omp parallel for private(i)
-	for(i = 0; i < B->ncol; i++) {
+	for (i = 0; i < B->ncol; i++) {
 		if (!strcasecmp(method, "solve")) {
-			GMRFLib_solve_llt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "forward")) {
-			GMRFLib_solve_l_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+			GMRFLib_solve_l_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "backward")) {
-			GMRFLib_solve_lt_sparse_matrix(&(B->A[ i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+			GMRFLib_solve_lt_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
 		} else {
 			assert(0 == 1);
 		}
@@ -18182,8 +18180,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
-	
-	for(i = 0; i < ns; i++){
+
+	for (i = 0; i < ns; i++) {
 		GMRFLib_sample(problem);
 		memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
 	}
@@ -18280,7 +18278,7 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	FILE *fp;
 	long len;
 
-	if (!filename){
+	if (!filename) {
 		return NULL;
 	}
 	fp = fopen(filename, "rb");
@@ -18620,7 +18618,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_QSAMPLE) {
-		inla_qsample(argv[optind], argv[optind+1], argv[optind+2]);
+		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {
