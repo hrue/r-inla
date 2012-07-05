@@ -219,20 +219,27 @@
     }
 
     ## replace the ones in the INLA-namespace
-    pkg = "package:INLA"
-    funcs = ls(pkg)
-    env = as.environment(pkg)
+    funcs = ls(tmp.env)
+    env = as.environment("package:INLA")
     nfuncs = 0
     for (func in funcs) {
         if (existsFunction(f=func, where = tmp.env)) {
-            locked = bindingIsLocked(func, env)
-            if (locked) {
-                unlockBinding(func, env)
-            }
-            assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env)
-            assign(func, get(func, envir = tmp.env), envir = env)
-            if (locked) {
-                lockBinding(func, env)
+            locked = try(bindingIsLocked(func, env), silent = TRUE)
+            if (class(locked) %in% "try-error") {
+                ## then this function does not exists in package:INLA,
+                ## so we assign it in the globalenv()
+                assign(func, get(func, envir = tmp.env), envir = globalenv())
+            } else {
+                ## otherwise, we change it in the environment and
+                ## namespace of INLA.
+                if (locked) {
+                    unlockBinding(func, env)
+                }
+                assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env)
+                assign(func, get(func, envir = tmp.env), envir = env)
+                if (locked) {
+                    lockBinding(func, env)
+                }
             }
             nfuncs = nfuncs + 1
         }
