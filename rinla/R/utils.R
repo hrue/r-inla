@@ -168,7 +168,7 @@
     if (!(Sys.getenv("USER") %in%
                     c("hrue", "martino", "finnkrl", "finn",
                       "danielsimpson", "rieblera", "ariebler")))
-        stop("This function is for developers only.")
+        warning("This function is for developers only...")
     return (invisible())
 }
 
