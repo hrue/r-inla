@@ -172,7 +172,7 @@
     return (invisible())
 }
 
-`inla.my.update` = function(dir, binaries=FALSE, ignore = NULL)
+`inla.my.update` = function(dir, binaries=FALSE, ignore.regexp= NULL)
 {
     ##  Set binaries=TRUE to set the inla.call and fmesher.call options
     ##  To override the default binaries path, set binaries="/the/path/bin"
@@ -205,9 +205,9 @@
     }
 
     files = dir(dir, pattern = "[.][Rr]$")
-    ## remove files listed in 'ignore'
-    if (!is.null(ignore)) {
-        idx = which(files %in% ignore)
+    ## remove files matching 'ignore.regexp'
+    if (!is.null(ignore.regexp)) {
+        idx = grep(ignore.regexp, files)
         files = files[-idx]
     }
 
@@ -230,6 +230,7 @@
                 unlockBinding(func, env)
             }
             assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env)
+            assign(func, get(func, envir = tmp.env), envir = env)
             if (locked) {
                 lockBinding(func, env)
             }
