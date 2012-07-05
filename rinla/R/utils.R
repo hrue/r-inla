@@ -172,7 +172,7 @@
     return (invisible())
 }
 
-`inla.my.update` = function(dir, binaries=FALSE)
+`inla.my.update` = function(dir, binaries=FALSE, ignore = NULL)
 {
     ##  Set binaries=TRUE to set the inla.call and fmesher.call options
     ##  To override the default binaries path, set binaries="/the/path/bin"
@@ -205,9 +205,39 @@
     }
 
     files = dir(dir, pattern = "[.][Rr]$")
-    for (f in files)
-        source(paste(dir, "/", f, sep=""))
-    cat("Source in ", dir, " loaded (", length(files), " files)\n", sep="")
+    ## remove files listed in 'ignore'
+    if (!is.null(ignore)) {
+        idx = which(files %in% ignore)
+        files = files[-idx]
+    }
+
+    ## source the files in a temporary environment and not the globalenv
+    tmp.env = new.env()
+    for (ff in files) {
+        fff = paste(dir, "/", ff, sep="")
+        local({source(fff, local=TRUE)}, envir = tmp.env)
+    }
+
+    ## replace the ones in the INLA-namespace
+    pkg = "package:INLA"
+    funcs = ls(pkg)
+    env = as.environment(pkg)
+    nfuncs = 0
+    for (func in funcs) {
+        if (existsFunction(f=func, where = tmp.env)) {
+            locked = bindingIsLocked(func, env)
+            if (locked) {
+                unlockBinding(func, env)
+            }
+            assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env)
+            if (locked) {
+                lockBinding(func, env)
+            }
+            nfuncs = nfuncs + 1
+        }
+    }
+
+    cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep="")
 
     if (binaries) {
         inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
