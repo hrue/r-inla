@@ -7363,7 +7363,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * the 'spesificity' parameter 'e'
+		 * the 'specificity' parameter 'e'
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
@@ -7372,7 +7372,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		HYPER_NEW(ds->data_observations.test_binomial_1_e, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise logit spesificity[%g]\n", ds->data_observations.test_binomial_1_e[0][0]);
+			printf("\t\tinitialise logit specificity[%g]\n", ds->data_observations.test_binomial_1_e[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NORMAL");
@@ -7385,8 +7385,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Logit spesificity for test-binomial-1", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Spesificity for test-binomial-1", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Logit specificity for test-binomial-1", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Specificity for test-binomial-1", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 

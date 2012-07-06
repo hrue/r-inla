@@ -2280,7 +2280,7 @@
                                       from.theta = function(x) exp(x)/(1+exp(x))
                                       ), 
                               theta2 = list(
-                                      name = "spesificity",
+                                      name = "specificity",
                                       short.name = "e",
                                       initial = 3,
                                       fixed = FALSE,
