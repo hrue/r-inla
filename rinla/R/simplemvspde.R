@@ -65,7 +65,20 @@ inla.simplemvspde.create = function(mesh)
 
 inla.simplemvspde.precision = function(simplemvspde,kappas,bs)
 {
-	// make this function
-	precision =NULL
-	return(invisible(precision))
+	 
+	#precision =NULL
+	M0 = simplemvspde$param.inla$M0 #c0
+	M1 = simplemvspde$param.inla$M1 #g1
+	
+	n = dim(M0)[1]
+	print(n)
+	Zero = sparseMatrix(i=1,j=1,x=0,dims=c(n,n))
+	L = rBind(
+	  cBind(bs[1]*(kappas[1]*M0 + M1), Zero),
+	  cBind(bs[2]*(kappas[2]*M0 + M1),bs[3]*( kappas[3]*M0 + M1))
+	)
+	Q = sparseMatrix(i=1:(2*n),j=1:(2*n),x=c(1/diag(M0),1/diag(M0)),dims=c(2*n,2*n))
+	precision = t(L)%*%Q%*%L
+	precision = 0.5*(precision + t(precision))
+ 	return(invisible(precision))
 }

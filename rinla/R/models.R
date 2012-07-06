@@ -505,6 +505,87 @@
                       pdf = "spde"
                       ),
 
+
+simplemvspde = list(
+                      ## this will be redone anyway soon....
+                      hyper = list(
+                              theta1 = list(
+                                      name = "kappa11",
+                                      short.name = "kappa11",
+                                      initial = -2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+			      theta2 = list(
+                                      name = "kappa21",
+                                      short.name = "kappa21",
+                                      initial = -2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta3 = list(
+                                      name = "kappa22",
+                                      short.name = "kappa22",
+                                      initial = -2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta4 = list(
+                                      name = "b11",
+                                      short.name = "b11",
+                                      initial = 2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta5 = list(
+                                      name = "b21",
+                                      short.name = "b21",
+                                      initial = 2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta6 = list(
+                                      name = "b22",
+                                      short.name = "b22",
+                                      initial = 2,
+                                      fixed = FALSE,
+                                      prior = "normal",
+                                      param = c(0, 1),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      )
+                              
+                      ),
+                      constr = FALSE,
+                      nrow.ncol = FALSE,
+                      augmented = FALSE,
+                      aug.factor = 1L,
+                      aug.constr = NULL,
+                      n.div.by = NULL,
+                      n.required = FALSE,
+                      set.default.values = TRUE,
+                      pdf = NULL
+                      ),
+
+
+
+
+
               spde2 = list(
                       ## to many parameters here, but ...
                       hyper = list(
