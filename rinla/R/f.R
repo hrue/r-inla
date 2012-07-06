@@ -203,7 +203,7 @@
 	##!\item{simplemvspde.prefix}{}
         simplemvspde.prefix = NULL,
 
-        ##!\item{spde2.transform}{}
+        ##!\item{simplemvspde.transform}{}
         simplemvspde.transform = c( "identity"),
 
 
@@ -533,6 +533,13 @@
     }
     spde2.transform = match.arg(spde2.transform, several.ok = FALSE)
 
+if (inla.one.of(model, c("simplemvspde"))) {
+        if (is.null(simplemvspde.prefix)) {
+            stop("Argument simplemvspde.prefix=NULL is required for model = simplemvspde")
+        }
+    }
+    simplemvspde.transform = match.arg(simplemvspde.transform, several.ok = FALSE)
+
     if (inla.one.of(model,"seasonal") &&
         is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
@@ -756,6 +763,8 @@
             spde.prefix = spde.prefix,
             spde2.prefix = spde2.prefix,
             spde2.transform = spde2.transform,
+	    simplemvspde.prefix=simplemvspde.prefix,
+	    simplemvspde.transform=simplemvspde.transform,
             term=term,
             values=values,
             weights=weights
