@@ -2753,7 +2753,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{name = }{`spesificity'}
+							\item{name = }{`specificity'}
 							\item{short.name = }{`e'}
 							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
