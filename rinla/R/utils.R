@@ -235,7 +235,8 @@
                 if (locked) {
                     unlockBinding(func, env)
                 }
-                assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env)
+                ## 'assignInNamespace' might not be 'allowed' in the future.
+                try(assignInNamespace(func, get(func, envir = tmp.env), ns = "INLA", envir = env), silent=TRUE)
                 assign(func, get(func, envir = tmp.env), envir = env)
                 if (locked) {
                     lockBinding(func, env)
