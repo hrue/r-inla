@@ -1648,8 +1648,8 @@ double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters)
 	double sd = exp(-0.5 * (*x)), val;
 
 	val = priorfunc_normal(&sd, parameters) - log(gsl_cdf_gaussian_Q(-parameters[0], 1.0 / sqrt(parameters[1]))) +
-	    // Jacobian
-	    fabs(-0.5 * sd);
+		// log(Jacobian)
+		log(fabs(-0.5 * sd));
 
 	return val;
 }
