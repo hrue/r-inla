@@ -13931,6 +13931,12 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 
 
+	for (i = 0; i < mb->nlinear; i++) {
+		if (mb->linear_precision[i] > 0.0) {
+			val += LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log(mb->linear_precision[i]);
+		}
+	}
+
 	for (i = 0; i < mb->nf; i++) {
 		switch (mb->f_id[i]) {
 		case F_RW2D:
