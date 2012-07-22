@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.7.5)  6 JUL 2012 22:49
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.7.18)  22 JUL 2012 20:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -185,7 +185,7 @@ File: example-iidexp.R  (verbatim)
 x) ) 
 Here is how much of TeX's memory you used:
  1406 strings out of 494772
- 17898 string characters out of 3177538
+ 17902 string characters out of 3177533
  76852 words of memory out of 3000000
  4631 multiletter control sequences out of 15000+200000
  9075 words of font info for 34 fonts, out of 3000000 for 9000
@@ -197,7 +197,7 @@ are/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/te
 xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-d
 ist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on iidexp.pdf (2 pages, 74677 bytes).
+Output written on iidexp.pdf (2 pages, 74682 bytes).
 PDF statistics:
  35 PDF objects out of 1000 (max. 8388607)
  24 compressed objects within 1 object stream
