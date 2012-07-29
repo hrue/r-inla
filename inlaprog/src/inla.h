@@ -44,9 +44,7 @@ __BEGIN_DECLS
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
-
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi)  */
-
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
 #define FIFO_GET "inla-mcmc-fifo-get"
@@ -57,8 +55,7 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-typedef enum {
+    typedef enum {
 	/*
 	 * Failure time
 	 */
@@ -85,9 +82,9 @@ typedef enum {
 	INLA_MODE_MCMC,
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
-	INLA_MODE_QSOLVE, 
-	INLA_MODE_QREORDERING, 
-	INLA_MODE_QSAMPLE, 
+	INLA_MODE_QSOLVE,
+	INLA_MODE_QREORDERING,
+	INLA_MODE_QSAMPLE,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
 	INLA_MODE_TESTIT = 99
@@ -219,12 +216,12 @@ typedef struct {
 	double **zero_n_inflated_alpha1_intern;
 	double **zero_n_inflated_alpha2_intern;
 
-	/* 
+	/*
 	 * the overdispersion parameter for the betabinomial, \rho = 1/(a+b+1).
 	 */
 	double **betabinomial_overdispersion_intern;
 
-	/* 
+	/*
 	 * the precision parameter for the beta, \phi = exp(theta)
 	 */
 	double **beta_precision_intern;
@@ -280,7 +277,7 @@ typedef struct {
 	double **sas_log_tail;
 	double **sas_log_prec;
 
-	/* 
+	/*
 	 * Measurement error. Fixed effect
 	 */
 	double **me_fixed_effect_beta;
@@ -290,20 +287,20 @@ typedef struct {
 	 * y ~ Circular Normal, with precision parameter: weight*prec
 	 */
 	double **log_prec_circular_normal;
-	double *weight_circular_normal;	
+	double *weight_circular_normal;
 
 	/*
 	 * y ~ Circular Cauchy, with precision parameter: weight*prec, related to the rho-parameter; see doc. 0<weight<=1
 	 */
 	double **log_prec_wrapped_cauchy;
-	double *weight_wrapped_cauchy;	
+	double *weight_wrapped_cauchy;
 
 
-	/* 
+	/*
 	 * test-implementations  
 	 */
 	double **test_binomial_1_s, **test_binomial_1_e;
-	
+
 
 } Data_tp;
 
@@ -326,8 +323,8 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
 	L_ZEROINFLATEDBETABINOMIAL2,
-	L_BETA, 
-	L_BETABINOMIAL, 
+	L_BETA,
+	L_BETABINOMIAL,
 	L_NBINOMIAL,
 	L_ZEROINFLATEDNBINOMIAL0,
 	L_ZEROINFLATEDNBINOMIAL1,
@@ -350,16 +347,17 @@ typedef enum {
 	L_SAS,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
-	L_ME_FIXED_EFFECET, 
-	L_CIRCULAR_NORMAL, 
-	L_WRAPPED_CAUCHY, 
-	L_TEST_BINOMIAL_1, 
+	L_ME_FIXED_EFFECET,
+	L_CIRCULAR_NORMAL,
+	L_WRAPPED_CAUCHY,
+	L_TEST_BINOMIAL_1,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGPROPER,
 	F_SEASONAL,
 	F_IID,
+	F_IID_TEST,
 	F_2DIID,
 	F_IID1D,
 	F_IID2D,
@@ -535,7 +533,7 @@ struct inla_tp_struct {
 	int verbose;
 	int strategy;
 
-	/* 
+	/*
 	 * parameters for global_nodes
 	 */
 	GMRFLib_global_node_tp gn;
@@ -627,6 +625,7 @@ struct inla_tp_struct {
 	GMRFLib_Qfunc_tp **f_Qfunc_orig;
 	void **f_Qfunc_arg;
 	void **f_Qfunc_arg_orig;
+	GMRFLib_bfunc2_tp **f_bfunc2;
 	Prior_tp **f_prior;
 	char *f_sumzero;
 	GMRFLib_constr_tp **f_constr;
@@ -1149,6 +1148,8 @@ double Qfunc_iid2d(int i, int j, void *arg);
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
+
+double iid_mfunc(int idx, void *arg);
 
 /* 
 ***

@@ -57,10 +57,35 @@
 
 __BEGIN_DECLS
 
+/*
+ *
+ */
+typedef double GMRFLib_mfunc_tp(int node, void *argument);
+
+typedef struct {
+	GMRFLib_graph_tp *graph;
+	GMRFLib_Qfunc_tp *Qfunc;
+	void *Qfunc_arg;
+	double diagonal;
+
+	GMRFLib_mfunc_tp *mfunc;
+	void *mfunc_arg;
+
+	int n;
+	int nreplicate;
+	int ngroup;
+} GMRFLib_bfunc2_tp;
+
+typedef struct {
+	int idx;
+	GMRFLib_bfunc2_tp *bdef;			       /* doit like this, as many has the same 'bdef' */
+} GMRFLib_bfunc_tp;
+
+
 /** 
  * Available strategies.
  */
-    typedef enum {
+typedef enum {
 
 	/**
 	 * \brief Use the GMRF-approximation
@@ -841,7 +866,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
 		    char *compute, double ***hyperparam, int nhyper, GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
-		    double *x, double *b, double *c, double *mean, double *d,
+		    double *x, double *b, double *c, double *mean, GMRFLib_bfunc_tp ** bfunc, double *d,
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
@@ -869,6 +894,9 @@ int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta,
 int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
+
+double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
+int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 
 __END_DECLS
 #endif

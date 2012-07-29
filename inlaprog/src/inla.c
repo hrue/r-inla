@@ -1287,15 +1287,13 @@ double Qfunc_generic2(int i, int j, void *arg)
 }
 double Qfunc_replicate(int i, int j, void *arg)
 {
-#define IREMINDER(k, n) (k) - (n)*((k)/(n))
 	int ii, jj;
 	inla_replicate_tp *a = (inla_replicate_tp *) arg;
 
-	ii = IREMINDER(i, a->n);
-	jj = IREMINDER(j, a->n);
+	ii = MOD(i, a->n);
+	jj = MOD(j, a->n);
 
 	return a->Qfunc(ii, jj, a->Qfunc_arg);
-#undef IREMINDER
 }
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 {
@@ -1648,8 +1646,8 @@ double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters)
 	double sd = exp(-0.5 * (*x)), val;
 
 	val = priorfunc_normal(&sd, parameters) - log(gsl_cdf_gaussian_Q(-parameters[0], 1.0 / sqrt(parameters[1]))) +
-		// log(Jacobian)
-		log(fabs(-0.5 * sd));
+	    // log(Jacobian)
+	    log(fabs(-0.5 * sd));
 
 	return val;
 }
@@ -9517,6 +9515,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_Qfunc_orig = Realloc(mb->f_Qfunc_orig, mb->nf + 1, GMRFLib_Qfunc_tp *);
 	mb->f_Qfunc_arg = Realloc(mb->f_Qfunc_arg, mb->nf + 1, void *);
 	mb->f_Qfunc_arg_orig = Realloc(mb->f_Qfunc_arg_orig, mb->nf + 1, void *);
+	mb->f_bfunc2 = Realloc(mb->f_bfunc2, mb->nf + 1, GMRFLib_bfunc2_tp *);
 	mb->f_graph = Realloc(mb->f_graph, mb->nf + 1, GMRFLib_graph_tp *);
 	mb->f_graph_orig = Realloc(mb->f_graph_orig, mb->nf + 1, GMRFLib_graph_tp *);
 	mb->f_prior = Realloc(mb->f_prior, mb->nf + 1, Prior_tp *);
@@ -9562,6 +9561,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(Qfunc_orig, (GMRFLib_Qfunc_tp *) NULL);
 	SET(Qfunc_arg, NULL);
 	SET(Qfunc_arg_orig, NULL);
+	SET(bfunc2, NULL);
 	SET(graph, NULL);
 	SET(graph_orig, NULL);
 	SET(prior, NULL);
@@ -9666,6 +9666,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_IID;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID model");
+	} else if (OneOf("IIDTEST")) {
+		mb->f_id[mb->nf] = F_IID_TEST;
+		mb->f_ntheta[mb->nf] = 1;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID TEST model");
 	} else if (OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
@@ -9763,6 +9767,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
+	case F_IID_TEST:
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
@@ -10452,6 +10457,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
+	case F_IID_TEST:
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
@@ -12259,6 +12265,33 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_Qfunc[mb->nf] = GMRFLib_crw;
 			mb->f_Qfunc_arg[mb->nf] = (void *) crwdef;
 			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
+		} else if (mb->f_id[mb->nf] == F_IID_TEST) {
+			crwdef = Calloc(1, GMRFLib_crwdef_tp);
+			crwdef->n = mb->f_n[mb->nf];
+			crwdef->si = mb->f_si[mb->nf];
+			crwdef->prec = NULL;
+			crwdef->log_prec = NULL;
+			crwdef->log_prec_omp = log_prec;
+			crwdef->order = 0;
+			crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
+			mb->f_rankdef[mb->nf] = 0.0;
+			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
+
+			GMRFLib_make_crw_graph(&(mb->f_graph[mb->nf]), crwdef);
+			mb->f_Qfunc[mb->nf] = GMRFLib_crw;
+			mb->f_Qfunc_arg[mb->nf] = (void *) crwdef;
+			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
+
+			mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+			mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+			mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+			mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+			mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+			mb->f_bfunc2[mb->nf]->mfunc = iid_mfunc;
+			mb->f_bfunc2[mb->nf]->mfunc_arg = NULL;
+			mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+			mb->f_bfunc2[mb->nf]->nreplicate = 1;
+			mb->f_bfunc2[mb->nf]->ngroup = 1;
 		} else {
 			assert(0 == 1);
 		}
@@ -12520,6 +12553,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			} else {
 				def->rwdef = NULL;
 			}
+			if (mb->f_bfunc2[mb->nf]) {
+				/*
+				 * then revise the contents
+				 */
+				mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+				mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+				mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+				mb->f_bfunc2[mb->nf]->ngroup = ng;
+			}
 		}
 
 		/*
@@ -12543,6 +12585,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_constr[mb->nf] = c;
 			}
 			// GMRFLib_print_constr(stdout, c, mb->f_graph[mb->nf]);
+
+			if (mb->f_bfunc2[mb->nf]) {
+				/*
+				 * Then revise the contents
+				 */
+				mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+				mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+				mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+				mb->f_bfunc2[mb->nf]->nreplicate = rep;
+			}
 		}
 		mb->f_Ntotal[mb->nf] = mb->f_N[mb->nf] * rep;
 	} else {
@@ -12557,6 +12609,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #undef OneOf3
 #undef SetInitial
 	return INLA_OK;
+}
+double iid_mfunc(int idx, void *arg)
+{
+	return 1.0 + idx;
 }
 double Qfunc_copy_part00(int i, int j, void *arg)
 {
@@ -13944,6 +14000,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_GENERIC0:
 		case F_SEASONAL:
 		case F_IID:
+		case F_IID_TEST:
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
@@ -14970,6 +15027,7 @@ int inla_INLA(inla_tp * mb)
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count;
 	char *compute = NULL;
+	GMRFLib_bfunc_tp **bfunc;
 
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
@@ -15064,6 +15122,7 @@ int inla_INLA(inla_tp * mb)
 	 */
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
+	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	count = 0;
 	if (mb->expert_cpo_manual) {
 		/*
@@ -15082,10 +15141,19 @@ int inla_INLA(inla_tp * mb)
 		mb->output->hyperparameters = GMRFLib_FALSE;
 
 		for (i = 0; i < mb->nf; i++) {
+			if (mb->f_bfunc2[i]) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					bfunc[count + j] = Calloc(1, GMRFLib_bfunc_tp);
+					bfunc[count + j]->bdef = mb->f_bfunc2[i];
+					bfunc[count + j]->idx = j;
+				}
+			}
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				compute[count++] = (char) 0;
+				compute[count] = (char) 0;
+				count++;
 			}
 		}
+
 		for (i = 0; i < mb->nlinear; i++) {
 			compute[count] = (char) 0;
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
@@ -15105,8 +15173,16 @@ int inla_INLA(inla_tp * mb)
 			compute[count++] = (char) mb->predictor_compute;
 		}
 		for (i = 0; i < mb->nf; i++) {
+			if (mb->f_bfunc2[i]) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					bfunc[count + j] = Calloc(1, GMRFLib_bfunc_tp);
+					bfunc[count + j]->bdef = mb->f_bfunc2[i];
+					bfunc[count + j]->idx = j;
+				}
+			}
 			for (j = 0; j < mb->f_Ntotal[i]; j++) {
-				compute[count++] = (char) mb->f_compute[i];
+				compute[count] = (char) mb->f_compute[i];
+				count++;
 			}
 		}
 		for (i = 0; i < mb->nlinear; i++) {
@@ -15213,7 +15289,7 @@ int inla_INLA(inla_tp * mb)
 			&(mb->neffp),
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
-			x, b, c, NULL, mb->d,
+			x, b, c, NULL, bfunc, mb->d,
 			loglikelihood_inla, (void *) mb, NULL,
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store,
 			mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output);
@@ -15274,7 +15350,12 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		mb_new->theta = NULL;
 	}
 
-
+	for (i = 0; i < mb_old->nf; i++) {
+		if (mb_old->f_bfunc2[i]) {
+			fprintf(stderr, "\n\n\t*** The MCMC-module is not yet implemented with mfunc-models. Please contact developers\n\n");
+			exit(1);
+		}
+	}
 
 	if (mb_old->verbose) {
 		printf("Enter %s... with scale=[%.5f] thinning=[%1d] niter=[%1d] num.threads=[%1d]\n",
@@ -15339,6 +15420,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	 * compute the b
 	 */
 	b = Calloc(N, double);
+
 	count = 0;
 	for (i = 0; i < mb_new->predictor_n + mb_new->predictor_m; i++) {
 		count++;
@@ -15408,7 +15490,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	mb_old->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 
 	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
-			extra, (void *) mb_old, x_old, b, c, NULL, mb_old->d, loglikelihood_inla, (void *) mb_old, NULL,
+			extra, (void *) mb_old, x_old, b, c, NULL, NULL, mb_old->d, loglikelihood_inla, (void *) mb_old, NULL,
 			mb_old->hgmrfm->graph, mb_old->hgmrfm->Qfunc, mb_old->hgmrfm->Qfunc_arg, mb_old->hgmrfm->constr, mb_old->ai_par, ai_store,
 			0, NULL, NULL, NULL);
 	GMRFLib_free_ai_store(ai_store);
