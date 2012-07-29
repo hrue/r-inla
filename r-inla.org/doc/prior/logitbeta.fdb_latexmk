@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1342980851 "logitbeta.tex" "logitbeta.pdf" "logitbeta" 1342980876
+["pdflatex"] 1343483390 "logitbeta.tex" "logitbeta.pdf" "logitbeta" 1343556541
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1136768653 1512 f21f83efb36853c0b70002322c1ab3ad ""
@@ -32,10 +32,10 @@
   "/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg" 1213130811 1745 ae6fbed3255376b850f8b4ef89faef50 ""
   "/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty" 1213130811 80175 a550732aef92a278ec9bed572025bd8e ""
   "/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty" 1213130811 76974 d9d4762e984ff3346653b91fbcf676e9 ""
-  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1342600693 1161395 98e9313c7edeb48da95560876f2f63d2 ""
+  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1343402261 1161395 4a90f8dc0875ae772ea50a58ab909fa8 ""
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1338518106 846119 04865babdebedf4c0cce2d0dae45f19d ""
   "/usr/share/texlive/texmf/web2c/texmf.cnf" 1341233305 31299 729e216d9b945005c0d4b079c0500bc9 ""
-  "logitbeta.aux" 1342980851 8 a94a2480d3289e625eea47cd1b285758 ""
+  "logitbeta.aux" 1343483390 8 a94a2480d3289e625eea47cd1b285758 ""
   "logitbeta.tex" 1339054164 1325 674d81ae87cee40f7438ad8cc450edaa ""
   (generated)
   "logitbeta.aux"

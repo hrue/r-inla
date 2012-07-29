@@ -71,6 +71,7 @@ __BEGIN_DECLS
 	double *b;
 	double *c;
 	double *mean;
+	GMRFLib_bfunc_tp **bfunc;
 	double *d;
 	GMRFLib_logl_tp *loglFunc;
 	void *loglFunc_arg;
@@ -86,13 +87,14 @@ __BEGIN_DECLS
 int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 			GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 			char *compute,
-			double *x, double *b, double *c, double *mean, double *d,
-			GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+			double *x, double *b, double *c, double *mean,
+			GMRFLib_bfunc_tp **bfunc, 
+			double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_domin_exit(void);
-int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp **tabQfunc);
-int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **tabQfunc);
+int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
+int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
 int gmrflib_domin_f_(double *x, double *fx, int *ierr);
 int gmrflib_domin_f__(double *x, double *fx, int *ierr);
 int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr);

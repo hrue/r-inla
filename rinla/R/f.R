@@ -200,13 +200,13 @@
         ##!\item{spde2.transform}{}
         spde2.transform = c("logit", "log", "identity"),
 
-        ##!\item{mean.linear}{ Prior mean for the linear component,
+        ##!\item{mean.linear}{Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
-        mean.linear=NULL,
+        mean.linear = inla.set.control.fixed.default()$mean, 
 
-        ##!\item{prec.linear}{ Prior precision for the linear
+        ##!\item{prec.linear}{Prior precision for the linear
         ##!component, only used if \code{model="linear"}}
-        prec.linear=NULL,
+        prec.linear = inla.set.control.fixed.default()$prec, 
 
         ##!\item{si}{}
         si=FALSE,
@@ -489,7 +489,7 @@
     }
 
     if (inla.one.of(model, "linear")) {
-        if (d != 1) {
+        if (d != 1L) {
             stop("Model = 'linear' do not accept weights. Just set 'z.new = z * weights' as the covariates.")
         }
         ret = list(d=d, term=term, model=model, mean.linear=mean.linear, prec.linear=prec.linear, label=term,
@@ -497,16 +497,15 @@
         ## return here!
         return (ret)
     }
+    if (!missing(prec.linear) || !missing(mean.linear)) {
+        stop("Arguments 'mean.linear' and 'prec.linear' are defined only for model='linear'.")
+    }
 
     if (inla.one.of(model, "positive")) {
         if (!is.null(n)) {
             stop(paste("model = positive require n = 1, not n =", n))
         }
         n=1
-    }
-
-    if (!is.null(prec.linear) | !is.null(mean.linear)) {
-        stop("'mean.linear' and 'prec.linear' defined only for model='linear'")
     }
 
     if (inla.one.of(model, c("spde"))) {

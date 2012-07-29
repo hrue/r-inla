@@ -409,7 +409,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 		sub_Qfunc_arg->user_Qfunc = Qfunc;
 		sub_Qfunc_arg->user_Qfunc_args = Qfunc_args;
-
 		GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL, NULL, NULL));
 
 		Free(sub_Qfunc_arg->diagonal_adds);

@@ -65,7 +65,8 @@ static Best_tp B = {
 int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 			GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 			char *compute,
-			double *x, double *b, double *c, double *mean, double *d,
+			double *x, double *b, double *c, double *mean,
+			GMRFLib_bfunc_tp **bfunc, double *d,
 			GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
@@ -85,6 +86,7 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	G.b = b;
 	G.c = c;
 	G.mean = mean;
+	G.bfunc = bfunc;
 	G.d = d;
 	G.loglFunc = loglFunc;
 	G.loglFunc_arg = loglFunc_arg;
@@ -126,13 +128,13 @@ int GMRFLib_domin_exit(void)
 }
 int gmrflib_domin_f_(double *x, double *fx, int *ierr)
 {
-	return GMRFLib_domin_f(x, fx, ierr, NULL);
+	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
 }
 int gmrflib_domin_f__(double *x, double *fx, int *ierr)
 {
-	return GMRFLib_domin_f(x, fx, ierr, NULL);
+	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
 }
-int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc)
+int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this function is called only for thread=0!!! 
@@ -141,7 +143,7 @@ int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp 
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
-	GMRFLib_domin_f_intern(x, fx, ierr, G.ai_store, tabQfunc);
+	GMRFLib_domin_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
 
 	return GMRFLib_SUCCESS;
 }
@@ -179,7 +181,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 			}
 			ais = ai_store[GMRFLib_thread_id];
 		}
-		GMRFLib_domin_f_intern(x[i], &f[i], &local_err, ais, NULL);
+		GMRFLib_domin_f_intern(x[i], &f[i], &local_err, ais, NULL, NULL);
 		err[i] = err[i] || local_err;
 	}
 	GMRFLib_thread_id = id;
@@ -199,7 +201,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc)
+int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double ** bnew)
 {
 	/*
 	 * this version controls AI_STORE 
@@ -211,11 +213,15 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	 * tabulate Qfunc here. store it in argument 'tagQfunc' if present, otherwise, use local storage. 
 	 */
 	GMRFLib_tabulate_Qfunc_tp **tabQfunc_local = NULL;
-
+	double **bnew_local = NULL;
+	
 	int id = GMRFLib_thread_id;
 
 	if (!tabQfunc) {
 		tabQfunc_local = Calloc(GMRFLib_MAX_THREADS, GMRFLib_tabulate_Qfunc_tp *);
+	}
+	if (!bnew) {
+		bnew_local = Calloc(GMRFLib_MAX_THREADS, double *);
 	}
 
 
@@ -237,10 +243,26 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
 					       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
 
-			GMRFLib_ai_marginal_hyperparam(fx, G.x, G.b, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
+			double con, *bnew_ptr = NULL;
+
+			GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
+			if (bnew) {
+				*bnew = bnew_ptr;
+			} else {
+				bnew_local[GMRFLib_thread_id] = bnew_ptr;
+			}
+
+			if (0) {
+				FIXME1("FIX");
+				for(i=0; i<G.graph->n; i++)
+					printf("bnew[%d] = %g\n", i, bnew_ptr[i]);
+			}
+			
+			GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph,
 						       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
 						       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais);
+			*fx += con;			       /* add missing constant due to b = b(theta) */
 		}
 
 #pragma omp section
@@ -256,6 +278,12 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_free_tabulate_Qfunc(tabQfunc_local[i]);
 		}
 		Free(tabQfunc_local);
+	}
+	if (bnew_local) {
+		for (i = 0; i<GMRFLib_MAX_THREADS; i++) {
+			Free(bnew_local[i]);
+		}
+		Free(bnew_local);
 	}
 
 	*fx += ffx;					       /* add contributions */
@@ -384,9 +412,9 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			j = i;
 			if (j < G.nhyper) {
 				xx[j] += h;
-				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL);
+				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL, NULL);
 			} else {
-				GMRFLib_domin_f_intern(xx, &f[G.nhyper], &err, ais, NULL);
+				GMRFLib_domin_f_intern(xx, &f[G.nhyper], &err, ais, NULL, NULL);
 			}
 			Free(xx);
 		}
@@ -441,10 +469,10 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 			if (i < G.nhyper) {
 				xx[j] += h;
-				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL);
+				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL, NULL);
 			} else {
 				xx[j] -= h;
-				GMRFLib_domin_f_intern(xx, &fm[j], &err, ais, NULL);
+				GMRFLib_domin_f_intern(xx, &fm[j], &err, ais, NULL, NULL);
 			}
 			Free(xx);
 			GMRFLib_thread_id = 0;
@@ -499,11 +527,11 @@ int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr)
 		/*
 		 * forward differences 
 		 */
-		GMRFLib_domin_f(x, &f0, ierr, NULL);
+		GMRFLib_domin_f(x, &f0, ierr, NULL, NULL);
 		for (i = 0; i < G.nhyper; i++) {
 			xsave = x[i];
 			x[i] += h;
-			GMRFLib_domin_f(x, &f1, ierr, NULL);
+			GMRFLib_domin_f(x, &f1, ierr, NULL, NULL);
 			gradx[i] = (f1 - f0) / h;
 			x[i] = xsave;
 		}
@@ -514,9 +542,9 @@ int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr)
 		for (i = 0; i < G.nhyper; i++) {
 			xsave = x[i];
 			x[i] += h;
-			GMRFLib_domin_f(x, &f1, ierr, NULL);
+			GMRFLib_domin_f(x, &f1, ierr, NULL, NULL);
 			x[i] = xsave - h;
-			GMRFLib_domin_f(x, &f0, ierr, NULL);
+			GMRFLib_domin_f(x, &f0, ierr, NULL, NULL);
 			gradx[i] = (f1 - f0) / (2.0 * h);
 			x[i] = xsave;
 		}
@@ -546,7 +574,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		xx = Calloc(G.nhyper, double);				\
 		memcpy(xx, x, G.nhyper*sizeof(double));			\
 		xx[idx] += step;					\
-		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL);	\
+		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -568,7 +596,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		memcpy(xx, x, G.nhyper*sizeof(double));			\
 		xx[idx] += step;					\
 		xx[iidx] += sstep;					\
-		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL);	\
+		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -814,9 +842,9 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 }
 int GMRFLib_domin_estimate_hessian_OLD(double *hessian, double *x)
 {
-#define F1(result, idx, step) if (1) {xsave = x[idx]; x[idx] += step; GMRFLib_domin_f(x, &result, &ierr, NULL); x[idx] = xsave; }
+#define F1(result, idx, step) if (1) {xsave = x[idx]; x[idx] += step; GMRFLib_domin_f(x, &result, &ierr, NULL, NULL); x[idx] = xsave; }
 #define F2(result, idx, step, iidx, sstep) if (1) {xsave = x[idx]; x[idx] += step; xxsave = x[iidx];  x[iidx] += sstep; \
-		GMRFLib_domin_f(x, &result, &ierr, NULL); x[idx]  = xsave; x[iidx] = xxsave; }
+		GMRFLib_domin_f(x, &result, &ierr, NULL, NULL); x[idx]  = xsave; x[iidx] = xxsave; }
 
 	/*
 	 * estimate the hessian using finite differences with fixed step_size. chose either central or forward differences.
@@ -879,7 +907,7 @@ int GMRFLib_test_something____omp(void)
 	int ierr;
 
 	x[0] = x[1] = 3.0;
-	GMRFLib_domin_f(x, fx, &ierr, NULL);
+	GMRFLib_domin_f(x, fx, &ierr, NULL, NULL);
 	printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
 
 	for (i = 0; i < 10; i++) {
@@ -887,7 +915,7 @@ int GMRFLib_test_something____omp(void)
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
-		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL);
+		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL, NULL);
 		printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
 
 		GMRFLib_free_ai_store(ais);
@@ -899,7 +927,7 @@ int GMRFLib_test_something____omp(void)
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
 		GMRFLib_thread_id = omp_get_thread_num();
-		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL);
+		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL, NULL);
 		printf("x %g %g f %.12f [%1d]\n", x[0], x[1], fx[0], GMRFLib_thread_id);
 
 		GMRFLib_free_ai_store(ais);
@@ -929,13 +957,13 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_domin_f(x, &fx, &ierr, NULL);
+	GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
 
 	if (0) {
 		printf("First  eval of f = %.16f\n", fx);
-		GMRFLib_domin_f(x, &fx, &ierr, NULL);
+		GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
 		printf("Second eval of f = %.16f\n", fx);
-		GMRFLib_domin_f(x, &fx, &ierr, NULL);
+		GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
 		printf("Third  eval of f = %.16f\n", fx);
 	}
 

@@ -1,6 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1342980847 "circular-normal.tex" "circular-normal.pdf" "circular-normal" 1342980876
-  "../hyper/likelihood/circularnormal.tex" 1341607777 566 8991db7c951c09b18b69ffe8b0efa49f ""
+["pdflatex"] 1343483386 "circular-normal.tex" "circular-normal.pdf" "circular-normal" 1343556540
+  "../hyper/likelihood/circularnormal.tex" 1343492944 566 8991db7c951c09b18b69ffe8b0efa49f ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
@@ -41,10 +41,10 @@
   "/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty" 1284422013 40502 e003406220954b0716679d7928aedd8a ""
   "/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty" 1156702488 2266 7054435e4584a41cf53b0a7ca624d0cb ""
   "/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty" 1312409015 7125 6b8323deb5c5c3a19b248762654143eb ""
-  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1342600693 1161395 98e9313c7edeb48da95560876f2f63d2 ""
+  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1343402261 1161395 4a90f8dc0875ae772ea50a58ab909fa8 ""
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1338518106 846119 04865babdebedf4c0cce2d0dae45f19d ""
   "/usr/share/texlive/texmf/web2c/texmf.cnf" 1341233305 31299 729e216d9b945005c0d4b079c0500bc9 ""
-  "circular-normal.aux" 1342980847 8 a94a2480d3289e625eea47cd1b285758 ""
+  "circular-normal.aux" 1343483386 8 a94a2480d3289e625eea47cd1b285758 ""
   "circular-normal.tex" 1333874757 1996 9e4e75fef5b3f92417021cee164e059a ""
   "example-circularnormal.R" 1333885495 531 6ee91c6f97a50dc6171393dd6531ef41 ""
   (generated)
