@@ -64,7 +64,7 @@ inla.models()
                                 if (is.null(mval))
                                     mval = "NULL"
                                 if (is.function(mval)) {
-                                    mval = attr(mval, "source")
+                                    mval = attr(mval, "srcref")
                                     mval = paste("\\code{", mval, "}",  sep="")
                                 }
                                 cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
@@ -154,7 +154,7 @@ inla.models()
             } else {
                 val = a.list[[nm]]
                 if (is.function(val)) {
-                    val = paste("\\verb|", attr(val, "source"), "|", sep="")
+                    val = paste("\\verb|", attr(val, "srcref"), "|", sep="")
                 }               
                 cat(tab, "\\item[", nm, "]", inla.paste(val), "\n")
             }

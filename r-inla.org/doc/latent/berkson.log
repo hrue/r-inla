@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.7.27)  30 JUL 2012 22:11
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.7.27)  30 JUL 2012 22:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -183,7 +183,7 @@ c/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
 /cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt1
 0.pfb>
-Output written on berkson.pdf (3 pages, 149488 bytes).
+Output written on berkson.pdf (3 pages, 149851 bytes).
 PDF statistics:
  70 PDF objects out of 1000 (max. 8388607)
  50 compressed objects within 1 object stream
