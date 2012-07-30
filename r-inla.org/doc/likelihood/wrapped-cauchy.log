@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.7.27)  28 JUL 2012 15:49
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.7.27)  30 JUL 2012 22:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -198,7 +198,7 @@ cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.
 pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on wrapped-cauchy.pdf (2 pages, 82508 bytes).
+Output written on wrapped-cauchy.pdf (2 pages, 84564 bytes).
 PDF statistics:
  39 PDF objects out of 1000 (max. 8388607)
  27 compressed objects within 1 object stream
