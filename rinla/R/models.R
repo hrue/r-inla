@@ -44,6 +44,60 @@
                       pdf = "indep"
                       ),
 
+              berkson = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "beta",
+                                      short.name = "b",
+                                      prior = "gaussian",
+                                      param = c(1, 0.001),
+                                      initial = 1,
+                                      fixed = FALSE,
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ), 
+                              theta2 = list(
+                                      name = "prec.obs",
+                                      short.name = "prec",
+                                      prior = "loggamma",
+                                      param = c(1, 0.0001),
+                                      initial = log(1/0.0001),
+                                      fixed = TRUE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      ), 
+                              theta3 = list(
+                                      name = "mean.x",
+                                      short.name = "mu.x",
+                                      prior = "gaussian",
+                                      param = c(0, 0.0001),
+                                      initial = 0,
+                                      fixed = TRUE,
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ), 
+                              theta4 = list(
+                                      name = "prec.x",
+                                      short.name = "prec.x",
+                                      prior = "loggamma",
+                                      param = c(1, 10000),
+                                      initial = log(1/10000),
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      constr = FALSE,
+                      nrow.ncol = FALSE,
+                      augmented = FALSE,
+                      aug.factor = 1L,
+                      aug.constr = NULL,
+                      n.div.by = NULL,
+                      n.required = FALSE,
+                      set.default.values = FALSE,
+                      pdf = "berkson"
+                      ),
+
               iidtest = list(
                       hyper = list(
                               theta = list(

@@ -7320,7 +7320,7 @@ double GMRFLib_bfunc_eval(double *constant, GMRFLib_bfunc_tp * bfunc)
 	int i, j, idx = bfunc->idx;
 	GMRFLib_bfunc2_tp *d = bfunc->bdef;
 
-	fprintf(stderr, "idx %d mapidx %d n %d nr %d ng %d\n", idx, MAPIDX(idx, d), d->n, d->nreplicate, d->ngroup);
+	// fprintf(stderr, "idx %d mapidx %d n %d nr %d ng %d\n", idx, MAPIDX(idx, d), d->n, d->nreplicate, d->ngroup);
 
 	b = (d->diagonal + d->Qfunc(idx, idx, d->Qfunc_arg)) * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);
 	for (i = 0; i < d->graph->nnbs[idx]; i++) {

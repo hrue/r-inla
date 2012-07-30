@@ -49,6 +49,73 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `berkson'.}{Number of hyperparmeters are 4.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`1 0.001'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`prec.obs'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1e-04'}
+							\item{initial = }{`9.21034037197618'}
+							\item{fixed = }{`TRUE'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{name = }{`mean.x'}
+							\item{short.name = }{`mu.x'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 1e-04'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{name = }{`prec.x'}
+							\item{short.name = }{`prec.x'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 10000'}
+							\item{initial = }{`-9.21034037197618'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{}'}
+							\item{from.theta = }{`\code{}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{pdf = }{`berkson'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `iidtest'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
