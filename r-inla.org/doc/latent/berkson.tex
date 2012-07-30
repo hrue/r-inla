@@ -1,0 +1,99 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{The Berkson model}
+
+\subsection*{Parametrization}
+
+This is an implementation of the Berkson error model for a fixed
+effect. It is best described by an example, let  the model be
+\begin{displaymath}
+    y = \beta x + \epsilon{}
+\end{displaymath}
+where $y$ is the responce, $\beta$ the effect of the true covariate
+$x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is not observed
+directly, but only through $x_{\text{obs}}$, where
+\begin{displaymath}
+    x_{\text{obs}} = x + \nu{}
+\end{displaymath}
+where $\nu$ is zero mean Gaussian noise. Even though this setup is
+possible to implement using basic features ("copy" and multiple
+likelihoods), we provide the following model which replaces the above,
+\begin{displaymath}
+    y = u + \epsilon{}
+\end{displaymath}
+where
+\begin{displaymath}
+    u \;\sim\;{\mathcal N}\left(
+      \beta \frac{\tau_{x} \mu_{x} I + \tau_{\text{obs}} x_{\text{obs}}}{
+          \tau_{x}+\tau_{\text{obs}}},
+      \frac{\tau_{x} + \tau_{\text{obs}}}{\beta^{2}} I \right).
+\end{displaymath}
+Here, $x$ is apriori ${\mathcal N}(\mu_{x} {I}, \tau_{x} {I})$, and
+$\tau_{\text{obs}}$ is the observation precision for $x$ (ie
+$\text{Prec}(x_{\text{obs}}|x)$).\footnote{Note: The second argument in ${\mathcal
+        N}(,)$ is the precision not the variance.}
+
+
+
+\subsection*{Hyperparameters}
+
+This model has 4 hyperparameters, $\theta = (\theta_{1}, \theta_{2},
+\theta_{3}, \theta_{4})$ where $\theta_{2}$, $\theta_{3}$ and
+$\theta_{4}$ are default set to be fixed (ie defined to be known). The
+values of $\theta_{2}, \theta_{3}$ and $\theta_{4}$ are set to mimic a
+classical fixed effect, so they will always make sense. To achive the
+Berkson measurement model, please use the appropriate choices for
+(some of) these parameters!
+
+The hyperparameter spesification is as follows:
+\begin{displaymath}
+    \theta_{1} = \beta
+\end{displaymath}
+and the prior is defined on $\theta_{1}$,
+\begin{displaymath}
+    \theta_{2} = \log(\tau_{\text{obs}})
+p\end{displaymath}
+and the prior is defined on $\theta_{2}$,
+\begin{displaymath}
+    \theta_{3} = \mu_{x}
+\end{displaymath}
+and the prior is defined on $\theta_{3}$,
+\begin{displaymath}
+    \theta_{4} = \log(\tau_{\text{x}})
+\end{displaymath}
+and the prior is defined on $\theta_{4}$.
+
+
+\subsection*{Specification}
+
+The Berkson is specified inside the {\tt f()}
+function as
+\begin{verbatim}
+ f(x.obs, [<weights>,] model="berkson", hyper = <hyper>)
+\end{verbatim}
+The \texttt{x.obs} are the observed values of the unknown covariates
+$x$, with the \emph{assumption}, that if two or more elements of
+\texttt{x.obs} are \emph{identical}, then they refer to the
+\emph{same} element in the true covariate $x$.
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/latent/berkson.tex}
+
+\subsection*{Example}
+
+\verbatiminput{berkson-example.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
