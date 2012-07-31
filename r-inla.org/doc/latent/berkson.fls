@@ -55,6 +55,10 @@ INPUT ../hyper/latent/berkson.tex
 INPUT ../hyper/latent/berkson.tex
 OUTPUT berkson.pdf
 INPUT /usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT berkson-example.R
+INPUT berkson-example.R
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 INPUT berkson.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
