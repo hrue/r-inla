@@ -82,7 +82,7 @@
                                       prior = "loggamma",
                                       param = c(1, 10000),
                                       initial = log(1/10000),
-                                      fixed = FALSE,
+                                      fixed = TRUE,
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       )
