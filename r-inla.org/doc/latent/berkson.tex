@@ -14,7 +14,7 @@ effect. It is best described by an example, let  the model be
 \begin{displaymath}
     y = \beta x + \epsilon{}
 \end{displaymath}
-where $y$ is the responce, $\beta$ the effect of the true covariate
+where $y$ is the response, $\beta$ the effect of the true covariate
 $x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is not observed
 directly, but only through $x_{\text{obs}}$, where
 \begin{displaymath}
@@ -46,11 +46,11 @@ This model has 4 hyperparameters, $\theta = (\theta_{1}, \theta_{2},
 \theta_{3}, \theta_{4})$ where $\theta_{2}$, $\theta_{3}$ and
 $\theta_{4}$ are default set to be fixed (ie defined to be known). The
 values of $\theta_{2}, \theta_{3}$ and $\theta_{4}$ are set to mimic a
-classical fixed effect, so they will always make sense. To achive the
+classical fixed effect, so they will always make sense. To achieve the
 Berkson measurement model, please use the appropriate choices for
 (some of) these parameters!
 
-The hyperparameter spesification is as follows:
+The hyperparameter specification is as follows:
 \begin{displaymath}
     \theta_{1} = \beta
 \end{displaymath}
@@ -90,6 +90,14 @@ $x$, with the \emph{assumption}, that if two or more elements of
 
 \subsection*{Notes}
 
+\begin{itemize}
+\item \texttt{INLA} provide the posterior of $u$ and NOT $x$.
+\item The posterior of $u$ comes in the order given by the sorted
+    (from low to high) values of \texttt{x.obs}. The entry \verb|$ID|
+    gives the mapping.
+\end{itemize}
+
+
 \end{document}
 
 
@@ -97,3 +105,6 @@ $x$, with the \emph{assumption}, that if two or more elements of
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
+
+% LocalWords:  Berkson Parametrization covariate apriori ie Prec hyperparameter
+% LocalWords:  Hyperparameters hyperparameters covariates berkson INLA
