@@ -9693,10 +9693,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_IID;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID model");
-	} else if (OneOf("IIDTEST")) {
-		mb->f_id[mb->nf] = F_IID_TEST;
-		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID TEST model");
 	} else if (OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
@@ -9798,7 +9794,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
-	case F_IID_TEST:
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
@@ -10493,7 +10488,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_GENERIC0:
 	case F_SEASONAL:
 	case F_IID:
-	case F_IID_TEST:
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
@@ -12498,33 +12492,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_Qfunc[mb->nf] = GMRFLib_crw;
 			mb->f_Qfunc_arg[mb->nf] = (void *) crwdef;
 			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
-		} else if (mb->f_id[mb->nf] == F_IID_TEST) {
-			crwdef = Calloc(1, GMRFLib_crwdef_tp);
-			crwdef->n = mb->f_n[mb->nf];
-			crwdef->si = mb->f_si[mb->nf];
-			crwdef->prec = NULL;
-			crwdef->log_prec = NULL;
-			crwdef->log_prec_omp = log_prec;
-			crwdef->order = 0;
-			crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
-			mb->f_rankdef[mb->nf] = 0.0;
-			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
-
-			GMRFLib_make_crw_graph(&(mb->f_graph[mb->nf]), crwdef);
-			mb->f_Qfunc[mb->nf] = GMRFLib_crw;
-			mb->f_Qfunc_arg[mb->nf] = (void *) crwdef;
-			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
-
-			mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
-			mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
-			mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
-			mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
-			mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
-			mb->f_bfunc2[mb->nf]->mfunc = iid_mfunc;
-			mb->f_bfunc2[mb->nf]->mfunc_arg = NULL;
-			mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
-			mb->f_bfunc2[mb->nf]->nreplicate = 1;
-			mb->f_bfunc2[mb->nf]->ngroup = 1;
 		} else {
 			assert(0 == 1);
 		}
@@ -14233,7 +14200,6 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_GENERIC0:
 		case F_SEASONAL:
 		case F_IID:
-		case F_IID_TEST:
 		case F_RW1:
 		case F_RW2:
 		case F_CRW2:
