@@ -357,7 +357,6 @@ typedef enum {
 	F_BESAGPROPER,
 	F_SEASONAL,
 	F_IID,
-	F_IID_TEST,
 	F_2DIID,
 	F_IID1D,
 	F_IID2D,
