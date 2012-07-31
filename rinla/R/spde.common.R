@@ -301,17 +301,23 @@ inla.spde.make.A =
              n.repl = NULL,
              group.mesh = NULL,
              group.method = c("nearest", "S0", "S1"),
-             weights = NULL)
+             weights = NULL,
+             A.loc = NULL)
 {
+    ## A.loc can be specified instead of mesh+loc, if index is supplied.
+
     if (is.null(mesh)) {
-        if (is.null(n.mesh))
-            stop("At least one of 'mesh' and 'n.mesh' must be specified.")
+        if (is.null(A.loc) && is.null(n.mesh))
+            stop("At least one of 'mesh', 'n.mesh', and 'A.loc' must be specified.")
+        if (!is.null(A.loc)) {
+            n.mesh = ncol(A.loc)
+        }
     } else {
         inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
         n.mesh = mesh$n
     }
     if (!is.null(group.mesh)) {
-        inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+        inla.require.inherits(group.mesh, "inla.mesh.1d", "'mesh'")
     }
     group.method = match.arg(group.method)
 
@@ -330,7 +336,9 @@ inla.spde.make.A =
 
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
-        A.loc = Diagonal(n.mesh, 1)
+        if (is.null(A.loc)) {
+            A.loc = Diagonal(n.mesh, 1)
+        }
     } else {
         if (is.null(mesh))
             stop("'loc' specified but 'mesh' is NULL.")
