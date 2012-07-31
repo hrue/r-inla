@@ -111,6 +111,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`berkson'}
 							 }
 						 }
