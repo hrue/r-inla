@@ -2181,9 +2181,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	if (ds->data_id == L_GAUSSIAN) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
-	} else if (ds->data_id == L_ME_FIXED_EFFECET) {
-		idiv = 2;
-		a[0] = NULL;
 	} else if (ds->data_id == L_IID_GAMMA) {
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
@@ -2676,35 +2673,6 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 		}
 	}
 
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y ~ ME fixed effect
-	 */
-	if (m == 0) {
-		return GMRFLib_SUCCESS;
-	}
-
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double beta, prec, lprec, y, ypred;
-
-	beta = ds->data_observations.me_fixed_effect_beta[GMRFLib_thread_id][0];
-	assert(!ISZERO(beta));
-
-	lprec = ds->data_observations.me_fixed_effect_log_prec[GMRFLib_thread_id][0];
-	prec = map_precision(lprec, MAP_FORWARD, NULL);
-	y = ds->data_observations.y[idx];		       /* this is the covariate 'x' */
-
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)) / beta);
-			// the '-log(|beta|)' is the Jacobian from going from (x, beta) to (u, beta), where u=beta*x.
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - prec * SQR(y - ypred)) - log(ABS(beta));
-		}
-	}
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -6768,10 +6736,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
-	} else if (!strcasecmp(ds->data_likelihood, "MEFIXEDEFFECT")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_me_fixed_effect;
-		ds->data_id = L_ME_FIXED_EFFECET;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
@@ -6999,10 +6963,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
-	} else if (ds->data_id == L_ME_FIXED_EFFECET) {
-		/*
-		 * Ok for the moment...
-		 */
 	} else if (ds->data_id == L_IID_GAMMA) {
 		/*
 		 * Ok for the moment...
@@ -7420,90 +7380,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.test_binomial_1_e;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-	} else if (ds->data_id == L_ME_FIXED_EFFECET) {
-		/*
-		 * get options related to the ME fixed effect
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
-		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.me_fixed_effect_beta, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise beta[%g]\n", ds->data_observations.me_fixed_effect_beta[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
-		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "NORMAL");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed0) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Beta for ME-fixed-effect", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Beta for ME-fixed-effect", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.me_fixed_effect_beta;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		/*
-		 * the 'precision' parameter
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.me_fixed_effect_log_prec, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_prec[%g]\n", ds->data_observations.me_fixed_effect_log_prec[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
-		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed1) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for ME-fixed-effect", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for ME-fixed-effect", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.me_fixed_effect_log_prec;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -13769,25 +13645,6 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double e = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &e);
-					count++;
-				}
-			} else if (ds->data_id == L_ME_FIXED_EFFECET) {
-				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double bbeta = theta[count];
-					val += PRIOR_EVAL(ds->data_prior0, &bbeta);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double log_prec = theta[count];
-					val += PRIOR_EVAL(ds->data_prior1, &log_prec);
 					count++;
 				}
 			} else if (ds->data_id == L_IID_GAMMA) {

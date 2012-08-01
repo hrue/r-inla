@@ -278,12 +278,6 @@ typedef struct {
 	double **sas_log_prec;
 
 	/*
-	 * Measurement error. Fixed effect
-	 */
-	double **me_fixed_effect_beta;
-	double **me_fixed_effect_log_prec;
-
-	/*
 	 * y ~ Circular Normal, with precision parameter: weight*prec
 	 */
 	double **log_prec_circular_normal;
@@ -347,7 +341,6 @@ typedef enum {
 	L_SAS,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
-	L_ME_FIXED_EFFECET,
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
@@ -1123,7 +1116,6 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_me_fixed_effect(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
