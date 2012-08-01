@@ -2516,36 +2516,6 @@
                       status = "disabled"
                       ),
               
-              mefixedeffect = list(
-                      hyper = list(
-                              theta1 = list(
-                                      name = "beta",
-                                      short.name = "beta",
-                                      initial = 1,
-                                      fixed = FALSE,
-                                      prior = "normal",
-                                      param = c(0, 0.01),
-                                      to.theta = function(x) x,
-                                      from.theta = function(x) x
-                                      ),
-                              theta2 = list(
-                                      name = "log precision",
-                                      short.name = "prec",
-                                      initial = 4,
-                                      fixed = FALSE,
-                                      prior = "loggamma",
-                                      param = c(1, 0.0005),
-                                      to.theta = function(x) log(x),
-                                      from.theta = function(x) exp(x)
-                                      )
-                              ),
-                      survival = FALSE,
-                      discrete = FALSE,
-                      link = c("default", "identity"),
-                      pdf = "mefixedeffect",
-                      status = "experimental"
-                      ),
-
               iidgamma = list(
                       hyper = list(
                               theta1 = list(
