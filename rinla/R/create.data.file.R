@@ -193,7 +193,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "beta", "mefixedeffect"))) {
+                                     "iidlogitbeta", "beta"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
