@@ -73,7 +73,7 @@ and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approa
 trials for the \code{binomial} likelihood. Default
 value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
-for tstrata likelihood model. Must be a factor.}
+for tstrata likelihood model.}
 \item{link}{Define the family-connection for
 unobserved observations. \code{link} is integer
 values which defines the family connection;
