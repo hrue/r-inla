@@ -364,7 +364,7 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.predictor.section` = function(file, n, m, predictor.spec, file.offset, data.dir)
+`inla.predictor.section` = function(file, n, m, predictor.spec, file.offset, data.dir, file.link.fitted.values)
 {
     ## n = NPredictor
     ## m = MPredictor
@@ -386,6 +386,9 @@
     }
     if (!is.null(file.offset)) {
         cat("offset = ", file.offset,"\n", sep = " ", file = file, append=TRUE)
+    }
+    if (!is.null(file.link.fitted.values)) {
+        cat("link.fitted.values = ", file.link.fitted.values,"\n", sep = " ", file = file, append=TRUE)
     }
 
     inla.write.hyper(predictor.spec$hyper, file)

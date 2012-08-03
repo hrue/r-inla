@@ -98,6 +98,19 @@
               ##!for tstrata likelihood model. Must be a factor.}
               strata = NULL,
 
+              ##!\item{link}{Define the family-connection for
+              ##!unobserved observations. \code{link} is a factor and
+              ##!its integer codes defines the family connection;
+              ##!\code{family[as.numeric(link[idx])]} unless
+              ##!\code{is.na(link[idx])} for which the identity-link
+              ##!is used. The \code{link}-argument only influence the
+              ##!\code{fitted.values} in the \code{result}-object. If
+              ##!\code{is.null(link)} (default) then the identity-link
+              ##!is used for all missing observations. If the length
+              ##!of \code{link} is 1, then its replicated to the
+              ##!appropriate length.}
+              link = NULL, 
+              
               ##!\item{verbose}{
               ##!Boolean indicating if the \code{inla}-program should
               ##!run in a verbose mode (default \code{FALSE}).}
@@ -536,6 +549,7 @@
                      weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
                      Ntrials = NULL,  # Not used for the poisson
                      strata = NULL,   # Not used for the poisson
+                     link = link, 
                      lincomb = lincomb,
                      verbose = verbose,
                      control.compute = control.compute,
@@ -948,7 +962,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
+        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = rf$link = NULL ## these we do not need
         rf$formula = gp$randf
         rf = eval.parent(rf)
     } else {
@@ -957,7 +971,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
+        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = wf$link = NULL ## these we do not need
         wf$formula = gp$weightf
         wf = eval.parent(wf)
     } else {
@@ -973,7 +987,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata")) {
+    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "link")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
@@ -1092,15 +1106,47 @@
             inla.write.fmesher.file(as.matrix(os), filename=file.offset, debug = debug)
         } else {
             file.create(file.offset)
-            write(t(os), ncolumns=2, file=file.offset, append=FALSE)
+            write(t(os), ncolumns=2L, file=file.offset, append=FALSE)
         }
         file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
     } else {
         file.offset = NULL
     }
 
+    if (!is.null(link)) {
+        link = as.factor(link)
+        if (length(levels(link)) > n.family) 
+            stop(paste("n.family =", n.family,  "while argument 'link' has more levels (length(levels(link)) =", length(levels(link))))
+        if (!is.null(control.predictor$A)) {
+            if (length(link) == 1L) {
+                ## shortcut
+                link = rep(link, MPredictor)
+            }
+            stopifnot(length(link) == MPredictor)
+            tlink = cbind(0L:(MPredictor + NPredictor -1L), c(as.numeric(link) -1L, rep(NA, NPredictor)))
+        } else {
+            if (length(link) == 1L) {
+                ## shortcut
+                link = rep(link, NPredictor)
+            }
+            stopifnot(length(link) == NPredictor)
+            tlink = cbind(indN, as.numeric(link) -1L)
+        }
+        file.link.fitted.values = inla.tempfile(tmpdir=data.dir)
+        if (inla.getOption("internal.binary.mode")) {
+            inla.write.fmesher.file(as.matrix(tlink), filename=file.link.fitted.values, debug = debug)
+        } else {
+            file.create(file.link.fitted.values)
+            write(t(tlink), ncolumns=2L, file=file.offset, append=FALSE)
+        }
+        file.link.fitted.values = gsub(data.dir, "$inladatadir", file.link.fitted.values, fixed=TRUE)
+    } else {
+        file.link.fitted.values = NULL
+    }
+
     inla.predictor.section(file=file.ini, n=NPredictor, m=MPredictor,
-                           predictor.spec=cont.predictor, file.offset=file.offset, data.dir = data.dir)
+                           predictor.spec=cont.predictor, file.offset=file.offset, data.dir = data.dir,
+                           file.link.fitted.values = file.link.fitted.values)
 
     ##
     all.labels = character(0)
