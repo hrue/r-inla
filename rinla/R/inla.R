@@ -95,7 +95,7 @@
               Ntrials = NULL,
 
               ##!\item{strata}{Fixed (optional) strata indicators 
-              ##!for tstrata likelihood model. Must be a factor.}
+              ##!for tstrata likelihood model.}
               strata = NULL,
 
               ##!\item{link}{Define the family-connection for

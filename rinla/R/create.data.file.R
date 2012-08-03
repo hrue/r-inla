@@ -79,15 +79,15 @@
         }
 
         if (is.null(strata)) {
-            strata = as.factor(rep(1L, n.data))
+            strata = rep(1L, n.data)
         }
         if (length(strata) == 1L) {
             strata = rep(strata, n.data)
         }
 
-        ## need strata to be a factor or integer,  but factor works for numeric() as well
-        strata = as.factor(strata)
-
+        stopifnot(all(!is.na(strata)))
+        stopifnot(all(as.integer(strata) == strata))
+        stopifnot(all(strata > 0L))
         if (length(scale) != n.data || length(strata) != n.data) {
             file.remove(file)
             file.remove(data.dir)
