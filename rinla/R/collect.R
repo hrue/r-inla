@@ -863,8 +863,6 @@ inla.internal.experimental.mode = FALSE
         } else {
             rownames(summary.linear.predictor) = inla.namefix(paste("predictor.", inla.num(1L:size.info$Ntotal), sep=""))
         }
-
-
         
         if (return.marginals.predictor) {
             if (debug)
@@ -940,7 +938,14 @@ inla.internal.experimental.mode = FALSE
             }
        
             colnames(dd) = inla.namefix(col.nam)
+            if (A) {
+                rownames(dd) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
+                                inla.namefix(paste("fitted.predictor.", inla.num(1:n), sep="")))
+            } else {
+                rownames(dd) = inla.namefix(paste("fitted.predictor.", inla.num(1L:length(rr)), sep=""))
+            }
             summary.fitted.values = as.data.frame(dd)
+
             if (return.marginals.predictor) {
                 file=paste(subdir, .Platform$file.sep,"marginal-densities.dat", sep="")
                 xx = inla.read.binary.file(file)
@@ -948,10 +953,10 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
                 if (!is.null(rr)) {
                     if (A) {
-                        names(rr) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
-                                     inla.namefix(paste("predictor.", inla.num(1:n), sep="")))
+                        names(rr) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
+                                     inla.namefix(paste("fitted.predictor.", inla.num(1:n), sep="")))
                     } else {
-                        names(rr) = inla.namefix(paste("predictor.", inla.num(1L:length(rr)), sep=""))
+                        names(rr) = inla.namefix(paste("fitted.predictor.", inla.num(1L:length(rr)), sep=""))
                     }
                     names.rr = names(rr)
                     for(i in 1L:length(rr)) {

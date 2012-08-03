@@ -107,8 +107,8 @@
               ##!\code{fitted.values} in the \code{result}-object. If
               ##!\code{is.null(link)} (default) then the identity-link
               ##!is used for all missing observations. If the length
-              ##!of \code{link} is 1, then its replicated to the
-              ##!appropriate length.}
+              ##!of \code{link} is 1, then its replicated with the
+              ##!length of the responce vector.}
               link = NULL, 
               
               ##!\item{verbose}{
@@ -1127,12 +1127,24 @@
                 ## shortcut
                 link = rep(link, MPredictor)
             }
-            stopifnot(length(link) == MPredictor)
-            tlink = cbind(0L:(MPredictor + NPredictor -1L), c(as.numeric(link) -1L, rep(NA, NPredictor)))
+            if (!(length(link) == MPredictor || length(link) == MPredictor + NPredictor)) {
+                stop(paste("Length of argument 'link' is wrong: length(link) = ", length(link), ". Length must be equal to ",
+                          "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
+                           ".", sep=""))
+            }
+            if (length(link) == MPredictor) {
+                tlink = cbind(0L:(MPredictor + NPredictor -1L), c(link -1L, rep(NA, NPredictor)))
+            } else {
+                tlink = cbind(0L:(MPredictor + NPredictor -1L), link - 1L)
+            }
         } else {
             if (length(link) == 1L) {
                 ## shortcut
                 link = rep(link, NPredictor)
+            }
+            if (!(length(link) == NPredictor)) {
+                stop(paste("Length of argument 'link' is wrong: length(link)=", length(link), ". Length must be equal to ",
+                           "length(eta)=", NPredictor, ".", sep=""))
             }
             stopifnot(length(link) == NPredictor)
             tlink = cbind(indN, as.numeric(link) -1L)
