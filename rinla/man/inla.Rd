@@ -83,8 +83,8 @@ is used. The \code{link}-argument only influence the
 \code{fitted.values} in the \code{result}-object. If
 \code{is.null(link)} (default) then the identity-link
 is used for all missing observations. If the length
-of \code{link} is 1, then its replicated to the
-appropriate length.}
+of \code{link} is 1, then its replicated with the
+length of the responce vector.}
 \item{verbose}{
 Boolean indicating if the \code{inla}-program should
 run in a verbose mode (default \code{FALSE}).}
