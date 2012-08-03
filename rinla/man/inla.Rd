@@ -75,9 +75,9 @@ value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model. Must be a factor.}
 \item{link}{Define the family-connection for
-unobserved observations. \code{link} is a factor and
-its integer codes defines the family connection;
-\code{family[as.numeric(link[idx])]} unless
+unobserved observations. \code{link} is integer
+values which defines the family connection;
+\code{family[link[idx]]} unless
 \code{is.na(link[idx])} for which the identity-link
 is used. The \code{link}-argument only influence the
 \code{fitted.values} in the \code{result}-object. If
