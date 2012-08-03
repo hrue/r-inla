@@ -74,6 +74,17 @@ trials for the \code{binomial} likelihood. Default
 value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model. Must be a factor.}
+\item{link}{Define the family-connection for
+unobserved observations. \code{link} is a factor and
+its integer codes defines the family connection;
+\code{family[as.numeric(link[idx])]} unless
+\code{is.na(link[idx])} for which the identity-link
+is used. The \code{link}-argument only influence the
+\code{fitted.values} in the \code{result}-object. If
+\code{is.null(link)} (default) then the identity-link
+is used for all missing observations. If the length
+of \code{link} is 1, then its replicated to the
+appropriate length.}
 \item{verbose}{
 Boolean indicating if the \code{inla}-program should
 run in a verbose mode (default \code{FALSE}).}
