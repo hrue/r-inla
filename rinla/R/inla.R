@@ -99,9 +99,9 @@
               strata = NULL,
 
               ##!\item{link}{Define the family-connection for
-              ##!unobserved observations. \code{link} is a factor and
-              ##!its integer codes defines the family connection;
-              ##!\code{family[as.numeric(link[idx])]} unless
+              ##!unobserved observations. \code{link} is integer
+              ##!values which defines the family connection;
+              ##!\code{family[link[idx]]} unless
               ##!\code{is.na(link[idx])} for which the identity-link
               ##!is used. The \code{link}-argument only influence the
               ##!\code{fitted.values} in the \code{result}-object. If
@@ -1114,9 +1114,14 @@
     }
 
     if (!is.null(link)) {
-        link = as.factor(link)
-        if (length(levels(link)) > n.family) 
-            stop(paste("n.family =", n.family,  "while argument 'link' has more levels (length(levels(link)) =", length(levels(link))))
+        not.na = which(!is.na(link))
+        if (any(link[not.na] != as.integer(link[not.na])) || !all(link[not.na] %in% 1L:n.family))
+            stop(paste("Argument 'link' must consist of integers from the set 1:", n.family, " or NA's.", sep=""))
+        if (!all(is.na(link))) {
+            if (max(link[not.na]) > n.family) {
+                stop(paste("n.family =", n.family,  "while argument 'link' has max(link) =", max(link[not.na])))
+            }
+        }
         if (!is.null(control.predictor$A)) {
             if (length(link) == 1L) {
                 ## shortcut
