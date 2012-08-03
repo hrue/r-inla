@@ -6119,7 +6119,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			inla_error_general(msg);
 			exit(1);
 		}
-		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc : NULL);
+		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc :
+						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
+						mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc : NULL);
 	}
 
 	iniparser_freedict(ini);
@@ -6516,7 +6518,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = PREDICTOR 
 	 */
 	char *secname = NULL, *msg = NULL, *filename;
-	int i, noffsets;
+	int i, noffsets, nlinks_fitted_values;
 	double tmp;
 
 	if (mb->verbose) {
@@ -6614,10 +6616,30 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tread offsets from file=[%s]\n", filename);
 		}
-		// inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_ndata, 0, 1, mb->verbose, 0.0);
 		inla_read_data_general(&(mb->offset), NULL, &noffsets, filename, mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->offset = Calloc(mb->predictor_n + mb->predictor_m, double);
+	}
+
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.FITTED.VALUES"), NULL));
+	if (filename) {
+		if (mb->verbose) {
+			printf("\t\tread link.fitted.values from file=[%s]\n", filename);
+		}
+		inla_read_data_general(&(mb->link_fitted_values), NULL, &nlinks_fitted_values, filename,
+				       mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
+	} else {
+		mb->link_fitted_values = NULL;
+	}
+
+	if (0) {
+		if (mb->link_fitted_values) {
+			for(i = 0; i<mb->predictor_n + mb->predictor_m; i++)
+				if (gsl_isnan(mb->link_fitted_values[i]))
+					fprintf(stderr, "link[%d] = NAN\n", i);
+				else
+					fprintf(stderr, "link[%d] = %g (%g)\n", i, mb->link_fitted_values[i], GSL_NAN);
+		}
 	}
 
 	mb->predictor_cross_sumzero = NULL;

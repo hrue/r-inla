@@ -578,7 +578,8 @@ struct inla_tp_struct {
 	map_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
-
+	double *link_fitted_values;			       /* the index for the link function for missing observations */
+	
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
 
