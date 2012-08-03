@@ -75,16 +75,18 @@ value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model.}
 \item{link}{Define the family-connection for
-unobserved observations. \code{link} is integer
-values which defines the family connection;
+unobserved observations (\code{NA}). \code{link} is
+integer values which defines the family connection;
 \code{family[link[idx]]} unless
 \code{is.na(link[idx])} for which the identity-link
 is used. The \code{link}-argument only influence the
 \code{fitted.values} in the \code{result}-object. If
 \code{is.null(link)} (default) then the identity-link
 is used for all missing observations. If the length
-of \code{link} is 1, then its replicated with the
-length of the responce vector.}
+of \code{link} is 1, then this value is replicated
+with the length of the responce vector. If an element
+of the responce vector is \code{!NA} then the
+corresponding entry in \code{link} is NOT USED.}
 \item{verbose}{
 Boolean indicating if the \code{inla}-program should
 run in a verbose mode (default \code{FALSE}).}
