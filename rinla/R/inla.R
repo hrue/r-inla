@@ -1071,6 +1071,10 @@
             }
         }
         
+        if (!is.null(yy) && !(is.numeric(yy) || is.list(yy) || is.matrix(yy) || inla.is.matrix(yy))) {
+            stop(paste("The response for family[", i.family, "] is not of type 'numeric|list|matrix'; don't know what to do.", sep=""))
+        }
+
         files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, weights=weights, Ntrials=Ntrials, strata=strata, 
                 family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
     
