@@ -49,7 +49,9 @@ example with binomial responses.
 
 \subsection*{Notes}
 
-None.
+If the response is a \verb|factor| it must be converted to $\{0,1\}$
+before calling \verb|inla()|, as this conversion is not done automatic
+(as for example in \verb|glm()|).
 
 
 \end{document}

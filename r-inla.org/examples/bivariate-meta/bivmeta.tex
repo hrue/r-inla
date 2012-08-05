@@ -1,5 +1,5 @@
 \documentclass[a4paper,11pt]{article}
-\usepackage[compat2]{geometry}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
 \usepackage{listings}
 \usepackage{natbib}
@@ -39,12 +39,12 @@ have a separate effect on sensitivity and specificity.
         {\mu_i \choose \nu_i} &\sim \mathcal{N} \left[ {0 \choose 0}, \mathbf{W}^{-1}
         \right], \label{eq:biv}
     \end{align}
-	where
-	\begin{equation*}
-	   \mathbf{W}^{-1} = \begin{pmatrix} 1/\tau_\mu & \rho/\sqrt{\tau_\mu \tau_\nu} \\
+        where
+        \begin{equation*}
+           \mathbf{W}^{-1} = \begin{pmatrix} 1/\tau_\mu & \rho/\sqrt{\tau_\mu \tau_\nu} \\
               \rho/\sqrt{\tau_\mu \tau_\nu} & 1/\tau_\nu
           \end{pmatrix},
-	\end{equation*}
+        \end{equation*}
     and TN, FP, TP and FN represent the number of true negatives,
     false positives, true positives, and false negatives, respectively
     and $\mm{X}_i, \mm{Z}_i$ are (possibly overlapping) vectors of
@@ -92,7 +92,7 @@ have a separate effect on sensitivity and specificity.
         \log\tau_\mu &\sim \text{LogGamma}(0.25, 0.025)\\
         \log\tau_\nu &\sim \text{LogGamma}(0.25, 0.025)\\
     \end{align*}
-	
+        
 The data file is structured, so that one study is represented by 
 consecutive rows. The first row contains the number of diseased persons
 $\text{TP}{^i}+\text{FN}{^i}$, true positives $\text{TP}{^i}$, an index,
@@ -105,7 +105,7 @@ columns.
 Instead of specifying separate prior distributions for the hyperparameters
 we could also assume that the precision matrix
 \begin{displaymath}
-	  \mathbf{W}\;\sim\;\text{Wishart}_{p}(r, \mm{R}^{-1}), \quad p=2,
+          \mathbf{W}\;\sim\;\text{Wishart}_{p}(r, \mm{R}^{-1}), \quad p=2,
 \end{displaymath}
 where the Wishart distribution has density
 \begin{displaymath}
