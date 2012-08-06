@@ -444,24 +444,30 @@
 
 ## check control-arguments
 
-`inla.check.control` = function(contr)
+`inla.check.control` = function(contr, data = NULL)
 {
     ## This function will signal an error if the arguments in CONTR
     ## does not match the ones in the corresponding
-    ## `inla.set.XX.default()' routine.
-
-    ## EX: contr is `control.inla' and default arguments is found in
+    ## `inla.set.XX.default()' routine.  EXAMPLE: contr is
+    ## `control.inla' and default arguments is found in
     ## `inla.set.control.inla.default()'
+    
+    ## Will expand unexpanded names from the names in 'data' first
+    contr = local({
+        name = paste("inla.tmp.env", as.character(runif(1)), sep="")
+        attach(data, name = name, warn.conflicts = FALSE)
+        ccontr = contr
+        detach(name, character.only = TRUE)
+        ccontr
+    })
 
-    if (!is.list(contr)) {
-        stop("argument is not an list")
-    }
+    stopifnot(!missing(contr))
+    stopifnot(is.list(contr))
     if (length(contr) == 0) {
         return(invisible())
     }
 
     nm = paste(sys.call()[2])
-
     f = paste("inla.set.", nm, ".default()", sep="")
     elms = names(inla.eval(f))
 
