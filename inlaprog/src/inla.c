@@ -60,7 +60,10 @@ static const char RCSId[] = HGVERSION;
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+
+#if !defined(WINDOWS)
 #include <sys/resource.h>
+#endif
 
 #if defined(__APPLE__)
 #include <sys/types.h>
