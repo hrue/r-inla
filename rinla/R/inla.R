@@ -387,17 +387,17 @@
     }
 
     ## check all control.xx arguments here...
-    inla.check.control(control.compute)
-    inla.check.control(control.predictor)
+    inla.check.control(control.compute, data)
+    inla.check.control(control.predictor, data)
     ## do not check control.family here, as we need to know n.family
-    ## first. do this later: inla.check.control(control.family)
-    inla.check.control(control.inla)
-    inla.check.control(control.results)
-    inla.check.control(control.fixed)
-    inla.check.control(control.mode)
-    inla.check.control(control.expert)
-    inla.check.control(control.hazard)
-    inla.check.control(control.lincomb)
+    ## first. do this later: inla.check.control(control.family, data)
+    inla.check.control(control.inla, data)
+    inla.check.control(control.results, data)
+    inla.check.control(control.fixed, data)
+    inla.check.control(control.mode, data)
+    inla.check.control(control.expert, data)
+    inla.check.control(control.hazard, data)
+    inla.check.control(control.lincomb, data)
 
     n.family = length(family)
     for(i. in 1:n.family) {
@@ -847,7 +847,7 @@
     control.family.save = control.family
     for(ii in 1:n.family) {
         control.family = control.family.save[[ii]]
-        inla.check.control(control.family)
+        inla.check.control(control.family, data)
     }
     control.family = control.family.save
     
@@ -1103,41 +1103,43 @@
         file.offset = NULL
     }
 
-    if (!is.null(link)) {
-        not.na = which(!is.na(link))
-        if (any(link[not.na] != as.integer(link[not.na])) || !all(link[not.na] %in% 1L:n.family))
-            stop(paste("Argument 'link' must consist of integers from the set 1:", n.family, " or NA's.", sep=""))
-        if (!all(is.na(link))) {
-            if (max(link[not.na]) > n.family) {
-                stop(paste("n.family =", n.family,  "while argument 'link' has max(link) =", max(link[not.na])))
+    if (!is.null(cont.predictor$link)) {
+        not.na = which(!is.na(cont.predictor$link))
+        if (any(cont.predictor$link[not.na] != as.integer(cont.predictor$link[not.na])) || !all(cont.predictor$link[not.na] %in% 1L:n.family))
+            stop(paste("Argument 'control.predictor$link' must consist of integers from the set 1:", n.family, " or NA's.", sep=""))
+        if (!all(is.na(cont.predictor$link))) {
+            if (max(cont.predictor$link[not.na]) > n.family) {
+                stop(paste("n.family =", n.family,  "while argument 'control.predictor$link' has max=", max(cont.predictor$link[not.na])))
             }
         }
         if (!is.null(control.predictor$A)) {
-            if (length(link) == 1L) {
+            if (length(cont.predictor$link) == 1L) {
                 ## shortcut
-                link = rep(link, MPredictor)
+                cont.predictor$link = rep(cont.predictor$link, MPredictor)
             }
-            if (!(length(link) == MPredictor || length(link) == MPredictor + NPredictor)) {
-                stop(paste("Length of argument 'link' is wrong: length(link) = ", length(link), ". Length must be equal to ",
+            if (!(length(cont.predictor$link) == MPredictor || length(cont.predictor$link) == MPredictor + NPredictor)) {
+                stop(paste("Length of argument 'control.predictor$link' is wrong: length(link) = ",
+                           length(cont.predictor$link), ". Length must be equal to ",
                           "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
                            ".", sep=""))
             }
-            if (length(link) == MPredictor) {
-                tlink = cbind(0L:(MPredictor + NPredictor -1L), c(link -1L, rep(NA, NPredictor)))
+            if (length(cont.predictor$link) == MPredictor) {
+                tlink = cbind(0L:(MPredictor + NPredictor -1L), c(cont.predictor$link -1L, rep(NA, NPredictor)))
             } else {
-                tlink = cbind(0L:(MPredictor + NPredictor -1L), link - 1L)
+                tlink = cbind(0L:(MPredictor + NPredictor -1L), cont.predictor$link - 1L)
             }
         } else {
-            if (length(link) == 1L) {
+            if (length(cont.predictor$link) == 1L) {
                 ## shortcut
-                link = rep(link, NPredictor)
+                cont.predictor$link = rep(cont.predictor$link, NPredictor)
             }
-            if (!(length(link) == NPredictor)) {
-                stop(paste("Length of argument 'link' is wrong: length(link)=", length(link), ". Length must be equal to ",
+            if (!(length(cont.predictor$link) == NPredictor)) {
+                stop(paste("Length of argument 'control.predictor$link' is wrong: length(link)=", length(control.predictor$link),
+                           ". Length must be equal to ",
                            "length(eta)=", NPredictor, ".", sep=""))
             }
-            stopifnot(length(link) == NPredictor)
-            tlink = cbind(indN, as.numeric(link) -1L)
+            stopifnot(length(cont.predictor$link) == NPredictor)
+            tlink = cbind(indN, as.numeric(cont.predictor$link) -1L)
         }
         file.link.fitted.values = inla.tempfile(tmpdir=data.dir)
         if (inla.getOption("internal.binary.mode")) {
