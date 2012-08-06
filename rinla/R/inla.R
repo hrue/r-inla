@@ -98,21 +98,6 @@
               ##!for tstrata likelihood model.}
               strata = NULL,
 
-              ##!\item{link}{Define the family-connection for
-              ##!unobserved observations (\code{NA}). \code{link} is
-              ##!integer values which defines the family connection;
-              ##!\code{family[link[idx]]} unless
-              ##!\code{is.na(link[idx])} for which the identity-link
-              ##!is used. The \code{link}-argument only influence the
-              ##!\code{fitted.values} in the \code{result}-object. If
-              ##!\code{is.null(link)} (default) then the identity-link
-              ##!is used for all missing observations. If the length
-              ##!of \code{link} is 1, then this value is replicated
-              ##!with the length of the responce vector. If an element
-              ##!of the responce vector is \code{!NA} then the
-              ##!corresponding entry in \code{link} is NOT USED.}
-              link = NULL, 
-              
               ##!\item{verbose}{
               ##!Boolean indicating if the \code{inla}-program should
               ##!run in a verbose mode (default \code{FALSE}).}
@@ -551,7 +536,6 @@
                      weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
                      Ntrials = NULL,  # Not used for the poisson
                      strata = NULL,   # Not used for the poisson
-                     link = link, 
                      lincomb = lincomb,
                      verbose = verbose,
                      control.compute = control.compute,
@@ -964,7 +948,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = rf$link = NULL ## these we do not need
+        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
         rf$formula = gp$randf
         rf = eval.parent(rf)
     } else {
@@ -973,7 +957,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = wf$link = NULL ## these we do not need
+        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
         wf$formula = gp$weightf
         wf = eval.parent(wf)
     } else {
@@ -989,7 +973,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "link")) {
+    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
