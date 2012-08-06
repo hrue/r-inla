@@ -18605,7 +18605,7 @@ int main(int argc, char **argv)
 	printf("\t\t-V\t: Print version and exit.\n");			\
 	printf("\t\t-b\t: Use binary output-files.\n");			\
 	printf("\t\t-s\t: Be silent.\n");				\
-	printf("\t\t-c\t: Create core-file if needed (and allowed).");	\
+	printf("\t\t-c\t: Create core-file if needed (and allowed). (Linux/MacOSX only.)\n"); \
 	printf("\t\t-R\t: Restart using previous mode.\n");		\
 	printf("\t\t-e var=value\t: Set variable VAR to VALUE.\n");	\
 	printf("\t\t-t MAX_THREADS\t: set the maximum number of threads.\n"); \
@@ -18817,6 +18817,7 @@ int main(int argc, char **argv)
 	}
 
 
+#if !defined(WINDOWS)
 	/* 
 	 * disable the creation of core-file, unless explicite asked for by the argument '-c'.
 	 */
@@ -18828,7 +18829,8 @@ int main(int argc, char **argv)
 		getrlimit(RLIMIT_CORE, &rlim);
 		printf("NEW cur %lld max %lld\n", (long long) rlim.rlim_cur, (long long) rlim.rlim_max);
 	}
-
+#endif
+	
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
