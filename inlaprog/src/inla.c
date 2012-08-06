@@ -60,6 +60,7 @@ static const char RCSId[] = HGVERSION;
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/resource.h>
 
 #if defined(__APPLE__)
 #include <sys/types.h>
@@ -18604,6 +18605,7 @@ int main(int argc, char **argv)
 	printf("\t\t-V\t: Print version and exit.\n");			\
 	printf("\t\t-b\t: Use binary output-files.\n");			\
 	printf("\t\t-s\t: Be silent.\n");				\
+	printf("\t\t-c\t: Create core-file if needed (and allowed).");	\
 	printf("\t\t-R\t: Restart using previous mode.\n");		\
 	printf("\t\t-e var=value\t: Set variable VAR to VALUE.\n");	\
 	printf("\t\t-t MAX_THREADS\t: set the maximum number of threads.\n"); \
@@ -18618,7 +18620,7 @@ int main(int argc, char **argv)
 
 #define BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define BUGS BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, err, ncpu;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, err, ncpu, enable_core_file = 0;
 	char *program = argv[0];
 	double time_used[3];
 	inla_tp *mb = NULL;
@@ -18654,7 +18656,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:c")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -18805,10 +18807,26 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
 			break;
+		case 'c':
+			enable_core_file = 1;		       /* allow for core files */
+			break;
 		default:
 			USAGE;
 			exit(EXIT_FAILURE);
 		}
+	}
+
+
+	/* 
+	 * disable the creation of core-file, unless explicite asked for by the argument '-c'.
+	 */
+	struct rlimit rlim;
+	getrlimit(RLIMIT_CORE, &rlim);
+	rlim.rlim_cur = (enable_core_file ? rlim.rlim_max : (rlim_t) 0L);
+	setrlimit(RLIMIT_CORE, (const struct rlim *) &rlim);
+	if (0) {
+		getrlimit(RLIMIT_CORE, &rlim);
+		printf("NEW cur %lld max %lld\n", (long long) rlim.rlim_cur, (long long) rlim.rlim_max);
 	}
 
 	/*
