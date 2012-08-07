@@ -189,10 +189,7 @@
               ##!output.  }
               debug = inla.getOption("debug"),
 
-              ##
-              ## these are ``internal'' options, used to transfer info
-              ## from expansions
-              ##
+              ## this variable holds ``internal'' stuff of any kind...
               .internal = list()
               )
     ##!}
@@ -342,9 +339,13 @@
     if (is.null(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
+    if (!is.data.frame(data) && !is.list(data)) {
+        stop("\n\tArgument `data' must be a data.frame or a list.")
+    }
     if (!is.null(weights)) {
         if (!inla.getOption("enable.inla.argument.weights")) {
-            stop("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n  Use 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla")
+            stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
+                       "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
         }
     }
 
@@ -386,31 +387,30 @@
         }
     }
 
-    ## check all control.xx arguments here...
-    inla.check.control(control.compute, data)
-    inla.check.control(control.predictor, data)
+    ## check all control.xx arguments here. do the assign as variable
+    ## expansion might occur.
+    control.compute = inla.check.control(control.compute, data)
+    control.predictor = inla.check.control(control.predictor, data)
     ## do not check control.family here, as we need to know n.family
-    ## first. do this later: inla.check.control(control.family, data)
-    inla.check.control(control.inla, data)
-    inla.check.control(control.results, data)
-    inla.check.control(control.fixed, data)
-    inla.check.control(control.mode, data)
-    inla.check.control(control.expert, data)
-    inla.check.control(control.hazard, data)
-    inla.check.control(control.lincomb, data)
+    control.inla = inla.check.control(control.inla, data)
+    control.results = inla.check.control(control.results, data)
+    control.fixed = inla.check.control(control.fixed, data)
+    control.mode = inla.check.control(control.mode, data)
+    control.expert = inla.check.control(control.expert, data)
+    control.hazard = inla.check.control(control.hazard, data)
+    control.lincomb = inla.check.control(control.lincomb, data)
 
     n.family = length(family)
-    for(i. in 1:n.family) {
-        family[i.] = inla.trim.family(family[i.])
-
+    for(i in 1:n.family) {
+        family[i] = inla.trim.family(family[i])
         ## check if this family is legal.
-        if (is.null(inla.model.properties(family[i.], "likelihood"))) {
-            stop(paste("Unknown family: ", family[i.], ". Do `names(inla.models()$likelihood)' to list available families.", sep=""))
+        if (is.null(inla.model.properties(family[i], "likelihood"))) {
+            stop(paste("Unknown family: ", family[i], ". Do `names(inla.models()$likelihood)' to list available families.", sep=""))
         }
     }
 
     ## if the user specify inla.call="remote" or "inla.remote" then
-    ## use the internal one
+    ## use the internal inlaprogram
     remote = FALSE
     if (inla.strcasecmp(inla.call, "remote") ||
         inla.strcasecmp(inla.call, "inla.remote") ||
@@ -421,9 +421,6 @@
         if (inla.os("windows"))
             inla.call = paste(inla.call, ".cygwin", sep="")
     }
-    
-    if (!is.data.frame(data) && !is.list(data))
-        stop("\n\tArgument `data' must be a data.frame or a list")
     
     ##
     ## check for survival model with a baseline-hazard. if so, then
@@ -443,14 +440,23 @@
 
         cont.hazard = inla.set.control.hazard.default()
         cont.hazard[names(control.hazard)] = control.hazard
-      
         y.surv = eval(parse(text=formula[2]), data)
-        if (class(y.surv) != "inla.surv")
+        if (class(y.surv) != "inla.surv") {
             stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
                        class(y.surv), "'", sep=""))
-        data.orig = data
-        data = inla.remove(as.character(formula[2]), data)
-        data.f = as.data.frame(data)
+        }
+        len.y.surv = max(sapply(y.surv, length))
+        data.tmp = inla.remove(as.character(formula[2]), data)
+        data.f = inla.fix.data(data.tmp, len.y.surv)
+        ## check for any matrices in data.f
+        if (is.list(data.f)) {
+            mat.name = names(data.f)[which(sapply(data.f, inla.is.matrix))]
+            if (length(mat.name) > 0L)
+                warning(paste(c("'data' contains matrix: ", paste(mat.name, collapse=", ", sep=""),
+                                ", and this will throw an error if used like this: y ~ A")))
+        }
+        data.f = as.data.frame(data.f) ## this will 'fail' if data.f contains a matrix
+        data.not.f = inla.fix.data(data.tmp, len.y.surv, revert=TRUE)
         if (!is.null(weights)) {
             data.f$.weights = weights
         }
@@ -463,8 +469,7 @@
             new.data = res$data
             .internal$baseline.hazard.cutpoints = res$cutpoints
         }
-        data = data.orig
-        
+
         if (cont.hazard$model != "rw1" && cont.hazard$model != "rw2")
             stop(paste("Valid models for the hazard is `rw1' and `rw2'; you have", cont.hazard$model))
         
@@ -527,7 +532,7 @@
 
         result = inla(surv.formula,
                      family = "poisson",
-                     data = new.data, 
+                     data = c(new.data, data.not.f),
                      contrasts = contrasts, 
                      quantiles=quantiles,
                      E = .E,
@@ -591,56 +596,17 @@
 
     data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
-    if (!(is.data.frame(data)) &&
-        !(is.list(data) && length(data) == 0L)) {
-        ## if there's an Amatrix in the predictor, we have to take it
-        ## out from the data. It should not be there really, since the
-        ## A-matrix is evaluated when the inla() call is made, but...
-        ## Dealing with names is a mess, so we check the numerical
-        ## values only. This means that this model: y ~ ... + A + ...,
-        ## where control.predictor=list(A=A), ie, the fixed effect
-        ## matrix and A is numerically the same matrix(!!!) can fail
-        ## here, and flag an error for incorrect dimensions at some
-        ## point.
-        idx.not.A = which(sapply(
-                data, 
-                function(a, Amatrix) {
-                    if (is.null(Amatrix)) {
-                        return (TRUE)
-                    } else {
-                        if (inla.is.matrix(a)) {
-                            if (all(dim(a) == dim(Amatrix)) && all(a == Amatrix)) {
-                                return (FALSE)
-                            } else {
-                                return (TRUE)
-                            }
-                        } else {
-                            return (TRUE)
-                        }
-                    }
-                },
-                Amatrix = control.predictor$A))
-        data = data[idx.not.A]
-    }
-
-    ## need to know MPredictor and NPredictor!
+    
     if (!is.null(control.predictor$A)) {
-        MPredictor = ny
+        MN = inla.sparse.dim(control.predictor$A)
+        MPredictor = MN[1]
+        NPredictor = MN[2]
+        stopifnot(MPredictor == ny)
     } else {
         MPredictor = 0L
-    }
-    if (is.data.frame(data) && min(dim(data)) == 0) {
         NPredictor = ny
-    } else if (is.list(data) && length(data) == 0) {
-        NPredictor = ny
-    } else {
-        NPredictor = max(sapply(data, function(a) inla.ifelse(inla.is.matrix(a), dim(a)[1L], length(a))))
     }
-    if (MPredictor > 0) {
-        NData = MPredictor
-    } else {
-        NData = NPredictor
-    }
+    NData = inla.ifelse(MPredictor > 0,  MPredictor, NPredictor)
     stopifnot(NData > 0)
     stopifnot(NPredictor > 0)
     if (debug) {
@@ -648,25 +614,14 @@
         print(paste("NPredictor", NPredictor))
         print(paste("NData", NPredictor))
     }
-    if (!is.null(control.predictor$A)) {
-        ## Then the dimension of A must match!
-        MN = inla.sparse.dim(control.predictor$A)
-        if (MPredictor != MN[1]) {
-            stop(paste("From the response, I found that MPredictor =", MPredictor, ", but dim(A)[1] =", MN[1]))
-        }
-        if (NPredictor != MN[2]) {
-            stop(paste("From `data', I found that NPredictor =", NPredictor, ", but dim(A)[2] =", MN[2]))
-        }
-    }
 
-    ##
     if (n.family == 1) {
-        y...fake = c(rep(Inf, ny))
+        y...fake = c(rep(Inf, NData))
         if (debug)
             print(paste("y...fake has length", length(y...fake)))
         
     } else {
-        y...fake = c(rep(Inf, ny))
+        y...fake = c(rep(Inf, NData))
         if (debug)
             print(paste("y...fake has length", length(y...fake)))
     }
@@ -687,9 +642,9 @@
     if (is.data.frame(data)) {
         if (MPredictor > 0) {
             if (MPredictor != NPredictor) {
-                stop("It can be ``dangerous'' to use a 'data.frame' as data, when the
-  A-matrix is not a square matrix, so you need to pass the data
-  as a list: data = list(...).")
+                stop(paste("It can be ``dangerous'' to use a 'data.frame' as data, when the\n", 
+                           "\tA-matrix is not a square matrix; please pass the data\n", 
+                           "\tas a list: data = list(...)."))
             }
         }
         data = as.data.frame(c(as.data.frame(data), list(y...fake=y...fake)))
@@ -703,13 +658,17 @@
         }
     }
 
+    data.same.len = inla.fix.data(data, NPredictor)
+    if (debug) {
+        print(c("Entries with same length:", names(data.same.len)))
+    }
+    
     ## creates a new version of ``formula'' and keep the old one for reference
     formula.orig = formula
     ##inla.eval(paste("formula = y...fake ~ ", inla.formula2character(formula.orig[3])))
     formula = update.formula(formula, y...fake ~ .)
-    
     ## parse the formula
-    gp = inla.interpret.formula(formula, data=data,  data.model = data.model)
+    gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data, data.model = data.model)
     call = deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
@@ -754,8 +713,10 @@
         new.fix.formula = gp$fixf
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula = update.formula(new.fix.formula, y...fake ~ .)
-        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data, na.action=inla.na.action),
+        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
                 contrasts.arg = contrasts)
+        ## this have to match
+        stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
 
         ## n.fix can have been changed here due to a `-1'
         gp$n.fix = dim(gp$model.matrix)[2L]
@@ -847,7 +808,7 @@
     control.family.save = control.family
     for(ii in 1:n.family) {
         control.family = control.family.save[[ii]]
-        inla.check.control(control.family, data)
+        control.family.save[[ii]] = inla.check.control(control.family, data)
     }
     control.family = control.family.save
     
@@ -933,7 +894,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL;
     mf$inla.arg = NULL; mf$lincomb=NULL;
-    mf$.internal = NULL; mf$data = data
+    mf$.internal = NULL; mf$data = data.same.len
 
     if (gp$n.fix > 0)
         mf$formula = gp$fixf
@@ -950,6 +911,7 @@
         rf = mf ## for later use
         rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
         rf$formula = gp$randf
+        rf$data = data.same.len
         rf = eval.parent(rf)
     } else {
         rf = NULL
@@ -959,13 +921,11 @@
         wf = mf
         wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
         wf$formula = gp$weightf
+        wf$data = data.same.len
         wf = eval.parent(wf)
     } else {
         wf = NULL
     }
-
-    ## I don't know why eval.parent(mf) fails here otherwise
-    ## sometimes when called from inla.hyperpar()
 
     ## We set these here, instead of::
     ## scale = model.extract(mf, "scale")
@@ -1000,10 +960,9 @@
     ## ## ## ## ## ## ## ## ## ## ## ##
 
     mf = eval.parent(mf)
-    indN = seq(0, NPredictor-1)
-    indM = seq(0, MPredictor-1)
-    indD = seq(0, NData-1)
-
+    indN = seq(0L, NPredictor-1L)
+    indM = seq(0L, MPredictor-1L)
+    indD = seq(0L, NData-1)
 
     ## this takes care of the offset: `offset' is the argument,
     ## `offset.formula' is in the formula and `offset.sum' is their
@@ -1157,12 +1116,11 @@
                            predictor.spec=cont.predictor, file.offset=file.offset, data.dir = data.dir,
                            file.link.fitted.values = file.link.fitted.values)
 
-    ##
     all.labels = character(0)
     if (!is.null(cont.predictor$compute) && cont.predictor$compute)
         all.labels = c(all.labels,"predictor")
 
-    ##FIXED EFFECTS
+    ## FIXED EFFECTS
     if (gp$n.fix >0) {
         nc = ncol(gp$model.matrix)
         labels = colnames(gp$model.matrix)
@@ -1477,6 +1435,9 @@
                 }
                 file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
                 
+                ## this have to match
+                stopifnot(length(covariate[[r]]) == NPredictor)
+
                 file.cov=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename=file.cov, debug = debug)
@@ -1684,8 +1645,8 @@
                                     control=cont, only.hyperparam=only.hyperparam)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
-                if (dim(gp$random.spec[[r]]$Z)[1] != ny)
-                    stop(paste("\n\tNumber of data is", ny, "but dimension of Z is", dim(gp$random.spec[[r]]$Z)))
+                if (dim(gp$random.spec[[r]]$Z)[1] != NData)
+                    stop(paste("\n\tNumber of data is", NData, "but dimension of Z is", dim(gp$random.spec[[r]]$Z)))
 
                 inla.z.section(file=file.ini, random.spec = gp$random.spec[[r]], data.dir = data.dir,
                                results.dir = results.dir, only.hyperparam = only.hyperparam, k.off = count.random)
@@ -1897,4 +1858,90 @@
 {
     ## call inla() again with the same arguments as stored inside the object,  ie object$.args
     return (do.call("inla",  args = object$.args))
+}
+`inla.fix.data.names` = function(data, debug = TRUE)
+{
+    ## change conversion ``errors'' for matrices, which get names
+    ## A.A1, etc, after calling inla.fix.data and converting into a
+    ## data.frame.
+
+    if (is.null(data)) {
+        return (data)
+    }
+    nm = names(data)
+    if (debug)
+        cat("Old names ", nm, "\n")
+    c1 = grep("^.*[.].*[^0-9][0-9]+$", nm)
+    for(i in c1) {
+        nam = nm[i]
+        if (debug)
+            cat("Found candidate", nam, "\n")
+        r = regexpr("[.]", nam)
+        if (r > 0L) {
+            begg = substr(nam, 1L, r-1L)
+            beg = glob2rx(begg)
+            beg = substr(beg, 2L, nchar(beg)-1L)
+            g = grep(paste("^", beg, "[.]", beg, "[0-9]+$", sep=""), nam)
+            if (length(g) > 0) {
+                if (debug)
+                    cat("\taccepted!\n")
+                nm[i] = sub(paste("^", beg, "[.]", beg, sep=""), paste(begg, ".", sep=""), nam)
+            } else {
+                if (debug)
+                    cat("\trejected\n")
+            }
+        }
+    }
+    if (debug)
+        cat("New names", nm, "\n")
+        
+    names(data) = nm
+    return (data)
+}
+`inla.fix.data` = function(data, n, revert = FALSE, fix.names = FALSE)
+{
+    ## extract all entries in 'data' with length='n'. if 'revert',  do the oposite
+    if (is.data.frame(data)) {
+        return (data)
+    }
+    if (is.list(data) && length(data) > 0L) {
+        idx = which(sapply(
+                data, 
+                function(a, n) {
+                    if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
+                        return (TRUE)
+                    } else if (length(a) != n || inla.is.matrix(a)) {
+                        return (FALSE)
+                    } else if (length(a) == n) {
+                        return (TRUE)
+                    } else {
+                        stop("This should not happen.")
+                    }
+                },
+                n = n))
+        if (revert) {
+            tmp = 1:length(data)
+            idx = tmp[-idx]
+        }
+        if (length(idx) > 0L) {
+            if (fix.names) {
+                for (i in 1:length(idx)) {
+                    ## follow the convention in model.matrix: A1, A2,
+                    ## etc, instead of A.1, A.2, etc.
+                    ii = idx[i]
+                    if (inla.is.matrix(data[[ii]])) {
+                        if (is.null(colnames(data[[ii]]))) {
+                            colnames(data[[ii]]) = paste(names(data)[ii], 1L:ncol(data[[ii]]), sep="")
+                        }
+                    }
+                }
+            }
+            return (data[idx])
+        } else {
+            return (inla.ifelse(revert, list(), data.frame()))
+        }
+    } else {
+        return (data)
+    }
+    stop("Should not happen.")
 }
