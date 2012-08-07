@@ -18827,7 +18827,7 @@ int main(int argc, char **argv)
 	struct rlimit rlim;
 	getrlimit(RLIMIT_CORE, &rlim);
 	rlim.rlim_cur = (enable_core_file ? rlim.rlim_max : (rlim_t) 0L);
-	setrlimit(RLIMIT_CORE, (const struct rlim *) &rlim);
+	setrlimit(RLIMIT_CORE, (const struct rlimit *) &rlim);
 	if (0) {
 		getrlimit(RLIMIT_CORE, &rlim);
 		printf("NEW cur %lld max %lld\n", (long long) rlim.rlim_cur, (long long) rlim.rlim_max);
