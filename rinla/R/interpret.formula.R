@@ -1,5 +1,5 @@
 `inla.interpret.formula` =
-    function (gf, debug=FALSE, data=NULL, data.model = NULL)
+    function (gf, debug=FALSE, data.same.len = NULL, data=NULL, data.model = NULL)
 {
     ## use a copy if data.model is !NULL, as we have to assign an
     ## entry to it. otherwise, just use the
@@ -16,7 +16,8 @@
         p.env = environment(gf)
     }
 
-    tf = terms.formula(gf, specials = c("f"), data=data)
+    ## argument data is here only used for infereing '.'
+    tf = terms.formula(gf, specials = c("f"), data=NULL)
     terms = attr(tf, "term.labels")
     nt = length(terms)
 
@@ -24,7 +25,6 @@
         ## fixf formula with ONLY fixed effects.  randf formula with
         ## ONLY random effect.  weightf formula where are the names of
         ## the (possible) weigths for the covariates
-
         response = as.character(attr(tf, "variables")[2])
         fixf = randf = weightf= paste(response, "~", sep = "")
     } else {
@@ -57,13 +57,7 @@
     if (nt>0) {
         for (i in 1:nt) {
             if (k <= len.rt && ((ks <= len.rt && rt[ks] == i))) {
-                ## make sure we're using the f() function in INLA...
-                if (TRUE) {
-                    st = eval(parse(text = gsub("^f\\(","INLA::f(", terms[i])), envir = data, enclos = p.env)
-                } else {
-                    st = eval(parse(text = gsub("^f\\(","f(", terms[i])), envir = data, enclos = p.env)
-                    warning(" *** Recall to fix INLA:: in interpret.formula.R *** ")
-                }
+                st = eval(parse(text = gsub("^f\\(","f(", terms[i])), envir = data, enclos = p.env)
                 random.spec[[k]] = st
                 if (ks <= len.rt && rt[ks] == i) {
                     ks = ks + 1
@@ -170,4 +164,3 @@
 
     return (ret)
 }
-

@@ -61,10 +61,10 @@ static int memcheck_first = 1;
 static GMRFLib_meminfo_tp *MemInfo = NULL;
 
 #define MEMINFO(_size) \
-	if (GMRFLib_meminfo_thread_id != 0) {							\
+	if (GMRFLib_meminfo_thread_id != 0) {				\
 		assert(IABS(GMRFLib_meminfo_thread_id) < 1+omp_get_max_threads()); \
 		if (!MemInfo){						\
-			_Pragma("omp critial");				\
+			_Pragma("omp critial")				\
 			{						\
 				if (!MemInfo)				\
 					MemInfo = (GMRFLib_meminfo_tp *) calloc(1+omp_get_max_threads(), sizeof(GMRFLib_meminfo_tp)); \
@@ -74,7 +74,7 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 			MemInfo[GMRFLib_meminfo_thread_id].n++;	\
 			MemInfo[GMRFLib_meminfo_thread_id].bytes += _size; \
 		} else if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
-			_Pragma("omp critial");				\
+			_Pragma("omp critial")				\
 			{						\
 				if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
 					printf("\nMemInfo thread_id %d\n", -GMRFLib_meminfo_thread_id); \

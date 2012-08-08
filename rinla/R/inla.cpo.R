@@ -109,13 +109,7 @@
     ## evaluate inla() using the same arguments, but compute the
     ## cpo-values manually for those with a 'failure'
 
-    if (TRUE) {
-        lib = "INLA::"
-    } else {
-        print("***FIXME*** revert back to INLA::")
-        lib = ""
-    }
-
+    lib = "INLA::"
     arg.char = as.character(as.expression(match.call()))
     just.args = gsub(paste("^(", lib, ")?inla.cpo[(]", sep=""), "", arg.char)
     just.args = gsub("[)]$", "", just.args)

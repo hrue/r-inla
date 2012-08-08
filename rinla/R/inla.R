@@ -713,7 +713,8 @@
         new.fix.formula = gp$fixf
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula = update.formula(new.fix.formula, y...fake ~ .)
-        gp$model.matrix = model.matrix(new.fix.formula, data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+        gp$model.matrix = model.matrix(new.fix.formula,
+                data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
                 contrasts.arg = contrasts)
         ## this have to match
         stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
@@ -1859,46 +1860,7 @@
     ## call inla() again with the same arguments as stored inside the object,  ie object$.args
     return (do.call("inla",  args = object$.args))
 }
-`inla.fix.data.names` = function(data, debug = TRUE)
-{
-    ## change conversion ``errors'' for matrices, which get names
-    ## A.A1, etc, after calling inla.fix.data and converting into a
-    ## data.frame.
-
-    if (is.null(data)) {
-        return (data)
-    }
-    nm = names(data)
-    if (debug)
-        cat("Old names ", nm, "\n")
-    c1 = grep("^.*[.].*[^0-9][0-9]+$", nm)
-    for(i in c1) {
-        nam = nm[i]
-        if (debug)
-            cat("Found candidate", nam, "\n")
-        r = regexpr("[.]", nam)
-        if (r > 0L) {
-            begg = substr(nam, 1L, r-1L)
-            beg = glob2rx(begg)
-            beg = substr(beg, 2L, nchar(beg)-1L)
-            g = grep(paste("^", beg, "[.]", beg, "[0-9]+$", sep=""), nam)
-            if (length(g) > 0) {
-                if (debug)
-                    cat("\taccepted!\n")
-                nm[i] = sub(paste("^", beg, "[.]", beg, sep=""), paste(begg, ".", sep=""), nam)
-            } else {
-                if (debug)
-                    cat("\trejected\n")
-            }
-        }
-    }
-    if (debug)
-        cat("New names", nm, "\n")
-        
-    names(data) = nm
-    return (data)
-}
-`inla.fix.data` = function(data, n, revert = FALSE, fix.names = FALSE)
+`inla.fix.data` = function(data, n, revert = FALSE)
 {
     ## extract all entries in 'data' with length='n'. if 'revert',  do the oposite
     if (is.data.frame(data)) {
@@ -1920,25 +1882,12 @@
                 },
                 n = n))
         if (revert) {
-            tmp = 1:length(data)
-            idx = tmp[-idx]
+            idx = (1:length(data))[-idx]
         }
         if (length(idx) > 0L) {
-            if (fix.names) {
-                for (i in 1:length(idx)) {
-                    ## follow the convention in model.matrix: A1, A2,
-                    ## etc, instead of A.1, A.2, etc.
-                    ii = idx[i]
-                    if (inla.is.matrix(data[[ii]])) {
-                        if (is.null(colnames(data[[ii]]))) {
-                            colnames(data[[ii]]) = paste(names(data)[ii], 1L:ncol(data[[ii]]), sep="")
-                        }
-                    }
-                }
-            }
             return (data[idx])
         } else {
-            return (inla.ifelse(revert, list(), data.frame()))
+            return (inla.ifelse(revert || is.list(data), list(), data.frame()))
         }
     } else {
         return (data)
