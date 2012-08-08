@@ -464,7 +464,7 @@
     stopifnot(!missing(contr))
     stopifnot(is.list(contr))
     if (length(contr) == 0) {
-        return(invisible())
+        return(contr)
     }
 
     nm = paste(sys.call()[2])
@@ -484,5 +484,5 @@
         }
     }
 
-    return(invisible())
+    return(contr)
 }
