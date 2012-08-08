@@ -257,18 +257,12 @@
     hyper.default = NULL
 
     ## if model is a particular class, then use this to set default
-    ## arguments to all names(formals(INLA::f)) (except the "...").
+    ## arguments to all names(formals(f)) (except the "...").
     ## THIS FEATURE IS EXPERIMENTAL FOR THE MOMENT!  OOPS: the classes
     ## are defined in the function inla.model.object.classes() as this
     ## is also used in the inla() function itself.
     if (any(inherits(model, inla.model.object.classes()))) {
-        ## might need to change this if we debug the code
-        if (TRUE) {
-            arguments = names(formals(INLA::f))
-        } else {
-            warning("Recall to revert back to INLA::f")
-            arguments = names(formals(f))
-        }
+        arguments = names(formals(INLA::f))
         arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
         ## add this one manually
         arguments = c(arguments, "hyper.default")
@@ -381,17 +375,11 @@
         }
     }
 
-    ##
-    ## then we compare these with the legal ones in INLA::f(), and
+    ## then we compare these with the legal ones in f(), and
     ## flag an error its not among the legal ones.  OOPS: Need to add
     ## some dummy arguments which are those inside the extraconstr and
     ## Cmatrix argument, and inla.group() as well.
-    if (TRUE) {
-        arguments = c(names(formals(INLA::f)), "A", "e")
-    } else {
-        warning("Recall to revert back to INLA::f")
-        arguments = c(names(formals(f)), "A", "e")
-    }
+    arguments = c(names(formals(INLA::f)), "A", "e")
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
         if (!is.element(elm, arguments)) {

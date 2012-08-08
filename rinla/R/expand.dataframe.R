@@ -20,8 +20,8 @@
         cutpoints = seq(0L, max(time), len = n.intervals +1L) 
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation, event=event, cutpoints=cutpoints)
-   
     expand = table(new.data$indicator)
+
     if(!missing(dataframe)) {
         new.dataframe = as.data.frame(matrix(0.0, length(new.data$y), dim(dataframe)[2L]))
         for(i in 1L:dim(dataframe)[2L])
@@ -134,9 +134,7 @@
 
     ##  rewriting the covariates as per new data
     for(i in 1L: dim(dataframe.copy)[2L])
-    {
         new.dataframe[, i] = rep(dataframe.copy[, i], aa)
-    }
     names(new.dataframe) = names(dataframe)[-col.data]
    
     res = data.frame(.y.surv=new.data$y, .E=new.data$E, baseline.hazard=new.data$baseline.haz, 
