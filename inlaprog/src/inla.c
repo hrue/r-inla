@@ -14563,7 +14563,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BERKSON:
 		{
-			double mean_x, log_precision_x;
+			double mean_x, log_precision_x, log_precision_obs;
 			
 			if (!mb->f_fixed[i][0]) {
 				beta = theta[count];
@@ -14574,11 +14574,11 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 
 			if (!mb->f_fixed[i][1]) {
-				log_precision = theta[count];
-				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision_x);
+				log_precision_obs = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision_obs);
 				count++;
 			} else {
-				log_precision = mb->f_theta[i][1][GMRFLib_thread_id][0];
+				log_precision_obs = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
 				
 			if (!mb->f_fixed[i][2]) {
@@ -14598,9 +14598,22 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 
 			SET_GROUP_RHO(4);
-			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 *
-						log((exp(log_precision) + exp(log_precision_x))/SQR(beta))); 
+
+			double sum_sqr_loc = 0.0;
+			int ii, nii = mb->f_N[i]/mb->f_ngroup[i];
+
+			for(ii=0; ii < nii; ii++)
+				sum_sqr_loc += SQR(mb->f_locations[i][ii]);
+			
+			val += mb->f_nrep[i] * (normc_g + 2.0*LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (
+							log((exp(log_precision_obs) + exp(log_precision_x))/SQR(beta))
+							+
+							// this is for the marginal distribution of xobs, the normalising constant
+							log(1/(1/exp(log_precision_obs) + 1/exp(log_precision_x)))
+							)
+						// ...and the exponent which depends on the precisions.
+						- 0.5* sum_sqr_loc * (1/(1/exp(log_precision_obs) + 1/exp(log_precision_x))));
 			break;
 		}
 		
