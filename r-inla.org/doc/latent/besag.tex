@@ -29,13 +29,12 @@ and the prior is defined on $\theta_{1}$.
 
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="besag",graph.file=<graph file name>,
+ f(<whatever>,model="besag",graph=<graph>,
    hyper=<hyper>, adjust.for.con.comp = TRUE)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
-through the {\tt graph.file} argument.  The structure of this file is
-described below.
+through the {\tt graph} argument.
 
 The option \verb|adjust.for.con.comp| adjust the model if the graph
 has more than one connected compoment, and this adjustment can be
@@ -46,30 +45,6 @@ set accordingly.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/besag.tex}
-
-
-\subsubsection*{Structure of the graph file}
-
-We describe the required format for the graph file using a small
-example. Let the file {\tt gra.dat}, relative to a small graph of only
-5 elements, be
-\begin{lstlisting}[basicstyle=\footnotesize]
-    5
-    1 1 2
-    2 2 1 3
-    3 3 2 4 5 
-    4 1 3
-    5 1 3
-\end{lstlisting}
-Line 1 declares the total number of nodes in the graph (5), then, in
-lines 2-6 each node is described. For example, line 4 states that node
-3 has 4 neighbours and these are nodes 2, 4 and 5.
-
-The graph file can either have nodes indexed from 1 to $n$, or from 0
-to $n-1$. Note that in the latter case, node $i$ seen from R
-corresponds to node $i-1$ in the 0-indexed graph.
-
-
 
 \subsection*{Example}
 
