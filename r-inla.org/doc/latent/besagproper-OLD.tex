@@ -38,12 +38,12 @@ and the prior is defined on $\theta_{2}$.
 
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="besagproper",graph.file=<graph file name>,
+ f(<whatever>,model="besagproper",graph=<graph>,
    hyper=<hyper>)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
-through the {\tt graph.file} argument.  The structure of this file is
+through the {\tt graph} argument.  The structure of this file is
 described below.
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -52,6 +52,7 @@ described below.
 
 \subsubsection*{Structure of the graph file}
 
+\textbf{OLD:}
 We describe the required format for the graph file using a small
 example. Let the file {\tt gra.dat}, relative to a small graph of only
 5 elements, be
