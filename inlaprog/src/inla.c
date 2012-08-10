@@ -14602,9 +14602,9 @@ double extra(double *theta, int ntheta, void *argument)
 			double sum_sqr_loc = 0.0;
 			int ii, nii = mb->f_N[i]/mb->f_ngroup[i];
 
-			for(ii=0; ii < nii; ii++)
-				sum_sqr_loc += SQR(mb->f_locations[i][ii]);
-			
+			for(ii=0; ii < nii; ii++) {
+				sum_sqr_loc += SQR(mb->f_locations[i][ii] - mean_x);
+			}
 			val += mb->f_nrep[i] * (normc_g + 2.0*LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
 						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (
 							log((exp(log_precision_obs) + exp(log_precision_x))/SQR(beta))
@@ -14612,8 +14612,11 @@ double extra(double *theta, int ntheta, void *argument)
 							// this is for the marginal distribution of xobs, the normalising constant
 							log(1/(1/exp(log_precision_obs) + 1/exp(log_precision_x)))
 							)
-						// ...and the exponent which depends on the precisions.
-						- 0.5* sum_sqr_loc * (1/(1/exp(log_precision_obs) + 1/exp(log_precision_x))));
+						/* 
+						 * and the exponent which depends on the precisions. we need to correct with ngroup here as
+						 * its not scaled with f_N that already is corrected for ngroup.
+						 */
+						- mb->f_ngroup[i] * 0.5* sum_sqr_loc * (1/(1/exp(log_precision_obs) + 1/exp(log_precision_x))));
 			break;
 		}
 		

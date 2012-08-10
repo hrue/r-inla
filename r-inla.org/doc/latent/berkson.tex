@@ -26,17 +26,18 @@ likelihoods), we provide the following model which replaces the above,
 \begin{displaymath}
     y = u + \epsilon{}
 \end{displaymath}
-where
-\begin{displaymath}
-    u \;\sim\;{\mathcal N}\left(
-      \beta \frac{\tau_{x} \mu_{x} I + \tau_{\text{obs}} x_{\text{obs}}}{
-          \tau_{x}+\tau_{\text{obs}}},
-      \frac{\tau_{x} + \tau_{\text{obs}}}{\beta^{2}} I \right).
-\end{displaymath}
-Here, $x$ is apriori ${\mathcal N}(\mu_{x} {I}, \tau_{x} {I})$, and
-$\tau_{\text{obs}}$ is the observation precision for $x$ (ie
-$\text{Prec}(x_{\text{obs}}|x)$).\footnote{Note: The second argument in ${\mathcal
-        N}(,)$ is the precision not the variance.}
+where $u$ has the correct distribution depending on various parameters:
+%% \begin{displaymath}
+%%     u \;\sim\;{\mathcal N}\left(
+%%       \beta \frac{\tau_{x} \mu_{x} I + \tau_{\text{obs}} x_{\text{obs}}}{
+%%           \tau_{x}+\tau_{\text{obs}}}, 
+%%      \frac{\tau_{x} + \tau_{\text{obs}}}{\beta^{2}} I \right).
+%% \end{displaymath}
+$\beta$ has prior $\pi(\beta)$, $x$ is apriori ${\mathcal N}(\mu_{x}
+{I}, \tau_{x} {I})$, and $\tau_{\text{obs}}$ is the observation
+precision for $x$ (ie $\text{Prec}(x_{\text{obs}}|x)$).\footnote{Note:
+    The second argument in ${\mathcal N}(,)$ is the precision not the
+    variance.}
 
 
 
