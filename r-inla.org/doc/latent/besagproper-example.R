@@ -1,5 +1,5 @@
 ## pick a graph
-graph.file = system.file("demodata/germany.graph", package="INLA")
+graph = system.file("demodata/germany.graph", package="INLA")
 g = inla.read.graph(graph.file)
 
 ## we will use replicated samples in our testing
@@ -26,7 +26,7 @@ for(i in 1:nrep) {
 
 i = rep(1:g$n, nrep)
 replicate = rep(1:nrep, each = g$n)
-formula = y ~ f(i, model="besagproper",  graph.file = graph.file,
+formula = y ~ f(i, model="besagproper",  graph = graph,
         replicate=replicate,
         hyper = list(diag = list(param = c(1, 1)))) -1
 
