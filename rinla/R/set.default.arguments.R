@@ -309,7 +309,7 @@
             stupid.search.max.iter = 1000L, 
 
             ##:ARGUMENT: stupid.search.factor Factor (>=1) to increase the step-length with after each new interation.
-            stupid.search.factor = 1.01)
+            stupid.search.factor = 1.05)
             
 
     ## use default Gaussian strategy if the observations are gaussian
