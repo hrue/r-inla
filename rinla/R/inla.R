@@ -767,7 +767,7 @@
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
             cont.predictor$hyper, cont.predictor$initial,
             cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
-    if (cont.compute$cpo || cont.compute$dic) 
+    if (cont.compute$cpo || cont.compute$dic || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
         cont.predictor$compute = cont.predictor$return.marginals = FALSE

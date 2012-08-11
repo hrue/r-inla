@@ -3374,7 +3374,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-/*
+                /*
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
