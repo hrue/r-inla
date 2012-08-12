@@ -13534,7 +13534,7 @@ double extra(double *theta, int ntheta, void *argument)
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-	    h2_intern, phi, phi_intern, a_intern, n = NAN, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN;
+	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN;
 
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
@@ -13596,14 +13596,13 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 
 	mb = (inla_tp *) argument;
-	n = mb->predictor_n;
 	if (!mb->predictor_fixed) {
 		log_precision = theta[count];
 		count++;
 	} else {
 		log_precision = mb->predictor_log_prec[GMRFLib_thread_id][0];
 	}
-	val = LOG_NORMC_GAUSSIAN * n + n / 2.0 * log_precision;
+	val = mb->predictor_n * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
 	if (!mb->predictor_fixed) {
 		val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 	}
@@ -14507,7 +14506,7 @@ double extra(double *theta, int ntheta, void *argument)
 			SET_GROUP_RHO(2);
 
 			double log_prec_unstruct = log(h2 / (1.0 - h2)) + log_precision;
-			n = (double) mb->f_n[i];
+			double n = (double) mb->f_n[i];
 
 			val += mb->f_nrep[i] * (normc_g +
 						LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0) +
@@ -14541,7 +14540,7 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
-			n = aa->n;
+			double n = aa->n;
 			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision);
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -14741,7 +14740,7 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			SET_GROUP_RHO(2);
 
-			n = (double) mb->f_n[i];
+			double n = (double) mb->f_n[i];
 			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0)
 						+ n / 2.0 * log_precision0	/* iid */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1);	/* spatial */
@@ -14781,7 +14780,7 @@ double extra(double *theta, int ntheta, void *argument)
 				rho_intern = mb->f_theta[i][2][GMRFLib_thread_id][0];
 			}
 			rho = map_rho(rho_intern, MAP_FORWARD, NULL);
-			n = (double) mb->f_n[i];
+			double n = (double) mb->f_n[i];
 			val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
@@ -14869,7 +14868,7 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * n is the small length 
 			 */
-			n = (double) (mb->f_n[i] / dim);       /* YES! */
+			double n = (double) (mb->f_n[i] / dim);       /* YES! */
 			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=3n */
 						+(n - mb->f_rankdef[i]) / 2.0 * logdet);
 			if (fail) {
