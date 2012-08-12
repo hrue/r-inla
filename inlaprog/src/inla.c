@@ -1327,18 +1327,18 @@ double Qfunc_z(int i, int j, void *arg)
 }
 double Qfunc_berkson(int i, int j, void *arg)
 {
-	inla_berkson_tp *a  = (inla_berkson_tp *) arg;
+	inla_berkson_tp *a = (inla_berkson_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	
+
 	assert(i == j);
 
 	return (prec_x + prec_obs) / SQR(beta);
 }
 double mfunc_berkson(int i, void *arg)
 {
-	inla_berkson_tp *a  = (inla_berkson_tp *) arg;
+	inla_berkson_tp *a = (inla_berkson_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -6630,15 +6630,14 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tread link.fitted.values from file=[%s]\n", filename);
 		}
-		inla_read_data_general(&(mb->link_fitted_values), NULL, &nlinks_fitted_values, filename,
-				       mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
+		inla_read_data_general(&(mb->link_fitted_values), NULL, &nlinks_fitted_values, filename, mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->link_fitted_values = NULL;
 	}
 
 	if (0) {
 		if (mb->link_fitted_values) {
-			for(i = 0; i<mb->predictor_n + mb->predictor_m; i++)
+			for (i = 0; i < mb->predictor_n + mb->predictor_m; i++)
 				if (gsl_isnan(mb->link_fitted_values[i]))
 					fprintf(stderr, "link[%d] = NAN\n", i);
 				else
@@ -9408,8 +9407,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
-		**beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-		**mean_x = NULL, **log_prec_x = NULL;
+	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
+	    **mean_x = NULL, **log_prec_x = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -10820,7 +10819,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
@@ -10859,7 +10858,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
@@ -10899,12 +10898,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter2", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
-			
+
 			mb->theta[mb->ntheta] = mean_x;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
@@ -12210,12 +12209,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		inla_berkson_tp *def = Calloc(1, inla_berkson_tp);
 
-		//	double **beta;
-		//	double **log_prec_obs;
-		//	double **mean_x;
-		//	double **log_prec_x;
-		//	double *x_obs;
-							      
+		// double **beta;
+		// double **log_prec_obs;
+		// double **mean_x;
+		// double **log_prec_x;
+		// double *x_obs;
+
 		def->beta = beta;
 		def->log_prec_obs = log_prec;
 		def->mean_x = mean_x;
@@ -12238,7 +12237,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		
+
 	} else if (mb->f_id[mb->nf] == F_AR1) {
 		/*
 		 * AR1 
@@ -14563,7 +14562,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_BERKSON:
 		{
 			double mean_x, log_precision_x, log_precision_obs;
-			
+
 			if (!mb->f_fixed[i][0]) {
 				beta = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
@@ -14579,7 +14578,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				log_precision_obs = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
-				
+
 			if (!mb->f_fixed[i][2]) {
 				mean_x = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
@@ -14599,26 +14598,25 @@ double extra(double *theta, int ntheta, void *argument)
 			SET_GROUP_RHO(4);
 
 			double sum_sqr_loc = 0.0;
-			int ii, nii = mb->f_N[i]/mb->f_ngroup[i];
+			int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
 
-			for(ii=0; ii < nii; ii++) {
+			for (ii = 0; ii < nii; ii++) {
 				sum_sqr_loc += SQR(mb->f_locations[i][ii] - mean_x);
 			}
-			val += mb->f_nrep[i] * (normc_g + 2.0*LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (
-							log((exp(log_precision_obs) + exp(log_precision_x))/SQR(beta))
-							+
-							// this is for the marginal distribution of xobs, the normalising constant
-							log(1/(1/exp(log_precision_obs) + 1/exp(log_precision_x)))
-							)
-						/* 
+			val += mb->f_nrep[i] * (normc_g + 2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log((exp(log_precision_obs) + exp(log_precision_x)) / SQR(beta))
+											 +
+											 // this is for the marginal distribution of xobs, the normalising constant
+											 log(1 / (1 / exp(log_precision_obs) + 1 / exp(log_precision_x)))
+						)
+						/*
 						 * and the exponent which depends on the precisions. we need to correct with ngroup here as
 						 * its not scaled with f_N that already is corrected for ngroup.
 						 */
-						- mb->f_ngroup[i] * 0.5* sum_sqr_loc * (1/(1/exp(log_precision_obs) + 1/exp(log_precision_x))));
+						- mb->f_ngroup[i] * 0.5 * sum_sqr_loc * (1 / (1 / exp(log_precision_obs) + 1 / exp(log_precision_x))));
 			break;
 		}
-		
+
 		case F_AR1:
 		{
 			if (!mb->f_fixed[i][0]) {
@@ -14868,7 +14866,7 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * n is the small length 
 			 */
-			double n = (double) (mb->f_n[i] / dim);       /* YES! */
+			double n = (double) (mb->f_n[i] / dim);	/* YES! */
 			val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=3n */
 						+(n - mb->f_rankdef[i]) / 2.0 * logdet);
 			if (fail) {
@@ -18836,7 +18834,7 @@ int main(int argc, char **argv)
 
 
 #if !defined(WINDOWS)
-	/* 
+	/*
 	 * disable the creation of core-file, unless explicite asked for by the argument '-c'.
 	 */
 	struct rlimit rlim;
@@ -18848,7 +18846,7 @@ int main(int argc, char **argv)
 		printf("NEW cur %lld max %lld\n", (long long) rlim.rlim_cur, (long long) rlim.rlim_max);
 	}
 #endif
-	
+
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
