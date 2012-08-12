@@ -373,7 +373,7 @@ double log_apbex(double a, double b)
 	if (B > a) {
 		return b + log(1.0 + a / B);
 	} else {
-		return log(a) + log(1 + B / a);
+		return log(a) + log(1.0 + B / a);
 	}
 }
 double map_identity(double arg, map_arg_tp typ, void *param)
@@ -863,7 +863,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param)
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1 + exp(x));
+		return exp(x) / SQR(1.0 + exp(x));
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -882,7 +882,7 @@ double map_binomialtest_psi(double x, map_arg_tp typ, void *param)
 	case MAP_BACKWARD:
 		return log((x - 0.5) / (1.0 - (x - 0.5)));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1 + exp(x));
+		return exp(x) / SQR(1.0 + exp(x));
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -901,7 +901,7 @@ double map_probability(double x, map_arg_tp typ, void *param)
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1 + exp(x));
+		return exp(x) / SQR(1.0 + exp(x));
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -948,7 +948,7 @@ double map_invtan(double x, map_arg_tp typ, void *param)
 		 */
 		return tan(x / 2.0);
 	case MAP_DFORWARD:
-		return 2.0 / (1 + SQR(x));
+		return 2.0 / (1.0 + SQR(x));
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1593,7 +1593,7 @@ double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 #undef DIGAMMA
 #undef TRIGAMMA
 	} else {
-		value = log(1 / df);
+		value = log(1.0 / df);
 		log_jacobian = x[0];
 		return value + log_jacobian;
 	}
@@ -1639,7 +1639,7 @@ double priorfunc_betacorrelation(double *x, double *parameters)
 	 * The prior for the correlation coefficient \rho is Beta(a,b), scaled so that it is defined on (-1,1)
 	 * The function returns the log prior for \rho.intern = log((1 +\rho)/(1-\rho))
 	 */
-	double p = exp(*x) / (1 + exp(*x)), a = parameters[0], b = parameters[1];
+	double p = exp(*x) / (1.0 + exp(*x)), a = parameters[0], b = parameters[1];
 	return log(gsl_ran_beta_pdf(p, a, b)) + 2.0 * (*x) - 2.0 * log(1.0 + exp(*x));
 }
 double priorfunc_logitbeta(double *x, double *parameters)
@@ -1647,7 +1647,7 @@ double priorfunc_logitbeta(double *x, double *parameters)
 	/*
 	 * The prior for the the logit of a Beta(a,b), logit(p) = log(p/(1-p))
 	 */
-	double p = exp(*x) / (1 + exp(*x)), a = parameters[0], b = parameters[1];
+	double p = exp(*x) / (1.0 + exp(*x)), a = parameters[0], b = parameters[1];
 	return log(gsl_ran_beta_pdf(p, a, b)) + (*x) - 2.0 * log(1.0 + exp(*x));
 }
 
@@ -14607,13 +14607,13 @@ double extra(double *theta, int ntheta, void *argument)
 						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log((exp(log_precision_obs) + exp(log_precision_x)) / SQR(beta))
 											 +
 											 // this is for the marginal distribution of xobs, the normalising constant
-											 log(1 / (1 / exp(log_precision_obs) + 1 / exp(log_precision_x)))
+											 log(1.0 / (1.0 / exp(log_precision_obs) + 1.0 / exp(log_precision_x)))
 						)
 						/*
 						 * and the exponent which depends on the precisions. we need to correct with ngroup here as
 						 * its not scaled with f_N that already is corrected for ngroup.
 						 */
-						- mb->f_ngroup[i] * 0.5 * sum_sqr_loc * (1 / (1 / exp(log_precision_obs) + 1 / exp(log_precision_x))));
+						- mb->f_ngroup[i] * 0.5 * sum_sqr_loc * (1.0 / (1.0 / exp(log_precision_obs) + 1.0 / exp(log_precision_x))));
 			break;
 		}
 
