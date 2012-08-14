@@ -6,9 +6,6 @@ compress_get="z"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     set -vx
-fi
-
-if false; then
     echo "INLA_PATH $INLA_PATH"
     echo "INLA_HOME $INLA_HOME"
     echo "INLA_SSH_AUTH_SOCK $INLA_SSH_AUTH_SOCK"
