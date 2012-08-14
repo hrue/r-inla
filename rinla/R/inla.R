@@ -871,6 +871,7 @@
 
     ## create the .file.ini and make the problem.section
     file.ini = paste(inla.dir, "/Model.ini", sep="")
+    file.log = paste(inla.dir, "/Logfile.txt", sep="")
 
     ## problem section
     if (debug) 
@@ -1713,6 +1714,9 @@
     inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
+    if (debug) {
+        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=1\"", ")", sep=""))
+    }
     if (remote && inla.os("windows")) {
         inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
         inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
@@ -1720,7 +1724,6 @@
                         inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
     } else {
         inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-
         ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
         if (Sys.getenv("SSH_AUTH_SOCK") == "") {
             inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
@@ -1728,7 +1731,6 @@
     }
 
     my.time.used[2] = Sys.time()
-    
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
@@ -1753,7 +1755,7 @@
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > /dev/null"))
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log))
             }
         } else if (inla.os("windows")) {
             if (!remote) {
@@ -1766,11 +1768,9 @@
 
                     ## another try for Win-problem with R-2.14...
                     bat.file = paste(tempfile(), ".BAT",  sep="")
-                    out.file = paste(tempfile(), ".DAT",  sep="")
                     cat("@ echo off\n",  file=bat.file, append=FALSE)
-                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(out.file)), file=bat.file, append=TRUE)
+                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log)), file=bat.file, append=TRUE)
                     echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
-                    unlink(bat.file)
                     unlink(out.file)
                 }
                 if (echoc != 0L) {
@@ -1783,7 +1783,8 @@
                 echoc = try(inla.cygwin.run.command(
                         paste(inla.cygwin.map.filename(inla.call),
                               all.args,
-                              inla.cygwin.map.filename(file.ini))), silent=TRUE)
+                              inla.cygwin.map.filename(file.ini)),
+                        file.log = inla.ifelse(verbose, NULL, inla.cygwin.map.filename(file.log))), silent=TRUE)
                 echoc = 0
             }
         } else {
@@ -1798,7 +1799,7 @@
 
         if (echoc==0) {
             ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                    only.hyperparam=only.hyperparam), silent=TRUE)
+                    only.hyperparam=only.hyperparam, file.log = file.log), silent=TRUE)
             if (!is.list(ret)) {
                 ret = list()
             }

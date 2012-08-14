@@ -1,6 +1,6 @@
 `inla.collect.results` =
     function(results.dir, control.results = inla.set.control.results.default(),
-             debug=FALSE, only.hyperparam=FALSE)
+             debug=FALSE, only.hyperparam=FALSE, file.log = NULL)
 {
     if (is.na(file.info(results.dir)$isdir) || 
         !file.info(results.dir)$isdir) {
@@ -68,6 +68,7 @@
         joint.hyper = NULL
     }
 
+    logfile = inla.collect.logfile(file.log, debug)
     misc = inla.collect.misc(results.dir, debug)
     theta.tags = NULL
     mode.status = NA
@@ -104,7 +105,7 @@
     }
 
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, list(cpo=res.cpo.pit), res.random, res.predictor, res.hyper,
-            res.configurations, res.offset, res.spde2.blc, 
+            res.configurations, res.offset, res.spde2.blc, logfile, 
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x = x.mode,
                                       theta.tags = theta.tags, mode.status = mode.status,

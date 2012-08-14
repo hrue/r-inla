@@ -139,6 +139,22 @@ inla.internal.experimental.mode = FALSE
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix))
 }
 
+`inla.collect.logfile` = function(file.log = NULL, debug = FALSE)
+{
+    if (is.null(file.log)) {
+        return (list(logfile = NULL))
+    }
+    if (debug) {
+        print(paste("Read logfile", file.log))
+    }
+    if (file.exists(file.log)) {
+        ## replace tab with spaces.........12345678....
+        return (list(logfile = gsub("\t", "        ", readLines(file.log))))
+    } else {
+        return (list(logfile = NULL))
+    }
+}
+
 `inla.collect.size` = function(dir, debug = FALSE)
 {
     fnm = paste(dir, "/size.dat", sep="")
