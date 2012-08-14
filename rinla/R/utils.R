@@ -878,13 +878,13 @@
     return (result)
 }
 
-`inla.is.element` = function(name, list)
+`inla.is.element` = function(name, alist)
 {
     ## return TRUE if element with name NAME is a member of LIST and
     ## the value is non null and not NA.
-    if (any(names(list) == name)) {
-        idx = which(names(list) == name)
-        if (!is.null(list[[idx]]) && !is.na(list[[idx]])) {
+    if (any(names(alist) == name)) {
+        idx = which(names(alist) == name)
+        if (!is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
             return (TRUE)
         } else {
             return (FALSE)
@@ -893,7 +893,14 @@
         return (FALSE)
     }
 }
-
+`inla.get.element` = function(name, alist)
+{
+    if (inla.is.element(name, alist)) {
+        return (alist[[which(names(alist) == name)]])
+    } else {
+        return (NULL)
+    }
+}
 `inla.require.inherits` = function(x, what, name="Object")
 {
     if (!inherits(x, what)) {
