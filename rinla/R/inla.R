@@ -1715,7 +1715,7 @@
     inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
     if (debug) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=1\"", ")", sep=""))
+        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
     if (remote && inla.os("windows")) {
         inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
@@ -1760,32 +1760,26 @@
         } else if (inla.os("windows")) {
             if (!remote) {
                 if (verbose) {
-                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
                     echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
-                    ##echoc = try(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))), silent=TRUE)
-                    ##echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=FALSE, stderr="", wait=TRUE))
-
-                    ## another try for Win-problem with R-2.14...
                     bat.file = paste(tempfile(), ".BAT",  sep="")
                     cat("@ echo off\n",  file=bat.file, append=FALSE)
                     cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log)), file=bat.file, append=TRUE)
                     echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
-                    unlink(out.file)
+                    unlink(bat.file)
                 }
                 if (echoc != 0L) {
                     if (!verbose) {
                         warning(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
                     }
                 }
-                echoc = 0L
             } else {
                 echoc = try(inla.cygwin.run.command(
                         paste(inla.cygwin.map.filename(inla.call),
                               all.args,
                               inla.cygwin.map.filename(file.ini)),
                         file.log = inla.ifelse(verbose, NULL, inla.cygwin.map.filename(file.log))), silent=TRUE)
-                echoc = 0
+                ## echoc = 0L
             }
         } else {
             stop("\n\tNot supported architecture.")
@@ -1797,7 +1791,7 @@
 
         my.time.used[3] = Sys.time()
 
-        if (echoc==0) {
+        if (echoc == 0L) {
             ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
                     only.hyperparam=only.hyperparam, file.log = file.log), silent=TRUE)
             if (!is.list(ret)) {
@@ -1840,18 +1834,27 @@
             ret$.args = the.args
             ret$call = call
             ret$model.matrix = gp$model.matrix
-            
             class(ret) = "inla"
         } else {
-            ret = NULL
+            ## with a crash, try to collect the logfile only
+            ret = try(inla.collect.logfile(file.log, debug), silent = TRUE)
+            if (inherits(ret, "try-error")) {
+                ret = NULL
+            } else {
+                class(ret) = "inla"
+            }
         }
 
-        if (debug && !keep) cat("clean up\n")
-        if (!keep) unlink(inla.dir, recursive=TRUE)
-    }
-    else
+        if (debug && !keep) {
+            cat("clean up\n")
+        }
+        if (!keep) {
+            try(unlink(inla.dir, recursive=TRUE), silent = TRUE)
+        }
+    } else {
         ret = NULL
-
+    }
+        
     ##
     return (ret)
 }
