@@ -36,12 +36,13 @@ The besag model is specified inside the {\tt f()} function as
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
 through the {\tt graph} argument.
 
-The option \verb|adjust.for.con.comp| adjust the model if the graph
-has more than one connected compoment, and this adjustment can be
-disabled setting this option to \texttt{FALSE}. This means that
-\texttt{constr=TRUE} is interpreted as a sum-to-zero constraint on
-\emph{each} connected component and the \texttt{rankdef} parameter is
-set accordingly. 
+If the option \verb|adjust.for.con.comp=TRUE| then the model is
+adjusted if the graph has more than one connected compoment. This
+adjustment can be disabled setting this option to \texttt{FALSE}. If
+\verb|adjust.for.con.comp=TRUE| then \texttt{constr=TRUE} is
+interpreted as a sum-to-zero constraint on \emph{each} connected
+component in the graph and the \texttt{rankdef} parameter is set to
+the number of connected components.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/besag.tex}
