@@ -30,27 +30,28 @@
     } else {
         contfamily = x$.args$control.family
     }
-    for(ii in 1:length(x$.args$family)) {
-        cat(paste("Likelihood model",
-                  inla.ifelse(length(x$.args$family)>1, paste("[", ii, "]", sep=""), ""),
-                  ": ", x$.args$family[ii],"\n", sep=""))
-        prop = inla.model.properties(x$.args$family[ii], "likelihood")
-        ntheta = length(prop$hyper)
-        if (ntheta > 0) {
-            for (i in 1:ntheta) {
-                ## need a fix here for the 'numeric(0)' problem.
-                if (!is.null(contfamily[[ii]]$hyper[[i]]$fixed)) {
-                    if (contfamily[[ii]]$hyper[[i]]$fixed) {
-                        cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
-                    } else {
-                        cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
+    if (length(x$.args$family) > 0L) {
+        for(ii in 1:length(x$.args$family)) {
+            cat(paste("Likelihood model",
+                      inla.ifelse(length(x$.args$family)>1, paste("[", ii, "]", sep=""), ""),
+                      ": ", x$.args$family[ii],"\n", sep=""))
+            prop = inla.model.properties(x$.args$family[ii], "likelihood")
+            ntheta = length(prop$hyper)
+            if (ntheta > 0) {
+                for (i in 1:ntheta) {
+                    ## need a fix here for the 'numeric(0)' problem.
+                    if (!is.null(contfamily[[ii]]$hyper[[i]]$fixed)) {
+                        if (contfamily[[ii]]$hyper[[i]]$fixed) {
+                            cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
+                        } else {
+                            cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
+                        }
                     }
                 }
             }
         }
+        cat("\n")
     }
-    cat("\n")
-  
     if(!is.null(x$summary.random)) {
         labels <- names(x$summary.random)
         cat(paste("The model has ", length(labels)," random effects:\n", sep=""))
