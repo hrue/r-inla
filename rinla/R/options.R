@@ -25,34 +25,35 @@
     else
         inla.call = opt$inla.call
 
-    all.opt = list(
+    default.opt = list(
             inla.call = inla.call,
-            fmesher.call = inla.ifelse(is.null(opt$fmesher.call), inla.fmesher.call.builtin(), opt$fmesher.call),
+            fmesher.call = inla.fmesher.call.builtin(),
             inla.arg = NULL,
-            fmesher.arg = inla.ifelse(is.null(opt$fmesher.arg), "", opt$fmesher.arg),
-            num.threads = inla.ifelse(!is.null(opt$num.threads), opt$num.threads, NULL),
-            keep = inla.ifelse(!is.null(opt$keep), opt$keep, FALSE),
-            working.directory = inla.ifelse(!is.null(opt$working.directory), opt$working.directory, NULL),
-            silent = inla.ifelse(!is.null(opt$silent), opt$silent, TRUE),
-            debug = inla.ifelse(!is.null(opt$debug), opt$debug, FALSE),
-            internal.binary.mode = inla.ifelse(!is.null(opt$internal.binary.mode),  opt$internal.binary.mode, TRUE), 
-            internal.experimental.mode = inla.ifelse(!is.null(opt$internal.experimental.mode),  opt$internal.experimental.mode, FALSE), 
-            cygwin = inla.ifelse(!is.null(opt$cygwin), gsub("\\\\", "/", opt$cygwin), "C:/cygwin"),
-            cygwin.home = inla.ifelse(!is.null(opt$cygwin.home), opt$cygwin.home, paste("/home/", inla.get.USER(), sep="")),
-            ssh.auth.sock = inla.ifelse(!is.null(opt$ssh.auth.sock), opt$ssh.auth.sock,
-                    paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep="")),
-            enable.inla.argument.weights = inla.ifelse(is.null(opt$enable.inla.argument.weights), FALSE, opt$enable.inla.argument.weights), 
-            show.warning.graph.file = inla.ifelse(is.null(opt$show.warning.graph.file), TRUE, opt$show.warning.graph.file), 
-            show.warning.control.data = inla.ifelse(is.null(opt$show.warning.control.data), TRUE, opt$show.warning.control.data)
+            fmesher.arg = "p", 
+            num.threads = NULL, 
+            keep = FALSE, 
+            working.directory = NULL, 
+            silent = TRUE, 
+            debug = FALSE, 
+            internal.binary.mode = TRUE, 
+            internal.experimental.mode = FALSE, 
+            cygwin = "C:/cygwin",
+            cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
+            ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
+            enable.inla.argument.weights = FALSE, 
+            show.warning.graph.file = TRUE, 
+            show.warning.control.data = TRUE
             )
 
     res = c()
-    if (length(option) > 0) {
-        for (i in 1:length(option))
-            res = c(res, inla.eval(paste("all.opt$", option[i], sep="")))
-    } else {
-        res = all.opt
+    for (i in 1:length(option)) {
+        if (inla.is.element(option[i], opt)) {
+            res = c(res, inla.get.element(option[i], opt))
+        } else {
+            res = c(res, inla.get.element(option[i], default.opt))
+        }
     }
+
     return (res)
 }
 
