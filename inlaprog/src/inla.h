@@ -371,7 +371,7 @@ typedef enum {
 	F_SPDE,
 	F_SPDE2,
 	F_COPY,
-	F_BERKSON, 
+	F_ME, 
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -864,7 +864,7 @@ typedef struct
 	double **log_prec_x;
 	double *x_obs;
 }
-	inla_berkson_tp;
+	inla_me_tp;
 
 
 #define INLA_LITTLE_ENDIAN 1
@@ -1149,8 +1149,8 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
-double Qfunc_berkson(int i, int j, void *arg);
-double mfunc_berkson(int i, void *arg);
+double Qfunc_me(int i, int j, void *arg);
+double mfunc_me(int i, void *arg);
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);

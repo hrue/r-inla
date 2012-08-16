@@ -14,7 +14,7 @@ prior.prec = c(1, 0.01)
 prior.beta = c(0, 0.1)
 
 formula = y ~ 1 + 
-    f(xobs, model="berkson",
+    f(xobs, model="me",
       hyper = list(
               beta = list(
                       param = prior.beta,

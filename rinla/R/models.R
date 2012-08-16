@@ -44,7 +44,7 @@
                       pdf = "indep"
                       ),
 
-              berkson = list(
+              me = list(
                       hyper = list(
                               theta1 = list(
                                       name = "beta",
@@ -96,7 +96,7 @@
                       n.required = FALSE,
                       set.default.values = FALSE,
                       status = "experimental", 
-                      pdf = "berkson"
+                      pdf = "me"
                       ),
 
               rw1 = list(
