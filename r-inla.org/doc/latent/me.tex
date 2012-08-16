@@ -5,11 +5,11 @@
 \usepackage{verbatim}
 \begin{document}
 
-\section*{The Berkson model}
+\section*{The Measurement Error (ME) model}
 
 \subsection*{Parametrization}
 
-This is an implementation of the Berkson error model for a fixed
+This is an implementation of the ME model for a fixed
 effect. It is best described by an example, let  the model be
 \begin{displaymath}
     y = \beta x + \epsilon{}
@@ -48,7 +48,7 @@ This model has 4 hyperparameters, $\theta = (\theta_{1}, \theta_{2},
 $\theta_{4}$ are default set to be fixed (ie defined to be known). The
 values of $\theta_{2}, \theta_{3}$ and $\theta_{4}$ are set to mimic a
 classical fixed effect, so they will always make sense. To achieve the
-Berkson measurement model, please use the appropriate choices for
+ME model, please use the appropriate choices for
 (some of) these parameters!
 
 The hyperparameter specification is as follows:
@@ -72,10 +72,10 @@ and the prior is defined on $\theta_{4}$.
 
 \subsection*{Specification}
 
-The Berkson is specified inside the {\tt f()}
+The ME is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(x.obs, [<weights>,] model="berkson", hyper = <hyper>)
+ f(x.obs, [<weights>,] model="me", hyper = <hyper>)
 \end{verbatim}
 The \texttt{x.obs} are the observed values of the unknown covariates
 $x$, with the \emph{assumption}, that if two or more elements of
@@ -83,11 +83,11 @@ $x$, with the \emph{assumption}, that if two or more elements of
 \emph{same} element in the true covariate $x$.
 
 \subsubsection*{Hyperparameter specification and default values}
-\input{../hyper/latent/berkson.tex}
+\input{../hyper/latent/me.tex}
 
 \subsection*{Example}
 
-\verbatiminput{berkson-example.R}
+\verbatiminput{me-example.R}
 
 \subsection*{Notes}
 
@@ -107,5 +107,3 @@ $x$, with the \emph{assumption}, that if two or more elements of
 %%% TeX-master: t
 %%% End: 
 
-% LocalWords:  Berkson Parametrization covariate apriori ie Prec hyperparameter
-% LocalWords:  Hyperparameters hyperparameters covariates berkson INLA
