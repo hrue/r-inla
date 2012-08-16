@@ -1325,9 +1325,9 @@ double Qfunc_z(int i, int j, void *arg)
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
 	return map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 }
-double Qfunc_berkson(int i, int j, void *arg)
+double Qfunc_me(int i, int j, void *arg)
 {
-	inla_berkson_tp *a = (inla_berkson_tp *) arg;
+	inla_me_tp *a = (inla_me_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -1336,9 +1336,9 @@ double Qfunc_berkson(int i, int j, void *arg)
 
 	return (prec_x + prec_obs) / SQR(beta);
 }
-double mfunc_berkson(int i, void *arg)
+double mfunc_me(int i, void *arg)
 {
-	inla_berkson_tp *a = (inla_berkson_tp *) arg;
+	inla_me_tp *a = (inla_me_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -9618,10 +9618,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID model");
-	} else if (OneOf("BERKSON")) {
-		mb->f_id[mb->nf] = F_BERKSON;
+	} else if (OneOf("ME")) {
+		mb->f_id[mb->nf] = F_ME;
 		mb->f_ntheta[mb->nf] = 4;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Berkson");
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("ME");
 	} else if (OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
@@ -9807,7 +9807,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_ZADD:
 		break;
 
-	case F_BERKSON:
+	case F_ME:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.obs */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	/* mean */
@@ -10316,7 +10316,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// nothing to do
 		} else {
 			/*
-			 * RW-models and OU-model and Berkson: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
+			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
 			filename = GMRFLib_strdup(file_loc);
 			if (!filename) {
@@ -10791,7 +10791,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_BERKSON:
+	case F_ME:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -10813,9 +10813,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Berkson beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Berkson beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -10852,9 +10852,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Berkson prec_obs_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME prec_obs_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Berkson prec_obs for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME prec_obs for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -10892,9 +10892,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Berkson mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Berkson mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter2", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -10931,9 +10931,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Berkson prec_x_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME prec_x_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Berkson prec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "ME prec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter3", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12203,11 +12203,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_SEASONAL;
-	} else if (mb->f_id[mb->nf] == F_BERKSON) {
+	} else if (mb->f_id[mb->nf] == F_ME) {
 		/*
-		 * BERKSON
+		 * ME
 		 */
-		inla_berkson_tp *def = Calloc(1, inla_berkson_tp);
+		inla_me_tp *def = Calloc(1, inla_me_tp);
 
 		// double **beta;
 		// double **log_prec_obs;
@@ -12222,7 +12222,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->x_obs = mb->f_locations[mb->nf];
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
-		mb->f_Qfunc[mb->nf] = Qfunc_berkson;
+		mb->f_Qfunc[mb->nf] = Qfunc_me;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -12232,7 +12232,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
 		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
-		mb->f_bfunc2[mb->nf]->mfunc = mfunc_berkson;
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_me;
 		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
@@ -14559,7 +14559,7 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		case F_BERKSON:
+		case F_ME:
 		{
 			double mean_x, log_precision_x, log_precision_obs;
 
