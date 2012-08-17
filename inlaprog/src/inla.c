@@ -1331,10 +1331,11 @@ double Qfunc_me(int i, int j, void *arg)
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double *scale = a->scale;
 
 	assert(i == j);
 
-	return (prec_x + prec_obs) / SQR(beta);
+	return (prec_x + prec_obs*scale[i]) / SQR(beta);
 }
 double mfunc_me(int i, void *arg)
 {
@@ -1343,11 +1344,11 @@ double mfunc_me(int i, void *arg)
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double mean_x = map_identity(a->mean_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
 	double *x_obs = a->x_obs;
+	double *scale = a->scale;
 	assert(x_obs);
 
-	return beta * (prec_obs * x_obs[i] + prec_x * mean_x) / (prec_obs + prec_x);
+	return beta * (prec_obs * scale[i] * x_obs[i] + prec_x * mean_x) / (prec_obs * scale[i] + prec_x);
 }
 int inla_iid_wishart_nparam(int dim)
 {
@@ -9437,6 +9438,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_ncol = Realloc(mb->f_ncol, mb->nf + 1, int);
 	mb->f_locations = Realloc(mb->f_locations, mb->nf + 1, double *);
 	mb->f_weights = Realloc(mb->f_weights, mb->nf + 1, double *);
+	mb->f_scale = Realloc(mb->f_scale, mb->nf + 1, double *);
 	mb->f_Qfunc = Realloc(mb->f_Qfunc, mb->nf + 1, GMRFLib_Qfunc_tp *);
 	mb->f_Qfunc_orig = Realloc(mb->f_Qfunc_orig, mb->nf + 1, GMRFLib_Qfunc_tp *);
 	mb->f_Qfunc_arg = Realloc(mb->f_Qfunc_arg, mb->nf + 1, void *);
@@ -9483,6 +9485,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(ncol, 0);
 	SET(locations, NULL);
 	SET(weights, NULL);				       /* this means default weights = 1 */
+	SET(scale, NULL);				       
 	SET(Qfunc, (GMRFLib_Qfunc_tp *) NULL);
 	SET(Qfunc_orig, (GMRFLib_Qfunc_tp *) NULL);
 	SET(Qfunc_arg, NULL);
@@ -12207,19 +12210,37 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * ME
 		 */
+		char *filename_s;
+		filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+		if (filename_s) {
+			if (mb->verbose) {
+				printf("\t\tread scale from file=[%s]\n", filename_s);
+			}
+			inla_read_data_general(&(mb->f_scale[mb->nf]), NULL, NULL, filename_s, mb->predictor_n, 0, 1, mb->verbose, 1.0);
+		} else {
+			mb->f_scale[mb->nf] = Calloc(mb->predictor_n, double);
+			int ii;
+			for(ii=0; ii<mb->predictor_n; ii++) {
+				mb->f_scale[mb->nf][ii] = 1.0;
+			}
+		}
+		
 		inla_me_tp *def = Calloc(1, inla_me_tp);
-
 		// double **beta;
 		// double **log_prec_obs;
 		// double **mean_x;
 		// double **log_prec_x;
 		// double *x_obs;
-
+		// double *scale;
+		
 		def->beta = beta;
 		def->log_prec_obs = log_prec;
 		def->mean_x = mean_x;
 		def->log_prec_x = log_prec_x;
 		def->x_obs = mb->f_locations[mb->nf];
+		// must make a copy... (realloc)
+		def->scale = Calloc(mb->predictor_n, double);
+		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_me;
@@ -14597,23 +14618,25 @@ double extra(double *theta, int ntheta, void *argument)
 
 			SET_GROUP_RHO(4);
 
-			double sum_sqr_loc = 0.0;
+			double AA=0.0, BB=0.0, CC=0.0;
 			int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
 
+			/* 
+			 * we need to do it like this as the scale[i] varies with 'i'.
+			 */
 			for (ii = 0; ii < nii; ii++) {
-				sum_sqr_loc += SQR(mb->f_locations[i][ii] - mean_x);
+				AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
+				BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+				CC += SQR(mb->f_locations[i][ii] - mean_x) *
+					(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
 			}
-			val += mb->f_nrep[i] * (normc_g + 2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-						(mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log((exp(log_precision_obs) + exp(log_precision_x)) / SQR(beta))
-											 +
-											 // this is for the marginal distribution of xobs, the normalising constant
-											 log(1.0 / (1.0 / exp(log_precision_obs) + 1.0 / exp(log_precision_x)))
-						)
+			val += mb->f_nrep[i] * (normc_g + 2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) 
+						+ mb->f_ngroup[i] * 0.5 * (AA + BB)
 						/*
 						 * and the exponent which depends on the precisions. we need to correct with ngroup here as
 						 * its not scaled with f_N that already is corrected for ngroup.
 						 */
-						- mb->f_ngroup[i] * 0.5 * sum_sqr_loc * (1.0 / (1.0 / exp(log_precision_obs) + 1.0 / exp(log_precision_x))));
+						- mb->f_ngroup[i] * 0.5 * CC);
 			break;
 		}
 

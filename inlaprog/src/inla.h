@@ -613,6 +613,7 @@ struct inla_tp_struct {
 	int *f_group_model;
 	double **f_locations;
 	double **f_weights;
+	double **f_scale;
 	GMRFLib_graph_tp **f_graph;
 	GMRFLib_graph_tp **f_graph_orig;
 	GMRFLib_Qfunc_tp **f_Qfunc;
@@ -863,6 +864,7 @@ typedef struct
 	double **mean_x;
 	double **log_prec_x;
 	double *x_obs;
+	double *scale;
 }
 	inla_me_tp;
 
