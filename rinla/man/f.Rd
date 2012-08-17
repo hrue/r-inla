@@ -153,6 +153,8 @@ is used.}
 of the models (currently: besag, bym and besag2) if the
 number of connected components in graph is larger than
 1. If FALSE, do nothing.}
+\item{scale}{A scaling vector. Its meaning depends on the model.}
+\item{strata}{A stratum vector. It meaning depends on the model.}
 }
 \value{}
 \details{There is no default value for \code{rankdef}, if it

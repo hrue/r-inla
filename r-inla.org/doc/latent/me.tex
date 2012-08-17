@@ -27,17 +27,11 @@ likelihoods), we provide the following model which replaces the above,
     y = u + \epsilon{}
 \end{displaymath}
 where $u$ has the correct distribution depending on various parameters:
-%% \begin{displaymath}
-%%     u \;\sim\;{\mathcal N}\left(
-%%       \beta \frac{\tau_{x} \mu_{x} I + \tau_{\text{obs}} x_{\text{obs}}}{
-%%           \tau_{x}+\tau_{\text{obs}}}, 
-%%      \frac{\tau_{x} + \tau_{\text{obs}}}{\beta^{2}} I \right).
-%% \end{displaymath}
 $\beta$ has prior $\pi(\beta)$, $x$ is apriori ${\mathcal N}(\mu_{x}
-{I}, \tau_{x} {I})$, and $\tau_{\text{obs}}$ is the observation
+{I}, \tau_{x} {I})$, and $s\times\tau_{\text{obs}}$ is the observation
 precision for $x$ (ie $\text{Prec}(x_{\text{obs}}|x)$).\footnote{Note:
     The second argument in ${\mathcal N}(,)$ is the precision not the
-    variance.}
+    variance.} Here, $s$ is a vector of fixed scalings.
 
 
 
@@ -75,12 +69,16 @@ and the prior is defined on $\theta_{4}$.
 The ME is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(x.obs, [<weights>,] model="me", hyper = <hyper>)
+ f(x.obs, [<weights>,] model="me", hyper = <hyper>, scale = <s>)
 \end{verbatim}
+
 The \texttt{x.obs} are the observed values of the unknown covariates
 $x$, with the \emph{assumption}, that if two or more elements of
 \texttt{x.obs} are \emph{identical}, then they refer to the
-\emph{same} element in the true covariate $x$.
+\emph{same} element in the true covariate $x$. The fixed scaling of
+the observational precision is given in argument \texttt{scale}. If
+the argument \texttt{scale} is not given, then $s$ is set to $1$.
+
 
 \subsubsection*{Hyperparameter specification and default values}
 \input{../hyper/latent/me.tex}

@@ -215,6 +215,25 @@
     } else {
         cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
     }
+
+    if (random.spec$model == "me") {
+        ## possible scale-variable
+        if (!is.null(random.spec$scale)) {
+            file.scale=inla.tempfile(tmpdir=data.dir)
+            ns = length(random.spec$scale)
+            if (is.null(random.spec$values.order)) {
+                idxs = 1:ns
+            } else {
+                idxs = random.spec$values.order
+                stopifnot(length(random.spec$values.order) == ns)
+            }
+            inla.write.fmesher.file(as.matrix(cbind(idxs -1L, random.spec$scale)), filename=file.scale, debug = FALSE)
+            ##print(cbind(idxs, random.spec$scale))
+            file.scale = gsub(data.dir, "$inladatadir", file.scale, fixed=TRUE)
+            cat("scale =", file.scale,"\n", sep = " ", file = file,  append = TRUE)
+        }
+    }
+            
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
