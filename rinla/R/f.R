@@ -236,6 +236,12 @@
         ##!1. If FALSE, do nothing.}
         adjust.for.con.comp = TRUE,
 
+        ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
+        scale = NULL, 
+
+        ##!\item{strata}{A stratum vector. It meaning depends on the model.}
+        strata = NULL, 
+
         ## local debug-flag
         debug = FALSE)
 {
@@ -738,7 +744,9 @@
             spde2.transform = spde2.transform,
             term=term,
             values=values,
-            weights=weights
+            weights=weights,
+            scale = scale,
+            strata = strata
             )
 
     return (ret)

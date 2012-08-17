@@ -1402,6 +1402,8 @@
                     } else if (is.numeric(xx)) {
                         gp$random.spec[[r]]$id.names = NULL
                         location[[r]] = sort(unique(xx))
+                        ## need to store the mapping for later use
+                        gp$random.spec[[r]]$values.order = match(xx, location[[r]])
                     } else {
                         stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate is not of type 'factor', 'character' or 'numeric'.",  sep=""))
                     }
