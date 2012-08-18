@@ -29,7 +29,7 @@
             inla.call = inla.call,
             fmesher.call = inla.fmesher.call.builtin(),
             inla.arg = NULL,
-            fmesher.arg = "p", 
+            fmesher.arg = "", 
             num.threads = NULL, 
             keep = FALSE, 
             working.directory = NULL, 
