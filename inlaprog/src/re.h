@@ -44,5 +44,22 @@ __BEGIN_DECLS
  *
  */
 
+
+typedef struct
+{
+	double mu;
+	double stdev;
+	double delta;
+	double epsilon;
+}
+	re_shash_param_tp;
+
+int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
+int re_shash_fit_parameters(re_shash_param_tp *param, double *mean, double *prec, double *skew, double *kurt);
+
+int re_shash_f(const gsl_vector *x, void *data, gsl_vector *f);
+int re_shash_df(const gsl_vector *x, void *data, gsl_matrix *J);
+int re_shash_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J);
+
 __END_DECLS
 #endif

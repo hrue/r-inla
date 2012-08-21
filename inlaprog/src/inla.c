@@ -18678,6 +18678,17 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 int testit(int argc, char **argv)
 {
 
+	double mean = 2, prec = 3, skew = 0.5, kurt = 3.5;
+	re_shash_param_tp param;
+
+	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+
+	P(param.mu);
+	P(param.stdev);
+	P(param.epsilon);
+	P(param.delta);
+
+	
 	if (0) {
 		inla_file_contents_tp *fc;
 
