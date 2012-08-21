@@ -2313,6 +2313,26 @@
                       pdf = "poisson"
                       ),
 
+              gpoisson = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "overdispersion",
+                                      short.name = "phi",
+                                      initial = -3,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 1),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "log"),
+                      pdf = "gpoisson",
+                      status = "experimental"
+                      ),
+
               binomial = list(
                       hyper = list(
                               ),

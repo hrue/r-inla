@@ -289,6 +289,11 @@ typedef struct {
 	double **log_prec_wrapped_cauchy;
 	double *weight_wrapped_cauchy;
 
+	/*
+	 * generalised poisson
+	 */ 
+	double gpoisson_p;				       /* constant */
+	double **gpoisson_overdispersion;
 
 	/*
 	 * test-implementations  
@@ -310,6 +315,7 @@ typedef enum {
 	L_T,
 	L_TSTRATA,
 	L_POISSON,
+	L_GPOISSON,
 	L_BINOMIAL,
 	L_BINOMIALTEST,					       /* test-version of the binomial! */
 	L_CBINOMIAL,					       /* clumped binomial */
@@ -1095,6 +1101,7 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
