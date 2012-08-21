@@ -1,0 +1,21 @@
+\begin{description}
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	 \item[ name ] overdispersion 
+	 	 	 \item[ short.name ] phi 
+	 	 	 \item[ initial ] -3 
+	 	 	 \item[ fixed ] FALSE 
+	 	 	 \item[ prior ] loggamma 
+	 	 	 \item[ param ] 1 1 
+	 	 	 \item[ to.theta ] \verb|function(x) log(x)| 
+	 	 	 \item[ from.theta ] \verb|function(x) exp(x)| 
+	 	 \end{description}
+	 \end{description}
+	 \item[ survival ] FALSE 
+	 \item[ discrete ] TRUE 
+	 \item[ link ] default log 
+	 \item[ pdf ] gpoisson 
+	 \item[ status ] experimental 
+\end{description}

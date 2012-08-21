@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath,amssymb}
+\usepackage{verbatim}
+
+\begin{document}
+
+\section*{Generalized Poisson}
+
+The generalized Poisson distribution is given by
+\begin{displaymath}
+    f(y|\lambda,w) = \frac{\lambda(\lambda+wy)^{y-1}}{y!}
+    \exp(-(\lambda+wy))
+\end{displaymath}
+for $y=0, 1, 2, \ldots$ and where $\lambda>0$ and
+$\max(-1,-\lambda/4)\leq w\leq 1$. The mean and variance of $y$ are
+\begin{displaymath}
+    \mu =\lambda(1-w)^{-1} \qquad\text{and}\qquad
+    \sigma^{2} = \lambda(1-w)^{-3}= \mu(1-w)^{-2}.
+\end{displaymath}
+Since the dispersion parameter $w$ influence the mean as well as the
+variance, we will use the following parameterisation (ADD REFERENCES)
+\begin{displaymath}
+    w=\frac{\varphi\mu^{p-1}}{1+\varphi\mu^{p-1}}, 
+\end{displaymath}
+for a fixed $p$, which gives the following density
+\begin{displaymath} 
+    f(y|\mu,\varphi,p) =\frac{ \mu(\mu+\varphi\mu^{p-1} y)^{y-1}}%%
+    {(1+\varphi\mu^{p-1})^{y}y!}
+    \exp\left(-\frac{\mu+\varphi\mu^{p-1} y}{1+\varphi\mu^{p-1}}\right)
+\end{displaymath}
+for $y=0, 1, 2, \ldots$. We assume $\varphi \ge 0$.
+
+\subsection*{Link-function}
+
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \text{E}(y|.) = \mu \qquad\text{and}\qquad
+    \text{Var}(y|.) = \mu\left(1+\varphi\mu^{p-1}\right)^{2}
+\end{displaymath}
+and the mean is linked to the linear predictor by
+\begin{displaymath}
+    \mu = E \exp(\eta)
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+The overdispersion parameter $\varphi \ge 0$ is represented as
+\begin{displaymath}
+    \varphi = \exp(\theta) 
+\end{displaymath}
+The prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="gpoisson"}
+\item \texttt{control.family = list(gpoisson.p = <p>)} defines the
+    fixed parameter \texttt{p} (default 1).
+\end{itemize}
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gpoisson.tex}
+    
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with generalized Poisson responses.
+\verbatiminput{example-gpoisson.R}
+
+\end{document}
