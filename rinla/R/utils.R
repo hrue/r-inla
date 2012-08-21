@@ -251,7 +251,13 @@
     if (binaries) {
         inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
         inla.setOption("fmesher.call", paste(bin.path, "/", "fmesher", sep=""))
+        cat("Set new values for 'inla.call' and 'fmesher.call': [", bin.path, "/{inla,fmesher}]\n", sep="")
     }
+
+    ## hash the models again
+    assign("hgid", "hash it again, please!", envir = inla.get.inlaEnv())
+    assign("inla.models", NULL, envir = inla.get.inlaEnv())
+    cat("Reset stored 'inla.models()' in .inlaEnv\n")
 
     return (invisible())
 }
