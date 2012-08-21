@@ -133,6 +133,9 @@
          ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
          gev.scale.xi = 0.01,
 
+         ##:ARGUMENT: gpoisson.p The parameter \code{p} in the generalized Poisson distribution (default 1)
+         gpoisson.p = 1, 
+
          ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
          variant = 0L
          )
