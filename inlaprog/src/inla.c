@@ -2746,49 +2746,36 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 }
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-#define S(x_) sinh(skew + tail * asinh(x_))
-
 	/*
 	 * y ~ Sinh-aSinh
 	 */
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
+		return GMRFLib_SUCCESS;
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, ypred, skew, tail, s, s2, xx;
+	double y, lprec, prec, w, ypred, skew, kurt, s, s2, xx, mean=0.0;
 
-	y = ds->data_observations.y[idx];
+	y = ds->data_observations.y[idx];		       /* not used */
 	w = ds->data_observations.sas_weight[idx];
 	lprec = ds->data_observations.sas_log_prec[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.sas_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	skew = ds->data_observations.sas_skew[GMRFLib_thread_id][0];
-	tail = map_exp(ds->data_observations.sas_log_tail[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	kurt = ds->data_observations.sas_kurt[GMRFLib_thread_id][0]; 
 
-	if (0) {
-		/*
-		 * this transformation really helps, and around the gaussian case its really good. but I'm unsure how wise this is really. 
-		 */
-		FIXME1("change tail");
-		tail /= pow(prec, 1. / 3.);
-	}
-
+	re_shash_param_tp param;
+	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+	
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xx = (y - ypred) * sqrt(prec);
-			s = S(xx);
+			xx = (ypred - param.mu)/param.stdev;
+			s = sinh(param.delta * asinh(xx) - param.epsilon);
 			s2 = SQR(s);
-			logll[i] = LOG_NORMC_GAUSSIAN + log(tail) + 0.5 * log(1.0 + s2) - 0.5 * log(1.0 + SQR(xx)) - 0.5 * s2 + 0.5 * lprec;
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			s = S((y - ypred) * sqrt(prec));
-			logll[i] = inla_Phi(s);
+			logll[i] = LOG_NORMC_GAUSSIAN + log(param.delta) + 0.5 * log(1.0 + s2) - 0.5 * log(1.0 + SQR(xx)) - 0.5 * s2 - log(param.stdev);
 		}
 	}
-#undef S
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -7738,8 +7725,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision parameter for the SAS observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision parameter for the SAS observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for SAS re", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for SAS re", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -7777,8 +7764,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Skewness for the SAS observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for the SAS observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Skewness for SAS re", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for SAS re", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -7801,9 +7788,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed2 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.sas_log_tail, tmp);
+		HYPER_NEW(ds->data_observations.sas_kurt, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_tail[%g]\n", ds->data_observations.sas_log_tail[0][0]);
+			printf("\t\tinitialise kurtosis[%g]\n", ds->data_observations.sas_kurt[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
 		}
 		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "NORMAL-1");
@@ -7816,8 +7803,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log tail for the SAS observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail for the SAS observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Kurtosis for SAS re", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Kurtosis for SAS re", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -7826,9 +7813,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.sas_log_tail;
+			mb->theta[mb->ntheta] = ds->data_observations.sas_kurt;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -13907,8 +13894,8 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double tail = map_exp(theta[count], MAP_FORWARD, NULL);
-					val += PRIOR_EVAL(ds->data_prior2, &tail);
+					double kurt = theta[count];
+					val += PRIOR_EVAL(ds->data_prior2, &kurt);
 					count++;
 				}
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
@@ -18725,10 +18712,19 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 int testit(int argc, char **argv)
 {
 
-	double mean = 2, prec = 3, skew = 0.5, kurt = 3.5;
+	double mean = 2, prec = 3, skew = 0.5, kurt = 3.5, t[2];
 	re_shash_param_tp param;
 
+	t[0] = GMRFLib_cpu();
 	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+	t[1] = GMRFLib_cpu();
+	P(t[1]-t[0]);
+
+	t[0] = GMRFLib_cpu();
+	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+	t[1] = GMRFLib_cpu();
+	P(t[1]-t[0]);
+	
 
 	P(param.mu);
 	P(param.stdev);

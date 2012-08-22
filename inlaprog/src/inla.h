@@ -273,9 +273,9 @@ typedef struct {
 	 * Sinh-asinh
 	 */
 	double *sas_weight;
-	double **sas_skew;
-	double **sas_log_tail;
 	double **sas_log_prec;
+	double **sas_skew;
+	double **sas_kurt;
 
 	/*
 	 * y ~ Circular Normal, with precision parameter: weight*prec

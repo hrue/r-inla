@@ -2612,10 +2612,10 @@
                               theta1 = list(
                                       name = "log precision",
                                       short.name = "prec",
-                                      initial = 2,
+                                      initial = 0,
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 0.00005),
+                                      param = c(1, 0.01),
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       ),
@@ -2630,14 +2630,14 @@
                                       from.theta = function(x) x
                                       ),
                               theta3 = list(
-                                      name = "log tail",
-                                      short.name = "tail",
-                                      initial = 0,
+                                      name = "kurtosis",
+                                      short.name = "kurt",
+                                      initial = 3,
                                       fixed = FALSE,
-                                      prior = "loggamma",
-                                      param = c(25, 25),
-                                      to.theta = function(x) log(x),
-                                      from.theta = function(x) exp(x)
+                                      prior = "normal",
+                                      param = c(3, 100),
+                                      to.theta = function(x) (x),
+                                      from.theta = function(x) (x)
                                       )
                               ),
                       survival = FALSE,

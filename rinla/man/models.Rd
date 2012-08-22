@@ -3180,10 +3180,10 @@ inla.models()
 							 \describe{
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`2'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-05'}
+							\item{param = }{`1 0.01'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -3202,14 +3202,14 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
-							\item{name = }{`log tail'}
-							\item{short.name = }{`tail'}
-							\item{initial = }{`0'}
+							\item{name = }{`kurtosis'}
+							\item{short.name = }{`kurt'}
+							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{prior = }{`normal'}
+							\item{param = }{`3 100'}
+							\item{to.theta = }{`\code{function(x) (x)}'}
+							\item{from.theta = }{`\code{function(x) (x)}'}
 							}
 						}
 					 }
