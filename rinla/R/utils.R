@@ -251,7 +251,7 @@
     if (binaries) {
         inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
         inla.setOption("fmesher.call", paste(bin.path, "/", "fmesher", sep=""))
-        cat("Set new values for 'inla.call' and 'fmesher.call': [", bin.path, "/{inla,fmesher}]\n", sep="")
+        cat("Define new values for 'inla.call' and 'fmesher.call': ", bin.path, "/{inla,fmesher}\n", sep="")
     }
 
     ## hash the models again

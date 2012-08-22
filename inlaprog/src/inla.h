@@ -292,8 +292,8 @@ typedef struct {
 	/*
 	 * generalised poisson
 	 */ 
-	double gpoisson_p;				       /* constant */
 	double **gpoisson_overdispersion;
+	double **gpoisson_p;		
 
 	/*
 	 * test-implementations  
