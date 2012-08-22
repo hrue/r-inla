@@ -3219,7 +3219,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 	double y = ds->data_observations.y[idx];
 	double log_y_fact = gsl_sf_lnfact((unsigned int) y);
 	double phi = map_exp(ds->data_observations.gpoisson_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double p = ds->data_observations.gpoisson_p;
+	double p = map_identity(ds->data_observations.gpoisson_p[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double E = ds->data_observations.E[idx];
 	double val, a, b, lambda, mu;
 	
@@ -3244,7 +3244,6 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 		}
 	}
 
-#undef logE
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -7253,42 +7252,81 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the gpoisson 
 		 */
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), -5.0);
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.gpoisson_overdispersion, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_overdispersion[%g]\n", ds->data_observations.gpoisson_overdispersion[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-		ds->data_observations.gpoisson_p = iniparser_getdouble(ini, inla_string_join(secname, "GPOISSON.P"), 1.0);
-		assert(ds->data_observations.gpoisson_p >= 1.0);
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed) {
+		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log overdispertsion for the GPoisson observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Overdispersion for the GPoisson observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log overdispersion for gpoisson", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Overdispersion for gpoisson", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gpoisson_overdispersion;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * the 'p' parameter
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 1);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.gpoisson_p, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise p[%g]\n", ds->data_observations.gpoisson_p[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Parameter p for gpoisson", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Parameter p for gpoisson", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.gpoisson_p;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -13740,13 +13778,22 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 			} else if (ds->data_id == L_GPOISSON) {
-				if (!ds->data_fixed) {
+				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
 					double log_overdispersion = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_overdispersion);
+					val += PRIOR_EVAL(ds->data_prior0, &log_overdispersion);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double p = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &p);
 					count++;
 				}
 			} else if (ds->data_id == L_CIRCULAR_NORMAL) {

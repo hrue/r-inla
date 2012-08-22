@@ -2803,18 +2803,30 @@ inla.models()
 			 \describe{
 				\item{Model `poisson'.}{Number of hyperparmeters are 0.
 				 }
-				\item{Model `gpoisson'.}{Number of hyperparmeters are 1.
+				\item{Model `gpoisson'.}{Number of hyperparmeters are 2.
 					 \describe{
-						\item{Hyperparameter `theta'}{
+						\item{Hyperparameter `theta1'}{
 							 \describe{
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`phi'}
-							\item{initial = }{`-3'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`p'}
+							\item{short.name = }{`p'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 100'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
 					 }
