@@ -2315,15 +2315,26 @@
 
               gpoisson = list(
                       hyper = list(
-                              theta = list(
+                              theta1 = list(
                                       name = "overdispersion",
                                       short.name = "phi",
-                                      initial = -3,
+                                      initial = 0,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 1),
                                       to.theta = function(x) log(x), 
                                       from.theta = function(x) exp(x)
+                                      ), 
+                              theta2 = list(
+                                      name = "p",
+                                      short.name = "p",
+                                      initial = 1,
+                                      fixed = TRUE,
+                                      prior = "normal",
+                                      ## use a tight prior, as this can go very wrong if set to weak
+                                      param = c(1, 100),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
                                       )
                               ),
                       survival = FALSE,

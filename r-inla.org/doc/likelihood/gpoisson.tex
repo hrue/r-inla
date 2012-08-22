@@ -20,11 +20,11 @@ $\max(-1,-\lambda/4)\leq w\leq 1$. The mean and variance of $y$ are
     \sigma^{2} = \lambda(1-w)^{-3}= \mu(1-w)^{-2}.
 \end{displaymath}
 Since the dispersion parameter $w$ influence the mean as well as the
-variance, we will use the following parameterisation (ADD REFERENCES)
+variance, we will use the following parameterisation (ADD REFERENCE?)
 \begin{displaymath}
     w=\frac{\varphi\mu^{p-1}}{1+\varphi\mu^{p-1}}, 
 \end{displaymath}
-for a fixed $p$, which gives the following density
+which gives the following density
 \begin{displaymath} 
     f(y|\mu,\varphi,p) =\frac{ \mu(\mu+\varphi\mu^{p-1} y)^{y-1}}%%
     {(1+\varphi\mu^{p-1})^{y}y!}
@@ -45,18 +45,23 @@ and the mean is linked to the linear predictor by
 \end{displaymath}
 
 \subsection*{Hyperparameters}
+
 The overdispersion parameter $\varphi \ge 0$ is represented as
 \begin{displaymath}
-    \varphi = \exp(\theta) 
+    \varphi = \exp(\theta_{1}) 
 \end{displaymath}
-The prior is defined on $\theta$. 
+The ``shape'' parameter $p$ is represented as
+\begin{displaymath}
+    p = \theta_{2}
+\end{displaymath}
+Note that $\theta_{2}=1$ and \texttt{fixed = TRUE}, default. The
+prior is defined on ${\theta}=(\theta_1,\theta_2)$.
+
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item \texttt{family="gpoisson"}
-\item \texttt{control.family = list(gpoisson.p = <p>)} defines the
-    fixed parameter \texttt{p} (default 1).
 \end{itemize}
 
 
@@ -68,5 +73,22 @@ The prior is defined on $\theta$.
 In the following example we estimate the parameters in a simulated
 example with generalized Poisson responses.
 \verbatiminput{example-gpoisson.R}
+
+
+\subsection*{Notes}
+
+The parameter $p$ is default fixed to be $1$. Allowing it to be
+estimated jointly with the overdispersion parameter, please note the
+following.
+\begin{itemize}
+\item The parameter $p$ and the overdispersion parameter are strongly
+    correlated when estimated jointly.
+\item You may want to chose an informative prior for $p$, as the shape
+    of the likelihood might not be want you expect for ``extreme'' $p$.
+\item You may experience problems in the numerical optimization (fail
+    to converge); a more informative prior (if available) for $p$ will
+    help with this issue.
+\end{itemize}
+
 
 \end{document}
