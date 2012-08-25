@@ -50,6 +50,7 @@ __BEGIN_DECLS
 	double epsilon;
 } re_shash_param_tp;
 
+int re_valid_skew_kurt(double *dist, double skew, double kurt);
 int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
 

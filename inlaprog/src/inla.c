@@ -13673,7 +13673,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
-	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern,
+	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern, skew, kurt, 
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN;
 
@@ -13879,24 +13879,39 @@ double extra(double *theta, int ntheta, void *argument)
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
-				}
+				} 
 				if (!ds->data_fixed1) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double skew = theta[count];
+					skew = theta[count];
 					val += PRIOR_EVAL(ds->data_prior1, &skew);
 					count++;
+				} else {
+					skew = ds->data_observations.sas_skew[0][0];
 				}
 				if (!ds->data_fixed2) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double kurt = theta[count];
+					kurt = theta[count];
 					val += PRIOR_EVAL(ds->data_prior2, &kurt);
 					count++;
+				} else {
+					kurt = ds->data_observations.sas_kurt[0][0];
+				}
+
+				if (1) {
+					/* 
+					   add a penalty if we're outside the valid region
+					 */
+					double d;
+					if (re_valid_skew_kurt(&d, skew, kurt) == GMRFLib_FALSE){
+						val += PENALTY * (10 * d);
+					}
+					FIXME1("RECALL TO ADD CORRECTION FOR THE NORMALIZING CONSTANT!");
 				}
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 				if (!ds->data_fixed) {
