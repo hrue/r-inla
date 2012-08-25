@@ -44,6 +44,23 @@ static const char RCSId[] = HGVERSION;
 #define M4(_epsilon, _delta) (0.125*(cosh(4.0*(_epsilon)/(_delta))*Pq(4.0/(_delta)) - \
 				     4.0*cosh(2.0*(_epsilon)/(_delta))*Pq(2.0/(_delta)) + 3.0))
 
+int re_valid_skew_kurt(double *dist, double skew, double kurt)
+{
+#define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
+	int retval;
+
+	retval = (kurt > KURT_LIMIT(skew) ? GMRFLib_TRUE : GMRFLib_FALSE);
+	if (dist) {
+		if (retval == GMRFLib_FALSE) {
+			*dist = ABS(kurt - KURT_LIMIT(skew));
+		} else {
+			*dist = 0.0;
+		}
+	}
+
+#undef KURT_LIMIT
+	return retval;
+}
 int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta)
 {
 	double m1 = M1(epsilon, delta);
@@ -159,8 +176,10 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 
 		err = (gsl_blas_dnrm2(s->f) > 1e-6);
 		if (err) {
-			fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g\n",
-				target[0], target[1], gsl_blas_dnrm2(s->f));
+			if (re_valid_skew_kurt(NULL, target[0], target[1]) == GMRFLib_TRUE){
+				fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g, but VALID FAIL!\n",
+					target[0], target[1], gsl_blas_dnrm2(s->f));
+			}
 		}
 
 		pout_tmp[0] = gsl_vector_get(s->x, 0);
