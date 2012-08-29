@@ -894,7 +894,7 @@
     mf$control.family = NULL; mf$control.data = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
-    mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL;
+    mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
     mf$inla.arg = NULL; mf$lincomb=NULL;
     mf$.internal = NULL; mf$data = data.same.len
 
@@ -1208,9 +1208,19 @@
         for(r in 1:nr)
             all.terms = c(all.terms, gp$random.spec[[r]]$term)
         
-        for(r in 1:nr) {
+        rgeneric = list()
+        nrgeneric = 0
+
+        for (r in 1:nr) {
             n = nrep = ngroup = N = NULL
             
+            if (gp$random.spec[[r]]$model == "rgeneric") {
+                ## collect it and give it an Id
+                nrgeneric = nrgeneric + 1L
+                rgeneric[[nrgeneric]] = gp$random.spec[[r]]$rgeneric
+                gp$random.spec[[r]]$rgeneric$Id = nrgeneric
+            }
+        
             if (gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
                 ##in this case we have to add a FFIELD section.........
                 count.random = count.random+1
@@ -1736,28 +1746,25 @@
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
-            ##
-            ## this is a bit weid, but the performance for num.threads
-            ## > 1 is much better for ``small'' problems when run in
-            ## verbose mode. I have no idea why... Here is an example:
-            ## > y=1:10
-            ## > r=inla(y~1, data = data.frame(y))
-            ## > r$cpu
-            ## Pre-processing    Running inla Post-processing           Total 
-            ## 0.08722209930   1.08543705940   0.07941198349   1.25207114220 
-            ## >
-            ## whereas run in verbose mode,  gives
-            ## > r$cpu
-            ## Pre-processing    Running inla Post-processing           Total 
-            ## 0.06223917007   0.01782798767   0.01382899284   0.09389615059 
-            ##
-            ## So the workaround, is to run in verbose mode put to send stdout to /dev/null.
-            ## I don't know if a similar workaround is doable in Windows, but I have to check...
-            ##
-            if (verbose) {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+            if (nrgeneric > 0L) {
+                require("multicore")
+                ## require num.threads = 1!
+                if (verbose) {
+                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini))))
+                } else {
+                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini), " > ", file.log)))
+                }
+                for (i in 1L:nrgeneric) {
+                    inla.eval(paste("tmp.", i, " = parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=FALSE))", sep=""))
+                }
+                inla.eval(paste("tmp = collect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
+                echoc = tmp[[1L]]
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log))
+                if (verbose) {
+                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+                } else {
+                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log))
+                }
             }
         } else if (inla.os("windows")) {
             if (!remote) {
@@ -1808,7 +1815,6 @@
                     "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
-
             ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
             the.args = list()
             for (nm in names(formals(inla))) {
@@ -1860,6 +1866,7 @@
     ##
     return (ret)
 }
+
 
 `inla.self.call` = function(object)
 {

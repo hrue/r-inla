@@ -9835,6 +9835,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_R_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric");
+		if (GMRFLib_MAX_THREADS > 1){
+			inla_error_general("Model 'rgeneric' require 'inla.setOption(num.threads=1)' or 'inla(...,num.threads=1)'.");
+			exit(1);
+		}
 	} else if (OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
