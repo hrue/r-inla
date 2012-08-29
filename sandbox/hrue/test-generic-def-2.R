@@ -1,7 +1,7 @@
 inla.my.update(b=T)
 source("~/p/inla/google-code/inla/rinla/R/xinla.R")
 source("~/p/inla/google-code/inla/rinla/R/rgeneric.R")
-inla.setOption(inla.arg='-b -v -c -t1')
+inla.setOption(inla.arg='-b -v')
 inla.setOption(inla.call='inla.work')
 
 n = 5
@@ -35,7 +35,7 @@ rr = inla(formula,
 
 formula = y ~ -1 + f(idx,  model="rgeneric", rgeneric = model)
 
-r = xinla(formula,
+r = inla(formula,
         data = data.frame(y, idx, iidx),
         debug=FALSE,
         verbose=TRUE, 
