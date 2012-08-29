@@ -235,9 +235,9 @@
     }
 
     if (random.spec$model == "rgeneric") {
-        cat("R.generic.Id = ", random.spec$R.generic$Id, "\n", append=TRUE, sep = " ", file = file)
-        cat("R.generic.fifo.R2c = ", random.spec$R.generic$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
-        cat("R.generic.fifo.c2R = ", random.spec$R.generic$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
+        cat("rgeneric.Id = ", random.spec$rgeneric$Id, "\n", append=TRUE, sep = " ", file = file)
+        cat("rgeneric.fifo.R2c = ", random.spec$rgeneric$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
+        cat("rgeneric.fifo.c2R = ", random.spec$rgeneric$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
     }
             
     cat("\n", sep = " ", file = file,  append = TRUE)
