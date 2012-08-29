@@ -242,8 +242,8 @@
         ##!\item{strata}{A stratum vector. It meaning depends on the model.}
         strata = NULL, 
 
-        ##!\item{R.generic}{A object of class \code {inla-R-generic} which defines the model. (EXPERIMENTAL!)}
-        R.generic = NULL, 
+        ##!\item{rgeneric}{A object of class \code {inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
+        rgeneric = NULL, 
 
         ## local debug-flag
         debug = FALSE)
@@ -711,7 +711,10 @@
     }
 
     if (model %in% "rgeneric") {
-        stopifnot(inherits(R.generic, "inla-R-generic"))
+        stopifnot(inherits(rgeneric, "inla-rgeneric"))
+        if (inla.os("windows")) {
+            stop("Model 'rgeneric' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
+        }
     }
 
     ret=list(
@@ -754,7 +757,7 @@
             weights=weights,
             scale = scale,
             strata = strata,
-            R.generic = R.generic
+            rgeneric = rgeneric
             )
 
     return (ret)

@@ -120,16 +120,21 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
 #define READ(fd, buf, num, type)					\
 	if (1) {							\
-		int bytes_read;						\
-		bytes_read = read(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
-		assert(bytes_read == (int) ((num)*sizeof(type)));	\
+		if (num > 0){						\
+			int bytes_read;					\
+			bytes_read = read(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
+			assert(bytes_read == (int) ((num)*sizeof(type))); \
+		}							\
 	}
+	
 
 #define WRITE(fd, buf, num, type)					\
 	if (1) {							\
-		int bytes_written;					\
-		bytes_written = write(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
-		assert(bytes_written == (int) ((num)*sizeof(type)));	\
+		if (num > 0) {						\
+			int bytes_written;				\
+			bytes_written = write(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
+			assert(bytes_written == (int) ((num)*sizeof(type))); \
+		}							\
 	}
 
 #define WRITE_MSG(fd, Id, msg)					\
@@ -1352,7 +1357,7 @@ double Qfunc_z(int i, int j, void *arg)
 double Qfunc_rgeneric(int i, int j, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii;
+	int rebuild, ii, debug = 0;
 
 	rebuild = (a->param[GMRFLib_thread_id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
 
@@ -1364,7 +1369,9 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 
 	if (rebuild) {
 
-		printf("Rebuild Q-hash for thread %d\n", GMRFLib_thread_id);
+		if (debug){
+			printf("Rebuild Q-hash for thread %d\n", GMRFLib_thread_id);
+		}
 
 		if (a->Q[GMRFLib_thread_id]) {
 			GMRFLib_free_tabulate_Qfunc(a->Q[GMRFLib_thread_id]);
@@ -1375,7 +1382,6 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 		}
 		for (ii = 0; ii < a->ntheta; ii++) {
 			a->param[GMRFLib_thread_id][ii] = a->theta[ii][GMRFLib_thread_id][0];
-			//P(a->param[GMRFLib_thread_id][ii]);
 		}
 		WRITE_MSG(a->c2R, a->Id, "Q");
 		WRITE(a->c2R, a->param[GMRFLib_thread_id], a->ntheta, double);
@@ -1396,13 +1402,10 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 		GMRFLib_graph_tp *graph;
 
 		GMRFLib_tabulate_Qfunc_from_list(&(a->Q[GMRFLib_thread_id]), &graph, len, ilist, jlist, Qijlist, -1, NULL, NULL, NULL);
-		//GMRFLib_print_Qfunc(stdout, graph, a->Q[GMRFLib_thread_id]->Qfunc, a->Q[GMRFLib_thread_id]->Qfunc_arg);
 		GMRFLib_free_graph(graph);
 
 		Free(ilist);
 		Free(Qijlist);
-
-
 	}
 
 	return (a->Q[GMRFLib_thread_id]->Qfunc(i, j, a->Q[GMRFLib_thread_id]->Qfunc_arg));
@@ -11168,43 +11171,49 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_R_GENERIC:
 	{
+#if defined(WINDOWS)
+		inla_error_general("Model 'rgeneric' is not available for Windows; please use Linux or MacOSX.");
+		exit(1);
+#else
 		char *filename_R2c, *filename_c2R;
+		int err, debug = 0;
 		
-		filename_R2c = iniparser_getstring(ini, inla_string_join(secname, "R.GENERIC.FIFO.R2c"), NULL);
-		filename_c2R = iniparser_getstring(ini, inla_string_join(secname, "R.GENERIC.FIFO.c2R"), NULL);
-		Id = iniparser_getint(ini, inla_string_join(secname, "R.GENERIC.ID"), -999);
+		Id = iniparser_getint(ini, inla_string_join(secname, "RGENERIC.ID"), -999);
+		filename_R2c = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FIFO.R2c"), NULL);
+		filename_c2R = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FIFO.c2R"), NULL);
 
 		if (mb->verbose){
-			printf("\t\tR.Generic.Id [%1d]\n", Id);
-			printf("\t\tR.Generic.FIFO.R2c [%s]\n", filename_R2c);
-			printf("\t\tR.Generic.FIFO.c2R [%s]\n", filename_c2R);
+			printf("\t\trgeneric.Id [%1d]\n", Id);
+			printf("\t\trgeneric.FIFO.R2c [%s]\n", filename_R2c);
+			printf("\t\trgeneric.FIFO.c2R [%s]\n", filename_c2R);
 		}
 
-		int err;
-		
-		printf("C open R2c %s\n", filename_R2c);
+		if (debug){
+			printf("C open R2c %s\n", filename_R2c);
+		}
 		err = mkfifo(filename_R2c, 0700);
 		assert(err == 0);
 		R2c = open(filename_R2c, O_RDONLY);
-		printf("C open R2c done\n");
-
-		printf("C open c2R %s\n", filename_c2R);
+		if (debug) {
+			printf("C open R2c done\n");
+			printf("C open c2R %s\n", filename_c2R);
+		}
 		err = mkfifo(filename_c2R, 0700);
 		assert(err == 0);
 		c2R = open(filename_c2R, O_WRONLY);
-		printf("C open c2R done\n");
+		if (debug){
+			printf("C open c2R done\n");
+		}
 
 		WRITE_MSG(c2R, Id, "initial");
 
-		int ntheta = 0;
+		int ntheta;
 		READ(R2c, &ntheta, 1, int);
-		P(ntheta);
 
 		double *initial = NULL;
 		if (ntheta) {
 			initial = Calloc(ntheta, double);
 		}
-
 		READ(R2c, initial, ntheta, double);
 
 		mb->f_ntheta[mb->nf] = ntheta;
@@ -11264,6 +11273,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
+#endif  /* !defined(WINDOWS) */
 		break;
 	}
 
@@ -12574,7 +12584,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * R_GENERIC
 		 */
-
+#if !defined(WINDOWS)
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp);
 
 		def->Id = Id;
@@ -12615,6 +12625,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = graph->n;
 		mb->f_rankdef[mb->nf] = 0.0;
+#endif	/* !defined(WINDOWS) */
 	} else if (mb->f_id[mb->nf] == F_AR1) {
 		/*
 		 * AR1 
@@ -15032,34 +15043,28 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int ntheta = mb->f_ntheta[i];
+#if !defined(WINDOWS)
+			int ntheta = mb->f_ntheta[i], ii;
+			inla_rgeneric_tp *def;
+			double *param, log_norm_const, log_prior;
 
-			P(ntheta);
-			
-			inla_rgeneric_tp *def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
-
-			int ii;
-			double *param = Calloc(ntheta, double);
-
+			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
+			param = Calloc(ntheta, double);
 			for (ii = 0; ii < ntheta; ii++) {
 				param[ii] = theta[count];
 				count++;
 			}
-
-			WRITE_MSG(def->c2R, def->Id, "extra");
+			WRITE_MSG(def->c2R, def->Id, "log.norm.const");
 			WRITE(def->c2R, param, ntheta, double);
-			Free(param);
-
-			double model, prior;
-
-			READ(def->R2c, &model, 1, double);
-			READ(def->R2c, &prior, 1, double);
-			P(model);
-			P(prior);
-			
+			READ(def->R2c, &log_norm_const, 1, double);
+			WRITE_MSG(def->c2R, def->Id, "log.prior");
+			WRITE(def->c2R, param, ntheta, double);
+			READ(def->R2c, &log_prior, 1, double);
 			SET_GROUP_RHO(ntheta);
 
-			val += mb->f_nrep[i] * (normc_g + model * mb->f_ngroup[i]) + prior;
+			val += mb->f_nrep[i] * (normc_g + log_norm_const * mb->f_ngroup[i]) + log_prior;
+			Free(param);
+#endif	/* !defined(WINDOWS) */
 			break;
 		}
 
@@ -15095,14 +15100,8 @@ double extra(double *theta, int ntheta, void *argument)
 							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * logdet);
 			} else {
 				val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi)));
-
-				double model = LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-					+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi));
-				double prior =  PRIOR_EVAL(mb->f_prior[i][0], &log_precision) + PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
-				
-				P(model);
-				P(prior);
+							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+							ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
 
 			if (!mb->f_fixed[i][0]) {
