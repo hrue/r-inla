@@ -242,6 +242,9 @@
         ##!\item{strata}{A stratum vector. It meaning depends on the model.}
         strata = NULL, 
 
+        ##!\item{R.generic}{A object of class \code {inla-R-generic} which defines the model. (EXPERIMENTAL!)}
+        R.generic = NULL, 
+
         ## local debug-flag
         debug = FALSE)
 {
@@ -707,6 +710,10 @@
         }
     }
 
+    if (model %in% "rgeneric") {
+        stopifnot(inherits(R.generic, "inla-R-generic"))
+    }
+
     ret=list(
             Cmatrix = Cmatrix,
             Z=Z,
@@ -746,7 +753,8 @@
             values=values,
             weights=weights,
             scale = scale,
-            strata = strata
+            strata = strata,
+            R.generic = R.generic
             )
 
     return (ret)

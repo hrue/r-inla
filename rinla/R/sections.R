@@ -233,6 +233,12 @@
             cat("scale =", file.scale,"\n", sep = " ", file = file,  append = TRUE)
         }
     }
+
+    if (random.spec$model == "rgeneric") {
+        cat("R.generic.Id = ", random.spec$R.generic$Id, "\n", append=TRUE, sep = " ", file = file)
+        cat("R.generic.fifo.R2c = ", random.spec$R.generic$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
+        cat("R.generic.fifo.c2R = ", random.spec$R.generic$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
+    }
             
     cat("\n", sep = " ", file = file,  append = TRUE)
 }

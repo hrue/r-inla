@@ -291,9 +291,9 @@ typedef struct {
 
 	/*
 	 * generalised poisson
-	 */ 
+	 */
 	double **gpoisson_overdispersion;
-	double **gpoisson_p;		
+	double **gpoisson_p;
 
 	/*
 	 * test-implementations  
@@ -377,7 +377,8 @@ typedef enum {
 	F_SPDE,
 	F_SPDE2,
 	F_COPY,
-	F_ME, 
+	F_ME,
+	F_R_GENERIC,
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -585,7 +586,7 @@ struct inla_tp_struct {
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
-	
+
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
 
@@ -863,16 +864,24 @@ typedef struct {
 } inla_replicate_tp;
 
 
-typedef struct 
-{
+typedef struct {
 	double **beta;
 	double **log_prec_obs;
 	double **mean_x;
 	double **log_prec_x;
 	double *x_obs;
 	double *scale;
-}
-	inla_me_tp;
+} inla_me_tp;
+
+typedef struct {
+	int Id;
+	int R2c;
+	int c2R;
+	int ntheta;
+	double ***theta;
+	double **param;
+	GMRFLib_tabulate_Qfunc_tp **Q;
+} inla_rgeneric_tp;
 
 
 #define INLA_LITTLE_ENDIAN 1
@@ -916,6 +925,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_fnmfix(char *name);
 char *inla_make_tag(const char *string, int ds);
 const char *inla_string_join(const char *a, const char *b);
+double Qfunc_rgeneric(int i, int j, void *arg);
 double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_2diid_wishart(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
