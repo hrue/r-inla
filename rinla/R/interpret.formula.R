@@ -57,7 +57,7 @@
     if (nt>0) {
         for (i in 1:nt) {
             if (k <= len.rt && ((ks <= len.rt && rt[ks] == i))) {
-                st = eval(parse(text = gsub("^f\\(","f(", terms[i])), envir = data, enclos = p.env)
+                st = eval(parse(text = gsub("^f\\(","INLA::f(", terms[i])), envir = data, enclos = p.env)
                 random.spec[[k]] = st
                 if (ks <= len.rt && rt[ks] == i) {
                     ks = ks + 1
