@@ -889,7 +889,7 @@ typedef struct {
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_INITIAL "initial"
 #define R_GENERIC_LOG_NORM_CONST "log.norm.const"
-#define R_GENERIC_LOG_PRIOR "log.norm.prior"
+#define R_GENERIC_LOG_PRIOR "log.prior"
 #define R_GENERIC_QUIT "quit"
 
 #define INLA_LITTLE_ENDIAN 1
