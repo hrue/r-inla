@@ -242,7 +242,7 @@
         ##!\item{strata}{A stratum vector. It meaning depends on the model.}
         strata = NULL, 
 
-        ##!\item{rgeneric}{A object of class \code {inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
+        ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
         rgeneric = NULL, 
 
         ## local debug-flag
