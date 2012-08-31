@@ -1747,15 +1747,17 @@
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
             if (nrgeneric > 0L) {
-                require("multicore")
-                ## require num.threads = 1!
+                if (!inla.require("multicore")) {
+                    stop("Library 'multicore' is required to use the 'rgeneric'-model.")
+                }
+                ## must run in serial-model!
                 if (verbose) {
                     tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini))))
                 } else {
                     tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini), " > ", file.log)))
                 }
                 for (i in 1L:nrgeneric) {
-                    inla.eval(paste("tmp.", i, " = parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=FALSE))", sep=""))
+                    inla.eval(paste("tmp.", i, " = parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
                 }
                 inla.eval(paste("tmp = collect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
                 echoc = tmp[[1L]]

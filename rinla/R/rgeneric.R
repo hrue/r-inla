@@ -54,20 +54,22 @@
             Q = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
             Q = inla.as.dgTMatrix(Q)
             stopifnot(dim(Q)[1L] == n && dim(Q)[2L] == n)
-            len = length(Q@i)
+            idx = which(Q@i <= Q@j)
+            len = length(Q@i[idx])
             writeBin(as.integer(len), R2c)
-            writeBin(as.integer(Q@i), R2c)
-            writeBin(as.integer(Q@j), R2c)
-            writeBin(Q@x, R2c)
+            writeBin(as.integer(Q@i[idx]), R2c)
+            writeBin(as.integer(Q@j[idx]), R2c)
+            writeBin(Q@x[idx], R2c)
         } else if (cmd %in% "graph") {
             G = do.call(model$definition, args = list(cmd = cmd, theta = NULL, args = model$args))
             G = inla.as.dgTMatrix(G)
             n = dim(G)[1L]
-            len = length(G@i)
+            idx = which(G@i <= G@j)
+            len = length(G@i[idx])
             debug.cat("Put len =", len, "\n")
             writeBin(as.integer(len), R2c)
-            writeBin(as.integer(G@i), R2c)
-            writeBin(as.integer(G@j), R2c)
+            writeBin(as.integer(G@i[idx]), R2c)
+            writeBin(as.integer(G@j[idx]), R2c)
         } else if (cmd %in% "initial") {
             init = do.call(model$definition, args = list(cmd = cmd, theta = NULL, args = model$args))
             ntheta = length(init)
@@ -100,9 +102,9 @@
         } else if (cmd %in% c("quit", "exit")) {
             debug.cat("Got a cleanup-and-exit-loop-message\n")
             close(R2c)
-            unlink(R2c)
+            unlink(R2c, force = TRUE)
             close(c2R)
-            unlink(c2R)
+            unlink(c2R, force = TRUE)
             break
         } else {
             stop(paste("Unknown command", cmd))
@@ -113,7 +115,7 @@
 }
 
 `inla.rgeneric.ar1.model` = function(
-        cmd = c("Q", "graph", "initial", "log.norm.const", "log.prior"),
+        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL,
         args = NULL)
 {
@@ -124,30 +126,73 @@
 
     interpret.theta = function(n, ntheta, theta)
     {
-        ## internal helper-function to map the parameters from the internal-scale to the user-scale
+        ## internal helper-function to map the parameters from the
+        ## internal-scale to the user-scale
         return (list(prec = exp(theta[1L]),
                      rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
-    }
-
-    Q = function(n, ntheta, theta)
-    {
-        ## returns the precision matrix for given parameters
-        param = interpret.theta(n, ntheta, theta)
-        Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
-        ## first and last diagonal term is 1*marg.prec
-        Q[1, 1] = Q[n, n] = param$prec/(1-param$rho^2)
-        ## make it a sparse-matrix
-        Q = inla.as.dgTMatrix(Q)
-        return (Q)
     }
 
     graph = function(n, ntheta, theta)
     {
         ## return the graph of the model. the values of Q is only
         ## interpreted as zero or non-zero.
-        Q = toeplitz(c(1, 1, rep(0, n-2L)))
-        ## make it a sparse-matrix
-        Q = inla.as.dgTMatrix(Q)
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            G = toeplitz(c(1, 1, rep(0, n-2L)))
+            ## you *can* do this to avoid transfering zeros, but then
+            ## its better to use the sparseMatrix()-approach below.
+            G = inla.as.dgTMatrix(G)
+        } else {
+            ## fast and little more complicated: sparse matrices. we
+            ## only need to define the lower-triangular of G!
+            i = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    1L:(n-1L))
+            j = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    2L:n)
+            x = 1 ## meaning that all are 1
+            G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
+        }            
+        return (G)
+    }
+
+    Q = function(n, ntheta, theta)
+    {
+        ## returns the precision matrix for given parameters
+        param = interpret.theta(n, ntheta, theta)
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
+            ## first and last diagonal term is 1*marg.prec
+            Q[1, 1] = Q[n, n] = param$prec/(1-param$rho^2)
+            ## you *can* do this to avoid transfering zeros, but then
+            ## its better to use the sparseMatrix()-approach below.
+            Q = inla.as.dgTMatrix(Q)
+        } else {
+            ## fast and a little more complicated: sparse matrices. we
+            ## only need to define the lower-triangular G!
+            i = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    1L:(n-1L))
+            j = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    2L:n)
+            x = param$prec/(1-param$rho^2) * c(
+                    ## diagonal
+                    1L, 1L, rep(1+param$rho^2, n-2L),
+                    ## off-diagonal
+                    rep(-param$rho, n-1L))
+            Q = sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE)
+        }            
         return (Q)
     }
 
@@ -178,7 +223,15 @@
         return (rep(1, ntheta))
     }
 
+    quit = function(n, ntheta, theta)
+    {
+        return (invisible())
+    }
+
     cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = args$n, ntheta = args$ntheta, theta = theta))
+    val = do.call(cmd, args = list(
+                               n = as.integer(args$n),
+                               ntheta = as.integer(args$ntheta), 
+                               theta = theta))
     return (val)
 }

@@ -117,6 +117,8 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `rgeneric'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `rw1'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

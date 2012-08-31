@@ -236,6 +236,8 @@
 
     if (random.spec$model == "rgeneric") {
         cat("rgeneric.Id = ", random.spec$rgeneric$Id, "\n", append=TRUE, sep = " ", file = file)
+        stopifnot(!file.exists(random.spec$rgeneric$fifo$R2c))
+        stopifnot(!file.exists(random.spec$rgeneric$fifo$c2R))
         cat("rgeneric.fifo.R2c = ", random.spec$rgeneric$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
         cat("rgeneric.fifo.c2R = ", random.spec$rgeneric$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
     }

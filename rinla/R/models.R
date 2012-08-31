@@ -110,7 +110,7 @@
                       n.required = FALSE,
                       set.default.values = FALSE,
                       status = "experimental", 
-                      pdf = "R.generic"
+                      pdf = "rgeneric"
                       ),
 
               rw1 = list(

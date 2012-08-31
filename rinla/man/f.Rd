@@ -155,6 +155,7 @@ number of connected components in graph is larger than
 1. If FALSE, do nothing.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
 \item{strata}{A stratum vector. It meaning depends on the model.}
+\item{rgeneric}{A object of class \code {inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
 }
 \value{}
 \details{There is no default value for \code{rankdef}, if it

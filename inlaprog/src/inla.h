@@ -878,11 +878,19 @@ typedef struct {
 	int R2c;
 	int c2R;
 	int ntheta;
+	char *filename_R2c;
+	char *filename_c2R;
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;
 } inla_rgeneric_tp;
 
+#define R_GENERIC_Q "Q"
+#define R_GENERIC_GRAPH "graph"
+#define R_GENERIC_INITIAL "initial"
+#define R_GENERIC_LOG_NORM_CONST "log.norm.const"
+#define R_GENERIC_LOG_PRIOR "log.norm.prior"
+#define R_GENERIC_LOG_PRIOR "quit"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2
