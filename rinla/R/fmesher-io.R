@@ -185,7 +185,8 @@
                 values = values[idx]
             }
         }
-        A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol), index1=FALSE)
+        A = sparseMatrix(i = i, j = j, x = values, dims = c(h$nrow, h$ncol),
+                index1 = FALSE)
         A = inla.as.dgTMatrix(A)
     } else {
         stop("This should not happen.")
