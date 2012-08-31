@@ -399,7 +399,8 @@
     fac = size/n
 
     ## duplicated entries will simply add up, so we need to truncate
-    M = inla.as.dgTMatrix(sparseMatrix(i=pmin(size[1], ceiling(AA$i*fac[1])), j=pmin(size[2], ceiling(AA$j*fac[2])), x=1, dims=size))
+    M = inla.as.dgTMatrix(sparseMatrix(i=pmin(size[1], ceiling(AA$i*fac[1])), j=pmin(size[2], ceiling(AA$j*fac[2])), x=1,
+            dims = size))
     if (binary.pattern)
         M[ M != 0 ] = 1
 
@@ -1021,9 +1022,8 @@
     ok = !is.na(f)
     levels = levels(f)
     if (sparse) {
-        factor.matrix =
-            sparseMatrix(i=which(ok), j=as.integer(f[ok]), x=1,
-                         dims=c(length(f), nlevels(f)))
+        factor.matrix = sparseMatrix(i=which(ok), j=as.integer(f[ok]), x=1,
+                dims=c(length(f), nlevels(f)))
     } else {
         factor.matrix = matrix(0, length(f), nlevels(f))
         for (k in 1:nlevels(f)) {
