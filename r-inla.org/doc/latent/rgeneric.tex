@@ -104,6 +104,7 @@ for $\theta_{2}$, so the joint prior for $\theta$ becomes
     \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \times
     {\mathcal N}(\theta_{2}; \mu, \kappa).
 \end{displaymath}
+We will use $a=b=1$, $\mu=0$ and $\kappa=1$.
 
 In order to define the AR1-model, we need to make functions that
 returns
@@ -287,7 +288,8 @@ $\theta$. For the AR1-model, we have chosen this prior
     \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \times
     {\mathcal N}(\theta_{2}; \mu, \kappa)
 \end{displaymath}
-so we can implement this as
+so we can implement this as with our choices $a=b=1$, $\mu=0$ and
+$\kappa=1$:
 \begin{verbatim}
     log.prior = function(n, ntheta, theta)
     {
