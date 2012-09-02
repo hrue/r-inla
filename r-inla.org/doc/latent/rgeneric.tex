@@ -96,10 +96,15 @@ and
 \end{displaymath}
 It is required that the parameters $\theta = (\theta_{1}, \theta_{2})$
 have support on $\Re$ and the priors for $\tau$ and $\rho$ are given
-as the corresponding priors for $\theta_{1}$ and $\theta_{2}$. We
-assign a (Gamma) $\Gamma(.; a,b)$ prior (with mean $a/b$ and variance
-$a/b^{2}$) for $\tau$ and a Gaussian prior ${\mathcal N}(\mu,\kappa)$
-for $\theta_{2}$, so the joint prior for $\theta$ becomes
+as the corresponding priors for $\theta_{1}$ and $\theta_{2}$. Note
+that \texttt{INLA} only provide the marginal posteriors for $\theta$,
+but you can use \texttt{inla.tmarginal} to convert it to the
+appropriate marginals for $\rho$ and $\tau$.
+
+We assign a (Gamma) $\Gamma(.; a,b)$ prior (with mean $a/b$ and
+variance $a/b^{2}$) for $\tau$ and a Gaussian prior ${\mathcal
+    N}(\mu,\kappa)$ for $\theta_{2}$, so the joint prior for $\theta$
+becomes
 \begin{displaymath}
     \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \times
     {\mathcal N}(\theta_{2}; \mu, \kappa).
