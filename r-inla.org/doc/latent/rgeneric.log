@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  1 SEP 2012 08:46
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  2 SEP 2012 20:12
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -208,22 +208,22 @@ en-sion, prior-settings, etc, so \OT1/cmtt/m/n/10.95 my.model.def
 [1
 
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 112.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 117.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 112.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 117.
  [2]
-Overfull \hbox (22.98315pt too wide) in paragraph at lines 163--166
+Overfull \hbox (22.98315pt too wide) in paragraph at lines 168--171
 \OT1/cmr/m/n/10.95 Our next task, is the ``fill in the blanks'', ie to de-fine 
 the func-tions \OT1/cmtt/m/n/10.95 graph, Q, initial, log.norm.const,
  []
 
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 167.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 172.
 [3] [4] [5] [6] [7]
 File: rgeneric-example.R  (verbatim)
  [8] (./rgeneric.aux) ) 
@@ -250,7 +250,7 @@ sfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti
 10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on rgeneric.pdf (8 pages, 176795 bytes).
+Output written on rgeneric.pdf (8 pages, 176958 bytes).
 PDF statistics:
  95 PDF objects out of 1000 (max. 8388607)
  68 compressed objects within 1 object stream
