@@ -17923,7 +17923,9 @@ int inla_layout_x(double **x_vec, int *len_x, double xmin, double xmax, double m
 
 	nmax = (int) ((xmax - xmin) / dx + 1.0);
 	x = Calloc(nmax, double);
-	n = 0;
+	x[0] = xmin;
+	x[1] = xmax;
+	n = 2;
 	f = dx;
 	for (xx = mean; xx < xmax; xx += f) {
 		x[n++] = xx;
