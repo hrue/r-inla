@@ -1157,6 +1157,9 @@
     n.weights=0
     j=0
     extra.fixed=0
+
+    rgeneric = list()
+    nrgeneric = 0
     
     if (nr>0) {
         name.random.dir=c()
@@ -1208,9 +1211,6 @@
         for(r in 1:nr)
             all.terms = c(all.terms, gp$random.spec[[r]]$term)
         
-        rgeneric = list()
-        nrgeneric = 0
-
         for (r in 1:nr) {
             n = nrep = ngroup = N = NULL
             
