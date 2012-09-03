@@ -204,6 +204,19 @@ graph. Only the lower-triangular part of the matrix is used.
         return (G)
     }
 \end{verbatim}
+An alterntive to this \texttt{graph}-function, is to replace it with a
+call to the \texttt{Q}-function (which follows next), using parameters
+\texttt{theta} so that no element in the precision that can be
+non-zero actually \emph{is} non-zero. For example
+\begin{verbatim}
+    graph = function(n, ntheta, theta)
+    {
+        return (Q(n, ntheta, rep(1, ntheta)))
+    }
+\end{verbatim}
+whereas chosing \texttt{theta = c(1,0)} would give $\rho=0$ and this
+function would return a (wrong) diagonal matrix instead of the correct
+tri-diagonal matrix.
 
 \subsection*{Function \texttt{Q}}
 
