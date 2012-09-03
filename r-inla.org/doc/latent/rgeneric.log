@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  3 SEP 2012 12:30
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  3 SEP 2012 17:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -197,9 +197,9 @@ LaTeX Font Info:    ... okay on input line 7.
 
 \c@lstlisting=\count110
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <14.4> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 35.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 39.
 
-Overfull \hbox (12.45926pt too wide) in paragraph at lines 43--47
+Overfull \hbox (12.45926pt too wide) in paragraph at lines 47--51
 \OT1/cmr/m/n/10.95 Here \OT1/cmtt/m/n/10.95 args \OT1/cmr/m/n/10.95 could be pa
 -ram-e-ters to \OT1/cmtt/m/n/10.95 my.model.def \OT1/cmr/m/n/10.95 such as di-m
 en-sion, prior-settings, etc, so \OT1/cmtt/m/n/10.95 my.model.def
@@ -208,22 +208,22 @@ en-sion, prior-settings, etc, so \OT1/cmtt/m/n/10.95 my.model.def
 [1
 
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 117.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 121.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 117.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 121.
  [2]
-Overfull \hbox (22.98315pt too wide) in paragraph at lines 168--171
+Overfull \hbox (22.98315pt too wide) in paragraph at lines 172--175
 \OT1/cmr/m/n/10.95 Our next task, is the ``fill in the blanks'', ie to de-fine 
 the func-tions \OT1/cmtt/m/n/10.95 graph, Q, initial, log.norm.const,
  []
 
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 172.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 176.
 [3] [4] [5] [6] [7]
 File: rgeneric-example.R  (verbatim)
  [8] [9] (./rgeneric.aux) ) 
@@ -250,7 +250,7 @@ c/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
 cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on rgeneric.pdf (9 pages, 178287 bytes).
+Output written on rgeneric.pdf (9 pages, 178735 bytes).
 PDF statistics:
  98 PDF objects out of 1000 (max. 8388607)
  70 compressed objects within 1 object stream

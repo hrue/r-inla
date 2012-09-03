@@ -21,14 +21,18 @@ the computations are done in a standalone C-program and not within
 \texttt{R}, so therefore this option is \emph{only} available for
 Linux and MacOSX, and \emph{not} available for Windows. Also you need
 to run it on a dual-core (or more cores) computer and have installed
-the \texttt{multicore}-library. It will run more slowly for two
-reasons:
+the \texttt{multicore}-library. It will run more slowly for the
+following reasons:
 \begin{enumerate}
 \item The C-program doing the calculations has to communicate with
     \texttt{R} to get model-properties such as the precision matrix,
     the graph, etc, and this communication is not for free.
-\item Due the same reason, the C-program doing the calculations has to
-    run in serial mode and cannot make use of multi-cores.
+\item Due the same reason, the C-program doing the calculations cannot
+    make use of multi-cores so efficiently as before, hence will run
+    slower.
+\item You may consider to run \texttt{inla} with option
+    \texttt{num.threads=1} or some small number, as this may actually
+    runs faster (and use much less memory).
 \end{enumerate}
 Anyway, we still hope it would be useful.
 
