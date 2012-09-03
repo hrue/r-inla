@@ -1750,11 +1750,10 @@
                 if (!inla.require("multicore")) {
                     stop("Library 'multicore' is required to use the 'rgeneric'-model.")
                 }
-                ## must run in serial-model!
                 if (verbose) {
-                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini))))
+                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                 } else {
-                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, "-t 1", shQuote(file.ini), " > ", file.log)))
+                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
                 }
                 for (i in 1L:nrgeneric) {
                     inla.eval(paste("tmp.", i, " = parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))

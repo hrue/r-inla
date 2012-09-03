@@ -1357,58 +1357,51 @@ double Qfunc_z(int i, int j, void *arg)
 double Qfunc_rgeneric(int i, int j, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0;
+	int rebuild, ii, debug = 0, id;
 
-	rebuild = (a->param[GMRFLib_thread_id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
-
+	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->param[GMRFLib_thread_id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
+			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 		}
 	}
 
 	if (rebuild) {
-
-		if (debug) {
-			printf("Rebuild Q-hash for thread %d\n", GMRFLib_thread_id);
+		int *ilist = NULL, *jlist = NULL, len;
+		double *Qijlist = NULL;
+		GMRFLib_graph_tp *graph = NULL;
+#pragma omp critical
+		{
+			if (debug) {
+				printf("Rebuild Q-hash for id %d\n", id);
+			}
+			if (a->Q[id]) {
+				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
+			}
+			if (!(a->param[id])) {
+				a->param[id] = Calloc(a->ntheta, double);
+			}
+			for (ii = 0; ii < a->ntheta; ii++) {
+				a->param[id][ii] = a->theta[ii][GMRFLib_thread_id][0];
+			}
+			WRITE_MSG(a->c2R, a->Id, R_GENERIC_Q);
+			WRITE(a->c2R, a->param[id], a->ntheta, double);
+			READ(a->R2c, &len, 1, int);
+			ilist = Calloc(2 * len, int);
+			jlist = ilist + len;
+			Qijlist = Calloc(len, double);
+			READ(a->R2c, ilist, len, int);
+			READ(a->R2c, jlist, len, int);
+			READ(a->R2c, Qijlist, len, double);
+			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, -1, NULL, NULL, NULL);
 		}
-
-		if (a->Q[GMRFLib_thread_id]) {
-			GMRFLib_free_tabulate_Qfunc(a->Q[GMRFLib_thread_id]);
-		}
-
-		if (!(a->param[GMRFLib_thread_id])) {
-			a->param[GMRFLib_thread_id] = Calloc(a->ntheta, double);
-		}
-		for (ii = 0; ii < a->ntheta; ii++) {
-			a->param[GMRFLib_thread_id][ii] = a->theta[ii][GMRFLib_thread_id][0];
-		}
-		WRITE_MSG(a->c2R, a->Id, R_GENERIC_Q);
-		WRITE(a->c2R, a->param[GMRFLib_thread_id], a->ntheta, double);
-
-		int *ilist, *jlist, len;
-		double *Qijlist;
-
-		READ(a->R2c, &len, 1, int);
-
-		ilist = Calloc(2 * len, int);
-		jlist = ilist + len;
-		Qijlist = Calloc(len, double);
-
-		READ(a->R2c, ilist, len, int);
-		READ(a->R2c, jlist, len, int);
-		READ(a->R2c, Qijlist, len, double);
-
-		GMRFLib_graph_tp *graph;
-
-		GMRFLib_tabulate_Qfunc_from_list(&(a->Q[GMRFLib_thread_id]), &graph, len, ilist, jlist, Qijlist, -1, NULL, NULL, NULL);
 		GMRFLib_free_graph(graph);
-
-		Free(ilist);
+		Free(ilist);				       /* jlist is ok */
 		Free(Qijlist);
 	}
 
-	return (a->Q[GMRFLib_thread_id]->Qfunc(i, j, a->Q[GMRFLib_thread_id]->Qfunc_arg));
+	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
 }
 double Qfunc_me(int i, int j, void *arg)
 {
@@ -9611,8 +9604,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, s = 0, itmp, id, bvalue = 0, fixed;
 	int R2c = -1, c2R = -1, Id = -1;
-	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc, 
-		*filename_R2c = NULL, *filename_c2R = NULL;
+	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc,
+	    *filename_R2c = NULL, *filename_c2R = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -9836,10 +9829,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_R_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric");
-		if (GMRFLib_MAX_THREADS > 1) {
-			inla_error_general("Model 'rgeneric' require 'inla.setOption(num.threads=1)' or 'inla(...,num.threads=1)'.");
-			exit(1);
-		}
 	} else if (OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
@@ -11209,16 +11198,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("C open c2R done\n");
 		}
 
-		WRITE_MSG(c2R, Id, R_GENERIC_INITIAL);
-
 		int ntheta;
-		READ(R2c, &ntheta, 1, int);
-
 		double *initial = NULL;
-		if (ntheta) {
-			initial = Calloc(ntheta, double);
+#pragma omp critical
+		{
+			WRITE_MSG(c2R, Id, R_GENERIC_INITIAL);
+			READ(R2c, &ntheta, 1, int);
+			if (ntheta) {
+				initial = Calloc(ntheta, double);
+			}
+			READ(R2c, initial, ntheta, double);
 		}
-		READ(R2c, initial, ntheta, double);
 
 		mb->f_ntheta[mb->nf] = ntheta;
 		mb->f_initial[mb->nf] = initial;
@@ -12598,19 +12588,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->filename_c2R = GMRFLib_strdup(filename_c2R);
 		def->ntheta = mb->f_ntheta[mb->nf];
 		def->theta = mb->f_theta[mb->nf];
-		def->param = Calloc(GMRFLib_MAX_THREADS, double *);	/* easier if we do this here */
-		def->Q = Calloc(GMRFLib_MAX_THREADS, GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
+		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
 
-		WRITE_MSG(c2R, def->Id, R_GENERIC_GRAPH);
-
-		int len;
-		READ(R2c, &len, 1, int);
-
-		int *ilist = Calloc(len, int);
-		int *jlist = Calloc(len, int);
-
-		READ(R2c, ilist, len, int);
-		READ(R2c, jlist, len, int);
+		int len, *ilist, *jlist;
+#pragma omp critical
+		{
+			WRITE_MSG(c2R, def->Id, R_GENERIC_GRAPH);
+			READ(R2c, &len, 1, int);
+			ilist = Calloc(len, int);
+			jlist = Calloc(len, int);
+			READ(R2c, ilist, len, int);
+			READ(R2c, jlist, len, int);
+		}
 
 		double *Qijlist = Calloc(len, double);
 		for (i = 0; i < len; i++) {
@@ -15060,14 +15050,17 @@ double extra(double *theta, int ntheta, void *argument)
 				param[ii] = theta[count];
 				count++;
 			}
-			WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_NORM_CONST);
-			WRITE(def->c2R, param, ntheta, double);
-			READ(def->R2c, &log_norm_const, 1, double);
-			WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_PRIOR);
-			WRITE(def->c2R, param, ntheta, double);
-			READ(def->R2c, &log_prior, 1, double);
-			SET_GROUP_RHO(ntheta);
+#pragma omp critical
+			{
+				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_NORM_CONST);
+				WRITE(def->c2R, param, ntheta, double);
+				READ(def->R2c, &log_norm_const, 1, double);
+				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_PRIOR);
+				WRITE(def->c2R, param, ntheta, double);
+				READ(def->R2c, &log_prior, 1, double);
+			}
 
+			SET_GROUP_RHO(ntheta);
 			val += mb->f_nrep[i] * (normc_g + log_norm_const * mb->f_ngroup[i]) + log_prior;
 			Free(param);
 #endif							       /* !defined(WINDOWS) */
@@ -19452,9 +19445,12 @@ int main(int argc, char **argv)
 				if (mb->f_id[i] == F_R_GENERIC) {
 					inla_rgeneric_tp *a = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
 					if (a) {
-						WRITE_MSG(a->c2R, a->Id, R_GENERIC_QUIT); /* this will also delete the files */
-						close(a->c2R);
-						close(a->R2c);
+#pragma omp critical
+						{
+							WRITE_MSG(a->c2R, a->Id, R_GENERIC_QUIT);	/* this will also delete the files */
+							close(a->c2R);
+							close(a->R2c);
+						}
 						unlink(a->filename_c2R);
 						unlink(a->filename_R2c);
 					}
