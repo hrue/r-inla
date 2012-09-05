@@ -1749,16 +1749,16 @@
             if (nrgeneric > 0L) {
                 if (!inla.require("multicore")) {
                     stop("Library 'multicore' is required to use the 'rgeneric'-model.")
-                }
+                
                 if (verbose) {
-                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
+                    tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
                 } else {
-                    tmp.0 = parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
+                    tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
                 }
                 for (i in 1L:nrgeneric) {
-                    inla.eval(paste("tmp.", i, " = parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
+                    inla.eval(paste("tmp.", i, " = multicore::parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
                 }
-                inla.eval(paste("tmp = collect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
+                inla.eval(paste("tmp = multicore::collect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
                 echoc = tmp[[1L]]
             } else {
                 if (verbose) {
