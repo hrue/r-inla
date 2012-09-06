@@ -1749,11 +1749,17 @@
             if (nrgeneric > 0L) {
                 if (!inla.require("multicore")) {
                     stop("Library 'multicore' is required to use the 'rgeneric'-model.")
-                
-                if (verbose) {
+                }
+                if (inla.os("mac")) {
+                    ## cannot run in verbose mode
+                    all.args = gsub("-v", "", all.args)
                     tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
                 } else {
-                    tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
+                    if (verbose) {
+                        tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
+                    } else {
+                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
+                    }
                 }
                 for (i in 1L:nrgeneric) {
                     inla.eval(paste("tmp.", i, " = multicore::parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
