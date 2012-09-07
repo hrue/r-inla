@@ -1,5 +1,6 @@
-##!\name{inla.contrib.sd}
+##!\name{contrib.sd}
 ##!\alias{contrib.sd}
+##!\alias{inla.contrib.sd}
 ##!\title{Computes the standard deviation for the structured (random) effects in an INLA model}
 ##!\description{Computes the posterior distribution of the standard deviations for the structured 
 ##!             (random) effects in an INLA model, starting from the default output based on the precisions}
