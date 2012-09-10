@@ -718,23 +718,21 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
-			/* 
-			 * put it some saftety margins for x_min and x_max
-			 */
-			if (x[i] >= density->x_min + DBL_EPSILON && x[i] <= density->x_max - DBL_EPSILON) {
+			double xmax = density->log_correction->spline->interp->xmax, xmin = density->log_correction->spline->interp->xmin;
+			
+			if (x[i] >= xmin && x[i] <= xmax) {
 				logdens[i] = gsl_spline_eval(density->log_correction->spline, x[i], density->log_correction->accel)
 					- 0.5 * SQR(x[i]) - density->log_norm_const;
 			} else {
 				double diff, cor, f0;
-
-				if (x[i] >= density->x_max - DBL_EPSILON) {
-					f0 = gsl_spline_eval(density->log_correction->spline, density->x_max, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, density->x_max, density->log_correction->accel);
-					cor = f0 + DMIN(0.0, diff) * (x[i] - density->x_max);
+				if (x[i] >= xmax - DBL_EPSILON) {
+					f0 = gsl_spline_eval(density->log_correction->spline, xmax, density->log_correction->accel);
+					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmax, density->log_correction->accel);
+					cor = f0 + DMIN(0.0, diff) * (x[i] - xmax);
 				} else {
-					f0 = gsl_spline_eval(density->log_correction->spline, density->x_min, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, density->x_min, density->log_correction->accel);
-					cor = f0 + DMAX(0.0, diff) * (x[i] - density->x_min);
+					f0 = gsl_spline_eval(density->log_correction->spline, xmin, density->log_correction->accel);
+					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmin, density->log_correction->accel);
+					cor = f0 + DMAX(0.0, diff) * (x[i] - xmin);
 				}
 				logdens[i] = cor - 0.5 * SQR(x[i]) - density->log_norm_const;
 			}
@@ -954,9 +952,9 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density)
 		result = gsl_cdf_ugaussian_P((x - density->mean) / density->stdev);
 	} else {
 		if (density->P->spline) {
-			if (x <= density->x_min) {
+			if (x <= density->P->spline->interp->xmin) {
 				result = 0.0;
-			} else if (x >= density->x_max) {
+			} else if (x >= density->P->spline->interp->xmax) {
 				result = 1.0;
 			} else {
 				result = gsl_spline_eval(density->P->spline, x, density->P->accel);
@@ -1415,6 +1413,12 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->spline = gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n));
 			GMRFLib_EWRAP0_GSL(gsl_spline_init((*density)->log_correction->spline, xx, ldens, (unsigned int) n));
 			GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
+			/* 
+			 * to be sure, we reset them here
+			 */
+			(*density)->x_min = (*density)->log_correction->spline->interp->xmin;
+			(*density)->x_max = (*density)->log_correction->spline->interp->xmax;
+			
 			break;
 
 		default:
