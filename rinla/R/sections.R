@@ -654,6 +654,7 @@
         stopifnot(!is.null(fp.binary))
 
         numlen = inla.numlen(length(lincomb))
+        prev.secnames = c()
 
         for(i in 1:length(lincomb)) {
             
@@ -668,6 +669,14 @@
                 lc = lincomb[[i]]
             }
                 
+            ## check if the name is used previously, if so, stop.
+            if (secname %in% prev.secnames) {
+                stop(paste("Duplicated name [", secname, "] in 'lincomb'; need unique names or NA or ''.",
+                           sep=""))
+            } else {
+                prev.secnames = c(secname, prev.secnames)
+            }
+
             cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$precision)) {
