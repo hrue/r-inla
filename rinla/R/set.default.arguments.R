@@ -195,6 +195,9 @@
             ##:ARGUMENT: interpolator  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
             interpolator="auto",
 
+            ##:ARGUMENT: fast Fast mode? If on, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)
+            fast = TRUE,
+            
             ##:ARGUMENT: linear.correction  Default TRUE for the 'strategy = laplace' option.
             linear.correction=NULL,
 
