@@ -1655,7 +1655,7 @@
                         compute=gp$random.spec[[r]]$compute)
                         
                 inla.linear.section(file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
-                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix.revised+count.linear), sep=""),
+                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
                                     control=cont, only.hyperparam=only.hyperparam)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
