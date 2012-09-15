@@ -69,12 +69,17 @@
         }
 
         ## if multicore exists, we will do the 'lapply'-loop in parallel
-        if (inla.require("multicore")) {
-            lapply.func = "mclapply"
+        if (inla.os("linux") {
+            if (inla.require("multicore")) {
+                lapply.func = "mclapply"
+            } else {
+                warning("Please consider installing package 'multicore' which will speed-up the calculations in 'inla.cpo()'.")
+                lapply.func = "lapply"
+            }
         } else {
-            warning("Please consider installing package 'multicore' which will speed-up the calculations in 'inla.cpo()'.")
             lapply.func = "lapply"
         }
+
         res = do.call(lapply.func,
                 args = list(
                         idx.fail,
