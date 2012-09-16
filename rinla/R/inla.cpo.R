@@ -69,7 +69,7 @@
         }
 
         ## if multicore exists, we will do the 'lapply'-loop in parallel
-        if (inla.os("linux") {
+        if (inla.os("linux")) {
             if (inla.require("multicore")) {
                 lapply.func = "mclapply"
             } else {
