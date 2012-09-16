@@ -333,6 +333,29 @@ taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flag
 
 	return LL;
 }
+int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L)
+{
+	if (!L) {
+		return GMRFLib_SUCCESS;
+	}
+	
+	int i;
+	int n = L->n;
+	int nnz = L->colptr[L->n];
+
+	fprintf(fp, "n = %d\n", n);
+	fprintf(fp, "nnz = %d\n", nnz);
+
+	for(i=0; i< n+1; i++) {
+		fprintf(fp, "\tcolptr[%1d] = %1d\n", i, L->colptr[i]);
+	}
+	for(i=0; i<nnz; i++) {
+		fprintf(fp, "\trowind[%1d] = %1d\n", i, L->rowind[i]);
+		fprintf(fp, "\tvalues[%1d] = %.12g\n", i, L->values.d[i]);
+	}
+
+	return GMRFLib_SUCCESS;
+}
 GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L)
 {
 	/*

@@ -93,6 +93,7 @@ taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, 
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage, taucs_ccs_matrix * Lmatrix);
 
 taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flags);
+int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L);
 supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
 
