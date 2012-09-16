@@ -776,14 +776,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 
 	flags = (*L)->flags;
 	if (!*symb_fact) {
-#pragma omp critical
-		{
-			FIXME("do...");
-			taucs_ccs_matrix *LL = GMRFLib_my_taucs_dccs_duplicate(*L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
-			*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(LL);
-			taucs_ccs_free(LL);
-			FIXME("done...");
-		}
+		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
 	}
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
