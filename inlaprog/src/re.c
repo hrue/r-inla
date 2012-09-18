@@ -48,6 +48,9 @@ static const char RCSId[] = HGVERSION;
 #define XMATCH(x0,x1) (fabs((x0)-(x1)) == 0)
 #define YMATCH(y0,y1) (fabs((y0)-(y1)) == 0)
 
+
+static re_sas_prior_tp *sas_prior_table = NULL;
+
 int re_valid_skew_kurt(double *dist, double skew, double kurt)
 {
 #define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
@@ -255,7 +258,7 @@ int re_shash_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * 
 }
 
 /* 
-   The countourLine-code is taken from R: plot3d.c
+ *  The countourLine-code is taken from R: plot3d.c, with modifications.
  */
 int ctr_intersect(double z0, double z1, double zc, double *f)
 {
@@ -384,7 +387,6 @@ CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc)
 			/*
 			 * If the value at a corner is exactly equal to a contour level, change that value by a tiny amount 
 			 */
-
 			if (zll == zc)
 				zll += atom;
 			if (zhl == zc)
@@ -396,7 +398,6 @@ CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc)
 			/*
 			 * Check for intersections with sides 
 			 */
-
 			nacode = 0;
 			if (isfinite(zll))
 				nacode += 1;
@@ -503,11 +504,8 @@ CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc)
 
 			/*
 			 * We now have k(=2,4) endpoints 
-			 */
-			/*
 			 * Decide which to join 
 			 */
-
 			seglist = NULL;
 
 			if (k > 0) {
@@ -545,142 +543,129 @@ CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc)
 	}
 	return segmentDB;
 }
-inla_countour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB)
+inla_contour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB)
 {
+	assert(segmentDB);
+
+	double xend, yend;
+	int i, ii, j, jj, ns, dir;
+	CLP seglist, seg, s, start, end;
+
 	/*
-	 * this function leaks memory, as the second contourLines2()-call, revise the 'segmentDB' object without free objects discared.
+	 * Begin following contours: Grab a segment, Follow its tail, Follow its head, Save the contour 
 	 */
+	inla_contour_tp *c = Calloc(1, inla_contour_tp);
+	c->level = zc;
 
-	if (segmentDB == NULL) {
-		CLP *seg;
-		inla_countour_tp *c;
-		seg = contourLines1(x, nx, y, ny, z, zc);
-		c = contourLines2(x, nx, y, ny, z, zc, seg);
-		Free(seg);
-		return c;
-	} else {
-		double xend, yend;
-		int i, ii, j, jj, ns, dir;
-		CLP seglist, seg, s, start, end;
-		/*
-		 * Begin following contours. 
-		 */
-		/*
-		 * 1. Grab a segment 
-		 */
-		/*
-		 * 2. Follow its tail 
-		 */
-		/*
-		 * 3. Follow its head 
-		 */
-		/*
-		 * 4. Save the contour 
-		 */
-
-		inla_countour_tp *c = Calloc(1, inla_countour_tp);
-		c->level = zc;
-
-		for (i = 0; i < nx - 1; i++)
-			for (j = 0; j < ny - 1; j++) {
-				while ((seglist = segmentDB[i + j * nx])) {
-					ii = i;
-					jj = j;
-					start = end = seglist;
-					segmentDB[i + j * nx] = seglist->next;
-					xend = seglist->x1;
-					yend = seglist->y1;
-					while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
-						segmentDB[ii + jj * nx]
-						    = ctr_segupdate(xend, yend, dir, GMRFLib_TRUE,	/* = tail */
-								    segmentDB[ii + jj * nx], &seg);
-						if (!seg)
-							break;
-						end->next = seg;
-						end = seg;
-						xend = end->x1;
-						yend = end->y1;
-					}
-					end->next = NULL;      /* <<< new for 1.2.3 */
-					ii = i;
-					jj = j;
-					xend = seglist->x0;
-					yend = seglist->y0;
-					while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
-						segmentDB[ii + jj * nx]
-						    = ctr_segupdate(xend, yend, dir, GMRFLib_FALSE,	/* ie. head */
-								    segmentDB[ii + jj * nx], &seg);
-						if (!seg)
-							break;
-						seg->next = start;
-						start = seg;
-						xend = start->x0;
-						yend = start->y0;
-					}
-
-					/*
-					 * ns := #{segments of polyline} -- need to allocate 
-					 */
-					s = start;
-					ns = 0;
-					while (s && ns < INT_MAX) {
-						ns++;
-						s = s->next;
-					}
-					/*
-					 * "write" the contour locations into the list of contours
-					 */
-					double *x, *y;
-
-					x = Calloc(ns + 1, double);
-					y = Calloc(ns + 1, double);
-					s = start;
-					x[0] = s->x0;
-					y[0] = s->y0;
-					ns = 1;
-					while (s->next) {
-						s = s->next;
-						x[ns] = s->x0;
-						y[ns] = s->y0;
-						ns++;
-					}
-					x[ns] = s->x1;
-					y[ns] = s->y1;
-
-					if (0) {
-						int ii;
-						for (ii = 0; ii < ns + 1; ii++) {
-							printf("(x,y) = ( %g %g )\n", x[ii], y[ii]);
-						}
-					}
-
-					int ii;
-					double len = 0.0;
-					for (ii = 1; ii < ns + 1; ii++) {
-						len += sqrt(SQR(x[ii] - x[ii-1]) + SQR(y[ii] - y[ii-1]));
-					}
-
-					c->nc++;
-					c->ns = Realloc(c->ns, c->nc, int);
-					c->cyclic = Realloc(c->cyclic, c->nc, int);
-					c->length = Realloc(c->length, c->nc, double);
-					c->x = Realloc(c->x, c->nc, double *);
-					c->y = Realloc(c->y, c->nc, double *);
-					c->ns[c->nc - 1] = ns;
-					c->cyclic[c->nc - 1] = (x[0] == x[ns]) && (y[0] == y[ns]);
-					c->length[c->nc - 1] = len;
-					c->x[c->nc - 1] = x;
-					c->y[c->nc - 1] = y;
+	for (i = 0; i < nx - 1; i++) {
+		for (j = 0; j < ny - 1; j++) {
+			while ((seglist = segmentDB[i + j * nx])) {
+				ii = i;
+				jj = j;
+				start = end = seglist;
+				segmentDB[i + j * nx] = seglist->next;
+				xend = seglist->x1;
+				yend = seglist->y1;
+				while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
+					segmentDB[ii + jj * nx]
+						= ctr_segupdate(xend, yend, dir, GMRFLib_TRUE,	/* = tail */
+								segmentDB[ii + jj * nx], &seg);
+					if (!seg)
+						break;
+					end->next = seg;
+					end = seg;
+					xend = end->x1;
+					yend = end->y1;
 				}
+				end->next = NULL;      /* <<< new for 1.2.3 */
+				ii = i;
+				jj = j;
+				xend = seglist->x0;
+				yend = seglist->y0;
+				while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
+					segmentDB[ii + jj * nx]
+						= ctr_segupdate(xend, yend, dir, GMRFLib_FALSE,	/* ie. head */
+								segmentDB[ii + jj * nx], &seg);
+					if (!seg)
+						break;
+					seg->next = start;
+					start = seg;
+					xend = start->x0;
+					yend = start->y0;
+				}
+
+				/*
+				 * ns := #{segments of polyline} -- need to allocate 
+				 */
+				s = start;
+				ns = 0;
+				while (s && ns < INT_MAX) {
+					ns++;
+					s = s->next;
+				}
+				/*
+				 * "write" the contour locations into the list of contours
+				 */
+				double *x, *y;
+
+				x = Calloc(ns + 1, double);
+				y = Calloc(ns + 1, double);
+				s = start;
+				x[0] = s->x0;
+				y[0] = s->y0;
+				ns = 1;
+				while (s->next) {
+					CLP s_free = s;	       /* need to save it, to free it */
+					s = s->next;
+					Free(s_free);
+					x[ns] = s->x0;
+					y[ns] = s->y0;
+					ns++;
+				}
+				x[ns] = s->x1;
+				y[ns] = s->y1;
+				Free(s);
+				
+				if (0) {
+					int ii;
+					for (ii = 0; ii < ns + 1; ii++) {
+						printf("(x,y) = ( %g %g )\n", x[ii], y[ii]);
+					}
+				}
+
+				int ii;
+				double len = 0.0;
+				for (ii = 1; ii < ns + 1; ii++) {
+					len += sqrt(SQR(x[ii] - x[ii-1]) + SQR(y[ii] - y[ii-1]));
+				}
+
+				c->nc++;
+				c->ns = Realloc(c->ns, c->nc, int);
+				c->cyclic = Realloc(c->cyclic, c->nc, int);
+				c->length = Realloc(c->length, c->nc, double);
+				c->x = Realloc(c->x, c->nc, double *);
+				c->y = Realloc(c->y, c->nc, double *);
+				c->ns[c->nc - 1] = ns;
+				c->cyclic[c->nc - 1] = (x[0] == x[ns]) && (y[0] == y[ns]);
+				c->length[c->nc - 1] = len;
+				c->x[c->nc - 1] = x;
+				c->y[c->nc - 1] = y;
 			}
-		return c;
+		}
 	}
+	return c;
 }
-inla_countour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc)
+inla_contour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc)
 {
-	return (contourLines2(x, nx, y, ny, z, zc, NULL));
+	CLP *seg;
+	inla_contour_tp *c;
+	seg = contourLines1(x, nx, y, ny, z, zc);
+	c = contourLines2(x, nx, y, ny, z, zc, seg);
+	Free(seg);
+
+	return c;
 }
-int inla_print_contourLines(FILE *fp, inla_countour_tp *c)
+int inla_print_contourLines(FILE *fp, inla_contour_tp *c)
 {
 	int i, j;
 
@@ -689,10 +674,10 @@ int inla_print_contourLines(FILE *fp, inla_countour_tp *c)
 	}
 	fprintf(fp, "Number of contours %1d for level %g\n", c->nc, c->level);
 	for(i=0; i<c->nc; i++){
-		fprintf(fp, "\tContour %1d\n", i);
-		fprintf(fp, "\tNumber of segments %1d\n", c->ns[i]);
-		fprintf(fp, "\tLength %g\n", c->length[i]);
-		fprintf(fp, "\tCyclic = %1d\n", c->x[i][0] == c->x[i][c->ns[i]] && c->y[i][0] == c->y[i][c->ns[i]]);
+		fprintf(fp, "\tContour[%1d]\n", i);
+		fprintf(fp, "\tNumber of segments = %1d\n", c->ns[i]);
+		fprintf(fp, "\tLength = %.12g\n", c->length[i]);
+		fprintf(fp, "\tCyclic = %s\n", (c->cyclic[i] ? "Yes" : "No"));
 		fprintf(fp, "\tPoints:\n");
 		for(j=0; j<c->ns[i]+1; j++){
 			fprintf(fp, "\t\t(x,y) = %g %g\n", c->x[i][j], c->y[i][j]);
@@ -700,4 +685,203 @@ int inla_print_contourLines(FILE *fp, inla_countour_tp *c)
 	}
 
 	return GMRFLib_SUCCESS;
+}
+int inla_free_contourLines(inla_contour_tp *c)
+{
+	if (!c)
+		return GMRFLib_SUCCESS;
+
+	int i;
+	for(i=0; i<c->nc; i++){
+		Free(c->x[i]);
+		Free(c->y[i]);
+	}
+	Free(c->x);
+	Free(c->y);
+	Free(c->ns);
+	Free(c->length);
+	Free(c->cyclic);
+	Free(c);
+
+	return GMRFLib_SUCCESS;
+}
+
+
+// 
+
+double re_sas_evaluate_log_prior(double skew, double kurt)
+{
+	double level;
+	inla_contour_tp *c; 
+	double ldens_uniform, ldens_dist, length = 0;
+	int i;
+	
+	if (re_valid_skew_kurt(NULL, skew, kurt) == GMRFLib_FALSE) {
+		return -100000000.0;
+	}
+
+	re_read_sas_prior_table();
+	level = re_find_in_sas_prior_table(skew, kurt);	       /* level for the contour */
+	c = contourLines(sas_prior_table->x, sas_prior_table->nx,
+			 sas_prior_table->y, sas_prior_table->ny,
+			 sas_prior_table->z, level);
+	for(i=0; i<c->nc; i++)
+		length += c->length[i];
+	ldens_uniform = log(1.0/length);
+	inla_free_contourLines(c);
+
+	P(level);
+	
+	double lambda = 20;
+	ldens_dist = log(lambda) -lambda * level;
+
+#define NEW(dskew, dkurt) if (1) \
+	{			 \
+		level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt);\
+		c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
+				 sas_prior_table->y, sas_prior_table->ny, \
+				 sas_prior_table->z, level);		\
+		for(i=0, length = 0.0; i<c->nc; i++)			\
+			length += c->length[i];				\
+		inla_free_contourLines(c);				\
+	}
+
+	double d_lev_d_skew, d_lev_d_kurt, d_p_d_skew, d_p_d_kurt;
+	double level_ref = level, length_ref = length;
+	double dskew = 0.01;
+	double dkurt = 0.01;
+	
+	/* 
+	   I hope this is about correct
+	 */
+	NEW(dskew, 0);
+	d_lev_d_skew = (level - level_ref)/dskew;
+	d_p_d_skew = (length/length_ref - 1.0)/dskew;
+
+	NEW(0, dkurt);
+	d_lev_d_kurt = (level - level_ref)/dkurt;
+	d_p_d_kurt = (length/length_ref - 1.0)/dkurt;
+
+	double Jacobian = d_lev_d_skew * d_p_d_kurt - d_p_d_skew * d_lev_d_kurt;
+	P(log(ABS(Jacobian)));
+#undef NEW
+	return ldens_uniform + ldens_dist + log(ABS(Jacobian));
+}
+double re_find_in_sas_prior_table(double skew, double kurt)
+{
+	/* 
+	   return the level based on 'skew' and 'kurt'
+	 */
+
+	int ix = re_find_in_table_general(skew, sas_prior_table->x, sas_prior_table->nx);
+	int iy = re_find_in_table_general(kurt, sas_prior_table->y, sas_prior_table->ny);
+	//printf("skew %g kurt %g gives ix %d iy %d\n", skew, kurt, ix, iy);
+	assert(LEGAL(ix, sas_prior_table->nx));
+	assert(LEGAL(iy, sas_prior_table->ny));
+
+	/* 
+	   so the notation is like the one in 
+	   https://en.wikipedia.org/wiki/Bilinear_interpolation
+	 */
+#define LEVEL(_i, _j) sas_prior_table->z[(_i) + sas_prior_table->nx * (_j)]
+	double x1, x2, y1, y2, x, y, fQ11, fQ12, fQ21, fQ22, level;
+
+	x1 = sas_prior_table->x[ix];
+	x2 = sas_prior_table->x[ix+1];
+	y1 = sas_prior_table->y[iy];
+	y2 = sas_prior_table->y[iy+1];
+	fQ11 = LEVEL(ix, iy);
+	fQ21 = LEVEL(ix+1, iy);
+	fQ12 = LEVEL(ix, iy+1);
+	fQ22 = LEVEL(ix+1, iy+1);
+	x = skew;
+	y = kurt;
+
+	level = 1.0 / ( DMAX(DBL_EPSILON, x2-x1) * DMAX(DBL_EPSILON, y2-y1) )
+		* (fQ11 * (x2 - x) * (y2 - y) +
+		   fQ21 * (x - x1) * (y2 - y) +
+		   fQ12 * (x2 - x) * (y - y1) +
+		   fQ22 * (x - x1) * (y - y1));
+#undef LEVEL
+	return level;
+}
+
+int re_find_in_table_general(double value, double *x, int nx)
+{
+	// x[SOL] < value but the largest one
+	int debug = 0;
+	
+	if (value < x[0]){
+		return -1;
+	}
+	if (value > x[nx-1]){
+		return nx;
+	}
+
+	int low = 0, high = nx - 1, new_guess;
+
+	while(GMRFLib_TRUE) {
+		if (debug){
+			printf("locate %g low %d high %d\n", value, low, high);
+		}
+		if (high - low == 1) {
+			if (debug){
+				printf("locate %g found %d\n", value, low);
+			}
+			return (low);
+		}
+		new_guess = (int) ((low + high) / 2);
+		if (x[new_guess] <= value) {
+			low = new_guess;
+		} else {
+			high = new_guess;
+		}
+	}
+}
+
+int re_read_sas_prior_table(void)
+{
+	if (sas_prior_table) {
+		return GMRFLib_SUCCESS;
+        }
+	
+#pragma omp critical
+	{
+		if (!sas_prior_table) {
+			char *table = getenv("SAS_PRIOR_TABLE");
+			if (table == NULL){
+				fprintf(stderr, "You need to set variable 'SAS_PRIOR_TABLE'\n");
+				exit(1);
+			}
+			GMRFLib_io_tp *io;
+			GMRFLib_io_open(&io, table, "rb");
+			
+			re_sas_prior_tp *s = Calloc(1, re_sas_prior_tp);
+			double tmp[3];
+			
+			GMRFLib_io_read(io, tmp, 3*sizeof(double));
+			s->ny = (int) tmp[0];
+			s->nx = (int) tmp[1];
+			s->nz = (int) tmp[2];
+			
+			printf(" *** Read SAS_PRIOR_TABLE[%s] (nx,ny,nz) = (%1d, %1d, %1d)\n", table, s->nx, s->ny, s->nz);
+			
+#define GET(_x, _nx) _x = Calloc(_nx, double); GMRFLib_io_read(io, _x, (_nx) * sizeof(double))
+			GET(s->x, s->nx);
+			GET(s->y, s->ny);
+			GET(s->z, s->nz);
+#undef GET
+			GMRFLib_io_close(io);
+			
+			int i;
+			for(i=0; i<s->nz; i++){
+				if (s->z[i] < 0.0){
+					s->z[i] = NAN;
+				}
+			}
+
+			sas_prior_table = s;
+		}
+        }
+        return GMRFLib_SUCCESS;
 }
