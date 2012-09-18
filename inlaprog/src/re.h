@@ -50,6 +50,24 @@ __BEGIN_DECLS
 	double epsilon;
 } re_shash_param_tp;
 
+typedef struct CL {
+	struct CL *next;
+	double x0;
+	double y0;
+	double x1;
+	double y1;
+} CL, *CLP;
+
+typedef struct {
+	int nc;
+	int *ns;					       /* number of segments */
+	int *cyclic;
+	double *length;
+	double level;
+	double **x;
+	double **y;
+} inla_countour_tp;
+
 int re_valid_skew_kurt(double *dist, double skew, double kurt);
 int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
@@ -57,6 +75,16 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 int re_shash_f(const gsl_vector * x, void *data, gsl_vector * f);
 int re_shash_df(const gsl_vector * x, void *data, gsl_matrix * J);
 int re_shash_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+
+int ctr_intersect(double z0, double z1, double zc, double *f);
+CLP ctr_newseg(double x0, double y0, double x1, double y1, CLP prev);
+void ctr_swapseg(CLP seg);
+int ctr_segdir(double xend, double yend, double *x, double *y, int *i, int *j, int nx, int ny);
+CLP ctr_segupdate(double xend, double yend, int dir, int tail, CLP seglist, CLP * seg);
+CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc);
+inla_countour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB);
+inla_countour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc);
+int inla_print_contourLines(FILE *fp, inla_countour_tp *c);
 
 __END_DECLS
 #endif

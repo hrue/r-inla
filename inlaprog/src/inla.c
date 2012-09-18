@@ -19001,26 +19001,61 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
+#define GET(_int) fscanf(fp, "%d\n", &_int)
+#define GETV(_vec, _len)						\
+	if (1) {							\
+		_vec = Calloc(_len, double);				\
+		int _i;							\
+		for(_i=0; _i < _len; _i++){				\
+			fscanf(fp, "%lf\n", &_vec[_i]);			\
+			if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
+		}							\
+	}
 
-	double mean = 2, prec = 3, skew = 0.5, kurt = 3.5, t[2];
-	re_shash_param_tp param;
+	if (1) {
 
-	t[0] = GMRFLib_cpu();
-	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
-	t[1] = GMRFLib_cpu();
-	P(t[1] - t[0]);
+		FILE *fp = fopen("prior.dat",  "r");
 
-	t[0] = GMRFLib_cpu();
-	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
-	t[1] = GMRFLib_cpu();
-	P(t[1] - t[0]);
+		int nx, ny, nz;
+		double *x, *y, *z;
+		
+		GET(nx); GET(ny); GET(nz); GETV(x, nx); GETV(y, ny); GETV(z, nz);
+
+		int i, j;
+		double lev = 0.1;
+
+		for(i=0; i<nz; i++){
+			if (z[i] < 0.0){
+				z[i] = NAN;
+			}
+		}
+
+		inla_countour_tp *c;
+		c = contourLines(x, nx, y, ny, z, lev);
+
+		inla_print_contourLines(NULL, c);
+	}
+
+	if (0) {
+		double mean = 2, prec = 3, skew = 0.5, kurt = 3.5, t[2];
+		re_shash_param_tp param;
+
+		t[0] = GMRFLib_cpu();
+		re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+		t[1] = GMRFLib_cpu();
+		P(t[1] - t[0]);
+
+		t[0] = GMRFLib_cpu();
+		re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+		t[1] = GMRFLib_cpu();
+		P(t[1] - t[0]);
 
 
-	P(param.mu);
-	P(param.stdev);
-	P(param.epsilon);
-	P(param.delta);
-
+		P(param.mu);
+		P(param.stdev);
+		P(param.epsilon);
+		P(param.delta);
+	}
 
 	if (0) {
 		inla_file_contents_tp *fc;
