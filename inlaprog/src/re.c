@@ -1,3 +1,4 @@
+
 /* re.c
  * 
  * Copyright (C) 2012 Havard Rue
@@ -44,6 +45,9 @@ static const char RCSId[] = HGVERSION;
 #define M4(_epsilon, _delta) (0.125*(cosh(4.0*(_epsilon)/(_delta))*Pq(4.0/(_delta)) - \
 				     4.0*cosh(2.0*(_epsilon)/(_delta))*Pq(2.0/(_delta)) + 3.0))
 
+#define XMATCH(x0,x1) (fabs((x0)-(x1)) == 0)
+#define YMATCH(y0,y1) (fabs((y0)-(y1)) == 0)
+
 int re_valid_skew_kurt(double *dist, double skew, double kurt)
 {
 #define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
@@ -57,7 +61,6 @@ int re_valid_skew_kurt(double *dist, double skew, double kurt)
 			*dist = 0.0;
 		}
 	}
-
 #undef KURT_LIMIT
 	return retval;
 }
@@ -103,7 +106,7 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 					perr = Calloc(GMRFLib_MAX_THREADS, int);
 
 					int i;
-					for(i=0; i<GMRFLib_MAX_THREADS; i++){
+					for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 						pin[i] = Calloc(2, double);
 						pout[i] = Calloc(2, double);
 					}
@@ -125,8 +128,8 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 		 */
 		memcpy(pout_tmp, pout[thread_id], sizeof(pout_tmp));
 	} else if (!skew && !kurt) {
-		pout_tmp[0] = 0.0;				       /* epsilon */
-		pout_tmp[1] = 1.0;				       /* delta */
+		pout_tmp[0] = 0.0;			       /* epsilon */
+		pout_tmp[1] = 1.0;			       /* delta */
 	} else {
 		double epsilon = 0.0;
 		double delta = 1.0;
@@ -176,9 +179,8 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 
 		err = (gsl_blas_dnrm2(s->f) > 1e-6);
 		if (err) {
-			if (re_valid_skew_kurt(NULL, target[0], target[1]) == GMRFLib_TRUE){
-				fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g, but VALID FAIL!\n",
-					target[0], target[1], gsl_blas_dnrm2(s->f));
+			if (re_valid_skew_kurt(NULL, target[0], target[1]) == GMRFLib_TRUE) {
+				fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g, but VALID FAIL!\n", target[0], target[1], gsl_blas_dnrm2(s->f));
 			}
 		}
 
@@ -190,7 +192,7 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 	}
 
 	double m1, m2, mu, stdev, ss;
-	
+
 	m1 = M1(pout_tmp[0], pout_tmp[1]);
 	m2 = M2(pout_tmp[0], pout_tmp[1]);
 	ss = sqrt(m2 - SQR(m1));
@@ -202,12 +204,12 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 	param->epsilon = pout_tmp[0];
 	param->delta = pout_tmp[1];
 
-	if (use_lookup){
+	if (use_lookup) {
 		perr[thread_id] = err;
 		memcpy(pin[thread_id], npin, sizeof(npin));
 		memcpy(pout[thread_id], pout_tmp, sizeof(pout_tmp));
 	}
-		
+
 	return (err ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
 int re_shash_f(const gsl_vector * x, void *data, gsl_vector * f)
@@ -227,7 +229,7 @@ int re_shash_f(const gsl_vector * x, void *data, gsl_vector * f)
 }
 int re_shash_df(const gsl_vector * x, void *data, gsl_matrix * J)
 {
-	double h = GMRFLib_eps(1. / 3.), epsilon, delta, skew_h, skew_mh, kurt_h, kurt_mh; 
+	double h = GMRFLib_eps(1. / 3.), epsilon, delta, skew_h, skew_mh, kurt_h, kurt_mh;
 
 	epsilon = gsl_vector_get(x, 0);
 	delta = gsl_vector_get(x, 1);
@@ -250,4 +252,452 @@ int re_shash_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * 
 	re_shash_df(x, data, J);
 
 	return GSL_SUCCESS;
+}
+
+/* 
+   The countourLine-code is taken from R: plot3d.c
+ */
+int ctr_intersect(double z0, double z1, double zc, double *f)
+{
+	if ((z0 - zc) * (z1 - zc) < 0.0) {
+		*f = (zc - z0) / (z1 - z0);
+		return 1;
+	}
+	return 0;
+}
+CLP ctr_newseg(double x0, double y0, double x1, double y1, CLP prev)
+{
+	CLP seg = (CLP) calloc(1, sizeof(CL));
+	seg->x0 = x0;
+	seg->y0 = y0;
+	seg->x1 = x1;
+	seg->y1 = y1;
+	seg->next = prev;
+	return seg;
+}
+
+void ctr_swapseg(CLP seg)
+{
+	double x, y;
+	x = seg->x0;
+	y = seg->y0;
+	seg->x0 = seg->x1;
+	seg->y0 = seg->y1;
+	seg->x1 = x;
+	seg->y1 = y;
+}
+
+int ctr_segdir(double xend, double yend, double *x, double *y, int *i, int *j, int nx, int ny)
+{
+	if (YMATCH(yend, y[*j])) {
+		if (*j == 0)
+			return 0;
+		*j = *j - 1;
+		return 3;
+	}
+	if (XMATCH(xend, x[*i])) {
+		if (*i == 0)
+			return 0;
+		*i = *i - 1;
+		return 4;
+	}
+	if (YMATCH(yend, y[*j + 1])) {
+		if (*j >= ny - 1)
+			return 0;
+		*j = *j + 1;
+		return 1;
+	}
+	if (XMATCH(xend, x[*i + 1])) {
+		if (*i >= nx - 1)
+			return 0;
+		*i = *i + 1;
+		return 2;
+	}
+	return 0;
+}
+
+CLP ctr_segupdate(double xend, double yend, int dir, int tail, CLP seglist, CLP * seg)
+{
+	if (seglist == NULL) {
+		*seg = NULL;
+		return NULL;
+	}
+	switch (dir) {
+	case 1:
+	case 3:
+		if (YMATCH(yend, seglist->y0)) {
+			if (!tail)
+				ctr_swapseg(seglist);
+			*seg = seglist;
+			return seglist->next;
+		}
+		if (YMATCH(yend, seglist->y1)) {
+			if (tail)
+				ctr_swapseg(seglist);
+			*seg = seglist;
+			return seglist->next;
+		}
+		break;
+	case 2:
+	case 4:
+		if (XMATCH(xend, seglist->x0)) {
+			if (!tail)
+				ctr_swapseg(seglist);
+			*seg = seglist;
+			return seglist->next;
+		}
+		if (XMATCH(xend, seglist->x1)) {
+			if (tail)
+				ctr_swapseg(seglist);
+			*seg = seglist;
+			return seglist->next;
+		}
+		break;
+	}
+	seglist->next = ctr_segupdate(xend, yend, dir, tail, seglist->next, seg);
+	return seglist;
+}
+
+CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc)
+{
+	double f, xl, xh, yl, yh, zll, zhl, zlh, zhh, xx[4], yy[4];
+	double atom = GMRFLib_eps(0.5);
+	int i, j, k, l, m, nacode;
+	CLP seglist;
+	CLP *segmentDB;
+	segmentDB = (CLP *) calloc(nx * ny, sizeof(CLP));
+	for (i = 0; i < nx; i++)
+		for (j = 0; j < ny; j++)
+			segmentDB[i + j * nx] = NULL;
+	for (i = 0; i < nx - 1; i++) {
+		xl = x[i];
+		xh = x[i + 1];
+		for (j = 0; j < ny - 1; j++) {
+			yl = y[j];
+			yh = y[j + 1];
+			k = i + j * nx;
+			zll = z[k];
+			zhl = z[k + 1];
+			zlh = z[k + nx];
+			zhh = z[k + nx + 1];
+
+			/*
+			 * If the value at a corner is exactly equal to a contour level, change that value by a tiny amount 
+			 */
+
+			if (zll == zc)
+				zll += atom;
+			if (zhl == zc)
+				zhl += atom;
+			if (zlh == zc)
+				zlh += atom;
+			if (zhh == zc)
+				zhh += atom;
+			/*
+			 * Check for intersections with sides 
+			 */
+
+			nacode = 0;
+			if (isfinite(zll))
+				nacode += 1;
+			if (isfinite(zhl))
+				nacode += 2;
+			if (isfinite(zlh))
+				nacode += 4;
+			if (isfinite(zhh))
+				nacode += 8;
+
+			k = 0;
+			switch (nacode) {
+			case 15:
+				if (ctr_intersect(zll, zhl, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yl;
+					k++;
+				}
+				if (ctr_intersect(zll, zlh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xl;
+					k++;
+				}
+				if (ctr_intersect(zhl, zhh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xh;
+					k++;
+				}
+				if (ctr_intersect(zlh, zhh, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yh;
+					k++;
+				}
+				break;
+			case 14:
+				if (ctr_intersect(zhl, zhh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xh;
+					k++;
+				}
+				if (ctr_intersect(zlh, zhh, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yh;
+					k++;
+				}
+				if (ctr_intersect(zlh, zhl, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yh + f * (yl - yh);
+					k++;
+				}
+				break;
+			case 13:
+				if (ctr_intersect(zll, zlh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xl;
+					k++;
+				}
+				if (ctr_intersect(zlh, zhh, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yh;
+					k++;
+				}
+				if (ctr_intersect(zll, zhh, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yl + f * (yh - yl);
+					k++;
+				}
+				break;
+			case 11:
+				if (ctr_intersect(zhl, zhh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xh;
+					k++;
+				}
+				if (ctr_intersect(zll, zhl, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yl;
+					k++;
+				}
+				if (ctr_intersect(zll, zhh, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yl + f * (yh - yl);
+					k++;
+				}
+				break;
+			case 7:
+				if (ctr_intersect(zll, zlh, zc, &f)) {
+					yy[k] = yl + f * (yh - yl);
+					xx[k] = xl;
+					k++;
+				}
+				if (ctr_intersect(zll, zhl, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yl;
+					k++;
+				}
+				if (ctr_intersect(zlh, zhl, zc, &f)) {
+					xx[k] = xl + f * (xh - xl);
+					yy[k] = yh + f * (yl - yh);
+					k++;
+				}
+				break;
+			}
+
+			/*
+			 * We now have k(=2,4) endpoints 
+			 */
+			/*
+			 * Decide which to join 
+			 */
+
+			seglist = NULL;
+
+			if (k > 0) {
+				if (k == 2) {
+					seglist = ctr_newseg(xx[0], yy[0], xx[1], yy[1], seglist);
+				} else if (k == 4) {
+					for (k = 3; k >= 1; k--) {
+						m = k;
+						xl = xx[k];
+						for (l = 0; l < k; l++) {
+							if (xx[l] > xl) {
+								xl = xx[l];
+								m = l;
+							}
+						}
+						if (m != k) {
+							xl = xx[k];
+							yl = yy[k];
+							xx[k] = xx[m];
+							yy[k] = yy[m];
+							xx[m] = xl;
+							yy[m] = yl;
+						}
+					}
+					seglist = ctr_newseg(xx[0], yy[0], xx[1], yy[1], seglist);
+					seglist = ctr_newseg(xx[2], yy[2], xx[3], yy[3], seglist);
+
+				} else {
+					int inla_error_general(const char *msg);
+					inla_error_general("k != 2 or 4");
+				}
+			}
+			segmentDB[i + j * nx] = seglist;
+		}
+	}
+	return segmentDB;
+}
+inla_countour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB)
+{
+	/*
+	 * this function leaks memory, as the second contourLines2()-call, revise the 'segmentDB' object without free objects discared.
+	 */
+
+	if (segmentDB == NULL) {
+		CLP *seg;
+		inla_countour_tp *c;
+		seg = contourLines1(x, nx, y, ny, z, zc);
+		c = contourLines2(x, nx, y, ny, z, zc, seg);
+		Free(seg);
+		return c;
+	} else {
+		double xend, yend;
+		int i, ii, j, jj, ns, dir;
+		CLP seglist, seg, s, start, end;
+		/*
+		 * Begin following contours. 
+		 */
+		/*
+		 * 1. Grab a segment 
+		 */
+		/*
+		 * 2. Follow its tail 
+		 */
+		/*
+		 * 3. Follow its head 
+		 */
+		/*
+		 * 4. Save the contour 
+		 */
+
+		inla_countour_tp *c = Calloc(1, inla_countour_tp);
+		c->level = zc;
+
+		for (i = 0; i < nx - 1; i++)
+			for (j = 0; j < ny - 1; j++) {
+				while ((seglist = segmentDB[i + j * nx])) {
+					ii = i;
+					jj = j;
+					start = end = seglist;
+					segmentDB[i + j * nx] = seglist->next;
+					xend = seglist->x1;
+					yend = seglist->y1;
+					while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
+						segmentDB[ii + jj * nx]
+						    = ctr_segupdate(xend, yend, dir, GMRFLib_TRUE,	/* = tail */
+								    segmentDB[ii + jj * nx], &seg);
+						if (!seg)
+							break;
+						end->next = seg;
+						end = seg;
+						xend = end->x1;
+						yend = end->y1;
+					}
+					end->next = NULL;      /* <<< new for 1.2.3 */
+					ii = i;
+					jj = j;
+					xend = seglist->x0;
+					yend = seglist->y0;
+					while ((dir = ctr_segdir(xend, yend, x, y, &ii, &jj, nx, ny))) {
+						segmentDB[ii + jj * nx]
+						    = ctr_segupdate(xend, yend, dir, GMRFLib_FALSE,	/* ie. head */
+								    segmentDB[ii + jj * nx], &seg);
+						if (!seg)
+							break;
+						seg->next = start;
+						start = seg;
+						xend = start->x0;
+						yend = start->y0;
+					}
+
+					/*
+					 * ns := #{segments of polyline} -- need to allocate 
+					 */
+					s = start;
+					ns = 0;
+					while (s && ns < INT_MAX) {
+						ns++;
+						s = s->next;
+					}
+					/*
+					 * "write" the contour locations into the list of contours
+					 */
+					double *x, *y;
+
+					x = Calloc(ns + 1, double);
+					y = Calloc(ns + 1, double);
+					s = start;
+					x[0] = s->x0;
+					y[0] = s->y0;
+					ns = 1;
+					while (s->next) {
+						s = s->next;
+						x[ns] = s->x0;
+						y[ns] = s->y0;
+						ns++;
+					}
+					x[ns] = s->x1;
+					y[ns] = s->y1;
+
+					if (0) {
+						int ii;
+						for (ii = 0; ii < ns + 1; ii++) {
+							printf("(x,y) = ( %g %g )\n", x[ii], y[ii]);
+						}
+					}
+
+					int ii;
+					double len = 0.0;
+					for (ii = 1; ii < ns + 1; ii++) {
+						len += sqrt(SQR(x[ii] - x[ii-1]) + SQR(y[ii] - y[ii-1]));
+					}
+
+					c->nc++;
+					c->ns = Realloc(c->ns, c->nc, int);
+					c->cyclic = Realloc(c->cyclic, c->nc, int);
+					c->length = Realloc(c->length, c->nc, double);
+					c->x = Realloc(c->x, c->nc, double *);
+					c->y = Realloc(c->y, c->nc, double *);
+					c->ns[c->nc - 1] = ns;
+					c->cyclic[c->nc - 1] = (x[0] == x[ns]) && (y[0] == y[ns]);
+					c->length[c->nc - 1] = len;
+					c->x[c->nc - 1] = x;
+					c->y[c->nc - 1] = y;
+				}
+			}
+		return c;
+	}
+}
+inla_countour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc)
+{
+	return (contourLines2(x, nx, y, ny, z, zc, NULL));
+}
+int inla_print_contourLines(FILE *fp, inla_countour_tp *c)
+{
+	int i, j;
+
+	if (fp == NULL){
+		fp = stdout;
+	}
+	fprintf(fp, "Number of contours %1d for level %g\n", c->nc, c->level);
+	for(i=0; i<c->nc; i++){
+		fprintf(fp, "\tContour %1d\n", i);
+		fprintf(fp, "\tNumber of segments %1d\n", c->ns[i]);
+		fprintf(fp, "\tLength %g\n", c->length[i]);
+		fprintf(fp, "\tCyclic = %1d\n", c->x[i][0] == c->x[i][c->ns[i]] && c->y[i][0] == c->y[i][c->ns[i]]);
+		fprintf(fp, "\tPoints:\n");
+		for(j=0; j<c->ns[i]+1; j++){
+			fprintf(fp, "\t\t(x,y) = %g %g\n", c->x[i][j], c->y[i][j]);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
 }
