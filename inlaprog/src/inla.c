@@ -14122,28 +14122,13 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
 				}
-				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					skew = theta[count];
-					val += PRIOR_EVAL(ds->data_prior1, &skew);
-					count++;
-				} else {
-					skew = ds->data_observations.sas_skew[0][0];
-				}
-				if (!ds->data_fixed2) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					kurt = theta[count];
-					val += PRIOR_EVAL(ds->data_prior2, &kurt);
-					count++;
-				} else {
-					kurt = ds->data_observations.sas_kurt[0][0];
-				}
+
+				assert(!ds->data_fixed1);
+				assert(!ds->data_fixed2);
+				skew = theta[count];
+				count++;
+				kurt = theta[count];
+				count++;
 
 				if (1) {
 					/*
@@ -14153,8 +14138,10 @@ double extra(double *theta, int ntheta, void *argument)
 					if (re_valid_skew_kurt(&d, skew, kurt) == GMRFLib_FALSE) {
 						val += PENALTY * (10 * d);
 					}
-					FIXME1("RECALL TO ADD CORRECTION FOR THE NORMALIZING CONSTANT!");
 				}
+
+				val += re_sas_evaluate_log_prior(skew, kurt);
+
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 				if (!ds->data_fixed) {
 					/*
@@ -19001,41 +18988,63 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
+	if (1){
+
+		double skew = 0.1;
+		double kurt = 3.23;
+		int i;
+
+		for(i=0; i<20; i++){
+			double val;
+			val = re_sas_evaluate_log_prior(skew, kurt);
+			printf("%g %g %g\n", skew, kurt, val);
+
+			skew += 0.01;
+			kurt += 0.01;
+		}
+	}
+
+	if (0) {
 #define GET(_int) fscanf(fp, "%d\n", &_int)
 #define GETV(_vec, _len)						\
-	if (1) {							\
-		_vec = Calloc(_len, double);				\
-		int _i;							\
-		for(_i=0; _i < _len; _i++){				\
-			fscanf(fp, "%lf\n", &_vec[_i]);			\
-			if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
-		}							\
-	}
-
-	if (1) {
-
-		FILE *fp = fopen("prior.dat",  "r");
-
-		int nx, ny, nz;
-		double *x, *y, *z;
-		
-		GET(nx); GET(ny); GET(nz); GETV(x, nx); GETV(y, ny); GETV(z, nz);
-
-		int i, j;
-		double lev = 0.1;
-
-		for(i=0; i<nz; i++){
-			if (z[i] < 0.0){
-				z[i] = NAN;
-			}
+		if (1) {						\
+			_vec = Calloc(_len, double);			\
+			int _i;						\
+			for(_i=0; _i < _len; _i++){			\
+				fscanf(fp, "%lf\n", &_vec[_i]);		\
+				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
+			}						\
 		}
 
-		inla_countour_tp *c;
-		c = contourLines(x, nx, y, ny, z, lev);
+		if (1) {
 
-		inla_print_contourLines(NULL, c);
+			FILE *fp = fopen("prior.dat", "r");
+
+			int nx, ny, nz;
+			double *x, *y, *z;
+
+			GET(nx);
+			GET(ny);
+			GET(nz);
+			GETV(x, nx);
+			GETV(y, ny);
+			GETV(z, nz);
+
+			int i, j;
+			double lev = 0.1;
+
+			for (i = 0; i < nz; i++) {
+				if (z[i] < 0.0) {
+					z[i] = NAN;
+				}
+			}
+
+			inla_contour_tp *c;
+			c = contourLines(x, nx, y, ny, z, lev);
+
+			inla_print_contourLines(NULL, c);
+		}
 	}
-
 	if (0) {
 		double mean = 2, prec = 3, skew = 0.5, kurt = 3.5, t[2];
 		re_shash_param_tp param;

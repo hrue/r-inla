@@ -66,8 +66,21 @@ typedef struct {
 	double level;
 	double **x;
 	double **y;
-} inla_countour_tp;
+} inla_contour_tp;
 
+typedef struct
+{
+	int nx;
+	int ny;
+	int nz;
+
+	double *x;
+	double *y;
+	double *z;
+}
+	re_sas_prior_tp;
+
+int re_read_sas_prior_table(void);
 int re_valid_skew_kurt(double *dist, double skew, double kurt);
 int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
@@ -82,9 +95,16 @@ void ctr_swapseg(CLP seg);
 int ctr_segdir(double xend, double yend, double *x, double *y, int *i, int *j, int nx, int ny);
 CLP ctr_segupdate(double xend, double yend, int dir, int tail, CLP seglist, CLP * seg);
 CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc);
-inla_countour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB);
-inla_countour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc);
-int inla_print_contourLines(FILE *fp, inla_countour_tp *c);
+inla_contour_tp *contourLines2(double *x, int nx, double *y, int ny, double *z, double zc, CLP * segmentDB);
+inla_contour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, double zc);
+int inla_print_contourLines(FILE *fp, inla_contour_tp *c);
+int inla_free_contourLines(inla_contour_tp *c);
+
+double re_sas_evaluate_log_prior(double skew, double kurt);
+double re_find_in_sas_prior_table(double skew, double kurt);
+int re_find_in_table_general(double value, double *x, int nx);
+int re_read_sas_prior_table(void);
+
 
 __END_DECLS
 #endif
