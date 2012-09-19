@@ -509,7 +509,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				}
 				density->log_norm_const = 0.0;
 				GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
-				ldmax = GMRFLib_max_value(ldm, npm);
+				ldmax = GMRFLib_max_value(ldm, npm, NULL);
 				GMRFLib_adjust_vector(ldm, npm);	/* so its well-behaved... */
 
 				integral = exp(ldm[0]) + exp(ldm[npm - 1]);
@@ -1400,8 +1400,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->type = GMRFLib_DENSITY_TYPE_SCGAUSSIAN;
 			(*density)->std_mean = std_mean;
 			(*density)->std_stdev = std_stdev;
-			(*density)->x_min = GMRFLib_min_value(xx, n);
-			(*density)->x_max = GMRFLib_max_value(xx, n);
+			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
+			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */

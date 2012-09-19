@@ -202,7 +202,7 @@ int GMRFLib_adjust_vector(double *x, int n)
 		return GMRFLib_SUCCESS;
 	}
 
-	max_value = GMRFLib_max_value(x, n);
+	max_value = GMRFLib_max_value(x, n, NULL);
 	for (i = 0; i < n; i++) {
 		x[i] -= max_value;
 	}
@@ -221,7 +221,7 @@ int GMRFLib_scale_vector(double *x, int n)
 		return GMRFLib_SUCCESS;
 	}
 
-	scale = GMRFLib_max_value(x, n);
+	scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
 		scale = 1.0 / scale;
 		for (i = 0; i < n; i++) {
@@ -231,7 +231,7 @@ int GMRFLib_scale_vector(double *x, int n)
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_min_value(double *x, int n)
+double GMRFLib_min_value(double *x, int n, int *idx)
 {
 	/*
 	 * return the MIN(x[]) 
@@ -240,13 +240,21 @@ double GMRFLib_min_value(double *x, int n)
 	double min_val;
 
 	min_val = x[0];
+	if (idx) {
+		*idx = 0;
+	}
 	for (i = 1; i < n; i++) {
-		min_val = DMIN(min_val, x[i]);
+		if (x[i] < min_val) {
+			min_val = x[i];
+			if (idx) {
+				*idx = i;
+			}
+		}
 	}
 
 	return min_val;
 }
-int GMRFLib_imin_value(int *x, int n)
+int GMRFLib_imin_value(int *x, int n, int *idx)
 {
 	/*
 	 * return the IMIN(x[]) 
@@ -255,28 +263,44 @@ int GMRFLib_imin_value(int *x, int n)
 	int min_val;
 
 	min_val = x[0];
+	if (idx) {
+		*idx = 0;
+	}
 	for (i = 1; i < n; i++) {
-		min_val = IMIN(min_val, x[i]);
+		if (x[i] < min_val) {
+			min_val = x[i];
+			if (idx) {
+				*idx = i;
+			}
+		}
 	}
 
 	return min_val;
 }
-double GMRFLib_max_value(double *x, int n)
+double GMRFLib_max_value(double *x, int n, int *idx)
 {
 	/*
-	 * return the MAX(x[]) 
+	 * return the MAX(x[]), optional idx
 	 */
 	int i;
 	double max_val;
 
 	max_val = x[0];
+	if (idx) {
+		*idx = 0;
+	}
 	for (i = 1; i < n; i++) {
-		max_val = DMAX(max_val, x[i]);
+		if (x[i] > max_val){
+			max_val = x[i];
+			if (idx) {
+				*idx = i;
+			}
+		}
 	}
 
 	return max_val;
 }
-int GMRFLib_imax_value(int *x, int n)
+int GMRFLib_imax_value(int *x, int n, int *idx)
 {
 	/*
 	 * return IMAX(x[]) 
@@ -286,8 +310,16 @@ int GMRFLib_imax_value(int *x, int n)
 	int max_val;
 
 	max_val = x[0];
+	if (idx) {
+		*idx = 0;
+	}
 	for (i = 1; i < n; i++) {
-		max_val = IMAX(max_val, x[i]);
+		if (x[i] > max_val) {
+			max_val = x[i];
+			if (idx) {
+				*idx = i;
+			}
+		}
 	}
 
 	return max_val;

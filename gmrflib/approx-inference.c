@@ -5214,7 +5214,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 			if (interpol != GMRFLib_AI_INTERPOLATOR_CCD && interpol != GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE &&
 			    interpol != GMRFLib_AI_INTERPOLATOR_GRIDSUM) {
-				double bvalue = GMRFLib_min_value(hyper_ldens, hyper_count);
+				double bvalue = GMRFLib_min_value(hyper_ldens, hyper_count, NULL);
 
 				for (ntimes = 0; ntimes < 2; ntimes++) {
 					int guard_count = 0;
@@ -6107,7 +6107,7 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 		/*
 		 * a final check 
 		 */
-		mode = GMRFLib_max_value(logdens, *n);
+		mode = GMRFLib_max_value(logdens, *n, NULL);
 		if (mode - DMAX(logdens[0], logdens[*n - 1]) < ai_par->cpo_req_diff_logdens) {
 			/*
 			 * this is no good... 
