@@ -134,9 +134,6 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 		pout_tmp[0] = 0.0;			       /* epsilon */
 		pout_tmp[1] = 1.0;			       /* delta */
 	} else {
-		double epsilon = 0.0;
-		double delta = 1.0;
-
 		gsl_vector *x = gsl_vector_alloc(2);
 		gsl_vector_set(x, 0, 0.0);		       /* initial values */
 		gsl_vector_set(x, 1, 1.0);
@@ -711,48 +708,47 @@ int inla_free_contourLines(inla_contour_tp *c)
 
 double re_point_on_countour(inla_contour_tp *c, double skew, double kurt)
 {
-#define WRAP(_i) (((_i) + c->ns[ic]+1) % (c->ns[ic]+1))
-#define BETWEEN(_x, _x0, _x1) (( (_x) >= (_x0) && (_x) <= (_x1)) || ((_x) >= (_x1) && (_x) <= (_x0)) )
+#define WRAPIT(_i) (((_i) + c->ns[ic]+1) % (c->ns[ic]+1))
+#define INBETWEEN(_x, _x0, _x1) (( (_x) >= (_x0) && (_x) <= (_x1)) || ((_x) >= (_x1) && (_x) <= (_x0)) )
 
 	/* 
-	   locate the corresponding 'point' on the contour
+	   locate the corresponding 'point' on the contour; counted as the length around the contour from a well defined starting point.
 	 */
 	
 	int i, j, start_idx, ic, direction;
 	double len;
 	
 	GMRFLib_max_value(c->length, c->nc, &ic);
-	P(c->cyclic[ic]);
 	if (c->cyclic[ic]) {
 		GMRFLib_min_value(c->y[ic], c->ns[ic]+1, &start_idx);
 	} else {
 		start_idx = 0;				       /* this seems to be the case from the contourLines routine */
-		assert(c->x[ic][WRAP(start_idx + 1)] < c->x[ic][start_idx]);
-	}
-
-	P(start_idx);
-
-	// find the direction
-	if (c->x[ic][WRAP(start_idx + 1)] < c->x[ic][start_idx]){
-		direction = 1;
-	} else {
-		direction = -1;
-	}
-
-	len = 0.0;
-	for(i = start_idx, j = 0; j < c->ns[ic]+1;  i = WRAP(i+direction), j++) {
-		if (BETWEEN(skew, c->x[ic][i], c->x[ic][WRAP(i+direction)]) &&
-		    BETWEEN(kurt, c->y[ic][i], c->y[ic][WRAP(i+direction)])) {
-			len += sqrt(SQR(c->x[ic][i] - skew) + SQR(c->y[ic][i] - kurt));
-			break;
-		} else {
-			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAP(i+direction)]) + SQR(c->y[ic][i] - c->y[ic][WRAP(i+direction)]));
+		if (!(c->x[ic][WRAPIT(start_idx + 1)] < c->x[ic][start_idx])){
+			FILE *fp = fopen("contour.dat", "w");
+			inla_print_contourLines(fp, c);
+			fprintf(stderr, "\n\n *** trouble; file written....\n\n");
+			assert(0 == 1);
 		}
 	}
-	P(i);
-#undef WRAP
-#undef BETWEEN	
-	return len / c->length[ic];
+
+	//P(start_idx);
+	direction = (c->x[ic][WRAPIT(start_idx + 1)] < c->x[ic][start_idx] ? 1 : -1);
+
+	len = 0.0;
+	for(i = start_idx, j = 0; j < c->ns[ic]+1;  i = WRAPIT(i+direction), j++) {
+		if (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i+direction)]) &&
+		    INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i+direction)])) {
+			len += sqrt(SQR(c->x[ic][i] - skew) +
+				    SQR(c->y[ic][i] - kurt));
+			break;
+		} else {
+			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i+direction)]) +
+				    SQR(c->y[ic][i] - c->y[ic][WRAPIT(i+direction)]));
+		}
+	}
+#undef WRAPIT
+#undef INBETWEEN	
+	return len;
 }
 double re_sas_evaluate_log_prior(double skew, double kurt)
 {
@@ -762,37 +758,33 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		double level;
 		inla_contour_tp *c; 
 		double ldens_uniform, ldens_dist, length = 0, point;
-	
-		if (re_valid_skew_kurt(NULL, skew, kurt) == GMRFLib_FALSE) {
-			return -100000000.0;
-		}
 
 		re_read_sas_prior_table();
 		level = re_find_in_sas_prior_table(skew, kurt);	       /* level for the contour */
+		if (ISNAN(level)){
+			return 0.0;
+		}
 		c = contourLines(sas_prior_table->x, sas_prior_table->nx,
 				 sas_prior_table->y, sas_prior_table->ny,
 				 sas_prior_table->z, level);
-		P(skew);
-		P(kurt);
-		P(level);
 		assert(c->nc);
 		length = GMRFLib_max_value(c->length, c->nc, NULL);
 		ldens_uniform = log(1.0/length);
 		point = re_point_on_countour(c, skew, kurt);
 		inla_free_contourLines(c);
 
-		P(point);
-	
-		double lambda = 100;
+		double lambda = 20;
 		ldens_dist = log(lambda) -lambda * level;
 
 #define NEW(dskew, dkurt)						\
 		if (1)							\
 		{							\
 			level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt); \
+			if (ISNAN(level)) return 0.0;			\
 			c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
 					 sas_prior_table->y, sas_prior_table->ny, \
 					 sas_prior_table->z, level);	\
+			assert(c->nc);					\
 			int ic_max;					\
 			GMRFLib_max_value(c->length, c->nc, &ic_max);	\
 			length = c->length[ic_max];			\
@@ -801,7 +793,7 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		}
 
 		double d_level_d_skew, d_level_d_kurt, d_point_d_skew, d_point_d_kurt;
-		double level_ref = level, length_ref = length, point_ref = point;
+		double level_ref = level, point_ref = point;
 		double dskew = 0.1, dkurt = 0.1;
 	
 		NEW(dskew, 0);
@@ -813,9 +805,8 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		d_point_d_kurt = (point - point_ref)/dkurt;
 
 		double Jacobian = ABS(d_level_d_skew * d_point_d_kurt - d_point_d_skew * d_level_d_kurt);
-		P(log(Jacobian));
 #undef NEW
-		P(ldens_uniform + ldens_dist + log(Jacobian));
+		//P(ldens_uniform + ldens_dist + log(Jacobian));
 		return ldens_uniform + ldens_dist + log(Jacobian);
 	}
 }

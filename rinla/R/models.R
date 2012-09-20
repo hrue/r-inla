@@ -2629,7 +2629,7 @@
                                       initial = 0,
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 0.01),
+                                      param = c(1, 0.00005),
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       ),
