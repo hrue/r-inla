@@ -104,12 +104,12 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 #pragma omp critical
 			{
 				if (!pin && !pout && !perr) {
-					pin = Calloc(GMRFLib_MAX_THREADS, double *);
-					pout = Calloc(GMRFLib_MAX_THREADS, double *);
-					perr = Calloc(GMRFLib_MAX_THREADS, int);
+					pin = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					pout = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					perr = Calloc(ISQR(GMRFLib_MAX_THREADS), int);
 
 					int i;
-					for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+					for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 						pin[i] = Calloc(2, double);
 						pout[i] = Calloc(2, double);
 					}
@@ -119,17 +119,17 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 	}
 
 	double npin[2], pout_tmp[2];
-	int thread_id, err = 0, debug = 0;
+	int id, err = 0, debug = 0;
 
-	thread_id = omp_get_thread_num();
+	id = omp_get_thread_num() + GMRFLib_thread_id * GMRFLib_MAX_THREADS;
 	npin[0] = (skew ? *skew : 0.0);
 	npin[1] = (kurt ? *kurt : 3.0);
 
-	if (use_lookup && memcmp(npin, pin[thread_id], sizeof(npin)) == 0) {
+	if (use_lookup && memcmp(npin, pin[id], sizeof(npin)) == 0) {
 		/*
 		 * we have already computed these values
 		 */
-		memcpy(pout_tmp, pout[thread_id], sizeof(pout_tmp));
+		memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
 	} else if (!skew && !kurt) {
 		pout_tmp[0] = 0.0;			       /* epsilon */
 		pout_tmp[1] = 1.0;			       /* delta */
@@ -208,9 +208,9 @@ int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *pre
 	param->delta = pout_tmp[1];
 
 	if (use_lookup) {
-		perr[thread_id] = err;
-		memcpy(pin[thread_id], npin, sizeof(npin));
-		memcpy(pout[thread_id], pout_tmp, sizeof(pout_tmp));
+		perr[id] = err;
+		memcpy(pin[id], npin, sizeof(npin));
+		memcpy(pout[id], pout_tmp, sizeof(pout_tmp));
 	}
 
 	return (err ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
@@ -709,63 +709,115 @@ int inla_free_contourLines(inla_contour_tp *c)
 
 // 
 
+double re_point_on_countour(inla_contour_tp *c, double skew, double kurt)
+{
+#define WRAP(_i) (((_i) + c->ns[ic]+1) % (c->ns[ic]+1))
+#define BETWEEN(_x, _x0, _x1) (( (_x) >= (_x0) && (_x) <= (_x1)) || ((_x) >= (_x1) && (_x) <= (_x0)) )
+
+	/* 
+	   locate the corresponding 'point' on the contour
+	 */
+	
+	int i, j, start_idx, ic, direction;
+	double len;
+	
+	GMRFLib_max_value(c->length, c->nc, &ic);
+	P(c->cyclic[ic]);
+	if (c->cyclic[ic]) {
+		GMRFLib_min_value(c->y[ic], c->ns[ic]+1, &start_idx);
+	} else {
+		start_idx = 0;				       /* this seems to be the case from the contourLines routine */
+		assert(c->x[ic][WRAP(start_idx + 1)] < c->x[ic][start_idx]);
+	}
+
+	P(start_idx);
+
+	// find the direction
+	if (c->x[ic][WRAP(start_idx + 1)] < c->x[ic][start_idx]){
+		direction = 1;
+	} else {
+		direction = -1;
+	}
+
+	len = 0.0;
+	for(i = start_idx, j = 0; j < c->ns[ic]+1;  i = WRAP(i+direction), j++) {
+		if (BETWEEN(skew, c->x[ic][i], c->x[ic][WRAP(i+direction)]) &&
+		    BETWEEN(kurt, c->y[ic][i], c->y[ic][WRAP(i+direction)])) {
+			len += sqrt(SQR(c->x[ic][i] - skew) + SQR(c->y[ic][i] - kurt));
+			break;
+		} else {
+			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAP(i+direction)]) + SQR(c->y[ic][i] - c->y[ic][WRAP(i+direction)]));
+		}
+	}
+	P(i);
+#undef WRAP
+#undef BETWEEN	
+	return len / c->length[ic];
+}
 double re_sas_evaluate_log_prior(double skew, double kurt)
 {
-	double level;
-	inla_contour_tp *c; 
-	double ldens_uniform, ldens_dist, length = 0;
-	int i;
+	if (GMRFLib_FALSE){
+		return -0.5 * 1 * SQR(skew) - 0.5 * 1 * SQR(kurt-3);
+	} else {
+		double level;
+		inla_contour_tp *c; 
+		double ldens_uniform, ldens_dist, length = 0, point;
 	
-	if (re_valid_skew_kurt(NULL, skew, kurt) == GMRFLib_FALSE) {
-		return -100000000.0;
-	}
+		if (re_valid_skew_kurt(NULL, skew, kurt) == GMRFLib_FALSE) {
+			return -100000000.0;
+		}
 
-	re_read_sas_prior_table();
-	level = re_find_in_sas_prior_table(skew, kurt);	       /* level for the contour */
-	c = contourLines(sas_prior_table->x, sas_prior_table->nx,
-			 sas_prior_table->y, sas_prior_table->ny,
-			 sas_prior_table->z, level);
-	for(i=0; i<c->nc; i++)
-		length += c->length[i];
-	ldens_uniform = log(1.0/length);
-	inla_free_contourLines(c);
+		re_read_sas_prior_table();
+		level = re_find_in_sas_prior_table(skew, kurt);	       /* level for the contour */
+		c = contourLines(sas_prior_table->x, sas_prior_table->nx,
+				 sas_prior_table->y, sas_prior_table->ny,
+				 sas_prior_table->z, level);
+		P(skew);
+		P(kurt);
+		P(level);
+		assert(c->nc);
+		length = GMRFLib_max_value(c->length, c->nc, NULL);
+		ldens_uniform = log(1.0/length);
+		point = re_point_on_countour(c, skew, kurt);
+		inla_free_contourLines(c);
 
-	P(level);
+		P(point);
 	
-	double lambda = 20;
-	ldens_dist = log(lambda) -lambda * level;
+		double lambda = 100;
+		ldens_dist = log(lambda) -lambda * level;
 
-#define NEW(dskew, dkurt) if (1) \
-	{			 \
-		level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt);\
-		c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
-				 sas_prior_table->y, sas_prior_table->ny, \
-				 sas_prior_table->z, level);		\
-		for(i=0, length = 0.0; i<c->nc; i++)			\
-			length += c->length[i];				\
-		inla_free_contourLines(c);				\
-	}
+#define NEW(dskew, dkurt)						\
+		if (1)							\
+		{							\
+			level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt); \
+			c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
+					 sas_prior_table->y, sas_prior_table->ny, \
+					 sas_prior_table->z, level);	\
+			int ic_max;					\
+			GMRFLib_max_value(c->length, c->nc, &ic_max);	\
+			length = c->length[ic_max];			\
+			point = re_point_on_countour(c, skew + dskew, kurt+dkurt); \
+			inla_free_contourLines(c);			\
+		}
 
-	double d_lev_d_skew, d_lev_d_kurt, d_p_d_skew, d_p_d_kurt;
-	double level_ref = level, length_ref = length;
-	double dskew = 0.01;
-	double dkurt = 0.01;
+		double d_level_d_skew, d_level_d_kurt, d_point_d_skew, d_point_d_kurt;
+		double level_ref = level, length_ref = length, point_ref = point;
+		double dskew = 0.1, dkurt = 0.1;
 	
-	/* 
-	   I hope this is about correct
-	 */
-	NEW(dskew, 0);
-	d_lev_d_skew = (level - level_ref)/dskew;
-	d_p_d_skew = (length/length_ref - 1.0)/dskew;
+		NEW(dskew, 0);
+		d_level_d_skew = (level - level_ref)/dskew;
+		d_point_d_skew = (point - point_ref)/dskew;
 
-	NEW(0, dkurt);
-	d_lev_d_kurt = (level - level_ref)/dkurt;
-	d_p_d_kurt = (length/length_ref - 1.0)/dkurt;
+		NEW(0, dkurt);
+		d_level_d_kurt = (level - level_ref)/dkurt;
+		d_point_d_kurt = (point - point_ref)/dkurt;
 
-	double Jacobian = d_lev_d_skew * d_p_d_kurt - d_p_d_skew * d_lev_d_kurt;
-	P(log(ABS(Jacobian)));
+		double Jacobian = ABS(d_level_d_skew * d_point_d_kurt - d_point_d_skew * d_level_d_kurt);
+		P(log(Jacobian));
 #undef NEW
-	return ldens_uniform + ldens_dist + log(ABS(Jacobian));
+		P(ldens_uniform + ldens_dist + log(Jacobian));
+		return ldens_uniform + ldens_dist + log(Jacobian);
+	}
 }
 double re_find_in_sas_prior_table(double skew, double kurt)
 {
