@@ -100,6 +100,7 @@ inla_contour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, d
 int inla_print_contourLines(FILE *fp, inla_contour_tp *c);
 int inla_free_contourLines(inla_contour_tp *c);
 
+double re_point_on_countour(inla_contour_tp *c, double skew, double kurt);
 double re_sas_evaluate_log_prior(double skew, double kurt);
 double re_find_in_sas_prior_table(double skew, double kurt);
 int re_find_in_table_general(double value, double *x, int nx);

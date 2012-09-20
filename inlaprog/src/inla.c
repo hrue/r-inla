@@ -2833,7 +2833,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred, skew, kurt, s, s2, xx, mean = 0.0;
 
-	y = ds->data_observations.y[idx];		       /* not used */
+	y = ds->data_observations.y[idx];		       
 	w = ds->data_observations.sas_weight[idx];
 	lprec = ds->data_observations.sas_log_prec[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.sas_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -2846,7 +2846,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xx = (ypred - param.mu) / param.stdev;
+			xx = (y - ypred - param.mu) / param.stdev;
 			s = sinh(param.delta * asinh(xx) - param.epsilon);
 			s2 = SQR(s);
 			logll[i] = LOG_NORMC_GAUSSIAN + log(param.delta) + 0.5 * log(1.0 + s2) - 0.5 * log(1.0 + SQR(xx)) - 0.5 * s2 - log(param.stdev);
@@ -7797,7 +7797,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed) {
+		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
@@ -7836,7 +7836,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed) {
+		if (!ds->data_fixed1) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
@@ -7875,7 +7875,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed) {
+		if (!ds->data_fixed2) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
@@ -14121,7 +14121,7 @@ double extra(double *theta, int ntheta, void *argument)
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
-				}
+				} 
 
 				assert(!ds->data_fixed1);
 				assert(!ds->data_fixed2);
