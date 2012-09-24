@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2010 Havard Rue
@@ -18988,8 +18987,95 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
-	if (1){
+	if (0){
+		P(bessel_Knu(0.25, 0.2));
+		P(gsl_sf_bessel_Knu(0.25, 0.2));
+		exit(0);
+	}
 
+
+	if (0){
+		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
+		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
+		exit(0);
+	}
+	
+		
+	if (0){
+		int n = 10;
+		double logdens[10], x[10];
+		int i;
+		
+		for(i=0; i<n; i++){
+			x[i] = i - n/2;
+		}
+		re_dsas(logdens, x, n, 0.1, 3.2);
+		for(i=0; i<n; i++){
+			printf("x[%1d] = %.12g ldens = %.12g\n", i, x[i], logdens[i]);
+		}
+		//dsas(-5:4, skew = 0.1, kurt = 3.2)
+		//[1] -12.7762761870  -8.7141826028  -5.4397533201  -2.9879481542  -1.4152402204
+		//[6]  -0.8807294462  -1.4859634133  -2.8993708955  -5.0172402538  -7.8036535440
+		exit(0);
+	}
+
+	if (0) {
+		re_init();
+		exit(0);
+	}
+
+	if (1) {
+		re_init();
+
+		int n = 30, i, j, ii;
+		double *skew = Calloc(n, double);
+		double *kurt = Calloc(n, double);
+		double *ld = Calloc(ISQR(n), double);
+		double s, k;
+
+		for(s = -1, i = 0 ;  i < n;  s += 2*1.0/(n-1.0), i++){
+			skew[i] = s;
+			printf("skew[%d]  = %g\n", i, skew[i]);
+		}
+		for(k = 2.16, i = 0 ;  i < n;   k += (4-2.15)/(n-1), i++){
+			kurt[i] = k;
+			printf("kurt[%d]  = %g\n", i, kurt[i]);
+		}
+	
+#pragma omp parallel for private(j, i, ii)
+		for(j=0; j<n; j++){
+			for(i=0; i<n; i++){
+				ii = i + j * n;
+				printf("skew kurt %g %g\n", skew[i], kurt[j]);
+				if (re_valid_skew_kurt(NULL, skew[i], kurt[j])){
+					ld[ii] = re_sas_evaluate_log_prior(skew[i], kurt[j]);
+				} else {
+					ld[ii] = NAN;
+				}
+			}
+		}
+
+		FILE *fp = fopen("testing.dat", "w");
+		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", skew[i]);
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", kurt[i]);
+
+		for(j=ii=0; j<n; j++)
+			for(i=0; i<n; i++)
+				fprintf(fp, "%g\n", ld[ii++]);
+
+		fclose(fp);
+		printf("wrote file\n");
+
+		exit(0);
+	}
+	
+	if (0){
+
+		re_init();
+		
 		double skew = 0.1;
 		double kurt = 3.23;
 		int i;
@@ -19002,6 +19088,7 @@ int testit(int argc, char **argv)
 			skew += 0.01;
 			kurt += 0.01;
 		}
+		exit(0);
 	}
 
 	if (0) {

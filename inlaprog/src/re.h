@@ -80,7 +80,7 @@ typedef struct
 }
 	re_sas_prior_tp;
 
-int re_read_sas_prior_table(void);
+int re_make_sas_prior_table(void);
 int re_valid_skew_kurt(double *dist, double skew, double kurt);
 int re_shash_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_shash_fit_parameters(re_shash_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
@@ -100,12 +100,21 @@ inla_contour_tp *contourLines(double *x, int nx, double *y, int ny, double *z, d
 int inla_print_contourLines(FILE *fp, inla_contour_tp *c);
 int inla_free_contourLines(inla_contour_tp *c);
 
+int re_join_contourLines(inla_contour_tp *c);
 double re_point_on_countour(inla_contour_tp *c, double skew, double kurt);
 double re_sas_evaluate_log_prior(double skew, double kurt);
 double re_find_in_sas_prior_table(double skew, double kurt);
 int re_find_in_table_general(double value, double *x, int nx);
 int re_read_sas_prior_table(void);
-
+int re_dsas_intern(double *logdens, double *x, int n, double mu,  double sigma,  double delta, double epsilon);
+int re_dsas(double *logdens, double *x, int n, double skew, double kurt);
+int re_dnorm(double *logdens, double *x, int n);
+double re_intrinsic_discrepancy_distance(double skew, double kurt);
+double re_intrinsic_discrepancy_distance_map(double distance);
+int re_init();
+double bessel_Knu(double alpha, double x);
+void K_bessel(double *x, double *alpha, long *nb,
+	      long *ize, double *bk, long *ncalc);
 
 __END_DECLS
 #endif
