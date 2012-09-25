@@ -16,7 +16,6 @@ inla.spy(graph, reordering = NULL, factor = 1.0, max.dim = NULL)
 \arguments{
     \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
                  or a list or collection of characters and/or numbers defining the graph.}
-    \item{g}{An \code{inla.graph}-object}
     \item{Q}{An (possible) sparse symmtric matrix}
     \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}, 
                       or the result of \code{inla.qreordering}.}

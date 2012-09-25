@@ -113,7 +113,7 @@
     
     ## these are the entries that we want to replace
     replace.names = c("summary.hyperpar", "marginals.hyperpar", "internal.marginals.hyperpar",
-            "internal.summary.hyperpar", "joint.hyper", "mlik", "version")
+            "internal.summary.hyperpar", "joint.hyper", "mlik", "version", "cpu.used")
 
     for (nm in replace.names) {
         idx.result = which(names(result) == nm)
