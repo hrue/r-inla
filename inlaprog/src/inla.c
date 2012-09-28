@@ -2839,8 +2839,8 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	skew = ds->data_observations.sas_skew[GMRFLib_thread_id][0];
 	kurt = ds->data_observations.sas_kurt[GMRFLib_thread_id][0];
 
-	re_shash_param_tp param;
-	re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+	re_sas_param_tp param;
+	re_sas_fit_parameters(&param, &mean, &prec, &skew, &kurt);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -19027,7 +19027,7 @@ int testit(int argc, char **argv)
 	if (1) {
 		re_init();
 
-		int n = 30, i, j, ii;
+		int n = 50, i, j, ii;
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
@@ -19037,7 +19037,7 @@ int testit(int argc, char **argv)
 			skew[i] = s;
 			printf("skew[%d]  = %g\n", i, skew[i]);
 		}
-		for(k = 2.16, i = 0 ;  i < n;   k += (4-2.15)/(n-1), i++){
+		for(k = 2.2, i = 0 ;  i < n;   k += (4-2.15)/(n-1), i++){
 			kurt[i] = k;
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 		}
@@ -19126,23 +19126,23 @@ int testit(int argc, char **argv)
 				}
 			}
 
-			inla_contour_tp *c;
+			re_contour_tp *c;
 			c = contourLines(x, nx, y, ny, z, lev);
 
-			inla_print_contourLines(NULL, c);
+			re_print_contourLines(NULL, c);
 		}
 	}
 	if (0) {
 		double mean = 2, prec = 3, skew = 0.5, kurt = 3.5, t[2];
-		re_shash_param_tp param;
+		re_sas_param_tp param;
 
 		t[0] = GMRFLib_cpu();
-		re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+		re_sas_fit_parameters(&param, &mean, &prec, &skew, &kurt);
 		t[1] = GMRFLib_cpu();
 		P(t[1] - t[0]);
 
 		t[0] = GMRFLib_cpu();
-		re_shash_fit_parameters(&param, &mean, &prec, &skew, &kurt);
+		re_sas_fit_parameters(&param, &mean, &prec, &skew, &kurt);
 		t[1] = GMRFLib_cpu();
 		P(t[1] - t[0]);
 
