@@ -19027,7 +19027,7 @@ int testit(int argc, char **argv)
 	if (1) {
 		re_init();
 
-		int n = 50, i, j, ii;
+		int n = 100, i, j, ii;
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
