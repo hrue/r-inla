@@ -1359,6 +1359,7 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 			return 0.0;
 		}
 		c = contourLines(sas_prior_table->x, sas_prior_table->nx, sas_prior_table->y, sas_prior_table->ny, sas_prior_table->z, level);
+		re_join_contourLines(c);
 		assert(c->nc);
 		if (c->nc > 1) {
 #pragma omp critical
@@ -1434,7 +1435,9 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 			if (re_valid_skew_kurt(NULL, new, kurt) && (new > SKEW_MIN) && (new < SKEW_MAX)) {
 				dskew *= cor;
 			} else {
-				if (new > SKEW_MAX) {
+				if (!re_valid_skew_kurt(NULL, new, kurt)){
+					dskew = ddefault * (dskew > 0 ? -1.0 : 1.0);
+				} else if (new > SKEW_MAX) {
 					dskew = (SKEW_MAX - skew) * cor_max;
 				} else {
 					dskew = (SKEW_MIN - skew) * cor_max;
@@ -1462,7 +1465,9 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 			if (re_valid_skew_kurt(NULL, skew, new) && (new > KURT_MIN) && (new < KURT_MAX)) {
 				dkurt *= cor;
 			} else {
-				if (new > KURT_MAX) {
+				if (!re_valid_skew_kurt(NULL, skew, new)){
+					dkurt = ddefault * (dkurt > 0 ? -1.0 : 1.0);
+				} else if (new > KURT_MAX) {
 					dkurt = (KURT_MAX - kurt) * cor_max;
 				} else {
 					dkurt = (KURT_MIN - kurt) * cor_max;
