@@ -4484,7 +4484,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 							if (run_with_omp) {
-#pragma omp parallel
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
 								for (i = 0; i < compute_n; i++) {
