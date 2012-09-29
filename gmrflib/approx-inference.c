@@ -3735,7 +3735,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #pragma omp parallel
 				{
 					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
-#pragma omp for private(i)
+#pragma omp parallel for private(i)
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
 						GMRFLib_density_tp *cpodens = NULL;
@@ -4030,7 +4030,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						{
 							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i)
+#pragma omp parallel for private(i)
 							for (i = 0; i < compute_n; i++) {
 								int ii = compute_idx[i];
 								GMRFLib_density_tp *cpodens = NULL;
@@ -4359,7 +4359,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_store_tp *ai_store_id =
 									    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i)
+#pragma omp parallel for private(i)
 									for (i = 0; i < compute_n; i++) {
 										int ii = compute_idx[i];
 										GMRFLib_density_tp *cpodens = NULL;
@@ -4516,7 +4516,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_store_tp *ai_store_id =
 									    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
-#pragma omp for private(i)
+#pragma omp parallel for private(i)
 									for (i = 0; i < compute_n; i++) {
 										int ii = compute_idx[i];
 										GMRFLib_density_tp *cpodens = NULL;
@@ -4639,7 +4639,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 			double *bnew = NULL, con = 0.0;
 			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
-#pragma omp for private(i)
+#pragma omp parallel for private(i)
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
 				int ii = compute_idx[i];
