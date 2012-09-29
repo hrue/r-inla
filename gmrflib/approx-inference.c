@@ -3732,26 +3732,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 			if (run_with_omp) {
-#pragma omp parallel
-				{
-					GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
+				// FIX THIS LATER
+				GMRFLib_ai_store_tp *ai_store_id = ai_store; 
 #pragma omp parallel for private(i)
-					for (i = 0; i < compute_n; i++) {
-						int ii = compute_idx[i];
-						GMRFLib_density_tp *cpodens = NULL;
-
-						GMRFLib_thread_id = 0;
-
-						GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-									   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
-									   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-									   Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
-						double *xx_mode = ai_store_id->mode;
-
-						COMPUTE;
-						GMRFLib_free_density(cpodens);
-					}
-					GMRFLib_free_ai_store(ai_store_id);
+				for (i = 0; i < compute_n; i++) {
+					int ii = compute_idx[i];
+					GMRFLib_density_tp *cpodens = NULL;
+					
+					GMRFLib_thread_id = 0;
+					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
+								   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
+								   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
+								   Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
+					double *xx_mode = ai_store_id->mode;
+					COMPUTE;
+					GMRFLib_free_density(cpodens);
 				}
 			} else {
 				GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -3760,7 +3755,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_density_tp *cpodens = NULL;
 
 					GMRFLib_thread_id = 0;
-
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 								   ii, x, b, c, mean, d,
 								   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store,
@@ -4026,28 +4020,22 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 					if (run_with_omp) {
-#pragma omp parallel
-						{
-							GMRFLib_ai_store_tp *ai_store_id = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
-
+						GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
-							for (i = 0; i < compute_n; i++) {
-								int ii = compute_idx[i];
-								GMRFLib_density_tp *cpodens = NULL;
+						for (i = 0; i < compute_n; i++) {
+							int ii = compute_idx[i];
+							GMRFLib_density_tp *cpodens = NULL;
 
-								GMRFLib_thread_id = 0;
-
-								GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-											   (cpo
-											    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, bnew,
-											   c, mean, d, loglFunc, loglFunc_arg,
-											   fixed_value, graph, tabQfunc->Qfunc,
-											   tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
-								double *xx_mode = ai_store_id->mode;
-								COMPUTE;
-								GMRFLib_free_density(cpodens);
-							}
-							GMRFLib_free_ai_store(ai_store_id);
+							GMRFLib_thread_id = 0;
+							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
+										   (cpo
+										    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, bnew,
+										   c, mean, d, loglFunc, loglFunc_arg,
+										   fixed_value, graph, tabQfunc->Qfunc,
+										   tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
+							double *xx_mode = ai_store_id->mode;
+							COMPUTE;
+							GMRFLib_free_density(cpodens);
 						}
 					} else {
 						GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -4056,7 +4044,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_density_tp *cpodens = NULL;
 
 							GMRFLib_thread_id = 0;
-
 							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 										   (cpo
 										    && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, bnew, c, mean,
@@ -4351,35 +4338,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 							if (run_with_omp) {
-#pragma omp parallel
-								{
-									/*
-									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
-									 */
-									GMRFLib_ai_store_tp *ai_store_id =
-									    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
-
+								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
-									for (i = 0; i < compute_n; i++) {
-										int ii = compute_idx[i];
-										GMRFLib_density_tp *cpodens = NULL;
+								for (i = 0; i < compute_n; i++) {
+									int ii = compute_idx[i];
+									GMRFLib_density_tp *cpodens = NULL;
 
-										GMRFLib_thread_id = 0;
-
-										GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-													   (cpo
-													    && (d[ii] || ai_par->cpo_manual) ? &cpodens :
-													    NULL), ii, x, bnew, c,
-													   mean, d, loglFunc,
-													   loglFunc_arg,
-													   fixed_value, graph,
-													   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
-													   ai_store_id, marginal_hidden_store);
-										double *xx_mode = ai_store_id->mode;
-										COMPUTE;
-										GMRFLib_free_density(cpodens);
-									}
-									GMRFLib_free_ai_store(ai_store_id);
+									GMRFLib_thread_id = 0;
+									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
+												   (cpo
+												    && (d[ii] || ai_par->cpo_manual) ? &cpodens :
+												    NULL), ii, x, bnew, c,
+												   mean, d, loglFunc,
+												   loglFunc_arg,
+												   fixed_value, graph,
+												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
+												   ai_store_id, marginal_hidden_store);
+									double *xx_mode = ai_store_id->mode;
+									COMPUTE;
+									GMRFLib_free_density(cpodens);
 								}
 							} else {
 								GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -4388,7 +4365,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_density_tp *cpodens = NULL;
 
 									GMRFLib_thread_id = 0;
-
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, bnew, c, mean, d,
@@ -4509,34 +4485,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 							if (run_with_omp) {
 #pragma omp parallel
-								{
-									/*
-									 * let each thread gets its own (temporary) copy of ai_store; then just split the indices 
-									 */
-									GMRFLib_ai_store_tp *ai_store_id =
-									    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
-
+								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
-									for (i = 0; i < compute_n; i++) {
-										int ii = compute_idx[i];
-										GMRFLib_density_tp *cpodens = NULL;
+								for (i = 0; i < compute_n; i++) {
+									int ii = compute_idx[i];
+									GMRFLib_density_tp *cpodens = NULL;
 
-										GMRFLib_thread_id = 0;
-
-										GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-													   (cpo
-													    && (d[ii] || ai_par->cpo_manual) ? &cpodens :
-													    NULL), ii, x, bnew, c,
-													   mean, d, loglFunc,
-													   loglFunc_arg,
-													   fixed_value, graph,
-													   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
-													   ai_store_id, marginal_hidden_store);
-										double *xx_mode = ai_store_id->mode;
-										COMPUTE;
-										GMRFLib_free_density(cpodens);
-									}
-									GMRFLib_free_ai_store(ai_store_id);
+									GMRFLib_thread_id = 0;
+									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
+												   (cpo
+												    && (d[ii] || ai_par->cpo_manual) ? &cpodens :
+												    NULL), ii, x, bnew, c,
+												   mean, d, loglFunc,
+												   loglFunc_arg,
+												   fixed_value, graph,
+												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
+												   ai_store_id, marginal_hidden_store);
+									double *xx_mode = ai_store_id->mode;
+									COMPUTE;
+									GMRFLib_free_density(cpodens);
 								}
 							} else {
 								GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -4545,7 +4512,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_density_tp *cpodens = NULL;
 
 									GMRFLib_thread_id = 0;
-
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 												   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
 												   ii, x, bnew, c, mean, d,
