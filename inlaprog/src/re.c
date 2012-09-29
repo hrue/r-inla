@@ -1402,9 +1402,7 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 					 sas_prior_table->z, level);	\
 			re_join_contourLines(c);			\
 			assert(c->nc==1);				\
-			int ic_max;					\
-			GMRFLib_max_value(c->length, c->nc, &ic_max);	\
-			length = c->length[ic_max];			\
+			length = c->length[0];				\
 			point = re_point_on_countour(c, skew + dskew, kurt+dkurt); \
 			re_free_contourLines(c);			\
 		}
