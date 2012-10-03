@@ -19027,7 +19027,7 @@ int testit(int argc, char **argv)
 	if (1) {
 		re_init();
 
-		int n = 250, i, j, ii;
+		int n = 25, i, j, ii;
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
@@ -19037,7 +19037,7 @@ int testit(int argc, char **argv)
 			skew[i] = s;
 			printf("skew[%d]  = %g\n", i, skew[i]);
 		}
-		for(k = 2.0, i = 0 ;  i < n;   k += (5-2.0)/(n-1), i++){
+		for(k = 2.1, i = 0 ;  i < n;   k += (4-2.0)/(n-1), i++){
 			kurt[i] = k;
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 		}
