@@ -113,6 +113,8 @@ double re_intrinsic_discrepancy_distance_map(double distance);
 int re_init();
 double bessel_Knu(double alpha, double x);
 void K_bessel(double *x, double *alpha, long *nb, long *ize, double *bk, long *ncalc);
+double re_valid_skew(double kurt);
+double re_valid_kurt(double skew);
 
 __END_DECLS
 #endif
