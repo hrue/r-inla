@@ -51,6 +51,8 @@ static const char RCSId[] = HGVERSION;
 #define XMATCH(x0,x1) (fabs((x0)-(x1)) == 0)
 #define YMATCH(y0,y1) (fabs((y0)-(y1)) == 0)
 
+#define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
+
 #define SKEW_MIN (sas_prior_table->x[1])
 #define SKEW_MAX (sas_prior_table->x[sas_prior_table->nx-1])
 #define KURT_MIN (sas_prior_table->y[1])
@@ -483,7 +485,6 @@ void K_bessel(double *x, double *alpha, long *nb, long *ize, double *bk, long *n
 
 int re_valid_skew_kurt(double *dist, double skew, double kurt)
 {
-#define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
 	int retval;
 
 	retval = (kurt > KURT_LIMIT(skew) ? GMRFLib_TRUE : GMRFLib_FALSE);
@@ -494,9 +495,27 @@ int re_valid_skew_kurt(double *dist, double skew, double kurt)
 			*dist = 0.0;
 		}
 	}
-#undef KURT_LIMIT
 	return retval;
 }
+double re_valid_skew(double kurt)
+{
+	/* 
+	   return valid skew
+	 */
+	if (kurt > 2.15) {
+		return (0.08 * sqrt(-215.0 + 100.0 * kurt));
+	} else {
+		return (NAN);
+	}
+}
+double re_valid_kurt(double skew)
+{
+	/* 
+	   return minimum valid kurt
+	 */
+	return (KURT_LIMIT(skew));
+}
+
 int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta)
 {
 	double m1 = M1(epsilon, delta);
@@ -1407,9 +1426,9 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 			re_free_contourLines(c);			\
 		}
 
-		double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[2], poi[2], dskew, dkurt, dlevel_ref = 0.01, cor,
-			cor_max = 0.99, new, ddefault = 0.05, error_limit = 0.01;
-		int ntimes = 50, times;
+		double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[3], poi[3], dskew, dkurt, dlevel_ref = 0.01, cor,
+			cor_max = 0.9, new, ddefault = 0.05, error_limit = 0.01;
+		int ntimes = 100, times;
 
 		if (skew <= 0.0) {
 			dskew = -ddefault;
@@ -1422,23 +1441,21 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		lev[0] = level;
 		poi[0] = point;
 
-		if (!re_valid_skew_kurt(NULL, skew + 2*dskew, kurt)){
-			dskew *= -1.0;
-		}
-
+		double skew_lim = re_valid_skew(kurt);
 		for (times = 0; times < ntimes; times++) {
 			NEW(dskew, 0);
 			cor = ABS(dlevel_ref / (level - lev[0]));
 			new = skew + dskew * cor;
-			if (re_valid_skew_kurt(NULL, new, kurt) && (new > SKEW_MIN) && (new < SKEW_MAX)) {
+			if (re_valid_skew_kurt(NULL, new, kurt) && (new > DMAX(-skew_lim, SKEW_MIN)) &&
+			    (new < DMIN(skew_lim, SKEW_MAX))) {
 				dskew *= cor;
 			} else {
 				if (!re_valid_skew_kurt(NULL, new, kurt)){
 					dskew = ddefault * (dskew > 0 ? -1.0 : 1.0);
-				} else if (new > SKEW_MAX) {
-					dskew = (SKEW_MAX - skew) * cor_max;
+				} else if (new > DMIN(skew_lim, SKEW_MAX)) {
+					dskew = (DMIN(skew_lim, SKEW_MAX) - skew) * cor_max;
 				} else {
-					dskew = (SKEW_MIN - skew) * cor_max;
+					dskew = (DMAX(-skew_lim, SKEW_MIN) - skew) * cor_max;
 				}
 			}
 			if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
@@ -1453,14 +1470,12 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		dlevel_dskew = (lev[1] - lev[0]) / dskew;
 		dpoint_dskew = (poi[1] - poi[0]) / dskew;
 
-		if (!re_valid_skew_kurt(NULL, skew, kurt + 2*dkurt)){
-			dkurt *= -1.0;
-		}
+		double kurt_min = re_valid_kurt(skew);
 		for (times = 0; times < ntimes; times++) {
 			NEW(0, dkurt);
 			cor = ABS(dlevel_ref / (level - lev[0]));
 			new = kurt + dkurt * cor;
-			if (re_valid_skew_kurt(NULL, skew, new) && (new > KURT_MIN) && (new < KURT_MAX)) {
+			if (re_valid_skew_kurt(NULL, skew, new) && (new > DMAX(kurt_min, KURT_MIN)) && (new < KURT_MAX)) {
 				dkurt *= cor;
 			} else {
 				if (!re_valid_skew_kurt(NULL, skew, new)){
@@ -1468,7 +1483,7 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 				} else if (new > KURT_MAX) {
 					dkurt = (KURT_MAX - kurt) * cor_max;
 				} else {
-					dkurt = (KURT_MIN - kurt) * cor_max;
+					dkurt = (DMAX(kurt_min, KURT_MIN) - kurt) * cor_max;
 				}
 			}
 			NEW(0, dkurt);
@@ -1479,17 +1494,17 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		printf("dkurt %g achived level %.6g wanted %.6g times=%1d\n", dskew, ABS(level - lev[0]), dlevel_ref, times);
 		printf("skew %g kurt %g dskew %g dkurt %g\n", skew, kurt, dskew, dkurt);
 
-		lev[1] = level;
-		poi[1] = point;
+		lev[2] = level;
+		poi[2] = point;
 
-		dlevel_dkurt = (lev[1] - lev[0]) / dkurt;
-		dpoint_dkurt = (poi[1] - poi[0]) / dkurt;
+		dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
+		dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
 
 		double Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
 #undef NEW
 		return ldens_uniform + ldens_dist + log(Jacobian);
-		// FIXME1("ONLY Jac");
-		// return lev[1]-lev[0];
+		//FIXME1("FIX");
+		//return DMAX(lev[1]/dlevel_ref, lev[2]/dlevel_ref);
 	}
 }
 
