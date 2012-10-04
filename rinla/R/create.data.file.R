@@ -50,7 +50,8 @@
                               "sas",
                               "circularnormal",
                               "wrappedcauchy",
-                              "iidgamma"))) {
+                              "iidgamma",
+                              "gamma"))) {
 
         if (is.null(scale)) {
             scale = rep(1.0, n.data)

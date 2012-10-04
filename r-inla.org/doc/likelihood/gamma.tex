@@ -11,20 +11,21 @@
 
 The Gamma-distribution has the following density
 \begin{displaymath}
-    \pi(y) = \frac{b^{a}}{\Gamma(a)} y^{a-1} \exp(-by)
+    \pi(y) = \frac{b^{a}}{\Gamma(a)} y^{a-1} \exp(-by), \qquad a>0,
+    \quad b>0
 \end{displaymath}
 where $\text{E}(y) = \mu = a/b$ and $\text{Var}(y) = 1/\tau = a/b^{2}$,
 where $\tau$ is the precision and $\mu$ is the mean. We will use the
 following parameterisation for the precision
 \begin{displaymath}
-    \tau = s\phi / \mu^{2}
+    \tau = (s\phi) / \mu^{2}
 \end{displaymath}
 where $\phi$ is the precision parameter (or $1/\phi$ is the dispersion
-parameter) and $s$ is a fixed scaling, which gives this density
+parameter) and $s>0$ is a fixed scaling, which gives this density
 \begin{displaymath}
     \pi(y) = \frac{1}{\Gamma(s\phi)}
-    \left(\frac{s\phi}{\mu}\right)^{s\phi}
-    y^{s\phi -1} \exp\left(-s\phi \frac{y}{\mu}\right)
+    \left(\frac{(s\phi)}{\mu}\right)^{(s\phi)}
+    y^{(s\phi) -1} \exp\left(-(s\phi) \frac{y}{\mu}\right)
 \end{displaymath}
 
 

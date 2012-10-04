@@ -56,10 +56,10 @@ INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt8.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT ../hyper/likelihood/gamma.tex
 INPUT ../hyper/likelihood/gamma.tex
-INPUT example-gamma.R
-INPUT example-gamma.R
 OUTPUT gamma.pdf
 INPUT /usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT example-gamma.R
+INPUT example-gamma.R
 INPUT gamma.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb

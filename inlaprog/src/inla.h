@@ -300,7 +300,11 @@ typedef struct {
 	 */
 	double **test_binomial_1_s, **test_binomial_1_e;
 
-
+	/* 
+	 * Gamma 
+	 */
+	double **gamma_log_prec;
+	double *gamma_weight;				       /* the scalings 's' */
 } Data_tp;
 
 /* 
@@ -323,6 +327,7 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
 	L_ZEROINFLATEDBETABINOMIAL2,
+	L_GAMMA, 
 	L_BETA,
 	L_BETABINOMIAL,
 	L_NBINOMIAL,
