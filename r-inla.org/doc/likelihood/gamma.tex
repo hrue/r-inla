@@ -1,0 +1,77 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The Gamma-distribution}
+
+\subsection*{Parametrisation}
+
+The Gamma-distribution has the following density
+\begin{displaymath}
+    \pi(y) = \frac{b^{a}}{\Gamma(a)} y^{a-1} \exp(-by)
+\end{displaymath}
+where $\text{E}(y) = \mu = a/b$ and $\text{Var}(y) = 1/\tau = a/b^{2}$,
+where $\tau$ is the precision and $\mu$ is the mean. We will use the
+following parameterisation for the precision
+\begin{displaymath}
+    \tau = s\phi / \mu^{2}
+\end{displaymath}
+where $\phi$ is the precision parameter (or $1/\phi$ is the dispersion
+parameter) and $s$ is a fixed scaling, which gives this density
+\begin{displaymath}
+    \pi(y) = \frac{1}{\Gamma(s\phi)}
+    \left(\frac{s\phi}{\mu}\right)^{s\phi}
+    y^{s\phi -1} \exp\left(-s\phi \frac{y}{\mu}\right)
+\end{displaymath}
+
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the mean $\mu$ using a
+default log-link
+\begin{displaymath}
+    \mu = \exp(\eta)
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the precision parameter $\phi$, which is
+represented as
+\begin{displaymath}
+    \phi = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gamma}$
+\item Required arguments: $y$ and $s$ (argument \texttt{scale})
+\end{itemize}
+The scalings have default value 1.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gamma.tex}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-gamma.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
