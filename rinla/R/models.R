@@ -2417,6 +2417,25 @@
                       status = "experimental"
                       ),
 
+              gamma = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "precision parameter",
+                                      short.name = "prec",
+                                      initial = log(100),
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.01),
+                                      to.theta = function(x) log(x), 
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "log"),
+                      pdf = "gamma"
+                      ),
+
               beta = list(
                       hyper = list(
                               theta = list(
