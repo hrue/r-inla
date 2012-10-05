@@ -1790,7 +1790,7 @@
                     unlink(bat.file)
                 }
                 if (echoc != 0L) {
-                    if (!verbose) {
+                    if (!verbose && (silent != 2L)) {
                         warning(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
                     }
                 }
