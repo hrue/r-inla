@@ -956,9 +956,9 @@ inla.internal.experimental.mode = FALSE
             colnames(dd) = inla.namefix(col.nam)
             if (A) {
                 rownames(dd) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
-                                inla.namefix(paste("fitted.predictor.", inla.num(1:n), sep="")))
+                                inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep="")))
             } else {
-                rownames(dd) = inla.namefix(paste("fitted.predictor.", inla.num(1L:length(rr)), sep=""))
+                rownames(dd) = inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep=""))
             }
             summary.fitted.values = as.data.frame(dd)
 
