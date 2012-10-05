@@ -181,8 +181,10 @@
               ##!working files }
               working.directory = inla.getOption("working.directory"),
 
-              ##!\item{silent}{ A boolean variable defining how the
-              ##!\code{inla}-program should be ``silent''.  }
+              ##!\item{silent}{If equal to 1L or TRUE, then the
+              ##!\code{inla}-program would be ``silent''. If equal to
+              ##!2L, then supress also error messages from the
+              ##!\code{inla}-program.}
               silent = inla.getOption("silent"),
 
               ##!\item{debug}{ If \code{TRUE}, then enable some debug
@@ -1758,7 +1760,8 @@
                     if (verbose) {
                         tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
                     } else {
-                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log)))
+                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                                inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
                     }
                 }
                 for (i in 1L:nrgeneric) {
@@ -1770,7 +1773,8 @@
                 if (verbose) {
                     echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
                 } else {
-                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log))
+                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                            inla.ifelse(silent == 2L, " 2>/dev/null", "")))
                 }
             }
         } else if (inla.os("windows")) {
@@ -1780,7 +1784,8 @@
                 } else {
                     bat.file = paste(tempfile(), ".BAT",  sep="")
                     cat("@ echo off\n",  file=bat.file, append=FALSE)
-                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log)), file=bat.file, append=TRUE)
+                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
+                              inla.ifelse(silent == 2L, "2>NUL", "")), file=bat.file, append=TRUE)
                     echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
                     unlink(bat.file)
                 }

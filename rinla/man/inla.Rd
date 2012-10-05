@@ -119,8 +119,10 @@ files are stored in a directory called "inla".  }
 \item{working.directory}{ A string giving the name
 of an alternative directory where to store the
 working files }
-\item{silent}{ A boolean variable defining how the
-\code{inla}-program should be ``silent''.  }
+\item{silent}{If equal to 1L or TRUE, then the
+\code{inla}-program would be ``silent''. If equal to
+2L, then supress also error messages from the
+\code{inla}-program.}
 \item{debug}{ If \code{TRUE}, then enable some debug
 output.  }
 }
