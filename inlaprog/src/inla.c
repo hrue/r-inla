@@ -19133,7 +19133,7 @@ int testit(int argc, char **argv)
 	if (1) {
 		re_init();
 
-		int n = 25, i, j, ii;
+		int n = 50, i, j, ii;
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
@@ -19152,7 +19152,7 @@ int testit(int argc, char **argv)
 		for(j=0; j<n; j++){
 			for(i=0; i<n; i++){
 				ii = i + j * n;
-				printf("skew kurt %g %g\n", skew[i], kurt[j]);
+				//printf("skew kurt %g %g\n", skew[i], kurt[j]);
 				if (re_valid_skew_kurt(NULL, skew[i], kurt[j])){
 					ld[ii] = re_sas_evaluate_log_prior(skew[i], kurt[j]);
 				} else {

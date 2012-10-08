@@ -1347,7 +1347,7 @@ double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
 		}
 	}
 
-	// P(start_idx);
+	FIXME1("direction");
 	direction = (c->x[ic][WRAPIT(start_idx + 1)] < c->x[ic][start_idx] ? 1 : -1);
 
 	len = 0.0;
@@ -1427,8 +1427,8 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		}
 
 		double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[3], poi[3], dskew, dkurt, dlevel_ref = 0.01, cor,
-			cor_max = 0.9, new, ddefault = 0.05, error_limit = 0.01;
-		int ntimes = 100, times;
+			cor_max = 0.9, new, ddefault = 0.01, error_limit = 0.01;
+		int ntimes = 1, nt[2], times;
 
 		if (skew <= 0.0) {
 			dskew = -ddefault;
@@ -1441,58 +1441,59 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 		lev[0] = level;
 		poi[0] = point;
 
-		double skew_lim = re_valid_skew(kurt);
+#define TRUNC_CORE(x, f) DMIN(1/(f), DMAX((f), (x)))
+#define TRUNC(x) TRUNC_CORE(x, 0.5)
+
+		/* 
+		 * make sure we start with a legal value
+		 */
+		if (re_valid_skew_kurt(NULL, skew, kurt)){
+			while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
+				dskew /= 2.0;
+			}
+		}
+
 		for (times = 0; times < ntimes; times++) {
 			NEW(dskew, 0);
 			cor = ABS(dlevel_ref / (level - lev[0]));
-			new = skew + dskew * cor;
-			if (re_valid_skew_kurt(NULL, new, kurt) && (new > DMAX(-skew_lim, SKEW_MIN)) &&
-			    (new < DMIN(skew_lim, SKEW_MAX))) {
-				dskew *= cor;
-			} else {
-				if (!re_valid_skew_kurt(NULL, new, kurt)){
-					dskew = ddefault * (dskew > 0 ? -1.0 : 1.0);
-				} else if (new > DMIN(skew_lim, SKEW_MAX)) {
-					dskew = (DMIN(skew_lim, SKEW_MAX) - skew) * cor_max;
-				} else {
-					dskew = (DMAX(-skew_lim, SKEW_MIN) - skew) * cor_max;
-				}
+			dskew *= TRUNC(cor);
+			while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
+				dskew /= 2.0;
 			}
 			if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
 				break;
 		}
+		nt[0] = times;
 		NEW(dskew, 0);
 
-		printf("dskew %g achived dlevel %.6g wanted %.6g times=%d\n", dskew, ABS(level - lev[0]), dlevel_ref, times);
 		lev[1] = level;
-		poi[1] = point;
+		poi[1] = point; 
 
 		dlevel_dskew = (lev[1] - lev[0]) / dskew;
 		dpoint_dskew = (poi[1] - poi[0]) / dskew;
 
-		double kurt_min = re_valid_kurt(skew);
+		/* 
+		 * make sure we start with a legal value
+		 */
+		if (re_valid_skew_kurt(NULL, skew, kurt)){
+			while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
+				dkurt /= 2.0;
+			}
+		}
+
 		for (times = 0; times < ntimes; times++) {
 			NEW(0, dkurt);
 			cor = ABS(dlevel_ref / (level - lev[0]));
-			new = kurt + dkurt * cor;
-			if (re_valid_skew_kurt(NULL, skew, new) && (new > DMAX(kurt_min, KURT_MIN)) && (new < KURT_MAX)) {
-				dkurt *= cor;
-			} else {
-				if (!re_valid_skew_kurt(NULL, skew, new)){
-					dkurt = ddefault * (dkurt > 0 ? -1.0 : 1.0);
-				} else if (new > KURT_MAX) {
-					dkurt = (KURT_MAX - kurt) * cor_max;
-				} else {
-					dkurt = (DMAX(kurt_min, KURT_MIN) - kurt) * cor_max;
-				}
+			dkurt *= TRUNC(cor);
+			while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
+				dkurt /= 2.0;
 			}
-			NEW(0, dkurt);
 			if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
 				break;
 		}
-
-		printf("dkurt %g achived level %.6g wanted %.6g times=%1d\n", dskew, ABS(level - lev[0]), dlevel_ref, times);
-		printf("skew %g kurt %g dskew %g dkurt %g\n", skew, kurt, dskew, dkurt);
+		nt[1] = times;
+		printf("skew %g kurt %g dskew %g dkurt %g achived dlevel %.6g  %.6g wanted %.6g times=%d %d\n",
+		       skew, kurt, dskew, dkurt, ABS(lev[1] - lev[0]), ABS(level - lev[0]), dlevel_ref, nt[0], nt[1]);
 
 		lev[2] = level;
 		poi[2] = point;
@@ -1502,9 +1503,9 @@ double re_sas_evaluate_log_prior(double skew, double kurt)
 
 		double Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
 #undef NEW
+#undef TRUNC
+#undef TRUNC_CORE
 		return ldens_uniform + ldens_dist + log(Jacobian);
-		//FIXME1("FIX");
-		//return DMAX(lev[1]/dlevel_ref, lev[2]/dlevel_ref);
 	}
 }
 
@@ -1637,8 +1638,8 @@ int re_make_sas_prior_table(void)
 			printf("MAKE TABLE...\n");
 
 			re_sas_prior_tp *s = Calloc(1, re_sas_prior_tp);
-			s->nx = 1000;
-			s->ny = 1000;
+			s->nx = 2000;
+			s->ny = 2000;
 			s->nz = s->nx * s->ny;
 
 			s->x = Calloc(s->nx, double);
