@@ -14234,7 +14234,9 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 
-				val += re_sas_evaluate_log_prior(skew, kurt);
+				double *pri = re_sas_evaluate_log_prior(skew, kurt);
+				val += pri[0];
+				Free(pri);
 
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 				if (!ds->data_fixed) {
@@ -19137,6 +19139,8 @@ int testit(int argc, char **argv)
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
+		double *ldd = Calloc(ISQR(n), double);
+		double *lddd = Calloc(ISQR(n), double);
 		double s, k;
 
 		for(s = -1.5, i = 0 ;  i < n;  s += 2*1.5/(n-1.0), i++){
@@ -19154,14 +19158,20 @@ int testit(int argc, char **argv)
 				ii = i + j * n;
 				//printf("skew kurt %g %g\n", skew[i], kurt[j]);
 				if (re_valid_skew_kurt(NULL, skew[i], kurt[j])){
-					ld[ii] = re_sas_evaluate_log_prior(skew[i], kurt[j]);
+					double *pri = re_sas_evaluate_log_prior(skew[i], kurt[j]);
+					ld[ii] = pri[0];
+					ldd[ii] = pri[1];
+					lddd[ii] = pri[2];
+					Free(pri);
 				} else {
 					ld[ii] = NAN;
+					ldd[ii] = NAN;
+					lddd[ii] = NAN;
 				}
 			}
 		}
 
-		FILE *fp = fopen("testing.dat", "w");
+		FILE *fp = fopen("testing1.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 		for(i=0; i<n; i++)
 			fprintf(fp, "%g\n", skew[i]);
@@ -19175,28 +19185,36 @@ int testit(int argc, char **argv)
 		fclose(fp);
 		printf("wrote file\n");
 
+		fp = fopen("testing2.dat", "w");
+		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", skew[i]);
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", kurt[i]);
+
+		for(j=ii=0; j<n; j++)
+			for(i=0; i<n; i++)
+				fprintf(fp, "%g\n", ldd[ii++]);
+
+		fclose(fp);
+		printf("wrote file\n");
+		fp = fopen("testing3.dat", "w");
+		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", skew[i]);
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", kurt[i]);
+
+		for(j=ii=0; j<n; j++)
+			for(i=0; i<n; i++)
+				fprintf(fp, "%g\n", lddd[ii++]);
+
+		fclose(fp);
+		printf("wrote file\n");
+
 		exit(0);
 	}
 	
-	if (0){
-
-		re_init();
-		
-		double skew = 0.1;
-		double kurt = 3.23;
-		int i;
-
-		for(i=0; i<20; i++){
-			double val;
-			val = re_sas_evaluate_log_prior(skew, kurt);
-			printf("%g %g %g\n", skew, kurt, val);
-
-			skew += 0.01;
-			kurt += 0.01;
-		}
-		exit(0);
-	}
-
 	if (0) {
 #define GET(_int) fscanf(fp, "%d\n", &_int)
 #define GETV(_vec, _len)						\
