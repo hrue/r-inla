@@ -101,7 +101,7 @@ int re_free_contourLines(re_contour_tp * c);
 
 int re_join_contourLines(re_contour_tp * c);
 double re_point_on_countour(re_contour_tp * c, double skew, double kurt);
-double re_sas_evaluate_log_prior(double skew, double kurt);
+double *re_sas_evaluate_log_prior(double skew, double kurt);
 double re_find_in_sas_prior_table(double skew, double kurt);
 int re_find_in_table_general(double value, double *x, int nx);
 int re_read_sas_prior_table(void);

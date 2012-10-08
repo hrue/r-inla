@@ -1347,7 +1347,6 @@ double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
 		}
 	}
 
-	FIXME1("direction");
 	direction = (c->x[ic][WRAPIT(start_idx + 1)] < c->x[ic][start_idx] ? 1 : -1);
 
 	len = 0.0;
@@ -1364,149 +1363,163 @@ double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
 	return len;
 }
 
-double re_sas_evaluate_log_prior(double skew, double kurt)
+double *re_sas_evaluate_log_prior(double skew, double kurt)
 {
-	if (GMRFLib_FALSE) {
-		return -0.5 * 1 * SQR(skew) - 0.5 * 1 * SQR(kurt - 3);
-	} else {
-		double level;
-		re_contour_tp *c;
-		double ldens_uniform, ldens_dist, length = 0, point;
+	double level;
+	re_contour_tp *c;
+	double ldens_uniform, ldens_dist, length = 0, point;
 
-		level = re_find_in_sas_prior_table(skew, kurt);	/* level for the contour */
-		if (ISNAN(level)) {
-			return 0.0;
-		}
-		c = contourLines(sas_prior_table->x, sas_prior_table->nx, sas_prior_table->y, sas_prior_table->ny, sas_prior_table->z, level);
-		re_join_contourLines(c);
-		assert(c->nc);
-		if (c->nc > 1) {
+	level = re_find_in_sas_prior_table(skew, kurt);	/* level for the contour */
+	if (ISNAN(level)) {
+		double *pri = Calloc(3, double);
+		pri[0] = NAN;
+		pri[1] = NAN;
+		pri[2] = NAN;
+		return pri;
+	}
+	c = contourLines(sas_prior_table->x, sas_prior_table->nx, sas_prior_table->y, sas_prior_table->ny, sas_prior_table->z, level);
+	re_join_contourLines(c);
+	assert(c->nc);
+	if (c->nc > 1) {
 #pragma omp critical
-			{
-				static int count = 0;
-				char *filename;
-				FILE *fp;
+		{
+			static int count = 0;
+			char *filename;
+			FILE *fp;
 
-				fprintf(stderr, "log_prior: nc=%1d, skew=%g kurt=%g\n", c->nc, skew, kurt);
-				GMRFLib_sprintf(&filename, "c/contour-%1d.dat", count);
-				fp = fopen(filename, "w");
-				re_print_contourLines(fp, c);
-				fclose(fp);
+			fprintf(stderr, "log_prior: nc=%1d, skew=%g kurt=%g\n", c->nc, skew, kurt);
+			GMRFLib_sprintf(&filename, "c/contour-%1d.dat", count);
+			fp = fopen(filename, "w");
+			re_print_contourLines(fp, c);
+			fclose(fp);
 
-				re_join_contourLines(c);
-				GMRFLib_sprintf(&filename, "c/contour-NEW-%1d.dat", count);
-				fp = fopen(filename, "w");
-				re_print_contourLines(fp, c);
-				fclose(fp);
+			re_join_contourLines(c);
+			GMRFLib_sprintf(&filename, "c/contour-NEW-%1d.dat", count);
+			fp = fopen(filename, "w");
+			re_print_contourLines(fp, c);
+			fclose(fp);
 
-				Free(filename);
-				count++;
-			}
+			Free(filename);
+			count++;
 		}
-		length = GMRFLib_max_value(c->length, c->nc, NULL);
-		ldens_uniform = log(1.0 / length);
-		point = re_point_on_countour(c, skew, kurt);
-		re_free_contourLines(c);
+	}
+	length = GMRFLib_max_value(c->length, c->nc, NULL);
+	ldens_uniform = log(1.0 / length);
+	point = re_point_on_countour(c, skew, kurt);
+	re_free_contourLines(c);
 
-		double lambda = 20;
-		ldens_dist = log(lambda) - lambda * level;
+	double lambda = 20;
+	ldens_dist = log(lambda) - lambda * level;
 
 #define NEW(dskew, dkurt)						\
-		if (1)							\
-		{							\
-			level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt); \
-			if (ISNAN(level)) return 0.0;			\
-			c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
-					 sas_prior_table->y, sas_prior_table->ny, \
-					 sas_prior_table->z, level);	\
-			re_join_contourLines(c);			\
-			assert(c->nc==1);				\
-			length = c->length[0];				\
-			point = re_point_on_countour(c, skew + dskew, kurt+dkurt); \
-			re_free_contourLines(c);			\
-		}
+	if (1)								\
+	{								\
+		level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt); \
+		if (ISNAN(level)) {					\
+			double *pri = Calloc(3, double);		\
+			pri[0] = NAN;					\
+			pri[1] = NAN;					\
+			pri[2] = NAN;					\
+			return pri;					\
+		}							\
+		c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
+				 sas_prior_table->y, sas_prior_table->ny, \
+				 sas_prior_table->z, level);		\
+		re_join_contourLines(c);				\
+		assert(c->nc==1);					\
+		length = c->length[0];					\
+		point = re_point_on_countour(c, skew + dskew, kurt+dkurt); \
+		re_free_contourLines(c);				\
+	}
 
-		double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[3], poi[3], dskew, dkurt, dlevel_ref = 0.01, cor,
-			cor_max = 0.9, new, ddefault = 0.01, error_limit = 0.01;
-		int ntimes = 1, nt[2], times;
+	double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[3], poi[3], dskew, dkurt, dlevel_ref = 0.01, cor,
+		ddefault = 0.01, error_limit = 0.01;
+	int ntimes = 10, nt[2], times;
 
-		if (skew <= 0.0) {
-			dskew = -ddefault;
-			dkurt = 2 * ddefault;
-		} else {
-			dskew = ddefault;
-			dkurt = 2 * ddefault;
-		}
+	if (skew <= 0.0) {
+		dskew = -ddefault;
+		dkurt = 2 * ddefault;
+	} else {
+		dskew = ddefault;
+		dkurt = 2 * ddefault;
+	}
 
-		lev[0] = level;
-		poi[0] = point;
+	lev[0] = level;
+	poi[0] = point;
 
 #define TRUNC_CORE(x, f) DMIN(1/(f), DMAX((f), (x)))
 #define TRUNC(x) TRUNC_CORE(x, 0.5)
 
-		/* 
-		 * make sure we start with a legal value
-		 */
-		if (re_valid_skew_kurt(NULL, skew, kurt)){
-			while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
-				dskew /= 2.0;
-			}
+	/* 
+	 * make sure we start with a legal value
+	 */
+	if (re_valid_skew_kurt(NULL, skew, kurt)){
+		while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
+			dskew /= 2.0;
 		}
+	}
 
-		for (times = 0; times < ntimes; times++) {
-			NEW(dskew, 0);
-			cor = ABS(dlevel_ref / (level - lev[0]));
-			dskew *= TRUNC(cor);
-			while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
-				dskew /= 2.0;
-			}
-			if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
-				break;
-		}
-		nt[0] = times;
+	for (times = 0; times < ntimes; times++) {
 		NEW(dskew, 0);
-
-		lev[1] = level;
-		poi[1] = point; 
-
-		dlevel_dskew = (lev[1] - lev[0]) / dskew;
-		dpoint_dskew = (poi[1] - poi[0]) / dskew;
-
-		/* 
-		 * make sure we start with a legal value
-		 */
-		if (re_valid_skew_kurt(NULL, skew, kurt)){
-			while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
-				dkurt /= 2.0;
-			}
+		cor = ABS(dlevel_ref / (level - lev[0]));
+		dskew *= TRUNC(cor);
+		while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
+			dskew /= 2.0;
 		}
+		if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
+			break;
+	}
+	nt[0] = times;
+	NEW(dskew, 0);
 
-		for (times = 0; times < ntimes; times++) {
-			NEW(0, dkurt);
-			cor = ABS(dlevel_ref / (level - lev[0]));
-			dkurt *= TRUNC(cor);
-			while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
-				dkurt /= 2.0;
-			}
-			if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
-				break;
+	lev[1] = level;
+	poi[1] = point; 
+
+	dlevel_dskew = (lev[1] - lev[0]) / dskew;
+	dpoint_dskew = (poi[1] - poi[0]) / dskew;
+
+	/* 
+	 * make sure we start with a legal value
+	 */
+	if (re_valid_skew_kurt(NULL, skew, kurt)){
+		while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
+			dkurt /= 2.0;
 		}
-		nt[1] = times;
-		printf("skew %g kurt %g dskew %g dkurt %g achived dlevel %.6g  %.6g wanted %.6g times=%d %d\n",
-		       skew, kurt, dskew, dkurt, ABS(lev[1] - lev[0]), ABS(level - lev[0]), dlevel_ref, nt[0], nt[1]);
+	}
 
-		lev[2] = level;
-		poi[2] = point;
+	for (times = 0; times < ntimes; times++) {
+		NEW(0, dkurt);
+		cor = ABS(dlevel_ref / (level - lev[0]));
+		dkurt *= TRUNC(cor);
+		while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
+			dkurt /= 2.0;
+		}
+		if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
+			break;
+	}
+	nt[1] = times;
+	printf("skew %g kurt %g dskew %g dkurt %g achived dlevel %.6g  %.6g wanted %.6g times=%d %d\n",
+	       skew, kurt, dskew, dkurt, ABS(lev[1] - lev[0]), ABS(level - lev[0]), dlevel_ref, nt[0], nt[1]);
+	
+	lev[2] = level;
+	poi[2] = point;
 
-		dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
-		dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
+	dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
+	dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
 
-		double Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
+	double Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
 #undef NEW
 #undef TRUNC
 #undef TRUNC_CORE
-		return ldens_uniform + ldens_dist + log(Jacobian);
-	}
+	
+
+	double *pri = Calloc(3, double);
+
+	pri[0] = ldens_uniform + ldens_dist + log(Jacobian);
+	pri[1] = poi[0];
+	pri[2] = exp(-ldens_uniform);			       /* this is the length */
+
+	return pri;
 }
 
 double re_find_in_sas_prior_table(double skew, double kurt)
