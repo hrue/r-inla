@@ -335,8 +335,8 @@ inla.models()
 							 \describe{
 							\item{name = }{`log spatial precision'}
 							\item{short.name = }{`prec.spatial'}
-							\item{prior = }{`normal'}
-							\item{param = }{`0 5e-05'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-04'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
