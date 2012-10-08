@@ -282,8 +282,8 @@
                               theta2 = list(
                                       name = "log spatial precision",
                                       short.name = "prec.spatial",
-                                      prior = "normal",
-                                      param = c(0, 0.00005),
+                                      prior = "loggamma",
+                                      param = c(1, 0.0005),
                                       initial = 4,
                                       fixed = FALSE,
                                       to.theta = function(x) log(x),
