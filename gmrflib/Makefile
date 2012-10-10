@@ -221,5 +221,4 @@ TAGS : $(wildcard *.c *.h)
 
 .PHONY: depend clean clean-deps uninstall install doc dummytarget 
 
-## trouble on the mac with this
-##include $(dir $(DEPDIR))dependencies.d $(wildcard $(dir $(DEPDIR))*.d)
+include $(dir $(DEPDIR))dependencies.d $(wildcard $(dir $(DEPDIR))*.d)
