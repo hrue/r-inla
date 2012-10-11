@@ -70,6 +70,8 @@ static const char RCSId[] = HGVERSION;
 	}
 
 static re_sas_prior_tp *sas_prior_table = NULL;
+static double contour_eps = 100.0 * FLT_EPSILON;
+static double cyclic_eps = 0.01;
 
 double bessel_Knu(double alpha, double x)
 {
@@ -499,8 +501,8 @@ int re_valid_skew_kurt(double *dist, double skew, double kurt)
 }
 double re_valid_skew(double kurt)
 {
-	/* 
-	   return valid skew
+	/*
+	 * return valid skew 
 	 */
 	if (kurt > 2.15) {
 		return (0.08 * sqrt(-215.0 + 100.0 * kurt));
@@ -510,8 +512,8 @@ double re_valid_skew(double kurt)
 }
 double re_valid_kurt(double skew)
 {
-	/* 
-	   return minimum valid kurt
+	/*
+	 * return minimum valid kurt 
 	 */
 	return (KURT_LIMIT(skew));
 }
@@ -551,7 +553,6 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		if (!pin && !pout && !perr) {
 #pragma omp critical
 			{
-				FIXME("ENTER WAIT GO");
 				if (!pin && !pout && !perr) {
 					pin = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 					pout = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
@@ -711,7 +712,7 @@ int re_sas_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 }
 
 /* 
- *  The countourLine-code is taken from R: plot3d.c, with modifications.
+ *  The contourLine-code is taken from R: plot3d.c, with modifications.
  */
 int ctr_intersect(double z0, double z1, double zc, double *f)
 {
@@ -1101,7 +1102,7 @@ re_contour_tp *contourLines2(double *x, int nx, double *y, int ny, double zc, CL
 				c->x = Realloc(c->x, c->nc, double *);
 				c->y = Realloc(c->y, c->nc, double *);
 				c->ns[c->nc - 1] = ns;
-				c->cyclic[c->nc - 1] = (x[0] == x[ns]) && (y[0] == y[ns]);
+				c->cyclic[c->nc - 1] = (ABS(x[0] - x[ns]) < cyclic_eps && ABS(y[0] - y[ns]) < cyclic_eps);
 				c->length[c->nc - 1] = len;
 				c->x[c->nc - 1] = x;
 				c->y[c->nc - 1] = y;
@@ -1170,18 +1171,46 @@ int re_join_contourLines(re_contour_tp * c)
 	 * modify the contourLines in 'c' so its one object 
 	 */
 
-	if (c->nc <= 1) {
+	int debug = 0;
+	int i, j, k;
+
+	if (!c || (c && c->nc == 0)) {
 		return GMRFLib_SUCCESS;
 	}
 
-	int debug = 0;
+	if (c->nc == 1) {
+		/*
+		 * force them to be cyclic if close
+		 */
+		if ((c->x[0][0] != c->x[0][c->ns[0]] ||
+		     c->y[0][0] != c->y[0][c->ns[0]]) && (ABS(c->x[0][0] - c->x[0][c->ns[0]]) < cyclic_eps && ABS(c->y[0][0] - c->y[0][c->ns[0]]) < cyclic_eps)) {
+			c->x[0] = Realloc(c->x[0], c->ns[0] + 2, double);
+			c->y[0] = Realloc(c->y[0], c->ns[0] + 2, double);
+			c->x[0][c->ns[0] + 1] = c->x[0][0];
+			c->y[0][c->ns[0] + 1] = c->y[0][0];
+			c->ns[0]++;
+
+			/*
+			 * update the length 
+			 */
+			c->length[0] = 0.0;
+			for (i = 0; i < c->ns[0]; i++) {
+				c->length[0] += sqrt(SQR(c->x[0][i] - c->x[0][i + 1]) + SQR(c->y[0][i] - c->y[0][i + 1]));
+			}
+		}
+
+		return GMRFLib_SUCCESS;
+	}
+
+	if (c->nc <= 1) {
+		return GMRFLib_SUCCESS;
+	}
 
 	if (debug) {
 		printf("ENTER WITH\n");
 		re_print_contourLines(stdout, c);
 	}
 
-	int i, j, k;
 	double *dists = Calloc(ISQR(c->nc), double);
 	int *idir = Calloc(ISQR(c->nc), int);
 	int *jdir = Calloc(ISQR(c->nc), int);
@@ -1305,7 +1334,7 @@ int re_join_contourLines(re_contour_tp * c)
 	for (i = 0; i < c->ns[imin]; i++) {
 		c->length[imin] += sqrt(SQR(c->x[imin][i] - c->x[imin][i + 1]) + SQR(c->y[imin][i] - c->y[imin][i + 1]));
 	}
-	c->cyclic[imin] = (c->x[imin][0] == c->x[imin][c->ns[imin]]) && (c->y[imin][0] == c->y[imin][c->ns[imin]]);
+	c->cyclic[imin] = (ABS(c->x[imin][0] - c->x[imin][c->ns[imin]]) < cyclic_eps && ABS(c->y[imin][0] - c->y[imin][c->ns[imin]]) < cyclic_eps);
 	c->nc--;
 
 	Free(dists);
@@ -1315,10 +1344,19 @@ int re_join_contourLines(re_contour_tp * c)
 	return re_join_contourLines(c);
 }
 
-double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
+int re_contour_get_direction(double *x, double *y, int nseg)
 {
-#define WRAPIT(_i) (((_i) + c->ns[ic]+1) % (c->ns[ic]+1))
-#define INBETWEEN(_x, _x0, _x1) (( (_x) >= (_x0) && (_x) <= (_x1)) || ((_x) >= (_x1) && (_x) <= (_x0)) )
+	int i;
+	double area = 0.0;
+	for (i = 0; i < nseg; i++) {
+		area += (x[i + 1] - x[i]) * (y[i + 1] + y[i]) / 2.0;
+	}
+	return (area >= 0.0 ? 1 : -1);
+}
+double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
+{
+#define WRAPIT(_i) (((_i) + c->ns[ic]+1)%(c->ns[ic]+1))
+#define INBETWEEN(_x, _x0, _x1) (((_x) + contour_eps >= (_x0) && (_x) - contour_eps <= (_x1)) || ((_x) + contour_eps >= (_x1) && (_x) - contour_eps <= (_x0)))
 
 	/*
 	 * locate the corresponding 'point' on the contour; counted as the length around the contour from a well defined starting point. 
@@ -1327,27 +1365,29 @@ double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
 	int i, j, start_idx, ic, direction;
 	double len;
 
+	if (c->nc == 0)
+		return 0.0;
+
+	assert(c->nc == 1);
 	GMRFLib_max_value(c->length, c->nc, &ic);
+	assert(ic == 0);
+
+	direction = re_contour_get_direction(c->x[ic], c->y[ic], c->ns[ic]);
 	if (c->cyclic[ic]) {
 		GMRFLib_min_value(c->y[ic], c->ns[ic] + 1, &start_idx);
 	} else {
-		start_idx = 0;
-		if (!(c->x[ic][0] < c->x[ic][c->ns[ic] + 1])) {
-			/*
-			 * simply reverse the contour
-			 */
-			REV(c->x[ic], c->ns[ic] + 1);
-			REV(c->y[ic], c->ns[ic] + 1);
-			if (0) {
-				FILE *fp = fopen("contour.dat", "w");
-				re_print_contourLines(fp, c);
-				fprintf(stderr, "\n\n *** trouble; file written....\n\n");
-				assert(0 == 1);
+		start_idx = (direction == 1 ? 0 : c->ns[ic]);
+	}
+
+	if (0) {
+		if (direction < 0) {
+			direction = 1;
+			if (!(c->x[ic][0] < c->x[ic][c->ns[ic] + 1])) {
+				REV(c->x[ic], c->ns[ic] + 1);
+				REV(c->y[ic], c->ns[ic] + 1);
 			}
 		}
 	}
-
-	direction = (c->x[ic][WRAPIT(start_idx + 1)] < c->x[ic][start_idx] ? 1 : -1);
 
 	len = 0.0;
 	for (i = start_idx, j = 0; j < c->ns[ic] + 1; i = WRAPIT(i + direction), j++) {
@@ -1358,83 +1398,36 @@ double re_point_on_countour(re_contour_tp * c, double skew, double kurt)
 			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i + direction)]) + SQR(c->y[ic][i] - c->y[ic][WRAPIT(i + direction)]));
 		}
 	}
+	if (!(len <= 1.1 * c->length[0])) {
+
+		printf("SOMETHING WRONG\n");
+		for (i = 0; i < c->ns[ic] + 1; i++) {
+			printf("i,x,y %d %.12g %.12g BETWEEN %d\n", i, c->x[ic][i], c->y[ic][i],
+			       (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i + direction)]) && INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i + direction)])));
+		}
+		P(start_idx);
+		P(direction);
+		P(len);
+		P(c->length[ic]);
+		P(skew);
+		P(kurt);
+		abort();
+	}
+
 #undef WRAPIT
 #undef INBETWEEN
-	return len;
+	return DMAX(0.0, DMIN(len, c->length[ic]));
 }
 
 double *re_sas_evaluate_log_prior(double skew, double kurt)
 {
-	double level;
-	re_contour_tp *c;
-	double ldens_uniform, ldens_dist, length = 0, point;
+	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.05, Jacobian, lambda = 10, lev[3], poi[3], len[3],
+	    *pri, dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt;
 
-	level = re_find_in_sas_prior_table(skew, kurt);	/* level for the contour */
-	if (ISNAN(level)) {
-		double *pri = Calloc(3, double);
-		pri[0] = NAN;
-		pri[1] = NAN;
-		pri[2] = NAN;
-		return pri;
-	}
-	c = contourLines(sas_prior_table->x, sas_prior_table->nx, sas_prior_table->y, sas_prior_table->ny, sas_prior_table->z, level);
-	re_join_contourLines(c);
-	assert(c->nc);
-	if (c->nc > 1) {
-#pragma omp critical
-		{
-			static int count = 0;
-			char *filename;
-			FILE *fp;
-
-			fprintf(stderr, "log_prior: nc=%1d, skew=%g kurt=%g\n", c->nc, skew, kurt);
-			GMRFLib_sprintf(&filename, "c/contour-%1d.dat", count);
-			fp = fopen(filename, "w");
-			re_print_contourLines(fp, c);
-			fclose(fp);
-
-			re_join_contourLines(c);
-			GMRFLib_sprintf(&filename, "c/contour-NEW-%1d.dat", count);
-			fp = fopen(filename, "w");
-			re_print_contourLines(fp, c);
-			fclose(fp);
-
-			Free(filename);
-			count++;
-		}
-	}
-	length = GMRFLib_max_value(c->length, c->nc, NULL);
-	ldens_uniform = log(1.0 / length);
-	point = re_point_on_countour(c, skew, kurt);
-	re_free_contourLines(c);
-
-	double lambda = 20;
-	ldens_dist = log(lambda) - lambda * level;
-
-#define NEW(dskew, dkurt)						\
-	if (1)								\
-	{								\
-		level = re_find_in_sas_prior_table(skew + dskew, kurt+dkurt); \
-		if (ISNAN(level)) {					\
-			double *pri = Calloc(3, double);		\
-			pri[0] = NAN;					\
-			pri[1] = NAN;					\
-			pri[2] = NAN;					\
-			return pri;					\
-		}							\
-		c = contourLines(sas_prior_table->x, sas_prior_table->nx, \
-				 sas_prior_table->y, sas_prior_table->ny, \
-				 sas_prior_table->z, level);		\
-		re_join_contourLines(c);				\
-		assert(c->nc==1);					\
-		length = c->length[0];					\
-		point = re_point_on_countour(c, skew + dskew, kurt+dkurt); \
-		re_free_contourLines(c);				\
-	}
-
-	double dlevel_dskew, dlevel_dkurt, dpoint_dskew, dpoint_dkurt, lev[3], poi[3], dskew, dkurt, dlevel_ref = 0.01, cor,
-		ddefault = 0.01, error_limit = 0.01;
-	int ntimes = 10, nt[2], times;
+	re_find_in_sas_prior_table(output, skew, kurt);
+	level = output[0];
+	length = output[1];
+	point = output[2];
 
 	if (skew <= 0.0) {
 		dskew = -ddefault;
@@ -1445,84 +1438,41 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 	}
 
 	lev[0] = level;
+	len[0] = length;
 	poi[0] = point;
 
-#define TRUNC_CORE(x, f) DMIN(1/(f), DMAX((f), (x)))
-#define TRUNC(x) TRUNC_CORE(x, 0.5)
-
-	/* 
-	 * make sure we start with a legal value
-	 */
-	if (re_valid_skew_kurt(NULL, skew, kurt)){
-		while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
-			dskew /= 2.0;
-		}
-	}
-
-	for (times = 0; times < ntimes; times++) {
-		NEW(dskew, 0);
-		cor = ABS(dlevel_ref / (level - lev[0]));
-		dskew *= TRUNC(cor);
-		while (!re_valid_skew_kurt(NULL, skew + dskew, kurt)){
-			dskew /= 2.0;
-		}
-		if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
-			break;
-	}
-	nt[0] = times;
-	NEW(dskew, 0);
-
-	lev[1] = level;
-	poi[1] = point; 
+	re_find_in_sas_prior_table(output, skew + dskew, kurt);
+	lev[1] = output[0];
+	len[1] = output[1];
+	poi[1] = output[2];
 
 	dlevel_dskew = (lev[1] - lev[0]) / dskew;
 	dpoint_dskew = (poi[1] - poi[0]) / dskew;
 
-	/* 
-	 * make sure we start with a legal value
-	 */
-	if (re_valid_skew_kurt(NULL, skew, kurt)){
-		while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
-			dkurt /= 2.0;
-		}
-	}
-
-	for (times = 0; times < ntimes; times++) {
-		NEW(0, dkurt);
-		cor = ABS(dlevel_ref / (level - lev[0]));
-		dkurt *= TRUNC(cor);
-		while (!re_valid_skew_kurt(NULL, skew, kurt + dkurt)){
-			dkurt /= 2.0;
-		}
-		if (ABS(level - lev[0]) / dlevel_ref <= exp(error_limit) && ABS(level - lev[0]) / dlevel_ref >= exp(-error_limit))
-			break;
-	}
-	nt[1] = times;
-	printf("skew %g kurt %g dskew %g dkurt %g achived dlevel %.6g  %.6g wanted %.6g times=%d %d\n",
-	       skew, kurt, dskew, dkurt, ABS(lev[1] - lev[0]), ABS(level - lev[0]), dlevel_ref, nt[0], nt[1]);
-	
-	lev[2] = level;
-	poi[2] = point;
+	re_find_in_sas_prior_table(output, skew, kurt + dkurt);
+	lev[2] = output[0];
+	len[2] = output[1];
+	poi[2] = output[2];
 
 	dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
 	dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
 
-	double Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
-#undef NEW
-#undef TRUNC
-#undef TRUNC_CORE
-	
+	Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
 
-	double *pri = Calloc(3, double);
+	ldens_uniform = log(1 / length);
+	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */
 
+	pri = Calloc(5, double);
 	pri[0] = ldens_uniform + ldens_dist + log(Jacobian);
-	pri[1] = poi[0];
-	pri[2] = exp(-ldens_uniform);			       /* this is the length */
+	pri[1] = level;
+	pri[2] = length;
+	pri[3] = point;
+	pri[4] = log(Jacobian);
 
 	return pri;
 }
 
-double re_find_in_sas_prior_table(double skew, double kurt)
+int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 {
 	/*
 	 * return the level based on 'skew' and 'kurt' 
@@ -1543,27 +1493,46 @@ double re_find_in_sas_prior_table(double skew, double kurt)
 	/*
 	 * so the notation is like the one in https://en.wikipedia.org/wiki/Bilinear_interpolation 
 	 */
-#define LEVEL(_i, _j) sas_prior_table->z[(_i) + sas_prior_table->nx * (_j)]
-	double x1, x2, y1, y2, x, y, fQ11, fQ12, fQ21, fQ22, level;
+#define TABLE_Z(_i, _j) sas_prior_table->z[(_i) + sas_prior_table->nx * (_j)]
+#define TABLE_ZZ(_i, _j) sas_prior_table->zz[(_i) + sas_prior_table->nx * (_j)]
+#define TABLE_ZZZ(_i, _j) sas_prior_table->zzz[(_i) + sas_prior_table->nx * (_j)]
 
+	double x1, x2, y1, y2, x, y, fQ11, fQ12, fQ21, fQ22;
 	x1 = sas_prior_table->x[ix];
 	x2 = sas_prior_table->x[ix + 1];
 	y1 = sas_prior_table->y[iy];
 	y2 = sas_prior_table->y[iy + 1];
-	fQ11 = LEVEL(ix, iy);
-	fQ21 = LEVEL(ix + 1, iy);
-	fQ12 = LEVEL(ix, iy + 1);
-	fQ22 = LEVEL(ix + 1, iy + 1);
 	x = skew;
 	y = kurt;
 
 	assert(x >= x1 && x <= x2);
 	assert(y >= y1 && y <= y2);
 
-	level = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
+	fQ11 = TABLE_Z(ix, iy);
+	fQ21 = TABLE_Z(ix + 1, iy);
+	fQ12 = TABLE_Z(ix, iy + 1);
+	fQ22 = TABLE_Z(ix + 1, iy + 1);
+	output[0] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
 	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
-#undef LEVEL
-	return level;
+
+	fQ11 = TABLE_ZZ(ix, iy);
+	fQ21 = TABLE_ZZ(ix + 1, iy);
+	fQ12 = TABLE_ZZ(ix, iy + 1);
+	fQ22 = TABLE_ZZ(ix + 1, iy + 1);
+	output[1] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
+	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
+
+	fQ11 = TABLE_ZZZ(ix, iy);
+	fQ21 = TABLE_ZZZ(ix + 1, iy);
+	fQ12 = TABLE_ZZZ(ix, iy + 1);
+	fQ22 = TABLE_ZZZ(ix + 1, iy + 1);
+	output[2] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
+	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
+
+#undef TABLE_Z
+#undef TABLE_ZZ
+#undef TABLE_ZZZ
+	return GMRFLib_SUCCESS;
 }
 
 int re_find_in_table_general(double value, double *x, int nx)
@@ -1632,12 +1601,18 @@ int re_make_sas_prior_table(void)
 		s->x = Calloc(s->nx, double);
 		s->y = Calloc(s->ny, double);
 		s->z = Calloc(s->nz, double);
+		s->zz = Calloc(s->nz, double);
+		s->zzz = Calloc(s->nz, double);
 
 		ret = fread(s->x, sizeof(double), (size_t) s->nx, fp);
 		assert(ret == (size_t) s->nx);
 		ret = fread(s->y, sizeof(double), (size_t) s->ny, fp);
 		assert(ret == (size_t) s->ny);
 		ret = fread(s->z, sizeof(double), (size_t) s->nz, fp);
+		assert(ret == (size_t) s->nz);
+		ret = fread(s->zz, sizeof(double), (size_t) s->nz, fp);
+		assert(ret == (size_t) s->nz);
+		ret = fread(s->zzz, sizeof(double), (size_t) s->nz, fp);
 		assert(ret == (size_t) s->nz);
 
 		fclose(fp);
@@ -1658,9 +1633,11 @@ int re_make_sas_prior_table(void)
 			s->x = Calloc(s->nx, double);
 			s->y = Calloc(s->ny, double);
 			s->z = Calloc(s->nz, double);
+			s->zz = Calloc(s->nz, double);
+			s->zzz = Calloc(s->nz, double);
 
 			int i, j;
-			double dd, skew_limit = 4.0, kurt_low = 2, kurt_high = 12;
+			double dd, skew_limit = 4.0, kurt_low = 2, kurt_high = 20;
 
 			dd = 2 * skew_limit / (s->nx - 1.0);
 			for (i = 0; i < s->nx; i++) {
@@ -1672,7 +1649,7 @@ int re_make_sas_prior_table(void)
 				s->y[j] = kurt_low + j * dd;
 			}
 
-#pragma omp parallel for private(j, i)
+#pragma omp parallel for private(j, i) schedule(dynamic)
 			for (j = 0; j < s->ny; j++) {
 				for (i = 0; i < s->nx; i++) {
 					int k = i + j * s->nx;
@@ -1686,37 +1663,94 @@ int re_make_sas_prior_table(void)
 					}
 				}
 			}
-			printf("MAKE TABLE... DONE\n");
+			printf("MAKE TABLE... Part 1 done\n");
+
+
+#pragma omp parallel for private(j, i) schedule(dynamic)
+			for (j = 0; j < s->ny; j++) {
+				printf("...outer loop j = %d/%d\n", j, s->ny);
+				for (i = 0; i < s->nx; i++) {
+					int k = i + j * s->nx;
+					if (re_valid_skew_kurt(NULL, s->x[i], s->y[j])) {
+						double level;
+
+						level = s->z[k];
+						if (ISNAN(level)) {
+							s->zz[k] = NAN;
+						} else {
+							re_contour_tp *c = NULL;
+							double length, point;
+
+							c = contourLines(s->x, s->nx, s->y, s->ny, s->z, level);
+							re_join_contourLines(c);
+
+							if (0 && c->nc > 0 && i < s->nx / 2) {
+								char *filename;
+								GMRFLib_sprintf(&filename, "c/contour-%1d-%1d.dat", i, j);
+								FILE *fp = fopen(filename, "w");
+								// FILE *fp = stdout;
+								re_print_contourLines(fp, c);
+								point = re_point_on_contour(c, s->x[i], s->y[j]);
+								fprintf(fp, "POINT x,y,p,len  %g %g %g %g\n", s->x[i], s->y[j], point,
+									(c->nc ? c->length[0] : DBL_EPSILON));
+								if (fp != stdout)
+									fclose(fp);
+								// printf("wrote %s\n", filename);
+							}
+
+							if (c->nc == 0) {
+								s->zz[k] = FLT_EPSILON;
+								s->zzz[k] = FLT_EPSILON / 2.0;
+							} else {
+								if (c->nc != 1) {
+									re_print_contourLines(stdout, c);
+								}
+								assert(c->nc == 1);
+								length = c->length[0];
+								point = re_point_on_contour(c, s->x[i], s->y[j]);
+								re_free_contourLines(c);
+								s->zz[k] = length;
+								FIXME1("FIX");
+								s->zzz[k] = point;
+								// printf("skew %g kurt %g level %g length %g point %g\n", s->x[i], s->y[j], level, length, point);
+							}
+						}
+					} else {
+						s->zz[k] = s->zzz[k] = NAN;
+					}
+				}
+			}
+
+			printf("MAKE TABLE... Part 2 done\n");
 
 			sas_prior_table = s;
 
-			if (1) {
-				int debug = 1;
-				if (debug) {
-					fprintf(stderr, "write table from %s\n", SAS_PRIOR_TABLE);
-				}
+			fprintf(stderr, "Write prior-table to %s\n", SAS_PRIOR_TABLE);
 
-				FILE *fp;
-				size_t ret;
+			FILE *fp;
+			size_t ret;
 
-				fp = fopen(SAS_PRIOR_TABLE, "wb");
+			fp = fopen(SAS_PRIOR_TABLE, "wb");
 
-				ret = fwrite(&(s->nx), sizeof(int), (size_t) 1, fp);
-				assert(ret == (size_t) 1);
-				ret = fwrite(&(s->ny), sizeof(int), (size_t) 1, fp);
-				assert(ret == (size_t) 1);
-				ret = fwrite(&(s->nz), sizeof(int), (size_t) 1, fp);
-				assert(ret == (size_t) 1);
+			ret = fwrite(&(s->nx), sizeof(int), (size_t) 1, fp);
+			assert(ret == (size_t) 1);
+			ret = fwrite(&(s->ny), sizeof(int), (size_t) 1, fp);
+			assert(ret == (size_t) 1);
+			ret = fwrite(&(s->nz), sizeof(int), (size_t) 1, fp);
+			assert(ret == (size_t) 1);
 
-				ret = fwrite(s->x, sizeof(double), (size_t) s->nx, fp);
-				assert(ret == (size_t) s->nx);
-				ret = fwrite(s->y, sizeof(double), (size_t) s->ny, fp);
-				assert(ret == (size_t) s->ny);
-				ret = fwrite(s->z, sizeof(double), (size_t) s->nz, fp);
-				assert(ret == (size_t) s->nz);
+			ret = fwrite(s->x, sizeof(double), (size_t) s->nx, fp);
+			assert(ret == (size_t) s->nx);
+			ret = fwrite(s->y, sizeof(double), (size_t) s->ny, fp);
+			assert(ret == (size_t) s->ny);
+			ret = fwrite(s->z, sizeof(double), (size_t) s->nz, fp);
+			assert(ret == (size_t) s->nz);
+			ret = fwrite(s->zz, sizeof(double), (size_t) s->nz, fp);
+			assert(ret == (size_t) s->nz);
+			ret = fwrite(s->zzz, sizeof(double), (size_t) s->nz, fp);
+			assert(ret == (size_t) s->nz);
 
-				fclose(fp);
-			}
+			fclose(fp);
 		}
 	}
 	return GMRFLib_SUCCESS;

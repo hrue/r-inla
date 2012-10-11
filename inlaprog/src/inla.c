@@ -88,6 +88,7 @@ static const char RCSId[] = HGVERSION;
 #include "eval.h"
 #include "interpol.h"
 #include "re.h"
+#include "ar.h"
 
 #define PREVIEW    5
 #define MODEFILENAME ".inla-mode"
@@ -19095,6 +19096,11 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
+	if (1){
+		ar_test1();
+		exit(0);
+	}
+	
 	if (0){
 		P(bessel_Knu(0.25, 0.2));
 		P(gsl_sf_bessel_Knu(0.25, 0.2));
@@ -19135,19 +19141,21 @@ int testit(int argc, char **argv)
 	if (1) {
 		re_init();
 
-		int n = 50, i, j, ii;
+		int n = 500, i, j, ii;
 		double *skew = Calloc(n, double);
 		double *kurt = Calloc(n, double);
 		double *ld = Calloc(ISQR(n), double);
 		double *ldd = Calloc(ISQR(n), double);
 		double *lddd = Calloc(ISQR(n), double);
+		double *ldddd = Calloc(ISQR(n), double);
+		double *lddddd = Calloc(ISQR(n), double);
 		double s, k;
 
 		for(s = -1.5, i = 0 ;  i < n;  s += 2*1.5/(n-1.0), i++){
 			skew[i] = s;
 			printf("skew[%d]  = %g\n", i, skew[i]);
 		}
-		for(k = 2.1, i = 0 ;  i < n;   k += (4-2.0)/(n-1), i++){
+		for(k = 2.1, i = 0 ;  i < n;   k += (7-2.0)/(n-1), i++){
 			kurt[i] = k;
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 		}
@@ -19162,11 +19170,15 @@ int testit(int argc, char **argv)
 					ld[ii] = pri[0];
 					ldd[ii] = pri[1];
 					lddd[ii] = pri[2];
+					ldddd[ii] = pri[3];
+					lddddd[ii] = pri[4];
 					Free(pri);
 				} else {
 					ld[ii] = NAN;
 					ldd[ii] = NAN;
 					lddd[ii] = NAN;
+					ldddd[ii] = NAN;
+					lddddd[ii] = NAN;
 				}
 			}
 		}
@@ -19177,13 +19189,12 @@ int testit(int argc, char **argv)
 			fprintf(fp, "%g\n", skew[i]);
 		for(i=0; i<n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-
 		for(j=ii=0; j<n; j++)
 			for(i=0; i<n; i++)
 				fprintf(fp, "%g\n", ld[ii++]);
 
 		fclose(fp);
-		printf("wrote file\n");
+		printf("wrote file 1\n");
 
 		fp = fopen("testing2.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
@@ -19191,26 +19202,50 @@ int testit(int argc, char **argv)
 			fprintf(fp, "%g\n", skew[i]);
 		for(i=0; i<n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-
 		for(j=ii=0; j<n; j++)
 			for(i=0; i<n; i++)
 				fprintf(fp, "%g\n", ldd[ii++]);
 
 		fclose(fp);
-		printf("wrote file\n");
+		printf("wrote file 2\n");
+
 		fp = fopen("testing3.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 		for(i=0; i<n; i++)
 			fprintf(fp, "%g\n", skew[i]);
 		for(i=0; i<n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-
 		for(j=ii=0; j<n; j++)
 			for(i=0; i<n; i++)
 				fprintf(fp, "%g\n", lddd[ii++]);
 
 		fclose(fp);
-		printf("wrote file\n");
+		printf("wrote file 3\n");
+
+		fp = fopen("testing4.dat", "w");
+		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", skew[i]);
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", kurt[i]);
+		for(j=ii=0; j<n; j++)
+			for(i=0; i<n; i++)
+				fprintf(fp, "%g\n", ldddd[ii++]);
+
+		fclose(fp);
+		printf("wrote file 4\n");
+
+		fp = fopen("testing5.dat", "w");
+		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", skew[i]);
+		for(i=0; i<n; i++)
+			fprintf(fp, "%g\n", kurt[i]);
+		for(j=ii=0; j<n; j++)
+			for(i=0; i<n; i++)
+				fprintf(fp, "%g\n", lddddd[ii++]);
+		fclose(fp);
+		printf("wrote file 5\n");
 
 		exit(0);
 	}
