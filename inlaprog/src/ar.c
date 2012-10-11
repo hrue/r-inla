@@ -187,7 +187,6 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q)
 	/*
 	 * I need to solve the Yule-Walker equations, not for 'phi' but for the correlations 
 	 */
-
 	gsl_matrix *A = gsl_matrix_calloc(pdim, pdim);
 	gsl_vector *b = gsl_vector_calloc(pdim);
 	gsl_vector *x = gsl_vector_calloc(pdim);
