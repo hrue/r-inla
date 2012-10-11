@@ -74,9 +74,11 @@ typedef struct {
 	int ny;
 	int nz;
 
-	double *x;
-	double *y;
-	double *z;
+	double *x;					       /* skew */
+	double *y;					       /* kurt */
+	double *z;					       /* level */
+	double *zz;					       /* length */
+	double *zzz;					       /* point */
 } re_sas_prior_tp;
 
 int re_make_sas_prior_table(void);
@@ -100,9 +102,9 @@ int re_print_contourLines(FILE * fp, re_contour_tp * c);
 int re_free_contourLines(re_contour_tp * c);
 
 int re_join_contourLines(re_contour_tp * c);
-double re_point_on_countour(re_contour_tp * c, double skew, double kurt);
+double re_point_on_contour(re_contour_tp * c, double skew, double kurt);
 double *re_sas_evaluate_log_prior(double skew, double kurt);
-double re_find_in_sas_prior_table(double skew, double kurt);
+int re_find_in_sas_prior_table(double *result, double skew, double kurt);
 int re_find_in_table_general(double value, double *x, int nx);
 int re_read_sas_prior_table(void);
 int re_dsas_intern(double *logdens, double *x, int n, double mu, double sigma, double delta, double epsilon);
@@ -115,6 +117,7 @@ double bessel_Knu(double alpha, double x);
 void K_bessel(double *x, double *alpha, long *nb, long *ize, double *bk, long *ncalc);
 double re_valid_skew(double kurt);
 double re_valid_kurt(double skew);
+int re_contour_get_direction(double *x, double *y, int nseg);
 
 __END_DECLS
 #endif
