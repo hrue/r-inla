@@ -109,62 +109,80 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 
 int ar_test1()
 {
+	GMRFLib_graph_tp *g;
+	ar_def_tp def;
+
+	def.n = 10;
+	def.p = 3;
+
+	GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
+	int i, j, jj;
+
+	for(i=0; i<def.n; i++){
+		for(j = i;  j < IMIN(def.n, i+def.p); j++){
+			Qfunc_ar_core(i, j, &def);
+		}
+	}
+	
+
+	if (0) {
 #define PMAX 10
-	int p, i, j;
-	double *pacf, *pacf2, *phi;
+		int p, i, j;
+		double *pacf, *pacf2, *phi;
 
-	pacf = Calloc(PMAX, double);
-	pacf2 = Calloc(PMAX, double);
-	phi = Calloc(PMAX, double);
+		pacf = Calloc(PMAX, double);
+		pacf2 = Calloc(PMAX, double);
+		phi = Calloc(PMAX, double);
 
-	for (p = 1; p <= PMAX; p++) {
+		for (p = 1; p <= PMAX; p++) {
 
-		/*
-		 * create some pacf's 
-		 */
-		for (i = 0; i < p; i++) {
-			pacf[i] = GMRFLib_uniform();
-		}
+			/*
+			 * create some pacf's 
+			 */
+			for (i = 0; i < p; i++) {
+				pacf[i] = GMRFLib_uniform();
+			}
 
-		/*
-		 * compute the phi's 
-		 */
-		ar_pacf2phi(p, pacf, phi);
+			/*
+			 * compute the phi's 
+			 */
+			ar_pacf2phi(p, pacf, phi);
 
-		/*
-		 * and its inverse 
-		 */
-		ar_phi2pacf(p, phi, pacf2);
+			/*
+			 * and its inverse 
+			 */
+			ar_phi2pacf(p, phi, pacf2);
 
 
-		printf("Result for p = %d\n", p);
-		for (i = 0; i < p; i++) {
-			j = i + 1;			       /* so phi_j = phi[i], j=1...p */
-			printf("j = %2d  \tpacf = %.6g  \tphi %.6g  \tpacf2 %.6g  \tdiff %.6g\n", j, pacf[i], phi[i], pacf2[i], ABS(pacf[i] - pacf2[i]));
-		}
-		printf("\n");
-
-		double prec;
-		double *Q;
-
-		ar_marginal_distribution(p, pacf, &prec, &Q);
-
-		printf("Marginal distribution\n");
-		printf("\tPrec = %g\n", prec);
-
-		for (i = 0; i < p; i++) {
-			for (j = 0; j < p; j++) {
-				printf(" %10.6g ", Q[i + p * j]);
+			printf("Result for p = %d\n", p);
+			for (i = 0; i < p; i++) {
+				j = i + 1;			       /* so phi_j = phi[i], j=1...p */
+				printf("j = %2d  \tpacf = %.6g  \tphi %.6g  \tpacf2 %.6g  \tdiff %.6g\n", j, pacf[i], phi[i], pacf2[i], ABS(pacf[i] - pacf2[i]));
 			}
 			printf("\n");
+
+			double prec;
+			double *Q;
+
+			ar_marginal_distribution(p, pacf, &prec, &Q);
+
+			printf("Marginal distribution\n");
+			printf("\tPrec = %g\n", prec);
+
+			for (i = 0; i < p; i++) {
+				for (j = 0; j < p; j++) {
+					printf(" %10.6g ", Q[i + p * j]);
+				}
+				printf("\n");
+			}
+
+			Free(Q);
 		}
 
-		Free(Q);
+		Free(pacf);
+		Free(pacf2);
+		Free(phi);
 	}
-
-	Free(pacf);
-	Free(pacf2);
-	Free(phi);
 
 	return GMRFLib_SUCCESS;
 }
@@ -264,3 +282,27 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q)
 
 	return GMRFLib_SUCCESS;
 }
+
+double Qfunc_ar_core(int i, int j, void *arg)
+{
+	char *phi[] = {"-1", "1", "2",  "3"};
+	
+
+	ar_def_tp *def = (ar_def_tp *) arg;
+
+	assert(def->n >= 2*def->p);
+
+	if (IABS(i-j) > def->p) {
+		return 0.0;
+	}
+	
+	int ii, jj, ki, kj, diff;
+
+
+	return 0;
+}
+
+				
+			
+			
+		
