@@ -43,10 +43,20 @@ __BEGIN_DECLS
 /* 
  *
  */
+
+typedef struct
+{
+	int n;
+	int p;
+}
+	ar_def_tp;
+
+
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
 int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q);
+double Qfunc_ar_core(int i, int j, void *arg);
 
 
 __END_DECLS
