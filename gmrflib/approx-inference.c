@@ -59,6 +59,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: approx-inference.c,v 1.713 2010/04/10 20:07:01 hrue Exp $ */
 
+#include <stdint.h>
 #include <assert.h>
 #include <time.h>
 #include <stddef.h>
@@ -5563,8 +5564,8 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	} cross_tp;
 	cross_tp *cross_store = NULL;
 
-	id = GMRFLib_thread_id;				       /* pickup the callers thread */
-
+	//id = GMRFLib_thread_id;
+	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	assert(problem != NULL);
 	if (nlin <= 0) {
 		return !GMRFLib_SUCCESS;
@@ -5673,7 +5674,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			 * and do the inner product over those, as they will remain the same for various calls to this function, but I don't think this is worth it.
 			 */
 			var = ddot_(&len, v, &one, v, &one);
-
 			if (cross) {
 				cross_store[i].from_idx = from_idx;
 				cross_store[i].to_idx = to_idx;

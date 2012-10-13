@@ -680,6 +680,7 @@
 
             cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
+            cat("lincomb.order = ", i, "\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$precision)) {
                 cat("precision = ", contr$precision,"\n", sep = " ", file = file,  append = TRUE)
             }

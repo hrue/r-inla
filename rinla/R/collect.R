@@ -447,25 +447,6 @@ inla.internal.experimental.mode = FALSE
         size.lincomb = NULL
     }
 
-    ## ensure that the results are sorted wrt the name
-    if (!is.null(summary.lincomb)) {
-        o = order(rownames(summary.lincomb[[1L]]))
-        summary.lincomb[[1L]] = summary.lincomb[[1L]][o, ]
-    }
-    if (!is.null(marginals.lincomb)) {
-        if (length(marginals.lincomb) > 0L) {
-            nm = names(marginals.lincomb[[1L]])
-            o = order(nm)
-            new.marginals.lincomb = marginals.lincomb
-            for(i in 1:length(nm)) {
-                new.marginals.lincomb[[1L]][[i]] = marginals.lincomb[[1L]][[o[i]]]
-            }
-            names(new.marginals.lincomb[[1L]]) = nm[o]
-            marginals.lincomb = new.marginals.lincomb
-            rm(new.marginals.lincomb)
-        }
-    }
-    
     if (derived) {
         res = list(summary.lincomb.derived = summary.lincomb[[1L]],
                 marginals.lincomb.derived = inla.ifelse(length(marginals.lincomb) > 0L, marginals.lincomb[[1L]], NULL), 
