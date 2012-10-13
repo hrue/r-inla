@@ -685,10 +685,11 @@ struct inla_tp_struct {
 	char **lc_tag;					       /* the tags */
 	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
+	double *lc_order;
 	Output_tp **lc_output;
 	GMRFLib_lc_tp **lc_lc;
 	double *lc_derived_c;				       /* optional: correlation for the lincombs (derived) */
-
+	
 	/*
 	 * The final model 
 	 */
@@ -1053,7 +1054,7 @@ int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
-int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix);
+int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
 		       const char *sdir, map_func_tp * func, void *func_arg, map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose);
@@ -1065,7 +1066,7 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, int verbose);
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order, int verbose);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
