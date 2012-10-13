@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2010 Havard Rue
@@ -2836,7 +2837,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred, skew, kurt, s, s2, xx, mean = 0.0;
 
-	y = ds->data_observations.y[idx];		       
+	y = ds->data_observations.y[idx];
 	w = ds->data_observations.sas_weight[idx];
 	lprec = ds->data_observations.sas_log_prec[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.sas_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -4619,7 +4620,7 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 
 	phi = phi_param * s;
 	c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -6346,6 +6347,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
 	mb->lc_prec = Realloc(mb->lc_prec, mb->nlc + 1, double);
+	mb->lc_order = Realloc(mb->lc_order, mb->nlc + 1, double);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->lc_tag[mb->nlc]))));
 
@@ -6363,6 +6365,9 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tfilename [%s]\n", filename);
 		printf("\t\tfile.offset [%lu]\n", (long unsigned) fileoffset);
 	}
+
+	mb->lc_order[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "LINCOMB.ORDER"), -1.0);
+	assert(mb->lc_order[mb->nlc] >= 0);
 
 	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), 1.0e9);
 	if (mb->verbose) {
@@ -6387,8 +6392,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	lc->n = 0;
 	lc->idx = NULL;
 	lc->weight = NULL;
-	lc->tinfo = Calloc(GMRFLib_MAX_THREADS, GMRFLib_lc_tinfo_tp);
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+	lc->tinfo = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_lc_tinfo_tp);
+	for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 		lc->tinfo[i].first_nonzero = -1;
 		lc->tinfo[i].last_nonzero = -1;
 		lc->tinfo[i].first_nonzero_mapped = -1;
@@ -14216,7 +14221,7 @@ double extra(double *theta, int ntheta, void *argument)
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
 					count++;
-				} 
+				}
 
 				assert(!ds->data_fixed1);
 				assert(!ds->data_fixed2);
@@ -16880,7 +16885,7 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 
 	return INLA_OK;
 }
-int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix)
+int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order)
 {
 	char *fnm, *ndir;
 
@@ -16898,7 +16903,16 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 	M->nrow = M->ncol = n;
 	M->elems = ISQR(n);
 	M->A = Calloc(ISQR(n), double);
-	memcpy(M->A, matrix, ISQR(n) * sizeof(double));
+	if (order == NULL) {
+		memcpy(M->A, matrix, ISQR(n) * sizeof(double));
+	} else {
+		int i, j;
+		for (i = 0; i < n; i++) {
+			for (j = 0; j < n; j++) {
+				M->A[order[i] + order[j] * n] = matrix[i + j * n];
+			}
+		}
+	}
 
 	M->offset = 0L;
 	M->whence = SEEK_SET;
@@ -17108,7 +17122,7 @@ int inla_output(inla_tp * mb)
 
 					ii = 0;
 					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
-					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->nlc, 1,
+					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->lc_order, mb->nlc, 1,
 							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
@@ -17123,7 +17137,7 @@ int inla_output(inla_tp * mb)
 
 				GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
 				GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
-				inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), NULL, mb->nlc, 1,
+				inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), mb->lc_order, mb->nlc, 1,
 						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) mb->lc_tag), NULL);
@@ -17226,7 +17240,7 @@ int inla_output(inla_tp * mb)
 			}
 
 			if (mb->misc_output) {
-				inla_output_misc(mb->dir, mb->misc_output, mb->ntheta, mb->theta_tag, mb->theta_from, mb->theta_to, local_verbose);
+				inla_output_misc(mb->dir, mb->misc_output, mb->ntheta, mb->theta_tag, mb->theta_from, mb->theta_to, mb->lc_order, local_verbose);
 			}
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
@@ -17500,7 +17514,8 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose
 	Free(nndir);
 	return INLA_OK;
 }
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **theta_from, char **theta_to, int verbose)
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **theta_from, char **theta_to,
+		     double *lc_order, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -17690,10 +17705,20 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 	if (mo->compute_corr_lin && mo->corr_lin) {
 		/*
-		 * OOPS: this matrix is in its own internal ordering, where the names of the rows/columns are defined as the tags in the lincomb.derived. So we
-		 * output this matrix in its raw form, and add the names in 'collect.R'. 
+		 * OOPS: this matrix is in its own internal ordering, so we need to fix it here.
 		 */
-		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin);
+		assert(lc_order);
+		int n = mo->compute_corr_lin;
+		int *order = Calloc(n, int);
+		int i;
+
+		for (i = 0; i < n; i++) {
+			order[i] = (int) lc_order[i] - 1;
+		}
+		assert(GMRFLib_imin_value(order, n, NULL) == 0);
+		assert(GMRFLib_imax_value(order, n, NULL) == n - 1);
+		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin, order);
+		Free(order);
 	}
 
 	Free(ndir);
@@ -19096,40 +19121,40 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
-	if (0){
+	if (1) {
 		ar_test1();
 		exit(0);
 	}
-	
-	if (0){
+
+	if (0) {
 		P(bessel_Knu(0.25, 0.2));
 		P(gsl_sf_bessel_Knu(0.25, 0.2));
 		exit(0);
 	}
 
 
-	if (0){
+	if (0) {
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
 		exit(0);
 	}
-	
-		
-	if (0){
+
+
+	if (0) {
 		int n = 10;
 		double logdens[10], x[10];
 		int i;
-		
-		for(i=0; i<n; i++){
-			x[i] = i - n/2;
+
+		for (i = 0; i < n; i++) {
+			x[i] = i - n / 2;
 		}
 		re_dsas(logdens, x, n, 0.1, 3.2);
-		for(i=0; i<n; i++){
+		for (i = 0; i < n; i++) {
 			printf("x[%1d] = %.12g ldens = %.12g\n", i, x[i], logdens[i]);
 		}
-		//dsas(-5:4, skew = 0.1, kurt = 3.2)
-		//[1] -12.7762761870  -8.7141826028  -5.4397533201  -2.9879481542  -1.4152402204
-		//[6]  -0.8807294462  -1.4859634133  -2.8993708955  -5.0172402538  -7.8036535440
+		// dsas(-5:4, skew = 0.1, kurt = 3.2)
+		// [1] -12.7762761870 -8.7141826028 -5.4397533201 -2.9879481542 -1.4152402204
+		// [6] -0.8807294462 -1.4859634133 -2.8993708955 -5.0172402538 -7.8036535440
 		exit(0);
 	}
 
@@ -19151,21 +19176,21 @@ int testit(int argc, char **argv)
 		double *lddddd = Calloc(ISQR(n), double);
 		double s, k;
 
-		for(s = -1.5, i = 0 ;  i < n;  s += 2*1.5/(n-1.0), i++){
+		for (s = -1.5, i = 0; i < n; s += 2 * 1.5 / (n - 1.0), i++) {
 			skew[i] = s;
 			printf("skew[%d]  = %g\n", i, skew[i]);
 		}
-		for(k = 2.1, i = 0 ;  i < n;   k += (7-2.0)/(n-1), i++){
+		for (k = 2.1, i = 0; i < n; k += (7 - 2.0) / (n - 1), i++) {
 			kurt[i] = k;
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 		}
-	
+
 #pragma omp parallel for private(j, i, ii)
-		for(j=0; j<n; j++){
-			for(i=0; i<n; i++){
+		for (j = 0; j < n; j++) {
+			for (i = 0; i < n; i++) {
 				ii = i + j * n;
-				//printf("skew kurt %g %g\n", skew[i], kurt[j]);
-				if (re_valid_skew_kurt(NULL, skew[i], kurt[j])){
+				// printf("skew kurt %g %g\n", skew[i], kurt[j]);
+				if (re_valid_skew_kurt(NULL, skew[i], kurt[j])) {
 					double *pri = re_sas_evaluate_log_prior(skew[i], kurt[j]);
 					ld[ii] = pri[0];
 					ldd[ii] = pri[1];
@@ -19185,12 +19210,12 @@ int testit(int argc, char **argv)
 
 		FILE *fp = fopen("testing1.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", skew[i]);
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-		for(j=ii=0; j<n; j++)
-			for(i=0; i<n; i++)
+		for (j = ii = 0; j < n; j++)
+			for (i = 0; i < n; i++)
 				fprintf(fp, "%g\n", ld[ii++]);
 
 		fclose(fp);
@@ -19198,12 +19223,12 @@ int testit(int argc, char **argv)
 
 		fp = fopen("testing2.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", skew[i]);
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-		for(j=ii=0; j<n; j++)
-			for(i=0; i<n; i++)
+		for (j = ii = 0; j < n; j++)
+			for (i = 0; i < n; i++)
 				fprintf(fp, "%g\n", ldd[ii++]);
 
 		fclose(fp);
@@ -19211,12 +19236,12 @@ int testit(int argc, char **argv)
 
 		fp = fopen("testing3.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", skew[i]);
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-		for(j=ii=0; j<n; j++)
-			for(i=0; i<n; i++)
+		for (j = ii = 0; j < n; j++)
+			for (i = 0; i < n; i++)
 				fprintf(fp, "%g\n", lddd[ii++]);
 
 		fclose(fp);
@@ -19224,12 +19249,12 @@ int testit(int argc, char **argv)
 
 		fp = fopen("testing4.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", skew[i]);
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-		for(j=ii=0; j<n; j++)
-			for(i=0; i<n; i++)
+		for (j = ii = 0; j < n; j++)
+			for (i = 0; i < n; i++)
 				fprintf(fp, "%g\n", ldddd[ii++]);
 
 		fclose(fp);
@@ -19237,19 +19262,19 @@ int testit(int argc, char **argv)
 
 		fp = fopen("testing5.dat", "w");
 		fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", skew[i]);
-		for(i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", kurt[i]);
-		for(j=ii=0; j<n; j++)
-			for(i=0; i<n; i++)
+		for (j = ii = 0; j < n; j++)
+			for (i = 0; i < n; i++)
 				fprintf(fp, "%g\n", lddddd[ii++]);
 		fclose(fp);
 		printf("wrote file 5\n");
 
 		exit(0);
 	}
-	
+
 	if (0) {
 #define GET(_int) fscanf(fp, "%d\n", &_int)
 #define GETV(_vec, _len)						\

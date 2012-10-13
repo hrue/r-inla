@@ -83,18 +83,10 @@
 
         if (!is.null(misc$lincomb.derived.correlation.matrix)) {
             stopifnot(!is.null(res.lincomb.derived))
-            id = res.lincomb.derived$summary.lincomb.derived$ID + 1L
+            id = res.lincomb.derived$summary.lincomb.derived$ID
             tag = rownames(res.lincomb.derived$summary.lincomb.derived)
-
-            ## reorder the matrix so its ordered so that the tags are
-            ## sorted.
-            r = order(tag[id])
-            d = dim(misc$lincomb.derived.correlation.matrix)[1L]
             R = misc$lincomb.derived.correlation.matrix
-            for(ii in 1L:d) {
-                R[r[ii], r] = misc$lincomb.derived.correlation.matrix[ii, 1L:d]
-            }
-            rownames(R) = colnames(R) = sort(tag[id])
+            rownames(R) = colnames(R) = tag[id]
             misc$lincomb.derived.correlation.matrix = R
         }
     }
