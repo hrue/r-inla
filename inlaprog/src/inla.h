@@ -927,7 +927,8 @@ typedef struct {
 	   (strcasecmp(link, "cloglog") == 0 ? link_cloglog :		\
 	    (strcasecmp(link, "logit") == 0 ? link_logit :		\
 	     (strcasecmp(link, "tan") == 0 ? link_tan :			\
-	      link_this_should_not_happen))))))
+	      (strcasecmp(link, "h") == 0 ? link_h :			\
+	       link_this_should_not_happen)))))))
 
 /* 
    functions
@@ -967,6 +968,7 @@ double link_log(double x, map_arg_tp typ, void *param);
 double link_logit(double x, map_arg_tp typ, void *param);
 double link_probit(double x, map_arg_tp typ, void *param);
 double link_tan(double x, map_arg_tp typ, void *param);
+double link_h(double x, map_arg_tp typ, void *param);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param);
 double log_apbex(double a, double b);
 double map_1exp(double arg, map_arg_tp typ, void *param);

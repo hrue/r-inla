@@ -2363,7 +2363,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      link = c("default", "logit", "probit", "cloglog", "log", "h"),
                       pdf = "binomial"
                       ),
 
