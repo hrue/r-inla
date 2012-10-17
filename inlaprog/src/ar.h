@@ -44,10 +44,22 @@ __BEGIN_DECLS
  *
  */
 
+#include "inla.h"
+
 typedef struct
 {
 	int n;
 	int p;
+
+	double **log_prec;
+	double ***pacf_intern;
+	
+	/* 
+	   these are the stored values, all for prec = 1
+	 */
+	double **hold_pacf_intern;
+	double **hold_Q;
+	double **hold_Qmarg;
 }
 	ar_def_tp;
 
@@ -55,8 +67,9 @@ typedef struct
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
-int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q);
-double Qfunc_ar_core(int i, int j, void *arg);
+int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
+double Qfunc_ar(int i, int j, void *arg);
+double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 
 
 __END_DECLS
