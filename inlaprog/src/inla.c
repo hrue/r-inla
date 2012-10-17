@@ -985,6 +985,38 @@ double map_invtan(double x, map_arg_tp typ, void *param)
 		assert(0 == 1);
 	}
 }
+double link_h(double x, map_arg_tp typ, void *param)
+{
+	/*
+	 * the link function from 
+	 */
+	char *ap = getenv("LINK_H_A");
+	assert(ap);
+
+	double a = atof(ap);
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		if (x <= 0.0){
+			return 2.0*a/(1.0 + exp(-(2.0/a - 4.0)*x));
+		} else if (x >= 1.0) {
+			return 1.0 - 2.0*a/(1.0 + exp(-(2.0/a - 4.0)*(x-1.0)));
+		} else {
+			return a + (1.0 - 2.0*a) * x;
+		}
+		break;
+	case MAP_BACKWARD:
+		return x;				       /*  */
+	case MAP_DFORWARD:
+		abort();
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		assert(0 == 1);
+	}
+}
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param)
 {
 	/*
