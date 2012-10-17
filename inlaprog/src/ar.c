@@ -36,6 +36,7 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 #include "ar.h"
+#include "inla.h"
 
 /* 
    functions for the AR(p) model; some are taken from R's arima.c
@@ -96,7 +97,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	for (j = p - 1; j > 0; j--) {
 		a = pacf[j];
 		for (k = 0; k < j; k++) {
-			work[k] = (pacf[k] + a * pacf[j - k - 1]) / (1.0 - a * a);
+			work[k] = (pacf[k] + a * pacf[j - k - 1]) / (1.0 - SQR(a));
 		}
 		for (k = 0; k < j; k++) {
 			pacf[k] = work[k];
@@ -109,21 +110,61 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 
 int ar_test1()
 {
-	GMRFLib_graph_tp *g;
-	ar_def_tp def;
+	if (1) {
+		GMRFLib_graph_tp *g;
+		ar_def_tp def;
+		double pacf[2] = { 0.5, 0.25 };
+		
+		int i, j, k;
 
-	def.n = 10;
-	def.p = 3;
+		def.n = 10;
+		def.p = 2;
 
-	GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
-	int i, j, jj;
-
-	for(i=0; i<def.n; i++){
-		for(j = i;  j < IMIN(def.n, i+def.p); j++){
-			Qfunc_ar_core(i, j, &def);
+		HYPER_NEW(def.log_prec, 0.0);
+		def.pacf_intern = Calloc(def.p, double **);
+		for (i = 0; i < def.p; i++) {
+			double val = pacf[i];
+			HYPER_NEW(def.pacf_intern[i], ar_map_pacf(val, MAP_BACKWARD, NULL));
 		}
+
+		/*
+		 * easier if the storage is setup here 
+		 */
+		def.hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def.hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def.hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			def.hold_pacf_intern[i] = Calloc(def.p, double);
+			for (j = 0; j < def.p; j++) {
+				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
+			}
+		}
+
+		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
+		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
+
+		if (0){
+			FILE *fp = fopen("Q.dat", "w");
+			for(i=0; i<def.n; i++)
+				for(j=0; j<def.n; j++)
+					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, &def));
+			fclose(fp);
+		}
+
+		double val = 0.0;
+#pragma omp parallel for private(k, i, j)
+		for(k=0; k<1000; k++){
+			for(i=0; i<def.n; i++)
+				for(j=0; j<def.n; j++){
+					val += Qfunc_ar(i, j, &def);
+				}
+		}
+		P(val);
+					
+
+
+		exit(0);
 	}
-	
 
 	if (0) {
 #define PMAX 10
@@ -156,15 +197,15 @@ int ar_test1()
 
 			printf("Result for p = %d\n", p);
 			for (i = 0; i < p; i++) {
-				j = i + 1;			       /* so phi_j = phi[i], j=1...p */
+				j = i + 1;		       /* so phi_j = phi[i], j=1...p */
 				printf("j = %2d  \tpacf = %.6g  \tphi %.6g  \tpacf2 %.6g  \tdiff %.6g\n", j, pacf[i], phi[i], pacf2[i], ABS(pacf[i] - pacf2[i]));
 			}
 			printf("\n");
 
 			double prec;
-			double *Q;
+			double *Q = Calloc(ISQR(p), double);
 
-			ar_marginal_distribution(p, pacf, &prec, &Q);
+			ar_marginal_distribution(p, pacf, &prec, Q);
 
 			printf("Marginal distribution\n");
 			printf("\tPrec = %g\n", prec);
@@ -187,11 +228,11 @@ int ar_test1()
 	return GMRFLib_SUCCESS;
 }
 
-int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q)
+int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 {
 	/*
 	 * from the set of partial correlation coefficients, PACF, return the marginal precision for a standard innovation process and the p x p -precision matrix
-	 * for the first p components 
+	 * for the first p components
 	 */
 
 	size_t i, j, lag, lag_idx, pdim, debug = 0;
@@ -255,11 +296,10 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q)
 	gsl_linalg_LU_decomp(Sigma, perm, &s);
 	gsl_linalg_LU_invert(Sigma, perm, Sigma_inverse);
 
-	*Q = Calloc(ISQR(pdim), double);
 	for (i = 0; i < pdim; i++) {
 		for (j = 0; j <= i; j++) {
-			(*Q)[i + pdim * j] = gsl_matrix_get(Sigma_inverse, i, j);
-			(*Q)[j + pdim * i] = gsl_matrix_get(Sigma_inverse, i, j);	/* so its exactly symmetric */
+			Q[i + pdim * j] = gsl_matrix_get(Sigma_inverse, i, j);
+			Q[j + pdim * i] = gsl_matrix_get(Sigma_inverse, i, j);	/* so its exactly symmetric */
 		}
 	}
 
@@ -283,26 +323,170 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double **Q)
 	return GMRFLib_SUCCESS;
 }
 
-double Qfunc_ar_core(int i, int j, void *arg)
+double ar_map_pacf(double arg, map_arg_tp typ, void *param)
 {
-	char *phi[] = {"-1", "1", "2",  "3"};
-	
+	/*
+	 * the map-function for the PACF
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return (2.0 * (exp((arg)) / (1.0 + exp((arg)))) - 1.0);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log((1.0 + arg) / (1.0 - arg));
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return 2.0 * exp(arg) / ((SQR(1.0 + exp(arg))));
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+
+double Qfunc_ar(int i, int j, void *arg)
+{
+#define PMATRIX(_M, _dim_i, _dim_j, _msg)				\
+	if (debug) {							\
+		int _i, _j;						\
+		printf("\n%s (%1d x %1d)\n", _msg, _dim_i, _dim_j);	\
+		for(_i = 0; _i < _dim_i; _i++) {			\
+			printf("\t");					\
+			for(_j = 0; _j < _dim_j; _j++){			\
+				printf(" %10.6f", (_M)[ _i + (_dim_i) * _j]); \
+			}						\
+			printf("\n");					\
+		}							\
+		printf("\n");						\
+	}
 
 	ar_def_tp *def = (ar_def_tp *) arg;
-
-	assert(def->n >= 2*def->p);
 
 	if (IABS(i-j) > def->p) {
 		return 0.0;
 	}
-	
-	int ii, jj, ki, kj, diff;
 
+	int debug = 1, ii, jj, eq, dimQ, id;
+	assert(def->n >= 2 * def->p);
 
-	return 0;
-}
+	dimQ = 2 * def->p + 1;
+	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	eq = 1;
 
-				
-			
-			
+	for (ii = 0; ii < def->p && eq; ii++) {
+		if (def->pacf_intern[ii][id][0] != def->hold_pacf_intern[id][ii]) {
+			eq = 0;
+		}
+	}
+
+	if (eq) {
+		/*
+		 * use what we already have
+		 */
+		int node, nnode;
+		double Qm = 0.0;
+
+		node = IMIN(i, j);
+		nnode = IMAX(i, j);
+
+		if (node < def->p) {			       /* recalling (i,j) starts from (0,0) */
+			ii = node;
+			jj = nnode;
+			Qm = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. */
+		} else if (nnode >= def->n - def->p) {
+			ii = dimQ - def->p + node - (def->n - def->p);
+			jj = dimQ - def->p + nnode - (def->n - def->p);
+		} else {
+			ii = def->p;
+			jj = def->p + (nnode - node);
+		}
+		assert(LEGAL(ii, dimQ));
+		assert(LEGAL(jj, dimQ));
+
+		return exp(def->log_prec[id][0]) * (Qm + def->hold_Q[id][ii + jj * dimQ]);
+	} else {
+		/*
+		 * Build the Qmatrix 
+		 */
+		int k;
+		double *phi, *pacf, *L, *Q, *Qmarg, prec;
 		
+		phi = Calloc(def->p, double);
+		pacf = Calloc(def->p, double);
+		L = Calloc(ISQR(dimQ), double);
+		Q = Calloc(ISQR(dimQ), double);
+		Qmarg = Calloc(ISQR(def->p), double);
+
+		for (ii = 0; ii < def->p; ii++) {
+			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][id][0], MAP_FORWARD, NULL);
+		}
+		ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
+		PMATRIX(Qmarg, def->p, def->p, "Qmarg");
+		PMATRIX(&prec, 1, 1, "Prec");
+		ar_pacf2phi(def->p, pacf, phi);
+
+		PMATRIX(pacf, def->p, 1, "pacf");
+		PMATRIX(phi, def->p, 1, "phi");
+
+		/*
+		 * make L, where Lx = z ~ N(0,I) 
+		 */
+		for (ii = def->p; ii < dimQ; ii++) {
+			L[ii + ii * dimQ] = 1.0;
+			for (jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
+				L[ii + jj * dimQ] = -phi[k];
+			}
+		}
+		PMATRIX(L, dimQ, dimQ, "Matrix L");
+
+		/*
+		 * Q = L' L 
+		 */
+		for (ii = 0; ii < dimQ; ii++) {
+			for (jj = 0; jj < dimQ; jj++) {
+				double tmp = 0.0;
+				for (k = 0; k < dimQ; k++) {
+					tmp += L[k + ii * dimQ] * L[k + jj * dimQ];
+				}
+				Q[ii + jj * dimQ] = tmp;
+			}
+		}
+		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L");
+
+		for (ii = 0; ii < ISQR(dimQ); ii++) {
+			Q[ii] /= prec;
+		}
+		PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L normalised");
+
+		Free(def->hold_Qmarg[id]);
+		Free(def->hold_Q[id]);
+		def->hold_Qmarg[id] = Qmarg;
+		def->hold_Q[id] = Q;
+
+		for (ii = 0; ii < def->p; ii++) {
+			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][id][0];
+		}
+
+		Free(phi);
+		Free(pacf);
+		Free(L);
+
+		return Qfunc_ar(i, j, arg);		       /* recursive call */
+	}
+	assert(0 == 1);
+
+#undef PMATRIX
+	return 0.0;
+}
