@@ -45,14 +45,16 @@ inla.ar.pacf2phi = function(pac)
     p = length(pac)
     stopifnot(p > 0)
     phi = work = pac
-    for (j in 1L:(p-1L)) {
-        a = phi[j+1L];
-        for (k in 0:(j-1L)) {
-            work[k+1L] = work[k+1L] - a * phi[j - k];
+    if (p > 1L) {
+        for (j in 1L:(p-1L)) {
+            a = phi[j+1L];
+            for (k in 0:(j-1L)) {
+                work[k+1L] = work[k+1L] - a * phi[j - k];
+            }
+            phi[1:j] = work[1:j]
         }
-        phi[1:j] = work[1:j]
     }
-
+    
     return(phi)
 }
 inla.ar.phi2pacf = function(phi)
@@ -65,13 +67,15 @@ inla.ar.phi2pacf = function(phi)
     p = length(pac)
     stopifnot(p > 0)
     work = pac = phi
-
-    for(j in (p-1L):1L) {
-        a = pac[j+1L];
-        for(k in 0L:(j-1L)) {
-            work[k+1L]  = (pac[k+1L] + a * pac[j - k]) / (1.0 - a^2);
+    
+    if (p > 1L) {
+        for(j in (p-1L):1L) {
+            a = pac[j+1L];
+            for(k in 0L:(j-1L)) {
+                work[k+1L]  = (pac[k+1L] + a * pac[j - k]) / (1.0 - a^2);
+            }
+            pac[1L:j] = work[1L:j];
         }
-        pac[1L:j] = work[1L:j];
     }
     
     return (pac)
