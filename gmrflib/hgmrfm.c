@@ -989,6 +989,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 	default:
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 	}
+
 	return value;
 }
 

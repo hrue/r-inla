@@ -371,6 +371,7 @@ typedef enum {
 	F_RW2,
 	F_CRW2,
 	F_AR1,
+	F_AR,
 	F_OU,
 	F_Z,
 	F_ZADD,
@@ -623,6 +624,7 @@ struct inla_tp_struct {
 	int *f_nrep;					       /* number of replicates */
 	int *f_ngroup;
 	int *f_group_model;
+	int *f_order;
 	double **f_locations;
 	double **f_weights;
 	double **f_scale;
