@@ -54,11 +54,11 @@ The AR$(p)$ model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>, model="ar", order=<p>, hyper = <hyper>)
 \end{verbatim}
-The option \texttt{order} is required. The multivariate normal prior
-for $\{\theta_{k+1}, k=1, \ldots, p\}$, \texttt{is specified} as the
-parameters to the prior for $\theta_{2}$ (the first pacf-parameter),
-and the parameters to the multivariate normal prior (\texttt{mvnorm}),
-is \texttt{c($\mu, Q$)}; see the example below.
+The option \texttt{order} ($>0$) is required. The multivariate normal
+prior for $\{\theta_{k+1}, k=1, \ldots, p\}$, \texttt{is specified} as
+the parameters to the prior for $\theta_{2}$ (the first
+pacf-parameter), and the parameters to the multivariate normal prior
+(\texttt{mvnorm}), is \texttt{c($\mu, Q$)}; see the example below.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/ar.tex}
