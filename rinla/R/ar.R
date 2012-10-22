@@ -48,10 +48,7 @@ inla.ar.pacf2phi = function(pac)
     if (p > 1L) {
         for (j in 1L:(p-1L)) {
             a = phi[j+1L];
-            for (k in 0:(j-1L)) {
-                work[k+1L] = work[k+1L] - a * phi[j - k];
-            }
-            phi[1:j] = work[1:j]
+            phi[1L:j] = work[1L:j] = work[1L:j] - a * phi[j:1L]
         }
     }
     
@@ -64,17 +61,14 @@ inla.ar.phi2pacf = function(phi)
 
     ## Run the Durbin-Levinson recursions backwards to find the PACF
     ## phi_{j.} from the autoregression coefficients
-    p = length(pac)
+    p = length(phi)
     stopifnot(p > 0)
     work = pac = phi
     
     if (p > 1L) {
         for(j in (p-1L):1L) {
             a = pac[j+1L];
-            for(k in 0L:(j-1L)) {
-                work[k+1L]  = (pac[k+1L] + a * pac[j - k]) / (1.0 - a^2);
-            }
-            pac[1L:j] = work[1L:j];
+            pac[1L:j] = work[1L:j]  = (pac[1L:j] + a * pac[j:1L]) / (1.0 - a^2);
         }
     }
     
