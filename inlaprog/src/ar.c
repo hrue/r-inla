@@ -108,126 +108,6 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	return GMRFLib_SUCCESS;
 }
 
-int ar_test1()
-{
-	if (1) {
-		GMRFLib_graph_tp *g;
-		ar_def_tp def;
-		double pacf[2] = { 0.5, 0.25 };
-		
-		int i, j, k;
-
-		def.n = 10;
-		def.p = 2;
-
-		HYPER_NEW(def.log_prec, 0.0);
-		def.pacf_intern = Calloc(def.p, double **);
-		for (i = 0; i < def.p; i++) {
-			double val = pacf[i];
-			HYPER_NEW(def.pacf_intern[i], ar_map_pacf(val, MAP_BACKWARD, NULL));
-		}
-
-		/*
-		 * easier if the storage is setup here 
-		 */
-		def.hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
-			def.hold_pacf_intern[i] = Calloc(def.p, double);
-			for (j = 0; j < def.p; j++) {
-				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
-			}
-		}
-
-		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
-		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
-
-		if (0){
-			FILE *fp = fopen("Q.dat", "w");
-			for(i=0; i<def.n; i++)
-				for(j=0; j<def.n; j++)
-					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, &def));
-			fclose(fp);
-		}
-
-		double val = 0.0;
-#pragma omp parallel for private(k, i, j)
-		for(k=0; k<1000; k++){
-			for(i=0; i<def.n; i++)
-				for(j=0; j<def.n; j++){
-					val += Qfunc_ar(i, j, &def);
-				}
-		}
-		P(val);
-					
-
-
-		exit(0);
-	}
-
-	if (0) {
-#define PMAX 10
-		int p, i, j;
-		double *pacf, *pacf2, *phi;
-
-		pacf = Calloc(PMAX, double);
-		pacf2 = Calloc(PMAX, double);
-		phi = Calloc(PMAX, double);
-
-		for (p = 1; p <= PMAX; p++) {
-
-			/*
-			 * create some pacf's 
-			 */
-			for (i = 0; i < p; i++) {
-				pacf[i] = GMRFLib_uniform();
-			}
-
-			/*
-			 * compute the phi's 
-			 */
-			ar_pacf2phi(p, pacf, phi);
-
-			/*
-			 * and its inverse 
-			 */
-			ar_phi2pacf(p, phi, pacf2);
-
-
-			printf("Result for p = %d\n", p);
-			for (i = 0; i < p; i++) {
-				j = i + 1;		       /* so phi_j = phi[i], j=1...p */
-				printf("j = %2d  \tpacf = %.6g  \tphi %.6g  \tpacf2 %.6g  \tdiff %.6g\n", j, pacf[i], phi[i], pacf2[i], ABS(pacf[i] - pacf2[i]));
-			}
-			printf("\n");
-
-			double prec;
-			double *Q = Calloc(ISQR(p), double);
-
-			ar_marginal_distribution(p, pacf, &prec, Q);
-
-			printf("Marginal distribution\n");
-			printf("\tPrec = %g\n", prec);
-
-			for (i = 0; i < p; i++) {
-				for (j = 0; j < p; j++) {
-					printf(" %10.6g ", Q[i + p * j]);
-				}
-				printf("\n");
-			}
-
-			Free(Q);
-		}
-
-		Free(pacf);
-		Free(pacf2);
-		Free(phi);
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 {
 	/*
@@ -356,6 +236,145 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
+double Qfunc_ar_debug(int i, int j, void *arg)
+{
+	double truth;
+	if (1){
+		inla_ar1_arg_tp d;
+		ar_def_tp *def = (ar_def_tp *) arg;
+		
+		FIXME1("USE AR1 Qfunc");
+		d.n = def->n;
+		d.cyclic = 0;
+		d.log_prec = def->log_prec;
+		d.phi_intern = def->pacf_intern[0];
+
+		truth = Qfunc_ar1(i, j, (void *) &d);
+	}
+
+#define PMATRIX(_M, _dim_i, _dim_j, _msg)				\
+	if (debug) {							\
+		int _i, _j;						\
+		printf("\n%s (%1d x %1d)\n", _msg, _dim_i, _dim_j);	\
+		for(_i = 0; _i < _dim_i; _i++) {			\
+			printf("\t");					\
+			for(_j = 0; _j < _dim_j; _j++){			\
+				printf(" %10.6f", (_M)[ _i + (_dim_i) * _j]); \
+			}						\
+			printf("\n");					\
+		}							\
+		printf("\n");						\
+	}
+
+	ar_def_tp *def = (ar_def_tp *) arg;
+
+	if (IABS(i-j) > def->p) {
+		return 0.0;
+	}
+
+	int debug = 0, ii, jj, eq, dimQ, id;
+	assert(def->n >= 2 * def->p);
+
+	dimQ = 2 * def->p + 1;
+	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+
+	int k;
+	double *phi, *pacf, *L, *Q, *Qmarg, prec;
+		
+	phi = Calloc(def->p, double);
+	pacf = Calloc(def->p, double);
+	L = Calloc(ISQR(dimQ), double);
+	Q = Calloc(ISQR(dimQ), double);
+	Qmarg = Calloc(ISQR(def->p), double);
+
+	for (ii = 0; ii < def->p; ii++) {
+		pacf[ii] = ar_map_pacf(def->pacf_intern[ii][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	}
+	P(def->pacf_intern[0][GMRFLib_thread_id][0]);
+	
+	ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
+	PMATRIX(Qmarg, def->p, def->p, "Qmarg");
+	PMATRIX(&prec, 1, 1, "Prec");
+	ar_pacf2phi(def->p, pacf, phi);
+
+	PMATRIX(pacf, def->p, 1, "pacf");
+	PMATRIX(phi, def->p, 1, "phi");
+
+	for (ii = def->p; ii < dimQ; ii++) {
+		L[ii + ii * dimQ] = 1.0;
+		for (jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
+			L[ii + jj * dimQ] = -phi[k];
+		}
+	}
+	PMATRIX(L, dimQ, dimQ, "Matrix L");
+
+	for (ii = 0; ii < dimQ; ii++) {
+		for (jj = 0; jj < dimQ; jj++) {
+			double tmp = 0.0;
+			for (k = 0; k < dimQ; k++) {
+				tmp += L[k + ii * dimQ] * L[k + jj * dimQ];
+			}
+			Q[ii + jj * dimQ] = tmp;
+		}
+	}
+	PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L");
+
+	for (ii = 0; ii < ISQR(dimQ); ii++) {
+		Q[ii] /= prec;
+	}
+	PMATRIX(Q, dimQ, dimQ, "Matrix Q = L' L normalised");
+
+	Free(def->hold_Qmarg[id]);
+	Free(def->hold_Q[id]);
+	def->hold_Qmarg[id] = Qmarg;
+	def->hold_Q[id] = Q;
+
+	P(pacf[0]);
+	P(phi[0]);
+	
+	Free(phi);
+	Free(pacf);
+	Free(L);
+
+	int node, nnode;
+	double Qmarg_contrib = 0.0, val;
+	
+	node = IMIN(i, j);
+	nnode = IMAX(i, j);
+	
+	if (nnode < def->p) {			       /* recalling (i,j) starts from (0,0) */
+		ii = node;
+		jj = nnode;
+		Qmarg_contrib = Qmarg[ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. */
+	} else if (nnode >= def->n - def->p) {
+		ii = dimQ - def->p + node - (def->n - def->p);
+		jj = dimQ - def->p + nnode - (def->n - def->p);
+	} else {
+		ii = def->p;
+		jj = def->p + (nnode - node);
+	}
+	assert(LEGAL(ii, dimQ));
+	assert(LEGAL(jj, dimQ));
+	
+	val = exp(def->log_prec[GMRFLib_thread_id][0]) * (Qmarg_contrib + Q[ii + jj * dimQ]);
+
+	printf("pacf %.12g log_prec %.12g\n",  def->pacf_intern[0][GMRFLib_thread_id][0], def->log_prec[GMRFLib_thread_id][0]);
+	printf("AR %d %d %.12g\n", i, j, val);
+	P(prec);
+	P(exp(def->log_prec[GMRFLib_thread_id][0]));
+	P(ii);
+	P(jj);
+	P(Qmarg_contrib);
+	P(node);
+	P(nnode);
+	P(val);
+	P(truth);
+	P(ABS(truth - val));
+	assert(ABS(truth - val) < 1e-3);
+
+#undef PMATRIX
+	return val;
+}
 double Qfunc_ar(int i, int j, void *arg)
 {
 #define PMATRIX(_M, _dim_i, _dim_j, _msg)				\
@@ -378,7 +397,7 @@ double Qfunc_ar(int i, int j, void *arg)
 		return 0.0;
 	}
 
-	int debug = 1, ii, jj, eq, dimQ, id;
+	int debug = 0, ii, jj, eq, dimQ, id;
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
@@ -386,7 +405,7 @@ double Qfunc_ar(int i, int j, void *arg)
 	eq = 1;
 
 	for (ii = 0; ii < def->p && eq; ii++) {
-		if (def->pacf_intern[ii][id][0] != def->hold_pacf_intern[id][ii]) {
+		if (def->pacf_intern[ii][GMRFLib_thread_id][0] != def->hold_pacf_intern[id][ii]) {
 			eq = 0;
 		}
 	}
@@ -396,15 +415,15 @@ double Qfunc_ar(int i, int j, void *arg)
 		 * use what we already have
 		 */
 		int node, nnode;
-		double Qm = 0.0;
+		double Qmarg_contrib = 0.0, val;
 
 		node = IMIN(i, j);
 		nnode = IMAX(i, j);
 
-		if (node < def->p) {			       /* recalling (i,j) starts from (0,0) */
+		if (nnode < def->p) {			       /* recalling (i,j) starts from (0,0) */
 			ii = node;
 			jj = nnode;
-			Qm = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. */
+			Qmarg_contrib = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. */
 		} else if (nnode >= def->n - def->p) {
 			ii = dimQ - def->p + node - (def->n - def->p);
 			jj = dimQ - def->p + nnode - (def->n - def->p);
@@ -415,7 +434,8 @@ double Qfunc_ar(int i, int j, void *arg)
 		assert(LEGAL(ii, dimQ));
 		assert(LEGAL(jj, dimQ));
 
-		return exp(def->log_prec[id][0]) * (Qm + def->hold_Q[id][ii + jj * dimQ]);
+		val = exp(def->log_prec[GMRFLib_thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
+		return (val);
 	} else {
 		/*
 		 * Build the Qmatrix 
@@ -430,7 +450,7 @@ double Qfunc_ar(int i, int j, void *arg)
 		Qmarg = Calloc(ISQR(def->p), double);
 
 		for (ii = 0; ii < def->p; ii++) {
-			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][id][0], MAP_FORWARD, NULL);
+			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		}
 		ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
 		PMATRIX(Qmarg, def->p, def->p, "Qmarg");
@@ -476,7 +496,7 @@ double Qfunc_ar(int i, int j, void *arg)
 		def->hold_Q[id] = Q;
 
 		for (ii = 0; ii < def->p; ii++) {
-			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][id][0];
+			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][GMRFLib_thread_id][0];
 		}
 
 		Free(phi);
@@ -489,4 +509,121 @@ double Qfunc_ar(int i, int j, void *arg)
 
 #undef PMATRIX
 	return 0.0;
+}
+int ar_test1()
+{
+	if (1) {
+		GMRFLib_graph_tp *g;
+		ar_def_tp def;
+		double pacf[2] = { 0.5, 0.25 };
+		
+		int i, j, k;
+
+		def.n = 10;
+		def.p = 2;
+
+		HYPER_NEW(def.log_prec, 0.0);
+		def.pacf_intern = Calloc(def.p, double **);
+		for (i = 0; i < def.p; i++) {
+			double val = pacf[i];
+			HYPER_NEW(def.pacf_intern[i], ar_map_pacf(val, MAP_BACKWARD, NULL));
+		}
+
+		/*
+		 * easier if the storage is setup here 
+		 */
+		def.hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def.hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def.hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			def.hold_pacf_intern[i] = Calloc(def.p, double);
+			for (j = 0; j < def.p; j++) {
+				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
+			}
+		}
+
+		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
+		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
+
+		if (0){
+			FILE *fp = fopen("Q.dat", "w");
+			for(i=0; i<def.n; i++)
+				for(j=0; j<def.n; j++)
+					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, &def));
+			fclose(fp);
+		}
+
+		double val = 0.0;
+#pragma omp parallel for private(k, i, j)
+		for(k=0; k<1000; k++){
+			for(i=0; i<def.n; i++)
+				for(j=0; j<def.n; j++){
+					val += Qfunc_ar(i, j, &def);
+				}
+		}
+		P(val);
+
+		exit(0);
+	}
+
+	if (0) {
+#define PMAX 10
+		int p, i, j;
+		double *pacf, *pacf2, *phi;
+
+		pacf = Calloc(PMAX, double);
+		pacf2 = Calloc(PMAX, double);
+		phi = Calloc(PMAX, double);
+
+		for (p = 1; p <= PMAX; p++) {
+
+			/*
+			 * create some pacf's 
+			 */
+			for (i = 0; i < p; i++) {
+				pacf[i] = GMRFLib_uniform();
+			}
+
+			/*
+			 * compute the phi's 
+			 */
+			ar_pacf2phi(p, pacf, phi);
+
+			/*
+			 * and its inverse 
+			 */
+			ar_phi2pacf(p, phi, pacf2);
+
+
+			printf("Result for p = %d\n", p);
+			for (i = 0; i < p; i++) {
+				j = i + 1;		       /* so phi_j = phi[i], j=1...p */
+				printf("j = %2d  \tpacf = %.6g  \tphi %.6g  \tpacf2 %.6g  \tdiff %.6g\n", j, pacf[i], phi[i], pacf2[i], ABS(pacf[i] - pacf2[i]));
+			}
+			printf("\n");
+
+			double prec;
+			double *Q = Calloc(ISQR(p), double);
+
+			ar_marginal_distribution(p, pacf, &prec, Q);
+			
+			printf("Marginal distribution\n");
+			printf("\tPrec = %g\n", prec);
+
+			for (i = 0; i < p; i++) {
+				for (j = 0; j < p; j++) {
+					printf(" %10.6g ", Q[i + p * j]);
+				}
+				printf("\n");
+			}
+
+			Free(Q);
+		}
+
+		Free(pacf);
+		Free(pacf2);
+		Free(phi);
+	}
+
+	return GMRFLib_SUCCESS;
 }

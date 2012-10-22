@@ -236,6 +236,11 @@
         ##!1. If FALSE, do nothing.}
         adjust.for.con.comp = TRUE,
 
+        ##!\item{order}{Defines the \code{order} of the model: for
+        ##!model \code{ar} this defines the order p, in AR(p). Not
+        ##!used for other models at the time being.}
+        order = NULL, 
+
         ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
         scale = NULL, 
 
@@ -396,6 +401,18 @@
             valid.args = inla.paste(sort(arguments), sep="\n\t")
             stop(paste("Argument `", elm, "' in formula specification\n\n\t\t",
                        f.call, "\n\n  is invalid. Valid arguments are:\n\n\t", valid.args, sep=""))
+        }
+    }
+
+    ## check that 'order' is define only for model AR (at this moment)
+    if (inla.one.of(model, "ar")) {
+        if (is.null(order) || missing(order) || order < 1L) {
+            stop("Model 'ar' needs 'order' to be defined as an integer > 0.")
+        }
+        order = as.integer(order)
+        max.order = length(inla.models()$latent$ar$hyper) -1L
+        if (order > max.order) {
+            stop(paste("Model 'ar': order=", order, ", is to large. max.order =", max.order, sep=""))
         }
     }
 
@@ -754,6 +771,7 @@
             spde2.transform = spde2.transform,
             term=term,
             values=values,
+            order = order, 
             weights=weights,
             scale = scale,
             strata = strata,
