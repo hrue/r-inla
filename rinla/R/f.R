@@ -352,10 +352,6 @@
         hyper = list(theta2 = list(param = c(rep(0, order), 0.15*diag(order))))
     }
 
-    if (is.null(param) && is.null(hyper)) {
-            hyper = list(theta2 = list(param = c(rep(0, order), 0.15*diag(order))))
-        }
-
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent",
             hyper = hyper, hyper.default = hyper.default,
