@@ -11169,19 +11169,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR:
 	{
-		/*
-		 * now we know the order!
-		 */
 		int ntheta;
 
 		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1; 
 		assert(ntheta <= AR_MAXTHETA+1);
 		mb->f_initial[mb->nf] = Calloc(ntheta, double);
 		if (mb->verbose) {
-			printf("\t\torder = [%1d]\n", ntheta);
+			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
 
-		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta -1) {
+		if ((int) mb->f_prior[mb->nf][1].parameters[0] != ntheta -1) {
 			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the AR-model: %1d != %1d\n",
 					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta-1);
 			inla_error_general(ptmp);
@@ -12718,7 +12715,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		GMRFLib_make_linear_graph(&g, def->n, def->p, 0);
-		GMRFLib_print_graph(stdout, g);
 		mb->f_Qfunc[mb->nf] = Qfunc_ar;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_rankdef[mb->nf] = 0.0;
