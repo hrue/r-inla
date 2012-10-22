@@ -69,7 +69,6 @@ int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 double Qfunc_ar(int i, int j, void *arg);
-double Qfunc_ar_debug(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 
 

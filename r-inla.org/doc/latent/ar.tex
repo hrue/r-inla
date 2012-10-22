@@ -56,9 +56,9 @@ The AR$(p)$ model is specified inside the {\tt f()} function as
 \end{verbatim}
 The option \texttt{order} is required. The multivariate normal prior
 for $\{\theta_{k+1}, k=1, \ldots, p\}$, \texttt{is specified} as the
-parameters to the prior for $\theta_{2}$, and the parameters to the
-multivariate normal prior (\texttt{mvnorm}), is \texttt{c($\mu, Q$)};
-see the example below.
+parameters to the prior for $\theta_{2}$ (the first pacf-parameter),
+and the parameters to the multivariate normal prior (\texttt{mvnorm}),
+is \texttt{c($\mu, Q$)}; see the example below.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/ar.tex}
@@ -70,23 +70,23 @@ see the example below.
 \subsection*{Notes}
 
 \begin{itemize}
-\item 
-The functions \texttt{inla.ar.pacf2phi} and \texttt{inla.ar.phi2pacf}
-converts from the the $\phi$-parameters to the $\psi$-parameters,
-using the Durbin-Levinson recursions. These can also be used to
-compute, the marginal posteriors of the $\phi$-parameters from an
-approximation of the joint of the $\phi$-parameters; see the example
-for a simulation based approach.
-
+\item The functions \texttt{inla.ar.pacf2phi} and
+    \texttt{inla.ar.phi2pacf} converts from the the $\phi$-parameters
+    to the $\psi$-parameters, using the Durbin-Levinson
+    recursions. These can also be used to compute, the marginal
+    posteriors of the $\phi$-parameters from an approximation of the
+    joint of the $\phi$-parameters; see the example for a simulation
+    based approach.
 \item Currently, the order $p$ is limited to $10$. If this creates a
-problem, let us know.
-
-\item If some of the $\psi_{k}$-parameters are fixed, and $k < p$, then the
-marginal (log-)likelihood is wrong; The joint normal prior for all the
-$p$ $\psi$-parameters is used and not the conditional normal prior
-condition on the fixed $\psi_{k}$-parameters. If this creates a
-problem, let us know.
-
+    problem, let us know.
+\item If some of the $\psi_{k}$-parameters are fixed, and $k < p$,
+    then the marginal (log-)likelihood is wrong; The joint normal
+    prior for all the $p$ $\psi$-parameters is used and not the
+    conditional normal prior condition on the fixed
+    $\psi_{k}$-parameters. If this creates a problem, let us know.
+\item The prior spesification for the multivariate normal is a bit
+    awkward. Hopefully, we will come up with a better way to do this
+    in the future.
 \item This model is currently marked as experimental.
 \end{itemize}
 
