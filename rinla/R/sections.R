@@ -242,6 +242,10 @@
         cat("rgeneric.fifo.c2R = ", random.spec$rgeneric$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
     }
             
+    if (random.spec$model == "ar") {
+        cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
+    }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

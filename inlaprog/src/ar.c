@@ -272,7 +272,7 @@ double Qfunc_ar_debug(int i, int j, void *arg)
 		return 0.0;
 	}
 
-	int debug = 0, ii, jj, eq, dimQ, id;
+	int debug = 0, ii, jj, dimQ, id;
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
