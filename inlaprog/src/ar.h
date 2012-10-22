@@ -55,11 +55,11 @@ typedef struct
 	double ***pacf_intern;
 	
 	/* 
-	   these are the stored values, all for prec = 1
+	 * these are the stored values, all for prec = 1
 	 */
-	double **hold_pacf_intern;
-	double **hold_Q;
-	double **hold_Qmarg;
+	double **hold_pacf_intern;			       /* [i][id][0] */
+	double **hold_Q;				       /* dim = 2*p + 1 */
+	double **hold_Qmarg;				       /* dim = p */
 }
 	ar_def_tp;
 
@@ -69,6 +69,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 double Qfunc_ar(int i, int j, void *arg);
+double Qfunc_ar_debug(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 
 

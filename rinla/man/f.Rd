@@ -153,6 +153,9 @@ is used.}
 of the models (currently: besag, bym and besag2) if the
 number of connected components in graph is larger than
 1. If FALSE, do nothing.}
+\item{order}{Defines the \code{order} of the model: for
+model \code{ar} this defines the order p, in AR(p). Not
+used for other models at the time being.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
 \item{strata}{A stratum vector. It meaning depends on the model.}
 \item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}

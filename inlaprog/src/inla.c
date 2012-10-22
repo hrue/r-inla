@@ -97,6 +97,7 @@ static const char RCSId[] = HGVERSION;
 
 #define TSTRATA_MAXTHETA 11				       /* as given in models.R */
 #define SPDE2_MAXTHETA   100				       /* as given in models.R */
+#define AR_MAXTHETA   10				       /* as given in models.R */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -1618,7 +1619,7 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 double Qfunc_ar1(int i, int j, void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
-	double phi, prec_marginal, prec;
+	double phi, prec_marginal, prec, val;
 
 	/*
 	 * the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovation or conditional noise. 
@@ -1629,23 +1630,23 @@ double Qfunc_ar1(int i, int j, void *arg)
 
 	if (a->cyclic) {
 		if (i == j) {
-			return prec * (1.0 + SQR(phi));
+			val = prec * (1.0 + SQR(phi));
 		} else {
-			return -prec * phi;
+			val = -prec * phi;
 		}
 	} else {
 		if (i != j) {
-			return -prec * phi;
+			val = -prec * phi;
 		} else {
 			if (i == 0 || i == a->n - 1) {
-				return prec;
+				val = prec;
 			} else {
-				return prec * (1.0 + SQR(phi));
+				val = prec * (1.0 + SQR(phi));
 			}
 		}
 	}
-	abort();
-	return 0.0;
+
+	return val;
 }
 double Qfunc_ou(int i, int j, void *arg)
 {
@@ -9734,14 +9735,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, s = 0, itmp, id, bvalue = 0, fixed;
+	int i, j, k, jj, nlocations, nc, n = 0, s = 0, itmp, id, bvalue = 0, fixed, order;
 	int R2c = -1, c2R = -1, Id = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *msg = NULL, default_tag[100], *file_loc,
-	    *filename_R2c = NULL, *filename_c2R = NULL;
+		*filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-	    **mean_x = NULL, **log_prec_x = NULL;
+		**mean_x = NULL, **log_prec_x = NULL, ***ar_theta = NULL, ***pacf_intern;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -9763,6 +9764,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_n = Realloc(mb->f_n, mb->nf + 1, int);
 	mb->f_N = Realloc(mb->f_N, mb->nf + 1, int);
 	mb->f_Ntotal = Realloc(mb->f_Ntotal, mb->nf + 1, int);
+	mb->f_order = Realloc(mb->f_order, mb->nf + 1, int);
 	mb->f_nrep = Realloc(mb->f_nrep, mb->nf + 1, int);
 	mb->f_ngroup = Realloc(mb->f_ngroup, mb->nf + 1, int);
 	mb->f_group_model = Realloc(mb->f_group_model, mb->nf + 1, int);
@@ -9813,6 +9815,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(n, 0);
 	SET(N, 0);
 	SET(Ntotal, 0);
+	SET(order, -1);
 	SET(nrow, 0);
 	SET(ncol, 0);
 	SET(locations, NULL);
@@ -10001,6 +10004,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_SPDE2;
 		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE2 model");
+	} else if (OneOf("AR")) {
+		mb->f_id[mb->nf] = F_AR;
+		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR(p) model");
 	} else if (OneOf("COPY")) {
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
@@ -10061,6 +10068,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_SPDE2:
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
+		break;
+
+	case F_AR:
+		mb->f_prior[mb->nf] = Calloc(2, Prior_tp);
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA"); // log precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "MVNORM");   // the pacf
 		break;
 
 	case F_COPY:
@@ -10587,6 +10600,30 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 			}
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		} else if (mb->f_id[mb->nf] == F_AR) {
+			/*
+			 * AR(p)-model; need length N and order P
+			 */
+			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			if (!ptmp) {
+				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
+			}
+			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
+			if (n <= 0) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
+			}
+			if (mb->verbose) {
+				printf("\t\tn=[%1d]\n", n);
+			}
+			Free(ptmp);
+
+			order = iniparser_getint(ini, inla_string_join(secname, "ORDER"), 1);
+			if (mb->verbose) {
+				printf("\t\torder=[%1d]\n", order);
+			}
+
+			mb->f_order[mb->nf] = order;
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 		} else if (mb->f_id[mb->nf] == F_Z || mb->f_id[mb->nf] == F_ZADD) {
 			/*
 			 * Z-model
@@ -11051,8 +11088,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * mark all possible as read 
 		 */
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -11082,7 +11117,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
-			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -11129,6 +11163,155 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
+		}
+		break;
+	}
+
+	case F_AR:
+	{
+		/*
+		 * now we know the order!
+		 */
+		int ntheta;
+
+		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1; 
+		assert(ntheta <= AR_MAXTHETA+1);
+		mb->f_initial[mb->nf] = Calloc(ntheta, double);
+		if (mb->verbose) {
+			printf("\t\torder = [%1d]\n", ntheta);
+		}
+
+		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta -1) {
+			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the AR-model: %1d != %1d\n",
+					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta-1);
+			inla_error_general(ptmp);
+			exit(1);
+		}
+
+		/*
+		 * mark all possible as read 
+		 */
+		for (i = 0; i < AR_MAXTHETA + 1; i++) {
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
+		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+
+		HYPER_NEW(log_prec, 0.0);
+		mb->f_theta[mb->nf][0] = log_prec;
+		pacf_intern = Calloc(AR_MAXTHETA, double **);
+		for (i = 0; i < AR_MAXTHETA; i++) {
+			HYPER_NEW(pacf_intern[i], 0.0);
+			mb->f_theta[mb->nf][i+1] = pacf_intern[i];
+		}
+		
+		/*
+		 * then read those we need 
+		 */
+		for (i = 0; i < ntheta; i++) {
+			double theta_initial;
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
+			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				theta_initial = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			if (i == 0){
+				/* 
+				   precision
+				 */
+				HYPER_INIT(log_prec, theta_initial);
+				if (mb->verbose) {
+					printf("\t\tinitialise (log_prec) theta[%1d]=[%g]\n", i, theta_initial);
+					printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
+				}
+			
+				if (!mb->f_fixed[mb->nf][i]) {
+					/*
+					 * add this \theta 
+					 */
+					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+					GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	
+					mb->theta[mb->ntheta] = log_prec;
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_precision;
+					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+					mb->theta_map_arg[mb->ntheta] = NULL;
+					mb->ntheta++;
+				}
+			} else {
+				/* 
+				   PACF
+				 */
+				HYPER_INIT(pacf_intern[i-1], theta_initial);
+				if (mb->verbose) {
+					printf("\t\tinitialise (PACF) theta[%1d]=[%g]\n", i, theta_initial);
+					printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
+				}
+				if (!mb->f_fixed[mb->nf][i]) {
+					/*
+					 * add this \theta 
+					 */
+					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+					GMRFLib_sprintf(&msg, "Intern PACF%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+					
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "PACF%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+					
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);	
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);	
+					mb->theta[mb->ntheta] = pacf_intern[i-1];
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_phi;
+					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+					mb->theta_map_arg[mb->ntheta] = NULL;
+					mb->ntheta++;
+				} 
+			}
 		}
 		break;
 	}
@@ -11357,7 +11540,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 
 		for (i = 0; i < ntheta; i++) {
-			char *ctmp;
 			double theta_initial;
 
 			mb->f_fixed[mb->nf][i] = 0;
@@ -12507,34 +12689,41 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = spde_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde_model->graph;
-
-		if (0) {
-			FILE *fp;
-			fp = fopen("spde.graph.dat", "w");
-			GMRFLib_print_graph(fp, spde_model->graph);
-			fclose(fp);
-			FIXME("write graph for spde");
-			exit(0);
-		}
-
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde_model->n;
 	} else if (mb->f_id[mb->nf] == F_SPDE2) {
 		mb->f_Qfunc[mb->nf] = spde2_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde2_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde2_model->graph;
-
-		if (0) {
-			FILE *fp;
-			fp = fopen("spde2.graph.dat", "w");
-			GMRFLib_print_graph(fp, spde2_model->graph);
-			fclose(fp);
-			FIXME("write graph for spde2");
-			exit(0);
-		}
-
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde2_model->n;
+	} else if (mb->f_id[mb->nf] == F_AR) {
+		
+		GMRFLib_graph_tp *g;
+		ar_def_tp *def = Calloc(1, ar_def_tp);
+
+		def->n = mb->f_n[mb->nf];
+		def->p = mb->f_order[mb->nf];
+		def->log_prec = log_prec;
+		def->pacf_intern = pacf_intern;
+		
+		def->hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def->hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def->hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			def->hold_pacf_intern[i] = Calloc(def->p, double);
+			for (j = 0; j < def->p; j++) {
+				def->hold_pacf_intern[i][j] = GMRFLib_uniform();
+			}
+		}
+
+		GMRFLib_make_linear_graph(&g, def->n, def->p, 0);
+		GMRFLib_print_graph(stdout, g);
+		mb->f_Qfunc[mb->nf] = Qfunc_ar;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+		mb->f_rankdef[mb->nf] = 0.0;
+		mb->f_graph[mb->nf] = g;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 	} else if (mb->f_id[mb->nf] == F_RW2D) {
 		GMRFLib_rw2ddef_tp *arg = NULL;
 
@@ -14997,6 +15186,64 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+		case F_AR:
+		{
+			double log_precision, *pacf, *pacf_intern;
+			int count_ref, p;
+			
+			count_ref = count;
+			p = mb->f_order[i];
+			assert(mb->f_ntheta[i] == p + 1);
+			
+			if (!mb->f_fixed[i][0]) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			
+			pacf = Calloc(p, double);
+			pacf_intern = Calloc(p, double);
+			for(j=0; j<p; j++){
+				if (!mb->f_fixed[i][j+1]){
+					pacf_intern[j] = theta[count];
+					count++;
+				} else {
+					pacf_intern[j] = mb->f_theta[i][j+1][GMRFLib_thread_id][0];
+				}
+				pacf[j] = ar_map_pacf(pacf_intern[j], MAP_FORWARD, NULL);
+			}
+			SET_GROUP_RHO(mb->f_ntheta[i]);
+
+			int n_ar;
+			double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
+
+			marginal_Q = Calloc(ISQR(p), double);
+			ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
+			conditional_prec = exp(log_precision)/marginal_prec;
+
+			param = Calloc(1 + p + ISQR(p), double);
+			zero = Calloc(p, double);
+			param[0] = p;
+			for(j=0; j<ISQR(p); j++){
+				param[1+p+j] = marginal_Q[j] * exp(log_precision);
+			}
+
+			n_ar = mb->f_n[i] / mb->f_nrep[i];
+			ldens = priorfunc_mvnorm(zero, param) +
+				(n_ar - p - mb->f_rankdef[i])* (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
+			val += mb->f_nrep[i] * (ldens * ngroup + normc_g);
+
+			/*
+			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 */
+			if (!mb->f_fixed[i][0]) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision); 
+			}
+			val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
+			break;
+		}
+
 		case F_GENERIC1:
 		{
 			if (!mb->f_fixed[i][0]) {
@@ -15228,12 +15475,16 @@ double extra(double *theta, int ntheta, void *argument)
 					logdet += log(1.0 + SQR(phi) - phi * (cos(tpon * jj) + cos(tpon * (N_orig - 1.0) * jj)));
 				}
 				val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * logdet);
+							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+							ngroup * 0.5 * logdet);
 			} else {
 				val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * log(1.0 - SQR(phi)));
+							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+							ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
 
+			double ldens = LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
+				+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + 0.5 * log(1.0 - SQR(phi));
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
@@ -15694,8 +15945,6 @@ double extra(double *theta, int ntheta, void *argument)
 	// P(ntheta);
 
 	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
-
-	// printf("extra returns value %.12g\n", val);
 #undef SET_GROUP_RHO
 
 	return val;
