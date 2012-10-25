@@ -53,8 +53,8 @@ static const char RCSId[] = HGVERSION;
 #define M4(_epsilon, _delta) (0.125*(cosh(4.0*(_epsilon)/(_delta))*Pq(4.0/(_delta)) - \
 				     4.0*cosh(2.0*(_epsilon)/(_delta))*Pq(2.0/(_delta)) + 3.0))
 
-#define XMATCH(x0,x1) (fabs((x0)-(x1)) == 0)
-#define YMATCH(y0,y1) (fabs((y0)-(y1)) == 0)
+#define XMATCH(x0,x1) (fabs((x0)-(x1)) == 0.0)
+#define YMATCH(y0,y1) (fabs((y0)-(y1)) == 0.0)
 
 #define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
 
@@ -65,19 +65,18 @@ static const char RCSId[] = HGVERSION;
 
 #define REV(x, n) \
 	if (1){						\
-		double *tmp = Calloc(n, double);	\
-		memcpy(tmp, x, (n)*sizeof(double));	\
+		double *_tmp = Calloc(n, double);	\
+		memcpy(_tmp, x, (n)*sizeof(double));	\
 		int ii;					\
 		for(ii=0; ii < (n); ii++){		\
-			x[ii] = tmp[(n)-1-ii];		\
+			x[ii] = _tmp[(n)-1-ii];		\
 		}					\
-		Free(tmp);				\
+		Free(_tmp);				\
 	}
 
 static re_sas_prior_tp *sas_prior_table = NULL;
 static double contour_eps = 100.0 * FLT_EPSILON;
 static double cyclic_eps = 0.01;
-
 
 int re_valid_skew_kurt(double *dist, double skew, double kurt)
 {
@@ -1015,13 +1014,28 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 
 double *re_sas_evaluate_log_prior(double skew, double kurt)
 {
-	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.05, Jacobian, lambda = 10, lev[3], poi[3], len[3],
-	    *pri, dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt;
+#define SCALEWITH(x) DMAX(0.5, DMIN(2.0, (x)))
+
+	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.05, target_level = 0.01, Jacobian, lambda = 10, lev[3], poi[3], len[3],
+		*pri, dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt, eps = 1e-4;
+	int iter, iter_max=20;
+
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];
 	length = output[1];
 	point = output[2];
+	if (ISNAN(level))
+	{
+		pri = Calloc(5, double);
+		pri[0] = NAN;
+		pri[1] = NAN;
+		pri[2] = NAN;
+		pri[3] = NAN;
+		pri[4] = NAN;
+
+		return pri;
+	}
 
 	if (skew <= 0.0) {
 		dskew = -ddefault;
@@ -1035,19 +1049,87 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 	len[0] = length;
 	poi[0] = point;
 
-	re_find_in_sas_prior_table(output, skew + dskew, kurt);
-	lev[1] = output[0];
-	len[1] = output[1];
-	poi[1] = output[2];
+	if (1){
+		do {
+			re_find_in_sas_prior_table(output, skew + dskew, kurt);
+			if (ISNAN(output[0])){
+				dskew *= 0.9;
+			}
+		} while(ISNAN(output[0]));
+		lev[1] = output[0];
+		len[1] = output[1];
+		poi[1] = output[2];
+
+		do {
+			re_find_in_sas_prior_table(output, skew, kurt + dkurt);
+			if (ISNAN(output[0])){
+				dkurt *= 0.9;
+			}
+		} while(ISNAN(output[0]));
+		lev[2] = output[0];
+		len[2] = output[1];
+		poi[2] = output[2];
+
+	} else {
+		for(iter = 0; iter < iter_max; iter++){
+			re_find_in_sas_prior_table(output, skew + dskew, kurt);
+			if (ISNAN(output[0])){
+				dskew /= 2.0;
+			} else {
+				break;
+			}
+		}
+
+		for(iter = 0; iter < iter_max; iter++){
+			do {
+				re_find_in_sas_prior_table(output, skew + dskew, kurt);
+				if (ISNAN(output[0])){
+					dskew /= 3.0;
+				}
+			} while (ISNAN(output[0]));
+
+			dskew *= SCALEWITH(ABS(target_level / (output[0] - level)));
+			printf("iter %d skew %g kurt %g dskew %g level %g new.level %g err %g\n", iter, skew, kurt, dskew, level, output[0],
+			       ABS(level - output[0]));
+			if (ABS( ABS(level-output[0]) - target_level) < eps)
+				break;
+		}
+
+		lev[1] = output[0];
+		len[1] = output[1];
+		poi[1] = output[2];
+
+		for(iter = 0; iter < iter_max; iter++){
+			re_find_in_sas_prior_table(output, skew, kurt + dkurt);
+			if (ISNAN(output[0])){
+				dkurt /= 2.0;
+			} else {
+				break;
+			}
+		}
+
+		for(iter = 0; iter < iter_max; iter++){
+			do {
+				re_find_in_sas_prior_table(output, skew, kurt + dkurt);
+				if (ISNAN(output[0])){
+					dkurt /= 3.0;
+				}
+			} while (ISNAN(output[0]));
+
+			dkurt *= SCALEWITH(ABS(target_level / (output[0] - level)));
+			printf("iter %d skew %g kurt %g dkurt %g level %g new.level %g err %g\n", iter, skew, kurt, dkurt, level, output[0],
+			       ABS(level - output[0]));
+			if (ABS( ABS(level-output[0]) - target_level) < eps)
+				break;
+		}
+
+		lev[2] = output[0];
+		len[2] = output[1];
+		poi[2] = output[2];
+	}
 
 	dlevel_dskew = (lev[1] - lev[0]) / dskew;
 	dpoint_dskew = (poi[1] - poi[0]) / dskew;
-
-	re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-	lev[2] = output[0];
-	len[2] = output[1];
-	poi[2] = output[2];
-
 	dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
 	dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
 
