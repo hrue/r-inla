@@ -19398,7 +19398,7 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
-	if (1) {
+	if (0) {
 		ar_test1();
 		exit(0);
 	}
