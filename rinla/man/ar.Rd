@@ -26,8 +26,8 @@
   \item{phi}{The AR(p) parameters \code{phi}}
 }
 \value{
-  \code{inla.ar.pacf2phi}  returns \code{phi} for given \code {pacf}.
-  \code{inla.ar.phi2pacf}  returns \code{pac} for given \code {phi}.
+  \code{inla.ar.pacf2phi}  returns \code{phi} for given \code{pacf}.
+  \code{inla.ar.phi2pacf}  returns \code{pac} for given \code{phi}.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \examples{
