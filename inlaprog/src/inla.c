@@ -14256,7 +14256,7 @@ double extra(double *theta, int ntheta, void *argument)
 			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				normc_g = ngroup * LOG_NORMC_GAUSSIAN + 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
+				normc_g = ngroup * LOG_NORMC_GAUSSIAN - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
