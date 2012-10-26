@@ -552,8 +552,8 @@
 
     ## cyclic is only valid for rw1, rw2 and rw2d-models
     if (!is.null(cyclic) && cyclic &&
-        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2"))) {
-        stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2 and rw2d models")
+        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2", "ar1"))) {
+        stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2, rw2d and ar1 models")
     }
 
     need.nrow.ncol = inla.model.properties(model, "latent")$nrow.ncol
