@@ -14245,27 +14245,27 @@ double extra(double *theta, int ntheta, void *argument)
 	} else {							\
 		assert(mb->f_ntheta[i] == (_nt_)+1);			\
 	}								\
+	ngroup = mb->f_ngroup[i];					\
+	n_orig = mb->f_n[i]/ngroup;					\
+	N_orig = mb->f_N[i]/ngroup;					\
+	rankdef_orig = mb->f_rankdef[i]/ngroup;				\
 	if (mb->f_ngroup[i] > 1) {					\
-		ngroup = mb->f_ngroup[i];				\
-		n_orig = mb->f_n[i]/ngroup;				\
-		N_orig = mb->f_N[i]/ngroup;				\
-		rankdef_orig = mb->f_rankdef[i]/ngroup;			\
 		if (!mb->f_fixed[i][_nt_]){				\
 			group_rho_intern = group_prec_intern = theta[count]; \
 			count++;					\
 			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				normc_g = ngroup * LOG_NORMC_GAUSSIAN - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
+				normc_g = - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-				normc_g = ngroup * LOG_NORMC_GAUSSIAN - 0.5 * (ngroup - 1.0) * log(1.0 - SQR(group_rho)); \
+				normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2) { \
 				double grankdef = (mb->f_group_model[i] == G_RW1 ? 1.0 : 2.0); \
 				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
-				normc_g = (ngroup - grankdef) * LOG_NORMC_GAUSSIAN + 0.5 * (ngroup - grankdef) * log(group_prec); \
+				normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_prec_intern); \
 			} else {					\
 				abort();				\
