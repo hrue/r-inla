@@ -169,8 +169,8 @@
 
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
-        if (!is.null(random.spec$control.group$model))
-            cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
+        cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
+        inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
         inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
     }
         

@@ -22,6 +22,9 @@
          ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'rw1' or 'rw2')
          model = "exchangeable",
 
+         ##:ARGUMENT: cyclic Make the group model cyclic? (Only applies to models 'ar1',  'rw1' and 'rw2')
+         cyclic = FALSE,
+         
          ##:ARGUMENT: hyper Definition of the hyperparameter(s)
          hyper = NULL,
 
