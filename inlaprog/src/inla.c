@@ -1216,7 +1216,7 @@ double Qfunc_group(int i, int j, void *arg)
 		if (a->type == G_EXCHANGEABLE) {
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 		} else if (a->type == G_AR1) {
-			if (igroup == 0 || igroup == ngroup - 1) {
+			if (!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1)) {
 				fac = 1.0 / (1.0 - SQR(rho));
 			} else {
 				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
@@ -1244,18 +1244,9 @@ double Qfunc_group(int i, int j, void *arg)
 		val = a->Qfunc(irem, jrem, a->Qfunc_arg) * fac;
 	}
 
-	if (0) {
-		printf("rho %g prec %g %d %d %g\n", rho, prec, i, j, val);
-		{
-			static int c = 1;
-			c++;
-			if (c == 100)
-				exit(0);
-		}
-	}
 	return val;
 }
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type)
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic)
 {
 	int i, j, n = graph->n;
 	GMRFLib_ged_tp *ged = NULL;
@@ -1266,19 +1257,28 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 	}
 
 	if (type == G_EXCHANGEABLE) {
+		assert(cyclic == 0); 
 		for (i = 0; i < ngroup; i++) {
 			for (j = i + 1; j < ngroup; j++) {
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 			}
 		}
 	} else if (type == G_AR1) {
+		assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 		}
+		if (cyclic){
+			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 1) * n);
+		}
+			
 	} else if (type == G_RW1) {
 		assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
+		}
+		if (cyclic){
+			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 1) * n);
 		}
 	} else if (type == G_RW2) {
 		assert(ngroup >= 3);
@@ -1287,6 +1287,12 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 2) * n);
 		}
 		GMRFLib_ged_insert_graph2(ged, graph, (ngroup - 2) * n, (ngroup - 1) * n);
+		if (cyclic){
+			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 1) * n);
+			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 2) * n);
+			GMRFLib_ged_insert_graph2(ged, graph, 1 * n, (ngroup - 1) * n);
+		}
+
 	} else {
 		inla_error_general("This should not happen");
 		abort();
@@ -9768,6 +9774,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_nrep = Realloc(mb->f_nrep, mb->nf + 1, int);
 	mb->f_ngroup = Realloc(mb->f_ngroup, mb->nf + 1, int);
 	mb->f_group_model = Realloc(mb->f_group_model, mb->nf + 1, int);
+	mb->f_group_cyclic = Realloc(mb->f_group_cyclic, mb->nf + 1, int);
 	mb->f_nrow = Realloc(mb->f_nrow, mb->nf + 1, int);
 	mb->f_ncol = Realloc(mb->f_ncol, mb->nf + 1, int);
 	mb->f_locations = Realloc(mb->f_locations, mb->nf + 1, double *);
@@ -9853,6 +9860,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(nrep, 1);
 	SET(ngroup, 1);
 	SET(group_model, G_EXCHANGEABLE);
+	SET(group_cyclic, 0);
 	SET(id_names, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
@@ -13183,8 +13191,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_error_general(msg);
 				abort();
 			}
+
+			mb->f_group_cyclic[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "GROUP.CYCLIC"), 0);
 			if (mb->verbose) {
-				printf("\t\tgroup.type = %s\n", ptmp);
+				printf("\t\tgroup.model = %s\n", ptmp);
+				printf("\t\tgroup.cyclic = %s\n", (mb->f_group_cyclic[mb->nf] ? "True" : "False"));
 			}
 
 			fixed = iniparser_getboolean(ini, inla_string_join(secname, "GROUP.FIXED"), 0);
@@ -13306,7 +13317,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			int Norig = mb->f_N[mb->nf];
 			GMRFLib_graph_tp *g;
 
-			inla_make_group_graph(&g, mb->f_graph[mb->nf], ng, mb->f_group_model[mb->nf]);
+			inla_make_group_graph(&g, mb->f_graph[mb->nf], ng, mb->f_group_model[mb->nf], mb->f_group_cyclic[mb->nf]);
 			GMRFLib_free_graph(mb->f_graph[mb->nf]);
 			mb->f_graph[mb->nf] = g;
 
@@ -13335,6 +13346,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			def->N = Norig;
 			def->ngroup = ng;
+			def->cyclic = mb->f_group_cyclic[mb->nf];
 			def->type = mb->f_group_model[mb->nf];
 			def->Qfunc = mb->f_Qfunc[mb->nf];
 			mb->f_Qfunc[mb->nf] = Qfunc_group;
@@ -13346,7 +13358,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				def->rwdef = Calloc(1, GMRFLib_rwdef_tp);
 				def->rwdef->n = ng;
 				def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
-				def->rwdef->cyclic = GMRFLib_FALSE;
+				def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
 				def->rwdef->si = GMRFLib_FALSE;
 				def->rwdef->prec = Calloc(1, double);
 				def->rwdef->prec[0] = 1.0;
@@ -14229,6 +14241,18 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+double inla_ar1_cyclic_logdet(int N_orig, double phi)
+{
+	double logdet = 0.0;
+	double tpon = 2.0 * M_PI / N_orig;
+	int jj;
+	
+	for (jj = 0; jj < N_orig; jj++) {
+		logdet += log(1.0 + SQR(phi) - phi * (cos(tpon * jj) + cos(tpon * (N_orig - 1.0) * jj)));
+	}
+	return (logdet);
+}
+
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
@@ -14260,7 +14284,11 @@ double extra(double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-				normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
+				if (mb->f_group_cyclic[i]){		\
+					normc_g = - (ngroup - 0.0) * 0.5 * log(1.0 - SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
+				} else {				\
+					normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
+				}					\
 				val += PRIOR_EVAL(mb->f_prior[i][_nt_], &group_rho_intern); \
 			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2) { \
 				double grankdef = (mb->f_group_model[i] == G_RW1 ? 1.0 : 2.0); \
@@ -14827,7 +14855,6 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			SET_GROUP_RHO(1);
-
 			val +=
 			    mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
 					     (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
@@ -15462,14 +15489,7 @@ double extra(double *theta, int ntheta, void *argument)
 			double log_precision_noise = log_precision - log(1.0 - SQR(phi));
 
 			if (mb->f_cyclic[i]) {
-				int jj;
-
-				logdet = 0.0;
-				tpon = 2.0 * M_PI / N_orig;
-
-				for (jj = 0; jj < N_orig; jj++) {
-					logdet += log(1.0 + SQR(phi) - phi * (cos(tpon * jj) + cos(tpon * (N_orig - 1.0) * jj)));
-				}
+				logdet = inla_ar1_cyclic_logdet(N_orig, phi);
 				val += mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
 							ngroup * 0.5 * logdet);
@@ -15478,9 +15498,6 @@ double extra(double *theta, int ntheta, void *argument)
 							+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
 							ngroup * 0.5 * log(1.0 - SQR(phi)));
 			}
-
-			double ldens = LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-				+ (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + 0.5 * log(1.0 - SQR(phi));
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}

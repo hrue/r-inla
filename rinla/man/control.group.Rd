@@ -9,6 +9,7 @@ inla(formula, ..., control.group=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
 \item{model}{  Group model (one of 'exchangable', 'ar1', 'rw1' or 'rw2')}
+\item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
 \item{hyper}{  Definition of the hyperparameter(s)}
 \item{initial}{  (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.}
 \item{fixed}{  (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}

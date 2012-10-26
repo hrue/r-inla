@@ -513,6 +513,7 @@ typedef struct {
 	int N;
 	int ngroup;
 	int type;
+	int cyclic;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
 	double **group_rho_intern;
@@ -624,6 +625,7 @@ struct inla_tp_struct {
 	int *f_nrep;					       /* number of replicates */
 	int *f_ngroup;
 	int *f_group_model;
+	int *f_group_cyclic;
 	int *f_order;
 	double **f_locations;
 	double **f_weights;
@@ -961,6 +963,7 @@ double Qfunc_z(int i, int j, void *arg);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double exp_taylor(double x, double x0, int order);
+double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double extra(double *theta, int ntheta, void *argument);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
@@ -1047,7 +1050,7 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
