@@ -1136,11 +1136,12 @@ int re_find_in_table_general(double value, double *x, int nx)
 	}
 }
 
-int re_make_sas_logjac()
+int re_sas_table_add_logjac(int debug)
 {
-	int i, j, debug=1;
+	int i, j;
 	double *logjac;
 
+	assert(sas_prior_table);
 	logjac = Calloc(sas_prior_table->nz, double);
 	for(i=0; i<sas_prior_table->nz; i++){
 		logjac[i] = NAN;
@@ -1217,7 +1218,9 @@ int re_make_sas_logjac()
 	sas_prior_table->logjac = logjac;
 	
 	FILE *fp;
-	fprintf(stderr, "Update prior-table to %s\n", SAS_PRIOR_TABLE);
+	if (debug){
+		fprintf(stderr, "Add logjac tot the prior-table %s\n", SAS_PRIOR_TABLE);
+	}
 	fp = fopen(SAS_PRIOR_TABLE, "wb");
 	fwrite(&(sas_prior_table->nx), sizeof(int), (size_t) 1, fp);
 	fwrite(&(sas_prior_table->ny), sizeof(int), (size_t) 1, fp);
@@ -1231,7 +1234,141 @@ int re_make_sas_logjac()
 
 	return GMRFLib_SUCCESS;
 }
-int re_make_sas_prior_table(void)
+
+
+int re_sas_table_init(const char *arg)
+{
+	/* 
+	 * only read it
+	 */
+	re_sas_prior_table_core(1, 0, 0);
+	assert(sas_prior_table->logjac);
+	return GMRFLib_SUCCESS;
+}
+
+int re_sas_table_check(const char *arg)
+{
+	/* 
+	 * this will create the table if its not there, and add the logjac if its not there already
+	 */
+	re_sas_prior_table_core(1, 1, 1);
+
+	int n = 500, i, j, ii;
+	double *skew = Calloc(n, double);
+	double *kurt = Calloc(n, double);
+	double *ld = Calloc(ISQR(n), double);
+	double *ldd = Calloc(ISQR(n), double);
+	double *lddd = Calloc(ISQR(n), double);
+	double *ldddd = Calloc(ISQR(n), double);
+	double *lddddd = Calloc(ISQR(n), double);
+	double s, k;
+	
+	for (s = -1.5, i = 0; i < n; s += 2 * 1.5 / (n - 1.0), i++) {
+		skew[i] = s;
+		if (i == 0 || i == n-1)
+			printf("skew[%d]  = %g\n", i, skew[i]);
+	}
+	for (k = 2.1, i = 0; i < n; k += (7 - 2.0) / (n - 1), i++) {
+		kurt[i] = k;
+		if (i == 0 || i == n-1)
+			printf("kurt[%d]  = %g\n", i, kurt[i]);
+	}
+	
+#pragma omp parallel for private(j, i, ii)
+	for (j = 0; j < n; j++) {
+		for (i = 0; i < n; i++) {
+			ii = i + j * n;
+			// printf("skew kurt %g %g\n", skew[i], kurt[j]);
+			if (re_valid_skew_kurt(NULL, skew[i], kurt[j])) {
+				double *pri = re_sas_evaluate_log_prior(skew[i], kurt[j]);
+				ld[ii] = pri[0];
+				ldd[ii] = pri[1];
+				lddd[ii] = pri[2];
+				ldddd[ii] = pri[3];
+				lddddd[ii] = pri[4];
+				Free(pri);
+			} else {
+				ld[ii] = NAN;
+				ldd[ii] = NAN;
+				lddd[ii] = NAN;
+				ldddd[ii] = NAN;
+				lddddd[ii] = NAN;
+			}
+		}
+	}
+	
+	FILE *fp = fopen("testing1.dat", "w");
+	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", skew[i]);
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", kurt[i]);
+	for (j = ii = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+			fprintf(fp, "%g\n", ld[ii++]);
+	
+	fclose(fp);
+	printf("wrote file 1\n");
+	
+	fp = fopen("testing2.dat", "w");
+	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", skew[i]);
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", kurt[i]);
+	for (j = ii = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+			fprintf(fp, "%g\n", ldd[ii++]);
+	
+	fclose(fp);
+	printf("wrote file 2\n");
+	
+	fp = fopen("testing3.dat", "w");
+	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", skew[i]);
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", kurt[i]);
+	for (j = ii = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+			fprintf(fp, "%g\n", lddd[ii++]);
+	
+	fclose(fp);
+	printf("wrote file 3\n");
+	
+	fp = fopen("testing4.dat", "w");
+	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", skew[i]);
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", kurt[i]);
+	for (j = ii = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+			fprintf(fp, "%g\n", ldddd[ii++]);
+	
+	fclose(fp);
+	printf("wrote file 4\n");
+	
+	fp = fopen("testing5.dat", "w");
+	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", skew[i]);
+	for (i = 0; i < n; i++)
+		fprintf(fp, "%g\n", kurt[i]);
+	for (j = ii = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+			fprintf(fp, "%g\n", lddddd[ii++]);
+	fclose(fp);
+	printf("wrote file 5\n");
+	
+	return GMRFLib_SUCCESS;
+}
+int re_sas_table_create(const char *arg)
+{
+	re_sas_prior_table_core(0, 1, 1);
+	return GMRFLib_SUCCESS;
+}
+int re_sas_prior_table_core(int read_only, int add_logjac, int debug)
 {
 	if (sas_prior_table) {
 		return GMRFLib_SUCCESS;
@@ -1241,7 +1378,6 @@ int re_make_sas_prior_table(void)
 	fp = fopen(SAS_PRIOR_TABLE, "rb");
 
 	if (fp) {
-		int debug = 1;
 		size_t ret;
 		re_sas_prior_tp *s = Calloc(1, re_sas_prior_tp);
 
@@ -1283,17 +1419,28 @@ int re_make_sas_prior_table(void)
 			}
 			Free(s->logjac);
 		} else {
+			if (debug) {
+				fprintf(stderr, "\tlogjac is available.\n");
+			}
 			assert(ret == (size_t) s->nz);
 		}
 		fclose(fp);
 		sas_prior_table = s;
 
-		if (!(s->logjac)) {
-			re_make_sas_logjac();
+		if (add_logjac && !(s->logjac)) {
+			if (debug) {
+				fprintf(stderr, "\tadd logjac\n");
+			}
+			re_sas_table_add_logjac(debug);
 		}
 
 		return GMRFLib_SUCCESS;
 	}
+
+	if (read_only){
+		return !GMRFLib_SUCCESS;
+	}
+
 //#pragma omp critical
 	{
 		if (!sas_prior_table) {
@@ -1392,8 +1539,11 @@ int re_make_sas_prior_table(void)
 			ret = fwrite(s->length, sizeof(double), (size_t) s->nz, fp);
 			ret = fwrite(s->point, sizeof(double), (size_t) s->nz, fp);
 			fclose(fp);
+
+			return re_sas_prior_table_core(read_only, add_logjac, debug);
 		}
 	}
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -1496,13 +1646,13 @@ double re_intrinsic_discrepancy_distance(double skew, double kurt)
 	return (DMIN(integral[0], integral[1]));
 }
 
-int re_init()
+int re_init(void)
 {
 	re_sas_param_tp param;
 	double skew = 0, kurt = 3.0, mean = 0, s = 1;
-	re_sas_fit_parameters(&param, &mean, &s, &skew, &kurt);
 
-	re_make_sas_prior_table();
+	re_sas_fit_parameters(&param, &mean, &s, &skew, &kurt);
+	re_sas_table_init(NULL);
 
 	return GMRFLib_SUCCESS;
 }

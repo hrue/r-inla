@@ -82,8 +82,12 @@ typedef struct {
 	double *logjac;	
 } re_sas_prior_tp;
 
-int re_make_sas_logjac();
-int re_make_sas_prior_table(void);
+int re_sas_table_init(const char *arg);
+int re_sas_table_check(const char *arg);
+int re_sas_table_create(const char *arg);
+int re_sas_prior_table_core(int read_only, int add_logjac, int debug);
+int re_sas_table_add_logjac(int debug);
+
 int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
 int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_valid_skew_kurt(double *dist, double skew, double kurt);
@@ -114,7 +118,7 @@ int re_dsas(double *logdens, double *x, int n, double skew, double kurt);
 int re_dnorm(double *logdens, double *x, int n);
 double re_intrinsic_discrepancy_distance(double skew, double kurt);
 double re_intrinsic_discrepancy_distance_map(double distance);
-int re_init();
+int re_init(void);
 double bessel_Knu(double alpha, double x);
 void K_bessel(double *x, double *alpha, long *nb, long *ize, double *bk, long *ncalc);
 double re_valid_skew(double kurt);

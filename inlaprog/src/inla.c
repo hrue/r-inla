@@ -19796,6 +19796,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
 				G.mode = INLA_MODE_GRAPH;
+			} else if (!strncasecmp(optarg, "SASPRIOR", 8)) {
+				G.mode = INLA_MODE_SASPRIOR;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -19953,6 +19955,13 @@ int main(int argc, char **argv)
 	}
 	if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
+		exit(0);
+	}
+	if (G.mode == INLA_MODE_SASPRIOR) {
+		/* 
+		   create it, if it isn't there. add logjac if it's not in the table
+		 */
+		re_sas_table_check(argv[optind]);	       
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_TESTIT) {

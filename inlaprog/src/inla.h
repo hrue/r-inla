@@ -87,6 +87,7 @@ typedef enum {
 	INLA_MODE_QSAMPLE,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
+	INLA_MODE_SASPRIOR, 
 	INLA_MODE_TESTIT = 99
 } inla_mode_tp;
 
