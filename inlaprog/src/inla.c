@@ -14256,7 +14256,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
-	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, tpon, beta, beta_intern, skew, kurt,
+	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN;
 
@@ -15212,9 +15212,8 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_AR:
 		{
 			double log_precision, *pacf, *pacf_intern;
-			int count_ref, p;
+			int p;
 			
-			count_ref = count;
 			p = mb->f_order[i];
 			assert(mb->f_ntheta[i] == p + 1);
 			

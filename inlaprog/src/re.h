@@ -74,17 +74,19 @@ typedef struct {
 	int ny;
 	int nz;
 
-	double *x;					       /* skew */
-	double *y;					       /* kurt */
-	double *z;					       /* level */
-	double *zz;					       /* length */
-	double *zzz;					       /* point */
+	double *skew;					       /* x */
+	double *kurt;					       /* y */
+	double *level;					       /* various z's */
+	double *length;	
+	double *point;	
+	double *logjac;	
 } re_sas_prior_tp;
 
+int re_make_sas_logjac();
 int re_make_sas_prior_table(void);
-int re_valid_skew_kurt(double *dist, double skew, double kurt);
-int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
 int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
+int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta);
+int re_valid_skew_kurt(double *dist, double skew, double kurt);
 
 int re_sas_f(const gsl_vector * x, void *data, gsl_vector * f);
 int re_sas_df(const gsl_vector * x, void *data, gsl_matrix * J);

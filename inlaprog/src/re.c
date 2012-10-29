@@ -58,18 +58,18 @@ static const char RCSId[] = HGVERSION;
 
 #define KURT_LIMIT(s) (2.15 + SQR((s)/0.8))
 
-#define SKEW_MIN (sas_prior_table->x[1])
-#define SKEW_MAX (sas_prior_table->x[sas_prior_table->nx-1])
-#define KURT_MIN (sas_prior_table->y[1])
-#define KURT_MAX (sas_prior_table->y[sas_prior_table->ny-1])
+#define SKEW_MIN (sas_prior_table->skew[0])
+#define SKEW_MAX (sas_prior_table->skew[sas_prior_table->nx-1])
+#define KURT_MIN (sas_prior_table->kurt[0])
+#define KURT_MAX (sas_prior_table->kurt[sas_prior_table->ny-1])
 
 #define REV(x, n) \
 	if (1){						\
 		double *_tmp = Calloc(n, double);	\
-		memcpy(_tmp, x, (n)*sizeof(double));	\
+		memcpy(_tmp, (x), (n)*sizeof(double));	\
 		int ii;					\
 		for(ii=0; ii < (n); ii++){		\
-			x[ii] = _tmp[(n)-1-ii];		\
+			(x)[ii] = _tmp[(n)-1-ii];	\
 		}					\
 		Free(_tmp);				\
 	}
@@ -1016,16 +1016,15 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 {
 #define SCALEWITH(x) DMAX(0.5, DMIN(2.0, (x)))
 
-	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.05, target_level = 0.01, Jacobian, lambda = 10, lev[3], poi[3], len[3],
-		*pri, dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt, eps = 1e-4;
-	int iter, iter_max=20;
-
+	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.01, lambda = 10, *pri, logjac;
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];
 	length = output[1];
 	point = output[2];
-	if (ISNAN(level))
+	logjac = output[3];
+
+	if (ISNAN(level) || ISNAN(length) || ISNAN(point))
 	{
 		pri = Calloc(5, double);
 		pri[0] = NAN;
@@ -1037,113 +1036,15 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 		return pri;
 	}
 
-	if (skew <= 0.0) {
-		dskew = -ddefault;
-		dkurt = 2 * ddefault;
-	} else {
-		dskew = ddefault;
-		dkurt = 2 * ddefault;
-	}
-
-	lev[0] = level;
-	len[0] = length;
-	poi[0] = point;
-
-	if (1){
-		do {
-			re_find_in_sas_prior_table(output, skew + dskew, kurt);
-			if (ISNAN(output[0])){
-				dskew *= 0.9;
-			}
-		} while(ISNAN(output[0]));
-		lev[1] = output[0];
-		len[1] = output[1];
-		poi[1] = output[2];
-
-		do {
-			re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-			if (ISNAN(output[0])){
-				dkurt *= 0.9;
-			}
-		} while(ISNAN(output[0]));
-		lev[2] = output[0];
-		len[2] = output[1];
-		poi[2] = output[2];
-
-	} else {
-		for(iter = 0; iter < iter_max; iter++){
-			re_find_in_sas_prior_table(output, skew + dskew, kurt);
-			if (ISNAN(output[0])){
-				dskew /= 2.0;
-			} else {
-				break;
-			}
-		}
-
-		for(iter = 0; iter < iter_max; iter++){
-			do {
-				re_find_in_sas_prior_table(output, skew + dskew, kurt);
-				if (ISNAN(output[0])){
-					dskew /= 3.0;
-				}
-			} while (ISNAN(output[0]));
-
-			dskew *= SCALEWITH(ABS(target_level / (output[0] - level)));
-			printf("iter %d skew %g kurt %g dskew %g level %g new.level %g err %g\n", iter, skew, kurt, dskew, level, output[0],
-			       ABS(level - output[0]));
-			if (ABS( ABS(level-output[0]) - target_level) < eps)
-				break;
-		}
-
-		lev[1] = output[0];
-		len[1] = output[1];
-		poi[1] = output[2];
-
-		for(iter = 0; iter < iter_max; iter++){
-			re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-			if (ISNAN(output[0])){
-				dkurt /= 2.0;
-			} else {
-				break;
-			}
-		}
-
-		for(iter = 0; iter < iter_max; iter++){
-			do {
-				re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-				if (ISNAN(output[0])){
-					dkurt /= 3.0;
-				}
-			} while (ISNAN(output[0]));
-
-			dkurt *= SCALEWITH(ABS(target_level / (output[0] - level)));
-			printf("iter %d skew %g kurt %g dkurt %g level %g new.level %g err %g\n", iter, skew, kurt, dkurt, level, output[0],
-			       ABS(level - output[0]));
-			if (ABS( ABS(level-output[0]) - target_level) < eps)
-				break;
-		}
-
-		lev[2] = output[0];
-		len[2] = output[1];
-		poi[2] = output[2];
-	}
-
-	dlevel_dskew = (lev[1] - lev[0]) / dskew;
-	dpoint_dskew = (poi[1] - poi[0]) / dskew;
-	dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
-	dpoint_dkurt = (poi[2] - poi[0]) / dkurt;
-
-	Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
-
 	ldens_uniform = log(1 / length);
 	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */
 
 	pri = Calloc(5, double);
-	pri[0] = ldens_uniform + ldens_dist + log(Jacobian);
+	pri[0] = ldens_uniform + ldens_dist + logjac;
 	pri[1] = level;
 	pri[2] = length;
 	pri[3] = point;
-	pri[4] = log(Jacobian);
+	pri[4] = logjac;
 
 	return pri;
 }
@@ -1154,60 +1055,51 @@ int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 	 * return the level based on 'skew' and 'kurt' 
 	 */
 
-	int ix = re_find_in_table_general(skew, sas_prior_table->x, sas_prior_table->nx);
-	int iy = re_find_in_table_general(kurt, sas_prior_table->y, sas_prior_table->ny);
-	// printf("skew %g kurt %g gives ix %d iy %d\n", skew, kurt, ix, iy);
-	if (!LEGAL(ix, sas_prior_table->nx) || !LEGAL(iy, sas_prior_table->ny)) {
-		P(skew);
-		P(kurt);
-		P(ix);
-		P(iy);
-		assert(LEGAL(ix, sas_prior_table->nx));
-		assert(LEGAL(iy, sas_prior_table->ny));
-	}
+	int ix, iy;
+	
+	ix = re_find_in_table_general(skew, sas_prior_table->skew, sas_prior_table->nx);
+	iy = re_find_in_table_general(kurt, sas_prior_table->kurt, sas_prior_table->ny);
 
 	/*
 	 * so the notation is like the one in https://en.wikipedia.org/wiki/Bilinear_interpolation 
 	 */
-#define TABLE_Z(_i, _j) sas_prior_table->z[(_i) + sas_prior_table->nx * (_j)]
-#define TABLE_ZZ(_i, _j) sas_prior_table->zz[(_i) + sas_prior_table->nx * (_j)]
-#define TABLE_ZZZ(_i, _j) sas_prior_table->zzz[(_i) + sas_prior_table->nx * (_j)]
+#define TABLE_GENERIC(_i, _j, what) sas_prior_table->what[(_i) + sas_prior_table->nx * (_j)]
 
 	double x1, x2, y1, y2, x, y, fQ11, fQ12, fQ21, fQ22;
-	x1 = sas_prior_table->x[ix];
-	x2 = sas_prior_table->x[ix + 1];
-	y1 = sas_prior_table->y[iy];
-	y2 = sas_prior_table->y[iy + 1];
+	x1 = sas_prior_table->skew[ix];
+	x2 = sas_prior_table->skew[ix + 1];
+	y1 = sas_prior_table->kurt[iy];
+	y2 = sas_prior_table->kurt[iy + 1];
 	x = skew;
 	y = kurt;
 
 	assert(x >= x1 && x <= x2);
 	assert(y >= y1 && y <= y2);
+	
+#define INTERPOLATE(idx, what) if (1) {					\
+		fQ11 = TABLE_GENERIC(ix, iy, what);			\
+		fQ21 = TABLE_GENERIC(ix + 1, iy, what);			\
+		fQ12 = TABLE_GENERIC(ix, iy + 1, what);			\
+		fQ22 = TABLE_GENERIC(ix + 1, iy + 1, what);		\
+		output[idx] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1)) *\
+			(fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1)); \
+	}
 
-	fQ11 = TABLE_Z(ix, iy);
-	fQ21 = TABLE_Z(ix + 1, iy);
-	fQ12 = TABLE_Z(ix, iy + 1);
-	fQ22 = TABLE_Z(ix + 1, iy + 1);
-	output[0] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
-	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
+	INTERPOLATE(0, level);
+	INTERPOLATE(1, length);
+	INTERPOLATE(2, point);
+	if (sas_prior_table->logjac) {
+		INTERPOLATE(3, logjac);
+	} else {
+		output[3] = NAN;
+	}
+	
+	output[0] = DMAX(0.0, output[0]);
+	output[1] = DMAX(0.0, output[1]);
+	output[2] = DMAX(0.0, DMIN(output[1], output[2]));
 
-	fQ11 = TABLE_ZZ(ix, iy);
-	fQ21 = TABLE_ZZ(ix + 1, iy);
-	fQ12 = TABLE_ZZ(ix, iy + 1);
-	fQ22 = TABLE_ZZ(ix + 1, iy + 1);
-	output[1] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
-	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
-
-	fQ11 = TABLE_ZZZ(ix, iy);
-	fQ21 = TABLE_ZZZ(ix + 1, iy);
-	fQ12 = TABLE_ZZZ(ix, iy + 1);
-	fQ22 = TABLE_ZZZ(ix + 1, iy + 1);
-	output[2] = 1.0 / (DMAX(DBL_EPSILON, x2 - x1) * DMAX(DBL_EPSILON, y2 - y1))
-	    * (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1));
-
-#undef TABLE_Z
-#undef TABLE_ZZ
-#undef TABLE_ZZZ
+#undef INTERPOLATE
+#undef TABLE_GENERIC
 	return GMRFLib_SUCCESS;
 }
 
@@ -1244,15 +1136,108 @@ int re_find_in_table_general(double value, double *x, int nx)
 	}
 }
 
+int re_make_sas_logjac()
+{
+	int i, j, debug=1;
+	double *logjac;
+
+	logjac = Calloc(sas_prior_table->nz, double);
+	for(i=0; i<sas_prior_table->nz; i++){
+		logjac[i] = NAN;
+	}
+
+#pragma omp parallel for private(i, j)
+	for(i=0; i<sas_prior_table->nx; i++) {
+		for(j = 0; j<sas_prior_table->ny; j++) {
+			double output[4], ddefault = 0.01, Jacobian, lev[3], poi[3], len[3],
+				dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt, skew, kurt;
+
+			skew = sas_prior_table->skew[i];
+			kurt = sas_prior_table->kurt[j];
+
+			re_find_in_sas_prior_table(output, skew, kurt);
+			lev[0] = output[0];
+			len[0] = output[1];
+			poi[0] = output[2];
+
+			if (!ISNAN(lev[0]) && !ISNAN(len[0]) && !ISNAN(poi[0])){
+				if (skew <= 0.0) {
+					dskew = -ddefault;
+					dkurt = 2 * ddefault;
+				} else {
+					dskew = ddefault;
+					dkurt = 2 * ddefault;
+				}
+				
+				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX &&
+				    kurt + dkurt > KURT_MIN && kurt + dkurt < KURT_MAX) {
+
+					do {
+						re_find_in_sas_prior_table(output, skew + dskew, kurt);
+						if (ISNAN(output[0])){
+							dskew *= 0.9;
+						}
+					} while(ISNAN(output[0]));
+
+					lev[1] = output[0];
+					len[1] = output[1];
+					poi[1] = output[2];
+	
+					do {
+						re_find_in_sas_prior_table(output, skew, kurt + dkurt);
+						if (ISNAN(output[0])){
+							dkurt *= 0.9;
+						}
+					} while(ISNAN(output[0]));
+					lev[2] = output[0];
+					len[2] = output[1];
+					poi[2] = output[2];
+
+					dlevel_dskew = (lev[1] - lev[0]) / dskew;
+					dpoint_dskew = (poi[1]/len[1] - poi[0]/len[0]) / dskew;
+					dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
+					dpoint_dkurt = (poi[2]/len[2] - poi[0]/len[0]) / dkurt;
+
+					Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
+					logjac[i + j * sas_prior_table->nx] = log(Jacobian);
+
+					if (0 && ABS(skew) < 0.1){
+						printf("skew %g kurt %g\n", skew, kurt);
+						printf("\t       lev %g len %g point %g\n", lev[0], len[0], poi[0]);
+						printf("\tskew:  lev %g len %g point %g\n", lev[1], len[1], poi[1]);
+						printf("\tkurt:  lev %g len %g point %g\n", lev[2], len[2], poi[2]);
+						printf("\tdskew: lev %g point %g\n", dlevel_dskew, dpoint_dskew);
+						printf("\tdkurt: lev %g point %g\n", dlevel_dkurt, dpoint_dkurt);
+						printf("\tlog(a x b) = log(Jac) %g %g = %g\n", dlevel_dskew * dpoint_dkurt, dpoint_dskew * dlevel_dkurt, log(Jacobian));
+					}
+				}
+			}
+		}
+	}
+	sas_prior_table->logjac = logjac;
+	
+	FILE *fp;
+	fprintf(stderr, "Update prior-table to %s\n", SAS_PRIOR_TABLE);
+	fp = fopen(SAS_PRIOR_TABLE, "wb");
+	fwrite(&(sas_prior_table->nx), sizeof(int), (size_t) 1, fp);
+	fwrite(&(sas_prior_table->ny), sizeof(int), (size_t) 1, fp);
+	fwrite(&(sas_prior_table->nz), sizeof(int), (size_t) 1, fp);
+	fwrite(sas_prior_table->skew, sizeof(double), (size_t) sas_prior_table->nx, fp);
+	fwrite(sas_prior_table->kurt, sizeof(double), (size_t) sas_prior_table->ny, fp);
+	fwrite(sas_prior_table->level, sizeof(double), (size_t) sas_prior_table->nz, fp);
+	fwrite(sas_prior_table->length, sizeof(double), (size_t) sas_prior_table->nz, fp);
+	fwrite(sas_prior_table->point, sizeof(double), (size_t) sas_prior_table->nz, fp);
+	fwrite(sas_prior_table->logjac, sizeof(double), (size_t) sas_prior_table->nz, fp);
+
+	return GMRFLib_SUCCESS;
+}
 int re_make_sas_prior_table(void)
 {
 	if (sas_prior_table) {
 		return GMRFLib_SUCCESS;
 	}
 
-
 	FILE *fp = NULL;
-
 	fp = fopen(SAS_PRIOR_TABLE, "rb");
 
 	if (fp) {
@@ -1274,25 +1259,38 @@ int re_make_sas_prior_table(void)
 		if (debug) {
 			fprintf(stderr, "\tnx = %1d, ny = %1d, nz = %1d\n", s->nx, s->ny, s->nz);
 		}
-		s->x = Calloc(s->nx, double);
-		s->y = Calloc(s->ny, double);
-		s->z = Calloc(s->nz, double);
-		s->zz = Calloc(s->nz, double);
-		s->zzz = Calloc(s->nz, double);
+		s->skew = Calloc(s->nx, double);
+		s->kurt = Calloc(s->ny, double);
+		s->level = Calloc(s->nz, double);
+		s->length = Calloc(s->nz, double);
+		s->point = Calloc(s->nz, double);
+		s->logjac = Calloc(s->nz, double);
 
-		ret = fread(s->x, sizeof(double), (size_t) s->nx, fp);
+		ret = fread(s->skew, sizeof(double), (size_t) s->nx, fp);
 		assert(ret == (size_t) s->nx);
-		ret = fread(s->y, sizeof(double), (size_t) s->ny, fp);
+		ret = fread(s->kurt, sizeof(double), (size_t) s->ny, fp);
 		assert(ret == (size_t) s->ny);
-		ret = fread(s->z, sizeof(double), (size_t) s->nz, fp);
+		ret = fread(s->level, sizeof(double), (size_t) s->nz, fp);
 		assert(ret == (size_t) s->nz);
-		ret = fread(s->zz, sizeof(double), (size_t) s->nz, fp);
+		ret = fread(s->length, sizeof(double), (size_t) s->nz, fp);
 		assert(ret == (size_t) s->nz);
-		ret = fread(s->zzz, sizeof(double), (size_t) s->nz, fp);
+		ret = fread(s->point, sizeof(double), (size_t) s->nz, fp);
 		assert(ret == (size_t) s->nz);
-
+		ret = fread(s->logjac, sizeof(double), (size_t) s->nz, fp);
+		if (ret == (size_t)0){
+			if (debug) {
+				fprintf(stderr, "\tlogjac is not available.\n");
+			}
+			Free(s->logjac);
+		} else {
+			assert(ret == (size_t) s->nz);
+		}
 		fclose(fp);
 		sas_prior_table = s;
+
+		if (!(s->logjac)) {
+			re_make_sas_logjac();
+		}
 
 		return GMRFLib_SUCCESS;
 	}
@@ -1306,36 +1304,34 @@ int re_make_sas_prior_table(void)
 			s->ny = 2000;
 			s->nz = s->nx * s->ny;
 
-			s->x = Calloc(s->nx, double);
-			s->y = Calloc(s->ny, double);
-			s->z = Calloc(s->nz, double);
-			s->zz = Calloc(s->nz, double);
-			s->zzz = Calloc(s->nz, double);
+			s->skew = Calloc(s->nx, double);
+			s->kurt = Calloc(s->ny, double);
+			s->level = Calloc(s->nz, double);
+			s->length = Calloc(s->nz, double);
+			s->point = Calloc(s->nz, double);
 
 			int i, j;
 			double dd, skew_limit = 4.0, kurt_low = 2, kurt_high = 20;
 
 			dd = 2 * skew_limit / (s->nx - 1.0);
 			for (i = 0; i < s->nx; i++) {
-				s->x[i] = -skew_limit + i * dd;
+				s->skew[i] = -skew_limit + i * dd;
 			}
 
 			dd = (kurt_high - kurt_low) / (s->ny - 1.0);
 			for (j = 0; j < s->ny; j++) {
-				s->y[j] = kurt_low + j * dd;
+				s->kurt[j] = kurt_low + j * dd;
 			}
 
 #pragma omp parallel for private(j, i) schedule(dynamic)
 			for (j = 0; j < s->ny; j++) {
 				for (i = 0; i < s->nx; i++) {
 					int k = i + j * s->nx;
-					if (re_valid_skew_kurt(NULL, s->x[i], s->y[j])) {
-						s->z[k] = re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(s->x[i], s->y[j]));
-						// printf("valid skew %g kurt %g dist %g\n", s->x[i], s->y[j], s->z[k]);
-						assert(!ISNAN(s->z[k]));
+					if (re_valid_skew_kurt(NULL, s->skew[i], s->kurt[j])) {
+						s->level[k] = re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(s->skew[i], s->kurt[j]));
+						assert(!ISNAN(s->level[k]));
 					} else {
-						// printf("not valid skew %g kurt %g\n", s->x[i], s->y[j]);
-						s->z[k] = NAN;
+						s->level[k] = NAN;
 					}
 				}
 			}
@@ -1347,85 +1343,54 @@ int re_make_sas_prior_table(void)
 				printf("...outer loop j = %d/%d\n", j, s->ny);
 				for (i = 0; i < s->nx; i++) {
 					int k = i + j * s->nx;
-					if (re_valid_skew_kurt(NULL, s->x[i], s->y[j])) {
+					if (re_valid_skew_kurt(NULL, s->skew[i], s->kurt[j])) {
 						double level;
 
-						level = s->z[k];
+						level = s->level[k];
 						if (ISNAN(level)) {
-							s->zz[k] = NAN;
+							s->length[k] = NAN;
 						} else {
 							re_contour_tp *c = NULL;
 							double length, point;
 
-							c = contourLines(s->x, s->nx, s->y, s->ny, s->z, level);
+							c = contourLines(s->skew, s->nx, s->kurt, s->ny, s->level, level);
 							re_join_contourLines(c);
-
-							if (0 && c->nc > 0 && i < s->nx / 2) {
-								char *filename;
-								GMRFLib_sprintf(&filename, "c/contour-%1d-%1d.dat", i, j);
-								FILE *fp = fopen(filename, "w");
-								// FILE *fp = stdout;
-								re_print_contourLines(fp, c);
-								point = re_point_on_contour(c, s->x[i], s->y[j]);
-								fprintf(fp, "POINT x,y,p,len  %g %g %g %g\n", s->x[i], s->y[j], point,
-									(c->nc ? c->length[0] : DBL_EPSILON));
-								if (fp != stdout)
-									fclose(fp);
-								// printf("wrote %s\n", filename);
-							}
-
 							if (c->nc == 0) {
-								s->zz[k] = FLT_EPSILON;
-								s->zzz[k] = FLT_EPSILON / 2.0;
+								s->length[k] = FLT_EPSILON;
+								s->point[k] = FLT_EPSILON / 2.0;
 							} else {
 								if (c->nc != 1) {
 									re_print_contourLines(stdout, c);
 								}
 								assert(c->nc == 1);
 								length = c->length[0];
-								point = re_point_on_contour(c, s->x[i], s->y[j]);
+								point = re_point_on_contour(c, s->skew[i], s->kurt[j]);
 								re_free_contourLines(c);
-								s->zz[k] = length;
-								FIXME1("FIX");
-								s->zzz[k] = point;
-								// printf("skew %g kurt %g level %g length %g point %g\n", s->x[i], s->y[j], level, length, point);
+								s->length[k] = length;
+								s->point[k] = point;
 							}
 						}
 					} else {
-						s->zz[k] = s->zzz[k] = NAN;
+						s->length[k] = s->point[k] = NAN;
 					}
 				}
 			}
-
 			printf("MAKE TABLE... Part 2 done\n");
-
-			sas_prior_table = s;
-
-			fprintf(stderr, "Write prior-table to %s\n", SAS_PRIOR_TABLE);
 
 			FILE *fp;
 			size_t ret;
-
+			sas_prior_table = s;
+			fprintf(stderr, "Write prior-table to %s\n", SAS_PRIOR_TABLE);
 			fp = fopen(SAS_PRIOR_TABLE, "wb");
-
+			assert(fp);
 			ret = fwrite(&(s->nx), sizeof(int), (size_t) 1, fp);
-			assert(ret == (size_t) 1);
 			ret = fwrite(&(s->ny), sizeof(int), (size_t) 1, fp);
-			assert(ret == (size_t) 1);
 			ret = fwrite(&(s->nz), sizeof(int), (size_t) 1, fp);
-			assert(ret == (size_t) 1);
-
-			ret = fwrite(s->x, sizeof(double), (size_t) s->nx, fp);
-			assert(ret == (size_t) s->nx);
-			ret = fwrite(s->y, sizeof(double), (size_t) s->ny, fp);
-			assert(ret == (size_t) s->ny);
-			ret = fwrite(s->z, sizeof(double), (size_t) s->nz, fp);
-			assert(ret == (size_t) s->nz);
-			ret = fwrite(s->zz, sizeof(double), (size_t) s->nz, fp);
-			assert(ret == (size_t) s->nz);
-			ret = fwrite(s->zzz, sizeof(double), (size_t) s->nz, fp);
-			assert(ret == (size_t) s->nz);
-
+			ret = fwrite(s->skew, sizeof(double), (size_t) s->nx, fp);
+			ret = fwrite(s->kurt, sizeof(double), (size_t) s->ny, fp);
+			ret = fwrite(s->level, sizeof(double), (size_t) s->nz, fp);
+			ret = fwrite(s->length, sizeof(double), (size_t) s->nz, fp);
+			ret = fwrite(s->point, sizeof(double), (size_t) s->nz, fp);
 			fclose(fp);
 		}
 	}
