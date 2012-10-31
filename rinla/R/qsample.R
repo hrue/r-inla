@@ -18,7 +18,10 @@
 ##!   \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
 ##!}
 ##!\value{
-##!  \code{inla.qsample} returns a matrix where each column is a sample.
+##!  \code{inla.qsample} returns a list with names \code{sample} and
+##!  \code{logdens}. The samples are stored in the matrix
+##!  \code{sample} where each column is a sample, and the log
+##!  densities of each sample are stored the vector \code{logdens}.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! 
@@ -27,7 +30,7 @@
 ##! G = inla.graph2matrix(g)
 ##! diag(G) = dim(G)[1L]
 ##! x = inla.qsample(10, G)
-##! matplot(x)
+##! matplot(x$sample)
 ##!}
 
 `inla.qsample` = function(n = 1L, Q, reordering = inla.reorderings(), seed = 0L)
@@ -69,6 +72,14 @@
 
     x = inla.read.fmesher.file(x.file)
     unlink(x.file)
-    
-    return (x)
+
+    nx = dim(Q)[1L]
+    samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
+    colnames(samples) = paste("sample", 1L:n, sep="")
+    rownames(samples) = paste("x", 1L:nx, sep="")
+    logdens = x[nx+1L,, drop=TRUE]
+    names(logdens) = paste("logdens", 1L:n, sep="")
+    result = list(sample=samples, logdens = logdens)
+
+    return (result)
 }

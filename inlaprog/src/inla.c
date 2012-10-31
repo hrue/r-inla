@@ -19268,14 +19268,16 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
-	M->nrow = graph->n;
+	M->nrow = graph->n + 1;
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
 
 	for (i = 0; i < ns; i++) {
 		GMRFLib_sample(problem);
+		GMRFLib_evaluate(problem);
 		memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
+		M->A[(i + 1) * M->nrow -1] = problem->sub_logdens;
 	}
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
@@ -19594,7 +19596,7 @@ int testit(int argc, char **argv)
 			GETV(y, ny);
 			GETV(z, nz);
 
-			int i, j;
+			int i;
 			double lev = 0.1;
 
 			for (i = 0; i < nz; i++) {
