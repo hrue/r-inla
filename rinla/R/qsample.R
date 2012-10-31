@@ -6,7 +6,7 @@
 ##! 
 ##! \description{This function generate samples from a GMRF using the GMRFLib implementation}
 ##! \usage{
-##!     inla.qsample(n, Q, reordering = "auto",  seed = 0L)
+##!     inla.qsample(n, Q, reordering = "auto",  seed = 0L, logdens = FALSE)
 ##! }
 ##! 
 ##! \arguments{
@@ -16,10 +16,14 @@
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!   \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
+##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.}
 ##!}
 ##!\value{
-##!  \code{inla.qsample} returns a list with names \code{sample} and
-##!  \code{logdens}. The samples are stored in the matrix
+##!  If \code{logdens} is \code{FALSE} (default),  then \code{inla.qsample} returns 
+##!  the samples in a matrix,  where each column is a sample. 
+##!  If \code{logdens} is \code{TRUE}, then a list 
+##!   with names \code{sample} and
+##!  \code{logdens} is returned. The samples are stored in the matrix
 ##!  \code{sample} where each column is a sample, and the log
 ##!  densities of each sample are stored the vector \code{logdens}.
 ##!}
@@ -30,10 +34,12 @@
 ##! G = inla.graph2matrix(g)
 ##! diag(G) = dim(G)[1L]
 ##! x = inla.qsample(10, G)
+##! matplot(x)
+##! x = inla.qsample(10, G, logdens=TRUE)
 ##! matplot(x$sample)
 ##!}
 
-`inla.qsample` = function(n = 1L, Q, reordering = inla.reorderings(), seed = 0L)
+`inla.qsample` = function(n = 1L, Q, reordering = inla.reorderings(), seed = 0L, logdens = FALSE)
 {
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
@@ -77,9 +83,12 @@
     samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
     colnames(samples) = paste("sample", 1L:n, sep="")
     rownames(samples) = paste("x", 1L:nx, sep="")
-    logdens = x[nx+1L,, drop=TRUE]
-    names(logdens) = paste("logdens", 1L:n, sep="")
-    result = list(sample=samples, logdens = logdens)
+    ld = c(x[nx+1L, ])
+    names(ld) = paste("logdens", 1L:n, sep="")
 
-    return (result)
+    if (logdens) {
+        return (list(sample=samples, logdens = ld))
+    } else {
+        return (samples)
+    }
 }
