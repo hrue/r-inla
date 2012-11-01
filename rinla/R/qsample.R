@@ -6,12 +6,17 @@
 ##! 
 ##! \description{This function generate samples from a GMRF using the GMRFLib implementation}
 ##! \usage{
-##!     inla.qsample(n, Q, reordering = "auto",  seed = 0L, logdens = FALSE)
+##!     inla.qsample(n, Q, b, sample, 
+##!                  reordering = "auto",
+##!                  seed = 0L,
+##!                  logdens = ifelse(missing(sample), FALSE, TRUE))
 ##! }
 ##! 
 ##! \arguments{
-##!   \item{n}{Number of samples}
+##!   \item{n}{Number of samples,  or if \code{!missing(sample)} then \code{n = ncol(sample)}.}
 ##!   \item{Q}{The precision matrix or a filename containing it.}
+##!   \item{b}{The linear term in the canonical representation; mean is \code{Q %*% mean = b}.}
+##!   \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
 ##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
@@ -41,7 +46,8 @@
 ##! matplot(x$sample)
 ##!}
 
-`inla.qsample` = function(n = 1L, Q, reordering = inla.reorderings(), seed = 0L, logdens = FALSE)
+`inla.qsample` = function(n = 1L, Q, b, sample, reordering = inla.reorderings(), seed = 0L,
+        logdens = ifelse(missing(sample), FALSE, TRUE))
 {
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
@@ -63,8 +69,24 @@
         stop("This should not happen.")
     }
 
+    b.file = inla.tempfile()
     x.file = inla.tempfile()
+    sample.file = inla.tempfile()
     rng.file = inla.tempfile()
+
+    if (!missing(b)) {
+        stopifnot(length(b) == nrow(Q))
+        b = matrix(b, nrow(Q), 1)
+        inla.write.fmesher.file(b, filename = b.file)
+    } 
+
+    if (!missing(sample)) {
+        sample = as.matrix(sample)
+        stopifnot(nrow(sample) == nrow(Q))
+        stopifnot(ncol(sample) > 0L)
+        inla.write.fmesher.file(sample, filename = sample.file)
+        n = ncol(sample) ## redefine n here
+    }
 
     envir = inla.get.inlaEnv()
     if (seed < 0L) {
@@ -80,10 +102,10 @@
 
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample", 
-                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file), intern=TRUE)
+                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file, sample.file, b.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file), intern=TRUE)
+                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file, sample.file, b.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
@@ -108,6 +130,9 @@
     rownames(samples) = paste("x", 1L:nx, sep="")
     ld = c(x[nx+1L, ])
     names(ld) = paste("logdens", 1L:n, sep="")
+
+    unlink(b.file)
+    unlink(sample.file)
 
     if (logdens) {
         return (list(sample=samples, logdens = ld))
