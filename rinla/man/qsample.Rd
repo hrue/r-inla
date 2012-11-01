@@ -10,7 +10,7 @@
  
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
-     inla.qsample(n, Q, reordering = "auto",  seed = 0L)
+     inla.qsample(n, Q, reordering = "auto",  seed = 0L, logdens = FALSE)
  }
  
  \arguments{
@@ -19,10 +19,19 @@
    \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
-   \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
+   \item{seed}{The seed-option to control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently.
+               If \code{seed < 0L}  then the saved state of the RNG should be reused if possible,  if not
+               then the behaviour for \code{seed=0L} is used. If \code{seed > 0L} then this is used as the seed for the RNG.}
+   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.}
 }
 \value{
-  \code{inla.qsample} returns a matrix where each column is a sample.
+  If \code{logdens} is \code{FALSE} (default),  then \code{inla.qsample} returns 
+  the samples in a matrix,  where each column is a sample. 
+  If \code{logdens} is \code{TRUE}, then a list 
+   with names \code{sample} and
+  \code{logdens} is returned. The samples are stored in the matrix
+  \code{sample} where each column is a sample, and the log
+  densities of each sample are stored the vector \code{logdens}.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
  
@@ -32,4 +41,6 @@
  diag(G) = dim(G)[1L]
  x = inla.qsample(10, G)
  matplot(x)
+ x = inla.qsample(10, G, logdens=TRUE)
+ matplot(x$sample)
 }
