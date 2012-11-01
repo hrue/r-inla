@@ -15,7 +15,9 @@
 ##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
-##!   \item{seed}{The seed to be used,  where \code{seed=0L} means that GMRFLib should decide the seed.}
+##!   \item{seed}{The seed-option to control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently.
+##!               If \code{seed < 0L}  then the saved state of the RNG should be reused if possible,  if not
+##!               then the behaviour for \code{seed=0L} is used. If \code{seed > 0L} then this is used as the seed for the RNG.}
 ##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.}
 ##!}
 ##!\value{
@@ -62,12 +64,26 @@
     }
 
     x.file = inla.tempfile()
+    rng.file = inla.tempfile()
+
+    envir = inla.get.inlaEnv()
+    if (seed < 0L) {
+        if (!exists("GMRFLib.rng.state", envir = envir)) {
+            seed = 0L
+        } else {
+            rng.state = get("GMRFLib.rng.state", envir = envir)
+            fp = file(rng.file, "wb")
+            writeBin(as.raw(rng.state), fp)
+            close(fp)
+        }
+    }
+
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample", 
-                "-r", reordering, "-z", seed, Q.file, x.file, n), intern=TRUE)
+                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                "-r", reordering, "-z", seed, Q.file, x.file, n), intern=TRUE)
+                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
@@ -75,6 +91,13 @@
     if (remove) {
         unlink(Q.file)
     }
+
+    fp = file(rng.file, "rb")
+    siz = file.info(rng.file)$size
+    rng.state = readBin(fp, raw(), siz)
+    close(fp)    
+    assign("GMRFLib.rng.state", rng.state, envir = envir)
+    unlink(rng.file)
 
     x = inla.read.fmesher.file(x.file)
     unlink(x.file)
