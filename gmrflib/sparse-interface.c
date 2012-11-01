@@ -49,7 +49,8 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp * gn)
 {
 	GMRFLib_ENTER_ROUTINE;
-
+	int i;
+	
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
 	if (gn) {
@@ -91,6 +92,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 		 * all the remaining ones are treated by the _TAUCS routine 
 		 */
 	case GMRFLib_REORDER_IDENTITY:
+	case GMRFLib_REORDER_REVERSE_IDENTITY:
 	case GMRFLib_REORDER_METIS:
 	case GMRFLib_REORDER_GENMMD:
 	case GMRFLib_REORDER_AMD:
@@ -542,6 +544,8 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 		return "default";
 	case GMRFLib_REORDER_IDENTITY:
 		return "identity";
+	case GMRFLib_REORDER_REVERSE_IDENTITY:
+		return "reverseidentity";
 	case GMRFLib_REORDER_BAND:
 		return "band";
 	case GMRFLib_REORDER_METIS:
@@ -577,6 +581,8 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_DEFAULT;
 	else if (!strcasecmp(name, "identity"))
 		return GMRFLib_REORDER_IDENTITY;
+	else if (!strcasecmp(name, "reverseidentity"))
+		return GMRFLib_REORDER_REVERSE_IDENTITY;
 	else if (!strcasecmp(name, "band"))
 		return GMRFLib_REORDER_BAND;
 	else if (!strcasecmp(name, "metis"))

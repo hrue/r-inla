@@ -62,7 +62,7 @@ double GMRFLib_rng_uniform(void);
 int GMRFLib_rng_init(unsigned long int seed);
 int GMRFLib_rng_set_default_seed(void);
 int GMRFLib_rng_setstate(void *saved_state);
-void *GMRFLib_rng_getstate(void);
+void *GMRFLib_rng_getstate(size_t *siz);
 
 
 __END_DECLS

@@ -16,7 +16,8 @@
             md = 7L,
             mmd = 8L,
             amdc = 9L,
-            amdbarc = 10L
+            amdbarc = 10L, 
+            reverseidentity = 11L
             )
     return (r)
 }
