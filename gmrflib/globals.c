@@ -41,6 +41,12 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 /* Pre-hg-Id: $Id: globals.c,v 1.43 2010/02/15 08:26:37 hrue Exp $ */
 
 #define __GMRFLib_DONT_DEFINE_GLOBALS
+#include <limits.h>
+#include <time.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #undef __GMRFLib_DONT_DEFINE_GLOBALS
@@ -73,7 +79,8 @@ GMRFLib_smtp_tp GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
   
   The current implementation includes
   - #GMRFLib_REORDER_DEFAULT, use the default choice depending on \c GMRFLib_smtp
-  - #GMRFLib_REORDER_IDENTITY, do not use any reordering
+  - #GMRFLib_REORDER_IDENTITY, do not use any reordering (the identity reordering)
+  - #GMRFLib_REORDER_REVERSE_IDENTITY, the reverse identity reordering
   - #GMRFLib_REORDER_BAND, minimise the band-width
   - #GMRFLib_REORDER_METIS, nested dissection
   - #GMRFLib_REORDER_GENMMD, multiple minimum degree

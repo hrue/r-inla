@@ -467,6 +467,7 @@ typedef struct {
 	int mlik;					       /* compute the marginal likelihood? */
 	int q;						       /* output image of the Q-matrix */
 	int graph;					       /* output the graph */
+	int config;					       /* output the configurations */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
 	double *quantiles;
@@ -1074,7 +1075,7 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order, int verbose);
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order, int verbose, inla_tp *mb);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
@@ -1090,7 +1091,7 @@ int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfilename);
 int inla_finn(const char *filename);
 int inla_qreordering(const char *filename);
-int inla_qsample(const char *filename, const char *outfile, const char *nsamples);
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);

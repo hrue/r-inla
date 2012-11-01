@@ -127,7 +127,87 @@ inla.internal.experimental.mode = FALSE
     } else {
         lpm = NA
     }
-    
+
+    fnm = paste(d, "/config/configs.dat", sep="")
+    if (file.exists(fnm)) {
+        fp = file(fnm, "rb")
+        iarr = readBin(fp, integer(), 3)
+        configs = list(
+                n = iarr[1], 
+                nz = iarr[2], 
+                ntheta = iarr[3])
+        configs.i = readBin(fp, integer(), configs$nz) ## 0-based
+        configs.j = readBin(fp, integer(), configs$nz) ## 0-based
+        configs$nconfig = readBin(fp, integer(), 1)
+
+        nc = readBin(fp, integer(), 1)
+        if (nc > 0) {
+            A = readBin(fp, numeric(), configs$n * nc)
+            e = readBin(fp, numeric(), nc)
+            configs$constr = list(
+                    nc = nc,
+                    A = matrix(A, nc, configs$n),
+                    e = e)
+        } else {
+            configs$constr = NULL
+        }
+
+        configs$contents = list(
+                tag = readLines(paste(d, "/config/tag.dat", sep="")),
+                start = as.integer(readLines(paste(d, "/config/start.dat", sep=""))) + 1L,
+                length = as.integer(readLines(paste(d, "/config/n.dat", sep=""))))
+
+        if (configs$nconfig > 0L) {
+            configs$config[[configs$nconfig]] = list()
+            for(k in 1L:configs$nconfig) {
+                log.post = readBin(fp, numeric(), 1)
+                if (configs$ntheta > 0L) {
+                    theta = readBin(fp, numeric(), configs$ntheta)
+                } else {
+                    theta = NULL
+                }
+                mean = readBin(fp, numeric(), configs$n)
+                Q = readBin(fp, numeric(), configs$nz)
+                Qinv = readBin(fp, numeric(), configs$nz)
+                dif = which(configs$i != configs$j)
+                if (length(dif) > 0L) {
+                    iadd = configs.j[dif] ## yes, its the transpose part
+                    jadd = configs.i[dif] ## yes, its the transpose part
+                    Qadd = Q[dif]
+                    Qinvadd = Qinv[dif]
+                } else {
+                    iadd = c()
+                    jadd = c()
+                    Qadd = c()
+                    Qinvadd = c()
+                }
+                configs$config[[k]] = list(
+                                      theta = theta, 
+                                      log.posterior = log.post, 
+                                      mean = mean,
+                                      Q = sparseMatrix(
+                                              i = c(configs.i, iadd),
+                                              j = c(configs.j, jadd),
+                                              x = c(Q, Qadd),
+                                              dims = c(configs$n, configs$n),
+                                              index1 = FALSE,
+                                              giveCsparse = TRUE), 
+                                      Qinv = sparseMatrix(
+                                              i = c(configs.i, iadd),
+                                              j = c(configs.j, jadd),
+                                              x = c(Qinv, Qinvadd),
+                                              dims = c(configs$n, configs$n),
+                                              index1 = FALSE,
+                                              giveCsparse = TRUE))
+            }
+        } else {
+            configs$config = NULL
+        }
+        close(fp)
+    } else {
+        configs = NULL
+    }
+
     if (debug)
         print(paste("collect misc from", d, "...done"))
 
@@ -136,7 +216,8 @@ inla.internal.experimental.mode = FALSE
                  reordering = r, theta.tags = tags, log.posterior.mode = lpm, 
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
                  to.theta = theta.to, from.theta = theta.from, mode.status = mode.status, 
-                 lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix))
+                 lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
+                 configs = configs))
 }
 
 `inla.collect.logfile` = function(file.log = NULL, debug = FALSE)
