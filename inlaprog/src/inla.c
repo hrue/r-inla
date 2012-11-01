@@ -19337,11 +19337,12 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	return 0;
 }
 
-int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile)
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile)
 {
 	size_t siz, ret;
 	char *state;
 	FILE *fp;
+
 	fp = fopen(rngfile, "rb");
 	if (fp) {
 		fseek(fp, 0L, SEEK_END);
@@ -19361,13 +19362,25 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
 
-	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL;
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+
+	fp = fopen(samplefile, "r");
+	if (fp) {
+		fclose(fp);				       /* file exists */
+		S = GMRFLib_read_fmesher_file(samplefile, 0L, SEEK_CUR);
+	} 
+
+	fp = fopen(bfile, "r");
+	if (fp) {
+		fclose(fp);				       /* file exists */
+		b = GMRFLib_read_fmesher_file(bfile, 0L, SEEK_CUR);
+	} 
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
-	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 
 	M->nrow = graph->n + 1;
 	M->ncol = ns;
@@ -19375,7 +19388,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->A = Calloc(M->nrow * M->ncol, double);
 
 	for (i = 0; i < ns; i++) {
-		GMRFLib_sample(problem);
+		if (!S){
+			GMRFLib_sample(problem);
+		} else {
+			memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+		}
 		GMRFLib_evaluate(problem);
 		memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
 		M->A[(i + 1) * M->nrow -1] = problem->sub_logdens;
@@ -20054,7 +20071,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_QSAMPLE) {
-		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
+		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {

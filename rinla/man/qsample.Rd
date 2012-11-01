@@ -10,12 +10,17 @@
  
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
-     inla.qsample(n, Q, reordering = "auto",  seed = 0L, logdens = FALSE)
+     inla.qsample(n, Q, b, sample, 
+                  reordering = "auto",
+                  seed = 0L,
+                  logdens = ifelse(missing(sample), FALSE, TRUE))
  }
  
  \arguments{
-   \item{n}{Number of samples}
+   \item{n}{Number of samples,  or if \code{!missing(sample)} then \code{n = ncol(sample)}.}
    \item{Q}{The precision matrix or a filename containing it.}
+   \item{b}{The linear term in the canonical representation; mean is \code{Q %*% mean = b}.}
+   \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
    \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
