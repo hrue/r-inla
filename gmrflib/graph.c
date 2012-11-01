@@ -550,7 +550,7 @@ int GMRFLib_free_graph(GMRFLib_graph_tp * graph)
 int GMRFLib_nQelm(int *nelm, GMRFLib_graph_tp * graph)
 {
 	/*
-	 * return the number of non-zero elements in Q 
+	 * Return the number of non-zero elements in Q 
 	 */
 	int nn, i;
 

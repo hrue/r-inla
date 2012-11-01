@@ -28,7 +28,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 \item{restart}{  To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
 \item{optimiser}{  The optimiser to use; one of 'gsl', 'domin' or 'default'.}
 \item{verbose}{  A boolean variable; run in verbose mode? (Default FALSE)}
-\item{reordering}{  Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC", or the output from \code{inla.qreordering}.)}
+\item{reordering}{  Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC", or the output from \code{inla.qreordering}.)}
 \item{cpo.diff}{  Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}
 \item{npoints}{  Number of points to use in the 'stratey=laplace' approximation}
 \item{cutoff}{  The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)}

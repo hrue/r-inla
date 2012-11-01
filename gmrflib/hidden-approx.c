@@ -385,7 +385,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	(*hidden_problem)->x_vec = Calloc(graph->n, double);
 	memcpy((*hidden_problem)->x_vec, mode, graph->n * sizeof(double));
 
-	(*hidden_problem)->ran_approx_state = GMRFLib_uniform_getstate();
+	(*hidden_problem)->ran_approx_state = GMRFLib_uniform_getstate(NULL);
 
 	/*
 	 * make the arguments to the wrapper function 
@@ -638,7 +638,7 @@ int GMRFLib_doit_hidden(GMRFLib_hidden_problem_tp * hidden_problem, int sample_f
 	/*
 	 * save the current state, and switch to the state used for the construction 
 	 */
-	h->ran_current_state = GMRFLib_uniform_getstate();
+	h->ran_current_state = GMRFLib_uniform_getstate(NULL);
 	GMRFLib_EWRAP0(GMRFLib_uniform_setstate(h->ran_approx_state));
 
 	sub_n = h->sub_graph->n;
@@ -947,7 +947,7 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 		 * 'current' state, ie we need to switch to that one just here, and then return to the 'approx_state'
 		 * afterwards. 
 		 */
-		state = GMRFLib_uniform_getstate();
+		state = GMRFLib_uniform_getstate(NULL);
 		GMRFLib_EWRAP0(GMRFLib_uniform_setstate(h->ran_current_state));
 		Free(h->ran_current_state);
 
@@ -964,7 +964,7 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 		/*
 		 * then switch back. 
 		 */
-		h->ran_current_state = GMRFLib_uniform_getstate();
+		h->ran_current_state = GMRFLib_uniform_getstate(NULL);
 		GMRFLib_EWRAP0(GMRFLib_uniform_setstate(state));
 		Free(state);
 	} else {

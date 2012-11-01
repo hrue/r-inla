@@ -22,7 +22,7 @@
             if (is.null(data)) {
                 covariates = eval.parent(parse(text=covariates))
             } else {
-                covariates = eval(parse(text=covariates),  data)
+                covariates = eval(parse(text=covariates), data)
             }
         }
         covariates = as.matrix(covariates)
@@ -46,7 +46,7 @@
                 initial, fixed, prior, param)         
 
         ret = list(f = list(Cmatrix = QQ, hyper.default = hyper,
-                           model = "generic", n = N,  values = 1:N))
+                           model = "generic", n = N,  values = 1:N, rankdef = n))
         class(ret) = "inla.wrapper.model"
         
         return (ret)

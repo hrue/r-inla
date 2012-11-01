@@ -122,7 +122,7 @@ double GMRFLib_rng_uniform(void)
 {
 	return gsl_rng_uniform_pos(GMRFLib_rng);
 }
-void *GMRFLib_rng_getstate(void)
+void *GMRFLib_rng_getstate(size_t *siz)
 {
 	size_t n;
 	void *p, *pp;
@@ -132,6 +132,9 @@ void *GMRFLib_rng_getstate(void)
 	pp = Calloc(n, char);
 
 	memcpy(pp, p, n);
+	if (siz){
+		*siz = n;
+	}
 
 	return pp;
 }

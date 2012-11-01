@@ -730,6 +730,30 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
+typedef struct
+{
+	double log_posterior;				       /*  */
+	double *theta;					       /*  */
+	double *mean;					       /*  */
+	double *Q;					       /* the Q_ij-values */
+	double *Qinv;					       /* the Qinv_ij-values */
+}
+	GMRFLib_store_config_tp;
+
+typedef struct
+{
+	int n;						       /* size of the graph */
+	int nz;						       /* size of the number of unique elements of Q */
+	int ntheta;					       /*  */
+	int *i;						       /* i-values in Qij */
+	int *j;						       /* j-values in Qij */
+	int nconfig;					       /* number of configurations */
+	GMRFLib_graph_tp *graph;			       /*  */
+	GMRFLib_constr_tp *constr;			       /*  */
+	GMRFLib_store_config_tp **config;		       /* the configurations */
+}
+	GMRFLib_store_configs_tp;
+
 typedef struct {
 	int nhyper;
 	double *cov_m;
@@ -757,6 +781,8 @@ typedef struct {
 	double *corr_lin;				       /* correlation of the lincombs (derived only) */
 
 	int mode_status;				       /* 0 for ok, 1 not ok. */
+
+	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
@@ -871,6 +897,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
+int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
+			    int ntheta, double *theta, double log_posterior,
+			    GMRFLib_problem_tp *gmrf_approx);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);

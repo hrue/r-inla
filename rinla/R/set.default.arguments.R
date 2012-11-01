@@ -90,6 +90,9 @@
          ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
          q=FALSE,
 
+         ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
+         config=FALSE,
+
          ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default) or 'band'
          smtp = NULL,
 
@@ -249,7 +252,7 @@
             ##:ARGUMENT: verbose A boolean variable; run in verbose mode? (Default FALSE)
             verbose = NULL,
 
-            ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}.)
+            ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}.)
             reordering = "auto",
 
             ##:ARGUMENT: cpo.diff Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)

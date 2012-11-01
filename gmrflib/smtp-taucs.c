@@ -446,6 +446,23 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		return GMRFLib_SUCCESS;
 	}
 
+	if (reorder == GMRFLib_REORDER_IDENTITY || reorder == GMRFLib_REORDER_REVERSE_IDENTITY) {
+		int *imap = Calloc(graph->n, int);
+		if (reorder == GMRFLib_REORDER_IDENTITY){
+			for(i=0; i<graph->n; i++){
+				imap[i] = i;
+			}
+		} else if (reorder == GMRFLib_REORDER_REVERSE_IDENTITY){
+			for(i=0; i<graph->n; i++){
+				imap[i] = graph->n -1 -i;
+			}
+		} else {
+			assert(0==1);
+		}
+		*remap = imap;
+		return GMRFLib_SUCCESS;
+	}
+
 	/*
 	 * check if we have a simple solution --> no neigbours 
 	 */
@@ -521,6 +538,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		switch (reorder) {
 		case GMRFLib_REORDER_IDENTITY:
 			p = GMRFLib_strdup("identity");
+			break;
+		case GMRFLib_REORDER_REVERSE_IDENTITY:
+			p = GMRFLib_strdup("reverseidentity");
 			break;
 		case GMRFLib_REORDER_DEFAULT:
 		case GMRFLib_REORDER_METIS:

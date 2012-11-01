@@ -94,7 +94,7 @@ typedef int GMRFLib_uniform_init_tp(unsigned long int seed);
 /*!
   \brief RNG getstate
 */
-typedef void *GMRFLib_uniform_getstate_tp(void);
+typedef void *GMRFLib_uniform_getstate_tp(size_t *siz);
 
 /*!
   \brief RNG setstate
