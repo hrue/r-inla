@@ -128,6 +128,7 @@ inla.internal.experimental.mode = FALSE
         lpm = NA
     }
 
+browser()
     fnm = paste(d, "/config/configs.dat", sep="")
     if (file.exists(fnm)) {
         fp = file(fnm, "rb")
@@ -152,6 +153,7 @@ inla.internal.experimental.mode = FALSE
             configs$constr = NULL
         }
 
+        theta.tag = readLines(paste(d, "/config/theta-tag.dat", sep=""))
         configs$contents = list(
                 tag = readLines(paste(d, "/config/tag.dat", sep="")),
                 start = as.integer(readLines(paste(d, "/config/start.dat", sep=""))) + 1L,
@@ -163,6 +165,7 @@ inla.internal.experimental.mode = FALSE
                 log.post = readBin(fp, numeric(), 1)
                 if (configs$ntheta > 0L) {
                     theta = readBin(fp, numeric(), configs$ntheta)
+                    names(theta) = theta.tag
                 } else {
                     theta = NULL
                 }
