@@ -1091,7 +1091,8 @@ int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfilename);
 int inla_finn(const char *filename);
 int inla_qreordering(const char *filename);
-int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile);
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
+		 const char *samplefile, const char *bfile, const char *constr_file);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
 int inla_read_data_all(double **x, int *n, const char *filename);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
