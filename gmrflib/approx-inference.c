@@ -3337,7 +3337,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		double log_dens_mode_save = log_dens_mode;
 		int stupid_mode_iter = 0;
 
-		if (0){
+		if (0) {
 			SET_THETA_MODE;
 			if (x_mode) {
 				memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -3346,7 +3346,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_print_graph(stdout, graph);
 			GMRFLib_print_Qfunc(stdout, graph, Qfunc, Qfunc_arg);
 			GMRFLib_print_constr(stdout, constr, graph);
-			for(i=0; i<graph->n; i++){
+			for (i = 0; i < graph->n; i++) {
 				printf("c %d %.12g  mode %.12g\n", i, c[i], x_mode[i]);
 			}
 			printf("GRAPH DONE\n");
@@ -3389,7 +3389,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-                /*
+		/*
 		 * do this again to get the ai_store set correctly.
 		 */
 		SET_THETA_MODE;
@@ -3749,12 +3749,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
 			if (run_with_omp) {
 				// FIX THIS LATER
-				GMRFLib_ai_store_tp *ai_store_id = ai_store; 
+				GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
 				for (i = 0; i < compute_n; i++) {
 					int ii = compute_idx[i];
 					GMRFLib_density_tp *cpodens = NULL;
-					
+
 					GMRFLib_thread_id = 0;
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 								   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c, mean, d,
@@ -4966,16 +4966,16 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (compute_n) {
 			int count = 0;
 			int gmean_inf = 0;
-			
+
 			for (j = 0; j < compute_n; j++) {
 				int ii = compute_idx[j];
 
 				if (cpo_theta[ii]) {
 					(*cpo)->mean_value += *((*cpo)->value[ii]);
-					if (*((*cpo)->value[ii]) > 0.0){
+					if (*((*cpo)->value[ii]) > 0.0) {
 						(*cpo)->gmean_value += log(*((*cpo)->value[ii]));
 					} else {
-						/* 
+						/*
 						 * flag the case cpo=0
 						 */
 						(*cpo)->gmean_value = 0.0;
@@ -4986,10 +4986,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 			if (count) {
 				(*cpo)->mean_value /= (double) count;
-				if (!gmean_inf){
+				if (!gmean_inf) {
 					(*cpo)->gmean_value = exp((*cpo)->gmean_value / (double) count);
 				} else {
-					/* 
+					/*
 					 * cpo=0, hence the geometric mean is -Inf, which is more or less -DBL_MAX
 					 */
 					(*cpo)->gmean_value = -DBL_MAX;
@@ -5527,9 +5527,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
-			    int ntheta, double *theta, double log_posterior,
-			    GMRFLib_problem_tp *gmrf_approx)
+int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior, GMRFLib_problem_tp * gmrf_approx)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -5544,26 +5542,26 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 		GMRFLib_graph_tp *g;
 		GMRFLib_copy_graph(&g, gmrf_approx->sub_graph);
 		mo->configs[id]->graph = g;
-		if (debug){
+		if (debug) {
 			printf("remapped graph\n");
 			GMRFLib_print_graph(stdout, g);
 		}
-		
+
 		int nelm;				       /* number of elements in Q; double conting */
 		GMRFLib_nQelm(&nelm, gmrf_approx->sub_graph);
 		mo->configs[id]->n = gmrf_approx->sub_graph->n;
 		mo->configs[id]->nz = (nelm - mo->configs[id]->n) / 2 + mo->configs[id]->n;
 		mo->configs[id]->ntheta = ntheta;
 
-		if (debug){
+		if (debug) {
 			printf("n nz ntheta %d %d %d\n", mo->configs[id]->n, mo->configs[id]->nz, mo->configs[id]->ntheta);
 		}
 
 		GMRFLib_constr_tp *c;
-		GMRFLib_duplicate_constr(&c, gmrf_approx->sub_constr, gmrf_approx->sub_graph); /* might or might not be mapped ???? */
+		GMRFLib_duplicate_constr(&c, gmrf_approx->sub_constr, gmrf_approx->sub_graph);	/* might or might not be mapped ???? */
 		mo->configs[id]->constr = c;
-		
-		if (debug){
+
+		if (debug) {
 			printf("constraints\n");
 			GMRFLib_print_constr(stdout, c, gmrf_approx->sub_graph);
 		}
@@ -5571,12 +5569,12 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 		int *i, *j, ii, jj, k, kk;
 		i = Calloc(mo->configs[id]->nz, int);
 		j = Calloc(mo->configs[id]->nz, int);
-		
-		for(ii=k=0; ii<g->n; ii++){
+
+		for (ii = k = 0; ii < g->n; ii++) {
 			i[k] = ii;
 			j[k] = ii;
 			k++;
-			for(kk = 0; kk<g->nnbs[ii]; kk++){
+			for (kk = 0; kk < g->nnbs[ii]; kk++) {
 				jj = g->nbs[ii][kk];
 				if (ii < jj) {
 					i[k] = ii;
@@ -5594,50 +5592,50 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 
 	mo->configs[id]->config = Realloc(mo->configs[id]->config, mo->configs[id]->nconfig + 1, GMRFLib_store_config_tp *);
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
-	
+
 	int ii, jj, k, kk;
 	double *Qinv, *Q, *mean;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
-	 
+
 	Q = Calloc(mo->configs[id]->nz, double);
-	for(ii=k=0; ii<g->n; ii++){
+	for (ii = k = 0; ii < g->n; ii++) {
 		Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, gmrf_approx->tab->Qfunc_arg);
-		for(kk = 0; kk<g->nnbs[ii]; kk++){
+		for (kk = 0; kk < g->nnbs[ii]; kk++) {
 			jj = g->nbs[ii][kk];
 			if (ii < jj) {
 				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, gmrf_approx->tab->Qfunc_arg);
 			}
 		}
 	}
-	 
+
 	mean = Calloc(g->n, double);
-	memcpy(mean, gmrf_approx->mean_constr, g->n*sizeof(double));
+	memcpy(mean, gmrf_approx->mean_constr, g->n * sizeof(double));
 
 	Qinv = Calloc(mo->configs[id]->nz, double);
-	for(k = 0; k< mo->configs[id]->nz; k++){
+	for (k = 0; k < mo->configs[id]->nz; k++) {
 		double *tmp = GMRFLib_Qinv_get(gmrf_approx, mo->configs[id]->i[k], mo->configs[id]->j[k]);
-		Qinv[k] = (tmp ? *tmp :  NAN);
+		Qinv[k] = (tmp ? *tmp : NAN);
 	}
-		
 
-	if (debug){
+
+	if (debug) {
 		printf("i mean\n");
-		for(k=0; k<g->n; k++){
+		for (k = 0; k < g->n; k++) {
 			printf("%d\t %.12g\n", k, mean[k]);
 		}
 		printf("i\tj\tQij\n");
-		for(k=0; k < mo->configs[id]->nz; k++){
+		for (k = 0; k < mo->configs[id]->nz; k++) {
 			printf("%d\t %d\t %.12g\n", mo->configs[id]->i[k], mo->configs[id]->j[k], Q[k]);
 		}
 	}
-	
+
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Q = Q;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Qinv = Qinv;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;
-	if (mo->configs[id]->ntheta){
+	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
-		memcpy(mo->configs[id]->config[mo->configs[id]->nconfig]->theta, theta, mo->configs[id]->ntheta*sizeof(double));
+		memcpy(mo->configs[id]->config[mo->configs[id]->nconfig]->theta, theta, mo->configs[id]->ntheta * sizeof(double));
 	} else {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = NULL;
 	}
@@ -5704,7 +5702,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	} cross_tp;
 	cross_tp *cross_store = NULL;
 
-	//id = GMRFLib_thread_id;
+	// id = GMRFLib_thread_id;
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	assert(problem != NULL);
 	if (nlin <= 0) {
