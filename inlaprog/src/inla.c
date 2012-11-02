@@ -19337,7 +19337,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	return 0;
 }
 
-int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile)
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
+		 const char *samplefile, const char *bfile, const char *constrfile)
 {
 	size_t siz, ret;
 	char *state;
@@ -19362,7 +19363,9 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
 
-	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL;
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *constr_x = NULL;
+	GMRFLib_constr_tp *constr = NULL;
+	
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 
 	fp = fopen(samplefile, "r");
@@ -19377,10 +19380,23 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		b = GMRFLib_read_fmesher_file(bfile, 0L, SEEK_CUR);
 	} 
 
+	fp = fopen(constrfile, "r");
+	if (fp){
+		fclose(fp);
+		constr_x = GMRFLib_read_fmesher_file(constrfile, 0L, SEEK_CUR);
+		if (constr_x->A[0] > 0){
+			constr = Calloc(1, GMRFLib_constr_tp);
+			constr->nc = (int) constr_x->A[0];
+			constr->a_matrix = &constr_x->A[1];
+			constr->e_vector = &constr_x->A[constr->nc * graph->n + 1];
+			GMRFLib_prepare_constr(constr, graph, 1);
+		}
+	}
+
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
-	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
 
 	M->nrow = graph->n + 1;
 	M->ncol = ns;
@@ -20071,7 +20087,7 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_QSAMPLE) {
-		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5]);
+		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5], argv[optind + 6]);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_FINN) {
