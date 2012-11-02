@@ -18032,6 +18032,14 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 			inla_error_general(msg);
 		}
 
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "theta-tag.dat");
+		inla_fnmfix(nnndir);
+		fp = fopen(nnndir, "w");
+		for (i = 0; i < mb->ntheta; i++){
+			fprintf(fp, "%s\n", mb->theta_tag[i]);
+		}
+		fclose(fp);
+
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "tag.dat");
 		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "w");
@@ -18063,7 +18071,9 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		int id, header = 0, nconfig = 0;
 		
 		for(id = 0; id < GMRFLib_MAX_THREADS; id++){
-			nconfig += mo->configs[id]->nconfig;   /* need the accumulated one! */
+			if (mo->configs[id]){
+				nconfig += mo->configs[id]->nconfig;   /* need the accumulated one! */
+			}
 		}
 
 		for(id = 0; id < GMRFLib_MAX_THREADS; id++){
@@ -18088,12 +18098,14 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 				}
 			}
 				
-			for(i=0; i< mo->configs[id]->nconfig; i++){
-				fwrite((void *) &(mo->configs[id]->config[i]->log_posterior), sizeof(double), (size_t)1, fp);
-				fwrite((void *) mo->configs[id]->config[i]->theta, sizeof(double), (size_t) mo->configs[id]->ntheta, fp);
-				fwrite((void *) mo->configs[id]->config[i]->mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
-				fwrite((void *) mo->configs[id]->config[i]->Q, sizeof(double), (size_t) mo->configs[id]->nz, fp);
-				fwrite((void *) mo->configs[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs[id]->nz, fp);
+			if (mo->configs[id]){
+				for(i=0; i< mo->configs[id]->nconfig; i++){
+					fwrite((void *) &(mo->configs[id]->config[i]->log_posterior), sizeof(double), (size_t)1, fp);
+					fwrite((void *) mo->configs[id]->config[i]->theta, sizeof(double), (size_t) mo->configs[id]->ntheta, fp);
+					fwrite((void *) mo->configs[id]->config[i]->mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
+					fwrite((void *) mo->configs[id]->config[i]->Q, sizeof(double), (size_t) mo->configs[id]->nz, fp);
+					fwrite((void *) mo->configs[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs[id]->nz, fp);
+				}
 			}
 		}
 		fclose(fp);
