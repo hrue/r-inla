@@ -10,27 +10,29 @@
  
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
-     inla.qsample(n, Q, b, sample, 
+     inla.qsample(n, Q, b, sample, constr, 
                   reordering = "auto",
                   seed = 0L,
                   logdens = ifelse(missing(sample), FALSE, TRUE))
  }
  
  \arguments{
-   \item{n}{Number of samples,  or if \code{!missing(sample)} then \code{n = ncol(sample)}.}
+   \item{n}{Number of samples. Only used if \code{missing(sample)}}
    \item{Q}{The precision matrix or a filename containing it.}
-   \item{b}{The linear term in the canonical representation; mean is \code{Q %*% mean = b}.}
+   \item{b}{The linear term in the canonical representation; mean is \code{Q mean = b}.}
    \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
+   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
    \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
-   \item{seed}{The seed-option to control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently.
-               If \code{seed < 0L}  then the saved state of the RNG should be reused if possible,  if not
-               then the behaviour for \code{seed=0L} is used. If \code{seed > 0L} then this is used as the seed for the RNG.}
-   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample.}
+   \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.
+               If \code{seed < 0L}  then the saved state of the RNG will be reused if possible, otherwise,
+               GMRFLib will set the seed intelligently/at 'random'.
+               If \code{seed > 0L} then this value is used as the seed for the RNG.}
+   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
 }
 \value{
-  If \code{logdens} is \code{FALSE} (default),  then \code{inla.qsample} returns 
+  If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns 
   the samples in a matrix,  where each column is a sample. 
   If \code{logdens} is \code{TRUE}, then a list 
    with names \code{sample} and
@@ -42,10 +44,33 @@
  
 \examples{
  g = system.file("demodata/germany.graph", package="INLA")
- G = inla.graph2matrix(g)
- diag(G) = dim(G)[1L]
- x = inla.qsample(10, G)
+ Q = inla.graph2matrix(g)
+ diag(Q) = dim(Q)[1L]
+ x = inla.qsample(10, Q)
  matplot(x)
- x = inla.qsample(10, G, logdens=TRUE)
+ x = inla.qsample(10, Q, logdens=TRUE)
  matplot(x$sample)
+
+ n = 3
+ Q = diag(n)
+ ns = 2
+ 
+ ## sample and evaluate a sample
+ x = inla.qsample(n, Q=Q, logdens=TRUE)
+ xx = inla.qsample(Q=Q,  sample = x$sample)
+ print(x$logdens - xx$logdens)
+ 
+ ## the use of a constraint
+ constr = list(A = matrix(rep(1, n), 1, n), e = 0)
+ x = inla.qsample(n, Q=Q, constr=constr)
+ print(constr$A %*% x)
+ 
+ ## control the RNG
+ x = inla.qsample(n, Q=Q, seed = 123)
+ ## restart from same seed,  only sample 1
+ xx = inla.qsample(n=1, Q=Q, seed = 123)
+ ## continue from the save state, sample the remaining 2
+ xxx = inla.qsample(n=n-1, Q=Q, seed = -1)
+ ## should be 0
+ print(x - cbind(xx, xxx))
 }
