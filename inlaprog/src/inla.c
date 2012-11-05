@@ -15643,7 +15643,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_IID4D:
 		case F_IID5D:
 		{
-			int jj;
+			int jj, count_ref = count;
 			int dim = (mb->f_id[i] == F_IID1D ? 1 :
 				   (mb->f_id[i] == F_IID2D ? 2 : (mb->f_id[i] == F_IID3D ? 3 : (mb->f_id[i] == F_IID4D ? 4 : (mb->f_id[i] == F_IID5D ? 5 : -1)))));
 			assert(dim > 0);
@@ -15716,18 +15716,24 @@ double extra(double *theta, int ntheta, void *argument)
 				val += PENALTY;
 			}
 
-			if (nfixed) {
-				static char first = 1;
-				if (first) {
-					fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n", nfixed);
-					first = 0;
-				}
-			}
 			/*
-			 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-			 * log_precision1, rho_intern). 
+			 * if all parameters are fixed, there is no prior to add
 			 */
-			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
+			if (count - count_ref > 0) {
+				if (nfixed) {
+					static char first = 1;
+					if (first) {
+						fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
+							nfixed);
+						first = 0;
+					}
+				}
+				/*
+				 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
+				 * log_precision1, rho_intern). 
+				 */
+				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
+			}
 			break;
 		}
 
