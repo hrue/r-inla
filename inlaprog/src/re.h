@@ -87,6 +87,7 @@ int re_sas_table_check(const char *arg);
 int re_sas_table_create(const char *arg);
 int re_sas_prior_table_core(int read_only, int add_logjac, int debug);
 int re_sas_table_add_logjac(int debug);
+int re_prior_check(void);
 
 int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, double *skew, double *kurt);
 int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta);

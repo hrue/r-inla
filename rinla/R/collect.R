@@ -128,7 +128,6 @@ inla.internal.experimental.mode = FALSE
         lpm = NA
     }
 
-browser()
     fnm = paste(d, "/config/configs.dat", sep="")
     if (file.exists(fnm)) {
         fp = file(fnm, "rb")
