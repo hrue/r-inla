@@ -1012,11 +1012,47 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 	return DMAX(0.0, DMIN(len, c->length[ic]));
 }
 
+int re_prior_check(void)
+{
+	int k, i, j;
+	double skew, kurt, sum = 0.0, *val = Calloc(sas_prior_table->nz, double);
+
+	k = 0;
+	for(i=0; i<sas_prior_table->nx-1; i++)
+		for(j=0; j<sas_prior_table->ny-1; j++){
+			
+			skew = (sas_prior_table->skew[i] + sas_prior_table->skew[i+1])/2.0;
+			kurt = (sas_prior_table->kurt[i] + sas_prior_table->kurt[i+1])/2.0;
+			skew = sas_prior_table->skew[i];
+			kurt = sas_prior_table->kurt[i];
+
+			double *pri = re_sas_evaluate_log_prior(skew, kurt);
+			val[k] = pri[0];
+			//printf("s %g k %g logdens %g\n", skew, kurt, val[k]);
+			k++;
+			Free(pri);
+		}
+
+	sum = 0.0;
+	for(k=0; k<sas_prior_table->nz; k++){
+		if (!ISNAN(val[k])){
+			sum += exp(val[k]);
+		}
+	}
+
+	double dxdy = (sas_prior_table->skew[1] - sas_prior_table->skew[0]) * (sas_prior_table->kurt[1]-sas_prior_table->kurt[0]);
+	P(sum);
+	P(dxdy);
+	P(sum * dxdy);
+
+	return GMRFLib_SUCCESS;
+}
+
 double *re_sas_evaluate_log_prior(double skew, double kurt)
 {
 #define SCALEWITH(x) DMAX(0.5, DMIN(2.0, (x)))
 
-	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.01, lambda = 10, *pri, logjac;
+	double output[3], level, length, point, ldens_uniform, ldens_dist, ddefault = 0.01, lambda = 5, *pri, logjac;
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];
@@ -1024,7 +1060,7 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 	point = output[2];
 	logjac = output[3];
 
-	if (ISNAN(level) || ISNAN(length) || ISNAN(point))
+	if (ISNAN(level) || ISNAN(length) || ISNAN(point) || !re_valid_skew_kurt(NULL, skew, kurt))
 	{
 		pri = Calloc(5, double);
 		pri[0] = NAN;
@@ -1038,7 +1074,7 @@ double *re_sas_evaluate_log_prior(double skew, double kurt)
 
 	ldens_uniform = log(1 / length);
 	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */
-
+	
 	pri = Calloc(5, double);
 	pri[0] = ldens_uniform + ldens_dist + logjac;
 	pri[1] = level;
