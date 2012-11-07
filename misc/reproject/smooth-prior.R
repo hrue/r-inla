@@ -1,4 +1,4 @@
-smooth.sas.prior = function(
+sas.smooth.prior = function(
         file = "sas-prior-table.dat",
         h = 0L,
         only.logjac = FALSE,
@@ -124,5 +124,29 @@ smooth.sas.prior = function(
     if (!is.null(logjac)) {
         writeBin(c(logjac), fd)
     }
+    close(fd)
+}
+sas.remove.logjac = function(file = "sas-prior-table.dat")
+{
+    fd = file(file, "rb")
+    x = readBin(fd, integer(), 3L)
+    nx = x[1]
+    ny = x[2]
+    nz = x[3]
+
+    skew = readBin(fd, double(), nx)
+    kurt = readBin(fd, double(), ny)
+    level = matrix(readBin(fd, double(), nz), nx, ny)
+    len = matrix(readBin(fd, double(), nz), nx, ny)
+    point = matrix(readBin(fd, double(), nz), nx, ny)
+    close(fd)
+    
+    fd = file(paste(file, "-no-logjac", sep=""), "wb")
+    writeBin(as.integer(c(nx, ny, nz)), fd)
+    writeBin(skew, fd)
+    writeBin(kurt, fd)
+    writeBin(c(level), fd)
+    writeBin(c(len), fd)
+    writeBin(c(point), fd)
     close(fd)
 }

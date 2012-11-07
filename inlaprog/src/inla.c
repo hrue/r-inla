@@ -1695,6 +1695,17 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_sasprior(double *x, double *parameters)
+{
+	double val = re_sas_log_prior(x, parameters);
+	if (0){
+		P(x[0]);
+		P(x[1]);
+		P(parameters[0]);
+		P(val);
+	}
+	return val;
+}
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 {
 	double df = exp(x[0]);
@@ -5883,6 +5894,21 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "SASPRIOR")) {
+		prior->id = P_SASPRIOR;
+		prior->priorfunc = priorfunc_sasprior;
+		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(1, double);
+			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(1, double);
+			prior->parameters[0] = 10.0;
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
 	} else if (!strcasecmp(prior->name, "LOGITBETA")) {
 		prior->id = P_LOGITBETA;
 		prior->priorfunc = priorfunc_logitbeta;
@@ -7928,7 +7954,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise skew[%g]\n", ds->data_observations.sas_skew[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NORMAL");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "SASPRIOR");
+
 
 		/*
 		 * add theta 
@@ -7967,7 +7994,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise kurtosis[%g]\n", ds->data_observations.sas_kurt[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
 		}
-		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "NORMAL-1");
+		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "NONE");
 
 		/*
 		 * add theta 
@@ -14485,9 +14512,13 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 
-				double *pri = re_sas_evaluate_log_prior(skew, kurt);
-				val += pri[0];
-				Free(pri);
+				double sk[2];
+				sk[0] = skew;
+				sk[1] = kurt;
+				double val_tmp = PRIOR_EVAL(ds->data_prior1, sk); /* yes, this defines the joint prior */
+				if (!ISNAN(val_tmp)){
+					val += val_tmp;
+				}
 
 			} else if (ds->data_id == L_LOGGAMMA_FRAILTY) {
 				if (!ds->data_fixed) {
@@ -19570,6 +19601,10 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
+	if (1){
+		double lambda = 10;
+		re_init(&lambda);
+	}
 	if (0) {
 		ar_test1();
 		exit(0);
@@ -19604,18 +19639,6 @@ int testit(int argc, char **argv)
 		// dsas(-5:4, skew = 0.1, kurt = 3.2)
 		// [1] -12.7762761870 -8.7141826028 -5.4397533201 -2.9879481542 -1.4152402204
 		// [6] -0.8807294462 -1.4859634133 -2.8993708955 -5.0172402538 -7.8036535440
-		exit(0);
-	}
-
-	if (0) {
-		re_init();
-		exit(0);
-	}
-
-	if (1) {
-		re_init();
-		re_prior_check();
-
 		exit(0);
 	}
 
@@ -20012,7 +20035,8 @@ int main(int argc, char **argv)
 		/*
 		 * create it, if it isn't there. add logjac if it's not in the table 
 		 */
-		re_sas_table_check(argv[optind]);
+		double lambda = 1.0;
+		re_sas_table_check(&lambda);
 		exit(0);
 	}
 	if (G.mode == INLA_MODE_TESTIT) {
