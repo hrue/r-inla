@@ -401,6 +401,7 @@ typedef enum {
 	P_LOGIFLAT,
 	P_NONE,
 	P_BETACORRELATION,
+	P_SASPRIOR,
 	P_LOGITBETA,
 	P_EXPRESSION,
 	P_JEFFREYS_T_DF,
@@ -1183,6 +1184,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 double eval_logsum_safe(double lA, double lB);
 
 double priorfunc_mvnorm(double *x, double *parameters);
+double priorfunc_sasprior(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart2d(double *x, double *parameters);
 double priorfunc_wishart3d(double *x, double *parameters);
