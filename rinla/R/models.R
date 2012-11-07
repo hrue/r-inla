@@ -2783,8 +2783,8 @@
                                       short.name = "skew",
                                       initial = 0,
                                       fixed = FALSE,
-                                      prior = "normal",
-                                      param = c(0, 25),
+                                      prior = "sasprior", 
+                                      param = 10,
                                       to.theta = function(x) x,
                                       from.theta = function(x) x
                                       ),
@@ -2793,8 +2793,8 @@
                                       short.name = "kurt",
                                       initial = 3,
                                       fixed = FALSE,
-                                      prior = "normal",
-                                      param = c(3, 100),
+                                      prior = "none",
+                                      param = numeric(0), 
                                       to.theta = function(x) (x),
                                       from.theta = function(x) (x)
                                       )
@@ -3608,6 +3608,11 @@
                       nparameters = 0L,
                       pdf = "jeffreystdf"
                       ),
+
+              sasprior = list(
+                      nparameters = 1L,
+                      pdf = "sasprior"
+                      ), 
 
               "expression:" = list(
                   nparameters = -1L,
