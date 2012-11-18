@@ -664,14 +664,15 @@
 
         for(i in 1:length(lincomb)) {
             
-            if (is.null(names(lincomb[i])) || is.na(names(lincomb[i]))) {
+            nam = names(lincomb[i])
+            if (is.null(nam) || is.na(nam)) {
                 secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
                 lc = lincomb[[i]]
-            } else if (names(lincomb[i]) == "") {
+            } else if (nam == "") {
                 secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
                 lc = lincomb[[i]]
             } else {
-                secname = paste("lincomb.", names(lincomb[i])[1], sep="")
+                secname = paste("lincomb.", nam[1], sep="")
                 lc = lincomb[[i]]
             }
                 
