@@ -37,7 +37,6 @@ static const char RCSId[] = HGVERSION;
 
 #include "interpol.h"
 
-
 GMRFLib_spline_tp *inla_spline_create(double *x, double *y, int n)
 {
 	/*

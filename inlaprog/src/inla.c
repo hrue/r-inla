@@ -5927,8 +5927,18 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
 		prior->id = P_EXPRESSION;
-		prior->expression = GMRFLib_strdup(prior->name + strlen("EXPRESSION:"));
+		prior->expression = GMRFLib_strdup(prior->name);
 		prior->name[strlen("EXPRESSION")] = '\0';
+		prior->parameters = NULL;
+
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
+		}
+
+	} else if (!strncasecmp(prior->name, "TABLE:", strlen("TABLE:"))) {
+		prior->id = P_TABLE;
+		prior->expression = GMRFLib_strdup(prior->name); /* yes, use the same storage */
+		prior->name[strlen("TABLE")] = '\0';
 		prior->parameters = NULL;
 
 		if (mb->verbose) {

@@ -3617,6 +3617,11 @@
               "expression:" = list(
                   nparameters = -1L,
                   pdf = "expression"
+                  ), 
+
+              "table:" = list(
+                  nparameters = -1L,
+                  pdf = "table"
                   )
               )
          )

@@ -20,7 +20,7 @@
 #include "my-fix.h"
 #include "strlib.h"
 
-#define ASCIILINESZ         1024
+#define ASCIILINESZ         1048576
 #define INI_INVALID_KEY     ((char*)-1)
 
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
