@@ -31,7 +31,7 @@
 #include "GMRFLib/GMRFLib.h"
 
 /** Maximum value size for integers and doubles. */
-#define MAXVALSZ	1024
+#define MAXVALSZ	1048576
 
 /** Minimal allocated number of entries in a dictionary */
 #define DICTMINSZ	512

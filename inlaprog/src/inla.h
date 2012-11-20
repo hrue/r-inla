@@ -404,6 +404,7 @@ typedef enum {
 	P_SASPRIOR,
 	P_LOGITBETA,
 	P_EXPRESSION,
+	P_TABLE,
 	P_JEFFREYS_T_DF,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1,
