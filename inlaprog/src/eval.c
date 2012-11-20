@@ -45,6 +45,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
+#include "interpol.h"
 #include "eval.h"
 
 /* 
@@ -141,6 +142,20 @@ muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 
 double inla_eval(char *expression, double *x)
 {
+	if (debug){
+		printf("call inla_eval with %s\n", expression);
+	}
+
+	if (strncasecmp(expression, "EXPRESSION:", strlen("EXPRESSION:")) == 0) {
+		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x));
+	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
+		return (inla_eval_table(expression + strlen("TABLE:"), x));
+	} else {
+		assert(0 == 1);
+	}
+}
+double inla_eval_expression(char *expression, double *x)
+{
 	double value;
 
 	/*
@@ -203,6 +218,57 @@ double inla_eval(char *expression, double *x)
 		GMRFLib_sprintf(&msg, "Expression[%s] evaluate to INF or NAN [%g] for x=%g\n", expression, value, *x);
 		inla_error_general(msg);
 	}
+
+	return value;
+}
+double inla_eval_table(char *expression, double *xval)
+{
+	GMRFLib_spline_tp *s;
+	double *table = NULL, *x = NULL, *y = NULL, value;
+	int nelm = 0, n, i, k;
+	
+	inla_sread_doubles_q(&table, &nelm, expression);
+	assert(GSL_IS_EVEN(nelm));
+	assert(nelm >= 4);
+	
+	n = nelm / 2;
+	x = Calloc(n, double);
+	y = Calloc(n, double);
+	
+	for(i=k=0; i < n; i++, k += 2) {
+		x[i] = table[k + 0];
+		y[i] = table[k + 1];
+
+		if (debug){
+			printf("table %d: %g %g\n", i, x[i], y[i]);
+		}
+	}
+
+	s = inla_spline_create(x, y, n);
+	value = inla_spline_eval(*xval, s);
+
+	if (1){
+		static int first = 1;
+
+		if (first){
+			first = 0;
+#pragma omp critical
+			{
+				FILE *fp = fopen("table", "w");
+				double xx;
+				
+				for(xx = -9; xx < 9;  xx += 0.001){
+					fprintf(fp, "%g %g\n", xx, inla_spline_eval(xx, s));
+				}
+				fclose(fp);
+			}
+		}
+	}
+
+	inla_spline_free(s);
+	Free(x);
+	Free(y);
+	Free(table);
 
 	return value;
 }
