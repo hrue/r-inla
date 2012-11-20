@@ -247,24 +247,6 @@ double inla_eval_table(char *expression, double *xval)
 	s = inla_spline_create(x, y, n);
 	value = inla_spline_eval(*xval, s);
 
-	if (0) {
-		static int first = 1;
-
-		if (first) {
-			first = 0;
-#pragma omp critical
-			{
-				FILE *fp = fopen("table", "w");
-				double xx;
-
-				for (xx = -9; xx < 9; xx += 0.001) {
-					fprintf(fp, "%g %g\n", xx, inla_spline_eval(xx, s));
-				}
-				fclose(fp);
-			}
-		}
-	}
-
 	inla_spline_free(s);
 	Free(x);
 	Free(y);
