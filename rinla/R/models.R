@@ -2352,8 +2352,8 @@
                                       short.name = "prec",
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
-                                      initial = 4,
-                                      fixed = FALSE,
+                                      initial = 0,
+                                      fixed = TRUE,
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       )
@@ -2367,8 +2367,8 @@
                                       short.name = "prec",
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
-                                      initial = 4,
-                                      fixed = FALSE,
+                                      initial = 0,
+                                      fixed = TRUE,
                                       to.theta = function(x) log(x),
                                       from.theta = function(x) exp(x)
                                       )
