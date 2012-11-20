@@ -30,15 +30,16 @@
     arg = match.call(expand.dots=TRUE)
 
     ## we might need to expand arguments?
-    if (all(is.null(names(arg))))
-        arg = eval.parent(parse(text=arg[2]))
+    if (all(is.null(names(arg)))) {
+        arg = eval(parse(text=arg[2]), envir = parent.frame(), enclos = environment(list(...)))
+    }
 
     f.arg = list()
     f.arg[[ length(arg) ]] = list
     for(k in 1:length(arg)) {
         var = names(arg)[k]
         if (var != "") {
-            value = eval.parent(arg[[k]])
+            value = eval(arg[[k]], envir = parent.frame(), enclos = environment(list(...)))
 
             if (length(value) == 1) {
                 ff.arg = list(list(weight = value))
@@ -68,8 +69,10 @@
     arg = match.call(expand.dots=TRUE)
 
     ## we might need to expand arguments?
-    if (all(is.null(names(arg))))
-        arg = eval(parse(text=arg[2], 2))
+    if (all(is.null(names(arg)))) {
+        arg = eval(parse(text=arg[2]), envir = parent.frame(),
+                enclos = environment(list(...)))
+    }
 
     ## check that all 'rows' has the same lengths. store the evalued
     ## args in values[[.]]
@@ -78,7 +81,7 @@
     n = -1
     for(k in 1:length(arg)) {
         if (names(arg)[k] != "") {
-            values[[k]] = eval.parent(arg[[k]])
+            values[[k]] = eval(arg[[k]], envir = parent.frame(),  enclos = environment(list(...)))
             if (is.matrix(values[[k]]) || is(values[[k]], "Matrix")) {
                 if (is(values[[k]], "Matrix")) {
                     ## Make sure we have a dgTMatrix with unique representation:
