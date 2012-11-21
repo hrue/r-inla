@@ -2838,8 +2838,8 @@ inla.models()
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -2860,8 +2860,8 @@ inla.models()
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -3374,8 +3374,8 @@ inla.models()
 							\item{short.name = }{`skew'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`normal'}
-							\item{param = }{`0 25'}
+							\item{prior = }{`sasprior'}
+							\item{param = }{`10'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -3386,8 +3386,8 @@ inla.models()
 							\item{short.name = }{`kurt'}
 							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`normal'}
-							\item{param = }{`3 100'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) (x)}'}
 							\item{from.theta = }{`\code{function(x) (x)}'}
 							}
@@ -4352,7 +4352,11 @@ inla.models()
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
 				 }
+				\item{Model `sasprior'.}{					 Number of parameters in the prior = 1 
+				 }
 				\item{Model `expression:'.}{					 Number of parameters in the prior = -1 
+				 }
+				\item{Model `table:'.}{					 Number of parameters in the prior = -1 
 				 }
 			 }
 		 }
