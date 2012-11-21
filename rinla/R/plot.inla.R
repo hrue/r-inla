@@ -1,3 +1,54 @@
+##! \name{plot.inla}
+##! \alias{plot.inla}
+##! \alias{inla.plot}
+##! \title{Default INLA plotting}
+##! \description{
+##!   Takes am \code{inla} object produced by \code{inla} and plot the results
+##! }
+##! \usage{
+##! \method{plot}{inla}(x, 
+##!              plot.fixed.effects = TRUE,
+##!              plot.lincomb = TRUE,
+##!              plot.random.effects = TRUE,
+##!              plot.hyperparameters = TRUE,
+##!              plot.predictor = TRUE,
+##!              plot.q = TRUE,
+##!              plot.cpo = TRUE,
+##!              postscript = FALSE,
+##!              pdf = FALSE, 
+##!              ...)
+##! }
+##! \arguments{
+##!   \item{x}{A fitted  \code{inla} object produced by \code{inla} }
+##!   \item{plot.fixed.effects}{Boolean indicating if posterior marginals
+##!     for the fixed effects in the model should be plotted }
+##!   \item{plot.lincomb}{Boolean indicating if posterior marginals
+##!     for the linear combinations should be plotted }
+##!   \item{plot.random.effects}{Boolean indicating if posterior mean and quantiles
+##!     for the random effects in the model should be plotted  }
+##!   \item{plot.hyperparameters}{Boolean indicating if posterior marginals
+##!     for the hyperparameters in the model should be plotted }
+##!   \item{plot.predictor}{Boolean indicating if posterior mean and quantiles
+##!     for the linear predictor in the model should be plotted }
+##!   \item{plot.q}{Boolean indicating if precision matrix should be displayed}
+##!   \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
+##!   \item{single}{Boolean indicating if there should be more than one plot per page
+##!                 (FALSE) or just one (TRUE)}
+##!   \item{postscript}{Boolean indicating if postscript files should be produced instead.
+##!                     The return value is the directory where the files are stored.}
+##!   \item{pdf}{Boolean indicating if PDF files should be produced instead.
+##!                     The return value is the directory where the files are stored.}
+##!   \item{...}{Additional arguments}
+##! }
+##! \author{Havard Rue \email{hrue@math.ntnu.no} }
+##! \seealso{\code{\link{inla}}}}
+##! \exampels{
+##!     result = inla(...)
+##!     plot(result)
+##!     plot(result, single=TRUE)
+##!     plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+##! }
+##! \keyword{plot}
 
 `plot.inla` =
     function(x,
@@ -9,8 +60,72 @@
              plot.q = TRUE,
              plot.cpo = TRUE,
              single = FALSE, 
+             postscript = FALSE,
+             pdf = FALSE, 
              ...)
 {
+    figure.count = 0L
+    figure.dir = "inla.plots"
+    
+    if (postscript && pdf) {
+        stop("Only one of 'postscript' and 'pdf' can be generated at the time.")
+    }
+
+    initiate.plot = function(...)
+    {
+        if (!postscript && !pdf) {
+            inla.dev.new()
+        } else {
+            if (file.exists(figure.dir)) {
+                k = 0
+                ok = FALSE
+                while (!ok) {
+                    new.figure.dir = paste(figure.dir, "-", k, sep="")
+                    if (!file.exists(new.figure.dir)) {
+                        figure.dir <<- new.figure.dir
+                        ok = TRUE
+                    } else {
+                        k = k + 1L
+                    }
+                }
+            }
+            dir.create(figure.dir)
+            cat("Store figures in directory:", figure.dir, "\n")
+        }
+    }
+
+    new.plot = function(...)
+    {
+        if (!postscript && !pdf) {
+            inla.dev.new()
+        } else if (postscript) {
+            postscript(file = paste(figure.dir, "/", "figure-", figure.count, ".eps", sep=""), ...)
+        } else if (pdf) {
+            pdf(file = paste(figure.dir, "/", "figure-", figure.count, ".pdf", sep=""), ...)
+        } else {
+            stop("This should not happen")
+        }
+        figure.count <<- figure.count + 1L  # YES!!!
+    }
+
+    close.plot = function(...)
+    {
+        if (postscript || pdf) {
+            if (names(dev.cur()) != "null device") {
+                dev.off()
+            }
+        } 
+    }
+        
+    cn.plot = function(...)
+    {
+        close.plot(...)
+        new.plot(...)
+    }
+
+    ##
+    initiate.plot(...)
+    
     if (plot.fixed.effects) {
         ## plot marginals for the fixed effects
         fix = x$marginals.fixed
@@ -25,12 +140,10 @@
                 plot.layout = c(3, 3)
             }
             np = prod(plot.layout)
-            par(mfrow=c(plot.layout[1], plot.layout[2]))
-
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    inla.dev.new()
+                    cn.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -59,12 +172,10 @@
                 plot.layout = c(3, 3)
             }
             np = prod(plot.layout)
-            par(mfrow=c(plot.layout[1], plot.layout[2]))
-
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    inla.dev.new()
+                    cn.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -98,12 +209,10 @@
                 plot.layout = c(3, 3)
             }
             np = prod(plot.layout)
-            par(mfrow=c(plot.layout[1], plot.layout[2]))
-
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    inla.dev.new()
+                    cn.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -156,7 +265,7 @@
                                 for(ii in 1:inla.ifelse(r.N > r.n, r.N %/% r.n, 1)) {
 
                                     if (ip%%np == 0) {
-                                        inla.dev.new()
+                                        cn.plot(...)
                                         par(mfrow=c(plot.layout[1], plot.layout[2]))
                                     }
                                     ip = ip + 1
@@ -239,7 +348,7 @@
                         for (r.rep in 1:nrep) {
                             for(r.group in 1:ngroup) {
                                 if (ip%%np == 0) {
-                                    inla.dev.new()
+                                    cn.plot(...)
                                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                                 }
                                 ip = ip + 1
@@ -286,7 +395,7 @@
             ip = 0
             for(i in 1:nhyper) {
                 if (ip%%np == 0) {
-                    inla.dev.new()
+                    cn.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -340,7 +449,7 @@
                 }
             
                 if (!is.null(lp)) {
-                    inla.dev.new()
+                    cn.plot(...)
                     if (!is.null(fv)) {
                         if (single) {
                             par(mfrow=c(1, 1))
@@ -384,7 +493,7 @@
         }
     }
     if (plot.q && !is.null(x$Q)) {
-        inla.dev.new()
+        cn.plot(...)
         if (single) {
             par(mfrow = c(1, 1))
         } else {
@@ -408,7 +517,7 @@
     }
     if (plot.cpo) {
         if (!is.null(x$cpo$pit) || !is.null(x$cpo$cpo)) {
-            inla.dev.new()
+            cn.plot(...)
             if (single) {
                 par(mfrow=c(1, 1))
             } else {
@@ -446,11 +555,17 @@
             n.fail = sum(x$cpo$failure != 0.0)
             plot(x$cpo$cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
             if (n.fail > 0) {
-                points(x$cpo$cpo[ x$cpo$failure > 0 ], pch=20)
+                points(x$cpo$cpo[ x$cpo$failure > 0 ], pch=20L)
             }
             hist(x$cpo$cpo, main = paste("Histogram of the CPO-values", ", n.fail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20, min(round(length(x$cpo$pit)/10), 100)))
+                 n = max(20L, min(round(length(x$cpo$pit)/10L), 100L)))
         }
     }
-}
 
+    close.plot(...)
+    if (pdf || postscript) {
+        return (figure.dir)
+    } else {
+        return (invisible())
+    }
+}
