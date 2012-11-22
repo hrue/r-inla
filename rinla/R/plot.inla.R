@@ -42,7 +42,7 @@
 ##! }
 ##! \author{Havard Rue \email{hrue@math.ntnu.no} }
 ##! \seealso{\code{\link{inla}}}
-##! \exampels{
+##! \examples{
 ##!     result = inla(...)
 ##!     plot(result)
 ##!     plot(result, single=TRUE)
