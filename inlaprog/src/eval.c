@@ -247,6 +247,30 @@ double inla_eval_table(char *expression, double *xval)
 	s = inla_spline_create(x, y, n);
 	value = inla_spline_eval(*xval, s);
 
+	if (ISNAN(value)) {
+		char *msg;
+		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.",
+				*xval, s->xmin, s->xmax);
+		inla_error_general(msg);
+		exit(1);
+	}
+		
+	if (0) {
+		static int first = 1;
+		if (first){
+			FILE *fp = fopen("compare-priors.txt", "w");
+			double xx;
+			for(xx = -9;  xx < 9; xx += 0.01){
+				double p1, p2;
+				p1 = inla_spline_eval(xx, s);
+				p2 = priorfunc_jeffreys_df_student_t(&xx, NULL);
+				fprintf(fp, "%g %g %g\n", xx, p1, p2);
+			}
+			fclose(fp);
+		}
+		first = 0;
+	}
+
 	inla_spline_free(s);
 	Free(x);
 	Free(y);

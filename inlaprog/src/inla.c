@@ -1708,7 +1708,7 @@ double priorfunc_sasprior(double *x, double *parameters)
 }
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 {
-	double df = exp(x[0]);
+	double df = map_dof(x[0], MAP_FORWARD, NULL);
 	double value, log_jacobian;
 
 	if (1) {
@@ -1718,7 +1718,7 @@ double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 		value = 0.5 * log(df / (df + 3.0)) + 0.5 * log(TRIGAMMA(df / 2.0) - TRIGAMMA((df + 1.0) / 2.0) - 2.0 * (df + 3.0) / (df * SQR(df + 1.0)))
 		    - log(0.7715233664);		       /* normalising constant: computed in R from 2 to infinity */
 
-		log_jacobian = x[0];			       /* log(df) = theta */
+		log_jacobian = x[0];
 		return value + log_jacobian;
 #undef DIGAMMA
 #undef TRIGAMMA
