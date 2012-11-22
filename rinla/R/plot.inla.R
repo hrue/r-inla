@@ -41,7 +41,7 @@
 ##!   \item{...}{Additional arguments}
 ##! }
 ##! \author{Havard Rue \email{hrue@math.ntnu.no} }
-##! \seealso{\code{\link{inla}}}}
+##! \seealso{\code{\link{inla}}}
 ##! \exampels{
 ##!     result = inla(...)
 ##!     plot(result)
