@@ -15,7 +15,8 @@
 ##!              plot.q = TRUE,
 ##!              plot.cpo = TRUE,
 ##!              postscript = FALSE,
-##!              pdf = FALSE, 
+##!              pdf = FALSE,
+##!              prefix = "inla.plots/figure-", 
 ##!              ...)
 ##! }
 ##! \arguments{
@@ -34,12 +35,12 @@
 ##!   \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
 ##!   \item{single}{Boolean indicating if there should be more than one plot per page
 ##!                 (FALSE) or just one (TRUE)}
-##!   \item{postscript}{Boolean indicating if postscript files should be produced instead.
-##!                     The return value is the directory where the files are stored.}
-##!   \item{pdf}{Boolean indicating if PDF files should be produced instead.
-##!                     The return value is the directory where the files are stored.}
-##!   \item{...}{Additional arguments}
+##!   \item{postscript}{Boolean indicating if postscript files should be produced instead}
+##!   \item{pdf}{Boolean indicating if PDF files should be produced instead}
+##!   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
+##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.} 
 ##! }
+##! \value{The return value is a list of the files created (if any).}
 ##! \author{Havard Rue \email{hrue@math.ntnu.no} }
 ##! \seealso{\code{\link{inla}}}
 ##! \examples{
@@ -62,10 +63,11 @@
              single = FALSE, 
              postscript = FALSE,
              pdf = FALSE, 
+             prefix = "inla.plots/figure-", 
              ...)
 {
-    figure.count = 0L
-    figure.dir = "inla.plots"
+    figure.count = 1L
+    figures = c()
     
     if (postscript && pdf) {
         stop("Only one of 'postscript' and 'pdf' can be generated at the time.")
@@ -74,38 +76,44 @@
     initiate.plot = function(...)
     {
         if (!postscript && !pdf) {
-            inla.dev.new()
+            inla.dev.new(...)
         } else {
-            if (file.exists(figure.dir)) {
-                k = 0
-                ok = FALSE
-                while (!ok) {
-                    new.figure.dir = paste(figure.dir, "-", k, sep="")
-                    if (!file.exists(new.figure.dir)) {
-                        figure.dir <<- new.figure.dir
-                        ok = TRUE
-                    } else {
-                        k = k + 1L
-                    }
-                }
+            dir = dirname(prefix)
+            if (!file.exists(dir) && nchar(dir) > 0L) {
+                dir.create(dir)
+            } else {
+                stopifnot(file.info(dir)$isdir)
             }
-            dir.create(figure.dir)
-            cat("Store figures in directory:", figure.dir, "\n")
         }
+        return (invisible())
     }
 
     new.plot = function(...)
     {
         if (!postscript && !pdf) {
-            inla.dev.new()
-        } else if (postscript) {
-            postscript(file = paste(figure.dir, "/", "figure-", figure.count, ".eps", sep=""), ...)
-        } else if (pdf) {
-            pdf(file = paste(figure.dir, "/", "figure-", figure.count, ".pdf", sep=""), ...)
+            inla.dev.new(...)
         } else {
-            stop("This should not happen")
+            
+            filename = paste(prefix,
+                    inla.ifelse(regexpr("/$", prefix), "", "/"), 
+                    figure.count,
+                    inla.ifelse(postscript, ".eps", ".pdf"), sep="")
+            if (file.exists(filename)) {
+                cp.filename = paste(filename, "---", as.character(date()), sep="")
+                file.copy(filename, cp.filename)
+                warning(paste("File [", filename, "] exists. Renamed to [", cp.filename, "].", sep=""))
+            }
+            if (postscript) {
+                postscript(file = filename, ...)
+            } else if (pdf) {
+                pdf(file = filename, ...)
+            } else {
+                stop("This should not happen")
+            }
+            figure.count <<- figure.count + 1L  # YES!!!
+            figures <<- c(figures, filename)
         }
-        figure.count <<- figure.count + 1L  # YES!!!
+        return (invisible())
     }
 
     close.plot = function(...)
@@ -115,12 +123,14 @@
                 dev.off()
             }
         } 
+        return (invisible())
     }
         
     cn.plot = function(...)
     {
         close.plot(...)
         new.plot(...)
+        return (invisible())
     }
 
     ##
@@ -152,7 +162,7 @@
                     ss = x$summary.fixed[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
                     plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
-                         sub=sub, xlab="", ylab="", ...)
+                         sub=sub, xlab="", ylab="")
                 }
             }
         }
@@ -184,7 +194,7 @@
                     ss = x$summary.lincomb.derived[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
                     plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"] (derived)", sep=""),
-                         sub=sub, xlab="", ylab="", ...)
+                         sub=sub, xlab="", ylab="")
                 }
             }
         }
@@ -221,7 +231,7 @@
                     ss = x$summary.lincomb[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
                     plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
-                         sub=sub, xlab="", ylab="", ...)
+                         sub=sub, xlab="", ylab="")
                 }
             }
         }
@@ -294,7 +304,7 @@
                                         plot(xval, yval,
                                              ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
                                              xlim=range(xval),
-                                             axes=TRUE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                             axes=TRUE, ylab="", xlab="", type=tp, lwd=2)
                                         if (!is.null(x$.args$.internal$baseline.hazard.strata.coding)) {
                                             rep.txt = inla.paste(c(rep.txt, "[",
                                                     x$.args$.internal$baseline.hazard.strata.coding[r.rep], "]"), sep="")
@@ -306,14 +316,14 @@
                                             plot(xval, yval,
                                                  ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
                                                  xlim=range(xval),
-                                                 axes=FALSE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                                 axes=FALSE, ylab="", xlab="", type=tp, lwd=2)
                                             axis(1)
                                             axis(2)
                                             box()
                                         } else {
                                             plot(as.factor(xval), yval,
                                                  ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                 axes=TRUE, ylab="", xlab="", type=tp, lwd=2, ...)
+                                                 axes=TRUE, ylab="", xlab="", type=tp, lwd=2)
                                         }
                                     }
                     
@@ -369,7 +379,7 @@
                                     zz = x$marginals.random[[i]][[r.rep]]
                                     plot(inla.smarginal(zz), type="l",
                                          main=paste("PostDens [", inla.nameunfix(labels.random[i]),"]", " ", rep.txt, sep=""),
-                                         xlab=inla.nameunfix(labels.random[i]), ylab="", ...)
+                                         xlab=inla.nameunfix(labels.random[i]), ylab="")
                                 }
                             }
                         }
@@ -403,7 +413,7 @@
                 hh = hyper[[i]]
                 if (!is.null(hh)) {
                     label = inla.nameunfix(names(hyper)[i])
-                    plot(inla.smarginal(hh), type="l", ylab="", xlab="", ...)
+                    plot(inla.smarginal(hh), type="l", ylab="", xlab="")
                     title(main=paste("PostDens [", label, "]", sep=""))
                 }
             }
@@ -563,9 +573,5 @@
     }
 
     close.plot(...)
-    if (pdf || postscript) {
-        return (figure.dir)
-    } else {
-        return (invisible())
-    }
+    return (invisible(figures))
 }
