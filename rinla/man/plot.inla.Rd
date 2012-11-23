@@ -19,7 +19,8 @@
               plot.q = TRUE,
               plot.cpo = TRUE,
               postscript = FALSE,
-              pdf = FALSE, 
+              pdf = FALSE,
+              prefix = "inla.plots/figure-", 
               ...)
  }
  \arguments{
@@ -38,12 +39,12 @@
    \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
    \item{single}{Boolean indicating if there should be more than one plot per page
                  (FALSE) or just one (TRUE)}
-   \item{postscript}{Boolean indicating if postscript files should be produced instead.
-                     The return value is the directory where the files are stored.}
-   \item{pdf}{Boolean indicating if PDF files should be produced instead.
-                     The return value is the directory where the files are stored.}
-   \item{...}{Additional arguments}
+   \item{postscript}{Boolean indicating if postscript files should be produced instead}
+   \item{pdf}{Boolean indicating if PDF files should be produced instead}
+   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
+   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.} 
  }
+ \value{The return value is a list of the files created (if any).}
  \author{Havard Rue \email{hrue@math.ntnu.no} }
  \seealso{\code{\link{inla}}}
  \examples{
