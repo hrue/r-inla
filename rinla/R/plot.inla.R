@@ -80,7 +80,7 @@
         } else {
             dir = dirname(prefix)
             if (!file.exists(dir) && nchar(dir) > 0L) {
-                dir.create(dir)
+                dir.create(dir, recursive=TRUE)
             } else {
                 stopifnot(file.info(dir)$isdir)
             }
