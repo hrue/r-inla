@@ -93,15 +93,17 @@
         if (!postscript && !pdf) {
             inla.dev.new(...)
         } else {
-            
-            filename = paste(prefix,
-                    inla.ifelse(regexpr("/$", prefix), "", "/"), 
-                    figure.count,
-                    inla.ifelse(postscript, ".eps", ".pdf"), sep="")
-            if (file.exists(filename)) {
-                cp.filename = paste(filename, "---", as.character(date()), sep="")
-                file.copy(filename, cp.filename)
-                warning(paste("File [", filename, "] exists. Renamed to [", cp.filename, "].", sep=""))
+            found = FALSE
+            while(!found) {
+                filename = paste(prefix,
+                        inla.ifelse(regexpr("/$", prefix), "", "/"), 
+                        figure.count,
+                        inla.ifelse(postscript, ".eps", ".pdf"), sep="")
+                if (file.exists(filename)) {
+                    figure.count <<- figure.count + 1L ## YES
+                } else {
+                    found = TRUE
+                }
             }
             if (postscript) {
                 postscript(file = filename, ...)
@@ -110,7 +112,6 @@
             } else {
                 stop("This should not happen")
             }
-            figure.count <<- figure.count + 1L  # YES!!!
             figures <<- c(figures, filename)
         }
         return (invisible())
@@ -126,7 +127,7 @@
         return (invisible())
     }
         
-    cn.plot = function(...)
+    close.and.new.plot = function(...)
     {
         close.plot(...)
         new.plot(...)
@@ -153,7 +154,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    cn.plot(...)
+                    close.and.new.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -185,7 +186,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    cn.plot(...)
+                    close.and.new.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -222,7 +223,7 @@
             ip = 0
             for(i in 1:nf) {
                 if (ip%%np == 0) {
-                    cn.plot(...)
+                    close.and.new.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -275,7 +276,7 @@
                                 for(ii in 1:inla.ifelse(r.N > r.n, r.N %/% r.n, 1)) {
 
                                     if (ip%%np == 0) {
-                                        cn.plot(...)
+                                        close.and.new.plot(...)
                                         par(mfrow=c(plot.layout[1], plot.layout[2]))
                                     }
                                     ip = ip + 1
@@ -358,7 +359,7 @@
                         for (r.rep in 1:nrep) {
                             for(r.group in 1:ngroup) {
                                 if (ip%%np == 0) {
-                                    cn.plot(...)
+                                    close.and.new.plot(...)
                                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                                 }
                                 ip = ip + 1
@@ -405,7 +406,7 @@
             ip = 0
             for(i in 1:nhyper) {
                 if (ip%%np == 0) {
-                    cn.plot(...)
+                    close.and.new.plot(...)
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
@@ -459,7 +460,7 @@
                 }
             
                 if (!is.null(lp)) {
-                    cn.plot(...)
+                    close.and.new.plot(...)
                     if (!is.null(fv)) {
                         if (single) {
                             par(mfrow=c(1, 1))
@@ -503,7 +504,7 @@
         }
     }
     if (plot.q && !is.null(x$Q)) {
-        cn.plot(...)
+        close.and.new.plot(...)
         if (single) {
             par(mfrow = c(1, 1))
         } else {
@@ -527,7 +528,7 @@
     }
     if (plot.cpo) {
         if (!is.null(x$cpo$pit) || !is.null(x$cpo$cpo)) {
-            cn.plot(...)
+            close.and.new.plot(...)
             if (single) {
                 par(mfrow=c(1, 1))
             } else {
