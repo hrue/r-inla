@@ -24,7 +24,7 @@
 #define ASCIILINESZ	65536
 #else
 #define ASCIILINESZ	1048576
-#fi
+#endif
 
 #define INI_INVALID_KEY     ((char*)-1)
 

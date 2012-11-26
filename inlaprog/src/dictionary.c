@@ -35,7 +35,7 @@
 #define MAXVALSZ	65536
 #else
 #define MAXVALSZ	1048576
-#fi
+#endif
 	
 /** Minimal allocated number of entries in a dictionary */
 #define DICTMINSZ	512
