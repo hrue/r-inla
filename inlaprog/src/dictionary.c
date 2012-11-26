@@ -33,7 +33,7 @@
 /** Maximum value size for integers and doubles. */
 #if defined(WINDOWS)
 #define MAXVALSZ	65536
-else
+#else
 #define MAXVALSZ	1048576
 #fi
 	
