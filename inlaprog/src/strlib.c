@@ -37,7 +37,7 @@
 #define ASCIILINESZ	65536
 #else
 #define ASCIILINESZ	1048576
-#fi
+#endif
 
 /*---------------------------------------------------------------------------
   							Function codes
