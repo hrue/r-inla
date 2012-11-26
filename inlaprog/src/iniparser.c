@@ -22,7 +22,7 @@
 
 #if defined(WINDOWS)
 #define ASCIILINESZ	65536
-else
+#else
 #define ASCIILINESZ	1048576
 #fi
 
