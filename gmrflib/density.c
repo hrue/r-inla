@@ -1329,6 +1329,17 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_density_adjust_vector(double *ldens, int n)
+{
+	int i;
+	double maxdev = 2.0*log(DBL_EPSILON);
+
+	GMRFLib_adjust_vector(ldens, n);
+	for(i = 0; i < n; i++) {
+		ldens[i] = DMAX(maxdev, ldens[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev, int lookup_tables)
 {
 	/*
@@ -1406,7 +1417,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
-			GMRFLib_adjust_vector(ldens, n);
+			GMRFLib_density_adjust_vector(ldens, n); /* prevent extreme cases for the spline */
 
 			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->accel = gsl_interp_accel_alloc());
