@@ -39,10 +39,8 @@ __BEGIN_DECLS
 
 /* #include <unistd.h> */
 #include "dictionary.h"
-
 #define INIPARSER_SEP '|'
 #define LEN_INIPARSER_SEP ((size_t)1)
-
 int iniparser_getnsec(dictionary * d);
 char *iniparser_getsecname(dictionary * d, int n);
 void iniparser_dump_ini(dictionary * d, FILE * f);
@@ -55,7 +53,7 @@ int iniparser_getboolean(dictionary * d, const char *key, int notfound);
 int iniparser_setstr(dictionary * ini, char *entry, char *val);
 void iniparser_unset(dictionary * ini, char *entry);
 int iniparser_find_entry(dictionary * ini, char *entry);
-char * iniparser_getline(FILE * f);
+char *iniparser_getline(FILE * f);
 dictionary *iniparser_load(const char *ininame);
 void iniparser_freedict(dictionary * d);
 

@@ -55,7 +55,7 @@
 
 char *strlwc(const char *s)
 {
-	if (s == NULL){
+	if (s == NULL) {
 		return NULL;
 	}
 
@@ -90,7 +90,7 @@ char *strlwc(const char *s)
 
 char *strupc(char *s)
 {
-	if (s == NULL){
+	if (s == NULL) {
 		return NULL;
 	}
 
@@ -150,7 +150,7 @@ char *strskp(char *s)
 
 char *strcrop(char *s)
 {
-	if (s == NULL){
+	if (s == NULL) {
 		return NULL;
 	}
 

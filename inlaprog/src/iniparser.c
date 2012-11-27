@@ -1,3 +1,4 @@
+
 /**
    @file    iniparser.c
    @author  N. Devillard
@@ -30,7 +31,7 @@ static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 	/*
 	 * Make a key as section:keyword 
 	 */
-	longkey = (char *) calloc((size_t)((sec ? strlen(sec) : 0) + (key ? strlen(key) : 0) + LEN_INIPARSER_SEP + 1), (size_t)1);
+	longkey = (char *) calloc((size_t) ((sec ? strlen(sec) : 0) + (key ? strlen(key) : 0) + LEN_INIPARSER_SEP + 1), (size_t) 1);
 	if (key != NULL) {
 		sprintf(longkey, "%s%c%s", sec, INIPARSER_SEP, key);
 	} else {
@@ -181,7 +182,7 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
 		seclen = (int) strlen(secname);
 		fprintf(f, "\n[%s]\n", secname);
 
-		keym = (char *) calloc(strlen(secname) + LEN_INIPARSER_SEP + 1, (size_t)1);
+		keym = (char *) calloc(strlen(secname) + LEN_INIPARSER_SEP + 1, (size_t) 1);
 		sprintf(keym, "%s%c", secname, INIPARSER_SEP);
 		for (j = 0; j < d->size; j++) {
 			if (d->key[j] == NULL)
@@ -399,15 +400,15 @@ void iniparser_unset(dictionary * ini, char *entry)
 
   The returned dictionary must be freed using iniparser_freedict().
  */
-char * iniparser_getline(FILE * fp)
+char *iniparser_getline(FILE * fp)
 {
-	if (feof(fp)){
+	if (feof(fp)) {
 		return NULL;
 	}
 
 	int debug = 0;
-	size_t size = 0, len  = 0, len_buf  = 0;
-	char * buf  = NULL;
+	size_t size = 0, len = 0, len_buf = 0;
+	char *buf = NULL;
 	int c;
 
 	len_buf = BUFSIZ;
@@ -416,30 +417,29 @@ char * iniparser_getline(FILE * fp)
 
 	do {
 		c = fgetc(fp);
-		if (c == '\r')				       /* could be \r\n */
-		{
+		if (c == '\r') {			       /* could be \r\n */
 			int cc;
 
 			cc = fgetc(fp);
-			if (cc != '\n' && cc != EOF){
+			if (cc != '\n' && cc != EOF) {
 				ungetc(cc, fp);
 			}
 		}
 		if (c == EOF || c == '\n' || c == '\r') {
-			if (debug){
+			if (debug) {
 				printf("GETLINE RETURNS [%s]\n", buf);
 			}
 			return (buf);
 		}
 		buf[len] = c;
-		buf[len+1] = '\0';
+		buf[len + 1] = '\0';
 		len++;
 
-		if (len >= len_buf){
+		if (len >= len_buf) {
 			len_buf += BUFSIZ;
 			buf = Realloc(buf, len_buf, char);
 		}
-	} while(1);
+	} while (1);
 
 	return buf;
 }
@@ -469,9 +469,9 @@ dictionary *iniparser_load(const char *ininame)
 	while ((lin = iniparser_getline(ini)) != NULL) {
 
 		if (len_str == 0) {
-			sec = Calloc(strlen(lin)+1, char);
-			key = Calloc(strlen(lin)+1, char);
-			val = Calloc(strlen(lin)+1, char);
+			sec = Calloc(strlen(lin) + 1, char);
+			key = Calloc(strlen(lin) + 1, char);
+			val = Calloc(strlen(lin) + 1, char);
 			len_str = strlen(lin) + 1;
 		} else {
 			if (strlen(lin) + 1 > len_str) {

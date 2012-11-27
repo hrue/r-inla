@@ -32,7 +32,7 @@
 
 /** Maximum value size for integers and doubles. */
 #define MAXVALSZ	80
-	
+
 /** Minimal allocated number of entries in a dictionary */
 #define DICTMINSZ	128
 
@@ -321,7 +321,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);
-		//printf("ADD VALUE [%s] = [%s]\n", d->key[i], d->val[i]);
+		// printf("ADD VALUE [%s] = [%s]\n", d->key[i], d->val[i]);
 		d->n++;
 	}
 	return;
