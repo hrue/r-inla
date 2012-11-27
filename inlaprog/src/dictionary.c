@@ -31,14 +31,10 @@
 #include "GMRFLib/GMRFLib.h"
 
 /** Maximum value size for integers and doubles. */
-#if defined(WINDOWS)
-#define MAXVALSZ	65536
-#else
-#define MAXVALSZ	1048576
-#endif
+#define MAXVALSZ	80
 	
 /** Minimal allocated number of entries in a dictionary */
-#define DICTMINSZ	512
+#define DICTMINSZ	128
 
 /** Invalid key token */
 #define DICT_INVALID_KEY    ((char*)-1)
@@ -325,7 +321,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		d->used[i] = 0;
 		map_stri_set(&(d->strihash), d->key[i], i);
 		map_ii_remove(&(d->iihash), i);
-
+		//printf("ADD VALUE [%s] = [%s]\n", d->key[i], d->val[i]);
 		d->n++;
 	}
 	return;
