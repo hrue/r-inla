@@ -1,4 +1,3 @@
-
 /**
    @file    iniparser.c
    @author  N. Devillard
@@ -20,23 +19,18 @@
 #include "my-fix.h"
 #include "strlib.h"
 
-#if defined(WINDOWS)
-#define ASCIILINESZ	65536
-#else
-#define ASCIILINESZ	1048576
-#endif
-
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #define INI_INVALID_KEY     ((char*)-1)
-
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
 
 static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 {
-	char longkey[2 * ASCIILINESZ + 1];
+	char *longkey = NULL;
 
 	/*
 	 * Make a key as section:keyword 
 	 */
+	longkey = (char *) calloc((size_t)((sec ? strlen(sec) : 0) + (key ? strlen(key) : 0) + LEN_INIPARSER_SEP + 1), (size_t)1);
 	if (key != NULL) {
 		sprintf(longkey, "%s%c%s", sec, INIPARSER_SEP, key);
 	} else {
@@ -47,6 +41,8 @@ static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 	 * Add (key,val) to dictionary 
 	 */
 	dictionary_set(d, longkey, val);
+
+	free(longkey);
 	return;
 }
 
@@ -160,7 +156,7 @@ void iniparser_dump(dictionary * d, FILE * f)
 void iniparser_dump_ini(dictionary * d, FILE * f)
 {
 	int i, j;
-	char keym[ASCIILINESZ + 1];
+	char *keym = NULL;
 	int nsec;
 	char *secname = NULL;
 	int seclen;
@@ -184,6 +180,8 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
 		secname = iniparser_getsecname(d, i);
 		seclen = (int) strlen(secname);
 		fprintf(f, "\n[%s]\n", secname);
+
+		keym = (char *) calloc(strlen(secname) + LEN_INIPARSER_SEP + 1, (size_t)1);
 		sprintf(keym, "%s%c", secname, INIPARSER_SEP);
 		for (j = 0; j < d->size; j++) {
 			if (d->key[j] == NULL)
@@ -192,6 +190,7 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
 				fprintf(f, "%-30s = %s\n", d->key[j] + seclen + 1, d->val[j] ? d->val[j] : "");
 			}
 		}
+		free(keym);
 	}
 	fprintf(f, "\n");
 	return;
@@ -400,22 +399,65 @@ void iniparser_unset(dictionary * ini, char *entry)
 
   The returned dictionary must be freed using iniparser_freedict().
  */
+char * iniparser_getline(FILE * fp)
+{
+	if (feof(fp)){
+		return NULL;
+	}
+
+	int debug = 0;
+	size_t size = 0, len  = 0, len_buf  = 0;
+	char * buf  = NULL;
+	int c;
+
+	len_buf = BUFSIZ;
+	buf = Calloc(len_buf, char);
+	buf[0] = '\0';
+
+	do {
+		c = fgetc(fp);
+		if (c == '\r')				       /* could be \r\n */
+		{
+			int cc;
+
+			cc = fgetc(fp);
+			if (cc != '\n' && cc != EOF){
+				ungetc(cc, fp);
+			}
+		}
+		if (c == EOF || c == '\n' || c == '\r') {
+			if (debug){
+				printf("GETLINE RETURNS [%s]\n", buf);
+			}
+			return (buf);
+		}
+		buf[len] = c;
+		buf[len+1] = '\0';
+		len++;
+
+		if (len >= len_buf){
+			len_buf += BUFSIZ;
+			buf = Realloc(buf, len_buf, char);
+		}
+	} while(1);
+
+	return buf;
+}
 dictionary *iniparser_load(const char *ininame)
 {
 	dictionary *d = NULL;
-	char lin[ASCIILINESZ + 1];
-	char sec[ASCIILINESZ + 1];
-	char key[ASCIILINESZ + 1];
-	char val[ASCIILINESZ + 1];
+	char *lin = NULL;
+	char *sec = NULL;
+	char *key = NULL;
+	char *val = NULL;
 	char *where = NULL;
 	FILE *ini = NULL;
-	int lineno;
+	int lineno = 0;
+	size_t len_str = 0;
 
 	if ((ini = fopen(ininame, "r")) == NULL) {
 		return NULL;
 	}
-
-	sec[0] = 0;
 
 	/*
 	 * Initialize a new dictionary entry
@@ -424,8 +466,22 @@ dictionary *iniparser_load(const char *ininame)
 		fclose(ini);
 		return NULL;
 	}
-	lineno = 0;
-	while (fgets(lin, ASCIILINESZ, ini) != NULL) {
+	while ((lin = iniparser_getline(ini)) != NULL) {
+
+		if (len_str == 0) {
+			sec = Calloc(strlen(lin)+1, char);
+			key = Calloc(strlen(lin)+1, char);
+			val = Calloc(strlen(lin)+1, char);
+			len_str = strlen(lin) + 1;
+		} else {
+			if (strlen(lin) + 1 > len_str) {
+				len_str = strlen(lin) + 1;
+				sec = (char *) realloc((void *) sec, len_str);
+				key = (char *) realloc((void *) key, len_str);
+				val = (char *) realloc((void *) val, len_str);
+			}
+		}
+
 		lineno++;
 
 		// if (!(lineno % 1000)) printf("lineno %d\n", lineno);
@@ -457,8 +513,14 @@ dictionary *iniparser_load(const char *ininame)
 				iniparser_add_entry(d, sec, key, val);
 			}
 		}
+		Free(lin);
 	}
+
+	Free(sec);
+	Free(key);
+	Free(val);
 	fclose(ini);
+
 	return d;
 }
 

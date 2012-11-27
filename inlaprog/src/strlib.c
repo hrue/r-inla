@@ -33,11 +33,6 @@
 /*---------------------------------------------------------------------------
    							    Defines	
  ---------------------------------------------------------------------------*/
-#if defined(WINDOWS)
-#define ASCIILINESZ	65536
-#else
-#define ASCIILINESZ	1048576
-#endif
 
 /*---------------------------------------------------------------------------
   							Function codes
@@ -60,23 +55,22 @@
 
 char *strlwc(const char *s)
 {
-	static char *l = NULL;
-	if (!l) {
-		l = (char *) calloc((size_t) ASCIILINESZ + 1, sizeof(char));
+	if (s == NULL){
+		return NULL;
 	}
 
-	int i;
+	static char *l = NULL;
+	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
 
-	if (s == NULL)
-		return NULL;
-	memset(l, 0, ASCIILINESZ + 1);
+	size_t i;
 	i = 0;
-	while (s[i] && i < ASCIILINESZ) {
+	while (s[i] && i < strlen(s)) {
 		l[i] = (char) tolower((int) s[i]);
 		i++;
 	}
-	l[ASCIILINESZ] = (char) 0;
+	l[strlen(s)] = (char) 0;
 	return l;
+
 }
 
 /*-------------------------------------------------------------------------*/
@@ -96,22 +90,20 @@ char *strlwc(const char *s)
 
 char *strupc(char *s)
 {
-	static char *l = NULL;
-	if (!l) {
-		l = (char *) calloc((size_t) ASCIILINESZ + 1, sizeof(char));
+	if (s == NULL){
+		return NULL;
 	}
 
-	int i;
+	static char *l = NULL;
+	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
 
-	if (s == NULL)
-		return NULL;
-	memset(l, 0, ASCIILINESZ + 1);
+	size_t i;
 	i = 0;
-	while (s[i] && i < ASCIILINESZ) {
+	while (s[i] && i < strlen(s)) {
 		l[i] = (char) toupper((int) s[i]);
 		i++;
 	}
-	l[ASCIILINESZ] = (char) 0;
+	l[strlen(s)] = (char) 0;
 	return l;
 }
 
@@ -158,16 +150,15 @@ char *strskp(char *s)
 
 char *strcrop(char *s)
 {
-	static char *l = NULL;
-	if (!l) {
-		l = (char *) calloc((size_t) ASCIILINESZ + 1, sizeof(char));
+	if (s == NULL){
+		return NULL;
 	}
+
+	static char *l = NULL;
+	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
 
 	char *last;
 
-	if (s == NULL)
-		return NULL;
-	memset(l, 0, ASCIILINESZ + 1);
 	strcpy(l, s);
 	last = l + strlen(l);
 	while (last > l) {
@@ -181,48 +172,6 @@ char *strcrop(char *s)
 
 /*-------------------------------------------------------------------------*/
 
-/**
-  @brief	Remove blanks at the beginning and the end of a string.
-  @param	s	String to parse.
-  @return	ptr to statically allocated string.
-
-  This function returns a pointer to a statically allocated string,
-  which is identical to the input string, except that all blank
-  characters at the end and the beg. of the string have been removed.
-  Do not free or modify the returned string! Since the returned string
-  is statically allocated, it will be modified at each function call
-  (not re-entrant).
- */
-
-/*--------------------------------------------------------------------------*/
-char *strstrip(char *s)
-{
-	static char *l = NULL;
-	if (!l) {
-		l = (char *) calloc((size_t) ASCIILINESZ + 1, sizeof(char));
-	}
-
-	char *last;
-
-	if (s == NULL)
-		return NULL;
-
-	while (isspace((int) *s) && *s)
-		s++;
-
-	memset(l, 0, ASCIILINESZ + 1);
-	strcpy(l, s);
-	last = l + strlen(l);
-	while (last > l) {
-		if (!isspace((int) *(last - 1)))
-			break;
-		last--;
-	}
-	*last = (char) 0;
-
-	return (char *) l;
-}
-
 /* Test code */
 #ifdef TEST
 int main(int argc, char *argv[])
@@ -234,7 +183,6 @@ int main(int argc, char *argv[])
 	printf("uppercase: [%s]\n", strupc(str));
 	printf("skipped  : [%s]\n", strskp(str));
 	printf("cropped  : [%s]\n", strcrop(str));
-	printf("stripped : [%s]\n", strstrip(str));
 
 	return 0;
 }
