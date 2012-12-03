@@ -41,6 +41,7 @@
 
     if (inla.one.of(family, c("gaussian",
                               "normal",
+                              "gaussianwindow",
                               "t",
                               "laplace",
                               "sn",
@@ -131,7 +132,6 @@
     } else if (inla.one.of(family,
                            c("binomial",
                              "binomialtest", 
-                             "cbinomial", 
                              "betabinomial", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",
@@ -149,6 +149,15 @@
 
         response = cbind(ind, Ntrials, y.orig)
         null.dat = is.na(response[, 3L])
+        response = response[!null.dat,]
+
+    } else if (inla.one.of(family, c("cbinomial"))) {
+        
+        if (!(is.matrix(Ntrials) && all(dim(Ntrials) == c(n.data, 2)))) {
+            stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data, "x", 2, "-matrix; see the documentation."))
+        }
+        response = cbind(ind, Ntrials, y.orig)
+        null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure", "loglogistic",  "lognormal"))) {
