@@ -10,7 +10,8 @@
 \subsection*{Parametrisation}
 
 The clustered/clumped-Binomial distribution arrives from a
-transformation of Binomial observations. Let $z$ be Binomial distributed
+transformation of Binomial observations. Let $z$ be Binomial
+distributed
 \begin{displaymath}
     \text{Prob}(z) = {n \choose z} \ p^n (1-p)^{n-z}
 \end{displaymath}
@@ -19,7 +20,7 @@ for $z=0, 1, 2, \ldots,n$, where
 \item[$n$:] number of trials.
 \item[$p$:] probability of success in each trial.
 \end{description}
-Then the CBinomial distribution is the distribution for $y$, where
+Then binary CBinomial distribution is the distribution for $y$, where
 \begin{displaymath}
     y =
     \begin{cases}
@@ -29,30 +30,38 @@ Then the CBinomial distribution is the distribution for $y$, where
 \end{displaymath}
 It then follows that $\text{Prob}(y = 0) = (1-p)^{n}$ and
 $\text{Prob}(y=1) = 1-(1-p)^{n}$, i.e.\ $y$ is Binomial distributed
-with size 1 and probability for success $1-(1-p)^{n}$.
+with size 1 and probability for success $1-(1-p)^{n}$. In general we
+have $k$ independent experiments, $y_{1}, \ldots, y_{k}$, and let $w =
+y_{1}+ \cdots + y_{k}$. Then $w$ is CBinomial$(k,n,p)$ distributed,
+i.e.\ $w$ is Binomial$(k, 1-(1-p)^{n})$.
 
 \subsection*{Link-function}
 
-The probability $p$ is linked to the linear predictor by
+The probability $p$ is by default linked to the linear predictor by
 \begin{displaymath}
     p(\eta) = \frac{\exp(\eta)}{1+\exp(\eta)}
 \end{displaymath}
+but other choices are also available.
 
-\subsection*{Hyperparameters}
-
+\subsubsection*{Hyperparameters}
 None.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/cbinomial.tex}
 
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{binomial}$
-\item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\item $\text{family}=\texttt{cbinomial}$
+\item Required arguments: the response $w$ and the parameters $k$ and
+    $n$ (keyword \texttt{Ntrials}, where the argument is a
+    \textbf{two-column matrix}: \texttt{Ntrials = cbind(k,n)})
 \end{itemize}
 
 \subsection*{Example}
 
 In the following example we estimate the parameters in a simulated
-example with CBinomial responses.
+example with CBinomial responses.%%
 \verbatiminput{example-cbinomial.R}
 
 \subsection*{Notes}
