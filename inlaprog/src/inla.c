@@ -1698,7 +1698,7 @@ double Qfunc_ou(int i, int j, void *arg)
 double priorfunc_sasprior(double *x, double *parameters)
 {
 	double val = re_sas_log_prior(x, parameters);
-	if (0){
+	if (0) {
 		P(x[0]);
 		P(x[1]);
 		P(parameters[0]);
@@ -2731,8 +2731,8 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 }
 int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-	/* 
-	   not in use
+	/*
+	 * not in use 
 	 */
 	assert(0 == 1);
 	abort();
@@ -2745,7 +2745,7 @@ int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, doub
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, ypred, sprec, lc, lower = -1.0, upper = 1.0, yy; // OOOOPS!!!!
+	double y, lprec, prec, w, ypred, sprec, lc, lower = -1.0, upper = 1.0, yy;	// OOOOPS!!!!
 
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
@@ -2756,7 +2756,7 @@ int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, doub
 	for (i = 0; i < m; i++) {
 		ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 		yy = (y - ypred) * sprec;
-		if (yy <= lower){
+		if (yy <= lower) {
 			logll[i] = inla_log_Phi((lower - ypred) * sprec);
 		} else if (yy >= upper) {
 			logll[i] = inla_log_Phi(-(upper - ypred) * sprec);
@@ -4378,11 +4378,11 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 
 	if (m > 0) {
 		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res); /* Yes, its 'k' */
+		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res);	/* Yes, its 'k' */
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = 1.0 - pow(1.0-p, n);
+			p = 1.0 - pow(1.0 - p, n);
 			p = DMIN(1.0, DMAX(0.0, p));
 			if (ISEQUAL(p, 1.0)) {
 				/*
@@ -4409,7 +4409,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 	} else {
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = 1.0 - pow(1.0-p, n);
+			p = 1.0 - pow(1.0 - p, n);
 			p = DMIN(1.0, DMAX(0.0, p));
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) k);
 		}
@@ -5972,7 +5972,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 
 	} else if (!strncasecmp(prior->name, "TABLE:", strlen("TABLE:"))) {
 		prior->id = P_TABLE;
-		prior->expression = GMRFLib_strdup(prior->name); /* yes, use the same storage */
+		prior->expression = GMRFLib_strdup(prior->name);	/* yes, use the same storage */
 		prior->name[strlen("TABLE")] = '\0';
 		prior->parameters = NULL;
 
@@ -7396,10 +7396,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				    ds->data_observations.cbinomial_k[i] <= 0.0 ||
 				    ds->data_observations.y[i] > ds->data_observations.cbinomial_k[i] || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: CBinomial data[%1d] (k,n,y) = (%g,%g,%g) is void\n", secname,
-							i,
-							ds->data_observations.cbinomial_k[i], 
-							ds->data_observations.cbinomial_n[i], 
-							ds->data_observations.y[i]);
+							i, ds->data_observations.cbinomial_k[i], ds->data_observations.cbinomial_n[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -14642,8 +14639,8 @@ double extra(double *theta, int ntheta, void *argument)
 				double sk[2];
 				sk[0] = skew;
 				sk[1] = kurt;
-				double val_tmp = PRIOR_EVAL(ds->data_prior1, sk); /* yes, this defines the joint prior */
-				if (!ISNAN(val_tmp)){
+				double val_tmp = PRIOR_EVAL(ds->data_prior1, sk);	/* yes, this defines the joint prior */
+				if (!ISNAN(val_tmp)) {
 					val += val_tmp;
 				}
 
@@ -19732,10 +19729,10 @@ int testit(int argc, char **argv)
 	printf("%s\n", strupc("ABC"));
 	printf("[%s]\n", strcrop("ABC   "));
 	exit(0);
-	
 
 
-	if (1){
+
+	if (1) {
 		double lambda = 10;
 		re_init(&lambda);
 	}
