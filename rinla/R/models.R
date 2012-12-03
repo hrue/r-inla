@@ -2605,7 +2605,8 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      link = c("default", "logit", "probit", "cloglog"),
+                      status = "experimental", 
                       pdf = "cbinomial"
                       ),
 
@@ -2645,6 +2646,26 @@
                       discrete = FALSE,
                       link = c("default", "identity", "logit"),
                       pdf = "gaussian"
+                      ),
+
+              gaussianwindow = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 0,
+                                      fixed = TRUE,
+                                      prior = "loggamma",
+                                      param = c(10, 1),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      status = "experimental", 
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "identity"),
+                      pdf = "gaussianwindow"
                       ),
 
               normal = list(

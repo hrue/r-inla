@@ -2315,6 +2315,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	if (ds->data_id == L_GAUSSIAN) {
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_GAUSSIAN_WINDOW) {
+		idiv = 3;
+		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_IID_GAMMA) {
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
@@ -2371,8 +2374,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_CBINOMIAL) {
-		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		idiv = 4;
+		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.cbinomial_n = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_GAMMA) {
 		idiv = 3;
 		a[0] = ds->data_observations.gamma_weight = Calloc(mb->predictor_ndata, double);
@@ -2723,6 +2727,44 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
 	}
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/* 
+	   not in use
+	 */
+	assert(0 == 1);
+	abort();
+
+	/*
+	 * y ~ Normal(x, stdev) in window [lower, upper]
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, lprec, prec, w, ypred, sprec, lc, lower = -1.0, upper = 1.0, yy; // OOOOPS!!!!
+
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_gaussian[idx];
+	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
+	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+	sprec = sqrt(prec);
+
+	for (i = 0; i < m; i++) {
+		ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		yy = (y - ypred) * sprec;
+		if (yy <= lower){
+			logll[i] = inla_log_Phi((lower - ypred) * sprec);
+		} else if (yy >= upper) {
+			logll[i] = inla_log_Phi(-(upper - ypred) * sprec);
+		} else {
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - SQR(yy));
+		}
+	}
+
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4323,8 +4365,7 @@ int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double 
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
-	 * y ~ Binomial(n, p), then z ~ CBinomial(p) where z = 0 if y=0, and z=1 if y > 0. This gives p(z=0) = (1-p)^n, and p(z=1) = 1-(1-p)^n.
-	 * So z ~ Binomial(1, 1-(1-p)^n)
+	 * z ~ CBinomial(k, n, p) == Binomial(k, 1-(1-p)^n)
 	 */
 	int i;
 
@@ -4333,50 +4374,44 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 	}
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p, z, nz = 1.0;
-
-	z = ((int) y == 0 ? 0.0 : 1.0);
+	double y = ds->data_observations.y[idx], k = ds->data_observations.cbinomial_k[idx], n = ds->data_observations.cbinomial_n[idx], p;
 
 	if (m > 0) {
 		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) nz, (unsigned int) z, &res);
+		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res); /* Yes, its 'k' */
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (p > 1.0) {
+			p = 1.0 - pow(1.0-p, n);
+			p = DMIN(1.0, DMAX(0.0, p));
+			if (ISEQUAL(p, 1.0)) {
 				/*
-				 * need this for the link = "log" that was requested...
+				 * this is ok if we get a 0*log(0) expression for the reminder 
 				 */
-				logll[i] = res.val - SQR(DMIN(10.0, nz)) * SQR(x[i] + OFFSET(idx) - (-5.0));
-			} else {
-				if (ISEQUAL(p, 1.0)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if (1 == (int) z) {
-						logll[i] = res.val + z * log(1.0 - pow(1.0 - p, n));
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else if (ISZERO(p)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if ((int) z == 0) {
-						logll[i] = res.val + (nz - z) * n * log(1.0 - p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
+				if (k == (int) y) {
+					logll[i] = res.val + y * log(p);
 				} else {
-					logll[i] = res.val + z * log(1.0 - pow(1.0 - p, n)) + (nz - z) * n * log(1.0 - p);
+					logll[i] = -DBL_MAX;
 				}
+			} else if (ISZERO(p)) {
+				/*
+				 * this is ok if we get a 0*log(0) expression for the reminder 
+				 */
+				if ((int) y == 0) {
+					logll[i] = res.val + (k - y) * log(1.0 - p);
+				} else {
+					logll[i] = -DBL_MAX;
+				}
+			} else {
+				logll[i] = res.val + y * log(p) + (k - y) * log(1.0 - p);
 			}
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = DMIN(1.0, p);
-			logll[i] = gsl_cdf_binomial_P((unsigned int) z, 1.0 - pow(1.0 - p, n), (unsigned int) nz);
+			p = 1.0 - pow(1.0-p, n);
+			p = DMIN(1.0, DMAX(0.0, p));
+			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) k);
 		}
 	}
 
@@ -6990,6 +7025,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "GAUSSIANWINDOW") || !strcasecmp(ds->data_likelihood, "NORMALWINDOW")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian_window;
+		ds->data_id = L_GAUSSIAN_WINDOW;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
@@ -7184,6 +7223,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	} else if (ds->data_id == L_GAUSSIAN_WINDOW) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gaussian_window weight[%1d] = %g is void\n",
+							secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
 	} else if (ds->data_id == L_CIRCULAR_NORMAL) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -7329,13 +7378,28 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
 		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2 ||
-		   ds->data_id == L_CBINOMIAL || ds->data_id == L_BINOMIALTEST || ds->data_id == L_BETABINOMIAL || ds->data_id == L_TEST_BINOMIAL_1) {
+		   ds->data_id == L_BINOMIALTEST || ds->data_id == L_BETABINOMIAL || ds->data_id == L_TEST_BINOMIAL_1) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
 				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
 							i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	} else if (ds->data_id == L_CBINOMIAL) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.cbinomial_n[i] <= 0.0 ||
+				    ds->data_observations.cbinomial_k[i] <= 0.0 ||
+				    ds->data_observations.y[i] > ds->data_observations.cbinomial_k[i] || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CBinomial data[%1d] (k,n,y) = (%g,%g,%g) is void\n", secname,
+							i,
+							ds->data_observations.cbinomial_k[i], 
+							ds->data_observations.cbinomial_n[i], 
+							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -7429,6 +7493,49 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_GAUSSIAN_WINDOW) {
+		/*
+		 * get options related to the gaussian window
+		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian_window observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian_window observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -14388,6 +14495,16 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			} else if (ds->data_id == L_GAUSSIAN_WINDOW) {
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
 			} else if (ds->data_id == L_GPOISSON) {
 				if (!ds->data_fixed0) {
 					/*
@@ -19611,6 +19728,13 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 }
 int testit(int argc, char **argv)
 {
+	printf("%s\n", strupc("abc"));
+	printf("%s\n", strupc("ABC"));
+	printf("[%s]\n", strcrop("ABC   "));
+	exit(0);
+	
+
+
 	if (1){
 		double lambda = 10;
 		re_init(&lambda);

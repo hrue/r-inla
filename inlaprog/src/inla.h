@@ -143,6 +143,12 @@ typedef struct {
 	double *nb;
 
 	/*
+	 * y ~ CBinomial(k n, p(x))
+	 */
+	double *cbinomial_k;
+	double *cbinomial_n;
+
+	/*
 	 * y ~ Binomial test 
 	 */
 	double **link_psi;
@@ -204,7 +210,7 @@ typedef struct {
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
 	/*
-	 * zero-inflated Poission/Binomial/nbinomial/BetaBinomial version 0/1/2...
+	 * zero-inflated Poission/Binomial/inomial/BetaBinomial version 0/1/2...
 	 */
 	double **prob_intern;
 	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
@@ -356,6 +362,7 @@ typedef enum {
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
+	L_GAUSSIAN_WINDOW, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1132,6 +1139,7 @@ int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double 
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
