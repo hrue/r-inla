@@ -87,7 +87,7 @@ typedef enum {
 	INLA_MODE_QSAMPLE,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
-	INLA_MODE_SASPRIOR, 
+	INLA_MODE_SASPRIOR,
 	INLA_MODE_TESTIT = 99
 } inla_mode_tp;
 
@@ -307,7 +307,7 @@ typedef struct {
 	 */
 	double **test_binomial_1_s, **test_binomial_1_e;
 
-	/* 
+	/*
 	 * Gamma 
 	 */
 	double **gamma_log_prec;
@@ -334,7 +334,7 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
 	L_ZEROINFLATEDBETABINOMIAL2,
-	L_GAMMA, 
+	L_GAMMA,
 	L_BETA,
 	L_BETABINOMIAL,
 	L_NBINOMIAL,
@@ -362,7 +362,7 @@ typedef enum {
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
-	L_GAUSSIAN_WINDOW, 
+	L_GAUSSIAN_WINDOW,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -704,7 +704,7 @@ struct inla_tp_struct {
 	Output_tp **lc_output;
 	GMRFLib_lc_tp **lc_lc;
 	double *lc_derived_c;				       /* optional: correlation for the lincombs (derived) */
-	
+
 	/*
 	 * The final model 
 	 */
@@ -1084,7 +1084,8 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order, int verbose, inla_tp *mb);
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order,
+		     int verbose, inla_tp * mb);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
