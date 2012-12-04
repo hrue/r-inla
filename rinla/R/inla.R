@@ -16,7 +16,7 @@
 
 ##! \arguments{
     
-`xinla` =
+`inla` =
     function (
               ##! \item{formula}{ A \code{inla} formula like \code{y
               ##!~1 + z + f(ind, model="iid")} + f(ind2,
