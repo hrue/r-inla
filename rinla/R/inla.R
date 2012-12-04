@@ -16,7 +16,7 @@
 
 ##! \arguments{
     
-`inla` =
+`xinla` =
     function (
               ##! \item{formula}{ A \code{inla} formula like \code{y
               ##!~1 + z + f(ind, model="iid")} + f(ind2,
@@ -1784,10 +1784,10 @@
                     echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
                     bat.file = paste(tempfile(), ".BAT",  sep="")
-                    cat("@ echo off\n",  file=bat.file, append=FALSE)
+                    cat("@echo off\n",  file=bat.file, append=FALSE)
                     cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
                               inla.ifelse(silent == 2L, "2>NUL", "")), file=bat.file, append=TRUE)
-                    echoc = try(shell(paste("@", shQuote(bat.file)), wait=TRUE), silent=FALSE)
+                    echoc = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE), silent=FALSE)
                     unlink(bat.file)
                 }
                 if (echoc != 0L) {
