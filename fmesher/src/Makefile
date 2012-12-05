@@ -36,7 +36,7 @@ endif
 # What does uname -s say on Mac/OSX: Darwin.
 ifeq ($(OS_TYPE), Darwin)
   OS_FLAGS=-DMAC
-  OS_LDFLAGS=-L/usr/X11R6/lib -lX11
+  OS_LDFLAGS=-L/usr/X11R6/lib -L/usr/X11/lib -lX11
 endif
 ifeq ($(OS_TYPE), Windows)
   OS_FLAGS=-DWINDOWS -DFMESHER_NO_X
