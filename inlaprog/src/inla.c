@@ -609,7 +609,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 		}
 	} else if (ISINF(range[0]) && !ISINF(range[1])) {
 		FIXME("the case: ISINF(range[0]) && !ISINF(range[1]), is not yet implemented.");
-		exit(1);
+		exit(EXIT_FAILURE);
 	} else {
 		/*
 		 * Then the mapping is
@@ -3202,7 +3202,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 			}
 			fclose(fp);
 
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 	}
 
@@ -3590,7 +3590,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 						P(logll[i]);
 						P(x[i] + OFFSET(idx));
 						fprintf(stderr, "inla.c: Don't know what to do. Please report problem...");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -5818,7 +5818,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			}
 			if (nparam < i + ISQR(i)) {
 				inla_error_general("nparam does not match with any dimension of the mvnorm");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 		}
 		tmp = Calloc(nparam + 1, double);
@@ -6347,7 +6347,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		if (found > 1) {
 			GMRFLib_sprintf(&msg, "Observation %d occurs in more than one data-section\n", i);
 			inla_error_general(msg);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		if (found == 1) {
@@ -6381,7 +6381,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		if (found > 1) {
 			GMRFLib_sprintf(&msg, "Observation %d occurs in more than one data-section\n", i);
 			inla_error_general(msg);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc :
 						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
@@ -6725,7 +6725,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown strategy [%s]", strategy);
 		inla_error_general(tmp);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"), NULL));
@@ -10823,7 +10823,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (!inla_divisible(n, dim)) {
 				GMRFLib_sprintf(&msg, "%s: N=%1d is not divisible by %1d", secname, n, dim);
 				inla_error_general(msg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			if (mb->verbose) {
 				printf("\t\tdim=[%1d]\n", dim);
@@ -10888,7 +10888,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				if (mb->f_n[mb->nf] != -99 && nlocations != mb->f_n[mb->nf]) {
 					GMRFLib_sprintf(&msg, "Number of locations and N does not match: %d != %d\n", nlocations, mb->f_n[mb->nf]);
 					inla_error_general(msg);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				mb->f_N[mb->nf] = mb->f_n[mb->nf] = nlocations;
 				if (mb->verbose) {
@@ -11227,7 +11227,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
 					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
 			inla_error_general(ptmp);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
@@ -11271,7 +11271,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 			if (mb->f_fixed[mb->nf][i]) {
 				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE2 model.");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
@@ -11331,7 +11331,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the AR-model: %1d != %1d\n",
 					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta - 1);
 			inla_error_general(ptmp);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		/*
@@ -11628,7 +11628,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 #if defined(WINDOWS)
 		inla_error_general("Model 'rgeneric' is not available for Windows; please use Linux or MacOSX.");
-		exit(1);
+		exit(EXIT_FAILURE);
 #else
 		int err, debug = 0;
 
@@ -13608,12 +13608,12 @@ int inla_add_copyof(inla_tp * mb)
 			if (kk < 0 || k == kk) {
 				GMRFLib_sprintf(&msg, "ffield %1d is F_COPY and a copy of %s which is not found", k, mb->f_of[k]);
 				inla_error_general(msg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			if (mb->f_id[kk] == F_COPY && kk > k) {
 				GMRFLib_sprintf(&msg, "ffield [%s] is a copy of a (later defined) F_COPY field [%s]; please swap", mb->f_tag[k], mb->f_tag[kk]);
 				inla_error_general(msg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			if (mb->f_same_as[k]) {
@@ -13621,25 +13621,25 @@ int inla_add_copyof(inla_tp * mb)
 				if (kkk < 0) {
 					GMRFLib_sprintf(&msg, "ffield %1d is F_COPY but same.as=[%s] is not found", k, mb->f_same_as[k]);
 					inla_error_general(msg);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				if (mb->f_id[kkk] != F_COPY) {
 					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is not F_COPY\n", mb->f_tag[k], mb->f_tag[kk],
 							mb->f_same_as[k]);
 					inla_error_general(msg);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				if (kkk == k) {
 					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is not allowed.\n",
 							mb->f_tag[k], mb->f_tag[kk], mb->f_same_as[k]);
 					inla_error_general(msg);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				if (kkk > k) {
 					GMRFLib_sprintf(&msg, "ffield [%s] is a copy of [%s], but same.as=[%s] which is after; please swap. %1d > %1d\n",
 							mb->f_tag[k], mb->f_tag[kk], mb->f_same_as[k], kkk, k);
 					inla_error_general(msg);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 			} else {
 				kkk = k;
@@ -15502,7 +15502,7 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			if (mb->f_ngroup[i] > 1) {
 				fprintf(stderr, "\n\n F_Z is not yet prepared for ngroup > 1\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			if (!mb->f_fixed[i][0]) {
@@ -15527,7 +15527,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			if (mb->f_ngroup[i] > 1) {
 				fprintf(stderr, "\n\n F_ZADD is not yet prepared for ngroup > 1\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		}
@@ -15753,7 +15753,7 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			if (mb->f_ngroup[i] > 1) {
 				fprintf(stderr, "\n\n F_2DIID is not yet prepared for ngroup > 1\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			assert(mb->f_ntheta[i] == 3);	       /* yes */
@@ -16498,7 +16498,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	for (i = 0; i < mb_old->nf; i++) {
 		if (mb_old->f_bfunc2[i]) {
 			fprintf(stderr, "\n\n\t*** The MCMC-module is not yet implemented with mfunc-models. Please contact developers\n\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -16840,7 +16840,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		if (fifo_err) {
 			GMRFLib_sprintf(&msg, "FIFO-ERROR (GET): %s\n", strerror(errno));
 			inla_error_general(msg);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		if (mb_old->verbose) {
 			printf("Create new fifo-file [%s]\n", FIFO_PUT);
@@ -16849,7 +16849,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		if (fifo_err) {
 			GMRFLib_sprintf(&msg, "FIFO-ERROR (PUT): %s\n", strerror(errno));
 			inla_error_general(msg);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		if (mb_old->verbose) {
@@ -16878,7 +16878,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			if (fifo_err) {
 				GMRFLib_sprintf(&msg, "FIFO-ERROR (GET DATA): %s\n", strerror(errno));
 				inla_error_general(msg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			if (mb_old->verbose) {
 				printf("Create new fifo-file [%s]\n", FIFO_PUT_DATA);
@@ -16887,7 +16887,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 			if (fifo_err) {
 				GMRFLib_sprintf(&msg, "FIFO-ERROR (PUT DATA): %s\n", strerror(errno));
 				inla_error_general(msg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			if (mb_old->verbose) {
@@ -19728,7 +19728,7 @@ int testit(int argc, char **argv)
 	printf("%s\n", strupc("abc"));
 	printf("%s\n", strupc("ABC"));
 	printf("[%s]\n", strcrop("ABC   "));
-	exit(0);
+	exit(EXIT_SUCCESS);
 
 
 
@@ -19738,20 +19738,20 @@ int testit(int argc, char **argv)
 	}
 	if (0) {
 		ar_test1();
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (0) {
 		P(bessel_Knu(0.25, 0.2));
 		P(gsl_sf_bessel_Knu(0.25, 0.2));
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 
 	if (0) {
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 
@@ -19770,7 +19770,7 @@ int testit(int argc, char **argv)
 		// dsas(-5:4, skew = 0.1, kurt = 3.2)
 		// [1] -12.7762761870 -8.7141826028 -5.4397533201 -2.9879481542 -1.4152402204
 		// [6] -0.8807294462 -1.4859634133 -2.8993708955 -5.0172402538 -7.8036535440
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (0) {
@@ -19840,7 +19840,7 @@ int testit(int argc, char **argv)
 
 		fc = inla_read_file_contents("aa.dat");
 		inla_write_file_contents("bb.dat", fc);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (0) {
@@ -19895,7 +19895,7 @@ int testit(int argc, char **argv)
 		GMRFLib_matrix_free(N);
 	}
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv)
@@ -19950,7 +19950,7 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
 			printf("INLA[%s] IS ALIVE\n", RCSId);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 	}
 
@@ -20007,14 +20007,14 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_TESTIT;
 			} else {
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
 		case 'S':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-S scale' only available in MCMC mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				if (inla_sread_doubles(&G.mcmc_scale, 1, optarg) == INLA_OK) {
 					;
@@ -20027,7 +20027,7 @@ int main(int argc, char **argv)
 		case 'T':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-T thining' only available in MCMC mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				if (inla_sread_ints(&G.mcmc_thinning, 1, optarg) == INLA_OK) {
 					;
@@ -20040,7 +20040,7 @@ int main(int argc, char **argv)
 		case 'z':
 			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				int int_seed;
 				if (inla_sread_ints(&int_seed, 1, optarg) == INLA_OK) {
@@ -20060,7 +20060,7 @@ int main(int argc, char **argv)
 		case 'F':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-F' only available in MCMC mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				G.mcmc_fifo = 1;
 			}
@@ -20068,7 +20068,7 @@ int main(int argc, char **argv)
 		case 'Y':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-Y' only available in MCMC mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				G.mcmc_fifo_pass_data = 1;
 			}
@@ -20076,7 +20076,7 @@ int main(int argc, char **argv)
 		case 'N':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-N niter' only available in MCMC mode\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			} else {
 				if (inla_sread_ints(&G.mcmc_niter, 1, optarg) == INLA_OK) {
 					;
@@ -20140,27 +20140,27 @@ int main(int argc, char **argv)
 	 */
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind], argv[optind + 1]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_QSOLVE) {
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_QREORDERING) {
 		inla_qreordering(argv[optind]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_QSAMPLE) {
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5], argv[optind + 6]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_FINN) {
 		inla_finn(argv[optind]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_SASPRIOR) {
 		/*
@@ -20168,11 +20168,11 @@ int main(int argc, char **argv)
 		 */
 		double lambda = 1.0;
 		re_sas_table_check(&lambda);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_TESTIT) {
 		testit(argc, argv);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	/*
