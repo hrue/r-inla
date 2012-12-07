@@ -357,9 +357,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 			}
 		}
 
-		GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-		off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-
 		if (sparse) {
 			ntriples = M->elems;
 			for (k = 0; k < M->elems; k++) {
@@ -369,7 +366,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 				if (debug) {
 					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
 				}
-				GMRFLib_ged_add(ged, i - off, j - off);
+				GMRFLib_ged_add(ged, i, j);
 			}
 		} else {
 			ntriples = M->nrow;
@@ -380,7 +377,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 				if (debug) {
 					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
 				}
-				GMRFLib_ged_add(ged, i - off, j - off);
+				GMRFLib_ged_add(ged, i, j);
 			}
 		}
 		/*
