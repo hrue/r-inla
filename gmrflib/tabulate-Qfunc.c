@@ -305,7 +305,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * only values i<=j are required. duplicated values are added up.
 	 */
 
-	int i, j, ii, jj, count, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off, sparse = 0;
+	int i, j, ii, jj, count, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off = 0, sparse = 0;
 	double value, *prev;
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
