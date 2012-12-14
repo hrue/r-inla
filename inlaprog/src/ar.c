@@ -274,7 +274,6 @@ double Qfunc_ar(int i, int j, void *arg)
 	}
 
 	if (eq) {
-
                 /*
 		 * use what we already have
 		 */
@@ -283,7 +282,6 @@ double Qfunc_ar(int i, int j, void *arg)
 
 		node = IMIN(i, j);
 		nnode = IMAX(i, j);
-
 		if (nnode < def->p) {			       /* recalling (i,j) starts from (0,0) */
 			ii = node;
 			jj = nnode;
@@ -301,7 +299,6 @@ double Qfunc_ar(int i, int j, void *arg)
 		val = exp(def->log_prec[GMRFLib_thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
 		return (val);
 	} else {
-
 		/*
 		 * Build the Qmatrix 
 		 */

@@ -19,26 +19,29 @@
 {
     ##:NAME: control.group
     list(
-         ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'rw1' or 'rw2')
-         model = "exchangeable",
+        ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1' or 'rw2')
+        model = "exchangeable",
+        
+        ##:ARGUMENT: order Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.
+        order = NULL, 
 
-         ##:ARGUMENT: cyclic Make the group model cyclic? (Only applies to models 'ar1',  'rw1' and 'rw2')
-         cyclic = FALSE,
+        ##:ARGUMENT: cyclic Make the group model cyclic? (Only applies to models 'ar1',  'rw1' and 'rw2')
+        cyclic = FALSE,
          
-         ##:ARGUMENT: hyper Definition of the hyperparameter(s)
-         hyper = NULL,
+        ##:ARGUMENT: hyper Definition of the hyperparameter(s)
+        hyper = NULL,
 
-         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.
-         initial = NULL,
+        ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.
+        initial = NULL,
 
-         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.
-         fixed = NULL,
+        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.
+        fixed = NULL,
 
-         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale
-         prior = NULL,
+        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale
+        prior = NULL,
 
-         ##:ARGUMENT: param (OBSOLETE!) Prior parameters
-         param = NULL)
+        ##:ARGUMENT: param (OBSOLETE!) Prior parameters
+        param = NULL)
 
     ##:SEEALSO: inla
 }
