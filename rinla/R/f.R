@@ -346,12 +346,6 @@
         weigths = attr(terms(reformulate(weights)),"weights.labels")
     }
 
-    ## set here a default prior for AR(p)
-    if (inla.one.of(model, "ar") && is.null(param) && is.null(hyper)) {
-        order = as.integer(order)
-        hyper = list(theta2 = list(param = c(rep(0, order), 0.15*diag(order))))
-    }
-
     ## set the hyperparameters
     hyper = inla.set.hyper(model = model,  section = "latent",
             hyper = hyper, hyper.default = hyper.default,
