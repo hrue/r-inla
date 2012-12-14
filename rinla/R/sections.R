@@ -148,6 +148,13 @@
         cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
     }
 
+    if (inla.one.of(random.spec$model, "ar")) {
+        ## set a default prior for order > 1 if the param is given only for p=1
+        par = random.spec$hyper$theta2$param
+        if (length(par) == 2L && random.spec$order > 1L) {
+            random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
+        }
+    }
     inla.write.hyper(random.spec$hyper, file)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
@@ -171,6 +178,18 @@
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
         cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
         inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
+        if (inla.one.of(random.spec$control.group$model, "ar")) {
+            ## 'order' is only used for model=ar
+            p = inla.ifelse(is.null(random.spec$control.group$order), 0, as.integer(random.spec$control.group$order))
+            cat("group.order = ", p, "\n", sep = " ", file = file,  append = TRUE)
+            ## set a default prior for order > 1 if the param is given only for p=1
+            par = random.spec$control.group$hyper$theta2$param
+            if (length(par) == 2L) {
+                if (p > 1L) {
+                    random.spec$control.group$hyper$theta2$param = c(rep(par[1], p), par[2]*diag(p))
+                }
+            }
+        }
         inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
     }
         

@@ -44,6 +44,7 @@ __BEGIN_DECLS
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
+#include "ar.h"
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
@@ -416,7 +417,8 @@ typedef enum {
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1,
 	G_RW1,
-	G_RW2
+	G_RW2,
+	G_AR
 } inla_component_tp;
 
 
@@ -520,6 +522,23 @@ typedef struct {
 	double **rho_intern;
 } inla_rwc2_def_tp;
 
+typedef struct
+{
+	int n;
+	int p;
+
+	double **log_prec;
+	double ***pacf_intern;
+	
+	/* 
+	 * these are the stored values, all for prec = 1
+	 */
+	double **hold_pacf_intern;			       /* [i][id][0] */
+	double **hold_Q;				       /* dim = 2*p + 1 */
+	double **hold_Qmarg;				       /* dim = p */
+}
+	ar_def_tp;
+
 typedef struct {
 	int N;
 	int ngroup;
@@ -530,6 +549,7 @@ typedef struct {
 	double **group_rho_intern;
 	double **group_prec_intern;
 	GMRFLib_rwdef_tp *rwdef;
+	ar_def_tp *ardef;
 } inla_group_def_tp;
 
 typedef struct {
@@ -637,6 +657,7 @@ struct inla_tp_struct {
 	int *f_ngroup;
 	int *f_group_model;
 	int *f_group_cyclic;
+	int *f_group_order;
 	int *f_order;
 	double **f_locations;
 	double **f_weights;
@@ -906,6 +927,7 @@ typedef struct {
 	GMRFLib_tabulate_Qfunc_tp **Q;
 } inla_rgeneric_tp;
 
+
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_INITIAL "initial"
@@ -1061,7 +1083,7 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
@@ -1119,6 +1141,8 @@ int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
@@ -1211,6 +1235,14 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 
 double iid_mfunc(int idx, void *arg);
+
+int ar_pacf2phi(int p, double *pacf, double *phi);
+int ar_phi2pacf(int p, double *phi, double *pacf);
+int ar_test1();
+int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
+double Qfunc_ar(int i, int j, void *arg);
+double ar_map_pacf(double arg, map_arg_tp typ, void *param);
+
 
 /* 
 ***
