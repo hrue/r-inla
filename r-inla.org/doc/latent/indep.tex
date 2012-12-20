@@ -8,13 +8,15 @@
 
 \subsection*{Parametrization}
 
-This model simply defines $\mathcal{x}$ to be a vector of independent
-and Gaussian distributed random variable with precision $\tau$:
-\[
-\pi(\mathbf{x}|\tau) \propto \tau^{n/2}\exp\left\{
-  -\frac{\tau}{2}\mathbf{x}^T\mathbf{I}\mathbf{x} \right\}
-\]
-where $\mathbf{I}$ is the identity matrix.
+This model simply defines $\mathbf{x}$ to be a vector of independent
+and Gaussian distributed random variable (possibly scaled) with
+precision $\tau$:
+\begin{displaymath}
+    \pi(\mathbf{x}|\tau) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi}}
+    \sqrt{(s_{i}\tau)}\exp\left(\frac{1}{2} (s_{i}\tau) x_{i}^{2}\right)
+\end{displaymath}
+where $s_{i} > 0$ is an optional fixed scale
+
 \subsection*{Hyperparameters}
 
 The precision parameter $\tau$ is represented as
@@ -27,8 +29,9 @@ and the prior is defined on $\mathbf{\theta}$.
 
 The independent model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="iid", hyper = <hyper>)
+ f(<whatever>, model="iid", hyper = <hyper>, scale = <scale>)
 \end{verbatim}
+where the option \verb|scale| is optional and default to (all) $1$.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/iid.tex}
@@ -52,7 +55,8 @@ result=inla(formula,data=data,family="binomial",Ntrials=Ntrials)
 
 \subsection*{Notes}
 
-None
+None.
+
 \end{document}
 
 

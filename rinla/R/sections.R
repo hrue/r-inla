@@ -235,7 +235,7 @@
         cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (random.spec$model == "me") {
+    if (inla.one.of(random.spec$model, c("me", "iid"))) {
         ## possible scale-variable
         if (!is.null(random.spec$scale)) {
             file.scale=inla.tempfile(tmpdir=data.dir)
