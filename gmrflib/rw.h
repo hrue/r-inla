@@ -113,6 +113,12 @@ __BEGIN_DECLS
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
+
+	/*
+	 * scale the prec: only for order = 0. Not public
+	 */
+	double *scale0;
+	
 } GMRFLib_rwdef_tp;
 
 /*!
@@ -220,6 +226,12 @@ typedef struct {
 	 * 
 	 */
 	double *work;
+
+	/*
+	 * scale the prec: only for order = 0. Not public
+	 */
+	double *scale0;
+
 } GMRFLib_crwdef_tp;
 
 

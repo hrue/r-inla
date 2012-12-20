@@ -65,10 +65,10 @@ double GMRFLib_rw(int node, int nnode, void *def)
 	prec = GMRFLib_SET_PREC(rwdef);
 
 	/*
-	 * this is the easy case 
+	 * this is the easy case. Note that this case has an additional 'scale0' parameter
 	 */
 	if (rwdef->order == 0) {
-		return (node == nnode ? prec : 0.0);
+		return (node == nnode ? ((rwdef->scale0 ? rwdef->scale0[node] : 1.0) * prec) : 0.0);
 	}
 
 	if (rwdef->cyclic) {
@@ -218,9 +218,13 @@ double GMRFLib_crw(int node, int nnode, void *def)
 	use_pos = (crwdef->position ? 1 : 0);
 	order = crwdef->order;
 
+	/*
+	 * this is the easy case. Note that this case has an additional 'scale0' parameter
+	 */
 	if (order == 0) {
-		return (node == nnode ? prec : 0.0);	       /* the simple case */
+		return (node == nnode ? ((crwdef->scale0 ? crwdef->scale0[node] : 1.0) * prec) : 0.0);
 	}
+	assert(order > 0);
 
 	if (crwdef->position) {
 		/*

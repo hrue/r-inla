@@ -41,6 +41,11 @@
     return (inla.as.dgTMatrix(A))
 }
 
+`inla.as.sparse` = function(...)
+{
+    return (inla.as.dgTMatrix(...))
+}
+
 `inla.as.dgTMatrix` = function(A, unique = TRUE)
 {
     ## convert into dgTMatrix format of Matrix. Argument A is any

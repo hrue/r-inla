@@ -13203,6 +13203,21 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			rwdef->n = mb->f_n[mb->nf];
 			if (mb->f_id[mb->nf] == F_IID) {
 				rwdef->order = 0;
+
+				/* 
+				 * this case has an extra option: scale
+				 */
+				char *filename_s;
+				filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+				if (filename_s) {
+					if (mb->verbose) {
+						printf("\t\tread scale from file=[%s]\n", filename_s);
+					}
+					inla_read_data_general(&(rwdef->scale0), NULL, NULL, filename_s, rwdef->n, 0, 1, mb->verbose, 1.0);
+					mb->f_scale[mb->nf] = rwdef->scale0; /* need a copy */
+				} else {
+					rwdef->scale0 = NULL;
+				}
 			} else if (mb->f_id[mb->nf] == F_RW1) {
 				rwdef->order = 1;
 			} else {
@@ -13237,6 +13252,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			crwdef->log_prec_omp = log_prec;
 			if (mb->f_id[mb->nf] == F_IID) {
 				crwdef->order = 0;
+				/* 
+				 * this case has an extra option: scale
+				 */
+				char *filename_s;
+				filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
+				if (filename_s) {
+					if (mb->verbose) {
+						printf("\t\tread scale from file=[%s]\n", filename_s);
+					}
+					inla_read_data_general(&(crwdef->scale0), NULL, NULL, filename_s, crwdef->n, 0, 1, mb->verbose, 1.0);
+					mb->f_scale[mb->nf] = crwdef->scale0; /* need a copy */
+				} else {
+					crwdef->scale0 = NULL;
+				}
 				crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 				mb->f_rankdef[mb->nf] = 0.0;
 			} else if (mb->f_id[mb->nf] == F_RW1) {
@@ -15257,9 +15286,20 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			SET_GROUP_RHO(1);
+
+			double scale_correction = 0.0;
+			if (mb->f_id[i] == F_IID && mb->f_scale[i]) {
+				int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
+
+				for(ii = 0; ii < nii; ii++) {
+					scale_correction += log(mb->f_scale[i][ii]);
+				}
+				scale_correction /= nii;
+			} 
+
 			val +=
 			    mb->f_nrep[i] * (normc_g + LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-					     (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision);
+					     (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction));
 			if (!mb->f_fixed[i][0]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
