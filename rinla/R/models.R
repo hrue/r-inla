@@ -2609,6 +2609,25 @@
                       pdf = "binomial"
                       ),
 
+              binomialre = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.01),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "binomialre"
+                      ),
+
               testbinomial1 = list(
                       hyper = list(
                               theta1 = list(
