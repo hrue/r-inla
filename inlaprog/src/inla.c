@@ -2385,6 +2385,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	} else if (ds->data_id == L_BINOMIAL) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+	} else if (ds->data_id == L_BINOMIALRE) {
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 	} else if (ds->data_id == L_BINOMIALTEST) {
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -4064,6 +4067,78 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_binomialre(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ BinomialRE(n, p)
+	 */
+	int i, k, npoints = 11;
+	double *points, *weights, *val, point, val_max, sum;
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	static double *storage = NULL;
+#pragma omp threadprivate(storage)
+
+	if (!storage) {
+		double *pp, *ww;
+
+		GMRFLib_ghq(&pp, &ww, npoints);	       /* these are just pointers... */
+		storage = Calloc(3*npoints, double);       /* use just one longer vector */
+		memcpy(storage + npoints, pp, npoints*sizeof(double));
+		memcpy(storage + 2*npoints, ww, npoints*sizeof(double));
+	}
+
+	val = storage;
+	points = storage + npoints;
+	weights = storage + 2*npoints;
+	
+	int status;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, n, p, prec;
+	
+	y = ds->data_observations.y[idx];
+	n = ds->data_observations.nb[idx];
+	prec = map_precision(ds->data_observations.log_prec_binomialre[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	if (m > 0) {
+		gsl_sf_result res;
+		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		assert(status == GSL_SUCCESS);
+		
+		for (i = 0; i < m; i++) {
+			for(k = 0; k < npoints; k++){
+				point = points[k] / sqrt(prec);
+				p = PREDICTOR_INVERSE_LINK(x[i] + point + OFFSET(idx));
+				val[k] = log(weights[k]) + y * log(p) + (n - y) * log(1.0 - p) + res.val;
+			}
+			val_max = GMRFLib_max_value(val, npoints, NULL);
+			sum = 0.0;
+			for(k = 0; k < npoints; k++){
+				if (!ISNAN(val[k])){
+					sum += exp(val[k] - val_max);
+				}
+			}
+			assert(sum > 0.0);
+			logll[i] = log(sum) + val_max;
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			sum = 0.0;
+			for(k = 0; k < npoints; k++){
+				point = points[k] / sqrt(prec);
+				p = PREDICTOR_INVERSE_LINK((x[i] + point + OFFSET(idx)));
+				p = DMIN(1.0, p);
+				sum += weights[k] * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			}
+			logll[i] = sum * sqrt(prec);
 		}
 	}
 
@@ -7118,6 +7193,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
+	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALRE")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialre;
+		ds->data_id = L_BINOMIALRE;
+		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALTEST")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialtest;
 		ds->data_id = L_BINOMIALTEST;
@@ -7403,6 +7482,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	} else if (ds->data_id == L_BINOMIAL || ds->data_id == L_ZEROINFLATEDBINOMIAL0 || ds->data_id == L_ZEROINFLATEDBINOMIAL1 ||
 		   ds->data_id == L_ZEROINFLATEDBINOMIAL2 || ds->data_id == L_ZEROINFLATEDBETABINOMIAL2 || ds->data_id == L_ZERO_N_INFLATEDBINOMIAL2 ||
+		   ds->data_id == L_BINOMIALRE ||
 		   ds->data_id == L_BINOMIALTEST || ds->data_id == L_BETABINOMIAL || ds->data_id == L_TEST_BINOMIAL_1) {
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -7739,6 +7819,49 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_wrapped_cauchy;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+	} else if (ds->data_id == L_BINOMIALRE) {
+		/*
+		 * get options related to the binomial.re
+		 */
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_binomialre, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_prec[%g]\n", ds->data_observations.log_prec_binomialre[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for BinomialRE", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for BinomialRE", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_binomialre;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -14814,6 +14937,13 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+			} else if (ds->data_id == L_BINOMIALRE) {
+				if (!ds->data_fixed) {
+					log_precision = theta[count];
+					val += 0.5 * log_precision;
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}

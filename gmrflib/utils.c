@@ -244,7 +244,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		*idx = 0;
 	}
 	for (i = 1; i < n; i++) {
-		if (x[i] < min_val) {
+		if (x[i] < min_val && !ISNAN(x[i])) {
 			min_val = x[i];
 			if (idx) {
 				*idx = i;
@@ -267,7 +267,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		*idx = 0;
 	}
 	for (i = 1; i < n; i++) {
-		if (x[i] < min_val) {
+		if (x[i] < min_val && !ISNAN(x[i])) {
 			min_val = x[i];
 			if (idx) {
 				*idx = i;
@@ -290,7 +290,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		*idx = 0;
 	}
 	for (i = 1; i < n; i++) {
-		if (x[i] > max_val){
+		if (x[i] > max_val && !ISNAN(x[i])){
 			max_val = x[i];
 			if (idx) {
 				*idx = i;
@@ -314,7 +314,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		*idx = 0;
 	}
 	for (i = 1; i < n; i++) {
-		if (x[i] > max_val) {
+		if (x[i] > max_val && !ISNAN(x[i])) {
 			max_val = x[i];
 			if (idx) {
 				*idx = i;
