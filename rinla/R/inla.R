@@ -827,14 +827,32 @@
     
     cont.family = list(list())
     for(i.family in 1:n.family) {
-        cont.family[[i.family]] = inla.set.control.family.default() 
+        cont.family[[i.family]] = inla.set.control.family.default()
+        cont.family[[i.family]]$control.re = inla.set.control.re.default()
+
+        ## need to take option 'control.re' out and process it seperately
+        c.re = control.family[[i.family]]$control.re
+        control.family[[i.family]]$control.re = NULL
+        
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
-        cont.family[[i.family]]$hyper = inla.set.hyper(family[i.family], "likelihood",
-                                     cont.family[[i.family]]$hyper, 
-                                     cont.family[[i.family]]$initial, 
-                                     cont.family[[i.family]]$fixed,
-                                     cont.family[[i.family]]$prior,
-                                     cont.family[[i.family]]$param)
+        cont.family[[i.family]]$hyper = inla.set.hyper(
+                                       family[i.family],
+                                       "likelihood",
+                                       cont.family[[i.family]]$hyper, 
+                                       cont.family[[i.family]]$initial, 
+                                       cont.family[[i.family]]$fixed,
+                                       cont.family[[i.family]]$prior,
+                                       cont.family[[i.family]]$param)
+        
+        cont.family[[i.family]]$control.re[names(c.re)] = c.re
+        cont.family[[i.family]]$control.re$hyper = inla.set.hyper(
+                                       cont.family[[i.family]]$control.re$model,
+                                       "re",
+                                       cont.family[[i.family]]$control.re$hyper, 
+                                       cont.family[[i.family]]$control.re$initial, 
+                                       cont.family[[i.family]]$control.re$fixed,
+                                       cont.family[[i.family]]$control.re$prior,
+                                       cont.family[[i.family]]$control.re$param)
     }
     
     ## control results

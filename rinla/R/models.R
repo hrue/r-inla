@@ -2494,6 +2494,29 @@
          )
 }
 
+`inla.models.section.re` = function()
+{
+    return
+    list(re =
+         list(
+             gaussian = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     prior = "loggamma",
+                                     param = c(1, 0.01),
+                                     initial = 0,
+                                     fixed = TRUE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )
+                             )
+                     )
+             )
+         )
+}
+
 `inla.models.section.predictor` = function()
 {
     return
@@ -3829,10 +3852,11 @@
         return (get("inla.models", envir = envir))
 
     } else {
-        ## have to split it,  as option keep.source has an upper limit; what a shame...
+        ## have to split it, as option keep.source has an upper limit...
         models = c(
                 inla.models.section.latent(),
                 inla.models.section.group(),
+                inla.models.section.re(),
                 inla.models.section.predictor(),
                 inla.models.section.hazard(),
                 inla.models.section.likelihood(),
