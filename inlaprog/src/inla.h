@@ -339,7 +339,6 @@ typedef enum {
 	L_POISSON,
 	L_GPOISSON,
 	L_BINOMIAL,
-	L_BINOMIALRE,
 	L_BINOMIALTEST,					       /* test-version of the binomial! */
 	L_CBINOMIAL,					       /* clumped binomial */
 	L_ZEROINFLATEDBINOMIAL0,
@@ -1183,7 +1182,6 @@ int inla_wishart3d_adjust(double *rho);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_binomialre(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
