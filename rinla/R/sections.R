@@ -94,6 +94,13 @@
     
     inla.write.hyper(control$hyper, file)
     
+    ## the re-part
+    inla.write.boolean.field("re.use", control$control.re$use, file)
+    if (control$control.re$use) {
+        cat("re.model = ", control$control.re$model, "\n", sep="", file=file, append=TRUE)
+        inla.write.hyper(control$control.re$hyper, file, prefix = "re.")
+    }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

@@ -318,6 +318,11 @@ typedef struct {
 	 */
 	double **gamma_log_prec;
 	double *gamma_weight;				       /* the scalings 's' */
+
+	/*
+	 * RE ~ Normal(x, 1/prec)
+	 */
+	double **re_log_prec_gaussian;
 } Data_tp;
 
 /* 
@@ -424,7 +429,8 @@ typedef enum {
 	G_AR1,
 	G_RW1,
 	G_RW2,
-	G_AR
+	G_AR, 
+	RE_GAUSSIAN, 
 } inla_component_tp;
 
 
@@ -518,6 +524,16 @@ typedef struct {
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
+
+	/* 
+	 * the re-extention
+	 */
+	int re_use;
+	inla_component_tp re_id;
+	GMRFLib_logl_tp *re_loglikelihood;
+	Prior_tp re_prior;
+	int re_fixed;
+	int re_ntheta;
 } Data_section_tp;
 
 
@@ -1146,6 +1162,7 @@ int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *default_prior);
+int inla_read_prior_re(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
