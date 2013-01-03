@@ -98,7 +98,7 @@ static const char RCSId[] = HGVERSION;
 #define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
 #define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
-#define RE_NPOINTS (11)					       /* number of quadrature points for the RE-likelihoods */
+#define RE_NPOINTS (15)					       /* number of quadrature points for the RE-likelihoods */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -4216,7 +4216,7 @@ int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *
 	 */
 
 	int i, k;
-	double *points, *weights, *val, point, val_max, sum, prec, *xx, *ll;
+	double *points = NULL, *weights = NULL, *val = NULL, point, val_max, sum, prec, *xx = NULL, *ll = NULL;
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -15925,7 +15925,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			if (ds->re_use) {
 				check += ds->re_ntheta;
-
+				
 				switch (ds->re_id) {
 				case RE_GAUSSIAN:
 					if (!ds->re_fixed) {
@@ -15934,7 +15934,7 @@ double extra(double *theta, int ntheta, void *argument)
 						count++;
 					}
 					break;
-
+					
 				default:
 					assert(0 == 1);
 				}
@@ -15942,7 +15942,6 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 		assert(mb->data_ntheta_all == check);
 	}
-
 
 	for (i = 0; i < mb->nlinear; i++) {
 		if (mb->linear_precision[i] > 0.0) {
