@@ -46,6 +46,35 @@
     ##:SEEALSO: inla
 }
 
+`inla.set.control.re.default` =
+    function()
+{
+    ##:NAME: control.re
+    list(
+        ##:ARGUMENT: use Integrate the likelihood with a Gaussian random-effect? Default FALSE
+        use = FALSE,
+
+        ##:ARGUMENT: model Currently, only the \code{model='gaussian'} is implemented
+        model = "gaussian",
+
+        ##:ARGUMENT: hyper Definition of the hyperparameter (the log-precision)
+        hyper = NULL,
+
+        ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.
+        initial = NULL,
+
+        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.
+        fixed = NULL,
+
+        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale
+        prior = NULL,
+
+        ##:ARGUMENT: param (OBSOLETE!) Prior parameters
+        param = NULL)
+
+    ##:SEEALSO: inla
+}
+
 `inla.set.f.default` =
     function()
 {
@@ -109,42 +138,45 @@
 {
     ##:NAME: control.family
     list(
-         ##:ARGUMENT: hyper Definition of the hyperparameters
-         hyper = NULL,
+        ##:ARGUMENT: hyper Definition of the hyperparameters
+        hyper = NULL,
 
-         ##:ARGUMENT: initial (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.
-         initial=NULL,
+        ##:ARGUMENT: initial (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.
+        initial=NULL,
 
-         ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).
-         prior=NULL,
+        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).
+        prior=NULL,
 
-         ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution
-         param=NULL,
+        ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution
+        param=NULL,
 
-         ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
-         fixed=NULL,
+        ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
+        fixed=NULL,
 
-         ##:ARGUMENT: link The link function to use.
-         link="default",
+        ##:ARGUMENT: link The link function to use.
+        link="default",
 
-         ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
-         alpha=0.5,
+        ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
+        alpha=0.5,
 
-         ##:ARGUMENT: epsilon The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)
-         epsilon = 0.01,
+        ##:ARGUMENT: epsilon The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)
+        epsilon = 0.01,
 
-         ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
-         gamma = 1.0,
+        ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
+        gamma = 1.0,
 
-         ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
-         sn.shape.max = 5.0,
+        ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
+        sn.shape.max = 5.0,
 
-         ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
-         gev.scale.xi = 0.01,
+        ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
+        gev.scale.xi = 0.01,
 
-         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
-         variant = 0L
-         )
+        ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
+        variant = 0L,
+
+        ##:ARGUMENT: control.re See \code{?control.re}
+        control.re = NULL
+        )
 
     ##:SEEALSO: inla
 }
