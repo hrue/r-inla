@@ -95,9 +95,10 @@ static const char RCSId[] = HGVERSION;
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-#define TSTRATA_MAXTHETA 11				       /* as given in models.R */
-#define SPDE2_MAXTHETA   100				       /* as given in models.R */
-#define AR_MAXTHETA   10				       /* as given in models.R */
+#define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
+#define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
+#define AR_MAXTHETA   (10)				       /* as given in models.R */
+#define RE_NPOINTS (11)					       /* number of quadrature points for the RE-likelihoods */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -2462,11 +2463,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
 
-	case L_BINOMIALRE:
-		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
-		break;
-
 	case L_BINOMIALTEST:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -4213,84 +4209,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_binomialre(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y ~ BinomialRE(n, p)
-	 */
-	int i, k, npoints = 11;
-	double *points, *weights, *val, point, val_max, sum;
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-
-	static double *storage = NULL;
-#pragma omp threadprivate(storage)
-
-	if (!storage) {
-		double *pp, *ww;
-
-		GMRFLib_ghq(&pp, &ww, npoints);		       /* these are just pointers... */
-		storage = Calloc(3 * npoints, double);	       /* use just one longer vector */
-		memcpy(storage + npoints, pp, npoints * sizeof(double));
-		memcpy(storage + 2 * npoints, ww, npoints * sizeof(double));
-	}
-
-	val = storage;
-	points = storage + npoints;
-	weights = storage + 2 * npoints;
-
-	int status;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, n, p, prec;
-
-	y = ds->data_observations.y[idx];
-	n = ds->data_observations.nb[idx];
-	prec = map_precision(ds->data_observations.log_prec_binomialre[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	if (m > 0) {
-		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-		assert(status == GSL_SUCCESS);
-
-		for (i = 0; i < m; i++) {
-			for (k = 0; k < npoints; k++) {
-				point = points[k] / sqrt(prec);
-				p = PREDICTOR_INVERSE_LINK(x[i] + point + OFFSET(idx));
-				val[k] = log(weights[k]) + y * log(p) + (n - y) * log(1.0 - p) + res.val;
-			}
-			val_max = GMRFLib_max_value(val, npoints, NULL);
-			sum = 0.0;
-			for (k = 0; k < npoints; k++) {
-				if (!ISNAN(val[k])) {
-					sum += exp(val[k] - val_max);
-				}
-			}
-			assert(sum > 0.0);
-			logll[i] = log(sum) + val_max;
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			sum = 0.0;
-			for (k = 0; k < npoints; k++) {
-				point = points[k] / sqrt(prec);
-				p = PREDICTOR_INVERSE_LINK((x[i] + point + OFFSET(idx)));
-				sum += weights[k] * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
-			}
-			logll[i] = sum;
-		}
-	}
-
-	return GMRFLib_SUCCESS;
-}
 int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
 	 * this is the wrapper for the gaussian_re 
 	 */
 
-	int i, k, npoints = 11;
+	int i, k;
 	double *points, *weights, *val, point, val_max, sum, prec, *xx, *ll;
 
 	if (m == 0) {
@@ -4301,38 +4226,38 @@ int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *
 #pragma omp threadprivate(storage)
 
 	if (!storage) {
-		double *pp, *ww;
+		double *pp = NULL, *ww = NULL;
 
-		GMRFLib_ghq(&pp, &ww, npoints);		       /* these are just pointers... */
-		storage = Calloc(5 * npoints, double);	       /* use just one longer vector */
-		points = storage + npoints;
-		weights = storage + 2 * npoints;
-		memcpy(points, pp, npoints * sizeof(double));
-		memcpy(weights, ww, npoints * sizeof(double));
+		GMRFLib_ghq(&pp, &ww, RE_NPOINTS);		       /* these are just pointers... */
+		storage = Calloc(5 * RE_NPOINTS, double);	       /* use just one longer vector */
+		points = storage + RE_NPOINTS;
+		weights = storage + 2 * RE_NPOINTS;
+		memcpy(points, pp, RE_NPOINTS * sizeof(double));
+		memcpy(weights, ww, RE_NPOINTS * sizeof(double));
 	}
 
 	val = storage;
-	points = storage + npoints;
-	weights = storage + 2 * npoints;
-	xx = storage + 3 * npoints;
-	ll = storage + 4 * npoints;
+	points = storage + RE_NPOINTS;
+	weights = storage + 2 * RE_NPOINTS;
+	xx = storage + 3 * RE_NPOINTS;
+	ll = storage + 4 * RE_NPOINTS;
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	prec = map_precision(ds->data_observations.re_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			for (k = 0; k < npoints; k++) {
+			for (k = 0; k < RE_NPOINTS; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->re_loglikelihood(ll, xx, npoints, idx, x_vec, arg);
+			ds->re_loglikelihood(ll, xx, RE_NPOINTS, idx, x_vec, arg);
 
-			for (k = 0; k < npoints; k++) {
+			for (k = 0; k < RE_NPOINTS; k++) {
 				val[k] = log(weights[k]) + ll[k];
 			}
-			val_max = GMRFLib_max_value(val, npoints, NULL);
+			val_max = GMRFLib_max_value(val, RE_NPOINTS, NULL);
 			sum = 0.0;
-			for (k = 0; k < npoints; k++) {
+			for (k = 0; k < RE_NPOINTS; k++) {
 				if (!ISNAN(val[k])) {
 					sum += exp(val[k] - val_max);
 				}
@@ -4342,13 +4267,13 @@ int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
-			for (k = 0; k < npoints; k++) {
+			for (k = 0; k < RE_NPOINTS; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->re_loglikelihood(ll, xx, -npoints, idx, x_vec, arg);
+			ds->re_loglikelihood(ll, xx, -RE_NPOINTS, idx, x_vec, arg);
 
 			sum = 0.0;
-			for (k = 0; k < npoints; k++) {
+			for (k = 0; k < RE_NPOINTS; k++) {
 				sum += weights[k] * ll[k];
 			}
 			logll[i] = sum;
@@ -7425,10 +7350,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
 		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
-	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALRE")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialre;
-		ds->data_id = L_BINOMIALRE;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALTEST")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialtest;
 		ds->data_id = L_BINOMIALTEST;
@@ -7749,7 +7670,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBINOMIAL2:
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
-	case L_BINOMIALRE:
 	case L_BINOMIALTEST:
 	case L_BETABINOMIAL:
 	case L_TEST_BINOMIAL_1:
@@ -8104,50 +8024,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_wrapped_cauchy;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_BINOMIALRE:
-		/*
-		 * get options related to the binomial.re
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_prec_binomialre, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_prec[%g]\n", ds->data_observations.log_prec_binomialre[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
-		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for BinomialRE", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for BinomialRE", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_binomialre;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -15529,14 +15405,6 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
-					count++;
-				}
-				break;
-
-			case L_BINOMIALRE:
-				if (!ds->data_fixed) {
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
