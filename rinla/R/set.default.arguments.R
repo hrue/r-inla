@@ -51,25 +51,25 @@
 {
     ##:NAME: control.re
     list(
-        ##:ARGUMENT: use Integrate the likelihood with a Gaussian random-effect? Default FALSE
+        ##:ARGUMENT: use Integrate the likelihood with a random-effect added to the linear predictor? Default FALSE
         use = FALSE,
 
-        ##:ARGUMENT: model Currently, only the \code{model='gaussian'} is implemented
+        ##:ARGUMENT: model The model for the random effect. Currently, only \code{model='gaussian'} is implemented
         model = "gaussian",
 
-        ##:ARGUMENT: hyper Definition of the hyperparameter (the log-precision)
+        ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the random effect model chosen
         hyper = NULL,
 
-        ##:ARGUMENT: initial (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.
+        ##:ARGUMENT: initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
         initial = NULL,
 
-        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.
+        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random
         fixed = NULL,
 
-        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale
+        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)
         prior = NULL,
 
-        ##:ARGUMENT: param (OBSOLETE!) Prior parameters
+        ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)
         param = NULL)
 
     ##:SEEALSO: inla
