@@ -20,9 +20,9 @@ inla(formula, ..., control.family=list( <arg>=<value>[, <arg>=<value>]))
 \item{sh.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
 \item{gev.scale.xi}{  The scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{variant}{  This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
-\item{control.re}{  See \code{?control.re}}
+\item{control.mix}{  See \code{?control.mix}}
 }
 \seealso{
-\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.re}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

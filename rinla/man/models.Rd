@@ -3,14 +3,14 @@
 \alias{inla.models}
 \title{Valid models in INLA}
 \description{
-This page describe the models implemented in \code{inla}, divided into sections: latent, group, re, predictor, hazard, likelihood, prior, wrapper .
+This page describe the models implemented in \code{inla}, divided into sections: latent, group, mix, predictor, hazard, likelihood, prior, wrapper .
 }
 
 \usage{
 inla.models()
 }
 \value{
- 	 Valid sections are: latent, group, re, predictor, hazard, likelihood, prior, wrapper 
+ 	 Valid sections are: latent, group, mix, predictor, hazard, likelihood, prior, wrapper 
 
  	 \describe{
 		\item{Section `latent'.}{
@@ -3018,7 +3018,7 @@ inla.models()
 				 }
 			 }
 		 }
-		\item{Section `re'.}{
+		\item{Section `mix'.}{
 			 Valid models in this section are:
 			 \describe{
 				\item{Model `gaussian'.}{Number of hyperparmeters are 1.

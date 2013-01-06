@@ -12,6 +12,6 @@ inla(formula, ..., control.lincomb=list( <arg>=<value>[, <arg>=<value>]))
 \item{verbose}{  Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
 }
 \seealso{
-\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.re}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }
