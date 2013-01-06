@@ -847,7 +847,7 @@
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
                                        cont.family[[i.family]]$control.mix$model,
-                                       "re",
+                                       "mix",
                                        cont.family[[i.family]]$control.mix$hyper, 
                                        cont.family[[i.family]]$control.mix$initial, 
                                        cont.family[[i.family]]$control.mix$fixed,
