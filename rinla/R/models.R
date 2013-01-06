@@ -2494,10 +2494,10 @@
          )
 }
 
-`inla.models.section.re` = function()
+`inla.models.section.mix` = function()
 {
     return
-    list(re =
+    list(mix =
          list(
              gaussian = list(
                      hyper = list(
@@ -3837,7 +3837,7 @@
         models = c(
                 inla.models.section.latent(),
                 inla.models.section.group(),
-                inla.models.section.re(),
+                inla.models.section.mix(),
                 inla.models.section.predictor(),
                 inla.models.section.hazard(),
                 inla.models.section.likelihood(),

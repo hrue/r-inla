@@ -46,10 +46,10 @@
     ##:SEEALSO: inla
 }
 
-`inla.set.control.re.default` =
+`inla.set.control.mix.default` =
     function()
 {
-    ##:NAME: control.re
+    ##:NAME: control.mix
     list(
         ##:ARGUMENT: use Integrate the likelihood with a random-effect added to the linear predictor? Default FALSE
         use = FALSE,
@@ -174,8 +174,8 @@
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
         variant = 0L,
 
-        ##:ARGUMENT: control.re See \code{?control.re}
-        control.re = NULL
+        ##:ARGUMENT: control.mix See \code{?control.mix}
+        control.mix = NULL
         )
 
     ##:SEEALSO: inla
