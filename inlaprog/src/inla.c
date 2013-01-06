@@ -98,7 +98,7 @@ static const char RCSId[] = HGVERSION;
 #define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
 #define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
-#define RE_NPOINTS (15)					       /* number of quadrature points for the RE-likelihoods */
+#define MIX_NPOINTS (15)					       /* number of quadrature points for the RE-likelihoods */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -4209,10 +4209,10 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
-	 * this is the wrapper for the gaussian_re 
+	 * this is the wrapper for the gaussian_mix
 	 */
 
 	int i, k;
@@ -4228,36 +4228,36 @@ int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *
 	if (!storage) {
 		double *pp = NULL, *ww = NULL;
 
-		GMRFLib_ghq(&pp, &ww, RE_NPOINTS);		       /* these are just pointers... */
-		storage = Calloc(5 * RE_NPOINTS, double);	       /* use just one longer vector */
-		points = storage + RE_NPOINTS;
-		weights = storage + 2 * RE_NPOINTS;
-		memcpy(points, pp, RE_NPOINTS * sizeof(double));
-		memcpy(weights, ww, RE_NPOINTS * sizeof(double));
+		GMRFLib_ghq(&pp, &ww, MIX_NPOINTS);		       /* these are just pointers... */
+		storage = Calloc(5 * MIX_NPOINTS, double);	       /* use just one longer vector */
+		points = storage + MIX_NPOINTS;
+		weights = storage + 2 * MIX_NPOINTS;
+		memcpy(points, pp, MIX_NPOINTS * sizeof(double));
+		memcpy(weights, ww, MIX_NPOINTS * sizeof(double));
 	}
 
 	val = storage;
-	points = storage + RE_NPOINTS;
-	weights = storage + 2 * RE_NPOINTS;
-	xx = storage + 3 * RE_NPOINTS;
-	ll = storage + 4 * RE_NPOINTS;
+	points = storage + MIX_NPOINTS;
+	weights = storage + 2 * MIX_NPOINTS;
+	xx = storage + 3 * MIX_NPOINTS;
+	ll = storage + 4 * MIX_NPOINTS;
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	prec = map_precision(ds->data_observations.re_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			for (k = 0; k < RE_NPOINTS; k++) {
+			for (k = 0; k < MIX_NPOINTS; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->re_loglikelihood(ll, xx, RE_NPOINTS, idx, x_vec, arg);
+			ds->mix_loglikelihood(ll, xx, MIX_NPOINTS, idx, x_vec, arg);
 
-			for (k = 0; k < RE_NPOINTS; k++) {
+			for (k = 0; k < MIX_NPOINTS; k++) {
 				val[k] = log(weights[k]) + ll[k];
 			}
-			val_max = GMRFLib_max_value(val, RE_NPOINTS, NULL);
+			val_max = GMRFLib_max_value(val, MIX_NPOINTS, NULL);
 			sum = 0.0;
-			for (k = 0; k < RE_NPOINTS; k++) {
+			for (k = 0; k < MIX_NPOINTS; k++) {
 				if (!ISNAN(val[k])) {
 					sum += exp(val[k] - val_max);
 				}
@@ -4267,13 +4267,13 @@ int loglikelihood_re_gaussian(double *logll, double *x, int m, int idx, double *
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
-			for (k = 0; k < RE_NPOINTS; k++) {
+			for (k = 0; k < MIX_NPOINTS; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->re_loglikelihood(ll, xx, -RE_NPOINTS, idx, x_vec, arg);
+			ds->mix_loglikelihood(ll, xx, -MIX_NPOINTS, idx, x_vec, arg);
 
 			sum = 0.0;
-			for (k = 0; k < RE_NPOINTS; k++) {
+			for (k = 0; k < MIX_NPOINTS; k++) {
 				sum += weights[k] * ll[k];
 			}
 			logll[i] = sum;
@@ -5840,9 +5840,9 @@ int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, c
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", default_prior);
 }
-int inla_read_prior_re(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "RE.PRIOR", "RE.PARAMETERS", "RE.TO.THETA", "RE.FROM.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "MIX.PRIOR", "MIX.PARAMETERS", "MIX.TO.THETA", "MIX.FROM.THETA", default_prior);
 }
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
@@ -6619,7 +6619,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb->data_ntheta_all = 0;
 	for (j = 0; j < mb->nds; j++) {
-		mb->data_ntheta_all += mb->data_sections[j].data_ntheta + mb->data_sections[j].re_ntheta;
+		mb->data_ntheta_all += mb->data_sections[j].data_ntheta + mb->data_sections[j].mix_ntheta;
 		mb->data_sections[j].offset = mb->offset;      /* just a copy */
 		mb->data_sections[j].mb = mb;		       /* just a copy */
 	}
@@ -10097,52 +10097,52 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_ntheta = 0;
 	}
 
-	ds->re_use = iniparser_getboolean(ini, inla_string_join(secname, "RE.USE"), 0);
+	ds->mix_use = iniparser_getboolean(ini, inla_string_join(secname, "MIX.USE"), 0);
 	if (mb->verbose) {
-		printf("\t\tuse.re[%1d]\n", ds->re_use);
+		printf("\t\tuse.mix[%1d]\n", ds->mix_use);
 	}
 
-	if (ds->re_use) {
+	if (ds->mix_use) {
 		/*
-		 * read re-parameters
+		 * read mix-parameters
 		 */
 
 		char *model = NULL;
 
-		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "RE.MODEL"), NULL)));
+		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
 		if (!strcasecmp(model, "GAUSSIAN")) {
-			ds->re_id = RE_GAUSSIAN;
+			ds->mix_id = MIX_GAUSSIAN;
 		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "RE.MODEL", model);
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "MIX.MODEL", model);
 		}
 
-		switch (ds->re_id) {
-		case RE_GAUSSIAN:
+		switch (ds->mix_id) {
+		case MIX_GAUSSIAN:
 			/*
 			 * get options related to the gaussian 
 			 */
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, "RE.INITIAL"), G.log_prec_initial);
-			ds->re_fixed = iniparser_getboolean(ini, inla_string_join(secname, "RE.FIXED"), 0);
-			if (!ds->re_fixed && mb->reuse_mode) {
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, "MIX.INITIAL"), G.log_prec_initial);
+			ds->mix_fixed = iniparser_getboolean(ini, inla_string_join(secname, "MIX.FIXED"), 0);
+			if (!ds->mix_fixed && mb->reuse_mode) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
 			}
-			HYPER_NEW(ds->data_observations.re_log_prec_gaussian, tmp);
+			HYPER_NEW(ds->data_observations.mix_log_prec_gaussian, tmp);
 			if (mb->verbose) {
-				printf("\t\tinitialise re.log_precision[%g]\n", ds->data_observations.re_log_prec_gaussian[0][0]);
-				printf("\t\tre.fixed=[%1d]\n", ds->re_fixed);
+				printf("\t\tinitialise mix.log_precision[%g]\n", ds->data_observations.mix_log_prec_gaussian[0][0]);
+				printf("\t\tmix.fixed=[%1d]\n", ds->mix_fixed);
 			}
-			inla_read_prior_re(mb, ini, sec, &(ds->re_prior), "LOGGAMMA");
+			inla_read_prior_mix(mb, ini, sec, &(ds->mix_prior), "LOGGAMMA");
 
 			/*
 			 * add theta 
 			 */
-			if (!ds->re_fixed) {
+			if (!ds->mix_fixed) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian RE", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian RE", mb->ds);
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian mix", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian mix", mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter", secname);
 				mb->theta_dir[mb->ntheta] = msg;
 
@@ -10151,17 +10151,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
-				mb->theta[mb->ntheta] = ds->data_observations.re_log_prec_gaussian;
+				mb->theta[mb->ntheta] = ds->data_observations.mix_log_prec_gaussian;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 				mb->theta_map[mb->ntheta] = map_precision;
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 				mb->theta_map_arg[mb->ntheta] = NULL;
 				mb->ntheta++;
-				ds->re_ntheta++;
+				ds->mix_ntheta++;
 			}
 
-			ds->re_loglikelihood = ds->loglikelihood;
-			ds->loglikelihood = loglikelihood_re_gaussian;
+			ds->mix_loglikelihood = ds->loglikelihood;
+			ds->loglikelihood = loglikelihood_mix_gaussian;
 			break;
 
 		default:
@@ -15923,14 +15923,14 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * re-models 
 			 */
-			if (ds->re_use) {
-				check += ds->re_ntheta;
+			if (ds->mix_use) {
+				check += ds->mix_ntheta;
 				
-				switch (ds->re_id) {
-				case RE_GAUSSIAN:
-					if (!ds->re_fixed) {
+				switch (ds->mix_id) {
+				case MIX_GAUSSIAN:
+					if (!ds->mix_fixed) {
 						log_precision = theta[count];
-						val += PRIOR_EVAL(ds->re_prior, &log_precision);
+						val += PRIOR_EVAL(ds->mix_prior, &log_precision);
 						count++;
 					}
 					break;

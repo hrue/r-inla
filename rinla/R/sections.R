@@ -94,11 +94,11 @@
     
     inla.write.hyper(control$hyper, file)
     
-    ## the re-part
-    inla.write.boolean.field("re.use", control$control.re$use, file)
-    if (control$control.re$use) {
-        cat("re.model = ", control$control.re$model, "\n", sep="", file=file, append=TRUE)
-        inla.write.hyper(control$control.re$hyper, file, prefix = "re.")
+    ## the mix-part
+    inla.write.boolean.field("mix.use", control$control.mix$use, file)
+    if (control$control.mix$use) {
+        cat("mix.model = ", control$control.mix$model, "\n", sep="", file=file, append=TRUE)
+        inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.")
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
