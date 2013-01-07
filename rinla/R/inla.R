@@ -1376,7 +1376,7 @@
 
                     if (is.numeric(xx) && is.numeric(gp$random.spec[[r]]$values)) {
                         ## case 1: both numeric
-                        
+
                         ## no sort for values here, since they are given as they should be !!!!
                         location[[r]] = unique(gp$random.spec[[r]]$values)
                         cov = match(xx, location[[r]])-1L + inla.ifelse(nrep > 1L || ngroup > 1L,  (replicate-1L)*NG + (group-1)*N, 0L)
