@@ -247,11 +247,11 @@
         if (!is.null(random.spec$scale)) {
             file.scale=inla.tempfile(tmpdir=data.dir)
             ns = length(random.spec$scale)
-            if (is.null(random.spec$values.order)) {
+            if (is.null(random.spec$values)) {
                 idxs = 1:ns
             } else {
-                idxs = random.spec$values.order
-                stopifnot(length(random.spec$values.order) == ns)
+                idxs = random.spec$values
+                stopifnot(length(random.spec$values) == ns)
             }
             inla.write.fmesher.file(as.matrix(cbind(idxs -1L, random.spec$scale)), filename=file.scale, debug = FALSE)
             ##print(cbind(idxs, random.spec$scale))
