@@ -2635,18 +2635,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		GMRFLib_free_problem(lproblem);
 	}
 
+
 	if (!*problem) {
 		/*
 		 * fail to converge. restart with a reduced step_factor. 
 		 */
-
 		memcpy(mode, mode_initial, n * sizeof(double));	/* store the starting value */
 		Free(mode_initial);
-
 		FREE_ALL;
-
 		GMRFLib_optimize_param_tp new_optpar;
-
 		memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
 		new_optpar.nr_step_factor /= 2.0;
 		new_optpar.max_iter *= 3;
@@ -2654,12 +2651,39 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %g\n",
 				__GMRFLib_FuncName, new_optpar.nr_step_factor);
 		}
-		if (new_optpar.nr_step_factor < 1e-8) {
+		if (new_optpar.nr_step_factor < 1e-6) {
 			return GMRFLib_EOPTNR;
 		} else {
-			return GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
-									     loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-									     constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
+			/* 
+			 * try both a smaller step and increase 'cmin'
+			 */
+			int retval, kk, ntimes = 5;
+			double cmin_add_fac = 0.1;
+			double cmin_add = 100.0;
+
+
+			for(kk = 0; kk< ntimes; kk++){
+				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
+										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
+										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
+										       DMAX(0.0, cmin) + cmin_add);
+				cmin_add *= cmin_add_fac;
+				if (retval == GMRFLib_SUCCESS) {
+					memcpy(x, (*problem)->mean_constr, graph->n*sizeof(double));
+					GMRFLib_free_problem(*problem);
+				} else {
+					*problem = NULL;
+					return retval;
+				}
+			}
+			if (retval == GMRFLib_SUCCESS){
+				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
+										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
+										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
+			} else {
+				*problem = NULL;
+				return retval;
+			}
 		}
 	}
 
