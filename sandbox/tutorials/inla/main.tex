@@ -214,7 +214,7 @@ options.
 %%
 and this version will contain the most recent version of the package.
 The testing-version is assumed for all examples at the
-\verb|www.r-inla.org| page.
+\verb|www.r-inla.org| page. 
 \end{enumerate}
 If you have the testing-version installed, then you can ``downgrade''
 to the most recent stable version doing \verb|inla.upgrade()| and
@@ -227,9 +227,9 @@ You can check which version you have installed using
 > inla.version()
 \end{Sinput}
 \begin{Soutput}
-	INLA build date .........: Fri Nov 23 18:44:00 CET 2012
-	INLA hgid ...............: hgid: 6b73f3e09c6e  date: Fri Nov 23 18:43:19 2012 +0100
-	INLA-program hgid .......: hgid: d61398f7f40e  date: Thu Nov 22 10:35:58 2012 +0100
+	INLA build date .........: Tue Jan  8 15:13:19 CET 2013
+	INLA hgid ...............: hgid: d64f1ddc4f2d  date: Tue Jan 08 15:03:46 2013 +0100
+	INLA-program hgid .......: hgid: d64f1ddc4f2d  date: Tue Jan 08 15:03:46 2013 +0100
 	Maintainers .............: Havard Rue <hrue@math.ntnu.no>
 	                         : Finn Lindgren <finn.lindgren@gmail.com>
 	                         : Daniel Simpson <dp.simpson@gmail.com>
@@ -328,22 +328,73 @@ which can be plotted using
 \end{Sinput}
 \end{Schunk}
 and the results are shown in~\Fig{fig:11}.
-\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-1}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-2}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-3}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}
+\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-22}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-23}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-24}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}
 
 
 \section{How can I get help?}
+\label{sec:gethelp}
+
+There are two options to get help from the \verb|inla-developers| and
+other users. You can either sign up and post your questions to the
+\verb|R-inla discussion group|, see
+\begin{verbatim}
+http://www.r-inla.org/comments-1
+\end{verbatim}
+which is a public discussion group. If you want to questions
+privately, you can email \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|.
+
+
 
 \section{How do I report an error or a new feature request?}
 
+A request for a new feature can be posted to either the discussion
+group or to \verb|help@r-inla.org|; see Section~\ref{sec:gethelp}.
+
+An error is easiest reported to \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|. However, please make sure that you run with
+the latest version of the software, i.e.\ please do 
+\begin{Schunk}
+\begin{Sinput}
+> inla.upgrade(testing=TRUE)
+\end{Sinput}
+\end{Schunk}
+%%
+and rerun your example. If the error is still there, please make us
+aware of it.
 
 
-\chapter{``Fixed effect'' models: Bayesian GLM}
+In order to reproduce the error, we need to rerun your model/code
+locally, hence we will need a copy of the R-code and datasets used to
+generate the error. If the error occurs inside the \verb|inla()|-call,
+then you may do as follows; rerun with
+\begin{Schunk}
+\begin{Sinput}
+> inla( "<your stuff here>",  keep=TRUE, inla.call="")
+\end{Sinput}
+\end{Schunk}
+%%
+which will just generate the internal files, but no inference will be
+done.  In the current (seen from within \verb|R|) directory/folder,
+look for a new directory/folder named \verb|inla.model| and just send
+us that directory/folder. If you have one of these from before, then
+the new models are created as \verb|inla.model-1|,
+\verb|inla.model-2|, etc. In this case, send us the most recent
+one. With this option, your data stays almost secret, in the sense
+that they are there, but in a form that makes it very hard to extract
+any useful information about unless knowing how the model was
+defined. However, it contain in most cases what we need to rerun the
+model and check what is going on.
+
+
+\chapter{Fixed effect models: Bayesian GLM}
 
 \section{The formula spesification}
 
-\section{Setting priors for ``fixed effects''}
+\section{Setting priors for fixed effects}
+
 
 
 \chapter{Likelihood models}
@@ -352,9 +403,46 @@ and the results are shown in~\Fig{fig:11}.
 
 \section{Setting priors for hyperparameters}
 
+\section{\tv{NA} is the reponse}
+
+
+
+\chapter{Random effects models}
+
+\section{Available models}
+
+\section{General options}
+
+
+
+\chapter{Options for the \tv{inla}-call}
+
+\section{General options}
+\section{Spesific options: \tv{control.xxx}}
+
+
+
+\chapter{Extentions and other cool features}
+
 \section{Using more than one type of likelihood models}
 
-\section{\tv{NA} is the reponse}
+\section{Feature: \tv{copy}}
+
+\section{Feature: \tv{replicate}}
+
+\section{Feature: \tv{group}}
+
+\section{Feature: \tv{A-matrix}}
+
+\section{Feature: \tv{linear combinations}}
+
+\section{Defining your own prior}
+
+
+
+\chapter{Troubleshoting and FAQs}
+
+
 
 
 
