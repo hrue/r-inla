@@ -258,7 +258,6 @@ typedef struct {
 	 * \c times \c nr_step_factor and \c 1.
 	 */
 	double nr_step_factor;
-
 } GMRFLib_optimize_param_tp;
 
 typedef struct {
