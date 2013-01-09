@@ -583,28 +583,23 @@
     if (length(grep("^[(]Intercept[)]$", inla.trim(label))) == 1) {
         prec = control.fixed$prec.intercept
         mean = control.fixed$mean.intercept
-        if (!is.null(mean)) {
-            cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(prec)) {
-            cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
-        }
-    } else {
-        prec = inla.parse.fixed.prior(label, control.fixed$prec)
-        if (is.null(prec)) {
-            if (inla.namefix(label) == "(Intercept)") {
-                prec = inla.set.control.fixed.default()$prec.intercept
-            } else {
-                prec = inla.set.control.fixed.default()$prec
-            }
-        }
-        mean = inla.parse.fixed.prior(label, control.fixed$mean)
         if (is.null(mean)) {
-            if (inla.namefix(label) == "(Intercept)") {
-                mean = inla.set.control.fixed.default()$mean.intercept
-            } else {
-                mean = inla.set.control.fixed.default()$mean
-            }
+            mean =inla.set.control.fixed.default()$mean.intercept
+        }
+        if (is.null(prec)) {
+            prec =inla.set.control.fixed.default()$prec.intercept
+        }
+        stopifnot(!is.null(mean) || !is.null(prec))
+        cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
+        cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
+    } else {
+        mean = inla.parse.fixed.prior(label, control.fixed$mean)
+        prec = inla.parse.fixed.prior(label, control.fixed$prec)
+        if (is.null(mean)) {
+            mean = inla.set.control.fixed.default()$mean
+        }
+        if (is.null(prec)) {
+            prec = inla.set.control.fixed.default()$prec
         }
         stopifnot(!is.null(mean) || !is.null(prec))
         cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
