@@ -2655,19 +2655,21 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			return GMRFLib_EOPTNR;
 		} else {
 			/* 
-			 * try both a smaller step and increase 'cmin'
+			 * try both a smaller step and scaling the diagonal of the prior
 			 */
 			int retval, kk, ntimes = 5;
-			double cmin_add_fac = 0.1;
-			double cmin_add = 100.0;
-
+			double lambda = 100.0, lambda_fac = 0.1;
+			double *cc = Calloc(graph->n, double);
 
 			for(kk = 0; kk< ntimes; kk++){
-				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
+				for(i = 0; i < graph->n; i++){
+					cc[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
+				}
+				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, cc, mean, d,
 										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
 										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
-										       DMAX(0.0, cmin) + cmin_add);
-				cmin_add *= cmin_add_fac;
+										       cmin);
+				lambda *= lambda_fac;
 				if (retval == GMRFLib_SUCCESS) {
 					memcpy(x, (*problem)->mean_constr, graph->n*sizeof(double));
 					GMRFLib_free_problem(*problem);
@@ -2676,6 +2678,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					return retval;
 				}
 			}
+			Free(cc);
 			if (retval == GMRFLib_SUCCESS){
 				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
 										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
