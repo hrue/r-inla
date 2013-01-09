@@ -46,6 +46,10 @@
 \chapter{Introduction to \tv{R-INLA}}
 \label{intro:0}
 
+This chapter gives a brief introduction to \tv{R-INLA}; answering
+questions like ``What is it?'', ``What models can I use it for?'',
+``How do I install it?'', ``How can I get help?'' and so on.
+
 \section{What it is?}
 \label{intro:1}
 
@@ -328,9 +332,9 @@ which can be plotted using
 \end{Sinput}
 \end{Schunk}
 and the results are shown in~\Fig{fig:11}.
-\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-22}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-23}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-24}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}
+\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-148}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-149}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-150}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}
 
 
 \section{How can I get help?}
@@ -391,10 +395,361 @@ model and check what is going on.
 
 \chapter{Fixed effect models: Bayesian GLM}
 
-\section{The formula spesification}
+This chapter discuss classical fixed effects models in a Bayesian
+context, and is essentially a Bayesian version of \verb|lm()| and
+\verb|glm()|\footnote{Due to implementation issues, large scale (pure)
+    fixed effects models in \tv{R-INLA} may scale badly and run slower
+    than their frequentisitic alternatives.}.
 
-\section{Setting priors for fixed effects}
+We will now define a Bayesian generalized linear models (BGLMs) to
+perform approximate fully Bayesian inference with INLA. These models
+can be written using a hierarchical representation where the first
+stage is formed by a likelihood function with conditional independence
+properties given the ($n_d \times 1$) vector of linear predictors
+$\bs{\eta}$ and the ($m \times 1$) vector of possible hyperparameters
+$\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 1.}] $\bs{y}|\bs{\eta},\bs{\theta} \sim
+    p(\bs{y}|\bs{\eta},\bs{\theta}) = \prod _{i=1}^{n_d} p(y_i|g^{-1}
+    (\eta _i), \bs{\theta})$,
+\end{list}
+where $\bs{y}$ is the ($n_d \times 1$) vector of data points and
+$g^{-1}(\cdot)$ is the inverse of the link function that connects the
+conditional mean of $y_i$ to the linear predictor $\eta _i$.  The
+second stage is formed by the systematic part of the model and states
+that the covariates are linearly related to the linear predictor. In
+matrix notation,
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta}, \quad
+    \bs{\beta} \sim N(\bs{\mu}, \text{diag}(\bs{\tau}^{-1}))$,
+\end{list}
+where $\bs{X}$ is a ($n_d \times p$) design matrix which have the $p$
+covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
+vector of regression coefficients. INLA attributes independent
+Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
+the regressor coefficients $\beta_i$, $i = 1,...,p$.  The hierarchical
+model is then completed with an appropriate prior distribution for a
+possible vector of hyperparameters $\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+  \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
+\end{list}
 
+\section{Specifying the linear predictor}
+
+As mentioned in Section \ref{bglm:sec:intro}, in generalized linear
+models, each data point is connected, through a link function, to a
+linear predictor. In matrix notation
+\begin{equation}
+    \bs{\eta} = \bs{X}\bs{\beta}.
+    \label{bglm:eq:linear_pred}
+\end{equation}
+
+Similar to linear models in \tv{R} (like \tv{lm()} and \tv{glm()}),
+the model is defined using a \emph{formula}; see
+\verb|?formula|.\footnote{One exception is that the spesification
+    ``\texttt{y $\;\mbox{$\sim$}\;$ .}'' is not allowed.}
+That
+    is, the linear predictor can be specified using the formula
+    notation
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; a + b + a:b + c*d}
+\end{center}
+where \texttt{y} is the response and \texttt{a}, \texttt{b},
+\texttt{c} and \texttt{d} are covariates.  The meaning of the symbols
+\texttt{+}, \texttt{:} and \texttt{*} used  are as follows.
+\begin{description}
+\item[``+''] combine main effects, as in \tv{a + b}
+\item[``:''] for interaction terms, as in \tv{a:b}
+\item[``*''] for both main effects and interaction terms, so \tv{c*d = c+d+c:d}
+\end{description}
+In mathematical language, the model would read
+\begin{displaymath}
+    \eta_{i} = \mu 
+    + \beta_{a}a_{i}
+    + \beta_{b}b_{i}
+    + \beta_{ab}a_{i}b_{i}
+    + \beta_{c}c_{i}
+    + \beta_{d}d_{i}
+    + \beta_{cd}c_{i}d_{i}, \qquad i=1, \ldots, n
+\end{displaymath}
+where $\eta_{i}$ is the linear predictor for $y_{i}$ with a not yet
+defined likelihood.
+
+Note that an intercept $\mu$ is automatically added to the model,
+unless you say that you do not want it using adding term $-1$ or $0$:
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; -1 + ....}\\
+    \texttt{y \;\mbox{$\sim$}\; 0 + ....}
+\end{center}
+Similarly, adding term $1$ makes the intercept appear explicitely
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; 1 + ....}
+\end{center}
+A small example will illustrate these features.
+\begin{Schunk}
+\begin{Sinput}
+> n = 10
+> x = rnorm(n)
+> z = rnorm(n)
+> y = 1 + x + z + x*z
+> formula = y ~ x*z
+> r = inla(formula, data = data.frame(y,x,z))
+> r$summary.fixed
+\end{Sinput}
+\begin{Soutput}
+                    mean             sd   0.025quant     0.5quant  0.975quant
+(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
+x           0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
+z           0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
+x:z         1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                        kld
+(Intercept) 2.465190329e-32
+x           4.930380658e-32
+z           0.000000000e+00
+x:z         2.465190329e-32
+\end{Soutput}
+\end{Schunk}
+%%
+Note that we need to pass a \verb|data.frame| or a \verb|list|
+containing the variables
+
+It is also possible to use the design matrix $\bs{X}$ explicitly as in
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; X}
+\end{center}
+An alternative spesification of the last example, is 
+\begin{Schunk}
+\begin{Sinput}
+> formula = y ~ X
+> X = cbind(x=x, z=z, "x:z"=x*z)
+> r = inla(formula, data = list(y=y,X=X))
+> r$summary.fixed
+\end{Sinput}
+\begin{Soutput}
+                    mean             sd   0.025quant     0.5quant  0.975quant
+(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
+Xx          0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
+Xz          0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
+Xx:z        1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                        kld
+(Intercept) 2.465190329e-32
+Xx          4.930380658e-32
+Xz          0.000000000e+00
+Xx:z        2.465190329e-32
+\end{Soutput}
+\end{Schunk}
+%%
+\tv{R-INLA} adds prefix ``X'' to the fixed effects names, to make the
+connection to the design-matrix $X$ explicite.
+
+\subsection{Prior for the fixed effects}
+
+As mentioned in Section \ref{bglm:sec:intro}, INLA attributes
+independent Gaussian priors for each one of the fixed effects of the
+model. The mean and precision of each of the priors can be controlled
+using the argument \texttt{control.fixed} of the \texttt{inla}
+function.  The argument \texttt{control.fixed} needs to be a list, and
+the arguments relevant for the prior specification of the fixed
+effects are:
+\begin{itemize}
+\item \texttt{mean.intercept}: prior mean for the intercept. Default value is 
+    0
+\item \texttt{prec.intercept}: precision for the intercept. Default
+    value is
+    0\footnote{Note
+        that the this prior is improper!}
+\item \texttt{mean}: prior mean for all fixed effects except the
+    intercept.  Default is
+    0.  Alternatively, a
+    named list with specific means where \texttt{name = default}
+    applies to unmatched names. For example
+    \begin{center}
+        \texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))} 
+    \end{center}
+    assign \texttt{mean = 1} to fixed effect \texttt{a}, \texttt{mean
+        = 2} to effect \texttt{b} and \texttt{mean = 0} to all others.
+\item \texttt{prec}: Similar to the \texttt{mean} argument above,
+    \texttt{prec} set the precision for all fixed effects except the
+    intercept.  Default is
+    0.001.  Alternatively, a
+    named list with specific precisions where \texttt{name = default}
+    applies to unmatched names.
+\end{itemize}
+As an example, assume we have a model with an intercept and four fixed
+effects \tv{a}, \tv{b}, \tv{c} and \tv{d} and we want the intercept to
+have mean $0$ and precision $10$, the fixed effect \tv{b} to have mean
+$3$ and precision $5$ and the remaining to have mean $10$ and
+precision $20$. Then the prior specification in this case would be
+\begin{Schunk}
+\begin{Sinput}
+> control.fixed = list(mean.intercept = 0,
++                      prec.intercept = 10,
++                      mean = list(b = 3, default = 10),
++                      prec = list(b = 5, default = 20))
+> inla(..., control.fixed = control.fixed)
+\end{Sinput}
+\end{Schunk}
+%%
+
+\section{Looking at the results}
+
+The result from a \tv{inla()}-call returns an object with class
+\tv{inla}
+\begin{Schunk}
+\begin{Sinput}
+> class(r)
+\end{Sinput}
+\begin{Soutput}
+[1] "inla"
+\end{Soutput}
+\end{Schunk}
+%%
+and with a lot of contents:
+\begin{Schunk}
+\begin{Sinput}
+> names(r)
+\end{Sinput}
+\begin{Soutput}
+ [1] "names.fixed"                 "summary.fixed"              
+ [3] "marginals.fixed"             "summary.lincomb"            
+ [5] "marginals.lincomb"           "size.lincomb"               
+ [7] "summary.lincomb.derived"     "marginals.lincomb.derived"  
+ [9] "size.lincomb.derived"        "mlik"                       
+[11] "cpo"                         "model.random"               
+[13] "summary.random"              "marginals.random"           
+[15] "size.random"                 "summary.linear.predictor"   
+[17] "marginals.linear.predictor"  "summary.fitted.values"      
+[19] "marginals.fitted.values"     "size.linear.predictor"      
+[21] "summary.hyperpar"            "marginals.hyperpar"         
+[23] "internal.summary.hyperpar"   "internal.marginals.hyperpar"
+[25] "si"                          "offset.linear.predictor"    
+[27] "model.spde2.blc"             "summary.spde2.blc"          
+[29] "marginals.spde2.blc"         "size.spde2.blc"             
+[31] "logfile"                     "misc"                       
+[33] "dic"                         "mode"                       
+[35] "neffp"                       "joint.hyper"                
+[37] "nhyper"                      "version"                    
+[39] "Q"                           "graph"                      
+[41] "cpu.used"                    ".args"                      
+[43] "call"                        "model.matrix"               
+\end{Soutput}
+\end{Schunk}
+%%
+Not all of the contents are interest for the typical user, but some of
+the objects are, which we now will discuss. 
+
+With a result-object you can get a summary using
+\begin{Schunk}
+\begin{Sinput}
+> summary(r)
+\end{Sinput}
+\begin{Soutput}
+Call:
+"inla(formula = formula, data = list(y = y, X = X))"
+
+Time used:
+ Pre-processing    Running inla Post-processing           Total 
+  0.04323005676   0.02946925163   0.01653695107   0.08923625946 
+
+Fixed effects:
+                    mean             sd   0.025quant     0.5quant  0.975quant
+(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
+Xx          0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
+Xz          0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
+Xx:z        1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                        kld
+(Intercept) 2.465190329e-32
+Xx          4.930380658e-32
+Xz          0.000000000e+00
+Xx:z        2.465190329e-32
+
+The model has no random effects
+
+Model hyperparameters:
+                                        mean      sd        0.025quant
+Precision for the Gaussian observations  52978.81  29286.35  14735.46 
+                                        0.5quant  0.975quant
+Precision for the Gaussian observations  47087.46 126228.00 
+
+Expected number of effective parameters(std dev): 6.766(0.6331)
+Number of equivalent replicates : 1.478 
+
+Marginal Likelihood:  6.316 
+\end{Soutput}
+\end{Schunk}
+%%
+which shows the call itself, time usage (broken into preprocessing the
+model and data, doing the computations, and reading the results back
+and postprocess them), (statistical) summary for the fixed effects
+(and random effects when they are included), summary for the
+hyperparameters $\theta$, an estimate for the effective number of
+parameters in the model, and number of observations pr effective
+number of parameters, and the estimate for the (log-)marginal
+likelihood.
+
+The main task for the inference is to compute posterior
+marginals. These marginals are stored in the object
+\verb|marginals.fixed|
+\begin{Schunk}
+\begin{Sinput}
+> str(r$marginals.fixed)
+\end{Sinput}
+\begin{Soutput}
+List of 4
+ $ (Intercept): num [1:83, 1:2] 0.985 0.985 0.986 0.987 0.988 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:2] "x" "y"
+ $ Xx         : num [1:83, 1:2] 0.975 0.977 0.978 0.979 0.98 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:2] "x" "y"
+ $ Xz         : num [1:83, 1:2] 0.983 0.984 0.985 0.986 0.987 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:2] "x" "y"
+ $ Xx:z       : num [1:83, 1:2] 0.985 0.986 0.987 0.988 0.988 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:2] "x" "y"
+\end{Soutput}
+\end{Schunk}
+each element in the list contains a two-column matrix with the
+density-values $(x_{i}, y_{i})$, so
+\begin{Schunk}
+\begin{Sinput}
+> head(r$marginals.fixed[["Xx"]])
+\end{Sinput}
+\begin{Soutput}
+                x               y
+[1,] 0.9753693862 1.487205619e-05
+[2,] 0.9766232170 6.088273801e-05
+[3,] 0.9779206983 2.431304421e-04
+[4,] 0.9791563947 8.458498986e-04
+[5,] 0.9803332484 2.595332270e-03
+[6,] 0.9814540615 7.166101077e-03
+\end{Soutput}
+\end{Schunk}
+and we can plot this marginal
+\begin{center} 
+\begin{Schunk}
+\begin{Sinput}
+> xy = r$marginals.fixed[["Xx"]]
+> plot(xy)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{Sweave/sweave-023}
+\end{center}
+or make it more smooth
+\begin{center} 
+\begin{Schunk}
+\begin{Sinput}
+> xy = r$marginals.fixed[["Xx"]]
+> plot(inla.smarginal(xy), type="l")
+\end{Sinput}
+\end{Schunk}
+\includegraphics{Sweave/sweave-024}
+\end{center}
 
 
 \chapter{Likelihood models}
