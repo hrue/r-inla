@@ -591,13 +591,24 @@
         }
     } else {
         prec = inla.parse.fixed.prior(label, control.fixed$prec)
+        if (is.null(prec)) {
+            if (inla.namefix(label) == "(Intercept)") {
+                prec = inla.set.control.fixed.default()$prec.intercept
+            } else {
+                prec = inla.set.control.fixed.default()$prec
+            }
+        }
         mean = inla.parse.fixed.prior(label, control.fixed$mean)
-        if (!is.null(mean)) {
-            cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
+        if (is.null(mean)) {
+            if (inla.namefix(label) == "(Intercept)") {
+                mean = inla.set.control.fixed.default()$mean.intercept
+            } else {
+                mean = inla.set.control.fixed.default()$mean
+            }
         }
-        if (!is.null(prec)) {
-            cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
-        }
+        stopifnot(!is.null(mean) || !is.null(prec))
+        cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
+        cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     }
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
