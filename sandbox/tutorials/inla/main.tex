@@ -40,7 +40,7 @@
  N-7491 Trondheim, Norway}
 \maketitle
 
-
+%%
 
 
 \chapter{Introduction to \tv{R-INLA}}
@@ -176,6 +176,7 @@ There are two ways to install \tv{R-INLA}.
 > source("http://www.math.ntnu.no/inla/givemeINLA.R")
 \end{Sinput}
 \end{Schunk}
+%%
 which will download and install the package. 
 \item You can also install the package manually. If you are using
     Linux or mach, then 
@@ -189,6 +190,7 @@ and install the package from within \tv{R} using
 > install.packages("INLA.tgz", repos=NULL, type="source")
 \end{Sinput}
 \end{Schunk}
+%%
 If you are using Windows, then download
 \begin{verbatim}
 http://www.math.ntnu.no/inla/binaries/INLA.zip
@@ -208,6 +210,7 @@ options.
 > inla.upgrade()
 \end{Sinput}
 \end{Schunk}
+%%
 \item There is a testing version that is updated frequently and you
     can upgrade to it, using
 \begin{Schunk}
@@ -231,9 +234,9 @@ You can check which version you have installed using
 > inla.version()
 \end{Sinput}
 \begin{Soutput}
-	INLA build date .........: Tue Jan  8 15:13:19 CET 2013
-	INLA hgid ...............: hgid: d64f1ddc4f2d  date: Tue Jan 08 15:03:46 2013 +0100
-	INLA-program hgid .......: hgid: d64f1ddc4f2d  date: Tue Jan 08 15:03:46 2013 +0100
+	INLA build date .........: Wed Jan  9 20:03:22 CET 2013
+	INLA hgid ...............: hgid: cb93daf86ae6  date: Wed Jan 09 19:53:49 2013 +0100
+	INLA-program hgid .......: hgid: cb93daf86ae6  date: Wed Jan 09 19:53:49 2013 +0100
 	Maintainers .............: Havard Rue <hrue@math.ntnu.no>
 	                         : Finn Lindgren <finn.lindgren@gmail.com>
 	                         : Daniel Simpson <dp.simpson@gmail.com>
@@ -243,6 +246,7 @@ You can check which version you have installed using
 	Source-code .............: http://inla.googlecode.com
 \end{Soutput}
 \end{Schunk}
+%%
 The ``build date'' is when this packages was compiled and build, the
 ``INLA hgid'' is the version and date of the \tv{R}-code and 
 ``INLA-program hgid'' is the version and date of the inla-program that
@@ -255,6 +259,7 @@ If you are interested in recent changes in the package then
 > inla.changelog()
 \end{Sinput}
 \end{Schunk}
+%%
 will place your browser at the list of the most recent changes. You can also visit
 \begin{verbatim}
     inla.googlecode.com
@@ -271,6 +276,7 @@ If you have installed the \tv{R-INLA} package then
 > library(INLA)
 \end{Sinput}
 \end{Schunk}
+%%
 will load the library and you are ready to go. 
 
 If you are familiar with the \verb|lm()| function in \tv{R}, then you
@@ -285,6 +291,7 @@ do a Bayesian analysis. Here is a small example
 > result = inla(formula, data = data.frame(y,x))
 \end{Sinput}
 \end{Schunk}
+%%
 The \verb|result|-object contains all the results from the Bayesian analysis.
 You can get a summary with
 \begin{Schunk}
@@ -321,6 +328,7 @@ Number of equivalent replicates : 46.76
 Marginal Likelihood:  62.05 
 \end{Soutput}
 \end{Schunk}
+%%
 and posterior summary statistics for the fixed effects (the
 \tv{Intercept} and the covariate \tv{x}) and the observational
 precision (for the Gaussian observations) are shown. These summary
@@ -331,10 +339,11 @@ which can be plotted using
 > plot(result)
 \end{Sinput}
 \end{Schunk}
+%%
 and the results are shown in~\Fig{fig:11}.
-\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-148}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-149}
-\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-150}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}
+\begin{figure}[tbp]\centering\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-190}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-191}
+\includegraphics[width=7cm,height=7cm,angle=-90]{Sweave/ex1/figure-192}\caption{The posterior marginals for the fixed effects for the intercept and covariate 	v{x}, and the precision for the Gaussian observations.}\label{fig:11}\end{figure}%%
 
 
 \section{How can I get help?}
@@ -491,22 +500,22 @@ A small example will illustrate these features.
 > n = 10
 > x = rnorm(n)
 > z = rnorm(n)
-> y = 1 + x + z + x*z
+> y = 1 + x + z + x*z + rnorm(n)
 > formula = y ~ x*z
 > r = inla(formula, data = data.frame(y,x,z))
 > r$summary.fixed
 \end{Sinput}
 \begin{Soutput}
-                    mean             sd   0.025quant     0.5quant  0.975quant
-(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
-x           0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
-z           0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
-x:z         1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                    mean           sd    0.025quant     0.5quant  0.975quant
+(Intercept) 0.6443308292 0.2535966857 0.13838207935 0.6443340119 1.150247793
+x           0.7681582175 0.3391166090 0.09157142955 0.7681688615 1.444662724
+z           1.0004690428 0.2498724658 0.50193908843 1.0004760045 1.498943812
+x:z         1.0842984068 0.2403161513 0.60482860105 1.0843071844 1.563702161
                         kld
-(Intercept) 2.465190329e-32
-x           4.930380658e-32
-z           0.000000000e+00
-x:z         2.465190329e-32
+(Intercept) 0.000000000e+00
+x           0.000000000e+00
+z           2.524354897e-29
+x:z         0.000000000e+00
 \end{Soutput}
 \end{Schunk}
 %%
@@ -526,16 +535,16 @@ An alternative spesification of the last example, is
 > r$summary.fixed
 \end{Sinput}
 \begin{Soutput}
-                    mean             sd   0.025quant     0.5quant  0.975quant
-(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
-Xx          0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
-Xz          0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
-Xx:z        1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                    mean           sd    0.025quant     0.5quant  0.975quant
+(Intercept) 0.6443308292 0.2535966857 0.13838207935 0.6443340119 1.150247793
+Xx          0.7681582175 0.3391166090 0.09157142955 0.7681688615 1.444662724
+Xz          1.0004690428 0.2498724658 0.50193908843 1.0004760045 1.498943812
+Xx:z        1.0842984068 0.2403161513 0.60482860105 1.0843071844 1.563702161
                         kld
-(Intercept) 2.465190329e-32
-Xx          4.930380658e-32
-Xz          0.000000000e+00
-Xx:z        2.465190329e-32
+(Intercept) 0.000000000e+00
+Xx          0.000000000e+00
+Xz          2.524354897e-29
+Xx:z        0.000000000e+00
 \end{Soutput}
 \end{Schunk}
 %%
@@ -649,32 +658,32 @@ Call:
 
 Time used:
  Pre-processing    Running inla Post-processing           Total 
-  0.04323005676   0.02946925163   0.01653695107   0.08923625946 
+  0.04077339172   0.02876639366   0.01846122742   0.08800101280 
 
 Fixed effects:
-                    mean             sd   0.025quant     0.5quant  0.975quant
-(Intercept) 1.0000000052 0.002426470794 0.9952137885 0.9999999843 1.004789500
-Xx          0.9999999893 0.003871185314 0.9923640697 0.9999999565 1.007641136
-Xz          0.9999999927 0.002637928345 0.9947966745 0.9999999703 1.005206873
-Xx:z        1.0000000063 0.002288166306 0.9954865954 0.9999999865 1.004516509
+                    mean           sd    0.025quant     0.5quant  0.975quant
+(Intercept) 0.6443308292 0.2535966857 0.13838207935 0.6443340119 1.150247793
+Xx          0.7681582175 0.3391166090 0.09157142955 0.7681688615 1.444662724
+Xz          1.0004690428 0.2498724658 0.50193908843 1.0004760045 1.498943812
+Xx:z        1.0842984068 0.2403161513 0.60482860105 1.0843071844 1.563702161
                         kld
-(Intercept) 2.465190329e-32
-Xx          4.930380658e-32
-Xz          0.000000000e+00
-Xx:z        2.465190329e-32
+(Intercept) 0.000000000e+00
+Xx          0.000000000e+00
+Xz          2.524354897e-29
+Xx:z        0.000000000e+00
 
 The model has no random effects
 
 Model hyperparameters:
-                                        mean      sd        0.025quant
-Precision for the Gaussian observations  52978.81  29286.35  14735.46 
-                                        0.5quant  0.975quant
-Precision for the Gaussian observations  47087.46 126228.00 
+                                        mean   sd     0.025quant 0.5quant
+Precision for the Gaussian observations 2.4695 1.2357 0.7649     2.2482  
+                                        0.975quant
+Precision for the Gaussian observations 5.4915    
 
-Expected number of effective parameters(std dev): 6.766(0.6331)
-Number of equivalent replicates : 1.478 
+Expected number of effective parameters(std dev): 4.00(0.0001948)
+Number of equivalent replicates : 2.50 
 
-Marginal Likelihood:  6.316 
+Marginal Likelihood:  -33.04 
 \end{Soutput}
 \end{Schunk}
 %%
@@ -687,6 +696,8 @@ parameters in the model, and number of observations pr effective
 number of parameters, and the estimate for the (log-)marginal
 likelihood.
 
+\subsection{Posterior marginals}
+
 The main task for the inference is to compute posterior
 marginals. These marginals are stored in the object
 \verb|marginals.fixed|
@@ -696,24 +707,25 @@ marginals. These marginals are stored in the object
 \end{Sinput}
 \begin{Soutput}
 List of 4
- $ (Intercept): num [1:83, 1:2] 0.985 0.985 0.986 0.987 0.988 ...
+ $ (Intercept): num [1:83, 1:2] -0.969 -0.887 -0.802 -0.721 -0.644 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
   .. ..$ : chr [1:2] "x" "y"
- $ Xx         : num [1:83, 1:2] 0.975 0.977 0.978 0.979 0.98 ...
+ $ Xx         : num [1:83, 1:2] -1.39 -1.28 -1.166 -1.058 -0.955 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
   .. ..$ : chr [1:2] "x" "y"
- $ Xz         : num [1:83, 1:2] 0.983 0.984 0.985 0.986 0.987 ...
+ $ Xz         : num [1:83, 1:2] -0.589 -0.509 -0.425 -0.345 -0.269 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
   .. ..$ : chr [1:2] "x" "y"
- $ Xx:z       : num [1:83, 1:2] 0.985 0.986 0.987 0.988 0.988 ...
+ $ Xx:z       : num [1:83, 1:2] -0.445 -0.367 -0.286 -0.21 -0.137 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
   .. ..$ : chr [1:2] "x" "y"
 \end{Soutput}
 \end{Schunk}
+%%
 each element in the list contains a two-column matrix with the
 density-values $(x_{i}, y_{i})$, so
 \begin{Schunk}
@@ -721,38 +733,175 @@ density-values $(x_{i}, y_{i})$, so
 > head(r$marginals.fixed[["Xx"]])
 \end{Sinput}
 \begin{Soutput}
-                x               y
-[1,] 0.9753693862 1.487205619e-05
-[2,] 0.9766232170 6.088273801e-05
-[3,] 0.9779206983 2.431304421e-04
-[4,] 0.9791563947 8.458498986e-04
-[5,] 0.9803332484 2.595332270e-03
-[6,] 0.9814540615 7.166101077e-03
+                 x               y
+[1,] -1.3896116934 1.493054028e-06
+[2,] -1.2797697744 4.891128855e-06
+[3,] -1.1661036052 1.562490564e-05
+[4,] -1.0578501108 4.430550510e-05
+[5,] -0.9547515448 1.128190259e-04
+[6,] -0.8565624342 2.628348217e-04
 \end{Soutput}
 \end{Schunk}
+%%
 and we can plot this marginal
 \begin{center} 
 \begin{Schunk}
 \begin{Sinput}
-> xy = r$marginals.fixed[["Xx"]]
-> plot(xy)
+> marg = r$marginals.fixed[["Xx"]]
+> plot(marg)
 \end{Sinput}
 \end{Schunk}
 \includegraphics{Sweave/sweave-023}
+%%
 \end{center}
 or make it more smooth
 \begin{center} 
 \begin{Schunk}
 \begin{Sinput}
-> xy = r$marginals.fixed[["Xx"]]
-> plot(inla.smarginal(xy), type="l")
+> marg = r$marginals.fixed[["Xx"]]
+> plot(inla.smarginal(marg), type="l")
 \end{Sinput}
 \end{Schunk}
 \includegraphics{Sweave/sweave-024}
+%%
 \end{center}
+where \verb|inla.smarginal| interpolates the points using splines (in
+log-scale); see \verb|?inla.smarginal|.
+
+The posterior marginals for the hyperparameters $\theta$, which is
+this simple regression example is the precision for the Gaussian
+observations, is found similarly as
+\verb|marginals.hyper|
+\begin{Schunk}
+\begin{Sinput}
+> str(r$marginals.hyper)
+\end{Sinput}
+\begin{Soutput}
+List of 1
+ $ Precision for the Gaussian observations: num [1:109, 1:2] 0.00352 0.00474 0.0065 0.00879 0.0117 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:2] "x" "y"
+\end{Soutput}
+\end{Schunk}
+%%
+
+From a marginal, we can also compute expectations, like the mean
+\begin{Schunk}
+\begin{Sinput}
+> inla.emarginal(function(x) x, marg)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.7681574134
+\end{Soutput}
+\end{Schunk}
+%%
+or the variance
+\begin{Schunk}
+\begin{Sinput}
+> e = inla.emarginal(function(x) c(x,x^2), marg)
+> print(e[2] - e[1]^2)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.1150004259
+\end{Soutput}
+\end{Schunk}
+%%
+or quantiles
+\begin{Schunk}
+\begin{Sinput}
+> inla.qmarginal(0.5, marg)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.7660622189
+\end{Soutput}
+\end{Schunk}
+%%
+or produce samples
+\begin{Schunk}
+\begin{Sinput}
+> inla.rmarginal(5, marg)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.7543726309 1.6953664112 0.4099187078 0.3888479760 0.9430256060
+\end{Soutput}
+\end{Schunk}
+%%
+or compute marginals for a transformed variable
+\begin{Schunk}
+\begin{Sinput}
+> exp.marg = inla.tmarginal(function(x) exp(x), marg)
+> plot(inla.smarginal(exp.marg), type="l")
+\end{Sinput}
+\end{Schunk}
+\includegraphics{Sweave/sweave-030}
+%%
+
+\subsection{Posterior summary}
+
+If only summary-statistics of the posterior marginals are required, then
+\begin{Schunk}
+\begin{Sinput}
+> str(r$summary.fixed)
+\end{Sinput}
+\begin{Soutput}
+ num [1:4, 1:6] 0.644 0.768 1 1.084 0.254 ...
+ - attr(*, "dimnames")=List of 2
+  ..$ : chr [1:4] "(Intercept)" "Xx" "Xz" "Xx:z"
+  ..$ : chr [1:6] "mean" "sd" "0.025quant" "0.5quant" ...
+\end{Soutput}
+\begin{Sinput}
+> str(r$summary.hyper)
+\end{Sinput}
+\begin{Soutput}
+ num [1, 1:5] 2.47 1.236 0.765 2.248 5.492
+ - attr(*, "dimnames")=List of 2
+  ..$ : chr "Precision for the Gaussian observations"
+  ..$ : chr [1:5] "mean" "sd" "0.025quant" "0.5quant" ...
+\end{Soutput}
+\end{Schunk}
+%%
+provide summaries like the expectation, standard deviations and
+quantiles. For example
+\begin{Schunk}
+\begin{Sinput}
+> r$summary.fixed[, "mean"]
+\end{Sinput}
+\begin{Soutput}
+ (Intercept)           Xx           Xz         Xx:z 
+0.6443308292 0.7681582175 1.0004690428 1.0842984068 
+\end{Soutput}
+\begin{Sinput}
+> r$summary.hyper[, "mean"]
+\end{Sinput}
+\begin{Soutput}
+[1] 2.469525192
+\end{Soutput}
+\end{Schunk}
+%%
+provide the posterior means. 
+
+Note that the posterior means reported may deviate, a little, from
+those computed from the marginal itself, like
+\begin{Schunk}
+\begin{Sinput}
+> e.1 = r$summary.fixed["Xx", "mean"]
+> e.2 = inla.emarginal(function(x) x, r$marginals.fixed[["Xx"]])
+> print(e.1 - e.2)
+\end{Sinput}
+\begin{Soutput}
+[1] 8.041650794e-07
+\end{Soutput}
+\end{Schunk}
+%%
+as those results reported in \verb|r$summary.fixed| is computed with a
+different (and higher) resolution of the posterior marginal.
+
 
 
 \chapter{Likelihood models}
+
+
 
 \section{Available models}
 
