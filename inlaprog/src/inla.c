@@ -18731,6 +18731,12 @@ int inla_output(inla_tp * mb)
 			Free(mb->gdensity);
 		}
 	}
+
+	/* 
+	 * final output
+	 */
+	inla_output_ok(mb->dir);
+
 	return INLA_OK;
 }
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose)
@@ -19335,6 +19341,24 @@ int inla_output_hgid(const char *dir)
 		inla_error_open_file(nndir);
 	}
 	fprintf(fp, "%s\n", RCSId);
+	fclose(fp);
+	Free(nndir);
+
+	return INLA_OK;
+}
+int inla_output_ok(const char *dir)
+{
+	char *nndir = NULL;
+
+	FILE *fp = NULL;
+
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".ok");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	fprintf(fp, "1");
 	fclose(fp);
 	Free(nndir);
 

@@ -174,5 +174,9 @@
             print("...Fix marginals done.")
     }
 
+
+    filename = paste(results.dir,  "/.ok",  sep="")
+    res$ok = file.exists(filename)
+
     return(res)
 }
