@@ -15,8 +15,7 @@
 ##!   \item{hyper.user.scale}{Use values of hyperparameters in the user scale, not in the internal representation}
 ##!}
 ##!\value{
-##!  A list of samples,  where each samples is a list with names \code{hyperpar} and \code{latent}}
-##!
+##!  A list of samples,  where each samples is a list with names \code{hyperpar} and \code{latent}}.
 ##!  THIS IS AN EXPERIMENTAL FUNCTION AND CHANGES MAY APPEAR AT ANY TIME!
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
