@@ -1,4 +1,10 @@
-inla.hyperpar.sampler = function(n, result, intern=FALSE)
+
+inla.hyperpar.sampler = function(...) {
+    warning("New name is 'inla.hyperpar.sample'")
+    return (inla.hyperpar.sample(...))
+}
+
+inla.hyperpar.sample = function(n, result, intern=FALSE)
 {
     ## generate 'n' samples from the joint for the hyperparameters
     ## computed using the CCD approach. if intern==TRUE, then generate

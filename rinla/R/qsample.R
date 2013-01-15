@@ -113,7 +113,7 @@
         inla.write.fmesher.file(b, filename = b.file)
     } 
 
-    if (!missing(constr)) {
+    if (!missing(constr) && !is.null(constr)) {
         stopifnot(is.list(constr))
         A = as.matrix(constr$A)
         e = as.numeric(constr$e)
@@ -123,7 +123,7 @@
         inla.write.fmesher.file(xx, filename = constr.file)
     } 
 
-    if (!missing(sample)) {
+    if (!missing(sample) && !is.null(sample)) {
         sample = as.matrix(sample)
         stopifnot(nrow(sample) == nrow(Q))
         stopifnot(ncol(sample) > 0L)
