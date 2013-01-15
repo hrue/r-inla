@@ -250,8 +250,9 @@
             if (is.null(random.spec$values)) {
                 idxs = 1:ns
             } else {
-                idxs = random.spec$values
+                idxs = random.spec$values.order
                 stopifnot(length(random.spec$values) == ns)
+                stopifnot(!is.null(idxs))
             }
             inla.write.fmesher.file(as.matrix(cbind(idxs -1L, random.spec$scale)), filename=file.scale, debug = FALSE)
             ##print(cbind(idxs, random.spec$scale))
