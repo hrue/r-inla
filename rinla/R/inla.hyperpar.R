@@ -90,7 +90,7 @@
     result.tmp$.args$control.compute$cpo = FALSE
     result.tmp$.args$control.compute$q = FALSE
     result.tmp$.args$control.compute$graph = FALSE
-
+    
     result.tmp$.args$control.predictor$compute = FALSE
 
     result.tmp$.args$control.inla$int.strategy = "grid"
@@ -113,7 +113,7 @@
     
     ## these are the entries that we want to replace
     replace.names = c("summary.hyperpar", "marginals.hyperpar", "internal.marginals.hyperpar",
-            "internal.summary.hyperpar", "joint.hyper", "mlik", "version", "cpu.used")
+            "internal.summary.hyperpar", "joint.hyper", "mlik", "version", "cpu.used", "misc")
 
     for (nm in replace.names) {
         idx.result = which(names(result) == nm)
