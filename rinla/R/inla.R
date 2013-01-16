@@ -374,13 +374,19 @@
     }
 
     ## if data is a list, then it can contain elements that defines a
-    ## model, like f(idx, model = model.objects). These objects crahs
+    ## model, like f(idx, model = model.objects). These objects crash
     ## the formula routines in R since then the data cannot be cast
     ## into a data.frame. to solve this, we remove such objects from
     ## data, and create a second data-object, data.model, which hold
     ## these.
     data.model = NULL
     if (is.list(data) && length(data) > 0L) {
+
+        ## first check if all elements have names
+        if (any(nchar(names(data)) == 0L)) {
+            stop(paste("Elements in the 'data'-list has no name: data[[k]], for k=c(", inla.paste(which(nchar(names(data)) == 0L), sep=","), ")."))
+        }
+            
         i.remove = c()
         for(i in 1:length(data)) {
             ## these are the objects which we want to remove:
