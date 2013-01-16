@@ -5801,7 +5801,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			to_idx = (Alin[i]->tinfo[id].last_nonzero_mapped < 0 ? n - 1 : Alin[i]->tinfo[id].last_nonzero_mapped);
 			len = to_idx - from_idx + 1;
 
-			b = Calloc(len, double);
+			b = Calloc(2*len, double);	       /* workaround.... do not know what is happening sometimes */
 			v = Calloc(len, double);
 
 			for (j = 0; j < Alin[i]->n; j++) {
