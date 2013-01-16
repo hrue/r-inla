@@ -15,14 +15,19 @@
  
  \arguments{
    \item{n}{Number of samples.}
-   \item{result}{The inla-object, ie the output from an \code{inla}-call}
+   \item{result}{The inla-object, ie the output from an \code{inla}-call. The \code{inla}-object must be created with
+                 \code{control.compute=list(config=TRUE)}.}
    \item{hyper.user.scale}{Use values of hyperparameters in the user scale, not in the internal representation}
 }
 \value{
-  A list of samples,  where each samples is a list with names \code{hyperpar} and \code{latent}.
+  A list of the samples,  where each sample is a list with names \code{hyperpar} and \code{latent},  and with
+  their marginal densities in \code{logdens$hyperpar} and \code{logdens$latent}
+  and the joint density is in \code{logdens$joint}.
   THIS IS AN EXPERIMENTAL FUNCTION AND CHANGES MAY APPEAR AT ANY TIME!
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
  
 \examples{
+  r = inla(y ~ 1 ,data = data.frame(y=rnorm(1)), control.compute = list(config=TRUE))
+  samples = inla.posterior.sample(2,r)
 }
