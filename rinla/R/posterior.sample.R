@@ -61,8 +61,7 @@
     for(k in 1:cs$nconfig) {
         if (n.idx[k] > 0) {
             ## then the latent field
-            tmp = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, constr = constr, logdens = TRUE)
-            xx = cs$config[[k]]$mean + tmp$sample
+            xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, mu = cs$config[[k]]$mean, constr = constr, logdens = TRUE)
             nm = c()
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             for(j in 1:length(cs$contents$tag)) {
@@ -83,9 +82,9 @@
             } 
 
             for(i in 1:n.idx[k]) {
-                a.sample = list(hyperpar = theta,  latent = xx[ , i, drop=FALSE],
-                        logdens = list(hyperpar = ld.theta, latent = as.numeric(tmp$logdens[i]),
-                                joint = as.numeric(ld.theta + tmp$logdens[i])))
+                a.sample = list(hyperpar = theta,  latent = xx$sample[ , i, drop=FALSE],
+                        logdens = list(hyperpar = ld.theta, latent = as.numeric(xx$logdens[i]),
+                                joint = as.numeric(ld.theta + xx$logdens[i])))
                 rownames(a.sample$latent) = nm
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
