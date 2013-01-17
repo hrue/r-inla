@@ -10,16 +10,19 @@
  
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
-     inla.qsample(n, Q, b, sample, constr, 
+     inla.qsample(n, Q, b, mu, sample, constr, 
                   reordering = "auto",
                   seed = 0L,
                   logdens = ifelse(missing(sample), FALSE, TRUE))
+
+     where the log-density has form \code{-1/2(x-mu)^T Q (x-mu) + b^T x}
  }
  
  \arguments{
    \item{n}{Number of samples. Only used if \code{missing(sample)}}
    \item{Q}{The precision matrix or a filename containing it.}
-   \item{b}{The linear term in the canonical representation; mean is \code{Q mean = b}.}
+   \item{b}{The linear term}
+   \item{mu}{The mu term}
    \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
    \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
    \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
