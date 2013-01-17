@@ -61,7 +61,7 @@
     for(k in 1:cs$nconfig) {
         if (n.idx[k] > 0) {
             ## then the latent field
-            xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, mu = cs$config[[k]]$mean, constr = constr, logdens = TRUE)
+            xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, mu = cs$config[[k]]$mean, constr = cs$constr, logdens = TRUE)
             nm = c()
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             for(j in 1:length(cs$contents$tag)) {
@@ -74,17 +74,40 @@
             }
             
             theta = cs$config[[k]]$theta
-            if (hyper.user.scale) {
+            log.J = 0.0
+            if (!is.null(theta) && hyper.user.scale) {
                 for(j in 1:length(theta)) {
                     theta[j] = do.call(result$misc$from.theta[[j]], args = list(theta[j]))
                 }
                 names(theta) = paste(names(theta), "-- in user scale")
-            } 
-
+                
+                h = .Machine$double.eps^0.25
+                for(i in 1:length(theta)) {
+                    theta.1 = do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] - h))
+                    theta.2 = do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] + h))
+                    log.J = log.J - log(abs((theta.2 - theta.1)/(2.0*h))) ## Yes, it's a minus...
+                }
+            }
+            
             for(i in 1:n.idx[k]) {
-                a.sample = list(hyperpar = theta,  latent = xx$sample[ , i, drop=FALSE],
-                        logdens = list(hyperpar = ld.theta, latent = as.numeric(xx$logdens[i]),
-                                joint = as.numeric(ld.theta + xx$logdens[i])))
+                if (is.null(theta)) {
+                    a.sample = list(
+                            hyperpar = NULL,
+                            latent = xx$sample[ , i, drop=FALSE],
+                            logdens = list(
+                                    hyperpar = NULL,
+                                    latent = as.numeric(xx$logdens[i]),
+                                    joint = as.numeric(xx$logdens[i])))
+                } else {
+                    ld.h = as.numeric(ld.theta - result$mlik[1, 1] + log.J)
+                    a.sample = list(
+                            hyperpar = theta,
+                            latent = xx$sample[ , i, drop=FALSE],
+                            logdens = list(
+                                    hyperpar = ld.h,
+                                    latent = as.numeric(xx$logdens[i]),
+                                    joint = as.numeric(ld.h + xx$logdens[i])))
+                }
                 rownames(a.sample$latent) = nm
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
