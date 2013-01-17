@@ -1010,7 +1010,6 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		for (i = 0; i < n; i++) {
 			problem->sample[problem->map[i]] = problem->sub_sample[i];	/* put into place */
 		}
-
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));     /* to compute the log-density */
 	}
 

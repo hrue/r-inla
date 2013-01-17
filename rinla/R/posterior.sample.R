@@ -61,7 +61,7 @@
     for(k in 1:cs$nconfig) {
         if (n.idx[k] > 0) {
             ## then the latent field
-            tmp = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, constr = cs$constr, logdens = TRUE)
+            tmp = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q, constr = constr, logdens = TRUE)
             xx = cs$config[[k]]$mean + tmp$sample
             nm = c()
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
