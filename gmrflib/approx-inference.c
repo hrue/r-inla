@@ -2659,13 +2659,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			 */
 			int retval, kk, ntimes = 5;
 			double lambda = 100.0, lambda_fac = 0.1;
-			double *cc = Calloc(graph->n, double);
+			double *c_new = Calloc(graph->n, double);
 
 			for(kk = 0; kk< ntimes; kk++){
 				for(i = 0; i < graph->n; i++){
-					cc[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
+					c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
 				}
-				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, cc, mean, d,
+				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
 										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
 										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
 										       cmin);
@@ -2678,7 +2678,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					return retval;
 				}
 			}
-			Free(cc);
+			Free(c_new);
 			if (retval == GMRFLib_SUCCESS){
 				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
 										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
