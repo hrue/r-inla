@@ -549,6 +549,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
 	}
 
+	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
+	
 	/*
 	 * if store, then store the mode to use as the initial point at later calls 
 	 */
@@ -2645,7 +2647,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		FREE_ALL;
 		GMRFLib_optimize_param_tp new_optpar;
 		memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
-		new_optpar.nr_step_factor /= 2.0;
+		new_optpar.nr_step_factor *= 0.75;
 		new_optpar.max_iter *= 3;
 		if (new_optpar.fp) {
 			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %g\n",
@@ -2657,8 +2659,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			/* 
 			 * try both a smaller step and scaling the diagonal of the prior
 			 */
-			int retval, kk, ntimes = 5;
-			double lambda = 100.0, lambda_fac = 0.1;
+			int retval, kk, ntimes = 10;
+			double lambda = 1000.0, lambda_fac = 0.1;
 			double *c_new = Calloc(graph->n, double);
 
 			for(kk = 0; kk< ntimes; kk++){
