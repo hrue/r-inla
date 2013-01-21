@@ -542,11 +542,12 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin));
+				ai_par->gaussian_data, ai_par->cmin, 0));
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin));
+				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data,
+				ai_par->cmin, 0));
 	}
 
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
@@ -1359,7 +1360,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 									     b, c, mean, d, loglFunc, loglFunc_arg, fixed_value,
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
 									     ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-									     ai_par->gaussian_data, ai_par->cmin));
+									     ai_par->gaussian_data, ai_par->cmin, 0));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		if (ai_par->compute_nparam_eff) {
 			GMRFLib_ai_nparam_eff(&(ai_store->neff), NULL, ai_store->problem, c, Qfunc, Qfunc_arg);
@@ -2386,10 +2387,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin)
+						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int nested)
 {
 	/*
-	 * This is copy of the original routine but with optional two last arguments 
+	 * This is copy of the original routine but with optional arguments 
 	 */
 
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, id,
@@ -2637,148 +2638,118 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		GMRFLib_free_problem(lproblem);
 	}
 
-
 	if (!*problem) {
-		/*
-		 * fail to converge. restart with a reduced step_factor. 
-		 */
-		memcpy(mode, mode_initial, n * sizeof(double));	/* store the starting value */
-		Free(mode_initial);
-		FREE_ALL;
-		GMRFLib_optimize_param_tp new_optpar;
-		memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
-		new_optpar.nr_step_factor *= 0.75;
-		new_optpar.max_iter *= 3;
-		if (new_optpar.fp) {
-			fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with a new optpar->nr_step_factor = %g\n",
-				__GMRFLib_FuncName, new_optpar.nr_step_factor);
-		}
-		if (new_optpar.nr_step_factor < 1e-6) {
+		if (nested == 1) {
+			GMRFLib_ASSERT(*problem,  GMRFLib_EOPTNR);
+			return GMRFLib_EOPTNR;
+		} else if (nested == 2) {
 			return GMRFLib_EOPTNR;
 		} else {
-			/* 
-			 * try both a smaller step and scaling the diagonal of the prior
+			/*
+			 * fail to converge. restart with a reduced step_factor. 
 			 */
-			int retval, kk, ntimes = 10;
-			double lambda = 1000.0, lambda_fac = 0.1;
-			double *c_new = Calloc(graph->n, double);
-
-			for(kk = 0; kk< ntimes; kk++){
-				for(i = 0; i < graph->n; i++){
-					c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
-				}
-				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
-										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
-										       cmin);
-				lambda *= lambda_fac;
-				if (retval == GMRFLib_SUCCESS) {
-					memcpy(x, (*problem)->mean_constr, graph->n*sizeof(double));
-					GMRFLib_free_problem(*problem);
-				} else {
-					*problem = NULL;
-					return retval;
-				}
+			memcpy(mode, mode_initial, n * sizeof(double));	/* store the starting value */
+			Free(mode_initial);
+			FREE_ALL;
+			GMRFLib_optimize_param_tp new_optpar;
+			memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
+			new_optpar.nr_step_factor *= 0.5;
+			new_optpar.max_iter *= 2;
+			if (new_optpar.fp) {
+				fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with optpar->nr_step_factor = %g and add trust-region\n",
+					__GMRFLib_FuncName, new_optpar.nr_step_factor);
 			}
-			Free(c_new);
-			if (retval == GMRFLib_SUCCESS){
-				retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
-										       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-										       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
+			if (new_optpar.nr_step_factor < 1e-3) {
+				return GMRFLib_EOPTNR;
 			} else {
-				*problem = NULL;
-				return retval;
+				/* 
+				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
+				 */
+				int retval, kk, ntimes = 1000, stop = 0;
+				double lambda = 10000.0,       /* first value for lambda */
+					lambda_fac = 0.1,      /* decrease it with this ammount for each iteration */
+					lambda_lim = 1e-6;     /* value of lambda where we exit the loop */
+				double *c_new = Calloc(graph->n, double);
+				
+				for(kk = 0; kk< ntimes; kk++) {
+					
+					for(i = 0; i < graph->n; i++){
+						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
+						if  (ISNAN(x[i]) || ISINF(x[i])){
+							x[i] = mode[i];
+						}
+					}
+					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
+											       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
+											       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
+											       cmin, 2);
+					if (stop && retval == GMRFLib_SUCCESS){
+						break;
+					}
+					GMRFLib_ASSERT(lambda < 1.0/lambda_lim, GMRFLib_EOPTNR); /* exit if lambda is to large */
+
+					if (retval == GMRFLib_SUCCESS && lambda <= lambda_lim){
+						/* 
+						 * lambda is small enough; we're done
+						 */
+						break;
+					}
+
+					if (retval != GMRFLib_SUCCESS) {
+						/* 
+						 * it means that previous lambda worked fine, but not this one, so lets retry the previous one and then exit.
+						 */
+						stop = 1;
+						lambda /= lambda_fac;
+					} else {
+						/* 
+						 * we're ok, decrease lambda
+						 */
+						lambda *= lambda_fac;
+					}
+
+					if (retval == GMRFLib_SUCCESS) {
+						/* 
+						 *  we're ok, restart with the obtained mode
+						 */
+						memcpy(x, (*problem)->mean_constr, graph->n*sizeof(double));
+						GMRFLib_free_problem(*problem);
+					} else {
+						*problem = NULL;
+						if (!stop){
+							return retval;
+						}
+					}
+				}
+				if (stop) {
+					assert(stop && retval==GMRFLib_SUCCESS);
+				}
+				
+				if (0) {
+					/* 
+					 * NOT NEEDED ANYMORE: do not need this as we go on with the corrected 'c'
+					 */
+					FIXME("NOT NEEDED");
+					abort();
+					if (retval == GMRFLib_SUCCESS){
+						/* 
+						 * should we go on using 'c' or 'c_new' here??? 
+						 */
+						retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
+												       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
+												       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
+												       cmin, 1);
+					} else {
+						*problem = NULL;
+						return retval;
+					}
+				}
+				Free(c_new);
 			}
 		}
 	}
 
 	Free(mode_initial);
-
-	if (*problem && new_idea) {
-		double *sd = Calloc(n, double), fac = 1.414, step_len, err = 0.0, f, itmax_local = 40;
-
-		cc_positive = 1;
-		for (iter = 0; iter < itmax; iter++) {
-
-			GMRFLib_Qinv(*problem, GMRFLib_QINV_ALL);
-
-			for (i = 0; i < n; i++) {
-				double *p = GMRFLib_Qinv_get(*problem, i, i);
-				sd[i] = (p ? sqrt(*p) : 0.0);
-			}
-
-			FIXME("use adaptive step_len");
-
-			memcpy(bb, b, n * sizeof(double));
-			memcpy(cc, c, n * sizeof(double));
-
-			cc_is_negative = 0;
-#pragma omp parallel for private(i) schedule(static)
-			for (i = 0; i < nidx; i++) {
-				int idx;
-				double bcoof, ccoof;
-
-				GMRFLib_thread_id = id;
-				idx = idxs[i];
-				step_len = -(fac * sd[idx]);   /* yes! */
-				GMRFLib_2order_approx(&aa[idx], &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg, &step_len);
-				bb[idx] += bcoof;
-
-				cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
-				if (cc_positive) {
-					cc[idx] += DMAX(cmin, ccoof);
-				} else {
-					cc[idx] += ccoof;
-				}
-			}
-			GMRFLib_thread_id = id;
-
-			for (i = 0; i < n; i++) {
-				bb[i] += -c[i] * mean[i];
-				cc[i] += c[i];
-			}
-			GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-								  GMRFLib_NEW_PROBLEM, store));
-
-			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
-			for (i = 0; i < n; i++) {
-				err += SQR((*problem)->mean_constr[i] - mode[i]);
-				mode[i] += f * ((*problem)->mean_constr[i] - mode[i]);
-			}
-			err = sqrt(err / n);
-			printf("PART 2: iter %d err %g\n", iter, err);
-
-			if (err < optpar->abserr_step || iter >= itmax_local) {
-				/*
-				 * we're done! 
-				 */
-				if (cc_is_negative)
-					FIXME("cc_is_negative is not yet handled here!");
-				break;
-			}
-			GMRFLib_free_problem(*problem);
-			*problem = NULL;
-		}
-		if (!*problem) {
-			/*
-			 * fail to converge. restart with a reduced step_factor. 
-			 */
-			FREE_ALL;
-			optpar->nr_step_factor /= 10.0;
-			optpar->max_iter *= 5;
-			if (optpar && optpar->fp) {
-				fprintf(stderr, "\n\n%s: Optimisation fail to converge in PART 2.\n\t\t\tRetry with a new optpar->nr_step_factor = %f\n",
-					__GMRFLib_FuncName, optpar->nr_step_factor);
-			}
-			if (optpar->nr_step_factor < 0.00001) {
-				return GMRFLib_EOPTNR;
-			} else {
-				return GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d,
-										     loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-										     constr, optpar, blockupdate_par, store, aa, bb, cc, gaussian_data, cmin);
-			}
-		}
-	}
 
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
