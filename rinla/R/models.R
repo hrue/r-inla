@@ -3529,7 +3529,7 @@
                               theta1 = list(
                                       name = "log precision",
                                       short.name = "prec",
-                                      initial = 3,
+                                      initial = 0,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.00005),
@@ -3539,7 +3539,7 @@
                               theta2 = list(
                                       name = "log degrees of freedom",
                                       short.name = "dof",
-                                      initial = 0,
+                                      initial = 5,
                                       fixed = FALSE,
                                       prior = "loggamma",
                                       param = c(1, 0.5),
