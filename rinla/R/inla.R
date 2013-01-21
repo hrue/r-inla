@@ -1676,6 +1676,7 @@
                 ##....while here we have to add a LINEAR section
                 count.linear = count.linear+1
                 xx=rf[, r +1]
+                xx[is.na(xx)] = 0
                 file.linear = inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(cbind(indN, xx)), filename=file.linear, debug=debug)
