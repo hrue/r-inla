@@ -407,7 +407,7 @@ char *iniparser_getline(FILE * fp)
 	}
 
 	int debug = 0;
-	size_t size = 0, len = 0, len_buf = 0;
+	size_t len = 0, len_buf = 0;
 	char *buf = NULL;
 	int c;
 

@@ -885,7 +885,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb, double *cc,
-						  int gaussian_data, double c_min);
+						  int gaussian_data, double c_min, int nested);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
 int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, GMRFLib_density_tp *** density_hyper,
