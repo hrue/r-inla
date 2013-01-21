@@ -546,12 +546,11 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data,
-				ai_par->cmin, 0));
+				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc, ai_par->gaussian_data, ai_par->cmin, 0));
 	}
 
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
-	
+
 	/*
 	 * if store, then store the mode to use as the initial point at later calls 
 	 */
@@ -2640,7 +2639,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	if (!*problem) {
 		if (nested == 1) {
-			GMRFLib_ASSERT(*problem,  GMRFLib_EOPTNR);
+			GMRFLib_ASSERT(*problem, GMRFLib_EOPTNR);
 			return GMRFLib_EOPTNR;
 		} else if (nested == 2) {
 			return GMRFLib_EOPTNR;
@@ -2656,89 +2655,90 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			new_optpar.nr_step_factor *= 0.5;
 			new_optpar.max_iter *= 2;
 			if (new_optpar.fp) {
-				fprintf(new_optpar.fp, "\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with optpar->nr_step_factor = %g and add trust-region\n",
+				fprintf(new_optpar.fp,
+					"\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with optpar->nr_step_factor = %g and add trust-region\n",
 					__GMRFLib_FuncName, new_optpar.nr_step_factor);
 			}
 			if (new_optpar.nr_step_factor < 1e-3) {
 				return GMRFLib_EOPTNR;
 			} else {
-				/* 
+				/*
 				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
 				 */
 				int retval, kk, ntimes = 1000, stop = 0;
 				double lambda = 10000.0,       /* first value for lambda */
-					lambda_fac = 0.1,      /* decrease it with this ammount for each iteration */
-					lambda_lim = 1e-6;     /* value of lambda where we exit the loop */
+				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
+				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
 				double *c_new = Calloc(graph->n, double);
-				
-				for(kk = 0; kk< ntimes; kk++) {
-					
-					for(i = 0; i < graph->n; i++){
+
+				for (kk = 0; kk < ntimes; kk++) {
+
+					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
-						if  (ISNAN(x[i]) || ISINF(x[i])){
+						if (ISNAN(x[i]) || ISINF(x[i])) {
 							x[i] = mode[i];
 						}
 					}
 					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
 											       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-											       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
-											       cmin, 2);
-					if (stop && retval == GMRFLib_SUCCESS){
+											       constr, &new_optpar, blockupdate_par, store, aa, bb, cc,
+											       gaussian_data, cmin, 2);
+					if (stop && retval == GMRFLib_SUCCESS) {
 						break;
 					}
-					GMRFLib_ASSERT(lambda < 1.0/lambda_lim, GMRFLib_EOPTNR); /* exit if lambda is to large */
+					GMRFLib_ASSERT(lambda < 1.0 / lambda_lim, GMRFLib_EOPTNR);	/* exit if lambda is to large */
 
-					if (retval == GMRFLib_SUCCESS && lambda <= lambda_lim){
-						/* 
+					if (retval == GMRFLib_SUCCESS && lambda <= lambda_lim) {
+						/*
 						 * lambda is small enough; we're done
 						 */
 						break;
 					}
 
 					if (retval != GMRFLib_SUCCESS) {
-						/* 
+						/*
 						 * it means that previous lambda worked fine, but not this one, so lets retry the previous one and then exit.
 						 */
 						stop = 1;
 						lambda /= lambda_fac;
 					} else {
-						/* 
+						/*
 						 * we're ok, decrease lambda
 						 */
 						lambda *= lambda_fac;
 					}
 
 					if (retval == GMRFLib_SUCCESS) {
-						/* 
+						/*
 						 *  we're ok, restart with the obtained mode
 						 */
-						memcpy(x, (*problem)->mean_constr, graph->n*sizeof(double));
+						memcpy(x, (*problem)->mean_constr, graph->n * sizeof(double));
 						GMRFLib_free_problem(*problem);
 					} else {
 						*problem = NULL;
-						if (!stop){
+						if (!stop) {
 							return retval;
 						}
 					}
 				}
 				if (stop) {
-					assert(stop && retval==GMRFLib_SUCCESS);
+					assert(stop && retval == GMRFLib_SUCCESS);
 				}
-				
+
 				if (0) {
-					/* 
+					/*
 					 * NOT NEEDED ANYMORE: do not need this as we go on with the corrected 'c'
 					 */
 					FIXME("NOT NEEDED");
 					abort();
-					if (retval == GMRFLib_SUCCESS){
-						/* 
+					if (retval == GMRFLib_SUCCESS) {
+						/*
 						 * should we go on using 'c' or 'c_new' here??? 
 						 */
 						retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
 												       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
-												       constr, &new_optpar, blockupdate_par, store, aa, bb, cc, gaussian_data,
-												       cmin, 1);
+												       constr, &new_optpar, blockupdate_par, store, aa, bb, cc,
+												       gaussian_data, cmin, 1);
 					} else {
 						*problem = NULL;
 						return retval;
@@ -5774,7 +5774,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			to_idx = (Alin[i]->tinfo[id].last_nonzero_mapped < 0 ? n - 1 : Alin[i]->tinfo[id].last_nonzero_mapped);
 			len = to_idx - from_idx + 1;
 
-			b = Calloc(2*len, double);	       /* workaround.... do not know what is happening sometimes */
+			b = Calloc(2 * len, double);	       /* workaround.... do not know what is happening sometimes */
 			v = Calloc(len, double);
 
 			for (j = 0; j < Alin[i]->n; j++) {
