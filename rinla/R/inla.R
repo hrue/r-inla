@@ -63,13 +63,24 @@
               ##!predictor. If not provided it is set to \code{rep(1, n.data)}.}
               E = NULL,
 
-              ##!\item{offset}{ This can be used to specify an
-              ##!a-priori known component to be included in the linear
-              ##!predictor during fitting.  This should be \code{NULL}
-              ##!or a numeric vector of length either one or equal to
-              ##!the number of cases. One or more \code{offset()}
-              ##!terms can be included in the formula instead or as
-              ##!well, and if both are specified their sum is used.}
+              ##!\item{offset}{This argument is used to specify an
+              ##!a-priori known and fixed component to be included in
+              ##!the linear predictor during fitting.  This should be
+              ##!\code{NULL} or a numeric vector of length either one
+              ##!or equal to the number of cases. One or more
+              ##!\code{offset()} terms can be included in the formula
+              ##!instead or as well, and if both are used, they are
+              ##!combined into a common offset.  If the
+              ##!\code{A}-matrix is used in the linear predictor
+              ##!statement \code{control.predictor}, then the
+              ##!\code{offset} given in this argument is added to
+              ##!\code{eta*}, the linear predictor related to the
+              ##!observations, as \code{eta* = A eta + offset},
+              ##!whereas an offset in the formula is added to
+              ##!\code{eta}, the linear predictor related to the
+              ##!formula, as \code{eta = ... + offset.formula}. So in
+              ##!this case, the offset defined here and in the formula
+              ##!has a different meaning and usage.}
               offset=NULL,
 
               ##!\item{scale}{ Fixed (optional) scale parameters of
@@ -1002,37 +1013,36 @@
     indN = seq(0L, NPredictor-1L)
     indM = seq(0L, MPredictor-1L)
     indD = seq(0L, NData-1)
-
+    
     ## this takes care of the offset: `offset' is the argument,
-    ## `offset.formula' is in the formula and `offset.sum' is their
-    ## sum
+    ## `offset.formula' is in the formula. Note that 'offset' goes
+    ## into eta* = A %*% eta + offset, whereas, eta = .... +
+    ## offset.formula
     if (!is.null(gp$offset)) {
         ## there can be more offsets
         offset.formula = 0
-        for(i in 1:length(gp$offset))
+        for(i in 1:length(gp$offset)) {
             offset.formula = offset.formula + as.vector(eval(parse(text=gp$offset[i]), data))
-    } else {
-        offset.formula = NULL
-    }
-
-    if (!is.null(offset.formula) && is.null(offset))
-        offset.sum = offset.formula
-    else if (is.null(offset.formula) && !is.null(offset))
-        offset.sum = offset
-    else if (!is.null(offset.formula) && !is.null(offset.formula)) {
-        if (length(offset.formula) == length(offset)) {
-            offset.sum = offset.formula + offset
-        } else {
-            stop("\n\tThe offset defined in formula and in argument has different length.")
         }
     } else {
-        offset.sum = NULL
+        offset.formula = rep(0, NPredictor)
     }
 
-    ## cat("offset.formula ", offset.formula, "\n")
-    ## cat("offset         ", offset, "\n")
-    ## cat("offset.sum     ", offset.sum, "\n")
-    
+    offset.len = inla.ifelse(MPredictor > 0, MPredictor, NPredictor)
+    offset.formula.len = NPredictor
+    if (is.null(offset)) {
+        offset = 0
+    }
+    if (length(offset) == 1L) {
+        offset = rep(offset,  offset.len)
+    }
+    if (length(offset) != offset.len) {
+        stop(paste("Length of argument 'offset' is wrong:", length(offset), "!=", offset.len))
+    } 
+    if (length(offset.formula) != offset.formula.len) {
+        stop(paste("Length of 'offset(...)' in the formula is wrong:", length(offset.formula), "!=", offset.formula.len))
+    } 
+
     if (length(family) == 1)
         family = rep(family, n.family)
     
@@ -1071,35 +1081,26 @@
                           control=cont.family[[i.family]], i.family=i.family)
     }
 
-    ##create the PREDICTOR section. if necessary create a file with
-    ##the offset for all likelihood
+    ##create the PREDICTOR section. 
     if (debug) 
         print("prepare predictor section")
 
-    if (!is.null(offset.sum)) {
-        if (any(is.na(offset.sum)))
-            stop("\n\tNo NA values allowed in the offset vector!")
-        if (!is.null(control.predictor$A)) {
-            ## since the offset if currently defined as a correction
-            ## in the likelihood, we need to compute the new offset
-            ## which is A %*% offset.sum, and this is the one we'll
-            ## pass through.
-            stopifnot(length(offset.sum) == NPredictor)
-            os = cbind(c(indM, MPredictor + indN), c(control.predictor$A %*% offset.sum, offset.sum))
-        } else {
-            os = cbind(indN, offset.sum)
-        }
-        file.offset = inla.tempfile(tmpdir=data.dir)
-        if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(os), filename=file.offset, debug = debug)
-        } else {
-            file.create(file.offset)
-            write(t(os), ncolumns=2L, file=file.offset, append=FALSE)
-        }
-        file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
+    stopifnot(!is.null(offset.formula) && !is.null(offset))  ## must be zeros if not used. this makes it easier
+    offset.formula[is.na(offset.formula)] = 0
+    offset[is.na(offset)] = 0
+    if (!is.null(control.predictor$A)) {
+        off = cbind(c(indM, MPredictor + indN), c(as.vector(control.predictor$A %*% offset.formula + offset), offset.formula))
     } else {
-        file.offset = NULL
+        off = cbind(indN, offset + offset.formula)
     }
+    file.offset = inla.tempfile(tmpdir=data.dir)
+    if (inla.getOption("internal.binary.mode")) {
+        inla.write.fmesher.file(as.matrix(off), filename=file.offset, debug = debug)
+    } else {
+        file.create(file.offset)
+        write(t(off), ncolumns=2L, file=file.offset, append=FALSE)
+    }
+    file.offset = gsub(data.dir, "$inladatadir", file.offset, fixed=TRUE)
 
     if (!is.null(cont.predictor$link)) {
         not.na = which(!is.na(cont.predictor$link))
