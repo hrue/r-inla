@@ -4325,7 +4325,7 @@ inla.models()
 							 \describe{
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`3'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
@@ -4337,7 +4337,7 @@ inla.models()
 							 \describe{
 							\item{name = }{`log degrees of freedom'}
 							\item{short.name = }{`dof'}
-							\item{initial = }{`0'}
+							\item{initial = }{`5'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.5'}

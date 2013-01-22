@@ -49,13 +49,24 @@ for each posterior marginal, the values
 likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
 exp(eta)} where \deqn{\eta_i}{eta} is the linear
 predictor. If not provided it is set to \code{rep(1, n.data)}.}
-\item{offset}{ This can be used to specify an
-a-priori known component to be included in the linear
-predictor during fitting.  This should be \code{NULL}
-or a numeric vector of length either one or equal to
-the number of cases. One or more \code{offset()}
-terms can be included in the formula instead or as
-well, and if both are specified their sum is used.}
+\item{offset}{This argument is used to specify an
+a-priori known and fixed component to be included in
+the linear predictor during fitting.  This should be
+\code{NULL} or a numeric vector of length either one
+or equal to the number of cases. One or more
+\code{offset()} terms can be included in the formula
+instead or as well, and if both are used, they are
+combined into a common offset.  If the
+\code{A}-matrix is used in the linear predictor
+statement \code{control.predictor}, then the
+\code{offset} given in this argument is added to
+\code{eta*}, the linear predictor related to the
+observations, as \code{eta* = A eta + offset},
+whereas an offset in the formula is added to
+\code{eta}, the linear predictor related to the
+formula, as \code{eta = ... + offset.formula}. So in
+this case, the offset defined here and in the formula
+has a different meaning and usage.}
 \item{scale}{ Fixed (optional) scale parameters of
 the precision for Gaussian and Student-T response
 models. Default value is rep(1, n.data).}

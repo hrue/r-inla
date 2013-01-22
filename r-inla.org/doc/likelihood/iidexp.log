@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  4 OCT 2012 09:07
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.1.19)  22 JAN 2013 10:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **iidexp.tex
 (./iidexp.tex
 LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, bo
-kmal, nynorsk, ukenglish, usenglishmax, loaded.
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, po
+lish, loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
@@ -184,12 +184,12 @@ File: example-iidexp.R  (verbatim)
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] (./iidexp.au
 x) ) 
 Here is how much of TeX's memory you used:
- 1406 strings out of 494772
- 17902 string characters out of 3177533
- 76852 words of memory out of 3000000
- 4631 multiletter control sequences out of 15000+200000
+ 1406 strings out of 495028
+ 17905 string characters out of 3181318
+ 76591 words of memory out of 3000000
+ 4618 multiletter control sequences out of 15000+200000
  9075 words of font info for 34 fonts, out of 3000000 for 9000
- 252 hyphenation exceptions out of 8191
+ 34 hyphenation exceptions out of 8191
  24i,4n,30p,223b,259s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></
 usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/sh
@@ -197,7 +197,7 @@ are/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/te
 xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-d
 ist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on iidexp.pdf (2 pages, 74682 bytes).
+Output written on iidexp.pdf (2 pages, 74685 bytes).
 PDF statistics:
  35 PDF objects out of 1000 (max. 8388607)
  24 compressed objects within 1 object stream

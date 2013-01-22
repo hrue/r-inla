@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2012.8.25)  4 OCT 2012 11:25
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.1.19)  22 JAN 2013 10:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **gamma.tex
 (./gamma.tex
 LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, bo
-kmal, nynorsk, ukenglish, usenglishmax, loaded.
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, po
+lish, loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
@@ -183,12 +183,12 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 File: example-gamma.R  (verbatim)
  [2] (./gamma.aux) ) 
 Here is how much of TeX's memory you used:
- 1405 strings out of 494772
- 17884 string characters out of 3177533
- 77852 words of memory out of 3000000
- 4631 multiletter control sequences out of 15000+200000
+ 1405 strings out of 495028
+ 17887 string characters out of 3181318
+ 77591 words of memory out of 3000000
+ 4618 multiletter control sequences out of 15000+200000
  9075 words of font info for 34 fonts, out of 3000000 for 9000
- 252 hyphenation exceptions out of 8191
+ 34 hyphenation exceptions out of 8191
  24i,4n,30p,222b,259s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmb
@@ -200,7 +200,7 @@ e/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/f
 onts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/ty
 pe1/public/amsfonts/cm/cmtt10.pfb>
-Output written on gamma.pdf (2 pages, 110195 bytes).
+Output written on gamma.pdf (2 pages, 110199 bytes).
 PDF statistics:
  51 PDF objects out of 1000 (max. 8388607)
  36 compressed objects within 1 object stream
