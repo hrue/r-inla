@@ -222,7 +222,7 @@
         of=NULL,
 
         ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
-        precision=NULL,
+        precision = 1.0e9,
 
         ##!\item{range}{A vector of size two giving the lower and
         ##!upper range for the scaling parameter \code{beta} in the
