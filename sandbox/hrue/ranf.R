@@ -5,18 +5,19 @@ ranf = function(n=1, F=2)
     } else {
         len = F - 1.0 / F;
 
-        nx = rbinom(n, size=1,  prob= len / (len + 2.0 * log(F)))
+        nx = rbinom(1, size=n,  prob= len / (len + 2.0 * log(F)))
         ny = n - nx
 
-        if (nx > 0L)
+        if (nx > 0L) {
             x = 1/F + runif(nx, max = len)
-        else
+        } else {
             x = NULL
-
-        if (ny > 0L)
+        }
+        if (ny > 0L) {
             y = F^runif(ny, min=-1, max=1)
-        else
+        } else {
             y = NULL
+        }
 
         return (c(x, y))
     }
