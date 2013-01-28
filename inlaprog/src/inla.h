@@ -402,7 +402,7 @@ typedef enum {
 	F_SPDE,
 	F_SPDE2,
 	F_COPY,
-	F_ME,
+	F_MEC,
 	F_R_GENERIC,
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
@@ -934,7 +934,7 @@ typedef struct {
 	double **log_prec_x;
 	double *x_obs;
 	double *scale;
-} inla_me_tp;
+} inla_mec_tp;
 
 typedef struct {
 	int Id;

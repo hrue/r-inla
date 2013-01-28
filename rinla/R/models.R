@@ -44,7 +44,7 @@
                       pdf = "indep"
                       ),
 
-              me = list(
+              mec = list(
                       hyper = list(
                               theta1 = list(
                                       name = "beta",
@@ -96,7 +96,7 @@
                       n.required = FALSE,
                       set.default.values = FALSE,
                       status = "experimental", 
-                      pdf = "me"
+                      pdf = "mec"
                       ),
 
               rgeneric = list(
