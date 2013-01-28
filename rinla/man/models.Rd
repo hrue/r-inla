@@ -49,7 +49,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `me'.}{Number of hyperparmeters are 4.
+				\item{Model `mec'.}{Number of hyperparmeters are 4.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -112,7 +112,7 @@ inla.models()
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
 								\item{status = }{`experimental'}
-								\item{pdf = }{`me'}
+								\item{pdf = }{`mec'}
 							 }
 						 }
 					 }

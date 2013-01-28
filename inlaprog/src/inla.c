@@ -91,7 +91,7 @@ static const char RCSId[] = HGVERSION;
 #include "re.h"
 #include "ar.h"
 
-#define PREVIEW    5
+#define PREVIEW    10
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
@@ -1504,7 +1504,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 }
 double Qfunc_me(int i, int j, void *arg)
 {
-	inla_me_tp *a = (inla_me_tp *) arg;
+	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -1516,7 +1516,7 @@ double Qfunc_me(int i, int j, void *arg)
 }
 double mfunc_me(int i, void *arg)
 {
-	inla_me_tp *a = (inla_me_tp *) arg;
+	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -10573,10 +10573,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID model");
-	} else if (OneOf("ME")) {
-		mb->f_id[mb->nf] = F_ME;
+	} else if (OneOf("MEC")) {
+		mb->f_id[mb->nf] = F_MEC;
 		mb->f_ntheta[mb->nf] = 4;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("ME");
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("MEC");
 	} else if (OneOf("RGENERIC")) {
 		mb->f_id[mb->nf] = F_R_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
@@ -10776,7 +10776,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_ZADD:
 		break;
 
-	case F_ME:
+	case F_MEC:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.obs */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	/* mean */
@@ -11966,7 +11966,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_ME:
+	case F_MEC:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -11988,9 +11988,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "ME beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "ME beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12027,9 +12027,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "ME prec_obs_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC prec_obs_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "ME prec_obs for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC prec_obs for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12067,9 +12067,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "ME mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "ME mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC mean_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter2", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12106,9 +12106,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "ME prec_x_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC prec_x_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "ME prec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MECprec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter3", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -13547,10 +13547,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_ME:
+	case F_MEC:
 	{
 		/*
-		 * ME
+		 * MEC
 		 */
 		char *filename_s;
 		filename_s = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCALE"), NULL));
@@ -13560,6 +13560,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			inla_read_data_general(&(mb->f_scale[mb->nf]), NULL, NULL, filename_s, mb->predictor_n, 0, 1, mb->verbose, 1.0);
 		} else {
+			if (mb->verbose) {
+				printf("\t\tno scale\n");
+			}
 			mb->f_scale[mb->nf] = Calloc(mb->predictor_n, double);
 			int ii;
 			for (ii = 0; ii < mb->predictor_n; ii++) {
@@ -13567,7 +13570,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
-		inla_me_tp *def = Calloc(1, inla_me_tp);
+		inla_mec_tp *def = Calloc(1, inla_mec_tp);
 		// double **beta;
 		// double **log_prec_obs;
 		// double **mean_x;
@@ -16501,7 +16504,7 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		case F_ME:
+		case F_MEC:
 		{
 			double mean_x, log_precision_x, log_precision_obs;
 
