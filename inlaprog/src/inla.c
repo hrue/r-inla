@@ -6521,41 +6521,75 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * type = lincomb
 	 */
-	int numsec = 0;
+	int numsec = 0, *secmap = NULL, isec = -1;
+	
+	/* 
+	 * first we count them
+	 */
 	for (sec = 0; sec < nsec; sec++) {
-
 		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
-		if (!strcmp(sectype, "LINCOMB")) {
-
-			/*
-			 * we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
-			 * for these sections. 
-			 */
-			int verbose_save = mb->verbose;
-
-			// This option can surpress mb->verbose locally, but not the other way around.
-			mb->verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), mb->verbose) && mb->verbose;
-
-			if (mb->verbose) {
-				printf("\tsection=[%1d] name=[%s] type=[LINCOMB]\n", sec, iniparser_getsecname(ini, sec));
-			}
-			found++;
-			sec_read[sec] = 1;
-			inla_parse_lincomb(mb, ini, sec);
-
-			mb->verbose = verbose_save;	       /* set it back */
+		if (!strcmp(sectype, "LINCOMB")){
 			numsec++;
 		}
-		Free(secname);
-		Free(sectype);
+	}
+	if (numsec > 0) {
+		/* 
+		 * then we find out which order to read them using 'LINCOMB.ORDER'
+		 */
+		secmap = Calloc(numsec, int);
+		for (sec = 0; sec < nsec; sec++) {
+			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			if (!strcmp(sectype, "LINCOMB")){
+				int ordering;
+				ordering = (int) iniparser_getdouble(ini, inla_string_join((const char *) secname, "LINCOMB.ORDER"), -1);
+				GMRFLib_ASSERT(ordering > 0, GMRFLib_ESNH);
+				secmap[ordering - 1] = sec;    /* ordering in the Model.ini is from 1...n */
+			}
+		}
+
+		/* 
+		 * then we read them
+		 */
+		for(isec = 0; isec < numsec; isec++) {
+			sec = secmap[isec];
+			secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+			sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+			if (!strcmp(sectype, "LINCOMB")) {
+				/*
+				 * we need to implement this here, as the number of linear combinations can get really huge and we need to surpress the verbose mode just
+				 * for these sections. 
+				 */
+				int verbose_save = mb->verbose;
+
+				// This option can surpress mb->verbose locally, but not the other way around.
+				mb->verbose = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), mb->verbose) && mb->verbose;
+
+				if (mb->verbose) {
+					printf("\tsection=[%1d] name=[%s] type=[LINCOMB]\n", sec, iniparser_getsecname(ini, sec));
+				}
+				found++;
+				sec_read[sec] = 1;
+				inla_parse_lincomb(mb, ini, sec);
+
+				mb->verbose = verbose_save;	       /* set it back */
+			} else {
+				/* 
+				 * should not happen
+				 */
+				assert(0 == 1);
+			}
+			Free(secname);
+			Free(sectype);
+		}
 	}
 	if (mb->verbose) {
 		if (numsec) {
 			printf("\tRead [%1d] sections with mode=[LINCOMB]\n", numsec);
 		}
 	}
-
+	Free(secmap);
 
 	/*
 	 * check that all sections are read 
