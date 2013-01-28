@@ -143,16 +143,17 @@
         cat("spde2.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         cat("spde2.transform =", random.spec$spde2.transform, "\n", sep = " ", file = file,  append = TRUE)
     }
-    if (!is.null(random.spec$of)) {
-        cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
-    }
-    if (!is.null(random.spec$precision)) {
-        cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
-    }
-
-    if (!is.null(random.spec$range)) {
-        cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
-        cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+    if (inla.one.of(random.spec$model, "copy")) {
+        if (!is.null(random.spec$of)) {
+            cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (!is.null(random.spec$precision)) {
+            cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
+        }
+        if (!is.null(random.spec$range)) {
+            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
+            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+        }
     }
 
     if (inla.one.of(random.spec$model, "ar")) {
@@ -242,7 +243,7 @@
         cat("compute = 1\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (inla.one.of(random.spec$model, c("me", "iid"))) {
+    if (inla.one.of(random.spec$model, c("mec", "iid"))) {
         ## possible scale-variable
         if (!is.null(random.spec$scale)) {
             file.scale=inla.tempfile(tmpdir=data.dir)
@@ -258,6 +259,10 @@
             ##print(cbind(idxs, random.spec$scale))
             file.scale = gsub(data.dir, "$inladatadir", file.scale, fixed=TRUE)
             cat("scale =", file.scale,"\n", sep = " ", file = file,  append = TRUE)
+        }
+    } else {
+        if (!is.null(random.spec$scale)) {
+            stop(paste("Section [",  label, "]: option 'scale' is not NULL but not used.",  sep=""))
         }
     }
 

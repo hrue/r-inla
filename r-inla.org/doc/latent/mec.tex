@@ -5,18 +5,18 @@
 \usepackage{verbatim}
 \begin{document}
 
-\section*{The Measurement Error (ME) model}
+\section*{The Classical Measurement Error (MEC) model}
 
 \subsection*{Parametrization}
 
-This is an implementation of the ME model for a fixed
+This is an implementation of the classical ME model for a fixed
 effect. It is best described by an example, let  the model be
 \begin{displaymath}
     y = \beta x + \epsilon{}
 \end{displaymath}
 where $y$ is the response, $\beta$ the effect of the true covariate
-$x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is not observed
-directly, but only through $x_{\text{obs}}$, where
+$x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is
+not observed directly, but only through $x_{\text{obs}}$, where
 \begin{displaymath}
     x_{\text{obs}} = x + \nu{}
 \end{displaymath}
@@ -66,10 +66,10 @@ and the prior is defined on $\theta_{4}$.
 
 \subsection*{Specification}
 
-The ME is specified inside the {\tt f()}
+The MEC is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(x.obs, [<weights>,] model="me", hyper = <hyper>, scale = <s>)
+ f(x.obs, [<weights>,] model="mec", hyper = <hyper>, scale = <s>)
 \end{verbatim}
 
 The \texttt{x.obs} are the observed values of the unknown covariates
@@ -81,11 +81,11 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 
 
 \subsubsection*{Hyperparameter specification and default values}
-\input{../hyper/latent/me.tex}
+\input{../hyper/latent/mec.tex}
 
 \subsection*{Example}
 
-\verbatiminput{me-example.R}
+\verbatiminput{mec-example.R}
 
 \subsection*{Notes}
 
