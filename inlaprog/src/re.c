@@ -858,7 +858,7 @@ int re_join_contourLines(re_contour_tp * c)
 		}
 	}
 
-	int imin, jmin, imindir, jmindir;
+	int imin = 0, jmin = 0, imindir=0, jmindir=0;
 	double dmin = DBL_MAX;
 
 	for (i = 0; i < c->nc; i++) {
