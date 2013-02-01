@@ -403,6 +403,7 @@ typedef enum {
 	F_SPDE2,
 	F_COPY,
 	F_MEC,
+	F_MEB,
 	F_R_GENERIC,
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
@@ -927,6 +928,9 @@ typedef struct {
 } inla_replicate_tp;
 
 
+/* 
+   classic me model
+ */
 typedef struct {
 	double **beta;
 	double **log_prec_obs;
@@ -935,6 +939,16 @@ typedef struct {
 	double *x_obs;
 	double *scale;
 } inla_mec_tp;
+
+/* 
+   berkson me model
+ */
+typedef struct {
+	double **beta;
+	double **log_prec;
+	double *x;
+	double *scale;
+} inla_meb_tp;
 
 typedef struct {
 	int Id;
@@ -1251,8 +1265,8 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
-double Qfunc_me(int i, int j, void *arg);
-double mfunc_me(int i, void *arg);
+double Qfunc_mec(int i, int j, void *arg);
+double mfunc_mec(int i, void *arg);
 
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
