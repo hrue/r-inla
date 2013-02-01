@@ -99,6 +99,41 @@
                       pdf = "mec"
                       ),
 
+              meb = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "beta",
+                                      short.name = "b",
+                                      prior = "gaussian",
+                                      param = c(1, 0.001),
+                                      initial = 1,
+                                      fixed = FALSE,
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ), 
+                              theta2 = list(
+                                      name = "prec.obs",
+                                      short.name = "prec",
+                                      prior = "loggamma",
+                                      param = c(1, 0.0001),
+                                      initial = log(1000),
+                                      fixed = FALSE,
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      constr = FALSE,
+                      nrow.ncol = FALSE,
+                      augmented = FALSE,
+                      aug.factor = 1L,
+                      aug.constr = NULL,
+                      n.div.by = NULL,
+                      n.required = FALSE,
+                      set.default.values = FALSE,
+                      status = "experimental", 
+                      pdf = "meb"
+                      ),
+
               rgeneric = list(
                       hyper = list(), 
                       constr = FALSE,
