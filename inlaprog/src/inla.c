@@ -6544,7 +6544,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			if (!strcmp(sectype, "LINCOMB")){
 				int ordering;
 				ordering = (int) iniparser_getdouble(ini, inla_string_join((const char *) secname, "LINCOMB.ORDER"), -1);
-				GMRFLib_ASSERT(ordering > 0, GMRFLib_ESNH);
+				GMRFLib_ASSERT_RETVAL(ordering > 0, GMRFLib_ESNH, (inla_tp *)NULL);
 				secmap[ordering - 1] = sec;    /* ordering in the Model.ini is from 1...n */
 			}
 		}
