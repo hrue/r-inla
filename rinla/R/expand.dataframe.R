@@ -33,7 +33,12 @@
     else
         new.dataframe=NULL
 
-    res = data.frame(.y.surv=new.data$y, .E=new.data$E, baseline.hazard=new.data$baseline.hazard,
+    res = data.frame(
+            .y.surv = new.data$y,
+            .E = new.data$E,
+            baseline.hazard = new.data$baseline.hazard,
+            baseline.hazard.idx = new.data$baseline.hazard,
+            baseline.hazard.points = cutpoints[new.data$baseline.hazard],
             dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
@@ -73,7 +78,10 @@
                 stop("Truncation cannot be greater than time")
         }
     }
-    data.new = data.frame(E=data.new[, 1L], y=data.new[, 2L], indicator=data.new[, 3L],
+    data.new = data.frame(
+            E=data.new[, 1L],
+            y=data.new[, 2L],
+            indicator=data.new[, 3L],
             baseline.hazard=data.new[, 4L])
 
     return(data.new)
@@ -137,8 +145,14 @@
         new.dataframe[, i] = rep(dataframe.copy[, i], aa)
     names(new.dataframe) = names(dataframe)[-col.data]
    
-    res = data.frame(.y.surv=new.data$y, .E=new.data$E, baseline.hazard=new.data$baseline.haz, 
-            subject=new.data$indicator, new.dataframe)
+    res = data.frame(
+            .y.surv = new.data$y,
+            .E = new.data$E,
+            baseline.hazard   = new.data$baseline.haz, 
+            baseline.hazard.idx = new.data$baseline.haz,
+            baseline.hazard.points = cutpoints[new.data$baseline.haz],
+            subject=new.data$indicator,
+            new.dataframe)
     
     return (list(data = res, cutpoints = cutpoints))
 }
@@ -180,7 +194,7 @@
         }
     }
     
-                                        # combining the number of events, interval lengths, baseline.hazard and subject.
+    ## combining the number of events, interval lengths, baseline.hazard and subject.
     index = rep(1L:nn, each=length(cutpoints)-1L)
     baseline.haz=rep(1L:(length(cutpoints)-1L), nn)
     dc=cbind(index, E, totalevent, baseline.haz)
