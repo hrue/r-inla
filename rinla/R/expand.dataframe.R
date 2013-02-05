@@ -39,6 +39,7 @@
             baseline.hazard = new.data$baseline.hazard,
             baseline.hazard.idx = new.data$baseline.hazard,
             baseline.hazard.time = cutpoints[new.data$baseline.hazard],
+            baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
             dataframe=new.dataframe)
     names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
@@ -151,6 +152,7 @@
             baseline.hazard   = new.data$baseline.haz, 
             baseline.hazard.idx = new.data$baseline.haz,
             baseline.hazard.time = cutpoints[new.data$baseline.haz],
+            baseline.hazard.length = diff(cutpoints)[new.data$baseline.haz],
             subject=new.data$indicator,
             new.dataframe)
     
