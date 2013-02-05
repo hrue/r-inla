@@ -545,7 +545,7 @@
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
                 inla.ifelse(!is.null(baseline.hazard.values),
                             inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
-                ", hyper = ", inla.formula2character(enquote(cont.hazard$hyper))[2],
+                ", hyper = ", enquote(cont.hazard$hyper),
                 ", constr = ", cont.hazard$constr,
                 ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
