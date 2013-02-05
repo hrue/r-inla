@@ -16,20 +16,20 @@ effect. It is best described by an example, let  the model be
 \end{displaymath}
 where $y$ is the response, $\beta$ the effect of the true covariate
 $x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is
-not observed directly, but only through $x_{\text{obs}}$, where
+not observed directly, but only through $w$, where
 \begin{displaymath}
-    x_{\text{obs}} = x + \nu{}
+    w = x + u
 \end{displaymath}
-where $\nu$ is zero mean Gaussian noise. Even though this setup is
+where $u$ is zero mean Gaussian noise. Even though this setup is
 possible to implement using basic features ("copy" and multiple
 likelihoods), we provide the following model which replaces the above,
 \begin{displaymath}
-    y = u + \epsilon{}
+    y = \nu + \epsilon{}
 \end{displaymath}
-where $u$ has the correct distribution depending on various parameters:
+where $\nu=\beta x$ has the correct distribution depending on various parameters:
 $\beta$ has prior $\pi(\beta)$, $x$ is apriori ${\mathcal N}(\mu_{x}
-{I}, \tau_{x} {I})$, and $s\times\tau_{\text{obs}}$ is the observation
-precision for $x$ (ie $\text{Prec}(x_{\text{obs}}|x)$).\footnote{Note:
+{I}, \tau_{x} {I})$, and $s\times\tau_u$ is the observation
+precision for $x$ (i.e., $\text{Prec}(u|x)$).\footnote{Note:
     The second argument in ${\mathcal N}(,)$ is the precision not the
     variance.} Here, $s$ is a vector of fixed scalings.
 
@@ -51,8 +51,8 @@ The hyperparameter specification is as follows:
 \end{displaymath}
 and the prior is defined on $\theta_{1}$,
 \begin{displaymath}
-    \theta_{2} = \log(\tau_{\text{obs}})
-p\end{displaymath}
+    \theta_{2} = \log(\tau_u)
+\end{displaymath}
 and the prior is defined on $\theta_{2}$,
 \begin{displaymath}
     \theta_{3} = \mu_{x}
@@ -69,12 +69,12 @@ and the prior is defined on $\theta_{4}$.
 The MEC is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(x.obs, [<weights>,] model="mec", hyper = <hyper>, scale = <s>)
+ f(w, [<weights>,] model="mec", hyper = <hyper>, scale = <s>)
 \end{verbatim}
 
-The \texttt{x.obs} are the observed values of the unknown covariates
+The \texttt{w} are the observed values of the true but unknown covariates
 $x$, with the \emph{assumption}, that if two or more elements of
-\texttt{x.obs} are \emph{identical}, then they refer to the
+\texttt{w} are \emph{identical}, then they refer to the
 \emph{same} element in the true covariate $x$. The fixed scaling of
 the observational precision is given in argument \texttt{scale}. If
 the argument \texttt{scale} is not given, then $s$ is set to $1$.
@@ -90,9 +90,9 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 \subsection*{Notes}
 
 \begin{itemize}
-\item \texttt{INLA} provide the posterior of $u$ and NOT $x$.
-\item The posterior of $u$ comes in the order given by the sorted
-    (from low to high) values of \texttt{x.obs}. The entry \verb|$ID|
+\item \texttt{INLA} provide the posterior of $\nu$ and NOT $x$.
+\item The posterior of $\nu$ comes in the order given by the sorted
+    (from low to high) values of \texttt{w}. The entry \verb|$ID|
     gives the mapping.
 \end{itemize}
 
