@@ -15,10 +15,8 @@ that goes into the linear predictor
 \begin{displaymath}
     \eta = \ldots + \beta x + \ldots \ ,
 \end{displaymath}
-where $x = w + u$ and $u$ is Gaussian
-with precision $\tau_u\cdot  s$,
- and $s$ is a vector of fixed scalings (default all are 1).
-
+where $x = w + u$, $u$ is Gaussian with precision $\tau_u\times s$,
+ and $s$ is a vector of fixed scalings. 
 
 
 \subsection*{Hyperparameters}
@@ -60,8 +58,8 @@ the \emph{same} element in the covariate $x$.
 \subsection*{Notes}
 
 \begin{itemize}
-\item \texttt{INLA} provide the posterior of $\beta \widetilde{x}$ and
-    NOT $\widetilde{x}$.  The results comes in the order given by the
+\item \texttt{INLA} provide the posterior of $\nu=\beta x$ and
+    NOT $x$.  The results comes in the order given by the
     sorted (from low to high) values of \texttt{x} and the field
     \texttt{ID} gives the mapping.
 \end{itemize}
