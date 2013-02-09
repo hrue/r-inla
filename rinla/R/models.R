@@ -57,7 +57,7 @@
                                       from.theta = function(x) x
                                       ), 
                               theta2 = list(
-                                      name = "prec.obs",
+                                      name = "prec.u",
                                       short.name = "prec",
                                       prior = "loggamma",
                                       param = c(1, 0.0001),
@@ -112,7 +112,7 @@
                                       from.theta = function(x) x
                                       ), 
                               theta2 = list(
-                                      name = "prec.obs",
+                                      name = "prec.u",
                                       short.name = "prec",
                                       prior = "loggamma",
                                       param = c(1, 0.0001),
