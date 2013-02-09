@@ -1,6 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1360320547 "mec.tex" "mec.pdf" "mec" 1360320547
-  "../hyper/latent/mec.tex" 1360320544 1749 e177f4bbe1736a573eaf1f9228cc975f ""
+["pdflatex"] 1360445699 "mec.tex" "mec.pdf" "mec" 1360445707
+  "../hyper/latent/mec.tex" 1360445698 1747 0739266f032b1405b6b4470501b209ea ""
   "/home/hrue/.texlive2012/texmf-var/web2c/pdftex/pdflatex.fmt" 1360315099 713809 e6b51a1fc3832540e13065b7264d0b4e ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
@@ -49,7 +49,7 @@
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1356147100 976939 720f98a3e1db41fdfa3ce05a75389644 ""
   "/usr/share/texlive/texmf/web2c/texmf.cnf" 1360127877 31298 0eec582831b8f7f2d77edabacc7b7538 ""
   "mec-example.R" 1360100561 1529 2f3649c1ddeb42893c82be902d93bee6 ""
-  "mec.aux" 1360320547 8 a94a2480d3289e625eea47cd1b285758 ""
+  "mec.aux" 1360445699 8 a94a2480d3289e625eea47cd1b285758 ""
   "mec.tex" 1360100561 3491 1346281172d89e44d7d3fa3784495777 ""
   (generated)
   "mec.pdf"
