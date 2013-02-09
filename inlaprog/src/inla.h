@@ -430,6 +430,7 @@ typedef enum {
 	G_RW1,
 	G_RW2,
 	G_AR, 
+	G_BESAG, 
 	MIX_GAUSSIAN, 
 } inla_component_tp;
 
@@ -566,6 +567,7 @@ typedef struct {
 	int ngroup;
 	int type;
 	int cyclic;
+	GMRFLib_graph_tp *graph;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
 	double **group_rho_intern;
@@ -680,6 +682,7 @@ struct inla_tp_struct {
 	int *f_group_model;
 	int *f_group_cyclic;
 	int *f_group_order;
+	GMRFLib_graph_tp **f_group_graph;
 	int *f_order;
 	double **f_locations;
 	double **f_weights;
@@ -1118,7 +1121,7 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp *group_graph);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);

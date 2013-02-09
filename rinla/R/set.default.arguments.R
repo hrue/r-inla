@@ -19,7 +19,7 @@
 {
     ##:NAME: control.group
     list(
-        ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1' or 'rw2')
+        ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1', 'rw2' or 'group')
         model = "exchangeable",
         
         ##:ARGUMENT: order Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.
@@ -28,6 +28,9 @@
         ##:ARGUMENT: cyclic Make the group model cyclic? (Only applies to models 'ar1',  'rw1' and 'rw2')
         cyclic = FALSE,
          
+        ##:ARGUMENT: graph The graph spesification (Only applies to model 'besag')
+        graph = NULL, 
+
         ##:ARGUMENT: hyper Definition of the hyperparameter(s)
         hyper = NULL,
 

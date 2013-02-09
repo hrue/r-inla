@@ -198,6 +198,15 @@
                 }
             }
         }
+        if (inla.one.of(random.spec$control.group$model, "besag")) {
+            stopifnot(!is.null(random.spec$control.group$graph))
+            gfile = inla.write.graph(random.spec$control.group$graph, filename = inla.tempfile())
+            fnm = inla.copy.file.for.section(gfile, data.dir)
+            unlink(gfile)
+            cat("group.graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        } else {
+            stopifnot(is.null(random.spec$control.group$graph))
+        }
         inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
     }
         

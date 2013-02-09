@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.1.19)  24 JAN 2013 19:57
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.2.8)  8 FEB 2013 11:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **mec-details.tex
 (./mec-details.tex
 LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, po
-lish, loaded.
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, lo
+aded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
@@ -161,12 +161,12 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 (./mec-details.aux) ) 
 Here is how much of TeX's memory you used:
- 2022 strings out of 495028
- 29003 string characters out of 3181318
- 87995 words of memory out of 3000000
- 5239 multiletter control sequences out of 15000+200000
+ 2022 strings out of 495063
+ 29003 string characters out of 3182195
+ 87971 words of memory out of 3000000
+ 5236 multiletter control sequences out of 15000+200000
  8410 words of font info for 30 fonts, out of 3000000 for 9000
- 34 hyphenation exceptions out of 8191
+ 14 hyphenation exceptions out of 8191
  26i,9n,32p,206b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
