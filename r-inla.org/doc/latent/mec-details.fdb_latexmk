@@ -1,5 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1359053828 "mec-details.tex" "mec-details.pdf" "mec-details" 1360100627
+["pdflatex"] 1360320547 "mec-details.tex" "mec-details.pdf" "mec-details" 1360320547
+  "/home/hrue/.texlive2012/texmf-var/web2c/pdftex/pdflatex.fmt" 1360315099 713809 e6b51a1fc3832540e13065b7264d0b4e ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1136768653 1512 f21f83efb36853c0b70002322c1ab3ad ""
@@ -42,10 +43,9 @@
   "/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty" 1213130811 80175 a550732aef92a278ec9bed572025bd8e ""
   "/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty" 1213130811 76974 d9d4762e984ff3346653b91fbcf676e9 ""
   "/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty" 1312409015 7125 6b8323deb5c5c3a19b248762654143eb ""
-  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1358579443 763553 8e013f32ad915ff54d10735b0d016317 ""
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1356147100 976939 720f98a3e1db41fdfa3ce05a75389644 ""
-  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1357912354 31298 0eec582831b8f7f2d77edabacc7b7538 ""
-  "mec-details.aux" 1359053828 31 d640b0d566f7f9a4de36235aa0c9e9b0 ""
+  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1360127877 31298 0eec582831b8f7f2d77edabacc7b7538 ""
+  "mec-details.aux" 1360320547 31 d640b0d566f7f9a4de36235aa0c9e9b0 ""
   "mec-details.tex" 1359053751 3203 c24ec509fef6ff489d90b92afa6319ff ""
   (generated)
   "mec-details.aux"

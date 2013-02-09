@@ -1,6 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1360100627 "meb.tex" "meb.pdf" "meb" 1360100627
-  "../hyper/latent/meb.tex" 1359706799 1056 4ef5104caaecca8187a75838767f26a4 ""
+["pdflatex"] 1360320547 "meb.tex" "meb.pdf" "meb" 1360320547
+  "../hyper/latent/meb.tex" 1360320544 1056 4ef5104caaecca8187a75838767f26a4 ""
+  "/home/hrue/.texlive2012/texmf-var/web2c/pdftex/pdflatex.fmt" 1360315099 713809 e6b51a1fc3832540e13065b7264d0b4e ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
@@ -38,11 +39,10 @@
   "/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty" 1213130811 80175 a550732aef92a278ec9bed572025bd8e ""
   "/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty" 1213130811 76974 d9d4762e984ff3346653b91fbcf676e9 ""
   "/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty" 1312409015 7125 6b8323deb5c5c3a19b248762654143eb ""
-  "/usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1358579443 763553 8e013f32ad915ff54d10735b0d016317 ""
   "/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map" 1356147100 976939 720f98a3e1db41fdfa3ce05a75389644 ""
-  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1357912354 31298 0eec582831b8f7f2d77edabacc7b7538 ""
+  "/usr/share/texlive/texmf/web2c/texmf.cnf" 1360127877 31298 0eec582831b8f7f2d77edabacc7b7538 ""
   "meb-example.R" 1360100585 997 5667d5d3e37c8b29726ad633feb8f5ba ""
-  "meb.aux" 1360100627 8 a94a2480d3289e625eea47cd1b285758 ""
+  "meb.aux" 1360320547 8 a94a2480d3289e625eea47cd1b285758 ""
   "meb.tex" 1360100561 2130 325e6511f4364526134b3527fab60edd ""
   (generated)
   "meb.pdf"

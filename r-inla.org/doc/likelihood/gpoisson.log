@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.1.19)  22 JAN 2013 10:13
+This is pdfTeX, Version 3.1415926-2.5-1.40.13 (TeX Live 2013/dev) (format=pdflatex 2013.2.8)  8 FEB 2013 11:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **gpoisson.tex
 (./gpoisson.tex
 LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, po
-lish, loaded.
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, lo
+aded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
@@ -203,12 +203,12 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 File: example-gpoisson.R  (verbatim)
  [2] [3] (./gpoisson.aux) ) 
 Here is how much of TeX's memory you used:
- 1685 strings out of 495028
- 21004 string characters out of 3181318
- 78996 words of memory out of 3000000
- 4881 multiletter control sequences out of 15000+200000
+ 1685 strings out of 495063
+ 21004 string characters out of 3182195
+ 78972 words of memory out of 3000000
+ 4878 multiletter control sequences out of 15000+200000
  9974 words of font info for 38 fonts, out of 3000000 for 9000
- 34 hyphenation exceptions out of 8191
+ 14 hyphenation exceptions out of 8191
  24i,4n,30p,225b,280s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts

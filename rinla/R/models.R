@@ -2524,6 +2524,20 @@
                                      from.theta = function(x) exp(x)
                                      )
                              )
+                     ), 
+             besag = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     prior = "loggamma",
+                                     param = c(1, 0.00005),
+                                     initial = 0,
+                                     fixed = TRUE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )
+                             )
                      )
              )
          )
