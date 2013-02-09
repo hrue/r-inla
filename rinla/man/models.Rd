@@ -65,7 +65,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{name = }{`prec.obs'}
+							\item{name = }{`prec.u'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 1e-04'}
@@ -133,7 +133,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{name = }{`prec.obs'}
+							\item{name = }{`prec.u'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 1e-04'}
