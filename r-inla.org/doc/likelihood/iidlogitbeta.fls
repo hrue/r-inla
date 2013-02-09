@@ -1,6 +1,6 @@
 PWD /home/hrue/p/inla/google-code/inla/r-inla.org/doc/likelihood
 INPUT /usr/share/texlive/texmf/web2c/texmf.cnf
-INPUT /usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT /home/hrue/.texlive2012/texmf-var/web2c/pdftex/pdflatex.fmt
 INPUT iidlogitbeta.tex
 OUTPUT iidlogitbeta.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls

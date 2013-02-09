@@ -3060,6 +3060,28 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `besag'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `mix'.}{
