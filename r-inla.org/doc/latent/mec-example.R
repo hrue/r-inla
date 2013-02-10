@@ -25,7 +25,7 @@ formula = y ~ 1 +
                       param = prior.beta,
                       fixed = FALSE
                       ),
-              prec.obs = list(
+              prec.u = list(
                       param = prior.prec.u,
                       initial = log(prec.u),
                       fixed = FALSE
