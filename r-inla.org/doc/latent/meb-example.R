@@ -19,7 +19,7 @@ formula = y ~ f(w,model="meb", scale=s,
                           param = prior.beta, 
                           fixed = FALSE
                           ),
-                      prec.obs = list(
+                      prec.u = list(
                           param = prior.prec.u, 
                           fixed = FALSE
                           )
