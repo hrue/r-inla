@@ -8,7 +8,7 @@
 inla(formula, ..., control.group=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
-\item{model}{  Group model (one of 'exchangable', 'ar1', 'ar', 'rw1', 'rw2' or 'group')}
+\item{model}{  Group model (one of 'exchangable', 'ar1', 'ar', 'rw1', 'rw2' or 'besag')}
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
 \item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
 \item{graph}{  The graph spesification (Only applies to model 'besag')}

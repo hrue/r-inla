@@ -19,7 +19,7 @@
 {
     ##:NAME: control.group
     list(
-        ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1', 'rw2' or 'group')
+        ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1', 'rw2' or 'besag')
         model = "exchangeable",
         
         ##:ARGUMENT: order Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.
