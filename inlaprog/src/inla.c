@@ -10405,12 +10405,6 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 }
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 {
-#define WISHART_DIM (mb->f_id[mb->nf] == F_IID1D ? 1 :			\
-		     (mb->f_id[mb->nf] == F_IID2D ? 2 :			\
-		      (mb->f_id[mb->nf] == F_IID3D ? 3 :		\
-		       (mb->f_id[mb->nf] == F_IID4D ? 4 :		\
-			(mb->f_id[mb->nf] == F_IID5D ? 5 : -1)))))
-
 #define SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
 #define OneOf(a_) (!strcasecmp(model, a_))
 #define OneOf2(a_, b_) (OneOf(a_) || OneOf(b_))
@@ -10624,23 +10618,23 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID model");
 	} else if (OneOf("IID1D")) {
 		mb->f_id[mb->nf] = F_IID1D;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID1D model");
 	} else if (OneOf("IID2D")) {
 		mb->f_id[mb->nf] = F_IID2D;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID2D model");
 	} else if (OneOf("IID3D")) {
 		mb->f_id[mb->nf] = F_IID3D;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID3D model");
 	} else if (OneOf("IID4D")) {
 		mb->f_id[mb->nf] = F_IID4D;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID4D model");
 	} else if (OneOf("IID5D")) {
 		mb->f_id[mb->nf] = F_IID5D;
-		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM);
+		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID5D model");
 	} else if (OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
@@ -10780,7 +10774,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_IID4D:
 	case F_IID5D:
 	{
-		int dim = WISHART_DIM;
+		int dim = WISHART_DIM(mb->nf);
 		assert(dim > 0);
 		char *pri, *par, *to_theta, *from_theta, *prifunc;
 		int nt = inla_iid_wishart_nparam(dim);
@@ -11396,7 +11390,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * IID_WISHART-model; need length N
 			 */
-			int dim = WISHART_DIM;
+			int dim = WISHART_DIM(mb->nf);
 			assert(dim > 0);
 
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
@@ -13182,7 +13176,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_IID4D:
 	case F_IID5D:
 	{
-		int dim = WISHART_DIM;
+		int dim = WISHART_DIM(mb->nf);
 		assert(dim > 0);
 
 		int n_theta = mb->f_ntheta[mb->nf];
@@ -13645,7 +13639,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_IID5D:
 	{
 		inla_iid_wishart_arg_tp *arg = NULL;
-		int dim = WISHART_DIM;
+		int dim = WISHART_DIM(mb->nf);
 		assert(dim > 0);
 
 		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
@@ -14220,16 +14214,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				switch (mb->f_group_model[mb->nf]) {
 				case G_EXCHANGEABLE:
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
+					mb->f_ntheta[mb->nf]++;
 					break;
 
 				case G_AR1:
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-rho");
+					mb->f_ntheta[mb->nf]++;
 					break;
 
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA");
+					mb->f_ntheta[mb->nf]++;
 					break;
 
 				default:
@@ -14237,7 +14234,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					abort();
 				}
 
-				mb->f_ntheta[mb->nf]++;
 				if (!fixed) {
 					/*
 					 * add this \theta 
@@ -14588,7 +14584,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	mb->nf++;
-#undef WISHART_DIM
 #undef SET
 #undef OneOf
 #undef OneOf2
@@ -17029,12 +17024,10 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_IID5D:
 		{
 			int jj, count_ref = count;
-			int dim = (mb->f_id[i] == F_IID1D ? 1 :
-				   (mb->f_id[i] == F_IID2D ? 2 : (mb->f_id[i] == F_IID3D ? 3 : (mb->f_id[i] == F_IID4D ? 4 : (mb->f_id[i] == F_IID5D ? 5 : -1)))));
+			int dim = WISHART_DIM(i); 
 			assert(dim > 0);
 
-			int nt = mb->f_ntheta[i];
-			assert(nt == inla_iid_wishart_nparam(dim));
+			int nt = inla_iid_wishart_nparam(dim);
 			double log_jacobian = 0.0;
 			double *theta_vec = Calloc(nt, double);
 			int k = 0;
