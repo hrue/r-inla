@@ -1331,6 +1331,12 @@ typedef struct {
 		}							\
 	}
 
+#define WISHART_DIM(idx) (mb->f_id[idx] == F_IID1D ? 1 :		\
+			  (mb->f_id[idx] == F_IID2D ? 2 :		\
+			   (mb->f_id[idx] == F_IID3D ? 3 :		\
+			    (mb->f_id[idx] == F_IID4D ? 4 :		\
+			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
+
 
 __END_DECLS
 #endif
