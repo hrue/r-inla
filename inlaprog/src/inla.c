@@ -10849,14 +10849,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_MEC:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.obs */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.u */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	/* mean */
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "LOGGAMMA");	/* prec.x */
 		break;
 
 	case F_MEB:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.obs */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.u */
 		break;
 
 	case F_R_GENERIC:
@@ -12184,7 +12184,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			GMRFLib_sprintf(&msg, "MEC prec_x_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "MECprec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "MEC prec_x for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter3", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
