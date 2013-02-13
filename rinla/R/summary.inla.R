@@ -2,7 +2,15 @@
 {
     ## provides a summary for a inla object
     ret = list()
-    ret = c(ret, list(call=object$call))
+
+    maxlen = 2048L
+    if (sum(nchar(object$call)) > maxlen) {
+        ret = c(ret,
+                list(call=paste(substr(inla.paste(object$call), 1L, maxlen),
+                             "<<<the rest is not shown>>>")))
+    } else {
+        ret = c(ret, list(call=object$call))
+    }
     ret = c(ret, list(cpu.used = object$cpu.used))
 
     if(!is.null(object$summary.fixed)) {
