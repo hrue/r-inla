@@ -65,9 +65,9 @@ questions like ``What is it?'', ``What models can I use it for?'',
 \emph{Latent Gaussian models} is an important class of statistical
 models, and in our opinion, the most important and most widely used
 model class in (applied) statistics. The details are given in
-\Sec{intro:2}. This class include most/many of dynamic linear models,
-stochastic volatility models, generalised linear (mixed) models,
-generalised additive (mixed) models, spline smoothing models,
+\Sec{intro:2}. This class includes most/many of dynamic linear models,
+stochastic volatility models, generalized linear (mixed) models,
+generalized additive (mixed) models, spline smoothing models,
 semiparametric regression models, space-varying (semiparametric)
 regression models, disease mapping models, Log-Gaussian Cox-processes,
 model-based geostatistics and spatio-temporal models.
@@ -76,14 +76,14 @@ model-based geostatistics and spatio-temporal models.
 do exact inference, meaning that there is not button to tune on in
 order to make the results converge towards the true ones. This
 strategy is very different from the one using MCMC, say, where as the
-number of samples tends to infinity the results gets increasingly more
+number of samples tends to infinity the results get increasingly more
 accurate. Also we do not aim to compute all possible marginals, but
 only the marginals for the parameters in the model and linear
 combinations thereof. These are in most cases the target for the
 statistical analysis. It turns out, that in most cases, we can compute
 approximated marginals for the model parameters both much much quicker
 and more accurate, compared to common MCMC alternatives. The main
-reasons to these achivements, are as follows.
+reasons to these achievements, are as follows.
 \begin{enumerate}
 \item We make use of the latent Gaussian field by using Laplace
     approximations.
@@ -97,7 +97,7 @@ For details about the \tv{INLA}-approach itself, then \cite{art375} is
 a teaser, \cite{art451} is the main reference,
 \cite{col30,col33,art517} are book-chapters about the \tv{INLA}
 approach with applications, \cite{tech106} gives details of new
-extentions in \tv{INLA}, and \cite{tech104} discuss some extentions to
+extensions in \tv{INLA}, and \cite{tech104} discuss some extensions to
 latent near-Gaussian models.
 
 \section{What models can it be used for?}
@@ -110,7 +110,7 @@ conditional independent observations $\mm{y}$,
     y_{i} \mid \ldots \;\sim\; \pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})
 \end{displaymath}
 where $\eta_{i}$ is the linear predictor for $y_{i}$ and
-$\mm{\theta}_{1}$ are hyperparmaters in the likelihood model
+$\mm{\theta}_{1}$ are hyperparameters in the likelihood model
 $\pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})$. The likelihood model
 could be Gaussian, Poisson or some other model. 
 
@@ -128,7 +128,7 @@ Gaussian ``random effects''\footnote{We will use the terms ``fixed
 terms $f_{k}(c_{ki}\; \mm{\theta}_{2})$ are general Gaussian ``random
 effects'' models, for which the covariate $c_{ki}$ extract the
 component of it that goes into the $i$th linear predictor. Again,
-$\mm{\theta}_{2}$ are hyperparmaters in these general Gaussian
+$\mm{\theta}_{2}$ are hyperparameters in these general Gaussian
 models. An important assumption, is that the joint density for $\mm{x}
 = (\mm{\eta}, \mm{\beta}, \mm{f})$ is Gaussian with density
 \begin{displaymath}
@@ -140,9 +140,8 @@ models. An important assumption, is that the joint density for $\mm{x}
 where $\mm{Q}$ is the precision matrix and $\mm{b}$ is the linear
 term, both which can depend on $\mm{\theta}_{2}$.
 
-As the third stage, we have the joint prior for the hyperparmaters
-$\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$,
-$\pi(\mm{\theta})$.
+As the third stage, we have the joint prior $\pi(\mm{\theta})$ for the hyperparameters
+$\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$.
 
 The target for the Bayesian analysis is to compute the posterior
 marginals for each $\theta_{i}$, $\eta_{i}$, $\beta_{i}$ and $f_{ki}$
@@ -156,7 +155,7 @@ The \tv{R-INLA} package is available from the web-site
 \end{verbatim}
 which also contains all other available information.
 
-Before installing \tv{R-INLA} you might want to install the dependent
+Before installing \tv{R-INLA} you might want to install the
 packages \tv{R-INLA} depends on, these are
 \begin{itemize}
 \item pixmap
@@ -181,7 +180,7 @@ source("http://www.math.ntnu.no/inla/givemeINLA.R")
 %%
 which will download and install the package. 
 \item You can also install the package manually. If you are using
-    Linux or mach, then 
+    Linux or Mac, then
  download
 \begin{verbatim}
 http://www.math.ntnu.no/inla/binaries/INLA.tgz
@@ -229,7 +228,7 @@ You can check which version you have installed using
 inla.version()
 @ 
 %%
-The ``build date'' is when this packages was compiled and build, the
+The ``build date'' shows when the package was compiled and build, the
 ``INLA hgid'' is the version and date of the \tv{R}-code and 
 ``INLA-program hgid'' is the version and date of the inla-program that
 do all the calculations. The version and date for the inla-program is
@@ -258,8 +257,8 @@ library(INLA)
 will load the library and you are ready to go. 
 
 If you are familiar with the \verb|lm()| function in \tv{R}, then you
-can use \verb|inla()| function instead of the \verb|lm()| function to
-do a Bayesian analysis. Here is a small example
+can use the \verb|inla()| function instead of the \verb|lm()| function
+to do a Bayesian analysis. Here is a small example
 <<ex1,cache=TRUE>>=
 n = 100
 x = rnorm(n)
@@ -347,7 +346,7 @@ the new models are created as \verb|inla.model-1|,
 one. With this option, your data stays almost secret, in the sense
 that they are there, but in a form that makes it very hard to extract
 any useful information about unless knowing how the model was
-defined. However, it contain in most cases what we need to rerun the
+defined. However, it contains in most cases what we need to rerun the
 model and check what is going on.
 
 
@@ -359,7 +358,7 @@ context, and is essentially a Bayesian version of \verb|lm()| and
     fixed effects models in \tv{R-INLA} may scale badly and run slower
     than their frequentisitic alternatives.}.
 
-We will now define a Bayesian generalized linear models (BGLMs) to
+We will now define Bayesian generalized linear models (BGLMs) to
 perform approximate fully Bayesian inference with INLA. These models
 can be written using a hierarchical representation where the first
 stage is formed by a likelihood function with conditional independence
@@ -404,7 +403,7 @@ linear predictor. In matrix notation
 
 Similar to linear models in \tv{R} (like \tv{lm()} and \tv{glm()}),
 the model is defined using a \emph{formula}; see
-\verb|?formula|.\footnote{One exception is that the spesification
+\verb|?formula|.\footnote{One exception is that the specification
     ``\texttt{y $\;\mbox{$\sim$}\;$ .}'' is not allowed.}
 That
     is, the linear predictor can be specified using the formula
@@ -434,12 +433,12 @@ where $\eta_{i}$ is the linear predictor for $y_{i}$ with a not yet
 defined likelihood.
 
 Note that an intercept $\mu$ is automatically added to the model,
-unless you say that you do not want it using adding term $-1$ or $0$:
+unless you say that you do not want it by adding term $-1$ or $0$:
 \begin{center}
     \texttt{y \;\mbox{$\sim$}\; -1 + ....}\\
     \texttt{y \;\mbox{$\sim$}\; 0 + ....}
 \end{center}
-Similarly, adding term $1$ makes the intercept appear explicitely
+Similarly, adding term $1$ makes the intercept appear explicitly
 \begin{center}
     \texttt{y \;\mbox{$\sim$}\; 1 + ....}
 \end{center}
@@ -462,7 +461,7 @@ It is also possible to use the design matrix $\bs{X}$ explicitly as in
 \begin{center}
     \texttt{formula = y \;\mbox{$\sim$}\; X}
 \end{center}
-An alternative spesification of the last example, is 
+An alternative specification of the last example, is
 <<>>=
 formula = y ~ X
 X = cbind(x=x, z=z, "x:z"=x*z)
@@ -471,12 +470,12 @@ r$summary.fixed
 @ 
 %%
 \tv{R-INLA} adds prefix ``X'' to the fixed effects names, to make the
-connection to the design-matrix $X$ explicite.
+connection to the design-matrix $X$ explicit.
 
 \subsection{Prior for the fixed effects}
 
 As mentioned in Section \ref{bglm:sec:intro}, INLA attributes
-independent Gaussian priors for each one of the fixed effects of the
+independent Gaussian priors for each fixed effect of the
 model. The mean and precision of each of the priors can be controlled
 using the argument \texttt{control.fixed} of the \texttt{inla}
 function.  The argument \texttt{control.fixed} needs to be a list, and
@@ -522,7 +521,7 @@ inla(..., control.fixed = control.fixed)
 
 \section{Looking at the results}
 
-The result from a \tv{inla()}-call returns an object with class
+The result from an \tv{inla()}-call returns an object with class
 \tv{inla}
 <<>>=
 class(r)
@@ -533,8 +532,8 @@ and with a lot of contents:
 names(r)
 @ 
 %%
-Not all of the contents are interest for the typical user, but some of
-the objects are, which we now will discuss. 
+Not all of the contents are of interest for the typical user, but some
+of the objects are, which we now will discuss. 
 
 With a result-object you can get a summary using
 <<>>=
@@ -629,7 +628,7 @@ str(r$summary.fixed)
 str(r$summary.hyper)
 @ 
 %%
-provide summaries like the expectation, standard deviations and
+provide summaries including the expectation, standard deviations and
 quantiles. For example
 <<>>=
 r$summary.fixed[, "mean"]
@@ -646,7 +645,7 @@ e.2 = inla.emarginal(function(x) x, r$marginals.fixed[["Xx"]])
 print(e.1 - e.2)
 @ 
 %%
-as those results reported in \verb|r$summary.fixed| is computed with a
+as those results reported in \verb|r$summary.fixed| are computed with a
 different (and higher) resolution of the posterior marginal.
 
 
@@ -659,7 +658,7 @@ different (and higher) resolution of the posterior marginal.
 
 \section{Setting priors for hyperparameters}
 
-\section{\tv{NA} is the reponse}
+\section{\tv{NA} is the response}
 
 
 
@@ -674,11 +673,11 @@ different (and higher) resolution of the posterior marginal.
 \chapter{Options for the \tv{inla}-call}
 
 \section{General options}
-\section{Spesific options: \tv{control.xxx}}
+\section{Specific options: \tv{control.xxx}}
 
 
 
-\chapter{Extentions and other cool features}
+\chapter{Extensions and other cool features}
 
 \section{Using more than one type of likelihood models}
 
@@ -696,7 +695,7 @@ different (and higher) resolution of the posterior marginal.
 
 
 
-\chapter{Troubleshoting and FAQs}
+\chapter{Troubleshooting and FAQs}
 
 
 
@@ -762,7 +761,7 @@ linear predictor. In matrix notation
 \end{equation}
 
 The specification of the linear predictor (\ref{bglm:eq:linear_pred})
-in INLA follow the same pattern found in \texttt{lm} and \texttt{glm}
+in INLA follows the same pattern found in \texttt{lm} and \texttt{glm}
 functions available in \texttt{R}.  That is, the linear predictor can
 be specified using the standard
 \begin{equation}
@@ -853,8 +852,8 @@ as for example the Gaussian and Poisson case. When defining a
 likelihood function for use with INLA, some aspects deserves
 attention.
 \begin{enumerate}
-\item \textbf{Parametrization}: For example, in the Gaussian case, the
-    parametrization used by INLA is mean $\mu$, precision $\tau$, and
+\item \textbf{Parameterization}: For example, in the Gaussian case, the
+    parameterization used by INLA is mean $\mu$, precision $\tau$, and
     a possible (known) scale parameter $s$ for each observation, so
     that for data point $y_i$, we have a mean $\mu_i$ and variance
     $\sigma_i = \frac{1}{s_i\tau}$
@@ -871,14 +870,14 @@ attention.
     is considered to be a hyperparameter. For the Gaussian likelihood,
     the precision parameter $\tau$ is considered a
     hyperparameter. Every hyperparameter has an internal
-    parametrization. For example, the internal parametrization of the
+    parameterization. For example, the internal parameterization of the
     precision parameter $\tau$ in the Gaussian case is $\theta = \log
     (\tau)$, and the prior specification is done using the
-    $\theta$-parametrization.
+    $\theta$-parameterization.
 
 \item \textbf{Prior for hyperparameters}: As mentioned on item
     \ref{bglm:enum:hyper}, the priors for the hyperparameters are
-    defined using the internal parametrization. For example, in the
+    defined using the internal parameterization. For example, in the
     Gaussian case the prior is defined for $\theta$, where $\theta =
     \log (\tau)$.
 
@@ -937,7 +936,7 @@ result = inla(# formula for the linear predictor
               control.data)
 \end{verbatim}
 
-After you have runned your model with INLA using the above function,
+After you have run your model with INLA using the above function,
 the resulting object will be stored in the \tv{result} variable. This
 will be a S3 object with several attributes and we will now highlight
 the most important ones.
@@ -948,7 +947,7 @@ deviation, and the $(0.025, 0.5, 0.975)$ quantiles. Similarly, we use
 \tv{result\$summary.hyper} to obtain the summary matrix for the
 hyperparameters in the model.
 
-In some application we need to go beyond point estimates and have
+In some applications we need to go beyond point estimates and have
 access to the posterior distributions of the fixed effects and
 hyperparameters.  We can access those with
 \tv{result\$marginals.fixed} and \tv{result\$marginals.hyper},
