@@ -6,7 +6,7 @@
 \begin{document}
 
 \section*{Correlated random effects: \texttt{iid1d}, \texttt{iid2d},
-    \texttt{iid3d}}
+    \texttt{iid3d}, \texttt{iid4d} and \texttt{iid5d}}
 
 This model is available for dimensions $p=1$, $2$, $3$, $4$ and
 $5$. We describe in detail the case for $p=2$, and then the changes
@@ -29,12 +29,18 @@ where the  covariance matrix $\mathbf{W}^{-1}$ is
 \begin{equation}
     \label{precision}
     \mathbf{W}^{-1} = \left(\begin{array}{cc}
-          1/\tau_a & \rho \sqrt{\tau_a\tau_b}\\
-          \rho\sqrt{\tau_a\tau_b}&  1/\tau_b
+          1/\tau_a & \rho /\sqrt{\tau_a\tau_b}\\
+          \rho/\sqrt{\tau_a\tau_b}&  1/\tau_b
       \end{array}\right)
 \end{equation}
-and $\tau_{a}$, $\tau_{b}$ and $\rho$ are the hyperparameters. For
-these models the precision matrix $\mathbf{W}$ is Wishart distributed
+and $\tau_{a}$, $\tau_{b}$ and $\rho$ are the hyperparameters.
+
+Note that $\rho$ is the correlation coefficient, and that $\tau_{a}$
+and $\tau_{b}$ are the \emph{marginal precisions}, \emph{not} the
+elements in the precision matrix.
+
+For these models the precision matrix $\mathbf{W}$ is Wishart
+distributed
 \begin{displaymath}
     \mathbf{W}
     \;\sim\;\text{Wishart}_{p}(r, \mathbf{R}^{-1}), \quad p=2
