@@ -85,7 +85,12 @@
                         idx.fail,
                         function(idx, result) {
                             result$.args$control.expert = list(cpo.manual = TRUE, cpo.idx = idx)
-                            result$.args$control.mode = list(result = result, restart = recompute.mode)
+                            result$.args$control.mode = list(
+                                    result = NULL,
+                                    fixed = result$.args$control.mode$fixed,
+                                    theta = result$mode$theta,
+                                    x = result$mode$x,
+                                    restart = recompute.mode)
                             rr = inla.self.call(result)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
                         },
