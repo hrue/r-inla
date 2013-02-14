@@ -1,6 +1,6 @@
 ### Functions to write the different sections in the .ini-file
 
-`inla.write.hyper` = function(hyper, file, prefix="")
+`inla.write.hyper` = function(hyper, file, prefix="", data.dir)
 {
     stopifnot(!missing(hyper))
     stopifnot(!missing(file))
@@ -30,7 +30,24 @@
         if (length(grep("^(expression|table)[ \t]*:", tolower(tmp.prior))) == 0L) {
             tmp.prior = inla.trim.family(tmp.prior)
         }
-        cat(prefix, "prior",      suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
+
+        ## table: is now stored in a file
+        if (length(grep("^table:",  tmp.prior)) > 0) {
+            tab = substr(tmp.prior, nchar("table:")+1, nchar(tmp.prior))
+            xy = as.numeric(unlist(strsplit(tab, "[ \t\n\r]+")))
+            xy = xy[!is.na(xy)]
+            nxy = length(xy)
+            stopifnot(nxy%%2L == 0L)
+            xx = xy[seq(1, nxy, by = 2L)]
+            yy = xy[seq(2, nxy, by = 2L)]
+            xy = cbind(xx, yy)
+            file.xy = inla.tempfile(tmpdir=data.dir)
+            inla.write.fmesher.file(xy, filename = file.xy)
+            file.xy = gsub(data.dir, "$inladatadir", file.xy, fixed=TRUE)
+            cat("prior = table:", file.xy, "\n", append=TRUE, sep = " ", file = file)
+        } else {
+            cat(prefix, "prior",      suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
+        }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
         cat(prefix, "to.theta",   suff, " = ", inla.function2source(hyper[[k]]$to.theta), "\n", file = file, append = TRUE, sep="")
@@ -57,7 +74,7 @@
     return (inla.data.section(...))
 }
     
-`inla.data.section` = function(file, family, file.data, file.weights, control, i.family="")
+`inla.data.section` = function(file, family, file.data, file.weights, control, i.family="", data.dir)
 {
     ## this function is called from 'inla.family.section' only.
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
@@ -92,13 +109,13 @@
             sep="", file=file, append=TRUE)
     }
     
-    inla.write.hyper(control$hyper, file)
+    inla.write.hyper(control$hyper, file, data.dir = data.dir)
     
     ## the mix-part
     inla.write.boolean.field("mix.use", control$control.mix$use, file)
     if (control$control.mix$use) {
         cat("mix.model = ", control$control.mix$model, "\n", sep="", file=file, append=TRUE)
-        inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.")
+        inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.", data.dir = dirname(file))
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
@@ -163,7 +180,7 @@
             random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
         }
     }
-    inla.write.hyper(random.spec$hyper, file)
+    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
@@ -207,7 +224,7 @@
         } else {
             stopifnot(is.null(random.spec$control.group$graph))
         }
-        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.")
+        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir)
     }
         
     if (!is.null(random.spec$cyclic)) {
@@ -464,7 +481,7 @@
         cat("link.fitted.values = ", file.link.fitted.values,"\n", sep = " ", file = file, append=TRUE)
     }
 
-    inla.write.hyper(predictor.spec$hyper, file)
+    inla.write.hyper(predictor.spec$hyper, file, data.dir = data.dir)
 
     if (!is.null(predictor.spec$cross) && length(predictor.spec$cross) > 0) {
         if (length(predictor.spec$cross) != n + m) {
@@ -838,7 +855,7 @@
         cat("model = ", inla.ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
         cat("n = 1\n", file=file, append = TRUE)
         if (k == 1L) {
-            inla.write.hyper(random.spec$hyper, file)
+            inla.write.hyper(random.spec$hyper, file, data.dir = data.dir)
         }
 
         file.cov=inla.tempfile(tmpdir=data.dir)

@@ -1,4 +1,3 @@
-
 /* eval.c
  * 
  * Copyright (C) 2011  Havard Rue
@@ -225,19 +224,24 @@ double inla_eval_table(char *expression, double *xval)
 {
 	GMRFLib_spline_tp *s;
 	double *table = NULL, *x = NULL, *y = NULL, value;
-	int nelm = 0, n, i, k;
+	int nelm = 0, n, i;
+	GMRFLib_matrix_tp *M = NULL;
 
-	inla_sread_doubles_q(&table, &nelm, expression);
-	assert(GSL_IS_EVEN(nelm));
-	assert(nelm >= 4);
+	while(*expression == ' ' || *expression == '\t') expression++;
+	if (debug){
+		fprintf(stderr, "OPEN FILE[%s]\n", expression);
+	}
+	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
+	assert(M->nrow >= 4);
+	assert(M->ncol == 2);
 
-	n = nelm / 2;
+	n = M->nrow;
 	x = Calloc(n, double);
 	y = Calloc(n, double);
 
-	for (i = k = 0; i < n; i++, k += 2) {
-		x[i] = table[k + 0];
-		y[i] = table[k + 1];
+	for (i = 0; i < n; i++) {
+		x[i] = M->A[i];
+		y[i] = M->A[i + M->nrow];
 
 		if (debug) {
 			printf("table %d: %g %g\n", i, x[i], y[i]);
@@ -271,6 +275,7 @@ double inla_eval_table(char *expression, double *xval)
 		first = 0;
 	}
 
+	GMRFLib_matrix_free(M);
 	inla_spline_free(s);
 	Free(x);
 	Free(y);
