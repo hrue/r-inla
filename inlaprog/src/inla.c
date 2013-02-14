@@ -17444,7 +17444,7 @@ int inla_INLA(inla_tp * mb)
 			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
-		printf("\tSize of full graph=[%1d]\n", N);
+		printf("\tSize of graph=[%1d] constraints=[%1d]\n", N, (mb->hgmrfm->constr ? mb->hgmrfm->constr->nc : 0));
 	}
 
 	mb->d = Realloc(mb->d, N, double);
