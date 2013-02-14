@@ -17,6 +17,7 @@ syntax: glob
 syntax: regexp
 # example from mercurial manual   ^\.pc/
 # Ignore these files:
+^.*/TAGS$
 ^extlibs/metis-4.0.tgz$
 ^extlibs/taucs-2.2.tgz$
 ^extlibs/metis-build/
@@ -33,3 +34,11 @@ syntax: regexp
 ^gmrflib/example-doxygen-
 ^inlaprog/inla$
 ^rinla/man/control\..*$
+^.*make-man-pages\.timestamp$
+^sandbox/tutorials/inla/.*Rnw\.pdf$
+^sandbox/tutorials/inla/.*main\.pdf$
+^sandbox/tutorials/inla/.*\.fls$
+^sandbox/tutorials/inla/ca.*$
+^sandbox/tutorials/inla/Sweave/.*$
+^sandbox/tutorials/inla/auto/.*$
+^sandbox/tutorials/inla/.*\.RData$
