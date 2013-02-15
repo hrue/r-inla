@@ -2840,8 +2840,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.2'}
-							\item{to.theta = }{`\code{function(x, ngroup) log((1+x*(ngroup-1))/(1-x))}'}
-							\item{from.theta = }{`\code{function(x, ngroup) (exp(x)-1)/(exp(x) + ngroup -1)}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.ngroup) log((1+x*(ngroup-1))/(1-x))}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.ngroup) (exp(x)-1)/(exp(x) + ngroup -1)}'}
 							}
 						}
 					 }
