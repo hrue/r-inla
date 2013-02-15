@@ -36,10 +36,9 @@
             tab = substr(tmp.prior, nchar("table:")+1, nchar(tmp.prior))
             xy = as.numeric(unlist(strsplit(tab, "[ \t\n\r]+")))
             xy = xy[!is.na(xy)]
-            nxy = length(xy)
-            stopifnot(nxy%%2L == 0L)
-            xx = xy[seq(1, nxy, by = 2L)]
-            yy = xy[seq(2, nxy, by = 2L)]
+            nxy = length(xy) %/% 2L
+            xx = xy[1:nxy]
+            yy = xy[1:nxy + nxy]
             xy = cbind(xx, yy)
             file.xy = inla.tempfile(tmpdir=data.dir)
             inla.write.fmesher.file(xy, filename = file.xy)
