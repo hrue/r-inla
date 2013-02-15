@@ -447,7 +447,7 @@ typedef struct {
 	char *to_theta;					       /* R-code */
 	char *from_theta;				       /* R-code */
 	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
-	char *expression;				       /* an alternative expression */
+	char *expression;				       /* an alternative expression/table */
 } Prior_tp;
 
 /* 

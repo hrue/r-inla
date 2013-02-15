@@ -1,6 +1,6 @@
 ### Functions to write the different sections in the .ini-file
 
-`inla.write.hyper` = function(hyper, file, prefix="", data.dir)
+`inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L)
 {
     stopifnot(!missing(hyper))
     stopifnot(!missing(file))
@@ -49,8 +49,10 @@
         }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
-        cat(prefix, "to.theta",   suff, " = ", inla.function2source(hyper[[k]]$to.theta), "\n", file = file, append = TRUE, sep="")
-        cat(prefix, "from.theta",   suff, " = ", inla.function2source(hyper[[k]]$from.theta), "\n", file = file, append = TRUE, sep="")
+        to.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$to.theta))
+        from.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$from.theta))
+        cat(prefix, "to.theta", suff, " = ", to.t, "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "from.theta", suff, " = ", from.t, "\n", file = file, append = TRUE, sep="")
     }
 
     return ()
@@ -179,7 +181,7 @@
             random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
         }
     }
-    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir)
+    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
@@ -223,7 +225,7 @@
         } else {
             stopifnot(is.null(random.spec$control.group$graph))
         }
-        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir)
+        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir, ngroup = ngroup)
     }
         
     if (!is.null(random.spec$cyclic)) {
