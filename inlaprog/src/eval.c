@@ -222,12 +222,14 @@ double inla_eval_expression(char *expression, double *x)
 }
 double inla_eval_table(char *expression, double *xval)
 {
+	int nelm = 0, i;
+	double value;
 	GMRFLib_spline_tp *s;
-	double *table = NULL, *x = NULL, *y = NULL, value;
-	int nelm = 0, n, i;
 	GMRFLib_matrix_tp *M = NULL;
 
-	while(*expression == ' ' || *expression == '\t') expression++;
+	while(*expression == ' ' || *expression == '\t') {
+		expression++;
+	}
 	if (debug){
 		fprintf(stderr, "OPEN FILE[%s]\n", expression);
 	}
@@ -235,20 +237,7 @@ double inla_eval_table(char *expression, double *xval)
 	assert(M->nrow >= 4);
 	assert(M->ncol == 2);
 
-	n = M->nrow;
-	x = Calloc(n, double);
-	y = Calloc(n, double);
-
-	for (i = 0; i < n; i++) {
-		x[i] = M->A[i];
-		y[i] = M->A[i + M->nrow];
-
-		if (debug) {
-			printf("table %d: %g %g\n", i, x[i], y[i]);
-		}
-	}
-
-	s = inla_spline_create(x, y, n);
+	s = inla_spline_create(M->A, M->A + M->nrow, M->nrow);
 	value = inla_spline_eval(*xval, s);
 
 	if (ISNAN(value)) {
@@ -259,27 +248,8 @@ double inla_eval_table(char *expression, double *xval)
 		exit(1);
 	}
 		
-	if (0) {
-		static int first = 1;
-		if (first){
-			FILE *fp = fopen("compare-priors.txt", "w");
-			double xx;
-			for(xx = -9;  xx < 9; xx += 0.01){
-				double p1, p2;
-				p1 = inla_spline_eval(xx, s);
-				p2 = priorfunc_jeffreys_df_student_t(&xx, NULL);
-				fprintf(fp, "%g %g %g\n", xx, p1, p2);
-			}
-			fclose(fp);
-		}
-		first = 0;
-	}
-
 	GMRFLib_matrix_free(M);
 	inla_spline_free(s);
-	Free(x);
-	Free(y);
-	Free(table);
 
 	return value;
 }
