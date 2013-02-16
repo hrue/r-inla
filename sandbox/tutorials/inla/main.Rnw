@@ -39,7 +39,7 @@
  N-7491 Trondheim, Norway}
 \maketitle
 
-<<echo=FALSE, cache=TRUE>>=
+<<echo=TRUE, cache=TRUE>>=
 options(width=60, prompt = " ", continue = " ")
 library(INLA)
 library(xtable)
