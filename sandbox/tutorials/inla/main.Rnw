@@ -39,8 +39,8 @@
  N-7491 Trondheim, Norway}
 \maketitle
 
-<<echo=false, cache=TRUE>>=
-options(width=60)##(prompt = " ", continue = " ")
+<<echo=FALSE, cache=TRUE>>=
+options(width=60, prompt = " ", continue = " ")
 library(INLA)
 library(xtable)
 @
@@ -691,8 +691,133 @@ different (and higher) resolution of the posterior marginal.
 
 \section{Feature: \tv{linear combinations}}
 
-\section{Defining your own prior}
+\section{Defining your own prior distribution for hyperparameters}
 
+Besides the list of available prior functions for hyperparameters, compare \ref{sec:}, it is even possible to define user-specific prior distributions. This might be need on one side to incorporate expert-motivated prior distributions or to use prior distributions that are non-standard.
+
+Hence, there are three ways to specify prior distributions for hyperparameter in INLA:
+\begin{enumerate}
+	\item Use an available prior distribution.
+	\item Define your own prior distribution function using R-like (not equal) syntax as expression.
+	\item Assign a table of x and corresponding y values which represent your prior distribution.
+\end{enumerate}
+
+In the following we will provide more details regarding 2.) and 3.), afterward we will present an example illustrating (and comparing) the three different possibilities using the log-gamma distribution.
+
+\subsection{“Expression”: a do-it-yourself prior}
+
+A user can specify a new prior distribution by defining an expression for the log-density of any (univariate) prior $\log\pi(\theta)$, as a function of the corresponding $\theta$. Here, it is important to be aware that $\theta$ is defined on the internal scale.
+
+The expression is evaluated using the
+\texttt{muparser}-library\footnote{See
+    \texttt{http://muparser.sourceforge.net/} for more documentation},
+with some local configuration changes to make it more
+``\texttt{R}''-like in style. The format is
+\begin{quote}
+    \texttt{expression: <statement>; <statement>; ...; return(<value>)}
+\end{quote}
+where ``\texttt{<statement>}'' is any regular statement (more below)
+and value returned, ``\texttt{<value>}'' is the value for the
+log-density of the prior, evaluated at the current value for $\theta$.
+
+Here, is an example defining the log-gamma distribution:
+\begin{verbatim}
+prior.expression = "expression:
+            a = 1;
+            b = 0.1;
+            precision = exp(log_precision);
+            logdens = log(b^a) - lgamma(a)
+                      + (a-1)*log_precision - b*precision;
+            log_jacobian = log_precision;
+            return(logdens + log_jacobian);"
+\end{verbatim}
+
+
+Some syntax specific notes include:
+\begin{enumerate}
+\item \verb|return (x)| (with a space before ``(.)'') is NOT allowed,
+    it must be \verb|return(x)|.
+\item A ``;'' is needed to terminate each expression.
+\item You can use ``\verb|_|'' in variable-names, like
+    \verb|log_precision = <whatever>|; see the following example.
+\end{enumerate}
+
+Known function that can be used within the \texttt{expression} statement are:
+\begin{itemize}
+\item common math functions, such as ``$\exp(\cdot)$'', ``$\sin(\cdot)$'', \ldots.
+\item \verb|gamma(x)| is the Gamma-function and \verb|lgamma(x)| is
+    its $\log$ (see \verb|?gamma| in \verb|R|).
+\item \verb|pi| is $\pi$
+\item $x^y$ is expressed as either \verb|x^y| or \verb|pow(x;y)|
+\end{itemize}
+
+\subsection{“Table”: provide a suitable set of support points}
+
+Instead of defining a prior distribution function, it is possible to provide a table of suitable support values $x$ (internal scale) and the corresponding log-density values $y$. INLA fits a spline through the provided points and continues with this in the succeeding computations. Note, the transformation into a functional form is not required.
+
+The input-format for the table is a string, which starts with \texttt{table: } and is then followed by a block of $x$-values and  a block of the corresponding $y$-values, which represent the values of the log-density evaluated on $x$. Thus
+\begin{quote}
+    ``\texttt{table: x\_1 ... x\_n y\_1 ... y\_n}''
+\end{quote}
+
+\subsection{Example: The log-gamma distribution}
+
+We illustrate all three different ways of defining a prior distribution, here for residual precision, of a normal likelihood. To show that the three definitions lead to the same result we inspect the log-marginal likelihood.
+
+<<echo=FALSE, eval=TRUE>>=
+set.seed(1352)
+@
+<<echo=TRUE, eval=TRUE, keep.source=T>>=
+## the loggamma-prior 
+prior.function = function(log_precision) {
+    a = 1;
+    b = 0.1;
+    precision = exp(log_precision);
+    logdens = log(b^a) - lgamma(a) + (a-1)*log_precision - b*precision;
+    log_jacobian = log_precision;
+    return(logdens + log_jacobian)
+}
+
+## implementing the loggamma-prior using "expression:"
+prior.expression = "expression:
+            a = 1;
+            b = 0.1;
+            precision = exp(log_precision);
+            logdens = log(b^a) - lgamma(a)
+                      + (a-1)*log_precision - b*precision;
+            log_jacobian = log_precision;
+            return(logdens + log_jacobian);"
+
+## use suitable support points x
+lprec = seq(-10, 10, len=100)
+## link the x and corresponding y values into a string which begins with "table:""
+prior.table = inla.paste(c("table:", cbind(lprec, prior.function(lprec))))
+
+# simulate some data
+n = 50
+y = rnorm(n)
+
+## 1. use the built-in loggamma prior
+r1 = inla(y~1,data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = "loggamma", param = c(1, 0.1)))))
+
+## 2. use the definition using expression
+r2 = inla(y~1,
+        data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = prior.expression))))
+
+## 3. use a table of x and y values representing the loggamma prior
+r3 = inla(y~1,
+        data = data.frame(y),
+        verbose=T,
+        control.family = list(hyper =
+            list(prec = list(prior = prior.table))))
+
+## and we verify that we get the same result using the log-marginal likelihood
+c(r1$mlik[1], r2$mlik[1], r3$mlik[1])
+@
 
 
 \chapter{Troubleshooting and FAQs}
