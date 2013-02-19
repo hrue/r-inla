@@ -18,7 +18,7 @@ inla(formula, ..., control.family=list( <arg>=<value>[, <arg>=<value>]))
 \item{epsilon}{  The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)}
 \item{gamma}{  The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)}
 \item{sh.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
-\item{gev.scale.xi}{  The scaling of the shape-parameter for the GEV distribution. (default 0.01)}
+\item{gev.scale.xi}{  The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{variant}{  This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
 \item{control.mix}{  See \code{?control.mix}}
 }

@@ -3810,7 +3810,7 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
-							\item{param = }{`0 6.25'}
+							\item{param = }{`0 25'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}

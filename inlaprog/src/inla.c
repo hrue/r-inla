@@ -8759,9 +8759,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * get options related to the gev
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev.scale.xi"), 0.01);	/* yes! */
-		if (tmp > 0.0) {
-			ds->data_observations.gev_scale_xi = tmp;
-		}
+		assert(tmp > 0.0);
+		ds->data_observations.gev_scale_xi = tmp;
 		if (mb->verbose) {
 			printf("\t\tgev.scale.xi [%g]\n", ds->data_observations.gev_scale_xi);
 		}
@@ -8806,17 +8805,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * the 'xi' parameter/ the gev-parameter
+		 * the 'xi' parameter/ the gev-parameter. we need a little care, as the user see 'xi' while we work internally with 'xi/xi.scale'
 		 */
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0)/ds->data_observations.gev_scale_xi; /* scale here */
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
+			//tmp = mb->theta_file[mb->theta_counter_file++]/ds->data_observations.gev_scale_xi; /* scale here */
+			tmp = mb->theta_file[mb->theta_counter_file++]; /* DO NOT scale here */
 		}
 		HYPER_NEW(ds->data_observations.xi_gev, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise gev-parameter[%g]\n", ds->data_observations.xi_gev[0][0]);
+			printf("\t\tinitialise gev-parameter[%g] (scaled with scale.xi=[%g])\n", ds->data_observations.xi_gev[0][0],
+				ds->data_observations.gev_scale_xi);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a");
@@ -15819,9 +15819,10 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				if (!ds->data_fixed1) {
 					/*
-					 * this is the gev-parameter
+					 * this is the gev-parameter. Note that we need to scale it back to the real scale, as 'scale_xi' is there to help the
+					 * numerics only
 					 */
-					double xi = theta[count];
+					double xi = theta[count] * ds->data_observations.gev_scale_xi;
 
 					val += PRIOR_EVAL(ds->data_prior1, &xi);
 					count++;
