@@ -171,7 +171,7 @@
         ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
         sn.shape.max = 5.0,
 
-        ##:ARGUMENT: gev.scale.xi The scaling of the shape-parameter for the GEV distribution. (default 0.01)
+        ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
         gev.scale.xi = 0.01,
 
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).

@@ -3123,7 +3123,7 @@
                                       initial = 0,
                                       fixed = FALSE,
                                       prior = "gaussian",
-                                      param = c(0, 6.25),
+                                      param = c(0, 25),
                                       to.theta = function(x) x,
                                       from.theta = function(x) x
                                       )
