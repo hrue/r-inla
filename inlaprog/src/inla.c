@@ -445,7 +445,8 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param)
 	/*
 	 * the idenity map-function
 	 */
-	double scale = *((double *) param);
+	double scale = (param ? *((double *) param) : 1.0);
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
