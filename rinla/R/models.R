@@ -3131,6 +3131,7 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "identity"),
+                      status = "experimental", 
                       pdf = "gev"
                       ),
 
