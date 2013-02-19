@@ -43,14 +43,17 @@ The ``precision'' is represented as
 and the prior is defined on $\theta_{1}$.  The shape parameter $\xi$
 is represented as
 \begin{displaymath}
-    \xi = \xi_{s}\theta_{2}
+    \theta_{2} = \xi 
 \end{displaymath}
-where $\xi_{s} > 0$ is a \emph{chosen fixed scaling}, and the prior is
-defined on $\theta_{2}$\footnote{The $\xi_{s}$ parameter is there for
-    numerical reasons only, as the natural ``scale'' of $\xi$ is
-    small, and the scaling makes the natural scale of $\theta_{2}$
-    similar to other $\theta$'s. The output from INLA reports the
-    parameter $\xi$.}
+and the prior is defined on $\theta_{2}$.  \footnote{Internally, the
+    parameter $\theta_{2}$ is scaled with a fixed scaling $\xi_{s}$
+    (default $0.01$), to improve the numerics as the natural ``scale''
+    of $\xi$ is small. For this reason the $\theta_{2} (=\xi)$
+    reported in \texttt{result\$mode\$theta} will appear as
+    $\theta_{2}/\xi_{s}$. For the same reason, if you define the mode
+    using \texttt{control.mode = list(theta = ..., ...)} then the
+    element representing $\theta_{2}$ should be given as $\theta_{2} /
+    \xi_{s}$.}
 
 \subsection*{Specification}
 
@@ -58,7 +61,7 @@ defined on $\theta_{2}$\footnote{The $\xi_{s}$ parameter is there for
 \item $\text{family}=\texttt{gev}$
 \item Required arguments: $y$ and $s$ (keyword \texttt{scale})
 \item The scaling $\xi_{s}$ is given by the argument
-    \texttt{gev.xi.scale} and is default set to $0.01$.
+    \texttt{gev.scale.xi} and is default set to $0.01$.
 \end{itemize}
 The weights has default value 1.
 
