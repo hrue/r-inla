@@ -278,7 +278,7 @@
             if (is.null(random.spec$values)) {
                 idxs = 1:ns
             } else {
-                idxs = as.numeric(random.spec$values)
+                idxs = 1:ns
                 stopifnot(length(random.spec$values) == ns)
                 stopifnot(!is.null(idxs))
             }

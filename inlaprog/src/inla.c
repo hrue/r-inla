@@ -3277,7 +3277,7 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
 					logll[i] =
-						(-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6*SQR(sprec*(DBL_EPSILON - xx)));
+						(-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6*SQR(sprec*(DBL_EPSILON - xx));
 				}
 			}
 		}
@@ -5830,6 +5830,7 @@ int inla_error_file_error(const char *funcname, const char *filename, int n, int
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void.\n\n",
 		funcname, filename, n, element_number, val);
+	abort();
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
