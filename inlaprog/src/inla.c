@@ -3276,8 +3276,7 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 				if (xx > DBL_EPSILON) {
 					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
-					logll[i] =
-						(-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6*SQR(sprec*(DBL_EPSILON - xx));
+					logll[i] = (-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6*SQR(sprec*(DBL_EPSILON - xx));
 				}
 			}
 		}
