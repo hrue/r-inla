@@ -5825,6 +5825,14 @@ int inla_error_file_totnumelm(const char *funcname, const char *filename, int n,
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+int inla_error_file_error_sorted(const char *funcname, const char *filename, int n, int element_number, double val)
+{
+	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void. The 'values' needs to be increasing!\n\n",
+		funcname, filename, n, element_number, val);
+	abort();
+	exit(EXIT_FAILURE);
+	return INLA_OK;
+}
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void.\n\n",
@@ -11424,7 +11432,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// nothing to do
 			break;
 
-		default:
+		case F_IID: 
+		case F_RW1: 
+		case F_RW2: 
+		case F_CRW2: 
+		case F_COPY: 
+		case F_MEC: 
+		case F_MEB: 
+		case F_R_GENERIC: 
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
@@ -11478,11 +11493,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					}
 				}
 				/*
-				 * the locations must be sorted, otherwise, things are messed up! 
+				 * the locations must be sorted (for some models only), otherwise, things are messed up!!!!
 				 */
-				for (i = 0; i < nlocations - 1; i++) {
-					if (mb->f_locations[mb->nf][i] >= mb->f_locations[mb->nf][i + 1]) {
-						inla_error_file_error(__GMRFLib_FuncName, filename, nlocations, i, mb->f_locations[mb->nf][i]);
+				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
+					for (i = 0; i < nlocations - 1; i++) {
+						if (mb->f_locations[mb->nf][i] >= mb->f_locations[mb->nf][i + 1]) {
+							inla_error_file_error_sorted(__GMRFLib_FuncName, filename, nlocations, i, mb->f_locations[mb->nf][i]);
+						}
 					}
 				}
 				mb->f_cyclic[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "CYCLIC"), 0);
@@ -11490,6 +11507,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 				}
 			}
+			break;
+
+		default:
+			/* 
+			 * if this happens, its an error, as I have forgot one of the models in the list....
+			 */
+			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+			break;
 		}
 	}
 
@@ -19828,7 +19853,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 #undef MAP_STDEV
 	return GMRFLib_SUCCESS;
 }
-int inla_layout_x(double **x_vec, int *len_x, double xmin, double xmax, double mean)
+int inla_layout_x_ORIG(double **x_vec, int *len_x, double xmin, double xmax, double mean)
 {
 	/*
 	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
@@ -19855,6 +19880,87 @@ int inla_layout_x(double **x_vec, int *len_x, double xmin, double xmax, double m
 	*x_vec = x;
 	*len_x = n;
 
+	return GMRFLib_SUCCESS;
+}
+int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
+{
+	/*
+	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
+	 */
+	double p[] = {
+		0.0000001,
+		0.000001,
+		0.00001,
+		0.0001,
+		0.001,
+		0.01,
+		0.025, 
+		0.05,
+		0.075, 
+		0.1,
+		0.125, 
+		0.15,
+		0.175, 
+		0.2,
+		0.225,
+		0.25,
+		0.275,
+		0.30,
+		0.32,
+		0.34,
+		0.36,
+		0.38,
+		0.40,
+		0.42,
+		0.44,
+		0.45, 
+		0.46,
+		0.47,
+		0.48,
+		0.49,
+		0.50,
+		0.51,
+		0.52,
+		0.53,
+		0.54,
+		0.55, 
+		0.56,
+		0.58,
+		0.60,
+		0.62,
+		0.64,
+		0.66,
+		0.68,
+		0.70,
+		0.725,
+		0.75,
+		0.775,
+		0.80,
+		0.825,
+		0.85,
+		0.875,
+		0.9, 
+		0.925,  
+		0.95,
+		0.975,
+		0.99, 
+		0.999,
+		0.9999,
+		0.99999,
+		0.999999, 
+		0.9999999
+	};
+
+	int n, i;
+	double *x;
+
+	n = *len_x = sizeof(p)/sizeof(double);
+	x = *x_vec = Calloc(n, double);
+	for(i=0; i<n; i++){
+		GMRFLib_density_Pinv(&(x[i]), p[i], density);
+	}
+	GMRFLib_unique_additive(&n, x, GMRFLib_eps(0.5));
+	
 	return GMRFLib_SUCCESS;
 }
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
@@ -20055,7 +20161,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							fprintf(fp, "%1d ", i);
 						}
 					}
-					inla_layout_x(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
+					inla_layout_x(&xx, &nn, density[i]);
+					//inla_layout_x_ORIG(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
@@ -20133,7 +20240,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 					} else {
 						fprintf(fp, "%1d ", i);
 					}
-					inla_layout_x(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
+					inla_layout_x(&xx, &nn, gdensity[i]);
+					//inla_layout_x_ORIG(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
