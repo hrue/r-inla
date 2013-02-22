@@ -19,7 +19,7 @@ FLAGS= -std=gnu99 -Wall -O3 -march=native -mfpmath=sse -msse4 -funroll-loops -ft
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local
 LEXTLIBS = -L$(LEXTPREFIX)/lib 
-IEXTLIBS = -I$(LEXTPREFIX)/include
+IEXTLIBS = -I$(LEXTPREFIX)/include -I/usr/include/suitesparse
 
 ################################################################################
 #
