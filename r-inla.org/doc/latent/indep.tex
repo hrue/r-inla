@@ -55,7 +55,10 @@ result=inla(formula,data=data,family="binomial",Ntrials=Ntrials)
 
 \subsection*{Notes}
 
-None.
+The option \verb|scale| defines the scaling in the same order as
+argument \verb|values|.  It is therefore adviced to also give argument
+\verb|values| when \verb|scale| is used to be sure that they are
+consistent.
 
 \end{document}
 

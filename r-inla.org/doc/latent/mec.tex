@@ -91,9 +91,13 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 
 \begin{itemize}
 \item \texttt{INLA} provide the posterior of $\nu$ and NOT $x$.
-\item The posterior of $\nu$ comes in the order given by the sorted
+\item The posterior of $\nu$ comes (default) in the order given by the sorted
     (from low to high) values of \texttt{w}. The entry \verb|$ID|
     gives the mapping.
+\item The option \verb|scale| defines the scaling in the same order as
+    argument \verb|values|.  It is therefore adviced to also give
+    argument \verb|values| when \verb|scale| is used to be sure that
+    they are consistent.
 \end{itemize}
 
 
