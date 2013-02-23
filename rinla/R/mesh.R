@@ -885,7 +885,7 @@ inla.mesh.create.helper <-
              offset=c(-0.05,-0.15), ## Size of automatic extensions
              n=c(8,16), ## Sides of automatic extension polygons
              boundary=NULL, ## User-specified domains (list of length 2)
-             interior=NULL, ## User-specified constratints for the inner domain
+             interior=NULL, ## User-specified constraints for the inner domain
              max.edge,
              min.angle=c(21,21), ## Angle constraint for the entire domain
              cutoff=0, ## Only add input points further apart than this
@@ -906,7 +906,7 @@ inla.mesh.create.helper <-
     if (missing(boundary))
         boundary = list(NULL,NULL)
     if (missing(interior))
-        interior = list(NULL,NULL)
+        interior = NULL
     if (missing(offset) || is.null(offset))
         offset = c(-0.05,-0.15)
     if (missing(n) || is.null(n))
@@ -932,6 +932,32 @@ inla.mesh.create.helper <-
         points = cbind(points,0.0)
     if (!is.null(points.domain) && (ncol(points.domain)==2))
         points.domain = cbind(points.domain,0.0)
+    ## Unify the dimensionality of the boundary&interior segments input.
+    for (k in 1:2) {
+        if (!is.null(boundary[[k]])) {
+            if (inherits(boundary[[k]], "list")) {
+                for (j in seq_along(boundary[[k]])) {
+                    if (ncol(boundary[[k]][[j]]$loc)==2) {
+                        boundary[[k]][[j]]$loc =
+                            cbind(boundary[[k]][[j]]$loc,0.0)
+                    }
+                }
+            } else if (ncol(boundary[[k]]$loc)==2) {
+                boundary[[k]]$loc = cbind(boundary[[k]]$loc,0.0)
+            }
+        }
+    }
+    if (!is.null(interior)) {
+        if (inherits(interior, "list")) {
+            for (j in seq_along(interior)) {
+                if (ncol(interior[[j]]$loc)==2) {
+                    interior[[j]]$loc = cbind(interior[[j]]$loc,0.0)
+                }
+            }
+        } else if (ncol(interior$loc)==2) {
+            interior$loc = cbind(interior$loc,0.0)
+        }
+    }
 
     ## Triangulate to get inner domain boundary
     ## Constraints included only to get proper domain extent
@@ -1779,6 +1805,37 @@ inla.mesh.fem = function(mesh, order=2)
 
 
 
+## Input: list of segments, all closed polygons.
+inla.sp2segment.internal.join = function(inp, grp=NULL) {
+    out.loc = matrix(0,0,2)
+    out.idx = matrix(0,0,2)
+    if (is.null(grp)) {
+        out.grp = NULL
+    } else {
+        out.grp = c()
+    }
+    for (k in seq_along(inp)) {
+        inp.loc = inp[[k]]$loc
+        inp.idx = inp[[k]]$idx
+        inp.grp = inp[[k]]$grp
+        offset = nrow(out.loc)
+        n = nrow(as.matrix(inp.idx))
+        if (!is.null(grp) && is.null(inp.grp)) {
+            inp.grp = rep(grp[k], n)
+        }
+        if (ncol(as.matrix(inp.idx))==1) {
+            inp.idx = cbind(inp.idx, inp.idx[c(2:n,1)])
+        }
+        out.loc = rbind(out.loc, inp.loc)
+        out.idx = rbind(out.idx, inp.idx+offset)
+        if (!is.null(grp)) {
+            out.grp = c(out.grp, inp.grp)
+        }
+    }
+    out = inla.mesh.segment(loc=out.loc,idx=out.idx,grp=out.grp,is.bnd=FALSE)
+}
+
+
 inla.sp2segment = function(...)
 {
     require(sp)
@@ -1786,20 +1843,35 @@ inla.sp2segment = function(...)
 }
 
 inla.sp2segment.SpatialPolygons =
-    function(sp, ...)
+    function(sp, join=TRUE, grp=NULL, ...)
 {
     require(sp)
     segm = list()
     for (k in 1:length(sp@polygons))
-        segm = c(segm, inla.sp2segment(sp@polygons[[k]]))
+        segm[[k]] = inla.sp2segment(sp@polygons[[k]], join=TRUE)
+    if (join) {
+        if (missing(grp)) {
+            grp = 1:length(segm)
+        }
+        segm = inla.sp2segment.internal.join(segm, grp=grp)
+    }
     return(segm)
 }
 
-inla.sp2segment.Polygons =
+inla.sp2segment.SpatialPolygonsDataFrame =
     function(sp, ...)
 {
+    return(inla.sp2segment.SpatialPolygons(sp, ...))
+}
+
+inla.sp2segment.Polygons =
+    function(sp, join=TRUE, ...)
+{
     require(sp)
-    return(as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x))))
+    segm = as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x)))
+    if (join)
+        segm = inla.sp2segment.internal.join(segm, grp=NULL)
+    return(segm)
 }
 
 inla.sp2segment.Polygon =
