@@ -2566,6 +2566,22 @@
          )
 }
 
+`inla.models.section.link` = function()
+{
+    return
+    list(link =
+         list(
+             default = list(hyper = list()),
+             cloglog = list(hyper = list()), 
+             identity = list(hyper = list()), 
+             log = list(hyper = list()), 
+             logit = list(hyper = list()), 
+             probit = list(hyper = list()), 
+             tan = list(hyper = list())
+             )
+         )
+}
+
 `inla.models.section.predictor` = function()
 {
     return
@@ -2677,7 +2693,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "logit", "probit", "cloglog", "log", "h"),
+                      link = c("default", "logit", "probit", "cloglog", "log"),
                       pdf = "binomial"
                       ),
 
@@ -2709,26 +2725,6 @@
                       discrete = TRUE,
                       link = c("default", "logit", "probit", "cloglog", "log"),
                       pdf = "testbinomial1"
-                      ),
-
-              binomialtest = list(
-                      hyper = list(
-                              theta = list(
-                                      name = "psi",
-                                      short.name = "psi",
-                                      initial = 0,
-                                      fixed = FALSE,
-                                      prior = "normal",
-                                      param = c(0, 100),
-                                      to.theta = function(x) x,
-                                      from.theta = function(x) x
-                                      )
-                              ),
-                      survival = FALSE,
-                      discrete = TRUE,
-                      link = c("default", "logit", "probit", "cloglog", "log"),
-                      pdf = "binomialtest",
-                      status = "experimental"
                       ),
 
               gamma = list(
@@ -3888,6 +3884,7 @@
                 inla.models.section.latent(),
                 inla.models.section.group(),
                 inla.models.section.mix(),
+                inla.models.section.link(),
                 inla.models.section.predictor(),
                 inla.models.section.hazard(),
                 inla.models.section.likelihood(),
