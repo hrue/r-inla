@@ -116,8 +116,8 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define OFFSET2(idx_) mb_old->offset[idx_]
 #define OFFSET3(idx_) mb->offset[idx_]
 
-#define PREDICTOR_INVERSE_LINK(xx_)  ds->predictor_invlinkfunc(xx_, MAP_FORWARD, NULL)
-#define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, NULL)))
+#define PREDICTOR_INVERSE_LINK(xx_)  ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg)
+#define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg)))
 
 #define PENALTY -100.0					       /* wishart3d: going over limit... */
 
@@ -895,25 +895,6 @@ double map_invlogit(double x, map_arg_tp typ, void *param)
 		return exp(x) / (1.0 + exp(x));
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
-	case MAP_DFORWARD:
-		return exp(x) / SQR(1.0 + exp(x));
-	case MAP_INCREASING:
-		return 1.0;
-	default:
-		assert(0 == 1);
-	}
-	return 0.0;
-}
-double map_binomialtest_psi(double x, map_arg_tp typ, void *param)
-{
-	/*
-	 * extern = 0.5 + exp(local) / (1 + exp(local))
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		return 0.5 + exp(x) / (1.0 + exp(x));
-	case MAP_BACKWARD:
-		return log((x - 0.5) / (1.0 - (x - 0.5)));
 	case MAP_DFORWARD:
 		return exp(x) / SQR(1.0 + exp(x));
 	case MAP_INCREASING:
@@ -2497,11 +2478,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BINOMIAL:
-		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
-		break;
-
-	case L_BINOMIALTEST:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
@@ -4382,251 +4358,6 @@ int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, doub
 		}
 	}
 #undef SE
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-#define LINK_CORRECTION(_eta, _psi) ((_eta) >= 0.0 ? (pow((_eta)+1.0, _psi) -1.0)/(_psi) : -(pow(-(_eta)+1.0, _psi) -1.0)/(_psi))
-#define LINK_CORRECTION_SD(_psi) inla_spline_eval(_psi, sd_correction)
-
-	double sd_table[] = {
-		0.25, 0.693014921325142,
-		0.26, 0.696115056356505,
-		0.27, 0.699236606722831,
-		0.28, 0.702379756520325,
-		0.29, 0.705544691908189,
-		0.3, 0.708731600824548,
-		0.31, 0.711940673067147,
-		0.32, 0.715172100313529,
-		0.33, 0.718426076141445,
-		0.34, 0.721702796049492,
-		0.35, 0.725002457477996,
-		0.36, 0.728325259830137,
-		0.37, 0.731671404493312,
-		0.38, 0.735041094860762,
-		0.39, 0.738434536353446,
-		0.4, 0.741851936442179,
-		0.41, 0.745293504670033,
-		0.42, 0.748759452694805,
-		0.43, 0.752249994229717,
-		0.44, 0.75576534519362,
-		0.45, 0.759305723647999,
-		0.46, 0.762871349842126,
-		0.47, 0.766462446236978,
-		0.48, 0.770079237529501,
-		0.49, 0.773721950677251,
-		0.5, 0.777390814923438,
-		0.51, 0.781086061822334,
-		0.52, 0.78480792526498,
-		0.53, 0.788556641505103,
-		0.54, 0.792332449185131,
-		0.55, 0.796135589362263,
-		0.56, 0.799966305534575,
-		0.57, 0.803824843667292,
-		0.58, 0.807711452219392,
-		0.59, 0.811626382170774,
-		0.6, 0.815569887050189,
-		0.61, 0.819542222964038,
-		0.62, 0.823543648574375,
-		0.63, 0.827574425345764,
-		0.64, 0.831634817250016,
-		0.65, 0.835725091002571,
-		0.66, 0.839845516043864,
-		0.67, 0.8439963645696,
-		0.68, 0.848177911561383,
-		0.69, 0.852390434817711,
-		0.7, 0.856634214985331,
-		0.71, 0.860909535577411,
-		0.72, 0.865216683142477,
-		0.73, 0.869555946972965,
-		0.74, 0.873927619409826,
-		0.75, 0.878331995535895,
-		0.76, 0.882769374300315,
-		0.77, 0.887240056967199,
-		0.78, 0.891744348143546,
-		0.79, 0.896282555584029,
-		0.8, 0.900854990226264,
-		0.81, 0.905461966226497,
-		0.82, 0.910103800995717,
-		0.83, 0.914780815236186,
-		0.84, 0.919493332978422,
-		0.85, 0.924241681618602,
-		0.86, 0.929026191956425,
-		0.87, 0.933847198233414,
-		0.88, 0.938705039062825,
-		0.89, 0.943600054290981,
-		0.9, 0.948532587559242,
-		0.91, 0.953502990211054,
-		0.92, 0.958511613009987,
-		0.93, 0.963558811678881,
-		0.94, 0.96864494566363,
-		0.95, 0.973770378175305,
-		0.96, 0.978935476232762,
-		0.97, 0.984140610705782,
-		0.98, 0.989386156358707,
-		0.99, 0.994672491894613,
-		1, 1,
-		1.01, 1.00536906739003,
-		1.02, 1.01078008485429,
-		1.03, 1.01623344730312,
-		1.04, 1.0217295538145,
-		1.05, 1.02726881037486,
-		1.06, 1.03285162078222,
-		1.07, 1.03847839201844,
-		1.08, 1.04414955058486,
-		1.09, 1.04986551279871,
-		1.1, 1.0556267037602,
-		1.11, 1.06143355308149,
-		1.12, 1.06728649493827,
-		1.13, 1.07318596812194,
-		1.14, 1.07913241609245,
-		1.15, 1.08512628703182,
-		1.16, 1.09116803389819,
-		1.17, 1.09725811448063,
-		1.18, 1.10339699145457,
-		1.19, 1.10958513243791,
-		1.2, 1.11582301004779,
-		1.21, 1.12211110195806,
-		1.22, 1.12844989095745,
-		1.23, 1.13483986500847,
-		1.24, 1.14128152165502,
-		1.25, 1.1477753463423,
-		1.26, 1.15432185595875,
-		1.27, 1.16092155541692,
-		1.28, 1.16757495945644,
-		1.29, 1.17428258835926,
-		1.3, 1.18104496801367,
-		1.31, 1.18786262997922,
-		1.32, 1.19473611155224,
-		1.33, 1.2016659558324,
-		1.34, 1.20865271178982,
-		1.35, 1.21569693433322,
-		1.36, 1.22279918437875,
-		1.37, 1.22996002891974,
-		1.38, 1.23718004109726,
-		1.39, 1.2444598002716,
-		1.4, 1.25179989209456,
-		1.41, 1.25920090858272,
-		1.42, 1.26666344819152,
-		1.43, 1.27418811589032,
-		1.44, 1.28177552323834,
-		1.45, 1.28942629247621,
-		1.46, 1.2971410365305,
-		1.47, 1.30492039923899,
-		1.48, 1.31276501528384,
-		1.49, 1.32067553034552,
-		1.5, 1.32865259716979,
-		1.51, 1.33669687565034,
-		1.52, 1.34480903291246,
-		1.53, 1.35298974339776,
-		1.54, 1.36123968894994,
-		1.55, 1.36955955890169,
-		1.56, 1.3779500501627,
-		1.57, 1.38641186730873,
-		1.58, 1.39494572267191,
-		1.59, 1.40355233643205,
-		1.6, 1.41223243670914,
-		1.61, 1.42098675965695,
-		1.62, 1.42981604955765,
-		1.63, 1.4387210589177,
-		1.64, 1.44770254856462,
-		1.65, 1.4567612877451,
-		1.66, 1.46589805422412,
-		1.67, 1.47511363438535,
-		1.68, 1.48440882333274,
-		1.69, 1.49378442499347,
-		1.7, 1.50324125222222,
-		1.71, 1.51278012690688,
-		1.72, 1.52240188007573,
-		1.73, 1.53210735200608,
-		1.74, 1.54189739233438,
-		1.75, 1.55177286016788
-	};
-
-	static GMRFLib_spline_tp *sd_correction = NULL;
-#pragma omp threadprivate (sd_correction)
-
-	if (!sd_correction) {
-		int n = sizeof(sd_table) / sizeof(double) / 2;
-		double *xy = Calloc(2 * n, double);
-
-		int i, j;
-		for (i = j = 0; i < n; i++, j += 2) {
-			xy[i] = sd_table[j];
-			xy[i + n] = sd_table[j + 1];
-		}
-
-		sd_correction = inla_spline_create(xy, xy + n, n);
-		Free(xy);
-	}
-
-	/*
-	 * y ~ Binomialtest(n, p) with a correction for the logit link
-	 */
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-
-	int i;
-	int status;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p,
-	    psi = map_binomialtest_psi(ds->data_observations.link_psi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	if (0) {
-		static double psi_old = 999.;
-#pragma omp threadprivate(psi_old)
-		if (psi != psi_old) {
-			printf("psi %.12f\n", psi);
-			psi_old = psi;
-		}
-	}
-
-	if (m > 0) {
-		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-		assert(status == GSL_SUCCESS);
-		for (i = 0; i < m; i++) {
-			p = PREDICTOR_INVERSE_LINK(LINK_CORRECTION(x[i] + OFFSET(idx), psi) / LINK_CORRECTION_SD(psi));
-			if (p > 1.0) {
-				/*
-				 * need this for the link = "log" that was requested...
-				 */
-				logll[i] = res.val - SQR(DMIN(10.0, n)) * SQR(x[i] + OFFSET(idx) - (-5.0));
-				// printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
-			} else {
-				if (ISEQUAL(p, 1.0)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if (n == (int) y) {
-						logll[i] = res.val + y * log(p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else if (ISZERO(p)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if ((int) y == 0) {
-						logll[i] = res.val + (n - y) * log(1.0 - p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else {
-					logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
-				}
-			}
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = DMIN(1.0, p);
-			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
-		}
-	}
-
-#undef LINK_CORRECTION
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -7349,10 +7080,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	ds->data_likelihood = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LIKELIHOOD"), NULL)));
 	inla_trim_family(ds->data_likelihood);
 
-	ds->link = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK"), GMRFLib_strdup("default"))));
-	inla_trim_family(ds->link);
 	if (mb->verbose) {
-		printf("\t\tfamily=[%s]\n\t\tlink=[%s]\n", ds->data_likelihood, ds->link);
+		printf("\t\tfamily=[%s]\n", ds->data_likelihood);
 	}
 
 	if (!(ds->data_likelihood)) {
@@ -7361,179 +7090,132 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	if (!strcasecmp(ds->data_likelihood, "GAUSSIAN") || !strcasecmp(ds->data_likelihood, "NORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "GAUSSIANWINDOW") || !strcasecmp(ds->data_likelihood, "NORMALWINDOW")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian_window;
 		ds->data_id = L_GAUSSIAN_WINDOW;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "IIDLOGITBETA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_logitbeta;
 		ds->data_id = L_IID_LOGITBETA;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SAS")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sas;
 		ds->data_id = L_SAS;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LOGGAMMAFRAILTY")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loggamma_frailty;
 		ds->data_id = L_LOGGAMMA_FRAILTY;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_logistic;
 		ds->data_id = L_LOGISTIC;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL") || !strcasecmp(ds->data_likelihood, "SN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal;
 		ds->data_id = L_SKEWNORMAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "GEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gev;
 		ds->data_id = L_GEV;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LAPLACE")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_laplace;
 		ds->data_id = L_LAPLACE;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "T")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_t;
 		ds->data_id = L_T;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "TSTRATA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tstrata;
 		ds->data_id = L_TSTRATA;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson0;
 		ds->data_id = L_ZEROINFLATEDPOISSON0;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson1;
 		ds->data_id = L_ZEROINFLATEDPOISSON1;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson2;
 		ds->data_id = L_ZEROINFLATEDPOISSON2;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
-	} else if (!strcasecmp(ds->data_likelihood, "BINOMIALTEST")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomialtest;
-		ds->data_id = L_BINOMIALTEST;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "TESTBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_test_binomial_1;
 		ds->data_id = L_TEST_BINOMIAL_1;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "CBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
 		ds->data_id = L_CBINOMIAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "BETA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_beta;
 		ds->data_id = L_BETA;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "BETABINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_betabinomial;
 		ds->data_id = L_BETABINOMIAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial0;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL0;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial1;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL1;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial2;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL2;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial2;
 		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL2;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial2;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL2;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_negative_binomial;
 		ds->data_id = L_NBINOMIAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial0;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL0;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial1;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL1;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial2;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL2;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol;
 		ds->data_id = L_STOCHVOL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_t;
 		ds->data_id = L_STOCHVOL_T;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLNIG")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_nig;
 		ds->data_id = L_STOCHVOL_NIG;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LOGPERIODOGRAM")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_logperiodogram;
 		ds->data_id = L_LOGPERIODOGRAM;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "EXPONENTIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_exp;
 		ds->data_id = L_EXPONENTIAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "LOGNORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_lognormal;
 		ds->data_id = L_LOGNORMAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULLCURE")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull_cure;
 		ds->data_id = L_WEIBULL_CURE;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "CIRCULARNORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_circular_normal;
 		ds->data_id = L_CIRCULAR_NORMAL;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else if (!strcasecmp(ds->data_likelihood, "WRAPPEDCAUCHY")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_wrapped_cauchy;
 		ds->data_id = L_WRAPPED_CAUCHY;
-		ds->predictor_invlinkfunc = CHOSE_LINK(ds->link);
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
 	}
@@ -7541,9 +7223,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tlikelihood=[%s]\n", ds->data_likelihood);
 	}
 
-	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity) {
-		mb->gaussian_data = GMRFLib_FALSE;
-	}
 
 	inla_read_fileinfo(mb, ini, sec, &(ds->data_file), NULL);
 	inla_read_fileinfo(mb, ini, sec, &(ds->weight_file), "WEIGHTS");
@@ -7750,7 +7429,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBINOMIAL2:
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
-	case L_BINOMIALTEST:
 	case L_BETABINOMIAL:
 	case L_TEST_BINOMIAL_1:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -8104,50 +7782,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_wrapped_cauchy;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_BINOMIALTEST:
-		/*
-		 * get options related to the binomial.test
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.link_psi, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise link_psi[%g]\n", ds->data_observations.link_psi[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
-		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "NORMAL");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link (intern) Psi Binomial-logit", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link Psi Binomial-logit", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.link_psi;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_binomialtest_psi;	/* experimental */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -10177,6 +9811,70 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_ntheta = 0;
 	}
 
+
+	/* 
+	 * setup the link-model
+	 */
+	ds->link_model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK.MODEL"), GMRFLib_strdup("default"))));
+	inla_trim_family(ds->link_model);
+
+	if (!strcasecmp(ds->link_model, "IDENTITY")) {
+		ds->link_id = LINK_IDENTITY;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_identity;
+		ds->predictor_invlinkfunc_arg = NULL;
+	} else if (!strcasecmp(ds->link_model, "LOG")) {
+		ds->link_id = LINK_LOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_log; 
+		ds->predictor_invlinkfunc_arg = NULL; 
+	} else if (!strcasecmp(ds->link_model, "PROBIT")) {
+		ds->link_id = LINK_PROBIT;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_probit; 
+		ds->predictor_invlinkfunc_arg = NULL; 
+	} else if (!strcasecmp(ds->link_model, "CLOGLOG")) {
+		ds->link_id = LINK_CLOGLOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_cloglog; 
+		ds->predictor_invlinkfunc_arg = NULL; 
+	} else if (!strcasecmp(ds->link_model, "LOGIT")) {
+		ds->link_id = LINK_LOGIT;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_logit; 
+		ds->predictor_invlinkfunc_arg = NULL; 
+	} else if (!strcasecmp(ds->link_model, "TAN")) {
+		ds->link_id = LINK_TAN;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_logit; 
+		ds->predictor_invlinkfunc_arg = NULL; 
+	} else {
+		char *msg;
+		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
+		inla_error_general(msg);
+		exit(1);
+	}
+
+	/*
+	 * read link-parameters, if any
+	 */
+	
+	switch (ds->link_id) {
+	case LINK_IDENTITY: 
+	case LINK_LOG: 
+	case LINK_PROBIT: 
+	case LINK_CLOGLOG: 
+	case LINK_LOGIT: 
+	case LINK_TAN: 
+		break;
+	default:
+		assert(0 == 1);
+		break;
+	}
+
+	/* 
+	   mixing of the likelihood
+	 */
 	ds->mix_use = iniparser_getboolean(ini, inla_string_join(secname, "MIX.USE"), 0);
 	if (mb->verbose) {
 		printf("\t\tuse.mix[%1d]\n", ds->mix_use);
@@ -10249,7 +9947,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			break;
 		}
 	}
-#undef CHOSE_LINK
+
+	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity) {
+		mb->gaussian_data = GMRFLib_FALSE;
+	}
+
+
 	return INLA_OK;
 }
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
@@ -15661,18 +15364,6 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
-			case L_BINOMIALTEST:
-				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double psi = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &psi);
-					count++;
-				}
-				break;
-
 			case L_TEST_BINOMIAL_1:
 				if (!ds->data_fixed0) {
 					/*
@@ -16169,6 +15860,22 @@ double extra(double *theta, int ntheta, void *argument)
 				 * nothing to do
 				 */
 				break;
+			}
+
+			/*
+			 * link-models 
+			 */
+			check += ds->link_ntheta;
+			switch (ds->link_id) {
+			case LINK_IDENTITY: 
+			case LINK_LOG: 
+			case LINK_PROBIT: 
+			case LINK_CLOGLOG: 
+			case LINK_LOGIT: 
+			case LINK_TAN: 
+				break;
+			default:
+				assert(0 == 1);
 			}
 
 			/*
