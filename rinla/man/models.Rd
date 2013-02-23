@@ -3,14 +3,14 @@
 \alias{inla.models}
 \title{Valid models in INLA}
 \description{
-This page describe the models implemented in \code{inla}, divided into sections: latent, group, mix, predictor, hazard, likelihood, prior, wrapper .
+This page describe the models implemented in \code{inla}, divided into sections: latent, group, mix, link, predictor, hazard, likelihood, prior, wrapper .
 }
 
 \usage{
 inla.models()
 }
 \value{
- 	 Valid sections are: latent, group, mix, predictor, hazard, likelihood, prior, wrapper 
+ 	 Valid sections are: latent, group, mix, link, predictor, hazard, likelihood, prior, wrapper 
 
  	 \describe{
 		\item{Section `latent'.}{
@@ -3111,6 +3111,25 @@ inla.models()
 				 }
 			 }
 		 }
+		\item{Section `link'.}{
+			 Valid models in this section are:
+			 \describe{
+				\item{Model `default'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `cloglog'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `identity'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `log'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `logit'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `probit'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `tan'.}{Number of hyperparmeters are 0.
+				 }
+			 }
+		 }
 		\item{Section `predictor'.}{
 			 Valid models in this section are:
 			 \describe{
@@ -3268,33 +3287,6 @@ inla.models()
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit probit cloglog log'}
 								\item{pdf = }{`testbinomial1'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `binomialtest'.}{Number of hyperparmeters are 1.
-					 \describe{
-						\item{Hyperparameter `theta'}{
-							 \describe{
-							\item{name = }{`psi'}
-							\item{short.name = }{`psi'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`normal'}
-							\item{param = }{`0 100'}
-							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{survival = }{`FALSE'}
-								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit probit cloglog log'}
-								\item{pdf = }{`binomialtest'}
-								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
