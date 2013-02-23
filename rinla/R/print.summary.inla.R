@@ -31,7 +31,7 @@
 
     if (inla.is.element("random.names", x)) {
         cat("Random effects:\n")
-        cat("Name\t ","Model\t ", "\tMax KLD \n"  )
+        cat("Name\t ", "Model\n ")
         for(i in 1:length(x$random.names))
             cat(paste(inla.nameunfix(x$random.names[i])," ", x$random.model[i],"\n"))
         cat("\n")

@@ -1,15 +1,15 @@
 
-\name{control.mix}
-\alias{control.mix}
-\alias{inla.control.mix}
-\title{Control variables in control.mix}
-\description{Control variables in \code{control.mix} for use in \code{inla}}
+\name{control.link}
+\alias{control.link}
+\alias{inla.control.link}
+\title{Control variables in control.link}
+\description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
-inla(formula, ..., control.mix=list( <arg>=<value>[, <arg>=<value>]))
+inla(formula, ..., control.link=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
-\item{model}{  The model for the random effect. Currently, only \code{model='gaussian'} is implemented}
-\item{hyper}{  Definition of the hyperparameter(s) for the random effect model chosen}
+\item{link}{  The name of the link function/model}
+\item{hyper}{  Definition of the hyperparameter(s) for the link model chosen}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)}

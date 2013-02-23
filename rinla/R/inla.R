@@ -846,10 +846,13 @@
     for(i.family in 1:n.family) {
         cont.family[[i.family]] = inla.set.control.family.default()
         cont.family[[i.family]]$control.mix = inla.set.control.mix.default()
+        cont.family[[i.family]]$control.link = inla.set.control.link.default()
 
-        ## need to take option 'control.mix' out and process it seperately
+        ## need to take option 'control.mix' and 'control.link' out and process it seperately
         c.mix = control.family[[i.family]]$control.mix
+        c.link = control.family[[i.family]]$control.link
         control.family[[i.family]]$control.mix = NULL
+        control.family[[i.family]]$control.link = NULL
         
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
@@ -862,14 +865,25 @@
                                        cont.family[[i.family]]$param)
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
-        cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
-                                       cont.family[[i.family]]$control.mix$model,
-                                       "mix",
-                                       cont.family[[i.family]]$control.mix$hyper, 
-                                       cont.family[[i.family]]$control.mix$initial, 
-                                       cont.family[[i.family]]$control.mix$fixed,
-                                       cont.family[[i.family]]$control.mix$prior,
-                                       cont.family[[i.family]]$control.mix$param)
+        cont.family[[i.family]]$control.link[names(c.link)] = c.link
+        if (!is.null(cont.family[[i.family]]$control.mix$model)) {
+            cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
+                                           cont.family[[i.family]]$control.mix$model,
+                                           "mix",
+                                           cont.family[[i.family]]$control.mix$hyper, 
+                                           cont.family[[i.family]]$control.mix$initial, 
+                                           cont.family[[i.family]]$control.mix$fixed,
+                                           cont.family[[i.family]]$control.mix$prior,
+                                           cont.family[[i.family]]$control.mix$param)
+        }
+        cont.family[[i.family]]$control.link$hyper = inla.set.hyper(
+                                       cont.family[[i.family]]$control.link$model,
+                                       "link",
+                                       cont.family[[i.family]]$control.link$hyper, 
+                                       cont.family[[i.family]]$control.link$initial, 
+                                       cont.family[[i.family]]$control.link$fixed,
+                                       cont.family[[i.family]]$control.link$prior,
+                                       cont.family[[i.family]]$control.link$param)
     }
     
     ## control results
