@@ -1805,6 +1805,54 @@ inla.mesh.fem = function(mesh, order=2)
 
 
 
+inla.mesh.deriv = function(mesh, loc)
+{
+    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
+    if (inherits(mesh, "inla.mesh.1d")) {
+        stop("1d derivatives are not implemented.")
+    }
+    n.mesh = mesh$n
+
+    info = inla.mesh.project(mesh, loc=loc)
+
+    ii = which(info$ok)
+    n.ok = sum(info$ok)
+    tv = mesh$graph$tv[info$t[ii,1L],]
+    e1 = mesh$loc[tv[,3],]-mesh$loc[tv[,2],]
+    e2 = mesh$loc[tv[,1],]-mesh$loc[tv[,3],]
+    e3 = mesh$loc[tv[,2],]-mesh$loc[tv[,1],]
+    n1 = e2-e1*matrix(rowSums(e1*e2)/rowSums(e1*e1),n.ok,3)
+    n2 = e3-e2*matrix(rowSums(e2*e3)/rowSums(e2*e2),n.ok,3)
+    n3 = e1-e3*matrix(rowSums(e3*e1)/rowSums(e3*e3),n.ok,3)
+    g1 = n1/matrix(rowSums(n1*n1),n.ok,3)
+    g2 = n2/matrix(rowSums(n2*n2),n.ok,3)
+    g3 = n3/matrix(rowSums(n3*n3),n.ok,3)
+    x = cbind(g1[,1],g2[,1],g3[,1])
+    y = cbind(g1[,2],g2[,2],g3[,2])
+    z = cbind(g1[,3],g2[,3],g3[,3])
+    dx = (sparseMatrix(dims=c(nrow(loc),n.mesh),
+                       i = rep(ii, 3),
+                       j = as.vector(tv),
+                       x = as.vector(x) ))
+    dy = (sparseMatrix(dims=c(nrow(loc),n.mesh),
+                       i = rep(ii, 3),
+                       j = as.vector(tv),
+                       x = as.vector(y) ))
+    dz = (sparseMatrix(dims=c(nrow(loc),n.mesh),
+                       i = rep(ii, 3),
+                       j = as.vector(tv),
+                       x = as.vector(z) ))
+
+    return (list(A=info$A, dx=dx, dy=dy, dz=dz))
+}
+
+
+
+
+
+
+
+
 ## Input: list of segments, all closed polygons.
 inla.sp2segment.internal.join = function(inp, grp=NULL) {
     out.loc = matrix(0,0,2)
@@ -1934,19 +1982,12 @@ inla.contour.segment =
     ## Get contour pieces
     curves = contourLines(x,y,z,levels=levels)
 
-    d = dim(z)
-    ## Derivatives
-    dzdx = diff(z)
-    dzdy = t(diff(t(z)))
-    ## Gradients rotated 90 degrees CW, i.e. to the direction
-    ## of CCW curves around positive excursions:
-    dx = (dzdy[,c(1:(d[2]-1),d[2]-1)]+dzdy[,c(1,1:(d[2]-1))])/2
-    dy = -(dzdx[c(1:(d[1]-1),d[1]-1),]+dzdx[c(1,1:(d[1]-1)),])/2
-    grad = cbind(as.vector(dx), as.vector(dy))
-
     ## Make a mesh for easy gradient interpolation:
     latt = inla.mesh.lattice(x,y)
     mesh = inla.mesh.create(lattice=latt, boundary=latt$segm, extend=list(n=9))
+    ## Map function values to mesh indexing:
+    zz = rep(0, prod(dim(z)))
+    zz[mesh$idx$lattice] = as.vector(z)
 
     ## Mapping from level to group value:
     level2grp = function(level) {
@@ -1965,18 +2006,18 @@ inla.contour.segment =
     loc = matrix(0,0,2)
     idx = matrix(0,0,2)
     grp = c()
-    print(levels)
     for (k in seq_len(length(curves))) {
         curve.loc = cbind(curves[[k]]$x, curves[[k]]$y)
         curve.n = nrow(curve.loc)
         ## Extract the rotated gradients along the curve
-        A = inla.spde.make.A(mesh, loc=curve.loc)
-        grid.grad = A %*% grad
-        d.curve.loc = diff(curve.loc)
-        curve.grad = (d.curve.loc[c(1:(curve.n-1),curve.n-1),]+
-                      d.curve.loc[c(1,(1:curve.n-1)),])/2
+        curve.mid = (curve.loc[1:(curve.n-1),]+curve.loc[2:curve.n,])/2
+        curve.diff = diff(curve.loc)
+        A = inla.mesh.deriv(mesh, loc=curve.mid)
+        ## Gradients rotated 90 degrees CW, i.e. to the direction
+        ## of CCW curves around positive excursions:
+        grid.diff = cBind(A$dy %*% zz, -A$dx %*% zz)
         ## Determine the CCW/CW orientation
-        ccw = (sum(curve.grad * grid.grad) >= 0) ## True if in CCW direction
+        ccw = (sum(curve.diff * grid.diff) >= 0) ## True if in CCW direction
         if ((ccw && positive) | (!ccw && !positive)) {
             curve.idx = cbind(1:(curve.n-1), 2:curve.n)
         } else {
