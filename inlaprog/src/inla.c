@@ -9846,7 +9846,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->link_model, "TAN")) {
 		ds->link_id = LINK_TAN;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_logit; 
+		ds->predictor_invlinkfunc = link_tan; 
 		ds->predictor_invlinkfunc_arg = NULL; 
 	} else {
 		char *msg;
@@ -9865,8 +9865,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_PROBIT: 
 	case LINK_CLOGLOG: 
 	case LINK_LOGIT: 
-	case LINK_TAN: 
+	case LINK_TAN:
+		/* 
+		 * no parameters
+		 */
 		break;
+
 	default:
 		assert(0 == 1);
 		break;
@@ -9879,7 +9883,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tuse.mix[%1d]\n", ds->mix_use);
 	}
-
 	if (ds->mix_use) {
 		/*
 		 * read mix-parameters
@@ -19599,12 +19602,14 @@ int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
 		0.000001,
 		0.00001,
 		0.0001,
+		0.0005,
 		0.001,
+		0.005,
 		0.01,
 		0.025, 
-		0.05,
+		0.05, 
 		0.075, 
-		0.1,
+		0.10, 
 		0.125, 
 		0.15,
 		0.175, 
@@ -19613,13 +19618,11 @@ int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
 		0.25,
 		0.275,
 		0.30,
-		0.32,
-		0.34,
-		0.36,
-		0.38,
+		0.325,
+		0.35,
+		0.375,
 		0.40,
-		0.42,
-		0.44,
+		0.425,
 		0.45, 
 		0.46,
 		0.47,
@@ -19631,13 +19634,11 @@ int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
 		0.53,
 		0.54,
 		0.55, 
-		0.56,
-		0.58,
+		0.575,
 		0.60,
-		0.62,
-		0.64,
-		0.66,
-		0.68,
+		0.625,
+		0.65,
+		0.675,
 		0.70,
 		0.725,
 		0.75,
@@ -19651,7 +19652,9 @@ int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
 		0.95,
 		0.975,
 		0.99, 
+		0.995, 
 		0.999,
+		0.9995,
 		0.9999,
 		0.99999,
 		0.999999, 
