@@ -5,11 +5,10 @@
     stopifnot(!missing(hyper))
     stopifnot(!missing(file))
     
-    len = length(hyper)
-    if (len == 0L) {
+    if (is.null(hyper) || length(hyper) == 0L) {
         return ()
     }
-
+    len = length(hyper)
     for(k in 1L:len) {
         if (len == 1L) {
             suff = ""
@@ -83,8 +82,6 @@
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
     cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
-    cat("link = ", inla.model.validate.link.function(family, control$link), "\n", 
-        file = file,  append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -112,9 +109,21 @@
     
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
     
+    ## the link-part. first make it backward-compatible...
+    if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {
+        ## control$link is set,  use that if not control.link$model is set
+        if (!(is.null(control$control.link$model) || inla.strcasecmp(control$control.link$model, "default"))) {
+            stop("Both control.family$link (OBSOLETE) and control.family$control.link$model is set. Please use the latter only.")
+        }
+        control$control.link$model = control$link
+    }
+    control$control.link$model = inla.model.validate.link.function(family, control$control.link$model)
+    cat("link.model = ", control$control.link$model, "\n", file = file,  append = TRUE)
+    inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
+
     ## the mix-part
-    inla.write.boolean.field("mix.use", control$control.mix$use, file)
-    if (control$control.mix$use) {
+    inla.write.boolean.field("mix.use", !is.null(control$control.mix$model), file)
+    if (!is.null(control$control.mix$model)) {
         cat("mix.model = ", control$control.mix$model, "\n", sep="", file=file, append=TRUE)
         inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.", data.dir = dirname(file))
     }

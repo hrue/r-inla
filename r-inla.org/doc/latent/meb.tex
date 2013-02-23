@@ -58,10 +58,14 @@ the \emph{same} element in the covariate $x$.
 \subsection*{Notes}
 
 \begin{itemize}
-\item \texttt{INLA} provide the posterior of $\nu=\beta x$ and
-    NOT $x$.  The results comes in the order given by the
-    sorted (from low to high) values of \texttt{x} and the field
-    \texttt{ID} gives the mapping.
+\item \texttt{INLA} provide the posterior of $\nu=\beta x$ and NOT
+    $x$.  The results comes (default) in the order given by the sorted
+    (from low to high) values of \texttt{x} and the field \texttt{ID}
+    gives the mapping.
+\item The option \verb|scale| defines the scaling in the same order as
+    argument \verb|values|.  It is therefore adviced to also give
+    argument \verb|values| when \verb|scale| is used to be sure that
+    they are consistent.
 \end{itemize}
 
 

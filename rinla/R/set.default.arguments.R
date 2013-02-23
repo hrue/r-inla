@@ -54,13 +54,36 @@
 {
     ##:NAME: control.mix
     list(
-        ##:ARGUMENT: use Integrate the likelihood with a random-effect added to the linear predictor? Default FALSE
-        use = FALSE,
-
         ##:ARGUMENT: model The model for the random effect. Currently, only \code{model='gaussian'} is implemented
-        model = "gaussian",
+        model = NULL, 
 
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the random effect model chosen
+        hyper = NULL,
+
+        ##:ARGUMENT: initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
+        initial = NULL,
+
+        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random
+        fixed = NULL,
+
+        ##:ARGUMENT: prior (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)
+        prior = NULL,
+
+        ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)
+        param = NULL)
+
+    ##:SEEALSO: inla
+}
+
+`inla.set.control.link.default` =
+    function()
+{
+    ##:NAME: control.link
+    list(
+        ##:ARGUMENT: link The name of the link function/model
+        model = "default",
+
+        ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
         hyper = NULL,
 
         ##:ARGUMENT: initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
@@ -156,8 +179,8 @@
         ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
         fixed=NULL,
 
-        ##:ARGUMENT: link The link function to use.
-        link="default",
+        ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=...)} instead.) The link function to use.
+        link= "default",
 
         ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
         alpha=0.5,
@@ -178,7 +201,10 @@
         variant = 0L,
 
         ##:ARGUMENT: control.mix See \code{?control.mix}
-        control.mix = NULL
+        control.mix = NULL, 
+
+        ##:ARGUMENT: control.link See \code{?control.link}
+        control.link = NULL
         )
 
     ##:SEEALSO: inla
