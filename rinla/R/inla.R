@@ -866,14 +866,16 @@
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
-        cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
-                                       cont.family[[i.family]]$control.mix$model,
-                                       "mix",
-                                       cont.family[[i.family]]$control.mix$hyper, 
-                                       cont.family[[i.family]]$control.mix$initial, 
-                                       cont.family[[i.family]]$control.mix$fixed,
-                                       cont.family[[i.family]]$control.mix$prior,
-                                       cont.family[[i.family]]$control.mix$param)
+        if (!is.null(cont.family[[i.family]]$control.mix$model)) {
+            cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
+                                           cont.family[[i.family]]$control.mix$model,
+                                           "mix",
+                                           cont.family[[i.family]]$control.mix$hyper, 
+                                           cont.family[[i.family]]$control.mix$initial, 
+                                           cont.family[[i.family]]$control.mix$fixed,
+                                           cont.family[[i.family]]$control.mix$prior,
+                                           cont.family[[i.family]]$control.mix$param)
+        }
         cont.family[[i.family]]$control.link$hyper = inla.set.hyper(
                                        cont.family[[i.family]]$control.link$model,
                                        "link",

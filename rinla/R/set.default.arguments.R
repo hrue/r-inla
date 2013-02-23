@@ -54,11 +54,8 @@
 {
     ##:NAME: control.mix
     list(
-        ##:ARGUMENT: use Integrate the likelihood with a random-effect added to the linear predictor? Default FALSE
-        use = FALSE,
-
         ##:ARGUMENT: model The model for the random effect. Currently, only \code{model='gaussian'} is implemented
-        model = "gaussian",
+        model = NULL, 
 
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the random effect model chosen
         hyper = NULL,

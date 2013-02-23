@@ -122,8 +122,8 @@
     inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
 
     ## the mix-part
-    inla.write.boolean.field("mix.use", control$control.mix$use, file)
-    if (control$control.mix$use) {
+    inla.write.boolean.field("mix.use", !is.null(control$control.mix$model), file)
+    if (!is.null(control$control.mix$model)) {
         cat("mix.model = ", control$control.mix$model, "\n", sep="", file=file, append=TRUE)
         inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.", data.dir = dirname(file))
     }
