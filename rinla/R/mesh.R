@@ -1892,3 +1892,132 @@ inla.sp2segment.Polygon =
             idx = c(1L:n,1L)
     return(inla.mesh.segment(loc=loc, idx=idx, is.bnd=TRUE))
 }
+
+
+
+
+
+
+
+
+
+
+inla.contour.segment =
+    function(x = seq(0, 1, length.out = nrow(z)),
+             y = seq(0, 1, length.out = ncol(z)),
+             z, nlevels = 10,
+             levels = pretty(range(z, na.rm=TRUE), nlevels),
+             groups = seq_len(length(levels)),
+             positive = TRUE)
+{
+    ## Input checking from contourLines:
+    if (missing(z)) {
+        if (!missing(x)) {
+            if (is.list(x)) {
+                z <- x$z
+                y <- x$y
+                x <- x$x
+            }
+            else {
+                z <- x
+                x <- seq.int(0, 1, length.out = nrow(z))
+            }
+        }
+        else stop("no 'z' matrix specified")
+    }
+    else if (is.list(x)) {
+        y <- x$y
+        x <- x$x
+    }
+    ## End of input checking.
+
+    ## Get contour pieces
+    curves = contourLines(x,y,z,levels=levels)
+
+    d = dim(z)
+    ## Derivatives
+    dzdx = diff(z)
+    dzdy = t(diff(t(z)))
+    ## Gradients rotated 90 degrees CW, i.e. to the direction
+    ## of CCW curves around positive excursions:
+    dx = (dzdy[,c(1:(d[2]-1),d[2]-1)]+dzdy[,c(1,1:(d[2]-1))])/2
+    dy = -(dzdx[c(1:(d[1]-1),d[1]-1),]+dzdx[c(1,1:(d[1]-1)),])/2
+    grad = cbind(as.vector(dx), as.vector(dy))
+
+    ## Make a mesh for easy gradient interpolation:
+    latt = inla.mesh.lattice(x,y)
+    mesh = inla.mesh.create(lattice=latt, boundary=latt$segm, extend=list(n=9))
+
+    ## Mapping from level to group value:
+    level2grp = function(level) {
+        if (length(groups)==1)
+            return(groups)
+        for (k in seq_along(groups)) {
+            if (levels[k] == level) {
+                return(groups[k])
+            }
+        }
+        return(0)
+    }
+
+    ## Join all contour pieces into a single mesh.segment
+    ## Different levels can later be identified via the grp indices.
+    loc = matrix(0,0,2)
+    idx = matrix(0,0,2)
+    grp = c()
+    print(levels)
+    for (k in seq_len(length(curves))) {
+        curve.loc = cbind(curves[[k]]$x, curves[[k]]$y)
+        curve.n = nrow(curve.loc)
+        ## Extract the rotated gradients along the curve
+        A = inla.spde.make.A(mesh, loc=curve.loc)
+        grid.grad = A %*% grad
+        d.curve.loc = diff(curve.loc)
+        curve.grad = (d.curve.loc[c(1:(curve.n-1),curve.n-1),]+
+                      d.curve.loc[c(1,(1:curve.n-1)),])/2
+        ## Determine the CCW/CW orientation
+        ccw = (sum(curve.grad * grid.grad) >= 0) ## True if in CCW direction
+        if ((ccw && positive) | (!ccw && !positive)) {
+            curve.idx = cbind(1:(curve.n-1), 2:curve.n)
+        } else {
+            curve.idx = cbind(curve.n:2, (curve.n-1):1)
+        }
+        ## Filter short line segments:
+        message("TODO: filter short line segments")
+        ## Add the curve:
+        offset = nrow(loc)
+        loc = rbind(loc, curve.loc)
+        idx = rbind(idx, curve.idx+offset)
+        grp = c(grp, rep(level2grp(curves[[k]]$level), curve.n-1))
+    }
+    segm = inla.mesh.segment(loc=loc,idx=idx,grp=grp,is.bnd=FALSE)
+    return(segm)
+}
+
+
+## Besed on an idea from Elias Teixeira Krainski
+inla.nonconvex.hull =
+    function(points, expand=-0.15, resolution=40)
+{
+    if (length(expand)==1)
+        expand = rep(expand,2)
+    if (length(resolution)==1)
+        resolution = rep(resolution,2)
+    lim = rbind(range(points[,1]), range(points[,2]))
+    ex = expand
+    if (expand[1]<0) {ex[1] = -expand[1]*diff(lim[1,])}
+    if (expand[2]<0) {ex[2] = -expand[2]*diff(lim[2,])}
+    ax =
+        list(
+            seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
+            seq(lim[2,1] - ex[2], lim[2,2] + ex[2], length=resolution[2])
+            )
+    xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
+    tr = diag(c(1/ex[1],1/ex[2]))
+
+    require(splancs)
+    z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
+                resolution[1],resolution[2]))
+    segm = inla.contour.segment(ax[[1]],ax[[2]],z,levels=c(1),positive=FALSE)
+    return(segm)
+}
