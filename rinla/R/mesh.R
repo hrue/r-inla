@@ -1997,16 +1997,16 @@ inla.contour.segment =
 
 ## Besed on an idea from Elias Teixeira Krainski
 inla.nonconvex.hull =
-    function(points, expand=-0.15, resolution=40)
+    function(points, extend=-0.15, resolution=40)
 {
-    if (length(expand)==1)
-        expand = rep(expand,2)
+    if (length(extend)==1)
+        extend = rep(extend,2)
     if (length(resolution)==1)
         resolution = rep(resolution,2)
     lim = rbind(range(points[,1]), range(points[,2]))
-    ex = expand
-    if (expand[1]<0) {ex[1] = -expand[1]*diff(lim[1,])}
-    if (expand[2]<0) {ex[2] = -expand[2]*diff(lim[2,])}
+    ex = extend
+    if (extend[1]<0) {ex[1] = -extend[1]*diff(lim[1,])}
+    if (extend[2]<0) {ex[2] = -extend[2]*diff(lim[2,])}
     ax =
         list(
             seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
