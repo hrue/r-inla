@@ -8,7 +8,6 @@
 inla(formula, ..., control.mix=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
-\item{use}{  Integrate the likelihood with a random-effect added to the linear predictor? Default FALSE}
 \item{model}{  The model for the random effect. Currently, only \code{model='gaussian'} is implemented}
 \item{hyper}{  Definition of the hyperparameter(s) for the random effect model chosen}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
