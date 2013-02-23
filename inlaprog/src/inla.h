@@ -155,11 +155,6 @@ typedef struct {
 	double *cbinomial_n;
 
 	/*
-	 * y ~ Binomial test 
-	 */
-	double **link_psi;
-
-	/*
 	 * y ~ Neg.Binomial(n, p(x)), n=size is a hyperparameter (overdispersion)
 	 */
 	double **log_size;
@@ -339,7 +334,6 @@ typedef enum {
 	L_POISSON,
 	L_GPOISSON,
 	L_BINOMIAL,
-	L_BINOMIALTEST,					       /* test-version of the binomial! */
 	L_CBINOMIAL,					       /* clumped binomial */
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
@@ -431,7 +425,13 @@ typedef enum {
 	G_RW2,
 	G_AR, 
 	G_BESAG, 
-	MIX_GAUSSIAN, 
+	MIX_GAUSSIAN, 					       /* mix-models */
+	LINK_IDENTITY,					       /* link-models */
+	LINK_LOG,
+	LINK_PROBIT,
+	LINK_CLOGLOG,
+	LINK_LOGIT,
+	LINK_TAN
 } inla_component_tp;
 
 
@@ -504,9 +504,6 @@ typedef struct {
 	char *data_likelihood;
 	GMRFLib_uchar variant;
 
-	char *link;
-	map_func_tp *predictor_invlinkfunc;
-
 	inla_component_tp data_id;
 	File_tp data_file;
 	File_tp weight_file;
@@ -526,6 +523,17 @@ typedef struct {
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
 
+	/* 
+	 * the link model
+	 */
+	char *link_model;
+	inla_component_tp link_id;
+	map_func_tp *predictor_invlinkfunc;
+	void *predictor_invlinkfunc_arg;
+	Prior_tp link_prior;
+	int link_fixed;
+	int link_ntheta;
+	
 	/* 
 	 * the re-extention
 	 */
@@ -993,19 +1001,6 @@ typedef struct {
 
 
 /* 
-   The chose-a-link function
- */
-#define CHOSE_LINK(link)						\
-	(strcasecmp(link, "identity") == 0 ? link_identity :		\
-	 (strcasecmp(link, "log") == 0 ? link_log :			\
-	  (strcasecmp(link, "probit") == 0 ? link_probit :		\
-	   (strcasecmp(link, "cloglog") == 0 ? link_cloglog :		\
-	    (strcasecmp(link, "logit") == 0 ? link_logit :		\
-	     (strcasecmp(link, "tan") == 0 ? link_tan :			\
-	      (strcasecmp(link, "h") == 0 ? link_h :			\
-	       link_this_should_not_happen)))))))
-
-/* 
    functions
  */
 
@@ -1052,7 +1047,6 @@ double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
-double map_binomialtest_psi(double x, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
@@ -1202,7 +1196,6 @@ int inla_wishart3d_adjust(double *rho);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_binomialtest(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
