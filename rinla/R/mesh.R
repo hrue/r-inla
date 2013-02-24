@@ -2196,7 +2196,7 @@ inla.nonconvex.hull =
     ## points.dilation =
     ##    mesh.dilation$loc[unique(as.vector(mesh.dilation$graph$tv)),]
 
-    z = (matrix(splancs::nndistF(points.dilation, xy),
+    z = (matrix(splancs::nndistF(mesh.dilation$loc, xy),
                 resolution[1],resolution[2]))
     segm.closing =
         inla.contour.segment(ax[[1]],ax[[2]],z,
