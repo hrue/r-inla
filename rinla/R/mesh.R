@@ -91,20 +91,40 @@ inla.mesh.segment =
 }
 
 
-lines.inla.mesh.segment = function(segm, loc=NULL, ...)
+lines.inla.mesh.segment =
+    function(segm, loc=NULL, col=NULL,
+             colors=c("black", "blue", "red", "green"),
+             add=TRUE, xlim=NULL, ylim=NULL, ...)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
+    color = col
+    if (!add) {
+        idx = unique(as.vector(segm$idx))
+        if (is.null(xlim))
+            xlim=range(segm$loc[idx,1])
+        if (is.null(ylim))
+            ylim=range(segm$loc[idx,2])
+        plotting = plot
+    } else {
+        plotting = lines
+    }
 
     grps = inla.ifelse(is.null(segm$grp), rep(0L,nrow(segm$idx)), segm$grp)
     for (grp in unique(grps)) {
         idx = which(grps==grp)
-        lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
-              loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
-              type="l",
-              col=c("black", "blue", "red", "green")[1+(grp%%4)],
-              ...)
+        if (is.null(col)) {
+            color=colors[1+(grp%%length(colors))]
+        }
+        plotting(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
+                 loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
+                 col=color,
+                 xlim = xlim,
+                 ylim = ylim,
+                 type = "l",
+                 ...)
+        plotting = lines
     }
 }
 
