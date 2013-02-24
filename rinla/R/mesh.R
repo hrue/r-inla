@@ -2051,6 +2051,22 @@ inla.nonconvex.hull.basic =
     ex = offset
     if (offset[1]<0) {ex[1] = -offset[1]*diff(lim[1,])}
     if (offset[2]<0) {ex[2] = -offset[2]*diff(lim[2,])}
+
+    domain = c(diff(lim[1,]), diff(lim[2,])) + 2*ex
+    dif = domain/(resolution-1)
+    if (any(dif > min(offset))) {
+        req.res = ceiling(domain/offset+1)
+        warning(paste("Resolution (",
+                      paste(resolution,collapse=","),
+                      ") too small for offset (",
+                      paste(offset,collapse=","),
+                      ").\n",
+                      "Resolution >=(",
+                      paste(req.res,collapse=","),
+                      ") required for more accurate results.",
+                      sep=""))
+    }
+
     ax =
         list(
             seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
@@ -2085,7 +2101,7 @@ inla.nonconvex.hull =
     if (convex<0) {convex = -convex*approx.diam}
     if (concave<0) {concave = -concave*approx.diam}
     if (concave==0) {
-        return(inla.convex.hull.basic(points,convex,resolution))
+        return(inla.nonconvex.hull.basic(points,convex,resolution))
     }
 
     ex = convex+concave
