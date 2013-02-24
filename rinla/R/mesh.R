@@ -2086,8 +2086,11 @@ inla.nonconvex.hull.basic =
 ## Morphological dilation by "convex",
 ## followed by closing by "concave", with
 ## minimum concave curvature radius "concave".
-## If the dilated set has no gaps of width <= 2*concave, then
-## the minimum convex curvature radius is "convex".
+## If the dilated set has no gaps of width between
+##   2*convex*(sqrt(1+2*concave/convex) - 1)
+## and
+##   2*concave,
+## then the minimum convex curvature radius is "convex".
 ## Default is concave=convex
 ## Special case concave=0 delegates to inla.nonconvex.hull.basic()
 ##
