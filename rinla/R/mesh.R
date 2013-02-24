@@ -2089,7 +2089,7 @@ inla.nonconvex.hull.basic =
 ## If the dilated set has no gaps of width <= 2*concave, then
 ## the minimum convex curvature radius is "convex".
 ## Default is concave=convex
-## Special case concave=0 delegates to inla.nonconvec.hull.basic()
+## Special case concave=0 delegates to inla.nonconvex.hull.basic()
 inla.nonconvex.hull =
     function(points, convex=-0.15, concave=convex, resolution=40)
 {
