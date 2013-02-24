@@ -799,6 +799,31 @@ inla.mesh.create =
                                   fmesher.read(prefix, "segm.int.grp"),
                                   FALSE))
 
+    ## Remap indices to remove unused vertices
+    used = !is.na(graph$vt)
+    if (!all(used)) {
+        used = which(used)
+        idx.map = rep(NA, nrow(loc))
+        idx.map[used] = seq_len(length(used))
+        loc = loc[used,,drop=FALSE]
+        graph$tv = matrix(idx.map[as.vector(graph$tv)], nrow(graph$tv), 3)
+        graph$vt = graph$vt[used,,drop=FALSE]
+        ## graph$tt  ## No change needed
+        ## graph$tti ## No change needed
+        graph$vv = graph$vv[used, used, drop=FALSE]
+        if (!is.null(idx$loc)) idx$loc = idx.map[idx$loc]
+        if (!is.null(idx$lattice)) idx$lattice = idx.map[idx$lattice]
+        if (!is.null(idx$segm)) idx$segm = idx.map[idx$segm]
+        segm.bnd$idx = matrix(idx.map[segm.bnd$idx], nrow(segm.bnd$idx), 2)
+        segm.int$idx = matrix(idx.map[segm.int$idx], nrow(segm.int$idx), 2)
+        if (!is.null(idx$loc)) idx$loc[idx$loc == 0L] = NA
+        if (!is.null(idx$lattice)) idx$lattice[idx$lattice == 0L] = NA
+        if (!is.null(idx$segm)) idx$segm[idx$segm == 0L] = NA
+        segm.bnd$idx[segm.bnd$idx == 0L] = NA
+        segm.int$idx[segm.int$idx == 0L] = NA
+    }
+
+
     if (!keep)
         unlink(paste(prefix, "*", sep=""), recursive=FALSE)
     if (!keep.dir) {
@@ -2166,11 +2191,10 @@ inla.nonconvex.hull =
                          boundary=segm.dilation,
                          extend=list(n=3))
 
-    ## TODO:This filtering should not me necessary; the mesh should
-    ## have removed unused points, but that is not currently the case
-    ## 2013-02-24 /FL
-    points.dilation =
-        mesh.dilation$loc[unique(as.vector(mesh.dilation$graph$tv)),]
+    ## This filtering is not necessary; the inla.mesh.create() should
+    ## have removed all unused points. 2013-02-24 /FL
+    ## points.dilation =
+    ##    mesh.dilation$loc[unique(as.vector(mesh.dilation$graph$tv)),]
 
     z = (matrix(splancs::nndistF(points.dilation, xy),
                 resolution[1],resolution[2]))
