@@ -1984,7 +1984,10 @@ inla.contour.segment =
 
     ## Make a mesh for easy gradient interpolation:
     latt = inla.mesh.lattice(x,y)
-    mesh = inla.mesh.create(lattice=latt, boundary=latt$segm, extend=list(n=9))
+    mesh =
+        inla.mesh.create(lattice=latt,
+                         boundary=latt$segm,
+                         extend=list(n=3))
     ## Map function values to mesh indexing:
     zz = rep(0, prod(dim(z)))
     zz[mesh$idx$lattice] = as.vector(z)
@@ -2036,18 +2039,18 @@ inla.contour.segment =
 }
 
 
-## Besed on an idea from Elias Teixeira Krainski
-inla.nonconvex.hull =
-    function(points, extend=-0.15, resolution=40)
+## Based on an idea from Elias Teixeira Krainski
+inla.nonconvex.hull.basic =
+    function(points, offset=-0.15, resolution=40)
 {
-    if (length(extend)==1)
-        extend = rep(extend,2)
+    if (length(offset)==1)
+        offset = rep(offset,2)
     if (length(resolution)==1)
         resolution = rep(resolution,2)
     lim = rbind(range(points[,1]), range(points[,2]))
-    ex = extend
-    if (extend[1]<0) {ex[1] = -extend[1]*diff(lim[1,])}
-    if (extend[2]<0) {ex[2] = -extend[2]*diff(lim[2,])}
+    ex = offset
+    if (offset[1]<0) {ex[1] = -offset[1]*diff(lim[1,])}
+    if (offset[2]<0) {ex[2] = -offset[2]*diff(lim[2,])}
     ax =
         list(
             seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
@@ -2061,4 +2064,76 @@ inla.nonconvex.hull =
                 resolution[1],resolution[2]))
     segm = inla.contour.segment(ax[[1]],ax[[2]],z,levels=c(1),positive=FALSE)
     return(segm)
+}
+
+
+## Morphological dilation by "convex",
+## followed by closing by "concave", with
+## minimum concave curvature radius "concave".
+## If the dilated set has no gaps of width <= 2*concave, then
+## the minimum convex curvature radius is "convex".
+## Default is concave=convex
+## Special case concave=0 delegates to inla.nonconvec.hull.basic()
+inla.nonconvex.hull =
+    function(points, convex=-0.15, concave=convex, resolution=40)
+{
+    if (length(resolution)==1)
+        resolution = rep(resolution,2)
+    lim = rbind(range(points[,1]), range(points[,2]))
+
+    approx.diam = max(diff(lim[1,]),diff(lim[2,]))
+    if (convex<0) {convex = -convex*approx.diam}
+    if (concave<0) {concave = -concave*approx.diam}
+    if (concave==0) {
+        return(inla.convex.hull.basic(points,convex,resolution))
+    }
+
+    ex = convex+concave
+    domain = c(diff(lim[1,]), diff(lim[2,])) + 2*ex
+    dif = domain/(resolution-1)
+    if (max(dif) > min(convex,concave)) {
+        req.res = ceiling(domain/min(convex,concave)+1)
+        warning(paste("Resolution (",
+                      paste(resolution,collapse=","),
+                      ") too small for convex/concave radius (",
+                      convex,",",concave,
+                      ").\n",
+                      "Resolution >=(",
+                      paste(req.res,collapse=","),
+                      ") required for more accurate results.",
+                      sep=""))
+    }
+    ax =
+        list(
+            seq(lim[1,1] - ex, lim[1,2] + ex, length=resolution[1]),
+            seq(lim[2,1] - ex, lim[2,2] + ex, length=resolution[2])
+            )
+    xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
+
+    require(splancs)
+
+    z = (matrix(splancs::nndistF(points, xy),
+                resolution[1],resolution[2]))
+    segm.dilation =
+        inla.contour.segment(ax[[1]],ax[[2]],z,
+                             levels=c(convex+concave),
+                             positive=TRUE)
+    mesh.dilation =
+        inla.mesh.create(loc=xy,
+                         boundary=segm.dilation,
+                         extend=list(n=3))
+
+    ## TODO:This filtering should not me necessary; the mesh should
+    ## have removed unused points, but that is not currently the case
+    ## 2013-02-24 /FL
+    points.dilation =
+        mesh.dilation$loc[unique(as.vector(mesh.dilation$graph$tv)),]
+
+    z = (matrix(splancs::nndistF(points.dilation, xy),
+                resolution[1],resolution[2]))
+    segm.closing =
+        inla.contour.segment(ax[[1]],ax[[2]],z,
+                             levels=c(concave),positive=TRUE)
+
+    return(segm.closing)
 }
