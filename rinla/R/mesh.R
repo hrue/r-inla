@@ -2090,6 +2090,10 @@ inla.nonconvex.hull.basic =
 ## the minimum convex curvature radius is "convex".
 ## Default is concave=convex
 ## Special case concave=0 delegates to inla.nonconvex.hull.basic()
+##
+## The implementation is based on the identity
+##   dilation(a) & closing(b) = dilation(a+b) & erosion(b)
+## where all operations are with respect to disks with the specified radii.
 inla.nonconvex.hull =
     function(points, convex=-0.15, concave=convex, resolution=40)
 {
