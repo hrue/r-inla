@@ -42,7 +42,7 @@
     ret = c(ret, list(neffp = round(neffp, digits)))
     
     if (!is.null(object$dic)) {
-        ret = c(ret, list(dic = round(object$dic, digits)))
+        ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
     }
 
     if(!is.null(object$mlik))
