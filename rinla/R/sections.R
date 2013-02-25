@@ -42,9 +42,9 @@
             file.xy = inla.tempfile(tmpdir=data.dir)
             inla.write.fmesher.file(xy, filename = file.xy)
             file.xy = gsub(data.dir, "$inladatadir", file.xy, fixed=TRUE)
-            cat("prior = table:", file.xy, "\n", append=TRUE, sep = " ", file = file)
+            cat("prior", suff, " = table: ", file.xy, "\n", append=TRUE, sep = "", file = file)
         } else {
-            cat(prefix, "prior",      suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
+            cat(prefix, "prior", suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
         }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
