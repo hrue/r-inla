@@ -8,5 +8,6 @@ Maintainer: Havard Rue <hrue@math.ntnu.no> and Finn Lindgren <finn.lindgren@gmai
 Description: This package contains functions which allow to perform a full Bayesian analysis of structured (geo-)additive models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
 Depends: Matrix, pixmap, sp
 Suggests: numDeriv, Rgraphviz, graph, fields, rgl, mvtnorm, multicore
+ByteCompile: yes
 License: GPL
 Packaged: The package data is given using 'inla.version()'
