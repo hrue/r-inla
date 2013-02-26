@@ -424,6 +424,13 @@
     return (ret)
 }
 
+`inla.is.marginal` = function(m)
+{
+    return ((is.matrix(m) && ncol(m) == 2L && nrow(m) > 2L) ||
+            (is.list(m) && all(names(m) == c("x", "y"))))
+}
+    
+
 ## 'plot' and 'summary'-methods for marginals
 plot.inla.marginal = function(x, ...)
 {

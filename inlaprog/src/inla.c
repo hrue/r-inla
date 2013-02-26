@@ -11142,6 +11142,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_RW1: 
 		case F_RW2: 
 		case F_CRW2: 
+		case F_OU: 
 		case F_COPY: 
 		case F_MEC: 
 		case F_MEB: 
@@ -11201,7 +11202,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				/*
 				 * the locations must be sorted (for some models only), otherwise, things are messed up!!!!
 				 */
-				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
+				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 ||
+				    mb->f_id[mb->nf] == F_CRW2 || mb->f_id[mb->nf] == F_OU) {
 					for (i = 0; i < nlocations - 1; i++) {
 						if (mb->f_locations[mb->nf][i] >= mb->f_locations[mb->nf][i + 1]) {
 							inla_error_file_error_sorted(__GMRFLib_FuncName, filename, nlocations, i, mb->f_locations[mb->nf][i]);
