@@ -270,6 +270,21 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 		}
 		break;
 
+	case GMRFLib_OPENMP_PLACES_COMBINE:
+		switch (strategy) {
+		case GMRFLib_OPENMP_STRATEGY_SMALL:
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+		case GMRFLib_OPENMP_STRATEGY_LARGE:
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+		case GMRFLib_OPENMP_STRATEGY_HUGE:
+			nt = ntmax;
+			nested = 0;
+			break;
+		default:
+			assert(0 == 1);
+		}
+		break;
+
 	case GMRFLib_OPENMP_PLACES_DEFAULT:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
