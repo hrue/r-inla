@@ -37,8 +37,10 @@ syntax: regexp
 ^.*make-man-pages\.timestamp$
 ^sandbox/tutorials/inla/.*Rnw\.pdf$
 ^sandbox/tutorials/inla/.*main\.pdf$
+^sandbox/tutorials/inla/.*main\.tex$
 ^sandbox/tutorials/inla/.*\.fls$
 ^sandbox/tutorials/inla/ca.*$
 ^sandbox/tutorials/inla/Sweave/.*$
 ^sandbox/tutorials/inla/auto/.*$
 ^sandbox/tutorials/inla/.*\.RData$
+
