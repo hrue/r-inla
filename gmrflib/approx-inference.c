@@ -2945,17 +2945,33 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #define COMPUTE_LINDENS(_store)						\
 	if (nlin) {							\
 		int _i;							\
-		double *improved_mean = Calloc(graph->n, double);	\
+		double *_improved_mean = Calloc(graph->n, double);	\
 		for(_i = 0; _i<graph->n; _i++) {			\
 			if (dens[_i] && dens[_i][dens_count]){		\
-				improved_mean[_i] = dens[_i][dens_count]->user_mean; \
+				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
 			} else {					\
-				improved_mean[_i] = ai_store->problem->mean_constr[_i]; \
+				_improved_mean[_i] = ai_store->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL), nlin, Alin, _store, improved_mean); \
-		Free(improved_mean);					\
+		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL), nlin, Alin, _store, _improved_mean); \
+		Free(_improved_mean);					\
 	}
+	
+#define ADD_CONFIG(_store, _theta, _log_posterior)					\
+	if (1) {							\
+		int _i;							\
+		double *_improved_mean = Calloc(graph->n, double);	\
+		for(_i = 0; _i<graph->n; _i++) {			\
+			if (dens[_i] && dens[_i][dens_count]){		\
+				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
+			} else {					\
+				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
+			}						\
+		}							\
+		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _improved_mean, (_store)->problem); \
+		Free(_improved_mean);					\
+	}
+
 
 #define CHECK_HYPER_STORAGE_FORCE(num_) CHECK_HYPER_STORAGE_INTERN(num_, 1)
 #define CHECK_HYPER_STORAGE CHECK_HYPER_STORAGE_INTERN(1, 0)
@@ -3336,22 +3352,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 */
 		double log_dens_mode_save = log_dens_mode;
 		int stupid_mode_iter = 0;
-
-		if (0) {
-			SET_THETA_MODE;
-			if (x_mode) {
-				memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-			}
-			printf("GRAPH\n");
-			GMRFLib_print_graph(stdout, graph);
-			GMRFLib_print_Qfunc(stdout, graph, Qfunc, Qfunc_arg);
-			GMRFLib_print_constr(stdout, constr, graph);
-			for (i = 0; i < graph->n; i++) {
-				printf("c %d %.12g  mode %.12g\n", i, c[i], x_mode[i]);
-			}
-			printf("GRAPH DONE\n");
-			GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, log_dens_mode_save, ai_store->problem);
-		}
 
 		hessian = Calloc(ISQR(nhyper), double);
 		while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
@@ -3746,7 +3746,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 			ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-			GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
+			//GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
 			if (run_with_omp) {
 				// FIX THIS LATER
 				GMRFLib_ai_store_tp *ai_store_id = ai_store;
@@ -3784,6 +3784,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
 			COMPUTE_LINDENS(ai_store);
+			ADD_CONFIG(ai_store, theta_mode, 0.0);
 
 			izs[dens_count] = Calloc(nhyper, double);
 			for (i = 0; i < nhyper; i++) {
@@ -3904,7 +3905,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv */
 						GMRFLib_ai_si(ai_par, log_dens, theta_local, nhyper, graph, ai_store_id);
 					}
-					GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
+					//GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 					ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
@@ -3924,6 +3925,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 					}
 					COMPUTE_LINDENS(ai_store_id);
+					ADD_CONFIG(ai_store_id, theta_local, log_dens);
 					tu = GMRFLib_cpu() - tref;
 					if (ai_par->fp_log) {
 #pragma omp critical
@@ -4036,7 +4038,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 					ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-					GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+					//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 					if (run_with_omp) {
 						GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4079,6 +4081,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 					}
 					COMPUTE_LINDENS(ai_store);
+					ADD_CONFIG(ai_store, theta, log_dens);
 					tu = GMRFLib_cpu() - tref;
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -4180,7 +4183,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								deviance_theta_local = Calloc(graph->n, float);
 							}
 
-							GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
+ 							//GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 							for (i = 0; i < compute_n; i++) {
 								GMRFLib_density_tp *cpodens = NULL;
 								int ii;
@@ -4233,6 +4236,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									dens[ii][dens_count] = dens_local[ii];
 								}
 								COMPUTE_LINDENS(ai_store_id);
+								ADD_CONFIG(ai_store_id, theta_local, log_dens);
 								if (cpo) {
 									for (i = 0; i < compute_n; i++) {
 										ii = compute_idx[i];
@@ -4357,7 +4361,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-							GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+							//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4402,6 +4406,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 							}
 							COMPUTE_LINDENS(ai_store);
+							ADD_CONFIG(ai_store, theta, log_dens);
 							tu = GMRFLib_cpu() - tref;
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -4504,7 +4509,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-							GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+							//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4550,6 +4555,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 							}
 							COMPUTE_LINDENS(ai_store);
+							ADD_CONFIG(ai_store, theta, log_dens);
 							tu = GMRFLib_cpu() - tref;
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -4622,7 +4628,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-		GMRFLib_ai_store_config(misc_output, nhyper, NULL, log_dens_mode, ai_store->problem);
+		//GMRFLib_ai_store_config(misc_output, nhyper, NULL, log_dens_mode, ai_store->problem);
 		if (run_with_omp) {
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 			double *bnew = NULL, con = 0.0;
@@ -4705,6 +4711,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 		}
 		COMPUTE_LINDENS(ai_store);
+		ADD_CONFIG(ai_store, NULL, log_dens_mode);
 		weights[dens_count] = 0.0;
 		dens_count++;
 
@@ -4791,9 +4798,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (density || gdensity) {
+		/* 
+		 * need a separate strategy here, as this might take time if the number of points are large, and we essentially want to do this loop with max
+		 * num_threads.
+		 */
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL);
 #pragma omp parallel for private(j)
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
+			//fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
 			GMRFLib_density_tp *dens_combine, *gdens_combine;
 			GMRFLib_density_combine((density ? &dens_combine : NULL), (gdensity ? &gdens_combine : NULL), dens_count, dens[ii], adj_weights);
 			if (density) {
@@ -4803,6 +4816,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				(*gdensity)[ii] = gdens_combine;
 			}
 		}
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
 	}
 	if (dlin && nlin) {
 		GMRFLib_density_tp **dtmp, *dcombine;
@@ -5527,7 +5541,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior, GMRFLib_problem_tp * gmrf_approx)
+int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
+			    double *improved_mean, GMRFLib_problem_tp * gmrf_approx)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -5594,7 +5609,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
 	int ii, jj, k, kk;
-	double *Qinv, *Q, *mean;
+	double *Qinv, *Q, *mean, *imean;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
@@ -5609,7 +5624,9 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	}
 
 	mean = Calloc(g->n, double);
+	imean = Calloc(g->n, double);
 	memcpy(mean, gmrf_approx->mean_constr, g->n * sizeof(double));
+	memcpy(imean, improved_mean, g->n * sizeof(double));
 
 	Qinv = Calloc(mo->configs[id]->nz, double);
 	for (k = 0; k < mo->configs[id]->nz; k++) {
@@ -5632,6 +5649,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Q = Q;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Qinv = Qinv;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
+	mo->configs[id]->config[mo->configs[id]->nconfig]->improved_mean = imean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
