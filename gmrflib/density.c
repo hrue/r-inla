@@ -1116,7 +1116,6 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx, f[] = { 0, 0.5, -0.5, 1.0, -1.0 };
 
 	GMRFLib_ENTER_ROUTINE;
-
 	if (n == 0) {
 		if (density) {
 			*density = NULL;
