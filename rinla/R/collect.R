@@ -169,6 +169,7 @@ inla.internal.experimental.mode = FALSE
                     theta = NULL
                 }
                 mean = readBin(fp, numeric(), configs$n)
+                improved.mean = readBin(fp, numeric(), configs$n)
                 Q = readBin(fp, numeric(), configs$nz)
                 Qinv = readBin(fp, numeric(), configs$nz)
                 dif = which(configs$i != configs$j)
@@ -187,6 +188,7 @@ inla.internal.experimental.mode = FALSE
                                       theta = theta, 
                                       log.posterior = log.post, 
                                       mean = mean,
+                                      improved.mean = improved.mean,
                                       Q = sparseMatrix(
                                               i = c(configs.i, iadd),
                                               j = c(configs.j, jadd),

@@ -10,14 +10,15 @@
  
  \description{This function generate samples from an approximated posterior of a fitted model,  ie an inla-object}
  \usage{
-     inla.posterior.sample(n = 1L, result, hyper.user.scale = TRUE)
+     inla.posterior.sample(n = 1L, result, hyper.user.scale = TRUE, use.improved.mean = TRUE)
  }
  
  \arguments{
    \item{n}{Number of samples.}
    \item{result}{The inla-object, ie the output from an \code{inla}-call. The \code{inla}-object must be created with
                  \code{control.compute=list(config=TRUE)}.}
-   \item{hyper.user.scale}{Use values of hyperparameters in the user scale, not in the internal representation}
+   \item{hyper.user.scale}{Logical. Use values of hyperparameters in the user scale, not in the internal representation}
+   \item{use.improved.mean}{Logical. Use the marginal mean values instead of the mean in the Gaussian approximation.}
 }
 \value{
   A list of the samples,  where each sample is a list with names \code{hyperpar} and \code{latent},  and with
