@@ -1,0 +1,944 @@
+\section{The SPDE approach with INLA: a toy example}
+
+In this section we use a very simple 
+data set to show how we fit a geostatistical 
+model using the SPDE approach, \cite{lindgrenRL:2011}. 
+We use Bayesian inference and found the posterior 
+distributions by the Integrated Nested Laplace 
+Approximation - INLA, \cite{rueMC:2009}. 
+We show use of \pkg{INLA} \pkg{R} package 
+to make this approach. 
+The ideas for application of the SPDE 
+approach with \pkg{INLA}, are well described on 
+\cite{lindgren:2012} and \cite{cameletti:2012}. 
+
+<<sett,echo=F,results=hide>>=
+options(width=75)
+require(INLA)
+inla.setOption(inla.call='remote')
+@ 
+Suppose that we have a tree column \code{data.frame} or 
+\code{matrix} with the two first are the coordinates and 
+the third is the response collected at this locations. 
+<<readdata>>=
+str(dat1 <- read.csv2("data/toydat.csv")); attach(dat1)
+@ 
+
+We consider the $n$ observations $y_i$ on 
+locations the $s_i$, $i=1,...,n$, and we 
+define the model 
+\begin{equation}\begin{array}{c}
+y_i|\beta_0,x_i,\sigma_e^2 \sim N(\beta_0 + x_i, \sigma_e^2) \\
+\bbx \sim GF(0, \Sigma)
+\end{array}\end{equation}
+We consider that $x$ is a realization of 
+a Gaussian Field, with Mat\'ern correlation 
+function parametrized by the smoothness 
+parameter $\nu$ and the scale $\kappa$, 
+such the parametrization 
+in~\cite{lindgrenRL:2011}. 
+
+With this toy example we show with details 
+how we make a good triangulation, 
+prepare the data, fit the model, 
+extract the results from output and 
+make predictions on locations where 
+we don't have observed the response. 
+In this section we use the default 
+priors for all the parameters. 
+
+<<likfit,echo=F,results=hide>>=
+require(geoR)
+lk <- likfit(as.geodata(dat1), ini=c(5,.1), nugget=.1, kappa=1)
+lk.est <- c(lk$beta, lk$nugget, lk$cov.pars)
+lk.est[4] <- 1/lk.est[4]
+@ 
+
+\subsection{The triangulation}\label{sec:mesh}
+
+The first step to fit the model is 
+the construction of the 'mesh'. 
+The \code{inla.mesh.create.helper()} 
+function creates the Constrained Refined 
+Delaunay Triangulation (CRDT) and we call mesh. 
+There are a several options on is function: 
+<<argsmesh>>=
+args(inla.mesh.create.helper)
+@ 
+where two of these arguments must be provided. 
+
+One is about the locations or the region 
+where the mesh will be made. 
+If the \code{points} is provided, the triangles 
+vertices includes the locations, if \code{cutoff=0}. 
+If \code{cuttof=a}, the points with distance 
+less than $a$ are replaced by a single vertex. 
+If the \code{points.domain} is provided and 
+\code{points} is not, the vertices are found to cover 
+the domain using the restrictions on other arguments. 
+If both are provided, both restrictions are combined. 
+In another more specific cases, the 
+\code{boundary} and \code{interior} 
+arguments also can be used. 
+
+The another mandatory argument is the \code{max.edge}. 
+This argument specifies the maximum allowed triangle 
+edge lengths in the inner domain and in the outer extension. 
+So, this argument depends of the distance measure 
+on that the coordinates are projected. 
+To understand how this function works, we apply to 
+first five locations varying some of these arguments. 
+
+Firstly, we defines the domain and \code{attach} the data
+<<domain>>= 
+pl01 <- matrix(c(0,1,1,0,0, 0,0,1,1,0), ncol=2)
+@ 
+and create some triangulations with code bellow:
+<<mesh5ab>>=
+m1 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], max.edge=c(1,1))
+m2 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], max.edge=c(.3,1))
+m3 <- inla.mesh.create.helper(, pl01, max.edge=c(1,1))
+m4 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], pl01, max.edge=c(.3,1))
+m5 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], pl01, 
+                              max.edge=c(.3,1), min.angle=30)
+m6 <- inla.mesh.create.helper(, pl01, max.edge=c(.3,.5), offset=c(0.15, 0.3))
+@ 
+We visualize these outputs on the 
+Figure~\ref{fig:meshtest}, with the code below 
+<<vizmesh,eval=FALSE>>=
+par(mfrow=c(2, 3), mar=c(0,0,0,0))
+for (i in 1:6) { 
+  plot(dat1[1:5,1:2], xlim=c(-.4,1.4), asp=1, pch=19, axes=FALSE, col=2)
+  plot(get(paste('m', i, sep='')), add=TRUE) 
+  points(dat1[1:5, 1:2], pch=19, col=2); lines(pl01, col=4)
+}
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=5>>=
+<<vizmesh>>
+@ 
+\caption{Triangulation with different restrictions.}
+\label{fig:meshtest}
+\end{figure}
+
+We see on Figure~\ref{fig:meshtest} that we 
+have triangles out of the domain area. 
+The reason for this is to avoid the 
+boundary effect, \cite{lindgren:2012}. 
+A triangulation without additional border 
+is made with the \code{inla.mesh.create()} 
+function with \code{refine = FALSE}. 
+
+The graph on top left of this Figure shows 
+the mesh created when the input is the points 
+and the max length of vertices are 1. 
+In this mesh we have additional points 
+because we also have the restriction 
+on the angles size. 
+The mesh on top mid have max length of 
+internal vertices 0.3. 
+This mesh has same shape but two more 
+vertices than the first one. 
+The mesh on top right is created 
+only with the domain input and 
+max length of vertices are 1. 
+So, the points are not in the set of vertices, 
+and the vertices cover the domain area. 
+Also, the shape of the triangles created 
+on this way are expected to be more regular. 
+
+In the mesh at bottom left is made when both 
+points and points domain are provided and with 
+max length of internal vertices are 0.3. 
+The mesh at mid bottom graph is similar 
+to left bottom but with angles of 
+triangles greater than 30. 
+The default minimum angle is 21, 
+because algorithm is guaranteed to 
+converge for 'min.angle' at most 21. 
+
+The mesh at right bottom is made with domain and 
+without points, with length of internal edges 
+less than 0.3 and with offset 0.1 and 0.3. 
+The default offset is -0.05 and -0.15. 
+When it argument is negative, is interpreted as a 
+factor relative to the approximate data diameter. 
+If we inform two positive values, they are 
+interpreted on the unit of the distance scale 
+of the coordinates. 
+The extension is calculated in respect to points 
+if no domain is provided and in respect 
+of the domain if it is provided. 
+
+The object returned by \code{inla.mesh.create.helper()} 
+function has class 'inla.mesh' and contains a set of things:
+<<meshclass>>=
+class(m1)
+names(m1)
+@ 
+The number of vertices on each mesh is 
+<<n>>=
+c(m1$n, m2$n, m3$n, m4$n, m5$n, m6$n)
+@ 
+The 'graph' element represents the CRDT obtained. 
+More, on 'graph' element we have the a matrix that 
+represents the graph of neighborhood structure. 
+For example, for \code{m1} we have 'A'
+<<A1>>=
+dim(m1$graph$vv)
+@ 
+The vertices that correspond the location 
+points are identified on 'idx' element
+<<meshid>>=
+m1$idx$loc
+@ 
+
+To analyze the toy data set, we use 
+six triangulations options to make 
+comparisons on section~\ref{sec:meshcompare}. 
+The first and sixth mesh were made only 
+using the points with two different restrictions 
+on the maximum edges length. 
+The another were made using only the points domain, 
+but, we have different maximum edges length restriction. 
+The third mesh has same maximum 
+length edges than the first one. 
+Also, the second has same maximum 
+length edges than the sixth. 
+
+We did this sixth mesh with the code bellow 
+<<mesh1>>=
+mesh1 <- inla.mesh.create.helper(cbind(s1, s2), max.edge=c(0.1, 0.2))
+mesh2 <- inla.mesh.create.helper(, pl01, max.e=c(0.04, 0.1))
+mesh3 <- inla.mesh.create.helper(, pl01, max.e=c(0.1, 0.2))
+mesh4 <- inla.mesh.create.helper(, pl01, max.e=c(0.17, 0.35))
+mesh5 <- inla.mesh.create.helper(, pl01, max.e=c(0.25, 0.5))
+mesh6 <- inla.mesh.create.helper(cbind(s1, s2), max.edge=c(0.04, 0.1))
+c(mesh1$n, mesh2$n, mesh3$n, mesh4$n, mesh5$n, mesh6$n)
+@ 
+We have small number of vertices on third mesh than 
+the first one due the pattern of the data locations. 
+We have a relative large number of vertices on second mesh 
+and we have less triangles than data on the fifth and sixth. 
+They are showed on Figure \ref{fig:crdt1} with code below 
+<<plotmesh1,eval=F,results=hide>>=
+par(mfrow=c(2,3), mar=c(0,0,0,0)) 
+for (i in 1:6) {
+  plot(pl01, col=4, xlim=c(-.3,1.3), asp=1, axes=FALSE, type='l')
+  plot(get(paste('mesh',i,sep='')), add=T)
+  points(dat1[,1:2], pch=19, col=2, cex=dat1[,3]/10)
+}
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<plotmesh1v,fig=T,eps=F,width=7.5,height=5,echo=F,results=hide>>=
+<<plotmesh1>>
+@ 
+\caption{Six triangulation options for the toy example. 
+The red points are the data locations and its size 
+are proportional to response value.}
+\label{fig:crdt1}
+\end{figure}
+
+\subsection{The estimation}
+
+After the mesh is made, we will define the 
+SPDE model based on it. 
+We use the function \code{inla.spde2.matern()} 
+to define the SPDE model. 
+The principal arguments are the mesh 
+object and the $\alpha$ parameter, related 
+to the smoothness parameter of the process.  
+This data were simulated with $\alpha=2$. 
+We use the three first mesh made on previous 
+section to illustrate some details on the 
+estimation process on next sub-sections. 
+
+\subsubsection{Simple estimation with mesh with points together}
+
+In this section, we use the mesh 
+created with location points. 
+To define the SPDE model we use the 
+\code{inla.spde2.matern()} function
+<<spdedef>>=
+spde1 <- inla.spde2.matern(mesh1, alpha=2)
+@ 
+
+We get the posterior marginal distributions of the 
+parameters using the main function 
+\code{inla()} of the \pkg{INLA} package 
+<<fit1>>=
+res1 <- inla(y ~ f(i, model=spde1), 
+             control.predictor=list(compute=TRUE),
+             data=data.frame(y=y, i=1:nrow(dat1)))
+@ 
+On the object returned by \code{inla()} function 
+we have summaries, marginal posterior densities of 
+each parameter on the model and some other results. 
+So, we have the posterior marginal distribution, 
+and summaries, of $\beta_0$, $\sigma_e^2$, $\sigma_x^2$, 
+$\kappa$ and for each element of $X(s_i)$. 
+We want to explore more of these output elements later. 
+
+For example, a summary of the posterior marginal 
+distribution of $\beta$ parameter we get by:
+<<betasummary>>=
+res1$summary.fix
+@ 
+
+The summary of $1/\sigma_e^2$ is obtained by 
+<<invnuggetsummary>>= 
+res1$summary.hy[1,]
+@ 
+and to get a summary of $\sigma_e$, the square root of 
+the $\sigma_e^2$, we do a transformation 
+on the posterior marginal distribution of $1/\sigma_e^2$ 
+and we got the marginal expectation by
+<<postnugget>>=
+inla.emarginal(function(x) sqrt(1/x), 
+               res1$marginals.hy$'Precision for the Gaussian obs')
+@ 
+
+Also, we have the summary of posterior marginal 
+distribution of the $log(\kappa)$ with 
+<<logkappa>>=
+res1$summary.hy[3,]
+@ 
+and to get the marginal expectation of the $\kappa$ we do 
+<<ekappapost>>=
+inla.emarginal(function(x) exp(x), res1$marginals.hyperpar$Theta2)
+@ 
+
+To get the marginal variance of $x$, 
+we want to get an additional procedure 
+because it is function of 
+two parameters $\kappa$ and $\nu$. 
+<<variancepost>>=
+res1.field <- inla.spde2.result(res1, 'i', spde1, do.transf=TRUE)
+inla.emarginal(function(x) x, res1.field$marginals.variance.nominal[[1]])
+@ 
+with this additional procedure, we also have the 
+marginal posterior of the empirically range corresponding 
+to correlations near 0.1. 
+We get the posterior mean of it by 
+<<rangepostmean>>=
+inla.emarginal(function(x) x, res1.field$marginals.range.nominal[[1]])
+@ 
+
+\subsubsection{When locations are not vertices of triangulation}
+\label{sec:ptsnomesh}
+
+Remember that we have constructed six mesh on 
+section~\ref{sec:mesh}. The first one is used on 
+previous section to fit the model. 
+On this mesh, we have an index vector mapping the 
+vertices to the points
+<<indx1>>=
+str(mesh1$idx$loc)
+@ 
+
+On a mesh constructed using only the points domain, 
+without using the points locations, 
+we don't have this index. 
+Also, when we use \code{cutoff} greater than zero. 
+In this case, we don't have an explicit index 
+between points locations and the mesh triangles. 
+To fit the model, we need to use an appropriate 
+specification of the linear predictor, 
+see~\cite{lindgren:2012}. 
+
+In this section, we describe the estimation 
+on these case, but on the sub-section~\ref{sec:stack} 
+we show the stack functionality, a general 
+approach to build more complex models. 
+And, this functionality is especially useful 
+if we have covariates on the model. 
+
+Let the matrix $\bA$ that links the response to 
+the triangles on the mesh, the projector matrix. 
+Here, we define the $\eta^{*}$ as 
+\[
+\eta^{*} = \bA(\bbx + 1\beta_0)
+\]
+We define the projector matrix with 
+<<proj2>>=
+dim(A2 <- inla.spde.make.A(mesh2, loc=as.matrix(dat1[,1:2])))
+@ 
+Because each point is inside one triangle, each row 
+of the projector matrix has three non-zero elements
+<<each3>>=
+table(rowSums(A2>0))
+@ 
+Also, we have columns in the projector matrix that 
+don't have non-zero elements, because the correspondent 
+vertice don't have point bellow
+<<colsA>>=
+table(colSums(A2)>0)
+@ 
+So, we have some redundant triangles and the 
+stack functionality automatically 
+handles this situation.
+
+To build the model, we want to define the data list taking 
+into account that we have this not square projector matrix. 
+We must be put into list of data the response and the index 
+for the random field, but the index vector has length equal 
+the number of columns of projector matrix. 
+Additionally, we must be pass the projector matrix 
+on \code{control.predictor} argument. 
+But, when any matrix is used on \code{control.predictor}, 
+the intercept must be removed from the formula. 
+So, if we want to have the intercept estimate, we 
+must be pass a vector of ones as a covariate. 
+
+We fit the model with 
+<<m2>>=
+spde2 <- inla.spde2.matern(mesh2)
+res2 <- inla(resp ~ 0 +  m + f(i, model=spde2), 
+             data=list(resp=y, i=1:mesh2$n, m=rep(1,mesh2$n)), 
+             control.predictor=list(A=A2, compute=TRUE))
+@ 
+and we have
+<<>>=
+res2$summary.fix
+res2$summary.hy[1,]
+@ 
+and we look that the precision 
+parameter has different posterior 
+mean than previous model fitted.  
+We return on this in section~\ref{sec:meshcompare}. 
+
+\subsubsection{The stack functionality}\label{sec:stack}
+
+The stack functionality is useful to 
+works with SPDE on \pkg{INLA} package. 
+This is a general form to implement 
+an model with SPDE component on \pkg{INLA}.  
+This functionality is adequate to avoid 
+errors in the index construction, addressed 
+on previous sub-section, \cite{lindgren:2012}. 
+The \code{inla.stack()} function is designed to be 
+applied on many types of models using the SPDE model. 
+An example is the application of spatio temporal 
+models in~\cite{cameletti:2012}. 
+
+In the previous section we needed a caution 
+on the adequate index construction. 
+Here, we show that using the \code{inla.stack()} 
+the indexes are automatically provided. 
+To show it, we fit the model with the third 
+mesh constructed on section~\ref{sec:mesh}. 
+
+Firstly, we define the projector matrix based 
+on this mesh 
+<<a3>>=
+A3 <- inla.spde.make.A(mesh3, loc=as.matrix(dat1[,1:2]))
+@ 
+and the the indexes set provided 
+<<ind3>>=
+ind3 <- inla.spde.make.index(name='i', n.mesh=mesh3$n)
+@ 
+This function is designed to works also when we have 
+replications of the process, see \cite{lindgren:2012}.
+
+The \code{inla.stack()} function stacks the data, 
+indexes and covariates in the adequate form to 
+build the model later. 
+This function is used firstly to arrange the 
+response, the predictor matrix and the effects 
+<<stackdata>>=
+st3.dat <- inla.stack(data=list(resp=dat1$y), A=list(A3), 
+                        effects=list(c(ind3, list(m=1))), tag='est')
+@ 
+and we use the \code{inla.stack.data()} to get the 
+data, on the adequate order, to fit the model. 
+This function automatically eliminates 
+the elements when any column of 
+the predictor matrix have zero sum. 
+In this example we have
+<<>>=
+table(colSums(A3)>0)
+str(inla.stack.data(st3.dat))
+@ 
+Also, we use the \code{inla.stack.A()} to extract 
+the simplified predictor matrix 
+<<strA3st>>=
+dim(inla.stack.A(st3.dat))
+@ 
+
+To fit the model we use 
+<<modelfit>>=
+spde3 <- inla.spde2.matern(mesh3)
+res3 <- inla(resp ~ 0 + m + f(i, model=spde3), 
+             data=inla.stack.data(st3.dat), 
+             control.predictor=list(A=inla.stack.A(st3.dat), compute=TRUE))
+@ 
+
+<<mesh456,echo=F>>=
+res2.field <- inla.spde2.result(res2, 'i', spde2, do.transf=TRUE)
+res3.field <- inla.spde2.result(res3, 'i', spde3, do.transf=TRUE)
+## 4
+A4 <- inla.spde.make.A(mesh4, loc=as.matrix(dat1[,1:2]))
+ind4 <- inla.spde.make.index(name='i', n.mesh=mesh4$n)
+st4.dat <- inla.stack(data=list(resp=dat1$y), A=list(A4, 1), 
+                        effects=list(ind4, m=rep(1,nrow(dat1))))
+spde4 <- inla.spde2.matern(mesh4)
+res4 <- inla(resp ~ 0 + m + f(i, model=spde4), 
+             data=inla.stack.data(st4.dat), 
+             control.predictor=list(A=inla.stack.A(st4.dat), compute=TRUE))
+res4.field <- inla.spde2.result(res4, 'i', spde4, do.transf=TRUE)
+### 5
+A5 <- inla.spde.make.A(mesh5, loc=as.matrix(dat1[,1:2]))
+ind5 <- inla.spde.make.index(name='i', n.mesh=mesh5$n)
+st5.dat <- inla.stack(data=list(resp=dat1$y), A=list(A5, 1), 
+                        effects=list(ind5, m=rep(1,nrow(dat1))))
+spde5 <- inla.spde2.matern(mesh5)
+res5 <- inla(resp ~ 0 + m + f(i, model=spde5), 
+             data=inla.stack.data(st5.dat), 
+             control.predictor=list(A=inla.stack.A(st5.dat), compute=TRUE))
+res5.field <- inla.spde2.result(res5, 'i', spde5, do.transf=TRUE)
+### 6
+##A6 <- inla.spde.make.A(mesh6, loc=as.matrix(dat1[,1:2]))
+##ind6 <- inla.spde.make.index(name='i', n.mesh=mesh6$n)
+##st6.dat <- inla.stack(data=list(resp=dat1$y), A=list(A6, 1), 
+  ##                      effects=list(ind6, m=rep(1,nrow(dat1))))
+spde6 <- inla.spde2.matern(mesh6)
+res6 <- inla(y ~ f(i, model=spde6), control.predictor=list(compute=T),
+             data=data.frame(y=y, i=1:nrow(dat1)))
+##             data=inla.stack.data(st6.dat), 
+##             control.predictor=list(A=inla.stack.A(st6.dat), compute=TRUE))
+res6.field <- inla.spde2.result(res6, 'i', spde6, do.transf=TRUE)
+@ 
+
+\subsection{Comparing different triangulations}\label{sec:meshcompare}
+
+In this section we compare six models fitted with 
+the six different mesh made on section~\ref{sec:mesh}. 
+The estimation process of three of this models 
+are showed on past section. 
+To do this comparison, we just plot the posterior 
+marginal distributions of the model parameters. 
+So, we show here the extraction of the marginal 
+posterior distribution of the parameters. 
+We evaluate these models by the addiction of 
+the true values used on the simulation 
+of the toy dataset. Also, we add the 
+maximum likelihood estimates. 
+
+The true values are: $\beta_0=10$, $\sigma_e^2=0.3$, 
+$\sigma_x^2=5$, $\kappa=7$ and $\nu=1$. 
+The $\nu$ parameter is fixed on the true value when 
+we define $\alpha=2$ on definition of the SPDE model. 
+<<truepars>>=
+beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+@ 
+and the maximum likelihood estimates are 
+<<lkv>>=
+lk.est
+@ 
+
+In the code bellow we extract, respectively for 
+$\beta_0$, $\sigma_e^2$, $\sigma_x^2$ and $\kappa$, 
+the marginal posterior distributions, 
+and add a vertical dashed line on the true value. 
+We show in this graph results from the models 
+fitted using the six meshes.
+<<compare,eval=F>>=
+par(mfrow=c(2,2), mar=c(2.5,2.5,1,.5), mgp=c(1.5,.5,0), las=1)
+plot(res1$marginals.fix[[1]], type='l', 
+     xlab=expression(beta[0]), ylab='', xlim=c(7,15))
+for (i in 2:6)
+  lines(get(paste('res', i, sep=''))$marginals.fix[[1]], col=i)
+abline(v=beta0, lty=2); abline(v=lk.est[1], lty=3)
+
+plot.default(inla.tmarginal(function(x) 1/x, res1$marginals.hy[[1]]), 
+             type='l', xlim=c(0,4), ylim=c(0,7), 
+             xlab=expression(sigma[e]^2), ylab='')
+for (i in 2:6) 
+  lines(inla.tmarginal(function(x) 1/x, 
+                       get(paste('res', i, sep=''))$marginals.hy[[1]]), col=i)
+abline(v=sigma2e, lty=2); abline(v=lk.est[2], lty=3)
+
+plot.default(res1.field$marginals.variance.nominal[[1]], type='l', 
+             xlim=c(0,10), ylim=c(0,3), xlab=expression(sigma[x]^2), ylab='')
+for (i in 2:6)
+  lines(get(paste('res', i, '.field',sep=''))$marginals.variance.n[[1]], col=i)
+abline(v=sigma2x, lty=2); abline(v=lk.est[3], lty=3)
+
+plot.default(inla.tmarginal(function(x) exp(x), 
+                            res1$marginals.hyperpar$Theta2), type='l',
+             xlim=c(0,25), ylim=c(0,.25), xlab=expression(kappa), ylab='')
+for (i in 2:6)
+  lines(inla.tmarginal(function(x) exp(x), 
+                       get(paste('res', i, sep=''))$marginals.hy$Theta2), col=i)
+abline(v=kappa, lty=2);  abline(v=lk.est[4], lty=3)
+
+legend('topright', c(paste('mesh', 1:6), 'True', 'Likelihood'), 
+       lty=c(rep(1,6), 2, 3), col=c(1:6,1,1), bty='n')
+@ 
+
+At the Figure~\ref{fig:margposttoy} we see that 
+the better results is obtained when we use 
+the meshes build without the points locations. 
+The main conclusion here is made considering 
+that the meshes that not contain the location 
+points have bad triangulation. 
+Because there aren't regularly 
+shaped triangles. 
+
+\setkeys{Gin}{width=0.9\textwidth}
+\begin{figure}\centering
+<<echo=F,fig=TRUE,eps=FALSE,width=7.5,height=5>>=
+<<compare>>
+@ 
+\caption{Marginal posterior distribution for 
+$\beta_0$ (top left), $\sigma_e^2$ (top right), 
+ $\sigma_x^2$ (bottom left) and $\kappa$ (bottom right).}
+\label{fig:margposttoy}
+\end{figure}
+
+The design of the points location is this example 
+is bad if we want to use the points the construction 
+of the mesh with \code{cotoff=0}, and we have 
+a set of triangles with irregular shape. 
+The word here is to use a mesh with regular size of triangles. 
+
+The second word is in respect of the process range.
+The difference is on the meshes found using only the 
+points domain are the maximum length of the inner edges. 
+On the last mesh, this value is 0.3. 
+But, the marginal range, using the results 
+from second or third mesh, is near these length. 
+It explains the fact of the model fitted using 
+the last mesh have not very well result for $\sigma_e^2$. 
+So, we need a mesh with adequate size of the triangles, 
+in relation to the practical range of the process. 
+
+A third word is in respect of the computational aspect. 
+Both second and third mesh proved to be suitable. 
+But, the mesh with less number of edges is preferred 
+due the computationally advantage on work. 
+
+\subsection{Prediction of the random field}
+
+A very common objective when we have spatial 
+data collected on some locations is the prediction 
+to another locations that the data are not observed. 
+In this section we show two approaches to make 
+prediction of the random field, one is after 
+the estimation process 
+and other is jointly on estimation process. 
+To compare both approaches, we predict the random field 
+on three target locations: (0.1,0.1), (0.5,0.5), (0.9,0.9). 
+<<pts3>>=
+pts3 <- rbind(c(.1,.1), c(.5,.5), c(.9,.9))
+@ 
+
+\subsubsection{Jointly with the estimation process} 
+
+The prediction of the random field joint the 
+parameter estimation process in Bayesian 
+inference is the most common. 
+In this case, we just compute the 
+marginal posterior distribution of 
+the random field in target locations. 
+If the target points are on the mesh, so 
+we have automatically this distribution. 
+If the target points are not on the mesh, 
+we must define the projector matrix 
+for the target points. 
+We will use the model with the third mesh 
+and we have 
+<<A3pts3>>=
+dim(A3pts3 <- inla.spde.make.A(mesh3, loc=pts3))
+@ 
+Now, we just need to defines a 
+stack for the prediction. 
+This just contains the data as NA, 
+the predictor matrix 
+and its corresponding effects
+<<stk3prd>>=
+stk3prd <- inla.stack(data=list(resp=NA), A=list(A3pts3), 
+                      effects=list(ind3), tag='prd3')
+@ 
+Also, we join the stack of data 
+and the stack of predictor
+<<stakfull>>=
+st3.full <- inla.stack(st3.dat, stk3prd)
+@ 
+Now, we fit the model again with the full stack
+<<refit>>=
+res3b <- inla(resp ~ 0 + m + f(i, model=spde3), 
+             data=inla.stack.data(st3.full), 
+             control.predictor=list(A=inla.stack.A(st3.full), compute=TRUE))
+@ 
+
+We need to find the index on predicted values 
+that corresponds the predicted random field 
+on the target locations. 
+We extract the index from the full stack 
+using the adequate 'tag'.
+<<indd>>=
+indd3b <- inla.stack.index(st3.full, tag='prd3')$data
+@ 
+and get the summary of the posterior distributions 
+of the random field on the target locations by
+<<postd>>=
+res3b$summary.linear.pred[indd3b,]
+@ 
+
+Also we have the marginal distributions. 
+A marginal distribution on \code{inla()} output 
+is just two vector, one represents the parameter 
+values and another the density. 
+We extract the marginals posterior distributions with
+<<margp,results=hide>>=
+marg3 <- res3b$marginals.linear[indd3b]
+@ 
+and get the 95\% HPD interval for the second by 
+<<hpdp>>=
+inla.hpdmarginal(0.95, marg3[[2]])
+@ 
+and see that around the point (0.5,0.5) the random field 
+has positive values, see Figure~\ref{fig:pgrid}. 
+
+\subsubsection{After the estimation process}
+
+The prediction after the estimation process 
+is usually just a matrix operation. 
+Let $f(x)$ a functional of interest 
+(the posterior mean for example). 
+We have $\hat{f(x_m)}$ the estimated 
+functional on the mesh vertices, 
+We take $\hat{f(x_m)}$ from the output 
+of \code{inla()} function. 
+
+In the SPDE approach, we use the 
+projector matrix of the basis 
+functions on the target locations. 
+Let $P^{(m)}$ a matrix that evaluate the 
+basis functions from set of locations 
+of the mesh to set of target points. 
+The estimated functional of interest is 
+the product $P^{(m)}\hat{f(x_m)}$. 
+
+We have this projector matrix from 
+previous section, from the third mesh. 
+A summary of the random field on vertices of 
+the mesh are stored on the element $i$ 
+(the name coded for the spatial random effect) 
+of the \code{summary.random} element on 
+\code{inla()} output. 
+So, we 'project' it on the target locations by
+<<meanproj3>>=
+drop(A3pts3%*%res3$summary.random$i$mean)
+@ 
+or using the \code{inla.mesh.projector()} function
+<<projector>>=
+inla.mesh.project(inla.mesh.projector(mesh3, loc=pts3), 
+                  res3$summary.random$i$mean)
+@ 
+and for the standard deviation 
+<<sdproj3>>=
+(drop((A3pts3)%*%(res3$summary.random$i$sd)))
+sqrt(drop((A3pts3^2)%*%(res3$summary.random$i$sd^2)))
+@  
+and see that for the mean we have similar values 
+than those on previous section. 
+For the standard deviation we have a little difference. 
+
+This approach is good to get the map 
+of the random field and its standard 
+error with a low computational cost. 
+To do it we project the posterior 
+mean and the posterior standard error on a grid. 
+The \code{inla.mesh.projector()} function 
+get the projector matrix automatically for a grid 
+of points over a square that contains the mesh. 
+<<grid0>>=
+pgrid0 <- inla.mesh.projector(mesh3)
+@ 
+
+Because we need a grid without the borders of 
+the mesh, we construct the coordinates with 
+<<projgrid>>=
+grid <- expand.grid(seq(0, 1, length=101), 
+                    seq(0, 1, length=101))
+pgrid <- inla.mesh.projector(mesh3, loc=as.matrix(grid))
+@ 
+and project the posterior mean and the posterior 
+standard deviation on the both grid with 
+<<projg>>=
+prd0.m <- inla.mesh.project(pgrid0,  res3b$summary.ran$i$m)
+prd0.s <- inla.mesh.project(pgrid0,  res3b$summary.ran$i$s)
+prd.m <- inla.mesh.project(pgrid,  res3b$summary.ran$i$m)
+prd.s <- inla.mesh.project(pgrid,  res3b$summary.ran$i$s)
+@ 
+We visualize this values projected on the grid on 
+Figure~\ref{fig:pgrid}. 
+
+\subsection{Prediction of the response}
+
+Now, we want to predict the response 
+on a set of non observed locations. 
+In similar way that on past section, it is possible 
+to find the marginal distribution or to make 
+a projection of some functional of the response. 
+
+\subsubsection{By sum of linear predictor components}
+
+Here we presents a naive procedure 
+to predict the response. 
+This consists on the sum of 
+the predictor components. 
+
+In this toy example we just sum the posterior mean 
+of the intercept to the posterior mean of the random 
+field to get the posterior mean of the response. 
+Using the previous results we have 
+<<prdmean>>=
+res3$summary.fix[1,1] + drop(A3pts3%*%res3$summary.random$i$mean)
+@ 
+
+If there are covariates, the prediction also can be 
+made in similar way, see~\citation{cameletti:2012}. 
+
+\subsubsection{By the posterior distribution}
+
+In this case, we want to define a adequate 
+predictor of the response and build the model again. 
+Using the third mesh, we defines a new stack to 
+predict the response. This is similar to the 
+stack to predict the random field, 
+but here we add the intercept on the list 
+of predictor matrix and on the list of effects 
+<<stackpresp>>=
+stk3presp <- inla.stack(data=list(resp=NA), A=list(A3pts3,1), 
+                        effects=list(ind3, m=rep(1,3)), tag='prd3resp')
+@ 
+and join with the data stack to build the model again 
+<<rresp>>=
+st3.presp <- inla.stack(st3.dat, stk3presp)
+res3r <- inla(resp ~ 0 + m + f(i, model=spde3), 
+             data=inla.stack.data(st3.presp), 
+             control.predictor=list(A=inla.stack.A(st3.presp), compute=TRUE))
+@
+
+We find the index of the predictor that 
+corresponds the predicted values of 
+the response on the target locations. 
+We extract the index from the full stack by
+<<indd>>=
+indd3r <- inla.stack.index(st3.presp, 'prd3resp')$data
+@ 
+
+To get the summary of the posterior distributions 
+of the response on target locations we do
+<<postd>>=
+res3r$summary.fitted.values[indd3r,]
+@ 
+Also, we extract the marginals posterior 
+distributions with
+<<margp,results=hide>>=
+marg3r <- res3r$marginals.fitted.values[indd3r]
+@ 
+and get the 95\% HPD interval for the second by 
+<<hpdp>>=
+inla.hpdmarginal(0.95, marg3r[[2]])
+@ 
+and see that around the point (0.5,0.5) we have the 
+values of the response significantly larger 
+than $\beta_0$, see Figure~\ref{fig:pgrid}. 
+
+Now, suppose that we want to predict the response on 
+a large number of locations, for example on a grid. 
+So, the computation of all marginal posterior 
+distributions is computationally expensive. 
+But, we usually not uses the marginal distributions. 
+We usually uses just the mean and standard deviation. 
+So, we don't need the storage of all the marginal 
+distributions. Also, we don't need the quantiles 
+of the marginal distributions. 
+
+On the code below, we build the model again 
+but we disable the storage of the marginal 
+posterior distributions to random effects and 
+to posterior predictor values. 
+Also, we disable the computation of the quantiles. 
+We want to storage only the mean and 
+standard deviation of the response on a grid. 
+We uses the same grid of the previous section. 
+<<prespgrid>>=
+stkgrid <- inla.stack(data=list(resp=NA), A=list(pgrid$proj$A,1), 
+                      effects=list(ind3, m=rep(1,101*101)), tag='prd3rg')
+stk.all <- inla.stack(st3.dat, stkgrid)
+res3g <- inla(resp ~ 0 + m + f(i, model=spde3), 
+              data=inla.stack.data(stk.all), 
+              control.predictor=list(A=inla.stack.A(stk.all), 
+                compute=TRUE), quantiles=NULL, 
+              control.results=list(return.marginals.random=FALSE, 
+                return.marginals.predictor=FALSE))
+round(head(res3g$summary.fitt, 3),4) 
+object.size(res3g$marginals.random) 
+@ 
+
+We get the indexes 
+<<indgr>>=
+indd3g <- inla.stack.index(stk.all, 'prd3rg')$data
+@ 
+and use it to visualize, together the predictions 
+of the random field on previous subsection,
+on Figure~\ref{fig:pgrid} with the commands bellow
+<<pgrid,eval=F>>=
+require(gridExtra)
+grid.arrange(levelplot(prd0.m, col.regions=topo.colors(99), 
+                       xlab='', ylab='', scales=list(draw=FALSE)), 
+             levelplot(matrix(prd.m, 101), xlab='', ylab='', 
+                       col.regions=topo.colors(99), scales=list(draw=FALSE)), 
+             levelplot(matrix(res3g$summary.fitt[indd3g,1], 101), 
+                       xlab='', ylab='', 
+                       col.regions=topo.colors(99), scales=list(draw=FALSE)), 
+             levelplot(prd0.s, col.regions=topo.colors(99), 
+                       xlab='', ylab='', scales=list(draw=FALSE)), 
+             levelplot(matrix(prd.s, 101), xlab='', ylab='', 
+                       col.regions=topo.colors(99), scales=list(draw=FALSE)), 
+             levelplot(matrix(res3g$summary.fitt[indd3g,2], 101), 
+                       xlab='', ylab='', 
+                       col.regions=topo.colors(99), scales=list(draw=FALSE)), 
+             nrow=2)
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering 
+<<echo=F,fig=TRUE,eps=F,width=12,height=7>>=
+<<pgrid>>
+@ 
+\caption{The mean and standard deviation of the random field 
+  (top left and bottom left) on all mesh domain, 
+  the same on study region domain (top mid and bottom mid) 
+  and the mean and standard variation of the 
+  response (top right and bottom right)}
+\label{fig:pgrid}
+\end{figure}
+
+We see on the top right graph of Figure~\ref{fig:pgrid} 
+that on border of the mesh domain we have the larger 
+standard errors. 
+Also, on bottom left we see that at this 
+borders we have, except of the bottom left corner, 
+the values around the mean of the process. 
+We see that we have a significantly spatial dependence. 
+Because we have a variation from -4 to 4 on the spatial 
+effect and we have standard deviations around 0.8 to 1.6 
+on most part of the domain region. 
+So we have a range of length 8, on the random field 
+and on the response surface, and the standard deviation 
+is less than the half of this range in both cases. 
+
+Another thing is that the standard deviation of the 
+response is has less values on region near the 
+corner (0, 0) and greater on the corner (1,1) 
+due the density of the locations. 
+Also, we have, on corner (0,0), less values to 
+standard deviation of the response than to 
+standard deviation of the random field. 

@@ -1,0 +1,208 @@
+To start, we look at the model and fitting process 
+by view of parametrization used in a software 
+commonly used to Analise the point refereed data 
+in \pkg{R}, the \pkg{geoR} package. 
+But, before it, we show how we simulate 
+a dataset. 
+
+\subsection{Simulation of a data set} 
+
+<<echo=F,results=hide>>=
+options(width=75)
+@ 
+
+We remember here that one realization of 
+a GF is just one realization of a 
+multivariate Gaussian distribution with 
+an appropriate covariance matrix. 
+To specify these matrix, we need a set 
+of locations and the matrix of distance 
+between each point with all others. 
+Based on this matrix $n\times n$ of distances, 
+we compute the covariance matrix and 
+do one simulation of a multivariate 
+Gaussian distribution. 
+
+Suppose that we have a set of $n=100$ locations, 
+on a square with area one with bottom left and 
+top right limits: (0,0) and (1,1). 
+We choose these locations with density in 
+left bottom corner higher than top right corner. 
+The \pkg{R} code to do it is:
+<<rpts>>=
+n <- 200;  set.seed(123) 
+pts <- cbind(s1=sample(1:n/n-0.5/n)^2, s2=sample(1:n/n-0.5/n)^2)
+@ 
+and for get the (lower triangle) matrix of distances we do
+<<distpts>>=
+dmat <- dist(pts)
+@ 
+and for the Mat\'ern covariance we need the 
+parameters: $\sigma^2_x$, $\kappa$ and $\nu$. 
+Additionally, we need the mean $\beta_0$  and 
+the nugget parameter $\sigma^2_e$. 
+We declare an values to such parameters by
+<<params>>=
+beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+@ 
+
+We, first, consider $y$ as mean $\beta_0$ and 
+that covariance $\sigma^2_eI + \Sigma$. 
+And, we get the covariance by
+<<covMatm>>=
+mcor <- as.matrix(2^(1-nu)*(kappa*dmat)^nu*
+                  besselK(dmat*kappa,nu)/gamma(nu))
+diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2x*mcor
+@ 
+
+Now we going to simulate one realization of a 
+geostatistical model. 
+First, we do the simulation of one realization 
+of the multivariate Gaussian distribution. 
+Here we remember that if we want to get 
+$y\sim N(\mu, \Sigma)$ from $z\sim N(0, I)$, we do 
+$y = \mu + zL$, where $L$ is a matrix that $L^{T}L=\Sigma$. 
+So, we use the Cholesky factorization of the 
+covariance matrix, because if $L$ is the Cholesky 
+of the $\Sigma$, so $L^{T}L=\Sigma$.
+In \pkg{R} we use:
+<<chol1mvnorm>>=
+L <- chol(mcov);   set.seed(234);   y1 <- beta0 + drop(rnorm(n)%*%L)
+@ 
+
+We show this simulated data in a graph of the locations 
+with size of points proportional of the simulated values
+on Figure~\ref{fig:grf1} with code below
+<<plot1c,eval=F>>=
+par(mar=c(3,3,1,1), mgp=c(1.7, 0.7, 0), las=1)
+plot(pts, asp=1, xlim=c(0,1.2), cex=y1/10)
+q <- quantile(y1, 0:5/5)
+legend('topright', format(q, dig=2), pch=1, pt.cex=q/10)
+@ 
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}\centering
+<<plot1,fig=T,eps=F,echo=F,width=5.5,height=4.7>>=
+<<plot1c>>
+@ 
+\caption{Visualization of the simulated data}
+\label{fig:grf1}
+\end{figure}
+
+\subsection{Maximum likelihood estimation}
+
+In this section we get the maximum likelihood 
+estimation of the parameters of the model used to 
+simulate the data on the last section. 
+We know that is adequate the use of the partial 
+derivatives with respect to each parameter and 
+the Fisher information matrix to use the Fisher 
+scoring algorithm. 
+But we take derivatives only with respect to $\beta$ 
+and, for the others parameters we naively use one of 
+the quasi-Newton methods, without using derivatives. 
+In \cite{diggleribeiro:2007} it have more detail to 
+estimate the other parameters. 
+It is easy to get 
+\[ (\bF^{'}\Sigma^{-1}\bF)\hat{\beta} = \bF^{'}\bF \]
+So, we want to write a likelihood function as a function 
+of the unknown parameters and the data. 
+
+One detail is that we use the matrix of distances 
+between the points because it is not necessary to 
+recalculate it at each interaction of the algorithm. 
+Another is that the function defined return the 
+negative of the logarithm of the likelihood function, 
+because, by default, the algorithm find the minimum 
+of a function. 
+A bit of comment is that in the calculus of the 
+likelihood, we take vantages of the symmetry property 
+of the covariance matrix to invert it. 
+
+So, we have the function defined bellow as function 
+of four parameters ($\sigma_e^2$, $\sigma_x^2$, 
+$\kappa$ and $\nu$) and the data
+<<lik1>>=
+nllf <- function(pars, ff, data, distmat) {
+  m <- 2^(1-pars[4])*(pars[3]*distmat)^pars[4]*
+    besselK(distmat*pars[3],pars[4])/gamma(pars[4])
+  diag(m) <- 1;   m <- pars[1]*diag(length(data)) + pars[2]*m
+  L <- chol(m);   m <- chol2inv(L)
+  beta <- solve(crossprod(ff, m)%*%ff, crossprod(ff, m)%*%data) 
+  z <- data-ff%*%beta;   ss <- drop(crossprod(z,m)%*%z) 
+  return(length(data)*log(2*pi)/2 +sum(log(diag(L))) +0.5*ss)
+}
+@ 
+the first argument of this function is the vector of the five 
+parameters of the model, such as $\beta_0$, $\sigma^2_e$, 
+$\sigma^2_s$, $\kappa$ and $\nu$. 
+
+For test, we calculates the likelihood at true values of the 
+parameters and at another set of the values
+<<nlltest>>=
+c(nllf(c(sigma2e, sigma2x, kappa, nu), matrix(1,n), y1, as.matrix(dmat)), 
+  nllf(c(0, sigma2x, kappa, nu), matrix(1,n), y1, as.matrix(dmat)))
+@ 
+We get the maximum likelihood estimates with 'L-BFGS-B' 
+method implemented on \code{optim()} function. 
+Also, using \code{hessian=TRUE}, we got the approximate 
+Hessian matrix to use in asymptotic inference. 
+We got the maximum likelihood estimates
+<<llfit1>>=
+(ores <- optim(c(sigma2e, sigma2x, kappa, nu), nllf, hessian=TRUE, 
+               ff=matrix(1,n), data=y1, distmat=as.matrix(dmat), 
+               method='L-BFGS-B', lower=rep(1e-5,4)))$par
+@ 
+and the squared root of the hessian diagonal 
+<<diaghess>>=
+(se <- sqrt(diag(solve(ores$hessian))))
+@ 
+
+This naive solution by likelihood is to show how it works. 
+But, in the \pkg{geoR} package, we have functions to get simulations 
+and to do estimation. The difference is that the \pkg{geoR} 
+package uses $\phi=1/kappa$ for the scale parameter and 
+it calls kappa for the smoothness parameter.
+The \code{grf()} function can be used to get samples of the 
+geostatistical model from many correlation 
+functions. To get exactly the same data, we use 
+<<grf1>>=
+require(geoR);   set.seed(234)
+grf1 <- grf(grid=pts, cov.pars=c(sigma2x, 1/kappa), mean=beta0,
+            nugget=sigma2e, kappa=nu, messages=FALSE) 
+@ 
+
+Also, we have the \code{likfit()} function to perform the 
+maximum likelihood estimation. This function for solve of 
+the estimation of such five parameters don't uses a optimization 
+algorithm in five dimensions. Because it is possible to 
+get close forms expressions to $\beta_0$, $\sigma^2_e$ and 
+for $\sigma^2_s$, \cite{diggleribeiro:2007}. 
+So this function works better than the 'naive' solution 
+presented here. 
+We got the maximum likelihood estimates by
+<<withgeoR>>=
+(g1res <- likfit(grf1, ini=c(sigma2x, 1/kappa), messages=FALSE,
+                 nugget=sigma2e, kappa=nu, fix.kappa=FALSE))
+@ 
+the \code{tausq} is $\sigma_e^2$ and \code{kappa} 
+is the smoothness parameter. 
+
+But, for comparison with INLA results, we fix the 
+smoothness parameter on the true value used to simulate 
+the data, and find the maximum likelihood estimates to 
+another parameters by
+<<geoRtoy-l>>=
+(fit.l <- likfit(grf1, ini.cov.pars=c(sigma2x, 1/kappa), 
+                 nugget=sigma2e, kappa=1, messages=FALSE))
+@ 
+Notice that we also estimate the mean parameter $\beta$, 
+the parameter of fixed effect part of the model. 
+Also, we note that the likelihood has similar value, 
+probably because the estimated value of $\nu$ is similar 
+to its true value. 
+
+<<echo=F,results=hide>>=
+write.csv2(cbind(s1=grf1$coords[,1], 
+                 s2=grf1$coords[,2], y=grf1$data), 
+           "data/toydat.csv", row.names=FALSE)
+@ 
