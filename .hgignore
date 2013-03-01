@@ -39,8 +39,18 @@ syntax: regexp
 ^sandbox/tutorials/inla/.*main\.pdf$
 ^sandbox/tutorials/inla/.*main\.tex$
 ^sandbox/tutorials/inla/.*\.fls$
-^sandbox/tutorials/inla/ca.*$
+^sandbox/tutorials/inla/cacheSweave.*$
 ^sandbox/tutorials/inla/Sweave/.*$
 ^sandbox/tutorials/inla/auto/.*$
 ^sandbox/tutorials/inla/.*\.RData$
+
+^tutorials/spde/.*Rnw\.pdf$
+^tutorials/spde/.*main\.pdf$
+^tutorials/spde/.*main\.tex$
+^tutorials/spde/.*\.fls$
+^tutorials/spde/cacheSweave.*$
+^tutorials/spde/runCacheSweave.*Rout$
+^tutorials/spde/Sweave/.*$
+^tutorials/spde/auto/.*$
+^tutorials/spde/.*\.RData$
 
