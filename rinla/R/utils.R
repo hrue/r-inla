@@ -3,7 +3,7 @@
 `inla.numlen` = function(n)
 {
     ## number of digits required to represent a specific (integer)
-    ## number
+    ## numb{e{r
     return (floor(log10(max(abs(n))))+1)
 }
 
@@ -182,6 +182,9 @@
     if (Sys.getenv("USER") %in% c("hrue")) {
         dir.default = "~/p/inla/google-code/inla/rinla/R"
         bin.default = "~/p/inla/work/local/bin"
+    } else if (Sys.getenv("USER") %in% c("elias")) {
+        dir.default = "~/inla-project/source/inla/rinla/R"
+        bin.default = "~/inla-project/compile/local/bin"
     } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
         dir.default = "~/inla/rinla/R"
         bin.default = "~/local/bin"
