@@ -42,7 +42,7 @@
         ##!\item{nrep}{}
         nrep = NULL,
 
-        ##!\item{replicate}{}
+        ##!\item{replicate}{We need to write documentation here}
         replicate = NULL,
 
         ##!\item{group}{}

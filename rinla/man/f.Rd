@@ -33,7 +33,7 @@ weights.}
 of the model if this is different from
 \code{length(sort(unique(covariate)))}}
 \item{nrep}{}
-\item{replicate}{}
+\item{replicate}{We need to write documentation here}
 \item{group}{}
 \item{group}{}
 \item{control.group}{}
