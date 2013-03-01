@@ -1,0 +1,57 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\newcommand{\bA}{\mbox{\protect \boldmath $A$}}
+\newcommand{\bF}{\mbox{\protect \boldmath $F$}}
+\newcommand{\bD}{\mbox{\protect \boldmath $D$}}
+\newcommand{\bW}{\mbox{\protect \boldmath $W$}}
+\newcommand{\bC}{\mbox{\protect \boldmath $C$}}
+\newcommand{\bG}{\mbox{\protect \boldmath $G$}}
+\newcommand{\bK}{\mbox{\protect \boldmath $K$}}
+\newcommand{\bQ}{\mbox{\protect \boldmath $Q$}}
+
+\newcommand{\bby}{\mbox{\protect \boldmath $y$}}
+\newcommand{\bbu}{\mbox{\protect \boldmath $u$}}
+\newcommand{\bbv}{\mbox{\protect \boldmath $v$}}
+\newcommand{\bbx}{\mbox{\protect \boldmath $x$}}
+
+\usepackage{amsmath}
+
+\title{SPDE Manual}
+\author{Elias}
+
+\usepackage{/usr/share/R/share/texmf/tex/latex/upquote}
+\usepackage{/usr/share/R/share/texmf/tex/latex/Rd}
+\usepackage{/usr/share/R/share/texmf/tex/latex/Sweave}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  In this tutorial we presents how we fit models 
+  to spatial point refered data, the called 
+  geostatistical model, using INLA and SPDE. 
+  Before a fast introduction on such models, 
+  we start with a toy example to show details. 
+  In forward examples we presents some funcionalities 
+  to fit more complex models, such as  non-Gaussian,  
+  models with two likelihoods, ... 
+\end{abstract} 
+
+\tableofcontents
+
+%%% first section (need it on tutoriaḷ?)
+\input{spde-tutorial-introduction}
+\input{spde-tutorial-likelihoodintro}
+%%% next sections are one file each
+\input{spde-tutorial-toy}
+\input{spde-tutorial-rain}
+\input{spde-tutorial-semicontinuous}
+
+\bibliographystyle{apalike}
+\bibliography{spde-tutorial}
+
+\end{document}
+

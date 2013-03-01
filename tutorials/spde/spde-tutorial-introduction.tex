@@ -1,0 +1,349 @@
+
+\section{Introduction} 
+
+If we have data measured on some locations, 
+by locations we mean some system of coordinate 
+reference to where are each data from, so we 
+have a point refereed data set. 
+The point refereed data is very common in many 
+areas of science. These type of data appear on 
+mining, climate modeling, ecology, agriculture 
+and other areas. 
+If we want do model that data incorporating 
+the reference about where are each data from, 
+we want do use a model to point refereed data. 
+
+\subsection{The spatial dependence}
+
+It is possible that we build a regression model 
+considering each coordinates as covariate. 
+But in some cases it is necessary a very 
+complicated function based on coordinates to 
+get a adequate description of the mean. 
+For example, any complex non-linear function or 
+a non-parametric function. 
+If these type of model are only to incorporate 
+some trend on the mean based on the coordinates. 
+Also, this type of model is a fixed effect model. 
+
+But, we want a model to measure the first geography 
+law in a simple way. 
+This law says: ``Everything is related to everything else, 
+but near things are more related than distant things'', 
+\cite{tobler:1970}. 
+So, we need a model to incorporate the property that a 
+observation is more correlated with a observation 
+collected on a neighbour local, than another that 
+is collected on more distant local. 
+One option to modelled this dependence is the use 
+of a random effect spatially structured. 
+This type of model is a model to spatial dependency, 
+different of the spatial trend. 
+But, it is possible to include both terms in a model. 
+Also, the models for spatial dependency are used 
+within more general models as random effects, 
+the spatially structured random effects. 
+
+In spatial statistics we have models to incorporate the 
+spatial dependency when the locations are areas 
+(states, cities, etc.) and when the locations are points. 
+In the last case, it is also possible that such 
+locations are fixed or are random. 
+The models to point refereed data with a spatially 
+structured random effect is commonly called a 
+geostatistical models. 
+There are a specific area of spatial statistics 
+that study these models, the geostatistics. 
+See \cite{cressie:1993} for a good introduction on 
+the spatial statistics. 
+
+\subsection{The Gaussian field}
+
+To fix the notation, let $s$ any location on the study 
+area and $X(s)$ is the random effect at this location. 
+We have $X(s)$ a stochastic process, with $s\in \bD$, 
+were $\bD$ is the domain area of the locations 
+and $\bD\in \Re^d$. 
+Suppose, for example, that we have $\bD$ any country 
+and we have any data measured on geographical 
+locations, $d=2$, within this country. 
+
+Suppose that we assume that we have a realization 
+of $x(s_i)$, $i=1,2,...,n$, a realization of $X(s)$ 
+in $n$ locations. It is common assumed that 
+$x(s)$ has a multivariate Gaussian distribution. 
+Also, if we assume that $X(s)$ continuous over space, 
+we have a continuously indexed Gaussian field (GF). 
+It is because we suppose that it is possible that 
+we get data in any location within the study region. 
+To complete the specification of the distribution of 
+$x(s)$, is necessary to defines it mean and covariance. 
+
+A very simple option, is the definition of a 
+correlation function based only on euclidean 
+distance between locations. 
+This assume that if we have two pairs of 
+points separated same distance $h$, both pairs 
+have same correlation. 
+Also, is intuitive to choose any function 
+decreasing with $h$. 
+There is some work about the GF and correlation 
+functions in \cite{abrahamsen:1997}. 
+
+A very popular correlation function is the 
+Mat\'ern correlation function, that depends 
+on a scale parameter $\kappa>0$ and a smoothness 
+parameter $\nu>0$. 
+Considering two locations $s_i$ and $s_j$, the 
+stationary and isotropic Mat\'ern correlation function is: 
+\begin{equation}
+Cor_M(X(s_i), X(s_j)) = 
+\frac{2^{1-\nu}}{\Gamma(\nu)}
+(\kappa \parallel s_i - s_j\parallel)^\nu 
+K_\nu(\kappa \parallel s_i - s_j \parallel)
+\end{equation}
+where $\parallel . \parallel$ denotes 
+the euclidean distance and $K_\nu$ is the modified 
+Bessel function of second kind order. 
+Also, we defines the Mat\'ern covariance function 
+by $\sigma_x Cor(X(s_i), X(s_j))$, where 
+$\sigma_x$ is the marginal variance of the process. 
+
+If we have a realization $x(s)$ on $n$ locations, 
+we write the joint correlation, or joint covariance, 
+matrix $\Sigma$ making each entry 
+$\Sigma_{i,j} = \sigma_xCor_M(X(s_i), X(s_j))$. 
+It is common to assume that $X(x)$ has a zero mean. 
+So, we have completely defined a multivariate 
+distribution to $x(s)$. 
+
+Now, suppose now that we have a data $y_i$ observed at 
+locations $s_i$, $i=1,...,n$. 
+If we suppose that we have an underlie GF that 
+generate these data, we are going to fit the 
+parameters of this process, making the identity 
+$y(s_i) = x(s_i)$, and $y(s_i)$ is just a 
+realization of the GF. 
+In this case, we the likelihood function 
+is just the multivariate distribution with 
+mean $\mu_x$ and covariance $\Sigma$. 
+If we assume $\mu_x = \beta_0$, 
+we have four parameters to estimate. 
+
+In many situations we assume that we have an 
+underlie GF but we no observe it and observe 
+a data with a measurement error, i. e., 
+$y(s_i) = x(s_i) + e_i$. 
+Additionally, it is common to assume that $e_i$ 
+independent of $e_j$ for all $i\neq j$ and 
+$e_i \sim N(0, \sigma_e)$. 
+These additional parameter, $\sigma_e$, measures 
+the noise effect, called nugget effect. 
+In this case the covariance of marginal distribution 
+of $y(s)$ is $\sigma^2_eI + \Sigma$. 
+This model is a short extension of the basic GF model, 
+and in this case, we have one additional parameter 
+to estimate. 
+To look more about this model 
+see \cite{diggleribeiro:2007}. 
+
+It is possible to describe this model within a 
+larger class of models, the hierarchical models. 
+Suppose that we have observations $y_i$ on locations 
+$s_i$, $i=1,...,n$. We start with 
+\begin{equation}\begin{array}{c}
+y_i|\theta,\beta,x_i,F_i \sim P(y_i|\mu_i,\phi) \\
+\bbx \sim GF(0, \Sigma)
+\end{array}\end{equation}
+where $\mu_i = h(F_i^{T}\beta + x_i)$, 
+$F$ is a matrix of covariates, 
+$x$ is the random effects, 
+$\theta$ are parameters of random effects, 
+$\beta$ are covariate coefficients, 
+$h()$ is a function mapping the linear predictor 
+$F_i^{T}\beta + x_i$ to $E(y_i) = \mu_i$ and 
+$\phi$ is a dispersion parameter of the distribution, 
+in the exponential family, assumed to $y_i$. 
+To write the GF with nugget effect on this class, 
+we replace $F_i^{T}\beta$ by $\beta_0$, 
+consider the Gaussian distribution to $y_i$, with 
+variance $\sigma_e^2$ and $x$ as GF.
+
+We have many extensions of this basic hierarchical model. 
+Now, we stop these extensions and return on some 
+extensions in later sections. 
+But, if we know the properties of the GF, 
+we are able to study all the practical models 
+that contain, or are based on, this random effect. 
+
+It is mentioned that the data, or the random effect,  
+on a finite number of $n$ points that we have observed 
+data is considered a realization of a 
+multivariate Gaussian distribution. 
+But, to evaluate the likelihood function, or the random 
+effect distribution, we need to make 
+computations of the multivariate Gaussian density. 
+So, we have, in the log scale, the expression 
+\begin{equation}
+-\frac{n}{2}log(2\pi)-|\Sigma| -\frac{1}{2}
+(x(s) - \mu_x)^{T}\Sigma^{-1}(x(s)-\mu_x) 
+\end{equation}
+where $\Sigma$ is a dense $n\times n$. 
+To compute this, we need a factorization of this matrix. 
+Because this matrix is a dense, this is a operation of 
+order $O(n^3)$, so is one 'big n problem'. 
+
+An alternative used in some software's to do 
+geostatistical analysis, is the use of the empirical 
+variogram to fit the parameters of the correlation 
+function. This option don't use any likelihood for 
+the data and the multivariate Gaussian 
+distribution to the random effects. 
+A good description of these techniques is made 
+on \cite{cressie:1993}. 
+
+However, it is adequate to assume any likelihood for the 
+data and a GF for the spatial dependence, the model 
+based approach on geostatistics, \cite{diggleribeiro:2007}. 
+So, in some times we need the use the multivariate 
+Gaussian distribution to the random effects. 
+But, if the dimension of the GF is big, 
+it is impractical to make model based inference. 
+
+In another area of the spatial statistics, the 
+analysis of areal data, there is models specified 
+by conditional distributions that implies a joint 
+distribution with a sparse precision matrix. 
+These models are called the 
+Gaussian Markov random fields (GMRF), 
+\cite{RueHeld:2005}. 
+So, the inference when we use GMRF is more easy 
+to do than we use the GF, because to work with two dimensional 
+GMRF models, we have cost of $O(n^{3/2})$ 
+on the computations with its precision matrix. 
+So, it is more easy to make analysis with big 'n'. 
+ 
+\subsection{The SPDE approach} 
+
+In the literature there is some ideas to 
+fit GF by an approximation of the GF to any GMRF. 
+The very good alternative found is the use of 
+the stochastic partial differential equation 
+approach (SPDE), \cite{lindgrenRL:2011}. 
+This approach got a explicit link between GF to GMRF. 
+
+The SPDE approach is based on two main results. 
+The first one extends the result obtained by \cite{besag:1981}. 
+This result is to approximate a GF with generalized 
+covariance function, obtained when $\nu \rightarrow 0$ 
+in the Mat\'ern correlation function. 
+This approximation, considering a regular two-dimensional 
+lattice with number of sites tending to infinite, 
+is that the full conditional have 
+\begin{equation}
+E(x_{ij}|x_{-ij}) = \frac{1}{a}(x_{i-1,j}+x_{i+1,j}+x_{i,j-1}+x_{i,j+1})
+\end{equation}
+and $Var(x_{ij}|x_{-ij}) = 1/a$ for $|a|>4$. 
+In the representation using precision matrix, 
+we have, for one single site, just the upper right 
+quadrant and with $a$ as the central element, that 
+\begin{equation}\label{eq:q0}
+\begin{matrix}
+-1  & \\
+a & -1
+\end{matrix}
+\end{equation}
+
+Considering a GF $x(\bbu)$ with the Mat\'ern 
+covariance is a solution to the linear fractional SPDE 
+\begin{equation}
+(\kappa^2 - \Delta )^{\alpha/2}x(\bbu) = \bW (\bbu ),\;\;\;
+\bbu \in \Re^d,\;\;\;\alpha=\nu+d/2,\;\;\kappa>0,\;\;\nu>0,
+\end{equation}
+\cite{lindgrenRL:2011} show that for $\nu=1$ and $\nu=2$ 
+the GMRF representations are convolutions of (\ref{eq:q0}). 
+So, for $\nu=1$, in that representation we have:
+\begin{equation}
+\begin{matrix}
+1  & & \\
+-2a & 2 & \\
+4+a^2 & -2a & 1
+\end{matrix}
+\end{equation}\label{eq:q1}
+and, for $\nu=2$:
+\begin{equation}
+\begin{matrix}
+-1  & & &\\
+3a & -3 & &\\
+-3(a^2+3) & 6a & 3 & \\
+a(a^2+12) & -3(a^2+3) & 3a & -1
+\end{matrix}
+\end{equation}\label{eq:q2}
+This is an intuitive result, because if we have 
+larger $\nu$ on the Mat\'ern correlation function of the GF, 
+we need more non zero neighbours sites in the GMRF representation. 
+Remember that it is the smoothness parameter, so if the 
+process is more smooth, we need a more larger neighbourhood 
+on the GMRF representation. 
+
+If the spatial locations are on a irregular grid, 
+it is necessary the use of the second result on
+\cite{lindgrenRL:2011}. 
+To extend the first result, a suggestion is the use of 
+the finite element method (FEM) for a interpolation of 
+the locations of observations to the nearest grid point. 
+To do it, suppose that the $\Re^2$ is subdivided into 
+a set of non-intersecting triangles, where any two
+triangles meet in at most a common edge or corner. 
+The three corners of a triangle are named \textit{vertices}.
+The suggestion is to start with the location of the 
+observed points and add some triangles (heuristically) 
+with restriction to maximize the allowed edge length 
+and minimize the allowed angles. 
+The the approximation is 
+\[x(\bbu) = \sum_{k=1}^{n}\psi_k(\bbu)w_k\]
+for some chosen basis functions {$\psi_k$}, 
+Gaussian distributed weights $w_k$ and $n$ the 
+number of vertices on the triangulation.
+If the functions $\psi_k$ are piecewise linear in each 
+triangle, $\psi_k$ is 1 at vertices $k$ and 0 at all 
+other vertices. 
+
+The second result is obtained using the $n\times n$ matrices 
+$\bC$, $\bG$ and $\bK$ with entries 
+\begin{equation}
+C_{i,j} = \langle \psi_i, \psi_j\rangle, \;\;\;\;\;
+G_{i,j} = \langle \nabla \psi_i, \nabla \psi_j \rangle, \;\;\;\;\;
+(\bK_{\kappa^2})_{i,j} = \kappa^2 C_{i,j} + G_{i,j}
+\end{equation}
+to get the precision matrix $\bQ_{\alpha,\kappa}$ 
+as a function of $\kappa^2$ and $\alpha$: 
+\begin{equation}\label{eq:Qalpha}\begin{array}{c}
+\bQ_{1,\kappa^2} = \bK_{\kappa^2}, \\
+\bQ_{2,\kappa^2} = \bK_{\kappa^2}\bC^{-1}\bK_{\kappa^2}, \\
+\bQ_{2,\kappa^2} = \bK_{\kappa^2}\bC^{-1}Q_{\alpha-2,\kappa^2}\bC^{-1}\bK_{\kappa^2}, 
+\;\;\;\mbox{for} \;\;\alpha = 3,4,...\;.
+\end{array}\end{equation}
+Here we have too the notion that if $\nu$ increases, 
+we need a more dense precision matrix. 
+
+The $\bQ$ precision matrix is generalized for a fractional values 
+of $\alpha$ (or $\nu$) using a Taylor approximation, 
+see the author's discussion response in \cite{lindgrenRL:2011}. 
+From this approximation, we have the polynomial of 
+order $p=\lceil \alpha \rceil$ for the precision matrix 
+\begin{equation}
+\bQ = \sum_{i=0}^p b_i \bC(\bC^{-1}\bG)^i.
+\end{equation}
+For $\alpha=1$ and $\alpha=2$ we have the (\ref{eq:Qalpha}). 
+Because, for $\alpha=1$, we have $b_0=\kappa^2$ and $b_1=1$, 
+and for $\alpha=2$, we have $b_0=\kappa^4$, 
+$b_1=\alpha\kappa^4$ and $b_2=1$. 
+For fractional $\alpha=1/2$ 
+$b_0=3\kappa/4$ and $b_1=\kappa^{-1}3/8$. 
+And, for $\alpha=3/2$, ($\nu=0.5$, the exponential case), 
+$b_0=15\kappa^3/16$, $b_1=15\kappa/8$, 
+$b_2=15\kappa^{-1}/128$. 
+Using these results combined with recursive construction, 
+for $\alpha>2$, we have GMRF approximations for all positive 
+integers and half-integers. 

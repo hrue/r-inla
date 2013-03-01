@@ -1,0 +1,373 @@
+\section{Semicontinuous model to daily rainfall}
+
+<<sett,echo=FALSE,results=hide>>=
+options(width=75)
+require(INLA)
+require(geoR)
+require(splancs)
+require(gridExtra)
+inla.setOption(inla.call='remote')
+@ 
+
+The daily rainfall data is one type of data that 
+is not easy to fit a simple model. 
+Because there are not days when it rains and 
+it rains in the days, the distribution of rainfall 
+is very asymmetric. 
+In this section we build a jointly model to rainfall 
+taking into account this fact. 
+We build a semicontinuous model that is a jointly
+model to occurence and to positive values. 
+
+\subsection{The data and the model}
+
+The data is 
+<<readdata>>=
+prec <- read.table('data/rainfallParana.txt', header=TRUE)
+pr.bord <- read.table('data/borderParana.txt', header=TRUE)
+prec[1:3, 1:10]
+@ 
+and we have, for the first five days on January, 
+the summary and the number of station with rain 
+<<summ>>=
+sapply(prec[,4:9], summary)
+apply(prec[,4:9]>0, 2, summary)
+@ 
+and we see that we have no rain in 538 stations 
+on the first day, 399 on second and 294 on third.
+We also have missing values. 
+
+Let $r_i$ the rain on the location $s_i$. 
+We use the augmented data by definition of 
+two new variables. 
+We define the occurence variable 
+\[
+z_i = 
+\begin{cases} 
+  1, & \text{if } r_i >0  \\
+  0, & \text{otherwise}
+\end{cases}
+\]
+and the amoung variable 
+\[
+y_i = 
+\begin{cases}
+  NA, &\text{if } r_i=0 \\
+  r_i,&\text{otherwise}
+\end{cases}
+\]
+Using the data on the third day we have
+<<vardef>>=
+jday <- 6
+z <- (prec[,jday]>0)+0
+y <- ifelse(prec[,jday]>0, prec[,jday], NA)
+@ 
+
+The map of this data are showed on the left graph 
+of the Figure~\ref{fig:rain}. 
+Also, the histogram of the positive precipitation 
+are on the rigth graph of this Figure. 
+Both produced by the code below
+<<rain,eval=FALSE>>=
+par(mfrow=c(1, 2), mar=c(3,3,.5,0), mgp=c(1.5,0.5,0))
+hist(y, xlab='mm', col=gray(.9), main='')
+par(mar=c(0,0,0,0))
+plot(prec[,1:2], cex=0.3 + prec[,jday]/20, asp=1, col=z+1, axes=FALSE)
+q.y <- c(0, quantile(y, 0:7/7, na.rm=T))
+legend('topright', format(q.y, dig=2), pch=1, bty='n',
+       pt.cex=0.3+q.y/20, col=c(1,rep(2,length(q.y)-1)))
+@ 
+\begin{figure}\centering 
+<<vrain,echo=F,fig=T,eps=F,width=11,height=4.5>>=
+<<rain>>
+@ 
+\caption{Map of precipitation (left) and histogram of 
+positive precipitation (right).} 
+\label{fig:rain}
+\end{figure}
+
+We use a model with two likelihoods. 
+We use the Bernoulli likelihood for 
+$z_i$ and the gamma for $y_i$. 
+\[
+z_i \sim \text{Bernoulli}(p_i) \;\;\;\;\;\;\;
+y_i \sim \text{Gamma}(a_i, b_i)
+\]
+So, we need a two column response matrix 
+<<Y>>=
+n <- nrow(prec)
+Y <- matrix(NA, 2*n, 2)
+Y[1:n, 1] <- z
+Y[n + 1:n, 2] <- y
+@ 
+
+We define the linear predictor to first component by 
+\[
+\text{logit}(p_i ) = \alpha_z + x_i \\
+\]
+where $\alpha_z$ is an intercept and
+$x_i$ is a random effect modeled by a 
+Gaussian field through the SPDE approach.
+
+To second component we consider that 
+$E(y_i) = \mu_i = a_i/b_i$ and $V(y_i) = a_i/b_i^2=\mu_i^2/\phi$, 
+where $\phi$ us a precision parameter and we 
+define a linear predictor to $\text{log}(\mu_i)$. 
+We have
+\[
+\text{log}(\mu_i) = \alpha_y + \beta x_i 
+\]
+where $\alpha_y$ is an intercept and 
+$\beta$ is a scaling parameter to $x_i$ 
+that is a shared random effect with the 
+first component of the model. 
+
+\subsection{Fitting the model and some results}
+
+To define a SPDE model we need a mesh. 
+We prepare the mesh using the border coordinates with
+<<>>=
+mesh <- inla.mesh.create.helper(, as.matrix(pr.bord), cutoff=15,
+                                 max.edge=c(15, 30), offset=c(15,30))
+@ 
+Also, we need to prepare the data in 
+addequate form using the stack functionality. 
+First we get the predictor matrix and the indexes
+<<A>>=
+A <- inla.spde.make.A(mesh, loc=as.matrix(prec[,1:2]))
+ind.z <- inla.spde.make.index(name='iz', n.mesh=mesh$n)
+ind.y <- inla.spde.make.index(name='iy', n.mesh=mesh$n)
+@ 
+because we have a $2$ times $n$ data, we need predictor 
+matrix with $2\times n$ rows. Specificaly, 
+we need additional rows with zeros, below \code{A} to 
+first part, and at end of \code{A} to second part. 
+Also, for the intercept we need a vector with $1$ 
+on first $n$ elements to estimate $\alpha_z$ and 
+$0$ on last $n$ components. 
+And the referse of this to estimate $\alpha_y$.
+So, we have 
+<<stack>>=
+a0 <- Matrix(0, nrow(A), ncol(A))
+zIntrcpt <- rep(1:0, each=n)
+stk <- inla.stack(tag='est', data=list(y=Y), 
+                  A=list(rBind(A, a0), 1, rBind(a0, A), 1), 
+                  effects=list(ind.z, zIntercept=zIntrcpt, 
+                    ind.y, yIntercept=1-zIntrcpt))
+@ 
+
+To fit the model, we define one SPDE model and we 
+make inference to $\beta$ usint the copy of the strategy 
+with \code{fixed=FALSE}.
+<<model>>=
+spde <- inla.spde2.matern(mesh, alpha=2)
+res <- inla(y ~ 0 + zIntercept + yIntercept + 
+            f(iz, model=spde) + f(iy, copy='iz', fixed=FALSE), 
+            family=c('binomial', 'gamma'), 
+            data=inla.stack.data(stk), control.compute=list(dic=TRUE),
+            control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
+@ 
+
+Now, we look at the summary of the posterior distribution 
+to $\alpha_z$ and $\alpha_y$ 
+<<summaries>>=
+round(res$summary.fix, 4)
+@ 
+We apply the inverse of the link function to 
+look at response scale with
+<<invlink>>=
+c(binomial(link='logit')$linkinv(res$summary.fix[1,1]), 
+  exp(res$summary.fix[2,1]))
+@ 
+and it looks similar to observed:  
+<<obs>>=
+c(occ=mean(z, na.rm=TRUE), rain=mean(y, na.rm=TRUE))
+@ 
+
+The summary of the posterior distribution of the 
+precision parameter on second component is
+<<sphi>>=
+res$summary.hy[1,]
+@ 
+And the summary of the posterior distributio of 
+the scaling parameter $\beta$ is 
+<<sbeta>>=
+res$summary.hy[4,]               
+@ 
+and we see on this summary that the random 
+effect $x_i$ is shared by $z$ and $y$. 
+In other words, the probability of rain occurrence 
+is correlated with the amoung of the rain, 
+like the prefencential sampling 
+problem~\cite{diggleMS:2010}. 
+
+We look the posterior marginal distributions 
+of $\alpha_z$, $\alpha_y$, 
+$\phi$ and $\beta$ on Figure~\ref{fig:post} 
+with commands below 
+<<post,eval=FALSE>>=
+par(mfrow=c(2,2), mar=c(3,3,.5,.5), mgp=c(1.5,.5,0), las=1)
+plot(res$marginals.fix[[1]], type='l', ylab='Density', 
+     xlab=expression(alpha[z]))
+plot(res$marginals.fix[[2]], type='l', ylab='Density', 
+     xlab=expression(alpha[y]))
+plot(res$marginals.hy[[1]], type='l', ylab='Density', 
+     xlab=expression(phi))
+plot(res$marginals.hy[[4]], type='l', ylab='Density', 
+     xlab=expression(beta))
+@ 
+\begin{figure}\centering 
+<<vpost,echo=F,fig=T,eps=F,width=11,height=4.5>>=
+<<post>>
+@ 
+\caption{Posterior marginal distributions 
+of $\alpha_z$ (top left), $\alpha_y$ (top right), 
+$\phi$ (bottom left) and $\beta$ (bottom right).}
+\label{fig:post}
+\end{figure}
+
+To decide if the occurence rain and the amoung 
+of the rain have spatially dependency, 
+we want to test the significance of the 
+random effect $x$. 
+
+One approach is looking at the 2,5\% and 97,5\% 
+quantiles of each element of the random effect. 
+If for some of they has both quantiles with 
+same signal, them they are significantly not null. 
+We see on the Figure~\ref{fig:xq} the mean 
+and this quantiles for each $x$ in order of 
+the posterior mean, with code below 
+<<xq,eval=F>>=
+ordx <- order(res$summary.random$iz$mean)
+par(mar=c(3,3,0.5,0.5), mgp=c(1.5,0.5,0), las=1)
+plot(res$summary.random$iz$mean[ordx], type='l', ylab='x',
+     ylim=range(res$summary.random$iz[, 4:6]))
+for (i in c(4,6)) lines(res$summary.random$iz[ordx,i], lty=2)
+abline(h=0, lty=3)
+@ 
+\begin{figure}\centering 
+<<vxq,echo=F,fig=T,eps=F,width=11,height=4.5>>=
+<<xq>>
+@ 
+\caption{Posterior man of each $x_i$ (continuous line) 
+  and its 2.5\% and 97.5\% quantiles of the posterior 
+  marginal distributions (dashed lines).}
+\label{fig:xq}
+\end{figure}
+
+Other approach is to compare the DIC of the model 
+with $x$ with the DIC of the model without it. 
+
+We fit the model without $x$ with
+<<refit>>=
+res0 <- inla(y ~ 0 + zIntercept + yIntercept, 
+            family=c('binomial', 'gamma'), 
+            data=inla.stack.data(stk), control.compute=list(dic=TRUE),
+            control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
+@ 
+and we have
+<<dics>>=
+c(res0$dic$dic, res$dic$dic)
+@ 
+and conclude that the spatial random effect is 
+significative to occurence and to amoung of the rain. 
+
+\subsection{Results for the spatial random effect}
+
+The spatial random effect modeled by 
+the SPDE approach has the $\kappa$ scaling 
+parameter, the marginal variance parameter $\sigma_x^2$ 
+and the practical range, \cite{lindgrenRL:2011}. 
+
+The summary of the posterior distribution of 
+$log(\kappa)$ is
+<<logkappa>>=
+res$summary.hy[3,]
+@ 
+
+To obtain results for the variance and for the 
+practical range we need a post processing.  
+We obtain the marginal distribution for both by
+<<resfield>>=
+res.f <- inla.spde2.result(res, 'iz', spde, do.transf=TRUE)
+@ 
+The posterior mean for the marginal variance 
+<<mvar>>=
+inla.emarginal(function(x) x, res.f$marginals.variance.nominal[[1]])
+@ 
+And to the practical range of the process we have 
+<<range>>=
+inla.emarginal(function(x) x, res.f$marginals.range.nominal[[1]])
+@ 
+
+At the Figure~\ref{fig:xpars} we look the posterior 
+distribution to $\kappa$, $\sigma_x^2$ and of the 
+practical range. 
+<<xpars,eval=F>>= 
+par(mfrow=c(1,3), mar=c(3,3.5,0,0), mgp=c(1.5, .5, 0), las=0) 
+plot.default(inla.tmarginal(function(x) exp(x), res$marginals.hy[[3]]), 
+             type='l', xlab=expression(kappa), ylab='Density') 
+plot.default(res.f$marginals.variance.nominal[[1]], type='l', 
+             xlab=expression(sigma[x]^2), ylab='Density') 
+plot.default(res.f$marginals.range.nominal[[1]], type='l', 
+             xlab='Practical range', ylab='Density') 
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<vxpars,echo=F,results=hide,fig=T,eps=F,width=7.5,height=3>>=
+<<xpars>>
+@ 
+\caption{Posterior marginal distribution of $\kappa$ (left),  
+  $\sigma_x^2$ (mid) and of the practical range (right).}
+\label{fig:xpars}
+\end{figure}
+
+Another interesting result is the map of the random field. 
+To get it we use get the projector with
+<<projgrid>>=
+(nxy <- round(c(diff(range(pr.bord[,1])), diff(range(pr.bord[,2])))/4))
+projgrid <- inla.mesh.projector(mesh, xlim=range(pr.bord[,1]), 
+                                ylim=range(pr.bord[,2]), dims=nxy)
+@ 
+and get the posterior mean and posterior standard deviation with 
+<<projpred>>=
+xmean <- inla.mesh.project(projgrid, res$summary.random$iz$mean)
+xsd <- inla.mesh.project(projgrid, res$summary.random$iz$sd)
+@ 
+
+To good visualization, we make NA the values corresponding of the 
+points of the grid out of the border of the Paran\'a state. 
+To do it, we use the function \code{inout()} on \pkg{splancs} 
+package, with
+<<sp>>=
+table(xy.in <- inout(projgrid$lattice$loc, 
+                     cbind(pr.bord[,1], pr.bord[,2])))
+xmean[!xy.in] <- xsd[!xy.in] <- NA
+@ 
+We visualize the this on Figure~\ref{fig:xrain3}. 
+with code below 
+<<xrain3c,eval=F>>=
+grid.arrange(levelplot(xmean, col.regions=topo.colors(99), 
+                       xlab='', ylab='', scales=list(draw=FALSE)), 
+             levelplot(xsd, col.regions=topo.colors(99), 
+                       xlab='', ylab='', scales=list(draw=FALSE)), nrow=1)
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<xrain3,echo=F,results=hide,fig=T,eps=F,width=10,height=4>>=
+<<xrain3c>>
+@ 
+\caption{Posterior mean (left) and standard deviation 
+  (right) of the random field.}
+\label{fig:xrain3}
+\end{figure}
+
+Comparing the left graph on Figure~\ref{fig:xrain3} 
+with the right graph on the Figure~\ref{fig:rain} 
+we have a more clear pattern of the rain on third 
+day of 2012 on Paran\'a state. 
+We see that in fact we have rain near the sea 
+(the right border of the map), at south and a 
+small point on northeast. 
+Also we have no rain in some parts of nothwest. 
