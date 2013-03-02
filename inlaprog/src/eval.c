@@ -222,7 +222,6 @@ double inla_eval_expression(char *expression, double *x)
 }
 double inla_eval_table(char *expression, double *xval)
 {
-	int nelm = 0, i;
 	double value;
 	GMRFLib_spline_tp *s;
 	GMRFLib_matrix_tp *M = NULL;
