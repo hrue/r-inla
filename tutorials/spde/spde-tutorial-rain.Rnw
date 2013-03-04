@@ -1,4 +1,4 @@
-\section{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec}
+\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec}
 
 <<opts,echo=F,results=hide>>=
 options(width=75)
@@ -16,7 +16,7 @@ Agency in Brazil, in Portuguese it is
 The ANA collect data on many locations over Brazil. 
 All these data are freely available from the ANA website. 
 
-\subsection{The data set}
+\section{The data set}
 
 It have data on more one thousand of locations within 
 Paran\'a, a state at south of Brazil. 
@@ -106,7 +106,7 @@ On the right graph, the points sizer are proportional
 to average of daily accumulated precipitation. 
 We see that near the coast we have large values. 
 
-\subsection{The model and covariate selection}
+\section{The model and covariate selection}
 
 In this section, we analise the average of daily 
 accumulated precipitation on that period. 
@@ -329,7 +329,7 @@ plot.default(r.f$marginals.range.nominal[[1]], type='l',
 \label{fig:dseaeff}
 \end{figure}
 
-\subsection{Testing the significance of spatial effect}
+\section{Testing the significance of spatial effect}
 
 Now, we want to test the significance of the 
 spatial random effect component on the model. 
@@ -350,7 +350,7 @@ c(r0.sead$dic$dic, r.sead$dic$dic)
 and conclude that the spatial effect is significantly 
 to the model for precipitation. 
 
-\subsection{Prediction of the random field} 
+\section{Prediction of the random field} 
 
 To show the spatial effect, we make prediction of this 
 effect on a fine grid. 
@@ -398,7 +398,7 @@ For example, on the top right graph we see, the first blue
 region from right to left is near Curitiba and 
 around there  many stations. 
 
-\subsection{Prediction of the response on a grid}
+\section{Prediction of the response on a grid}
 
 We want to predict the response on a grid. 
 A naive approach is made by the projection 
