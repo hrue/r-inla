@@ -1,4 +1,4 @@
-\section{The SPDE approach with INLA: a toy example}
+\chapter{The SPDE approach with INLA: a toy example}
 
 In this section we use a very simple 
 data set to show how we fit a geostatistical 
@@ -21,7 +21,7 @@ Suppose that we have a tree column \code{data.frame} or
 \code{matrix} with the two first are the coordinates and 
 the third is the response collected at this locations. 
 <<readdata>>=
-str(dat1 <- read.csv2("data/toydat.csv")); attach(dat1)
+str(toy <- read.csv2("data/toydat.csv"))
 @ 
 
 We consider the $n$ observations $y_i$ on 
@@ -49,12 +49,12 @@ priors for all the parameters.
 
 <<likfit,echo=F,results=hide>>=
 require(geoR)
-lk <- likfit(as.geodata(dat1), ini=c(5,.1), nugget=.1, kappa=1)
+lk <- likfit(as.geodata(toy), ini=c(5,.1), nugget=.1, kappa=1)
 lk.est <- c(lk$beta, lk$nugget, lk$cov.pars)
 lk.est[4] <- 1/lk.est[4]
 @ 
 
-\subsection{The triangulation}\label{sec:mesh}
+\section{The triangulation}\label{sec:mesh}
 
 The first step to fit the model is 
 the construction of the 'mesh'. 
@@ -89,17 +89,17 @@ on that the coordinates are projected.
 To understand how this function works, we apply to 
 first five locations varying some of these arguments. 
 
-Firstly, we defines the domain and \code{attach} the data
+Firstly, we defines the domain 
 <<domain>>= 
 pl01 <- matrix(c(0,1,1,0,0, 0,0,1,1,0), ncol=2)
 @ 
 and create some triangulations with code bellow:
 <<mesh5ab>>=
-m1 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], max.edge=c(1,1))
-m2 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], max.edge=c(.3,1))
+m1 <- inla.mesh.create.helper(as.matrix(toy[1:5,1:2]), max.edge=c(1,1))
+m2 <- inla.mesh.create.helper(as.matrix(toy[1:5,1:2]), max.edge=c(.3,1))
 m3 <- inla.mesh.create.helper(, pl01, max.edge=c(1,1))
-m4 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], pl01, max.edge=c(.3,1))
-m5 <- inla.mesh.create.helper(cbind(s1, s2)[1:5, 1:2], pl01, 
+m4 <- inla.mesh.create.helper(as.matrix(toy[1:5,1:2]), pl01, max.edge=c(.3,1))
+m5 <- inla.mesh.create.helper(as.matrix(toy[1:5,1:2]), pl01, 
                               max.edge=c(.3,1), min.angle=30)
 m6 <- inla.mesh.create.helper(, pl01, max.edge=c(.3,.5), offset=c(0.15, 0.3))
 @ 
@@ -108,9 +108,9 @@ Figure~\ref{fig:meshtest}, with the code below
 <<vizmesh,eval=FALSE>>=
 par(mfrow=c(2, 3), mar=c(0,0,0,0))
 for (i in 1:6) { 
-  plot(dat1[1:5,1:2], xlim=c(-.4,1.4), asp=1, pch=19, axes=FALSE, col=2)
+  plot(toy[1:5,1:2], xlim=c(-.4,1.4), asp=1, pch=19, axes=FALSE, col=2)
   plot(get(paste('m', i, sep='')), add=TRUE) 
-  points(dat1[1:5, 1:2], pch=19, col=2); lines(pl01, col=4)
+  points(toy[1:5, 1:2], pch=19, col=2); lines(pl01, col=4)
 }
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
@@ -209,12 +209,14 @@ length edges than the sixth.
 
 We did this sixth mesh with the code bellow 
 <<mesh1>>=
-mesh1 <- inla.mesh.create.helper(cbind(s1, s2), max.edge=c(0.1, 0.2))
+mesh1 <- inla.mesh.create.helper(as.matrix(toy[,1:2]), 
+                                 max.edge=c(0.1, 0.2))
 mesh2 <- inla.mesh.create.helper(, pl01, max.e=c(0.04, 0.1))
 mesh3 <- inla.mesh.create.helper(, pl01, max.e=c(0.1, 0.2))
 mesh4 <- inla.mesh.create.helper(, pl01, max.e=c(0.17, 0.35))
 mesh5 <- inla.mesh.create.helper(, pl01, max.e=c(0.25, 0.5))
-mesh6 <- inla.mesh.create.helper(cbind(s1, s2), max.edge=c(0.04, 0.1))
+mesh6 <- inla.mesh.create.helper(as.matrix(toy[,1:2]), 
+                                 max.edge=c(0.04, 0.1))
 c(mesh1$n, mesh2$n, mesh3$n, mesh4$n, mesh5$n, mesh6$n)
 @ 
 We have small number of vertices on third mesh than 
@@ -227,7 +229,7 @@ par(mfrow=c(2,3), mar=c(0,0,0,0))
 for (i in 1:6) {
   plot(pl01, col=4, xlim=c(-.3,1.3), asp=1, axes=FALSE, type='l')
   plot(get(paste('mesh',i,sep='')), add=T)
-  points(dat1[,1:2], pch=19, col=2, cex=dat1[,3]/10)
+  points(toy[,1:2], pch=19, col=2, cex=toy[,3]/10)
 }
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
@@ -241,7 +243,7 @@ are proportional to response value.}
 \label{fig:crdt1}
 \end{figure}
 
-\subsection{The estimation}
+\section{The estimation}
 
 After the mesh is made, we will define the 
 SPDE model based on it. 
@@ -255,7 +257,7 @@ We use the three first mesh made on previous
 section to illustrate some details on the 
 estimation process on next sub-sections. 
 
-\subsubsection{Simple estimation with mesh with points together}
+\subsection{Simple estimation with mesh with points together}
 
 In this section, we use the mesh 
 created with location points. 
@@ -271,7 +273,7 @@ parameters using the main function
 <<fit1>>=
 res1 <- inla(y ~ f(i, model=spde1), 
              control.predictor=list(compute=TRUE),
-             data=data.frame(y=y, i=1:nrow(dat1)))
+             data=data.frame(y=toy$y, i=1:nrow(toy)))
 @ 
 On the object returned by \code{inla()} function 
 we have summaries, marginal posterior densities of 
@@ -326,7 +328,7 @@ We get the posterior mean of it by
 inla.emarginal(function(x) x, res1.field$marginals.range.nominal[[1]])
 @ 
 
-\subsubsection{When locations are not vertices of triangulation}
+\subsection{When locations are not vertices of triangulation}
 \label{sec:ptsnomesh}
 
 Remember that we have constructed six mesh on 
@@ -363,7 +365,7 @@ Here, we define the $\eta^{*}$ as
 \]
 We define the projector matrix with 
 <<proj2>>=
-dim(A2 <- inla.spde.make.A(mesh2, loc=as.matrix(dat1[,1:2])))
+dim(A2 <- inla.spde.make.A(mesh2, loc=as.matrix(toy[,1:2])))
 @ 
 Because each point is inside one triangle, each row 
 of the projector matrix has three non-zero elements
@@ -396,7 +398,7 @@ We fit the model with
 <<m2>>=
 spde2 <- inla.spde2.matern(mesh2)
 res2 <- inla(resp ~ 0 +  m + f(i, model=spde2), 
-             data=list(resp=y, i=1:mesh2$n, m=rep(1,mesh2$n)), 
+             data=list(resp=toy$y, i=1:mesh2$n, m=rep(1,mesh2$n)), 
              control.predictor=list(A=A2, compute=TRUE))
 @ 
 and we have
@@ -409,7 +411,7 @@ parameter has different posterior
 mean than previous model fitted.  
 We return on this in section~\ref{sec:meshcompare}. 
 
-\subsubsection{The stack functionality}\label{sec:stack}
+\subsection{The stack functionality}\label{sec:stack}
 
 The stack functionality is useful to 
 works with SPDE on \pkg{INLA} package. 
@@ -433,7 +435,7 @@ mesh constructed on section~\ref{sec:mesh}.
 Firstly, we define the projector matrix based 
 on this mesh 
 <<a3>>=
-A3 <- inla.spde.make.A(mesh3, loc=as.matrix(dat1[,1:2]))
+A3 <- inla.spde.make.A(mesh3, loc=as.matrix(toy[,1:2]))
 @ 
 and the the indexes set provided 
 <<ind3>>=
@@ -448,7 +450,7 @@ build the model later.
 This function is used firstly to arrange the 
 response, the predictor matrix and the effects 
 <<stackdata>>=
-st3.dat <- inla.stack(data=list(resp=dat1$y), A=list(A3), 
+st3.dat <- inla.stack(data=list(resp=toy$y), A=list(A3), 
                         effects=list(c(ind3, list(m=1))), tag='est')
 @ 
 and we use the \code{inla.stack.data()} to get the 
@@ -479,39 +481,39 @@ res3 <- inla(resp ~ 0 + m + f(i, model=spde3),
 res2.field <- inla.spde2.result(res2, 'i', spde2, do.transf=TRUE)
 res3.field <- inla.spde2.result(res3, 'i', spde3, do.transf=TRUE)
 ## 4
-A4 <- inla.spde.make.A(mesh4, loc=as.matrix(dat1[,1:2]))
+A4 <- inla.spde.make.A(mesh4, loc=as.matrix(toy[,1:2]))
 ind4 <- inla.spde.make.index(name='i', n.mesh=mesh4$n)
-st4.dat <- inla.stack(data=list(resp=dat1$y), A=list(A4, 1), 
-                        effects=list(ind4, m=rep(1,nrow(dat1))))
+st4.dat <- inla.stack(data=list(resp=toy$y), A=list(A4, 1), 
+                        effects=list(ind4, m=rep(1,nrow(toy))))
 spde4 <- inla.spde2.matern(mesh4)
 res4 <- inla(resp ~ 0 + m + f(i, model=spde4), 
              data=inla.stack.data(st4.dat), 
              control.predictor=list(A=inla.stack.A(st4.dat), compute=TRUE))
 res4.field <- inla.spde2.result(res4, 'i', spde4, do.transf=TRUE)
 ### 5
-A5 <- inla.spde.make.A(mesh5, loc=as.matrix(dat1[,1:2]))
+A5 <- inla.spde.make.A(mesh5, loc=as.matrix(toy[,1:2]))
 ind5 <- inla.spde.make.index(name='i', n.mesh=mesh5$n)
-st5.dat <- inla.stack(data=list(resp=dat1$y), A=list(A5, 1), 
-                        effects=list(ind5, m=rep(1,nrow(dat1))))
+st5.dat <- inla.stack(data=list(resp=toy$y), A=list(A5, 1), 
+                        effects=list(ind5, m=rep(1,nrow(toy))))
 spde5 <- inla.spde2.matern(mesh5)
 res5 <- inla(resp ~ 0 + m + f(i, model=spde5), 
              data=inla.stack.data(st5.dat), 
              control.predictor=list(A=inla.stack.A(st5.dat), compute=TRUE))
 res5.field <- inla.spde2.result(res5, 'i', spde5, do.transf=TRUE)
 ### 6
-##A6 <- inla.spde.make.A(mesh6, loc=as.matrix(dat1[,1:2]))
+##A6 <- inla.spde.make.A(mesh6, loc=as.matrix(toy[,1:2]))
 ##ind6 <- inla.spde.make.index(name='i', n.mesh=mesh6$n)
-##st6.dat <- inla.stack(data=list(resp=dat1$y), A=list(A6, 1), 
-  ##                      effects=list(ind6, m=rep(1,nrow(dat1))))
+##st6.dat <- inla.stack(data=list(resp=toy$y), A=list(A6, 1), 
+  ##                      effects=list(ind6, m=rep(1,nrow(toy))))
 spde6 <- inla.spde2.matern(mesh6)
 res6 <- inla(y ~ f(i, model=spde6), control.predictor=list(compute=T),
-             data=data.frame(y=y, i=1:nrow(dat1)))
+             data=data.frame(y=toy$y, i=1:nrow(toy)))
 ##             data=inla.stack.data(st6.dat), 
 ##             control.predictor=list(A=inla.stack.A(st6.dat), compute=TRUE))
 res6.field <- inla.spde2.result(res6, 'i', spde6, do.transf=TRUE)
 @ 
 
-\subsection{Comparing different triangulations}\label{sec:meshcompare}
+\section{Comparing different triangulations}\label{sec:meshcompare}
 
 In this section we compare six models fitted with 
 the six different mesh made on section~\ref{sec:mesh}. 
@@ -620,7 +622,7 @@ Both second and third mesh proved to be suitable.
 But, the mesh with less number of edges is preferred 
 due the computationally advantage on work. 
 
-\subsection{Prediction of the random field}
+\section{Prediction of the random field}
 
 A very common objective when we have spatial 
 data collected on some locations is the prediction 
@@ -635,7 +637,7 @@ on three target locations: (0.1,0.1), (0.5,0.5), (0.9,0.9).
 pts3 <- rbind(c(.1,.1), c(.5,.5), c(.9,.9))
 @ 
 
-\subsubsection{Jointly with the estimation process} 
+\subsection{Jointly with the estimation process} 
 
 The prediction of the random field joint the 
 parameter estimation process in Bayesian 
@@ -703,7 +705,7 @@ inla.hpdmarginal(0.95, marg3[[2]])
 and see that around the point (0.5,0.5) the random field 
 has positive values, see Figure~\ref{fig:pgrid}. 
 
-\subsubsection{After the estimation process}
+\subsection{After the estimation process}
 
 The prediction after the estimation process 
 is usually just a matrix operation. 
@@ -778,7 +780,7 @@ prd.s <- inla.mesh.project(pgrid,  res3b$summary.ran$i$s)
 We visualize this values projected on the grid on 
 Figure~\ref{fig:pgrid}. 
 
-\subsection{Prediction of the response}
+\section{Prediction of the response}
 
 Now, we want to predict the response 
 on a set of non observed locations. 
@@ -786,7 +788,7 @@ In similar way that on past section, it is possible
 to find the marginal distribution or to make 
 a projection of some functional of the response. 
 
-\subsubsection{By sum of linear predictor components}
+\subsection{By sum of linear predictor components}
 
 Here we presents a naive procedure 
 to predict the response. 
@@ -804,7 +806,7 @@ res3$summary.fix[1,1] + drop(A3pts3%*%res3$summary.random$i$mean)
 If there are covariates, the prediction also can be 
 made in similar way, see~\citation{cameletti:2012}. 
 
-\subsubsection{By the posterior distribution}
+\subsection{By the posterior distribution}
 
 In this case, we want to define a adequate 
 predictor of the response and build the model again. 
@@ -888,7 +890,7 @@ We get the indexes
 indd3g <- inla.stack.index(stk.all, 'prd3rg')$data
 @ 
 and use it to visualize, together the predictions 
-of the random field on previous subsection,
+of the random field on previous section,
 on Figure~\ref{fig:pgrid} with the commands bellow
 <<pgrid,eval=F>>=
 require(gridExtra)

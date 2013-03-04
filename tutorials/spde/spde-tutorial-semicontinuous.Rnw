@@ -1,4 +1,4 @@
-\section{Semicontinuous model to daily rainfall}
+\chapter{Semicontinuous model to daily rainfall}
 
 <<sett,echo=FALSE,results=hide>>=
 options(width=75)
@@ -19,7 +19,7 @@ taking into account this fact.
 We build a semicontinuous model that is a jointly
 model to occurence and to positive values. 
 
-\subsection{The data and the model}
+\section{The data and the model}
 
 The data is 
 <<readdata>>=
@@ -122,7 +122,7 @@ $\beta$ is a scaling parameter to $x_i$
 that is a shared random effect with the 
 first component of the model. 
 
-\subsection{Fitting the model and some results}
+\section{Fitting the model and some results}
 
 To define a SPDE model we need a mesh. 
 We prepare the mesh using the border coordinates with
@@ -273,7 +273,7 @@ c(res0$dic$dic, res$dic$dic)
 and conclude that the spatial random effect is 
 significative to occurence and to amoung of the rain. 
 
-\subsection{Results for the spatial random effect}
+\section{Results for the spatial random effect}
 
 The spatial random effect modeled by 
 the SPDE approach has the $\kappa$ scaling 
