@@ -249,6 +249,12 @@ stk.dat <- inla.stack(data=list(y=prec$precMean), A=list(A,1,1),
                         gEast=inla.group(prec$East), 
                         gSeaDist=inla.group(prec$seaDist)), tag='dat')
 @ 
+In this stack the intercept is included as 
+one element on the index list set and the 
+covariates as new elements of effects list. 
+So the effects list in this example has three 
+elements: the index set and two covariates.
+A different way is used on Chapter~\ref{ch:semic}. 
 
 <<fitgamma1>>=
 spde <- inla.spde2.matern(mesh, alpha=2)

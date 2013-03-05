@@ -1,4 +1,4 @@
-\chapter{Semicontinuous model to daily rainfall}
+\chapter{Semicontinuous model to daily rainfall}\label{ch:semic}
 
 <<sett,echo=FALSE,results=hide>>=
 options(width=75)
@@ -94,12 +94,18 @@ z_i \sim \text{Bernoulli}(p_i) \;\;\;\;\;\;\;
 y_i \sim \text{Gamma}(a_i, b_i)
 \]
 So, we need a two column response matrix 
+one for each response and $2\times n$ rows. 
+We put the first response on first column 
+at first $n$ rows and the second response 
+on last $n$ rows of second column.
 <<Y>>=
 n <- nrow(prec)
 Y <- matrix(NA, 2*n, 2)
 Y[1:n, 1] <- z
 Y[n + 1:n, 2] <- y
 @ 
+later we associate, on the model formulae, 
+one likelihood for each column.
 
 We define the linear predictor to first component by 
 \[
@@ -144,7 +150,7 @@ we need additional rows with zeros, below \code{A} to
 first part, and at end of \code{A} to second part. 
 Also, for the intercept we need a vector with $1$ 
 on first $n$ elements to estimate $\alpha_z$ and 
-$0$ on last $n$ components. 
+$0$ on last $n$ components.
 And the referse of this to estimate $\alpha_y$.
 So, we have 
 <<stack>>=
@@ -155,6 +161,14 @@ stk <- inla.stack(tag='est', data=list(y=Y),
                   effects=list(ind.z, zIntercept=zIntrcpt, 
                     ind.y, yIntercept=1-zIntrcpt))
 @ 
+The intercepts here are estimated in same way 
+when we have covariate. In this case, the 
+covariate is assigned $0$ (zero) at positions 
+corresponding to the response unaffected by it. 
+So, we have list of effects with length four, 
+the index set of random effect on each response 
+and the intercept on each response. 
+A different way is used on Chapter~\ref{sec:prprec}. 
 
 To fit the model, we define one SPDE model and we 
 make inference to $\beta$ usint the copy of the strategy 
