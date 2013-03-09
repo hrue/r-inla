@@ -11,21 +11,22 @@
 \subsection*{Parametrisation}
 
 This model is the Gaussian field with Mat\'ern correlation function on
-a regular \verb|nrow x ncol| -lattice
+a regular \verb|nrow x ncol| -lattice. On an infinite lattice, the
+correlation function is 
 \begin{displaymath}
     \text{Corr}(d)
-    \propto
+    = \frac{1}{2^{\nu-1}\Gamma(\nu)}
     \left(\kappa\, {d}\right)^{\nu}
     \;
     K_{\nu}( \kappa d), \qquad \alpha = \nu + \text{d}/2,
 \end{displaymath}
-where $K_{\nu}$ is the modified Bessel function. The range is
-\emph{defined} as
+where $K_{\nu}$ is the modified Bessel function and $\Gamma(\cdot)$ is
+the Gamma-function. The range is \emph{defined} to be
 \begin{displaymath}
     r = {\sqrt{8\nu}}/{\kappa}
 \end{displaymath}
 which about the distance where the covariance function becomes
-``small''.
+about $0.1$.
 
 The boundary conditions are so that the values are taken to be $0$
 outside the lattice. No further boundary options are available at this
