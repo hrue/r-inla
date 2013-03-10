@@ -18,193 +18,196 @@
     
 `inla` =
     function (
-              ##! \item{formula}{ A \code{inla} formula like \code{y
-              ##!~1 + z + f(ind, model="iid")} + f(ind2,
-              ##!weights, model="ar1") This is much like the formula
-              ##!for a \code{glm} except that smooth or spatial terms
-              ##!can be added to the right hand side of the formula.
-              ##!See \code{\link{f}} for full details and the web site
-              ##!\url{www.r-inla.org} for several worked out
-              ##!examples. Each smooth or spatial term specified
-              ##!through \code{f} should correspond to separate column
-              ##!of the data frame \code{data}.
-              ##!The response
-              ##!variable, \code{y} can be a univariate response
-              ##!variable, a list or the output of the function
-              ##!\code{inla.surf} for survival analysis models.}
-              formula,
+        ##! \item{formula}{ A \code{inla} formula like \code{y
+        ##!~1 + z + f(ind, model="iid")} + f(ind2,
+        ##!weights, model="ar1") This is much like the formula
+        ##!for a \code{glm} except that smooth or spatial terms
+        ##!can be added to the right hand side of the formula.
+        ##!See \code{\link{f}} for full details and the web site
+        ##!\url{www.r-inla.org} for several worked out
+        ##!examples. Each smooth or spatial term specified
+        ##!through \code{f} should correspond to separate column
+        ##!of the data frame \code{data}.
+        ##!The response
+        ##!variable, \code{y} can be a univariate response
+        ##!variable, a list or the output of the function
+        ##!\code{inla.surf} for survival analysis models.}
+        formula,
+        
+        ##!\item{family}{ A string indicating the likelihood
+        ##! family. The default is \code{gaussian} with identity
+        ##! link. See \code{names(inla.models()$likelihood)} for a
+        ##! list of possible alternatives.}
+        family = "gaussian", 
+        
+        ##!\item{contrasts}{Optional contrasts for the fixed
+        ##!effects; see \code{?lm} or \code{?glm} for details.}
+        contrasts = NULL,
+        
+        ##!\item{data}{ A data frame or list containing the
+        ##!variables in the model.  The data frame MUST be
+        ##!provided}
+        data = NULL,
+        
+        ##!\item{quantiles}{ A vector of quantiles,
+        ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
+        ##!for each posterior marginal. The function returns,
+        ##!for each posterior marginal, the values
+        ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
+        ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p} }
+        quantiles=c(0.025, 0.5, 0.975),
+        
+        ##!\item{E}{ Known component in the mean for the Poisson
+        ##!likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
+        ##!exp(eta)} where \deqn{\eta_i}{eta} is the linear
+        ##!predictor. If not provided it is set to \code{rep(1, n.data)}.}
+        E = NULL,
+        
+        ##!\item{offset}{This argument is used to specify an
+        ##!a-priori known and fixed component to be included in
+        ##!the linear predictor during fitting.  This should be
+        ##!\code{NULL} or a numeric vector of length either one
+        ##!or equal to the number of cases. One or more
+        ##!\code{offset()} terms can be included in the formula
+        ##!instead or as well, and if both are used, they are
+        ##!combined into a common offset.  If the
+        ##!\code{A}-matrix is used in the linear predictor
+        ##!statement \code{control.predictor}, then the
+        ##!\code{offset} given in this argument is added to
+        ##!\code{eta*}, the linear predictor related to the
+        ##!observations, as \code{eta* = A eta + offset},
+        ##!whereas an offset in the formula is added to
+        ##!\code{eta}, the linear predictor related to the
+        ##!formula, as \code{eta = ... + offset.formula}. So in
+        ##!this case, the offset defined here and in the formula
+        ##!has a different meaning and usage.}
+        offset=NULL,
+        
+        ##!\item{scale}{ Fixed (optional) scale parameters of
+        ##!the precision for Gaussian and Student-T response
+        ##!models. Default value is rep(1, n.data).}
+        scale = NULL,
+        
+        ##!\item{weights}{ Fixed (optional) weights parameters of
+        ##!the likelihood, so the log-likelihood[i] is changed into
+        ##!weights[i]*log-likelihood[i]. Default value is rep(1,
+        ##!n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
+        ##!by default. You can enable this option for the rest of your \code{R} session,
+        ##!doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+        ##!WARNING: The normalizing constant for the likelihood is NOT recomputed, so
+        ##!ALL marginals (and the marginal likelihood) must be interpreted with great care.
+        ##!Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
+        ##!and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
+        weights = NULL,
+        
+        ##!\item{Ntrials}{ A vector containing the number of
+        ##!trials for the \code{binomial} likelihood. Default
+        ##!value is \code{rep(1, n.data)}.}
+        Ntrials = NULL,
+        
+        ##!\item{strata}{Fixed (optional) strata indicators 
+        ##!for tstrata likelihood model.}
+        strata = NULL,
+        
+        ##!\item{link.covariates}{A vector or matrix with covariates for link functions}
+        link.covariates = NULL,
 
-              ##!\item{family}{ A string indicating the likelihood
-              ##! family. The default is \code{gaussian} with identity
-              ##! link. See \code{names(inla.models()$likelihood)} for a
-              ##! list of possible alternatives.}
-              family = "gaussian", 
-
-              ##!\item{contrasts}{Optional contrasts for the fixed
-              ##!effects; see \code{?lm} or \code{?glm} for details.}
-              contrasts = NULL,
-
-              ##!\item{data}{ A data frame or list containing the
-              ##!variables in the model.  The data frame MUST be
-              ##!provided}
-              data = NULL,
-
-              ##!\item{quantiles}{ A vector of quantiles,
-              ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
-              ##!for each posterior marginal. The function returns,
-              ##!for each posterior marginal, the values
-              ##!\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
-              ##!\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p} }
-              quantiles=c(0.025, 0.5, 0.975),
-
-              ##!\item{E}{ Known component in the mean for the Poisson
-              ##!likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
-              ##!exp(eta)} where \deqn{\eta_i}{eta} is the linear
-              ##!predictor. If not provided it is set to \code{rep(1, n.data)}.}
-              E = NULL,
-
-              ##!\item{offset}{This argument is used to specify an
-              ##!a-priori known and fixed component to be included in
-              ##!the linear predictor during fitting.  This should be
-              ##!\code{NULL} or a numeric vector of length either one
-              ##!or equal to the number of cases. One or more
-              ##!\code{offset()} terms can be included in the formula
-              ##!instead or as well, and if both are used, they are
-              ##!combined into a common offset.  If the
-              ##!\code{A}-matrix is used in the linear predictor
-              ##!statement \code{control.predictor}, then the
-              ##!\code{offset} given in this argument is added to
-              ##!\code{eta*}, the linear predictor related to the
-              ##!observations, as \code{eta* = A eta + offset},
-              ##!whereas an offset in the formula is added to
-              ##!\code{eta}, the linear predictor related to the
-              ##!formula, as \code{eta = ... + offset.formula}. So in
-              ##!this case, the offset defined here and in the formula
-              ##!has a different meaning and usage.}
-              offset=NULL,
-
-              ##!\item{scale}{ Fixed (optional) scale parameters of
-              ##!the precision for Gaussian and Student-T response
-              ##!models. Default value is rep(1, n.data).}
-              scale = NULL,
-
-              ##!\item{weights}{ Fixed (optional) weights parameters of
-              ##!the likelihood, so the log-likelihood[i] is changed into
-              ##!weights[i]*log-likelihood[i]. Default value is rep(1,
-              ##!n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
-              ##!by default. You can enable this option for the rest of your \code{R} session,
-              ##!doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
-              ##!WARNING: The normalizing constant for the likelihood is NOT recomputed, so
-              ##!ALL marginals (and the marginal likelihood) must be interpreted with great care.
-              ##!Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
-              ##!and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
-              weights = NULL,
-
-              ##!\item{Ntrials}{ A vector containing the number of
-              ##!trials for the \code{binomial} likelihood. Default
-              ##!value is \code{rep(1, n.data)}.}
-              Ntrials = NULL,
-
-              ##!\item{strata}{Fixed (optional) strata indicators 
-              ##!for tstrata likelihood model.}
-              strata = NULL,
-
-              ##!\item{verbose}{
-              ##!Boolean indicating if the \code{inla}-program should
-              ##!run in a verbose mode (default \code{FALSE}).}
-              verbose = FALSE,
-
-              ##!\item{lincomb}{ Used to define linear combination of
-              ##!nodes in the latent field. The posterior distribution
-              ##!of such linear combination is computed by the
-              ##!\code{inla} function. See
-              ##!\url{http://www.r-inla.org/help/faq} for examples of
-              ##!how to define such linear combinations.}
-              lincomb = NULL,
-
-              ##!\item{control.compute}{ See \code{?control.compute}}
-              control.compute = list(),
-
-              ##!\item{control.predictor}{ See
-              ##!\code{?control.predictor}}
-              control.predictor = list(),
-
-              ##!\item{control.family}{ See \code{?control.family}}
-              control.family = list(),
-
-              ##!\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
-              ##!      see \code{?control.family}}
-              control.data = list(),
-
-              ##!\item{control.inla}{ See \code{?control.inla}}
-              control.inla = list(),
-
-              ##!\item{control.results}{ See \code{?control.result}}
-              control.results = list(),
-
-              ##!\item{control.fixed}{ See \code{?control.fixed}}
-              control.fixed = list(),
-
-              ##!\item{control.mode}{ See \code{?control.mode}}
-              control.mode = list(),
-
-              ##!\item{control.expert}{ See \code{?control.expert}}
-              control.expert = list(),
-
-              ##!\item{control.hazard}{ See \code{?control.hazard}}
-              control.hazard = list(),
-
-              ##!\item{control.lincomb}{ See \code{?control.lincomb}}
-              control.lincomb = list(),
-
-              ##!\item{only.hyperparam}{ A boolean variable saying if
-              ##!only the hyperparameters should be computed. This option is mainly used
-              ##!internally. (TODO: This option should not be located here,  change it!)}
-              only.hyperparam = FALSE,
-
-              ##!\item{inla.call}{ The path to, or the name of, the
-              ##!\code{inla}-program. This is program is installed
-              ##!together with the \code{R}-package, but, for example,
-              ##!a native compiled version can be used instead to
-              ##!improve the performance.}
-              inla.call = inla.getOption("inla.call"),
-
-              ##!\item{inla.arg}{ A string indicating ALL arguments to
-              ##!the 'inla' program and do not include default
-              ##!arguments. (OOPS: This is an expert option!)}
-              inla.arg = inla.getOption("inla.arg"),
-
-              ##!\item{num.threads}{ Maximum number of threads the
-              ##!\code{inla}-program will use. xFor Windows this
-              ##!defaults to 1, otherwise its defaults to \code{NULL}
-              ##!(for which the system takes over control).}
-              num.threads = inla.getOption("num.threads"),
-
-              ##!\item{keep}{ A boolean variable indicating that the
-              ##!working files (ini file, data files and results
-              ##!files) should be kept. If TRUE and no
-              ##!\code{working.directory} is specified the working
-              ##!files are stored in a directory called "inla".  }
-              keep = inla.getOption("keep"),
-
-              ##!\item{working.directory}{ A string giving the name
-              ##!of an alternative directory where to store the
-              ##!working files }
-              working.directory = inla.getOption("working.directory"),
-
-              ##!\item{silent}{If equal to 1L or TRUE, then the
-              ##!\code{inla}-program would be ``silent''. If equal to
-              ##!2L, then supress also error messages from the
-              ##!\code{inla}-program.}
-              silent = inla.getOption("silent"),
-
-              ##!\item{debug}{ If \code{TRUE}, then enable some debug
-              ##!output.  }
-              debug = inla.getOption("debug"),
-
-              ## this variable holds ``internal'' stuff of any kind...
-              .internal = list()
-              )
+        ##!\item{verbose}{
+        ##!Boolean indicating if the \code{inla}-program should
+        ##!run in a verbose mode (default \code{FALSE}).}
+        verbose = FALSE,
+        
+        ##!\item{lincomb}{ Used to define linear combination of
+        ##!nodes in the latent field. The posterior distribution
+        ##!of such linear combination is computed by the
+        ##!\code{inla} function. See
+        ##!\url{http://www.r-inla.org/help/faq} for examples of
+        ##!how to define such linear combinations.}
+        lincomb = NULL,
+        
+        ##!\item{control.compute}{ See \code{?control.compute}}
+        control.compute = list(),
+        
+        ##!\item{control.predictor}{ See
+        ##!\code{?control.predictor}}
+        control.predictor = list(),
+        
+        ##!\item{control.family}{ See \code{?control.family}}
+        control.family = list(),
+        
+        ##!\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
+        ##!      see \code{?control.family}}
+        control.data = list(),
+        
+        ##!\item{control.inla}{ See \code{?control.inla}}
+        control.inla = list(),
+        
+        ##!\item{control.results}{ See \code{?control.result}}
+        control.results = list(),
+        
+        ##!\item{control.fixed}{ See \code{?control.fixed}}
+        control.fixed = list(),
+        
+        ##!\item{control.mode}{ See \code{?control.mode}}
+        control.mode = list(),
+        
+        ##!\item{control.expert}{ See \code{?control.expert}}
+        control.expert = list(),
+        
+        ##!\item{control.hazard}{ See \code{?control.hazard}}
+        control.hazard = list(),
+        
+        ##!\item{control.lincomb}{ See \code{?control.lincomb}}
+        control.lincomb = list(),
+        
+        ##!\item{only.hyperparam}{ A boolean variable saying if
+        ##!only the hyperparameters should be computed. This option is mainly used
+        ##!internally. (TODO: This option should not be located here,  change it!)}
+        only.hyperparam = FALSE,
+        
+        ##!\item{inla.call}{ The path to, or the name of, the
+        ##!\code{inla}-program. This is program is installed
+        ##!together with the \code{R}-package, but, for example,
+        ##!a native compiled version can be used instead to
+        ##!improve the performance.}
+        inla.call = inla.getOption("inla.call"),
+        
+        ##!\item{inla.arg}{ A string indicating ALL arguments to
+        ##!the 'inla' program and do not include default
+        ##!arguments. (OOPS: This is an expert option!)}
+        inla.arg = inla.getOption("inla.arg"),
+        
+        ##!\item{num.threads}{ Maximum number of threads the
+        ##!\code{inla}-program will use. xFor Windows this
+        ##!defaults to 1, otherwise its defaults to \code{NULL}
+        ##!(for which the system takes over control).}
+        num.threads = inla.getOption("num.threads"),
+        
+        ##!\item{keep}{ A boolean variable indicating that the
+        ##!working files (ini file, data files and results
+        ##!files) should be kept. If TRUE and no
+        ##!\code{working.directory} is specified the working
+        ##!files are stored in a directory called "inla".  }
+        keep = inla.getOption("keep"),
+        
+        ##!\item{working.directory}{ A string giving the name
+        ##!of an alternative directory where to store the
+        ##!working files }
+        working.directory = inla.getOption("working.directory"),
+        
+        ##!\item{silent}{If equal to 1L or TRUE, then the
+        ##!\code{inla}-program would be ``silent''. If equal to
+        ##!2L, then supress also error messages from the
+        ##!\code{inla}-program.}
+        silent = inla.getOption("silent"),
+        
+        ##!\item{debug}{ If \code{TRUE}, then enable some debug
+        ##!output.  }
+        debug = inla.getOption("debug"),
+        
+        ## this variable holds ``internal'' stuff of any kind...
+        .internal = list()
+        )
     ##!}
 
     ##!\value{%%
@@ -973,7 +976,7 @@
 
     if (gp$n.random > 0) {
         rf = mf ## for later use
-        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = NULL ## these we do not need
+        rf$weights = rf$scale = rf$Ntrials = rf$offset = rf$E =  rf$strata = rf$link.covariates = NULL ## these we do not need
         rf$formula = gp$randf
         rf$data = data.same.len
         rf = eval.parent(rf)
@@ -983,7 +986,7 @@
         
     if (gp$n.weights > 0) {
         wf = mf
-        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = NULL ## these we do not need
+        wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = wf$link.covariates = NULL ## these we do not need
         wf$formula = gp$weightf
         wf$data = data.same.len
         wf = eval.parent(wf)
@@ -997,7 +1000,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata")) {
+    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "link.covariates")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
@@ -1081,7 +1084,8 @@
             stop(paste("The response for family[", i.family, "] is not of type 'numeric|list|matrix'; don't know what to do.", sep=""))
         }
 
-        files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, weights=weights, Ntrials=Ntrials, strata=strata, 
+        files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, 
+                weights=weights, Ntrials=Ntrials, strata=strata, 
                 family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
     
         ## add a section to the file.ini
@@ -1092,7 +1096,7 @@
 
         ##....then create the new section 
         inla.family.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
-                          control=cont.family[[i.family]], i.family=i.family, data.dir = data.dir)
+                          control=cont.family[[i.family]], i.family=i.family, link.covariates = link.covariates, data.dir = data.dir)
     }
 
     ##create the PREDICTOR section. 

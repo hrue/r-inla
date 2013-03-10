@@ -3128,6 +3128,28 @@ inla.models()
 				 }
 				\item{Model `tan'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `test1'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `beta'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 100'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `predictor'.}{

@@ -85,6 +85,7 @@ trials for the \code{binomial} likelihood. Default
 value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model.}
+\item{link.covariates}{A vector or matrix with covariates for link functions}
 \item{verbose}{
 Boolean indicating if the \code{inla}-program should
 run in a verbose mode (default \code{FALSE}).}

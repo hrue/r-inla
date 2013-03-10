@@ -69,12 +69,15 @@
     }
 }
 
-`inla.family.section` = function(...) {
+`inla.family.section` = function(...)
+{
     ## this is just a wrapper to make the naming better
     return (inla.data.section(...))
 }
     
-`inla.data.section` = function(file, family, file.data, file.weights, control, i.family="", data.dir)
+`inla.data.section` = function(
+        file, family, file.data, file.weights, control, i.family="",
+        link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
     cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
@@ -120,6 +123,15 @@
     control$control.link$model = inla.model.validate.link.function(family, control$control.link$model)
     cat("link.model = ", control$control.link$model, "\n", file = file,  append = TRUE)
     inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
+    if (!is.null(link.covariates)) {
+        if (!is.matrix(link.covariates)) {
+            link.covariates = matrix(c(link.covariates), ncol = 1)
+        }
+        file.link.cov = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(link.covariates, filename = file.link.cov)
+        file.link.cov = gsub(data.dir, "$inladatadir", file.link.cov, fixed=TRUE)
+        cat("link.covariates = ", file.link.cov, "\n", append=TRUE, sep = " ", file = file)
+    }
 
     ## the mix-part
     inla.write.boolean.field("mix.use", !is.null(control$control.mix$model), file)

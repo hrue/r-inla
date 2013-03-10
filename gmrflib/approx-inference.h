@@ -825,7 +825,22 @@ typedef struct {
 	gsl_matrix *eigen_vectors;
 } GMRFLib_userfunc2_arg_tp;
 
+typedef enum {
+	GMRFLib_TRANSFORM_FORWARD = 1,			       /* same as in inla.h */
+	GMRFLib_TRANSFORM_BACKWARD = 2,			       /* same as in inla.h */
+	GMRFLib_TRANSFORM_DFORWARD = 3,			       /* same as in inla.h */
+	GMRFLib_TRANSFORM_INCREASING = 4		       /* same as in inla.h */
+} GMRFLib_transform_func_arg_tp;
 
+typedef double GMRFLib_transform_func_tp(double arg, GMRFLib_transform_func_arg_tp typ, void *param, double *cov);
+
+typedef struct {
+	GMRFLib_transform_func_tp *func;
+	void *arg;
+	double *cov;
+}
+	GMRFLib_transform_array_func_tp;
+	
 
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
@@ -889,7 +904,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  int gaussian_data, double c_min, int nested);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
-int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, GMRFLib_density_tp *** density_hyper,
+int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, 
+		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp **tfunc, 
+		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
 		    char *compute, double ***hyperparam, int nhyper, GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
@@ -927,6 +944,8 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
 
 double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
+int GMRFLib_transform_density(GMRFLib_density_tp **tdensity, GMRFLib_density_tp *density,
+			      GMRFLib_transform_array_func_tp *func);
 
 __END_DECLS
 #endif
