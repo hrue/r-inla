@@ -1032,9 +1032,9 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	double beta = ((double **)param)[GMRFLib_thread_id][0];
+	double beta = ((double **) param)[GMRFLib_thread_id][0];
 	double covariate = cov[0];
-	
+
 	return map_exp(x - beta * cov[0], typ, param);
 }
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
@@ -3266,7 +3266,8 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 				if (xx > DBL_EPSILON) {
 					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
-					logll[i] = (-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6*SQR(sprec*(DBL_EPSILON - xx));
+					logll[i] =
+					    (-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e6 * SQR(sprec * (DBL_EPSILON - xx));
 				}
 			}
 		}
@@ -3842,7 +3843,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 			logll[i] = -M_LOG2E + v - 0.5 * exp_taylor(v, x0, order);
 		}
 	}
-	
+
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -3980,7 +3981,7 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 			}
 		}
 	}
-	
+
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -4730,7 +4731,7 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 	phi = phi_param * s;
 	c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
 	LINK_INIT;
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -5072,7 +5073,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 	upper = ds->data_observations.upper[idx];
 	alpha = map_alpha_loglogistic(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	LINK_INIT;
-	
+
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -5146,7 +5147,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	sprec = sqrt(prec);
 	LINK_INIT;
-	
+
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -5329,7 +5330,7 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 			logll[i] = 1.0 - 2.0 * gsl_cdf_tdist_Q(ABS(y) * sd / sqrt(var_u), dof);
 		}
 	}
-	
+
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -6528,8 +6529,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 						mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc : NULL);
 		mb->predictor_invlinkfunc_arg[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc_arg :
-						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
-						mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc_arg : NULL);
+						    (mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
+						    mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc_arg : NULL);
 		mb->predictor_invlinkfunc_covariates[i] = (found == 1 ? mb->data_sections[k].link_covariates :
 							   (mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 							   mb->data_sections[(int) (mb->link_fitted_values[i])].link_covariates : NULL);
@@ -8528,16 +8529,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * the 'xi' parameter/ the gev-parameter. we need a little care, as the user see 'xi' while we work internally with 'xi/xi.scale'
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0)/ds->data_observations.gev_scale_xi; /* scale here */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0) / ds->data_observations.gev_scale_xi;	/* scale here */
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
-			//tmp = mb->theta_file[mb->theta_counter_file++]/ds->data_observations.gev_scale_xi; /* scale here */
-			tmp = mb->theta_file[mb->theta_counter_file++]; /* DO NOT scale here */
+			// tmp = mb->theta_file[mb->theta_counter_file++]/ds->data_observations.gev_scale_xi; /* scale here */
+			tmp = mb->theta_file[mb->theta_counter_file++];	/* DO NOT scale here */
 		}
 		HYPER_NEW(ds->data_observations.xi_gev, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise gev-parameter[%g] (scaled with scale.xi=[%g])\n", ds->data_observations.xi_gev[0][0],
-				ds->data_observations.gev_scale_xi);
+			       ds->data_observations.gev_scale_xi);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a");
@@ -9891,7 +9892,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 
-	/* 
+	/*
 	 * setup the link-model
 	 */
 	ds->link_model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK.MODEL"), GMRFLib_strdup("default"))));
@@ -9905,33 +9906,33 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->link_model, "LOG")) {
 		ds->link_id = LINK_LOG;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_log; 
-		ds->predictor_invlinkfunc_arg = NULL; 
+		ds->predictor_invlinkfunc = link_log;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "PROBIT")) {
 		ds->link_id = LINK_PROBIT;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_probit; 
-		ds->predictor_invlinkfunc_arg = NULL; 
+		ds->predictor_invlinkfunc = link_probit;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "CLOGLOG")) {
 		ds->link_id = LINK_CLOGLOG;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_cloglog; 
-		ds->predictor_invlinkfunc_arg = NULL; 
+		ds->predictor_invlinkfunc = link_cloglog;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "LOGIT")) {
 		ds->link_id = LINK_LOGIT;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_logit; 
-		ds->predictor_invlinkfunc_arg = NULL; 
+		ds->predictor_invlinkfunc = link_logit;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "TAN")) {
 		ds->link_id = LINK_TAN;
 		ds->link_ntheta = 0;
-		ds->predictor_invlinkfunc = link_tan; 
-		ds->predictor_invlinkfunc_arg = NULL; 
+		ds->predictor_invlinkfunc = link_tan;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
-		ds->predictor_invlinkfunc = link_test1; 
-		ds->predictor_invlinkfunc_arg = NULL; 	       /* to be completed */
+		ds->predictor_invlinkfunc = link_test1;
+		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
 	} else {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -9939,8 +9940,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		exit(1);
 	}
 
-	/* 
-	   read possible link_covariates
+	/*
+	 * read possible link_covariates 
 	 */
 	char *link_cov_filename;
 	link_cov_filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.COVARIATES"), NULL));
@@ -9949,11 +9950,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_covariates = GMRFLib_read_fmesher_file(link_cov_filename, (long int) 0, -1);
 		if (mb->verbose) {
 			int ii, jj;
-			printf("\t\tLink_covariates: file[%s] dim=(%1d x %1d)\n",
-			       link_cov_filename, ds->link_covariates->nrow, ds->link_covariates->ncol);
+			printf("\t\tLink_covariates: file[%s] dim=(%1d x %1d)\n", link_cov_filename, ds->link_covariates->nrow, ds->link_covariates->ncol);
 			for (ii = 0; ii < IMIN(PREVIEW, ds->link_covariates->nrow); ii++) {
 				printf("\t\t\trow=%1d, covariates=[", ii);
-				for(jj = 0; jj < ds->link_covariates->ncol; jj++) {
+				for (jj = 0; jj < ds->link_covariates->ncol; jj++) {
 					printf(" %g", GMRFLib_matrix_get(ii, jj, ds->link_covariates));
 				}
 				printf(" ]\n");
@@ -9964,8 +9964,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (len != ds->link_covariates->nrow) {
 			char *emsg;
 			GMRFLib_sprintf(&emsg,
-					"link.covariates has not the same number of rows as the linear predictor %1d != %1d",
-					ds->link_covariates->nrow, len);
+					"link.covariates has not the same number of rows as the linear predictor %1d != %1d", ds->link_covariates->nrow, len);
 			inla_error_general(emsg);
 			abort();
 		}
@@ -9977,18 +9976,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 * read link-parameters, if any
 	 */
 	switch (ds->link_id) {
-	case LINK_IDENTITY: 
-	case LINK_LOG: 
-	case LINK_PROBIT: 
-	case LINK_CLOGLOG: 
-	case LINK_LOGIT: 
+	case LINK_IDENTITY:
+	case LINK_LOG:
+	case LINK_PROBIT:
+	case LINK_CLOGLOG:
+	case LINK_LOGIT:
 	case LINK_TAN:
-		/* 
+		/*
 		 * no parameters
 		 */
 		break;
 	case LINK_TEST1:
-		/* 
+		/*
 		 * exp(eta - beta*cov)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
@@ -10021,7 +10020,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior.to_theta);
 
-			ds->predictor_invlinkfunc_arg = (void *)(ds->link_parameters.beta);
+			ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters.beta);
 			mb->theta[mb->ntheta] = ds->link_parameters.beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
@@ -10037,8 +10036,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	/* 
-	   mixing of the likelihood
+	/*
+	 * mixing of the likelihood 
 	 */
 	ds->mix_use = iniparser_getboolean(ini, inla_string_join(secname, "MIX.USE"), 0);
 	if (mb->verbose) {
@@ -11299,15 +11298,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// nothing to do
 			break;
 
-		case F_IID: 
-		case F_RW1: 
-		case F_RW2: 
-		case F_CRW2: 
-		case F_OU: 
-		case F_COPY: 
-		case F_MEC: 
-		case F_MEB: 
-		case F_R_GENERIC: 
+		case F_IID:
+		case F_RW1:
+		case F_RW2:
+		case F_CRW2:
+		case F_OU:
+		case F_COPY:
+		case F_MEC:
+		case F_MEB:
+		case F_R_GENERIC:
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
@@ -11363,8 +11362,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				/*
 				 * the locations must be sorted (for some models only), otherwise, things are messed up!!!!
 				 */
-				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 ||
-				    mb->f_id[mb->nf] == F_CRW2 || mb->f_id[mb->nf] == F_OU) {
+				if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2 || mb->f_id[mb->nf] == F_OU) {
 					for (i = 0; i < nlocations - 1; i++) {
 						if (mb->f_locations[mb->nf][i] >= mb->f_locations[mb->nf][i + 1]) {
 							inla_error_file_error_sorted(__GMRFLib_FuncName, filename, nlocations, i, mb->f_locations[mb->nf][i]);
@@ -11379,7 +11377,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			break;
 
 		default:
-			/* 
+			/*
 			 * if this happens, its an error, as I have forgot one of the models in the list....
 			 */
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -16039,12 +16037,12 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 
 			switch (ds->link_id) {
-			case LINK_IDENTITY: 
-			case LINK_LOG: 
-			case LINK_PROBIT: 
-			case LINK_CLOGLOG: 
-			case LINK_LOGIT: 
-			case LINK_TAN: 
+			case LINK_IDENTITY:
+			case LINK_LOG:
+			case LINK_PROBIT:
+			case LINK_CLOGLOG:
+			case LINK_LOGIT:
+			case LINK_TAN:
 				break;
 
 			case LINK_TEST1:
@@ -16054,7 +16052,7 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 				break;
-				
+
 			default:
 				assert(0 == 1);
 			}
@@ -17010,7 +17008,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			double n = (double) (mb->f_n[i] / dim);	/* YES! */
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n */
-								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
+								   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
 			if (fail) {
 				val += PENALTY;
 			}
@@ -17259,7 +17257,7 @@ double extra(double *theta, int ntheta, void *argument)
 		P(mb->ntheta);
 		P(ntheta);
 	}
-	
+
 	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
 #undef SET_GROUP_RHO
 
@@ -17569,10 +17567,10 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	GMRFLib_transform_array_func_tp **transform_funcs;
-	
+
 	transform_funcs = Calloc(N, GMRFLib_transform_array_func_tp *);
-	for(i=0; i< mb->predictor_m + mb->predictor_n; i++) {
-		/* 
+	for (i = 0; i < mb->predictor_m + mb->predictor_n; i++) {
+		/*
 		 * only where we have data (ie n or m), can be a invlinkfunc different from the identity. also the compute-flag must be ON.
 		 */
 		if (!compute[i]) {
@@ -17603,7 +17601,7 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_ai_INLA(&(mb->density),
 			&(mb->gdensity),
 			&(mb->density_transform),
-			transform_funcs, 
+			transform_funcs,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 			mb->dic,
@@ -18701,7 +18699,7 @@ int inla_output(inla_tp * mb)
 				int offset = offsets[ii + 1];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->f_locations[ii],
-						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, 
+						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
 				inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
@@ -18788,7 +18786,7 @@ int inla_output(inla_tp * mb)
 					char *sdir;
 
 					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, 
+					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL,
 							   mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
@@ -19806,8 +19804,7 @@ int inla_layout_x_ORIG(double **x_vec, int *len_x, double xmin, double xmax, dou
 }
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
 		       int n, int nrep,
-		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg,
-		       const char *tag, const char *modelname, int verbose)
+		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, const char *tag, const char *modelname, int verbose)
 {
 #define FUNC (func ? func : NULL)
 #define FUNC_ARG (func ? func_arg : NULL)
@@ -20002,7 +19999,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					GMRFLib_density_layout_x(&xx, &nn, density[i]);
-					//inla_layout_x_ORIG(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
+					// inla_layout_x_ORIG(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
@@ -20081,7 +20078,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						fprintf(fp, "%1d ", i);
 					}
 					GMRFLib_density_layout_x(&xx, &nn, gdensity[i]);
-					//inla_layout_x_ORIG(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
+					// inla_layout_x_ORIG(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
