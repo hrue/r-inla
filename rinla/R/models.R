@@ -2577,7 +2577,18 @@
              log = list(hyper = list()), 
              logit = list(hyper = list()), 
              probit = list(hyper = list()), 
-             tan = list(hyper = list())
+             tan = list(hyper = list()), 
+             test1 = list(hyper = list(
+                                  beta = list(
+                                          name = "beta",
+                                          short.name = "b",
+                                          prior = "normal",
+                                          param = c(0, 100),
+                                          initial = 0,
+                                          fixed = FALSE,
+                                          to.theta = function(x) x,
+                                          from.theta = function(x) x
+                                          )))
              )
          )
 }
@@ -2653,7 +2664,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log"),
+                      link = c("default", "log", "test1"),
                       pdf = "poisson"
                       ),
 

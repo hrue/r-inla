@@ -116,14 +116,24 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define OFFSET2(idx_) mb_old->offset[idx_]
 #define OFFSET3(idx_) mb->offset[idx_]
 
-#define PREDICTOR_INVERSE_LINK(xx_)  ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg)
-#define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg)))
+#define LINK_INIT \
+	double *_link_covariates = NULL;				\
+	if (ds->link_covariates) {					\
+		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
+		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
+	}
+#define LINK_END  \
+	Free(_link_covariates)
+#define PREDICTOR_INVERSE_LINK(xx_)  \
+	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
+	log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY -100.0					       /* wishart3d: going over limit... */
 
 #define READ(fd, buf, num, type)					\
 	if (1) {							\
-		if (num > 0){						\
+		if (num > 0) {						\
 			int bytes_read;					\
 			bytes_read = read(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
 			assert(bytes_read == (int) ((num)*sizeof(type))); \
@@ -204,12 +214,12 @@ unsigned char *inla_inifile_sha1(const char *filename)
 	{								\
 		FILE *fp;						\
 									\
-		if (debug){						\
+		if (debug) {						\
 			printf("\tbuild SHA1 for file %s\n", fnm);	\
 		}							\
 									\
 		fp = fopen(fnm, "r");					\
-		if (fp){						\
+		if (fp) {						\
 			ssize_t fd = fileno(fp);			\
 			while (1) {					\
 				ssize_t j = read(fd, buf, (size_t)BUFSIZE); \
@@ -969,39 +979,7 @@ double map_invtan(double x, map_arg_tp typ, void *param)
 		assert(0 == 1);
 	}
 }
-double link_h(double x, map_arg_tp typ, void *param)
-{
-	/*
-	 * the link function from 
-	 */
-	char *ap = getenv("LINK_H_A");
-	assert(ap);
-
-	double a = atof(ap);
-	switch (typ) {
-	case MAP_FORWARD:
-		/*
-		 * extern = func(local) 
-		 */
-		if (x <= 0.0) {
-			return 2.0 * a / (1.0 + exp(-(2.0 / a - 4.0) * x));
-		} else if (x >= 1.0) {
-			return 1.0 - 2.0 * a / (1.0 + exp(-(2.0 / a - 4.0) * (x - 1.0)));
-		} else {
-			return a + (1.0 - 2.0 * a) * x;
-		}
-		break;
-	case MAP_BACKWARD:
-		return x;				       /* */
-	case MAP_DFORWARD:
-		abort();
-	case MAP_INCREASING:
-		return 1.0;
-	default:
-		assert(0 == 1);
-	}
-}
-double link_this_should_not_happen(double x, map_arg_tp typ, void *param)
+double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1010,44 +988,54 @@ double link_this_should_not_happen(double x, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double link_probit(double x, map_arg_tp typ, void *param)
+double link_probit(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invprobit(x, typ, param);
 }
-double link_tan(double x, map_arg_tp typ, void *param)
+double link_tan(double x, map_arg_tp typ, void *param, double *cov)
 {
 	return map_invtan(x, typ, param);
 }
-double link_cloglog(double x, map_arg_tp typ, void *param)
+double link_cloglog(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcloglog(x, typ, param);
 }
-double link_log(double x, map_arg_tp typ, void *param)
+double link_log(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_exp(x, typ, param);
 }
-double link_logit(double x, map_arg_tp typ, void *param)
+double link_logit(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invlogit(x, typ, param);
 }
-double link_identity(double x, map_arg_tp typ, void *param)
+double link_identity(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_identity(x, typ, param);
+}
+double link_test1(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	double beta = ((double **)param)[GMRFLib_thread_id][0];
+	double covariate = cov[0];
+	
+	return map_exp(x - beta * cov[0], typ, param);
 }
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
 {
@@ -2846,6 +2834,7 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 	ggamma = ds->data_observations.gamma_laplace;
 	lnc = log(laplace_likelihood_normalising_constant(alpha, ggamma, tau));
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -2859,6 +2848,7 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 			logll[i] = lnc - tau / ggamma * (-M_LN2 + ggamma * a * u + log(1.0 + exp(-2.0 * ggamma * a * u))) - 0.5 * tau * epsilon * SQR(a * u);
 		}
 	}
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2878,6 +2868,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
 	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -2889,6 +2880,8 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2909,6 +2902,7 @@ int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, doub
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred, sprec, lc, lower = -1.0, upper = 1.0, yy;	// OOOOPS!!!!
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
 	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
@@ -2927,6 +2921,7 @@ int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, doub
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2942,6 +2937,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, ypred;
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_circular_normal[idx];
 	prec = map_precision(ds->data_observations.log_prec_circular_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -2976,6 +2972,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -2992,6 +2989,7 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 	double y, rho, rho2, w, ypred;
 	double mlog2pi = -1.8378770664093454836;	       /* -log(2*pi) */
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_wrapped_cauchy[idx];
 	rho = map_probability(ds->data_observations.log_prec_wrapped_cauchy[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -3017,6 +3015,7 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3032,6 +3031,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
 
+	LINK_INIT;
 	w = ds->data_observations.iid_gamma_weight[idx];
 	shape = map_exp(ds->data_observations.iid_gamma_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rate = map_exp(ds->data_observations.iid_gamma_log_rate[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -3050,6 +3050,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 			}
 		}
 	}
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3065,6 +3066,7 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double a, b, xx, cons, eta;
 
+	LINK_INIT;
 	a = map_exp(ds->data_observations.iid_logitbeta_log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	b = map_exp(ds->data_observations.iid_logitbeta_log_b[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	cons = gsl_sf_lngamma(a + b) - (gsl_sf_lngamma(a) + gsl_sf_lngamma(b));
@@ -3077,6 +3079,7 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3091,6 +3094,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, ypred, skew, kurt, s, s2, xx, mean = 0.0;
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.sas_weight[idx];
 	prec = map_precision(ds->data_observations.sas_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -3110,6 +3114,7 @@ int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, v
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3125,6 +3130,7 @@ int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, dou
 	double lprec, prec;
 	double log_gamma;
 
+	LINK_INIT;
 	lprec = ds->data_observations.log_prec_loggamma_frailty[GMRFLib_thread_id][0];
 	prec = map_precision(lprec, MAP_FORWARD, NULL);
 	log_gamma = gsl_sf_lngamma(prec);
@@ -3134,6 +3140,7 @@ int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, dou
 			logll[i] = -log_gamma + prec * (lprec + x[i] - exp(x[i]));
 		}
 	}
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3169,6 +3176,7 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, A = M_PI / sqrt(3.0), precA, lprecA, eta;
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_logistic[idx];
 	prec = map_precision(ds->data_observations.log_prec_logistic[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
@@ -3186,6 +3194,8 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = 1.0 / (1.0 + exp(-precA * (y - eta)));
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3200,6 +3210,7 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, sprec, w, shape, shape_max, xarg, ypred;
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_skew_normal[idx];
 	lprec = ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0] + log(w);
@@ -3216,6 +3227,8 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3230,6 +3243,7 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, sprec, w, xi, xx, ypred;
 
+	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gev[idx];
 	sprec = sqrt(map_precision(ds->data_observations.log_prec_gev[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
@@ -3283,6 +3297,8 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, v
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3297,6 +3313,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
 
+	LINK_INIT;
 	dof = map_dof(ds->data_observations.dof_intern_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_t[idx];
@@ -3318,6 +3335,8 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 			logll[i] = gsl_cdf_tdist_P((y - ypred) * fac, dof);
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3329,43 +3348,6 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
 	}
 
-	if (0) {
-		static int first = 1;
-		if (first) {
-			first = 0;
-
-			Data_section_tp *ds = (Data_section_tp *) arg;
-			ds->data_observations.y[idx] = 0.0;
-			double w = ds->data_observations.weight_tstrata[idx];
-			int strata = (int) ds->data_observations.strata_tstrata[idx];
-
-			ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0] = log(1.3);
-			double prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-
-			ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0] = log(14.0 - 2.0);
-
-			FILE *fp = fopen("l.dat", "w");
-			double xx, ll;
-			for (xx = -20.0 / sqrt(prec); xx < 20.0 / sqrt(prec); xx += 0.01 / sqrt(prec)) {
-				loglikelihood_tstrata(&ll, &xx, 1, idx, NULL, arg);
-				// printf("xx %.12g ll %.12g\n", xx, ll);
-				fprintf(fp, "xx %.20f ll %.20f\n", xx, ll);
-			}
-			fclose(fp);
-
-			fp = fopen("lderiv.dat", "w");
-			double xxx[3], lll[3];
-			for (xx = -20.0 / sqrt(prec); xx < 20.0 / sqrt(prec); xx += 0.01 / sqrt(prec)) {
-				xxx[0] = xxx[1] = xxx[2] = xx;
-				loglikelihood_tstrata(lll, xxx, 3, idx, NULL, arg);
-				fprintf(fp, "xx %.20f %.20f %.20f %.20f \n", xx, lll[0], lll[1], lll[2]);
-			}
-			fclose(fp);
-
-			exit(EXIT_SUCCESS);
-		}
-	}
-
 	int i, dcode, strata;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
@@ -3373,6 +3355,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	int bit_fac = GMRFLib_getbit(ds->variant, (unsigned int) 0);
 	int bit_tail = GMRFLib_getbit(ds->variant, (unsigned int) 1);
 
+	LINK_INIT;
 	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_tstrata[idx];
@@ -3533,6 +3516,8 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 			logll[i] = gsl_cdf_tdist_P((y - ypred) * fac, dof);
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3553,6 +3538,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 	double E = ds->data_observations.E[idx];
 	double val, a, b, lambda, mu;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -3574,6 +3560,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3591,6 +3578,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -3611,6 +3599,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 		}
 	}
 
+	LINK_END;
 #undef logE
 	return GMRFLib_SUCCESS;
 }
@@ -3628,6 +3617,7 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda;
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		/*
 		 * this is just the point-mass at zero 
@@ -3659,6 +3649,8 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3675,6 +3667,7 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -3707,6 +3700,8 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3726,8 +3721,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
 	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p, lambda;
 
-	// Added some robustness here which is required according to James.S. Hopefully this will help.
-
+	LINK_INIT;
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -3800,6 +3794,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
+	LINK_END;
 #undef PROB
 	return GMRFLib_SUCCESS;
 }
@@ -3839,6 +3834,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], v, ypred;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -3846,6 +3842,8 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 			logll[i] = -M_LOG2E + v - 0.5 * exp_taylor(v, x0, order);
 		}
 	}
+	
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3866,6 +3864,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
+	LINK_INIT;
 	if (m > 0) {
 		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);	/* near always the case we'll need this one */
 		for (i = 0; i < m; i++) {
@@ -3903,6 +3902,8 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -3925,6 +3926,7 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 	double lnorm, mu, p, prob_y_is_zero, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
+	LINK_INIT;
 	if (m > 0) {
 		if ((int) y == 0) {
 			for (i = 0; i < m; i++) {
@@ -3978,6 +3980,8 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 			}
 		}
 	}
+	
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4000,6 +4004,7 @@ int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int 
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
+	LINK_INIT;
 	if (m > 0) {
 		/*
 		 * this is constant for the NegativeBinomial 
@@ -4059,6 +4064,8 @@ int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int 
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4083,6 +4090,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 	double normc = gsl_sf_lnfact((unsigned int) y);
 
+	LINK_INIT;
 	if (m > 0) {
 		/*
 		 * this is constant for the NegativeBinomial 
@@ -4160,6 +4168,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4176,6 +4185,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p;
 
+	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -4220,6 +4230,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4312,6 +4323,7 @@ int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, doub
 	    s = map_probability(ds->data_observations.test_binomial_1_s[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
 	    e = map_probability(ds->data_observations.test_binomial_1_e[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
+	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -4357,6 +4369,8 @@ int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, doub
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 		}
 	}
+
+	LINK_END;
 #undef SE
 	return GMRFLib_SUCCESS;
 }
@@ -4374,6 +4388,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], k = ds->data_observations.cbinomial_k[idx], n = ds->data_observations.cbinomial_n[idx], p;
 
+	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res);	/* Yes, its 'k' */
@@ -4413,6 +4428,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4429,6 +4445,7 @@ int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int id
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), prob = 0.0;
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		/*
 		 * this is just the point-mass at zero 
@@ -4458,6 +4475,8 @@ int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int id
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4477,6 +4496,7 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 	gsl_sf_result res;
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -4505,6 +4525,8 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 			}
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4527,6 +4549,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 	gsl_sf_result res;
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -4580,6 +4603,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 		}
 	}
 
+	LINK_END;
 #undef PROB
 #undef PROBZERO
 	return GMRFLib_SUCCESS;
@@ -4619,6 +4643,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 	gsl_sf_result res;
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
@@ -4680,6 +4705,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 		}
 	}
 
+	LINK_END;
 #undef P1
 #undef P2
 	return GMRFLib_SUCCESS;
@@ -4703,7 +4729,8 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 
 	phi = phi_param * s;
 	c = -gsl_sf_lngamma(phi) + (phi - 1.0) * log(y) + phi * log(phi);
-
+	LINK_INIT;
+	
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -4718,6 +4745,7 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4736,6 +4764,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double a, b, mu;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -4752,6 +4781,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 		}
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4774,6 +4804,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 	double p, a, b;
 	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -4817,6 +4848,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 		}
 	}
 
+	LINK_END;
 #undef LOGGAMMA_INT
 	return GMRFLib_SUCCESS;
 }
@@ -4843,6 +4875,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 	double delta = map_exp(ds->data_observations.zeroinflated_delta_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double logA, logB;
 
+	LINK_INIT;
 	if ((int) y == 0) {
 		for (i = 0; i < m; i++) {
 			pzero = PROBZERO(x[i] + OFFSET(idx));
@@ -4875,6 +4908,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 		}
 	}
 
+	LINK_END;
 #undef PROB
 #undef PROBZERO
 #undef LOGGAMMA
@@ -4902,6 +4936,7 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, v
 	lower = ds->data_observations.lower[idx];
 	upper = ds->data_observations.upper[idx];
 
+	LINK_INIT;
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -4938,6 +4973,8 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, v
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -4962,6 +4999,7 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
 
+	LINK_INIT;
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -5004,6 +5042,7 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5032,7 +5071,8 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 	lower = ds->data_observations.lower[idx];
 	upper = ds->data_observations.upper[idx];
 	alpha = map_alpha_loglogistic(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
+	LINK_INIT;
+	
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -5070,6 +5110,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
+	LINK_END;
 #undef logf
 #undef F
 #undef logff
@@ -5104,7 +5145,8 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0];
 	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	sprec = sqrt(prec);
-
+	LINK_INIT;
+	
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
@@ -5142,6 +5184,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
+	LINK_END;
 #undef logf
 #undef F
 #undef logff
@@ -5175,6 +5218,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	alpha = map_alpha_weibull_cure(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	p = map_p_weibull_cure(ds->data_observations.p_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
+	LINK_INIT;
 
 	if (m > 0) {
 		switch (ievent) {
@@ -5217,6 +5261,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5232,6 +5277,7 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], var;
 
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -5243,6 +5289,8 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi(ABS(y) / sqrt(var)));
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5263,6 +5311,7 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 	y = ds->data_observations.y[idx];
 	sd2 = dof / (dof - 2.0);
 	sd = sqrt(sd2);
+	LINK_INIT;
 	if (m > 0) {
 		double lg1, lg2, f;
 
@@ -5280,6 +5329,8 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 			logll[i] = 1.0 - 2.0 * gsl_cdf_tdist_Q(ABS(y) * sd / sqrt(var_u), dof);
 		}
 	}
+	
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -5308,6 +5359,8 @@ int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double 
 	gam = sqrt(gam2);
 	y = ds->data_observations.y[idx];
 	a = log(gam * shape / M_PI) + 0.5 * log(skew2 + shape2) + shape2;
+
+	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -5317,6 +5370,8 @@ int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double 
 			    + gsl_sf_bessel_lnKnu(1.0, sqrt((skew2 + shape2) * tmp)) - log(var_u) / 2.0;
 		}
 	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 int inla_sread_colon_ints(int *i, int *j, const char *str)
@@ -5620,6 +5675,22 @@ int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, c
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "MIX.PRIOR", "MIX.PARAMETERS", "MIX.FROM.THETA", "MIX.TO.THETA", default_prior);
+}
+int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR", "LINK.PARAMETERS", "LINK.FROM.THETA", "LINK.TO.THETA", default_prior);
+}
+int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK0.PRIOR", "LINK0.PARAMETERS", "LINK0.FROM.THETA", "LINK0.TO.THETA", default_prior);
+}
+int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK1.PRIOR", "LINK1.PARAMETERS", "LINK1.FROM.THETA", "LINK1.TO.THETA", default_prior);
+}
+int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK2.PRIOR", "LINK2.PARAMETERS", "LINK2.FROM.THETA", "LINK2.TO.THETA", default_prior);
 }
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
@@ -6430,7 +6501,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb->data_ntheta_all = 0;
 	for (j = 0; j < mb->nds; j++) {
-		mb->data_ntheta_all += mb->data_sections[j].data_ntheta + mb->data_sections[j].mix_ntheta;
+		mb->data_ntheta_all += mb->data_sections[j].data_ntheta + mb->data_sections[j].mix_ntheta + mb->data_sections[j].link_ntheta;
 		mb->data_sections[j].offset = mb->offset;      /* just a copy */
 		mb->data_sections[j].mb = mb;		       /* just a copy */
 	}
@@ -6438,7 +6509,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * make the final predictor_... from all the data-sections 
 	 */
-	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, map_func_tp *);
+	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, link_func_tp *);
+	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_n + mb->predictor_m, void *);
+	mb->predictor_invlinkfunc_covariates = Calloc(mb->predictor_n + mb->predictor_m, GMRFLib_matrix_tp *);
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
@@ -6454,6 +6527,12 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc :
 						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 						mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc : NULL);
+		mb->predictor_invlinkfunc_arg[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc_arg :
+						(mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
+						mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc_arg : NULL);
+		mb->predictor_invlinkfunc_covariates[i] = (found == 1 ? mb->data_sections[k].link_covariates :
+							   (mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
+							   mb->data_sections[(int) (mb->link_fitted_values[i])].link_covariates : NULL);
 	}
 
 	iniparser_freedict(ini);
@@ -9848,6 +9927,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_tan; 
 		ds->predictor_invlinkfunc_arg = NULL; 
+	} else if (!strcasecmp(ds->link_model, "TEST1")) {
+		ds->link_id = LINK_TEST1;
+		ds->link_ntheta = 1;
+		ds->predictor_invlinkfunc = link_test1; 
+		ds->predictor_invlinkfunc_arg = NULL; 	       /* to be completed */
 	} else {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -9855,10 +9939,43 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		exit(1);
 	}
 
+	/* 
+	   read possible link_covariates
+	 */
+	char *link_cov_filename;
+	link_cov_filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINK.COVARIATES"), NULL));
+
+	if (link_cov_filename) {
+		ds->link_covariates = GMRFLib_read_fmesher_file(link_cov_filename, (long int) 0, -1);
+		if (mb->verbose) {
+			int ii, jj;
+			printf("\t\tLink_covariates: file[%s] dim=(%1d x %1d)\n",
+			       link_cov_filename, ds->link_covariates->nrow, ds->link_covariates->ncol);
+			for (ii = 0; ii < IMIN(PREVIEW, ds->link_covariates->nrow); ii++) {
+				printf("\t\t\trow=%1d, covariates=[", ii);
+				for(jj = 0; jj < ds->link_covariates->ncol; jj++) {
+					printf(" %g", GMRFLib_matrix_get(ii, jj, ds->link_covariates));
+				}
+				printf(" ]\n");
+			}
+		}
+
+		int len = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n);
+		if (len != ds->link_covariates->nrow) {
+			char *emsg;
+			GMRFLib_sprintf(&emsg,
+					"link.covariates has not the same number of rows as the linear predictor %1d != %1d",
+					ds->link_covariates->nrow, len);
+			inla_error_general(emsg);
+			abort();
+		}
+	} else {
+		ds->link_covariates = NULL;
+	}
+
 	/*
 	 * read link-parameters, if any
 	 */
-	
 	switch (ds->link_id) {
 	case LINK_IDENTITY: 
 	case LINK_LOG: 
@@ -9869,6 +9986,50 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/* 
 		 * no parameters
 		 */
+		break;
+	case LINK_TEST1:
+		/* 
+		 * exp(eta - beta*cov)
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
+		ds->link_fixed = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
+		if (!ds->link_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->link_parameters.beta, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link beta[%g]\n", ds->link_parameters.beta[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed);
+		}
+		inla_read_prior_link(mb, ini, sec, &(ds->link_prior), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior.to_theta);
+
+			ds->predictor_invlinkfunc_arg = (void *)(ds->link_parameters.beta);
+			mb->theta[mb->ntheta] = ds->link_parameters.beta;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
 		break;
 
 	default:
@@ -9881,7 +10042,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	ds->mix_use = iniparser_getboolean(ini, inla_string_join(secname, "MIX.USE"), 0);
 	if (mb->verbose) {
-		printf("\t\tuse.mix[%1d]\n", ds->mix_use);
+		printf("\t\tmix.use[%1d]\n", ds->mix_use);
 	}
 	if (ds->mix_use) {
 		/*
@@ -10135,7 +10296,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-	    **mean_x = NULL, **log_prec_x = NULL, ***ar_theta = NULL, ***pacf_intern;
+	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -15159,7 +15320,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 
 double extra(double *theta, int ntheta, void *argument)
 {
-	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3;
+	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0;
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0;
@@ -15168,8 +15329,8 @@ double extra(double *theta, int ntheta, void *argument)
 	gsl_matrix *Q = NULL;
 
 #define SET_GROUP_RHO(_nt_)						\
-	if (mb->f_group_model[i] != G_AR){				\
-		if (mb->f_ngroup[i] == 1){				\
+	if (mb->f_group_model[i] != G_AR) {				\
+		if (mb->f_ngroup[i] == 1) {				\
 			assert(mb->f_ntheta[i] == (_nt_));		\
 		} else {						\
 			assert(mb->f_ntheta[i] == (_nt_)+1);		\
@@ -15181,7 +15342,7 @@ double extra(double *theta, int ntheta, void *argument)
 	rankdef_orig = mb->f_rankdef[i]/ngroup;				\
 	grankdef = 0.0;							\
 	if (mb->f_ngroup[i] > 1) {					\
-		if (mb->f_group_model[i] == G_AR){			\
+		if (mb->f_group_model[i] == G_AR) {			\
 			double _log_precision, *_pacf, *_pacf_intern;	\
 			int _p;						\
 									\
@@ -15226,7 +15387,7 @@ double extra(double *theta, int ntheta, void *argument)
 			Free(_pacf_intern);				\
 			Free(_marginal_Q);				\
 		} else {						\
-			if (!mb->f_fixed[i][(_nt_)]){			\
+			if (!mb->f_fixed[i][(_nt_)]) {			\
 				group_rho_intern = group_prec_intern = theta[count]; \
 				count++;				\
 				if (mb->f_group_model[i] == G_EXCHANGEABLE) { \
@@ -15236,7 +15397,7 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
 				} else if (mb->f_group_model[i] == G_AR1) { \
 					group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-					if (mb->f_group_cyclic[i]){	\
+					if (mb->f_group_cyclic[i]) {	\
 						normc_g = - (ngroup - 0.0) * 0.5 * log(1.0 - SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
 					} else {			\
 						normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
@@ -15871,6 +16032,12 @@ double extra(double *theta, int ntheta, void *argument)
 			 * link-models 
 			 */
 			check += ds->link_ntheta;
+
+			if (debug) {
+				P(ds->link_id);
+				P(ds->link_ntheta);
+			}
+
 			switch (ds->link_id) {
 			case LINK_IDENTITY: 
 			case LINK_LOG: 
@@ -15879,6 +16046,15 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_LOGIT: 
 			case LINK_TAN: 
 				break;
+
+			case LINK_TEST1:
+				if (!ds->link_fixed) {
+					double beta = theta[count];
+					val += PRIOR_EVAL(ds->link_prior, &beta);
+					count++;
+				}
+				break;
+				
 			default:
 				assert(0 == 1);
 			}
@@ -15951,7 +16127,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_SPDE:
 		{
-			int k, nT, nK, nt, Toffset = 0, Koffset = 0, debug = 0;
+			int k, nT, nK, nt, Toffset = 0, Koffset = 0;
 			double t;
 			inla_spde_tp *spde;
 			double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
@@ -16881,7 +17057,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} Hold_tp;
 			static Hold_tp **hold = NULL;
 #pragma omp threadprivate(hold)
-			int debug = 0, jj;
+			int jj;
 			Hold_tp *h;
 			GMRFLib_matern2ddef_tp *q;
 
@@ -16980,7 +17156,7 @@ double extra(double *theta, int ntheta, void *argument)
 			static Hold_tp **hold = NULL;
 #pragma omp threadprivate(hold)
 
-			int debug = 0, jj;
+			int jj;
 			Hold_tp *h;
 
 			if (!hold) {
@@ -17060,7 +17236,7 @@ double extra(double *theta, int ntheta, void *argument)
 				/*
 				 * not needed 
 				 */
-				// if (mb->f_theta[i]){
+				// if (mb->f_theta[i]) {
 				// beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				// }
 			}
@@ -17078,10 +17254,12 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
-	// P(count);
-	// P(mb->ntheta);
-	// P(ntheta);
-
+	if (debug) {
+		P(count);
+		P(mb->ntheta);
+		P(ntheta);
+	}
+	
 	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
 #undef SET_GROUP_RHO
 
@@ -17390,11 +17568,42 @@ int inla_INLA(inla_tp * mb)
 		mb->theta = NULL;
 	}
 
+	GMRFLib_transform_array_func_tp **transform_funcs;
+	
+	transform_funcs = Calloc(N, GMRFLib_transform_array_func_tp *);
+	for(i=0; i< mb->predictor_m + mb->predictor_n; i++) {
+		/* 
+		 * only where we have data (ie n or m), can be a invlinkfunc different from the identity. also the compute-flag must be ON.
+		 */
+		if (!compute[i]) {
+			transform_funcs[i] = NULL;
+		} else if (i < mb->predictor_ndata && mb->predictor_invlinkfunc[i]) {
+			transform_funcs[i] = Calloc(1, GMRFLib_transform_array_func_tp);
+			transform_funcs[i]->func = (GMRFLib_transform_func_tp *) mb->predictor_invlinkfunc[i];
+			transform_funcs[i]->arg = mb->predictor_invlinkfunc_arg[i];
+
+			double *cov = NULL;
+			if (mb->predictor_invlinkfunc_covariates && mb->predictor_invlinkfunc_covariates[i]) {
+				int ncov = mb->predictor_invlinkfunc_covariates[i]->ncol;
+				cov = Calloc(ncov, double);
+				GMRFLib_matrix_get_row(cov, i, mb->predictor_invlinkfunc_covariates[i]);
+			}
+			transform_funcs[i]->cov = cov;	       /* yes, we store a copy here */
+		} else {
+			transform_funcs[i] = Calloc(1, GMRFLib_transform_array_func_tp);
+			transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
+			transform_funcs[i]->arg = NULL;
+			transform_funcs[i]->cov = NULL;
+		}
+	}
+
 	/*
 	 * Finally, let us do the job...
 	 */
 	GMRFLib_ai_INLA(&(mb->density),
 			&(mb->gdensity),
+			&(mb->density_transform),
+			transform_funcs, 
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 			mb->dic,
@@ -17602,7 +17811,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	mb_old->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
 	mb_old->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 
-	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
+	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
 			extra, (void *) mb_old, x_old, b, c, NULL, NULL, mb_old->d, loglikelihood_inla, (void *) mb_old, NULL,
 			mb_old->hgmrfm->graph, mb_old->hgmrfm->Qfunc, mb_old->hgmrfm->Qfunc_arg, mb_old->hgmrfm->constr, mb_old->ai_par, ai_store,
 			0, NULL, NULL, NULL);
@@ -17753,7 +17962,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 #define SET_THETA(_mb, _theta)						\
 	if (1) {							\
 		int _i, _j;						\
-		for(_i=0; _i < _mb->ntheta; _i++){			\
+		for(_i=0; _i < _mb->ntheta; _i++) {			\
 			for(_j=0; _j < GMRFLib_MAX_THREADS; _j++) {	\
 				_mb->theta[_i][_j][0] = _theta[_i];	\
 			}						\
@@ -17762,7 +17971,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 #define GET_THETA(_mb, _theta)					\
 	if (1) {						\
 		int _i;						\
-		for(_i=0; _i < _mb->ntheta; _i++){		\
+		for(_i=0; _i < _mb->ntheta; _i++) {		\
 			_theta[_i] = _mb->theta[_i][0][0];	\
 		}						\
 	}
@@ -18472,7 +18681,7 @@ int inla_output(inla_tp * mb)
 			int offset = offsets[0];
 
 			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
-					   mb->predictor_output, mb->predictor_dir, NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
+					   mb->predictor_output, mb->predictor_dir, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
 			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_m, -1,
 					 (mb->predictor_m == 0 ? 1 : 2));
 
@@ -18481,8 +18690,8 @@ int inla_output(inla_tp * mb)
 
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
-						   mb->predictor_output, sdir, NULL, NULL, mb->predictor_invlinkfunc, newtag, NULL, local_verbose);
+				inla_output_detail(mb->dir, &(mb->density_transform[offset]), NULL, NULL, mb->predictor_n + mb->predictor_m, 1,
+						   mb->predictor_output, sdir, NULL, NULL, newtag, NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 			}
 		} else if (i == 1) {
@@ -18492,7 +18701,7 @@ int inla_output(inla_tp * mb)
 				int offset = offsets[ii + 1];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->f_locations[ii],
-						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL,
+						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, 
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
 				inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
@@ -18534,7 +18743,7 @@ int inla_output(inla_tp * mb)
 				int offset = offsets[mb->nf + 1 + ii];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
-						   mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
+						   mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
 			if (!mb->lc_derived_only) {
@@ -18550,7 +18759,7 @@ int inla_output(inla_tp * mb)
 					ii = 0;
 					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
 					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->lc_order, mb->nlc, 1,
-							   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+							   mb->lc_output[ii], newdir2, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
 
@@ -18565,7 +18774,7 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
 				GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
 				inla_output_detail(mb->dir, &(mb->density_lin[ii]), &(mb->density_lin[ii]), mb->lc_order, mb->nlc, 1,
-						   mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+						   mb->lc_output[ii], newdir2, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) mb->lc_tag), NULL);
 
@@ -18579,13 +18788,13 @@ int inla_output(inla_tp * mb)
 					char *sdir;
 
 					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, NULL,
+					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, 
 							   mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
 					GMRFLib_sprintf(&sdir, "hyperparameter 2 %.6d %s user scale", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
-							   mb->theta_map[ii], mb->theta_map_arg[ii], NULL, mb->theta_tag_userscale[ii], NULL, local_verbose);
+							   mb->theta_map[ii], mb->theta_map_arg[ii], mb->theta_tag_userscale[ii], NULL, local_verbose);
 				}
 			}
 
@@ -18605,7 +18814,7 @@ int inla_output(inla_tp * mb)
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, gd, NULL, GMRFLib_ai_INLA_userfunc0_dim, 1,
-						   mb->output, sdir, NULL, NULL, NULL, "UserFunction0", NULL, local_verbose);
+						   mb->output, sdir, NULL, NULL, "UserFunction0", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc0_dim, -1, -1, -1, -1);
 				Free(sdir);
 				for (ii = 0; ii < dim; ii++)
@@ -18627,7 +18836,7 @@ int inla_output(inla_tp * mb)
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, gd, NULL, GMRFLib_ai_INLA_userfunc1_dim, 1,
-						   mb->output, sdir, NULL, NULL, NULL, "UserFunction1", NULL, local_verbose);
+						   mb->output, sdir, NULL, NULL, "UserFunction1", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc1_dim, -1, -1, -1, -1);
 
 				Free(sdir);
@@ -18654,7 +18863,7 @@ int inla_output(inla_tp * mb)
 					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc2_tag[ii]);
 					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc2_density[ii], gd, NULL, dim, 1,
-							   mb->output, sdir, NULL, NULL, NULL, local_tag, NULL, local_verbose);
+							   mb->output, sdir, NULL, NULL, local_tag, NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, dim, -1, -1, -1, -1);
 
 					Free(sdir);
@@ -19595,99 +19804,17 @@ int inla_layout_x_ORIG(double **x_vec, int *len_x, double xmin, double xmax, dou
 
 	return GMRFLib_SUCCESS;
 }
-int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
-{
-	/*
-	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
-	 */
-	double p[] = {
-		0.0000001,
-		0.000001,
-		0.00001,
-		0.0001,
-		0.0005,
-		0.001,
-		0.005,
-		0.01,
-		0.025, 
-		0.05, 
-		0.075, 
-		0.10, 
-		0.125, 
-		0.15,
-		0.175, 
-		0.2,
-		0.225,
-		0.25,
-		0.275,
-		0.30,
-		0.325,
-		0.35,
-		0.375,
-		0.40,
-		0.425,
-		0.45, 
-		0.46,
-		0.47,
-		0.48,
-		0.49,
-		0.50,
-		0.51,
-		0.52,
-		0.53,
-		0.54,
-		0.55, 
-		0.575,
-		0.60,
-		0.625,
-		0.65,
-		0.675,
-		0.70,
-		0.725,
-		0.75,
-		0.775,
-		0.80,
-		0.825,
-		0.85,
-		0.875,
-		0.9, 
-		0.925,  
-		0.95,
-		0.975,
-		0.99, 
-		0.995, 
-		0.999,
-		0.9995,
-		0.9999,
-		0.99999,
-		0.999999, 
-		0.9999999
-	};
-
-	int n, i;
-	double *x;
-
-	n = *len_x = sizeof(p)/sizeof(double);
-	x = *x_vec = Calloc(n, double);
-	for(i=0; i<n; i++){
-		GMRFLib_density_Pinv(&(x[i]), p[i], density);
-	}
-	GMRFLib_unique_additive(&n, x, GMRFLib_eps(0.5));
-	
-	return GMRFLib_SUCCESS;
-}
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
 		       int n, int nrep,
 		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg,
-		       map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose)
+		       const char *tag, const char *modelname, int verbose)
 {
-#define MAP_DENS(_dens, _x_user) (func ? _dens/(ABS(func(_x_user, MAP_DFORWARD, func_arg))) : \
-				  ((ffunc && ffunc[i]) ? _dens/(ABS(ffunc[i](_x_user, MAP_DFORWARD, NULL))) : _dens))
-#define MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) : ((ffunc && ffunc[i]) ? ffunc[i](_x_user,  MAP_FORWARD, NULL) : _x_user))
-#define MAP_INCREASING (func ? func(0.0, MAP_INCREASING, func_arg) : ((ffunc && ffunc[i]) ? ffunc[i](0.0, MAP_INCREASING, NULL) :  1))
-#define MAP_DECREASING (!MAP_INCREASING)
-#define FUNC (func ? func : ((ffunc && ffunc[i]) ? ffunc[i] : NULL))
+#define FUNC (func ? func : NULL)
 #define FUNC_ARG (func ? func_arg : NULL)
+#define MAP_DENS(_dens, _x_user) (func ? _dens/(ABS(func(_x_user, MAP_DFORWARD, func_arg))) : _dens)
+#define MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) : _x_user)
+#define MAP_INCREASING (func ? func(0.0, MAP_INCREASING, func_arg) : 1)
+#define MAP_DECREASING (!MAP_INCREASING)
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
@@ -19874,7 +20001,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							fprintf(fp, "%1d ", i);
 						}
 					}
-					inla_layout_x(&xx, &nn, density[i]);
+					GMRFLib_density_layout_x(&xx, &nn, density[i]);
 					//inla_layout_x_ORIG(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
 					if (G.binary) {
 						IW(nn);
@@ -19953,7 +20080,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 					} else {
 						fprintf(fp, "%1d ", i);
 					}
-					inla_layout_x(&xx, &nn, gdensity[i]);
+					GMRFLib_density_layout_x(&xx, &nn, gdensity[i]);
 					//inla_layout_x_ORIG(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
 					if (G.binary) {
 						IW(nn);
@@ -20863,7 +20990,7 @@ int testit(int argc, char **argv)
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
 			int _i;						\
-			for(_i=0; _i < _len; _i++){			\
+			for(_i=0; _i < _len; _i++) {			\
 				fscanf(fp, "%lf\n", &_vec[_i]);		\
 				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
 			}						\
