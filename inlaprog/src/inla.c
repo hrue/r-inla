@@ -1032,8 +1032,11 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	double beta = ((double **) param)[GMRFLib_thread_id][0];
-	double covariate = cov[0];
+	Link_param_tp *p; 
+	double beta;
+	
+	p = (Link_param_tp *) param;
+	beta = p->beta[GMRFLib_thread_id][0];
 
 	return map_exp(x - beta * cov[0], typ, param);
 }
@@ -9986,6 +9989,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * no parameters
 		 */
 		break;
+
 	case LINK_TEST1:
 		/*
 		 * exp(eta - beta*cov)
@@ -9995,9 +9999,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->link_fixed && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->link_parameters.beta, tmp);
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
+		
+		HYPER_NEW(ds->link_parameters->beta, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise link beta[%g]\n", ds->link_parameters.beta[0][0]);
+			printf("\t\tinitialise link beta[%g]\n", ds->link_parameters->beta[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed);
 		}
 		inla_read_prior_link(mb, ini, sec, &(ds->link_prior), "GAUSSIAN-std");
@@ -10019,9 +10026,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior.to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->beta;
 
-			ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters.beta);
-			mb->theta[mb->ntheta] = ds->link_parameters.beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
