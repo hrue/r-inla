@@ -97,25 +97,26 @@ typedef enum {
 	 * map from internal representation to the user representation and link-functions. EX: precision = exp(log_prec), or the
 	 * inverse-link-function
 	 */
-	MAP_FORWARD = 1,
-	INVLINK = 1,
+	MAP_FORWARD = GMRFLib_TRANSFORM_FORWARD,	       /* = 1 */
+	INVLINK = GMRFLib_TRANSFORM_FORWARD,
 	/*
 	 * the inverse of the _FORWARD map, EX: log_prec = log(precision), or the link-function
 	 */
-	MAP_BACKWARD = 2,
-	LINK = 2,
+	MAP_BACKWARD = GMRFLib_TRANSFORM_BACKWARD,	       /* = 2 */
+	LINK = GMRFLib_TRANSFORM_BACKWARD,
 	/*
 	 * the derivative of the forward_map, EX: exp(log_prec). or the derivative of the inverse link-function.
 	 */
-	MAP_DFORWARD = 3,
-	DINVLINK = 3,
+	MAP_DFORWARD = GMRFLib_TRANSFORM_DFORWARD,	       /* = 3 */
+	DINVLINK = GMRFLib_TRANSFORM_DFORWARD, 
 	/*
 	 * return 1 is monotone increasing and 0 otherwise
 	 */
-	MAP_INCREASING = 4
+	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING	       /* = 4 */
 } map_arg_tp;
 
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
+typedef double link_func_tp(double arg, map_arg_tp typ, void *param, double *cov);
 
 typedef struct {
 	const char *name;
@@ -320,6 +321,14 @@ typedef struct {
 	double **mix_log_prec_gaussian;
 } Data_tp;
 
+typedef struct {
+	/* 
+	   test1
+	*/
+	double **beta;
+	
+} Link_param_tp;
+
 /* 
    this is needed so we can identify each component in the model
  */
@@ -431,7 +440,8 @@ typedef enum {
 	LINK_PROBIT,
 	LINK_CLOGLOG,
 	LINK_LOGIT,
-	LINK_TAN
+	LINK_TAN, 
+	LINK_TEST1
 } inla_component_tp;
 
 
@@ -528,12 +538,21 @@ typedef struct {
 	 */
 	char *link_model;
 	inla_component_tp link_id;
-	map_func_tp *predictor_invlinkfunc;
+	link_func_tp *predictor_invlinkfunc;
 	void *predictor_invlinkfunc_arg;
 	Prior_tp link_prior;
+	Prior_tp link_prior0;
+	Prior_tp link_prior1;
+	Prior_tp link_prior2;
 	int link_fixed;
+	int link_fixed0;
+	int link_fixed1;
+	int link_fixed2;
 	int link_ntheta;
+	Link_param_tp link_parameters;
+	GMRFLib_matrix_tp *link_covariates;
 	
+
 	/* 
 	 * the re-extention
 	 */
@@ -652,7 +671,9 @@ struct inla_tp_struct {
 	int predictor_compute;
 	int predictor_fixed;
 	int predictor_user_scale;
-	map_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
+	link_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
+	void **predictor_invlinkfunc_arg;		       /* these are rebuilt */
+	GMRFLib_matrix_tp **predictor_invlinkfunc_covariates;
 	Output_tp *predictor_output;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
@@ -785,6 +806,7 @@ struct inla_tp_struct {
 	 */
 	GMRFLib_density_tp **density;
 	GMRFLib_density_tp **gdensity;
+	GMRFLib_density_tp **density_transform;
 	GMRFLib_density_tp **density_hyper;
 	GMRFLib_density_tp **density_lin;
 	GMRFLib_ai_cpo_tp *cpo;
@@ -1033,14 +1055,14 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double extra(double *theta, int ntheta, void *argument);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
-double link_cloglog(double x, map_arg_tp typ, void *param);
-double link_identity(double x, map_arg_tp typ, void *param);
-double link_log(double x, map_arg_tp typ, void *param);
-double link_logit(double x, map_arg_tp typ, void *param);
-double link_probit(double x, map_arg_tp typ, void *param);
-double link_tan(double x, map_arg_tp typ, void *param);
-double link_h(double x, map_arg_tp typ, void *param);
-double link_this_should_not_happen(double x, map_arg_tp typ, void *param);
+double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
+double link_identity(double x, map_arg_tp typ, void *param, double *cov);
+double link_log(double x, map_arg_tp typ, void *param, double *cov);
+double link_logit(double x, map_arg_tp typ, void *param, double *cov);
+double link_probit(double x, map_arg_tp typ, void *param, double *cov);
+double link_tan(double x, map_arg_tp typ, void *param, double *cov);
+double link_test1(double x, map_arg_tp typ, void *param, double *cov);
+double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double log_apbex(double a, double b);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
@@ -1131,7 +1153,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
-		       const char *sdir, map_func_tp * func, void *func_arg, map_func_tp ** ffunc, const char *tag, const char *modelname, int verbose);
+		       const char *sdir, map_func_tp * func, void *func_arg, const char *tag, const char *modelname, int verbose);
 int inla_output_hgid(const char *dir);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose);
@@ -1176,6 +1198,10 @@ int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *default_prior);
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);

@@ -1773,3 +1773,84 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
+{
+	/*
+	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
+	 */
+	double p[] = {
+		0.0000001,
+		0.000001,
+		0.00001,
+		0.0001,
+		0.0005,
+		0.001,
+		0.005,
+		0.01,
+		0.025, 
+		0.05, 
+		0.075, 
+		0.10, 
+		0.125, 
+		0.15,
+		0.175, 
+		0.2,
+		0.225,
+		0.25,
+		0.275,
+		0.30,
+		0.325,
+		0.35,
+		0.375,
+		0.40,
+		0.425,
+		0.45, 
+		0.46,
+		0.47,
+		0.48,
+		0.49,
+		0.50,
+		0.51,
+		0.52,
+		0.53,
+		0.54,
+		0.55, 
+		0.575,
+		0.60,
+		0.625,
+		0.65,
+		0.675,
+		0.70,
+		0.725,
+		0.75,
+		0.775,
+		0.80,
+		0.825,
+		0.85,
+		0.875,
+		0.9, 
+		0.925,  
+		0.95,
+		0.975,
+		0.99, 
+		0.995, 
+		0.999,
+		0.9995,
+		0.9999,
+		0.99999,
+		0.999999, 
+		0.9999999
+	};
+
+	int n, i;
+	double *x;
+
+	n = *len_x = sizeof(p)/sizeof(double);
+	x = *x_vec = Calloc(n, double);
+	for(i=0; i<n; i++) {
+		GMRFLib_density_Pinv(&(x[i]), p[i], density);
+	}
+	GMRFLib_unique_additive(&n, x, GMRFLib_eps(0.5));
+	
+	return GMRFLib_SUCCESS;
+}
