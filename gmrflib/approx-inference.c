@@ -2919,8 +2919,8 @@ int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *i
 
   \param[in] linear_term_func_arg A pointer to a function-arguments of the function returning linear terms. Set to \c NULL if you do not have this.
  */
-int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, 
-		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp **tfunc, 
+int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity,
+		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
@@ -2958,7 +2958,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL), nlin, Alin, _store, _improved_mean); \
 		Free(_improved_mean);					\
 	}
-	
+
 #define ADD_CONFIG(_store, _theta, _log_posterior)					\
 	if (1) {							\
 		int _i;							\
@@ -3758,7 +3758,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 			ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-			//GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
+			// GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
 			if (run_with_omp) {
 				// FIX THIS LATER
 				GMRFLib_ai_store_tp *ai_store_id = ai_store;
@@ -3923,7 +3923,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv */
 						GMRFLib_ai_si(ai_par, log_dens, theta_local, nhyper, graph, ai_store_id);
 					}
-					//GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
+					// GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 					ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 					for (i = 0; i < compute_n; i++) {
 						int ii = compute_idx[i];
@@ -4059,7 +4059,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 					ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-					//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+					// GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 					if (run_with_omp) {
 						GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4210,8 +4210,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							if (dic) {
 								deviance_theta_local = Calloc(graph->n, float);
 							}
-
- 							//GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
+							// GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 							for (i = 0; i < compute_n; i++) {
 								GMRFLib_density_tp *cpodens = NULL;
 								int ii;
@@ -4264,7 +4263,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								for (i = 0; i < compute_n; i++) {
 									ii = compute_idx[i];
 									dens[ii][dens_count] = dens_local[ii];
-									if (tfunc && tfunc[ii]){
+									if (tfunc && tfunc[ii]) {
 										dens_transform[ii][dens_count] = dens_local_transform[ii];
 									}
 								}
@@ -4395,7 +4394,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-							//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+							// GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4414,7 +4413,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
 												   ai_store_id, marginal_hidden_store);
 									if (tfunc && tfunc[ii]) {
-										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
+										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
+													  tfunc[ii]);
 									}
 									double *xx_mode = ai_store_id->mode;
 									COMPUTE;
@@ -4435,7 +4435,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
 												   marginal_hidden_store);
 									if (tfunc && tfunc[ii]) {
-										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
+										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
+													  tfunc[ii]);
 									}
 									double *xx_mode = ai_store->mode;
 									COMPUTE;
@@ -4549,7 +4550,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-							//GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
+							// GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
 #pragma omp parallel for private(i)
@@ -4568,7 +4569,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par,
 												   ai_store_id, marginal_hidden_store);
 									if (tfunc && tfunc[ii]) {
-										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
+										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
+													  tfunc[ii]);
 									}
 									double *xx_mode = ai_store_id->mode;
 									COMPUTE;
@@ -4589,7 +4591,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 												   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
 												   marginal_hidden_store);
 									if (tfunc && tfunc[ii]) {
-										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
+										GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
+													  tfunc[ii]);
 									}
 									double *xx_mode = ai_store->mode;
 									COMPUTE;
@@ -4673,7 +4676,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
-		//GMRFLib_ai_store_config(misc_output, nhyper, NULL, log_dens_mode, ai_store->problem);
+		// GMRFLib_ai_store_config(misc_output, nhyper, NULL, log_dens_mode, ai_store->problem);
 		if (run_with_omp) {
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 			double *bnew = NULL, con = 0.0;
@@ -4851,7 +4854,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (density || gdensity) {
-		/* 
+		/*
 		 * need a separate strategy here, as this might take time if the number of points are large, and we essentially want to do this loop with max
 		 * num_threads.
 		 */
@@ -4859,7 +4862,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #pragma omp parallel for private(j)
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
-			//fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
+			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
 			GMRFLib_density_tp *dens_combine, *gdens_combine;
 			GMRFLib_density_combine((density ? &dens_combine : NULL), (gdensity ? &gdens_combine : NULL), dens_count, dens[ii], adj_weights);
 			if (density) {
@@ -4869,7 +4872,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				(*gdensity)[ii] = gdens_combine;
 			}
 
-			if (tfunc && tfunc[ii]){
+			if (tfunc && tfunc[ii]) {
 				GMRFLib_density_tp *dens_c;
 				GMRFLib_density_combine((density_transform ? &dens_c : NULL), NULL, dens_count, dens_transform[ii], adj_weights);
 				(*density_transform)[ii] = dens_c;
@@ -5600,12 +5603,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_transform_density(GMRFLib_density_tp **tdensity, GMRFLib_density_tp *density,
-			      GMRFLib_transform_array_func_tp *func)
+int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func)
 {
 	double *x, x_user, *ld, m, s;
 	int len_x, i;
-	
+
 	if (!(density->P) || !(density->Pinv)) {
 		GMRFLib_init_density(density, GMRFLib_TRUE);
 	}
@@ -5616,14 +5618,14 @@ int GMRFLib_transform_density(GMRFLib_density_tp **tdensity, GMRFLib_density_tp 
 
 	m = func->func(density->std_mean, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov);
 	s = ABS(func->func(density->std_mean, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)) * density->std_stdev;
-	for(i=0; i < len_x; i++) {
+	for (i = 0; i < len_x; i++) {
 		x_user = GMRFLib_density_std2user(x[i], density);
 		ld[i] -= log(ABS(func->func(x_user, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)));
-		x[i] = (func->func(x_user, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov) - m ) / s;
+		x[i] = (func->func(x_user, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov) - m) / s;
 	}
 	GMRFLib_density_create(tdensity, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, len_x, x, ld, m, s, GMRFLib_FALSE);
 
-	if (0){
+	if (0) {
 		printf("OLD\n");
 		GMRFLib_density_printf(stdout, density);
 		printf("NEW\n");
@@ -5632,7 +5634,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp **tdensity, GMRFLib_density_tp 
 
 	Free(x);
 	Free(ld);
-	
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
