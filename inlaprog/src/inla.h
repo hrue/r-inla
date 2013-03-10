@@ -549,7 +549,7 @@ typedef struct {
 	int link_fixed1;
 	int link_fixed2;
 	int link_ntheta;
-	Link_param_tp link_parameters;
+	Link_param_tp *link_parameters;
 	GMRFLib_matrix_tp *link_covariates;
 	
 
