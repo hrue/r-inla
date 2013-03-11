@@ -134,6 +134,8 @@ plot.inla.mesh =
              add=FALSE,
              lwd=1,
              col="black",
+             xlim = range(mesh$loc[,1]),
+             ylim = range(mesh$loc[,2]),
              ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -144,7 +146,7 @@ plot.inla.mesh =
 
     if (!add) {
         plot.new()
-        plot.window(xlim=range(mesh$loc[,1]), ylim=range(mesh$loc[,2]), "")
+        plot.window(xlim=xlim, ylim=ylim, "")
     }
     lines(x, y, type="l", col=col, lwd=lwd)
     if (!is.null(mesh$segm$bnd))
