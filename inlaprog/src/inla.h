@@ -322,11 +322,19 @@ typedef struct {
 } Data_tp;
 
 typedef struct {
+
+	int order;					       /* a copy of ds->link_order */
+	double **log_prec;
+
 	/* 
-	   test1
-	*/
-	double **beta;
-	
+	 *  test1
+	 */
+	double **test1_beta;
+
+	/* 
+	 *  more general, with unknown number of covariates
+	 */
+	double ***beta;
 } Link_param_tp;
 
 /* 
@@ -441,7 +449,8 @@ typedef enum {
 	LINK_CLOGLOG,
 	LINK_LOGIT,
 	LINK_TAN, 
-	LINK_TEST1
+	LINK_TEST1,
+	LINK_SPECIAL1
 } inla_component_tp;
 
 
@@ -538,16 +547,12 @@ typedef struct {
 	 */
 	char *link_model;
 	inla_component_tp link_id;
+	int link_order;
 	link_func_tp *predictor_invlinkfunc;
 	void *predictor_invlinkfunc_arg;
-	Prior_tp link_prior;
-	Prior_tp link_prior0;
-	Prior_tp link_prior1;
-	Prior_tp link_prior2;
-	int link_fixed;
-	int link_fixed0;
-	int link_fixed1;
-	int link_fixed2;
+	Prior_tp *link_prior;
+	int *link_fixed;
+	double *link_initial;
 	int link_ntheta;
 	Link_param_tp *link_parameters;
 	GMRFLib_matrix_tp *link_covariates;
@@ -1062,6 +1067,7 @@ double link_logit(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
+double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double log_apbex(double a, double b);
 double map_1exp(double arg, map_arg_tp typ, void *param);
