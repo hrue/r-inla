@@ -83,6 +83,9 @@
         ##:ARGUMENT: link The name of the link function/model
         model = "default",
 
+        ##:ARGUMENT: order The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.
+        order = NULL, 
+
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
         hyper = NULL,
 

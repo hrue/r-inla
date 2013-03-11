@@ -120,8 +120,20 @@
         }
         control$control.link$model = control$link
     }
-    control$control.link$model = inla.model.validate.link.function(family, control$control.link$model)
-    cat("link.model = ", control$control.link$model, "\n", file = file,  append = TRUE)
+    lmod = control$control.link$model = inla.model.validate.link.function(family, control$control.link$model)
+    ord = control$control.link$order
+    cat("link.model = ", lmod, "\n", file = file,  append = TRUE)
+    if (inla.one.of(lmod, c("XXXXXXXXXXXXXXX"))) {
+        ## for these models, the argument order is required
+        if (is.null(ord)) {
+            stop(paste("For link-model:", lmod, ", 'order' must be spesified."))
+        }
+        cat("link.order = ", ord, "\n", file = file,  append = TRUE)
+    } else {
+        if (!is.null(ord)) {
+            stop(paste("For link-model:", lmod, ", the argument 'order' is not used and must be NULL."))
+        }
+    }
     inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
     if (!is.null(link.covariates)) {
         if (!is.matrix(link.covariates)) {
