@@ -2588,7 +2588,121 @@
                                           fixed = FALSE,
                                           to.theta = function(x) x,
                                           from.theta = function(x) x
-                                          )))
+                                          ))),
+             special1 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.01),
+                                      to.theta = function(x) x,
+                                      from.theta = function(x) x
+                                      ),
+                              theta2 = list(
+                                      name = "beta1",
+                                      short.name = "beta1",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "mvnorm",
+                                      param = c(0, 0.15),  ## same as for AR1
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta3 = list(
+                                      name = "beta2",
+                                      short.name = "beta2",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta4 = list(
+                                      name = "beta3",
+                                      short.name = "beta3",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta5 = list(
+                                      name = "beta4",
+                                      short.name = "beta4",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta6 = list(
+                                      name = "beta5",
+                                      short.name = "beta5",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta7 = list(
+                                      name = "beta6",
+                                      short.name = "beta6",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta8 = list(
+                                      name = "beta7",
+                                      short.name = "beta7",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta9 = list(
+                                      name = "beta8",
+                                      short.name = "beta8",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta10 = list(
+                                      name = "beta9",
+                                      short.name = "beta9",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      ),
+                              theta11 = list(
+                                      name = "beta10",
+                                      short.name = "beta10",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "none",
+                                      param = numeric(0),
+                                      to.theta = function(x) x, 
+                                      from.theta = function(x) x
+                                      )
+                              )
+                     )
              )
          )
 }
