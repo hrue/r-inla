@@ -2292,7 +2292,7 @@
                                       from.theta = function(x) exp(x)
                                       )
                               ),
-                      constr = TRUE,
+                      constr = FALSE,
                       nrow.ncol = TRUE,
                       augmented = FALSE,
                       aug.factor = 1L,
