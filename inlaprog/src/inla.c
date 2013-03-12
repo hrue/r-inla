@@ -1050,6 +1050,8 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 	p = (Link_param_tp *) param;
 	tmp = 0.0;
 	for(i = 0; i < p->order; i++){
+		//P(p->beta[i][GMRFLib_thread_id][0]);
+		//P(cov[i]);
 		tmp += p->beta[i][GMRFLib_thread_id][0] * cov[i];
 	}
 	
@@ -5701,15 +5703,15 @@ int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * pri
 }
 int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK0.PRIOR", "LINK0.PARAMETERS", "LINK0.FROM.THETA", "LINK0.TO.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0", default_prior);
 }
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK1.PRIOR", "LINK1.PARAMETERS", "LINK1.FROM.THETA", "LINK1.TO.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1", default_prior);
 }
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK2.PRIOR", "LINK2.PARAMETERS", "LINK2.FROM.THETA", "LINK2.TO.THETA", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2", default_prior);
 }
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
@@ -10092,7 +10094,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = ds->link_order + 1;
 		assert(ds->link_ntheta <= LINK_MAXTHETA + 1);
 		if (mb->verbose) {
-			printf("\t\tntheta = [%1d]\n", ds->link_ntheta);
+			printf("\t\tlink ntheta = [%1d]\n", ds->link_ntheta);
 		}
 
 		/*
@@ -10136,16 +10138,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * then read those we need 
 		 */
 		for (i = 0; i < ds->link_ntheta; i++) {
-			double theta_initial;
+			double theta_initial = 0;
 			char *ctmp;
 
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
 			ds->link_fixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			GMRFLib_sprintf(&ctmp, "LINK.INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
 
 			if (!ds->link_fixed[i] && mb->reuse_mode) {
 				theta_initial = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			if (mb->verbose) {
+				printf("\t\tlink theta fixed  [%1d] = [%1d]\n", i, ds->link_fixed[i]);
+				printf("\t\tlink theta initial[%1d] = [%g]\n", i, ds->link_initial[i]);
 			}
 
 			if (i == 0) {
@@ -10154,7 +10161,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				 */
 				HYPER_INIT(ds->link_parameters->log_prec, theta_initial);
 				if (mb->verbose) {
-					printf("\t\tlink initialise log_prec [%1d]=[%g]\n", i, theta_initial);
+					printf("\t\tlink initialise log_prec = [%g]\n", theta_initial);
 					printf("\t\tlink fixed[%1d]=[%1d]\n", i, ds->link_fixed[i]);
 				}
 
@@ -10166,13 +10173,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-					GMRFLib_sprintf(&msg, "Link log precision for %s", secname);
-
-					mb->theta_tag[mb->ntheta] = msg;
-					GMRFLib_sprintf(&msg, "Link precision for %s", secname);
+					GMRFLib_sprintf(&msg, "Link log precision for %s", ds->data_likelihood);
+					mb->theta_tag[mb->ntheta] = inla_make_tag(msg, mb->ds);
+					GMRFLib_sprintf(&msg, "Link precision for %s", ds->data_likelihood);
 					mb->theta_tag_userscale[mb->ntheta] = msg;
 					GMRFLib_sprintf(&msg, "%s-parameter%1d", msg, i);
-					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_dir[mb->ntheta] = inla_make_tag(msg, mb->ds);
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
@@ -10203,13 +10209,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-					GMRFLib_sprintf(&msg, "Link beta%1d for %s", i, secname);
-
-					mb->theta_tag[mb->ntheta] = msg;
-					GMRFLib_sprintf(&msg, "Link beta%1d for %s", i, secname);
+					GMRFLib_sprintf(&msg, "Link beta%1d for %s", i, ds->data_likelihood);
+					mb->theta_tag[mb->ntheta] = inla_make_tag(msg, mb->ds);
+					GMRFLib_sprintf(&msg, "Link beta%1d for %s", i, ds->data_likelihood);
 					mb->theta_tag_userscale[mb->ntheta] = msg;
 					GMRFLib_sprintf(&msg, "%s-parameter%1d", msg, i);
-					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_dir[mb->ntheta] = inla_make_tag(msg, mb->ds);
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
