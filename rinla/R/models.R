@@ -2607,7 +2607,7 @@
                                       initial = 0,
                                       fixed = FALSE,
                                       prior = "mvnorm",
-                                      param = c(0, 0.15),  ## same as for AR1
+                                      param = c(0, 1), 
                                       to.theta = function(x) x, 
                                       from.theta = function(x) x
                                       ),
@@ -2778,7 +2778,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log", "test1"),
+                      link = c("default", "log", "test1", "special1"),
                       pdf = "poisson"
                       ),
 

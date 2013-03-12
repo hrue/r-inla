@@ -123,12 +123,17 @@
     lmod = control$control.link$model = inla.model.validate.link.function(family, control$control.link$model)
     ord = control$control.link$order
     cat("link.model = ", lmod, "\n", file = file,  append = TRUE)
-    if (inla.one.of(lmod, c("XXXXXXXXXXXXXXX"))) {
+    if (inla.one.of(lmod, c("special1"))) {
         ## for these models, the argument order is required
         if (is.null(ord)) {
             stop(paste("For link-model:", lmod, ", 'order' must be spesified."))
         }
         cat("link.order = ", ord, "\n", file = file,  append = TRUE)
+        ## special
+        if (ord > 1L && length(control$control.link$hyper$theta2$param) == 2L) {
+            par = control$control.link$hyper$theta2$param
+            control$control.link$hyper$theta2$param = c(rep(par[1], ord), c(diag(rep(par[2], ord))))
+        }
     } else {
         if (!is.null(ord)) {
             stop(paste("For link-model:", lmod, ", the argument 'order' is not used and must be NULL."))
