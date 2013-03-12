@@ -16550,7 +16550,7 @@ double extra(double *theta, int ntheta, void *argument)
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
 							      (problem[i] ==
-							       NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+							       NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -16646,7 +16646,7 @@ double extra(double *theta, int ntheta, void *argument)
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
 							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM :
-							       GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+							       GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -17361,7 +17361,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
 					     (void *) h->matern2ddef, NULL, mb->f_constr_orig[i],
-					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 			if (debug) {
 				P(h->precision);
 				P(h->range);
@@ -17449,7 +17449,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
 					     (void *) h->def, NULL, mb->f_constr_orig[i],
-					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean | GMRFLib_KEEP_constr));
+					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 			if (debug) {
 				P(h->log_prec[GMRFLib_thread_id][0]);
 				P(h->log_diag[GMRFLib_thread_id][0]);
