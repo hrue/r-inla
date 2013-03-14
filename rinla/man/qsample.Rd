@@ -15,7 +15,7 @@
                   seed = 0L,
                   logdens = ifelse(missing(sample), FALSE, TRUE))
 
-     where the log-density has form \code{-1/2(x-mu)^T Q (x-mu) + b^T x}
+     where the log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
  }
  
  \arguments{
