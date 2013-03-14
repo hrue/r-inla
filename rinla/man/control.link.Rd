@@ -9,6 +9,7 @@ inla(formula, ..., control.link=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
 \item{link}{  The name of the link function/model}
+\item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{hyper}{  Definition of the hyperparameter(s) for the link model chosen}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
