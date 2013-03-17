@@ -714,40 +714,29 @@
     }
 
     if (gp$n.fix > 0) {
-        inla.na.action = function(x, ...) {
-            ## set fixed effects that are NA to 0. Check that if there
-            ## are factors, they are not allowed to have NA's (unless
-            ## NA is a level itself of'course).
-            r = sapply(data,
-                    function(x) {
-                        return (is.factor(x) && any(is.na(x)) && !any(is.na(levels(x))))
-                    })
-            if (any(r)) {
-                nm = inla.paste(names(data)[r], sep="', '")
-                stop(paste(c("Error in the dataframe. INLA does not support factor(s) '",
-                             nm, "' having NA's. Please rewrite the factor(s) into fixed effects.")))
-            }
-            if (all(dim(x) == dim(as.matrix(x)))) {
-                ## all entries are vectors
-                x[is.na(x)] = 0
-            } else {
-                ## in this case, some of the entries in the data.frame
-                ## could be a matrix itself...
-                for(entry in 1:dim(x)[2L]) {
-                    x[[entry]][ is.na(x[[entry]]) ] = 0
-                }
-            }
-            return (x)
-        }
-
         ## use y...fake also here (which is the same as in gp$fixf[2])
         ## and construct the model.matrix().
         new.fix.formula = gp$fixf
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
-        new.fix.formula = update.formula(new.fix.formula, y...fake ~ .)
+        new.fix.formula = update.formula(new.fix.formula, y...fake ~ .) 
+
+        ## replace NA's in covariates with 0, and the same with
+        ## factors. the NA's in factors have to be done afterwards.
+        inla.na.action = function(x, ...) {
+            if (length(x) > 0L) {
+                for(k in 1:length(x)) {
+                    if ((is.numeric(x[[k]]) || inla.is.matrix(x[[k]])) && !is.factor(x[[k]])) {
+                        x[[k]][is.na(x[[k]])] = 0
+                    }
+                }
+            }
+            return (na.pass(x))
+        }
         gp$model.matrix = model.matrix(new.fix.formula,
                 data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
                 contrasts.arg = contrasts)
+        ## as NA's in factors are not set to zero in 'inla.na.action'
+        gp$model.matrix[is.na(gp$model.matrix)] = 0
         ## this have to match
         stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
 
