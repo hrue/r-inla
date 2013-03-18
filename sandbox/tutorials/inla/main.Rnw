@@ -33,7 +33,7 @@
 \bibliographystyle{apalike}
 
 \title{A tutorial for \tv{R-INLA}}
-\author{H. Rue \& T.\ G.\ Martins\\
+\author{H. Rue \& T.\ G.\ Martins \& A. Riebler\\
  Department of Mathematical Sciences\\
  Norwegian University of Science and Technology\\
  N-7491 Trondheim, Norway}
@@ -685,6 +685,87 @@ different (and higher) resolution of the posterior marginal.
 
 \section{Feature: \tv{copy}}
 
+Consider the scenario
+\begin{equation}
+	\begin{split}
+	{y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+	\eta_i &= a_i + b_i z_i,\\
+	(a_i, b_i) &\stackrel{\text{iid}}{\sim} \mathcal{N}_2(\mm{0}, \mathbf{Q}^{-1}),
+	\end{split}
+	\label{eq:bivNormal}
+\end{equation}
+with $i=1, \ldots, n$ and where $\mm{z}$ represents a known covariate. The bivariate Gaussian model for $(a_i, b_i)$ can be defined in {\tt R-INLA} using {\tt f(idx, model="iid2d", n=2*n, ...)}. However, the model definition
+<<echo=TRUE, eval=FALSE>>=
+formula <- y ~ f(idx, model="iid2d", n=2*n, ...) - 1
+@
+does not define a model where $\eta_i$ is connected to the two elements $a_i$ and $b_i$ of the bivariate Gaussian model. For this purpose the copy feature was added to the INLA function, so that situations where a latent field is needed more than once for each observation can be handled.
+
+Let $\mm{v} = (a_1, \ldots, a_n, b_1, \ldots, b_n)^\top$. To implement model~\eqref{eq:bivNormal} we simply create an almost identical copy of $\mm{v}$, namely $\mm{v}^\star$. The latent field is thereby extended to $\mm{v}_c = (\mm{v}, \mm{v}^\star)$ with $\pi(\mm{v}_c) = \pi(\mm{v}) \pi(\mm{v}^\star | \mm{v})$ and
+\begin{equation}
+	\pi(\mm{v}^\star|\mm{v}, \beta, \kappa) \propto \exp\left(-\frac{\kappa}{2} (\mm{v}^\star - \beta \mm{v})^\top(\mm{v}^\star - \beta \mm{v})\right). \label{eq:copy}
+\end{equation}
+The precision $\kappa$, fixed to some large value, controls the similarity between $\mm{v}^\star$ and $\mm{v}$ (default value: $10^9$).  Of note, a copied model may contain in addition an unknown scale parameter $\beta$ (compare second example in this section), which per default is fixed to one.
+
+
+Using the copy-feature, we can specify model~\eqref{eq:bivNormal} as
+<<echo=TRUE, eval=FALSE>>=
+idx = 1:n
+idx.copy = n + 1:n
+formula <- y ~ f(idx, model="iid2d", n=2*n, ...) +
+               f(idx.copy, z, copy="idx", ...) - 1
+@
+recalling that the first $n$ elements correspond to $\mm{a}$ and the last $n$ elements to $\mm{b}$, and where {\tt z} denotes the covariate. The second  {\tt f()} term defines itself as a copy of {\tt f(idx, \ldots)}, and hence inherits some of its features, such as {\tt n} or {\tt values}.
+
+A simulation is used to illustrate the details of the model specification. The random effects $(a_i, b_i)$, $i=1,\ldots, 1000$ are sampled from a bivariate Gaussian distribution with marginal precisions equal to one and a correlation between $\mm{a}$ and $\mm{b}$ equal to $0.8$. Then, $\mm{y} = (y_1, \ldots, y_n)$ is simulated according to~\eqref{eq:bivNormal} with $\tau=1$.
+<<>>=
+library(mvtnorm)
+n = 1000
+Sigma = matrix(c(1, 0.8, 0.8, 1), 2, 2)
+z = rnorm(n)
+ab = rmvnorm(n, sigma = Sigma) 
+a = ab[, 1]
+b = ab[, 2]
+eta = a + b * z
+y = eta + rnorm(n, sd = 1)
+hyper.gaussian = list(prec = list(prior = "loggamma", param = c(1, 0.2161)))
+idx = 1:n # use only the first n elements (a_1, ..., a_n)
+idx.copy = 1:n + n # use only the last n elements (b_1, ..., b_n)
+formula = y ~ f(idx, model = "iid2d", n = 2*n) +
+              f(idx.copy, z, copy = "idx") - 1
+result = inla(formula, data = list(y = y, z = z, idx=idx, idx.copy = idx.copy),
+              family = "gaussian",
+              control.family = list(hyper = hyper.gaussian))
+
+plot(result)
+@
+
+A copied model may also have an unknown scaling parameter. Consider for example
+\begin{equation*}
+	\begin{split}
+	{y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+	\eta_i &= x_i + \beta x_i z_i.\\
+	\end{split}
+	\label{eq:bivNormal2}
+\end{equation*}
+Here, $\mm{z}$ still denotes a known covariate, but $\beta \sim \mathcal{N}(\mu, \kappa)$ denotes an unknown scale parameter. In the following example, we estimate $\beta$, assuming  the precision for $\mm{x}$ is known.
+<<>>=
+n = 1000
+idx = 1:n
+idx.copy = idx
+x = rnorm(n)
+z = runif(n)
+eta = x + 2*x*z
+y = eta + rnorm(n)
+prior.beta <- c(0, 0.0001)
+formula = y ~ f(idx, model="iid", hyper=list(prec=list(initial=0, fixed=TRUE))) +
+              f(idx.copy, z, copy="idx",
+                hyper=list(beta=list(prior="normal", param=prior.beta, fixed=FALSE))) - 1
+result = inla(formula, data=data.frame(idx, idx.copy, z, y))
+@
+If the scaling parameter is within a given range, then the option {\tt range = c(l, u)} can be added. In this case $\beta = l + (h-l)\exp(\beta_{\text{local}})/(1+\exp(\beta_{\text{local}}))$, and the prior is defined on $\beta_{\text{local}}$. If $l=h$ or {\tt range = NULL}, then the identity mapping is used. If {\tt h = Inf} and {\tt l != Inf}, then the mapping $l + \exp(\beta_{\text{local}})$ is used. The case {\tt l = Inf} and {\tt h != Inf} is not yet implemented. Models which require the use of the copy function together with the estimation of the unkonwn scaling parameter can be found for example in the measurement error context, see \citet{muff-etal-2013} for more details and the corresponding R-INLA code.
+
+A model or a copied model can be copied several times. The degree of closeness of $\mm{v}$ and $\mm{v}^\star$ is specified by the argument precision, which represents $\kappa$ in~\eqref{eq:copy}.
+
 \section{Feature: \tv{replicate}}
 
 \section{Feature: \tv{group}}
@@ -695,31 +776,31 @@ different (and higher) resolution of the posterior marginal.
 
 \section{Defining your own prior distribution for hyperparameters}
 
-Besides the list of available prior functions for hyperparameters, compare \ref{sec:}, it is even possible to define user-specific prior distributions. This might be need on one side to incorporate expert-motivated prior distributions or to use prior distributions that are non-standard.
+Besides the list of available prior functions for hyperparameters, compare \ref{sec:}, it is even possible to define user-specific prior distributions. This might be needed to incorporate expert-motivated prior distributions or to use prior distributions that are non-standard.
 
-Hence, there are three ways to specify prior distributions for hyperparameter in INLA:
+There are three ways to specify prior distributions for hyperparameter in INLA:
 \begin{enumerate}
 	\item Use an available prior distribution.
 	\item Define your own prior distribution function using R-like (not equal) syntax as expression.
 	\item Assign a table of x and corresponding y values which represent your prior distribution.
 \end{enumerate}
 
-In the following we will provide more details regarding 2.) and 3.), afterward we will present an example illustrating (and comparing) the three different possibilities using the log-gamma distribution.
+In the following we will provide more details regarding 2.) and 3.). Finally, we will present an example illustrating (and comparing) the three different possibilities by means of the log-gamma distribution for the precision parameter.
 
 \subsection{“Expression”: a do-it-yourself prior}
 
-A user can specify a new prior distribution by defining an expression for the log-density of any (univariate) prior $\log\pi(\theta)$, as a function of the corresponding $\theta$. Here, it is important to be aware that $\theta$ is defined on the internal scale.
+A user can specify any (univariate) prior distribution by defining an expression for the log-density $\log\pi(\theta)$, as a function of the corresponding $\theta$. Here, it is important to be aware that $\theta$ is defined on the internal scale.
 
 The expression is evaluated using the
 \texttt{muparser}-library\footnote{See
     \texttt{http://muparser.sourceforge.net/} for more documentation},
-with some local configuration changes to make it more
+with some changes to make it more
 ``\texttt{R}''-like in style. The format is
 \begin{quote}
     \texttt{expression: <statement>; <statement>; ...; return(<value>)}
 \end{quote}
 where ``\texttt{<statement>}'' is any regular statement (more below)
-and value returned, ``\texttt{<value>}'' is the value for the
+and ``\texttt{<value>}'' is the value for the
 log-density of the prior, evaluated at the current value for $\theta$.
 
 Here, is an example defining the log-gamma distribution:
@@ -734,8 +815,7 @@ prior.expression = "expression:
             return(logdens + log_jacobian);"
 \end{verbatim}
 
-
-Some syntax specific notes include:
+Some syntax specific notes:
 \begin{enumerate}
 \item \verb|return (x)| (with a space before ``(.)'') is NOT allowed,
     it must be \verb|return(x)|.
@@ -744,10 +824,10 @@ Some syntax specific notes include:
     \verb|log_precision = <whatever>|; see the following example.
 \end{enumerate}
 
-Known function that can be used within the \texttt{expression} statement are:
+Known functions that can be used within the \texttt{expression} statement are:
 \begin{itemize}
-\item common math functions, such as ``$\exp(\cdot)$'', ``$\sin(\cdot)$'', \ldots.
-\item \verb|gamma(x)| is the Gamma-function and \verb|lgamma(x)| is
+\item common math functions, such as \verb exp(x), \verb sin(x), $\ldots$.
+\item \verb|gamma(x)| denotes the gamma-function and \verb|lgamma(x)| is
     its $\log$ (see \verb|?gamma| in \verb|R|).
 \item \verb|pi| is $\pi$
 \item $x^y$ is expressed as either \verb|x^y| or \verb|pow(x;y)|
@@ -755,7 +835,7 @@ Known function that can be used within the \texttt{expression} statement are:
 
 \subsection{“Table”: provide a suitable set of support points}
 
-Instead of defining a prior distribution function, it is possible to provide a table of suitable support values $x$ (internal scale) and the corresponding log-density values $y$. INLA fits a spline through the provided points and continues with this in the succeeding computations. Note, the transformation into a functional form is not required.
+Instead of defining a prior distribution function, it is possible to provide a table of suitable support values $x$ (internal scale) and the corresponding log-density values $y$. INLA fits a spline through the provided points and continues with this in the succeeding computations. Note, there is no transformation into a functional form performed or required.
 
 The input-format for the table is a string, which starts with \texttt{table: } and is then followed by a block of $x$-values and  a block of the corresponding $y$-values, which represent the values of the log-density evaluated on $x$. Thus
 \begin{quote}
@@ -764,7 +844,7 @@ The input-format for the table is a string, which starts with \texttt{table: } a
 
 \subsection{Example: The log-gamma distribution}
 
-We illustrate all three different ways of defining a prior distribution, here for residual precision, of a normal likelihood. To show that the three definitions lead to the same result we inspect the log-marginal likelihood.
+We illustrate all three different ways of defining a prior distribution for the residual precision of a normal likelihood. To show that the three definitions lead to the same result we inspect the log-marginal likelihood.
 
 <<echo=FALSE, eval=TRUE>>=
 set.seed(1352)
