@@ -5567,8 +5567,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				Free(dens[i]);
 			}
 		}
-		Free(dens);
 	}
+	Free(dens);
+
+	if (tfunc){
+		for (i = 0; i < graph->n; i++) {
+			if (tfunc[i]) {
+				for (j = 0; j < dens_count; j++) {
+					GMRFLib_free_density(dens_transform[i][j]);
+				}
+				Free(dens_transform[i]);
+			}
+		}
+	}
+	Free(dens_transform);
 
 	if (ais) {
 		for (k = 0; k < tmax; k++) {
