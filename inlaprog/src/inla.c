@@ -1045,17 +1045,34 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p; 
 	int i;
-	double tmp = 0.0;
-	
+	double covariate_contribution, h = 1.0E-4, prec;
+
 	p = (Link_param_tp *) param;
-	tmp = 0.0;
+	prec = map_precision(p->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	covariate_contribution = 0.0;
 	for(i = 0; i < p->order; i++){
-		//P(p->beta[i][GMRFLib_thread_id][0]);
-		//P(cov[i]);
-		tmp += p->beta[i][GMRFLib_thread_id][0] * cov[i];
+		covariate_contribution += p->beta[i][GMRFLib_thread_id][0] * cov[i];
 	}
+	assert(!ISNAN(covariate_contribution));
 	
-	return map_exp(x - tmp, typ, param);
+	switch (typ) {
+	case MAP_FORWARD:
+		return gsl_cdf_lognormal_Pinv(inla_Phi(x), covariate_contribution - 0.5/prec, 1.0/sqrt(prec));
+		break;
+	case MAP_BACKWARD:
+		return gsl_cdf_ugaussian_Pinv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5/prec, 1.0/sqrt(prec)));
+		break;
+	case MAP_DFORWARD:
+		return (gsl_cdf_lognormal_Pinv(inla_Phi(x+h), covariate_contribution - 0.5/prec, 1.0/sqrt(prec)) -
+			gsl_cdf_lognormal_Pinv(inla_Phi(x-h), covariate_contribution - 0.5/prec, 1.0/sqrt(prec)))/(2.0*h);
+		break;
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
 }
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
 {
@@ -10077,7 +10094,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "LOGGAMMA");	// log precision
 		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "MVNORM");	// the beta's
 
-		if ((int) ds->link_prior[1].parameters[0] != ds->link_order) {
+		if (ds->link_order > 0 && (int) ds->link_prior[1].parameters[0] != ds->link_order) {
 			char *ptmp;
 			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the link-model: %1d != %1d\n",
 					(int) ds->link_prior[1].parameters[0], ds->link_order);
@@ -10129,7 +10146,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
 
 		HYPER_NEW(ds->link_parameters->log_prec, 0.0);
-		ds->link_parameters->beta = Calloc(ds->link_order, double **);
+		ds->link_parameters->beta = Calloc(LINK_MAXTHETA, double **);
 		for (i = 0; i < LINK_MAXTHETA; i++) {
 			HYPER_NEW(ds->link_parameters->beta[i], 0.0);
 		}
@@ -10220,7 +10237,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 					mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
 					mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
-					mb->theta[mb->ntheta] = ds->link_parameters->beta[i-1];
+					mb->theta[mb->ntheta] = ds->link_parameters->beta[i-1]; /* yes! */
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_identity;
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -16254,7 +16271,6 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case LINK_SPECIAL1:
-			{
 				if (!ds->link_fixed[0]){
 					double log_precision; 
 					log_precision = theta[count];
@@ -16278,7 +16294,6 @@ double extra(double *theta, int ntheta, void *argument)
 					Free(beta);
 				}
 				break;
-			}
 
 			default:
 				assert(0 == 1);
@@ -20007,35 +20022,6 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 #undef MAP_STDEV
 	return GMRFLib_SUCCESS;
 }
-int inla_layout_x_ORIG(double **x_vec, int *len_x, double xmin, double xmax, double mean)
-{
-	/*
-	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
-	 */
-	double f, ff = 1.05, dx = 0.05, xx, *x;
-	int nmax, n = 0;
-
-	nmax = (int) ((xmax - xmin) / dx + 1.0);
-	x = Calloc(nmax, double);
-	x[0] = xmin;
-	x[1] = xmax;
-	n = 2;
-	f = dx;
-	for (xx = mean; xx < xmax; xx += f) {
-		x[n++] = xx;
-		f *= ff;
-	}
-	f = dx;
-	for (xx = mean - dx; xx > xmin; xx -= f) {
-		x[n++] = xx;
-		f *= ff;
-	}
-	qsort((void *) x, n, sizeof(double), GMRFLib_dcmp);
-	*x_vec = x;
-	*len_x = n;
-
-	return GMRFLib_SUCCESS;
-}
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
 		       int n, int nrep,
 		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, const char *tag, const char *modelname, int verbose)
@@ -20233,7 +20219,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					GMRFLib_density_layout_x(&xx, &nn, density[i]);
-					// inla_layout_x_ORIG(&xx, &nn, density[i]->x_min, density[i]->x_max, density[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
@@ -20312,7 +20297,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						fprintf(fp, "%1d ", i);
 					}
 					GMRFLib_density_layout_x(&xx, &nn, gdensity[i]);
-					// inla_layout_x_ORIG(&xx, &nn, gdensity[i]->x_min, gdensity[i]->x_max, gdensity[i]->mean);
 					if (G.binary) {
 						IW(nn);
 					}
