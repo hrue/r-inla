@@ -3159,7 +3159,7 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.01'}
+							\item{param = }{`1 1'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -3171,7 +3171,7 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`mvnorm'}
-							\item{param = }{`0 1'}
+							\item{param = }{`0 100'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
