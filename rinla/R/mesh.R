@@ -2034,7 +2034,11 @@ inla.contour.segment =
     mesh =
         inla.mesh.create(lattice=latt,
                          boundary=latt$segm,
-                         extend=list(n=3))
+                         extend=(list(n=21,
+                                      offset=(max(diff(range(x)),
+                                                  diff(range(y)))*0.1)
+                                      ))
+                         )
     ## Map function values to mesh indexing:
     zz = rep(0, prod(dim(z)))
     zz[mesh$idx$lattice] = as.vector(z)
@@ -2191,7 +2195,11 @@ inla.nonconvex.hull =
     mesh.dilation =
         inla.mesh.create(loc=xy,
                          boundary=segm.dilation,
-                         extend=list(n=3))
+                         extend=(list(n=21,
+                                      offset=(max(diff(ax[[1]]),
+                                                  diff(ax[[2]]))*0.1)
+                                      ))
+                         )
 
     ## This filtering is not necessary; the inla.mesh.create() should
     ## have removed all unused points. 2013-02-24 /FL
