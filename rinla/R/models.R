@@ -2597,7 +2597,7 @@
                                       initial = 0,
                                       fixed = FALSE,
                                       prior = "loggamma",
-                                      param = c(1, 0.01),
+                                      param = c(1, 1),
                                       to.theta = function(x) x,
                                       from.theta = function(x) x
                                       ),
@@ -2607,7 +2607,7 @@
                                       initial = 0,
                                       fixed = FALSE,
                                       prior = "mvnorm",
-                                      param = c(0, 1), 
+                                      param = c(0, 100), 
                                       to.theta = function(x) x, 
                                       from.theta = function(x) x
                                       ),
