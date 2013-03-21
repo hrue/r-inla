@@ -52,14 +52,17 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/hashP.h"
 
 /* 
-   compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP
-*/
+ *  compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP. compile with -DGMRFLib_MEMINFO to enable the meminfo utility.
+ *  compute with -DGMRFLib_TRACE_MEMORY to view memory allocation
+ */
+
 static map_vpvp memcheck_hash_table;
 static int memcheck_verbose = 0;
 static int memcheck_first = 1;
 
 static GMRFLib_meminfo_tp *MemInfo = NULL;
 
+#if defined(GMRFLib_MEMINFO)
 #define MEMINFO(_size) \
 	if (GMRFLib_meminfo_thread_id != 0) {				\
 		assert(IABS(GMRFLib_meminfo_thread_id) < 1+omp_get_max_threads()); \
@@ -85,10 +88,9 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 			}						\
 		}							\
 	}
-
-/* 
-   compute with -DGMRFLib_TRACE_MEMORY  to view memory allocation
- */
+#else
+#define MEMINFO(_size) if (0) {}
+#endif
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
@@ -290,7 +292,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		*idx = 0;
 	}
 	for (i = 1; i < n; i++) {
-		if (x[i] > max_val && !ISNAN(x[i])){
+		if (x[i] > max_val && !ISNAN(x[i])) {
 			max_val = x[i];
 			if (idx) {
 				*idx = i;
