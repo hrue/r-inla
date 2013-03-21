@@ -2975,7 +2975,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 
-#define CHECK_HYPER_STORAGE_FORCE(num_) CHECK_HYPER_STORAGE_INTERN(num_, 1)
+#define CHECK_HYPER_STORAGE_FORCE(num_) CHECK_HYPER_STORAGE_INTERN(num_, 4)
 #define CHECK_HYPER_STORAGE CHECK_HYPER_STORAGE_INTERN(1, 0)
 #define CHECK_HYPER_STORAGE_INTERN(num_, force_)			\
 	if ((hyper_count >= hyper_len) || (force_)) {			\
@@ -2998,7 +2998,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #define CHECK_DENS_STORAGE CHECK_DENS_STORAGE_INTERN(1, 0)
 #define CHECK_DENS_STORAGE_INTERN(num_, force_)				\
 	if ((dens_count >= dens_max) || (force_)) {			\
-		int ii_, jj_;						\
+		int ii_, jj_, kk_;					\
 		int old_dens_max = dens_max;				\
 		dens_max += num_;					\
 		weights = Realloc(weights, dens_max, double);		\
@@ -3008,7 +3008,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		izs = Realloc(izs, dens_max, double *);			\
 		memset(&(izs[old_dens_max]), 0, (num_) * sizeof(double *)); \
 		neff = Realloc(neff, dens_max, double);			\
-		for (ii_ = 0; ii_ < graph->n; ii_++) {			\
+		for (kk_ = 0; kk_ < compute_n; kk_++) {			\
+			ii_ = compute_idx[kk_];				\
 			if (dens[ii_]){					\
 				dens[ii_] = Realloc(dens[ii_], dens_max, GMRFLib_density_tp *); \
 				for(jj_ = old_dens_max; jj_ < dens_max; jj_++) \
@@ -3169,8 +3170,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		compute = Calloc(graph->n, char);
 	}
 
-	nhyper = IMAX(0, nhyper);
-	dens_max = IMIN(20, IMAX((int) gsl_pow_int(2.0, nhyper), 1));
+        nhyper = IMAX(0, nhyper);
+        dens_max = 1;
 	dens = Calloc(graph->n, GMRFLib_density_tp **);
 	dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
 	weights = Calloc(dens_max, double);
