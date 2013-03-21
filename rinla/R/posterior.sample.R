@@ -87,7 +87,7 @@
                 if (TRUE) {
                     ## new fancy code using the automatic differentiation feature in R
                     for(i in 1:length(theta)) {
-                        arg.val = formals(r$misc$from.theta[[i]])
+                        arg.val = formals(result$misc$from.theta[[i]])
                         arg = names(arg.val)
                         if (length(arg) == 1L) {
                             deriv.func = inla.eval(paste("function(", arg, ") {}"))
@@ -95,7 +95,7 @@
                             stopifnot(length(arg) == 2L)
                             deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ") {}"))
                         }
-                        body(deriv.func) = D(body(r$misc$from.theta[[i]]), arg[1L])
+                        body(deriv.func) = D(body(result$misc$from.theta[[i]]), arg[1L])
                         log.J = log.J - log(abs(deriv.func(cs$config[[k]]$theta[i]))) ## Yes, it's a minus...
                     }
                     ## print(paste("logJ", log.J))
