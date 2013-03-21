@@ -31,7 +31,7 @@ For $\alpha=1$ ($\nu=0$), we have
 $\bM^{(0)}=\bC$, $(\bM^{(1)})_{ij}=0$ and 
 $\bM^{(2)}=\bG$. 
 For $\alpha=2$ ($\nu=1$), we have 
-$\bM^{(0)}=\bC$, $(\bM^{(1)})_{ij}=\bG$ and 
+$\bM^{(0)}=\bC$, $\bM^{(1)}=\bG$ and 
 $\bM^{(2)}=\bG\bC^{-1}\bG$. 
 
 All three $\bD^{(0)}$, $\bD^{(1)}$ and $\bD^{(2)}$ 
@@ -52,10 +52,13 @@ with the $\bB^{(k)}:$ $n$-by-$(p+1)$
 user defined matrix. 
 
 The default stationary SPDE model uses 
-$\bB=[0 1 0]$ (one by three) matrix 
+$\bB=[0\; 1\; 0]$ (one by three) matrix 
 for the marginal variance and uses 
-$\bB=[0 0 1]$ (one by three) matrix 
+$\bB=[0\; 0\; 1]$ (one by three) matrix 
 for the scaling parameter $\kappa$. 
+When this matrix have just one line, 
+the another lines are formed using the 
+same element of this first line. 
 In the next section, we add one of the 
 location coordinates as a fourth column 
 to build a non stationary model. 
