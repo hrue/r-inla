@@ -2004,7 +2004,7 @@
         if (is.factor(data[[k]])) {
             formula = as.formula(paste("~ -1 + ",  names(data)[k]))
             tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-            colnames(tmp) = NULL
+            colnames(tmp) = levels(data[[k]])
             data[[k]] = tmp
         }
     }
