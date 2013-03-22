@@ -454,6 +454,10 @@
             inla.call = paste(inla.call, ".cygwin", sep="")
     }
     
+    ## Need to do this here.
+    cont.fixed = inla.set.control.fixed.default()
+    cont.fixed[names(control.fixed)] = control.fixed
+
     ##
     ## check for survival model with a baseline-hazard. if so, then
     ## expand the data-frame and call inla() again.
@@ -720,23 +724,42 @@
         ##inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula = update.formula(new.fix.formula, y...fake ~ .) 
 
-        ## replace NA's in covariates with 0, and the same with
-        ## factors. the NA's in factors have to be done afterwards.
+        ## replace NA's in covariates with 0. Ignore factors. NA's in
+        ## factors is done afterwards.
         inla.na.action = function(x, ...) {
-            if (length(x) > 0L) {
-                for(k in 1:length(x)) {
-                    if ((is.numeric(x[[k]]) || inla.is.matrix(x[[k]])) && !is.factor(x[[k]])) {
-                        x[[k]][is.na(x[[k]])] = 0
-                    }
+            for(k in seq_along(x)) {
+                if ((is.numeric(x[[k]]) || inla.is.matrix(x[[k]])) && !is.factor(x[[k]])) {
+                    x[[k]][is.na(x[[k]])] = 0
                 }
             }
             return (na.pass(x))
         }
+
+        if (inla.one.of(cont.fixed$expand.factor.strategy, "inla")) {
+            ## expand all factors as matrices
+            data.same.len = inla.expand.factors(data.same.len)
+        } else if (inla.one.of(cont.fixed$expand.factor.strategy, "model.matrix")) {
+            ## do nothing
+        } else {
+            stop(paste("Unknown value for flag 'expand.factor.strategy' in 'control.fixed':",
+                       cont.fixed$expand.factor.strategy))
+        }
+        
         gp$model.matrix = model.matrix(new.fix.formula,
                 data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
                 contrasts.arg = contrasts)
-        ## as NA's in factors are not set to zero in 'inla.na.action'
-        gp$model.matrix[is.na(gp$model.matrix)] = 0
+        
+        ## as NA's in factors are not set to zero in
+        ## 'inla.na.action'. Do that here if the strategy is 'inla',
+        ## otherwise signal an error.
+        if (any(is.na(gp$model.matrix))) {
+            if (inla.one.of(cont.fixed$strategy.expand.factor, "inla")) {
+                gp$model.matrix[is.na(gp$model.matrix)] = 0
+            } else {
+                stop(paste("With control.fixed = list(expand.factor.strategy='model.matrix'),", 
+                           "then NA's in factor are not allowd. Please use strategy 'inla' instead."))
+            }
+        }
         ## this have to match
         stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
 
@@ -798,10 +821,6 @@
     ## control inla
     cont.inla =inla.set.control.inla.default(family)
     cont.inla[names(control.inla)] = control.inla
-
-    ## control fixed
-    cont.fixed = inla.set.control.fixed.default()
-    cont.fixed[names(control.fixed)] = control.fixed
 
     ## control.family
     control.family.orig = control.family
@@ -1975,4 +1994,19 @@
         return (data)
     }
     stop("Should not happen.")
+}
+
+`inla.expand.factors` = function(data)
+{
+    ## replace factors in 'data' with their expanded version we get
+    ## from model.matrix without any intercept.
+    for(k in seq_along(data)) {
+        if (is.factor(data[[k]])) {
+            formula = as.formula(paste("~ -1 + ",  names(data)[k]))
+            tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
+            colnames(tmp) = NULL
+            data[[k]] = tmp
+        }
+    }
+    return (data)
 }

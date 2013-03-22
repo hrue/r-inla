@@ -8,6 +8,7 @@
 inla(formula, ..., control.fixed=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
+\item{expand.factor.strategy}{  The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model.}
 \item{cdf}{  A list of values to compute the CDF for, for all fixed effects}
 \item{quantiles}{  A list of quantiles to compute for all fixed effects}
 \item{mean}{  Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.}
