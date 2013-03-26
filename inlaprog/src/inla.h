@@ -562,6 +562,7 @@ typedef struct {
 	 * the re-extention
 	 */
 	int mix_use;
+	int mix_nq;
 	inla_component_tp mix_id;
 	GMRFLib_logl_tp *mix_loglikelihood;
 	Prior_tp mix_prior;
