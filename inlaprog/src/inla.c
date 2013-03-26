@@ -10306,8 +10306,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.mix_log_prec_gaussian;
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -10328,10 +10328,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity) {
+	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity || ds->mix_use) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}
-
 
 	return INLA_OK;
 }
