@@ -25,6 +25,7 @@ inla.internal.experimental.mode = FALSE
         tags = NULL
     }
 
+browser()
     fnm = paste(d, "/theta-from", sep="")
     if (file.exists(fnm)) {
         theta.from = readLines(fnm)
