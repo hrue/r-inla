@@ -86,6 +86,9 @@
         ##:ARGUMENT: order The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.
         order = NULL, 
 
+        ##:ARGUMENT: nq Number of quadrature-points used to do the numerical integration
+        nq = 15, 
+
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
         hyper = NULL,
 

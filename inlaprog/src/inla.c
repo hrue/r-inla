@@ -99,7 +99,6 @@ static const char RCSId[] = HGVERSION;
 #define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
 #define LINK_MAXTHETA (10)				       /* as given in models.R */
-#define MIX_NPOINTS (15)				       /* number of quadrature points for the RE-likelihoods */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -4277,58 +4276,44 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	 * this is the wrapper for the gaussian_mix
 	 */
 
-	int i, k, debug = 0;
-	double *points = NULL, *weights = NULL, *val = NULL, point, val_max, sum, prec, *xx = NULL, *ll = NULL;
-
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	static double *storage = NULL;
-#pragma omp threadprivate(storage)
-
-	if (!storage) {
-		double *pp = NULL, *ww = NULL;
-
-		GMRFLib_ghq(&pp, &ww, MIX_NPOINTS);	       /* these are just pointers... */
-		storage = Calloc(5 * MIX_NPOINTS, double);     /* use just one longer vector */
-		points = storage + MIX_NPOINTS;
-		weights = storage + 2 * MIX_NPOINTS;
-		memcpy(points, pp, MIX_NPOINTS * sizeof(double));
-		memcpy(weights, ww, MIX_NPOINTS * sizeof(double));
-	}
-
-	val = storage;
-	points = storage + MIX_NPOINTS;
-	weights = storage + 2 * MIX_NPOINTS;
-	xx = storage + 3 * MIX_NPOINTS;
-	ll = storage + 4 * MIX_NPOINTS;
+	int i, k, debug = 0;
+	double *val = NULL, point, val_max, sum, prec, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	GMRFLib_ghq(&points, &weights, ds->mix_nq);		       /* these are just pointers... */
+	storage = Calloc(3 * ds->mix_nq, double);	       /* use just one longer vector */
+	val = storage;
+	xx = storage + 1 * ds->mix_nq;
+	ll = storage + 2 * ds->mix_nq;
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			if (debug){
 				printf("x[%1d] = %g prec = %g\n", i, x[i], prec);
 			}
-			for (k = 0; k < MIX_NPOINTS; k++) {
+			for (k = 0; k < ds->mix_nq; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 				if (debug){
 					printf("\txx[%1d] = %g\n", k, xx[k]);
 				}
 			}
-			ds->mix_loglikelihood(ll, xx, MIX_NPOINTS, idx, x_vec, arg);
+			ds->mix_loglikelihood(ll, xx, ds->mix_nq, idx, x_vec, arg);
 
-			for (k = 0; k < MIX_NPOINTS; k++) {
+			for (k = 0; k < ds->mix_nq; k++) {
 				if (debug){
 					printf("\tll[%1d] = %g integration.weight = %g\n", k, ll[k], weights[k]);
 				}
 				val[k] = log(weights[k]) + ll[k];
 			}
-			val_max = GMRFLib_max_value(val, MIX_NPOINTS, NULL);
+			val_max = GMRFLib_max_value(val, ds->mix_nq, NULL);
 			sum = 0.0;
-			for (k = 0; k < MIX_NPOINTS; k++) {
+			for (k = 0; k < ds->mix_nq; k++) {
 				if (!ISNAN(val[k])) {
 					sum += exp(val[k] - val_max);
 				}
@@ -4341,19 +4326,20 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
-			for (k = 0; k < MIX_NPOINTS; k++) {
+			for (k = 0; k < ds->mix_nq; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->mix_loglikelihood(ll, xx, -MIX_NPOINTS, idx, x_vec, arg);
+			ds->mix_loglikelihood(ll, xx, -ds->mix_nq, idx, x_vec, arg);
 
 			sum = 0.0;
-			for (k = 0; k < MIX_NPOINTS; k++) {
+			for (k = 0; k < ds->mix_nq; k++) {
 				sum += weights[k] * ll[k];
 			}
 			logll[i] = sum;
 		}
 	}
 
+	Free(storage);
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -10278,8 +10264,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 
 		char *model = NULL;
-
+		
+		ds->mix_nq = iniparser_getint(ini, inla_string_join(secname, "MIX.NQ"), 15);
+		assert(ds->mix_nq >= 5);
 		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
+		if (mb->verbose) {
+			printf("\t\tmix.nq [%d]\n", ds->mix_nq);
+			printf("\t\tmix.model [%s]\n", model);
+		}
 		if (!strcasecmp(model, "GAUSSIAN")) {
 			ds->mix_id = MIX_GAUSSIAN;
 		} else {
