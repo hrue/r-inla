@@ -4277,7 +4277,7 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	 * this is the wrapper for the gaussian_mix
 	 */
 
-	int i, k;
+	int i, k, debug = 0;
 	double *points = NULL, *weights = NULL, *val = NULL, point, val_max, sum, prec, *xx = NULL, *ll = NULL;
 
 	if (m == 0) {
@@ -4309,12 +4309,21 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
+			if (debug){
+				printf("x[%1d] = %g prec = %g\n", i, x[i], prec);
+			}
 			for (k = 0; k < MIX_NPOINTS; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
+				if (debug){
+					printf("\txx[%1d] = %g\n", k, xx[k]);
+				}
 			}
 			ds->mix_loglikelihood(ll, xx, MIX_NPOINTS, idx, x_vec, arg);
 
 			for (k = 0; k < MIX_NPOINTS; k++) {
+				if (debug){
+					printf("\tll[%1d] = %g integration.weight = %g\n", k, ll[k], weights[k]);
+				}
 				val[k] = log(weights[k]) + ll[k];
 			}
 			val_max = GMRFLib_max_value(val, MIX_NPOINTS, NULL);
@@ -4326,6 +4335,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 			}
 			assert(sum > 0.0);
 			logll[i] = log(sum) + val_max;
+			if (debug){
+				printf("\nlogll[%1d] = %g\n", i, logll[i]);
+			}
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
