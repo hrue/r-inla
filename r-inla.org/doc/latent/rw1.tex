@@ -15,12 +15,12 @@ increments:
 \Delta x_i = x_i-x_{i+1}\sim\mathcal{N}(0,\tau^{-1})
 \]
 The density for $\mathbf{x}$ is derived from its $n-1$ increments as
-\begin{eqnarray}
+\begin{eqnarray*}
     \pi(\mathbf{x}|\tau) &\propto& \tau^{(n-1)/2}
     \exp\left\{-\frac{\tau}{2}\sum (\Delta x_i)^2\right\}\\
     & = &\tau^{(n-1)/2}\exp\left\{-\frac{1}{2}
       \mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
-\end{eqnarray}
+\end{eqnarray*}
 where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure
 matrix reflecting the neighbourhood structure of the model.
 
