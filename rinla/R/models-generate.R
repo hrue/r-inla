@@ -64,8 +64,11 @@ inla.models()
                                 if (is.null(mval))
                                     mval = "NULL"
                                 if (is.function(mval)) {
-                                    mval = attr(mval, "srcref")
-                                    mval = paste("\\code{", mval, "}",  sep="")
+                                    mval.src = attr(mval, "srcref")
+                                    if (is.null(mval.src)) {
+                                        mval.src = inla.paste(deparse(mval, control="keepInteger"))
+                                    }
+                                    mval = paste("\\code{", mval.src, "}",  sep="")
                                 }
                                 cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep="")
                             }
@@ -154,7 +157,11 @@ inla.models()
             } else {
                 val = a.list[[nm]]
                 if (is.function(val)) {
-                    val = paste("\\verb|", attr(val, "srcref"), "|", sep="")
+                    val.src = attr(val, "srcref")
+                    if (is.null(val.src)) {
+                        val.src = inla.paste(deparse(val, control="keepInteger"))
+                    }
+                    val = paste("\\verb|", val.src, "|", sep="")
                 }               
                 cat(tab, "\\item[", nm, "]", inla.paste(val), "\n")
             }
