@@ -3,34 +3,34 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] log precision 
-	 	 	 \item[ short.name ] prec 
-	 	 	 \item[ prior ] loggamma 
-	 	 	 \item[ param ] 1 5e-05 
-	 	 	 \item[ initial ] 4 
-	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ to.theta ] \verb|function(x) log(x)| 
-	 	 	 \item[ from.theta ] \verb|function(x) exp(x)| 
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 1 5e-05
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb|function(x) log(x)|
+	 	 	\item[from.theta] \verb|function(x) exp(x)|
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] logit lag one correlation 
-	 	 	 \item[ short.name ] rho 
-	 	 	 \item[ prior ] normal 
-	 	 	 \item[ param ] 0 0.15 
-	 	 	 \item[ initial ] 2 
-	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ to.theta ] \verb|function(x) log((1+x)/(1-x))| 
-	 	 	 \item[ from.theta ] \verb|function(x) 2*exp(x)/(1+exp(x))-1| 
+	 	 	\item[name] logit lag one correlation
+	 	 	\item[short.name] rho
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 0.15
+	 	 	\item[initial] 2
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb|function(x) log((1+x)/(1-x))|
+	 	 	\item[from.theta] \verb|function(x) 2*exp(x)/(1+exp(x))-1|
 	 	 \end{description}
 	 \end{description}
-	 \item[ constr ] FALSE 
-	 \item[ nrow.ncol ] FALSE 
-	 \item[ augmented ] FALSE 
-	 \item[ aug.factor ] 1 
-	 \item[ aug.constr ]  
-	 \item[ n.div.by ]  
-	 \item[ n.required ] FALSE 
-	 \item[ set.default.values ] FALSE 
-	 \item[ pdf ] ar1 
+	\item[constr] FALSE
+	\item[nrow.ncol] FALSE
+	\item[augmented] FALSE
+	\item[aug.factor] 1
+	\item[aug.constr] 
+	\item[n.div.by] 
+	\item[n.required] FALSE
+	\item[set.default.values] FALSE
+	\item[pdf] ar1
 \end{description}
