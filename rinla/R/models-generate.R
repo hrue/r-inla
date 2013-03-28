@@ -163,7 +163,7 @@ inla.models()
                     }
                     val = paste("\\verb|", val.src, "|", sep="")
                 }               
-                cat(tab, "\\item[", nm, "]", inla.paste(val), "\n")
+                cat(tab, "\\item[", nm, "]", " ", inla.paste(val), "\n", sep="")
             }
         }
 
