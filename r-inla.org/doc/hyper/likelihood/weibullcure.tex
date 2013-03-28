@@ -3,29 +3,29 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] log alpha 
-	 	 	 \item[ short.name ] a 
-	 	 	 \item[ initial ] 4 
-	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ prior ] loggamma 
-	 	 	 \item[ param ] 25 25 
-	 	 	 \item[ to.theta ] \verb|function(x) log(x)| 
-	 	 	 \item[ from.theta ] \verb|function(x) exp(x)| 
+	 	 	\item[name] log alpha
+	 	 	\item[short.name] a
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 25 25
+	 	 	\item[to.theta] \verb|function(x) log(x)|
+	 	 	\item[from.theta] \verb|function(x) exp(x)|
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	 \item[ name ] logit probability 
-	 	 	 \item[ short.name ] prob 
-	 	 	 \item[ initial ] -1 
-	 	 	 \item[ fixed ] FALSE 
-	 	 	 \item[ prior ] gaussian 
-	 	 	 \item[ param ] -1 0.2 
-	 	 	 \item[ to.theta ] \verb|function(x) log(x/(1-x))| 
-	 	 	 \item[ from.theta ] \verb|function(x) exp(x)/(1+exp(x))| 
+	 	 	\item[name] logit probability
+	 	 	\item[short.name] prob
+	 	 	\item[initial] -1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb|function(x) log(x/(1-x))|
+	 	 	\item[from.theta] \verb|function(x) exp(x)/(1+exp(x))|
 	 	 \end{description}
 	 \end{description}
-	 \item[ survival ] TRUE 
-	 \item[ discrete ] FALSE 
-	 \item[ link ] default log 
-	 \item[ pdf ] NA 
+	\item[survival] TRUE
+	\item[discrete] FALSE
+	\item[link] default log
+	\item[pdf] NA
 \end{description}
