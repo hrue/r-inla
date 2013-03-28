@@ -63,35 +63,52 @@ In the next section, we add one of the
 location coordinates as a fourth column 
 to build a non stationary model. 
 
-\section{Simulation from model}
+\section{An example}
 
-First, we define a polygon to 
-do the simulation. 
-We defint an unitary square
+In this section we define a model where 
+the variance depends in one of the coordinates. 
+Note that the any precision matrix 
+defined on the equation~(\ref{eq:Qnst}) 
+we need $\bM^{(0)}$, $\bM^{(1)}$ and $\bM^{(2)}$ 
+that are based on any mesh.
+
+First, we define a polygon to define a mesh. 
+We define an unitary square
 <<poly>>=
 pl01 <- cbind(c(0,1,1,0,0), c(0,0,1,1,0))
 @ 
-
-We want to use the SPDE approach to do 
-the simulation. So, we first need to 
-build a mesh on the polygon
+and build a mesh on the polygon with 
 <<mesh>>=
 (mesh <- inla.mesh.create.helper(, pl01, max.edge=c(0.07,.12)))$n
 @ 
 
-Now, we define the spde model with 
+Now, we define the non stationary SPDE model. 
+The non stationarity is defined on the 
+two $\bB$ matrix, one for $\tau$ and 
+another for $\kappa$. 
+We want to define a model where the 
+variance depends on the first coordinate. 
+We just choose to put it into a 
+fourth column on the $\bB$ matrix for $\tau$. 
+Also, we need a prior for the three 
+dimentional $\theta$, simplified by 
+definition of a vetor of mean and precision 
+(considering independence of the priors). 
 <<spde>>=
-spde <- inla.spde2.matern(mesh, B.tau=cbind(0, 1, 0, mesh$loc[,1]),
-                          B.kappa=cbind(0, 0, 1, mesh$loc[,1]),
+spde <- inla.spde2.matern(mesh, B.tau=cbind(0, 1, 0, sin(pi*mesh$loc[,1])),
+                          B.kappa=cbind(0, 0, 1, 0), ##mesh$loc[,1]),
                           theta.prior.mean=rep(0, 3),
                           theta.prior.prec=rep(1, 3))
 @ 
 
-And we going to define the precision 
-matrix used to do the simulation. 
-Based on the spde model defined, 
-we define two different precision matrix, 
-just defining two different $\theta$ vectors
+To finalize the precision matrix definition, 
+we need to define the values of $\theta$. 
+Just to test, we define two different 
+precision matrix, both with non stationarity 
+based on the same $\bB$ matrix. 
+The $\theta$ vector has length equal the 
+number of columns of $\bB$ minus one. 
+The two different $\theta$ vectors are
 <<thetas>>=
 theta1 <- c(-1, 2, -1)
 theta2 <- c(-1, 2, 1)
@@ -101,52 +118,86 @@ and we have both the precision matrix with
 Q1 <- inla.spde2.precision(spde, theta=theta1)
 Q2 <- inla.spde2.precision(spde, theta=theta2)
 @ 
-and we have that the second precision matrix 
-have larger values, because its values increase 
-on the both coordinates locations and for the 
-first, decreases. We see below the summary of both 
-precision matrix for its diagonal and the 
-positive elements out of its diagonal
-<<summaryQ>>=
-rbind(Q1=summary(diag(Q1)), Q2=summary(diag(Q2)))
-rbind(Q1=summary(Q1[Q1>0 & lower.tri(Q1)]), 
-      Q2=summary(Q2[Q2>0 & lower.tri(Q2)]))
-@ 
-This inplies that the variance of the second 
-random field is greather than the first one. 
 
-Both precision matrix consider that the 
-locations are the triangles vertices of mesh. 
-So, the simulation made with it is a realization 
-of the random field on each point of the 
-triangles vertices of the mesh.
-We do the simulation with the sum to zero constrait, 
-just to show it. 
-We use the same see for each simulation, 
-also just to show it. 
+The first and second values of these vetors 
+are the same. The structure of the $\bB$ matrix 
+indicate that we have 
+$$\tau_i = e^{\theta_1 + \theta_3 sin(\pi loc[i,1])}$$
+and we have that the second precision matrix 
+with larger values of $\tau_i$, because its 
+values are increased by a positive value. 
+
+To make more clear, we compute both 
+covariance matrix implied. 
+The covariance matrix of 
+$$x(s) = \sum_{k=1}^n A_k(s) w_k$$
+is easy to obtain when we have $s$ 
+(the locations) equals the locations 
+of the mesh vertices. 
+It is just the inverse of the 
+precision matrix defined. 
 <<changecalltolocal,echo=F>>=
 inla.setOption(inla.call=lcall)
 @ 
-<<samples>>=
-constr <- list(A=matrix(1,1,mesh$n), e=0)
-sample1 <-  as.vector(inla.qsample(1,Q1, constr=constr, seed=1))
-sample2 <-  as.vector(inla.qsample(1,Q2, constr=constr, seed=1))
-@
-<<changecalltoremote,echo=F>>=
-inla.setOption(inla.call='remote')
+<<covs>>=
+cov1 <- inla.qinv(Q1);         cov2 <- inla.qinv(Q2) 
 @ 
+and we see a summary of the variance 
+(diagonal of the covariance matrix) 
+for both covariance matrix
+<<diagC>>=
+v1 <- diag(cov1);      v2 <- diag(cov2)
+rbind(v1=summary(v1),  v2=summary(v2))
+@ 
+and we see that the first has larger variances. 
+Its because the precision is less than the second. 
+
+We see the variance of both process 
+on the Figure~\ref{fig:varns} by 
+<<varns,eval=F>>=
+par(mar=c(3,3,.5,.5), mgp=c(1.7, .5, 0), las=1)
+plot(mesh$loc[,1], v1, ylim=range(v1,v2), 
+     xlab='x-coordinate', ylab='variance', las=1)
+points(mesh$loc[,1], v2, col=2)
+@ 
+\setkeys{Gin}{width=0.49\textwidth}
+\begin{figure}\centering
+<<vvarns,echo=F,fig=T,eps=F>>=
+<<varns>>
+@ 
+\caption{Variances implied by both 
+  non stationary process defined.}
+\end{figure}
+
+
+\section{Simulation on the mesh vertices}
+
+Both precision matrix defined on previous 
+the section consider that the locations 
+are the triangles vertices of mesh. 
+So, the simulation made with it is a 
+realization of the random field on each 
+point of the triangles vertices of the mesh.
+We use the same seed for each simulation, 
+just to show it. 
+<<samples>>=
+sample1 <-  as.vector(inla.qsample(1, Q1, seed=1))
+sample2 <-  as.vector(inla.qsample(1, Q2, seed=1))
+@
 
 We compute the standard deviations for both the 
 samples considering groups defined in accord to 
 the first coordinate of the locations: 
 <<ssummary>>=
-tapply(sample1, round(inla.group(mesh$loc[,1], 5),3), sd)
-tapply(sample2, round(inla.group(mesh$loc[,1], 5),3), sd)
+tapply(sample1, round(inla.group(mesh$loc[,1], 5),3), var)
+tapply(sample2, round(inla.group(mesh$loc[,1], 5),3), var)
 @ 
 We observe that the variance of the sample 
-from the first random field increase when the 
-first coordinate increase and the opposite 
-for the sample of the second random field.
+from the first random field increase near 0.5 
+and decrease near 0 and near 1. 
+For the sample of the second random field 
+the oposite happens and we have 
+larger values, because we have less precision.
 
 We see the simulated values projected 
 on a grid on Figure~\ref{fig:s12ns}. 
@@ -155,13 +206,14 @@ simulated values on the grid limited on the
 unit square with limits (0,0) and (1,1) with 
 <<plotsamples,eval=F>>=
 proj <- inla.mesh.projector(mesh, xlim=0:1, ylim=0:1)
-grid.arrange(levelplot(inla.mesh.project(proj,field=sample1), 
+grid.arrange(levelplot(inla.mesh.project(proj, field=sample1), 
                        xlab='', ylab='', scale=list(draw=FALSE),
                        col.regions=topo.colors(100)), 
              levelplot(inla.mesh.project(proj,field=sample2), 
                        xlab='', ylab='', scale=list(draw=FALSE),
                        col.regions=topo.colors(100)), nrow=1)
 @ 
+\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
 <<vplotsamples,echo=F,fig=TRUE,eps=F,width=10,heigh=4.5>>=
 <<plotsamples>>
@@ -171,7 +223,67 @@ grid.arrange(levelplot(inla.mesh.project(proj,field=sample1),
 \label{fig:s12ns}
 \end{figure}
 
+\subsection{Simulation with linear constraint}
+
+The linear constraint is common on models 
+such as random walk, in one or two dimentions. 
+Its because these models are improper. 
+In this section we just want to show how 
+we do linear constraint in the SPDE models. 
+
+Because the SPDE models are based on the 
+Finite Element Method (FEM) aproximation, 
+the sum-to-zero restriction in this 
+case is non trivial. 
+
+The issue is that
+$$\sum_k x_k$$
+doesn't mean anything for the mesh-based spde-models. 
+Whereas
+$$\int x(s) ds = \int \Psi_(s) x_k ds$$
+does mean something, and that integral is equal to
+$$
+\sum_k C_kk x_k
+$$
+so the constraint
+$$
+\int x(s) ds = 0
+$$
+is provided by
+$$
+A*x = 0, where A_{1k} = C_{kk}
+$$
+Where $\bC$ is the matrix used on the FEM.
+
+Using $A = (1,...,1)$ instead of $diag(\bC)$ 
+leads to very bad behaviour
+for irregular meshes.
+So, if we want a linear constrait, 
+we need to use $\bC$. 
+
+That matrix is obtained by the 
+\code{inla.mesh.fem()} function: 
+<<aconstr>>=
+Aconstr <- matrix(diag(inla.mesh.fem(mesh)$c0), 1)
+@ 
+and we do the simulation with 
+<<constrs>>=
+s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=list(A=Aconstr,e=0)))
+s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=list(A=Aconstr,e=0)))
+@ 
+and we have
+<<comparss>>=
+rbind(s1r=summary(s1r), s2r=summary(s2r))
+c(cor1=cor(sample1, s1r), cor2=cor(sample2, s2r))
+@ 
+where the mean of the process simulated 
+on the mesh vertices have mean near zero. 
+
 \section{Estimation with data simulated on the mesh vertices}
+
+<<changecalltoremote,echo=F>>=
+##inla.setOption(inla.call='remote')
+@ 
 
 The model can be fitted easly with 
 the data simulated on mesh vertices. 
@@ -216,7 +328,7 @@ In next section we see more results.
 Suppose that we have the data on the locations 
 simulated by the commands below 
 <<>>=
-set.seed(2);     n <- 500
+set.seed(2);     n <- 100
 loc <- cbind(runif(n), runif(n))
 @ 
 
@@ -261,21 +373,23 @@ round(cbind(True=theta1, res1$summary.hy), 4)
 round(cbind(True=theta2, res2$summary.hy), 4)
 @ 
 
+To make the visualization more good, we 
+take the logarithmum of the variance. 
 <<projpostrf>>=
 x1.mean <- inla.mesh.project(proj, field=res1$summary.ran$i$mean)
-x1.sd <- inla.mesh.project(proj, field=res1$summary.ran$i$sd)
+x1.var <- inla.mesh.project(proj, field=res1$summary.ran$i$sd^2)
 x2.mean <- inla.mesh.project(proj, field=res2$summary.ran$i$mean)
-x2.sd <- inla.mesh.project(proj, field=res2$summary.ran$i$sd)
+x2.var <- inla.mesh.project(proj, field=res2$summary.ran$i$sd^2)
 @ 
 
 We visualize, for both random fields, the 
 simulated, the predicted (posterior mean) 
-and the posterior standard deviation on 
+and the posterior variance on 
 Figure~\ref{fig:visprojp} with commands below 
 <<visprojp,eval=F>>=
 do.call(function(...) grid.arrange(..., nrow=2), 
-        lapply(list(inla.mesh.project(proj, sample1), x1.mean, x1.sd, 
-                    inla.mesh.project(proj, sample2), x2.mean, x2.sd), 
+        lapply(list(inla.mesh.project(proj, sample1), x1.mean, x1.var, 
+                    inla.mesh.project(proj, sample2), x2.mean, x2.var), 
                levelplot, xlab='', ylab='', 
                col.regions=topo.colors(100), scale=list(draw=FALSE)))
 @ 
@@ -285,7 +399,7 @@ do.call(function(...) grid.arrange(..., nrow=2),
 @ 
 \caption{Simulated (top and bottom left), 
   posterior mean (top and bottom mid) and 
-  posterior standard deviations (top and 
+  the posterior variance (top and 
   bottom right) for both random fields.}
 \label{fig:visprojp}
 \end{figure}
@@ -293,11 +407,10 @@ do.call(function(...) grid.arrange(..., nrow=2),
 We see on the Figure~\ref{fig:visprojp} 
 that the predicted values are similar to 
 the simulated ones. 
-Also, we see that the variance increase 
-proportionally to the first coordinate. 
+Also, we see that the posterior variance of the first 
+model increase near 0.5 on the first coordinate. 
 And we see the oposite for the second random field. 
-Its because we a negative value the respective 
-$\theta$ to first and positive to second. 
 Also, we see that the variance of 
 the first is greater than the second. 
+
 
