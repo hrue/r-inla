@@ -483,6 +483,10 @@
                     else 
                         title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
             
+                    if (single) {
+                        close.and.new.plot()
+                    }
+
                     if (!is.null(fv)) {
                         plot(plot.idx, fv[idx , colnames(fv)=="mean"], ylim=range(fv[idx, names(fv) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
                         lq = grep("quan", colnames(fv))
