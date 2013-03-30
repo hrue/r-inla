@@ -11,12 +11,12 @@
 The autoregressive model of order $1$ (AR1) for the Gaussian vector
 $\mathbf{x}=(x_1,\dots,x_n)$ is defined as:
 \begin{eqnarray}\nonumber
-    x_1&\sim&\mathcal{N}(0,(\tau(1-\phi^2))^{-1}) \\\nonumber
-    x_i&=&\phi\ x_{i-1}+\epsilon_i; \qquad \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
+    x_1&\sim&\mathcal{N}(0,(\tau(1-\rho^2))^{-1}) \\\nonumber
+    x_i&=&\rho\ x_{i-1}+\epsilon_i; \qquad \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
 \end{eqnarray}
 where
 \[
-|\phi|<1
+|\rho|<1
 \]
 
 \subsection*{Hyperparameters}
@@ -27,11 +27,11 @@ The precision parameter $\kappa$ is represented as
 \end{displaymath}
 where $\kappa$ is the \emph{marginal} precision,
 \begin{displaymath}
-    \kappa = \tau (1-\phi^{2}).
+    \kappa = \tau (1-\rho^{2}).
 \end{displaymath}
-The parameter $\phi$ is represented as
+The parameter $\rho$ is represented as
 \[
-\theta_2 = \log\left(\frac{1+\phi}{1-\phi}\right)
+\theta_2 = \log\left(\frac{1+\rho}{1-\rho}\right)
 \]
 and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$. 
 
@@ -54,13 +54,13 @@ In this exaple we implement an ar1 model observed with Poisson counts
 \begin{verbatim}
 #simulate data
 n = 100
-phi = 0.8
+rho = 0.8
 prec = 10
 ## note that the marginal precision would be
-marg.prec = prec * (1-phi^2)
+marg.prec = prec * (1-rho^2)
 
 E=sample(c(5,4,10,12),size=n,replace=T)
-eta = as.vector(arima.sim(list(order = c(1,0,0), ar = phi), n = n,sd=sqrt(1/prec)))
+eta = as.vector(arima.sim(list(order = c(1,0,0), ar = rho), n = n,sd=sqrt(1/prec)))
 y=rpois(n,E*exp(eta))
 data = list(y=y,z=1:n)
 
