@@ -203,7 +203,7 @@ Using the \code{nndistG()} function of the
 \pkg{splancs}, \cite{splancs}, we compute the 
 distance from each station to its neighbor station
 <<summarydists>>=
-summary(nndistG(as.matrix(PRprec[,1:2]))$dists)
+summary(nndistG(xy)$dists)
 @ 
 and we have station at same location to another 
 and stations at 35 kilometers from other. 
