@@ -167,6 +167,7 @@ points(mesh$loc[,1], v2, col=2)
 @ 
 \caption{Variances implied by both 
   non stationary process defined.}
+\label{fig:varns}
 \end{figure}
 
 
