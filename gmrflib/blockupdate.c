@@ -1417,7 +1417,7 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 	 */
 
 	int n, i;
-	double *mode = NULL, *bb = NULL, *cc = NULL, old2new, new2old, old, neww, *xx = NULL, *yy = NULL, logll;
+	double *mode = NULL, old2new, new2old, old, neww, *xx = NULL, *yy = NULL, logll;
 	GMRFLib_hidden_problem_tp *hidden_problem = NULL;
 
 	GMRFLib_ASSERT(laccept, GMRFLib_EINVARG);
@@ -1443,8 +1443,8 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 
 	n = graph->n;
 	mode = Calloc(n, double);
-	xx = bb = Calloc(n, double);			       /* two names for the same storage */
-	yy = cc = Calloc(n, double);			       /* two names for the same storage */
+	xx = Calloc(n, double);			       /* two names for the same storage */
+	yy = Calloc(n, double);			       /* two names for the same storage */
 
 	GMRFLib_EWRAP1(GMRFLib_init_problem_hidden_store(&hidden_problem,
 							 x_old, b_new, c_new, mean_new, graph, Qfunc_old2new, Qfunc_arg_old2new,
