@@ -1211,7 +1211,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	char *fix = NULL, *fixx = NULL;
 	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
-	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, lc0, lc1, ld0, ld1, c0, c1, deldif =
+	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, ld0, ld1, c0, c1, deldif =
 	    GMRFLib_eps(1.0 / 6.0), h2 = 0.0, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
 
 	GMRFLib_graph_tp *subgraph = NULL;
@@ -1620,10 +1620,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			memcpy(newp->sample, newp->mean_constr, n * sizeof(double));
 			GMRFLib_EWRAP1(GMRFLib_evaluate(newp));
 			ld0 = newp->sub_logdens;
-			lc0 = newp->log_normc;
 			GMRFLib_free_problem(newp);
 		} else {
-			ld0 = lc0 = 0.0;
+			ld0 = 0.0;
 		}
 
 		for (ii = 0; ii < ns; ii++) {
@@ -1636,10 +1635,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			memcpy(newp->sample, newp->mean_constr, n * sizeof(double));
 			GMRFLib_EWRAP1(GMRFLib_evaluate(newp));
 			ld1 = newp->sub_logdens;
-			lc1 = newp->log_normc;
 			GMRFLib_free_problem(newp);
 		} else {
-			ld1 = lc1 = 0.0;
+			ld1 = 0.0;
 		}
 		deriv_log_dens_cond = x_sd * (ld1 - ld0) / (2.0 * h2);
 		break;
@@ -1866,7 +1864,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 
 		(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 		memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-		Free(qi_at_m_store);
+		Free(qi_at_m_store)
 
 		/*
 		 * this solves the equation for the last constraint only... 
@@ -5659,7 +5657,6 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 	int debug = 0;
 	int id = omp_get_thread_num();
-	int *map = gmrf_approx->sub_sm_fact.remap;
 
 	if (!(mo->configs[id])) {
 		mo->configs[id] = Calloc(1, GMRFLib_store_configs_tp);
