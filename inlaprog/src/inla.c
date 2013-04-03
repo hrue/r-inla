@@ -2936,7 +2936,7 @@ int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, doub
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, ypred, sprec, lc, lower = -1.0, upper = 1.0, yy;	// OOOOPS!!!!
+	double y, lprec, prec, w, ypred, sprec, lower = -1.0, upper = 1.0, yy;	// OOOOPS!!!!
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -3573,7 +3573,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 	double phi = map_exp(ds->data_observations.gpoisson_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double p = map_identity(ds->data_observations.gpoisson_p[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double E = ds->data_observations.E[idx];
-	double val, a, b, lambda, mu;
+	double a, b, lambda, mu;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -4281,7 +4281,7 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	}
 
 	int i, k, debug = 0;
-	double *val = NULL, point, val_max, sum, prec, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
+	double *val = NULL, val_max, sum, prec, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -15410,8 +15410,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 		GMRFLib_reorder = G.reorder;		       /* yes! */
 	}
-
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
 
 	if (make_dir) {
 		char *fnm;

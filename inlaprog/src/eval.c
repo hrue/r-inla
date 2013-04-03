@@ -187,7 +187,7 @@ double inla_eval_expression(char *expression, double *x)
 		mupDefineFun1(hParser, "ln", log, 1);
 		mupDefineFun2(hParser, "pow", pow, 1);
 
-		eval_keep_vars_tp *keep_vars;
+		eval_keep_vars_tp *keep_vars = NULL;
 
 		keep_vars = Calloc(1, eval_keep_vars_tp);
 		keep_vars->default_value = *x;
@@ -196,19 +196,18 @@ double inla_eval_expression(char *expression, double *x)
 		value = (double) mupEval(hParser);
 
 		mupRelease(hParser);
-		if (keep_vars) {
-			int i;
-			for (i = 0; i < keep_vars->n; i++) {
-				if (debug) {
-					printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
-				}
-				Free(keep_vars->value[i]);
-				Free(keep_vars->name[i]);
+
+		int i;
+		for (i = 0; i < keep_vars->n; i++) {
+			if (debug) {
+				printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
 			}
-			Free(keep_vars->value);
-			Free(keep_vars->name);
-			Free(keep_vars);
+			Free(keep_vars->value[i]);
+			Free(keep_vars->name[i]);
 		}
+		Free(keep_vars->value);
+		Free(keep_vars->name);
+		Free(keep_vars);
 	}
 
 	if (ISINF(value) || ISNAN(value)) {
