@@ -7,6 +7,10 @@
 
 `inla.upgrade` = function(lib = NULL, testing = FALSE, force = FALSE)
 {
+    if (R.Version()$major == 3) {
+        stop("R-INLA is not yet supported for R-3.0.")
+    }
+
     ## include suggested packages here
     for(p in c("Matrix", "pixmap", "sp")) {
         if (length(grep(paste("^package:", p, "$", sep=""), search())) == 0) {
