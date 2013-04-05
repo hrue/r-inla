@@ -1,6 +1,7 @@
 \chapter{Non stationary model}
 
 <<opts,echo=F,results=hide>>=
+options(width=60, prompt = " ", continue = "   ")
 options(width=75)
 require(INLA)
 require(gridExtra)
