@@ -1,0 +1,52 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{``Table'': a tabulated prior}
+
+This prior allow the user to submit a prior for $\theta$ in a
+tabulated form, which is then interpolated to evaluate
+$\log\pi(\theta)$ as a continous function of the corresponding
+$\theta$.  Let
+\begin{displaymath}
+    \theta_{1}, \theta_{2}, \ldots, \theta_{m}
+\end{displaymath}
+be $m$ values for $\theta$ with corresponding log-prior density
+\begin{displaymath}
+    \log\pi(\theta_{1}),
+    \log\pi(\theta_{2}), \ldots,
+    \log\pi(\theta_{m}).
+\end{displaymath}
+To define this as a prior in \verb|R-INLA|, define \emph{one} object
+of type \verb|character|, with content
+\begin{displaymath}
+    \text{table:}\;
+    \theta_{1} \; \theta_{2}\;  \ldots \; \theta_{m} \;
+    \log\pi(\theta_{1}) \;
+    \log\pi(\theta_{2}) \; \ldots \;
+    \log\pi(\theta_{m})
+\end{displaymath}
+and use this as the name for the prior. 
+
+\subsection*{Example}
+This example define a loggamma-prior as the prior for the
+log-precision in three different ways.
+
+\verbatiminput{example-table.R}
+
+\subsection*{Notes}
+\begin{itemize}
+\item If the internal optimiser in \verb|R-INLA| needs to evaluate the
+    (log-)prior outside the domain given, it will stop and give an error.
+\end{itemize}
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter univariate lgamma
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+% LocalWords:  muparser
