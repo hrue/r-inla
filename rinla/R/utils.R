@@ -147,20 +147,7 @@
 
 `inla.paste` = function(strings, sep = " ")
 {
-    ## new version (learning more and more...)
     return (paste(strings, collapse = sep, sep=""))
-
-    ## old version::
-
-    ## merge strings
-    res = NULL
-    for(s in strings) {
-        if (is.null(res))
-            res = s
-        else
-            res = paste(res, s, sep=sep)
-    }
-    return(res)
 }
 
 `inla.only.for.developers` = function()
