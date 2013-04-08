@@ -6,6 +6,7 @@
 \usepackage{my-showkeys}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{url}
 \usepackage{verbatim}
 
 \SweaveOpts{engine=R,prefix.string=Sweave/sweave,keep.source=TRUE,split=FALSE,eps=TRUE,pdf=TRUE}
@@ -667,15 +668,28 @@ different (and higher) resolution of the posterior marginal.
 
 \chapter{Random effects models}
 
+\section{Model definition using the {\tt f()}-function}
+A random effects model is specified using the {\tt f()}-function:
+\begin{verbatim}
+	f(<covariate>, [<weights>], model=<identifier>, hyper, ...)
+\end{verbatim}
+The first argument is always the name of the covariate, and the
+second argument might be a vector of known weights (one for each
+covariate value). The entry {\tt model} specifies which latent model
+should be used (for available model see Table~\ref{tab:latentModels}).
+The entry {\tt hyper} is used to specify details of the hyperparameters.
+
+
+\section{General options}
+
 \section{Available models}
 
-Table~\ref{tab:likelihoodModels} gives an overview of all implemented likelihood models. In the following we will shortly present the main definition and its properties.
-
+Table~\ref{tab:latentModels} gives an overview of all implemented latent Gaussian models.
 \begin{table}[h!]
 \begin{center}
 \begin{tabular}{ll}
 \toprule
-Model & Name\\
+Model & Identifier\\
 \midrule
 Independent random noise &  {\tt iid}\\
 Random walk of order 1  &     {\tt rw1  }\\
@@ -701,223 +715,24 @@ Classical measurement error model &      {\tt mec     }\\
 Berkson measurement error model  &    {\tt meb }\\
 \bottomrule
 \end{tabular}
-\caption{List of latent Gaussian field implemented in the R inla package.}\label{tab:likelihoodModels}
+\caption{List of latent Gaussian field implemented in the R inla package.}\label{tab:latentModels}
 \end{center}
 \end{table}
+Specific documentation for a model can be found on \url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model documentation can be requested using the function {\tt inla.doc(<identifier>)}, e.g.~{\tt inla.doc("rw1")},
+% , for example
+% <<echo=TRUE, eval=FALSE>>=
+% inla.doc("rw1")
+% @
+which will open a documentation pdf-file. Each documentation file has the same structure:
+\begin{enumerate}
+	\item Description of the model parameterization.
+	\item Definition of the hyperparameters.
+	\item Model specification using R-INLA.
+	\item Hyperparameter specification and default values of the model.
+	\item Illustration of usage using a small simulated example.
+\end{enumerate}
 
-\subsection{Independent random noise}
-
-\subsection*{Parametrization}
-
-This model simply defines $\mathbf{x}$ to be a vector of independent
-and Gaussian distributed random variable (possibly scaled) with
-precision $\tau$:
-\begin{displaymath}
-    \pi(\mathbf{x}|\tau) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi}}
-    \sqrt{(s_{i}\tau)}\exp\left(\frac{1}{2} (s_{i}\tau) x_{i}^{2}\right)
-\end{displaymath}
-where $s_{i} > 0$ is an optional fixed scale
-
-\subsection*{Hyperparameters}
-
-The precision parameter $\tau$ is represented as
-\begin{displaymath}
-    \theta =\log \tau
-\end{displaymath}
-and the prior is defined on $\mathbf{\theta}$.
-
-\subsection*{Specification}
-
-The independent model is specified inside the {\tt f()} function as
-\begin{verbatim}
- f(<whatever>, model="iid", hyper = <hyper>, scale = <scale>)
-\end{verbatim}
-where the option \verb|scale| is optional and default to (all) $1$.
-
-% \subsubsection*{Hyperparameter specification and default values}
-% \input{../hyper/latent/iid.tex}
-
-\subsection*{Example}
-
-\begin{verbatim}
-n=12
-Ntrials = sample(c(80:100), size=n, replace=TRUE)
-eta = rnorm(n,0,0.5)
-prob = exp(eta)/(1 + exp(eta))
-y = rbinom(n, size=Ntrials, prob = prob)
-
-data=data.frame(y=y,z=1:n)
-
-formula=y~f(z,model="iid",
-           hyper=list(theta=list(prior="loggamma",param=c(1,0.01))))
-result=inla(formula,data=data,family="binomial",Ntrials=Ntrials)
-\end{verbatim}
-
-
-\subsection*{Notes}
-
-The option \verb|scale| defines the scaling in the same order as
-argument \verb|values|.  It is therefore adviced to also give argument
-\verb|values| when \verb|scale| is used to be sure that they are
-consistent.
-
-\subsection{Random walk of order 1}
-\subsection*{Parametrization}
-
-The random walk model of order $1$ (RW1) for the Gaussian vector
-$\mathbf{x}=(x_1,\dots,x_n)$ is constructed assuming independent
-increments:
-\[
-\Delta x_i = x_i-x_{i+1}\sim\mathcal{N}(0,\tau^{-1})
-\]
-The density for $\mathbf{x}$ is derived from its $n-1$ increments as
-\begin{eqnarray*}
-    \pi(\mathbf{x}|\tau) &\propto& \tau^{(n-1)/2}
-    \exp\left\{-\frac{\tau}{2}\sum (\Delta x_i)^2\right\}\\
-    & = &\tau^{(n-1)/2}\exp\left\{-\frac{1}{2}
-      \mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
-\end{eqnarray*}
-where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure
-matrix reflecting the neighbourhood structure of the model.
-The RW1 is intrinsic with rank deficiency 1.
-
-It is also possible to define a {\it cyclic} version of the RW1 model,
-in this case the graph is modified so that last node $x_n$ is
-neighbour of $x_{n-1}$ and $x_1$.
-\subsection*{Hyperparameters}
-
-The prior is defined on $\mathbf{\theta}$ which is defined as
-%\begin{displaymath}
-    $\theta =\log \tau$
-%\end{displaymath}
-
-
-\subsection*{Specification}
-
-The RW1 model is specified inside the {\tt f()} function as
-\begin{verbatim}
- f(<whatever>, model="rw1", values=<values>, cyclic=<TRUE|FALSE>,
-              hyper = <hyper>)
-\end{verbatim}
-The (optional) argument {\tt values } is a numeric or factor vector
-giving the values assumed by the covariate for which we want the
-effect to be estimated. See next example for an application.
- 
-% \subsubsection*{Hyperparameter spesification and default values}
-% \input{../hyper/latent/rw1.tex}
-% 
-
-\subsection*{Example}
-
-\begin{verbatim}
-n=100
-z=seq(0,6,length.out=n)
-y=sin(z)+rnorm(n,mean=0,sd=0.5)
-data=data.frame(y=y,z=z)
-
-formula=y~f(z,model="rw1",
-            hyper = list(prec = list(prior="loggamma",param=c(1,0.01))))
-result=inla(formula,data=data,family="gaussian")
-
-#here we estimate the effect only for some of the values in z
-formula1=y~f(z,model="rw1",
-             hyper = list(prec = list(prior="loggamma",param=c(1,0.01))),
-             values=z[seq(1,length(z),2)])
-result1=inla(formula1,data=data,family="gaussian")
-\end{verbatim}
-
-% 
-% \subsection*{Notes}
-% 
-% The RW1 is intrinsic with rank deficiency 1.
-% 
-% There exist also support to define irregular RW1 models.
-
-\subsection{Random walk of order 2}
-
-
-\subsection*{Parametrization}
-The random walk model of order $2$ (RW2) for the Gaussian vector
-$\mathbf{x}=(x_1,\dots,x_n)$ is constructed assuming independent
-second-orderincrements:
-\[
-\Delta^2 x_i = x_i-2\ x_{i+1}+x_{i+2}\sim\mathcal{N}(0,\tau^{-1})
-\]
-The density for $\mathbf{x}$ is derived from its $n-2$ second-order
-increments as
-\begin{eqnarray*}
-    \pi(\mathbf{x}|\tau) &\propto& \tau^{(n-2)/2} \exp\left\{-\frac{\tau}{2} \sum (\Delta^2 x_i)^2\right\}\\
-    & = &\tau^{(n-2)/2}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
-\end{eqnarray*}
-where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure
-matrix reflecting the neighbourhood structure of the model. The RW2 is a intrinsic with rank deficiency 2.
-
-It is also possible to define a {\it cyclic} version of the RW2 model.
-
-\subsection*{Hyperparameters}
-
-The precision parameter $\tau$ is represented as
-\begin{displaymath}
-    \theta =\log \tau
-\end{displaymath}
-and the prior is defined on $\theta$.
-
-\subsection*{Specification}
-
-The RW2 model is specified inside the {\tt f()} function as
-\begin{verbatim}
-f(<whatever>, model="rw2", values=<values>, cyclic=<TRUE|FALSE>,
-              hyper = <hyper>)
-\end{verbatim}
-The (optional) argument {\tt values } is a numeric or factor vector
-giving the values assumed by the covariate for which we want the
-effect to be estimated. See the example for RW1 for an application.
-
-% \subsubsection*{Hyperparameter spesification and default values}
-% \input{../hyper/latent/rw2.tex}
-
-
-\subsection*{Example}
-
-\begin{verbatim}
-
-n=100
-z=seq(0,6,length.out=n)
-y=sin(z)+rnorm(n,mean=0,sd=0.5)
-data=data.frame(y=y,z=z)
-
-formula=y~f(z,model="rw2")
-result=inla(formula,data=data,family="gaussian")
-\end{verbatim}
-
-
-% \subsection*{Notes}
-% 
-% The RW2 is a intrinsic with rank deficiency 2.
-% 
-% There model also supports irregular locations or values.
-
-
-\subsection{Random walk of order 2 on a lattice}  
-\subsection{Continuous random walk of order 2}
-\subsection{Model for seasonal variation}
-\subsection{Model for spatial effect}
-\subsection{Model for spatial effect (proper version)}
-\subsection{Model for weighted spatial effects}
-\subsection{Model for spatial effect + random effect}
-\subsection{Autoregressive model of order 1}
-\subsection{Autoregressive model of order p}
-\subsection{The Ornstein-Uhlenbeck process}
-\subsection{User defined structure matrix, type 0}
-\subsection{User defined structure matrix, type 1}
-\subsection{User defined structure matrix, type 2}
-\subsection{Model for correlated effects with Wishart prior}
-\subsection{Gaussian field with Matern covariance function}
-\subsection{Classical measurement error model}
-\subsection{Berkson measurement error model}
-
-\section{General options}
-
+The hyperparameter specification and default values of the model (4) can be asked for within {\tt R} using the function {\tt inla.model.properties(<identifier>, "latent")}.
 
 
 \chapter{Options for the \tv{inla}-call}
