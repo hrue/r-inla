@@ -5243,7 +5243,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, event, truncation, lower, upper, alpha, gama, ypow, lowerpow, upperpow, truncationpow, p;
+	double y, event, truncation, lower, upper, alpha, gama, ypow, lowerpow, upperpow, truncationpow, p, onemp, podds;
 
 	y = ds->data_observations.y[idx];
 	event = ds->data_observations.event[idx];
@@ -5254,7 +5254,10 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	alpha = map_alpha_weibull_cure(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	p = map_p_weibull_cure(ds->data_observations.p_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
+	onemp = 1.0-p;
+	podds = p/onemp;
 	LINK_INIT;
+
 
 	if (m > 0) {
 		switch (ievent) {
@@ -5262,7 +5265,9 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			ypow = pow(y, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - p) + log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * (ypow - truncationpow);
+				logll[i] = log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * ypow -
+						log(podds + exp(-gama*truncationpow)
+								);
 			}
 			break;
 
@@ -5270,7 +5275,8 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			lowerpow = pow(lower, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(p + (1.0 - p) * exp(-gama * (lowerpow - truncationpow)));
+				logll[i] = log(p + onemp * exp(-gama * lowerpow)) -
+						log(p + onemp * exp(-gama * truncationpow));
 			}
 			break;
 
@@ -5278,7 +5284,8 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log((1.0 - p) * (1.0 - exp(-gama * (upperpow - truncationpow))));
+				logll[i] = log(onemp) - gama * (upperpow - truncationpow) -
+						log(1.0-onemp*exp(-gama*truncationpow));
 			}
 			break;
 
@@ -5287,7 +5294,8 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - p) - gama * (lowerpow - truncationpow) + log(1.0 - exp(-gama * (upperpow - lowerpow)));
+				logll[i] = log(onemp) - gama * (upperpow - lowerpow) -
+						log(1.0-onemp*exp(-gama*truncationpow));
 			}
 			break;
 		default:
@@ -5300,6 +5308,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
