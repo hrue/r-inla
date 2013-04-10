@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+
+\begin{document}
+
+{\bf Probabilities for Weibull cure model}
+
+Event time is $\infty$ with probability $\rho$, and has the following Weibull distribution otherwise:
+\[
+f(t;\mu_i,\nu) =  \mu_i \nu t^{\nu-1} \exp\left[-   \mu_i t^\nu\right].
+\] 
+ Given that a subject reached time $L$ without cancer incidence, the density function for their cancer incidence time $T$ is
+\begin{align*}
+pr(T = t | T > L) =&  [(1-\rho) f(t;\mu_i, \nu)] \left/ \left[ \rho + \int_L^{\infty} f(u;\mu_i, \nu) du \right]\right. \\
+=& \frac{\mu_i \nu t^{\nu-1} \exp\left[-\mu_it^\nu\right]}{\left[
+\rho/(1-\rho)  + \exp(-\mu_i L^\nu) 
+\right]}. 
+\end{align*}
+
+The probability that an individual has a cancer time greater than $r$ (right censoring) given that they are cancer-free at age $L$ is
+\begin{align*}
+pr(T > t | T > L) =&  \frac{\rho + (1-\rho)\int_t^\infty f(u;\mu_i, \nu) du }{ 
+\rho + (1-\rho) \int_{L}^\infty f(u;\mu_i, \nu) du}\\
+=& \frac{\rho + (1-\rho)  \exp(-\mu_i t^\nu)}{\rho + (1-\rho)  \exp(-\mu_i L^\nu)}.
+\end{align*}
+
+
+ Left censoring.
+\begin{align*}
+pr(T < t | T > L) =&  \frac{ (1- \rho) \int_L^t f(u;\mu_i, \nu) du }{ 
+\rho + (1-\rho) \int_L^\infty f(u;\mu_i, \nu) du}\\
+=& \frac{ (1 - \rho)   \exp[-\mu_i (t^\nu - L^\nu)]}{1 - (1-\rho) \exp(-\mu_i L^\nu)}.
+\end{align*}
+
+interval censoring
+\begin{align*}
+pr(t_1 < T < t_2 | T > L) =&  \frac{ (1- \rho) \int_{\max(L, T_1)}^{t_2} f(u;\mu_i, \nu) du }{ 
+\rho + (1-\rho) \int_L^\infty f(u;\mu_i, \nu) du}\\
+=& \frac{ (1 - \rho)   \exp[-\mu_i (t_2^\nu - \max(L, t_1)^\nu)]}{1 - (1-\rho) \exp(-\mu_i L^\nu)}.
+\end{align*}
+ 
+\end{document}
