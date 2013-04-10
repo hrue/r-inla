@@ -45,7 +45,7 @@ x.group = inla.group(x, n = 2)
 n = 100
 x = rnorm(n)
 y = x + rnorm(n)
-result = inla(y ~ f(inla.group(x, n = 20), model = "iid"))
+result = inla(y ~ f(inla.group(x, n = 20), model = "iid"), data=data.frame(y=y,x=x))
 }
 
 
