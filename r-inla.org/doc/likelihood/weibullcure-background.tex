@@ -12,7 +12,7 @@ f(t;\mu_i,\nu) =  \mu_i \nu t^{\nu-1} \exp\left[-   \mu_i t^\nu\right].
 \] 
  Given that a subject reached time $L$ without cancer incidence, the density function for their cancer incidence time $T$ is
 \begin{align*}
-pr(T = t | T > L) =&  [(1-\rho) f(t;\mu_i, \nu)] \left/ \left[ \rho + \int_L^{\infty} f(u;\mu_i, \nu) du \right]\right. \\
+pr(T = t | T > L) =&  [(1-\rho) f(t;\mu_i, \nu)] \left/ \left[ \rho + (1-\rho) \int_L^{\infty} f(u;\mu_i, \nu) du \right]\right. \\
 =& \frac{\mu_i \nu t^{\nu-1} \exp\left[-\mu_it^\nu\right]}{\left[
 \rho/(1-\rho)  + \exp(-\mu_i L^\nu) 
 \right]}. 
