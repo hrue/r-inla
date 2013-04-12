@@ -129,6 +129,41 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
+    } else if (inla.one.of(family, c("zeroinflatednbinomial1strata2"))) {
+        if (is.null(E)) {
+            E = rep(1.0, n.data)
+        }
+        if (length(E) == 1L) {
+            E = rep(E, n.data)
+        }
+
+        if (is.null(strata)) {
+            strata = rep(1L, n.data)
+        }
+        if (length(strata) == 1L) {
+            strata = rep(strata, n.data)
+        }
+
+        stopifnot(all(!is.na(strata)))
+        stopifnot(all(strata %in% c(1, 2)))
+
+        response = cbind(ind, E, strata-1L, y.orig)
+
+        if (length(E) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
+        }
+
+        if (length(strata) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of strata has to be the same as the length of the response:", length(strata), n.data))
+        }
+
+        null.dat = is.na(response[, 4L])
+        response = response[!null.dat,]
+
     } else if (inla.one.of(family,
                            c("binomial",
                              "binomialtest", 

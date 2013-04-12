@@ -3666,6 +3666,45 @@
                       pdf = "zeroinflated"
                       ),
 
+              zeroinflatednbinomial1strata2 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "log size",
+                                      short.name = "size",
+                                      initial = log(10),
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 1),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      ),
+                              theta2 = list(
+                                      name = "logit probability 1",
+                                      short.name = "prob1",
+                                      initial = -1,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(-1, 0.2),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      ), 
+                              theta3 = list(
+                                      name = "logit probability 2",
+                                      short.name = "prob2",
+                                      initial = -1,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(-1, 0.2),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "log"),
+                      pdf = "zeroinflated"
+                      ),
+
               zeroinflatednbinomial2 = list(
                       hyper = list(
                               theta1 = list(
