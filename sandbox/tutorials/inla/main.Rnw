@@ -4,6 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{block}
 \usepackage{my-showkeys}
+\usepackage{fancyvrb}
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{url}
@@ -360,7 +361,7 @@ This chapter discuss classical fixed effects models in a Bayesian
 context, and is essentially a Bayesian version of \verb|lm()| and
 \verb|glm()|\footnote{Due to implementation issues, large scale (pure)
     fixed effects models in \tv{R-INLA} may scale badly and run slower
-    than their frequentisitic alternatives.}.
+    than their frequentist alternatives.}.
 
 We will now define Bayesian generalized linear models (BGLMs) to
 perform approximate fully Bayesian inference with INLA. These models
@@ -668,9 +669,9 @@ different (and higher) resolution of the posterior marginal.
 
 \chapter{Random effects models}
 
-This chapter discusses the definition of random effects models in INLA.
-Going back to Equation~\ref{eq:model_linPred}, we will describe how
-to define general Gaussian random effects models of the form
+This chapter discusses the definition of random effects models.
+Going back to Equation~\ref{eq:model_linPred}, we describe the
+specification of Gaussian random effects models of the form
 \begin{equation*}
   \mm{w} f(\mm{c}; \mm{\theta}),
 \end{equation*}
@@ -690,19 +691,20 @@ components of the {\tt f()}-function. More advanced topics like replicating
 a latent model, or grouping several latent models will be described later in detail.
 
 \subsection{First two arguments: Covariate and weights vector}
-The {\tt f()}-function takes as first argument the covariate that should
-be modeled. To define an independent and identically distributed random
-effect for each observation. This is simply an index $c=1,2,\ldots,n$,
-with $n$ denoting the total number of observations, leading to:
+The {\tt f()}-function takes as first argument the covariate to
+be modeled. To define an independent and identically distributed (iid)
+random effect for each observation. This is simply an index
+$c=1,2,\ldots,n$, with $n$ denoting the total number of observations,
+leading to:
 \begin{verbatim}
 	f(c, model="iid")
 \end{verbatim}
-A smooth effect of a covariate $\mm{c}=(c_1, \ldots, c_n)^\top$, assuming
+A smooth effect, e.g.~a random walk of second order (RW2),
+of a covariate $\mm{c}=(c_1, \ldots, c_n)^\top$, assuming
 covariate values $c_i$ for observation $i$, can be obtained by
 \begin{verbatim}
 	f(c, model="rw2")
 \end{verbatim}
-where we specify a random walk of order 2 for covariate $\mm{c}$.
 The second argument of the {\tt f()}-function is an optional vector of
 known weights $\mm{w}$ (one for each covariate value), leading to
 \begin{verbatim}
@@ -722,18 +724,14 @@ changes to
 	f(inla.group(c, n=20), w, model="rw2")
 \end{verbatim}
 To define all values assumed by a covariate and
-for which we want estimate an effect,  the optional field
+for which an effect should be estimated,  the optional field
 {\tt values} can be used. Here, a numerical vector, a vector of
 factors or ‘NULL’ can be set:
 \begin{verbatim}
 	f(c, w, model="rw2", values=<values assumed by the covariate>)
 \end{verbatim}
 
-
-
-\section{General options}
-
-\section{Available models}
+\section{Available latent Gaussian models}
 
 Table~\ref{tab:latentModels} gives an overview of all implemented latent Gaussian models.
 \begin{table}[h!]
@@ -783,8 +781,116 @@ which will open a documentation pdf-file. Each documentation file has the same s
 	\item Illustration of usage using a small simulated example.
 \end{enumerate}
 
-The hyperparameter specification and default values of the model (4) can be asked for within {\tt R} using the function {\tt inla.model.properties(<identifier>, "latent")}.
 
+\section{Specification of hyperparameter settings}
+
+The model we would like to use is specified by setting the item
+{\tt model} equal to the model identifier listed in
+Table~\ref{tab:latentModels}, e.g.~{\tt model=mec} to
+use the classical measurement error model.
+
+Each latent model depends on a certain number of hyperparameters,
+e.g.~the {\tt iid} model has one hyperparameter namely the precision,
+for which prior distributions
+need to be specified. The prior distribution is not always defined on
+the original parameter scale but sometimes on a transformed
+quantity. For example precision parameters are always modelled on the
+log scale. Posterior marginals and summary estimates are, however,
+always returned on the original scale.
+
+To set the details for the hyperparameters the field {\tt hyper} of
+the {\tt f()} function is used, which takes as argument a list. This
+list has as many entries as hyperparameters exist for the latent model.
+The prior settings for a precision parameter, in case of the {\tt rw2}
+model for example, are set via:
+\begin{Verbatim}[gobble=0,numbers=left]
+hyper=list(
+  prec=list(
+    prior="loggamma",
+    param=c(1, 1e-04),
+    initial=4,
+    fixed=FALSE,
+    to.theta = function(x) log(x),
+    from.theta = function(x) exp(x)
+  )
+)
+\end{Verbatim}
+{\tt prec} in line 2 is the short name identifier to indicate that
+the settings specified in the subsequent list belong to the precision
+parameter. Internally the precision parameter is log-transformed and
+all prior settings are defined for the transformed parameter.
+The transformation used can be seen in lines 7 and 8.
+Here, we use a log-gamma distribution  with parameters $1$ and
+$1e-04$ (lines 3 and 4). It is also possible to fix the hyperparameter setting
+the field {\tt fixed = TRUE} in line 6.
+The value to which it should be fixed
+is assigned to {\tt initial} in line 5. If {\tt fixed=FALSE} the value
+set in {\tt initial} is used as starting value.
+
+For a latent model with more than one hyperparameter several of prior lists
+can be specified in {\tt hyper}. For example for an AR1 model, which
+has two hyperparameters,  the corresponding specification would be:
+
+\begin{Verbatim}[gobble=0,numbers=left]
+hyper=list(
+  prec=list(
+    prior="loggamma",
+    param=c(1, 1e-04),
+    initial=4,
+    fixed=FALSE,
+    to.theta = function(x) log(x),
+    from.theta = function(x) exp(x)
+  ),
+  rho=list(
+    prior = "normal",
+    param = c(0, 0.15),
+    initial = 2,
+    fixed = FALSE,
+    to.theta = function(x) log((1+x)/(1-x)),
+    from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+  )
+)
+\end{Verbatim}
+Here, a log-gamma distribution with parameters  $1$ and $1e-04$ is assigned
+to the log-precision parameter and a normal distribution with mean $0$
+and precision $0.15$ is assigned to the logit-transformed lag one correlation
+parameter.
+
+The details on the hyperparameters  (number, identifier names, \ldots)
+and default values of all latent models can be requested within {\tt R}
+using the function {\tt inla.model.properties(<identifier>, "latent")}.
+They are also given in the documentary pdf file of the model or
+listed when typing {\tt ?inla.models}.
+
+\section{Prior distributions for the hyperparameters}
+See Sections ....
+
+\section{General options}
+
+Besides the type of latent model and its hyperparameter settings
+some general options can be specified. All available options are
+listed on the help page of the {\tt f()}-function, found via {\tt ?f}.
+The most important options are
+
+\begin{itemize}
+	\item[{\tt constr}:] A boolean variable indicating whether to
+	set a sum to zero. By default the sum to 0 constraint is
+    imposed on all intrinsic models ("iid","rw1","rw1","besag", etc..)
+	\item[{\tt extraconstr}] This argument defines extra linear
+	constraints. The argument is a list with two elements, a matrix
+	{\tt A} and a
+	vector {\tt e}, which defines the extra constraint {\tt Ax = e}; for
+	example {\tt extraconstr = list(A = A, e=e)}. Note that this
+	constraint comes additional to the
+	sum-to-zero constraint defined if {\tt constr = TRUE}.
+	\item[{\tt quantile}:]A vector of maximum 10 quantiles
+	to compute for each posterior marginal.
+	\item[{\tt rankdef}:] A number *defining* the rank deficiency of
+		the latent model.
+\end{itemize}
+
+\section{Looking at the results}
+\section{Example}
 
 \chapter{Options for the \tv{inla}-call}
 
@@ -876,7 +982,7 @@ formula = y ~ f(idx, model="iid", hyper=list(prec=list(initial=0, fixed=TRUE))) 
                 hyper=list(beta=list(prior="normal", param=prior.beta, fixed=FALSE))) - 1
 result = inla(formula, data=data.frame(idx, idx.copy, z, y))
 @
-If the scaling parameter is within a given range, then the option {\tt range = c(l, u)} can be added. In this case $\beta = l + (h-l)\exp(\beta_{\text{local}})/(1+\exp(\beta_{\text{local}}))$, and the prior is defined on $\beta_{\text{local}}$. If $l=h$ or {\tt range = NULL}, then the identity mapping is used. If {\tt h = Inf} and {\tt l != Inf}, then the mapping $l + \exp(\beta_{\text{local}})$ is used. The case {\tt l = Inf} and {\tt h != Inf} is not yet implemented. Models which require the use of the copy function together with the estimation of the unkonwn scaling parameter can be found for example in the measurement error context, see \citet{muff-etal-2013} for more details and the corresponding R-INLA code.
+If the scaling parameter is within a given range, then the option {\tt range = c(l, u)} can be added. In this case $\beta = l + (h-l)\exp(\beta_{\text{local}})/(1+\exp(\beta_{\text{local}}))$, and the prior is defined on $\beta_{\text{local}}$. If $l=h$ or {\tt range = NULL}, then the identity mapping is used. If {\tt h = Inf} and {\tt l != Inf}, then the mapping $l + \exp(\beta_{\text{local}})$ is used. The case {\tt l = Inf} and {\tt h != Inf} is not yet implemented. Models which require the use of the copy function together with the estimation of the unknown scaling parameter can be found for example in the measurement error context, see \citet{muff-etal-2013} for more details and the corresponding R-INLA code.
 
 A model or a copied model can be copied several times. The degree of closeness of $\mm{v}$ and $\mm{v}^\star$ is specified by the argument precision, which represents $\kappa$ in~\eqref{eq:copy}.
 
