@@ -161,6 +161,11 @@ typedef struct {
 	double **log_size;
 
 	/*
+	 * y ~ Neg.Binomial(n, p(x)) strata2
+	 */
+	double *strata;				       /* type int */
+	
+	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
 	double **log_prec_gaussian;
@@ -218,6 +223,8 @@ typedef struct {
 	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
 	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
 
+	double **prob1_intern;				       /* for the strata2 */
+	double **prob2_intern;				       /* for the strata2 */
 
 	/*
 	 * the zero-n-inflated binomial 2 
@@ -363,6 +370,7 @@ typedef enum {
 	L_ZEROINFLATEDNBINOMIAL0,
 	L_ZEROINFLATEDNBINOMIAL1,
 	L_ZEROINFLATEDNBINOMIAL2,
+	L_ZEROINFLATEDNBINOMIAL1STRATA2,
 	L_STOCHVOL,
 	L_STOCHVOL_T,
 	L_STOCHVOL_NIG,
@@ -1255,6 +1263,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
