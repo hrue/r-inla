@@ -4229,34 +4229,27 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (p > 1.0) {
+			p = DMAX(0.0, DMIN(1.0, p));
+			if (ISEQUAL(p, 1.0)) {
 				/*
-				 * need this for the link = "log" that was requested...
+				 * this is ok if we get a 0*log(0) expression for the reminder 
 				 */
-				logll[i] = res.val - SQR(DMIN(10.0, n)) * SQR(x[i] + OFFSET(idx) - (-5.0));
-				// printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
-			} else {
-				if (ISEQUAL(p, 1.0)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if (n == (int) y) {
-						logll[i] = res.val + y * log(p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else if (ISZERO(p)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if ((int) y == 0) {
-						logll[i] = res.val + (n - y) * log(1.0 - p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
+				if (n == (int) y) {
+					logll[i] = res.val + y * log(p);
 				} else {
-					logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+					logll[i] = -DBL_MAX;
 				}
+			} else if (ISZERO(p)) {
+				/*
+				 * this is ok if we get a 0*log(0) expression for the reminder 
+				 */
+				if ((int) y == 0) {
+					logll[i] = res.val + (n - y) * log(1.0 - p);
+				} else {
+					logll[i] = -DBL_MAX;
+				}
+			} else {
+				logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
 			}
 		}
 	} else {
