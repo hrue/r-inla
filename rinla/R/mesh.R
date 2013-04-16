@@ -1727,14 +1727,14 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
                   mesh$loc)
             mloc = (mloc[1:mesh$n] + mloc[2:(mesh$n+1L)])/2
             mloc = c(mloc-mesh$loc[1], diff(mesh$interval))
-            loc = (loc-mloc[1]) %% diff(mesh$interval)
+            loc = (loc-mesh$loc[1]) %% diff(mesh$interval)
         } else {
             mloc =
                 c(0,
                   (mesh$loc[1:(mesh$n-1L)] +
                    mesh$loc[2:mesh$n])/2-mesh$loc[1],
                   diff(mesh$interval))
-            loc = pmax(0, pmin(diff(mesh$interval), loc-mloc[1]))
+            loc = pmax(0, pmin(diff(mesh$interval), loc-mesh$loc[1]))
         }
     }
 
