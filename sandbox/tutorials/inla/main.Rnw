@@ -673,7 +673,7 @@ This chapter discusses the definition of random effects models.
 Going back to Equation~\ref{eq:model_linPred}, we describe the
 specification of Gaussian random effects models of the form
 \begin{equation*}
-  \mm{w} f(\mm{c}; \mm{\theta}),
+  \mm{w} \cdot f(\mm{c}; \mm{\theta}),
 \end{equation*}
 where $\mm{w}$ denotes a vector of known weights for the effect and $\mm{\theta}$
 represents the hyperparameters of the Gaussian model.
@@ -784,7 +784,7 @@ which will open a documentation pdf-file. Each documentation file has the same s
 
 \section{Specification of hyperparameter settings}
 
-The model we would like to use is specified by setting the item
+The model to be used is specified by setting the item
 {\tt model} equal to the model identifier listed in
 Table~\ref{tab:latentModels}, e.g.~{\tt model=mec} to
 use the classical measurement error model.
@@ -794,13 +794,15 @@ e.g.~the {\tt iid} model has one hyperparameter namely the precision,
 for which prior distributions
 need to be specified. The prior distribution is not always defined on
 the original parameter scale but sometimes on a transformed
-quantity. For example precision parameters are always modelled on the
-log scale. Posterior marginals and summary estimates are, however,
-always returned on the original scale.
+quantity. For example precision parameters are modelled on the
+log scale. Of note, posterior marginals and summary estimates are
+returned on the original scale.
 
 To set the details for the hyperparameters the field {\tt hyper} of
 the {\tt f()} function is used, which takes as argument a list. This
 list has as many entries as hyperparameters exist for the latent model.
+For each hyperparameter again a list containing the prior settings is
+defined.
 The prior settings for a precision parameter, in case of the {\tt rw2}
 model for example, are set via:
 \begin{Verbatim}[gobble=0,numbers=left]
@@ -874,16 +876,16 @@ The most important options are
 
 \begin{itemize}
 	\item[{\tt constr}:] A boolean variable indicating whether to
-	set a sum to zero. By default the sum to 0 constraint is
-    imposed on all intrinsic models ("iid","rw1","rw1","besag", etc..)
+	set a sum to zero. By default the sum to zero constraint is
+    imposed on all intrinsic models ("iid","rw1","rw2","besag", etc..)
 	\item[{\tt extraconstr}] This argument defines extra linear
 	constraints. The argument is a list with two elements, a matrix
 	{\tt A} and a
-	vector {\tt e}, which defines the extra constraint {\tt Ax = e}; for
-	example {\tt extraconstr = list(A = A, e=e)}. Note that this
+	vector {\tt e}, which defines the extra constraint {\tt Ax = e};
+	leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
 	constraint comes additional to the
 	sum-to-zero constraint defined if {\tt constr = TRUE}.
-	\item[{\tt quantile}:]A vector of maximum 10 quantiles
+	\item[{\tt quantile}:]A vector of maximum $10$ quantiles
 	to compute for each posterior marginal.
 	\item[{\tt rankdef}:] A number *defining* the rank deficiency of
 		the latent model.
