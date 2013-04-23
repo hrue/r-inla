@@ -1866,10 +1866,10 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 		memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 		Free(qi_at_m_store)
 
-		/*
-		 * this solves the equation for the last constraint only... 
-		 */
-		k = nc - 1;
+		    /*
+		     * this solves the equation for the last constraint only... 
+		     */
+		    k = nc - 1;
 		kk = k * sub_n;
 		for (i = 0; i < sub_n; i++) {
 			(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
@@ -3196,8 +3196,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		compute = Calloc(graph->n, char);
 	}
 
-        nhyper = IMAX(0, nhyper);
-        dens_max = 1;
+	nhyper = IMAX(0, nhyper);
+	dens_max = 1;
 	dens = Calloc(graph->n, GMRFLib_density_tp **);
 	dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
 	weights = Calloc(dens_max, double);
@@ -3217,7 +3217,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		cpo = NULL;
 	}
 	if ((density || gdensity) && po) {
-	        (*po) = Calloc(1, GMRFLib_ai_po_tp);
+		(*po) = Calloc(1, GMRFLib_ai_po_tp);
 		(*po)->n = graph->n;
 		(*po)->value = Calloc(graph->n, double *);
 	} else {
@@ -3264,7 +3264,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	if (cpo) {
 		cpo_theta = Calloc(graph->n, double *);	       /* cpo-value conditioned on theta */
 		pit_theta = Calloc(graph->n, double *);	       /* pit-value conditioned on theta */
-		failure_theta = Calloc(graph->n, double *);     /* failure indicator on theta */
+		failure_theta = Calloc(graph->n, double *);    /* failure indicator on theta */
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
 			if (d[j] || ai_par->cpo_manual) {
@@ -3284,7 +3284,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 	if (dic) {
-		deviance_theta = Calloc(graph->n, double *);    /* mean of deviance conditioned on theta */
+		deviance_theta = Calloc(graph->n, double *);   /* mean of deviance conditioned on theta */
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
 			if (d[j]) {
@@ -4186,7 +4186,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_density_tp **dens_local = NULL;
 					GMRFLib_density_tp **dens_local_transform = NULL;
 					double *z_local = NULL, *theta_local = NULL, *userfunc_values_local = NULL, weights_local, val, neff_local = 0.0;
-					double *cpo_theta_local = NULL, *po_theta_local = NULL, *pit_theta_local = NULL, *failure_theta_local = NULL, *deviance_theta_local = NULL;
+					double *cpo_theta_local = NULL, *po_theta_local = NULL, *pit_theta_local = NULL, *failure_theta_local =
+					    NULL, *deviance_theta_local = NULL;
 					int err, *iz_local = NULL;
 					size_t idx;
 					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
@@ -5143,8 +5144,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 				for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
 					if (po_theta[ii][jj]) {
-						evalue += po_theta[ii][jj] * adj_weights[jj]; 
-						evalue_one += adj_weights[jj]; 
+						evalue += po_theta[ii][jj] * adj_weights[jj];
+						evalue_one += adj_weights[jj];
 					}
 				}
 				if (evalue_one) {
@@ -5660,7 +5661,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 	Free(dens);
 
-	if (tfunc){
+	if (tfunc) {
 		for (i = 0; i < graph->n; i++) {
 			if (tfunc[i]) {
 				for (j = 0; j < dens_count; j++) {
@@ -6437,7 +6438,7 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	return GMRFLib_SUCCESS;
 }
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
-				  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
+				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
@@ -6544,12 +6545,10 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	Free(work);
 	return fail;
 }
-double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_density, double d,
-				  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
+double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
 	int retval, compute_po = 1, i, k, np = GMRFLib_faster_integration_np;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *work = NULL,
-	    integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *work = NULL, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
 	if (!po_density) {
 		if (po) {
