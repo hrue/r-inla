@@ -88,6 +88,7 @@
     result.tmp$.args$control.compute$dic = FALSE
     result.tmp$.args$control.compute$mlik = TRUE
     result.tmp$.args$control.compute$cpo = FALSE
+    result.tmp$.args$control.compute$po = FALSE
     result.tmp$.args$control.compute$q = FALSE
     result.tmp$.args$control.compute$graph = FALSE
     

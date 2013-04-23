@@ -730,6 +730,23 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
+/**
+ *   \brief The type of the cpo-object returned by \c GMRFLib_INLA().
+ */
+typedef struct {
+
+	/**
+	 * \brief Total number of nodes
+	 */
+	int n;
+
+	/**
+	 * The PO-value, if po_value[i] is non-NULL, then po_value[i] points to the PO value.
+	 */
+	double **value;
+
+} GMRFLib_ai_po_tp;
+
 typedef struct
 {
 	double log_posterior;				       /*  */
@@ -907,7 +924,7 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, 
 		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp **tfunc, 
 		    GMRFLib_density_tp *** density_hyper,
-		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_dic_tp * dic,
+		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
 		    char *compute, double ***hyperparam, int nhyper, GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		    double *x, double *b, double *c, double *mean, GMRFLib_bfunc_tp ** bfunc, double *d,
@@ -925,14 +942,17 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
-float GMRFLib_ai_cpopit_integrate(float *cpo, float *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				  double *x_vec);
-float GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
+double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				  double *x_vec);
+double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, double **izs, int n, int nhyper, double dz);
 int GMRFLib_ai_correct_cpodens(double *dens, double *x, int *n, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp * cpo);
+int GMRFLib_ai_po_free(GMRFLib_ai_po_tp * po);
 int GMRFLib_ai_do_MC_error_check(double *statistics, GMRFLib_problem_tp * problem, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, int nsamp);
 int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, int nhyper, GMRFLib_graph_tp * graph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_problem_tp * problem, double *c, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);

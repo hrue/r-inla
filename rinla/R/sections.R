@@ -583,7 +583,7 @@
 }
 
 `inla.problem.section` = function(file , data.dir, result.dir, hyperpar, return.marginals, dic,
-        cpo, mlik, quantiles, smtp, q, strategy, graph, config)
+        cpo, po, mlik, quantiles, smtp, q, strategy, graph, config)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
@@ -603,6 +603,7 @@
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
+    inla.write.boolean.field("po", po, file)
     inla.write.boolean.field("dic", dic, file)
     inla.write.boolean.field("mlik", mlik, file)
     inla.write.boolean.field("q", q, file)

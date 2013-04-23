@@ -13,6 +13,7 @@
         res.lincomb.derived = inla.collect.lincomb(results.dir, debug, derived = TRUE)
         res.dic = inla.collect.dic(results.dir, debug)
         res.cpo.pit = inla.collect.cpo(results.dir, debug)
+        res.po = inla.collect.po(results.dir, debug)
         res.random = inla.collect.random(results.dir, control.results$return.marginals.random, debug)
         res.predictor = inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
         res.configurations = inla.collect.configurations(results.dir, debug)
@@ -29,6 +30,7 @@
         res.lincomb.derived = NULL
         res.dic=NULL
         res.cpo.pit =NULL
+        res.po = NULL
         res.random=NULL
         res.predictor =NULL
         res.configurations = NULL
@@ -96,7 +98,9 @@
         colnames(joint.hyper) = c(misc$theta.tags, "Log posterior density")
     }
 
-    res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik, list(cpo=res.cpo.pit), res.random, res.predictor, res.hyper,
+    res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
+            list(cpo=res.cpo.pit), list(po = res.po), 
+            res.random, res.predictor, res.hyper,
             res.configurations, res.offset, res.spde2.blc, logfile, 
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x = x.mode,
