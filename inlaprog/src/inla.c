@@ -1032,9 +1032,9 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	Link_param_tp *p; 
+	Link_param_tp *p;
 	double beta;
-	
+
 	p = (Link_param_tp *) param;
 	beta = p->test1_beta[GMRFLib_thread_id][0];
 
@@ -1042,28 +1042,28 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 {
-	Link_param_tp *p; 
+	Link_param_tp *p;
 	int i;
 	double covariate_contribution, h = 1.0E-4, prec;
 
 	p = (Link_param_tp *) param;
 	prec = map_precision(p->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	covariate_contribution = 0.0;
-	for(i = 0; i < p->order; i++){
+	for (i = 0; i < p->order; i++) {
 		covariate_contribution += p->beta[i][GMRFLib_thread_id][0] * cov[i];
 	}
 	assert(!ISNAN(covariate_contribution));
-	
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return gsl_cdf_lognormal_Pinv(inla_Phi(x), covariate_contribution - 0.5/prec, 1.0/sqrt(prec));
+		return gsl_cdf_lognormal_Pinv(inla_Phi(x), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec));
 		break;
 	case MAP_BACKWARD:
-		return gsl_cdf_ugaussian_Pinv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5/prec, 1.0/sqrt(prec)));
+		return gsl_cdf_ugaussian_Pinv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)));
 		break;
 	case MAP_DFORWARD:
-		return (gsl_cdf_lognormal_Pinv(inla_Phi(x+h), covariate_contribution - 0.5/prec, 1.0/sqrt(prec)) -
-			gsl_cdf_lognormal_Pinv(inla_Phi(x-h), covariate_contribution - 0.5/prec, 1.0/sqrt(prec)))/(2.0*h);
+		return (gsl_cdf_lognormal_Pinv(inla_Phi(x + h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)) -
+			gsl_cdf_lognormal_Pinv(inla_Phi(x - h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec))) / (2.0 * h);
 		break;
 	case MAP_INCREASING:
 		return 1.0;
@@ -4125,7 +4125,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, strata = (int) ds->data_observations.strata[idx];
 	double size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
-	double p_zeroinflated; 
+	double p_zeroinflated;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
@@ -4136,7 +4136,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 	} else {
 		p_zeroinflated = map_probability(ds->data_observations.prob2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	}
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		/*
@@ -4375,7 +4375,7 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
-	GMRFLib_ghq(&points, &weights, ds->mix_nq);		       /* these are just pointers... */
+	GMRFLib_ghq(&points, &weights, ds->mix_nq);	       /* these are just pointers... */
 	storage = Calloc(3 * ds->mix_nq, double);	       /* use just one longer vector */
 	val = storage;
 	xx = storage + 1 * ds->mix_nq;
@@ -4383,19 +4383,19 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			if (debug){
+			if (debug) {
 				printf("x[%1d] = %g prec = %g\n", i, x[i], prec);
 			}
 			for (k = 0; k < ds->mix_nq; k++) {
 				xx[k] = x[i] + points[k] / sqrt(prec);
-				if (debug){
+				if (debug) {
 					printf("\txx[%1d] = %g\n", k, xx[k]);
 				}
 			}
 			ds->mix_loglikelihood(ll, xx, ds->mix_nq, idx, x_vec, arg);
 
 			for (k = 0; k < ds->mix_nq; k++) {
-				if (debug){
+				if (debug) {
 					printf("\tll[%1d] = %g integration.weight = %g\n", k, ll[k], weights[k]);
 				}
 				val[k] = log(weights[k]) + ll[k];
@@ -4409,7 +4409,7 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 			}
 			assert(sum > 0.0);
 			logll[i] = log(sum) + val_max;
-			if (debug){
+			if (debug) {
 				printf("\nlogll[%1d] = %g\n", i, logll[i]);
 			}
 		}
@@ -5343,8 +5343,8 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	alpha = map_alpha_weibull_cure(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	p = map_p_weibull_cure(ds->data_observations.p_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
-	onemp = 1.0-p;
-	podds = p/onemp;
+	onemp = 1.0 - p;
+	podds = p / onemp;
 	LINK_INIT;
 
 
@@ -5354,9 +5354,8 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			ypow = pow(y, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * ypow -
-						log(podds + exp(-gama*truncationpow)
-								);
+				logll[i] = log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * ypow - log(podds + exp(-gama * truncationpow)
+				    );
 			}
 			break;
 
@@ -5364,8 +5363,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			lowerpow = pow(lower, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(p + onemp * exp(-gama * lowerpow)) -
-						log(p + onemp * exp(-gama * truncationpow));
+				logll[i] = log(p + onemp * exp(-gama * lowerpow)) - log(p + onemp * exp(-gama * truncationpow));
 			}
 			break;
 
@@ -5373,8 +5371,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(onemp) - gama * (upperpow - truncationpow) -
-						log(1.0-onemp*exp(-gama*truncationpow));
+				logll[i] = log(onemp) - gama * (upperpow - truncationpow) - log(1.0 - onemp * exp(-gama * truncationpow));
 			}
 			break;
 
@@ -5383,8 +5380,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(onemp) - gama * (upperpow - lowerpow) -
-						log(1.0-onemp*exp(-gama*truncationpow));
+				logll[i] = log(onemp) - gama * (upperpow - lowerpow) - log(1.0 - onemp * exp(-gama * truncationpow));
 			}
 			break;
 		default:
@@ -7616,7 +7612,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_ZEROINFLATEDNBINOMIAL1STRATA2: 
+	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -10220,7 +10216,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		exit(1);
 	}
 
-	/* 
+	/*
 	 * the meaning of 'order' is model dependent
 	 */
 	ds->link_order = iniparser_getint(ini, inla_string_join(secname, "LINK.ORDER"), -1);
@@ -10339,7 +10335,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			inla_error_general(ptmp);
 			exit(EXIT_FAILURE);
 		}
-		if (ds->link_order > ds->link_covariates->ncol){
+		if (ds->link_order > ds->link_covariates->ncol) {
 			char *ptmp;
 			GMRFLib_sprintf(&ptmp, "The link-model %s require more covariates : %1d > %1d\n",
 					ds->link_model, ds->link_order, ds->link_covariates->ncol);
@@ -10357,7 +10353,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
 			char *ctmp;
-			
+
 			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -10450,13 +10446,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				/*
 				 * beta
 				 */
-				HYPER_INIT(ds->link_parameters->beta[i-1], theta_initial);
+				HYPER_INIT(ds->link_parameters->beta[i - 1], theta_initial);
 				if (mb->verbose) {
 					printf("\t\tlink initialise beta[%1d]=[%g]\n", i, theta_initial);
 					printf("\t\tlink fixed[%1d]=[%1d]\n", i, ds->link_fixed[i]);
 				}
 
-				if (!ds->link_fixed[i]){
+				if (!ds->link_fixed[i]) {
 					/*
 					 * add this \theta 
 					 */
@@ -10475,7 +10471,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 					mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
 					mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
-					mb->theta[mb->ntheta] = ds->link_parameters->beta[i-1]; /* yes! */
+					mb->theta[mb->ntheta] = ds->link_parameters->beta[i - 1];	/* yes! */
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_identity;
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -10504,7 +10500,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 
 		char *model = NULL;
-		
+
 		ds->mix_nq = iniparser_getint(ini, inla_string_join(secname, "MIX.NQ"), 15);
 		assert(ds->mix_nq >= 5);
 		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
@@ -16543,19 +16539,19 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case LINK_SPECIAL1:
-				if (!ds->link_fixed[0]){
-					double log_precision; 
+				if (!ds->link_fixed[0]) {
+					double log_precision;
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &log_precision);
 					count++;
 				} else {
-					//log_precision = ds->link_parameters->log_prec[GMRFLib_thread_id][0]; 
+					// log_precision = ds->link_parameters->log_prec[GMRFLib_thread_id][0]; 
 				}
 
 				if (ds->link_order > 0) {
 					double *beta = Calloc(ds->link_order, double);
 					for (j = 0; j < ds->link_order; j++) {
-						if (!ds->link_fixed[j+1]) {
+						if (!ds->link_fixed[j + 1]) {
 							beta[j] = theta[count];
 							count++;
 						} else {
@@ -16836,8 +16832,7 @@ double extra(double *theta, int ntheta, void *argument)
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
-							      (problem[i] ==
-							       NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -16932,8 +16927,7 @@ double extra(double *theta, int ntheta, void *argument)
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
-							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM :
-							       GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{

@@ -108,7 +108,7 @@ typedef enum {
 	 * the derivative of the forward_map, EX: exp(log_prec). or the derivative of the inverse link-function.
 	 */
 	MAP_DFORWARD = GMRFLib_TRANSFORM_DFORWARD,	       /* = 3 */
-	DINVLINK = GMRFLib_TRANSFORM_DFORWARD, 
+	DINVLINK = GMRFLib_TRANSFORM_DFORWARD,
 	/*
 	 * return 1 is monotone increasing and 0 otherwise
 	 */
@@ -163,8 +163,8 @@ typedef struct {
 	/*
 	 * y ~ Neg.Binomial(n, p(x)) strata2
 	 */
-	double *strata;				       /* type int */
-	
+	double *strata;					       /* type int */
+
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
@@ -333,12 +333,12 @@ typedef struct {
 	int order;					       /* a copy of ds->link_order */
 	double **log_prec;
 
-	/* 
+	/*
 	 *  test1
 	 */
 	double **test1_beta;
 
-	/* 
+	/*
 	 *  more general, with unknown number of covariates
 	 */
 	double ***beta;
@@ -448,15 +448,15 @@ typedef enum {
 	G_AR1,
 	G_RW1,
 	G_RW2,
-	G_AR, 
-	G_BESAG, 
-	MIX_GAUSSIAN, 					       /* mix-models */
+	G_AR,
+	G_BESAG,
+	MIX_GAUSSIAN,					       /* mix-models */
 	LINK_IDENTITY,					       /* link-models */
 	LINK_LOG,
 	LINK_PROBIT,
 	LINK_CLOGLOG,
 	LINK_LOGIT,
-	LINK_TAN, 
+	LINK_TAN,
 	LINK_TEST1,
 	LINK_SPECIAL1
 } inla_component_tp;
@@ -551,7 +551,7 @@ typedef struct {
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
 
-	/* 
+	/*
 	 * the link model
 	 */
 	char *link_model;
@@ -565,9 +565,9 @@ typedef struct {
 	int link_ntheta;
 	Link_param_tp *link_parameters;
 	GMRFLib_matrix_tp *link_covariates;
-	
 
-	/* 
+
+	/*
 	 * the re-extention
 	 */
 	int mix_use;
@@ -587,22 +587,20 @@ typedef struct {
 	double **rho_intern;
 } inla_rwc2_def_tp;
 
-typedef struct
-{
+typedef struct {
 	int n;
 	int p;
 
 	double **log_prec;
 	double ***pacf_intern;
-	
-	/* 
+
+	/*
 	 * these are the stored values, all for prec = 1
 	 */
 	double **hold_pacf_intern;			       /* [i][id][0] */
 	double **hold_Q;				       /* dim = 2*p + 1 */
 	double **hold_Qmarg;				       /* dim = p */
-}
-	ar_def_tp;
+} ar_def_tp;
 
 typedef struct {
 	int N;
@@ -1148,7 +1146,7 @@ int inla_initial_setup(inla_tp * mb);
 int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg);
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x_ORIG(double **x, int *n, double xmin, double xmax, double mean);
-int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density);
+int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg);
 int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg);
 int inla_make_3diid_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
@@ -1156,7 +1154,7 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp *group_graph);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp * group_graph);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
