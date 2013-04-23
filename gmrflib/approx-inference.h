@@ -747,30 +747,26 @@ typedef struct {
 
 } GMRFLib_ai_po_tp;
 
-typedef struct
-{
-	double log_posterior;				       /*  */
-	double *theta;					       /*  */
+typedef struct {
+	double log_posterior;				       /* */
+	double *theta;					       /* */
 	double *mean;					       /* mean */
-	double *improved_mean;					       /* improved mean */
+	double *improved_mean;				       /* improved mean */
 	double *Q;					       /* the Q_ij-values */
 	double *Qinv;					       /* the Qinv_ij-values */
-}
-	GMRFLib_store_config_tp;
+} GMRFLib_store_config_tp;
 
-typedef struct
-{
+typedef struct {
 	int n;						       /* size of the graph */
 	int nz;						       /* size of the number of unique elements of Q */
-	int ntheta;					       /*  */
+	int ntheta;					       /* */
 	int *i;						       /* i-values in Qij */
 	int *j;						       /* j-values in Qij */
 	int nconfig;					       /* number of configurations */
-	GMRFLib_graph_tp *graph;			       /*  */
-	GMRFLib_constr_tp *constr;			       /*  */
+	GMRFLib_graph_tp *graph;			       /* */
+	GMRFLib_constr_tp *constr;			       /* */
 	GMRFLib_store_config_tp **config;		       /* the configurations */
-}
-	GMRFLib_store_configs_tp;
+} GMRFLib_store_configs_tp;
 
 typedef struct {
 	int nhyper;
@@ -855,9 +851,8 @@ typedef struct {
 	GMRFLib_transform_func_tp *func;
 	void *arg;
 	double *cov;
-}
-	GMRFLib_transform_array_func_tp;
-	
+} GMRFLib_transform_array_func_tp;
+
 
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
@@ -921,8 +916,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  int gaussian_data, double c_min, int nested);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
-int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity, 
-		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp **tfunc, 
+int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity,
+		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
@@ -933,8 +928,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
-			    int ntheta, double *theta, double log_posterior, double *improved_mean, 
-			    GMRFLib_problem_tp *gmrf_approx);
+			    int ntheta, double *theta, double log_posterior, double *improved_mean, GMRFLib_problem_tp * gmrf_approx);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
@@ -943,9 +937,8 @@ GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_a
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				  double *x_vec);
-double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				  double *x_vec);
+				   double *x_vec);
+double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
@@ -964,8 +957,7 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
 
 double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
-int GMRFLib_transform_density(GMRFLib_density_tp **tdensity, GMRFLib_density_tp *density,
-			      GMRFLib_transform_array_func_tp *func);
+int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
 __END_DECLS
 #endif
