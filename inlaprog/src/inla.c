@@ -18125,6 +18125,7 @@ int inla_INLA(inla_tp * mb)
 			transform_funcs,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
+			(mb->output->po ? &(mb->po) : NULL),
 			mb->dic,
 			(mb->output->mlik ? &(mb->mlik) : NULL),
 			&(mb->neffp),
@@ -18330,7 +18331,7 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	mb_old->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
 	mb_old->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 
-	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
+	GMRFLib_ai_INLA(&(mb_old->density), &(mb_old->gdensity), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, mb_old->theta, mb_old->ntheta,
 			extra, (void *) mb_old, x_old, b, c, NULL, NULL, mb_old->d, loglikelihood_inla, (void *) mb_old, NULL,
 			mb_old->hgmrfm->graph, mb_old->hgmrfm->Qfunc, mb_old->hgmrfm->Qfunc_arg, mb_old->hgmrfm->constr, mb_old->ai_par, ai_store,
 			0, NULL, NULL, NULL);
@@ -18864,6 +18865,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		use_defaults = 1;			       /* to flag that we're reading mb->output */
 		(*out) = Calloc(1, Output_tp);
 		(*out)->cpo = 0;
+		(*out)->po = 0;
 		(*out)->dic = 0;
 		(*out)->summary = 1;
 		(*out)->return_marginals = 1;
@@ -18880,6 +18882,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		use_defaults = 0;
 		*out = Calloc(1, Output_tp);
 		(*out)->cpo = mb->output->cpo;
+		(*out)->po = mb->output->po;
 		(*out)->dic = mb->output->dic;
 		(*out)->summary = mb->output->summary;
 		(*out)->kld = mb->output->kld;
@@ -18901,6 +18904,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		}
 	}
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
+	(*out)->po = iniparser_getboolean(ini, inla_string_join(secname, "PO"), (*out)->po);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
 	(*out)->summary = iniparser_getboolean(ini, inla_string_join(secname, "SUMMARY"), (*out)->summary);
 	(*out)->return_marginals = iniparser_getboolean(ini, inla_string_join(secname, "RETURN.MARGINALS"), (*out)->return_marginals);
@@ -18917,6 +18921,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		 * these are the requirements for the HYPER_MODE 
 		 */
 		(*out)->cpo = 0;
+		(*out)->po = 0;
 		(*out)->dic = 0;
 		(*out)->mlik = 1;
 	}
@@ -18950,6 +18955,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		printf("\t\toutput:\n");
 		if (use_defaults) {
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
+			printf("\t\t\tpo=[%1d]\n", (*out)->po);
 			printf("\t\t\tdic=[%1d]\n", (*out)->dic);
 			printf("\t\t\tkld=[%1d]\n", (*out)->kld);
 			printf("\t\t\tmlik=[%1d]\n", (*out)->mlik);
@@ -19401,6 +19407,9 @@ int inla_output(inla_tp * mb)
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
+			if (mb->po) {
+				inla_output_detail_po(mb->dir, mb->po, mb->predictor_ndata, local_verbose);
+			}
 			if (mb->dic) {
 				inla_output_detail_dic(mb->dir, mb->dic, local_verbose);
 			}
@@ -19604,6 +19613,63 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		D2W(cpo->mean_value, cpo->gmean_value);
 	} else {
 		fprintf(fp, "mean value: %g\ngeometric mean value: %g\n", cpo->mean_value, cpo->gmean_value);
+	}
+	fclose(fp);
+	Free(ndir);
+	Free(nndir);
+	return INLA_OK;
+}
+int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_n, int verbose)
+{
+	/*
+	 * output whatever is requested.... 
+	 */
+	char *ndir = NULL, *msg = NULL, *nndir = NULL;
+	FILE *fp = NULL;
+	int i, n, add_empty = 1;
+
+	if (!po) {
+		return INLA_OK;
+	}
+	n = predictor_n;				       /* the PO are at the first predictor_n */
+
+	GMRFLib_sprintf(&ndir, "%s/%s", dir, "po");
+	inla_fnmfix(ndir);
+	if (inla_mkdir(ndir) != 0) {
+		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
+		inla_error_general(msg);
+	}
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	if (verbose) {
+#pragma omp critical
+		{
+			printf("\t\tstore po-results in[%s]\n", nndir);
+		}
+	}
+	if (G.binary) {
+		IW(predictor_n);
+	}
+	for (i = 0; i < n; i++) {
+		if (po->value[i]) {
+			if (G.binary) {
+				IDW(i, po->value[i][0]);
+			} else {
+				fprintf(fp, "%1d %.8g\n", i, po->value[i][0]);
+			}
+		} else {
+			if (add_empty) {
+				if (G.binary) {
+					IDW(i, NAN);
+				} else {
+					fprintf(fp, "%1d %.8g\n", i, NAN);
+				}
+			}
+		}
 	}
 	fclose(fp);
 	Free(ndir);

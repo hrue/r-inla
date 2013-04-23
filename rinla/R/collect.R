@@ -594,7 +594,40 @@ inla.internal.experimental.mode = FALSE
         pit.res = NULL
         failure.res = NULL
     }
+
+    ## want NA not NaN
+    cpo.res[is.nan(cpo.res)] = NA
+    pit.res[is.nan(pit.res)] = NA
+    failure.res[is.nan(failure.res)] = NA
+    
     return(list(cpo=cpo.res, pit=pit.res, failure=failure.res))
+}
+
+`inla.collect.po` =
+    function(results.dir,
+             debug = FALSE)
+{
+    alldir = dir(results.dir)
+    if (length(grep("^po$", alldir))==1L) {
+        if (debug)
+            cat(paste("collect po\n", sep=""))
+      
+        xx = inla.read.binary.file(file=paste(results.dir, .Platform$file.sep,"po", .Platform$file.sep,"po.dat", sep=""))
+        n = xx[1L]
+        xx = xx[-1L]
+        len = length(xx)
+        po.res=numeric(n)
+        po.res[1L:n] = NA
+        po.res[xx[seq(1L, len, by=2L)] +1L] = xx[seq(2L, len, by=2L)]
+    }
+    else {
+        po.res = NULL
+    }
+
+    ## want NA not NaN
+    po.res[is.nan(po.res)] = NA
+
+    return(list(po=po.res))
 }
 
 `inla.collect.dic` =
