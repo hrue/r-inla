@@ -151,6 +151,9 @@
          ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
          cpo=FALSE,
 
+         ##:ARGUMENT: lsfs A boolean variable if the predictive ordinate should be computed
+         po=FALSE,
+        
          ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
          q=FALSE,
 

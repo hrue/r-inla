@@ -221,9 +221,14 @@ indicates whether some assumptions are violated. In short, if
 cpo$failure[i] > 0 then some assumption is violated, the higher the 
 value (maximum 1) the more seriously.
 }
+\item{po}{
+If \code{po}=\code{TRUE} in \code{control.compute}, a list
+of one elements: \code{po$po} are the values of the 
+predictive ordinate (CPO) (\code{pi(yi|y)})
+}
 \item{mlik}{
 If \code{mlik}=\code{TRUE} in \code{control.compute}, the
- marginal likelihood of the model, otherwise \code{NULL}
+ log marginal likelihood of the model (using two different estimates), otherwise \code{NULL}
 }
  \item{neffp}{
 Expected effective number of parameters in the model. The

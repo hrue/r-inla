@@ -306,15 +306,21 @@
     ##!If \code{cpo}=\code{TRUE} in \code{control.compute}, a list
     ##!of three elements: \code{cpo$cpo} are the values of the conditional 
     ##!predictive ordinate (CPO), \code{cpo$pit} are the values of the 
-	##!probability integral transform (PIT) and \code{cpo$failure} 
+    ##!probability integral transform (PIT) and \code{cpo$failure} 
     ##!indicates whether some assumptions are violated. In short, if 
-	##!cpo$failure[i] > 0 then some assumption is violated, the higher the 
+    ##!cpo$failure[i] > 0 then some assumption is violated, the higher the 
     ##!value (maximum 1) the more seriously.
+    ##!}
+
+    ##!\item{po}{
+    ##!If \code{po}=\code{TRUE} in \code{control.compute}, a list
+    ##!of one elements: \code{po$po} are the values of the 
+    ##!predictive ordinate (CPO) (\code{pi(yi|y)})
     ##!}
 
     ##!\item{mlik}{
     ##!If \code{mlik}=\code{TRUE} in \code{control.compute}, the
-    ##! marginal likelihood of the model, otherwise \code{NULL}
+    ##! log marginal likelihood of the model (using two different estimates), otherwise \code{NULL}
     ##!}
     
     ##! \item{neffp}{
@@ -801,7 +807,7 @@
     cont.compute[names(control.compute)] = control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar = TRUE
-        cont.compute$dic = cont.compute$cpo = FALSE 
+        cont.compute$dic = cont.compute$cpo = cont.compute$po = FALSE 
     } 
     
     ## control predictor section
@@ -811,7 +817,7 @@
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
             cont.predictor$hyper, cont.predictor$initial,
             cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
-    if (cont.compute$cpo || cont.compute$dic || !is.null(cont.predictor$link))
+    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
         cont.predictor$compute = cont.predictor$return.marginals = FALSE
@@ -951,7 +957,7 @@
 
     inla.problem.section(file = file.ini, data.dir = data.dir, result.dir = results.dir,
                          hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
-                         dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo,
+                         dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo, po = cont.compute$po, 
                          quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
                          strategy = cont.compute$strategy, graph = cont.compute$graph,
                          config = cont.compute$config)
