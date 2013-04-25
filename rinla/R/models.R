@@ -2953,7 +2953,7 @@
                               ),
                       survival = FALSE,
                       discrete = FALSE,
-                      link = c("default", "identity", "logit"),
+                      link = c("default", "identity", "logit", "log"),
                       pdf = "gaussian"
                       ),
 
