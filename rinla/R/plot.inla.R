@@ -530,8 +530,8 @@
             lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
         }
     }
-    if (plot.cpo) {
-        if (!is.null(x$cpo$pit) || !is.null(x$cpo$cpo)) {
+    if (plot.cpo && !is.null(x$cpo)) {
+        if (!(is.null(x$cpo$pit) || length(x$cpo$pit) == 0L) || !(is.null(x$cpo$cpo) || length(x$cpo$cpo) == 0L)) {
             close.and.new.plot(...)
             if (single) {
                 par(mfrow=c(1, 1))
@@ -539,7 +539,7 @@
                 par(mfrow=c(2, 2))
             }
         }
-        if (!is.null(x$cpo$pit)) {
+        if (!(is.null(x$cpo$pit) || length(x$cpo$pit) == 0L)) {
             ## if the observational model is discrete then do some
             ## adjustments: define the modified pit as Prob(y < y_obs)
             ## + 0.5*Prob(y = y_obs).
@@ -566,7 +566,7 @@
             hist(pit, main = paste(m, ", n.fail", n.fail, sep=""), xlab = "Probability",
                  n = max(20, min(round(length(x$cpo$pit)/10), 100)))
         }
-        if (!is.null(x$cpo$cpo)) {
+        if (!(is.null(x$cpo$cpo) || length(x$cpo$cpo) == 0L)) {
             n.fail = sum(x$cpo$failure != 0.0)
             plot(x$cpo$cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
             if (n.fail > 0) {
