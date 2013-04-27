@@ -8,7 +8,7 @@
 `inla.upgrade` = function(lib = NULL, testing = FALSE, force = FALSE)
 {
     ## include suggested packages here
-    for(p in c("Matrix", "pixmap", "sp")) {
+    for(p in c("sp")) {
         if (length(grep(paste("^package:", p, "$", sep=""), search())) == 0) {
             if (!require(p, quietly = TRUE, lib.loc = lib, character.only=TRUE))
                 warning(paste("INLA need package `", p, "' to be fully functional; please install", sep=""))
