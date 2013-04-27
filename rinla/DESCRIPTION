@@ -6,8 +6,8 @@ Date: 2009-01-01
 Author: Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson and Andrea Riebler
 Maintainer: Havard Rue <hrue@math.ntnu.no>, Finn Lindgren <finn.lindgren@gmail.com>,  Daniel Simpson <dp.simpson@gmail.com> and Andrea Riebler <andrea.riebler@math.ntnu.no> 
 Description: This package contains functions which allow to perform full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
-Depends: Matrix, pixmap, sp
-Suggests: numDeriv, Rgraphviz, graph, fields, rgl, mvtnorm, multicore
+Depends: sp
+Suggests: numDeriv, Rgraphviz, graph, fields, rgl, mvtnorm, multicore, pixmap
 ByteCompile: yes
 License: GPL
 Packaged: The package data is given using 'inla.version()'
