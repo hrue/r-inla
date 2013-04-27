@@ -679,6 +679,12 @@ inla.internal.experimental.mode = FALSE
             cat(paste("collect q\n", sep=""))
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix.pbm", sep="")
+
+        ## tell...
+        if (file.exists(file) && !pixm) {
+            warning("You need to install library 'pixmap' to read bitmap images of the precision matrix files.")
+        }
+            
         if (file.exists(file) && pixm)
             Q.matrix = read.pnm(file)
         else
