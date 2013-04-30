@@ -5,7 +5,7 @@
 options(width=60, prompt = " ", continue = "   ")
 options(width=75)
 require(INLA)
-###inla.setOption(inla.call='remote')
+inla.setOption(inla.call='remote')
 require(geoR)
 @ 
 
@@ -181,8 +181,7 @@ define the spde model and fit the model with
 <<fit>>=
 spde <- inla.spde2.matern(mesh)
 res <- inla(form, data=inla.stack.data(stk), family=rep('gaussian',2), 
-            control.predictor=list(compute=TRUE, A=inla.stack.A(stk)), 
-            inla.call='remote') 
+            control.predictor=list(compute=TRUE, A=inla.stack.A(stk))) 
 @ 
 
 \section{The results}
