@@ -20,7 +20,7 @@ SED = sed
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
-EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib
+EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
 EXTLIBS2 = 
 EXTLIBS3 = 
 
@@ -66,7 +66,7 @@ HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {nod
 
 INCL    = -I$(PREFIX)/include
 ##LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
-LDFLAGSXX = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
+LDFLAGSXX = $(FLAGS) $(OS_LDFLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
 CXXFLAGS  = $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
