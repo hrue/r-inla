@@ -320,8 +320,10 @@
     }
     inla.is.model(model, "latent", stop.on.error=TRUE)
 
-    if (inla.one.of(model, c("spde2", "spde")) && constr) {
-        stop("Option 'constr=TRUE' is disabled for model='spde2' and 'spde'; please refer to the spde-tutorial.")
+    if (!is.null(constr)) {
+        if (inla.one.of(model, c("spde2", "spde")) && constr) {
+            stop("Option 'constr=TRUE' is disabled for model='spde2' and 'spde'; please refer to the spde-tutorial.")
+        }
     }
 
     ## in ... is the name of the covariate  and possibly the location of the weights
