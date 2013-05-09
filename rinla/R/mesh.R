@@ -1873,46 +1873,76 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
     return(list(index=index, bary=bary))
 }
 
-inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest", "quadratic"))
+inla.mesh.1d.A =
+    function(mesh, loc,
+             method=c("linear", "nearest", "quadratic"),
+             derivatives=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
         ## Compute basis based on mesh$degree and mesh$boundary
         if (mesh$degree==1) {
-            A = inla.mesh.1d.A(mesh, loc, method="linear")
+            info = (inla.mesh.1d.A(mesh, loc, method="linear",
+                                   derivatives=
+                                   inla.ifelse(is.null(derivatives),
+                                               FALSE, TRUE)))
             if (mesh$boundary[1] == "dirichlet") {
-                A = A[,-1,drop=FALSE]
+                info$A = info$A[,-1,drop=FALSE]
+                if (!is.null(derivatives) && derivatives)
+                    info$dA = info$dA[,-1,drop=FALSE]
             }
             if (mesh$boundary[2] == "dirichlet") {
-                A = A[,-(mesh$m+1),drop=FALSE]
+                info$A = info$A[,-(mesh$m+1),drop=FALSE]
+                if (!is.null(derivatives) && derivatives)
+                    info$dA = info$dA[,-(mesh$m+1),drop=FALSE]
             }
-            return(A)
+            if (!is.null(derivatives) && derivatives)
+                return(info)
+            else
+                return(info$A)
         } else if (mesh$degree==2) {
-            A = inla.as.dgTMatrix(inla.mesh.1d.A(mesh, loc, method="quadratic"))
-            i = A@i+1L
-            j = A@j+1L
-            x = A@x
-            if (mesh$cyclic) {
-                j[j==1L] = mesh$m+1L
-                j[j==mesh$m+2L] = 2L
-                j = j-1L
-            } else {
-                if (mesh$boundary[1] == "neumann") {
-                    j[j==1L] = 2L
+            info =
+                inla.mesh.1d.A(mesh, loc,
+                               method="quadratic",
+                               derivatives=
+                               inla.ifelse(
+                                   is.null(derivatives),
+                                   FALSE, TRUE))
+            adjust.matrix = function(mesh, A) {
+                A = inla.as.dgTMatrix(A)
+                i = A@i+1L
+                j = A@j+1L
+                x = A@x
+                if (mesh$cyclic) {
+                    j[j==1L] = mesh$m+1L
+                    j[j==mesh$m+2L] = 2L
                     j = j-1L
-                } else if (mesh$boundary[1] == "dirichlet") {
-                    x[j==1L] = -x[j==1L]
-                    j[j==1L] = 2L
-                    j = j-1L
+                } else {
+                    if (mesh$boundary[1] == "neumann") {
+                        j[j==1L] = 2L
+                        j = j-1L
+                    } else if (mesh$boundary[1] == "dirichlet") {
+                        x[j==1L] = -x[j==1L]
+                        j[j==1L] = 2L
+                        j = j-1L
+                    }
+                    if (mesh$boundary[2] == "neumann") {
+                        j[j==(mesh$m+1L)] = mesh$m
+                    } else if (mesh$boundary[2] == "dirichlet") {
+                        x[j==(mesh$m+1L)] = -x[j==(mesh$m+1L)]
+                        j[j==(mesh$m+1L)] = mesh$m
+                    }
                 }
-                if (mesh$boundary[2] == "neumann") {
-                    j[j==(mesh$m+1L)] = mesh$m
-                } else if (mesh$boundary[2] == "dirichlet") {
-                    x[j==(mesh$m+1L)] = -x[j==(mesh$m+1L)]
-                    j[j==(mesh$m+1L)] = mesh$m
-                }
+                return(sparseMatrix(i=i, j=j, x=x,
+                                    dims=c(length(loc), mesh$m)))
             }
-            return(sparseMatrix(i=i, j=j, x=x, dims=c(nrow(A), mesh$m)))
+            if (!is.null(derivatives) && derivatives) {
+                return(list(A=adjust.matrix(mesh, info$A),
+                            dA=adjust.matrix(mesh, info$dA),
+                            d2A=adjust.matrix(mesh, info$d2A)))
+            } else {
+                return(adjust.matrix(mesh, info$A))
+            }
         } else {
             stop(paste("'degree' must be 1 or 2.  'degree=",
                        mesh$degree,
@@ -1923,19 +1953,39 @@ inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest", "quadratic"))
 
         if (!is.na(pmatch(method, c("linear", "nearest")))) {
             idx = inla.mesh.1d.bary(mesh, loc, method)
+            dA = NULL
 
             if (method=="linear") {
                 ## Compute the n 1st order B-splines.
-                return(sparseMatrix(i=rep(1:length(loc), times=2),
-                                    j=as.vector(idx$index),
-                                    x=as.vector(idx$bary),
-                                    dims=c(length(loc), mesh$n)))
+                A = (sparseMatrix(i=rep(1:length(loc), times=2),
+                                  j=as.vector(idx$index),
+                                  x=as.vector(idx$bary),
+                                  dims=c(length(loc), mesh$n)))
+                if (!is.null(derivatives) && derivatives) {
+                    if (mesh$cyclic) {
+                        d = (c(mesh$loc[2:mesh$n], mesh$interval[2]) -
+                             mesh$loc[1:mesh$n])
+                    } else {
+                        d = (mesh$loc[2:mesh$n] - mesh$loc[1:(mesh$n-1)])
+                    }
+                    dA = (sparseMatrix(i=rep(1:length(loc), times=2),
+                                       j=as.vector(idx$index),
+                                       x=(c(-1/d[idx$index[,1]],
+                                            1/d[idx$index[,1]])),
+                                       dims=c(length(loc), mesh$n)))
+                }
             } else {
                 ## Nearest neighbours.
-                return(sparseMatrix(i=1:length(loc),
-                                    j=idx$index[,1],
-                                    x=idx$bary[,1],
-                                    dims=c(length(loc), mesh$n)))
+                A = (sparseMatrix(i=1:length(loc),
+                                  j=idx$index[,1],
+                                  x=idx$bary[,1],
+                                  dims=c(length(loc), mesh$n)))
+            }
+
+            if (missing(derivatives) || is.null(derivatives)) {
+                return(A)
+            } else {
+                return(list(A=A, dA=dA))
             }
         } else {
             ## Compute the n+1 2nd order B-splines.
@@ -2005,7 +2055,55 @@ inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest", "quadratic"))
                               dims=c(length(idx$index), mesh$n+mesh$cyclic+1L)
                               ))
 
-            return(A)
+            dA = NULL
+            d2A = NULL
+            if (!is.null(derivatives) && derivatives) {
+                ## dA:
+                ## Left intervals for each basis function:
+                x.l = (2 /
+                       (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2])
+                ## Right intervals for each basis function:
+                x.r = (-2 /
+                       (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1])
+                ## Middle intervals for each basis function:
+                x.m = (-(-2/
+                          (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1] +
+                          2/
+                          (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2]
+                          ))
+                dA = (sparseMatrix(i=c(i.l, i.r, i.m),
+                                  j=c(j.l, j.r, j.m),
+                                  x=c(x.l, x.r, x.m),
+                                  dims=(c(length(idx$index),
+                                          mesh$n+mesh$cyclic+1L))
+                                  ))
+
+                ## d2A:
+                ## Left intervals for each basis function:
+                x.l = (2 / (knots[idx$index+2]-knots[idx$index+1]) /
+                       (knots[idx$index+3]-knots[idx$index+1]))
+                ## Right intervals for each basis function:
+                x.r = (2 / (knots[idx$index+2]-knots[idx$index+1]) /
+                       (knots[idx$index+2]-knots[idx$index]))
+                ## Middle intervals for each basis function:
+                x.m = (-(2/(knots[idx$index+2]-knots[idx$index+1]) /
+                         (knots[idx$index+2]-knots[idx$index]) +
+                         2/(knots[idx$index+2]-knots[idx$index+1]) /
+                         (knots[idx$index+3]-knots[idx$index+1])
+                         ))
+                d2A = (sparseMatrix(i=c(i.l, i.r, i.m),
+                                    j=c(j.l, j.r, j.m),
+                                    x=c(x.l, x.r, x.m),
+                                    dims=(c(length(idx$index),
+                                            mesh$n+mesh$cyclic+1L))
+                                  ))
+            }
+
+            if (missing(derivatives) || is.null(derivatives)) {
+                return(A)
+            } else {
+                return(list(A=A, dA=dA, d2A=d2A))
+            }
         }
     }
 }
