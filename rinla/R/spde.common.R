@@ -373,6 +373,8 @@ inla.spde.make.A =
             stop(paste("length(group) != length(index): ",
                        length(group), " != ", length(index),
                        sep=""))
+
+        ## TODO: Modify to support "nearest"(degree=1)/"basis"(degree=1&2)
         if (group.method=="nearest") {
             group.index =
                 inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
@@ -408,6 +410,7 @@ inla.spde.make.A =
                 }
             }
 
+            ## TODO: Modify to support group.method "basis" instead.
             if (!is.null(group.mesh) && (group.method=="S1")) {
                 i = 1L+A.loc@i
                 group.i1 = group.index$index[i,1]
@@ -436,7 +439,8 @@ inla.spde.make.A =
                                        n.mesh*(group.i-1L)+
                                        n.mesh*n.group*(repl.i-1L)),
                                     x=weights.i*A.loc@x,
-                                    dims=c(length(index), n.mesh*n.group*n.repl)))
+                                    dims=(c(length(index),
+                                            n.mesh*n.group*n.repl))))
             }
         } else {
             return(sparseMatrix(i=integer(0),
