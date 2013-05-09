@@ -1876,6 +1876,7 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
 inla.mesh.1d.A =
     function(mesh, loc,
              method=c("linear", "nearest", "quadratic"),
+             weights=NULL,
              derivatives=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
@@ -1883,6 +1884,7 @@ inla.mesh.1d.A =
         ## Compute basis based on mesh$degree and mesh$boundary
         if (mesh$degree==1) {
             info = (inla.mesh.1d.A(mesh, loc, method="linear",
+                                   weights=weights,
                                    derivatives=
                                    inla.ifelse(is.null(derivatives),
                                                FALSE, TRUE)))
@@ -1904,6 +1906,7 @@ inla.mesh.1d.A =
             info =
                 inla.mesh.1d.A(mesh, loc,
                                method="quadratic",
+                               weights=weights,
                                derivatives=
                                inla.ifelse(
                                    is.null(derivatives),
@@ -1950,6 +1953,9 @@ inla.mesh.1d.A =
         }
     } else {
         method = match.arg(method)
+        if (missing(weights) || is.null(weights)) {
+            weights = rep(1, length(loc))
+        }
 
         if (!is.na(pmatch(method, c("linear", "nearest")))) {
             idx = inla.mesh.1d.bary(mesh, loc, method)
@@ -1957,9 +1963,11 @@ inla.mesh.1d.A =
 
             if (method=="linear") {
                 ## Compute the n 1st order B-splines.
-                A = (sparseMatrix(i=rep(1:length(loc), times=2),
+                i = rep(1:length(loc), times=2)
+                weights.i = weights[i]
+                A = (sparseMatrix(i=i,
                                   j=as.vector(idx$index),
-                                  x=as.vector(idx$bary),
+                                  x=weights.i*as.vector(idx$bary),
                                   dims=c(length(loc), mesh$n)))
                 if (!is.null(derivatives) && derivatives) {
                     if (mesh$cyclic) {
@@ -1968,17 +1976,17 @@ inla.mesh.1d.A =
                     } else {
                         d = (mesh$loc[2:mesh$n] - mesh$loc[1:(mesh$n-1)])
                     }
-                    dA = (sparseMatrix(i=rep(1:length(loc), times=2),
+                    dA = (sparseMatrix(i=i,
                                        j=as.vector(idx$index),
-                                       x=(c(-1/d[idx$index[,1]],
-                                            1/d[idx$index[,1]])),
+                                       x=(weights.i*c(-1/d[idx$index[,1]],
+                                                      1/d[idx$index[,1]])),
                                        dims=c(length(loc), mesh$n)))
                 }
             } else {
                 ## Nearest neighbours.
                 A = (sparseMatrix(i=1:length(loc),
                                   j=idx$index[,1],
-                                  x=idx$bary[,1],
+                                  x=weights*idx$bary[,1],
                                   dims=c(length(loc), mesh$n)))
             }
 
@@ -2048,9 +2056,13 @@ inla.mesh.1d.A =
             x.m = (1-(idx$bary[,1]*d[idx$index+1]/d2[idx$index]* idx$bary[,1] +
                       idx$bary[,2]*d[idx$index+1]/d2[idx$index+1] * idx$bary[,2]
                       ))
-            A = (sparseMatrix(i=c(i.l, i.r, i.m),
-                              j=c(j.l, j.r, j.m),
-                              x=c(x.l, x.r, x.m),
+
+            i = c(i.l, i.r, i.m)
+            j = c(j.l, j.r, j.m)
+            weights.i = weights[i]
+
+            A = (sparseMatrix(i=i, j=j,
+                              x=weights.i*c(x.l, x.r, x.m),
                               dims=c(length(idx$index), mesh$n+mesh$cyclic+1L)
                               ))
 
@@ -2058,32 +2070,26 @@ inla.mesh.1d.A =
             d2A = NULL
             if (!is.null(derivatives) && derivatives) {
                 ## dA:
-                ## Left intervals for each basis function:
+                ## Left, right, middle intervals for each basis function:
                 x.l = (2 / d2[idx$index+1] * idx$bary[,2])
-                ## Right intervals for each basis function:
                 x.r = (-2 / d2[idx$index] * idx$bary[,1])
-                ## Middle intervals for each basis function:
                 x.m = (-(-2/ d2[idx$index] * idx$bary[,1] +
                           2/ d2[idx$index+1] * idx$bary[,2]
                           ))
-                dA = (sparseMatrix(i=c(i.l, i.r, i.m),
-                                  j=c(j.l, j.r, j.m),
-                                  x=c(x.l, x.r, x.m),
+                dA = (sparseMatrix(i=i, j=j,
+                                  x=weights.i*c(x.l, x.r, x.m),
                                   dims=(c(length(idx$index),
                                           mesh$n+mesh$cyclic+1L))
                                   ))
 
                 ## d2A:
-                ## Left intervals for each basis function:
+                ## Left, right, middle intervals for each basis function:
                 x.l = (2 / d[idx$index+1] / d2[idx$index+1])
-                ## Right intervals for each basis function:
                 x.r = (2 / d[idx$index+1] / d2[idx$index])
-                ## Middle intervals for each basis function:
                 x.m = (-(2/d[idx$index+1] / d2[idx$index] +
                          2/d[idx$index+1] / d2[idx$index+1] ))
-                d2A = (sparseMatrix(i=c(i.l, i.r, i.m),
-                                    j=c(j.l, j.r, j.m),
-                                    x=c(x.l, x.r, x.m),
+                d2A = (sparseMatrix(i=i, j=j,
+                                    x=weights.i*c(x.l, x.r, x.m),
                                     dims=(c(length(idx$index),
                                             mesh$n+mesh$cyclic+1L))
                                   ))
@@ -2183,8 +2189,29 @@ inla.mesh.1d.fem = function(mesh)
         c0 = Diagonal(mesh$m, c0)
 
     } else if (mesh$degree==2) {
-        stop(paste("Mesh basis degree=", mesh$degree,
-                   " is not yet supported.", sep=""))
+        if (mesh$cyclic) {
+            knots1 = mesh$loc
+            knots2 = c(mesh$loc[-1], mesh$interval[2])
+        } else {
+            knots1 = mesh$loc[-mesh$n]
+            knots2 = mesh$loc[-1]
+        }
+        knots.m = (knots1+knots2)/2
+        knots.d = (knots2-knots1)/2
+        ## 3-point Gaussian quadrature
+        info =
+            inla.mesh.1d.A(mesh,
+                           loc=(c(knots.m,
+                                  knots.m - knots.d*sqrt(3/5),
+                                  knots.m + knots.d*sqrt(3/5))),
+                           weights =
+                           c(knots.d*8/9, knots.d*5/9, knots.d*5/9)^0.5,
+                           derivatives = TRUE
+                           )
+        c1 = t(info$A) %*% info$A
+        g1 = t(info$dA) %*% info$dA
+        g2 = t(info$d2A) %*% info$d2A
+        c0 = Diagonal(nrow(c1), rowSums(c1))
     } else {
         stop(paste("Mesh basis degree=", mesh$degree,
                    " is not supported.", sep=""))
