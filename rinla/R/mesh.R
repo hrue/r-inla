@@ -1684,8 +1684,9 @@ inla.parse.queries = function(...)
 
 
 
-inla.mesh.1d = function(loc, interval=range(loc), cyclic=FALSE)
+inla.mesh.1d.old = function(loc, interval=range(loc), cyclic=FALSE)
 {
+    loc.orig = loc
     if (cyclic)
         loc = sort(unique(((loc-interval[1]) %% diff(interval)) + interval[1]))
     else
@@ -1701,8 +1702,112 @@ inla.mesh.1d = function(loc, interval=range(loc), cyclic=FALSE)
         list(n=length(loc),
              loc=loc,
              interval=interval,
-             cyclic=cyclic)
+             cyclic=cyclic,
+             manifold = inla.ifelse(cyclic, "S1", "R1"),
+             idx = NULL)
     class(mesh) = "inla.mesh.1d"
+
+    mesh$idx = inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
+
+    return(mesh)
+}
+
+
+## Like match.arg, but for a vector of options 'arg'
+match.arg.vector = function(arg=NULL, choices, length=NULL) {
+    if (is.null(length)) {
+        length = inla.ifelse(is.null(arg), 1, length(arg))
+    }
+    if (is.null(arg)) {
+        arg = match.arg(arg, choices)
+    } else {
+        for (k in seq_along(arg)) {
+            arg[k] = match.arg(arg[k], choices)
+        }
+    }
+    if (length(arg) < length) {
+        arg = c(arg, rep(arg, length-length(arg)))
+    } else if (length(arg) > length) {
+        stop('Option list too long.')
+    }
+    return(arg)
+}
+
+## Deprecated: cyclic
+## Can be useful for cyclic models: interval
+inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cyclic=FALSE)
+{
+    ## Note: do not change the order of these options without also
+    ## changing 'basis.reduction' below.
+    boundary.options = c("neumann", "dirichlet", "free", "cyclic")
+
+    if (!missing(cyclic)) {
+        warning(paste("Option 'cyclic' is deprecated.",
+                      "  Use 'boundary=\"cyclic\"' instead.", sep=""))
+        if (cyclic) {
+            if (!missing(boundary)) {
+                boundary = match.arg.vector(boundary, boundary.options, length=2)
+                warning(paste("'cyclic=TRUE' overrides 'boundary=c(\"",
+                              paste(boundary, collapse="\",\""), "\")'.", sep=""))
+            }
+            boundary = "cyclic"
+        }
+    }
+    boundary = match.arg.vector(boundary, boundary.options, length=2)
+    cyclic = !is.na(pmatch(boundary[1], "cyclic"))
+    if (cyclic && is.na(pmatch(boundary[2], "cyclic"))) {
+        stop("Inconsistent boundary specification 'boundary=c(",
+             paste(boundary, collapse=","), ")'.", sep="")
+    }
+
+    loc.orig = loc
+    if (cyclic)
+        loc =
+            (sort(unique(c(0, loc-interval[1]) %% diff(interval))) +
+             interval[1])
+    else
+        loc =
+            (sort(unique(c(interval,
+                           pmax(interval[1], pmin(interval[2], loc)) ))))
+    if (loc[1]<interval[1])
+        stop("All 'loc' must be >= interval[1].")
+    if (loc[length(loc)]>interval[2])
+        stop("All 'loc' must be <= interval[2].")
+
+    if ( (degree<1) || (degree>2)) {
+        stop(paste("'degree' must be 1 or 2.  'degree=",
+                   degree,
+                   "' is not supported.", sep=""))
+    }
+
+    ## Number of basis functions
+    if (degree==1) {
+        basis.reduction = c(0, 1, 0, 1/2) ## neu, dir, free, cyclic
+    } else {
+        basis.reduction = c(1, 1, 0, 1)
+    }
+    m = (length(loc)+cyclic+(degree==2)*1
+         -basis.reduction[pmatch(boundary[1], boundary.options)]
+         -basis.reduction[pmatch(boundary[2], boundary.options)])
+    if (m < 1+degree) {
+        stop("Degree ", degree,
+             " meshes must have at least ", 1+degree,
+             " basis functions, not 'm=", m, "'.", sep="")
+    }
+
+    mesh =
+        list(n=length(loc),
+             m=m,
+             loc=loc,
+             interval=interval,
+             boundary=boundary,
+             cyclic=cyclic,
+             manifold = inla.ifelse(cyclic, "S1", "R1"),
+             degree=degree,
+             idx = NULL)
+    class(mesh) = "inla.mesh.1d"
+
+    mesh$idx = inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
 
     return(mesh)
 }
@@ -1768,23 +1873,140 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
     return(list(index=index, bary=bary))
 }
 
-inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest"))
+inla.mesh.1d.A = function(mesh, loc, method=c("linear", "nearest", "quadratic"))
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
-    method = match.arg(method)
-
-    idx = inla.mesh.1d.bary(mesh, loc, method)
-
-    if (method=="linear") {
-        return(sparseMatrix(i=rep(1:length(loc), times=2),
-                            j=as.vector(idx$index),
-                            x=as.vector(idx$bary),
-                            dims=c(length(loc), mesh$n)))
+    if (missing(method)) {
+        ## Compute basis based on mesh$degree and mesh$boundary
+        if (mesh$degree==1) {
+            A = inla.mesh.1d.A(mesh, loc, method="linear")
+            if (mesh$boundary[1] == "dirichlet") {
+                A = A[,-1,drop=FALSE]
+            }
+            if (mesh$boundary[2] == "dirichlet") {
+                A = A[,-(mesh$m+1),drop=FALSE]
+            }
+            return(A)
+        } else if (mesh$degree==2) {
+            A = inla.as.dgTMatrix(inla.mesh.1d.A(mesh, loc, method="quadratic"))
+            i = A@i+1L
+            j = A@j+1L
+            x = A@x
+            if (mesh$cyclic) {
+                j[j==1L] = mesh$m+1L
+                j[j==mesh$m+2L] = 2L
+                j = j-1L
+            } else {
+                if (mesh$boundary[1] == "neumann") {
+                    j[j==1L] = 2L
+                    j = j-1L
+                } else if (mesh$boundary[1] == "dirichlet") {
+                    x[j==1L] = -x[j==1L]
+                    j[j==1L] = 2L
+                    j = j-1L
+                }
+                if (mesh$boundary[2] == "neumann") {
+                    j[j==(mesh$m+1L)] = mesh$m
+                } else if (mesh$boundary[2] == "dirichlet") {
+                    x[j==(mesh$m+1L)] = -x[j==(mesh$m+1L)]
+                    j[j==(mesh$m+1L)] = mesh$m
+                }
+            }
+            return(sparseMatrix(i=i, j=j, x=x, dims=c(nrow(A), mesh$m)))
+        } else {
+            stop(paste("'degree' must be 1 or 2.  'degree=",
+                       mesh$degree,
+                       "' is not supported.", sep=""))
+        }
     } else {
-        return(sparseMatrix(i=1:length(loc),
-                            j=idx$index[,1],
-                            x=idx$bary[,1],
-                            dims=c(length(loc), mesh$n)))
+        method = match.arg(method)
+
+        if (!is.na(pmatch(method, c("linear", "nearest")))) {
+            idx = inla.mesh.1d.bary(mesh, loc, method)
+
+            if (method=="linear") {
+                ## Compute the n 1st order B-splines.
+                return(sparseMatrix(i=rep(1:length(loc), times=2),
+                                    j=as.vector(idx$index),
+                                    x=as.vector(idx$bary),
+                                    dims=c(length(loc), mesh$n)))
+            } else {
+                ## Nearest neighbours.
+                return(sparseMatrix(i=1:length(loc),
+                                    j=idx$index[,1],
+                                    x=idx$bary[,1],
+                                    dims=c(length(loc), mesh$n)))
+            }
+        } else {
+            ## Compute the n+1 2nd order B-splines.
+
+            if (mesh$cyclic) {
+                Boundary.knots =
+                    mesh$loc[c(mesh$n,2)] + diff(mesh$interval)*c(-1,1)
+                knots = c(mesh$loc, mesh$interval[2])
+            } else {
+                Boundary.knots =
+                    c(mesh$loc[1] - (mesh$loc[2]-mesh$loc[1]),
+                      mesh$loc[mesh$n] + (mesh$loc[mesh$n]-mesh$loc[mesh$n-1]))
+                knots = mesh$loc
+            }
+
+            if (FALSE) { ## Only for debugging.
+                ## Using bs():
+                ## Note: Intermediate step constructs dense matrix.
+                require(splines)
+                bsobj =
+                    bs(x=loc,
+                       knots=knots,
+                       degree=2,
+                       Boundary.knots=Boundary.knots)
+                bsobj =
+                    Matrix(as.vector(bsobj[,1:(mesh$n+mesh$cyclic+1)]),
+                           nrow(bsobj), mesh$n+mesh$cyclic+1)
+            }
+
+            ## Direct calculation:
+            knots = c(Boundary.knots[1], knots)
+            if (mesh$cyclic) {
+                idx =
+                    inla.mesh.1d.bary(inla.mesh.1d(knots, boundary="free"),
+                                      (loc-mesh$interval[1]) %%
+                                      diff(mesh$interval) + mesh$interval[1],
+                                      method="linear")
+            } else {
+                idx =
+                    inla.mesh.1d.bary(inla.mesh.1d(knots, boundary="free"),
+                                      loc, method="linear")
+            }
+            knots = c(knots, Boundary.knots[2])
+            idx$index = idx$index[,1]-1L ## Indices into mesh intervals.
+
+            ## Left intervals for each basis function:
+            i.l = 1:length(idx$index)
+            j.l = idx$index+2L
+            x.l = (idx$bary[,2]*(knots[idx$index+2]-knots[idx$index+1])/
+                   (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2])
+            ## Right intervals for each basis function:
+            i.r = 1:length(idx$index)
+            j.r = idx$index
+            x.r = (idx$bary[,1]*(knots[idx$index+2]-knots[idx$index+1])/
+                   (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1])
+            ## Middle intervals for each basis function:
+            i.m = 1:length(idx$index)
+            j.m = idx$index+1L
+            x.m = (1-(idx$bary[,1]*(knots[idx$index+2]-knots[idx$index+1])/
+                      (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1] +
+                      idx$bary[,2]*(knots[idx$index+2]-knots[idx$index+1])/
+                      (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2]
+                      ))
+            A = (sparseMatrix(i=c(i.l, i.r, i.m),
+                              j=c(j.l, j.r, j.m),
+                              x=c(x.l, x.r, x.m),
+                              dims=c(length(idx$index), mesh$n+mesh$cyclic+1L)
+                              ))
+
+            return(A)
+        }
     }
 }
 
@@ -1792,55 +2014,107 @@ inla.mesh.1d.fem = function(mesh)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
-    if (mesh$cyclic) {
-        loc =
-            c(mesh$loc[mesh$n]-diff(mesh$interval),
-              mesh$loc,
-              mesh$loc[1]+diff(mesh$interval))
-        c0 = (loc[3:length(loc)]-loc[1:(length(loc)-2)])/2
-        g1.l = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
-        g1.r = -1/(loc[3:length(loc)]-loc[2:(length(loc)-1)])
-        g1.0 = -g1.l-g1.r
-        i.l = 1:mesh$n
-        i.r = 1:mesh$n
-        i.0 = 1:mesh$n
-        j.l = c(mesh$n, 1:(mesh$n-1))
-        j.r = c(2:mesh$n, 1)
-        j.0 = 1:mesh$n
-    } else {
-        c0 =
-            c(mesh$loc[1]-mesh$interval[1] +
-              (mesh$loc[2]-mesh$loc[1])/2,
-              mesh$interval[2]-mesh$loc[mesh$n] +
-              (mesh$loc[mesh$n]-mesh$loc[mesh$n-1])/2
-              )
-        if (mesh$n>2) {
+    if (mesh$degree==1) {
+        if (mesh$cyclic) {
+            loc =
+                c(mesh$loc[mesh$n]-diff(mesh$interval),
+                  mesh$loc,
+                  mesh$loc[1]+diff(mesh$interval))
+            c0 = (loc[3:length(loc)]-loc[1:(length(loc)-2)])/2
+            c1.l = (loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])/6
+            c1.r = (loc[3:length(loc)]-loc[2:(length(loc)-1)])/6
+            c1.0 = (c1.l+c1.r)*2
+            g1.l = -1/(loc[2:(length(loc)-1)]-loc[1:(length(loc)-2)])
+            g1.r = -1/(loc[3:length(loc)]-loc[2:(length(loc)-1)])
+            g1.0 = -g1.l-g1.r
+            i.l = 1:mesh$n
+            i.r = 1:mesh$n
+            i.0 = 1:mesh$n
+            j.l = c(mesh$n, 1:(mesh$n-1))
+            j.r = c(2:mesh$n, 1)
+            j.0 = 1:mesh$n
+        } else {
             c0 =
-            c(c0[1],
-              (mesh$loc[3:mesh$n]-mesh$loc[1:(mesh$n-2)])/2,
-              c0[2]
-              )
+                c((mesh$loc[2]-mesh$loc[1])/2,
+                  (mesh$loc[mesh$n]-mesh$loc[mesh$n-1])/2
+                  )
+            if (mesh$n>2) {
+                c0 =
+                    c(c0[1],
+                      (mesh$loc[3:mesh$n]-mesh$loc[1:(mesh$n-2)])/2,
+                      c0[2]
+                      )
+            }
+            c1.l = (mesh$loc[2:mesh$n]-mesh$loc[1:(mesh$n-1)])/6
+            c1.r = c1.l
+            c1.0 = (c(0, c1.l)+c(c1.r,0))*2
+            g1.l = -1/(mesh$loc[2:mesh$n]-mesh$loc[1:(mesh$n-1)])
+            g1.r = g1.l
+            g1.0 = -c(0, g1.l)-c(g1.r,0)
+            i.l = 2:mesh$n
+            i.r = 1:(mesh$n-1)
+            i.0 = 1:mesh$n
+            j.l = 1:(mesh$n-1)
+            j.r = 2:mesh$n
+            j.0 = 1:mesh$n
+
+            if (mesh$boundary[1] == "dirichlet") {
+                g1.0 = g1.0[-1]; g1.l = g1.l[-1]; g1.r = g1.r[-1]
+                c1.0 = c1.0[-1]; c1.l = c1.l[-1]; c1.r = c1.r[-1]
+                c0 = c0[-1]
+                i.l = i.l[-1]-1; i.r = i.r[-1]-1; i.0 = i.0[-1]-1
+                j.l = j.l[-1]-1; j.r = j.r[-1]-1; j.0 = j.0[-1]-1
+            } else if (mesh$boundary[1] == "free") {
+                g1.0[1] = 0
+                g1.r[1] = 0
+            }
+            if (mesh$boundary[2] == "dirichlet") {
+                m = mesh$m
+                g1.0 = g1.0[-(m+1)]; g1.l = g1.l[-m]; g1.r = g1.r[-m]
+                c1.0 = c1.0[-(m+1)]; c1.l = c1.l[-m]; c1.r = c1.r[-m]
+                c0 = c0[-(m+1)]
+                i.l = i.l[-m]; i.r = i.r[-m]; i.0 = i.0[-(m+1)]
+                j.l = j.l[-m]; j.r = j.r[-m]; j.0 = j.0[-(m+1)]
+            } else if (mesh$boundary[2] == "free") {
+                g1.0[mesh$m] = 0
+                g1.l[mesh$m-1] = 0
+            }
         }
-        g1.l = -1/(mesh$loc[2:mesh$n]-mesh$loc[1:(mesh$n-1)])
-        g1.r = g1.l
-        g1.0 = -c(0, g1.l)-c(g1.r,0)
-        i.l = 2:mesh$n
-        i.r = 1:(mesh$n-1)
-        i.0 = 1:mesh$n
-        j.l = 1:(mesh$n-1)
-        j.r = 2:mesh$n
-        j.0 = 1:mesh$n
+
+        g1 =
+            sparseMatrix(i=c(i.l, i.r, i.0),
+                         j=c(j.l, j.r, j.0),
+                         x=c(g1.l, g1.r, g1.0),
+                         dims=c(mesh$m, mesh$m))
+        c1 =
+            sparseMatrix(i=c(i.l, i.r, i.0),
+                         j=c(j.l, j.r, j.0),
+                         x=c(c1.l, c1.r, c1.0),
+                         dims=c(mesh$m, mesh$m))
+        g2 = t(g1) %*% Diagonal(mesh$m, 1/c0) %*% g1
+        c0 = Diagonal(mesh$m, c0)
+
+    } else if (mesh$degree==2) {
+        stop(paste("Mesh basis degree=", mesh$degree,
+                   " is not yet supported.", sep=""))
+    } else {
+        stop(paste("Mesh basis degree=", mesh$degree,
+                   " is not supported.", sep=""))
     }
 
-    c0 = Diagonal(mesh$n, c0)
-    g1 =
-        sparseMatrix(i=c(i.l, i.r, i.0),
-                     j=c(j.l, j.r, j.0),
-                     x=c(g1.l, g1.r, g1.0),
-                     dims=c(mesh$n, mesh$n))
-
-    return(list(c0=c0, g1=g1))
+    return(list(c0=c0, c1=c1, g1=g1, g2=g2))
 }
+
+
+
+inla.make.A.inla.mesh.1d = function(mesh) {
+}
+
+
+
+
+
+
 
 
 
