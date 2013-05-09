@@ -2031,23 +2031,22 @@ inla.mesh.1d.A =
             knots = c(knots, Boundary.knots[2])
             idx$index = idx$index[,1]-1L ## Indices into mesh intervals.
 
+            d = knots[2:length(knots)]-knots[1:(length(knots)-1)]
+            d2 = knots[3:length(knots)]-knots[1:(length(knots)-2)]
+
             ## Left intervals for each basis function:
             i.l = 1:length(idx$index)
             j.l = idx$index+2L
-            x.l = (idx$bary[,2]*(knots[idx$index+2]-knots[idx$index+1])/
-                   (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2])
+            x.l = (idx$bary[,2]*d[idx$index+1]/d2[idx$index+1] * idx$bary[,2])
             ## Right intervals for each basis function:
             i.r = 1:length(idx$index)
             j.r = idx$index
-            x.r = (idx$bary[,1]*(knots[idx$index+2]-knots[idx$index+1])/
-                   (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1])
+            x.r = (idx$bary[,1]*d[idx$index+1]/d2[idx$index] * idx$bary[,1])
             ## Middle intervals for each basis function:
             i.m = 1:length(idx$index)
             j.m = idx$index+1L
-            x.m = (1-(idx$bary[,1]*(knots[idx$index+2]-knots[idx$index+1])/
-                      (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1] +
-                      idx$bary[,2]*(knots[idx$index+2]-knots[idx$index+1])/
-                      (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2]
+            x.m = (1-(idx$bary[,1]*d[idx$index+1]/d2[idx$index]* idx$bary[,1] +
+                      idx$bary[,2]*d[idx$index+1]/d2[idx$index+1] * idx$bary[,2]
                       ))
             A = (sparseMatrix(i=c(i.l, i.r, i.m),
                               j=c(j.l, j.r, j.m),
@@ -2060,16 +2059,12 @@ inla.mesh.1d.A =
             if (!is.null(derivatives) && derivatives) {
                 ## dA:
                 ## Left intervals for each basis function:
-                x.l = (2 /
-                       (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2])
+                x.l = (2 / d2[idx$index+1] * idx$bary[,2])
                 ## Right intervals for each basis function:
-                x.r = (-2 /
-                       (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1])
+                x.r = (-2 / d2[idx$index] * idx$bary[,1])
                 ## Middle intervals for each basis function:
-                x.m = (-(-2/
-                          (knots[idx$index+2]-knots[idx$index]) * idx$bary[,1] +
-                          2/
-                          (knots[idx$index+3]-knots[idx$index+1]) * idx$bary[,2]
+                x.m = (-(-2/ d2[idx$index] * idx$bary[,1] +
+                          2/ d2[idx$index+1] * idx$bary[,2]
                           ))
                 dA = (sparseMatrix(i=c(i.l, i.r, i.m),
                                   j=c(j.l, j.r, j.m),
@@ -2080,17 +2075,12 @@ inla.mesh.1d.A =
 
                 ## d2A:
                 ## Left intervals for each basis function:
-                x.l = (2 / (knots[idx$index+2]-knots[idx$index+1]) /
-                       (knots[idx$index+3]-knots[idx$index+1]))
+                x.l = (2 / d[idx$index+1] / d2[idx$index+1])
                 ## Right intervals for each basis function:
-                x.r = (2 / (knots[idx$index+2]-knots[idx$index+1]) /
-                       (knots[idx$index+2]-knots[idx$index]))
+                x.r = (2 / d[idx$index+1] / d2[idx$index])
                 ## Middle intervals for each basis function:
-                x.m = (-(2/(knots[idx$index+2]-knots[idx$index+1]) /
-                         (knots[idx$index+2]-knots[idx$index]) +
-                         2/(knots[idx$index+2]-knots[idx$index+1]) /
-                         (knots[idx$index+3]-knots[idx$index+1])
-                         ))
+                x.m = (-(2/d[idx$index+1] / d2[idx$index] +
+                         2/d[idx$index+1] / d2[idx$index+1] ))
                 d2A = (sparseMatrix(i=c(i.l, i.r, i.m),
                                     j=c(j.l, j.r, j.m),
                                     x=c(x.l, x.r, x.m),
