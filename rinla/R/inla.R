@@ -1859,7 +1859,7 @@
                 }
                 if (echoc != 0L) {
                     if (!verbose && (silent != 2L)) {
-                        warning(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
+                        error(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
                     }
                 }
             } else {
@@ -1930,6 +1930,12 @@
                 ret = NULL
             } else {
                 class(ret) = "inla"
+            }
+        }
+
+        if (!is.null(ret$logfile)) {
+            if (length(grep("^INLA EXIT SUCESSFULLY", ret$logfile)) == 0 && (silent != 2L)) {
+                stop("The inla-program exited with an error-code; please rerun with option verbose=TRUE and check your model.")
             }
         }
 
