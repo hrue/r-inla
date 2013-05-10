@@ -15780,6 +15780,8 @@ double extra(double *theta, int ntheta, void *argument)
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
 
+#define NOT_FIXED(fx) (!mb->fixed_mode && !mb->fx)
+
 #define SET_GROUP_RHO(_nt_)						\
 	if (mb->f_group_model[i] != G_AR) {				\
 		if (mb->f_ngroup[i] == 1) {				\
@@ -15799,7 +15801,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int _p;						\
 									\
 			_p = mb->f_group_order[i];			\
-			if (!mb->f_fixed[i][(_nt_) + 0]) {		\
+			if (NOT_FIXED(f_fixed[i][(_nt_) + 0])) {	\
 				_log_precision = theta[count];		\
 				count++;				\
 			} else {					\
@@ -15808,7 +15810,7 @@ double extra(double *theta, int ntheta, void *argument)
 			_pacf = Calloc(_p, double);			\
 			_pacf_intern = Calloc(_p, double);		\
 			for (j = 0; j < _p; j++) {			\
-				if (!mb->f_fixed[i][(_nt_) + j + 1]) {	\
+				if (NOT_FIXED(f_fixed[i][(_nt_) + j + 1])) { \
 					_pacf_intern[j] = theta[count];	\
 					count++;			\
 				} else {				\
@@ -15829,7 +15831,7 @@ double extra(double *theta, int ntheta, void *argument)
 			normc_g = priorfunc_mvnorm(_zero, _param) + (ngroup - _p) * (-0.5 * log(2 * M_PI) + 0.5 * log(_conditional_prec)); \
 			normc_g -= LOG_NORMC_GAUSSIAN * ngroup; /* This term goes into the main code therefore its removed here	*/  \
 			normc_g *= (N_orig - rankdef_orig);		\
-			if (!mb->f_fixed[i][(_nt_) + 0]) {		\
+			if (NOT_FIXED(f_fixed[i][(_nt_) + 0])) {	\
 				val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + 0], &_log_precision); \
 			}						\
 			val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + 1], _pacf_intern); \
@@ -15839,7 +15841,7 @@ double extra(double *theta, int ntheta, void *argument)
 			Free(_pacf_intern);				\
 			Free(_marginal_Q);				\
 		} else {						\
-			if (!mb->f_fixed[i][(_nt_)]) {			\
+			if (NOT_FIXED(f_fixed[i][(_nt_)])) {		\
 				group_rho_intern = group_prec_intern = theta[count]; \
 				count++;				\
 				if (mb->f_group_model[i] == G_EXCHANGEABLE) { \
@@ -16607,7 +16609,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_RW2:
 		case F_CRW2:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
@@ -16627,7 +16629,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
 								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction)));
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			break;
@@ -16647,10 +16649,10 @@ double extra(double *theta, int ntheta, void *argument)
 			nK = spde->Kmodel->ntheta;
 			nt = mb->f_ntheta[i];
 
-			fixed0 = mb->f_fixed[i][0];
-			fixed1 = mb->f_fixed[i][1];
-			fixed2 = mb->f_fixed[i][2];
-			fixed3 = mb->f_fixed[i][3];
+			fixed0 = !NOT_FIXED(f_fixed[i][0]);
+			fixed1 = !NOT_FIXED(f_fixed[i][1]);
+			fixed2 = !NOT_FIXED(f_fixed[i][2]);
+			fixed3 = !NOT_FIXED(f_fixed[i][3]);
 			init0 = mb->f_initial[i][0];
 			init1 = mb->f_initial[i][1];
 			init2 = mb->f_initial[i][2];
@@ -16761,13 +16763,13 @@ double extra(double *theta, int ntheta, void *argument)
 			 * T 
 			 */
 			if (nT) {
-				if (!mb->f_fixed[i][0]) {
+				if (NOT_FIXED(f_fixed[i][0])) {
 					t = theta[count];
 					val += PRIOR_EVAL(mb->f_prior[i][0], &t);
 					count++;
 				}
 				for (k = 1; k < nT; k++) {
-					if (!mb->f_fixed[i][2]) {
+					if (NOT_FIXED(f_fixed[i][2])) {
 						t = theta[count];
 						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
 						count++;
@@ -16779,13 +16781,13 @@ double extra(double *theta, int ntheta, void *argument)
 			 * K 
 			 */
 			if (nK) {
-				if (!mb->f_fixed[i][1]) {
+				if (NOT_FIXED(f_fixed[i][1])) {
 					t = theta[count];
 					val += PRIOR_EVAL(mb->f_prior[i][1], &t);
 					count++;
 				}
 				for (k = 1; k < nK; k++) {
-					if (!mb->f_fixed[i][2]) {
+					if (NOT_FIXED(f_fixed[i][2])) {
 						t = theta[count];
 						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
 						count++;
@@ -16897,12 +16899,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 			spde2->debug = 0;
 			spde2_ntheta = spde2->ntheta;
-			for (k = 0; k < spde2_ntheta; k++) {
-				spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+			if (!mb->fixed_mode){
+				for (k = 0; k < spde2_ntheta; k++) {
+					spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+				}
 			}
 			int count_ref = count;
 
-			count += spde2_ntheta;		       /* as SET_GROUP_RHO need 'count' */
+			if (!mb->fixed_mode){
+				count += spde2_ntheta;		       /* as SET_GROUP_RHO need 'count' */
+			}
 			SET_GROUP_RHO(spde2_ntheta);
 
 			static GMRFLib_problem_tp **problem = NULL;
@@ -16973,7 +16979,9 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
 			 */
-			val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+			if (!mb->fixed_mode){
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+			}
 			break;
 		}
 
@@ -16985,7 +16993,7 @@ double extra(double *theta, int ntheta, void *argument)
 			p = mb->f_order[i];
 			assert(mb->f_ntheta[i] == p + 1);
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
@@ -16995,7 +17003,7 @@ double extra(double *theta, int ntheta, void *argument)
 			pacf = Calloc(p, double);
 			pacf_intern = Calloc(p, double);
 			for (j = 0; j < p; j++) {
-				if (!mb->f_fixed[i][j + 1]) {
+				if (NOT_FIXED(f_fixed[i][j + 1])) {
 					pacf_intern[j] = theta[count];
 					count++;
 				} else {
@@ -17026,7 +17034,7 @@ double extra(double *theta, int ntheta, void *argument)
 			/*
 			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
 			 */
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
@@ -17042,13 +17050,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_GENERIC1:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				beta_intern = theta[count];
 				count++;
 			} else {
@@ -17065,10 +17073,10 @@ double extra(double *theta, int ntheta, void *argument)
 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_n[i] - mb->f_rankdef[i])
 								   + (mb->f_n[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * logdet_Q));
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &beta_intern);
 			}
 			break;
@@ -17082,13 +17090,13 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			double h2;
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				h2_intern = theta[count];
 				count++;
 			} else {
@@ -17103,10 +17111,10 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0) +
 								   +(n - mb->f_rankdef[i]) / 2.0 * log_precision + n / 2.0 * log_prec_unstruct));
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_prec_unstruct);
 			}
 			/*
@@ -17124,7 +17132,7 @@ double extra(double *theta, int ntheta, void *argument)
 				exit(EXIT_FAILURE);
 			}
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
@@ -17133,7 +17141,7 @@ double extra(double *theta, int ntheta, void *argument)
 			inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
 			double n = aa->n;
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision));
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
 			break;
@@ -17155,7 +17163,7 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			double mean_x, log_precision_x, log_precision_obs;
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				beta = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 				count++;
@@ -17163,7 +17171,7 @@ double extra(double *theta, int ntheta, void *argument)
 				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision_obs = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision_obs);
 				count++;
@@ -17171,7 +17179,7 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision_obs = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
 
-			if (!mb->f_fixed[i][2]) {
+			if (NOT_FIXED(f_fixed[i][2])) {
 				mean_x = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
 				count++;
@@ -17179,7 +17187,7 @@ double extra(double *theta, int ntheta, void *argument)
 				mean_x = mb->f_theta[i][2][GMRFLib_thread_id][0];
 			}
 
-			if (!mb->f_fixed[i][3]) {
+			if (NOT_FIXED(f_fixed[i][3])) {
 				log_precision_x = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][3], &log_precision_x);
 				count++;
@@ -17214,7 +17222,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_MEB:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				beta = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 				count++;
@@ -17222,7 +17230,7 @@ double extra(double *theta, int ntheta, void *argument)
 				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision);
 				count++;
@@ -17281,13 +17289,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_AR1:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				phi_intern = theta[count];
 				count++;
 			} else {
@@ -17307,10 +17315,10 @@ double extra(double *theta, int ntheta, void *argument)
 									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise
 									   + ngroup * 0.5 * log(1.0 - SQR(phi))));
 			}
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
 			break;
@@ -17318,13 +17326,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_OU:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				phi_intern = theta[count];
 				count++;
 			} else {
@@ -17342,10 +17350,10 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 								   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * ou_nc / 2.0));
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
 			break;
@@ -17353,13 +17361,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BESAG2:
 		{
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				a_intern = theta[count];
 				count++;
 			} else {
@@ -17369,10 +17377,10 @@ double extra(double *theta, int ntheta, void *argument)
 			// N is 2*graph->n here. 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
 								   + (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern)));
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &a_intern);
 			}
 			break;
@@ -17380,13 +17388,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BYM:
 		{
-			if (!mb->f_fixed[i][0]) {	       /* iid */
+			if (NOT_FIXED(f_fixed[i][0])) {	       /* iid */
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {	       /* spatial */
+			if (NOT_FIXED(f_fixed[i][1])) {	       /* spatial */
 				log_precision1 = theta[count];
 				count++;
 			} else {
@@ -17398,10 +17406,10 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0)
 								   + n / 2.0 * log_precision0	/* iid */
 								   + (n - mb->f_rankdef[i]) / 2.0 * log_precision1));	/* spatial */
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
 			}
 			break;
@@ -17415,19 +17423,19 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 
 			assert(mb->f_ntheta[i] == 3);	       /* yes */
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision1 = theta[count];
 				count++;
 			} else {
 				log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][2]) {
+			if (NOT_FIXED(f_fixed[i][2])) {
 				rho_intern = theta[count];
 				count++;
 			} else {
@@ -17439,13 +17447,13 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
 			}
-			if (!mb->f_fixed[i][2]) {
+			if (NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &rho_intern);
 			}
 			break;
@@ -17467,7 +17475,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int k = 0;
 			nfixed = 0;
 			for (j = 0; j < dim; j++) {
-				if (!mb->f_fixed[i][k]) {
+				if (NOT_FIXED(f_fixed[i][k])) {
 					theta_vec[k] = theta[count];
 					count++;
 				} else {
@@ -17481,7 +17489,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			for (j = 0; j < dim; j++) {
 				for (jj = j + 1; jj < dim; jj++) {
-					if (!mb->f_fixed[i][k]) {
+					if (NOT_FIXED(f_fixed[i][k])) {
 						theta_vec[k] = theta[count];
 						count++;
 					} else {
@@ -17623,14 +17631,14 @@ double extra(double *theta, int ntheta, void *argument)
 				h = hold[i];
 			}
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
 				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
 				count++;
 			} else {
 				h->precision = map_precision(mb->f_theta[i][0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				h->range = map_range(theta[count], MAP_FORWARD, NULL);
 				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
 				count++;
@@ -17711,14 +17719,14 @@ double extra(double *theta, int ntheta, void *argument)
 				h = hold[i];
 			}
 
-			if (!mb->f_fixed[i][0]) {
+			if (NOT_FIXED(f_fixed[i][0])) {
 				h->log_prec[GMRFLib_thread_id][0] = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
 				count++;
 			} else {
 				h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (!mb->f_fixed[i][1]) {
+			if (NOT_FIXED(f_fixed[i][1])) {
 				h->log_diag[GMRFLib_thread_id][0] = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
 				count++;
@@ -17742,7 +17750,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_COPY:
 		{
-			if (!mb->f_fixed[i][0] && !mb->f_same_as[i]) {
+			if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
 				beta = theta[count];
 				count++;
 			} else {
@@ -17753,7 +17761,7 @@ double extra(double *theta, int ntheta, void *argument)
 				// beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				// }
 			}
-			if (!mb->f_fixed[i][0] && !mb->f_same_as[i]) {
+			if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
 			break;
@@ -17775,7 +17783,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
 #undef SET_GROUP_RHO
-
+#undef NOT_FIXED
 	return val;
 }
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
@@ -18078,6 +18086,7 @@ int inla_INLA(inla_tp * mb)
 		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
 		 */
 		mb->ntheta = 0;
+		mb->data_ntheta_all = 0;
 		mb->theta = NULL;
 	}
 
