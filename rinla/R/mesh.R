@@ -2211,7 +2211,15 @@ inla.mesh.1d.fem = function(mesh)
         c1 = t(info$A) %*% info$A
         g1 = t(info$dA) %*% info$dA
         g2 = t(info$d2A) %*% info$d2A
+
+        g01 = t(info$A) %*% info$dA
+        g02 = t(info$A) %*% info$d2A
+        g12 = t(info$dA) %*% info$d2A
+
         c0 = Diagonal(nrow(c1), rowSums(c1))
+
+    return(list(c0=c0, c1=c1, g1=g1, g2=g2, g01=g01, g02=g02, g12=g12))
+
     } else {
         stop(paste("Mesh basis degree=", mesh$degree,
                    " is not supported.", sep=""))
