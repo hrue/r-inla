@@ -2360,7 +2360,7 @@ double GMRFLib_Qfunc_generic(int i, int j, void *arg)
 		return -1.0;
 	} else {
 		GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) arg;
-		return g->nnbs[i] + g->n;
+		return g->n;
 	}
 }
 
