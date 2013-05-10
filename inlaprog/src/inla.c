@@ -19430,12 +19430,13 @@ int inla_output(inla_tp * mb)
 				// inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
 			}
 
-			if (local_verbose == 0) {
-				int save = mb->verbose;
-				
-				mb->verbose = 0;
-				inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
-				mb->verbose = save;
+			if (mb->output->q) {
+				if (local_verbose == 0) {
+					int save = mb->verbose;
+					mb->verbose = 0;
+					inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
+					mb->verbose = save;
+				}
 			}
 			
 			if (mb->output->graph) {

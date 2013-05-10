@@ -706,7 +706,10 @@ inla.internal.experimental.mode = FALSE
             q = NULL
         else
             q = list(Q = Q.matrix, Q.reorder = Q.matrix.reorder, L = L)
+    } else {
+        q = NULL
     }
+    
     return(q)     
 }
 
