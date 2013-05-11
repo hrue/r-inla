@@ -19429,13 +19429,16 @@ int inla_output(inla_tp * mb)
 				// disable output theta-mode to file '.inla-mode'
 				// inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
 			}
-			if (local_verbose == 0) {
-				int save = mb->verbose;
 
-				mb->verbose = 0;
-				inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
-				mb->verbose = save;
+			if (mb->output->q) {
+				if (local_verbose == 0) {
+					int save = mb->verbose;
+					mb->verbose = 0;
+					inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
+					mb->verbose = save;
+				}
 			}
+			
 			if (mb->output->graph) {
 				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
 			}
@@ -19472,11 +19475,6 @@ int inla_output(inla_tp * mb)
 			Free(mb->gdensity);
 		}
 	}
-
-	/*
-	 * final output
-	 */
-	inla_output_ok(mb->dir);
 
 	return INLA_OK;
 }
@@ -22080,6 +22078,12 @@ int main(int argc, char **argv)
 	if (report) {
 		GMRFLib_timer_full_report(NULL);
 	}
+
+	/*
+	 * final output
+	 */
+	inla_output_ok(mb->dir);
+
 	return EXIT_SUCCESS;
 #undef USAGE_intern
 #undef USAGE
