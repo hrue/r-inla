@@ -1041,3 +1041,8 @@
 
     return (value)
 }
+`inla.inlaprogram.has.crashed` = function()
+{
+    stop("The inla-program exited with an error; please rerun with verbose=TRUE and check the output carefully.\n  If this does help; please contact the developers at help@r-inla.org.")
+}
+

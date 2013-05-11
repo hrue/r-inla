@@ -1859,7 +1859,7 @@
                 }
                 if (echoc != 0L) {
                     if (!verbose && (silent != 2L)) {
-                        error(" *** The inla()-call return an error; please rerun with option verbose=TRUE.")
+                        inla.inlaprogram.has.crashed()
                     }
                 }
             } else {
@@ -1882,7 +1882,7 @@
 
         if (echoc == 0L) {
             ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                    only.hyperparam=only.hyperparam, file.log = file.log), silent=TRUE)
+                    only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
             if (!is.list(ret)) {
                 ret = list()
             }
@@ -1924,18 +1924,17 @@
             ret$model.matrix = gp$model.matrix
             class(ret) = "inla"
         } else {
-            ## with a crash, try to collect the logfile only
-            ret = try(inla.collect.logfile(file.log, debug), silent = TRUE)
-            if (inherits(ret, "try-error")) {
-                ret = NULL
+            ## do this instead
+            if (silent != 2L) {
+                inla.inlaprogram.has.crashed()
             } else {
-                class(ret) = "inla"
-            }
-        }
-
-        if (!is.null(ret$logfile)) {
-            if (length(grep("^INLA EXIT SUCESSFULLY", ret$logfile)) == 0 && (silent != 2L)) {
-                stop("The inla-program exited with an error-code; please rerun with option verbose=TRUE and check your model.")
+                ## with a crash, try to collect the logfile only
+                ret = try(inla.collect.logfile(file.log, debug), silent = TRUE)
+                if (inherits(ret, "try-error")) {
+                    ret = NULL
+                } else {
+                    class(ret) = "inla"
+                }
             }
         }
 

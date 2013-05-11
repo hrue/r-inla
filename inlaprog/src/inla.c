@@ -19476,11 +19476,6 @@ int inla_output(inla_tp * mb)
 		}
 	}
 
-	/*
-	 * final output
-	 */
-	inla_output_ok(mb->dir);
-
 	return INLA_OK;
 }
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose)
@@ -22084,7 +22079,10 @@ int main(int argc, char **argv)
 		GMRFLib_timer_full_report(NULL);
 	}
 
-	printf("\nINLA EXIT SUCESSFULLY.  RCSId=[%s]\n", RCSId);
+	/*
+	 * final output
+	 */
+	inla_output_ok(mb->dir);
 
 	return EXIT_SUCCESS;
 #undef USAGE_intern

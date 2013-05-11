@@ -7,6 +7,12 @@
         stop(paste("This is not a directory: ", results.dir, "\n"))
     }
 
+    filename = paste(results.dir,  "/.ok",  sep="")
+    res.ok = file.exists(filename)
+    if (!res.ok) {
+        inla.inlaprogram.has.crashed()
+    }
+ 
     if (!only.hyperparam) {
         res.fixed = inla.collect.fixed(results.dir, debug)
         res.lincomb = inla.collect.lincomb(results.dir, debug, derived=FALSE)
@@ -110,7 +116,7 @@
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))), 
             list(Q=res.q),
-            res.graph)
+            res.graph, ok = res.ok)
     class(res) = "inla"
 
     if (inla.getOption("internal.experimental.mode")) {
@@ -177,10 +183,6 @@
         if (debug)
             print("...Fix marginals done.")
     }
-
-
-    filename = paste(results.dir,  "/.ok",  sep="")
-    res$ok = file.exists(filename)
 
     return(res)
 }
