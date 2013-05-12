@@ -1734,7 +1734,6 @@ match.arg.vector = function(arg=NULL, choices, length=NULL) {
 }
 
 ## Deprecated: cyclic
-## Can be useful for cyclic models: interval
 inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cyclic=FALSE)
 {
     ## Note: do not change the order of these options without also
@@ -1769,36 +1768,71 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
         loc =
             (sort(unique(c(interval,
                            pmax(interval[1], pmin(interval[2], loc)) ))))
+
+    n = length(loc)
+
     if (loc[1]<interval[1])
         stop("All 'loc' must be >= interval[1].")
-    if (loc[length(loc)]>interval[2])
+    if (loc[n]>interval[2])
         stop("All 'loc' must be <= interval[2].")
 
-    if ( (degree<1) || (degree>2)) {
-        stop(paste("'degree' must be 1 or 2.  'degree=",
+    if ( (degree<0) || (degree>2)) {
+        stop(paste("'degree' must be 0, 1, or 2.  'degree=",
                    degree,
                    "' is not supported.", sep=""))
     }
 
     ## Number of basis functions
-    if (degree==1) {
+    if (degree==0) {
+        basis.reduction = c(0, 1, 0, 1/2) ## neu, dir, free, cyclic
+    } else if (degree==1) {
         basis.reduction = c(0, 1, 0, 1/2) ## neu, dir, free, cyclic
     } else {
         basis.reduction = c(1, 1, 0, 1)
     }
-    m = (length(loc)+cyclic+(degree==2)*1
+    m = (n+cyclic+(degree==2)*1
          -basis.reduction[pmatch(boundary[1], boundary.options)]
          -basis.reduction[pmatch(boundary[2], boundary.options)])
-    if (m < 1+degree) {
+    if (m < 1+max(1,degree)) {
         stop("Degree ", degree,
-             " meshes must have at least ", 1+degree,
+             " meshes must have at least ", 1+max(1,degree),
              " basis functions, not 'm=", m, "'.", sep="")
     }
 
+    ## Compute representative basis midpoints.
+    if ((mesh$degree==0) || (mesh$degree==1)) {
+        mid = loc
+        if (boundary[1] == "dirichlet") {
+            mid = mid[-1]
+        }
+        if (boundary[2] == "dirichlet") {
+            mid = mid[,-(m+1)]
+        }
+    } else {
+        if (cyclic) {
+            mid = (loc + c(loc[-1], interval[2]))/2
+        } else {
+            mid =
+                c(switch(boundary[1],
+                         neumann = (loc[1]*3+loc[2]*1)/4,
+                         dirichlet = (loc[1]*3+loc[2]*1)/4,
+                         free =
+                         c(loc[1]-(loc[2]-loc[2])/2, (loc[1]+loc[2])/2)),
+                  (loc[-c(1,n-1,n)] + loc[-c(1,2,n)])/2,
+                  switch(boundary[2],
+                         neumann = (loc[n-1]*1+loc[n]*3)/4,
+                         dirichlet = (loc[n-1]*1+loc[n]*3)/4,
+                         free =
+                         c(loc[n]+(loc[n]-loc[n-1])/2, (loc[n-1]+loc[n])/2))
+                  )
+        }
+    }
+
     mesh =
-        list(n=length(loc),
+        list(n=n,
              m=m,
              loc=loc,
+             mid=mid,
              interval=interval,
              boundary=boundary,
              cyclic=cyclic,
@@ -1882,7 +1916,27 @@ inla.mesh.1d.A =
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
         ## Compute basis based on mesh$degree and mesh$boundary
-        if (mesh$degree==1) {
+        if (mesh$degree==0) {
+            info = (inla.mesh.1d.A(mesh, loc, method="nearest",
+                                   weights=weights,
+                                   derivatives=
+                                   inla.ifelse(is.null(derivatives),
+                                               FALSE, TRUE)))
+            if (mesh$boundary[1] == "dirichlet") {
+                info$A = info$A[,-1,drop=FALSE]
+                if (!is.null(derivatives) && derivatives)
+                    info$dA = info$dA[,-1,drop=FALSE]
+            }
+            if (mesh$boundary[2] == "dirichlet") {
+                info$A = info$A[,-(mesh$m+1),drop=FALSE]
+                if (!is.null(derivatives) && derivatives)
+                    info$dA = info$dA[,-(mesh$m+1),drop=FALSE]
+            }
+            if (!is.null(derivatives) && derivatives)
+                return(info)
+            else
+                return(info$A)
+        } else if (mesh$degree==1) {
             info = (inla.mesh.1d.A(mesh, loc, method="linear",
                                    weights=weights,
                                    derivatives=
@@ -1947,7 +2001,7 @@ inla.mesh.1d.A =
                 return(adjust.matrix(mesh, info$A))
             }
         } else {
-            stop(paste("'degree' must be 1 or 2.  'degree=",
+            stop(paste("'degree' must be 0, 1, or 2.  'degree=",
                        mesh$degree,
                        "' is not supported.", sep=""))
         }
@@ -2108,7 +2162,8 @@ inla.mesh.1d.fem = function(mesh)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
-    if (mesh$degree==1) {
+    ## Use the same matrices for degree 0 as for degree 1
+    if ((mesh$degree==0) || (mesh$degree==1)) {
         if (mesh$cyclic) {
             loc =
                 c(mesh$loc[mesh$n]-diff(mesh$interval),
@@ -2230,8 +2285,6 @@ inla.mesh.1d.fem = function(mesh)
 
 
 
-inla.make.A.inla.mesh.1d = function(mesh) {
-}
 
 
 
@@ -2244,7 +2297,19 @@ inla.make.A.inla.mesh.1d = function(mesh) {
 
 inla.mesh.fem = function(mesh, order=2)
 {
-    return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv, fem=order))
+    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
+    if (inherits(mesh, "inla.mesh.1d")) {
+        if (order > 2) {
+            stop("order>2 not supported for 1d meshes.")
+            ## TODO: Compute higher order matrices based on order 2 output.
+        }
+        return(inla.mesh.1d.fem(mesh))
+    } else {
+        ## output name list:
+        output = c("c0", "c1", paste("g", seq_len(order), sep=""))
+        return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv,
+                                  fem=order, output=output))
+    }
 }
 
 
