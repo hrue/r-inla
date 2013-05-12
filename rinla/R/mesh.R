@@ -1841,7 +1841,15 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
              idx = NULL)
     class(mesh) = "inla.mesh.1d"
 
-    mesh$idx = inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
+    if (degree<2) {
+        mesh$idx =
+            inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
+    } else {
+        mesh$idx =
+            inla.mesh.1d.bary(inla.mesh.1d(mid, degree=0),
+                              loc.orig,
+                              method="nearest")$index[,1]
+    }
 
     return(mesh)
 }
