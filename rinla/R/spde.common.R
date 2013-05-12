@@ -460,6 +460,103 @@ inla.spde.make.A.old =
 
 
 
+
+inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
+    M1 = inla.as.dgTMatrix(M1)
+    M2 = inla.as.dgTMatrix(M2)
+    n = nrow(M1)
+    if (is.null(repl)) {
+        repl = rep(1L, n)
+    }
+    if (is.null(n.repl)) {
+        n.repl = max(repl)
+    }
+    if (is.null(weights)) {
+        weights = rep(1, n)
+    } else {
+        if (length(weights)==1L) {
+            weights = rep(weights[1], n)
+        }
+    }
+
+    if (FALSE) {
+    ## Slow version:
+    print(system.time({
+    M = (sparseMatrix(i=numeric(0), j=numeric(0), x=integer(0),
+                      dims=c(n, ncol(M1)*ncol(M2))))
+    for (k in seq_len(n)) {
+        M[k,] = kronecker(M1[k,,drop=FALSE], M2[k,,drop=FALSE])
+    }
+    M = inla.as.dgTMatrix(M)
+    weights.ii = weights[1L + M@i]
+    M = (sparseMatrix(i=(1L + M@i),
+                      j=(1L + M@j + ncol(M)*(repl[M@i+1L]-1L)),
+                      x=weights.ii*M@x,
+                      dims=c(n, n.repl*ncol(M))))
+}))
+    M.slow = M
+}
+
+    ## Fast version:
+    ## TODO: Check robustness for all-zero rows.
+    ## TODO: Move big sparseMatrix call outside the loop.
+    ## TODO: Automatically choose M1 or M2 for looping.
+
+##    print(system.time({
+    n1 = (as.vector(sparseMatrix(i=1L+M1@i, j=rep(1L, length(M1@i)),
+                                 x=1L, dims=c(n, 1))))
+    n2 = (as.vector(sparseMatrix(i=1L+M2@i, j=rep(1L, length(M2@i)),
+                                 x=1L, dims=c(n, 1))))
+
+    M = (sparseMatrix(i=integer(0), j=integer(0), x=numeric(0),
+                      dims=c(n, ncol(M2)*ncol(M1)*n.repl)))
+    n1 = n1[1L+M1@i]
+    for (k in unique(n1)) {
+        sub = which(n1==k)
+        n.sub = length(sub)
+
+        i.sub = 1L+M1@i[sub]
+        j.sub = 1L+M1@j[sub]
+        o1 = order(i.sub, j.sub)
+        jj = rep(seq_len(k), times=n.sub/k)
+
+        i.sub = i.sub[o1]
+        j.sub = (sparseMatrix(i=i.sub,
+                              j=jj,
+                              x=j.sub[o1],
+                              dims=c(n, k)))
+        x.sub = (sparseMatrix(i=i.sub,
+                              j=jj,
+                              x=weights[i.sub]*M1@x[sub][o1],
+                              dims=c(n, k)))
+        sub2 = which(is.element(1L+M2@i, i.sub))
+
+        if (length(sub2) > 0) {
+            i = 1L+M2@i[sub2]
+            ii = rep(i, times=k)
+            repl.i = repl[ii]
+
+            M = (M +
+                 sparseMatrix(i=ii,
+                              j=(1L+rep(M2@j[sub2], times=k)+
+                                 ncol(M2)*(as.vector(j.sub[i,])-1L)+
+                                 ncol(M2)*ncol(M1)*(repl.i-1L)),
+                              x=(rep(M2@x[sub2], times=k)*
+                                 as.vector(x.sub[i,])),
+                              dims=c(n, ncol(M2)*ncol(M1)*n.repl)))
+        }
+    }
+##}))
+
+##    print(max(abs(M-M.slow)))
+
+##    o2 = order(n2[1L+M2@i], M2@i, M2@j)
+
+    return(M)
+}
+
+
+
 inla.spde.make.A =
     function(mesh = NULL,
              loc = NULL,
@@ -470,7 +567,7 @@ inla.spde.make.A =
              n.group = NULL,
              n.repl = NULL,
              group.mesh = NULL,
-             group.method = c("nearest", "S0", "S1"),
+##             group.method = c("nearest", "S0", "S1"),
              weights = NULL,
              A.loc = NULL,
              n.mesh = NULL)
@@ -499,7 +596,7 @@ inla.spde.make.A =
     if (!is.null(group.mesh)) {
         inla.require.inherits(group.mesh, "inla.mesh.1d", "'mesh'")
     }
-    group.method = match.arg(group.method)
+##    group.method = match.arg(group.method)
 
     n.group =
         inla.ifelse(is.null(n.group),
@@ -544,9 +641,11 @@ inla.spde.make.A =
                        length(group), " != ", length(index),
                        sep=""))
     } else {
-        n.group = group.mesh$n
+        ## TODO: Modify to support degree=0/1/2 instead.
+
+        n.group = group.mesh$m
         if (is.null(group))
-            group = rep(mesh$loc[1], length(index))
+            group = rep(group.mesh$mid[1], length(index))
         else if (length(group) == 1)
             group = rep(group, length(index))
         else if (length(group) != length(index))
@@ -554,16 +653,18 @@ inla.spde.make.A =
                        length(group), " != ", length(index),
                        sep=""))
 
-        ## TODO: Modify to support "nearest"(degree=1)/"basis"(degree=1&2)
-        if (group.method=="nearest") {
-            group.index =
-                inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
-            group = group.index$index[,1]
-        } else {
-            group.index =
-                inla.mesh.1d.bary(group.mesh, loc=group, method="linear")
-            if (group.method=="S0") {
+        A.group = inla.mesh.1d.A(group.mesh, loc=group)
+        if (FALSE) {
+            if (group.mesh$degree==0) {
+                group.index =
+                    inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
                 group = group.index$index[,1]
+            } else {
+                group.index =
+                    inla.mesh.1d.bary(group.mesh, loc=group, method="linear")
+                if (group.method=="S0") {
+                    group = group.index$index[,1]
+                }
             }
         }
     }
@@ -590,25 +691,32 @@ inla.spde.make.A =
                 }
             }
 
-            ## TODO: Modify to support group.method "basis" instead.
-            if (!is.null(group.mesh) && (group.method=="S1")) {
-                i = 1L+A.loc@i
-                group.i1 = group.index$index[i,1]
-                group.i2 = group.index$index[i,2]
-                repl.i = repl[i]
-                weights.ii = weights[c(i,i)]
-                return(sparseMatrix(i=c(i,i),
-                                    j=(1L+c(A.loc@j+
-                                            n.spde*(group.i1-1L)+
-                                            n.spde*n.group*(repl.i-1L),
-                                            A.loc@j+
-                                            n.spde*(group.i2-1L)+
-                                            n.spde*n.group*(repl.i-1L))),
-                                    x=(weights.ii*
-                                       c(A.loc@x*group.index$bary[i,1],
-                                         A.loc@x*group.index$bary[i,2])),
-                                    dims=c(length(index),
-                                    n.spde*n.group*n.repl)))
+            if (!is.null(group.mesh)) {
+                return(inla.row.kron(A.group, A.loc,
+                                     repl=repl, n.repl=n.repl,
+                                     weights=weights))
+                ## More general version:
+                ## return(row.kron(A.repl, row.kron(A.group, A.loc), weights=weights))
+                ## Only worked for previous 1d mesh versions:
+                if (FALSE) {
+                    i = 1L+A.loc@i
+                    group.i1 = group.index$index[i,1]
+                    group.i2 = group.index$index[i,2]
+                    repl.i = repl[i]
+                    weights.ii = weights[c(i,i)]
+                    return(sparseMatrix(i=c(i,i),
+                                        j=(1L+c(A.loc@j+
+                                                n.spde*(group.i1-1L)+
+                                                n.spde*n.group*(repl.i-1L),
+                                                A.loc@j+
+                                                n.spde*(group.i2-1L)+
+                                                n.spde*n.group*(repl.i-1L))),
+                                        x=(weights.ii*
+                                           c(A.loc@x*group.index$bary[i,1],
+                                             A.loc@x*group.index$bary[i,2])),
+                                        dims=c(length(index),
+                                        n.spde*n.group*n.repl)))
+                }
             } else {
                 i = 1L+A.loc@i
                 group.i = group[i]
