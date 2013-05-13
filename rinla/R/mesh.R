@@ -1734,7 +1734,7 @@ match.arg.vector = function(arg=NULL, choices, length=NULL) {
 }
 
 ## Deprecated: cyclic
-inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cyclic=FALSE)
+inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.clamped=FALSE, cyclic=FALSE)
 {
     ## Note: do not change the order of these options without also
     ## changing 'basis.reduction' below.
@@ -1782,6 +1782,11 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
                    "' is not supported.", sep=""))
     }
 
+    if (length(free.clamped) == 1L) {
+        free.clamped = rep(free.clamped, 2)
+    }
+
+
     ## Number of basis functions
     if (degree==0) {
         basis.reduction = c(0, 1, 0, 1/2) ## neu, dir, free, cyclic
@@ -1813,19 +1818,17 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
         if (cyclic) {
             mid = (loc + c(loc[-1], interval[2]))/2
         } else {
+            mid = c(loc[1], (loc[-n]+loc[-1])/2, loc[n])
             mid =
-                c(switch(boundary[1],
-                         neumann = (loc[1]*3+loc[2]*1)/4,
-                         dirichlet = (loc[1]*3+loc[2]*1)/4,
-                         free =
-                         c(loc[1]-(loc[2]-loc[2])/2, (loc[1]+loc[2])/2)),
-                  (loc[-c(1,n-1,n)] + loc[-c(1,2,n)])/2,
-                  switch(boundary[2],
-                         neumann = (loc[n-1]*1+loc[n]*3)/4,
-                         dirichlet = (loc[n-1]*1+loc[n]*3)/4,
-                         free =
-                         c(loc[n]+(loc[n]-loc[n-1])/2, (loc[n-1]+loc[n])/2))
-                  )
+                switch(boundary[1],
+                       neumann = mid[-1],
+                       dirichlet = mid[-1],
+                       free = mid)
+            mid =
+                switch(boundary[2],
+                       neumann = mid[-(m+1)],
+                       dirichlet = mid[-(m+1)],
+                       free = mid)
         }
     }
 
@@ -1839,6 +1842,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
              cyclic=cyclic,
              manifold = inla.ifelse(cyclic, "S1", "R1"),
              degree=degree,
+             free.clamped=free.clamped,
              idx = NULL)
     class(mesh) = "inla.mesh.1d"
 
@@ -1872,10 +1876,11 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
         if (mesh$cyclic) {
             mloc =
                 c(mesh$loc[mesh$n]-diff(mesh$interval),
-                  mesh$loc)
-            mloc = (mloc[1:mesh$n] + mloc[2:(mesh$n+1L)])/2
-            mloc = c(mloc-mesh$loc[1], diff(mesh$interval))
-            loc = (loc-mesh$loc[1]) %% diff(mesh$interval)
+                  mesh$loc,
+                  diff(mesh$interval))
+            mloc = (mloc[-(mesh$n+2)] + mloc[-1])/2
+            loc = (loc-mloc[1]) %% diff(mesh$interval)
+            mloc = mloc-mloc[1]
         } else {
             mloc =
                 c(0,
@@ -1895,7 +1900,13 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
             u[found] = (loc[found]-mloc[k])/(mloc[k+1]-mloc[k])
         }
     }
-    if (!mesh$cyclic) {
+
+    if (mesh$cyclic) {
+        if (method=="nearest") {
+            found = which(idx==(mesh$n+1))
+            idx[found] = 1L
+        }
+    } else {
         if (method=="linear") {
             found = which(idx==mesh$n)
             idx[found] = mesh$n-1L
@@ -1918,9 +1929,10 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
 
 inla.mesh.1d.A =
     function(mesh, loc,
-             method=c("linear", "nearest", "quadratic"),
              weights=NULL,
-             derivatives=NULL)
+             derivatives=NULL,
+             method=c("linear", "nearest", "quadratic")
+             )
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
@@ -1974,6 +1986,7 @@ inla.mesh.1d.A =
                                inla.ifelse(
                                    is.null(derivatives),
                                    FALSE, TRUE))
+
             adjust.matrix = function(mesh, A) {
                 A = inla.as.dgTMatrix(A)
                 i = A@i+1L
@@ -1991,17 +2004,32 @@ inla.mesh.1d.A =
                         x[j==1L] = -x[j==1L]
                         j[j==1L] = 2L
                         j = j-1L
+                    } else if ((mesh$boundary[1] == "free") &&
+                               mesh$free.clamped[1]) {
+                        j1 = which(j==1L)
+                        i = c(i, i[j1])
+                        j = c(j, j[j1]+1L)
+                        x = c(x, -x[j1])
+                        x[j1] = 2*x[j1]
                     }
                     if (mesh$boundary[2] == "neumann") {
                         j[j==(mesh$m+1L)] = mesh$m
                     } else if (mesh$boundary[2] == "dirichlet") {
                         x[j==(mesh$m+1L)] = -x[j==(mesh$m+1L)]
                         j[j==(mesh$m+1L)] = mesh$m
+                    } else if ((mesh$boundary[2] == "free") &&
+                               mesh$free.clamped[2]) {
+                        j1 = which(j==(mesh$m))
+                        i = c(i, i[j1])
+                        j = c(j, j[j1]-1L)
+                        x = c(x, -x[j1])
+                        x[j1] = 2*x[j1]
                     }
                 }
                 return(sparseMatrix(i=i, j=j, x=x,
                                     dims=c(length(loc), mesh$m)))
             }
+
             if (!is.null(derivatives) && derivatives) {
                 return(list(A=adjust.matrix(mesh, info$A),
                             dA=adjust.matrix(mesh, info$dA),
@@ -2034,10 +2062,10 @@ inla.mesh.1d.A =
                                   dims=c(length(loc), mesh$n)))
                 if (!is.null(derivatives) && derivatives) {
                     if (mesh$cyclic) {
-                        d = (c(mesh$loc[2:mesh$n], mesh$interval[2]) -
-                             mesh$loc[1:mesh$n])
+                        d = (c(mesh$loc[-1], mesh$interval[2]) -
+                             mesh$loc)
                     } else {
-                        d = (mesh$loc[2:mesh$n] - mesh$loc[1:(mesh$n-1)])
+                        d = (mesh$loc[-1] - mesh$loc[-mesh$n])
                     }
                     dA = (sparseMatrix(i=i,
                                        j=as.vector(idx$index),
@@ -2063,7 +2091,8 @@ inla.mesh.1d.A =
 
             if (mesh$cyclic) {
                 Boundary.knots =
-                    mesh$loc[c(mesh$n,2)] + diff(mesh$interval)*c(-1,1)
+                    (c(mesh$loc, mesh$interval[2])[c(mesh$n,2)] +
+                     diff(mesh$interval)*c(-1,1))
                 knots = c(mesh$loc, mesh$interval[2])
             } else {
                 Boundary.knots =
@@ -2188,9 +2217,15 @@ inla.mesh.1d.fem = function(mesh)
             i.l = 1:mesh$n
             i.r = 1:mesh$n
             i.0 = 1:mesh$n
-            j.l = c(mesh$n, 1:(mesh$n-1))
-            j.r = c(2:mesh$n, 1)
-            j.0 = 1:mesh$n
+            if (mesh$n > 1) {
+                j.l = c(mesh$n, 1:(mesh$n-1))
+                j.r = c(2:mesh$n, 1)
+                j.0 = 1:mesh$n
+            } else {
+                j.l = 1L
+                j.r = 1L
+                j.0 = 1L
+            }
         } else {
             c0 =
                 c((mesh$loc[2]-mesh$loc[1])/2,
