@@ -217,11 +217,12 @@ typedef struct {
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
 	/*
-	 * zero-inflated Poission/Binomial/inomial/BetaBinomial version 0/1/2...
+	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
 	 */
 	double **prob_intern;
 	double **zeroinflated_alpha_intern;		       /* alpha = exp(alpha_intern) */
 	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
+	double **zeroinflated_rho_intern;		       /* rho = exp(rho_intern)/(1+exp(rho_intern)) */
 
 	double **prob1_intern;				       /* for the strata2 */
 	double **prob2_intern;				       /* for the strata2 */
@@ -362,6 +363,8 @@ typedef enum {
 	L_ZEROINFLATEDBINOMIAL0,
 	L_ZEROINFLATEDBINOMIAL1,
 	L_ZEROINFLATEDBINOMIAL2,
+	L_ZEROINFLATEDBETABINOMIAL0,
+	L_ZEROINFLATEDBETABINOMIAL1,
 	L_ZEROINFLATEDBETABINOMIAL2,
 	L_GAMMA,
 	L_BETA,
@@ -1257,6 +1260,8 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

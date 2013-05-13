@@ -172,6 +172,8 @@
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
                              "zeroninflatedbinomial2",
+                             "zeroinflatedbetabinomial0",
+                             "zeroinflatedbetabinomial1",
                              "zeroinflatedbetabinomial2",
                              "testbinomial1"))) {
 

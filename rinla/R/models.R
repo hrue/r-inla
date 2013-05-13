@@ -3493,6 +3493,64 @@
                       pdf = "zeroinflated"
                       ),
 
+             zeroinflatedbetabinomial0 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "overdispersion",
+                                      short.name = "rho",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(0.0, 0.4),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      ), 
+                              theta2 = list(
+                                      name = "logit probability",
+                                      short.name = "prob",
+                                      initial = -1,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(-1, 0.2),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "zeroinflated"
+                      ),
+
+             zeroinflatedbetabinomial1 = list(
+                      hyper = list(
+                              theta1 = list(
+                                      name = "overdispersion",
+                                      short.name = "rho",
+                                      initial = 0,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(0.0, 0.4),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      ), 
+                              theta2 = list(
+                                      name = "logit probability",
+                                      short.name = "prob",
+                                      initial = -1,
+                                      fixed = FALSE,
+                                      prior = "gaussian",
+                                      param = c(-1, 0.2),
+                                      to.theta = function(x) log(x/(1-x)),
+                                      from.theta = function(x) exp(x)/(1+exp(x))
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = TRUE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "zeroinflated"
+                      ),
+
               zeroinflatedbinomial0 = list(
                       hyper = list(
                               theta = list(
@@ -3550,7 +3608,7 @@
                       pdf = "zeroinflated"
                       ),
 
-              zeroninflatedbinomial2 = list(
+              zeroinflatedbinomial2 = list(
                       hyper = list(
                               theta1 = list(
                                       name = "alpha1",
