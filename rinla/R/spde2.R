@@ -443,6 +443,9 @@ inla.spde2.matern =
     function(mesh,
              alpha=2,
              param = NULL,
+             constr = FALSE,
+             extraconstr = NULL,
+             fractional.method = c("parsimonious", "null"),
              B.tau = matrix(c(0,1,0),1,3),
              B.kappa = matrix(c(0,0,1),1,3),
              prior.variance.nominal = 1,
@@ -450,8 +453,7 @@ inla.spde2.matern =
              prior.tau = NULL,
              prior.kappa = NULL,
              theta.prior.mean = NULL,
-             theta.prior.prec = 0.1,
-             fractional.method = c("parsimonious", "null"))
+             theta.prior.prec = 0.1)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     fractional.method = match.arg(fractional.method)
@@ -492,7 +494,7 @@ inla.spde2.matern =
     nu.nominal = max(0.5, nu)
     alpha.nominal = max(nu.nominal+d/2, alpha)
 
-    n.spde = mesh$n
+    n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
     n.theta = ncol(B.kappa)-1L
 
     if (d==2) {
@@ -500,7 +502,7 @@ inla.spde2.matern =
             inla.fmesher.smorg(mesh$loc,
                                mesh$graph$tv,
                                fem=2,
-                               output=list("c0", "g1", "g2"))
+                               output=list("c0", "c1", "g1", "g2"))
     } else {
         fem = inla.mesh.1d.fem(mesh)
         if (mesh$degree==2) {
@@ -571,6 +573,23 @@ inla.spde2.matern =
     spde$model = "matern"
     spde$BLC = param$BLC
 
+    if (constr || !is.null(extraconstr)) {
+        if (constr) {
+            A.constr = matrix(colSums(fem$c1), 1, n.spde)
+            e.constr = 0
+        } else {
+            A.constr = matrix(numeric(0), 0, n.spde)
+            e.constr = c()
+        }
+        if (!is.null(extraconstr)) {
+            A.constr =
+                matrix(extraconstr$A %*% fem$c1, nrow(extraconstr$A), n.spde)
+            e.constr = c(e.constr, extraconstr$e)
+        }
+
+        spde$f$constr = FALSE
+        spde$f$extraconstr = list(A=A.constr, e=e.constr)
+    }
 
     return(invisible(spde))
 }
