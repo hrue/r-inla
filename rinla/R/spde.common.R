@@ -411,7 +411,6 @@ inla.spde.make.A.old =
                 }
             }
 
-            ## TODO: Modify to support group.method "basis" instead.
             if (!is.null(group.mesh) && (group.method=="S1")) {
                 i = 1L+A.loc@i
                 group.i1 = group.index$index[i,1]
@@ -556,7 +555,7 @@ inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
 }
 
 
-
+## Deprecated/obsolete: n.mesh, group.method
 inla.spde.make.A =
     function(mesh = NULL,
              loc = NULL,
@@ -567,16 +566,28 @@ inla.spde.make.A =
              n.group = NULL,
              n.repl = NULL,
              group.mesh = NULL,
-##             group.method = c("nearest", "S0", "S1"),
              weights = NULL,
              A.loc = NULL,
-             n.mesh = NULL)
+             A.group = NULL,
+             group.index = NULL,
+             n.mesh = NULL,
+             group.method = NULL)
 {
-    ## A.loc can be specified instead of mesh+loc, if index is supplied.
+    ## A.loc can be specified instead of mesh+loc, optionally with
+    ## index supplied.
+    ## A.group can be specified instead of group and/or group.mesh,
+    ## optionally with group.index supplied.
 
     if (!missing(n.mesh)) {
         warning("'n.mesh' is deprecated, use 'n.spde' instead.")
         n.spde = n.mesh
+    }
+    if (!missing(group.method)) {
+        group.method = match.arg(group.method, c("nearest", "S0", "S1"))
+        warning(paste("'group.method=", group.method,
+                      "' is deprecated.  Specify 'degree=",
+                      switch(group.method, nearest="0", S0="0", S1="1"),
+                      "' in inla.mesh.1d() instead.", sep=""))
     }
 
     if (is.null(mesh)) {
@@ -626,7 +637,7 @@ inla.spde.make.A =
         }
     }
     if (is.null(index)) {
-        index = 1:nrow(A.loc)
+        index = seq_len(nrow(A.loc))
     }
     ## Now 'index' points into the rows of 'A.loc'
 
@@ -640,9 +651,7 @@ inla.spde.make.A =
             stop(paste("length(group) != length(index): ",
                        length(group), " != ", length(index),
                        sep=""))
-    } else {
-        ## TODO: Modify to support degree=0/1/2 instead.
-
+    } else if (is.null(A.group)) {
         n.group = group.mesh$m
         if (is.null(group))
             group = rep(group.mesh$mid[1], length(index))
@@ -654,19 +663,10 @@ inla.spde.make.A =
                        sep=""))
 
         A.group = inla.mesh.1d.A(group.mesh, loc=group)
-        if (FALSE) {
-            if (group.mesh$degree==0) {
-                group.index =
-                    inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
-                group = group.index$index[,1]
-            } else {
-                group.index =
-                    inla.mesh.1d.bary(group.mesh, loc=group, method="linear")
-                if (group.method=="S0") {
-                    group = group.index$index[,1]
-                }
-            }
+        if (is.null(group.index)) {
+            group.index = seq_len(nrow(A.group))
         }
+        ## Now 'group.index' points into the rows of 'A.group'
     }
 
     ## Handle repl semantics:
@@ -691,32 +691,15 @@ inla.spde.make.A =
                 }
             }
 
-            if (!is.null(group.mesh)) {
+            if (!is.null(A.group)) {
+                A.group = inla.as.dgTMatrix(A.group[group.index,,drop=FALSE])
                 return(inla.row.kron(A.group, A.loc,
                                      repl=repl, n.repl=n.repl,
                                      weights=weights))
                 ## More general version:
-                ## return(row.kron(A.repl, row.kron(A.group, A.loc), weights=weights))
-                ## Only worked for previous 1d mesh versions:
-                if (FALSE) {
-                    i = 1L+A.loc@i
-                    group.i1 = group.index$index[i,1]
-                    group.i2 = group.index$index[i,2]
-                    repl.i = repl[i]
-                    weights.ii = weights[c(i,i)]
-                    return(sparseMatrix(i=c(i,i),
-                                        j=(1L+c(A.loc@j+
-                                                n.spde*(group.i1-1L)+
-                                                n.spde*n.group*(repl.i-1L),
-                                                A.loc@j+
-                                                n.spde*(group.i2-1L)+
-                                                n.spde*n.group*(repl.i-1L))),
-                                        x=(weights.ii*
-                                           c(A.loc@x*group.index$bary[i,1],
-                                             A.loc@x*group.index$bary[i,2])),
-                                        dims=c(length(index),
-                                        n.spde*n.group*n.repl)))
-                }
+                ## return(inla.row.kron(A.repl,
+                ##                      inla.row.kron(A.group, A.loc),
+                ##                      weights=weights))
             } else {
                 i = 1L+A.loc@i
                 group.i = group[i]
