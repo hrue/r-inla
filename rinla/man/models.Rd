@@ -3581,7 +3581,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity logit'}
+								\item{link = }{`default identity logit log'}
 								\item{pdf = }{`gaussian'}
 							 }
 						 }
@@ -4274,6 +4274,82 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `zeroinflatedbetabinomial0'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`overdispersion'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 0.4'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`logit probability'}
+							\item{short.name = }{`prob'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit probit cloglog'}
+								\item{pdf = }{`zeroinflated'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `zeroinflatedbetabinomial1'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`overdispersion'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 0.4'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`logit probability'}
+							\item{short.name = }{`prob'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit probit cloglog'}
+								\item{pdf = }{`zeroinflated'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `zeroinflatedbinomial0'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -4352,24 +4428,12 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `zeroninflatedbinomial2'.}{Number of hyperparmeters are 2.
+				\item{Model `zeroinflatedbinomial2'.}{Number of hyperparmeters are 1.
 					 \describe{
-						\item{Hyperparameter `theta1'}{
+						\item{Hyperparameter `theta'}{
 							 \describe{
-							\item{name = }{`alpha1'}
-							\item{short.name = }{`alpha1'}
-							\item{initial = }{`-1'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`gaussian'}
-							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{name = }{`alpha2'}
-							\item{short.name = }{`alpha2'}
+							\item{name = }{`alpha'}
+							\item{short.name = }{`alpha'}
 							\item{initial = }{`-1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
@@ -4385,7 +4449,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit probit cloglog'}
-								\item{pdf = }{`add-file-here'}
+								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
 					 }

@@ -5,14 +5,16 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{Zero-inflated models: Poisson and Binomial}
+\section*{Zero-inflated models: Poisson, Binomial, negative Binomial
+    and BetaBinomial}
 
 \subsection*{Parametrisation}
 
 There is support two types of zero-inflated models, which we name type
-$0$ and type $1$. These are defined for both the Binomial, the Poisson
-and the negative Binomial likelihood. For simplicity we will describe
-only the Poisson as the other two cases are similar.
+$0$ and type $1$. These are defined for both the Binomial, the
+Poisson, the negative Binomial and BetaBinomial likelihood. For
+simplicity we will describe only the Poisson as the other cases are
+similar.
 
 \subsubsection*{Type 0}
 
@@ -46,7 +48,7 @@ initial value and prior is given for $\theta$. This is model is called
 
 \subsection*{Link-function}
 
-As for the Poisson, the Binomial and the negative Binomial.
+As for the Poisson, the Binomial the negative Binomial and the BetaBinomial.
 
 \subsection*{Hyperparameters}
 
@@ -56,8 +58,9 @@ For Poisson and the Binomial, there is one hyperparameter; where
 \end{displaymath}
 and the prior and initial value is is given for $\theta$.
 
-For the negative Binomial, there are two hyperparameters.  The
-overdispersion parameter $n$ is represented as
+For the negative Binomial and BetaBinomial, there are two
+hyperparameters.  The overdispersion parameter $n$ for the negative
+Binomial is represented as
 \begin{displaymath}
     \theta_{1} = \log(n)
 \end{displaymath}
@@ -66,7 +69,8 @@ $p$, is represented as
 \begin{displaymath}
     p = \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}
 \end{displaymath}
-and the prior and initial value is is given for $\theta_{2}$.
+and the prior and initial value is is given for $\theta_{2}$. For the
+BetaBinomial it is similar.
 
 \subsection*{Specification}
 
@@ -77,8 +81,10 @@ and the prior and initial value is is given for $\theta_{2}$.
 \item $\text{family}=\texttt{zeroinflatednbinomial1}$
 \item $\text{family}=\texttt{zeroinflatedpoisson0}$
 \item $\text{family}=\texttt{zeroinflatedpoisson1}$
-\item Required arguments: As for the Binomial, the negative Binomial
-    and Poisson likelihood.
+\item $\text{family}=\texttt{zeroinflatedbetabinomial0}$
+\item $\text{family}=\texttt{zeroinflatedbetabinomial1}$
+\item Required arguments: As for the Binomial, the negative Binomial,
+    BetaBinomial and Poisson likelihood.
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -93,6 +99,12 @@ and the prior and initial value is is given for $\theta_{2}$.
 
 \paragraph{Zeroinflated NegBinomial Type 1}
 \input{../hyper/likelihood/zeroinflatednbinomial1.tex}
+
+\paragraph{Zeroinflated BetaBinomial Type 0}
+\input{../hyper/likelihood/zeroinflatedbetabinomial0.tex}
+
+\paragraph{Zeroinflated BetaBinomial Type 1}
+\input{../hyper/likelihood/zeroinflatedbetabinomial1.tex}
 
 \paragraph{Zeroinflated Poisson Type 0}
 \input{../hyper/likelihood/zeroinflatedpoisson0.tex}
@@ -117,6 +129,9 @@ example for both type 0 and type 1.
 \subsection*{Notes}
 
 None.
+
+
+
 
 \subsection*{Extentions}
 

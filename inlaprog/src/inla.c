@@ -2552,6 +2552,16 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_ZEROINFLATEDBETABINOMIAL0:
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		break;
+
+	case L_ZEROINFLATEDBETABINOMIAL1:
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_ZEROINFLATEDBETABINOMIAL2:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -4977,6 +4987,124 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 #undef LOGGAMMA_INT
 	return GMRFLib_SUCCESS;
 }
+int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
+	 */
+#define LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int y = (int) ds->data_observations.y[idx], yzero = 0;
+	int n = (int) ds->data_observations.nb[idx];
+
+	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double pzero = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double p, a, b, prob_zero, tmp;
+	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
+	double normc_zero = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(yzero + 1) - LOGGAMMA_INT(n - yzero + 1);
+
+	LINK_INIT;
+	if (m > 0) {
+		if (y == 0) {
+			for (i = 0; i < m; i++) {
+				logll[i] = log(pzero);
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				a = p * (1.0 - rho) / rho;
+				b = (p * rho - p - rho + 1.0) / rho;
+				prob_zero = exp(normc_zero + gsl_sf_lnbeta(yzero + a, n - yzero + b) - gsl_sf_lnbeta(a, b));
+				logll[i] = log(1.0 - pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b) - log(1.0 - prob_zero);
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			if (y == 0) {
+				logll[i] = pzero;
+			} else {
+				int yy;
+				double normc2;
+				
+				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				a = p * (1.0 - rho) / rho;
+				b = (p * rho - p - rho + 1.0) / rho;
+				normc2 = LOGGAMMA_INT(n + 1) - gsl_sf_lnbeta(a, b);
+				prob_zero = normc + gsl_sf_lnbeta(yzero + a, n - yzero + b) - gsl_sf_lnbeta(a, b);
+				logll[i] = 0.0;
+				for (yy = y; yy > 0; yy--) {
+					logll[i] += exp(normc2 - LOGGAMMA_INT(yy + 1) - LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+				}
+				logll[i] = pzero + (1.0 - pzero) * logll[i]/(1.0 - prob_zero);
+			}
+		}
+	}
+
+	LINK_END;
+#undef LOGGAMMA_INT
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
+	 */
+#define LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int y = (int) ds->data_observations.y[idx], yzero = 0;
+	int n = (int) ds->data_observations.nb[idx];
+
+	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double pzero = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double p, a, b, tmp;
+	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
+	
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			a = p * (1.0 - rho) / rho;
+			b = (p * rho - p - rho + 1.0) / rho;
+			tmp = log(1.0 - pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b); 
+			if (y == 0) {
+				logll[i] = log_apbex(pzero, tmp);
+			} else {
+				logll[i] = tmp;
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			int yy;
+			double normc2;
+
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			a = p * (1.0 - rho) / rho;
+			b = (p * rho - p - rho + 1.0) / rho;
+			normc2 = LOGGAMMA_INT(n + 1) - gsl_sf_lnbeta(a, b);
+			logll[i] = 0.0;
+			for (yy = y; yy >= 0; yy--) {
+				logll[i] += exp(normc2 - LOGGAMMA_INT(yy + 1) - LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+			}
+			logll[i] = pzero + (1.0 - pzero) * logll[i];
+		}
+	}
+
+	LINK_END;
+#undef LOGGAMMA_INT
+	return GMRFLib_SUCCESS;
+}
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -7377,6 +7505,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial2;
 		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL2;
+	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL0")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial0;
+		ds->data_id = L_ZEROINFLATEDBETABINOMIAL0;
+	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL1")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial1;
+		ds->data_id = L_ZEROINFLATEDBETABINOMIAL1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial2;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL2;
@@ -7651,6 +7785,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBINOMIAL0:
 	case L_ZEROINFLATEDBINOMIAL1:
 	case L_ZEROINFLATEDBINOMIAL2:
+	case L_ZEROINFLATEDBETABINOMIAL0:
+	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_BETABINOMIAL:
@@ -8982,6 +9118,99 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 		break;
+
+	case L_ZEROINFLATEDBETABINOMIAL0:
+	case L_ZEROINFLATEDBETABINOMIAL1:
+		/*
+		 * get options related to the zeroinflated beta binomial_0/1
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zeroinflated_rho_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise rho_intern[%g]\n", ds->data_observations.zeroinflated_rho_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("rho_intern for zero-inflated betabinomial", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("rho for zero-inflated betabinomial", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			
+			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_rho_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		
+		/*
+		 * the zeroinflation parameter 
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), -1.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.prob_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL0) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter for zero-inflated betabinomial_0", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter for zero-inflated betabinomial_0", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter for zero-inflated betabinomial_1", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter for zero-inflated betabinomial_1", mb->ds);
+			}
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 		/*
@@ -16257,6 +16486,29 @@ double extra(double *theta, int ntheta, void *argument)
 					double alpha_intern = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior1, &alpha_intern);
+					count++;
+				}
+				break;
+
+			case L_ZEROINFLATEDBETABINOMIAL0:
+			case L_ZEROINFLATEDBETABINOMIAL1:
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double rho_intern = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior0, &rho_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * this is the probability-parameter in the zero-inflated betabinomial_0/1
+					 */
+					double prob_intern = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
 				break;
