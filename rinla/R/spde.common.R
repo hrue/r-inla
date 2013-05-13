@@ -630,11 +630,7 @@ inla.spde.make.A =
     } else {
         if (is.null(mesh))
             stop("'loc' specified but 'mesh' is NULL.")
-        if (inherits(mesh, "inla.mesh.1d")) {
-            A.loc = inla.mesh.1d.A(mesh, loc=loc)
-        } else {
-            A.loc = inla.mesh.project(mesh, loc=loc)$A
-        }
+        A.loc = inla.mesh.project(mesh, loc=loc)$A
     }
     if (is.null(index)) {
         index = seq_len(nrow(A.loc))
