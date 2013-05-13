@@ -1793,9 +1793,10 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
     m = (n+cyclic+(degree==2)*1
          -basis.reduction[pmatch(boundary[1], boundary.options)]
          -basis.reduction[pmatch(boundary[2], boundary.options)])
-    if (m < 1+max(1,degree)) {
+##    if (m < 1+max(1,degree)) {
+    if (m < 1L) {
         stop("Degree ", degree,
-             " meshes must have at least ", 1+max(1,degree),
+             " meshes must have at least ", 1L,
              " basis functions, not 'm=", m, "'.", sep="")
     }
 
@@ -1806,7 +1807,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, cycli
             mid = mid[-1]
         }
         if (boundary[2] == "dirichlet") {
-            mid = mid[,-(m+1)]
+            mid = mid[-(m+1)]
         }
     } else {
         if (cyclic) {
@@ -2057,7 +2058,7 @@ inla.mesh.1d.A =
             } else {
                 return(list(A=A, dA=dA))
             }
-        } else {
+        } else { ## Quadratic
             ## Compute the n+1 2nd order B-splines.
 
             if (mesh$cyclic) {
