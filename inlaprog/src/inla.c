@@ -5031,7 +5031,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 			} else {
 				int yy;
 				double normc2;
-				
+
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
@@ -5041,7 +5041,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 				for (yy = y; yy > 0; yy--) {
 					logll[i] += exp(normc2 - LOGGAMMA_INT(yy + 1) - LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
-				logll[i] = pzero + (1.0 - pzero) * logll[i]/(1.0 - prob_zero);
+				logll[i] = pzero + (1.0 - pzero) * logll[i] / (1.0 - prob_zero);
 			}
 		}
 	}
@@ -5070,14 +5070,14 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 	double pzero = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b, tmp;
 	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = p * (1.0 - rho) / rho;
 			b = (p * rho - p - rho + 1.0) / rho;
-			tmp = log(1.0 - pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b); 
+			tmp = log(1.0 - pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
 			if (y == 0) {
 				logll[i] = log_apbex(pzero, tmp);
 			} else {
@@ -9135,7 +9135,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
-		
+
 		/*
 		 * add theta 
 		 */
@@ -9148,12 +9148,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("rho for zero-inflated betabinomial", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
-			
+
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_rho_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
@@ -9162,7 +9162,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		
+
 		/*
 		 * the zeroinflation parameter 
 		 */
@@ -17152,15 +17152,15 @@ double extra(double *theta, int ntheta, void *argument)
 
 				spde2->debug = 0;
 				spde2_ntheta = spde2->ntheta;
-				if (!mb->fixed_mode){
+				if (!mb->fixed_mode) {
 					for (k = 0; k < spde2_ntheta; k++) {
 						spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
 					}
 				}
 				int count_ref = count;
 
-				if (!mb->fixed_mode){
-					count += spde2_ntheta;		       /* as SET_GROUP_RHO need 'count' */
+				if (!mb->fixed_mode) {
+					count += spde2_ntheta; /* as SET_GROUP_RHO need 'count' */
 				}
 				SET_GROUP_RHO(spde2_ntheta);
 
@@ -17232,7 +17232,7 @@ double extra(double *theta, int ntheta, void *argument)
 				/*
 				 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
 				 */
-				if (!mb->fixed_mode){
+				if (!mb->fixed_mode) {
 					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 				}
 				break;
@@ -17393,7 +17393,9 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
 				double n = aa->n;
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision));
+				val +=
+				    mb->f_nrep[i] * (normc_g +
+						     gcorr * (LOG_NORMC_GAUSSIAN * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision));
 				if (NOT_FIXED(f_fixed[i][0])) {
 					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 				}
@@ -17461,7 +17463,7 @@ double extra(double *theta, int ntheta, void *argument)
 					AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
 					BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
 					CC += SQR(mb->f_locations[i][ii] - mean_x) *
-						(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+					    (1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
 				}
 				val += mb->f_nrep[i] * (normc_g + gcorr * (2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 									   + mb->f_ngroup[i] * 0.5 * (AA + BB)
@@ -17506,7 +17508,8 @@ double extra(double *theta, int ntheta, void *argument)
 					scale_correction /= nii;
 				}
 				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-									   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction - log(SQR(beta)))));
+									   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction -
+														    log(SQR(beta)))));
 				break;
 			}
 
@@ -17562,7 +17565,8 @@ double extra(double *theta, int ntheta, void *argument)
 				if (mb->f_cyclic[i]) {
 					logdet = inla_ar1_cyclic_logdet(N_orig, phi);
 					val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-										   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * logdet));
+										   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+										   ngroup * 0.5 * logdet));
 				} else {
 					val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 										   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise
@@ -17641,13 +17645,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case F_BYM:
 			{
-				if (NOT_FIXED(f_fixed[i][0])) {	       /* iid */
+				if (NOT_FIXED(f_fixed[i][0])) {	/* iid */
 					log_precision0 = theta[count];
 					count++;
 				} else {
 					log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				}
-				if (NOT_FIXED(f_fixed[i][1])) {	       /* spatial */
+				if (NOT_FIXED(f_fixed[i][1])) {	/* spatial */
 					log_precision1 = theta[count];
 					count++;
 				} else {
@@ -17675,7 +17679,7 @@ double extra(double *theta, int ntheta, void *argument)
 					exit(EXIT_FAILURE);
 				}
 
-				assert(mb->f_ntheta[i] == 3);	       /* yes */
+				assert(mb->f_ntheta[i] == 3);  /* yes */
 				if (NOT_FIXED(f_fixed[i][0])) {
 					log_precision0 = theta[count];
 					count++;
@@ -17783,7 +17787,8 @@ double extra(double *theta, int ntheta, void *argument)
 				 * n is the small length 
 				 */
 				double n = (double) (mb->f_n[i] / dim);	/* YES! */
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n */
+				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n 
+																 */
 									   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
 				if (fail) {
 					val += PENALTY;
@@ -17796,7 +17801,8 @@ double extra(double *theta, int ntheta, void *argument)
 					if (nfixed) {
 						static char first = 1;
 						if (first) {
-							fprintf(stderr, "\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
+							fprintf(stderr,
+								"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
 								nfixed);
 							first = 0;
 						}
@@ -18028,7 +18034,7 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 		}
 	}
-	
+
 	if (debug) {
 		P(count);
 		P(mb->ntheta);
@@ -19690,7 +19696,7 @@ int inla_output(inla_tp * mb)
 					mb->verbose = save;
 				}
 			}
-			
+
 			if (mb->output->graph) {
 				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
 			}
