@@ -1850,7 +1850,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
     }
 
     ## Compute representative basis midpoints.
-    if ((mesh$degree==0) || (mesh$degree==1)) {
+    if ((degree==0) || (degree==1)) {
         mid = loc
         if (boundary[1] == "dirichlet") {
             mid = mid[-1]
@@ -1858,7 +1858,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
         if (boundary[2] == "dirichlet") {
             mid = mid[-(m+1)]
         }
-    } else {
+    } else { ## degree==2
         if (cyclic) {
             mid = (loc + c(loc[-1], interval[2]))/2
         } else {
