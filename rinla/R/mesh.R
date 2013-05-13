@@ -1369,6 +1369,21 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
     return (list(t=ti, bary=b, A=A, ok=ok))
 }
 
+inla.mesh.project.inla.mesh.1d = function(mesh, loc, field=NULL, ...)
+{
+    inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+
+    if (!missing(field) && !is.null(field)) {
+        proj = inla.mesh.projector(mesh, loc, ...)
+        return(inla.mesh.project(proj, field))
+    }
+
+    A = inla.mesh.1d.A(mesh, loc=loc)
+
+    return (list(A=A,
+                 ok=(loc >= mesh$interval[1]) & (loc <= mesh$interval[2])))
+}
+
 
 inla.mesh.project.inla.mesh.projector =
     function(projector, field, ...)
@@ -1399,14 +1414,20 @@ inla.mesh.project.inla.mesh.projector =
 }
 
 
-inla.mesh.projector =
+inla.mesh.projector = function(...)
+{
+    UseMethod("inla.mesh.projector")
+}
+
+inla.mesh.projector.inla.mesh =
     function(mesh,
              loc=NULL,
              lattice=NULL,
              xlim=range(mesh$loc[,1]),
              ylim=range(mesh$loc[,2]),
              dims=c(100,100),
-             projection=NULL)
+             projection=NULL,
+             ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1449,6 +1470,29 @@ inla.mesh.projector =
 
     return (projector)
 }
+
+
+inla.mesh.projector.inla.mesh.1d =
+    function(mesh,
+             loc=NULL,
+             xlim=mesh$interval,
+             dims=100,
+             ...)
+{
+    inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
+
+    if (missing(loc) || is.null(loc)) {
+        loc = seq(xlim[1], xlim[2], length.out=dims[1])
+    }
+
+    proj = inla.mesh.project(mesh, loc)
+    projector = list(x=loc, lattice=NULL, loc=loc, proj=proj)
+    class(projector) = "inla.mesh.projector"
+
+    return (projector)
+}
+
+
 
 
 inla.mesh.basis =
