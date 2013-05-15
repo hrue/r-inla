@@ -250,7 +250,8 @@ typedef struct {
 	 * around a point <em> \b x_0</em> (CG and NR). \n\n 
 	 */
 	double step_len;
-
+	int stencil;
+	
 	/**
 	 * \brief Use reduced step-len in the Newton-Raphson routine
 	 *

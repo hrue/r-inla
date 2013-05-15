@@ -121,6 +121,7 @@ int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 	(*optpar)->fixed_iter = 0;
 	(*optpar)->max_linesearch_iter = 50;
 	(*optpar)->step_len = GMRFLib_eps(0.25);
+	(*optpar)->stencil = 5;				       /* 3,5,7 */
 	(*optpar)->abserr_func = 0.005;
 	(*optpar)->abserr_step = 0.005;
 
@@ -915,7 +916,8 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, opt_problem->d[idx],
 					      opt_problem->mode[idx], opt_problem->map[idx], opt_problem->x_vec,
-					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len));
+					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
+					      &(opt_problem->optpar->stencil));
 			bb[idx] = opt_problem->b[idx] + bcoof;
 			opt_problem->sub_Qfunc_arg->diagonal_adds[idx] += DMAX(0.0, ccoof);
 		}
