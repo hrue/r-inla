@@ -355,6 +355,9 @@
             ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
             step.len = .Machine$double.eps^(1.0/3.5),
 
+            ##:ARGUMENT: stencil Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5 or 7).
+            stencil = 5L, 
+
             ##:ARGUMENT: lincomb.derived.only A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
             lincomb.derived.only = TRUE,
 
