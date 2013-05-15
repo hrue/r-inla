@@ -347,13 +347,13 @@
             adapt.hessian.max.trials = NULL,
 
             ##:ARGUMENT: adapt.hessian.scale The scaling of the 'h' after each trial.
-            adapt.hessian.scale = NULL,
+            adapt.hessian.scale = NULL, 
 
             ##:ARGUMENT: huge A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
             huge = FALSE,
 
             ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
-            step.len = .Machine$double.eps^0.25,
+            step.len = .Machine$double.eps^(1.0/3.5),
 
             ##:ARGUMENT: lincomb.derived.only A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
             lincomb.derived.only = TRUE,
