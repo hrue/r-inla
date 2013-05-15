@@ -1244,7 +1244,7 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 		return GMRFLib_SUCCESS;
 	}
 
-	double step, df, ddf, xx[5], f[5], f0;
+	double step, df, ddf, xx[7], f[7], f0;
 	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
 
 	if (step_len && *step_len < 0.0) {
@@ -1297,10 +1297,14 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 			*c = -d * ddf;
 		}
 	} else {
+		int num_points = 5;
 		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0/3.5));
-		if (0) {
+
+		switch(num_points){
+		case 3: 
+		{
 			/* 
-			 * 3point
+			 * 3 point
 			 */
 			xx[0] = x0 - step;
 			xx[1] = x0;
@@ -1310,13 +1314,16 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 			f0 = f[1];
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / (step * step);
-		} else {
+			break;
+		}
+
+		case 5: 
+		{
 			/* 
-			 * 5point, https://en.wikipedia.org/wiki/Finite_difference_coefficients
+			 * 5 point, https://en.wikipedia.org/wiki/Finite_difference_coefficients
 			 */
-			static double
-				wf[] = {1.0/12.0, -2.0/3.0, 0.0, 2.0/3.0, -1.0/12.0}, 
-				wff[] = {-1.0/12.0, 4.0/3.0, -5.0/2.0, 4.0/3.0, -1.0/12.0}; 
+			double wf[] = {1.0/12.0, -2.0/3.0, 0.0, 2.0/3.0, -1.0/12.0};
+			double wff[] = {-1.0/12.0, 4.0/3.0, -5.0/2.0, 4.0/3.0, -1.0/12.0}; 
 		
 			xx[0] = x0 - 2.0*step;
 			xx[1] = x0 - step;
@@ -1328,6 +1335,34 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 			f0 = f[2];
 			df = (wf[0]*f[0] + wf[1]*f[1] + wf[2]*f[2] + wf[3]*f[3] + wf[4]*f[4])/step;
 			ddf = (wff[0]*f[0] + wff[1]*f[1] + wff[2]*f[2] + wff[3]*f[3] + wff[4]*f[4])/step/step;
+			break;
+		}
+		
+		case 7: 
+		{
+			/* 
+			 * 7 point, https://en.wikipedia.org/wiki/Finite_difference_coefficients
+			 */
+			double wf[] = {-1.0/60.0, 3.0/20.0, -3.0/4.0, 0.0, 3.0/4.0, -3.0/20.0, 1.0/60.0};
+			double wff[] = {1.0/90.0, -3.0/20.0, 3.0/2.0, -49.0/18.0, 3.0/2.0, -3.0/20.0, 1.0/90.0};
+			
+			xx[0] = x0 - 3.0*step;
+			xx[1] = x0 - 2.0*step;
+			xx[2] = x0 - step;
+			xx[3] = x0;
+			xx[4] = x0 + step;
+			xx[5] = x0 + 2.0*step;
+			xx[6] = x0 + 3.0*step;
+			
+			loglFunc(f, xx, 7, indx, x_vec, loglFunc_arg);
+			f0 = f[3];
+			df = (wf[0]*f[0] + wf[1]*f[1] + wf[2]*f[2] + wf[3]*f[3] + wf[4]*f[4] + wf[5]*f[5] + wf[6]*f[6])/step;
+			ddf = (wff[0]*f[0] + wff[1]*f[1] + wff[2]*f[2] + wff[3]*f[3] + wff[4]*f[4] + wff[5]*f[5] + wff[6]*f[6])/step/step;
+			break;
+		}
+		
+		default:
+			abort();
 		}
 		
 		if (a) {
