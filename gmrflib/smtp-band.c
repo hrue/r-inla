@@ -227,7 +227,7 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 	}
 	if (error) {
 		if (GMRFLib_catch_error_for_inla) {
-			fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
+			fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
 				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 			return GMRFLib_EPOSDEF;
 		} else {

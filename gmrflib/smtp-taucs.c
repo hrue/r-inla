@@ -825,7 +825,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	if (retval) {
 		if (GMRFLib_catch_error_for_inla) {
-			fprintf(stderr, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
+			fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
 				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 			return GMRFLib_EPOSDEF;
 		} else {
