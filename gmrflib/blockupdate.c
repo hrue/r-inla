@@ -144,6 +144,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdat
 	(*blockupdate_par)->modeoption = GMRFLib_MODEOPTION_MODE;
 	(*blockupdate_par)->fp = NULL;
 	(*blockupdate_par)->step_len = GMRFLib_eps(0.25);
+	(*blockupdate_par)->stencil = 5;
 
 	return GMRFLib_SUCCESS;
 }
@@ -610,7 +611,8 @@ int GMRFLib_blockupdate_store(double *laccept,
 				GMRFLib_thread_id = id;
 				if (d_new[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d_new[i], mode[i], i,
-							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len));
+							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len),
+							      &(blockpar->stencil));
 					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
 				}
 			}
@@ -697,7 +699,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 				GMRFLib_thread_id = id;
 				if (d_old[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d_old[i], mode[i], i, mode,
-							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len));
+							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil));
 					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
 				}
 			}
@@ -1033,7 +1035,8 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 			for (i = 0; i < n; i++) {
 				GMRFLib_thread_id = id;
 				if (d[i]) {
-					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg, &(blockupdate_par->step_len));
+					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg, &(blockupdate_par->step_len),
+							      &(blockupdate_par->stencil));
 					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
 				}
 			}
@@ -1074,7 +1077,8 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 			GMRFLib_thread_id = id;
 			i = mothergraph_idx[j];
 			if (d[i]) {
-				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg, &(blockupdate_par->step_len));
+				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg, &(blockupdate_par->step_len),
+						      &(blockupdate_par->stencil));
 				cc[i] = DMAX(0.0, cc[i]);      /* do not want negative terms on the diagonal */
 			}
 		}
@@ -1127,122 +1131,60 @@ int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, 
 	 * a + b*(x-x0) + 0.5*c*(x-x0)^2
 	 * 
 	 */
+	double f0, df, ddf;
 
 	if (ISZERO(d)) {
-		if (a)
-			*a = 0.0;
-		if (b)
-			*b = 0.0;
-		if (c)
-			*c = 0.0;
-
-		return GMRFLib_SUCCESS;
+		f0 = df = ddf = 0.0;
+	} else {
+		GMRFLib_2order_approx_core(&f0, &df, &ddf, x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, NULL);
 	}
 
-	double step, df, ddf, f[5], xx[5], f0;
-	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
-
-	if (step_len && *step_len < 0.0) {
-		/*
-		 * for internal use only!!! 
-		 */
-		step = -*step_len;
-		xx[0] = x0 - step;
-		xx[1] = x0;
-		xx[2] = x0 + step;
-
-		loglFunc(&f[0], &xx[0], 1, indx, x_vec, loglFunc_arg);
-		loglFunc(&f[1], &xx[1], 1, indx, x_vec, loglFunc_arg);
-		loglFunc(&f[2], &xx[2], 1, indx, x_vec, loglFunc_arg);
-
-		df = 0.5 * (f[2] - f[0]) / step;
-		ddf = (f[2] - 2.0 * f[1] + f[0]) / (step * step);
-
-		if (a)
-			*a = d * f[1];
-		if (b)
-			*b = d * df;
-		if (c)
-			*c = d * ddf;
-	} else if (code == GMRFLib_LOGL_COMPUTE_DERIVATIES || code == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF) {
-		/*
-		 * this tells that exact calculations can and are carried out in loglFunc 
-		 */
-		xx[0] = xx[1] = xx[2] = x0;
-		loglFunc(f, xx, 3, indx, x_vec, loglFunc_arg);
-		if (a) {
-			*a = d * f[0];
-		}
-		if (b) {
-			*b = d * f[1];
-		}
-		if (c) {
-			*c = d * f[2];
-		}
-	} else {
-		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0 / 3.5));
-		if (0) {
-			/*
-			 * 3point
-			 */
-			xx[0] = x0 - step;
-			xx[1] = x0;
-			xx[2] = x0 + step;
-
-			loglFunc(f, xx, 3, indx, x_vec, loglFunc_arg);
-			f0 = f[1];
-			df = 0.5 * (f[2] - f[0]) / step;
-			ddf = (f[2] - 2.0 * f[1] + f[0]) / (step * step);
-		} else {
-			/*
-			 * 5point
-			 */
-			static double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 }, wff[] = {
-			-1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0};
-
-			xx[0] = x0 - 2.0 * step;
-			xx[1] = x0 - step;
-			xx[2] = x0;
-			xx[3] = x0 + step;
-			xx[4] = x0 + 2.0 * step;
-
-			loglFunc(f, xx, 5, indx, x_vec, loglFunc_arg);
-			f0 = f[2];
-			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
-			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4]) / step / step;
-		}
-
-		if (a)
-			*a = d * f0;
-		if (b)
-			*b = d * df;
-		if (c)
-			*c = d * ddf;
+	if (a) {
+		*a = d * f0; 
+	}
+	if (b) {
+		*b = d * df; 
+	}
+	if (c) {
+		*c = d * ddf;
 	}
 
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len)
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			  double *step_len, int *stencil)
 {
 	/*
-	 * compute the second order approximation to the function around x0 of d*loglFunc(x0,...) as
+	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
 	 * 
-	 * a + b*x -0.5*c*x^2
+	 * a + b*x) - 0.5*c*x^2
 	 * 
 	 */
+	double f0, df, ddf;
 
 	if (ISZERO(d)) {
-		if (a)
-			*a = 0.0;
-		if (b)
-			*b = 0.0;
-		if (c)
-			*c = 0.0;
-
-		return GMRFLib_SUCCESS;
+		f0 = df = ddf = 0.0;
+	} else {
+		GMRFLib_2order_approx_core(&f0, &df, &ddf, x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
 	}
 
+	if (a) {
+		*a = d * (f0 - df * x0 + 0.5 * ddf * SQR(x0));
+	}
+	if (b) {
+		*b = d * (df - x0 * ddf);
+	}
+	if (c) {
+		*c = -d * ddf;
+	}
+	
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int indx,
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			  double *step_len, int *stencil)
+{
 	double step, df, ddf, xx[7], f[7], f0;
 	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
 
@@ -1260,18 +1202,9 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 		loglFunc(&f[1], &xx[1], 1, indx, x_vec, loglFunc_arg);
 		loglFunc(&f[2], &xx[2], 1, indx, x_vec, loglFunc_arg);
 
+		f0 = f[1];
 		df = 0.5 * (f[2] - f[0]) / step;
 		ddf = (f[2] - 2.0 * f[1] + f[0]) / (step * step);
-
-		if (a) {
-			*a = d * (f[1] - df * x0 + 0.5 * ddf * SQR(x0));
-		}
-		if (b) {
-			*b = d * (df - x0 * ddf);
-		}
-		if (c) {
-			*c = -d * ddf;
-		}
 	} else if (code == GMRFLib_LOGL_COMPUTE_DERIVATIES || code == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF) {
 		/*
 		 * this tells that exact calculations is carried out in loglFunc 
@@ -1283,28 +1216,19 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 		xx[0] = xx[1] = xx[2] = x0;
 		loglFunc(f, xx, 3, indx, x_vec, loglFunc_arg);
 
+		f0 = f[0];
 		df = f[1];
 		ddf = f[2];
-
-		if (a) {
-			*a = d * (f[0] - df * x0 + 0.5 * ddf * SQR(x0));
-		}
-		if (b) {
-			*b = d * (df - x0 * ddf);
-		}
-		if (c) {
-			*c = -d * ddf;
-		}
 	} else {
-		int num_points = 5;
+		int num_points = (stencil ? *stencil : 5);
 		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0 / 3.5));
 
 		switch (num_points) {
+			/*
+			 * see https://en.wikipedia.org/wiki/Finite_difference_coefficients
+			 */
 		case 3:
 		{
-			/*
-			 * 3 point
-			 */
 			xx[0] = x0 - step;
 			xx[1] = x0;
 			xx[2] = x0 + step;
@@ -1318,9 +1242,6 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 
 		case 5:
 		{
-			/*
-			 * 5 point, https://en.wikipedia.org/wiki/Finite_difference_coefficients
-			 */
 			double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 			double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
 
@@ -1339,9 +1260,6 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 
 		case 7:
 		{
-			/*
-			 * 7 point, https://en.wikipedia.org/wiki/Finite_difference_coefficients
-			 */
 			double wf[] = { -1.0 / 60.0, 3.0 / 20.0, -3.0 / 4.0, 0.0, 3.0 / 4.0, -3.0 / 20.0, 1.0 / 60.0 };
 			double wff[] = { 1.0 / 90.0, -3.0 / 20.0, 3.0 / 2.0, -49.0 / 18.0, 3.0 / 2.0, -3.0 / 20.0, 1.0 / 90.0 };
 
@@ -1363,17 +1281,10 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 		default:
 			abort();
 		}
-
-		if (a) {
-			*a = d * (f0 - df * x0 + 0.5 * ddf * SQR(x0));
-		}
-		if (b) {
-			*b = d * (df - x0 * ddf);
-		}
-		if (c) {
-			*c = -d * ddf;
-		}
 	}
+	*a = f0;
+	*b = df;
+	*c = ddf;
 
 	return GMRFLib_SUCCESS;
 }

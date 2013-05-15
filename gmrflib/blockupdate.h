@@ -109,13 +109,19 @@ __BEGIN_DECLS
 	 * Step length in the computation of a Taylor expansion or second order approximation of the log-likelihood. 
 	 */
 	double step_len;
+	int stencil;
+	
 } GMRFLib_blockupdate_param_tp;
 
 int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdate_par);
 int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len);
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len,
+	                  int *stencil);
 int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, int indx,
 			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len);
+int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int indx,
+			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			       double *step_len, int *stencil);
 int GMRFLib_blockupdate(double *laccept,
 			double *x_new, double *x_old,
 			double *b_new, double *b_old,

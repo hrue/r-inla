@@ -104,7 +104,8 @@ __BEGIN_DECLS
 	 *  \brief Step-length for Taylor expansion. 
 	 */
 	double step_len;
-
+	int stencil;
+	
 	/**
 	 *  \brief How many neigbhour neighbors to include when making the neighbour-graph. 
 	 */

@@ -457,6 +457,10 @@
     if (!is.null(inla.spec$step.len)) {
         cat("step.len = ", inla.spec$step.len, "\n", sep = " ", file = file,  append = TRUE)
     }
+    if (!is.null(inla.spec$stencil)) {
+        stopifnot(inla.spec$stencil %in% c(3, 5, 7))
+        cat("stencil = ", inla.spec$stencil, "\n", sep = " ", file = file,  append = TRUE)
+    }
     if (!is.null(inla.spec$diagonal) && inla.spec$diagonal >= 0.0) {
         cat("diagonal = ", inla.spec$diagonal, "\n", sep = " ", file = file,  append = TRUE)
     }

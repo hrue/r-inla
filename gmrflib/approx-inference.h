@@ -286,6 +286,12 @@ typedef struct {
 	double step_len;
 
 	/**
+	 * \brief Number of points in the stencil: 3, 5 or 7, to compute numerical derivaties
+	 *
+	 */
+	int stencil;
+
+	/**
 	 *  \brief Ignore nodes where the derivative in the conditional mean is less than \a eps. 
 	 */
 	double cutoff;
