@@ -251,7 +251,7 @@ typedef struct {
 	 */
 	double step_len;
 	int stencil;
-	
+
 	/**
 	 * \brief Use reduced step-len in the Newton-Raphson routine
 	 *

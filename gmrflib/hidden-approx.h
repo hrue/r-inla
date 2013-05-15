@@ -105,7 +105,7 @@ __BEGIN_DECLS
 	 */
 	double step_len;
 	int stencil;
-	
+
 	/**
 	 *  \brief How many neigbhour neighbors to include when making the neighbour-graph. 
 	 */
