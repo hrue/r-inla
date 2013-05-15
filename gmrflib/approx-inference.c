@@ -1543,11 +1543,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				if (d[i] && !fixed_value[i]) {
 					ai_store->correction_idx[ai_store->nidx++] = i;
 					GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i,
-							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-							      &(ai_par->stencil));
+							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
 					GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i,
-							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-							      &(ai_par->stencil));
+							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
 					ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
 					ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 				}
@@ -6569,8 +6567,8 @@ double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_dens
 
 	retval = loglFunc(NULL, NULL, 0, idx, x_vec, loglFunc_arg);
 	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF)) {
-		/* 
-		   I do not think this case is covered. 
+		/*
+		 * I do not think this case is covered. 
 		 */
 		assert(0 == 1);
 	}

@@ -611,8 +611,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 				GMRFLib_thread_id = id;
 				if (d_new[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d_new[i], mode[i], i,
-							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len),
-							      &(blockpar->stencil));
+							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil));
 					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
 				}
 			}
@@ -1140,10 +1139,10 @@ int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, 
 	}
 
 	if (a) {
-		*a = d * f0; 
+		*a = d * f0;
 	}
 	if (b) {
-		*b = d * df; 
+		*b = d * df;
 	}
 	if (c) {
 		*c = d * ddf;
@@ -1152,8 +1151,7 @@ int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, 
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			  double *step_len, int *stencil)
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
@@ -1178,12 +1176,11 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 	if (c) {
 		*c = -d * ddf;
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			  double *step_len, int *stencil)
+			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	double step, df, ddf, xx[7], f[7], f0;
 	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
