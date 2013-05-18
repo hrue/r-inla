@@ -1748,10 +1748,11 @@ inla.mesh.1d.old = function(loc, interval=range(loc), cyclic=FALSE)
              interval=interval,
              cyclic=cyclic,
              manifold = inla.ifelse(cyclic, "S1", "R1"),
-             idx = NULL)
+             idx = list(loc=NULL))
     class(mesh) = "inla.mesh.1d"
 
-    mesh$idx = inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
+    mesh$idx$loc =
+        inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
 
     return(mesh)
 }
@@ -1887,14 +1888,14 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
              manifold = inla.ifelse(cyclic, "S1", "R1"),
              degree=degree,
              free.clamped=free.clamped,
-             idx = NULL)
+             idx = list(loc=NULL))
     class(mesh) = "inla.mesh.1d"
 
     if (degree<2) {
-        mesh$idx =
+        mesh$idx$loc =
             inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
     } else {
-        mesh$idx =
+        mesh$idx$loc =
             inla.mesh.1d.bary(inla.mesh.1d(mid, degree=0),
                               loc.orig,
                               method="nearest")$index[,1]
@@ -1935,36 +1936,42 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
         }
     }
 
-    idx = rep(NA, length(loc))
-    u = rep(NA, length(loc))
-    for (k in 1:(length(mloc)-1L)) {
-        found = which((mloc[k] <= loc) & (loc <= mloc[k+1]))
-        if (length(found)>0) {
-            idx[found] = k
-            u[found] = (loc[found]-mloc[k])/(mloc[k+1]-mloc[k])
+    ## Binary split method:
+    do.the.split = function(knots, loc) {
+        n = length(knots)
+        if (n <= 2L) {
+            return(rep(1L, length(loc)))
         }
+        split = 1L + (n-1L) %/% 2L ## Split point
+        upper = (loc >= knots[split])
+        idx = rep(0, length(loc))
+        idx[!upper] = do.the.split(knots[1:split], loc[!upper])
+        idx[upper] = split - 1L + do.the.split(knots[split:n], loc[upper])
+        return(idx)
     }
 
-    if (mesh$cyclic) {
-        if (method=="nearest") {
-            found = which(idx==(mesh$n+1))
+    idx = do.the.split(mloc, loc)
+
+    if (method=="nearest") {
+        u = rep(0, length(loc))
+        if (mesh$cyclic) {
+            found = which(idx==(mesh$n+1L))
             idx[found] = 1L
         }
-    } else {
-        if (method=="linear") {
+    } else { ## (method=="linear") {
+        u = pmax(0, pmin(1, (loc-mloc[idx])/(mloc[idx+1L]-mloc[idx]) ))
+        if (!mesh$cyclic) {
             found = which(idx==mesh$n)
             idx[found] = mesh$n-1L
             u[found] = 1
         }
     }
-    if (method=="nearest")
-        u = rep(0, length(loc))
 
     if (mesh$cyclic) {
-        index = matrix(c(idx,(idx %% mesh$n)+1L), length(idx), 2)
+        index = matrix(c(idx, (idx %% mesh$n)+1L), length(idx), 2)
         bary = matrix(c(1-u, u), length(idx), 2)
     } else {
-        index = matrix(c(idx,idx+1L), length(idx), 2)
+        index = matrix(c(idx, idx+1L), length(idx), 2)
         bary = matrix(c(1-u, u), length(idx), 2)
     }
 
