@@ -546,7 +546,6 @@
         cpo = x$cpo$cpo[ok]
 
         if (!(is.null(pit) || length(pit) == 0L)) {
-
             ## if the observational model is discrete then do some
             ## adjustments: define the modified pit as Prob(y < y_obs)
             ## + 0.5*Prob(y = y_obs).
@@ -565,8 +564,9 @@
             }
 
             hist(p, main = paste(m, ", n.fail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20, min(round(length(x$cpo$pit)/10), 100)))
+                 n = max(20, min(round(length(pit)/10), 100)))
         }
+
         if (!(is.null(cpo) || length(cpo) == 0L)) {
             n.fail = sum(failure != 0.0)
             plot(cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
