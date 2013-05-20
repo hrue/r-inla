@@ -169,7 +169,7 @@ double inla_eval_expression(char *expression, double *x)
 			printf("Eval: value: %g\n", *x);
 		}
 
-		hParser = mupCreate();
+		hParser = mupCreate(muBASETYPE_FLOAT);
 		mupSetErrorHandler(hParser, inla_eval_OnError);
 
 		mupSetArgSep(hParser, ';');
