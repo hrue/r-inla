@@ -72,9 +72,14 @@ result1=inla(formula1,data=data,family="gaussian")
 
 \subsection*{Notes}
 
-The RW1 is intrinsic with rank deficiency 1.
-
-There exist also support to define irregular RW1 models.
+\begin{itemize}
+\item The RW1 is intrinsic with rank deficiency 1.
+\item The RW1 model for irregular locations are supported although not
+    described here.
+\item The $\frac{n-r}{2}\log(|R|^{*})$-part (with $r=1$) of the
+    normalisation constant is not computed, hence you need to add this
+    part to the log marginal likelihood estimate, if you need it.
+\end{itemize}
 \end{document}
 
 

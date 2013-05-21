@@ -11,7 +11,7 @@
 The continous random walk model of order $2$ (CRW2) for the Gaussian
 vector $\mathbf{x}=(x_1,\dots,x_n)$ is descibed in the GMRF-book
 chapter 3. It is an exact representation of the continous CRW2 model
-augmented with its derivaties. The use its the same as for RW2. 
+augmented with its derivaties. The use its the same as for RW2.
 
 \subsection*{Hyperparameters}
 
@@ -51,10 +51,17 @@ result=inla(formula,data=data,family="gaussian")
 
 \subsection*{Notes}
 
-The CRW2 model is intrinsic with rank deficiency of 2.
 
-The model RW2 is an good (enough) approximation to CRW2 and do not
-augment with the derivaties.
+\begin{itemize}
+\item The CRW2 is a intrinsic with rank deficiency 2.
+\item The CRW2 model for irregular locations are supported although not
+    described here.
+\item The $\frac{n-r}{2}\log(|R|^{*})$-part (with $r=2$) of the
+    normalisation constant is not computed, hence you need to add this
+    part to the log marginal likelihood estimate, if you need it.
+\item Usually, you may want to use the model RW2 instead.
+\end{itemize}
+
 \end{document}
 
 
