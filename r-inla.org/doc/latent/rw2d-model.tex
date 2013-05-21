@@ -93,6 +93,13 @@ internally in \verb|inla|; see \verb|?inla.matrix2vector|,
 \verb|?inla.vector2matrix|, \verb|?inla.node2lattice| and
 \verb|?inla.lattice2node|.
 
+
+The $\frac{n-r}{2}\log(|R|^{*})$-part (with $r=3$) of the
+normalisation constant is not computed, hence you need to add this
+part to the log marginal likelihood estimate, if you need it. Here,
+$Q=\tau R$. 
+
+
 {\small\bibliography{../mybib}}
 
 
