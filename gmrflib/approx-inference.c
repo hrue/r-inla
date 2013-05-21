@@ -166,6 +166,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 */
 	(*ai_par)->n_points = 9;			       /* how many points to evaluate */
 	(*ai_par)->step_len = GMRFLib_eps(0.25);	       /* If the derivaties has to be computed numerically */
+	(*ai_par)->stencil = 5;				       /* number of points to use */
 	(*ai_par)->cutoff = 0.0;			       /* the cutoff for the gradient in the (Gaussian) conditional mean */
 
 	/*
