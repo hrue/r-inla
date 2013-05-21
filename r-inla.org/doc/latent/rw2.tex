@@ -62,11 +62,14 @@ result=inla(formula,data=data,family="gaussian")
 
 \subsection*{Notes}
 
-The RW2 is a intrinsic with rank deficiency 2.
-
-There model also supports irregular locations or values.
-
-
+\begin{itemize}
+\item The RW2 is a intrinsic with rank deficiency 2.
+\item The RW2 model for irregular locations are supported although not
+    described here.
+\item The $\frac{n-r}{2}\log(|R|^{*})$-part (with $r=2$) of the
+    normalisation constant is not computed, hence you need to add this
+    part to the log marginal likelihood estimate, if you need it.
+\end{itemize}
 \end{document}
 
 
