@@ -2552,6 +2552,47 @@ inla.sp2segment.Polygon =
 
 
 
+inla.simplify.curve = function(loc, idx, eps) {
+    ## Variation of Ramer-Douglas-Peucker
+    ## Uses width epsilon ellipse instead of rectangle,
+    ## motivated by prediction ellipse for Brownian bridge
+    n = length(idx)
+    if (n==2) {
+        return(idx)
+    }
+    segm = loc[idx[n],]-loc[idx[1],]
+    segm.len2 = sum(segm^2)
+    if (segm.len2 <= 1e-12) {
+        ## End point same as start; closed curve.  Split.
+        len2 = ((loc[idx[2:(n-1)], 1] - loc[idx[1], 1])^2 +
+                (loc[idx[2:(n-1)], 2] - loc[idx[1], 2])^2 )
+        split = which.max(len2)+1L
+    } else {
+        segm.mid = (loc[idx[n],]+loc[idx[1],])/2
+        segm = segm/segm.len2^0.5
+        segm.perp = c(-segm[2], segm[1])
+        vec = (cbind(loc[idx[2:(n-1)], 1] - segm.mid[1],
+                     loc[idx[2:(n-1)], 2] - segm.mid[2]))
+        ## Always split if any point is outside the circle
+        epsi = min(c(eps^2, segm.len2/4))
+        dist2 =
+            ((vec[,1]*segm[1] + vec[,2]*segm[2])^2 +
+             (vec[,1]*segm.perp[1] + vec[,2]*segm.perp[2])^2/epsi)
+        ## Find the furthest point, in the ellipse metric, and
+        ## check if it inside the radius (radius^2=segm.len^2/4)
+        split = which.max(dist2)+1L
+        if (dist2[split-1L] < segm.len2/4) {
+            ## Flat segment, eliminate.
+            return(idx[c(1, n)])
+        }
+        ## Now ready to split at the furthest point ("split")
+    }
+
+    ## Do the split recursively:
+    return(c(inla.simplify.curve(loc, idx[1L:split], eps),
+             inla.simplify.curve(loc, idx[split:n], eps)[-1L]
+             ))
+}
 
 
 inla.contour.segment =
@@ -2620,29 +2661,48 @@ inla.contour.segment =
     for (k in seq_len(length(curves))) {
         curve.loc = cbind(curves[[k]]$x, curves[[k]]$y)
         curve.n = nrow(curve.loc)
+
         ## Extract the rotated gradients along the curve
         curve.mid = (curve.loc[1:(curve.n-1),]+curve.loc[2:curve.n,])/2
-        curve.diff = diff(curve.loc)
         A = inla.mesh.deriv(mesh, loc=curve.mid)
         ## Gradients rotated 90 degrees CW, i.e. to the direction
         ## of CCW curves around positive excursions:
         grid.diff = cBind(A$dy %*% zz, -A$dx %*% zz)
+
         ## Determine the CCW/CW orientation
+        curve.diff = diff(curve.loc)
         ccw = (sum(curve.diff * grid.diff) >= 0) ## True if in CCW direction
         if ((ccw && positive) | (!ccw && !positive)) {
-            curve.idx = cbind(1:(curve.n-1), 2:curve.n)
+            curve.idx = 1:curve.n
         } else {
-            curve.idx = cbind(curve.n:2, (curve.n-1):1)
+            curve.idx = curve.n:1
         }
+
         ## Filter short line segments:
-        message("TODO: filter short line segments")
+        curve.idx =
+            inla.simplify.curve(curve.loc,
+                                curve.idx,
+                                eps = min(c(min(diff(x)), min(diff(y))))/2)
+
+        ## Reorder, making sure any unused points are removed:
+        curve.loc = curve.loc[curve.idx,,drop=FALSE]
+        curve.n = nrow(curve.loc)
+        curve.idx = cbind(1L:(curve.n-1L), 2L:curve.n)
+
+        ## Check if the curve is closed, and adjust if it is:
+        if (max(abs(curve.loc[1,] - curve.loc[curve.n,])) < 1e-12) {
+            curve.loc = curve.loc[-curve.n,,drop=FALSE]
+            curve.n = nrow(curve.loc)
+            curve.idx = cbind(1L:curve.n, c(2L:curve.n, 1L))
+        }
+
         ## Add the curve:
         offset = nrow(loc)
         loc = rbind(loc, curve.loc)
         idx = rbind(idx, curve.idx+offset)
-        grp = c(grp, rep(level2grp(curves[[k]]$level), curve.n-1))
+        grp = c(grp, rep(level2grp(curves[[k]]$level), curve.n-1L))
     }
-    segm = inla.mesh.segment(loc=loc,idx=idx,grp=grp,is.bnd=FALSE)
+    segm = inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=FALSE)
     return(segm)
 }
 
