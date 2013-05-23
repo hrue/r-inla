@@ -18383,8 +18383,7 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * Finally, let us do the job...
 	 */
-	GMRFLib_ai_INLA(&(mb->density),
-			NULL, // &(mb->gdensity),  DO NOT USE IT ANYMORE
+	GMRFLib_ai_INLA(&(mb->density), NULL,		       // &(mb->gdensity), DO NOT USE IT ANYMORE
 			&(mb->density_transform),
 			transform_funcs,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -19492,7 +19491,7 @@ int inla_output(inla_tp * mb)
 				int offset = offsets[ii + 1];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]),
-						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
+						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
 						   mb->f_locations[ii],
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
@@ -19536,9 +19535,8 @@ int inla_output(inla_tp * mb)
 				int offset = offsets[mb->nf + 1 + ii];
 
 				inla_output_detail(mb->dir, &(mb->density[offset]),
-						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
-						   NULL, 1, 1,
-						   mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
+						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
+						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
 			if (!mb->lc_derived_only) {
@@ -19554,9 +19552,8 @@ int inla_output(inla_tp * mb)
 					ii = 0;
 					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
 					inla_output_detail(mb->dir, &(mb->density[offset]),
-							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
-							   mb->lc_order, mb->nlc, 1,
-							   mb->lc_output[ii], newdir2, NULL, NULL, newtag2, NULL, local_verbose);
+							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
+							   mb->lc_order, mb->nlc, 1, mb->lc_output[ii], newdir2, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
 
@@ -21045,7 +21042,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 				if (density[i]) {
 					double kld;
 					GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev);
-					
+
 					if (G.fast_mode) {
 						GMRFLib_mkld_sym(&kld, gd, density[i]);
 					} else {
