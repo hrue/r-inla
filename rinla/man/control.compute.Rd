@@ -19,6 +19,7 @@ inla(formula, ..., control.compute=list( <arg>=<value>[, <arg>=<value>]))
 \item{config}{  A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
 \item{smtp}{  The sparse-matrix solver, one of 'smtp' (default) or 'band'}
 \item{graph}{  A boolean variable if the graph itself should be returned. (Default FALSE.)}
+\item{gdensity}{  A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
