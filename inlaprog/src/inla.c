@@ -18384,7 +18384,7 @@ int inla_INLA(inla_tp * mb)
 	 * Finally, let us do the job...
 	 */
 	GMRFLib_ai_INLA(&(mb->density),
-			&(mb->gdensity),
+			NULL, // &(mb->gdensity),  DO NOT USE IT ANYMORE
 			&(mb->density_transform),
 			transform_funcs,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -18412,7 +18412,7 @@ int inla_INLA(inla_tp * mb)
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
 			GMRFLib_free_density(d);
 		}
-		if (mb->gdensity[i]) {
+		if (mb->gdensity && mb->gdensity[i]) {
 			d = mb->gdensity[i];
 			GMRFLib_density_new_mean(&(mb->gdensity[i]), d, d->std_mean + OFFSET3(i));
 			GMRFLib_free_density(d);
@@ -19469,7 +19469,9 @@ int inla_output(inla_tp * mb)
 			 */
 			int offset = offsets[0];
 
-			inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, mb->predictor_n + mb->predictor_m, 1,
+			inla_output_detail(mb->dir, &(mb->density[offset]),
+					   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
+					   NULL, mb->predictor_n + mb->predictor_m, 1,
 					   mb->predictor_output, mb->predictor_dir, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
 			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n, mb->predictor_n + mb->predictor_m, -1,
 					 (mb->predictor_m == 0 ? 1 : 2));
@@ -19489,7 +19491,9 @@ int inla_output(inla_tp * mb)
 			for (ii = 0; ii < mb->nf; ii++) {
 				int offset = offsets[ii + 1];
 
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->f_locations[ii],
+				inla_output_detail(mb->dir, &(mb->density[offset]),
+						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
+						   mb->f_locations[ii],
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
@@ -19531,7 +19535,9 @@ int inla_output(inla_tp * mb)
 			for (ii = 0; ii < mb->nlinear; ii++) {
 				int offset = offsets[mb->nf + 1 + ii];
 
-				inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), NULL, 1, 1,
+				inla_output_detail(mb->dir, &(mb->density[offset]),
+						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
+						   NULL, 1, 1,
 						   mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
@@ -19547,7 +19553,9 @@ int inla_output(inla_tp * mb)
 
 					ii = 0;
 					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
-					inla_output_detail(mb->dir, &(mb->density[offset]), &(mb->gdensity[offset]), mb->lc_order, mb->nlc, 1,
+					inla_output_detail(mb->dir, &(mb->density[offset]),
+							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL), 
+							   mb->lc_order, mb->nlc, 1,
 							   mb->lc_output[ii], newdir2, NULL, NULL, newtag2, NULL, local_verbose);
 					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
@@ -21017,6 +21025,73 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 				}
+			}
+			fclose(fp);
+		} else if (inla_computed(density, n)) {
+			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
+			inla_fnmfix(nndir);
+			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			if (!fp) {
+				inla_error_open_file(nndir);
+			}
+			if (verbose) {
+#pragma omp critical
+				{
+					printf("\t\tstore (symmetric) kld's in[%s]\n", nndir);
+				}
+			}
+			for (i = 0; i < n; i++) {
+				GMRFLib_density_tp *gd = NULL;
+				if (density[i]) {
+					double kld;
+					GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev);
+					
+					if (G.fast_mode) {
+						GMRFLib_mkld_sym(&kld, gd, density[i]);
+					} else {
+						GMRFLib_kld_sym(&kld, gd, density[i]);
+					}
+					if (locations) {
+						if (G.binary) {
+							DW(locations[i % ndiv]);
+						} else {
+							fprintf(fp, "%g ", locations[i % ndiv]);
+						}
+					} else {
+						if (G.binary) {
+							IW(i);
+						} else {
+							fprintf(fp, "%1d ", i);
+						}
+					}
+					if (G.binary) {
+						DW(kld);
+					} else {
+						fprintf(fp, "%.6g\n", kld);
+					}
+				} else {
+					if (add_empty) {
+						if (locations) {
+							if (G.binary) {
+								DW(locations[i % ndiv]);
+							} else {
+								fprintf(fp, "%g ", locations[i % ndiv]);
+							}
+						} else {
+							if (G.binary) {
+								IW(i);
+							} else {
+								fprintf(fp, "%1d ", i);
+							}
+						}
+						if (G.binary) {
+							DW(NAN);
+						} else {
+							fprintf(fp, "%.6g\n", NAN);
+						}
+					}
+				}
+				GMRFLib_free_density(gd);
 			}
 			fclose(fp);
 		}
