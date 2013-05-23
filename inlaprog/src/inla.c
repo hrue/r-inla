@@ -18383,7 +18383,8 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * Finally, let us do the job...
 	 */
-	GMRFLib_ai_INLA(&(mb->density), NULL,		       // &(mb->gdensity), DO NOT USE IT ANYMORE
+	GMRFLib_ai_INLA(&(mb->density),
+			(mb->output->gdensity ? &(mb->gdensity) : NULL), 
 			&(mb->density_transform),
 			transform_funcs,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -19137,6 +19138,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->q = 0;
 		(*out)->graph = 0;
 		(*out)->config = 0;
+		(*out)->gdensity = 0;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->nquantiles = 0;
 		(*out)->ncdf = 0;
@@ -19153,6 +19155,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->q = mb->output->q;
 		(*out)->graph = mb->output->graph;
 		(*out)->config = mb->output->config;
+		(*out)->gdensity = mb->output->gdensity;
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->return_marginals = mb->output->return_marginals;
 		(*out)->nquantiles = mb->output->nquantiles;
@@ -19177,6 +19180,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->q = iniparser_getboolean(ini, inla_string_join(secname, "Q"), (*out)->q);
 	(*out)->graph = iniparser_getboolean(ini, inla_string_join(secname, "GRAPH"), (*out)->graph);
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
+	(*out)->gdensity = iniparser_getboolean(ini, inla_string_join(secname, "GDENSITY"), (*out)->gdensity);
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
 	if (G.mode == INLA_MODE_HYPER) {
@@ -19224,6 +19228,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			printf("\t\t\tmlik=[%1d]\n", (*out)->mlik);
 			printf("\t\t\tq=[%1d]\n", (*out)->q);
 			printf("\t\t\tgraph=[%1d]\n", (*out)->graph);
+			printf("\t\t\tgdensity=[%1d]\n", (*out)->gdensity);
 			printf("\t\t\thyperparameters=[%1d]\n", (*out)->hyperparameters);
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
