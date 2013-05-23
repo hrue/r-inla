@@ -2557,35 +2557,37 @@ inla.simplify.curve = function(loc, idx, eps) {
     ## Uses width epsilon ellipse instead of rectangle,
     ## motivated by prediction ellipse for Brownian bridge
     n = length(idx)
-    if (n==2) {
+    if ((n==2) || (eps==0)) {
         return(idx)
     }
     segm = loc[idx[n],]-loc[idx[1],]
-    segm.len2 = sum(segm^2)
-    if (segm.len2 <= 1e-12) {
+    segm.len = sum(segm^2)^0.5
+    if (segm.len <= 1e-12) {
         ## End point same as start; closed curve.  Split.
         len2 = ((loc[idx[2:(n-1)], 1] - loc[idx[1], 1])^2 +
                 (loc[idx[2:(n-1)], 2] - loc[idx[1], 2])^2 )
         split = which.max(len2)+1L
     } else {
         segm.mid = (loc[idx[n],]+loc[idx[1],])/2
-        segm = segm/segm.len2^0.5
+        segm = segm/segm.len
         segm.perp = c(-segm[2], segm[1])
         vec = (cbind(loc[idx[2:(n-1)], 1] - segm.mid[1],
                      loc[idx[2:(n-1)], 2] - segm.mid[2]))
         ## Always split if any point is outside the circle
-        epsi = min(c(eps^2, segm.len2/4))
-        dist2 =
-            ((vec[,1]*segm[1] + vec[,2]*segm[2])^2 +
-             (vec[,1]*segm.perp[1] + vec[,2]*segm.perp[2])^2/epsi)
+        epsi = min(c(eps, segm.len/2))
+        dist1 = abs(vec[,1]*segm[1] + vec[,2]*segm[2])/(segm.len/2)*epsi
+        dist2 = abs(vec[,1]*segm.perp[1] + vec[,2]*segm.perp[2])
+        dist = (dist1^2 + dist2^2)^0.5
+
         ## Find the furthest point, in the ellipse metric, and
-        ## check if it inside the radius (radius^2=segm.len^2/4)
-        split = which.max(dist2)+1L
-        if (dist2[split-1L] < segm.len2/4) {
+        ## check if it inside the radius (radius=segm.len/2)
+        split = which.max(dist)+1L
+        if (dist[split-1L] < epsi) {
             ## Flat segment, eliminate.
             return(idx[c(1, n)])
         }
-        ## Now ready to split at the furthest point ("split")
+        ## Split at the furthest point.
+        split = which.max(dist)+1L
     }
 
     ## Do the split recursively:
@@ -2601,7 +2603,8 @@ inla.contour.segment =
              z, nlevels = 10,
              levels = pretty(range(z, na.rm=TRUE), nlevels),
              groups = seq_len(length(levels)),
-             positive = TRUE)
+             positive = TRUE,
+             eps = NULL)
 {
     ## Input checking from contourLines:
     if (missing(z)) {
@@ -2621,6 +2624,10 @@ inla.contour.segment =
     else if (is.list(x)) {
         y <- x$y
         x <- x$x
+    }
+
+    if (is.null(eps)) {
+        eps = min(c(min(diff(x)), min(diff(y))))/8
     }
     ## End of input checking.
 
@@ -2682,7 +2689,7 @@ inla.contour.segment =
         curve.idx =
             inla.simplify.curve(curve.loc,
                                 curve.idx,
-                                eps = min(c(min(diff(x)), min(diff(y))))/2)
+                                eps = eps)
 
         ## Reorder, making sure any unused points are removed:
         curve.loc = curve.loc[curve.idx,,drop=FALSE]
@@ -2708,8 +2715,9 @@ inla.contour.segment =
 
 
 ## Based on an idea from Elias Teixeira Krainski
+## Requires  splancs::nndistF
 inla.nonconvex.hull.basic =
-    function(points, offset=-0.15, resolution=40)
+    function(points, offset=-0.15, resolution=40, eps=NULL)
 {
     if (length(offset)==1)
         offset = rep(offset,2)
@@ -2745,8 +2753,10 @@ inla.nonconvex.hull.basic =
 
     require(splancs)
     z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
-                resolution[1],resolution[2]))
-    segm = inla.contour.segment(ax[[1]],ax[[2]],z,levels=c(1),positive=FALSE)
+                resolution[1], resolution[2]))
+    segm =
+        inla.contour.segment(ax[[1]], ax[[2]], z,
+                             levels=c(1), positive=FALSE, eps=eps)
     return(segm)
 }
 
@@ -2766,7 +2776,7 @@ inla.nonconvex.hull.basic =
 ##   dilation(a) & closing(b) = dilation(a+b) & erosion(b)
 ## where all operations are with respect to disks with the specified radii.
 inla.nonconvex.hull =
-    function(points, convex=-0.15, concave=convex, resolution=40)
+    function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL)
 {
     if (length(resolution)==1)
         resolution = rep(resolution,2)
@@ -2806,9 +2816,10 @@ inla.nonconvex.hull =
     z = (matrix(splancs::nndistF(points, xy),
                 resolution[1],resolution[2]))
     segm.dilation =
-        inla.contour.segment(ax[[1]],ax[[2]],z,
+        inla.contour.segment(ax[[1]], ax[[2]], z,
                              levels=c(convex+concave),
-                             positive=TRUE)
+                             positive=TRUE,
+                             eps=0) ## Don't simplify curve at this stage
     mesh.dilation =
         inla.mesh.create(loc=xy,
                          boundary=segm.dilation,
@@ -2827,7 +2838,9 @@ inla.nonconvex.hull =
                 resolution[1],resolution[2]))
     segm.closing =
         inla.contour.segment(ax[[1]],ax[[2]],z,
-                             levels=c(concave),positive=TRUE)
+                             levels=c(concave),
+                             positive=TRUE,
+                             eps=eps)
 
     return(segm.closing)
 }
