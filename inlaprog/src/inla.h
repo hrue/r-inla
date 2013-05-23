@@ -525,6 +525,7 @@ typedef struct {
 	int config;					       /* output the configurations */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
+	int gdensity;
 	double *quantiles;
 	double *cdf;
 } Output_tp;

@@ -587,7 +587,7 @@
 }
 
 `inla.problem.section` = function(file , data.dir, result.dir, hyperpar, return.marginals, dic,
-        cpo, po, mlik, quantiles, smtp, q, strategy, graph, config)
+        cpo, po, mlik, quantiles, smtp, q, strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
@@ -613,6 +613,7 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("config", config, file)
+    inla.write.boolean.field("gdensity", gdensity, file)
 
     if (!is.null(smtp)) {
         cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)

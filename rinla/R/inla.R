@@ -960,7 +960,7 @@
                          dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo, po = cont.compute$po, 
                          quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
                          strategy = cont.compute$strategy, graph = cont.compute$graph,
-                         config = cont.compute$config)
+                         config = cont.compute$config, gdensity = cont.compute$gdensity)
 
     ## PREPARE RESPONSE AND FIXED EFFECTS
     if (debug)

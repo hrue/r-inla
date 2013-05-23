@@ -164,7 +164,11 @@
          smtp = NULL,
 
          ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-         graph = FALSE)
+         graph = FALSE, 
+        
+         ##:ARGUMENT: gdensity A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)
+         gdensity = FALSE)
+        
     ##:SEEALSO: inla
 }
 
