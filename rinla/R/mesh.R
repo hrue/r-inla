@@ -94,21 +94,28 @@ inla.mesh.segment =
 lines.inla.mesh.segment =
     function(segm, loc=NULL, col=NULL,
              colors=c("black", "blue", "red", "green"),
-             add=TRUE, xlim=NULL, ylim=NULL, ...)
+             add=TRUE, xlim=NULL, ylim=NULL,
+             rgl=FALSE, ...)
 {
     if (!is.null(segm$loc))
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
     color = col
-    if (!add) {
+    if (rgl) {
+        if (!add) {
+            dev=open3d()
+            view3d(0, 0, fov=0)
+        } else {
+            dev = NULL
+        }
+    } else if (!add) {
         idx = unique(as.vector(segm$idx))
         if (is.null(xlim))
             xlim=range(segm$loc[idx,1])
         if (is.null(ylim))
             ylim=range(segm$loc[idx,2])
-        plotting = plot
-    } else {
-        plotting = lines
+        plot.new()
+        plot.window(xlim=xlim, ylim=ylim, ...)
     }
 
     grps = inla.ifelse(is.null(segm$grp), rep(0L,nrow(segm$idx)), segm$grp)
@@ -117,52 +124,269 @@ lines.inla.mesh.segment =
         if (is.null(col)) {
             color=colors[1+(grp%%length(colors))]
         }
-        plotting(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
-                 loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
-                 col=color,
-                 xlim = xlim,
-                 ylim = ylim,
-                 type = "l",
-                 ...)
-        plotting = lines
+        if (rgl) {
+            rgl.lines(loc[as.vector(t(segm$idx[idx,, drop=FALSE])),,drop=FALSE],
+                      color=color,
+                      ...)
+        } else {
+            lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
+                  loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
+                  col=color,
+                  ...)
+        }
     }
 }
+
+
+
+`inla.generate.colors` = function(color, color.axis = NULL, color.n=512,
+  color.palette = cm.colors, color.truncate=FALSE, alpha=NULL)
+  {
+    if (is.character(color)) {
+      colors = color
+    } else if (is.vector(color) || (is.matrix(color) && (ncol(color)==1))) {
+      if (is.null(color.axis))
+        color.axis = c(min(color, na.rm=TRUE), max(color, na.rm=TRUE))
+      if (color.truncate) {
+        not.ok = ((color<color.axis[1]) |
+                  (color>color.axis[2]))
+      } else {
+        not.ok = rep(FALSE, length(color))
+      }
+      cs = (pmax(color.axis[1],
+                 pmin(color.axis[2], color, na.rm=TRUE), na.rm=TRUE))
+      cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
+      not.ok = not.ok | is.na(cs)
+      cs[not.ok] = 0.5
+      if (is.null(alpha)) {
+        alpha = as.numeric(!not.ok)
+      } else {
+        alpha[not.ok] = 0
+      }
+
+      ics = (as.numeric(cut(cs, seq(0, 1, length.out=color.n+1),
+                            include.lowest=TRUE)))
+      colors = color.palette(color.n)[ics]
+
+      ## Todo: handle alpha, combining "input alpha" with "not.ok-alpha"
+    } else if (is.matrix(color) && (ncol(color)==3)) {
+      if (is.null(color.axis))
+        color.axis = c(min(color, na.rm=TRUE), max(color, na.rm=TRUE))
+      if (color.truncate) {
+        not.ok = ((color[, 1]<color.axis[1]) |
+                  (color[, 2]<color.axis[1]) |
+                  (color[, 3]<color.axis[1]) |
+                  (color[, 1]>color.axis[2]) |
+                  (color[, 2]>color.axis[2]) |
+                  (color[, 3]>color.axis[2]))
+      } else {
+        not.ok = rep(FALSE, nrow(color))
+      }
+      cs = matrix(
+        pmax(color.axis[1],
+             pmin(color.axis[2], color, na.rm=TRUE), na.rm=TRUE), dim(color))
+      cs = (cs-color.axis[1])/(color.axis[2]-color.axis[1])
+      not.ok = not.ok | is.na(cs[, 1]) | is.na(cs[, 2]) | is.na(cs[, 3])
+      cs[not.ok,] = c(0.5, 0.5, 0.5)
+      if (is.null(alpha)) {
+        alpha = as.numeric(!not.ok)
+      } else {
+        alpha[not.ok] = 0
+      }
+      colors = rgb(cs[, 1], cs[, 2], cs[, 3])
+    } else {
+      stop("color specification must be character, matrix, or vector.")
+    }
+
+    return (list(colors=colors, alpha=alpha))
+  }
+
+
+`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL,
+  color.n=512, color.palette = cm.colors, color.truncate=FALSE, alpha=NULL,
+  lwd = 1, specular = "black",
+  draw.vertices=TRUE, draw.edges=TRUE, edge.color=rgb(0.3, 0.3, 0.3), ...)
+{
+    require(rgl)
+
+    ## Make indices 1 based.  Deprecated and is deactivated.
+    if (min(TV) == 0) {
+      stop("Zero-based indices in TV are not supported.")
+    }
+
+    colors = (inla.generate.colors(color, color.axis, color.n,
+                                   color.palette, color.truncate, alpha))
+
+    tTV = t(TV);
+    tETV = t(TV[, c(1, 2, 3, 1, NA)]);
+    Tx = S[tTV, 1]
+    Ty = S[tTV, 2]
+    Tz = S[tTV, 3]
+    if (length(colors$colors) == 1) {
+      ## One color
+      Tcol = colors$colors
+      Talpha = colors$alpha
+    } else if (length(colors$colors) == nrow(S)) {
+      ## One color per vertex
+      Tcol = colors$colors[tTV]
+      Talpha = colors$alpha[tTV]
+    } else {
+      ## One color per triangle
+      stopifnot(length(colors$colors) == nrow(TV))
+      Tcol = colors$colors[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
+      Talpha = colors$alpha[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
+    }
+    Ex = S[tETV, 1]
+    Ey = S[tETV, 2]
+    Ez = S[tETV, 3]
+    Ecol = edge.color
+    if (draw.vertices) {
+      points3d(S, color="black", ...)
+    }
+    if (draw.edges) {
+      lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
+    }
+    triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, alpha=Talpha, ...)
+
+    return (invisible())
+}
+
+## library(geometry)
+## S = cbind(x=rnorm(30), y=rnorm(30), z=0)
+## TV = delaunayn(S[, 1:2]) # NOTE: inconsistent triangle orders, only for test.
+## trimesh(TV, S)
+##
+## colors = rgb(runif(30), runif(30), runif(30))
+## rgl.viewpoint(0, 0, fov=20)
+## plot.inla.trimesh(TV, S, colors)
+
+##    Ecol = col2rgb(color)/256
+##    Ecol = Ecol*0.5+(1-0.5)*0 # Rescale towards black
+##    Ecol = 1-Ecol # Invert
+##    Ecol = Ecol[, c(2, 3, 1)] # Permute
+##    Ecol = rgb(Ecol[1,], Ecol[2,], Ecol[3,], maxColorValue = 1)
+##    Ecol = Ecol[tETV]
+
+
+`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, add=FALSE, draw.vertices=TRUE, ...)
+{
+    warning("This function is deprecated.  Use plot(mesh, rgl=TRUE, ...) instead.")
+
+    ## a simple function that plots the mesh from inla.fmesher.mesh()
+    require(rgl)
+
+    if (length(color) == 1)
+        color = rep(color, dim(m$mesh$s)[1])
+
+    stopifnot(inla.require("rgl"))
+    if (!add) {
+        dev=open3d()
+        view3d(0, 0, fov=0)
+    } else {
+        dev = NULL
+    }
+    if (draw.vertices)
+        rgl.points(m$mesh$s[m$locations.idx, ],
+                   size=2*size, lwd=lwd, color = "blue", ...)
+    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
+                      size=size, lwd=lwd,
+                      draw.vertices=draw.vertices, add=add, ...)
+
+    return (invisible(dev))
+}
+
+
+old.mesh.class = function(...)
+{
+    UseMethod("old.mesh.class")
+}
+
+old.mesh.class.inla.mesh = function(mesh, ...)
+{
+    warning("The old mesh class is no longer supported.")
+    fmesh=list(mesh=mesh)
+    fmesh$mesh$s = mesh$loc
+    fmesh$mesh$tv = mesh$graph$tv
+    fmesh$locations.idx = mesh$idx$loc
+    class(fmesh)="inla.fmesher.mesh"
+    return(fmesh)
+}
+
+
 
 plot.inla.mesh =
     function(mesh,
              t.sub=1:nrow(mesh$graph$tv),
              add=FALSE,
              lwd=1,
-             col="black",
+             col="white",
+             edge.color=rgb(0.3, 0.3, 0.3),
              xlim = range(mesh$loc[,1]),
              ylim = range(mesh$loc[,2]),
+             main = NULL,
+             rgl = FALSE,
+             size = 2,
+             draw.vertices=FALSE,
+             vertex.color="black",
              ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    idx = cbind(mesh$graph$tv[t.sub,c(1:3,1), drop=FALSE], NA)
-    x = mesh$loc[t(idx), 1]
-    y = mesh$loc[t(idx), 2]
-
-    if (!add) {
-        plot.new()
-        plot.window(xlim=xlim, ylim=ylim, "")
-    }
-    lines(x, y, type="l", col=col, lwd=lwd)
-    if (!is.null(mesh$segm$bnd))
-        lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
-    if (!is.null(mesh$segm$int))
-        lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
-    if (!add) {
-        if (mesh$meta$is.refined) {
-            title("Constrained refined Delaunay triangulation",
-                  deparse(substitute(mesh)))
+    if (rgl) {
+        stopifnot(inla.require("rgl"))
+        if (!add) {
+            dev=open3d()
+            view3d(0, 0, fov=0)
         } else {
-            title("Constrained Delaunay triangulation",
-                  deparse(substitute(mesh)))
+            dev = NULL
         }
+        tv = mesh$graph$tv[t.sub,,drop=FALSE]
+        if (draw.vertices) {
+            idx = intersect(unique(as.vector(tv)), mesh$idx$loc)
+            rgl.points(mesh$loc[idx,,drop=FALSE],
+                       size=2*size, lwd=lwd, color = "blue", ...)
+        }
+        if (!is.null(mesh$segm$bnd))
+            lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, rgl=TRUE, add=TRUE, ...)
+        if (!is.null(mesh$segm$int))
+            lines(mesh$segm$int, mesh$loc, lwd=lwd+1, rgl=TRUE, add=TRUE, ...)
+        plot.inla.trimesh(tv, mesh$loc, color = col, edge.color=edge.color,
+                          size=size, lwd=lwd, ...)
+        return(invisible(dev))
+    } else {
+        idx = cbind(mesh$graph$tv[t.sub,c(1:3,1), drop=FALSE], NA)
+        x = mesh$loc[t(idx), 1]
+        y = mesh$loc[t(idx), 2]
+
+        if (!add) {
+            plot.new()
+            plot.window(xlim=xlim, ylim=ylim, ...)
+        }
+        lines(x, y, type="l", col=edge.color, lwd=lwd)
+        tv = mesh$graph$tv[t.sub,,drop=FALSE]
+        if (draw.vertices) {
+            idx = unique(as.vector(tv))
+            points(mesh$loc[idx,,drop=FALSE],
+                   pch=20, col=vertex.color, ...)
+            idx = intersect(idx, mesh$idx$loc)
+            points(mesh$loc[idx,,drop=FALSE],
+                   pch=20, col="blue", ...)
+        }
+        if (!is.null(mesh$segm$bnd))
+            lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
+        if (!is.null(mesh$segm$int))
+            lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
+        if (!add && missing(main)) {
+            if (mesh$meta$is.refined) {
+                title("Constrained refined Delaunay triangulation",
+                      deparse(substitute(mesh)))
+            } else {
+                title("Constrained Delaunay triangulation",
+                      deparse(substitute(mesh)))
+            }
+        }
+        return(invisible())
     }
-    return(invisible())
 }
 
 
@@ -1557,20 +1781,6 @@ inla.mesh.basis =
 
 
 
-old.mesh.class = function(...)
-{
-    UseMethod("old.mesh.class")
-}
-
-old.mesh.class.inla.mesh = function(mesh, ...)
-{
-    fmesh=list(mesh=mesh)
-    fmesh$mesh$s = mesh$loc
-    fmesh$mesh$tv = mesh$graph$tv
-    fmesh$locations.idx = mesh$idx$loc
-    class(fmesh)="inla.fmesher.mesh"
-    return(fmesh)
-}
 
 
 
