@@ -583,7 +583,9 @@ inla.spde2.matern =
         }
         if (!is.null(extraconstr)) {
             A.constr =
-                matrix(extraconstr$A %*% fem$c1, nrow(extraconstr$A), n.spde)
+                rBind(A.constr,
+                      matrix(extraconstr$A %*% fem$c1,
+                             nrow(extraconstr$A), n.spde))
             e.constr = c(e.constr, extraconstr$e)
         }
 
