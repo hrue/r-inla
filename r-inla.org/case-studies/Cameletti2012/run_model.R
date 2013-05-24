@@ -209,7 +209,7 @@ if (!exists("have.result") ||
                  data=inla.stack.data(stack, spde=spde),
                  family="gaussian",
                  control.predictor=list(A=inla.stack.A(stack), compute=TRUE),
-                 control.compute=list(cpo=TRUE),
+                 control.compute=list(cpo=FALSE),
                  keep=FALSE, verbose=TRUE,
                  inla.call="remote", num.threads=12)
     } else {
@@ -218,7 +218,7 @@ if (!exists("have.result") ||
                  data=inla.stack.data(stack, spde=spde),
                  family="gaussian",
                  control.predictor=list(A=inla.stack.A(stack), compute=TRUE),
-                 control.compute=list(cpo=TRUE),
+                 control.compute=list(cpo=FALSE),
                  keep=FALSE, verbose=TRUE)
     }
     print(summary(result))
