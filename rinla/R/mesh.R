@@ -351,7 +351,10 @@ plot.inla.mesh =
         if (!is.null(mesh$segm$int))
             lines(mesh$segm$int, mesh$loc, lwd=lwd+1, rgl=TRUE, add=TRUE, ...)
         plot.inla.trimesh(tv, mesh$loc, color = col, edge.color=edge.color,
-                          size=size, lwd=lwd, ...)
+                          size=size, lwd=lwd,
+                          draw.vertices=draw.vertices,
+                          vertex.color=vertex.color,
+                          ...)
         return(invisible(dev))
     } else {
         idx = cbind(mesh$graph$tv[t.sub,c(1:3,1), drop=FALSE], NA)
