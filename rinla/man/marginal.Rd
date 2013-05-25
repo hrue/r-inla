@@ -39,7 +39,7 @@
  inla.qmarginal(p, marginal, len = 1024)
  inla.rmarginal(n, marginal)
  inla.hpdmarginal(p, marginal)
- inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
+ inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
  inla.emarginal(fun, marginal, ...)
  inla.tmarginal(fun, marginal, n, h.diff, ...)
 
