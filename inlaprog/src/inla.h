@@ -698,6 +698,8 @@ struct inla_tp_struct {
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
 
+	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */
+
 	/*
 	 * type Data 
 	 */
@@ -1147,7 +1149,8 @@ int inla_error_missing_required_field(const char *funcname, const char *secname,
 int inla_error_open_file(const char *msg);
 int inla_iid3d_adjust(double *rho);
 int inla_initial_setup(inla_tp * mb);
-int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg);
+int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg,
+			GMRFLib_transform_array_func_tp *tfunc);
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x_ORIG(double **x, int *n, double xmin, double xmax, double mean);
 int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
@@ -1172,7 +1175,8 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
-		       const char *sdir, map_func_tp * func, void *func_arg, const char *tag, const char *modelname, int verbose);
+		       const char *sdir, map_func_tp * func, void *func_arg, 
+		       GMRFLib_transform_array_func_tp **tfunc, const char *tag, const char *modelname, int verbose);
 int inla_output_hgid(const char *dir);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
