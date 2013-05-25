@@ -35,7 +35,7 @@
 ##! inla.qmarginal(p, marginal, len = 1024)
 ##! inla.rmarginal(n, marginal)
 ##! inla.hpdmarginal(p, marginal)
-##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
+##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
 ##! inla.emarginal(fun, marginal, ...)
 ##! inla.tmarginal(fun, marginal, n, h.diff, ...)
 ##!
@@ -171,11 +171,11 @@
     return (m)
 }
 
-`inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0) {
-    return (inla.smarginal(marginal, log, extrapolate))
+`inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0, factor = 10L) {
+    return (inla.smarginal(marginal, log, extrapolate, factor))
 }
 
-`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE)
+`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the nice interpolated (x, y) where the interpolation is
@@ -186,7 +186,7 @@
     r = range(m$x)
     r = r[2] - r[1]
     ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r,
-            n = 10*length(m$x))
+            n = factor*length(m$x))
     if (!log) {
         ans$y = exp(ans$y)
     }
