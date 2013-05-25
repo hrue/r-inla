@@ -18369,7 +18369,7 @@ int inla_INLA(inla_tp * mb)
 				cov = Calloc(ncov, double);
 				GMRFLib_matrix_get_row(cov, i, mb->predictor_invlinkfunc_covariates[i]);
 			}
-			mb->transform_funcs[i]->cov = cov;	       /* yes, we store a copy here */
+			mb->transform_funcs[i]->cov = cov;     /* yes, we store a copy here */
 		} else {
 			mb->transform_funcs[i] = Calloc(1, GMRFLib_transform_array_func_tp);
 			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
@@ -18381,11 +18381,9 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * Finally, let us do the job...
 	 */
-	GMRFLib_ai_INLA(&(mb->density),
-			(mb->output->gdensity ? &(mb->gdensity) : NULL), 
+	GMRFLib_ai_INLA(&(mb->density), (mb->output->gdensity ? &(mb->gdensity) : NULL),
 			// DISABLE THIS FEATURE NOW, IT DOES NOT WORK WELL ENOGUH
-			(0 ? &(mb->density_transform) : NULL), 
-			(0 ? mb->transform_funcs : NULL), 
+			(0 ? &(mb->density_transform) : NULL), (0 ? mb->transform_funcs : NULL),
 			// ....
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
@@ -19485,7 +19483,7 @@ int inla_output(inla_tp * mb)
 
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
-				if (0){
+				if (0) {
 					// OLD CODE WHICH IS DISABLED
 					inla_output_detail(mb->dir, &(mb->density_transform[offset]), NULL, NULL, mb->predictor_n + mb->predictor_m, 1,
 							   mb->predictor_output, sdir, NULL, NULL, NULL, newtag, NULL, local_verbose);
@@ -19493,10 +19491,7 @@ int inla_output(inla_tp * mb)
 					inla_output_detail(mb->dir, &(mb->density[offset]),
 							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
 							   NULL, mb->predictor_n + mb->predictor_m, 1,
-							   mb->predictor_output, sdir,
-							   NULL, NULL,
-							   mb->transform_funcs, 
-							   newtag, NULL, local_verbose);
+							   mb->predictor_output, sdir, NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
 				}
 				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 			}
@@ -19509,7 +19504,7 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, &(mb->density[offset]),
 						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
 						   mb->f_locations[ii],
-						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL, 
+						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii], mb->f_dir[ii], NULL, NULL, NULL,
 						   mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
 				inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
@@ -19552,7 +19547,8 @@ int inla_output(inla_tp * mb)
 
 				inla_output_detail(mb->dir, &(mb->density[offset]),
 						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
-						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
+						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL, mb->linear_tag[ii], NULL,
+						   local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
 			if (!mb->lc_derived_only) {
@@ -19598,7 +19594,7 @@ int inla_output(inla_tp * mb)
 					char *sdir;
 
 					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
-					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, NULL, 
+					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir, NULL, NULL, NULL,
 							   mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
@@ -20578,8 +20574,7 @@ int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta)
 	return INLA_OK;
 #undef EXIT_READ_FAIL
 }
-int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg,
-			GMRFLib_transform_array_func_tp *tfunc)
+int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -20591,7 +20586,6 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 
 		return GMRFLib_SUCCESS;
 	}
-	
 #define MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
 			(tfunc ? tfunc->func(_x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
 			 (_x_user)))
@@ -20651,13 +20645,12 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 	return GMRFLib_SUCCESS;
 }
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
-		       int n, int nrep,
-		       Output_tp * output, const char *sdir,
+		       int n, int nrep, Output_tp * output, const char *sdir,
 		       // Either this
 		       map_func_tp * func, void *func_arg,
 		       // .. or this
-		       GMRFLib_transform_array_func_tp **tfunc, 
-		       //
+		       GMRFLib_transform_array_func_tp ** tfunc,
+		       // 
 		       const char *tag, const char *modelname, int verbose)
 {
 #define FUNC (func ? func : NULL)
@@ -20680,7 +20673,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	double x, x_user, dens, dens_user, p, xp, *xx;
-	int i, ii, j, nn, ndiv; 
+	int i, ii, j, nn, ndiv;
 	int add_empty = 1;
 
 	assert(nrep > 0);

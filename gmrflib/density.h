@@ -303,7 +303,7 @@ int GMRFLib_sn_moments(double *mean, double *stdev, GMRFLib_sn_param_tp * p);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density);
+int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 
 __END_DECLS
 #endif
