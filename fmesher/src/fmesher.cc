@@ -667,6 +667,7 @@ int main(int argc, char* argv[])
   LOG("checkpoint 10." << std::endl);
 
   bool issphere = false;
+  bool isflat = false;
   if ((iS0.rows()>0) && (iS0.cols()<2)) {
     /* 1D data. Not implemented */
     LOG_("1D data not implemented." << std::endl);
@@ -676,7 +677,7 @@ int main(int argc, char* argv[])
     M.S_append(S0);
     int nV = iS0.rows();
 
-    bool isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
+    isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
     double radius = M.S(0).length();
     issphere = true;
     for (int i=1; i<M.nV(); i++) {
@@ -768,41 +769,51 @@ int main(int argc, char* argv[])
       
       matrices.output("segm.int.idx").output("segm.int.grp");
       
-    } else if (isflat || issphere) {
-      
+    } else { /* Not smorg.  Build mesh. */
+
       MeshC MC(&M);
       MC.setOptions(MC.getOptions()|MeshC::Option_offcenter_steiner);
 
-      /* If we don't already have a triangulation, we must create one. */
-      if (M.nT()==0) {
-	MC.CET(cet_sides,cet_margin);
+      if (!isflat && !issphere) {
+	if (M.nT()==0) {
+	  LOG_("Points not in the plane or on a sphere, and triangulation empty."  
+	       << std::endl);
+	}
+	/* Remove everything outside the boundary segments, if any. */
+	MC.PruneExterior();
+	/* Nothing more to do here.  Cannot refine non R2/S2 meshes. */
+      } else {
+	/* If we don't already have a triangulation, we must create one. */
+	if (M.nT()==0) {
+	  MC.CET(cet_sides,cet_margin);
+	}
+	
+	/* It is more robust to add the constraints before the rest of the
+	   nodes are added.  This allows points to fall onto constraint
+	   segments, subdividing them as needed. */
+	if (cdt_boundary.size()>0)
+	  MC.CDTBoundary(cdt_boundary);
+	if (cdt_interior.size()>0)
+	  MC.CDTInterior(cdt_interior);
+	
+	/* Add the rest of the nodes. */
+	vertexListT vertices;
+	for (int v=0;v<nV;v++)
+	  vertices.push_back(v);
+	MC.DT(vertices);
+	
+	/* Remove everything outside the boundary segments, if any. */
+	MC.PruneExterior();
+	
+	if (args_info.rcdt_given) {
+	  /* Calculate the RCDT: */
+	  MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
+		  Quality0.raw(),Quality0.rows());
+	  LOG(MC << endl);
+	}
+	/* Done constructing the triangulation. */
       }
       
-      /* It is more robust to add the constraints before the rest of the
-	 nodes are added.  This allows points to fall onto contraint
-	 segments, subdividing them as needed. */
-      if (cdt_boundary.size()>0)
-	MC.CDTBoundary(cdt_boundary);
-      if (cdt_interior.size()>0)
-	MC.CDTInterior(cdt_interior);
-      
-      /* Add the rest of the nodes. */
-      vertexListT vertices;
-      for (int v=0;v<nV;v++)
-	vertices.push_back(v);
-      MC.DT(vertices);
-      
-      /* Remove everything outside the boundary segments, if any. */
-      MC.PruneExterior();
-      
-      if (args_info.rcdt_given) {
-	/* Calculate the RCDT: */
-	MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
-		Quality0.raw(),Quality0.rows());
-	LOG(MC << endl);
-      }
-      
-      /* Done constructing the triangulation. */
       /* Calculate and collect output. */
       
       matrices.attach("segm.bnd.idx",new Matrix<int>(2),
@@ -824,11 +835,6 @@ int main(int argc, char* argv[])
 		  &matrices.DI("segm.int.grp"));
       
       matrices.output("segm.int.idx").output("segm.int.grp");
-      
-    } else {
-      LOG_("Points not in the plane or on a sphere, and --smorg not specified."  
-	   << std::endl << "No output generated." << std::endl);
-      return 0;
     }
     
     matrices.attach("tt",&M.TT(),false);
@@ -902,26 +908,31 @@ int main(int argc, char* argv[])
   }
 
   if (args_info.points2mesh_given>0) {
-    LOG("points2mesh output." << std::endl)
-    string points2mesh_name(args_info.points2mesh_arg);
-    if (!matrices.load(points2mesh_name).active) {
-      cout << "Matrix "+points2mesh_name+" not found." << endl;
+    LOG("points2mesh output." << std::endl);
+    if (!isflat | !issphere) {
+      LOG_("Cannot calculate points2mesh mapping for non R2/S2 manifolds"
+	   << std::endl);
+    } else {
+      string points2mesh_name(args_info.points2mesh_arg);
+      if (!matrices.load(points2mesh_name).active) {
+	cout << "Matrix "+points2mesh_name+" not found." << std::endl;
+      }
+      Matrix<double>& points2mesh = matrices.DD(points2mesh_name);
+      int points_n = points2mesh.rows();
+      Matrix<int>& points2mesh_t =
+	matrices.attach(string("p2m.t"),
+			new Matrix<int>(points_n,1),
+			true);
+      Matrix<double>& points2mesh_b =
+	matrices.attach(string("p2m.b"),
+			new Matrix<double>(points_n,3),
+			true);
+      matrices.matrixtype("p2m.t",fmesh::IOMatrixtype_general);
+      matrices.matrixtype("p2m.b",fmesh::IOMatrixtype_general);
+      matrices.output("p2m.t").output("p2m.b");
+      
+      map_points_to_mesh(M,points2mesh,points2mesh_t,points2mesh_b);
     }
-    Matrix<double>& points2mesh = matrices.DD(points2mesh_name);
-    int points_n = points2mesh.rows();
-    Matrix<int>& points2mesh_t =
-      matrices.attach(string("p2m.t"),
-		      new Matrix<int>(points_n,1),
-		      true);
-    Matrix<double>& points2mesh_b =
-      matrices.attach(string("p2m.b"),
-		      new Matrix<double>(points_n,3),
-		      true);
-    matrices.matrixtype("p2m.t",fmesh::IOMatrixtype_general);
-    matrices.matrixtype("p2m.b",fmesh::IOMatrixtype_general);
-    matrices.output("p2m.t").output("p2m.b");
-    
-    map_points_to_mesh(M,points2mesh,points2mesh_t,points2mesh_b);
   }
     
   int fem_order_max = args_info.fem_arg;
