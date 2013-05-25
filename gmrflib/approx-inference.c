@@ -2931,7 +2931,7 @@ int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *i
   \param[in] linear_term_func_arg A pointer to a function-arguments of the function returning linear terms. Set to \c NULL if you do not have this.
  */
 int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity,
-		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
+		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc, 
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
@@ -5715,6 +5715,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 }
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func)
 {
+	fprintf(stderr, "\n\n\nDISABLE THIS FEATURE FOR NOW, DO NOT KNOW HOW TO DO THIS WELL AT THE MOMENT. SINCE THE SCALE OF THE Xs CAN BE SO DIFFERENT, WE WILL NEED A NEW APPROACH OF HOW TO REPRESENT AND COMPUTE MIXTURES OF THESE DENSITIES.  SEE INFO ABOUT THIS AT: ISSUES\n\n.");
+	GMRFLib_ASSERT(0==1, GMRFLib_ESNH);		       /* never enter this function */
+	abort();
+		
+	/* 
+	   OLD CODE THAT CAN ''FAIL'' FOR DESIGN REASONS
+	 */
+
 	double *x, x_user, *ld, m, s;
 	int len_x, i;
 
@@ -5725,7 +5733,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 
 	ld = Calloc(len_x, double);
 	GMRFLib_evaluate_nlogdensity(ld, x, len_x, density);
-
+	
 	m = func->func(density->std_mean, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov);
 	s = ABS(func->func(density->std_mean, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)) * density->std_stdev;
 	for (i = 0; i < len_x; i++) {
@@ -5733,6 +5741,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 		ld[i] -= log(ABS(func->func(x_user, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)));
 		x[i] = (func->func(x_user, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov) - m) / s;
 	}
+
 	GMRFLib_density_create(tdensity, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, len_x, x, ld, m, s, GMRFLib_FALSE);
 
 	if (0) {

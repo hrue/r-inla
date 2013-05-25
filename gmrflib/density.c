@@ -1,7 +1,7 @@
 
 /* density.c
  * 
- * Copyright (C) 2006-08 Havard Rue
+ * Copyright (C) 2006-2013 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1778,7 +1778,8 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *den
 	/*
 	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
 	 */
-	double p[] = {
+	double p_few[] = {
+		//0.00000001,
 		//0.0000001,
 		0.000001,
 		//0.00001,
@@ -1840,16 +1841,86 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *den
 		//0.9995,
 		//0.9999,
 		//0.99999,
-		0.999999, 
-		//0.9999999
+		0.999999
+		//0.9999999,
+		//0.99999999
 	};
 
-	int i;
+	double p_many[] = {
+		0.00000001,
+		0.0000001,
+		0.000001,
+		0.00001,
+		0.0001,
+		0.0005,
+		0.001,
+		0.005,
+		0.01,
+		0.025, 
+		0.05, 
+		0.075, 
+		0.10, 
+		0.125, 
+		0.15,
+		0.175, 
+		0.2,
+		0.225,
+		0.25,
+		0.275,
+		0.30,
+		0.325,
+		0.35,
+		0.375,
+		0.40,
+		0.425,
+		0.45, 
+		0.46,
+		0.47,
+		0.475, 
+		0.48,
+		0.49,
+		0.50,
+		0.51,
+		0.52,
+		0.525, 
+		0.53,
+		0.54,
+		0.55, 
+		0.575,
+		0.60,
+		0.625,
+		0.65,
+		0.675,
+		0.70,
+		0.725,
+		0.75,
+		0.775,
+		0.80,
+		0.825,
+		0.85,
+		0.875,
+		0.9, 
+		0.925,  
+		0.95,
+		0.975,
+		0.99, 
+		0.995, 
+		0.999,
+		0.9995,
+		0.9999,
+		0.99999,
+		0.999999, 
+		0.9999999, 
+		0.99999999
+	};
 
-	*len_x = sizeof(p)/sizeof(double);
+	int i, use_many = GMRFLib_FALSE;
+	double *p_ptr = (use_many ? p_many : p_few);
+
+	*len_x = (use_many ? sizeof(p_many) : sizeof(p_few))/sizeof(double);
 	*x_vec = Calloc(*len_x, double);
 	for(i=0; i< *len_x; i++) {
-		GMRFLib_density_Pinv(&((*x_vec)[i]), p[i], density);
+		GMRFLib_density_Pinv(&((*x_vec)[i]), p_ptr[i], density);
 	}
 	GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5));
 	
