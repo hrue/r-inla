@@ -536,7 +536,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				}
 				m2 *= dx / 3.0;
 
-				density->mean =  m1;
+				density->mean = m1;
 				density->stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 			} else {
 				double ldens;
@@ -561,7 +561,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 						ldens_max = ldens;
 					}
 				}
-				density->log_norm_const =  ldens_max;
+				density->log_norm_const = ldens_max;
 				GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
 				density->log_norm_const = log(result) + ldens_max;
 
@@ -719,10 +719,10 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	{
 		for (i = 0; i < n; i++) {
 			double xmax = density->log_correction->spline->interp->xmax, xmin = density->log_correction->spline->interp->xmin;
-			
+
 			if (x[i] >= xmin && x[i] <= xmax) {
 				logdens[i] = gsl_spline_eval(density->log_correction->spline, x[i], density->log_correction->accel)
-					- 0.5 * SQR(x[i]) - density->log_norm_const;
+				    - 0.5 * SQR(x[i]) - density->log_norm_const;
 			} else {
 				double diff, cor, f0;
 				if (x[i] >= xmax - DBL_EPSILON) {
@@ -1300,9 +1300,9 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 
 	(*density) = Calloc(1, GMRFLib_density_tp);
 	(*density)->type = GMRFLib_DENSITY_TYPE_GAUSSIAN;
-	(*density)->std_mean =  std_mean;
+	(*density)->std_mean = std_mean;
 	(*density)->std_stdev = std_stdev;
-	(*density)->mean_gaussian =  mean;
+	(*density)->mean_gaussian = mean;
 	(*density)->stdev_gaussian = stdev;
 
 	GMRFLib_EWRAP0(GMRFLib_init_density(*density, GMRFLib_FALSE));
@@ -1319,8 +1319,8 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 
 	(*density) = Calloc(1, GMRFLib_density_tp);
 	(*density)->type = GMRFLib_DENSITY_TYPE_SKEWNORMAL;
-	(*density)->std_mean =  std_mean;
-	(*density)->std_stdev =  std_stdev;
+	(*density)->std_mean = std_mean;
+	(*density)->std_stdev = std_stdev;
 	(*density)->sn_param = Calloc(1, GMRFLib_sn_param_tp);
 	memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
 
@@ -1331,10 +1331,10 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 int GMRFLib_density_adjust_vector(double *ldens, int n)
 {
 	int i;
-	double maxdev = 2.0*log(DBL_EPSILON);
+	double maxdev = 2.0 * log(DBL_EPSILON);
 
 	GMRFLib_adjust_vector(ldens, n);
-	for(i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) {
 		ldens[i] = DMAX(maxdev, ldens[i]);
 	}
 	return GMRFLib_SUCCESS;
@@ -1416,19 +1416,19 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
-			GMRFLib_density_adjust_vector(ldens, n); /* prevent extreme cases for the spline */
+			GMRFLib_density_adjust_vector(ldens, n);	/* prevent extreme cases for the spline */
 
 			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->accel = gsl_interp_accel_alloc());
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->spline = gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n));
 			GMRFLib_EWRAP0_GSL(gsl_spline_init((*density)->log_correction->spline, xx, ldens, (unsigned int) n));
 			GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
-			/* 
+			/*
 			 * to be sure, we reset them here
 			 */
 			(*density)->x_min = (*density)->log_correction->spline->interp->xmin;
 			(*density)->x_max = (*density)->log_correction->spline->interp->xmax;
-			
+
 			break;
 
 		default:
@@ -1450,17 +1450,17 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 
 #define N (30)
 #define M (4)
-	int i, n = N + 2*M;
-	double *x, *ld, alpha, eps[M] = {1e-6, 1e-5, 1e-4, 1e-3}; 
+	int i, n = N + 2 * M;
+	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
 	x = Calloc(n, double);
-	for(i = 0; i < M; i++){
+	for (i = 0; i < M; i++) {
 		GMRFLib_density_Pinv(&x[i], eps[i], density);
 		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
 	}
 	for (i = 0; i < N; i++) {
 		alpha = 0.01 + 0.98 * (1.0 / (double) N) * i;
-		GMRFLib_density_Pinv(&x[2*M + i], alpha, density);
+		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
 	ld = Calloc(n, double);
 
@@ -1773,77 +1773,77 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *density)
+int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density)
 {
 	/*
 	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
 	 */
 	double p_few[] = {
-		//0.00000001,
-		//0.0000001,
+		// 0.00000001,
+		// 0.0000001,
 		0.000001,
-		//0.00001,
-		//0.0001,
-		//0.0005,
+		// 0.00001,
+		// 0.0001,
+		// 0.0005,
 		0.001,
-		//0.005,
+		// 0.005,
 		0.01,
-		//0.025, 
-		0.05, 
-		//0.075, 
-		0.10, 
-		//0.125, 
+		// 0.025, 
+		0.05,
+		// 0.075, 
+		0.10,
+		// 0.125, 
 		0.15,
-		//0.175, 
+		// 0.175, 
 		0.2,
-		//0.225,
+		// 0.225,
 		0.25,
-		//0.275,
+		// 0.275,
 		0.30,
-		//0.325,
+		// 0.325,
 		0.35,
-		//0.375,
+		// 0.375,
 		0.40,
-		//0.425,
-		0.45, 
-		//0.46,
-		//0.47,
-		0.475, 
-		//0.48,
-		//0.49,
+		// 0.425,
+		0.45,
+		// 0.46,
+		// 0.47,
+		0.475,
+		// 0.48,
+		// 0.49,
 		0.50,
-		//0.51,
-		//0.52,
-		0.525, 
-		//0.53,
-		//0.54,
-		0.55, 
-		//0.575,
+		// 0.51,
+		// 0.52,
+		0.525,
+		// 0.53,
+		// 0.54,
+		0.55,
+		// 0.575,
 		0.60,
-		//0.625,
+		// 0.625,
 		0.65,
-		//0.675,
+		// 0.675,
 		0.70,
-		//0.725,
+		// 0.725,
 		0.75,
-		//0.775,
+		// 0.775,
 		0.80,
-		//0.825,
+		// 0.825,
 		0.85,
-		//0.875,
-		0.9, 
-		//0.925,  
+		// 0.875,
+		0.9,
+		// 0.925, 
 		0.95,
-		//0.975,
-		0.99, 
-		//0.995, 
+		// 0.975,
+		0.99,
+		// 0.995, 
 		0.999,
-		//0.9995,
-		//0.9999,
-		//0.99999,
+		// 0.9995,
+		// 0.9999,
+		// 0.99999,
 		0.999999
-		//0.9999999,
-		//0.99999999
+		    // 0.9999999,
+		    // 0.99999999
 	};
 
 	double p_many[] = {
@@ -1856,13 +1856,13 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *den
 		0.001,
 		0.005,
 		0.01,
-		0.025, 
-		0.05, 
-		0.075, 
-		0.10, 
-		0.125, 
+		0.025,
+		0.05,
+		0.075,
+		0.10,
+		0.125,
 		0.15,
-		0.175, 
+		0.175,
 		0.2,
 		0.225,
 		0.25,
@@ -1873,19 +1873,19 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *den
 		0.375,
 		0.40,
 		0.425,
-		0.45, 
+		0.45,
 		0.46,
 		0.47,
-		0.475, 
+		0.475,
 		0.48,
 		0.49,
 		0.50,
 		0.51,
 		0.52,
-		0.525, 
+		0.525,
 		0.53,
 		0.54,
-		0.55, 
+		0.55,
 		0.575,
 		0.60,
 		0.625,
@@ -1899,30 +1899,30 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp *den
 		0.825,
 		0.85,
 		0.875,
-		0.9, 
-		0.925,  
+		0.9,
+		0.925,
 		0.95,
 		0.975,
-		0.99, 
-		0.995, 
+		0.99,
+		0.995,
 		0.999,
 		0.9995,
 		0.9999,
 		0.99999,
-		0.999999, 
-		0.9999999, 
+		0.999999,
+		0.9999999,
 		0.99999999
 	};
 
 	int i, use_many = GMRFLib_FALSE;
 	double *p_ptr = (use_many ? p_many : p_few);
 
-	*len_x = (use_many ? sizeof(p_many) : sizeof(p_few))/sizeof(double);
+	*len_x = (use_many ? sizeof(p_many) : sizeof(p_few)) / sizeof(double);
 	*x_vec = Calloc(*len_x, double);
-	for(i=0; i< *len_x; i++) {
+	for (i = 0; i < *len_x; i++) {
 		GMRFLib_density_Pinv(&((*x_vec)[i]), p_ptr[i], density);
 	}
 	GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5));
-	
+
 	return GMRFLib_SUCCESS;
 }
