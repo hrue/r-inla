@@ -100,6 +100,9 @@ lines.inla.mesh.segment =
     if (!is.null(segm$loc))
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
+    if (ncol(loc) < 3) {
+        loc = cbind(loc, 0.0)
+    }
     color = col
     if (rgl) {
         if (!add) {
@@ -125,9 +128,9 @@ lines.inla.mesh.segment =
             color=colors[1+(grp%%length(colors))]
         }
         if (rgl) {
-            rgl.lines(loc[as.vector(t(segm$idx[idx,, drop=FALSE])),,drop=FALSE],
-                      color=color,
-                      ...)
+            segments3d(loc[as.vector(t(segm$idx[idx,, drop=FALSE])),,drop=FALSE],
+                       color=color,
+                       ...)
         } else {
             lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
                   loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
@@ -286,8 +289,8 @@ lines.inla.mesh.segment =
         dev = NULL
     }
     if (draw.vertices)
-        rgl.points(m$mesh$s[m$locations.idx, ],
-                   size=2*size, lwd=lwd, color = "blue", ...)
+        points3d(m$mesh$s[m$locations.idx, ],
+                 size=2*size, lwd=lwd, color = "blue", ...)
     plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
                       size=size, lwd=lwd,
                       draw.vertices=draw.vertices, add=add, ...)
@@ -320,7 +323,6 @@ plot.inla.mesh =
              add=FALSE,
              lwd=1,
              col="white",
-             edge.color=rgb(0.3, 0.3, 0.3),
              xlim = range(mesh$loc[,1]),
              ylim = range(mesh$loc[,2]),
              main = NULL,
@@ -328,6 +330,9 @@ plot.inla.mesh =
              size = 2,
              draw.vertices=FALSE,
              vertex.color="black",
+             draw.edges=TRUE,
+             edge.color=rgb(0.3, 0.3, 0.3),
+             draw.segments=draw.edges,
              ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -343,17 +348,23 @@ plot.inla.mesh =
         tv = mesh$graph$tv[t.sub,,drop=FALSE]
         if (draw.vertices) {
             idx = intersect(unique(as.vector(tv)), mesh$idx$loc)
-            rgl.points(mesh$loc[idx,,drop=FALSE],
-                       size=2*size, lwd=lwd, color = "blue", ...)
+            points3d(mesh$loc[idx,,drop=FALSE],
+                     size=2*size, lwd=lwd, color = "blue", ...)
         }
-        if (!is.null(mesh$segm$bnd))
-            lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, rgl=TRUE, add=TRUE, ...)
-        if (!is.null(mesh$segm$int))
-            lines(mesh$segm$int, mesh$loc, lwd=lwd+1, rgl=TRUE, add=TRUE, ...)
-        plot.inla.trimesh(tv, mesh$loc, color = col, edge.color=edge.color,
+        if (draw.segments) {
+            if (!is.null(mesh$segm$bnd))
+                lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1,
+                      rgl=TRUE, add=TRUE, ...)
+            if (!is.null(mesh$segm$int))
+                lines(mesh$segm$int, mesh$loc, lwd=lwd+1,
+                      rgl=TRUE, add=TRUE, ...)
+        }
+        plot.inla.trimesh(tv, mesh$loc, color = col,
                           size=size, lwd=lwd,
                           draw.vertices=draw.vertices,
                           vertex.color=vertex.color,
+                          draw.edges=draw.edges,
+                          edge.color=edge.color,
                           ...)
         return(invisible(dev))
     } else {
@@ -365,7 +376,9 @@ plot.inla.mesh =
             plot.new()
             plot.window(xlim=xlim, ylim=ylim, ...)
         }
-        lines(x, y, type="l", col=edge.color, lwd=lwd)
+        if (draw.edges) {
+            lines(x, y, type="l", col=edge.color, lwd=lwd)
+        }
         tv = mesh$graph$tv[t.sub,,drop=FALSE]
         if (draw.vertices) {
             idx = unique(as.vector(tv))
@@ -375,10 +388,12 @@ plot.inla.mesh =
             points(mesh$loc[idx,,drop=FALSE],
                    pch=20, col="blue", ...)
         }
-        if (!is.null(mesh$segm$bnd))
-            lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
-        if (!is.null(mesh$segm$int))
-            lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
+        if (draw.segments) {
+            if (!is.null(mesh$segm$bnd))
+                lines(mesh$segm$bnd, mesh$loc, lwd=lwd+1, ...)
+            if (!is.null(mesh$segm$int))
+                lines(mesh$segm$int, mesh$loc, lwd=lwd+1, ...)
+        }
         if (!add && missing(main)) {
             if (mesh$meta$is.refined) {
                 title("Constrained refined Delaunay triangulation",
@@ -1150,11 +1165,11 @@ inla.mesh.interior <-
 ## Generate nice triangulation, with an inner domain strictly enclosed
 ## by an outer domain
 ## The inner and outer domains can have different quality parameters
-## At least one of points, points.domain, boundary[[1]], boundary[[2]], interior
+## At least one of loc, points.domain, boundary[[1]], boundary[[2]], interior
 ## must be non-NULL
 ## For more complicated multi-step meshings, study the code and write your own.
-inla.mesh.create.helper <-
-    function(points=NULL, ## Points to include in final triangulation
+inla.mesh.2d <-
+    function(loc=NULL, ## Points to include in final triangulation
              points.domain=NULL, ## Points that determine the automatic domain
              offset=c(-0.05,-0.15), ## Size of automatic extensions
              n=c(8,16), ## Sides of automatic extension polygons
@@ -1163,7 +1178,8 @@ inla.mesh.create.helper <-
              max.edge,
              min.angle=c(21,21), ## Angle constraint for the entire domain
              cutoff=0, ## Only add input points further apart than this
-             plot.delay=NULL)
+             plot.delay=NULL,
+             points=NULL) ## Keep "points" to support legacy code.
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
@@ -1173,51 +1189,77 @@ inla.mesh.create.helper <-
         stop("max.edge must be specified")
     }
 
-    if (missing(points) || is.null(points))
-        points = matrix(c(0.0),0,3)
+    if (missing(loc) || is.null(loc)) {
+        if (missing(points) || is.null(points))
+            loc = matrix(c(0.0), 0, 3)
+        else
+            loc = points
+    } else {
+        if (!(missing(points) || is.null(points)))
+            warning("Both 'loc' and 'points' specified.  Ignoring 'points'.")
+    }
     if (missing(points.domain) || is.null(points.domain))
-        points.domain = points
-    if (missing(boundary))
-        boundary = list(NULL,NULL)
+        points.domain = loc
+    if (missing(boundary)) {
+        boundary = list(NULL)
+    } else {
+        if (!inherits(boundary, "list"))
+            boundary = list(boundary)
+    }
     if (missing(interior))
         interior = NULL
-    if (missing(offset) || is.null(offset))
-        offset = c(-0.05,-0.15)
+    if (missing(offset) || is.null(offset)) {
+        if (length(boundary) < 2)
+            offset = -0.05
+        else
+            offset = c(-0.05, -0.15)
+    }
     if (missing(n) || is.null(n))
-        n = c(8,16)
+        n = c(8)
     if (missing(min.angle) || is.null(min.angle))
-        min.angle = c(21,21)
+        min.angle = c(21)
     if (missing(cutoff) || is.null(cutoff))
         cutoff = 0
     if (missing(plot.delay) || is.null(plot.delay))
         plot.delay = NULL
 
-    if (length(min.angle)<2)
+    num.layers =
+        max(c(length(boundary), length(offset), length(n),
+              length(min.angle), length(max.edge)))
+    if (num.layers > 2) {
+        warning(paste("num.layers=", num.layers, " > 2 detected.  ",
+                      "Excess information ignored.", sep=""))
+        num.layers = 2
+    }
+
+    if (length(boundary) < num.layers)
+        boundary = c(boundary, list(NULL))
+    if (length(min.angle) < num.layers)
         min.angle = c(min.angle, min.angle)
-    if (length(max.edge)<2)
+    if (length(max.edge) < num.layers)
         max.edge = c(max.edge, max.edge)
-    if (length(offset)<2)
-        offset = c(offset, offset)
-    if (length(n)<2)
-        n = c(n, n)
+    if (length(offset) < num.layers)
+        offset = c(offset, -0.15)
+    if (length(n) < num.layers)
+        n = c(n, 16)
 
     ## Unify the dimensionality of the point input.
-    if (!is.null(points) && (ncol(points)==2))
-        points = cbind(points,0.0)
+    if (!is.null(loc) && (ncol(loc)==2))
+        loc = cbind(loc, 0.0)
     if (!is.null(points.domain) && (ncol(points.domain)==2))
-        points.domain = cbind(points.domain,0.0)
+        points.domain = cbind(points.domain, 0.0)
     ## Unify the dimensionality of the boundary&interior segments input.
-    for (k in 1:2) {
+    for (k in seq_len(num.layers)) {
         if (!is.null(boundary[[k]])) {
             if (inherits(boundary[[k]], "list")) {
                 for (j in seq_along(boundary[[k]])) {
                     if (ncol(boundary[[k]][[j]]$loc)==2) {
                         boundary[[k]][[j]]$loc =
-                            cbind(boundary[[k]][[j]]$loc,0.0)
+                            cbind(boundary[[k]][[j]]$loc, 0.0)
                     }
                 }
             } else if (ncol(boundary[[k]]$loc)==2) {
-                boundary[[k]]$loc = cbind(boundary[[k]]$loc,0.0)
+                boundary[[k]]$loc = cbind(boundary[[k]]$loc, 0.0)
             }
         }
     }
@@ -1225,11 +1267,11 @@ inla.mesh.create.helper <-
         if (inherits(interior, "list")) {
             for (j in seq_along(interior)) {
                 if (ncol(interior[[j]]$loc)==2) {
-                    interior[[j]]$loc = cbind(interior[[j]]$loc,0.0)
+                    interior[[j]]$loc = cbind(interior[[j]]$loc, 0.0)
                 }
             }
         } else if (ncol(interior$loc)==2) {
-            interior$loc = cbind(interior$loc,0.0)
+            interior$loc = cbind(interior$loc, 0.0)
         }
     }
 
@@ -1255,7 +1297,7 @@ inla.mesh.create.helper <-
 
     ## Triangulate inner domain
     mesh2 =
-        inla.mesh.create(loc=points,
+        inla.mesh.create(loc=loc,
                          boundary=boundary1,
                          interior=interior1,
                          cutoff=cutoff,
@@ -1274,9 +1316,13 @@ inla.mesh.create.helper <-
         plot(mesh2)
     }
 
+    if (num.layers == 1) {
+        return(invisible(mesh2))
+    }
+
     ## Triangulate inner+outer domain
     mesh3 =
-        inla.mesh.create(loc=rbind(points,mesh2$loc),
+        inla.mesh.create(loc=rbind(loc, mesh2$loc),
                          boundary=boundary[[2]],
                          interior=list(boundary2[[1]], interior2),
                          cutoff=cutoff,
@@ -1288,37 +1334,45 @@ inla.mesh.create.helper <-
                          plot.delay=plot.delay)
 
     ## Hide generated points, to match regular inla.mesh.create output
-    mesh3$idx$loc = mesh3$idx$loc[1:nrow(points)]
+    ## TODO: correctly translate the corresponding segm indices.
+    mesh3$idx$loc = mesh3$idx$loc[seq_len(nrow(loc))]
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
         inla.dev.new()
         plot(mesh3)
     }
 
-    return(mesh3)
+    return(invisible(mesh3))
+}
+
+## Support for legacy code:
+inla.mesh.create.helper <- function(...)
+{
+    return(invisible(inla.mesh.2d(...)))
 }
 
 ## Example:
-if (FALSE) {
-    mesh =
-        inla.mesh.create.helper(points=matrix(runif(20),10,2)*200,
-                                n=c(8,16),
-                                offset=c(10,140),
-                                max.edge=c(25,1000),
-                                min.angle=26,
-                                cutoff=0,
-                                plot.delay=-1
-                                )
-}
+##if (FALSE) {
+##    mesh =
+##        inla.mesh.create.helper(loc=matrix(runif(20),10,2)*200,
+##                                n=c(8,16),
+##                                offset=c(10,140),
+##                                max.edge=c(25,1000),
+##                                min.angle=26,
+##                                cutoff=0,
+##                                plot.delay=-1
+##                                )
+##}
 ##
 
 
 inla.delaunay = function(loc, ...)
 {
     hull = chull(loc[,1],loc[,2])
+    bnd = inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE)
     mesh =
         inla.mesh.create(loc=loc,
-                         boundary=inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE),
+                         boundary=bnd,
                          extend=FALSE,
                          refine=FALSE,
                          ...)
@@ -1967,7 +2021,7 @@ inla.mesh.1d.old = function(loc, interval=range(loc), cyclic=FALSE)
     mesh$idx$loc =
         inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
 
-    return(mesh)
+    return(invisible(mesh))
 }
 
 
@@ -2114,7 +2168,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
                               method="nearest")$index[,1]
     }
 
-    return(mesh)
+    return(invisible(mesh))
 }
 
 inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
