@@ -909,7 +909,7 @@ int main(int argc, char* argv[])
 
   if (args_info.points2mesh_given>0) {
     LOG("points2mesh output." << std::endl);
-    if (!isflat | !issphere) {
+    if (!isflat && !issphere) {
       LOG_("Cannot calculate points2mesh mapping for non R2/S2 manifolds"
 	   << std::endl);
     } else {
