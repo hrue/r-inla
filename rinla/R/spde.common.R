@@ -555,7 +555,51 @@ inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
 }
 
 
-## Deprecated/obsolete: n.mesh, group.method
+
+
+## This function makes use of the feature of sparseMatrix to sum all
+## values for multiple instances of the same (i,j) pair.
+inla.spde.block.A =
+    function(mesh,
+             points,
+             block,
+             n.block=max(block),
+             weights=NULL,
+             normalise.by.count=TRUE)
+{
+    require(Matrix)
+
+    N = length(block)
+    if (is.null(weights)) {
+        weights = rep(1, N)
+    }
+
+    A.points =
+        inla.as.dgTMatrix(inla.spde.make.A(mesh, loc=points))
+
+    if (normalise.by.count) {
+        ## Count number of points per block and normalise
+        count = (sparseMatrix(i = block,
+                              j = rep(1L, N),
+                              x = (rowSums(A.points)>0),
+                              dims = c(n.block, 1)
+                              ))[block]
+        weights[count>0] = weights[count>0]/count[count>0]
+    }
+
+    i = block[1L+A.points@i]
+    A = (inla.as.dgTMatrix(sparseMatrix(i = i,
+                                        j = 1L+A.points@j,
+                                        x = weights[i] * A.points@x,
+                                        dims = c(n.block, ncol(A.points))
+                                        )))
+
+    return(A)
+}
+
+
+
+## Deprecated/obsolete parameters: n.mesh, group.method
 inla.spde.make.A =
     function(mesh = NULL,
              loc = NULL,

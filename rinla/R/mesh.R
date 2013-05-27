@@ -1165,21 +1165,20 @@ inla.mesh.interior <-
 ## Generate nice triangulation, with an inner domain strictly enclosed
 ## by an outer domain
 ## The inner and outer domains can have different quality parameters
-## At least one of loc, points.domain, boundary[[1]], boundary[[2]], interior
+## At least one of loc, loc.domain, boundary[[1]], boundary[[2]], interior
 ## must be non-NULL
 ## For more complicated multi-step meshings, study the code and write your own.
 inla.mesh.2d <-
     function(loc=NULL, ## Points to include in final triangulation
-             points.domain=NULL, ## Points that determine the automatic domain
-             offset=c(-0.05,-0.15), ## Size of automatic extensions
-             n=c(8,16), ## Sides of automatic extension polygons
+             loc.domain=NULL, ## Points that determine the automatic domain
+             offset=NULL, ## Size of automatic extensions
+             n=NULL, ## Sides of automatic extension polygons
              boundary=NULL, ## User-specified domains (list of length 2)
              interior=NULL, ## User-specified constraints for the inner domain
              max.edge,
-             min.angle=c(21,21), ## Angle constraint for the entire domain
+             min.angle=NULL, ## Angle constraint for the entire domain
              cutoff=0, ## Only add input points further apart than this
-             plot.delay=NULL,
-             points=NULL) ## Keep "points" to support legacy code.
+             plot.delay=NULL)
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
@@ -1189,17 +1188,10 @@ inla.mesh.2d <-
         stop("max.edge must be specified")
     }
 
-    if (missing(loc) || is.null(loc)) {
-        if (missing(points) || is.null(points))
-            loc = matrix(c(0.0), 0, 3)
-        else
-            loc = points
-    } else {
-        if (!(missing(points) || is.null(points)))
-            warning("Both 'loc' and 'points' specified.  Ignoring 'points'.")
-    }
-    if (missing(points.domain) || is.null(points.domain))
-        points.domain = loc
+    if (missing(loc) || is.null(loc))
+        loc = matrix(c(0.0), 0, 3)
+    if (missing(loc.domain) || is.null(loc.domain))
+        loc.domain = loc
     if (missing(boundary)) {
         boundary = list(NULL)
     } else {
@@ -1246,8 +1238,8 @@ inla.mesh.2d <-
     ## Unify the dimensionality of the point input.
     if (!is.null(loc) && (ncol(loc)==2))
         loc = cbind(loc, 0.0)
-    if (!is.null(points.domain) && (ncol(points.domain)==2))
-        points.domain = cbind(points.domain, 0.0)
+    if (!is.null(loc.domain) && (ncol(loc.domain)==2))
+        loc.domain = cbind(loc.domain, 0.0)
     ## Unify the dimensionality of the boundary&interior segments input.
     for (k in seq_len(num.layers)) {
         if (!is.null(boundary[[k]])) {
@@ -1278,7 +1270,7 @@ inla.mesh.2d <-
     ## Triangulate to get inner domain boundary
     ## Constraints included only to get proper domain extent
     mesh1 =
-        inla.mesh.create(loc=points.domain,
+        inla.mesh.create(loc=loc.domain,
                          boundary=boundary[[1]],
                          interior=interior,
                          cutoff=cutoff,
@@ -1346,9 +1338,9 @@ inla.mesh.2d <-
 }
 
 ## Support for legacy code:
-inla.mesh.create.helper <- function(...)
+inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 {
-    return(invisible(inla.mesh.2d(...)))
+    return(invisible(inla.mesh.2d(loc=points, loc.domain=points.domain, ...)))
 }
 
 ## Example:
