@@ -291,171 +291,6 @@ inla.spde.make.index = function(name, n.spde, n.group=1, n.repl=1, n.mesh=NULL)
     return(out)
 }
 
-inla.spde.make.A.old =
-    function(mesh = NULL,
-             loc = NULL,
-             index = NULL,
-             group = NULL,
-             repl = 1L,
-             n.mesh = NULL,
-             n.group = NULL,
-             n.repl = NULL,
-             group.mesh = NULL,
-             group.method = c("nearest", "S0", "S1"),
-             weights = NULL,
-             A.loc = NULL)
-{
-    ## A.loc can be specified instead of mesh+loc, if index is supplied.
-
-    if (is.null(mesh)) {
-        if (is.null(A.loc) && is.null(n.mesh))
-            stop("At least one of 'mesh', 'n.mesh', and 'A.loc' must be specified.")
-        if (!is.null(A.loc)) {
-            n.mesh = ncol(A.loc)
-        }
-    } else {
-        inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
-        n.mesh = mesh$n
-    }
-    if (!is.null(group.mesh)) {
-        inla.require.inherits(group.mesh, "inla.mesh.1d", "'mesh'")
-    }
-    group.method = match.arg(group.method)
-
-    n.group =
-        inla.ifelse(is.null(n.group),
-                    max(1, inla.ifelse(is.null(group), 1,
-                                       inla.ifelse(length(group)==0, 1,
-                                                   max(group)))),
-                    n.group)
-    n.repl =
-        inla.ifelse(is.null(n.repl),
-                    max(1, inla.ifelse(is.null(repl), 1,
-                                       inla.ifelse(length(repl)==0, 1,
-                                                   max(repl)))),
-                    n.repl)
-
-    ## Handle loc and index input semantics:
-    if (is.null(loc)) {
-        if (is.null(A.loc)) {
-            A.loc = Diagonal(n.mesh, 1)
-        }
-    } else {
-        if (is.null(mesh))
-            stop("'loc' specified but 'mesh' is NULL.")
-        if (inherits(mesh, "inla.mesh.1d")) {
-            A.loc = inla.mesh.1d.A(mesh, loc=loc, method="linear")
-        } else {
-            A.loc = inla.mesh.project(mesh, loc=loc)$A
-        }
-    }
-    if (is.null(index)) {
-        index = 1:nrow(A.loc)
-    }
-    ## Now 'index' points into the rows of 'A.loc'
-
-    ## Handle group semantics:
-    if (is.null(group.mesh)) {
-        if (is.null(group))
-            group = rep(1L, length(index))
-        else if (length(group) == 1)
-            group = rep(group, length(index))
-        else if (length(group) != length(index))
-            stop(paste("length(group) != length(index): ",
-                       length(group), " != ", length(index),
-                       sep=""))
-    } else {
-        n.group = group.mesh$n
-        if (is.null(group))
-            group = rep(mesh$loc[1], length(index))
-        else if (length(group) == 1)
-            group = rep(group, length(index))
-        else if (length(group) != length(index))
-            stop(paste("length(group) != length(index): ",
-                       length(group), " != ", length(index),
-                       sep=""))
-
-        ## TODO: Modify to support "nearest"(degree=1)/"basis"(degree=1&2)
-        if (group.method=="nearest") {
-            group.index =
-                inla.mesh.1d.bary(group.mesh, loc=group, method="nearest")
-            group = group.index$index[,1]
-        } else {
-            group.index =
-                inla.mesh.1d.bary(group.mesh, loc=group, method="linear")
-            if (group.method=="S0") {
-                group = group.index$index[,1]
-            }
-        }
-    }
-
-    ## Handle repl semantics:
-    if (is.null(repl))
-        repl = rep(1, length(index))
-    else if (length(repl) == 1)
-        repl = rep(repl, length(index))
-    else if (length(repl) != length(index))
-        stop(paste("length(repl) != length(index): ",
-                   length(repl), " != ", length(index),
-                   sep=""))
-
-    if (length(index) > 0L) {
-        A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
-
-        if (length(A.loc@i) > 0L) {
-            if (is.null(weights)) {
-                weights = rep(1, length(index))
-            } else {
-                if (length(weights)==1L) {
-                    weights = rep(weights[1], length(index))
-                }
-            }
-
-            if (!is.null(group.mesh) && (group.method=="S1")) {
-                i = 1L+A.loc@i
-                group.i1 = group.index$index[i,1]
-                group.i2 = group.index$index[i,2]
-                repl.i = repl[i]
-                weights.ii = weights[c(i,i)]
-                return(sparseMatrix(i=c(i,i),
-                                    j=(1L+c(A.loc@j+
-                                            n.mesh*(group.i1-1L)+
-                                            n.mesh*n.group*(repl.i-1L),
-                                            A.loc@j+
-                                            n.mesh*(group.i2-1L)+
-                                            n.mesh*n.group*(repl.i-1L))),
-                                    x=(weights.ii*
-                                       c(A.loc@x*group.index$bary[i,1],
-                                         A.loc@x*group.index$bary[i,2])),
-                                    dims=c(length(index),
-                                    n.mesh*n.group*n.repl)))
-            } else {
-                i = 1L+A.loc@i
-                group.i = group[i]
-                repl.i = repl[i]
-                weights.i = weights[i]
-                return(sparseMatrix(i=i,
-                                    j=(1L+A.loc@j+
-                                       n.mesh*(group.i-1L)+
-                                       n.mesh*n.group*(repl.i-1L)),
-                                    x=weights.i*A.loc@x,
-                                    dims=(c(length(index),
-                                            n.mesh*n.group*n.repl))))
-            }
-        } else {
-            return(sparseMatrix(i=integer(0),
-                                j=integer(0),
-                                x=numeric(0),
-                                dims=c(length(index),
-                                n.mesh*n.group*n.repl)))
-        }
-    } else {
-        return(sparseMatrix(i=integer(0),
-                            j=integer(0),
-                            x=numeric(0),
-                            dims=c(0L, n.mesh*n.group*n.repl)))
-    }
-}
 
 
 
@@ -472,33 +307,31 @@ inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
     }
     if (is.null(weights)) {
         weights = rep(1, n)
-    } else {
-        if (length(weights)==1L) {
-            weights = rep(weights[1], n)
-        }
+    } else if (length(weights)==1L) {
+        weights = rep(weights[1], n)
     }
 
     if (FALSE) {
     ## Slow version:
-    print(system.time({
-    M = (sparseMatrix(i=numeric(0), j=numeric(0), x=integer(0),
-                      dims=c(n, ncol(M1)*ncol(M2))))
-    for (k in seq_len(n)) {
-        M[k,] = kronecker(M1[k,,drop=FALSE], M2[k,,drop=FALSE])
-    }
-    M = inla.as.dgTMatrix(M)
-    weights.ii = weights[1L + M@i]
-    M = (sparseMatrix(i=(1L + M@i),
-                      j=(1L + M@j + ncol(M)*(repl[M@i+1L]-1L)),
+        print(system.time({
+            M = (sparseMatrix(i=numeric(0), j=numeric(0), x=integer(0),
+                              dims=c(n, ncol(M1)*ncol(M2))))
+            for (k in seq_len(n)) {
+                M[k,] = kronecker(M1[k,,drop=FALSE], M2[k,,drop=FALSE])
+            }
+            M = inla.as.dgTMatrix(M)
+            weights.ii = weights[1L + M@i]
+            M = (sparseMatrix(i=(1L + M@i),
+                              j=(1L + M@j + ncol(M)*(repl[M@i+1L]-1L)),
                       x=weights.ii*M@x,
-                      dims=c(n, n.repl*ncol(M))))
-}))
-    M.slow = M
-}
+                              dims=c(n, n.repl*ncol(M))))
+        }))
+        M.slow = M
+    }
 
     ## Fast version:
     ## TODO: Check robustness for all-zero rows.
-    ## TODO: Move big sparseMatrix call outside the loop.
+    ## TODO: Maybe move big sparseMatrix call outside the loop.
     ## TODO: Automatically choose M1 or M2 for looping.
 
 ##    print(system.time({
@@ -547,9 +380,10 @@ inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
     }
 ##}))
 
-##    print(max(abs(M-M.slow)))
+    ## For debugging:
+    ##    print(max(abs(M-M.slow)))
 
-##    o2 = order(n2[1L+M2@i], M2@i, M2@j)
+    ##    o2 = order(n2[1L+M2@i], M2@i, M2@j)
 
     return(M)
 }
@@ -557,49 +391,73 @@ inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
 
 
 
+## Add A-matrix rows belonging to the same "block" with optional
+## weights and optional rescaling, by dividing row i by a_i, for |a_i|>0:
+## B(i) = {j; block(i)==block(j) and sum_k |A_jk| > 0 }
+## "count":   a_i = #{j in B(i)} }
+## "weights": a_i = \sum_{j in B(i)} weights_j
+## "sum":     a_i = \sum_{j in B(i)} \sum_k A_jk weights_j
+##
 ## This function makes use of the feature of sparseMatrix to sum all
 ## values for multiple instances of the same (i,j) pair.
-inla.spde.block.A =
-    function(mesh,
-             points,
+inla.spde.make.block.A =
+    function(A,
              block,
-             n.block=max(block),
-             weights=NULL,
-             normalise.by.count=TRUE)
+             n.block = max(block),
+             weights = NULL,
+             rescale = c("none", "count", "weights", "sum"))
 {
     require(Matrix)
 
-    N = length(block)
+    A = inla.as.dgTMatrix(A)
+    N = nrow(A)
+    ## length(block) should be == N or 1
+    if (length(block) == 1L) {
+        block = rep(block, N)
+    }
     if (is.null(weights)) {
         weights = rep(1, N)
     }
 
-    A.points =
-        inla.as.dgTMatrix(inla.spde.make.A(mesh, loc=points))
+    rescale = match.arg(rescale)
 
-    if (normalise.by.count) {
-        ## Count number of points per block and normalise
-        count = (sparseMatrix(i = block,
-                              j = rep(1L, N),
-                              x = (rowSums(A.points)>0),
-                              dims = c(n.block, 1)
-                              ))[block]
-        weights[count>0] = weights[count>0]/count[count>0]
+    if (!(rescale == "none")) {
+        if (rescale == "count") {
+            ## Count the non-zero rows within each block
+            sums = (sparseMatrix(i = block,
+                                 j = rep(1L, N),
+                                 x = (rowSums(abs(A)) > 0) * 1.0,
+                                 dims = c(n.block, 1L)
+                                 ))[block]
+        } else if (rescale == "weights") {
+            ## Sum the weights within each block
+            sums = (sparseMatrix(i = block,
+                                 j = rep(1L, N),
+                                 x = (rowSums(abs(A)) > 0) * weights,
+                                 dims = c(n.block, 1L)
+                                 ))[block]
+        } else { ## (rescale == "sum"){
+            ## Sum the weighted values within each block
+            sums = (sparseMatrix(i = block,
+                                 j = rep(1L, N),
+                                 x = rowSums(A) * weights,
+                                 dims = c(n.block, 1L)
+                                 ))[block]
+        }
+        ## Normalise:
+        ok = (abs(sums) > 0)
+        weights[ok] = weights[ok]/sums[ok]
     }
 
-    i = block[1L+A.points@i]
-    A = (inla.as.dgTMatrix(sparseMatrix(i = i,
-                                        j = 1L+A.points@j,
-                                        x = weights[i] * A.points@x,
-                                        dims = c(n.block, ncol(A.points))
-                                        )))
-
-    return(A)
+    return(inla.as.dgTMatrix(sparseMatrix(i = block[1L+A@i],
+                                          j = 1L+A@j,
+                                          x = A@x * weights[1L+A@i],
+                                          dims = c(n.block, ncol(A))
+                                          )))
 }
 
 
 
-## Deprecated/obsolete parameters: n.mesh, group.method
 inla.spde.make.A =
     function(mesh = NULL,
              loc = NULL,
@@ -614,8 +472,12 @@ inla.spde.make.A =
              A.loc = NULL,
              A.group = NULL,
              group.index = NULL,
+             block = NULL,
+             n.block = NULL,
+             block.rescale = c("none", "count", "weight", "sum"),
              n.mesh = NULL,
              group.method = NULL)
+## Deprecated/obsolete parameters: n.mesh, group.method
 {
     ## A.loc can be specified instead of mesh+loc, optionally with
     ## index supplied.
@@ -651,7 +513,6 @@ inla.spde.make.A =
     if (!is.null(group.mesh)) {
         inla.require.inherits(group.mesh, "inla.mesh.1d", "'mesh'")
     }
-##    group.method = match.arg(group.method)
 
     n.group =
         inla.ifelse(is.null(n.group),
@@ -680,6 +541,11 @@ inla.spde.make.A =
         index = seq_len(nrow(A.loc))
     }
     ## Now 'index' points into the rows of 'A.loc'
+
+    n.block =
+        inla.ifelse(is.null(n.block),
+                    inla.ifelse(is.null(block), length(index), max(block)))
+    block.rescale = match.arg(block.rescale)
 
     ## Handle group semantics:
     if (is.null(group.mesh)) {
@@ -725,47 +591,58 @@ inla.spde.make.A =
         if (length(A.loc@i) > 0L) {
             if (is.null(weights)) {
                 weights = rep(1, length(index))
-            } else {
-                if (length(weights)==1L) {
-                    weights = rep(weights[1], length(index))
-                }
+            } else if (length(weights)==1L) {
+                weights = rep(weights[1], length(index))
+            }
+            if (!is.null(block)) {
+                ## Leave the rescaling until the block phase,
+                ## so that the proper rescaling can be determined.
+                block.weights = weights
+                weights = rep(1, length(index))
             }
 
             if (!is.null(A.group)) {
                 A.group = inla.as.dgTMatrix(A.group[group.index,,drop=FALSE])
-                return(inla.row.kron(A.group, A.loc,
-                                     repl=repl, n.repl=n.repl,
-                                     weights=weights))
+                A = (inla.row.kron(A.group, A.loc,
+                                   repl=repl, n.repl=n.repl,
+                                   weights=weights))
                 ## More general version:
-                ## return(inla.row.kron(A.repl,
-                ##                      inla.row.kron(A.group, A.loc),
-                ##                      weights=weights))
+                ## A = inla.row.kron(A.repl,
+                ##                   inla.row.kron(A.group, A.loc),
+                ##                   weights=weights))
             } else {
                 i = 1L+A.loc@i
                 group.i = group[i]
                 repl.i = repl[i]
                 weights.i = weights[i]
-                return(sparseMatrix(i=i,
-                                    j=(1L+A.loc@j+
-                                       n.spde*(group.i-1L)+
-                                       n.spde*n.group*(repl.i-1L)),
-                                    x=weights.i*A.loc@x,
-                                    dims=(c(length(index),
-                                            n.spde*n.group*n.repl))))
+                A = (sparseMatrix(i=i,
+                                  j=(1L+A.loc@j+
+                                     n.spde*(group.i-1L)+
+                                     n.spde*n.group*(repl.i-1L)),
+                                  x=weights.i*A.loc@x,
+                                  dims=(c(length(index),
+                                          n.spde*n.group*n.repl))))
+            }
+            if (!is.null(block)) {
+                A = (inla.spde.make.block.A(A=A,
+                                            block=block,
+                                            n.block=n.block,
+                                            weights=block.weights,
+                                            rescale=block.rescale))
             }
         } else {
-            return(sparseMatrix(i=integer(0),
-                                j=integer(0),
-                                x=numeric(0),
-                                dims=c(length(index),
-                                n.spde*n.group*n.repl)))
+            A = (sparseMatrix(i=integer(0),
+                              j=integer(0),
+                              x=numeric(0),
+                              dims=c(n.block, n.spde*n.group*n.repl)))
         }
     } else {
-        return(sparseMatrix(i=integer(0),
-                            j=integer(0),
-                            x=numeric(0),
-                            dims=c(0L, n.spde*n.group*n.repl)))
+        A = (sparseMatrix(i=integer(0),
+                          j=integer(0),
+                          x=numeric(0),
+                          dims=c(0L, n.spde*n.group*n.repl)))
     }
+    return(A)
 }
 
 
