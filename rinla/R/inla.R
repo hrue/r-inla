@@ -617,7 +617,7 @@
 
     if (n.family > 1) {
         y...orig = inla.as.list.of.lists(y...orig)
-        ny = max(sapply(y...orig, length))
+        ny = max(sapply(y...orig, function(xx) if (is.list(xx)) length(xx[[1L]]) else length(xx)))
         nc = length(y...orig)
         if (n.family != nc)
             stop(paste("Number of families", n.family, "does not match number of response variables", nc))
