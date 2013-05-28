@@ -1113,8 +1113,8 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	int i, j, n_points = 30, np, np_g, np_max, nf, minp = 3;
 	double mean, stdev, mean_g, stdev_g, *x_points = NULL, *x_points_g = NULL,
-		*log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx,
-		f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0};
+	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx,
+	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0 };
 
 	GMRFLib_ENTER_ROUTINE;
 	if (n == 0) {
@@ -1159,7 +1159,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	GMRFLib_ghq_abscissas(&ptr, n_points);
 	memcpy(x_points, ptr, n_points * sizeof(double));
-	if (gdensity){
+	if (gdensity) {
 		memcpy(x_points_g, ptr, n_points * sizeof(double));
 	}
 
@@ -1178,7 +1178,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			}
 		}
 	}
-	if (gdensity){
+	if (gdensity) {
 		np_g = n_points;
 		for (i = 0; i < n; i++) {
 			m = densities[i]->std_mean;
@@ -1200,7 +1200,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	 * spline-interpolant (or 5 for the akima-interpolant).
 	 */
 	qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
-	if (gdensity){
+	if (gdensity) {
 		qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
 	}
 
@@ -1223,24 +1223,24 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	}
 	Free(x_points_tmp);
 
-	if (gdensity){
+	if (gdensity) {
 		x_points_tmp = Calloc(np_g, double);
 		np_tmp = np_g;
 		memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
 		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-		if (np_tmp >= minp) {				       /* then its ok */
+		if (np_tmp >= minp) {			       /* then its ok */
 			np_g = np_tmp;
 			memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 		} else {
 			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
-			if (np_tmp >= minp) {			       /* then its ok */
+			if (np_tmp >= minp) {		       /* then its ok */
 				np_g = np_tmp;
 				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 			}
 		}
 		Free(x_points_tmp);
 	}
-	
+
 	log_dens = Calloc(np, double);
 	log_dens_g = (gdensity ? Calloc(np_g, double) : NULL);
 
@@ -1276,7 +1276,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	}
 	GMRFLib_adjust_vector(log_dens, np);
 
-	if (gdensity){
+	if (gdensity) {
 		for (i = 0; i < np_g; i++) {
 			x_real = x_points_g[i] * stdev_g + mean_g;
 			GMRFLib_evaluate_gdensities(&dens, x_real, n, densities, weights);
