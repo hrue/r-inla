@@ -474,7 +474,7 @@ inla.spde.make.A =
              group.index = NULL,
              block = NULL,
              n.block = NULL,
-             block.rescale = c("none", "count", "weight", "sum"),
+             block.rescale = c("none", "count", "weights", "sum"),
              n.mesh = NULL,
              group.method = NULL)
 ## Deprecated/obsolete parameters: n.mesh, group.method
