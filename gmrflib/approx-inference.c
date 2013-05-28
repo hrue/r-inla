@@ -4930,7 +4930,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_density_combine((density ? &dens_combine : NULL), (gdensity ? &gdens_combine : NULL), dens_count, dens[ii], adj_weights);
 			if (density) {
 				(*density)[ii] = dens_combine;
-				//printf("ii %d mean before %g mean after %g\n", ii, dens[ii][0]->user_mean, dens_combine->user_mean);
+				// printf("ii %d mean before %g mean after %g\n", ii, dens[ii][0]->user_mean, dens_combine->user_mean);
 			}
 			if (gdensity) {
 				(*gdensity)[ii] = gdens_combine;
