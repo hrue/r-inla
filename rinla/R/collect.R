@@ -1246,7 +1246,9 @@ inla.internal.experimental.mode = FALSE
                 if (!is.null(id.names)) {
                     len.id.names = length(id.names)
                     summary.random[[i]]$ID[1L:len.id.names] = id.names
-                    names(marginals.random[[i]][1L:len.id.names]) = id.names
+                    if (length(marginals.random) >= i && !is.na(marginals.random[[i]])) {
+                        names(marginals.random[[i]][1L:len.id.names]) = id.names
+                    }
                 }
                 
             } else {
