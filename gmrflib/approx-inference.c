@@ -2590,7 +2590,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		if (optpar && optpar->fp)
-			fprintf(optpar->fp, "iteration %d error %.12g\n", iter, err);
+			fprintf(optpar->fp, "[%1d] iteration %d error %.12g\n", GMRFLib_thread_id, iter, err);
 
 		if (gaussian_data) {
 			/*
