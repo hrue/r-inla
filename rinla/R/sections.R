@@ -243,30 +243,33 @@
 
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
-        cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
-        inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
-        if (inla.one.of(random.spec$control.group$model, "ar")) {
-            ## 'order' is only used for model=ar
-            p = inla.ifelse(is.null(random.spec$control.group$order), 0, as.integer(random.spec$control.group$order))
-            cat("group.order = ", p, "\n", sep = " ", file = file,  append = TRUE)
-            ## set a default prior for order > 1 if the param is given only for p=1
-            par = random.spec$control.group$hyper$theta2$param
-            if (length(par) == 2L) {
-                if (p > 1L) {
-                    random.spec$control.group$hyper$theta2$param = c(rep(par[1], p), par[2]*diag(p))
+
+        if (!inla.one.of(random.spec$model, "copy")) { 
+            cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
+            inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
+            if (inla.one.of(random.spec$control.group$model, "ar")) {
+                ## 'order' is only used for model=ar
+                p = inla.ifelse(is.null(random.spec$control.group$order), 0, as.integer(random.spec$control.group$order))
+                cat("group.order = ", p, "\n", sep = " ", file = file,  append = TRUE)
+                ## set a default prior for order > 1 if the param is given only for p=1
+                par = random.spec$control.group$hyper$theta2$param
+                if (length(par) == 2L) {
+                    if (p > 1L) {
+                        random.spec$control.group$hyper$theta2$param = c(rep(par[1], p), par[2]*diag(p))
+                    }
                 }
             }
+            if (inla.one.of(random.spec$control.group$model, "besag")) {
+                stopifnot(!is.null(random.spec$control.group$graph))
+                gfile = inla.write.graph(random.spec$control.group$graph, filename = inla.tempfile())
+                fnm = inla.copy.file.for.section(gfile, data.dir)
+                unlink(gfile)
+                cat("group.graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
+            } else {
+                stopifnot(is.null(random.spec$control.group$graph))
+            }
+            inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir, ngroup = ngroup)
         }
-        if (inla.one.of(random.spec$control.group$model, "besag")) {
-            stopifnot(!is.null(random.spec$control.group$graph))
-            gfile = inla.write.graph(random.spec$control.group$graph, filename = inla.tempfile())
-            fnm = inla.copy.file.for.section(gfile, data.dir)
-            unlink(gfile)
-            cat("group.graph = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        } else {
-            stopifnot(is.null(random.spec$control.group$graph))
-        }
-        inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir, ngroup = ngroup)
     }
         
     if (!is.null(random.spec$cyclic)) {
