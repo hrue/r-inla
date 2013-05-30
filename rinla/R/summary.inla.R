@@ -48,7 +48,7 @@
     if(!is.null(object$mlik))
         ret = c(ret, list(mlik = round(object$mlik, digits)))
     
-    if(!is.null(object$cpo$cpo))
+    if(!is.null(object$cpo$cpo) && length(object$cpo$cpo) > 0L)
         ret = c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
 
     if(!is.null(object$summary.linear.predictor))
