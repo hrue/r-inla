@@ -16059,7 +16059,7 @@ double extra(double *theta, int ntheta, void *argument)
 				_param[1 + _p + j] = _marginal_Q[j] * exp(_log_precision); \
 			}						\
 			normc_g = priorfunc_mvnorm(_zero, _param) + (ngroup - _p) * (-0.5 * log(2 * M_PI) + 0.5 * log(_conditional_prec)); \
-			normc_g -= LOG_NORMC_GAUSSIAN * ngroup; /* This term goes into the main code therefore its removed here	*/  \
+			normc_g -= LOG_NORMC_GAUSSIAN * ngroup; /* This term goes into the main code therefore its removed here	*/ \
 			normc_g *= (N_orig - rankdef_orig);		\
 			if (NOT_FIXED(f_fixed[i][(_nt_) + 0])) {	\
 				val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + 0], &_log_precision); \
@@ -16071,47 +16071,40 @@ double extra(double *theta, int ntheta, void *argument)
 			Free(_pacf_intern);				\
 			Free(_marginal_Q);				\
 		} else {						\
-			if (NOT_FIXED(f_fixed[i][(_nt_)])) {		\
+			if (NOT_FIXED(f_fixed[i][(_nt_)])){		\
 				group_rho_intern = group_prec_intern = theta[count]; \
 				count++;				\
-				if (mb->f_group_model[i] == G_EXCHANGEABLE) { \
-					int ingroup = (int) ngroup;	\
-					group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-					normc_g = - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
-					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
-				} else if (mb->f_group_model[i] == G_AR1) { \
-					group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-					if (mb->f_group_cyclic[i]) {	\
-						normc_g = - (ngroup - 0.0) * 0.5 * log(1.0 - SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
-					} else {			\
-						normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
-					}				\
-					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
-				} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2 || mb->f_group_model[i] == G_BESAG) { \
-					grankdef = (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_BESAG ? 1.0 : 2.0); \
-					group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
-					normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \
-					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_prec_intern); \
-				} else {				\
-					abort();			\
-				}					\
-				normc_g *= (N_orig - rankdef_orig);	\
 			} else {					\
 				group_rho_intern = group_prec_intern= mb->f_theta[i][(_nt_)][GMRFLib_thread_id][0]; \
-				if (mb->f_group_model[i] == G_EXCHANGEABLE) { \
-					int ingroup = (int) ngroup;	\
-					group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-					GMRFLib_ASSERT_RETVAL(group_rho >= -1.0/(ngroup - 1.0), GMRFLib_EPARAMETER, 0.0); \
-				} else if (mb->f_group_model[i] == G_AR1) { \
-					group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
-				} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2 || mb->f_group_model[i] == G_BESAG) { \
-					group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
-					grankdef = (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_BESAG ? 1.0 : 2.0); \
-				} else {				\
-					abort();			\
-				}					\
-				normc_g = 0.0;				\
 			}						\
+			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
+				int ingroup = (int) ngroup;		\
+				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
+				normc_g = - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
+				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
+				}					\
+			} else if (mb->f_group_model[i] == G_AR1) {	\
+				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
+				if (mb->f_group_cyclic[i]) {		\
+					normc_g = - (ngroup - 0.0) * 0.5 * log(1.0 - SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
+				} else {				\
+					normc_g = - (ngroup - 1.0) * 0.5 * log(1.0 - SQR(group_rho)); \
+				}					\
+				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
+				}					\
+			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2 || mb->f_group_model[i] == G_BESAG) { \
+				grankdef = (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_BESAG ? 1.0 : 2.0); \
+				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
+				normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \
+				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_prec_intern); \
+				}					\
+			} else {					\
+				abort();				\
+			}						\
+			normc_g *= (N_orig - rankdef_orig);		\
 		}							\
 		gcorr = 1.0 - grankdef / mb->f_ngroup[i];		\
 	} else {							\
