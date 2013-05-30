@@ -450,7 +450,7 @@ inla.mesh.map =
         } else {
             proj =
                 cbind(atan2(loc[,2], loc[,1])*180/pi,
-                      asin(pmin(-1, pmax(+1, loc[,3])))*180/pi)
+                      asin(pmax(-1, pmin(+1, loc[,3])))*180/pi)
         }
     } else if (identical(projection, "longsinlat")) {
         if (inverse) {
