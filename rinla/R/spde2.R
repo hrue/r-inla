@@ -317,6 +317,177 @@ inla.spde2.matern.old =
 
 
 
+
+
+inla.internal.spde2.matern.B.tau =
+    function(precision.fcn, n.theta, delta = 1e-3, ...)
+{
+    theta.0 = rep(0, n.theta)
+    Q.0 = precision.fcn(theta.0, ...)
+    logv.0 = log(diag(inla.qinv(Q.0)))
+
+    B.tau = matrix(0, nrow(Q.0), 1L+n.theta)
+    for (k in seq_len(n.theta)) {
+        theta = theta.0
+        theta[k] = theta[k] + delta
+        Q = precision.fcn(theta, ...)
+        logv = log(diag(inla.qinv(Q)))
+
+        dlogv = (logv-logv.0)/delta
+
+        B.tau[, k+1] = dlogv/2
+    }
+    B.tau[,1L] = logv.0/2
+
+    return(B.tau)
+}
+
+
+
+inla.spde2.matern.sd.basis =
+    function(mesh, B.sd, B.range, method=1,
+             local.offset.compensation=FALSE,
+             alpha=2, ...)
+{
+    p.sd = ncol(B.sd)-1L
+    p.kappa = ncol(B.range)-1L
+
+    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    nu = alpha-d/2
+    nu.nominal = max(0.5, nu)
+    alpha.nominal = max(nu.nominal+d/2, alpha)
+
+    n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
+
+    ## log(kappa) = 0.5*log(8*nu) - log(range)
+    B.kappa = (cBind(log(8*nu.nominal)/2 - B.range[,1],
+                     -B.range[,-1,drop=FALSE] ))
+
+    if (method==1) {
+        spde =
+            inla.spde2.matern(mesh, B.tau=as.matrix(0), B.kappa=B.kappa, ...)
+
+        B.tau =
+            inla.internal.spde2.matern.B.tau(
+                precision.fcn=
+                function(theta, spde) {
+                    return(inla.spde2.precision(spde, theta=theta))
+                },
+                n.theta = p.kappa,
+                spde = spde)
+        if (!local.offset.compensation) {
+            B.tau[,1] = rep(mean(B.tau[,1]), spde$n.spde)
+        }
+    } else {
+        spde =
+            inla.spde2.matern(mesh,
+                              B.tau=as.matrix(0),
+                              B.kappa=B.kappa[,1,drop=FALSE],
+                              alpha=alpha, ...)
+        lvar.0 =
+            log(diag(inla.qinv(inla.spde2.precision(spde, theta=rep(0,0)))))
+        if (!local.offset.compensation) {
+            lvar.0 = rep(mean(lvar.0), spde$n.spde)
+        }
+
+        B.tau = -B.kappa*nu
+        B.tau[,1] = lvar.0/2
+    }
+
+    log.var.scaling = lgamma(nu.nominal)-lgamma(alpha.nominal)-log(4*pi)*d/2
+
+    B.tau =
+        cBind(B.tau[,1]-B.sd[,1],
+              -B.sd[,-1,drop=FALSE],
+              B.tau[,-1,drop=FALSE])
+    B.kappa =
+        cBind(B.kappa[,1],
+              matrix(0, n.spde, p.sd),
+              B.kappa[,-1,drop=FALSE])
+
+    return(list(B.tau=B.tau, B.kappa=B.kappa))
+
+}
+
+
+
+inla.internal.test.spde2.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, compensate=FALSE) {
+
+    alpha=2
+    mesh = inla.mesh.create(globe=globe)
+
+    B.common = inla.mesh.basis(mesh, "b.spline", n=3)
+    B.common = cBind(B.common, B.common[,1]*(mesh$loc[,3]>0))
+    B.common[,1] = B.common[,1]*(mesh$loc[,3]<=0)
+
+    B.sd = cBind(0, B.common)
+    B.range = cBind(log(r/6370), B.common)
+
+    sd.basis0 = inla.spde2.matern.sd.basis(mesh, B.sd=B.sd, B.range=B.range, method=0, alpha=alpha, local.offset.compensation=compensate)
+    sd.basis1 = inla.spde2.matern.sd.basis(mesh, B.sd=B.sd, B.range=B.range, method=1, alpha=alpha, local.offset.compensation=compensate)
+
+    spde0 =
+        inla.spde2.matern(mesh, alpha=alpha,
+                          B.tau=sd.basis0$B.tau,
+                          B.kappa=sd.basis0$B.kappa)
+    spde1 =
+        inla.spde2.matern(mesh, alpha=alpha,
+                          B.tau=sd.basis1$B.tau,
+                          B.kappa=sd.basis1$B.kappa)
+
+    th0 = c(0,0,0,0,0,0,0,0)
+    th1 = th0
+    th1[k] = th0[k]+dth
+    v0.0=diag(inla.qinv(inla.spde2.precision(spde0,theta=th0)))
+    v0.1=diag(inla.qinv(inla.spde2.precision(spde0,theta=th1)))
+    v1.0=diag(inla.qinv(inla.spde2.precision(spde1,theta=th0)))
+    v1.1=diag(inla.qinv(inla.spde2.precision(spde1,theta=th1)))
+
+    op=par(mfrow=c(2,2))
+    on.exit(par(op))
+    plot(asin(mesh$loc[,3]),rowSums(sd.basis0$B.kappa[,1+k,drop=FALSE]), pch=20,
+         ylim=(range(c(0, range(rowSums(sd.basis0$B.kappa[,1+k,drop=FALSE])),
+                       range(-rowSums(sd.basis0$B.tau[,1+k,drop=FALSE])),
+                       range(-rowSums(sd.basis1$B.tau[,1+k,drop=FALSE]))))),
+         main="Basis functions")
+    points(asin(mesh$loc[,3]),-rowSums(sd.basis0$B.tau[,1+k,drop=FALSE]),col=2,pch=20)
+    points(asin(mesh$loc[,3]),-rowSums(sd.basis1$B.tau[,1+k,drop=FALSE]),col=4,pch=20)
+    legend("bottomright",
+           legend=paste("Method", 0:1),
+           col=c(2,4), pch=20)
+
+    plot(asin(mesh$loc[,3]),v0.1, col=2,pch=20,
+         ylim=range(c(0,range(v0.0),range(v1.0),range(v0.1),range(v1.1))),
+         main="Absolute variances")
+    points(asin(mesh$loc[,3]),v1.1, col=4,pch=20)
+    points(asin(mesh$loc[,3]),v0.0, col=2,pch=1)
+    points(asin(mesh$loc[,3]),v1.0, col=4,pch=1)
+    legend("bottomright",
+           legend=paste("Method", 0:1),
+           col=c(2,4), pch=20)
+
+    plot(asin(mesh$loc[,3]),v0.1-v0.0, col=2,pch=20,
+         ylim=range(c(0,range(v0.1-v0.0),range(v1.1-v1.0))),
+         main="Absolute variance error")
+    points(asin(mesh$loc[,3]),v1.1-v1.0, col=4,pch=20)
+    legend("bottomright",
+           legend=paste("Method", 0:1),
+           col=c(2,4), pch=20)
+
+    plot(asin(mesh$loc[,3]),v0.1/v0.0-1, col=2,pch=20,
+         ylim=range(c(0,range(v0.1/v0.0-1),range(v1.1/v1.0-1))),
+         main="Relative variance error")
+    points(asin(mesh$loc[,3]),v1.1/v1.0-1, col=4,pch=20)
+    legend("bottomright",
+           legend=paste("Method", 0:1),
+           col=c(2,4), pch=20)
+
+    return(environment())
+}
+
+
+
+
 inla.spde2.matern.param.orig =
     function(mesh,
              alpha=2,
