@@ -8,7 +8,7 @@
 inla(formula, ..., control.compute=list( <arg>=<value>[, <arg>=<value>]))
 }
 \arguments{
-\item{strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
+\item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
 \item{dic}{  A boolean variable if the DIC-value should be computed. Default FALSE.}
