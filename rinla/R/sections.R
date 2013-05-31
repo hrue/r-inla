@@ -590,7 +590,7 @@
 }
 
 `inla.problem.section` = function(file , data.dir, result.dir, hyperpar, return.marginals, dic,
-        cpo, po, mlik, quantiles, smtp, q, strategy, graph, config, gdensity)
+        cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
     cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
@@ -606,7 +606,7 @@
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
-    cat("strategy = ", strategy, "\n", sep = " ", file = file,  append = TRUE)
+    cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
