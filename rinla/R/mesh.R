@@ -1768,15 +1768,65 @@ inla.mesh.projector.inla.mesh.1d =
 
 
 
+inla.internal.make.spline.mesh =
+    function(interval, m, degree, boundary, free.clamped)
+{
+    boundary =
+        match.arg(boundary,
+                  c("neumann", "dirichlet", "free", "cyclic"))
+    if (degree <= 1) {
+        n = (switch(boundary,
+                    neumann = m,
+                    dirichlet = m+2,
+                    free = m,
+                    cyclic = m+1))
+        if (n<2) {
+            n = 2
+            degree = 0
+            boundary = "c"
+        }
+    } else {
+        stopifnot(degree==2)
+        n = (switch(boundary,
+                    neumann = m+1,
+                    dirichlet = m+1,
+                    free = m-1,
+                    cyclic = m))
+        if (boundary=="free") {
+            if (m <= 1) {
+                n = 2
+                degree = 0
+                boundary = "c"
+            } else if (m == 2) {
+                n = 2
+                degree = 1
+            }
+        } else if (boundary=="cyclic") {
+            if (m <= 1) {
+                n = 2
+                degree = 0
+            }
+        }
+    }
+    return(inla.mesh.1d(seq(interval[1], interval[2], length=n),
+                        degree=degree,
+                        boundary=boundary,
+                        free.clamped=free.clamped))
+}
+
+
 inla.mesh.basis =
     function(mesh,
              type="b.spline",
              n=3,
              degree=2,
              knot.placement="uniform.area",
-             rot.inv=TRUE)
+             rot.inv=TRUE,
+             boundary="f",
+             free.clamped=TRUE,
+             ...)
 {
-    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+    inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
 
     type = match.arg(type, c("b.spline", "sph.harm"))
     knot.placement = (match.arg(knot.placement,
@@ -1784,29 +1834,62 @@ inla.mesh.basis =
                                   "uniform.latitude")))
 
     if (identical(type, "b.spline")) {
-        if (identical(mesh$manifold, "R2")) {
-            long = ((mesh$loc[,1]-min(mesh$loc[,1]))/
-                    diff(range(mesh$loc[,1])))*90*pi/180
-            sinlat =  (((mesh$loc[,2]-min(mesh$loc[,2]))/
-                       diff(range(mesh$loc[,2])))*2-1)
-            coslat = sapply(sinlat, function(x) sqrt(max(0.0,1.0-x^2)))
-            loc = (matrix(c(cos(long)*coslat,
-                            sin(long)*coslat,
-                            sinlat), mesh$n, 3))
-            knots = 0
+
+
+        if (identical(mesh$manifold, "R1") || identical(mesh$manifold, "S1")) {
+            mesh1 =
+                inla.internal.make.spline.mesh(mesh$interval, n, degree,
+                                               boundary, free.clamped)
+            basis = inla.mesh.1d.A(mesh1, mesh$loc)
+        } else if (identical(mesh$manifold, "R2")) {
+            if (length(n) == 2) {
+                if (length(degree)==1) {
+                    degree = rep(degree, 2)
+                }
+                if (length(boundary)==1) {
+                    boundary = rep(boundary, 2)
+                }
+                mesh1x =
+                    inla.internal.make.spline.mesh(range(mesh$loc[,1]),
+                                                   n[1], degree[1],
+                                                   boundary[1], free.clamped)
+                mesh1y =
+                    inla.internal.make.spline.mesh(range(mesh$loc[,2]),
+                                                   n[2], degree[2],
+                                                   boundary[2], free.clamped)
+                basis =
+                    inla.row.kron(inla.mesh.1d.A(mesh1y, mesh$loc[,2]),
+                                  inla.mesh.1d.A(mesh1x, mesh$loc[,1]))
+            } else {
+                warning("Old style call for an R2 mesh detected.\n  Please supply a 2-element n-vector instead.")
+                long = ((mesh$loc[,1]-min(mesh$loc[,1]))/
+                        diff(range(mesh$loc[,1])))*90*pi/180
+                sinlat =  (((mesh$loc[,2]-min(mesh$loc[,2]))/
+                            diff(range(mesh$loc[,2])))*2-1)
+                coslat = sapply(sinlat, function(x) sqrt(max(0.0,1.0-x^2)))
+                loc = (matrix(c(cos(long)*coslat,
+                                sin(long)*coslat,
+                                sinlat), mesh$n, 3))
+                knots = 0
+                degree = max(0L, min(n-1L, degree))
+                basis = (inla.fmesher.smorg(loc,
+                                            mesh$graph$tv,
+                                            bspline = c(n, degree, knots),
+                                            fem=-1)$bspline)
+            }
         } else if (identical(mesh$manifold, "S2")) {
             loc = mesh$loc
             knots = identical(knot.placement, "uniform.latitude")
+            degree = max(0L, min(n-1L, degree))
+            basis = (inla.fmesher.smorg(loc,
+                                        mesh$graph$tv,
+                                        bspline = c(n, degree, knots),
+                                        fem=-1)$bspline)
+            if (!rot.inv) {
+                warning("Currently only 'rot.inv=TRUE' is supported for B-splines.")
+            }
         } else {
             stop("Only know how to make B-splines on R2 and S2.")
-        }
-        degree = max(0L, min(n-1L, degree))
-        basis = (inla.fmesher.smorg(loc,
-                                    mesh$graph$tv,
-                                    bspline = c(n, degree, knots),
-                                    fem=-1)$bspline)
-        if (!rot.inv) {
-            warning("Currently only 'rot.inv=TRUE' is supported for B-splines.")
         }
     } else if (identical(type, "sph.harm")) {
         if (!identical(mesh$manifold, "S2")) {
@@ -2154,10 +2237,14 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
         mesh$idx$loc =
             inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
     } else {
-        mesh$idx$loc =
-            inla.mesh.1d.bary(inla.mesh.1d(mid, degree=0),
-                              loc.orig,
-                              method="nearest")$index[,1]
+        if (length(mid) >= 2) {
+            mesh$idx$loc =
+                inla.mesh.1d.bary(inla.mesh.1d(mid, degree=0),
+                                  loc.orig,
+                                  method="nearest")$index[,1]
+        } else {
+            mesh$idx$loc = rep(1, length(loc.orig))
+        }
     }
 
     return(invisible(mesh))
