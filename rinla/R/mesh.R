@@ -114,9 +114,9 @@ lines.inla.mesh.segment =
     } else if (!add) {
         idx = unique(as.vector(segm$idx))
         if (is.null(xlim))
-            xlim=range(segm$loc[idx,1])
+            xlim=range(loc[idx,1])
         if (is.null(ylim))
-            ylim=range(segm$loc[idx,2])
+            ylim=range(loc[idx,2])
         plot.new()
         plot.window(xlim=xlim, ylim=ylim, ...)
     }
