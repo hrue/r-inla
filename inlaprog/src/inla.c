@@ -7096,7 +7096,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * parse section = PROBLEM
 	 */
 	int i, ok;
-	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *strategy = NULL;
+	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL;
 
 	mb->predictor_tag = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
@@ -7109,26 +7109,26 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
-	strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), GMRFLib_strdup("DEFAULT")));
+	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
 	if (mb->verbose) {
-		printf("\t\tstrategy=[%s]\n", strategy);
+		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
 	}
 
-	if (!strcasecmp(strategy, "DEFAULT")) {
+	if (!strcasecmp(openmp_strategy, "DEFAULT")) {
 		/*
 		 * this option means that it will be determined later on. 
 		 */
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	} else if (!strcasecmp(strategy, "SMALL")) {
+	} else if (!strcasecmp(openmp_strategy, "SMALL")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
-	} else if (!strcasecmp(strategy, "MEDIUM")) {
+	} else if (!strcasecmp(openmp_strategy, "MEDIUM")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_MEDIUM;
-	} else if (!strcasecmp(strategy, "LARGE")) {
+	} else if (!strcasecmp(openmp_strategy, "LARGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
-	} else if (!strcasecmp(strategy, "HUGE")) {
+	} else if (!strcasecmp(openmp_strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
 	} else {
-		GMRFLib_sprintf(&tmp, "Unknown strategy [%s]", strategy);
+		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]", openmp_strategy);
 		inla_error_general(tmp);
 		exit(EXIT_FAILURE);
 	}
@@ -22037,10 +22037,6 @@ int main(int argc, char **argv)
 	printf("\t\t-m MODE\t: Enable special mode:\n");		\
         printf("\t\t\tMCMC  :  Enable MCMC mode\n");			\
         printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
-	printf("\t\t\tAUTO\n");						\
-	printf("\t\t\tSMALL\n");					\
-	printf("\t\t\tMEDIUM\n");					\
-	printf("\t\t\tHUGE\n");						\
 	printf("\t\t-h\t: Print (this) help.\n")
 
 #define BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")

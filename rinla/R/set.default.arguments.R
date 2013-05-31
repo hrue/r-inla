@@ -118,11 +118,11 @@
 {
     ##:NAME: control.expert
     list(
-         ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)
-         cpo.manual = FALSE,
+        ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)
+        cpo.manual = FALSE,
 
-         ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION.)
-         cpo.idx = -1)
+        ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION.)
+        cpo.idx = -1)
 
     ##:SEEALSO: inla
 }
@@ -133,41 +133,41 @@
 {
     ##:NAME: control.compute
     list(
-         ##:ARGUMENT: strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
-         strategy = "default",
+        ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
+        openmp.strategy = "default", ## "small", "medium", "large", "huge"
 
-         ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
-         hyperpar=TRUE,
+        ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
+        hyperpar=TRUE,
 
-         ##:ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
-         return.marginals=TRUE,
+        ##:ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
+        return.marginals=TRUE,
 
-         ##:ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
-         dic=FALSE,
+        ##:ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
+        dic=FALSE,
 
-         ##:ARGUMENT: mlik A boolean variable if the marginal likelihood should be computed. Default FALSE.
-         mlik=TRUE,
+        ##:ARGUMENT: mlik A boolean variable if the marginal likelihood should be computed. Default FALSE.
+        mlik=TRUE,
 
-         ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
-         cpo=FALSE,
+        ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
+        cpo=FALSE,
 
-         ##:ARGUMENT: lsfs A boolean variable if the predictive ordinate should be computed
-         po=FALSE,
+        ##:ARGUMENT: lsfs A boolean variable if the predictive ordinate should be computed
+        po=FALSE,
         
-         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
-         q=FALSE,
+        ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
+        q=FALSE,
 
-         ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
-         config=FALSE,
+        ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
+        config=FALSE,
 
-         ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default) or 'band'
-         smtp = NULL,
+        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default) or 'band'
+        smtp = NULL,
 
-         ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-         graph = FALSE, 
+        ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
+        graph = FALSE, 
         
-         ##:ARGUMENT: gdensity A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)
-         gdensity = FALSE)
+        ##:ARGUMENT: gdensity A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)
+        gdensity = FALSE)
         
     ##:SEEALSO: inla
 }
