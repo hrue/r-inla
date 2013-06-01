@@ -615,6 +615,7 @@ inla.spde2.matern =
              alpha=2,
              param = NULL,
              constr = FALSE,
+             extraconstr.int = NULL,
              extraconstr = NULL,
              fractional.method = c("parsimonious", "null"),
              B.tau = matrix(c(0,1,0),1,3),
@@ -744,7 +745,7 @@ inla.spde2.matern =
     spde$model = "matern"
     spde$BLC = param$BLC
 
-    if (constr || !is.null(extraconstr)) {
+    if (constr || !is.null(extraconstr.int)) {
         if (constr) {
             A.constr = matrix(colSums(fem$c1), 1, n.spde)
             e.constr = 0
@@ -752,16 +753,23 @@ inla.spde2.matern =
             A.constr = matrix(numeric(0), 0, n.spde)
             e.constr = c()
         }
-        if (!is.null(extraconstr)) {
+        if (!is.null(extraconstr.int)) {
             A.constr =
                 rBind(A.constr,
-                      matrix(extraconstr$A %*% fem$c1,
-                             nrow(extraconstr$A), n.spde))
+                      matrix(extraconstr.int$A %*% fem$c1,
+                             nrow(extraconstr.int$A), n.spde))
+            e.constr = c(e.constr, extraconstr.int$e)
+        }
+        if (!isnull(extraconstr)) {
+            A.constr = rBind(A.constr, extraconstr$A)
             e.constr = c(e.constr, extraconstr$e)
         }
 
         spde$f$constr = FALSE
         spde$f$extraconstr = list(A=A.constr, e=e.constr)
+    } else if (!isnull(extraconstr)) {
+        spde$f$constr = FALSE
+        spde$f$extraconstr = extraconstr
     }
 
     return(invisible(spde))
