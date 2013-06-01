@@ -572,39 +572,42 @@
             print(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
         }
 
-        result = inla(surv.formula,
-                     family = "poisson",
-                     data = c(new.data, data.not.f),
-                     contrasts = contrasts, 
-                     quantiles=quantiles,
-                     E = .E,
-                     offset= offset,
-                     scale = scale,
-                     weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
-                     Ntrials = NULL,  # Not used for the poisson
-                     strata = NULL,   # Not used for the poisson
-                     lincomb = lincomb,
-                     verbose = verbose,
-                     control.compute = control.compute,
-                     control.predictor = control.predictor,
-                     control.family = control.family,
-                     control.inla = control.inla,
-                     control.results = control.results,
-                     control.fixed = control.fixed,
-                     control.mode = control.mode,
-                     control.expert = control.expert,
-                     control.lincomb = control.lincomb,
-                     control.hazard = control.hazard,
-                     only.hyperparam = only.hyperparam,
-                     inla.call = inla.call,
-                     inla.arg = inla.arg,
-                     num.threads = num.threads,
-                     keep = keep,
-                     working.directory = working.directory,
-                     silent = silent,
-                     debug = debug,
-                     ## internal options used to transfer data after expansions
-                     .internal = .internal)
+        result = inla(
+                surv.formula,
+                family = "poisson",
+                data = c(new.data, data.not.f),
+                contrasts = contrasts, 
+                quantiles=quantiles,
+                E = new.data$.E,
+                ## these should be expanded as well???  Will give an error...
+                offset= offset,
+                scale = scale,
+                ##
+                weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
+                Ntrials = NULL,         # Not used for the poisson
+                strata = NULL,          # Not used for the poisson
+                lincomb = lincomb,
+                verbose = verbose,
+                control.compute = control.compute,
+                control.predictor = control.predictor,
+                control.family = control.family,
+                control.inla = control.inla,
+                control.results = control.results,
+                control.fixed = control.fixed,
+                control.mode = control.mode,
+                control.expert = control.expert,
+                control.lincomb = control.lincomb,
+                control.hazard = control.hazard,
+                only.hyperparam = only.hyperparam,
+                inla.call = inla.call,
+                inla.arg = inla.arg,
+                num.threads = num.threads,
+                keep = keep,
+                working.directory = working.directory,
+                silent = silent,
+                debug = debug,
+                ## internal options used to transfer data after expansions
+                .internal = .internal)
 
         ## replace the argument so it can be reused, if...
         result$call.orig = deparse(match.call())
@@ -1031,6 +1034,7 @@
             }
         }
     }
+    
     ## as there are functions as well with this name....
     if (is.function(offset))
         offset = NULL
@@ -1110,14 +1114,14 @@
 
         ##....then create the new section 
         inla.family.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
-                          control=cont.family[[i.family]], i.family=i.family, link.covariates = link.covariates, data.dir = data.dir)
+                            control=cont.family[[i.family]], i.family=i.family, link.covariates = link.covariates, data.dir = data.dir)
     }
 
     ##create the PREDICTOR section. 
     if (debug) 
         print("prepare predictor section")
 
-    stopifnot(!is.null(offset.formula) && !is.null(offset))  ## must be zeros if not used. this makes it easier
+    stopifnot(!is.null(offset.formula) && !is.null(offset)) ## must be zeros if not used. this makes it easier
     offset.formula[is.na(offset.formula)] = 0
     offset[is.na(offset)] = 0
     if (!is.null(control.predictor$A)) {
@@ -1151,7 +1155,7 @@
             if (!(length(cont.predictor$link) == MPredictor || length(cont.predictor$link) == MPredictor + NPredictor)) {
                 stop(paste("Length of argument 'control.predictor$link' is wrong: length(link) = ",
                            length(cont.predictor$link), ". Length must be equal to ",
-                          "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
+                           "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
                            ".", sep=""))
             }
             if (length(cont.predictor$link) == MPredictor) {

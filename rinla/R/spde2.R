@@ -767,7 +767,7 @@ inla.spde2.matern =
 
         spde$f$constr = FALSE
         spde$f$extraconstr = list(A=A.constr, e=e.constr)
-    } else if (!isnull(extraconstr)) {
+    } else if (!is.null(extraconstr)) {
         spde$f$constr = FALSE
         spde$f$extraconstr = extraconstr
     }
