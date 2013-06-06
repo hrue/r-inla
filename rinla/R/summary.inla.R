@@ -11,7 +11,13 @@
     } else {
         ret = c(ret, list(call=object$call))
     }
-    ret = c(ret, list(cpu.used = round(object$cpu.used, digits)))
+
+    ## might not be if using collect directly
+    if (inla.is.element("cpu.used", object)) {
+        ret = c(ret, list(cpu.used = round(object$cpu.used, digits))) 
+    } else {
+        ret = c(ret,  list(cpu.used = NA))
+    }
 
     if(!is.null(object$summary.fixed)) {
         fixed = round(object$summary.fixed, digits)
