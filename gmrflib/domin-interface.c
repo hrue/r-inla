@@ -66,7 +66,7 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 			GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 			char *compute,
 			double *x, double *b, double *c, double *mean,
-			GMRFLib_bfunc_tp **bfunc, double *d,
+			GMRFLib_bfunc_tp ** bfunc, double *d,
 			GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
@@ -201,7 +201,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double ** bnew)
+int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this version controls AI_STORE 
@@ -214,7 +214,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	 */
 	GMRFLib_tabulate_Qfunc_tp **tabQfunc_local = NULL;
 	double **bnew_local = NULL;
-	
+
 	int id = GMRFLib_thread_id;
 
 	if (!tabQfunc) {
@@ -254,10 +254,10 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 
 			if (0) {
 				FIXME1("FIX");
-				for(i=0; i<G.graph->n; i++)
+				for (i = 0; i < G.graph->n; i++)
 					printf("bnew[%d] = %g\n", i, bnew_ptr[i]);
 			}
-			
+
 			GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph,
 						       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
@@ -280,7 +280,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		Free(tabQfunc_local);
 	}
 	if (bnew_local) {
-		for (i = 0; i<GMRFLib_MAX_THREADS; i++) {
+		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 			Free(bnew_local[i]);
 		}
 		Free(bnew_local);
@@ -568,7 +568,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 #define F1(result, idx, step, x_store)					\
 	if (1) {							\
-		if (debug) printf("F1 idx %d\n",  idx);			\
+		if (debug) printf("F1 idx %d step %g\n",  idx, step);	\
 		double *xx;						\
 		int err;						\
 		xx = Calloc(G.nhyper, double);				\
@@ -590,8 +590,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 #define F2(result, idx, step, iidx, sstep)				\
 	if (1) {							\
 		double *xx;						\
-		int err;						\
-		if (debug) printf("F2 idxs %d %d\n",  idx, iidx);	\
+		int err;					 \
+		if (debug) printf("F2 idx %d %d step %g %g\n",  idx, iidx, step, sstep); \
 		xx = Calloc(G.nhyper, double);				\
 		memcpy(xx, x, G.nhyper*sizeof(double));			\
 		xx[idx] += step;					\
@@ -602,7 +602,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			printf("Estimate Hessian x=[");			\
 			for(iii=0; iii<G.nhyper; iii++)			\
 				printf(" %.8g", xx[iii]);		\
-			printf("] idx=%d iidx=%d step=%g sstep=%g F2 = %.12g\n", idx, iidx, step, sstep, result); \
+			printf("] idx=%d %d step=%g %g F2 = %.12g\n", idx, iidx, step, sstep, result); \
 		}							\
 		Free(xx);						\
 	}
@@ -625,7 +625,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
-	int i, n = G.nhyper, tmax, id, ok = 0, debug = 1, len_xx_hold;
+	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
 
 	tmax = GMRFLib_MAX_THREADS;
 	id = omp_get_thread_num();
@@ -1121,8 +1121,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			status_g = status_f = status_x = GSL_SUCCESS;
 			break;
 		}
-	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && 
-		 (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) && (iter < iter_max));
+	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) && (iter < iter_max));
 
 	xx = gsl_multimin_fdfminimizer_x(s);
 	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
