@@ -625,7 +625,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
-	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
+	int i, n = G.nhyper, tmax, id, ok = 0, debug = 1, len_xx_hold;
 
 	tmax = GMRFLib_MAX_THREADS;
 	id = omp_get_thread_num();
