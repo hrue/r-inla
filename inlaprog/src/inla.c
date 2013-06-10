@@ -4998,9 +4998,9 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
+	int i, yzero = 0;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int y = (int) ds->data_observations.y[idx], yzero = 0;
+	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
 	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -10980,7 +10980,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern;
+	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -12531,7 +12531,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * then read those we need 
 		 */
 		for (i = 0; i < ntheta; i++) {
-			double theta_initial;
+			double theta_initial = 0.0;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -14944,7 +14944,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				 * then read those we need 
 				 */
 				for (i = 0; i < ntheta; i++) {
-					double theta_initial;
+					double theta_initial = 0;
 
 					GMRFLib_sprintf(&ctmp, "GROUP.FIXED%1d", i);
 					mb->f_fixed[mb->nf][ntheta_orig + i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
