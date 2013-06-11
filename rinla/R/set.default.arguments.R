@@ -324,7 +324,7 @@
             tolerance.x = NULL, 
 
             ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
-            restart = NULL,
+            restart = 0L,
 
             ##:ARGUMENT: optimiser The optimiser to use; one of 'gsl', 'domin' or 'default'.
             optimiser = "default",
