@@ -694,7 +694,7 @@ inla.spde2.matern =
         M0 = fem$c0
         M1 = fem$g1*0
         M2 = fem$g1
-    } else if (!is.stationary) {
+    } else if (!param$is.stationary) {
         stop("Non-stationary Matern with fractional alpha is not implemented.")
     } else if (alpha>1) {
         if (fractional.method == "parsimonious") {
