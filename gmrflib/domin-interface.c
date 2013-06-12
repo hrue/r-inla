@@ -641,10 +641,17 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 
 	int *i2thread = Calloc(len_xx_hold, int);
 
+	if (G.ai_par->fp_log) {
+		fprintf(G.ai_par->fp_log, "Estimate Hessian Part I (%1d) ", 2 * n + 1);
+	}
 #pragma omp parallel for private(i)
 	for (i = 0; i < 2 * n + 1; i++) {
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
+
+		if (G.ai_par->fp_log) {
+			fprintf(G.ai_par->fp_log, "[%1d:%s]", i, (i < n ? "p" : (i < 2 * n ? "m" : "0")));
+		}
 
 		GMRFLib_thread_id = omp_get_thread_num();
 		if (omp_in_parallel()) {
@@ -776,12 +783,18 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				}
 			}
 
+			if (G.ai_par->fp_log) {
+				fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
+			}
 #pragma omp parallel for private(k)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
 				GMRFLib_ai_store_tp *ais = NULL;
 
+				if (G.ai_par->fp_log) {
+					fprintf(G.ai_par->fp_log, "[%1d]", k);
+				}
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
 					if (!ai_store[GMRFLib_thread_id]) {
@@ -808,13 +821,15 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			GMRFLib_thread_id = id;
 			Free(idx);
 		}
-
+		if (G.ai_par->fp_log) {
+			fprintf(G.ai_par->fp_log, "\n");
+		}
 		if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f_best_save, B.f_best)) {
 			/*
 			 * There is a change 
 			 */
 			if (debug)
-				fprintf(stderr, "%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f0, f0min);
+				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f0, f0min);
 			memcpy(x, B.f_best_x, G.nhyper * sizeof(double));
 			*log_dens_mode = -B.f_best;
 			ok = 0;
