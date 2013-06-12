@@ -213,7 +213,7 @@ inla.spde2.matern.old =
         M2 = fem$g1
     } else if (!is.stationary) {
         stop("Non-stationary Matern with fractional alpha is not implemented.")
-    } else if (alpha>1) {
+    } else if ((alpha<2) && (alpha>1)) {
         if (fractional.method == "parsimonious") {
             lambda = alpha-floor(alpha)
             b = matrix(c(1,0,0, 1,1,0, 1,2,1),3,3) %*%
@@ -230,7 +230,7 @@ inla.spde2.matern.old =
         M0 = fem$c0*b[1]
         M1 = fem$g1*b[2]/2
         M2 = fem$g2*b[3]
-    } else if (alpha>0) {
+    } else if ((alpha<1) && (alpha>0)) {
         if (fractional.method == "parsimonious") {
             lambda = alpha-floor(alpha)
             b = matrix(c(1,0,1,1),2,2) %*%
@@ -696,7 +696,7 @@ inla.spde2.matern =
         M2 = fem$g1
     } else if (!param$is.stationary) {
         stop("Non-stationary Matern with fractional alpha is not implemented.")
-    } else if (alpha>1) {
+    } else if ((alpha<2) && (alpha>1)) {
         if (fractional.method == "parsimonious") {
             lambda = alpha-floor(alpha)
             b = matrix(c(1,0,0, 1,1,0, 1,2,1),3,3) %*%
@@ -713,7 +713,7 @@ inla.spde2.matern =
         M0 = fem$c0*b[1]
         M1 = fem$g1*b[2]/2
         M2 = fem$g2*b[3]
-    } else if (alpha>0) {
+    } else if ((alpha<1) && (alpha>0)) {
         if (fractional.method == "parsimonious") {
             lambda = alpha-floor(alpha)
             b = matrix(c(1,0,1,1),2,2) %*%
