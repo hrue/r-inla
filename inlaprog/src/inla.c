@@ -5005,7 +5005,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 
 	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double pzero = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double p, a, b, prob_zero, tmp;
+	double p, a, b, prob_zero;
 	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
 	double normc_zero = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(yzero + 1) - LOGGAMMA_INT(n - yzero + 1);
 
@@ -5063,7 +5063,7 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int y = (int) ds->data_observations.y[idx], yzero = 0;
+	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
 	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
