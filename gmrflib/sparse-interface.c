@@ -49,7 +49,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp * gn)
 {
 	GMRFLib_ENTER_ROUTINE;
-	int i;
 	
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
