@@ -60,9 +60,8 @@ static map_vpvp memcheck_hash_table;
 static int memcheck_verbose = 0;
 static int memcheck_first = 1;
 
-static GMRFLib_meminfo_tp *MemInfo = NULL;
-
 #if defined(GMRFLib_MEMINFO)
+static GMRFLib_meminfo_tp *MemInfo = NULL;
 #define MEMINFO(_size) \
 	if (GMRFLib_meminfo_thread_id != 0) {				\
 		assert(IABS(GMRFLib_meminfo_thread_id) < 1+omp_get_max_threads()); \
