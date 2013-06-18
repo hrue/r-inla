@@ -1236,7 +1236,7 @@ inla.internal.experimental.mode = FALSE
                         class(rr) = "inla.marginals"
                         attr(rr, "inla.tag") = paste("marginals random",  names.random[i])
                     }
-                    marginals.random[[i]] = rr
+                    marginals.random[[i]] = if (is.null(rr)) NA else rr
                 } else {
                     stopifnot(is.null(marginals.random))
                 }
