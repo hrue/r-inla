@@ -10,8 +10,10 @@
     ## include depends-on packages here
     for(p in c("sp", "Matrix")) {
         if (length(grep(paste("^package:", p, "$", sep=""), search())) == 0) {
-            if (!require(p, quietly = TRUE, lib.loc = lib, character.only=TRUE))
-                stop(paste("INLA need package `", p, "' to be fully functional; please install", sep=""))
+            if (!require(p, quietly = TRUE, lib.loc = lib, character.only=TRUE)) {
+                install.packages(p)
+                ##stop(paste("INLA need package `", p, "' to be fully functional; please install", sep=""))
+            }
         }
     }
 
