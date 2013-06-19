@@ -5005,7 +5005,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 
 	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double pzero = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double p, a, b, prob_zero, tmp;
+	double p, a, b, prob_zero;
 	double normc = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(y + 1) - LOGGAMMA_INT(n - y + 1);
 	double normc_zero = LOGGAMMA_INT(n + 1) - LOGGAMMA_INT(yzero + 1) - LOGGAMMA_INT(n - yzero + 1);
 
@@ -5063,7 +5063,7 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int y = (int) ds->data_observations.y[idx], yzero = 0;
+	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
 
 	double rho = map_probability(ds->data_observations.zeroinflated_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -6915,6 +6915,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		lc->tinfo[i].last_nonzero_mapped = -1;
 	}
 
+	int all_weights_are_zero = 1;
 	for (sec_no = 0; sec_no < num_sections; sec_no++) {
 
 		int len;
@@ -6931,7 +6932,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_io_close(io);
 			inla_error_general(msg);
 		}
-		Free(ptr);
 
 		offset = mb->idx_start[*ip];
 		n = mb->idx_n[*ip];
@@ -6953,25 +6953,46 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		lc->idx = Realloc(lc->idx, lc->n + npairs, int);
 		for (i = 0; i < npairs; i++) {
 			lc->idx[lc->n + i] = (idx[i] - 1) + offset;	/* `-1': convert to C-indexing */
+
+			/*
+			 * check that the index is legal
+			 */
+			if (!LEGAL(idx[i] - 1, n)) {
+				fprintf(stderr, "\n\n");
+				fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+				fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
+				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+			}
 		}
+
 
 		GMRFLib_io_read(io, w, npairs * sizeof(double));
 		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
 		for (i = 0; i < npairs; i++) {
 			lc->weight[lc->n + i] = (float) w[i];
+			all_weights_are_zero &= (w[i] == 0.0);
 		}
 
 		Free(idx);
 		Free(w);
+		Free(ptr);
 
 		if (debug) {
 			for (i = 0; i < npairs; i++) {
 				printf("\t\t\t\tC.idx+offset [%1d] weight [%g]\n", lc->idx[lc->n + i], lc->weight[lc->n + i]);
 			}
 		}
+
 		lc->n += npairs;
 	}
 	GMRFLib_io_close(io);
+
+	if (all_weights_are_zero) {
+		fprintf(stderr, "\n\n");
+		fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+		fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
+		GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+	}
 
 	/*
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
