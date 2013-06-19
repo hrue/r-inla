@@ -264,7 +264,7 @@ namespace fmesh {
   template <class T>
   SparseMatrix<T> diag(const Matrix<T>& M1) {
     SparseMatrix<T> SM(M1.rows(),M1.rows());
-    for (int i=0; i<M1.rows(); i++) {
+    for (size_t i=0; i<M1.rows(); i++) {
       SM(i,i) = M1[i][0];
     }
     return SM;
@@ -273,7 +273,7 @@ namespace fmesh {
   template <class T>
   Matrix<T> diag(const SparseMatrix<T>& M1) {
     Matrix<T> M(M1.rows(),1);
-    for (int i=0; ((i<M1.rows()) && (i<M1.cols())); i++) {
+    for (size_t i=0; ((i<M1.rows()) && (i<M1.cols())); i++) {
       M(i,0) = M1[i][i];
     }
     return M;
@@ -286,15 +286,15 @@ namespace fmesh {
 			    const SparseMatrix<T>& M2)
   {
     SparseMatrix<T> M;
-    int M1rows = M1.rows();
-    int M2rows = M2.rows();
+    size_t M1rows = M1.rows();
+    size_t M2rows = M2.rows();
     M.cols(M2.cols()).rows(M1rows);
-    for (int i=0; i<M1rows; i++) {
+    for (size_t i=0; i<M1rows; i++) {
       SparseMatrixRow<T>& Mi = M(i);
       const SparseMatrixRow<T>& M1i = M1[i];
       if (M1i.size() > 0) {
 	for (typename SparseMatrixRow<T>::ColCIter M1k = M1i.begin();
-	     (M1k != M1i.end()) && (M1k->first < M2rows);
+	     (M1k != M1i.end()) && ((size_t)M1k->first < M2rows);
 	     M1k++) {
 	  int k = M1k->first;
 	  const T& M1ik = M1i[k];
@@ -315,11 +315,11 @@ namespace fmesh {
 			    const SparseMatrix<T>& M2)
   {
     SparseMatrix<T> M(M1);
-    for (int r=0; (r<M1.rows()) && (r<M2.rows()); r++) {
+    for (size_t r=0; (r<M1.rows()) && (r<M2.rows()); r++) {
       SparseMatrixRow<T>& Mr = M(r);
       const SparseMatrixRow<T>& M2r = M2[r];
       for (typename SparseMatrixRow<T>::ColCIter c = M2r.begin();
-	   (c != M2r.end()) && (c->first < M1.cols());
+	   (c != M2r.end()) && ((size_t)c->first < M1.cols());
 	   c++) {
 	Mr(c->first) -= c->second;
       }
@@ -337,7 +337,7 @@ namespace fmesh {
       /* NOT IMPLEMENTED */
       return M;
     }
-    for (int r=0; (r<M1.rows()) && (r<M1.cols()); r++) {
+    for (size_t r=0; (r<M1.rows()) && (r<M1.cols()); r++) {
       const T& val = M1[r][r];
       if (!(val==T()))
 	M(r,r) = 1/val;

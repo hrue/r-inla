@@ -49,18 +49,21 @@ namespace fmesh {
 
   template<class T>
   int BBoxLocator<T>::Search_tree_type::Iterator::operator*() const  {
-    if (search_tree_->use_interval_tree_)
+    if (search_tree_->use_interval_tree_) {
       switch (search_tree_->ndim_) {
       case 1: return *I_; break;
       case 2: return *SI_; break;
       case 3: return *SSI_; break;
       }
-    else
+    } else {
       switch (search_tree_->ndim_) {
       case 1: return *S_; break;
       case 2: return *SS_; break;
       case 3: return *SSS_; break;
       }
+    }
+    LOG_("Error: Invalid insternal search_tree structure.");
+    return (-1);
   }
 
   template<class T>
@@ -107,7 +110,7 @@ namespace fmesh {
       case 2: init(&SS_, bbox); break;
       case 3: init(&SSS_, bbox); break;
       }
-    if ((*bbox).size()>0)
+    if ((*bbox).size()>0) {
       if (use_interval_tree_)
 	switch (ndim_) {
 	case 1: add_segment(I_, 0,(*bbox).size()); break;
@@ -120,7 +123,8 @@ namespace fmesh {
 	case 2: add_segment(SS_, 0,(*bbox).size()); break;
 	case 3: add_segment(SSS_, 0,(*bbox).size()); break;
 	}
-    if ((*bbox).size()>0)
+    }
+    if ((*bbox).size()>0) {
       if (use_interval_tree_)
 	switch (ndim_) {
 	case 1: build_tree(I_); break;
@@ -133,6 +137,7 @@ namespace fmesh {
 	case 2: build_tree(SS_); break;
 	case 3: build_tree(SSS_); break;
 	}
+    }
   }
   
 

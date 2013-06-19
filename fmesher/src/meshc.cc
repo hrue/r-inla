@@ -2260,10 +2260,10 @@ namespace fmesh {
 
   int MeshC::addVertices(const Matrix3double& S)
   {
-    int nVorig = (int)M_->nV();
+    size_t nVorig = M_->nV();
     M_->S_append(S);
     if ((state_>=State_RCDT) && big_.usingQv()) {
-      for (int v=nVorig; v < nVorig+S.rows(); v++)
+      for (size_t v=nVorig; v < nVorig+S.rows(); v++)
 	big_.setQv(v,big_.getQ());
     }
     return M_->nV()-S.rows();
