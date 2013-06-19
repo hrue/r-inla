@@ -32,7 +32,7 @@ namespace fmesh {
   {
     bbox_.resize(dim_.size());
     if (mesh_) {
-      for (int i=0; i<dim_.size(); ++i) {
+      for (size_t i=0; i<dim_.size(); ++i) {
 	bbox_[i].resize(mesh_->nT());
       }
       
@@ -41,9 +41,9 @@ namespace fmesh {
       Point mini;
       Point maxi;
       std::pair<double, double> range;
-      for (int t=0; t<mesh_->nT(); ++t) {
+      for (size_t t=0; t<mesh_->nT(); ++t) {
 	mesh_->triangleBoundingBox(t,mini,maxi);
-	for (int di=0; di<dim_.size(); ++di) {
+	for (size_t di=0; di<dim_.size(); ++di) {
 	  d = dim_[di];
 	  range.first = mini[d];
 	  range.second = maxi[d];
@@ -63,7 +63,7 @@ namespace fmesh {
 
   int TriangleLocator::locate(const Point& s) const {
     std::vector<double> loc(dim_.size());
-    for (int di=0; di<dim_.size(); ++di) {
+    for (size_t di=0; di<dim_.size(); ++di) {
       loc[di] = s[dim_[di]];
     }
     Dart d;

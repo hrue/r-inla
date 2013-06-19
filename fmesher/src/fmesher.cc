@@ -111,7 +111,7 @@ void map_points_to_mesh(const Mesh& M,
 			      sizeof(the_dimensions) / sizeof(int) );
   TriangleLocator locator(&M, dimensions, true);
 
-  for (int i=0; i<points.rows(); i++) {
+  for (size_t i=0; i<points.rows(); i++) {
     s[0] = points[i][0];
     s[1] = points[i][1];
     s[2] = points[i][2];
@@ -140,7 +140,7 @@ void map_points_to_mesh_convex(const Mesh& M,
   Dart d;
   Point s;
   Point b;
-  for (int i=0; i<points.rows(); i++) {
+  for (size_t i=0; i<points.rows(); i++) {
     s[0] = points[i][0];
     s[1] = points[i][1];
     s[2] = points[i][2];
@@ -167,8 +167,8 @@ void filter_locations(Matrix<double>& S,
 		      Matrix<int>& idx,
 		      double cutoff)
 {
-  int dim = S.cols();
-  int idx_next = 0;
+  size_t dim = S.cols();
+  size_t idx_next = 0;
   typedef std::list< std::pair<int, Point> > excludedT;
   excludedT excluded;
 
@@ -178,12 +178,12 @@ void filter_locations(Matrix<double>& S,
   double dist;
   Point s = Point(0.0, 0.0, 0.0);
   Point diff = Point(0.0, 0.0, 0.0);
-  for (int v=0; v<S.rows(); v++) {
+  for (size_t v=0; v<S.rows(); v++) {
     bool was_excluded = false;
-    for (int d=0; d<dim; d++)
+    for (size_t d=0; d<dim; d++)
       s[d] = S[v][d];
-    for (int v_try=0; v_try<idx_next; v_try++) {
-      for (int d=0; d<dim; d++)
+    for (size_t v_try=0; v_try<idx_next; v_try++) {
+      for (size_t d=0; d<dim; d++)
 	diff[d] = S[v_try][d]-s[d];
       if (diff.length() <= cutoff) {
 	was_excluded = true;
@@ -193,7 +193,7 @@ void filter_locations(Matrix<double>& S,
       }
     }
     if (!was_excluded) {
-      for (int d=0; d<dim; d++)
+      for (size_t d=0; d<dim; d++)
 	S(idx_next,d) = s[d];
       idx(v,0) = idx_next;
       idx_next++;
@@ -212,13 +212,13 @@ void filter_locations(Matrix<double>& S,
   for (excludedT::const_iterator i=excluded.begin();
        i != excluded.end();
        i++) {
-    int v = (*i).first;
-    for (int d=0; d<dim; d++)
+    size_t v = (*i).first;
+    for (size_t d=0; d<dim; d++)
       s[d] = (*i).second[d];
     double nearest_dist = -1.0;
     int nearest_idx = -1;
-    for (int v_try=0; v_try<S.rows(); v_try++) {
-      for (int d=0; d<dim; d++)
+    for (size_t v_try=0; v_try<S.rows(); v_try++) {
+      for (size_t d=0; d<dim; d++)
 	diff[d] = S[v_try][d]-s[d];
       dist = diff.length();
       if ((nearest_idx<0) || (dist<nearest_dist)) {
@@ -245,8 +245,8 @@ void remap_vertex_indices(const Matrix<int>& idx, Matrix<int>& matrix)
   LOG("Remapping vertex indices for an index matrix." << endl);
   LOG("Index size: " << idx.rows() << ", " << idx.cols() << endl);
   LOG("Matrix size: " << matrix.rows() << ", " << matrix.cols() << endl);
-  for (int i=0; i<matrix.rows(); i++) {
-    for (int j=0; j<matrix.cols(); j++) {
+  for (size_t i=0; i<matrix.rows(); i++) {
+    for (size_t j=0; j<matrix.cols(); j++) {
       matrix(i,j) = idx[matrix[i][j]][0];
     }
   }
@@ -276,7 +276,7 @@ void prepare_cdt_input(const Matrix<int>& segm0,
   if (segm0.cols()==1) {
     int v0 = -1;
     int v1 = -1;
-    for (int i=0; i < segm0.rows(); i++) {
+    for (size_t i=0; i < segm0.rows(); i++) {
       v0 = v1;
       v1 = segm0[i][0];
       if (i<segmgrp.rows()) // Update group index, if available
@@ -288,7 +288,7 @@ void prepare_cdt_input(const Matrix<int>& segm0,
   } else if (segm0.cols()==2) {
     int v0 = -1;
     int v1 = -1;
-    for (int i=0; i < segm0.rows(); i++) {
+    for (size_t i=0; i < segm0.rows(); i++) {
       v0 = segm0[i][0];
       v1 = segm0[i][1];
       if (i<segmgrp.rows()) // Update group index, if available
@@ -349,14 +349,14 @@ int main(int argc, char* argv[])
     input_s0_names.push_back(string(args_info.input_arg[0]));
   if (args_info.input_given>1)
     input_tv0_name = string(args_info.input_arg[1]);
-  for (int i=2; i<int(args_info.input_given); i++) {
+  for (size_t i=2; i < args_info.input_given; i++) {
     input_s0_names.push_back(string(args_info.input_arg[i]));
   }
 
   LOG("checkpoint 6." << std::endl);
 
   std::vector<string> quality_names;
-  for (int i=0; i<int(args_info.quality_given); i++) {
+  for (size_t i=0; i < args_info.quality_given; i++) {
     quality_names.push_back(string(args_info.quality_arg[i]));
   }
 
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
 
   std::vector<string> boundary_names;
   std::vector<string> boundarygrp_names;
-  for (int i=0; i<int(args_info.boundary_given); i++) {
+  for (size_t i=0; i < args_info.boundary_given; i++) {
     boundary_names.push_back(string(args_info.boundary_arg[i]));
     if (i<args_info.boundarygrp_given)
       boundarygrp_names.push_back(string(args_info.boundarygrp_arg[i]));
@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
 
   std::vector<string> interior_names;
   std::vector<string> interiorgrp_names;
-  for (int i=0; i<int(args_info.interior_given); i++) {
+  for (size_t i=0; i < args_info.interior_given; i++) {
     interior_names.push_back(string(args_info.interior_arg[i]));
     if (i<args_info.interiorgrp_given)
       interiorgrp_names.push_back(string(args_info.interiorgrp_arg[i]));
@@ -387,7 +387,7 @@ int main(int argc, char* argv[])
   LOG("checkpoint 9." << std::endl);
 
   std::vector<string> aniso_names;
-  for (int i=0; i<int(args_info.aniso_given); i++) {
+  for (size_t i=0; i < args_info.aniso_given; i++) {
     aniso_names.push_back(string(args_info.aniso_arg[i]));
   }
 
@@ -409,21 +409,21 @@ int main(int argc, char* argv[])
   double rcdt_big_limit_auto_default = -1.0;
   Matrix<double> rcdt_big_limit_defaults;
   rcdt_big_limit_defaults(0,0) = -0.5;
-  for (int i=1; (i<int(args_info.input_given)-2); i++) {
+  for (size_t i=1; (i+2 < args_info.input_given); i++) {
     rcdt_big_limit_defaults(i,0) = -0.5;
   }
   if ((args_info.rcdt_given>0) && (args_info.rcdt_arg[0] != 0))
     rcdt_min_angle = args_info.rcdt_arg[0];
   if (args_info.rcdt_given>1)
     rcdt_big_limit_auto_default = args_info.rcdt_arg[1];
-  for (int i=0; (i < int(args_info.rcdt_given)-2); i++) {
+  for (size_t i=0; (i+2 < args_info.rcdt_given); i++) {
     rcdt_big_limit_defaults(i,0) = args_info.rcdt_arg[i+2];
   }
 
   useX11 = (args_info.x11_given>0) && (args_info.x11_arg>=0);
   x11_delay_factor = args_info.x11_arg;
   if (args_info.x11_zoom_given==4) {
-    for (int i=0; i<4; i++)
+    for (size_t i=0; i<4; i++)
       x11_zoom[i] = args_info.x11_zoom_arg[i];
   } else if (args_info.x11_zoom_given==3) {
     double xmid = args_info.x11_zoom_arg[0];
@@ -498,13 +498,13 @@ int main(int argc, char* argv[])
 	       (args_info.io_arg == io_arg_bb)));
   matrices.input_prefix(iprefix);
   matrices.output_prefix(oprefix);
-  for (int i=0; i<(int)args_info.ic_given; ++i) {
+  for (size_t i=0; i<args_info.ic_given; ++i) {
     matrices.input_file(string(args_info.ic_arg[i]));
   }
   if (args_info.oc_given>0) {
     matrices.output_file(string(args_info.oc_arg));
   }
-  for (int i=0; i+2<(int)args_info.ir_given; i=i+3) {
+  for (size_t i=0; i+2<args_info.ir_given; i=i+3) {
     matrices.input_raw(string(args_info.ir_arg[i]),
 		       string(args_info.ir_arg[i+1]),
 		       string(args_info.ir_arg[i+2]));
@@ -512,7 +512,7 @@ int main(int argc, char* argv[])
 
   LOG("matrix IO inited." << std::endl);
 
-  for (int i=0; i<input_s0_names.size(); i++) {
+  for (size_t i=0; i<input_s0_names.size(); i++) {
     if (!matrices.load(input_s0_names[i]).active) {
       cout << "Matrix "+input_s0_names[i]+" not found." << endl;
     }
@@ -526,7 +526,7 @@ int main(int argc, char* argv[])
     LOG("globe points added." << std::endl);
   }
 
-  for (int i=0; i<quality_names.size(); i++) {
+  for (size_t i=0; i<quality_names.size(); i++) {
     if (quality_names[i] != "-")
       if (!matrices.load(quality_names[i]).active) {
 	cout << "Matrix "+quality_names[i]+" not found." << endl;
@@ -546,7 +546,7 @@ int main(int argc, char* argv[])
   Matrix<double>& Quality0 = *Quality0_;
 
   /* Join the location matrices */ 
-  for (int i=0; i < input_s0_names.size(); i++) {
+  for (size_t i=0; i < input_s0_names.size(); i++) {
     Matrix<double>& S0_extra = matrices.DD(input_s0_names[i]);
     if (i>0) /* i=0 is already taken care of above. */
       iS0.append(S0_extra);
@@ -562,7 +562,7 @@ int main(int argc, char* argv[])
       quality_extra.rows(rows); /* Make sure we have the right number
 				   of rows */
       Quality0.append(quality_extra);
-    } else if (i<rcdt_big_limit_defaults.rows()) {
+    } else if (i<size_t(rcdt_big_limit_defaults.rows())) {
       int rows = S0_extra.rows();
       Matrix<double> quality_extra(rows,1);
       for (int r=0; r<rows; r++)
@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
   }
 
 
-  for (int i=0; i<boundary_names.size(); i++) {
+  for (size_t i=0; i<boundary_names.size(); i++) {
     if (!matrices.load(boundary_names[i]).active) {
       cout << "Matrix "+boundary_names[i]+" not found." << endl;
     }
@@ -604,7 +604,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  for (int i=0; i<interior_names.size(); i++) {
+  for (size_t i=0; i<interior_names.size(); i++) {
     if (!matrices.load(interior_names[i]).active) {
       cout << "Matrix "+interior_names[i]+" not found." << endl;
     }
@@ -615,7 +615,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  for (int i=0; i<aniso_names.size(); i++) {
+  for (size_t i=0; i<aniso_names.size(); i++) {
     if (!matrices.load(aniso_names[i]).active) {
       cout << "Matrix "+aniso_names[i]+" not found." << endl;
     }
@@ -627,14 +627,14 @@ int main(int argc, char* argv[])
 
 
   constrListT cdt_boundary;
-  for (int i=0; i<boundary_names.size(); i++) {
+  for (size_t i=0; i<boundary_names.size(); i++) {
     Matrix<int>& boundary0 = matrices.DI(boundary_names[i]);
     Matrix<int>& boundarygrp = matrices.DI(boundarygrp_names[i]);
     prepare_cdt_input(boundary0,boundarygrp,cdt_boundary);
   }
 
   constrListT cdt_interior;
-  for (int i=0; i<interior_names.size(); i++) {
+  for (size_t i=0; i<interior_names.size(); i++) {
     Matrix<int>& interior0 = matrices.DI(interior_names[i]);
     Matrix<int>& interiorgrp = matrices.DI(interiorgrp_names[i]);
     prepare_cdt_input(interior0,interiorgrp,cdt_interior);
@@ -656,7 +656,7 @@ int main(int argc, char* argv[])
     remap_vertex_indices(idx, cdt_boundary);
     remap_vertex_indices(idx, cdt_interior);
   } else {
-    for (int v=0; v < iS0.rows(); v++) {
+    for (size_t v=0; v < iS0.rows(); v++) {
       idx(v,0) = v;
     }
   }
@@ -675,12 +675,12 @@ int main(int argc, char* argv[])
   } else if (iS0.rows()>0) {
     Matrix3double S0(iS0); /* Make sure we have a Nx3 matrix. */
     M.S_append(S0);
-    int nV = iS0.rows();
+    size_t nV = iS0.rows();
 
     isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
     double radius = M.S(0).length();
     issphere = true;
-    for (int i=1; i<M.nV(); i++) {
+    for (size_t i=1; i<M.nV(); i++) {
       isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
       issphere = (issphere && (std::abs(M.S(i).length()-radius) < sphere_tolerance));
     }
@@ -704,17 +704,19 @@ int main(int argc, char* argv[])
     
     Point mini(M.S(0));
     Point maxi(M.S(0));
-    for (int v=1; v<M.nV(); v++)
-      for (int i=0; i<3; i++) {
+    for (size_t v=1; v<M.nV(); v++)
+      for (size_t i=0; i<3; i++) {
 	mini[i] = (M.S(v)[i] < mini[i] ? M.S(v)[i] : mini[i]);
 	maxi[i] = (M.S(v)[i] > maxi[i] ? M.S(v)[i] : maxi[i]);
       }
     Point sz;
     fmesh::Vec::diff(sz,maxi,mini);
+    /*
     double diam;
     diam = (sz[1] < sz[0]
 	    ? (sz[2] < sz[0] ? sz[0] : sz[2])
 	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
+    */
     
     if (useX11) {
       if (issphere) {
@@ -798,7 +800,7 @@ int main(int argc, char* argv[])
 	
 	/* Add the rest of the nodes. */
 	vertexListT vertices;
-	for (int v=0;v<nV;v++)
+	for (size_t v=0;v<nV;v++)
 	  vertices.push_back(v);
 	MC.DT(vertices);
 	
@@ -918,7 +920,7 @@ int main(int argc, char* argv[])
 	cout << "Matrix "+points2mesh_name+" not found." << std::endl;
       }
       Matrix<double>& points2mesh = matrices.DD(points2mesh_name);
-      int points_n = points2mesh.rows();
+      size_t points_n = points2mesh.rows();
       Matrix<int>& points2mesh_t =
 	matrices.attach(string("p2m.t"),
 			new Matrix<int>(points_n,1),
@@ -969,7 +971,7 @@ int main(int argc, char* argv[])
     SparseMatrix<double> tmp = G*C0inv;
     SparseMatrix<double>* a;
     SparseMatrix<double>* b = &G;
-    for (int i=1; i<fem_order_max; i++) {
+    for (size_t i=1; i<fem_order_max; i++) {
       std::stringstream ss;
       ss << i+1;
       std::string Gname = "g"+ss.str();
@@ -981,7 +983,7 @@ int main(int argc, char* argv[])
     }
     tmp = C0inv*K;
     b = &K;
-    for (int i=1; i<fem_order_max; i++) {
+    for (size_t i=1; i<fem_order_max; i++) {
       std::stringstream ss;
       ss << i+1;
       std::string Kname = "k"+ss.str();
@@ -1002,7 +1004,7 @@ int main(int argc, char* argv[])
       SparseMatrix<double> tmp = Gani*C0inv;
       SparseMatrix<double>* a;
       SparseMatrix<double>* b = &Gani;
-      for (int i=1; i<fem_order_max; i++) {
+      for (size_t i=1; i<fem_order_max; i++) {
 	std::stringstream ss;
 	ss << i+1;
 	std::string Gname = "g"+ss.str()+"aniso";
@@ -1028,7 +1030,7 @@ int main(int argc, char* argv[])
     matrices.output("dx").output("dy").output("dz");
   }
 
-  for (int i=0; i<(int)args_info.collect_given; i++) {
+  for (size_t i=0; i<args_info.collect_given; i++) {
     string matrix_name = string(args_info.collect_arg[i]);
     if (!(matrix_name=="-") & !(matrix_name=="--")) {
       if (!matrices.activate(matrix_name)) {

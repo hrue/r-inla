@@ -85,7 +85,7 @@ namespace fmesh {
       };
 
     public:
-      Search_tree_type(int ndim, bool use_interval_tree=true) : ndim_(ndim), use_interval_tree_(use_interval_tree), I_(NULL), SI_(NULL), SSI_(NULL), S_(NULL), SS_(NULL), SSS_(NULL) {};
+      Search_tree_type(int ndim, bool use_interval_tree=true) : ndim_(ndim), use_interval_tree_(use_interval_tree), I_(NULL), S_(NULL), SI_(NULL), SS_(NULL), SSI_(NULL), SSS_(NULL) {};
       
       ~Search_tree_type();
       

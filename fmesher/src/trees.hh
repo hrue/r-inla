@@ -207,11 +207,11 @@ namespace fmesh {
       typename std::vector<T>::const_iterator loc_next_i_;
       bool is_null_;
     public:
-      explicit Search_iterator() : is_null_(true), C_(NULL),
-				   loc_(), loc_next_i_() {};
+      explicit Search_iterator() : C_(NULL), loc_(), loc_next_i_(),
+				   is_null_(true) {};
       Search_iterator(const ContainerType* C,
 		      const typename std::vector<T>::const_iterator& loc_i) :
-	is_null_(true), C_(C), loc_(*loc_i), loc_i_(loc_i), loc_next_i_(loc_i) {
+	C_(C), loc_(*loc_i), loc_i_(loc_i), loc_next_i_(loc_i), is_null_(true) {
 	++loc_next_i_;
       };
 
@@ -245,10 +245,12 @@ namespace fmesh {
 	return typename self_type::pointer();
       };
       */
+      /*
       self_type::reference operator*() const {
 	NOT_IMPLEMENTED;
 	//	return typename self_type::reference();
       };
+      */
     };
 
 
@@ -552,6 +554,7 @@ namespace fmesh {
 	} else {
 	  LOG_("Error: undefined dereferencing" << std::endl);
 	}
+	return (*(new T()));
       };
 
     };
@@ -661,7 +664,6 @@ namespace fmesh {
 	/* Segment completely covers the interval */
 	(*i).activate_data(multi_segment_iter_);
 	(*i).data_->add_segment(segm_idx);
-	return true;
       } else if ((segm.first <= (*i).right_) && (segm.second >= (*i).left_)) {
 	/* Segment at least partially covers the interval */
 	bool left_ok = distribute_segment(i.left(), segm_idx);
@@ -670,8 +672,8 @@ namespace fmesh {
 	  (*i).activate_data(multi_segment_iter_);
 	  (*i).data_->add_segment(segm_idx);
 	} 
-	return true;
       }
+      return true;
     };
     void distribute_segments() {
       for (typename segment_list_type::const_iterator si = segments_.begin();

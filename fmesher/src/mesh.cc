@@ -12,13 +12,19 @@
 #include "meshc.hh"
 #include "mesh.hh"
 
+#ifndef WHEREAMI
 #define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
+#endif
 
-#define LOG_(msg) cout << WHEREAMI << msg;
+#ifndef LOG_
+#define LOG_(msg) std::cout << WHEREAMI << msg;
+#endif
+#ifndef LOG
 #ifdef DEBUG
-#define LOG(msg) MESH_LOG_(msg)
+#define LOG(msg) LOG_(msg)
 #else
 #define LOG(msg)
+#endif
 #endif
 
 
@@ -2514,9 +2520,9 @@ namespace fmesh {
       gr[1].rescale(eij[1][1]/(4.0*fa*fa));
       gr[2].rescale(eij[2][2]/(4.0*fa*fa));
 
-      for (int i=0; i<3; i++) {
+      for (size_t i=0; i<3; i++) {
 	weights(tv[i],0) += fa;
-	for (int j=0; j<3; j++) {
+	for (size_t j=0; j<3; j++) {
 	  D_[0](tv[i],tv[j]) += gr[j][0]*fa;
 	  D_[1](tv[i],tv[j]) += gr[j][1]*fa;
 	  D_[2](tv[i],tv[j]) += gr[j][2]*fa;
@@ -2525,7 +2531,7 @@ namespace fmesh {
 
     }
 
-    for (int i=0; i<nV(); i++) {
+    for (size_t i=0; i<nV(); i++) {
       weights(i,0) = 1.0/weights(i,0);
     }
     SparseMatrix<double> w = diag(weights);
