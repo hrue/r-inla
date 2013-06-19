@@ -12,6 +12,21 @@
 #include <string>
 #include <cmath>
 
+#ifndef WHEREAMI
+#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
+#endif
+
+#ifndef LOG_
+#define LOG_(msg) std::cout << WHEREAMI << msg;
+#endif
+#ifndef LOG
+#ifdef DEBUG
+#define LOG(msg) LOG_(msg)
+#else
+#define LOG(msg)
+#endif
+#endif
+
 #ifndef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED (std::cout					\
 			 << __FILE__ << "(" << __LINE__ << ")\t"	\
@@ -115,31 +130,31 @@ namespace fmesh {
     bool append(const Matrix<T>& toappend);
 
     Matrix<T>& rows(size_t set_rows);
-    int rows(void) const { return rows_; };
-    int cols(void) const { return cols_; };
+    size_t rows(void) const { return rows_; };
+    size_t cols(void) const { return cols_; };
     Matrix<T>& cols(size_t set_cols);
 
-    const T (* operator[](const int r) const) {
-      if (r >= (int)rows_) {
+    const T (* operator[](const size_t r) const) {
+      if (r >= rows_) {
 	return NULL;
       }
       return &data_[r*cols_];
     };
 
-    T* operator()(const int r) {
-      if (r >= (int)rows_) {
+    T* operator()(const size_t r) {
+      if (r >= rows_) {
 	rows(r+1);
       }
       return &data_[r*cols_]; 
     };
 
-    T& operator()(const int r, const int c) {
-      if (c >= (int)cols_)
+    T& operator()(const size_t r, const size_t c) {
+      if (c >= cols_)
 	cols(c+1);
       return operator()(r)[c]; 
     };
 
-    const T& operator()(const int r, const int c, const T& val) {
+    const T& operator()(const size_t r, const size_t c, const T& val) {
       return (operator()(r,c) = val); 
     };
 
@@ -204,11 +219,11 @@ namespace fmesh {
       return copy(vec);
     };
 
-    const T& operator[](const int i) const {
+    const T& operator[](const size_t i) const {
       return s[i];
     };
 
-    T& operator[](const int i) {
+    T& operator[](const size_t i) {
       return s[i];
     };
 
@@ -321,14 +336,15 @@ namespace fmesh {
       return *this;
     };
 
-    const T& operator[](const int r) const {
-      if (r >= (int)Matrix<T>::rows_) {
+    const T& operator[](const size_t r) const {
+      if (r >= Matrix<T>::rows_) {
 	/* ERROR */
+	LOG_("Error: Index out of bounds.")
       }
       return Matrix<T>::data_[r];
     };
 
-    T& operator()(const int r) {
+    T& operator()(const size_t r) {
       return Matrix<T>::operator()(r,0);
     };
     
@@ -342,8 +358,8 @@ namespace fmesh {
     typedef Vector3<T> ValueRow;
     Matrix3() : Matrix<T>(3) {};
     Matrix3(const Matrix<T>& M) : Matrix<T>(3) {
-      for (int r=0; r < M.rows(); r++) {
-	for (int c=0; (c < 3) && (c < M.cols()); c++) {
+      for (size_t r=0; r < M.rows(); r++) {
+	for (size_t c=0; (c < 3) && (c < M.cols()); c++) {
 	  operator()(r,c,M[r][c]);
 	}
       }
@@ -358,19 +374,19 @@ namespace fmesh {
       return *this;
     };
 
-    const ValueRow& operator[](const int r) const {
+    const ValueRow& operator[](const size_t r) const {
       return ((ValueRow*)Matrix<T>::data_)[r];
     };
     
-    ValueRow& operator()(const int r) {
+    ValueRow& operator()(const size_t r) {
       return *(ValueRow*)(&Matrix<T>::operator()(r,0));
     };
     
-    T& operator()(const int r, const int c) {
+    T& operator()(const size_t r, const size_t c) {
       return Matrix<T>::operator()(r,c);
     };
     
-    const T& operator()(const int r, const int c, const T& val) {
+    const T& operator()(const size_t r, const size_t c, const T& val) {
       return Matrix<T>::operator()(r,c,val);
     };
 
@@ -425,7 +441,7 @@ namespace fmesh {
     SparseMatrixRow(SparseMatrix<T>* M)
       : M_(M), data_() { };
 
-    int size() const { return data_.size(); };
+    size_t size() const { return data_.size(); };
 
     void cols(size_t set_cols) {
       ColRIter col;
@@ -438,8 +454,8 @@ namespace fmesh {
       }
     };
 
-    int nnz(int r, int matrixt = 0) const {
-      int nnz_ = 0;
+    size_t nnz(int r, int matrixt = 0) const {
+      size_t nnz_ = 0;
       if (matrixt == 2) {
 	ColCIter col;
 	if ((col = data_.find(r)) != data_.end()) {
@@ -464,8 +480,8 @@ namespace fmesh {
       if (matrixt == 2) {
 	ColCIter col;
 	if ((col = data_.find(row)) != data_.end()) {
-	  MT(offset+elem) = SparseMatrixTriplet<T>(row,row,
-					    col->second);
+	  MT(offset+elem) =
+	    SparseMatrixTriplet<T>(row, row, col->second);
 	  elem++;
 	}
       } else {
@@ -474,8 +490,8 @@ namespace fmesh {
 	     col++) {
 	  if ((matrixt==0) ||
 	      (row <= col->first)) {
-	    MT(offset+elem) = SparseMatrixTriplet<T>(row,col->first,
-						     col->second);
+	    MT(offset+elem) =
+	      SparseMatrixTriplet<T>(row, col->first, col->second);
 	    elem++;
 	  }
 	}
@@ -528,9 +544,10 @@ namespace fmesh {
     ColCRIter rend() const { return data_.rend(); };
     ColCIter find(int c) const { return data_.find(c); };
 
-    const T& operator[](const int c) const {
+    const T& operator[](const size_t c) const {
       if (!(c < M_->cols())) {
 	/* Range error. */
+	LOG_("Error: Column index out of bounds.")
 	return zero_;
       }
       ColCIter col;
@@ -539,7 +556,7 @@ namespace fmesh {
       return zero_;
     };
     
-    T& operator()(const int c) {
+    T& operator()(const size_t c) {
       if (!(c < M_->cols()))
 	M_->cols(c+1);
       return data_[c];
@@ -549,7 +566,7 @@ namespace fmesh {
       data_.erase(col);
     };
     
-    void erase(int c) {
+    void erase(size_t c) {
       ColIter col;
       if ((col = data_.find(c)) != data_.end())
 	data_.erase(col);
@@ -583,7 +600,7 @@ namespace fmesh {
     };
     SparseMatrix(const SparseMatrix<T>& from)
       : cols_(from.cols_), data_(from.data_) {
-      for (int r=0; r<rows(); r++) {
+      for (size_t r=0; r<rows(); r++) {
 	data_[r].M_ = this;
       }
       //      std::cout << "SM copy" << std::endl;
@@ -591,7 +608,7 @@ namespace fmesh {
     const SparseMatrix<T>& operator=(const SparseMatrix<T>& from) {
       cols_ = from.cols_;
       data_ = from.data_;
-      for (int r=0; r<rows(); r++) {
+      for (size_t r=0; r<rows(); r++) {
 	data_[r].M_ = this;
       }
       //      std::cout << "SM assignment" << std::endl;
@@ -609,7 +626,7 @@ namespace fmesh {
 
     SparseMatrix<T>& cols(size_t set_cols) {
       if (!(cols_<set_cols)) {
-	for (int row=0; row<rows(); row++) {
+	for (size_t row=0; row<rows(); row++) {
 	  data_[row].cols(set_cols);
 	}
       }
@@ -617,22 +634,22 @@ namespace fmesh {
       return *this;
     };
 
-    int rows(void) const {
+    size_t rows(void) const {
       return data_.size();
     };
 
-    int cols(void) const {
+    size_t cols(void) const {
       return cols_;
     };
 
-    int nnz(int matrixt = 0) const {
-      int nnz_ = 0;
-      for (int row=0; row<rows(); row++)
+    size_t nnz(int matrixt = 0) const {
+      size_t nnz_ = 0;
+      for (size_t row=0; row<rows(); row++)
 	nnz_ += data_[row].nnz(row,matrixt);
       return nnz_;
     };
 
-    bool non_zero(const int r,  const int c) const {
+    bool non_zero(const size_t r,  const size_t c) const {
       if (r < rows()) {
 	return (data_[r].find(c) != data_[r].end());
       } else {
@@ -640,7 +657,7 @@ namespace fmesh {
       }
     };
 
-    const T& operator()(const int r,  const int c) const {
+    const T& operator()(const size_t r,  const size_t c) const {
       if (r<rows()) {
 	return data_[r][c];
       } else {
@@ -648,24 +665,25 @@ namespace fmesh {
       }
     };
 
-    const RowType& operator[](const int r) const {
+    const RowType& operator[](const size_t r) const {
       if (!(r<rows())) {
 	/* Range error. */
+	LOG_("Error: Row index out ouf bounds.")
       }
       return data_[r];
     };
 
-    RowType& operator()(const int r) {
+    RowType& operator()(const size_t r) {
       if (!(r<rows()))
 	rows(r+1); /* Expand. */
       return data_[r];
     };
 
-    T& operator()(const int r,  const int c) {
+    T& operator()(const size_t r,  const size_t c) {
       return operator()(r)(c);
     };
 
-    const T& operator()(const int r,  const int c, const T& val) {
+    const T& operator()(const size_t r,  const size_t c, const T& val) {
       if (val == zero_) {
 	if (r < rows()) {
 	  data_[r].erase(r);
@@ -697,7 +715,7 @@ namespace fmesh {
     int tolist(Matrix1< SparseMatrixTriplet<T> >& MT,
 	       int matrixt = 0) const {
       int elem = 0;
-      for (int row=0; row<rows(); row++) {
+      for (size_t row=0; row<rows(); row++) {
 	elem += data_[row].tolist(elem,row,MT,matrixt);
       }
       return elem;
@@ -708,7 +726,7 @@ namespace fmesh {
 	       Matrix1< T >& Tv,
 	       int matrixt = 0) const {
       int elem = 0;
-      for (int row=0; row < rows(); row++)
+      for (size_t row=0; row < rows(); row++)
 	elem += data_[row].tolist(elem,row,Tr,Tc,Tv,matrixt);
       return elem;
     };
@@ -717,15 +735,15 @@ namespace fmesh {
     void fromlist(const Matrix1< SparseMatrixTriplet<T> >& MT,
 		  int matrixt = 0) {
       if (matrixt==1) {
-	for (int i=0; i<MT.rows(); i++) {
+	for (size_t i=0; i<MT.rows(); i++) {
 	  operator()(MT[i].r,MT[i].c,MT[i].value);
 	  operator()(MT[i].c,MT[i].r,MT[i].value);
 	}
       } else if (matrixt==2) {
-	for (int i=0; i<MT.rows(); i++)
+	for (size_t i=0; i<MT.rows(); i++)
 	  operator()(MT[i].r,MT[i].r,MT[i].value);
       } else {
-	for (int i=0; i<MT.rows(); i++)
+	for (size_t i=0; i<MT.rows(); i++)
 	  operator()(MT[i].r,MT[i].c,MT[i].value);
       }
     };
@@ -735,16 +753,16 @@ namespace fmesh {
 		  const Matrix1< T >& Tv,
 		  int matrixt = 0) {
       if (matrixt==1) {
-	for (int i=0; i<Tr.rows(); i++) {
+	for (size_t i=0; i<Tr.rows(); i++) {
 	  operator()(Tr[i],Tc[i],Tv[i]);
 	  operator()(Tc[i],Tr[i],Tv[i]);
 	}
       } else if (matrixt==1) {
-	for (int i=0; i<Tr.rows(); i++) {
+	for (size_t i=0; i<Tr.rows(); i++) {
 	  operator()(Tr[i],Tr[i],Tv[i]);
 	}
       } else {
-	for (int i=0; i<Tr.rows(); i++) {
+	for (size_t i=0; i<Tr.rows(); i++) {
 	  operator()(Tr[i],Tc[i],Tv[i]);
 	}
       }
@@ -827,8 +845,8 @@ namespace fmesh {
   {
     output << M.rows_ << " "
 	   << M.cols_ << std::endl;
-    for (int r=0; r<M.rows(); r++) {
-      for (int c=0; c<M.cols(); c++) {
+    for (size_t r=0; r<M.rows(); r++) {
+      for (size_t c=0; c<M.cols(); c++) {
 	output << M.data_[r*M.cols()+c] << " ";
       }
       output << std::endl;
@@ -865,7 +883,7 @@ namespace fmesh {
     output << M.rows() << " "
 	   << M.cols() << " "
 	   << M.nnz() << std::endl;
-    for (int row=0; row<M.rows(); row++)
+    for (size_t row=0; row<M.rows(); row++)
       for (typename SparseMatrix<T>::ColCIter col
 	     = M[row].begin();
 	   col != M[row].end();

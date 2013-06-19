@@ -22,12 +22,12 @@
 namespace fmesh {
 
   Matrix<double> spherical_harmonics(const Matrix3<double>& S,
-				     int max_order,
+				     size_t max_order,
 				     bool rotationally_symmetric);
 
   Matrix<double> spherical_bsplines(const Matrix3<double>& S,
-				    int n_basis,
-				    int degree,
+				    size_t n_basis,
+				    size_t degree,
 				    bool uniform_knot_angle_spacing);
 
 } /* namespace fmesh */
