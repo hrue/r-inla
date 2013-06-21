@@ -10,12 +10,12 @@
 
 The Student-$t$ likelihood is defined so that 
 \[
-\sqrt{w\ \tau}(y - \eta)\sim T_{\nu}
+\sqrt{s\ \tau}(y - \eta)\sim T_{\nu}
 \]
 for continuous response $y$ where
 \begin{itemize}
 \item[$\tau$]: is the precision parameter
-\item[$w$]: is a foxed weight $w>0$
+\item[$s$]: is a fixed scaling $s>0$
 \item[$\eta$]: is the linear predictor
 \item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of
     freedom such that its variace is $1$ for any value of $\nu$.
@@ -37,7 +37,7 @@ and the prior is defined on $\theta=(\theta_1,\theta_2)$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{T}$
-\item Required argument: $y$ and $w$ (keyword {\tt weights}, default
+\item Required argument: $y$ and $s$ (keyword {\tt scale}, default
     to 1).
 \end{itemize}
 
