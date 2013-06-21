@@ -4956,9 +4956,9 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				fprintf(stderr, "\n*** Warning ***  Version [%s]", RCSId);
-				fprintf(stderr, "\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
-				fprintf(stderr, "\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
+				printf("\n*** Warning ***  Version [%s]", RCSId);
+				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
+				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
 
 			int yy;
@@ -14553,9 +14553,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_rwdef_tp *rwdef = NULL;
 
 			if (mb->f_locations[mb->nf]) {
-				fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but locations != NULL.\n", model, secname);
-				fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced locations.\n");
-				fprintf(stderr, "*** Warning ***\tAssume locations = 0, 1, 2, ...\n\n");
+				printf("\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
+				printf("*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+				printf("*** Warning ***\tAssume values are equal spaced.\n\n");
 			}
 
 			rwdef = Calloc(1, GMRFLib_rwdef_tp);
