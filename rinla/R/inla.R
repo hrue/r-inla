@@ -1827,10 +1827,10 @@
                 if (inla.os("mac")) {
                     ## cannot run in verbose mode
                     all.args = gsub("-v", "", all.args)
-                    tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
+                    tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                 } else {
                     if (verbose) {
-                        tmp.0 = multicore::parallel(system(paste(shquote(inla.call), all.args, shQuote(file.ini))))
+                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                     } else {
                         tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
                                 inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
