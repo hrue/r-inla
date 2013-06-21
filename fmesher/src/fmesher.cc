@@ -971,7 +971,7 @@ int main(int argc, char* argv[])
     SparseMatrix<double> tmp = G*C0inv;
     SparseMatrix<double>* a;
     SparseMatrix<double>* b = &G;
-    for (size_t i=1; i<fem_order_max; i++) {
+    for (size_t i=1; int(i) < fem_order_max; i++) {
       std::stringstream ss;
       ss << i+1;
       std::string Gname = "g"+ss.str();
@@ -983,7 +983,7 @@ int main(int argc, char* argv[])
     }
     tmp = C0inv*K;
     b = &K;
-    for (size_t i=1; i<fem_order_max; i++) {
+    for (size_t i=1; int(i) < fem_order_max; i++) {
       std::stringstream ss;
       ss << i+1;
       std::string Kname = "k"+ss.str();
@@ -1004,7 +1004,7 @@ int main(int argc, char* argv[])
       SparseMatrix<double> tmp = Gani*C0inv;
       SparseMatrix<double>* a;
       SparseMatrix<double>* b = &Gani;
-      for (size_t i=1; i<fem_order_max; i++) {
+      for (size_t i=1; int(i) < fem_order_max; i++) {
 	std::stringstream ss;
 	ss << i+1;
 	std::string Gname = "g"+ss.str()+"aniso";
