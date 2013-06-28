@@ -129,7 +129,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("zeroinflatednbinomial1strata2"))) {
+    } else if (inla.one.of(family, c("zeroinflatednbinomial1strata2", "zeroinflatednbinomial1strata3"))) {
         if (is.null(E)) {
             E = rep(1.0, n.data)
         }
