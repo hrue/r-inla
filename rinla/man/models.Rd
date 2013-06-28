@@ -4610,6 +4610,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -4660,6 +4661,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
