@@ -8559,7 +8559,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for SAS re", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for SAS re", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -8599,7 +8599,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Skewness for SAS re", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for SAS re", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -8638,7 +8638,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Kurtosis for SAS re", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Kurtosis for SAS re", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -9448,7 +9448,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter2 for zero-inflated nbinomial1_strata2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter2 for zero-inflated nbinomial1_strata2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -9533,7 +9533,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("log size2 for nbinomial zero-inflated observations strata3", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size2 for nbinomial zero-inflated observations strata3", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -9575,7 +9575,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter for zero-inflated nbinomial 1 strata3", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter for zero-inflated nbinomial 1 strata3", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -10438,7 +10438,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alpha1 parameter for zero-n-inflated binomial_2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha1 parameter for zero-n-inflated binomial_2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -10477,7 +10477,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alpha2 parameter for zero-n-inflated binomial_2", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha2 parameter for zero-n-inflated binomial_2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -10788,7 +10788,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -12360,7 +12360,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter", mb->f_dir[mb->nf]);
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -14054,7 +14054,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag[mb->ntheta] = msg;
 				GMRFLib_sprintf(&msg, "Precision for %s (component %1d)", mb->f_tag[mb->nf], k + 1);
 				mb->theta_tag_userscale[mb->ntheta] = msg;
-				GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
 				mb->theta_dir[mb->ntheta] = msg;
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
@@ -14102,7 +14102,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_tag[mb->ntheta] = msg;
 					GMRFLib_sprintf(&msg, "Rho%1d:%1d for %s", i + 1, j + 1, mb->f_tag[mb->nf]);
 					mb->theta_tag_userscale[mb->ntheta] = msg;
-					GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
 					mb->theta_dir[mb->ntheta] = msg;
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);

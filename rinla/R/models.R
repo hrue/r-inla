@@ -3757,6 +3757,7 @@
                                       from.theta = function(x) exp(x)/(1+exp(x))
                                       )
                               ),
+                      status = "experimental", 
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "log"),
@@ -3796,6 +3797,7 @@
                                       from.theta = function(x) exp(x)/(1+exp(x))
                                       )
                               ),
+                      status = "experimental", 
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "log"),
