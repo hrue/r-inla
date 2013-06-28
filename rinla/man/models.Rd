@@ -4618,6 +4618,56 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `zeroinflatednbinomial1strata3'.}{Number of hyperparmeters are 3.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log size 1'}
+							\item{short.name = }{`size1'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`log size 2'}
+							\item{short.name = }{`size2'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{name = }{`logit probability'}
+							\item{short.name = }{`prob'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`zeroinflated'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `zeroinflatednbinomial2'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
