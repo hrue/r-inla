@@ -1793,7 +1793,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		// 0.0000001,
 		0.000001,
 		// 0.00001,
-		// 0.0001,
+		0.0001,
 		// 0.0005,
 		0.001,
 		// 0.005,
@@ -1849,7 +1849,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		// 0.995, 
 		0.999,
 		// 0.9995,
-		// 0.9999,
+		0.9999,
 		// 0.99999,
 		0.999999
 		    // 0.9999999
