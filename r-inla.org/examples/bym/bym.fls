@@ -1,5 +1,5 @@
 PWD /home/hrue/p/inla/google-code/inla/r-inla.org/examples/bym
-INPUT /usr/share/texlive/texmf/web2c/texmf.cnf
+INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
 INPUT bym.tex
 OUTPUT bym.log
@@ -80,7 +80,7 @@ INPUT bym.bbl
 INPUT bym.bbl
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
 OUTPUT bym.pdf
-INPUT /usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT /usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map
 INPUT bym.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb

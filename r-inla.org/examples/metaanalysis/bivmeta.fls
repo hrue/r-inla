@@ -1,5 +1,5 @@
 PWD /home/hrue/p/inla/google-code/inla/r-inla.org/examples/metaanalysis
-INPUT /usr/share/texlive/texmf/web2c/texmf.cnf
+INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
 INPUT bivmeta.tex
 OUTPUT bivmeta.log
@@ -77,7 +77,7 @@ INPUT bivmeta.bbl
 INPUT bivmeta.bbl
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
 OUTPUT bivmeta.pdf
-INPUT /usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT /usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map
 INPUT bivmeta.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
