@@ -374,7 +374,7 @@
     if (!is.data.frame(data) && !is.list(data)) {
         stop("\n\tArgument `data' must be a data.frame or a list.")
     }
-    if (!is.null(weights)) {
+    if (!missing(weights)) {
         if (!inla.getOption("enable.inla.argument.weights")) {
             stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
                        "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
