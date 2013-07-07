@@ -1681,7 +1681,7 @@ inla.mesh.project.inla.mesh.projector =
         }
     } else {
         data = projector$proj$A %*% field
-        data[!projector$proj$ok,,drop=FALSE] = NA
+        data[!projector$proj$ok,] = NA
         return(data)
     }
 }
