@@ -113,6 +113,13 @@ inla.internal.experimental.mode = FALSE
     } else {
         lincomb.derived.correlation.matrix = NULL
     }
+
+    fnm = paste(d, "/lincomb_derived_covariance_matrix.dat",  sep="")
+    if (file.exists(fnm)) {
+        lincomb.derived.covariance.matrix = inla.read.fmesher.file(fnm)
+    } else {
+        lincomb.derived.covariance.matrix = NULL
+    }
         
     fnm = paste(d, "/mode-status.dat", sep="")
     if (file.exists(fnm)) {
@@ -227,6 +234,7 @@ inla.internal.experimental.mode = FALSE
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
                  to.theta = theta.to, from.theta = theta.from, mode.status = mode.status, 
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
+                 lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
                  configs = configs))
 }
 
