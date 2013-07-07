@@ -4964,6 +4964,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (misc_output && misc_output->compute_corr_lin) {
 			double *ptmp;
 			misc_output->corr_lin = ptmp = Calloc(ISQR(nlin), double);
+			misc_output->cov_lin = Calloc(ISQR(nlin), double);
 
 			for (i = 0; i < nlin; i++) {
 				for (j = i; j < nlin; j++) {
@@ -4973,6 +4974,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
+			memcpy(misc_output->cov_lin, ptmp, ISQR(nlin)*sizeof(double));
 
 			double *ptmp_scale = Calloc(ISQR(nlin), double);
 			for (i = 0; i < nlin; i++) {
