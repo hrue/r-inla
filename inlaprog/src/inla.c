@@ -20515,10 +20515,10 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		}
 		assert(GMRFLib_imin_value(order, n, NULL) == 0);
 		assert(GMRFLib_imax_value(order, n, NULL) == n - 1);
-		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", mo->compute_corr_lin, mo->corr_lin, order);
+		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", n, mo->corr_lin, order);
+		inla_output_matrix(ndir, NULL, "lincomb_derived_covariance_matrix.dat", n, mo->cov_lin, order);
 		Free(order);
 	}
-
 
 	if (mo->configs) {
 

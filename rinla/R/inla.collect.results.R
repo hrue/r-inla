@@ -97,6 +97,15 @@
             rownames(R) = colnames(R) = tag[id]
             misc$lincomb.derived.correlation.matrix = R
         }
+        if (!is.null(misc$lincomb.derived.covariance.matrix)) {
+            ## same code as above
+            stopifnot(!is.null(res.lincomb.derived))
+            id = res.lincomb.derived$summary.lincomb.derived$ID
+            tag = rownames(res.lincomb.derived$summary.lincomb.derived)
+            R = misc$lincomb.derived.covariance.matrix
+            rownames(R) = colnames(R) = tag[id]
+            misc$lincomb.derived.covariance.matrix = R
+        }
     }
 
     ## add the names of the theta's here, as they are available.
