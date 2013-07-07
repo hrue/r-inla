@@ -1,6 +1,5 @@
 importFrom(graphics, plot, image)
 import(Matrix)
-import(pixmap)
 import(sp)
 
 # Export all names
