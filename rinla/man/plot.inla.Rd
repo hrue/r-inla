@@ -18,6 +18,7 @@
               plot.predictor = TRUE,
               plot.q = TRUE,
               plot.cpo = TRUE,
+              single = FALSE, 
               postscript = FALSE,
               pdf = FALSE,
               prefix = "inla.plots/figure-", 

@@ -8,9 +8,10 @@
 ##!\description{Reads a graph-object to a file and write graph-object to file}
 ##!\usage{
 ##!g = inla.read.graph(graph)
-##!inla.write.graph(graph, filename, mode = c("binary", "ascii"))
-##!\method{plot}{inla.graph}(object, ...)
-##!\method{summary}{inla.graph}(object, ...)
+##!inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"))
+##!\method{plot}{inla.graph}(graph, filter = c("neato", "fdp"), attrs = NULL,
+##!                             scale = 0.5, node.names = NULL, ...)
+##!\method{summary}{inla.graph}(graph, ...)
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
@@ -19,6 +20,7 @@
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 ##!    \item{g}{An \code{inla.graph}-object.}
+##!    \item{...}{Extra arguments to \code{inla.read.graph} or \code{plot}}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
@@ -345,7 +347,7 @@
     return (NULL)
 }
 
-`inla.write.graph` = function(...,  filename = "graph.dat", mode = c("binary", "ascii"))
+`inla.write.graph` = function(graph, ..., filename = "graph.dat", mode = c("binary", "ascii"))
 {
     `inla.write.graph.ascii.internal` = function(graph, filename = "graph.dat")
     {
@@ -389,7 +391,7 @@
         mode = inla.ifelse(inla.getOption("internal.binary.mode"), "binary", "ascii")
     }
     mode = match.arg(mode)
-    g = inla.read.graph(...)
+    g = inla.read.graph(graph, ...)
 
     if (mode == "binary") {
         return (invisible(inla.write.graph.binary.internal(g, filename)))
@@ -451,12 +453,12 @@
     return(ret)
 }
 
-`print.inla.graph.summary` = function(go, ...)
+`print.inla.graph.summary` = function(graph, ...)
 {
-    cat(paste("\tn = ",  go$n, "\n"))
-    cat(paste("\tncc = ",  go$ncc, "\n"))
-    w = max(nchar(names(go$nnbs)))
-    cat(inla.paste(c("\tnnbs = (names) ",  format(names(go$nnbs), width = w, justify = "right"), "\n")))
-    cat(inla.paste(c("\t       (count) ",  format(go$nnbs, width = w, justify = "right"), "\n")))
+    cat(paste("\tn = ",  graph$n, "\n"))
+    cat(paste("\tncc = ",  graph$ncc, "\n"))
+    w = max(nchar(names(graph$nnbs)))
+    cat(inla.paste(c("\tnnbs = (names) ",  format(names(graph$nnbs), width = w, justify = "right"), "\n")))
+    cat(inla.paste(c("\t       (count) ",  format(graph$nnbs, width = w, justify = "right"), "\n")))
     return(invisible())
 }
