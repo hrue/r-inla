@@ -18,7 +18,6 @@
 
         ##! \item{control.results}{a list of parameters controlling the
         ##! output of the function; see \code{?control.results}}
-        ##! }
         control.results = inla.set.control.results.default(),
 
         ##! \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
