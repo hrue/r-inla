@@ -74,10 +74,10 @@
         ##! alternatives.}
         model = "iid",
 
-        ##!\item{copy}{}
+        ##!\item{copy}{TODO}
         copy=NULL,
 
-        ##!\item{same.as}{}
+        ##!\item{same.as}{TODO}
         same.as = NULL,
 
         ##!\item{n}{An optional argument which defines the dimension
@@ -85,19 +85,20 @@
         ##!\code{length(sort(unique(covariate)))}}
         n=NULL,
 
-        ##!\item{nrep}{}
+        ##!\item{nrep}{TODO}
+
         nrep = NULL,
 
         ##!\item{replicate}{We need to write documentation here}
         replicate = NULL,
 
-        ##!\item{group}{}
+        ##!\item{ngroup}{TODO}
         ngroup = NULL,
 
-        ##!\item{group}{}
+        ##!\item{group}{TODO}
         group = NULL,
 
-        ##!\item{control.group}{}
+        ##!\item{control.group}{TODO}
         control.group = inla.set.control.group.default(),
 
         ##!\item{hyper}{Spesification of the hyperparameter, fixed or
@@ -221,7 +222,7 @@
         ##!details.}
         rankdef=NULL,
 
-        ##!\item{Z}{}
+        ##!\item{Z}{TODO}
         Z = NULL,
 
         ##!\item{nrow}{Number of rows for 2d-models}
@@ -234,16 +235,16 @@
         ##!possible values are \code{c(0, 1, 2, 3)}}
         nu = NULL,
 
-        ##!\item{bvalue}{}
+        ##!\item{bvalue}{TODO}
         bvalue = NULL,
 
-        ##!\item{spde.prefix}{}
+        ##!\item{spde.prefix}{TODO}
         spde.prefix = NULL,
 
-        ##!\item{spde2.prefix}{}
+        ##!\item{spde2.prefix}{TODO}
         spde2.prefix = NULL,
 
-        ##!\item{spde2.transform}{}
+        ##!\item{spde2.transform}{TODO}
         spde2.transform = c("logit", "log", "identity"),
 
         ##!\item{mean.linear}{Prior mean for the linear component,
@@ -254,7 +255,7 @@
         ##!component, only used if \code{model="linear"}}
         prec.linear = inla.set.control.fixed.default()$prec, 
 
-        ##!\item{si}{}
+        ##!\item{si}{TODO}
         si=FALSE,
 
         ##!\item{compute}{ A boolean variable indicating wheather the
@@ -264,7 +265,7 @@
         ##! some posterior marginals.}
         compute = TRUE,
 
-        ##!\item{of}{}
+        ##!\item{of}{TODO}
         of=NULL,
 
         ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
@@ -300,7 +301,7 @@
         debug = FALSE)
 {
     ##!}
-    ##!\value{}
+    ##!\value{TODO}
 
     ##!\details{There is no default value for \code{rankdef}, if it
     ##!is not defined by the user then it is computed by the rank
