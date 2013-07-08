@@ -4,7 +4,7 @@
 %%
 \name{f}
 \alias{f}
-\title{ Defining smooth and spatial effects in INLA formulae }
+\title{Define general Gaussian models in the INLA formula }
 \description{
 
   Function used in definition of smooth and spatial terms within \code{inla} model
@@ -15,8 +15,54 @@
 
 }
 \usage{
-`f` =
-function(..., model=NULL,...)
+    f(..., 
+         model = "iid",
+         copy=NULL,
+         same.as = NULL,
+         n=NULL,
+         nrep = NULL,
+         replicate = NULL,
+         ngroup = NULL,
+         group = NULL,
+         control.group = inla.set.control.group.default(),
+         hyper = NULL,
+         initial=NULL,
+         prior=NULL,
+         param = NULL,
+         fixed = NULL,
+         season.length=NULL,
+         constr = NULL,
+         extraconstr=NULL,
+         values=NULL,
+         cyclic = NULL,
+         diagonal = NULL,
+         graph=NULL,
+         graph.file=NULL,
+         cdf=NULL,
+         quantiles=NULL,
+         Cmatrix=NULL,
+         rankdef=NULL,
+         Z = NULL,
+         nrow = NULL,
+         ncol = NULL,
+         nu = NULL,
+         bvalue = NULL,
+         spde.prefix = NULL,
+         spde2.prefix = NULL,
+         spde2.transform = c("logit", "log", "identity"),
+         mean.linear = inla.set.control.fixed.default()$mean, 
+         prec.linear = inla.set.control.fixed.default()$prec, 
+         si=FALSE,
+         compute = TRUE,
+         of=NULL,
+         precision = 1.0e9,
+         range = NULL,
+         adjust.for.con.comp = TRUE,
+         order = NULL, 
+         scale = NULL, 
+         strata = NULL, 
+         rgeneric = NULL, 
+         debug = FALSE)
 }
 \arguments{
 \item{...}{ Name of the covariate and, possibly of the

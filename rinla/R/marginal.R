@@ -27,18 +27,7 @@
 ##! 
 ##! \description{Density, distribution function, quantile function, random
 ##!      generation, hpd-interval, interpolation, expectations and transformations of
-##!      marginals obtained by \code{inla} or \code{inla.hyperpar()}.}
-##! 
-##! \usage{
-##! inla.dmarginal(x, marginal, log = FALSE)
-##! inla.pmarginal(q, marginal, normalize = TRUE)
-##! inla.qmarginal(p, marginal, len = 1024)
-##! inla.rmarginal(n, marginal)
-##! inla.hpdmarginal(p, marginal)
-##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
-##! inla.emarginal(fun, marginal, ...)
-##! inla.tmarginal(fun, marginal, n, h.diff, ...)
-##!
+##!      marginals obtained by \code{inla} or \code{inla.hyperpar()}.
 ##! These functions computes the density (inla.dmarginal), 
 ##! the distribution function (inla.pmarginal), 
 ##! the quantile function (inla.qmarginal), 
@@ -48,6 +37,17 @@
 ##! and transforms the marginal (inla.tmarginal).
 ##! }
 ##! 
+##! \usage{
+##! inla.dmarginal(x, marginal, log = FALSE)
+##! inla.pmarginal(q, marginal, normalize = TRUE, len = 1024)
+##! inla.qmarginal(p, marginal, len = 1024)
+##! inla.rmarginal(n, marginal)
+##! inla.hpdmarginal(p, marginal, len = 1024)
+##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
+##! inla.emarginal(fun, marginal, ...)
+##! inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
+##!                method = c("quantile", "linear"),  ...) 
+##! }
 ##! \arguments{
 ##! 
 ##!   \item{marginal}{A marginal object from either \code{inla} or
@@ -87,6 +87,11 @@
 ##!   \item{keep.type}{If \code{FALSE} then return a \code{list(x=, y=)},  otherwise if \code{TRUE},
 ##!                   then return a matrix if the input is a matrix}
 ##! 
+##!   \item{extrapolate}{How much to extrapolate on each side when computing the
+##!   interpolation. In fraction of the range.}
+##!
+##!   \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
+##!                 which is argument \code{n} in \ref{spline}}
 ##! }
 ##! 
 ##! \value{%%

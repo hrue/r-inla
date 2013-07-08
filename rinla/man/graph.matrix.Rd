@@ -10,19 +10,19 @@
 \title{Construct a neighbour-matrix from a \code{graph}}
 \description{Construct a neighbour-matrix from a \code{graph} and disaply it}
 \usage{
-Q = inla.graph2matrix(graph)
-inla.spy(graph, reordering = NULL, factor = 1.0, max.dim = NULL)
+    inla.graph2matrix(graph, ...)
+    inla.spy(graph, ..., reordering = NULL, factor = 1.0, max.dim = NULL)
 }
 \arguments{
     \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
                  or a list or collection of characters and/or numbers defining the graph.}
-    \item{Q}{An (possible) sparse symmtric matrix}
     \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}, 
                       or the result of \code{inla.qreordering}.}
     \item{factor}{A scaling of the \code{inla.graph}-object to reduce the size.}
     \item{max.dim}{Maximum dimension of the \code{inla.graph}-object plotted;
                    if \code{missing(factor)} and \code{max.dim} is set,  then \code{factor}
                    is computed automatically to give the given \code{max.dim}.}
+    \item{...}{Additional arguments to \code{inla.read.graph()}}
 }
 \value{
      \code{inla.graph2matrix} returns a sparse symmetric matrix where the non-zero pattern is defined by the \code{graph}.

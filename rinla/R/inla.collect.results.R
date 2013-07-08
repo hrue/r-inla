@@ -1,7 +1,45 @@
+##! \name{inla.collect.results}
+##! \alias{inla.collect.results}
+##! \alias{collect.results}
+##! \title{Collect results from a inla-call}
+##! \description{\code{inla.collect.results} collect results  from a inla-call}
+##! \usage{
+##! result = inla.collect.result(
+##!              results.dir,
+##!              control.results = inla.set.control.results.default(),
+##!              debug=FALSE, only.hyperparam=FALSE, file.log = NULL)
+##!}
+##! \arguments{
+
 `inla.collect.results` =
-    function(results.dir, control.results = inla.set.control.results.default(),
-             debug=FALSE, only.hyperparam=FALSE, file.log = NULL)
+    function(
+        ##! \item{results.dir}{The directory where the results of the inla run are stored}
+        results.dir, 
+
+        ##! \item{control.results}{a list of parameters controlling the
+        ##! output of the function; see \code{?control.results}}
+        ##! }
+        control.results = inla.set.control.results.default(),
+
+        ##! \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
+        debug=FALSE,
+
+        ##! \item{only.hyperparam}{Binary variable indicating wheather only the
+        ##! results for the hyperparameters should be collected}
+        only.hyperparam=FALSE, 
+
+        ##! \item{file.log}{Character. The filename, if any, of the logfile for
+        ##! the internal calculations}
+        file.log = NULL)
 {
+    ##! \value{ The function returns an object of class \code{"inla"}, see the
+    ##! help file for \code{inla} for details.}
+    ##! 
+    ##! \details{This function is mainly used inside \code{inla} and
+    ##!  \code{inla.surv} to collect results after running the inla
+    ##!  function. It can also be used to collect results into R after having
+    ##!  runned a inla section outside R.  }
+
     if (is.na(file.info(results.dir)$isdir) || 
         !file.info(results.dir)$isdir) {
         stop(paste("This is not a directory: ", results.dir, "\n"))

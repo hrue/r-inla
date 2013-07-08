@@ -9,7 +9,7 @@
 \title{View documentation}
 \description{View documentation of latent, prior and likelihood models.}
 \usage{
-inla.doc(what)
+inla.doc(what, verbose=FALSE)
 }
 \arguments{
 \item{what}{What to view documentation about;

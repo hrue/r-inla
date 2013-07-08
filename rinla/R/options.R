@@ -1,8 +1,91 @@
-### Functions to deal with options in INLA
+##! \name{inla.option}
+##! \alias{inla.option}
+##! \alias{inla.options}
+##! \alias{inla.setOption}
+##! \alias{inla.getOption}
+##! 
+##! \title{Set and get global options for INLA}
+##! 
+##! \description{Set and get global options for INLA}
+##! \usage{
+##! inla.setOption(...)
+##! inla.getOption(option)
+##! }
+##! 
+##! \arguments{
+##! 
+##!   \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples
+##!   \item{option}{The option to get. If \code{option = NULL} then
+##!     \code{inla.getOption} then \code{inla.getOption} will display the
+##!     current defaults, otherwise, \code{option} must be one of
+##! 
+##!     inla.call: The path to the inla-program.
+##! 
+##!     inla.arg: Additional arguments to \code{inla.call}
+##! 
+##!     fmesher.call: The path to the fmesher-program
+##!
+##!     fmesher.arg: Additional arguments to \code{fmesher.call}
+##!     
+##!     num.threads: Number of threads to use.
+##!     
+##!     keep: Keep temporary files?
+##! 
+##!     working.directory: The name of the working directory.
+##!
+##!     silent: Run the inla-program in a silent mode?
+##! 
+##!     debug : Run the inla-program in a debug mode?
+##!
+##!     internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
+##!                            Using this option,  then \ref{inla.collect.results} will fail (Expert mode)
+##!
+##!     internal.experimental.mode :  Expert option
+##!
+##!     cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
+##! 
+##!     ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
+##!     Cygwin-shell). [Remote computing for Windows only]
+##!
+##!     enable.inla.argument.weights : if \code{TRUE} the \ref{inla} accepts argument \code{weights} 
+##!
+##!     show.warning.graph.file : Give a warning for using the obsolete argument
+##!                               \code{graph.file} instead of \code{graph} 
+##!
+##!     show.warning.control.data : Give a warning for using the obsolete argument
+##!                                \code{control.data} instead of \code{control.family} 
+##! 
+##! The options are stored in the variable \code{inla.options} in the
+##!     \code{.GlobalEnv}-environment.
+##!   }
+##! }
+##! 
+##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! 
+##! \examples{
+##! ## set number of threads
+##! inla.setOption("num.threads", 2)
+##! ## alternative format
+##! inla.setOption(num.threads=2)
+##! ## check it
+##! inla.getOption("num.threads")
+##!}
 
-`inla.getOption` = function(option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads", "keep",
-                                    "working.directory", "silent", "debug", "internal.binary.mode", "internal.experimental.mode", 
-                                    "cygwin", "ssh.auth.sock", "cygwin.home",
+
+`inla.getOption` = function(option = c("inla.call",
+                                    "inla.arg",
+                                    "fmesher.call",
+                                    "fmesher.arg",
+                                    "num.threads",
+                                    "keep",
+                                    "working.directory",
+                                    "silent",
+                                    "debug",
+                                    "internal.binary.mode",
+                                    "internal.experimental.mode", 
+                                    "cygwin",
+                                    "ssh.auth.sock",
+                                    "cygwin.home",
                                     "enable.inla.argument.weights",
                                     "show.warning.graph.file",
                                     "show.warning.control.data"))

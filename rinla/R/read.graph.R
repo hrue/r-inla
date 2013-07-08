@@ -9,8 +9,8 @@
 ##!\usage{
 ##!g = inla.read.graph(graph)
 ##!inla.write.graph(graph, filename, mode = c("binary", "ascii"))
-##!summary(graph)
-##!plot(graph)
+##!\method{plot}{inla.graph}(object, ...)
+##!\method{summary}{inla.graph}(object, ...)
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
@@ -18,6 +18,7 @@
 ##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
+##!    \item{g}{An \code{inla.graph}-object.}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements

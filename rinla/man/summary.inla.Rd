@@ -12,10 +12,8 @@ a summary from it.
 
 }
 \usage{
-
 \method{summary}{inla}(object,...)
-\method{summary}{surv.inla}(object,...)
-\method{print}{summaryinla}(x,...)
+\method{print}{summary.inla}(x,...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

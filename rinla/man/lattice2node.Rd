@@ -8,7 +8,9 @@
 \alias{lattice2node.mapping}
 \alias{inla.lattice2node.mapping}
 \alias{matrix2vector}
+\alias{vector2matrix}
 \alias{inla.matrix2vector}
+\alias{inla.vector2matrix}
 
 \title{Functions to define mapping between a lattice and nodes}
 

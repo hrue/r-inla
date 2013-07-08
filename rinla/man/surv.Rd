@@ -16,9 +16,9 @@ Create a Survival Object for INLA
 }
 \usage{
 inla.surv(time, event, time2, truncation,subject)
-is.inla.surv(x)
-plot(x)
-as.inla.surv(x1)
+\method{plot}{inla.surv}(object)
+is.inla.surv(xobject)
+as.inla.surv(object)
 }
 
 \arguments{
@@ -37,7 +37,7 @@ as.inla.surv(x1)
 
   \item{subject}{Patient number in multiple event data, not needed otherwise. }
 
-  \item{x}{Any \code{R}-object}
+  \item{object}{Any \code{R}-object}
 
   \item{x1}{A list or data.frame with elements named \code{time},
     \code{lower}, \code{upper}, \code{event}, \code{truncation} and \code{subject}. }
