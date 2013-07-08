@@ -22,6 +22,7 @@
  results for the hyperparameters should be collected}
  \item{file.log}{Character. The filename, if any, of the logfile for
  the internal calculations}
+ }
  \value{ The function returns an object of class \code{"inla"}, see the
  help file for \code{inla} for details.}
  
