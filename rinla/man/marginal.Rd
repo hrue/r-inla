@@ -95,7 +95,7 @@
    interpolation. In fraction of the range.}
 
    \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
-                 which is argument \code{n} in \ref{spline}}
+                 which is argument \code{n} in \code{spline}}
  }
  
  \value{%%

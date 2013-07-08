@@ -17,7 +17,6 @@
  \item{results.dir}{The directory where the results of the inla run are stored}
  \item{control.results}{a list of parameters controlling the
  output of the function; see \code{?control.results}}
- }
  \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
  \item{only.hyperparam}{Binary variable indicating wheather only the
  results for the hyperparameters should be collected}
