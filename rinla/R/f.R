@@ -297,7 +297,7 @@
         ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
         rgeneric = NULL, 
 
-        ## local debug-flag
+        ##!\item{debug}{Enable local debug output}
         debug = FALSE)
 {
     ##!}
