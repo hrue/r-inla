@@ -26,9 +26,7 @@ set contains also other infomation about each child.
       (1) and "rural" (-1)}
     \item{\code{sex}}{gender of the child with categories "male" (1) and
     "female" (-1)}
-    \item{\code{bmi.distr}}{body mass index of the mother discretised
-    over 100 equally spaced intervals}
-  
+    \item{\code{edu}}{DO NOT KNOW; check source}
 }}
 
 \source{

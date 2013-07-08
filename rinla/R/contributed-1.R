@@ -5,7 +5,7 @@
 ##!\description{Computes the posterior distribution of the standard deviations for the structured 
 ##!             (random) effects in an INLA model, starting from the default output based on the precisions}
 ##!\usage{
-##!s = inla.contrib.sd(m, nsamples=1000)
+##!    inla.contrib.sd(m, nsamples=1000)
 ##!}
 ##!\arguments{
 ##!    \item{m}{An INLA model, fitted calling the \code{inla()}-function. The formula specified for the model 

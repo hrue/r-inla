@@ -6,19 +6,19 @@
 ##!\title{Construct a neighbour-matrix from a \code{graph}}
 ##!\description{Construct a neighbour-matrix from a \code{graph} and disaply it}
 ##!\usage{
-##!Q = inla.graph2matrix(graph)
-##!inla.spy(graph, reordering = NULL, factor = 1.0, max.dim = NULL)
+##!    inla.graph2matrix(graph, ...)
+##!    inla.spy(graph, ..., reordering = NULL, factor = 1.0, max.dim = NULL)
 ##!}
 ##!\arguments{
 ##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
 ##!                 or a list or collection of characters and/or numbers defining the graph.}
-##!    \item{Q}{An (possible) sparse symmtric matrix}
 ##!    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}, 
 ##!                      or the result of \code{inla.qreordering}.}
 ##!    \item{factor}{A scaling of the \code{inla.graph}-object to reduce the size.}
 ##!    \item{max.dim}{Maximum dimension of the \code{inla.graph}-object plotted;
 ##!                   if \code{missing(factor)} and \code{max.dim} is set,  then \code{factor}
 ##!                   is computed automatically to give the given \code{max.dim}.}
+##!    \item{...}{Additional arguments to \code{inla.read.graph()}}
 ##!}
 ##!\value{
 ##!     \code{inla.graph2matrix} returns a sparse symmetric matrix where the non-zero pattern is defined by the \code{graph}.
@@ -55,16 +55,16 @@
 ##!inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 ##!}
 
-`inla.matrix2graph` = function(...)
+`inla.matrix2graph` = function(graph, ...)
 {
     ## this function is not really needed, but is included for
     ## backwards compatibility
-    return (inla.read.graph(...))
+    return (inla.read.graph(graph, ...))
 }
 
-`inla.graph2matrix` = function(...)
+`inla.graph2matrix` = function(graph, ...)
 {
-    g = inla.read.graph(...)
+    g = inla.read.graph(graph, ...)
     i = rep(1:g$n,  1L+g$nnbs)
     j = unlist(sapply(1:g$n, function(i,g) return (c(i, g$nbs[[i]])), g))
     stopifnot(length(i) == length(j))
@@ -73,14 +73,14 @@
     return (Q)
 }
 
-`inla.spy` = function(..., reordering = NULL, factor = 1.0, max.dim = NULL)
+`inla.spy` = function(graph, ..., reordering = NULL, factor = 1.0, max.dim = NULL)
 {
     ## add this test here, as otherwise, this can be very inefficient
     ## for large matrices. this is because we convert it into a graph
     ## and then back to a matrix.
-    M = try(inla.as.dgTMatrix(...), silent=TRUE)
+    M = try(inla.as.dgTMatrix(graph, ...), silent=TRUE)
     if (inherits(M, "try-error")) {
-        M = inla.graph2matrix(...)
+        M = inla.graph2matrix(graph, ...)
     } 
 
     ## if max.dim is set, compute the corresponding factor

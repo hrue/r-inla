@@ -6,7 +6,7 @@
   Sample from SPDE models
 }
 \description{
-  
+  Produce samples from a SPDE model
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
