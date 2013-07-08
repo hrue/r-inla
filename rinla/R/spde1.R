@@ -44,7 +44,7 @@ inla.spde1.create =
                 param$basis.T = as.matrix(param$basis.T)
         }
         if (nrow(param$basis.T) != mesh$n)
-            stop(paste("'basis.T' has ", nrow(basis.T),
+            stop(paste("'basis.T' has ", nrow(param$basis.T),
                        " rows; expected ", mesh$n, ".", sep=""))
         if (identical(model, "matern") ||
             identical(model, "matern.osc")
@@ -62,7 +62,7 @@ inla.spde1.create =
             param$basis.K = matrix(0, mesh$n, 1)
         }
         if (nrow(param$basis.K) != mesh$n)
-            stop(paste("'basis.K' has ", nrow(basis.K),
+            stop(paste("'basis.K' has ", nrow(param$basis.K),
                        " rows; expected ", mesh$n, ".", sep=""))
         spde$internal = (c(spde$internal,
                            list(alpha = param$alpha,

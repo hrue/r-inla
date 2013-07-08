@@ -566,6 +566,8 @@
                 inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
                 ")", sep="")
 
+        ## to prevent a warning with R CMD check
+        surv.formula = NULL
         inla.eval(paste("surv.formula = .y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
 
         if (debug) {
@@ -1224,7 +1226,7 @@
 
             inla.linear.section(file=file.ini, file.fixed=file.fixed, label=labels[i],
                                 results.dir=paste("fixed.effect", inla.num(i), sep=""),
-                                control=cont.fixed, only.hyperparam=only.hyperparam)
+                                control.fixed=cont.fixed, only.hyperparam=only.hyperparam)
         }
     }
 

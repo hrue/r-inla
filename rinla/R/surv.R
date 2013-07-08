@@ -143,7 +143,7 @@
     yax = c(0, nn)
     plot(xax, yax, type="n", xlab="time", ylab="", axes=FALSE)
     axis(1)
-    axis(2, label=FALSE, tick=FALSE)
+    axis(2, labels=FALSE, tick=FALSE)
     for(i in 1:nn) {
         if (event[i]==1) {
             lines(c(truncation[i], time[i]), c( i, i), type="l")
@@ -296,7 +296,7 @@
     yax = c(0, nn+0.5)
     plot(xax, yax, type="n", xlab="time", ylab="", axes=FALSE)
     axis(1)
-    axis(2, label=FALSE, tick=FALSE)
+    axis(2, labels=FALSE, tick=FALSE)
      
     for(i in 1 :nn) {
         lines(time[subject==i], rep(i, length(time[subject==i])), type="l")

@@ -1,6 +1,7 @@
 importFrom(graphics, plot, image)
 import(Matrix)
 import(sp)
+import(splines)
 
 # Export all names
 exportPattern(".")

@@ -16,9 +16,9 @@ inla.spde2.generic =
 {
     transform = match.arg(transform)
 
-    if (!inla.is.matrix(M0)) error("M0 must be of a matrix type.")
-    if (!inla.is.matrix(M1)) error("M1 must be of a matrix type.")
-    if (!inla.is.matrix(M2)) error("M2 must be of a matrix type.")
+    if (!inla.is.matrix(M0)) stop("M0 must be of a matrix type.")
+    if (!inla.is.matrix(M1)) stop("M1 must be of a matrix type.")
+    if (!inla.is.matrix(M2)) stop("M2 must be of a matrix type.")
     M0 = inla.as.dgTMatrix(M0)
     M1 = inla.as.dgTMatrix(M1)
     M2 = inla.as.dgTMatrix(M2)
