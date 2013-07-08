@@ -39,7 +39,7 @@ inla.idx = function(
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 
 \examples{
-TODO
+##TODO
 }
 
 
