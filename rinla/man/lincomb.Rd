@@ -11,8 +11,8 @@
 \description{Create a linear combination or several
 linear combinations, as input to \code{inla(...,  lincomb = <lincomb>)}}
 \usage{
-lincomb = inla.make.lincomb(...)
-lincombs = inla.make.lincombs(...)
+inla.make.lincomb(...)
+inla.make.lincombs(...)
 }
 \arguments{
    \item{...}{Arguments; see examples}
