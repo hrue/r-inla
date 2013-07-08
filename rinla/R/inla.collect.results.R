@@ -31,6 +31,7 @@
         ##! the internal calculations}
         file.log = NULL)
 {
+    ##! }
     ##! \value{ The function returns an object of class \code{"inla"}, see the
     ##! help file for \code{inla} for details.}
     ##! 
