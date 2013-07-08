@@ -1,5 +1,6 @@
 \name{Leuk}
 \alias{Leukemia}
+\alias{Leuk}
 \docType{data}
 \title{The Leukemia data}
 \description{
