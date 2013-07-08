@@ -42,7 +42,7 @@
      debug : Run the inla-program in a debug mode?
 
      internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
-                            Using this option,  then \ref{inla.collect.results} will fail (Expert mode)
+                            Using this option,  then \code{inla.collect.results} will fail (Expert mode)
 
      internal.experimental.mode :  Expert option
 
@@ -51,7 +51,7 @@
      ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
      Cygwin-shell). [Remote computing for Windows only]
 
-     enable.inla.argument.weights : if \code{TRUE} the \ref{inla} accepts argument \code{weights} 
+     enable.inla.argument.weights : if \code{TRUE} the \code{inla} accepts argument \code{weights} 
 
      show.warning.graph.file : Give a warning for using the obsolete argument
                                \code{graph.file} instead of \code{graph} 
