@@ -1487,6 +1487,9 @@ inla.internal.experimental.mode = FALSE
 
 `inla.collect.configurations` = function (results.dir, debug=FALSE) 
 {
+    ## to prevent a warning from R CMD check
+    inla.si.configuration = NULL
+    
     d = paste(results.dir, "/si", sep="")
     if (file.exists(d)) {
         if (debug) {

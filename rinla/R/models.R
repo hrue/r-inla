@@ -2347,6 +2347,9 @@
 
 `inla.models.section.group` = function()
 {
+    ## prevent a warning with R CMD check
+    ngroup = NULL
+
     return
     list(group =
          list(

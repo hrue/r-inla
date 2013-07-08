@@ -8,7 +8,7 @@
 `inla.upgrade` = function(lib = NULL, testing = FALSE, force = FALSE)
 {
     ## include depends-on packages here
-    for(p in c("sp", "Matrix")) {
+    for(p in c("sp", "Matrix", "splines")) {
         if (length(grep(paste("^package:", p, "$", sep=""), search())) == 0) {
             if (!require(p, quietly = TRUE, lib.loc = lib, character.only=TRUE)) {
                 install.packages(p)

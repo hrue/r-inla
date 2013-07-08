@@ -55,7 +55,7 @@ vt = which(inla.mesh.query(mesh,
                                               4:6))$vt.neighbours)
 
 mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
-                         refine=FALSE, extend=FALSE))
+                         refine=FALSE, extend=FALSE)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
