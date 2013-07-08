@@ -542,9 +542,9 @@
         cross = as.integer(cross)
         cross[is.na(cross)] = 0L ## means not in use
         if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(cross, ncol=1), filename=file.cross)
+            inla.write.fmesher.file(as.matrix(cross, ncol=1L), filename=file.cross)
         } else {
-            write(cross, ncol=1, file=file.cross)
+            write(cross, ncolumns=1L, file=file.cross)
         }
 
         fnm = gsub(data.dir, "$inladatadir", file.cross, fixed=TRUE)

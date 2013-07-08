@@ -17,7 +17,7 @@
     ii = 1L
     np2 = 2L*np + 2L
     for (j in 1L:(res.ncol %/% 2L)) {
-        idx = seq.int(ii + 2L, by=2L, len=np)
+        idx = seq.int(ii + 2L, by=2L, length.out=np)
         res[, c(m, m+1L)] = xx[c(idx, idx+1L)]
         m = m + 2L
         ii = ii + np2
@@ -52,7 +52,7 @@
     np2 = 2L * np + 2L
     for(j in 1L:(m %/% 3L)) {
         idx = as.integer(xx[ii])
-        jj = seq.int(ii + 2L, by=2L, len = np)
+        jj = seq.int(ii + 2L, by=2L, length.out = np)
         res[, m] = idx
         res[, c(m+1L, m+2L)] = xx[c(jj, jj+1L)]
         m = m + 3L
@@ -95,7 +95,7 @@
     count = count - 1L
     res = lapply(1L:count,
             function(m, xx, inds, nps) {
-                i = seq.int(inds[m], len = nps[m], by=2L)
+                i = seq.int(inds[m], length.out = nps[m], by=2L)
                 return (cbind(xx[i], xx[i + 1L]))
             }, xx, inds, nps)
     

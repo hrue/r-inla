@@ -97,7 +97,7 @@ inla.spde.homogenise_B_matrix = function(B, n.spde, n.theta)
 
 
 
-inla.matern.cov = function(nu,kappa,x,d=1,corr=FALSE,theta, epsilon=1e-8)
+inla.matern.cov = function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, epsilon=1e-8)
 {
     if (missing(theta)) { ## Ordinary Matern
         y = kappa*abs(x)
@@ -188,6 +188,7 @@ inla.matern.cov = function(nu,kappa,x,d=1,corr=FALSE,theta, epsilon=1e-8)
 
 inla.matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
 {
+    inla.require("orthopolynom")
     y = cos(abs(x))
 
     freq.max = 40L
