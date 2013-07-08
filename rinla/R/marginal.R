@@ -278,7 +278,7 @@
     return (d)
 }
 
-`inla.pmarginal` = function(x, marginal, normalize = TRUE, len = 1024)
+`inla.pmarginal` = function(q, marginal, normalize = TRUE, len = 1024)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
@@ -289,8 +289,8 @@
     fq = splinefun(xx, d, method = "monoH.FC")
 
     ## just make sure the p's are in [0, 1]
-    n = length(x)
-    xx = pmin(pmax(x, rep(f$range[1], n)), rep(f$range[2], n))
+    n = length(q)
+    xx = pmin(pmax(q, rep(f$range[1], n)), rep(f$range[2], n))
 
     return (fq(xx))
 }

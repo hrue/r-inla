@@ -13,30 +13,30 @@
     return (ret)
 }
 
-`plot.inla.surv` = function(x,...)
+`plot.inla.surv` = function(object,...)
 {
-    if(!is.null(x$lower)) {
-        plot.inla.surv.1(x,...)
+    if(!is.null(object$lower)) {
+        plot.inla.surv.1(object,...)
     } else {
-        plot.inla.surv.2(x,...)
+        plot.inla.surv.2(object,...)
     }
 }
 
-`print.inla.surv` = function(x,...)
+`print.inla.surv` = function(object,...)
 {
-    if(!is.null(x$lower)) {
-        print.inla.surv.1(x,...)
+    if(!is.null(object$lower)) {
+        print.inla.surv.1(object,...)
     } else {
-        print.inla.surv.2(x,...)
+        print.inla.surv.2(object,...)
     }
 }
 
-`as.inla.surv` = function(x,...)
+`as.inla.surv` = function(object,...)
 {
-    if(is.null(x$subject)) {
-        as.inla.surv.1(x,...)
+    if(is.null(object$subject)) {
+        as.inla.surv.1(object,...)
     } else {
-        as.inla.surv.2(x,...)
+        as.inla.surv.2(object,...)
     }
 }
 
@@ -128,13 +128,13 @@
     return (ss)
 }
 
-`plot.inla.surv.1` = function(x, legend=TRUE,...)
+`plot.inla.surv.1` = function(object, legend=TRUE,...)
 {
-    time = x$time
-    upper = x$upper
-    lower = x$lower
-    event = x$event
-    truncation = x$truncation
+    time = object$time
+    upper = object$upper
+    lower = object$lower
+    event = object$event
+    truncation = object$truncation
     
     nn = length(time)
 
@@ -181,43 +181,43 @@
     }
 }
 
-`print.inla.surv.1` = function(x, quote=FALSE, ...)
+`print.inla.surv.1` = function(object, quote=FALSE, ...)
 {
-    invisible(print(as.character.inla.surv.1(x), quote=quote, ...))
+    invisible(print(as.character.inla.surv.1(object), quote=quote, ...))
 }
 
-`as.character.inla.surv.1` = function(x, ...)
+`as.character.inla.surv.1` = function(object, ...)
 {
-    class(x) = NULL
-    nn = length(x$event)
+    class(object) = NULL
+    nn = length(object$event)
 
-    interval = (x$event==3)
+    interval = (object$event==3)
     out = character(nn)
-    out[interval] = paste("[", x$lower[interval],",", x$upper[interval],"]", sep="")
-    right = (x$event==0)
-    out[right] = paste(x$lower[right],"+", sep="")
-    left = (x$event==2)
-    out[left] = paste(x$upper[left],"-", sep="")
-    failure = (x$event==1)
-    out[failure] = paste(x$time[failure], sep="")
+    out[interval] = paste("[", object$lower[interval],",", object$upper[interval],"]", sep="")
+    right = (object$event==0)
+    out[right] = paste(object$lower[right],"+", sep="")
+    left = (object$event==2)
+    out[left] = paste(object$upper[left],"-", sep="")
+    failure = (object$event==1)
+    out[failure] = paste(object$time[failure], sep="")
 
     return (out)
 }
 
-`is.inla.surv` = function(x) inherits(x, "inla.surv")
+`is.inla.surv` = function(object) inherits(object, "inla.surv")
 
-`as.inla.surv.1` = function(x)
+`as.inla.surv.1` = function(object)
 {
-    if (is.list(x)) {
-        for (nm in names(x))
+    if (is.list(object)) {
+        for (nm in names(object))
             if (!is.element(nm, c("event", "time", "lower", "upper", "truncation")))
                 stop(paste("Wrong name:", nm))
 
-        class(x) = "inla.surv"
-        return(x)
+        class(object) = "inla.surv"
+        return(object)
     }
-    if (is.data.frame(x))
-        return (as.inla.surv.1(as.list(x)))
+    if (is.data.frame(object))
+        return (as.inla.surv.1(as.list(object)))
 
     stop("Argument must be a list or a data.frame")
 }
@@ -282,11 +282,11 @@
 
 ## plotting the time according to event detect or not detect
  
-`plot.inla.surv.2` = function(x, legend=TRUE,...)
+`plot.inla.surv.2` = function(object, legend=TRUE,...)
 {
-    time = x$time
-    event = x$event
-    subject = x$subject
+    time = object$time
+    event = object$event
+    subject = object$subject
     
     nn = max(subject)
 
@@ -321,45 +321,45 @@
     }
 }
 
-`print.inla.surv.2` = function(x, quote=FALSE, ...)
+`print.inla.surv.2` = function(object, quote=FALSE, ...)
 {
-    invisible(print(as.character.inla.surv.2(x), quote=quote, ...))
+    invisible(print(as.character.inla.surv.2(object), quote=quote, ...))
 }
 
-`as.character.inla.surv.2` = function(x, ...)
+`as.character.inla.surv.2` = function(object, ...)
 {
-    class(x) = NULL
-    nn = length(x$event)
+    class(object) = NULL
+    nn = length(object$event)
     out = character(nn)
-    detect = (x$event==1)
-    out[detect] = paste(x$time[detect], sep="")
-    notdetect  = (x$event==0)
-    out[notdetect] = paste(x$time[notdetect],"+", sep="")
+    detect = (object$event==1)
+    out[detect] = paste(object$time[detect], sep="")
+    notdetect  = (object$event==0)
+    out[notdetect] = paste(object$time[notdetect],"+", sep="")
 
     return (out)
 }
 
-`as.inla.surv.2` = function(x)
+`as.inla.surv.2` = function(object)
 {
-    if (is.list(x)) {
-        for (nm in names(x)) {
+    if (is.list(object)) {
+        for (nm in names(object)) {
             if (!is.element(nm, c("event", "time", "subject")))
                 stop(paste("Wrong name:", nm))
         }
-        class(x) = "inla.surv"
+        class(object) = "inla.surv"
 
-        return(x)
+        return(object)
     }
-    if (is.data.frame(x))
-        return (as.inla.surv.2(as.list(x)))
+    if (is.data.frame(object))
+        return (as.inla.surv.2(as.list(object)))
 
     stop("Argument must be a list or a data.frame")
 }
 
-`inla.strata` = function(x)
+`inla.strata` = function(object)
 {
     ## similar to survival::strata but with levels = 1, 2, ... 
 
-    xf = as.factor(x)
+    xf = as.factor(object)
     return (list(strata=as.numeric(xf), coding = levels(xf)))
 }

@@ -8,7 +8,7 @@
 
 
 \usage{
-inla.upgrade(lib = NULL, testing=FALSE)
+inla.upgrade(lib = NULL, testing=FALSE, force=FALSE)
 }
 
 \arguments{
@@ -17,6 +17,8 @@ inla.upgrade(lib = NULL, testing=FALSE)
 
   \item{testing}{If \code{TRUE}, then look for a test-version if the
     INLA-package.}
+
+  \item{force}{If \code{TRUE}, then force a new install}
 }
 
 \value{\code{inla.upgrade} will download and install the current version

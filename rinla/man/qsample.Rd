@@ -10,12 +10,16 @@
  
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
-     inla.qsample(n, Q, b, mu, sample, constr, 
-                  reordering = "auto",
-                  seed = 0L,
-                  logdens = ifelse(missing(sample), FALSE, TRUE))
-
-     where the log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
+ inla.qsample(
+        n = 1L,
+        Q,
+        b,
+        mu, 
+        sample,
+        constr,
+        reordering = inla.reorderings(),
+        seed = 0L,
+        logdens = ifelse(missing(sample), FALSE, TRUE))
  }
  
  \arguments{
@@ -35,6 +39,8 @@
    \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
 }
 \value{
+      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
+
   If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns 
   the samples in a matrix,  where each column is a sample. 
   If \code{logdens} is \code{TRUE}, then a list 

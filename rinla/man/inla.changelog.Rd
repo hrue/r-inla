@@ -7,7 +7,7 @@
 \description{List the recent changes in the inla-program and its R-interface}
 
 \usage{
-inla.changelog = function()
+inla.changelog()
 }
 
 \author{Havard Rue \email{hrue@math.ntnu.no} }

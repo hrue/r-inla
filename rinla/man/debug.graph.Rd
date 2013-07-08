@@ -21,5 +21,5 @@
 ## Not run:
 cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
 g = inla.debug.graph("g.dat")
-## End (Not run)
+## End(Not run)
 }

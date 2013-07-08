@@ -13,8 +13,8 @@
 ##!             The \code{phi}-parameterization is the same as used for \code{arima}-models in \code{R}; see \code{?arima}
 ##!             and the parameter-vector \code{a} in \code{Details}.}
 ##!\usage{
-##!   phi = inla.ar.pacf2phi(pac)
-##!   pac = inla.ar.phi2pacf(phi)
+##!   inla.ar.pacf2phi(pac)
+##!   inla.ar.phi2pacf(phi)
 ##!}
 ##!
 ##!\arguments{

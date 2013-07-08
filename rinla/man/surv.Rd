@@ -17,7 +17,7 @@ Create a Survival Object for INLA
 \usage{
 inla.surv(time, event, time2, truncation,subject)
 \method{plot}{inla.surv}(object)
-is.inla.surv(xobject)
+is.inla.surv(object)
 as.inla.surv(object)
 }
 

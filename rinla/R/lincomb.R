@@ -13,7 +13,7 @@
 ##!lincombs = inla.make.lincombs(...)
 ##!}
 ##!\arguments{
-##!TODO
+##!   \item{...}{Arguments; see examples}
 ##!}
 ##!\value{
 ##TODO

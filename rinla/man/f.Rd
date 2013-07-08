@@ -73,16 +73,16 @@ weights.}
  default is \code{iid}. See
  \code{names(inla.models()$latent)} for a list of possible
  alternatives.}
-\item{copy}{}
-\item{same.as}{}
+\item{copy}{TODO}
+\item{same.as}{TODO}
 \item{n}{An optional argument which defines the dimension
 of the model if this is different from
 \code{length(sort(unique(covariate)))}}
-\item{nrep}{}
+\item{nrep}{TODO}
 \item{replicate}{We need to write documentation here}
-\item{group}{}
-\item{group}{}
-\item{control.group}{}
+\item{ngroup}{TODO}
+\item{group}{TODO}
+\item{control.group}{TODO}
 \item{hyper}{Spesification of the hyperparameter, fixed or
 random, initial values, priors and its parameters. See
 \code{?inla.models} for the list of hyparameters for each
@@ -170,26 +170,26 @@ non-zero elements of \code{Cmatrix}, in three columns:
 deficiency of the model, with sum-to-zero constraint and
 possible extra-constraints taken into account. See
 details.}
-\item{Z}{}
+\item{Z}{TODO}
 \item{nrow}{Number of rows for 2d-models}
 \item{ncol}{Number of columns for 2d-models}
 \item{nu}{Smoothing parameter for the Matern2d-model,
 possible values are \code{c(0, 1, 2, 3)}}
-\item{bvalue}{}
-\item{spde.prefix}{}
-\item{spde2.prefix}{}
-\item{spde2.transform}{}
+\item{bvalue}{TODO}
+\item{spde.prefix}{TODO}
+\item{spde2.prefix}{TODO}
+\item{spde2.transform}{TODO}
 \item{mean.linear}{Prior mean for the linear component,
 only used if \code{model="linear"}}
 \item{prec.linear}{Prior precision for the linear
 component, only used if \code{model="linear"}}
-\item{si}{}
+\item{si}{TODO}
 \item{compute}{ A boolean variable indicating wheather the
  marginal posterior distribution for the nodes in the
  \code{f()} model should be computed or not. This is
  usefull for large models where we are only interested in
  some posterior marginals.}
-\item{of}{}
+\item{of}{TODO}
 \item{precision}{The precision for the artifical noise added when creating a copy of a model.}
 \item{range}{A vector of size two giving the lower and
 upper range for the scaling parameter \code{beta} in the
@@ -206,7 +206,7 @@ used for other models at the time being.}
 \item{strata}{A stratum vector. It meaning depends on the model.}
 \item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
 }
-\value{}
+\value{TODO}
 \details{There is no default value for \code{rankdef}, if it
 is not defined by the user then it is computed by the rank
 deficiency of the prior model (for the generic model, the

@@ -5,10 +5,10 @@
 ##!\description{Computes the posterior distribution of the standard deviations for the structured 
 ##!             (random) effects in an INLA model, starting from the default output based on the precisions}
 ##!\usage{
-##!    inla.contrib.sd(m, nsamples=1000)
+##!    inla.contrib.sd(model, nsamples=1000)
 ##!}
 ##!\arguments{
-##!    \item{m}{An INLA model, fitted calling the \code{inla()}-function. The formula specified for the model 
+##!    \item{model}{An INLA model, fitted calling the \code{inla()}-function. The formula specified for the model 
 ##!            should include at least one structured (random) effect in the form \code{f(variable, model="iid")}.}
 ##!    \item{nsamples}{The number of simulations from the posterior distribution of the standard deviations
 ##!                    used to compute the summary statistics}
