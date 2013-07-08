@@ -1,0 +1,12 @@
+inst/bin/linux/fmesher32
+inst/bin/linux/fmesher64
+inst/bin/linux/inla32
+inst/bin/linux/inla64
+inst/bin/mac/32bit/fmesher.binary
+inst/bin/mac/32bit/inla.binary
+inst/bin/mac/64bit/fmesher.binary
+inst/bin/mac/64bit/inla.binary
+inst/bin/windows/fmesher32.exe
+inst/bin/windows/fmesher64.exe
+inst/bin/windows/inla32.exe
+inst/bin/windows/inla64.exe
