@@ -39,15 +39,7 @@ inla.idx = function(
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 
 \examples{
-
-## here j should be equal to i, but without specifying the group and
-## replicate information
-
-formula = y ~ f(i, model="iid", group=g, replicate=r) +
-              f(j, weight, model="copy", of="i")
-
-j = inla.idx(i, group=g, replicate=r)
-
+TODO
 }
 
 
