@@ -9,8 +9,8 @@
 ##! the model using the grid integration strategy.
 ##!}
 ##!\usage{
-##!`inla.hyperpar` =
-##!    function(object, skip.configurations, verbose,  dz, diff.logdens, h, restart, quantiles,  keep)
+##!    result = inla.hyperpar(object, skip.configurations, verbose,  dz,
+##!                           diff.logdens, h, restart, quantiles,  keep)
 ##!}
 ##!
 ##!\arguments{

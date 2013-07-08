@@ -97,7 +97,7 @@
     return (inla.link.cloglog(x, inverse = !inverse))
 }
 
-`inla.link.tan` = function(x, inverse = TRUE)
+`inla.link.tan` = function(x, inverse = FALSE)
 {
     if (!inverse) {
         return (tan(x/2.0))
