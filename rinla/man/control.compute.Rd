@@ -2,6 +2,9 @@
 \name{control.compute}
 \alias{control.compute}
 \alias{inla.control.compute}
+\alias{inla.set.control.compute.default}
+\alias{set.control.compute.default}
+\alias{control.compute.default}
 \title{Control variables in control.compute}
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.compute=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.compute.default()
 }
 \arguments{
-The function \code{inla.set.control.compute.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.compute.default} returns the default values of all parameters within this control group. These are as follows.
 \item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}

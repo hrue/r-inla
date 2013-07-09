@@ -23,6 +23,9 @@ function mmp ()
 	print "\\name{" $2 "}" >> f
 	print "\\alias{" $2 "}" >> f
 	print "\\alias{inla." $2 "}" >> f
+	print "\\alias{inla.set." $2 ".default}" >> f
+	print "\\alias{set." $2 ".default}" >> f
+	print "\\alias{"$2 ".default}" >> f
 	print "\\title{Control variables in " name "}" >> f
 	print "\\description{Control variables in \\code{" name "} for use in \\code{inla}}" >>f
 	print "\\usage{" >> f

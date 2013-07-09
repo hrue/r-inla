@@ -2,6 +2,9 @@
 \name{control.link}
 \alias{control.link}
 \alias{inla.control.link}
+\alias{inla.set.control.link.default}
+\alias{set.control.link.default}
+\alias{control.link.default}
 \title{Control variables in control.link}
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.link=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.link.default()
 }
 \arguments{
-The function \code{inla.set.control.link.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.link.default} returns the default values of all parameters within this control group. These are as follows.
 \item{link}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{nq}{  Number of quadrature-points used to do the numerical integration}

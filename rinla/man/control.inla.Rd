@@ -2,6 +2,9 @@
 \name{control.inla}
 \alias{control.inla}
 \alias{inla.control.inla}
+\alias{inla.set.control.inla.default}
+\alias{set.control.inla.default}
+\alias{control.inla.default}
 \title{Control variables in control.inla}
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.inla=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.inla.default()
 }
 \arguments{
-The function \code{inla.set.control.inla.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.inla.default} returns the default values of all parameters within this control group. These are as follows.
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
 \item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
 \item{interpolator}{  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}

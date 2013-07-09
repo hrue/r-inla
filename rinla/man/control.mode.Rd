@@ -2,6 +2,9 @@
 \name{control.mode}
 \alias{control.mode}
 \alias{inla.control.mode}
+\alias{inla.set.control.mode.default}
+\alias{set.control.mode.default}
+\alias{control.mode.default}
 \title{Control variables in control.mode}
 \description{Control variables in \code{control.mode} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.mode=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.mode.default()
 }
 \arguments{
-The function \code{inla.set.control.mode.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.mode.default} returns the default values of all parameters within this control group. These are as follows.
 \item{result}{  Prevous result from inla(). Use the theta- and x-mode from this run.}
 \item{theta}{  The theta-mode/initial values for theta. This option has preference over result$mode$theta.}
 \item{x}{  The x-mode/intitial values for x. This option has preference over result$mode$x.}

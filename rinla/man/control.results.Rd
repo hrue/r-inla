@@ -2,6 +2,9 @@
 \name{control.results}
 \alias{control.results}
 \alias{inla.control.results}
+\alias{inla.set.control.results.default}
+\alias{set.control.results.default}
+\alias{control.results.default}
 \title{Control variables in control.results}
 \description{Control variables in \code{control.results} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.results=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.results.default()
 }
 \arguments{
-The function \code{inla.set.control.results.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.results.default} returns the default values of all parameters within this control group. These are as follows.
 \item{return.marginals.random}{  A boolean variable; read the marginals for the fterms? (Default TRUE)}
 \item{return.marginals.predictor}{  A boolean variable; read the marginals for the linear predictor? (Default TRUE)}
 }

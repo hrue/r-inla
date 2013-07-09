@@ -2,6 +2,9 @@
 \name{control.mix}
 \alias{control.mix}
 \alias{inla.control.mix}
+\alias{inla.set.control.mix.default}
+\alias{set.control.mix.default}
+\alias{control.mix.default}
 \title{Control variables in control.mix}
 \description{Control variables in \code{control.mix} for use in \code{inla}}
 \usage{
@@ -9,7 +12,7 @@ inla(formula, ..., control.mix=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.mix.default()
 }
 \arguments{
-The function \code{inla.set.control.mix.default} returns the default value of all parameters within this control group. These are as follows.
+The function \code{inla.set.control.mix.default} returns the default values of all parameters within this control group. These are as follows.
 \item{model}{  The model for the random effect. Currently, only \code{model='gaussian'} is implemented}
 \item{hyper}{  Definition of the hyperparameter(s) for the random effect model chosen}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
