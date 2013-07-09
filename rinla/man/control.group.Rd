@@ -6,8 +6,10 @@
 \description{Control variables in \code{control.group} for use in \code{inla}}
 \usage{
 inla(formula, ..., control.group=list( <arg>=<value>[, <arg>=<value>]))
+inla.set.control.group.default()
 }
 \arguments{
+The function \code{inla.set.control.group.default} returns the default value of all parameters within this control group. These are as follows.
 \item{model}{  Group model (one of 'exchangable', 'ar1', 'ar', 'rw1', 'rw2' or 'besag')}
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
 \item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}

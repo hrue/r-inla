@@ -6,8 +6,10 @@
 \description{Control variables in \code{control.predictor} for use in \code{inla}}
 \usage{
 inla(formula, ..., control.predictor=list( <arg>=<value>[, <arg>=<value>]))
+inla.set.control.predictor.default()
 }
 \arguments{
+The function \code{inla.set.control.predictor.default} returns the default value of all parameters within this control group. These are as follows.
 \item{hyper}{  Definition of the hyperparameters.}
 \item{fixed}{  (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)}
 \item{prior}{  (OBSOLETE!) The prior for the artificial noise}

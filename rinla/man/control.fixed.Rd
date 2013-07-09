@@ -6,8 +6,10 @@
 \description{Control variables in \code{control.fixed} for use in \code{inla}}
 \usage{
 inla(formula, ..., control.fixed=list( <arg>=<value>[, <arg>=<value>]))
+inla.set.control.fixed.default()
 }
 \arguments{
+The function \code{inla.set.control.fixed.default} returns the default value of all parameters within this control group. These are as follows.
 \item{expand.factor.strategy}{  The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model.}
 \item{cdf}{  A list of values to compute the CDF for, for all fixed effects}
 \item{quantiles}{  A list of quantiles to compute for all fixed effects}

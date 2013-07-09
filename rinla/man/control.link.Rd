@@ -6,8 +6,10 @@
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
 inla(formula, ..., control.link=list( <arg>=<value>[, <arg>=<value>]))
+inla.set.control.link.default()
 }
 \arguments{
+The function \code{inla.set.control.link.default} returns the default value of all parameters within this control group. These are as follows.
 \item{link}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{nq}{  Number of quadrature-points used to do the numerical integration}
