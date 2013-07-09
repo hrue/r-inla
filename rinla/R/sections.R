@@ -687,6 +687,7 @@
     cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
     cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
+
     return (list(label = inla.namefix(label), prior.mean = mean, prior.prec = prec))
 }
 
