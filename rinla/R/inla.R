@@ -1233,7 +1233,7 @@
             if (debug)
                 cat("file fixed", file.fixed,"\n")
 
-            all.hyper$fixed[[nc]] =
+            all.hyper$fixed[[i]] =
                 inla.linear.section(file=file.ini, file.fixed=file.fixed, label=labels[i],
                                     results.dir=paste("fixed.effect", inla.num(i), sep=""),
                                     control.fixed=cont.fixed, only.hyperparam=only.hyperparam)
@@ -2050,3 +2050,20 @@
     return (data)
 }
 
+`inla.all.hyper` = function(result)
+{
+    stopifnot(class(result) == "inla")
+    tfile = tempfile()
+    capture.output(str(result$all.hyper), file=tfile)
+    all.hyper = readLines(tfile)
+    unlink(tfile)
+
+    all.hyper = gsub("\\.\\.", "  ", all.hyper)
+    all.hyper = all.hyper[-grep("inla\\.read\\.only", all.hyper)]
+    all.hyper = all.hyper[-grep("attr\\(", all.hyper)]
+    all.hyper = all.hyper[-grep("to\\.theta", all.hyper)]
+    all.hyper = all.hyper[-grep("from\\.theta", all.hyper)]
+
+    cat(all.hyper, sep="\n")
+    return (invisible())
+}
