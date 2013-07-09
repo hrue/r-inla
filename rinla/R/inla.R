@@ -364,6 +364,9 @@
 {
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
+
+    ## keep track of all priors
+    all.hyper = list()
     
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
@@ -555,6 +558,7 @@
         
         cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
                 cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
+        all.hyper$hazard$hyper = cont.hazard$hyper
 
         f.hazard = paste(
                 "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
@@ -603,6 +607,7 @@
                 control.lincomb = control.lincomb,
                 control.hazard = control.hazard,
                 only.hyperparam = only.hyperparam,
+                all.hyper = all.hyper, 
                 inla.call = inla.call,
                 inla.arg = inla.arg,
                 num.threads = num.threads,
@@ -824,6 +829,7 @@
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
             cont.predictor$hyper, cont.predictor$initial,
             cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
+    all.hyper$predictor$hyper = cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
@@ -887,6 +893,7 @@
                                        cont.family[[i.family]]$fixed,
                                        cont.family[[i.family]]$prior,
                                        cont.family[[i.family]]$param)
+        all.hyper$family[[i.family]]$hyper = cont.family[[i.family]]$hyper
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
@@ -899,6 +906,7 @@
                                            cont.family[[i.family]]$control.mix$fixed,
                                            cont.family[[i.family]]$control.mix$prior,
                                            cont.family[[i.family]]$control.mix$param)
+            all.hyper$family[[i.family]]$mix$hyper= cont.family[[i.family]]$control.mix$hyper
         }
         cont.family[[i.family]]$control.link$hyper = inla.set.hyper(
                                        cont.family[[i.family]]$control.link$model,
@@ -908,6 +916,7 @@
                                        cont.family[[i.family]]$control.link$fixed,
                                        cont.family[[i.family]]$control.link$prior,
                                        cont.family[[i.family]]$control.link$param)
+        all.hyper$family[[i.family]]$link$hyper = cont.family[[i.family]]$control.link$hyper
     }
     
     ## control results
@@ -990,7 +999,7 @@
         mf$formula = gp$randf
     else
         mf$formula = y...fake ~ 1
-     
+    
     ## these we need
     mf$na.action = na.pass
     mf[[1]] = as.name("model.frame")
@@ -1004,7 +1013,7 @@
     } else {
         rf = NULL
     }
-        
+    
     if (gp$n.weights > 0) {
         wf = mf
         wf$weights = wf$scale = wf$Ntrials = wf$offset = wf$E =  wf$strata = wf$link.covariates = NULL ## these we do not need
@@ -1109,7 +1118,7 @@
         files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, 
                 weights=weights, Ntrials=Ntrials, strata=strata, 
                 family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
-    
+        
         ## add a section to the file.ini
         prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
 
@@ -1224,9 +1233,10 @@
             if (debug)
                 cat("file fixed", file.fixed,"\n")
 
-            inla.linear.section(file=file.ini, file.fixed=file.fixed, label=labels[i],
-                                results.dir=paste("fixed.effect", inla.num(i), sep=""),
-                                control.fixed=cont.fixed, only.hyperparam=only.hyperparam)
+            all.hyper$fixed[[nc]] =
+                inla.linear.section(file=file.ini, file.fixed=file.fixed, label=labels[i],
+                                    results.dir=paste("fixed.effect", inla.num(i), sep=""),
+                                    control.fixed=cont.fixed, only.hyperparam=only.hyperparam)
         }
     }
 
@@ -1243,7 +1253,7 @@
         name.random.dir=c()
         if (nr!=(ncol(rf)-1))
             stop("\n\tSOMETHING STRANGE: You probably used one variable as a covariate more than once.")
-               
+        
         location = list()
         covariate = list()
 
@@ -1284,7 +1294,7 @@
             for(r in 1:nr)
                 print(paste(r, gp$random.spec[[r]]$model, gp$random.spec[[r]]$of))
         }
-            
+        
         all.terms = c()
         for(r in 1:nr)
             all.terms = c(all.terms, gp$random.spec[[r]]$term)
@@ -1298,7 +1308,7 @@
                 rgeneric[[nrgeneric]] = gp$random.spec[[r]]$rgeneric
                 gp$random.spec[[r]]$rgeneric$Id = nrgeneric
             }
-        
+            
             if (gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
                 ##in this case we have to add a FFIELD section.........
                 count.random = count.random+1
@@ -1594,7 +1604,7 @@
                     if (fac > 1) {
                         if ((max(con) > fac || min(con) < 1) || is.null(con))
                             stop(paste("INTERNAL ERROR: aug.constr = ", con))
-                    
+                        
                         ## this case is a very special case
                         if (gp$random.spec[[r]]$constr) {
                             if (is.null(gp$random.spec[[r]]$extraconstr)) {
@@ -1608,7 +1618,7 @@
 
                                 if (ncol != fac*n)
                                     stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
-                            
+                                
                                 A = matrix(0, nrow+1, ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, 0)
                                 A[1:nrow, 1:ncol] = gp$random.spec[[r]]$extraconstr$A
@@ -1642,7 +1652,7 @@
 
                                 if (ncol != n)
                                     stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
-                            
+                                
                                 A = matrix(0, nrow+length(con), ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, rep(0, length(con)))
                                 A[1:nrow, 1:ncol] = gp$random.spec[[r]]$extraconstr$A
@@ -1703,6 +1713,9 @@
                     n.weights = n.weights+1
                 }
                 ##create a FFIELD section
+                all.hyper$random[[r]] = list(label = inla.namefix(gp$random.spec[[r]]$term),
+                                        hyper = gp$random.spec[[r]]$hyper)
+
                 inla.ffield.section(file=file.ini, file.loc=file.loc, file.cov=file.cov,
                                     file.id.names = file.id.names, 
                                     file.extraconstr=file.extraconstr, 
@@ -1731,10 +1744,16 @@
                         prec=gp$random.spec[[r]]$prec.linear,
                         mean=gp$random.spec[[r]]$mean.linear,
                         compute=gp$random.spec[[r]]$compute)
-                        
-                inla.linear.section(file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
-                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
-                                    control.fixed = cont, only.hyperparam=only.hyperparam)
+                
+                if (is.null(all.hyper$linear)) {
+                    lin.count = 1L
+                } else {
+                    lin.count = length(all.hyper$linear) + 1L
+                }
+                all.hyper$linear[[lin.count]] = inla.linear.section(
+                                         file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
+                                         results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
+                                         control.fixed = cont, only.hyperparam=only.hyperparam)
             }
             else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
                 if (dim(gp$random.spec[[r]]$Z)[1] != NData)
@@ -1927,6 +1946,7 @@
             }
             ## OLD CODE: if (n.family == 1) the.args$control.family = the.args$control.family[[1L]]
 
+            ret$all.hyper = all.hyper
             ret$.args = the.args
             ret$call = call
             ret$model.matrix = gp$model.matrix
@@ -2029,3 +2049,4 @@
     }
     return (data)
 }
+
