@@ -673,8 +673,6 @@
             prec =inla.set.control.fixed.default()$prec.intercept
         }
         stopifnot(!is.null(mean) || !is.null(prec))
-        cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
-        cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     } else {
         mean = inla.parse.fixed.prior(label, control.fixed$mean)
         prec = inla.parse.fixed.prior(label, control.fixed$prec)
@@ -685,10 +683,11 @@
             prec = inla.set.control.fixed.default()$prec
         }
         stopifnot(!is.null(mean) || !is.null(prec))
-        cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
-        cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     }
+    cat("mean = ", mean, "\n", sep = " ", file = file,  append = TRUE)
+    cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
+    return (list(label = inla.namefix(label), prior.mean = mean, prior.prec = prec))
 }
 
 `inla.mode.section` = function(file, args, data.dir)
