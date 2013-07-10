@@ -2059,12 +2059,16 @@
     capture.output(str(result$all.hyper), file=tfile)
     all.hyper = readLines(tfile)
     unlink(tfile)
-
-    all.hyper = gsub("\\.\\.", "  ", all.hyper)
-    all.hyper = all.hyper[-grep("inla\\.read\\.only", all.hyper)]
-    all.hyper = all.hyper[-grep("attr\\(", all.hyper)]
-    all.hyper = all.hyper[-grep("to\\.theta", all.hyper)]
-    all.hyper = all.hyper[-grep("from\\.theta", all.hyper)]
+    
+    all.hyper = gsub("\\.\\.", "  ", all.hyper)    
+    for(r in c("inla\\.read\\.only",
+               "attr\\(", "to\\.theta",
+               "from\\.theta")) {
+        idx = grep(r, all.hyper)
+        if (length(idx) > 0) {
+            all.hyper = all.hyper[-idx]
+        }
+    }
 
     cat(all.hyper, sep="\n")
     return (invisible())
