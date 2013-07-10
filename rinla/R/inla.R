@@ -883,7 +883,7 @@
         c.link = control.family[[i.family]]$control.link
         control.family[[i.family]]$control.mix = NULL
         control.family[[i.family]]$control.link = NULL
-        
+
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
                                        family[i.family],
@@ -893,7 +893,9 @@
                                        cont.family[[i.family]]$fixed,
                                        cont.family[[i.family]]$prior,
                                        cont.family[[i.family]]$param)
-        all.hyper$family[[i.family]]$hyper = cont.family[[i.family]]$hyper
+        all.hyper$family[[i.family]] = list(
+                                label = family[i.family],
+                                hyper = cont.family[[i.family]]$hyper)
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
