@@ -2651,7 +2651,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	int nw = 0;
 	inla_read_data_all(&w, &nw, ds->weight_file.name);
 	if (nw) {
-		assert(nw == ds->data_observations.ndata);
+		// P(nw); P(ds->data_observations.ndata); P(mb->predictor_ndata);
+		assert(nw == mb->predictor_ndata);
 	}
 
 	for (i = j = 0; i < n; i += idiv, j++) {
@@ -13776,6 +13777,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
+		assert(tmp != 0.0);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
