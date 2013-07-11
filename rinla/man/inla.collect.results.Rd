@@ -8,10 +8,12 @@
  \title{Collect results from a inla-call}
  \description{\code{inla.collect.results} collect results  from a inla-call}
  \usage{
- result = inla.collect.result(
+ inla.collect.result(
               results.dir,
               control.results = inla.set.control.results.default(),
-              debug=FALSE, only.hyperparam=FALSE, file.log = NULL)
+              debug=FALSE,
+              only.hyperparam=FALSE,
+              file.log = NULL)
 }
  \arguments{
  \item{results.dir}{The directory where the results of the inla run are stored}
