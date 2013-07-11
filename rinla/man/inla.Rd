@@ -260,5 +260,7 @@ Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
 \seealso{\code{\link{f}}, 
 \code{\link{inla.hyperpar}} }
 \examples{
- \dontrun{See the web page \url{www.r-inla.org} for a series of
-worked out examples}}
+\dontrun{
+##See the web page \url{www.r-inla.org} for a series of worked out examples
+}
+}

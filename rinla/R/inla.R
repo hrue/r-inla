@@ -359,8 +359,10 @@
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
     ##!\examples{
-    ##! \dontrun{See the web page \url{www.r-inla.org} for a series of
-    ##!worked out examples}}
+    ##!\dontrun{
+    ##!##See the web page \url{www.r-inla.org} for a series of worked out examples
+    ##!}
+    ##!}
 {
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
