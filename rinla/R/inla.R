@@ -9,9 +9,9 @@
 ##! }
 
 ##! \usage{
-##! inla = function (formula,
-##!              family = "gaussian", 
-##!              data = data.frame(),...)
+##! inla(formula,
+##!      family = "gaussian", 
+##!      data = data.frame(),...)
 ##! }
 
 ##! \arguments{
