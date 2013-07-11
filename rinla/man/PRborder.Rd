@@ -1,12 +1,12 @@
-\name{PRprec}
-\alias{PRprec}
-\alias{PRprec}
+\name{PRborder}
+\alias{PRborder}
+\alias{PRborder}
 \docType{data}
-\title{The PRprec data}
+\title{The PRborder data}
 \description{
   TODO
 }
-\usage{data(PRprec)}
+\usage{data(PRborder)}
 \format{
   A data frame .... TODO
   \describe{
