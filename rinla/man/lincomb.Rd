@@ -22,6 +22,6 @@ inla.make.lincombs(...)
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{TODO}
 \examples{
-See the worked out examples and description in the FAQ
-section on {www.r-inla.org}
+##See the worked out examples and description in the FAQ
+##section on {www.r-inla.org}
 }

@@ -23,7 +23,7 @@ inla.idx(idx,
   \item{n}{The length `n' of the basic model.}
   \item{group}{The index within group. (Legal values from `1' to `ngroup'.)}
   \item{ngroup}{Number of groups.}
-  \item{replication}{The index within replication. (Legal values from
+  \item{replicate}{The index within replication. (Legal values from
   `1' to `nrep'.)}
   \item{nrep}{Number of replications.}
 }

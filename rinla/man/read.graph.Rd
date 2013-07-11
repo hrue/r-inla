@@ -11,7 +11,7 @@
 \title{Read and write a graph-object}
 \description{Reads a graph-object to a file and write graph-object to file}
 \usage{
-g = inla.read.graph(graph)
+inla.read.graph(graph)
 inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"))
 \method{plot}{inla.graph}(graph, filter = c("neato", "fdp"), attrs = NULL,
                              scale = 0.5, node.names = NULL, ...)
@@ -23,7 +23,6 @@ inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"
                  or a list or collection of characters and/or numbers defining the graph.}
     \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
                 the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
-    \item{g}{An \code{inla.graph}-object.}
     \item{...}{Extra arguments to \code{inla.read.graph} or \code{plot}}
 }
 \value{

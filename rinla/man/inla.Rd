@@ -11,9 +11,9 @@
  Laplace approximation
  }
  \usage{
- inla = function (formula,
-              family = "gaussian", 
-              data = data.frame(),...)
+ inla(formula,
+      family = "gaussian", 
+      data = data.frame(),...)
  }
  \arguments{
  \item{formula}{ A \code{inla} formula like \code{y
