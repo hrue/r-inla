@@ -607,7 +607,6 @@
                 control.lincomb = control.lincomb,
                 control.hazard = control.hazard,
                 only.hyperparam = only.hyperparam,
-                all.hyper = all.hyper, 
                 inla.call = inla.call,
                 inla.arg = inla.arg,
                 num.threads = num.threads,
