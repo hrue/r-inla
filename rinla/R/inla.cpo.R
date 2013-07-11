@@ -8,8 +8,10 @@
 ##! be recomputing the model-fit by removing data-points. 
 ##!}
 ##!\usage{
-##!`inla.cpo` =
-##!    function(result, force=FALSE, verbose=TRUE,  recompute.mode = TRUE)
+##!inla.cpo(result,
+##!         force = FALSE,
+##!         verbose = TRUE,
+##!         recompute.mode = TRUE)
 ##!}
 ##!
 ##!\arguments{
