@@ -9,13 +9,12 @@
   replicated model}
 
 \usage{
-inla.idx = function(
-        idx,
-        n = max(idx),
-        group = rep(1, n),
-        ngroup = max(group),
-        replicate = rep(1, n),
-        nrep = max(replicate))
+inla.idx(idx,
+         n = max(idx),
+         group = rep(1, n),
+         ngroup = max(group), 
+         replicate = rep(1, n),
+         nrep = max(replicate)) 
 }
 
 \arguments{

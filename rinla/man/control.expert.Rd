@@ -8,11 +8,11 @@
 \title{Control variables in control.expert}
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
-inla(formula, ..., control.expert=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.expert.default()
 }
-\arguments{
-The function \code{inla.set.control.expert.default} returns the default values of all parameters within this control group. These are as follows.
+\arguments{}
+\value{
+The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)}
 \item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION.)}
 }

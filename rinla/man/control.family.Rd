@@ -8,11 +8,11 @@
 \title{Control variables in control.family}
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
-inla(formula, ..., control.family=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.family.default()
 }
-\arguments{
-The function \code{inla.set.control.family.default} returns the default values of all parameters within this control group. These are as follows.
+\arguments{}
+\value{
+The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters}
 \item{initial}{  (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).}

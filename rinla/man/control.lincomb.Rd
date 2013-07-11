@@ -8,11 +8,11 @@
 \title{Control variables in control.lincomb}
 \description{Control variables in \code{control.lincomb} for use in \code{inla}}
 \usage{
-inla(formula, ..., control.lincomb=list( <arg>=<value>[, <arg>=<value>]))
 inla.set.control.lincomb.default()
 }
-\arguments{
-The function \code{inla.set.control.lincomb.default} returns the default values of all parameters within this control group. These are as follows.
+\arguments{}
+\value{
+The function \code{inla.set.control.lincomb.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{precision}{  The precision for the artificial tiny noise. Default 1e09.}
 \item{verbose}{  Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
 }

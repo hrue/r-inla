@@ -9,7 +9,7 @@
 \description{Various utility functions for INLA}
 
 \usage{
-     geobugs2inla = function(adj, num, graph.file="graph.txt")
+     geobugs2inla(adj, num, graph.file="graph.txt")
 }
 
 \arguments{
@@ -22,7 +22,7 @@
   \item{num}{A vector of length N (the total number of areas) giving the
   number of neighbours n.i for each area.}
 
-  \item{output.file}{Name of the file of the new graph in the INLA
+  \item{graph.file}{Name of the file of the new graph in the INLA
     format.}
 
 }
