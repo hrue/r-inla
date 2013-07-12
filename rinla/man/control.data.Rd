@@ -8,9 +8,11 @@
 \title{Control variables in control.data}
 \description{Control variables in \code{control.data} for use in \code{inla}}
 \usage{
-inla.set.control.data.default()
+inla.set.control.data.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.data.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 }
