@@ -7,11 +7,10 @@
 ##!\title{Read and write a graph-object}
 ##!\description{Reads a graph-object to a file and write graph-object to file}
 ##!\usage{
-##!inla.read.graph(graph)
-##!inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"))
-##!\method{plot}{inla.graph}(graph, filter = c("neato", "fdp"), attrs = NULL,
-##!                             scale = 0.5, node.names = NULL, ...)
-##!\method{summary}{inla.graph}(graph, ...)
+##!inla.read.graph(...)
+##!inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
+##!\method{summary}{inla.graph}
+##!\method{plot}{inla.graph} ## Require Rgraphviz
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
@@ -19,7 +18,7 @@
 ##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
-##!    \item{...}{Extra arguments to \code{inla.read.graph} or \code{plot}}
+##!    \item{...}{In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
@@ -346,7 +345,7 @@
     return (NULL)
 }
 
-`inla.write.graph` = function(graph, ..., filename = "graph.dat", mode = c("binary", "ascii"))
+`inla.write.graph` = function(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
 {
     `inla.write.graph.ascii.internal` = function(graph, filename = "graph.dat")
     {
@@ -401,14 +400,16 @@
     }
 }
 
-`plot.inla.graph` = function(
-        graph,
-        filter = c("neato", "fdp"),
-        attrs = NULL,
-        scale = 0.5,
-        node.names = NULL,
-        ...)
+`plot.inla.graph` = function(x, y, ...)
 {
+    ## these are default options to plot for class inla.graph
+    filter = c("neato", "fdp")
+    attrs = NULL
+    scale = 0.5
+    node.names = NULL
+    ## we evaluate them here,  as they are set in '...'
+    inla.eval.dots(...)
+    
     ## I add here some tools to view and summarize a such graphs...
     inla.require("Rgraphviz") || stop("Need library 'Rgraphviz' from Bioconductor: see http://www.bioconductor.org")
     inla.require("graph") || stop("Need library 'graph' from Bioconductor: see http://www.bioconductor.org")
@@ -418,14 +419,14 @@
         attrs = getDefaultAttrs(layoutType = filter)
     }
     if (!is.null(node.names)) {
-        stopifnot(length(node.names) == graph$n)
+        stopifnot(length(node.names) == x$n)
     } else {
-        node.names = as.character(1:graph$n)
+        node.names = as.character(1:x$n)
     }
     g <- new("graphNEL", nodes = node.names, edgemode = "undirected")
-    for (i in 1L:graph$n) {
-        if (graph$nnbs[i] > 0L) {
-            j = graph$nbs[[i]]
+    for (i in 1L:x$n) {
+        if (x$nnbs[i] > 0L) {
+            j = x$nbs[[i]]
             j = j[j > i]
             if (length(j) > 0L) {
                 g = addEdge(node.names[i], node.names[j], g)
@@ -437,27 +438,27 @@
     plot(g, filter, attrs = attrs, ...)
 }
 
-`summary.inla.graph` = function(graph, ...)
+`summary.inla.graph` = function(object, ...)
 {
     ret = list()
-    ret = c(ret, list(n = graph$n))
-    if (!is.null(graph$cc)) {
-        ret = c(ret, list(ncc = graph$cc$n))
+    ret = c(ret, list(n = object$n))
+    if (!is.null(object$cc)) {
+        ret = c(ret, list(ncc = object$cc$n))
     } else {
         ret = c(ret, list(ncc = NA))
     }
-    ret = c(ret, list(nnbs = table(graph$nnbs)))
+    ret = c(ret, list(nnbs = table(object$nnbs)))
 
     class(ret) = "inla.graph.summary"
     return(ret)
 }
 
-`print.inla.graph.summary` = function(graph, ...)
+`print.inla.graph.summary` = function(x, ...)
 {
-    cat(paste("\tn = ",  graph$n, "\n"))
-    cat(paste("\tncc = ",  graph$ncc, "\n"))
-    w = max(nchar(names(graph$nnbs)))
-    cat(inla.paste(c("\tnnbs = (names) ",  format(names(graph$nnbs), width = w, justify = "right"), "\n")))
-    cat(inla.paste(c("\t       (count) ",  format(graph$nnbs, width = w, justify = "right"), "\n")))
+    cat(paste("\tn = ",  x$n, "\n"))
+    cat(paste("\tncc = ",  x$ncc, "\n"))
+    w = max(nchar(names(x$nnbs)))
+    cat(inla.paste(c("\tnnbs = (names) ",  format(names(x$nnbs), width = w, justify = "right"), "\n")))
+    cat(inla.paste(c("\t       (count) ",  format(x$nnbs, width = w, justify = "right"), "\n")))
     return(invisible())
 }

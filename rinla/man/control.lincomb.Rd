@@ -8,9 +8,11 @@
 \title{Control variables in control.lincomb}
 \description{Control variables in \code{control.lincomb} for use in \code{inla}}
 \usage{
-inla.set.control.lincomb.default()
+inla.set.control.lincomb.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.lincomb.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{precision}{  The precision for the artificial tiny noise. Default 1e09.}

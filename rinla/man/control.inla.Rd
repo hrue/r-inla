@@ -8,9 +8,11 @@
 \title{Control variables in control.inla}
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
-inla.set.control.inla.default()
+inla.set.control.inla.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}

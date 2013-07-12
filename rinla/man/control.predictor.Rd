@@ -8,9 +8,11 @@
 \title{Control variables in control.predictor}
 \description{Control variables in \code{control.predictor} for use in \code{inla}}
 \usage{
-inla.set.control.predictor.default()
+inla.set.control.predictor.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.predictor.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters.}

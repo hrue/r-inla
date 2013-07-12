@@ -92,6 +92,8 @@
 ##!
 ##!   \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
 ##!                 which is argument \code{n} in \code{spline}}
+##!   
+##!    \item{method}{Which method should be used to layout points for where the transformation is computed.}
 ##! }
 ##! 
 ##! \value{%%
@@ -437,7 +439,7 @@
     
 
 ## 'plot' and 'summary'-methods for marginals
-plot.inla.marginal = function(x, ...)
+plot.inla.marginal = function(x, y, ...)
 {
     m = inla.emarginal(function(xx) c(xx, xx^2), x)
     xlab = paste("x (mean", format(m[1], digits=4),
@@ -446,10 +448,14 @@ plot.inla.marginal = function(x, ...)
 
     return (invisible())
 }
-summary.inla.marginal = function(x, silent=FALSE, ...)
+summary.inla.marginal = function(object, ...)
 {
-    m = inla.emarginal(function(xx) c(xx, xx^2), x)
-    q = inla.qmarginal(c(0.025, 0.25, 0.5, 0.75, 0.975), x)
+    ## option
+    silent=FALSE
+    inla.eval.dots(...)
+
+    m = inla.emarginal(function(xx) c(xx, xx^2), object)
+    q = inla.qmarginal(c(0.025, 0.25, 0.5, 0.75, 0.975), object)
     s = sqrt(max(0, m[2]-m[1]^2))
 
     if (!silent) {
@@ -467,8 +473,10 @@ summary.inla.marginal = function(x, silent=FALSE, ...)
                            "quant0.25" = q[2], "quant0.5" = q[3], "quant0.75"=q[4], "quant0.975" = q[5])))
 }
 
-plot.inla.marginals = function(x, ...)
+`inla.plot.inla.marginals` = function(x, ...)
 {
+    stop("NOT IN USE FOR THE MOMENT")
+
     ## input here is a list of marginals
 
     n = length(x)

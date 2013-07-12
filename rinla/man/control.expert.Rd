@@ -8,9 +8,11 @@
 \title{Control variables in control.expert}
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
-inla.set.control.expert.default()
+inla.set.control.expert.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)}

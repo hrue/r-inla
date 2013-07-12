@@ -8,9 +8,11 @@
 \title{Control variables in control.compute}
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
-inla.set.control.compute.default()
+inla.set.control.compute.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}

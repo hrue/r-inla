@@ -8,9 +8,11 @@
 \title{Control variables in control.link}
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
-inla.set.control.link.default()
+inla.set.control.link.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.link.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{link}{  The name of the link function/model}

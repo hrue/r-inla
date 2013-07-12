@@ -8,9 +8,11 @@
 \title{Control variables in control.mode}
 \description{Control variables in \code{control.mode} for use in \code{inla}}
 \usage{
-inla.set.control.mode.default()
+inla.set.control.mode.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.mode.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{result}{  Prevous result from inla(). Use the theta- and x-mode from this run.}

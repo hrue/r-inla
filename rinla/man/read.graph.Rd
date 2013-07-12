@@ -11,11 +11,10 @@
 \title{Read and write a graph-object}
 \description{Reads a graph-object to a file and write graph-object to file}
 \usage{
-inla.read.graph(graph)
-inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"))
-\method{plot}{inla.graph}(graph, filter = c("neato", "fdp"), attrs = NULL,
-                             scale = 0.5, node.names = NULL, ...)
-\method{summary}{inla.graph}(graph, ...)
+inla.read.graph(...)
+inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
+\method{summary}{inla.graph}
+\method{plot}{inla.graph} ## Require Rgraphviz
 }
 \arguments{
     \item{filename}{The filename of the graph.}
@@ -23,7 +22,7 @@ inla.write.graph(graph, ...,  filename = "graph.dat", mode = c("binary", "ascii"
                  or a list or collection of characters and/or numbers defining the graph.}
     \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
                 the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
-    \item{...}{Extra arguments to \code{inla.read.graph} or \code{plot}}
+    \item{...}{In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 }
 \value{
     The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements

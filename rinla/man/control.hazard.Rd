@@ -8,9 +8,11 @@
 \title{Control variables in control.hazard}
 \description{Control variables in \code{control.hazard} for use in \code{inla}}
 \usage{
-inla.set.control.hazard.default()
+inla.set.control.hazard.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)}

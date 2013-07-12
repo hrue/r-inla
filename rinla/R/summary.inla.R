@@ -1,5 +1,56 @@
-`summary.inla` = function(object, digits = 4, ...)
+##!\name{summary.inla}
+##!\alias{summary.inla}
+##!\alias{summary.surv.inla}
+##!\alias{print.summary.inla}
+##!\title{ Summary for a INLA fit }
+##!\description{
+##!Takes a fitted \code{inla} or \code{surv.inla} object produced by
+##!\code{inla} or  \code{surv.inla} and produces
+##!a summary from it.
+##!
+##!}
+##!\usage{
+##!\method{summary}{inla}(object,...)
+##!\method{print}{summary.inla}(x,...)
+##!}
+##!%- maybe also 'usage' for other objects documented here.
+##!\arguments{
+##!  \item{object}{  a fitted \code{inla} object as produced by
+##!    \code{inla}.}
+##!  \item{x}{a \code{summary.inla} object produced by \code{summary.inla}.}
+##!  \item{...}{ other arguments.}
+##!
+##!}
+##!\details{
+##!Posterior mean and standard deviation (together with quantiles or
+##!cdf) are printed for the fixed effects in the model.
+##!
+##!For the random effects the function \code{summary()} prints the
+##!posterior mean and standard deviations for the hyperparameters
+##!}
+##!\value{
+##!  \code{summary.inla} returns an object of call \code{summaryinla}, a
+##!  list with components: 
+##!  \item{call}{the component from \code{object}.}
+##!  \item{fixed}{the component from \code{object}.}
+##!  \item{random}{the component from \code{object}.}
+##!  \item{neffp}{the component from \code{object}.}          
+##!  \item{linear.predictor}{the component from \code{object}.}
+##!  \item{family}{the component from \code{object}.}   
+##!}
+##!\author{Sara Martino}
+##!
+##!\seealso{ \code{\link{inla}} }
+##!\examples{
+##!}
+##!
+##!\keyword{ list }
+
+`summary.inla` = function(object, ...)
 {
+    digits = 4
+    inla.eval.dots(...)
+    
     ## provides a summary for a inla object
     ret = list()
 

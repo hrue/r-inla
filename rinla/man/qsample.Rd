@@ -56,9 +56,9 @@
  Q = inla.graph2matrix(g)
  diag(Q) = dim(Q)[1L]
  x = inla.qsample(10, Q)
- matplot(x)
+ \dontrun{matplot(x)}
  x = inla.qsample(10, Q, logdens=TRUE)
- matplot(x$sample)
+ \dontrun{matplot(x$sample)}
 
  n = 3
  Q = diag(n)
@@ -72,7 +72,7 @@
  ## the use of a constraint
  constr = list(A = matrix(rep(1, n), 1, n), e = 0)
  x = inla.qsample(n, Q=Q, constr=constr)
- print(constr$A %*% x)
+ print(constr$A \%*\% x)
  
  ## control the RNG
  x = inla.qsample(n, Q=Q, seed = 123)

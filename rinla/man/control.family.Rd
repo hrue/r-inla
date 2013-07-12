@@ -8,9 +8,11 @@
 \title{Control variables in control.family}
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
-inla.set.control.family.default()
+inla.set.control.family.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters}

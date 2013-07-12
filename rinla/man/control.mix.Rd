@@ -8,9 +8,11 @@
 \title{Control variables in control.mix}
 \description{Control variables in \code{control.mix} for use in \code{inla}}
 \usage{
-inla.set.control.mix.default()
+inla.set.control.mix.default(...)
 }
-\arguments{}
+\arguments{
+\item{...}{Additional arguments; none for the moment}
+}
 \value{
 The function \code{inla.set.control.mix.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The model for the random effect. Currently, only \code{model='gaussian'} is implemented}

@@ -1,7 +1,6 @@
 ##! \name{inla}
 ##! \alias{inla}
-##! \alias{xinla}
-
+##!
 ##! \title{Bayesian analysis of
 ##! structured additive models} \description{\code{inla} performs a
 ##! full Bayesian analysis of additive models using Integrated Nested
@@ -9,11 +8,43 @@
 ##! }
 
 ##! \usage{
-##! inla(formula,
-##!      family = "gaussian", 
-##!      data = data.frame(),...)
+##!inla(
+##!    formula,
+##!    family = "gaussian", 
+##!    contrasts = NULL,
+##!    data = NULL,
+##!    quantiles=c(0.025, 0.5, 0.975),
+##!    E = NULL,
+##!    offset=NULL,
+##!    scale = NULL,
+##!    weights = NULL,
+##!    Ntrials = NULL,
+##!    strata = NULL,
+##!    link.covariates = NULL,
+##!    verbose = FALSE,
+##!    lincomb = NULL,
+##!    control.compute = list(),
+##!    control.predictor = list(),
+##!    control.family = list(),
+##!    control.data = list(),
+##!    control.inla = list(),
+##!    control.results = list(),
+##!    control.fixed = list(),
+##!    control.mode = list(),
+##!    control.expert = list(),
+##!    control.hazard = list(),
+##!    control.lincomb = list(),
+##!    only.hyperparam = FALSE,
+##!    inla.call = inla.getOption("inla.call"),
+##!    inla.arg = inla.getOption("inla.arg"),
+##!    num.threads = inla.getOption("num.threads"),
+##!    keep = inla.getOption("keep"),
+##!    working.directory = inla.getOption("working.directory"),
+##!    silent = inla.getOption("silent"),
+##!    debug = inla.getOption("debug"),
+##!    .internal = list()
+##!    )
 ##! }
-
 ##! \arguments{
     
 `inla` =
@@ -205,7 +236,7 @@
         ##!output.  }
         debug = inla.getOption("debug"),
         
-        ## this variable holds ``internal'' stuff of any kind...
+        ##!\item{.internal}{For internal use only.}
         .internal = list()
         )
     ##!}

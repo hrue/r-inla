@@ -96,6 +96,8 @@
 
    \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
                  which is argument \code{n} in \code{spline}}
+   
+    \item{method}{Which method should be used to layout points for where the transformation is computed.}
  }
  
  \value{%%
