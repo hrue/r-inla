@@ -1043,7 +1043,9 @@
 
 `inla.eval.dots` = function(..., stop.if.no.name = TRUE, allowed.names = NULL) {
     ## evaluate named argument in the parent frame. allowed.names can
-    ## be a list of allowed names, or if NULL, all are allowed.
+    ## be a list of allowed names, or if NULL then all names are
+    ## allowed. this function will give an error if one argument has
+    ## no name and stop.of.no.name is TRUE
     dots = lapply(match.call(), eval)[-1L]
     for(i in seq_along(length(dots))) {
         nm = names(dots)[i]
