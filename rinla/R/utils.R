@@ -1041,7 +1041,7 @@
     stop("The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.\n  If this does help; please contact the developers at <help@r-inla.org>.")
 }
 
-`inla.eval.dots` = function(..., stop.on.error = TRUE, allowed.names = NULL) {
+`inla.eval.dots` = function(..., stop.if.no.name = TRUE, allowed.names = NULL) {
     ## evaluate named argument in the parent frame. allowed.names can
     ## be a list of allowed names, or if NULL, all are allowed.
     dots = lapply(match.call(), eval)[-1L]
@@ -1055,7 +1055,7 @@
             }
             assign(nm, dots[[i]], envir = parent.frame())
         } else {
-            if (stop.on.error) {
+            if (stop.if.no.name) {
                 stop(paste("The", i, "th argument has no name."))
             }
         }
