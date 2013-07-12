@@ -10,8 +10,8 @@
 ##!inla.read.graph(...)
 ##!inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
 ##!
-##!\method{summary}{inla.graph}
-##!\method{plot}{inla.graph} 
+##!\method{summary}{inla.graph}(object, ...)
+##!\method{plot}{inla.graph}(x, y, ...)
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
@@ -19,7 +19,10 @@
 ##!                 or a list or collection of characters and/or numbers defining the graph.}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
-##!    \item{...}{In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
+##!    \item{object}{An \code{inla.graph} -object} 
+##!    \item{x}{An \code{inla.graph} -object} 
+##!    \item{y}{Not used}
+##!    \item{...}{Additional arguments. In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
