@@ -13,8 +13,9 @@
 \usage{
 inla.read.graph(...)
 inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
+
 \method{summary}{inla.graph}
-\method{plot}{inla.graph} ## Require Rgraphviz
+\method{plot}{inla.graph} 
 }
 \arguments{
     \item{filename}{The filename of the graph.}
