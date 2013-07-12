@@ -4,7 +4,7 @@
 ##! \title{Collect results from a inla-call}
 ##! \description{\code{inla.collect.results} collect results  from a inla-call}
 ##! \usage{
-##! inla.collect.result(
+##! inla.collect.results(
 ##!              results.dir,
 ##!              control.results = inla.set.control.results.default(),
 ##!              debug=FALSE,

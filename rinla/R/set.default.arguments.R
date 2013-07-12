@@ -1,7 +1,7 @@
 ### Defines default arguments
 
 `inla.set.control.lincomb.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.lincomb
     list(
@@ -15,7 +15,7 @@
 }
 
 `inla.set.control.group.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.group
     list(
@@ -50,7 +50,7 @@
 }
 
 `inla.set.control.mix.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.mix
     list(
@@ -76,7 +76,7 @@
 }
 
 `inla.set.control.link.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.link
     list(
@@ -108,13 +108,13 @@
 }
 
 `inla.set.f.default` =
-    function()
+    function(...)
 {
     list(diagonal = 1e-6)
 }
 
 `inla.set.control.expert.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.expert
     list(
@@ -129,7 +129,7 @@
 
 
 `inla.set.control.compute.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.compute
     list(
@@ -173,7 +173,7 @@
 }
 
 `inla.set.control.family.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.family
     list(
@@ -224,15 +224,15 @@
 }
 
 `inla.set.control.data.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.data
     ##:SEEALSO: inla
-    return (inla.set.control.family.default())
+    return (inla.set.control.family.default(...))
 }
 
 `inla.set.control.fixed.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.fixed
     list(
@@ -268,8 +268,11 @@
 }
 
 `inla.set.control.inla.default`=
-    function(family = "gaussian")
+    function(...)
 {
+    family = "gaussian"
+    inla.eval.dots(..., allowed.names = list("family"))
+
     ##:NAME: control.inla
     ans = list(
             ##:ARGUMENT: strategy  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
@@ -414,7 +417,7 @@
 }
 
 `inla.set.control.predictor.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.predictor
     list(
@@ -458,7 +461,7 @@
 }
 
 `inla.set.control.results.default`=
-    function()
+    function(...)
 {
     ##:NAME: control.results
     list(
@@ -471,7 +474,7 @@
 }
 
 `inla.set.control.mode.default`=
-    function()
+    function(...)
 {
     ## this is internal use only...
     ##:NAME: control.mode
@@ -494,7 +497,7 @@
 }
 
 `inla.set.control.hazard.default` =
-    function()
+    function(...)
 {
     ##:NAME: control.hazard
     list(

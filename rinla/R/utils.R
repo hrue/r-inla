@@ -469,12 +469,6 @@
     }
 }
 
-
-
-
-
-
-
 `inla.group` = function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 {
     `inla.group.core` = function(x, n = 25, method = c("cut", "quantile"), idx.only)
@@ -1041,8 +1035,29 @@
 
     return (value)
 }
+
 `inla.inlaprogram.has.crashed` = function()
 {
     stop("The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.\n  If this does help; please contact the developers at <help@r-inla.org>.")
 }
 
+`inla.eval.dots` = function(..., stop.on.error = TRUE, allowed.names = NULL) {
+    ## evaluate named argument in the parent frame. allowed.names can
+    ## be a list of allowed names, or if NULL, all are allowed.
+    dots = lapply(match.call(), eval)[-1L]
+    for(i in seq_along(length(dots))) {
+        nm = names(dots)[i]
+        if (!is.null(nm)) {
+            if (!is.null(allowed.names)) {
+                if (!(nm %in% allowed.names)) {
+                    stop(paste("This argument is not allowed:", nm))
+                }
+            }
+            assign(nm, dots[[i]], envir = parent.frame())
+        } else {
+            if (stop.on.error) {
+                stop(paste("The", i, "th argument has no name."))
+            }
+        }
+    }
+}    

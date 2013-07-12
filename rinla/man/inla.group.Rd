@@ -7,7 +7,7 @@
   the number of unique values}
 
 \usage{
-inla.group = function(x, n = 25, method = c("cut", "quantile"), idx.only=FALSE)
+inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 }
 
 \arguments{

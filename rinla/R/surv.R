@@ -1,3 +1,82 @@
+##!\name{inla.surv}
+##!\alias{inla.surv}
+##!\alias{is.inla.surv}
+##!\alias{as.inla.surv}
+##!\alias{plot.inla.surv}
+##!\alias{print.inla.surv}
+##!
+##!\title{
+##!Create a Survival Object for INLA
+##!}
+##!
+##!\description{
+##!Create a survival object, to be used as a response variable in a
+##!model  formula for the \code{\link{inla}} function for survival models.
+##!}
+##!\usage{
+##!inla.surv(time, event, time2, truncation,subject)
+##!\method{plot}{inla.surv}
+##!is.inla.surv(object)
+##!as.inla.surv(object, ...)
+##!}
+##!
+##!\arguments{
+##!  \item{time}{For right censored data, this is the follow up time.  For
+##!    interval data, this is the starting time for the interval.  }
+##!  \item{event}{The status indicator, 1=observed event, 0=right censored
+##!    event, 2=left censored event, 3=interval censored event.  Although
+##!    unusual, the event indicator can be omitted, in which case all
+##!    subjects are assumed to have an event.}
+##!  \item{time2}{Ending time for the interval censured data.}
+##!  \item{truncation}{Left truncation. If missing it is assumed to be 0.}
+##!  \item{subject}{Patient number in multiple event data, not needed otherwise. }
+##!  \item{object}{Any \code{R}-object}
+##!  \item{...}{Currently not in use}
+##!  }
+##!
+##!\value{An object of class \code{inla.surv}.  There are methods for \code{print}, 
+##!  \code{plot} for \code{inla.surv} objects.
+##!
+##!     \code{is.inla.surv} returns \code{TRUE} if \code{object}
+##!     inherits from class \code{inla.surv}, otherwise \code{FALSE}.
+##!
+##!     \code{as.inla.surv} returns an object of class \code{inla.surv}
+##!}
+##!
+##!\author{
+##!Sara Martino and Rupali Akerkar
+##!}
+##!
+##!\seealso{
+##!\code{\link{inla}}
+##!}
+##!
+##!\examples{
+##!  ## First example
+##!  trt = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+##!          0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+##!          1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+##!  time = c(17,42,44,48,60,72,74,95,103, 108, 122, 144, 167, 170, 183, 185,
+##!           193, 195, 197, 208, 234, 235, 254, 307, 315, 401, 445, 464, 484,  528, 542, 567,
+##!           577, 580, 795, 855, 1174, 1214, 1232, 1366, 1455, 1585, 1622, 1626, 1736, 1,63, 
+##!           105, 125, 182, 216, 250, 262, 301, 301, 342, 354, 356, 358, 380, 383, 383, 388, 
+##!           394, 408, 460, 489, 499, 523, 524, 535, 562, 569, 675, 676, 748, 778, 786, 797,
+##!           955, 968, 977, 1245, 1271, 1420, 1460, 1516, 1551, 1690, 1694)
+##!  event = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+##!            1,1,1,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+##!            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,1)
+##!  y = inla.surv(time, event)
+##!
+##!  ## Second example
+##!  time = c(182,182,63,68,182,152,182,130,134,145,152,182,98,152,182,88,95,105,130,137,167,182,
+##!           152,182,81,182,71,84,126,134,152,182)
+##!  event = c(1,0,1,1,0,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,0)
+##!  subject = c(1,2,3,3,3,4,4,5,5,5,5,5,6,6,6,7,7,7,7,7,7,7,8,8,9,9,10,10,10,10,10,10)
+##!  y = inla.surv(time, event, subject=subject)
+##!}
+##!
+##!\keyword{Survival models}
+
 `inla.surv` = function(time, event, time2, truncation, subject)
 {
     ret = NULL
@@ -13,30 +92,32 @@
     return (ret)
 }
 
-`plot.inla.surv` = function(object,...)
+`plot.inla.surv` = function(x, y,...)
 {
-    if(!is.null(object$lower)) {
-        plot.inla.surv.1(object,...)
+    ## argument y is not used
+    if(!is.null(x$lower)) {
+        inla.plot.inla.surv.1(x,...)
     } else {
-        plot.inla.surv.2(object,...)
+        inla.plot.inla.surv.2(x,...)
     }
 }
 
-`print.inla.surv` = function(object,...)
+`print.inla.surv` = function(x,...)
 {
-    if(!is.null(object$lower)) {
-        print.inla.surv.1(object,...)
+    if(!is.null(x$lower)) {
+        inla.print.inla.surv.1(x,...)
     } else {
-        print.inla.surv.2(object,...)
+        inla.print.inla.surv.2(x,...)
     }
 }
 
-`as.inla.surv` = function(object,...)
+`as.inla.surv` = function(object, ...)
 {
+    ## the '...' are not used.
     if(is.null(object$subject)) {
-        as.inla.surv.1(object,...)
+        inla.as.inla.surv.1(object)
     } else {
-        as.inla.surv.2(object,...)
+        inla.as.inla.surv.2(object)
     }
 }
 
@@ -128,7 +209,7 @@
     return (ss)
 }
 
-`plot.inla.surv.1` = function(object, legend=TRUE,...)
+`inla.plot.inla.surv.1` = function(object, legend=TRUE,...)
 {
     time = object$time
     upper = object$upper
@@ -181,32 +262,32 @@
     }
 }
 
-`print.inla.surv.1` = function(object, quote=FALSE, ...)
+`inla.print.inla.surv.1` = function(object, quote=FALSE, ...)
 {
-    invisible(print(as.character.inla.surv.1(object), quote=quote, ...))
+    invisible(print(inla.as.character.inla.surv.1(object), quote=quote, ...))
 }
 
-`as.character.inla.surv.1` = function(object, ...)
+`inla.as.character.inla.surv.1` = function(x, ...)
 {
-    class(object) = NULL
-    nn = length(object$event)
+    class(x) = NULL
+    nn = length(x$event)
 
-    interval = (object$event==3)
+    interval = (x$event==3)
     out = character(nn)
-    out[interval] = paste("[", object$lower[interval],",", object$upper[interval],"]", sep="")
-    right = (object$event==0)
-    out[right] = paste(object$lower[right],"+", sep="")
-    left = (object$event==2)
-    out[left] = paste(object$upper[left],"-", sep="")
-    failure = (object$event==1)
-    out[failure] = paste(object$time[failure], sep="")
+    out[interval] = paste("[", x$lower[interval],",", x$upper[interval],"]", sep="")
+    right = (x$event==0)
+    out[right] = paste(x$lower[right],"+", sep="")
+    left = (x$event==2)
+    out[left] = paste(x$upper[left],"-", sep="")
+    failure = (x$event==1)
+    out[failure] = paste(x$time[failure], sep="")
 
     return (out)
 }
 
 `is.inla.surv` = function(object) inherits(object, "inla.surv")
 
-`as.inla.surv.1` = function(object)
+`inla.as.inla.surv.1` = function(object)
 {
     if (is.list(object)) {
         for (nm in names(object))
@@ -217,7 +298,7 @@
         return(object)
     }
     if (is.data.frame(object))
-        return (as.inla.surv.1(as.list(object)))
+        return (inla.as.inla.surv.1(as.list(object)))
 
     stop("Argument must be a list or a data.frame")
 }
@@ -281,8 +362,7 @@
 
 
 ## plotting the time according to event detect or not detect
- 
-`plot.inla.surv.2` = function(object, legend=TRUE,...)
+`inla.plot.inla.surv.2` = function(object, legend=TRUE,...)
 {
     time = object$time
     event = object$event
@@ -321,25 +401,25 @@
     }
 }
 
-`print.inla.surv.2` = function(object, quote=FALSE, ...)
+`inla.print.inla.surv.2` = function(object, quote=FALSE, ...)
 {
-    invisible(print(as.character.inla.surv.2(object), quote=quote, ...))
+    invisible(print(inla.as.character.inla.surv.2(object), quote=quote, ...))
 }
 
-`as.character.inla.surv.2` = function(object, ...)
+`inla.as.character.inla.surv.2` = function(x, ...)
 {
-    class(object) = NULL
-    nn = length(object$event)
+    class(x) = NULL
+    nn = length(x$event)
     out = character(nn)
-    detect = (object$event==1)
-    out[detect] = paste(object$time[detect], sep="")
-    notdetect  = (object$event==0)
-    out[notdetect] = paste(object$time[notdetect],"+", sep="")
+    detect = (x$event==1)
+    out[detect] = paste(x$time[detect], sep="")
+    notdetect  = (x$event==0)
+    out[notdetect] = paste(x$time[notdetect],"+", sep="")
 
     return (out)
 }
 
-`as.inla.surv.2` = function(object)
+`inla.as.inla.surv.2` = function(object)
 {
     if (is.list(object)) {
         for (nm in names(object)) {
@@ -351,7 +431,7 @@
         return(object)
     }
     if (is.data.frame(object))
-        return (as.inla.surv.2(as.list(object)))
+        return (inla.as.inla.surv.2(as.list(object)))
 
     stop("Argument must be a list or a data.frame")
 }

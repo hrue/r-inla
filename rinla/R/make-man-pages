@@ -30,9 +30,11 @@ function mmp ()
 	print "\\description{Control variables in \\code{" name "} for use in \\code{inla}}" >>f
 	print "\\usage{" >> f
 	##print "inla(formula, ..., " name "=list( <arg>=<value>[, <arg>=<value>]))" >>f
-        print "inla.set." name ".default()" >> f
+        print "inla.set." name ".default(...)" >> f
 	print "}" >> f
-	print "\\arguments{}" >> f
+	print "\\arguments{" >> f
+	print "\\item{...}{Additional arguments; none for the moment}" >> f
+	print "}" >> f
 	print "\\value{" >> f
         print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement. These are as follows." >> f
 	next;}
