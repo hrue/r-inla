@@ -2084,7 +2084,7 @@
     return (data)
 }
 
-`inla.all.hyper` = function(result)
+`inla.show.hyperSpec` = function(result)
 {
     stopifnot(class(result) == "inla")
     tfile = tempfile()
