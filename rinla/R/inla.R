@@ -870,7 +870,7 @@
     }
     
     ## control inla
-    cont.inla =inla.set.control.inla.default(family)
+    cont.inla =inla.set.control.inla.default(family=family)
     cont.inla[names(control.inla)] = control.inla
 
     ## control.family
