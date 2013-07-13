@@ -1046,7 +1046,10 @@
     ## be a list of allowed names, or if NULL then all names are
     ## allowed. this function will give an error if one argument has
     ## no name and stop.of.no.name is TRUE
-    dots = lapply(match.call(), eval)[-1L]
+    if (!length(list(...))) {
+        return (invisible())
+    }
+    dots = lapply(match.call(), eval, envir = parent.frame())[-1L]
     for(i in seq_along(length(dots))) {
         nm = names(dots)[i]
         if (!is.null(nm)) {
@@ -1062,4 +1065,5 @@
             }
         }
     }
+    return (invisible())
 }    
