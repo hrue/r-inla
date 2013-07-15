@@ -43,7 +43,6 @@ rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/.
     echo "# ## Export: func1"
     echo "# ## Export: func1 func2"
     echo "# etc..."
-    echo ""
 
     find INLA/R -name \*.R | while read f; do
 	egrep "^## *Export *:" $f | while read ff; do
