@@ -175,3 +175,8 @@
 
     return (filename)
 }
+
+inla.hyperpar.sampler = function(...) {
+    warning("New name is 'inla.hyperpar.sample'")
+    return (inla.hyperpar.sample(...))
+}

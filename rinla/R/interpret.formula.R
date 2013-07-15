@@ -1,3 +1,5 @@
+## nothing to export
+
 `inla.interpret.formula` =
     function (gf, debug=FALSE, data.same.len = NULL, data=NULL, data.model = NULL)
 {

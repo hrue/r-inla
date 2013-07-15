@@ -1,3 +1,5 @@
+## Export: inla.qinv
+
 ##! \name{qinv}
 ##! \alias{inla.qinv}
 ##! \alias{qinv}
@@ -9,7 +11,7 @@
 ##!              The diagonal and values for the neighbours in the inverse, are provided.}
 ##! 
 ##! \usage{
-##!     inla.qinv(Q, reordering)
+##!     inla.qinv(Q, reordering = inla.reorderings())
 ##! }
 ##! 
 ##! \arguments{

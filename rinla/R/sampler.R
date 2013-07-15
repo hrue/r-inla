@@ -1,10 +1,43 @@
+## Export: inla.hyperpar.sample
 
-inla.hyperpar.sampler = function(...) {
-    warning("New name is 'inla.hyperpar.sample'")
-    return (inla.hyperpar.sample(...))
-}
+##!\name{inla.hyperpar.sample}
+##!\alias{inla.hyperpar.sample}
+##!\alias{inla.hyperpar.sampler}
+##!\alias{hyperpar.sample}
+##!\alias{hyperpar.sampler}
+##!
+##!\title{Produce samples from the approximated joint posterior for the hyperparameters}
+##!
+##!\description{Produce samples from the approximated joint posterior for the hyperparameters}
+##!\usage{
+##!inla.hyperpar.sample(n, result, intern=FALSE)
+##!}
+##!
+##!\arguments{
+##!
+##!  \item{n}{Integer. Number of samples required.}
+##!  \item{result}{An \code{inla}-object,  f.ex the output from an \code{inla}-call.}
+##!  \item{intern}{Logical. If \code{TRUE} then produce samples in the
+##!  intern scale for the hyperparmater, if \code{FALSE} then produce
+##!  samples in the user-scale. (For example log-precision (intern)
+##!  and precision (user-scale))}
+##!}
+##!
+##!\value{%%
+## A matrix where each sample is a row. The contents of the column is described in the rownames.
+##!}
+##!%%
+##!
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!
+##!\examples{
+##!r = inla(y ~ 1, data = data.frame(y=1:10), family = "t")
+##!x = inla.hyperpar.sample(10,r)
+##!str(x)
+##!}
 
-inla.hyperpar.sample = function(n, result, intern=FALSE)
+
+`inla.hyperpar.sample` = function(n, result, intern=FALSE)
 {
     ## generate 'n' samples from the joint for the hyperparameters
     ## computed using the CCD approach. if intern==TRUE, then generate

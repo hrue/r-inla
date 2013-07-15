@@ -1,3 +1,5 @@
+## Export: print.summary.inla
+
 `print.summary.inla` = function(x, ...)
 {
     digits = 4

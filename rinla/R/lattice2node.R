@@ -1,3 +1,5 @@
+## Export: inla.lattice2node.mapping inla.node2lattice.mapping inla.lattice2node inla.node2lattice inla.matrix2vector inla.vector2matrix
+
 ##!\name{lattice2node}
 ##!\alias{lattice2node}
 ##!\alias{inla.lattice2node}

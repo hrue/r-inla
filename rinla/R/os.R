@@ -1,3 +1,5 @@
+## nothing to export
+
 
 `inla.os` = function(type = c("linux", "mac", "windows", "else"))
 {
