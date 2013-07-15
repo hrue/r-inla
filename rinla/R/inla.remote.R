@@ -1,3 +1,41 @@
+## Export:  inla.ssh.copy.id
+
+##!\name{inla.ssh.copy.id}
+##!\alias{inla.ssh.copy.id}
+##!\alias{ssh.copy.id}
+##!
+##!\title{Setup remote-access}
+##!
+##!\description{Print the path to the internal script to transfer ssh-keys}
+##!
+##!\usage{
+##!inla.ssh.copy.id()
+##!\arguments{
+##!}
+##!
+##!\value{%%
+##!  The path to the internal script to transfer ssh-keys
+##!}
+##!%%
+##!
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!
+##!\examples{
+##!##TODO
+##!}
+
+
+`inla.ssh.copy.id` = function ()
+{
+    ## print the path to the copy-id script
+
+    f = system.file("bin/remote/ssh-copy-id", package="INLA")
+    if (inla.os("windows"))
+        return (inla.cygwin.map.filename(f))
+    else
+        return (f)
+}
+
 `inla.remote` = function()
 {
     if (inla.os("windows") && !inla.cygwin.check.path()) {
@@ -33,15 +71,4 @@
     }
 
     return (invisible())
-}
-
-`inla.ssh.copy.id` = function ()
-{
-    ## print the path to the copy-id script
-
-    f = system.file("bin/remote/ssh-copy-id", package="INLA")
-    if (inla.os("windows"))
-        return (inla.cygwin.map.filename(f))
-    else
-        return (f)
 }

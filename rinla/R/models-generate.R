@@ -1,3 +1,6 @@
+## Nothing to export. these are all just internal functions for
+## building the documentation
+
 ## generate Rd and tex for the models
 
 `inla.models.generate.Rd` = function(file = NULL)

@@ -1,3 +1,5 @@
+## Export: summary.inla print.inla
+
 ##!\name{summary.inla}
 ##!\alias{summary.inla}
 ##!\alias{summary.surv.inla}
