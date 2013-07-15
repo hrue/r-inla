@@ -1,3 +1,6 @@
+## Nothing to export from here, as the 'fmesher'-file format is for
+## internal use only.
+
 `inla.is.fmesher.file` = function(filename)
 {
     ## return TRUE if file exists and is a fmesher file

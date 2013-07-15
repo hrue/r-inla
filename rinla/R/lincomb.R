@@ -1,4 +1,4 @@
-## utility-functions for creating linear combinations.
+## Export: inla.make.lincomb inla.make.lincombs
 
 ##!\name{make.lincomb}
 ##!\alias{make.lincomb}
