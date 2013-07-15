@@ -1,3 +1,5 @@
+## Export: inla.collect.results
+
 ##! \name{inla.collect.results}
 ##! \alias{inla.collect.results}
 ##! \alias{collect.results}
