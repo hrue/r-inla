@@ -1,3 +1,5 @@
+## Export: inla.upgrade inla.update
+
 ##!\name{inla.upgrade}
 ##!\alias{inla.upgrade}
 ##!\alias{inla.update}

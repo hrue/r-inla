@@ -1,3 +1,5 @@
+## Nothing to export
+
 ## obsolete functions goes here.
 
 `inla.obsolete` = function(old, new) {

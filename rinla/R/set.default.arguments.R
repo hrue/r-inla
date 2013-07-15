@@ -1,3 +1,18 @@
+## Export: inla.set.control.lincomb.default
+## Export: inla.set.control.group.default
+## Export: inla.set.control.mix.default
+## Export: inla.set.control.link.default
+## Export: inla.set.control.expert.default
+## Export: inla.set.control.compute.default
+## Export: inla.set.control.family.default
+## Export: inla.set.control.data.default
+## Export: inla.set.control.fixed.default
+## Export: inla.set.control.inla.default
+## Export: inla.set.control.predictor.default
+## Export: inla.set.control.results.default
+## Export: inla.set.control.mode.default
+## Export: inla.set.control.hazard.default
+
 ### Defines default arguments
 
 `inla.set.control.lincomb.default` =

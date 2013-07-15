@@ -1,3 +1,65 @@
+## Export: inla.as.sparse inla.as.dgTMatrix
+
+##!\name{inla.as.sparse}
+##!\alias{inla.as.sparse}
+##!\alias{inla.as.dgTMatrix}
+##!
+##!\title{Convert a matrix or sparse matrix into the sparse formate used by INLA}
+##!
+##!\description{Convert a matrix or sparse matrix into the sparse format used by INLA (dgTMatrix)}
+##!
+##!\usage{
+##! inla.as.sparse(...)
+##! inla.as.dgTMatrix(A, unique = TRUE)
+##!}
+##!
+##!\arguments{
+##!
+##!  \item{...}{The arguments. The matrix or sparse matrix,  and the additonal arguments}
+##!  \item{A}{The matrix}
+##!  \item{unique}{If the internal representation needs to be unique or can have duplicated entries.
+##!                Do not use this option unless you know what you are doing.}
+##!}
+##!
+##!\value{%%
+##!  \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same function.
+##!  The returned value is a sparse matrix in the sparse-format used by INLA}
+##!}
+##!%%
+##!
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!
+##!\examples{
+##! A = matrix(1:9, 3, 3)
+##! inla.as.sparse(A)
+##!}
+
+`inla.as.sparse` = function(...)
+{
+    return (inla.as.dgTMatrix(...))
+}
+
+
+`inla.idx` = function(idx, n = max(idx), group = rep(1, n), ngroup = max(group),
+        replicate = rep(1, n), nrep = max(replicate))
+{
+    ## this function might be useful to convert from (idx, group, rep)
+    ## to idx, in the same way as done internally in inla.R
+
+    stopifnot(n >= 1)
+    stopifnot(ngroup >= 1)
+    stopifnot(nrep >= 1)
+    stopifnot(all(group >= 1))
+    stopifnot(all(replicate >= 1))
+    stopifnot(all(idx >= 1))
+    stopifnot(all(idx <= n))
+    stopifnot(ngroup >= max(group))
+    stopifnot(nrep >= max(replicate))
+
+    return (idx + (group-1)*n + (replicate-1)*n*ngroup)
+}
+
+
 ### Some utilities for sparse matrices using the `Matrix' library
 
 `inla.sparse.dim` = function(A) {
@@ -39,11 +101,6 @@
     }
 
     return (inla.as.dgTMatrix(A))
-}
-
-`inla.as.sparse` = function(...)
-{
-    return (inla.as.dgTMatrix(...))
 }
 
 `inla.as.dgTMatrix` = function(A, unique = TRUE)
@@ -103,4 +160,3 @@
         return (list(i = A@i[idx]+1, j = col, values = A@x[idx]))
     }
 }
-

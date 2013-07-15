@@ -1,3 +1,5 @@
+## Export: inla.qsolve
+
 ##! \name{qsolve}
 ##! \alias{inla.qsolve}
 ##! \alias{qsolve}

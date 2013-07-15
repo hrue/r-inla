@@ -1,3 +1,5 @@
+## Export: inla.idx
+
 ##!\name{idx}
 ##!\alias{idx}
 ##!\alias{inla.idx}

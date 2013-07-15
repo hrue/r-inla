@@ -1,3 +1,6 @@
+## Export: inla.ar.pacf2phi
+## Export: inla.ar.phi2pacf
+
 ##!\name{inla.ar}
 ##!\alias{inla.ar.pacf2phi}
 ##!\alias{ar.pacf2phi}

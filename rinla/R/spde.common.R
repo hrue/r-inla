@@ -919,7 +919,7 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
         names(nrow) = names(names)
         names(ncol) = names(names)
 
-##        data = as.data.frame(do.call(cbind, l))
+        ## data = as.data.frame(do.call(cbind, l))
         data = as.data.frame(l)
         names(data) = do.call(c, names)
         nrow = nrow(data)

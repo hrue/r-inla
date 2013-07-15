@@ -1,3 +1,5 @@
+## Export: inla.ks.plot
+
 ##!\name{inla.ks.plot}
 ##!\alias{inla.ks.plot}
 ##!\alias{ks.plot}
