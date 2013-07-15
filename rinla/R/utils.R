@@ -387,79 +387,6 @@
     }
 }
 
-`inla.group` = function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
-{
-    `inla.group.core` = function(x, n = 25, method = c("cut", "quantile"), idx.only)
-    {
-        ## group covariates into N groups using method "quantile" or
-        ## "cut", i.e., the functions quantile() or cut().  the cut
-        ## use 'even length' wheras the 'quantile' use even length
-        ## quantiles.
-
-        ## I make the "cut" default, as then we have control over the
-        ## minimum distance between each cell, whereas the "quantile"
-        ## approach, we do not have a such control.
-
-        if (n < 1)
-            stop("Number of groups must be > 0")
-
-        if (n == 1)
-            return (rep(median(x), length(x)))
-
-        method = match.arg(method)
-        if (method == "cut") {
-            ## use equal length
-            a = cut(x, n)
-        } else {
-            ## use break-points corresponding to the quantiles
-            aq = unique(quantile(x, probs = c(0, ppoints(n-1), 1)))
-            a = cut(x, breaks = as.numeric(aq), include.lowest=TRUE)
-        }
-        ## the rest is then the same
-        nlev = nlevels(a)
-        xx = list()
-        for(i in 1:nlev)
-            xx[[i]] = list()
-
-        for(i in 1:length(x))
-            xx[[as.numeric(a[i])]] = c(unlist(xx[[as.numeric(a[i])]]), x[i])
-        values = numeric(nlev)
-
-        ff.local = function(xx) {
-            if (length(xx) > 0)
-                return (median(xx))
-            else
-                return (NA)
-        }
-        if (!idx.only) {
-            values = unlist(sapply(xx, ff.local))
-            return (as.numeric(values[as.numeric(a)]))
-        } else {
-            return (as.numeric(a))
-        }
-    }
-
-    if (missing(x))
-        return (NULL)
-
-    if (any(is.na(x))) {
-        idx.ok = !is.na(x)
-        x[idx.ok] = inla.group.core(x[idx.ok], n, method, idx.only)
-
-        return (x)
-    } else {
-        return (inla.group.core(x, n, method, idx.only))
-    }
-}
-
-`inla.group.old` = function(x, n)
-{
-    ### old version
-    cutpoints = seq(range(x)[1], range(x)[2], length.out=(n+1))
-    lev = (cutpoints[1:(n)]+cutpoints[2:(n+1)])/2
-    int = cut(x, breaks=cutpoints, include.lowest=TRUE, labels=FALSE)
-    return(lev[int])
-}
 
 `inla.scale` = function(x)
 {
@@ -579,25 +506,6 @@
 
     ## check if family is one of the canidates
     return (any(inla.trim.family(family) == inla.trim.family(candidates)))
-}
-
-`inla.idx` = function(idx, n = max(idx), group = rep(1, n), ngroup = max(group),
-        replicate = rep(1, n), nrep = max(replicate))
-{
-    ## this function might be useful to convert from (idx, group, rep)
-    ## to idx, in the same way as done internally in inla.R
-
-    stopifnot(n >= 1)
-    stopifnot(ngroup >= 1)
-    stopifnot(nrep >= 1)
-    stopifnot(all(group >= 1))
-    stopifnot(all(replicate >= 1))
-    stopifnot(all(idx >= 1))
-    stopifnot(all(idx <= n))
-    stopifnot(ngroup >= max(group))
-    stopifnot(nrep >= max(replicate))
-
-    return (idx + (group-1)*n + (replicate-1)*n*ngroup)
 }
 
 `inla.get.HOME` = function()
