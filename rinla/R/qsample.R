@@ -1,3 +1,5 @@
+## Export: inla.qsample
+
 ##! \name{qsample}
 ##! \alias{inla.qsample}
 ##! \alias{qsample}

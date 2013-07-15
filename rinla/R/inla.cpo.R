@@ -1,3 +1,5 @@
+## Export: inla.cpo
+
 ##!\name{inla.cpo}
 ##!\alias{inla.cpo}
 ##!\alias{cpo.inla}

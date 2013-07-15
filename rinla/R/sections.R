@@ -1,3 +1,5 @@
+## Nothing to export
+
 ### Functions to write the different sections in the .ini-file
 
 `inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L)

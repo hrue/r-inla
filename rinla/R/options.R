@@ -1,3 +1,5 @@
+## Export: inla.setOption inla.getOption
+
 ##! \name{inla.option}
 ##! \alias{inla.option}
 ##! \alias{inla.options}

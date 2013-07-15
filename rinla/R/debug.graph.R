@@ -1,3 +1,5 @@
+## Export: inla.debug.graph
+
 ##!\name{debug.graph}
 ##!\alias{debug.graph}
 ##!\alias{inla.debug.graph}

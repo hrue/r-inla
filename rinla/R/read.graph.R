@@ -1,3 +1,5 @@
+## Export: inla.read.graph inla.write.graph summary.inla.graph plot.inla.graph
+
 ##!\name{read.graph}
 ##!\alias{read.graph}
 ##!\alias{write.graph}
