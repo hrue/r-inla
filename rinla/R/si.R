@@ -1,3 +1,5 @@
+## Nothing to export. Experimental code....
+
 
 `inla.si` = function(result, quantiles = c(0.05), n.samples = 10000, debug = FALSE)
 {

@@ -1,3 +1,5 @@
+## Export: inla.rerun
+
 ##! \name{inla.rerun}
 ##! \alias{inla.rerun}
 ##! \alias{rerun}

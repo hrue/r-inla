@@ -1,3 +1,5 @@
+## Export: inla.surv plot.inla.surv is.inla.surv as.inla.surv
+
 ##!\name{inla.surv}
 ##!\alias{inla.surv}
 ##!\alias{is.inla.surv}

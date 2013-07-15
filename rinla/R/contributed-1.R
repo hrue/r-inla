@@ -1,3 +1,5 @@
+## Export: inla.contrib.sd
+
 ##!\name{contrib.sd}
 ##!\alias{contrib.sd}
 ##!\alias{inla.contrib.sd}

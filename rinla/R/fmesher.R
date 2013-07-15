@@ -1,4 +1,4 @@
-## Call fmesher
+## Nothing to Export
 
 `inla.fmesher.call` = function(
         fmesher.call = inla.getOption("fmesher.call"),

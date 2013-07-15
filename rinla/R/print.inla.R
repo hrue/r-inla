@@ -1,3 +1,5 @@
+## Export: print.inla
+
 `print.inla` = function(x, ...)
 {
     cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
