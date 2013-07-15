@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 set -u
 
 test -d Old || mkdir Old
@@ -35,7 +35,26 @@ mv -f $tt $D/inla.version.R
 test -d INLA || mkdir INLA
 rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
 
+## generate the exports defined in the R-files
+{
+    echo ""
+    echo "# The functions to be exported are defined in the R-code with"
+    echo "# lines as:"
+    echo "# ## Export: func1"
+    echo "# ## Export: func1 func2"
+    echo "# etc...
+    echo ""
+
+    find INLA/R -name \*.R | while read f; do
+	egrep "^## *Export *:" $f | while read ff; do
+	    echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print "export(", $i,")"}'
+	done
+    done
+} >> INLA/NAMESPACE
+
 ~hrue/bin/fix-permissions INLA
+
+
 
 SRC=INLA-source.tgz
 tar cvfzh INLA-source.tgz INLA

@@ -1,3 +1,6 @@
+## Export: inla
+## Export: inla.show.hyperspec
+
 ##! \name{inla}
 ##! \alias{inla}
 ##!
