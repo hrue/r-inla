@@ -1,6 +1,1 @@
-
-inla.x = function(...) {
-    a=2
-    inla.eval.dots(...)
-    print(a)
-}
+## Nothing to export

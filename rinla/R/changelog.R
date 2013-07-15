@@ -1,3 +1,5 @@
+## Export: inla.changelog
+
 ##!\name{inla.changelog}
 ##!\alias{changelog}
 ##!\alias{inla.changelog}

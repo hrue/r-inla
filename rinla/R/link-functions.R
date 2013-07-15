@@ -1,3 +1,6 @@
+## Export: inla.link.log inla.link.invlog inla.link.logit inla.link.invlogit inla.link.probit
+## Export: inla.link.invprobit inla.link.cloglog inla.link.invcloglog inla.link.tan inla.link.invtan
+
 ##! \name{link}
 ##! \alias{link}
 ##! \alias{inla.link}

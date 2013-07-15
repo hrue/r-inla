@@ -1,3 +1,5 @@
+## Export: inla.qreordering
+
 ##! \name{qreordering}
 ##! \alias{inla.qreordering}
 ##! \alias{qreordering}

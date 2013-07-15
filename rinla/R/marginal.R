@@ -1,3 +1,5 @@
+## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal inla.smarginal inla.emarginal inla.tmarginal
+
 ##! \name{marginal}
 ##! \alias{inla.marginal}
 ##! \alias{marginal}
