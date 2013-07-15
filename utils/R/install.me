@@ -33,6 +33,8 @@ mv -f $tt $D/inla.version.R
 ( cd $D; ./make-man-pages; )
 
 test -d INLA || mkdir INLA
+
+test -f INLA/NAMESPACE && rm -f INLA/NAMESPACE ## as otherwise the date is wrong...
 rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
 
 ## generate the exports defined in the R-files
