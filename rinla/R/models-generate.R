@@ -18,6 +18,8 @@
     
 
     cat("
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
 \\name{inla.models}
 \\alias{inla.models}
 \\title{Valid models in INLA}
@@ -139,8 +141,11 @@ inla.models()
 {
     my.doit.recursively = function(a.list, level = 0L)
     {
-        if (level == 0L)
+        if (level == 0L) {
+            cat("%% DO NOT EDIT!\n")
+            cat("%% This file is generated automatically from models.R\n")
             cat("\\begin{description}\n")
+        }
 
         tab = inla.paste(rep("\t", level + 1L))
 

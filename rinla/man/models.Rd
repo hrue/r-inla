@@ -1,4 +1,6 @@
 
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
 \name{inla.models}
 \alias{inla.models}
 \title{Valid models in INLA}
