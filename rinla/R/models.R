@@ -1,4 +1,4 @@
-## models and its hyperparameters are defined here
+## Export: inla.models
 
 `inla.models.section.latent` = function()
 {
