@@ -1,0 +1,132 @@
+#! /bin/bash
+set -u
+
+test -d Old || mkdir Old
+
+rm INLA*tgz INLA*zip
+
+bdate=$(date +%Y%m%d%H%M)
+date=$(date)
+D=inla/rinla/R
+
+inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
+hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
+
+echo "date=$date"
+echo "bdate=$bdate"
+echo "inlahg=$inlahg"
+echo "hg=$hg"
+
+
+## update these lines in the function with the updated hgid's and build-date
+tt=.tt
+test -f $tt && rm -rf $tt
+
+cat $D/inla.version.R | \
+    awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
+         /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
+         /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
+         /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
+	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" > $tt
+mv -f $tt $D/inla.version.R
+
+( cd $D; ./make-man-pages; )
+
+test -d INLA || mkdir INLA
+rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
+
+~hrue/bin/fix-permissions INLA
+
+SRC=INLA-source.tgz
+tar cvfzh INLA-source.tgz INLA
+
+mf="INLA.pdf"
+test -f $mf && rm -f $mf
+R --vanilla CMD Rd2pdf --no-preview --batch INLA || exit 1
+md="INLA/inst/doc/manual"
+test -d $md || mkdir $md
+cp $mf $md/$mf
+
+R --vanilla CMD build INLA || exit 1
+
+INLA=$(echo INLA_*.tar.gz)
+tgzINLA=${INLA%%.tar.gz}.tgz
+mv $INLA $tgzINLA 
+
+zipINLA=${tgzINLA%%.tgz}.zip
+
+DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
+test -d $DD || mkdir -p $DD
+export R_ENABLE_JIT=3
+export R_COMPILE_PKGS=1
+R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
+
+~/bin/fix-permissions $DD
+
+( cd $DD; zip -v -r $zipINLA INLA; )
+
+mv -f $DD/$zipINLA .
+
+ls -l INLA*gz INLA*zip
+www=../www/binaries
+
+if [ $# -ge 1 -a "$1" == "1" ]; then
+	cp -v $tgzINLA Old/"$tgzINLA-$bdate"
+
+	cp -v $tgzINLA $www/INLA.tgz
+	cp -v $zipINLA $www/INLA.zip
+	cp -v $SRC     INLA-source.tgz
+
+	cp -v $tgzINLA $www/testing/INLA.tgz
+	cp -v $zipINLA $www/testing/INLA.zip
+	cp -v $SRC     $www/testing/INLA-source.tgz
+
+	echo $bdate >  $www/build.date
+	echo $bdate >  $www/testing/build.date
+
+	##gnome-terminal --title=hrue@mc -x ssh -t mc.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/INLA.tgz; sudo R CMD INSTALL INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/lib64/R/library; sleep 3" &
+
+fi
+
+if [ $# -ge 1 -a "$1" == "2" ]; then
+	cp -v $tgzINLA Old/"$tgzINLA-$bdate"
+	cp -v $tgzINLA $www/testing/INLA.tgz
+	cp -v $zipINLA $www/testing/INLA.zip
+	cp -v $SRC     $www/testing/INLA-source.tgz
+	echo $bdate >  $www/testing/build.date
+fi
+
+{
+    cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' 
+    cat $D/os.R
+    echo '`givemeINLA` = function(...) inla.installer(...)'
+    echo 'if (!exists("inla.lib")) inla.lib = NULL'
+    echo 'givemeINLA(lib = inla.lib)'
+    echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
+} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA.R
+
+    
+( 
+    cd $www; 
+    test -f SHA1SUM && rm -f SHA1SUM; 
+    {
+	for f in *; do
+	    if [ -f "$f" ]; then
+		sha1sum "$f"
+	    fi
+	done
+    } > SHA1SUM
+)
+
+( 
+    cd $www/testing; 
+    test -f SHA1SUM && rm -f SHA1SUM; 
+    {
+	for f in *; do
+	    if [ -f "$f" ]; then
+		sha1sum "$f"
+	    fi
+	done
+    } > SHA1SUM
+)
+
