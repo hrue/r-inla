@@ -1,0 +1,15 @@
+#!/bin/bash
+
+{
+    for f in "$@"; do
+	for ff in $(otool -l "$f" | grep .dylib); do
+	    if [ -f "$ff" ]; then
+		for fff in $(otool -l "$ff" | grep .dylib); do
+		    if [ -f "$fff" ]; then
+			echo "$fff"
+		    fi
+		done
+	    fi
+	done
+    done
+} | sort | uniq | grep -v /usr/lib/system | grep -v /usr/lib/libSystem
