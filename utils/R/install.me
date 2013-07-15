@@ -47,7 +47,7 @@ rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/.
 
     find INLA/R -name \*.R | while read f; do
 	egrep "^## *Export *:" $f | while read ff; do
-	    echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print "export(", $i,")"}'
+	    echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print "export(" $i ")"}'
 	done
     done
 } >> INLA/NAMESPACE
