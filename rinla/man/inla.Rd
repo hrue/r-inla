@@ -10,6 +10,7 @@
  full Bayesian analysis of additive models using Integrated Nested
  Laplace approximation
  }
+
  \usage{
 inla(
     formula,
@@ -47,6 +48,7 @@ inla(
     debug = inla.getOption("debug"),
     .internal = list()
     )
+
  }
  \arguments{
  \item{formula}{ A \code{inla} formula like \code{y
