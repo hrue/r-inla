@@ -93,7 +93,7 @@
                                     theta = result$mode$theta,
                                     x = result$mode$x,
                                     restart = recompute.mode)
-                            rr = inla.self.call(result)$cpo
+                            rr = inla.rerun(result, plain = TRUE)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
                         },
                         result = result))

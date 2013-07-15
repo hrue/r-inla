@@ -118,7 +118,7 @@
     result.tmp$.args$control.mode$restart = restart
 
     ## call itself
-    result.tmp = inla.self.call(result.tmp)
+    result.tmp = inla.rerun(result.tmp, plain = TRUE)
     
     ## these are the entries that we want to replace
     replace.names = c("summary.hyperpar", "marginals.hyperpar", "internal.marginals.hyperpar",

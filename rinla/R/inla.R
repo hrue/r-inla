@@ -6,7 +6,7 @@
 ##! full Bayesian analysis of additive models using Integrated Nested
 ##! Laplace approximation
 ##! }
-
+##!
 ##! \usage{
 ##!inla(
 ##!    formula,
@@ -44,6 +44,7 @@
 ##!    debug = inla.getOption("debug"),
 ##!    .internal = list()
 ##!    )
+##!
 ##! }
 ##! \arguments{
     
@@ -2015,25 +2016,6 @@
 }
 
 
-`inla.self.call` = function(object)
-{
-    ## call inla() again with the same arguments as stored inside the object,  ie object$.args
-    return (do.call("inla",  args = object$.args))
-}
-
-`inla.rerun` = function(object)
-{
-    stopifnot(any(inherits(object, "inla")))
-
-    object$.args$control.mode$result = NULL
-    object$.args$control.mode$restart = TRUE
-    object$.args$control.mode$theta = object$mode$theta
-    object$.args$control.mode$x = object$mode$x
-    ## do not want to change this one
-    ##object$.args$control.mode$fixed = FALSE
-    
-    return (inla.self.call(object))
-}
 `inla.fix.data` = function(data, n, revert = FALSE)
 {
     ## extract all entries in 'data' with length='n'. if 'revert',  do the oposite
@@ -2084,9 +2066,9 @@
     return (data)
 }
 
-`inla.show.hyperSpec` = function(result)
+`inla.show.hyperspec` = function(result)
 {
-    stopifnot(class(result) == "inla")
+    stopifnot(any(inherits(result, "inla")))
     tfile = tempfile()
     capture.output(str(result$all.hyper), file=tfile)
     all.hyper = readLines(tfile)
