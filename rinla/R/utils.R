@@ -108,6 +108,7 @@
         cat(msg, "\n")
     scan(quiet=TRUE, multi.line=TRUE, what=character(0))
 }
+
 `inla.call.builtin` = function()
 {
     if (inla.os("mac")) {
@@ -126,6 +127,7 @@
         stop(paste("INLA installation error; no such file", fnm))
     }
 }
+
 `inla.fmesher.call.builtin` = function()
 {
     if (inla.os("mac")) {
@@ -275,90 +277,6 @@
         return (no)
 }
 
-`inla.lattice2node.mapping` = function(nrow, ncol)
-{
-    ## return a matrix with the mapping
-
-    stopifnot( nrow > 0 && ncol > 0 )
-
-    mapping = matrix(NA, nrow=nrow, ncol=ncol)
-    for(i in 1:nrow) {
-        j = 1:ncol
-        mapping[i, j] = inla.lattice2node(i, j, nrow, ncol)
-    }
-    return (mapping)
-}
-
-`inla.node2lattice.mapping` = function(nrow, ncol)
-{
-    stopifnot( nrow > 0 && ncol > 0 )
-
-    return (inla.node2lattice(1:(nrow*ncol), nrow, ncol))
-}
-
-`inla.lattice2node` = function(irow, icol, nrow, ncol)
-{
-    ## convert from a lattice point (irow, icol) to a node-number in
-    ## the graph; similar to the GMRFLib_lattice2node()-function in
-    ## GMRFLib.  Indices goes from irow=1...nrow, to icol=1...ncol and
-    ## node=1.....nrow*ncol.
-
-    stopifnot( nrow > 0 && ncol > 0 )
-
-    if (length(irow) == length(icol) && length(irow) > 1) {
-        ## this makes it kind of 'vectorize' for two arguments...
-        n = length(irow)
-        k = 1:n
-        return (sapply(k,
-                       function(irow, icol, nrow, ncol, k) {
-                           return (inla.lattice2node(irow[k], icol[k], nrow, ncol))
-                       }, irow = irow, icol = icol, nrow = nrow, ncol = ncol))
-    } else {
-        return ((irow-1) + (icol-1)*nrow + 1)
-    }
-}
-
-`inla.node2lattice` = function(node, nrow, ncol)
-{
-    ## convert from a node-number in the graph to a lattice point
-    ## (irow, icol); similar to the GMRFLib_node2lattice()-function in
-    ## GMRFLib.  Indices goes from irow=1...nrow, to icol=1...ncol and
-    ## node=1.....nrow*ncol.
-
-    stopifnot( nrow > 0 && ncol > 0 )
-
-    icol = (node - 1) %/% nrow
-    irow = (node - 1) %% nrow
-
-    return (list(irow = irow+1, icol = icol+1))
-}
-
-`inla.matrix2vector` = function(a.matrix)
-{
-    ## utility function for mapping a matrix to inla's internal `node'
-    ## representation by inla.lattice2node() and inla.node2lattice()
-
-    if (!is.matrix(a.matrix))
-        stop("Argument must be a matrix")
-
-    return (as.vector(a.matrix))
-}
-`inla.vector2matrix` = function(a.vector, nrow, ncol)
-{
-    ## utility function for mapping from inla's internal `node'
-    ## representation, inla.lattice2node() and inla.node2lattice(),
-    ## and to a matrix
-
-    n = length(a.vector)
-    if (missing(nrow) && !missing(ncol))
-        nrow = n %/% ncol
-    if (!missing(nrow) && missing(ncol))
-        ncol = n %/% nrow
-    if (n != nrow*ncol)
-        stop(paste("Length of vector", n, "does not equal to nrow*ncol", nrow*ncol))
-
-    return (matrix(a.vector, nrow, ncol))
-}
 
 `inla.sparse.matrix.pattern` = function(A, factor=1.0, size=NULL, reordering = NULL,
         binary.pattern = TRUE)
