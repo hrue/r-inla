@@ -13777,7 +13777,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
-		assert(tmp != 0.0);
+		if (tmp == 0.0){
+			inla_error_general("The initial value for the scaling (beta) in a copy-model, cannot be zero");
+			assert(tmp != 0.0);
+			exit(1);
+		}
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
