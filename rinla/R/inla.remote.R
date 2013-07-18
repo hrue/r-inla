@@ -10,6 +10,7 @@
 ##!
 ##!\usage{
 ##!inla.ssh.copy.id()
+##!}
 ##!\arguments{
 ##!}
 ##!
