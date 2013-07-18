@@ -21,7 +21,7 @@
 ##!
 ##!\arguments{
 ##!
-##!  \item{model.def}{The definition of the model; see \ref{\code{inla.rgeneric.ar1.model}}}
+##!  \item{model.def}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
 ##!  \item{cmd}{The allowed commands}
 ##!  \item{theta}{Values of theta}
 ##!  \item{args}{Further args}

@@ -14,7 +14,6 @@
 ##!}
 ##!
 ##!\arguments{
-##!
 ##!  \item{...}{The arguments. The matrix or sparse matrix,  and the additonal arguments}
 ##!  \item{A}{The matrix}
 ##!  \item{unique}{If the internal representation needs to be unique or can have duplicated entries.
@@ -23,7 +22,7 @@
 ##!
 ##!\value{%%
 ##!  \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same function.
-##!  The returned value is a sparse matrix in the sparse-format used by INLA}
+##!  The returned value is a sparse matrix in the sparse-format used by INLA
 ##!}
 ##!%%
 ##!
