@@ -1,3 +1,5 @@
+## Export: inla.graph2matrix inla.spy
+
 ##!\name{graph2matrix}
 ##!\alias{graph2matrix}
 ##!\alias{inla.graph2matrix}

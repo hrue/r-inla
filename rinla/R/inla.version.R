@@ -1,32 +1,56 @@
+## Export: inla.version
+
+##!\name{inla.version}
+##!\alias{version}
+##!\alias{inla.version}
+##!
+##!\title{Show the version of the INLA-package}
+##!
+##!\description{Show the version of the INLA-package}
+##!
+##!\usage{
+##!inla.version(what = c("default",
+##!                     "info", 
+##!                     "hgid",
+##!                     "rinla",
+##!                     "inla",
+##!                     "date",
+##!                     "bdate"))
+##!}
+##!
+##!\arguments{
+##!  \item{what}{What to show version of}
+##!}
+##!
+##!\value{%%
+##!  \code{inla.version} either display the current version information using \code{cat} with
+##!  \code{default} or \code{info},  or return the version number/information
+##!  for other spesific requests through the call.}
+##!}
+##!%%
+##!
+##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!
+##!\examples{
+##!## Summary of all
+##!inla.version()
+##!## The building date
+##!inla.version("bdate")
+##!}
+
 `inla.version` = function (what = c("default",
                                    "info", 
                                    "hgid",
                                    "rinla",
                                    "inla",
                                    "date",
-                                   "bdate"), 
-        ## for backward compatibility
-        details = FALSE, quiet = FALSE, hgid = FALSE) 
+                                   "bdate"))
 {
     rinla.hgid = "EXAMPLE hgid: bc0bd174e33d  date: Mon Mar 05 10:05:06 2012 +0100"
     inla.hgid = "EXAMPLE hgid: bc0bd174e33d  date: Mon Mar 05 10:05:06 2012 +0100"
     date = "EXAMPLE Mon Mar 5 10:15:43 CET 2012"
     bdate = "EXAMPLE201203071055"
     
-    if (missing(what) && (!missing(details) || !missing(quiet) || !missing(hgid))) {
-        ## these options were added for backward compatibility: will
-        ## not stay forever.
-        if (hgid) {
-            return (inla.version("hgid"))
-        }
-        if (!quiet) {
-            return (inla.version("default"))
-        } else {
-            return (inla.version("bdate"))
-        }
-        stop("This should not happen.")
-    }
-
     what = match.arg(what)
 
     if (what %in% c("default", "info")) {

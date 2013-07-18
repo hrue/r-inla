@@ -1,3 +1,5 @@
+## Export: inla.group
+
 ##!\name{inla.group}
 ##!\alias{inla.group}
 ##!
