@@ -12,7 +12,6 @@
 \description{Various utility functions for INLA}
 
 \usage{
-     geobugs2inla(adj, num, graph.file="graph.dat")
      inla.geobugs2inla(adj, num, graph.file="graph.dat")
 }
 

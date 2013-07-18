@@ -1,5 +1,6 @@
-## Nothing to export from here, as the 'fmesher'-file format is for
-## internal use only.
+## Nothing to export
+
+## The 'fmesher'-file format is for internal use only
 
 `inla.is.fmesher.file` = function(filename)
 {

@@ -1,3 +1,5 @@
+## Nothing to export
+
 ## Define the environment for INLA used to store options and the
 ## model-list. Reuse the environment if it is there already.
 

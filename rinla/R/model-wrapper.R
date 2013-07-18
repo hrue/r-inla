@@ -1,5 +1,6 @@
-## Nothing to Export for the moment. I am not sure if this is a good
-## idea after all.
+## Nothing to export
+
+## I am not sure if this is a good idea after all...
 
 `inla.model.wrapper` = function(
         covariates = NULL,
