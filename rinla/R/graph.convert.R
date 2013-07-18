@@ -1,3 +1,5 @@
+## Export: inla.geobugs2inla
+
 ##!\name{geobugs2inla}
 ##!\alias{geobugs2inla}
 ##!\alias{inla.geobugs2inla}
@@ -8,7 +10,6 @@
 ##!\description{Various utility functions for INLA}
 ##!
 ##!\usage{
-##!     geobugs2inla(adj, num, graph.file="graph.dat")
 ##!     inla.geobugs2inla(adj, num, graph.file="graph.dat")
 ##!}
 ##!
@@ -43,12 +44,6 @@
 
 `inla.geobugs2inla` = function(adj, num, graph.file="graph.dat")
 {
-    return (inla.graph.convert.2(adj, num, graph.file))
-}
-
-`geobugs2inla` = function(adj, num, graph.file="graph.dat")
-{
-    ## for backward compatibility
     return (inla.graph.convert.2(adj, num, graph.file))
 }
 

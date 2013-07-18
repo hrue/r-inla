@@ -1,3 +1,5 @@
+## Export: f
+
 ##!\name{f}
 ##!\alias{f}
 ##!\title{Define general Gaussian models in the INLA formula }

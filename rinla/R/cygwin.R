@@ -1,3 +1,5 @@
+## Nothing to export
+
 `inla.cygwin.check.path` = function(path = inla.getOption("cygwin"))
 {
     return (file.exists(path) && file.info(path)$isdir)

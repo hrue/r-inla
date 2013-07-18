@@ -1,3 +1,5 @@
+## Export: inla.hyperpar
+
 ##!\name{inla.hyperpar}
 ##!\alias{inla.hyperpar}
 ##!\alias{hyperpar.inla}

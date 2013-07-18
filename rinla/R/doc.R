@@ -1,3 +1,5 @@
+## Export: inla.doc
+
 ##!\name{inla.doc}
 ##!\alias{inla.doc}
 ##!\alias{inla.doc}
