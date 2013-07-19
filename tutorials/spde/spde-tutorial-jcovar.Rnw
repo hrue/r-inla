@@ -175,7 +175,7 @@ Also, we define the formulae for the model.
 <<formula>>=
 form <- Y ~  0 + f(m, model=spde) + 
   a.y + f(x, model=spde) + f(c.y, copy='m', fixed=FALSE, 
-               hyper=list(theta=list(param=c(-3,25), initial=0))) 
+               hyper=list(theta=list(param=c(-3,25), initial=1))) 
 @ 
 define the spde model and fit the model with 
 <<fit>>=
