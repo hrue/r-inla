@@ -8,7 +8,7 @@
 
  \title{Rerun an inla-call}
  \usage{
- inla.rerun(object)
+ inla.rerun(object, plain=FALSE)
  }
  \arguments{
 

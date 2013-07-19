@@ -6,6 +6,8 @@
 ##!\alias{inla.read.graph}
 ##!\alias{inla.write.graph}
 ##!\alias{inla.graph}
+##!\alias{summary.inla.graph}
+##!\alias{plot.inla.graph}
 ##!\title{Read and write a graph-object}
 ##!\description{Reads a graph-object to a file and write graph-object to file}
 ##!\usage{

@@ -27,6 +27,7 @@ inla.rgeneric.ar1.model(
   \item{cmd}{The allowed commands}
   \item{theta}{Values of theta}
   \item{args}{Further args}
+  \item{...}{Further args}
 }
 
 \value{%%
