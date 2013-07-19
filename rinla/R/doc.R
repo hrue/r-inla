@@ -12,13 +12,13 @@
 ##!\arguments{
 ##!\item{what}{What to view documentation about;
 ##!            name of latent model,  name of prior,  etc.}
-##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode} 
+##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\seealso{\code{http://www.r-inla.org}}
 ##!\examples{
-##!inla.doc("rw2")
-##!inla.doc("gaussian")
+##!\dontrun{inla.doc("rw2")}
+##!\dontrun{inla.doc("gaussian")}
 ##!}
 
 `inla.doc` = function(what, verbose=FALSE)
@@ -51,6 +51,6 @@
         }
     }
 }
-    
 
-    
+
+
