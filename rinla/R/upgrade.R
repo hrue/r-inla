@@ -34,9 +34,9 @@
 
 ### The upgrade utility
 
-`inla.update` = function(...)
+`inla.update` = function(lib = NULL, testing = FALSE, force = FALSE)
 {
-    inla.upgrade(...)
+    inla.upgrade(lib=lib, testing=testing, force=force)
 }
 
 `inla.upgrade` = function(lib = NULL, testing = FALSE, force = FALSE)
