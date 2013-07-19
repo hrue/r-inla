@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ -d INLA ]; then
+   echo "$0: Remove directory INLA"
+   exit 1
+fi 
+
+mkdir INLA
+rsync -auv /home/hrue/p/inla/google-code/inla/rinla/. INLA/.
+
+## need to remove the link to the binary-files and also the file saying they are there
+rm -f INLA/BinaryFiles
+find INLA -type l | xargs rm
+
+## extract the Export: functions 
+{
+    find INLA/R -name \*.R | while read f; do
+        egrep "^## *Export *:" $f | while read ff; do
+            echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print "export(" $i ")"}'
+        done
+    done
+} | tee --append INLA/NAMESPACE
+
+R CMD check --as-cran INLA
+
+
