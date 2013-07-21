@@ -411,18 +411,18 @@
 `plot.inla.graph` = function(x, y, ...)
 {
     ## these are default options to plot for class inla.graph
-    filter = c("neato", "fdp")
+    filter = filter.args = c("neato", "fdp")
     attrs = NULL
     scale = 0.5
     node.names = NULL
     ## we evaluate them here,  as they are set in '...'
     inla.eval.dots(...)
-    
+
     ## I add here some tools to view and summarize a such graphs...
     inla.require("Rgraphviz") || stop("Need library 'Rgraphviz' from Bioconductor: see http://www.bioconductor.org")
     inla.require("graph") || stop("Need library 'graph' from Bioconductor: see http://www.bioconductor.org")
 
-    filter = match.arg(filter)
+    filter = match.arg(filter, filter.args)
     if (is.null(attrs)) {
         attrs = getDefaultAttrs(layoutType = filter)
     }
