@@ -22052,7 +22052,7 @@ int inla_finn(const char *filename)
 int inla_qreordering(const char *filename)
 {
 	/*
-	 * return the reordering either given or computed
+	 * return the rordering either given or computed
 	 */
 	int i;
 	GMRFLib_graph_tp *graph;
@@ -22069,6 +22069,7 @@ int inla_qreordering(const char *filename)
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_sm_fact_tp sm_fact;
+	sm_fact.smtp = GMRFLib_SMTP_TAUCS;
 	GMRFLib_compute_reordering(&sm_fact, graph, NULL);
 
 	printf("%s\n", GMRFLib_reorder_name(GMRFLib_reorder));
