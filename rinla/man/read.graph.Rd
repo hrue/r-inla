@@ -18,6 +18,7 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
 
 \method{summary}{inla.graph}(object, ...)
 \method{plot}{inla.graph}(x, y, ...)
+\method{print}{inla.graph.summary}(x, ...)
 }
 \arguments{
     \item{filename}{The filename of the graph.}

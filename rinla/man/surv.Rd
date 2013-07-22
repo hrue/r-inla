@@ -19,7 +19,8 @@ model  formula for the \code{\link{inla}} function for survival models.
 }
 \usage{
 inla.surv(time, event, time2, truncation,subject)
-\method{plot}{inla.surv}
+\method{plot}{inla.surv}(x, y, ...)
+\method{print}{inla.surv}(x, ...)
 is.inla.surv(object)
 as.inla.surv(object, ...)
 }
@@ -35,7 +36,9 @@ as.inla.surv(object, ...)
   \item{truncation}{Left truncation. If missing it is assumed to be 0.}
   \item{subject}{Patient number in multiple event data, not needed otherwise. }
   \item{object}{Any \code{R}-object}
-  \item{...}{Currently not in use}
+  \item{x}{Object to plot or print}
+  \item{y}{Object to plot (not in use)}
+  \item{...}{Additional argument}
   }
 
 \value{An object of class \code{inla.surv}.  There are methods for \code{print}, 
