@@ -1,4 +1,7 @@
-## Export: inla.read.graph inla.write.graph summary.inla.graph plot.inla.graph
+## Export: inla.read.graph inla.write.graph
+## Export: summary!inla.graph
+## Export: plot!inla.graph
+## Export: print!inla.graph.summary
 
 ##!\name{read.graph}
 ##!\alias{read.graph}
@@ -16,6 +19,7 @@
 ##!
 ##!\method{summary}{inla.graph}(object, ...)
 ##!\method{plot}{inla.graph}(x, y, ...)
+##!\method{print}{inla.graph.summary}(x, ...)
 ##!}
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}

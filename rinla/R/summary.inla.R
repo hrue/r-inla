@@ -1,4 +1,4 @@
-## Export: summary.inla print.inla
+## Export: summary!inla print!inla
 
 ##!\name{summary.inla}
 ##!\alias{summary.inla}
