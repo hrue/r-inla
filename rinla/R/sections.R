@@ -523,7 +523,7 @@
         cat("cdf = ", predictor.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(predictor.spec$quantiles)) {
-        cat("cdf = ", predictor.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("quantiles = ", predictor.spec$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(file.offset)) {
         cat("offset = ", file.offset,"\n", sep = " ", file = file, append=TRUE)
@@ -663,7 +663,7 @@
         cat("cdf = ", control.fixed$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(control.fixed$quantiles)) {
-        cat("cdf = ", control.fixed$quantiles, "\n", sep = " ", file = file,  append = TRUE)
+        cat("quantiles = ", control.fixed$quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
     if (length(grep("^[(]Intercept[)]$", inla.trim(label))) == 1) {
         prec = control.fixed$prec.intercept
