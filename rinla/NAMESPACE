@@ -6,13 +6,4 @@ import(splines)
 # Export all names
 exportPattern(".")
 
-S3method(summary, inla.graph)
-S3method(plot, inla.graph)
-S3method(print, inla.graph.summary)
-S3method(plot, inla.surv)
-S3method(print, inla.surv)
-S3method(plot, inla.marginal)
-S3method(summary, inla.marginal)
-S3method(summary, inla)
-S3method(plot, inla)
-S3method(print, inla)
+
