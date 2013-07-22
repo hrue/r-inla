@@ -1,4 +1,4 @@
-## Export: plot.inla
+## Export: plot!inla
 
 ##! \name{plot.inla}
 ##! \alias{plot.inla}

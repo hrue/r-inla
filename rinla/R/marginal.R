@@ -1,4 +1,5 @@
 ## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal inla.smarginal inla.emarginal inla.tmarginal
+## NOT-YET-IN-USE-Export: summary!inla.marginal plot!inla.marginal
 
 ##! \name{marginal}
 ##! \alias{inla.marginal}
