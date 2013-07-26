@@ -290,15 +290,54 @@
         cat("locations = ", file.loc,"\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (!is.null(random.spec$Cmatrix)) {
-        if (is.character(random.spec$Cmatrix)) {
-            fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
-            cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
+    if (inla.one.of(random.spec$model, "zz")) {
+        ## Cmatrix and Z: for model zz
+        Z = inla.as.sparse(random.spec$Z)
+        Z.n = dim(Z)[1]
+        Z.m = dim(Z)[2]
+        A = inla.as.sparse(random.spec$precision * cBind(rBind(Diagonal(Z.n), -t(Z)), rBind(-Z, t(Z) %*% Z)))
+        if (is.null(random.spec$Cmatrix)) {
+            Cm = inla.as.sparse(Diagonal(Z.m))
         } else {
-            file.C = inla.tempfile(tmpdir=data.dir)
-            inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
-            file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
-            cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
+            Cm = inla.as.sparse(random.spec$Cmatrix)
+        }
+        stopifnot(all(Z.m == dim(Cm)))
+        B = inla.as.sparse(cBind(
+                rBind(sparseMatrix(dims = c(Z.n, Z.n), i = 1, j = 1, x = 0),  # n x n zero-matrix
+                      sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
+                rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
+                      Cm)))
+
+        print(A)
+        print(B)
+
+        ## precision matrix is then 'A+tau*B'
+        file.A = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(A, filename = file.A)
+        file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
+        cat("zz.Amatrix = ", file.A, "\n", append=TRUE, sep = " ", file = file)
+
+        file.B = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(B, filename = file.B)
+        file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
+        cat("zz.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+
+        cat("zz.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("zz.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
+
+    } else {
+
+        ## only used for generic models in here
+        if (!is.null(random.spec$Cmatrix)) {
+            if (is.character(random.spec$Cmatrix)) {
+                fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
+                cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
+            } else {
+                file.C = inla.tempfile(tmpdir=data.dir)
+                inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
+                file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
+                cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
+            }
         }
     }
     if (!is.null(random.spec$rankdef)) {
