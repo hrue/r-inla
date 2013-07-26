@@ -210,7 +210,7 @@
         quantiles=NULL,
 
         ##!\item{Cmatrix}{The specification of the precision matrix
-        ##!for the generic models (up to a scaling constant).
+        ##!for the generic or z models (up to a scaling constant).
         ##!\code{Cmatrix} is either a
         ##!(dense) matrix, a matrix create using
         ##!\code{Matrix::sparseMatrix()}, or a filename which stores the
@@ -224,7 +224,7 @@
         ##!details.}
         rankdef=NULL,
 
-        ##!\item{Z}{TODO}
+        ##!\item{Z}{The matrix for the z-model}
         Z = NULL,
 
         ##!\item{nrow}{Number of rows for 2d-models}
@@ -664,8 +664,16 @@
         }
     }
 
-    if (inla.one.of(model, "z") && is.null(Z)) {
-        stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
+    if (inla.one.of(model, c("z"))) {
+        if (is.null(Z)) {
+            stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
+        }
+    }
+
+    if (inla.one.of(model, c("zz"))) {
+        if (is.null(Z)) {
+            stop("With model [zz] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"zz\")")
+        }
     }
 
     if (!is.null(extraconstr)) {
