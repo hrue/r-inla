@@ -2722,6 +2722,37 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `zz'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{pdf = }{`z.pdf'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `rw2d'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
