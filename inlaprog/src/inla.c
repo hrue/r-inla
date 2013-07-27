@@ -14387,7 +14387,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		mb->f_Qfunc[mb->nf] = Qfunc_bym;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 1.0;
+		if (mb->f_sumzero[mb->nf]){
+			mb->f_rankdef[mb->nf] = 0.0;		       /* since constr=T is converted to extraconstr this will be corrected further below to 1 */
+		} else {
+			mb->f_rankdef[mb->nf] = 1.0;
+		}
 		break;
 	}
 
