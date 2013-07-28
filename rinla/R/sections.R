@@ -290,8 +290,12 @@
         cat("locations = ", file.loc,"\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (inla.one.of(random.spec$model, "zz")) {
-        ## Cmatrix and Z: for model zz
+    if (inla.one.of(random.spec$model, "z")) {
+        ## This is for the random-effect Z*z, where Z is a n x m
+        ## matrix and z are N_m(0, prec*C). We rewrite this as a model
+        ## for zz = (Z*z, z), where Z*z is N(z, high.precision). This
+        ## gives the precision matrix for zz as A+prec*B, where A and
+        ## B are defined below.
         Z = inla.as.sparse(random.spec$Z)
         Z.n = dim(Z)[1]
         Z.m = dim(Z)[2]
@@ -307,39 +311,35 @@
                       sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
                 rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
                       Cm)))
-
-        print(A)
-        print(B)
-
-        ## precision matrix is then 'A+tau*B'
+        ## dimensions
+        cat("z.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("z.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
+        ## matrix A
         file.A = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A, filename = file.A)
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
-        cat("zz.Amatrix = ", file.A, "\n", append=TRUE, sep = " ", file = file)
-
+        cat("z.Amatrix = ", file.A, "\n", append=TRUE, sep = " ", file = file)
+        ## matrix B
         file.B = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
-        cat("zz.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+        cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+    }
 
-        cat("zz.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
-        cat("zz.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
-
-    } else {
-
-        ## only used for generic models in here
-        if (!is.null(random.spec$Cmatrix)) {
-            if (is.character(random.spec$Cmatrix)) {
-                fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
-                cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
-            } else {
-                file.C = inla.tempfile(tmpdir=data.dir)
-                inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
-                file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
-                cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
-            }
+    ## if the Cmatrix is defined we need to process it except if its
+    ## the z-model for which this has already been done.
+    if (!inla.one.of(random.spec$model, "z") && !is.null(random.spec$Cmatrix)) {
+        if (is.character(random.spec$Cmatrix)) {
+            fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
+            cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
+        } else {
+            file.C = inla.tempfile(tmpdir=data.dir)
+            inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
+            file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
+            cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
         }
     }
+
     if (!is.null(random.spec$rankdef)) {
         cat("rankdef = ", random.spec$rankdef,"\n", append=TRUE, sep = " ", file = file)
     }
@@ -927,44 +927,4 @@
     return (rprefix)
 }
 
-`inla.z.section` = function(file, random.spec, data.dir, results.dir, only.hyperparam, k.off)
-{
-    ## binary io is not yet implemented. I think this model is on its way out...
 
-    label= inla.namefix(random.spec$term)
-    if (!is.matrix(random.spec$Z)) {
-        stop("Argument Z in model=[z]has to be a matrix.")
-    }
-    n = dim(random.spec$Z)[1L]
-    m = dim(random.spec$Z)[2L]
-    ind = 0L:(n-1L)
-    
-    for(k in 1L:m) {
-        kk = k + k.off
-        cat("[", label,".", k, "]\n", sep = "", file = file,  append = TRUE)
-        cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
-        cat("dir = ", "random.effect", inla.num(kk), "\n", sep = "", file = file, append = TRUE)
-        cat("model = ", inla.ifelse(k == 1, "z", "zadd"),"\n", sep = " ", file = file,  append = TRUE)
-        cat("n = 1\n", file=file, append = TRUE)
-        if (k == 1L) {
-            inla.write.hyper(random.spec$hyper, file, data.dir = data.dir)
-        }
-
-        file.cov=inla.tempfile(tmpdir=data.dir)
-        file.create(file.cov)
-        write(t(cbind(ind, rep(0, n))), ncolumns=2, file=file.cov, append=FALSE)
-        file.cov = gsub(data.dir, "$inladatadir", file.cov, fixed=TRUE)
-        cat("covariates = ", file.cov,"\n", sep = " ", file = file,  append = TRUE)
-
-        file.w=inla.tempfile(tmpdir=data.dir)
-        file.create(file.w)
-        write(t(cbind(ind, random.spec$Z[, k])), ncolumns=2, file=file.w, append=FALSE)
-        file.w = gsub(data.dir, "$inladatadir", file.w, fixed=TRUE)
-        cat("weights = ", file.w,"\n", sep = " ", file = file,  append = TRUE)
-
-        if (only.hyperparam) {
-            cat("compute = 0\n", sep = " ", file = file,  append = TRUE)
-        }
-        cat("\n", sep = " ", file = file,  append = TRUE)
-    }
-}
