@@ -1,4 +1,17 @@
-inla.dBind = function(...)
+## Export: inla.dBind inla.extract.el inla.extract.el!data.frame
+## Export: inla.extract.el!list inla.extract.el!matrix inla.matern.cov
+## Export: inla.matern.cov.s2 inla.regex.match inla.row.kron
+## Export: inla.spde.make.A inla.spde.make.block.A inla.spde.make.index
+## Export: inla.spde.models inla.spde.precision inla.spde.result
+## Export: inla.spde.sample inla.spde.sample!default
+## Export: inla.spde.sample!inla.spde inla.stack inla.stack.A
+## Export: inla.stack.LHS inla.stack.RHS inla.stack.compress
+## Export: inla.stack.data inla.stack!default inla.stack.do.extract
+## Export: inla.stack.index inla.stack!inla.data.stack
+## Export: inla.stack.remove.unused rbind!inla.data.stack.info
+## Internal: inla.spde.homogenise_B_matrix
+
+inla.dBind <- function(...)
 {
     A = list(...)
     if (length(A)<1)
@@ -13,7 +26,7 @@ inla.dBind = function(...)
     return(B)
 }
 
-inla.extract.el = function(M, ...)
+inla.extract.el <- function(M, ...)
 {
     if (is.null(M))
         return(NULL)
@@ -24,7 +37,7 @@ inla.regex.match =  function(x, match) {
     return(strsplit(x, match)[[1]][1]=="")
 }
 
-inla.extract.el.matrix = function(M, match, by.row=TRUE)
+inla.extract.el.matrix <- function(M, match, by.row=TRUE, ...)
 {
     if (by.row) {
         return(M[sapply(rownames(M), inla.regex.match, match=match),,drop=FALSE])
@@ -33,7 +46,7 @@ inla.extract.el.matrix = function(M, match, by.row=TRUE)
     }
 }
 
-inla.extract.el.data.frame = function(M, match, by.row=TRUE)
+inla.extract.el.data.frame <- function(M, match, by.row=TRUE, ...)
 {
     if (by.row) {
         return(M[sapply(rownames(M), inla.regex.match, match=match),,drop=FALSE])
@@ -42,14 +55,14 @@ inla.extract.el.data.frame = function(M, match, by.row=TRUE)
     }
 }
 
-inla.extract.el.list = function(M, match)
+inla.extract.el.list <- function(M, match, ...)
 {
-    return(M[sapply(names(M), inla.regex.match, match=match)])
+    return(M[sapply(names(M), inla.regex.match, match=match)], ...)
 }
 
 
 
-inla.spde.homogenise_B_matrix = function(B, n.spde, n.theta)
+inla.spde.homogenise_B_matrix <- function(B, n.spde, n.theta)
 {
     if (!is.numeric(B))
         stop("B matrix must be numeric.")
@@ -97,7 +110,7 @@ inla.spde.homogenise_B_matrix = function(B, n.spde, n.theta)
 
 
 
-inla.matern.cov = function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, epsilon=1e-8)
+inla.matern.cov <- function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, epsilon=1e-8)
 {
     if (missing(theta)) { ## Ordinary Matern
         y = kappa*abs(x)
@@ -186,7 +199,7 @@ inla.matern.cov = function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, ep
 }
 
 
-inla.matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
+inla.matern.cov.s2 <- function(nu,kappa,x,norm.corr=FALSE,theta=0)
 {
     inla.require("orthopolynom")
     y = cos(abs(x))
@@ -213,7 +226,7 @@ inla.matern.cov.s2 = function(nu,kappa,x,norm.corr=FALSE,theta=0)
 
 
 
-inla.spde.models = function(function.names=FALSE)
+inla.spde.models <- function(function.names=FALSE)
 {
     types = c("spde1", "spde2")
     models = list()
@@ -234,13 +247,14 @@ inla.spde.models = function(function.names=FALSE)
 }
 
 
-inla.spde.sample = function(...)
+inla.spde.sample <- function(...)
 {
+    warning("inla.spde.sample is deprecated.  Please use inla.qsample() in combination with inla.spde.precision() instead.")
     UseMethod("inla.spde.sample")
 }
 
 inla.spde.sample.default =
-    function(precision, seed=NULL)
+    function(precision, seed=NULL, ...)
 {
     return(inla.finn(precision,
                      seed=(inla.ifelse(is.null(seed),
@@ -257,12 +271,12 @@ inla.spde.sample.inla.spde =
 
 
 
-inla.spde.precision = function(...)
+inla.spde.precision <- function(...)
 {
     UseMethod("inla.spde.precision")
 }
 
-inla.spde.result = function(...)
+inla.spde.result <- function(...)
 {
     inla.require.inherits(list(...)[[1]], "inla", "First parameter")
     inla.require.inherits(list(...)[[2]], "character", "Second parameter")
@@ -275,7 +289,7 @@ inla.spde.result = function(...)
 
 
 
-inla.spde.make.index = function(name, n.spde, n.group=1, n.repl=1, n.mesh=NULL)
+inla.spde.make.index <- function(name, n.spde, n.group=1, n.repl=1, n.mesh=NULL)
 {
     if (!missing(n.mesh)) {
         warning("'n.mesh' is deprecated, please use 'n.spde' instead.")
@@ -296,7 +310,7 @@ inla.spde.make.index = function(name, n.spde, n.group=1, n.repl=1, n.mesh=NULL)
 
 
 
-inla.row.kron = function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
+inla.row.kron <- function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
     M1 = inla.as.dgTMatrix(M1)
     M2 = inla.as.dgTMatrix(M2)
     n = nrow(M1)
@@ -649,7 +663,7 @@ inla.spde.make.A =
 
 
 
-rbind.inla.data.stack.info = function(...)
+rbind.inla.data.stack.info <- function(...)
 {
     l = list(...)
     names(l) = NULL
@@ -722,7 +736,7 @@ rbind.inla.data.stack.info = function(...)
 }
 
 
-inla.stack.remove.unused = function(stack)
+inla.stack.remove.unused <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -763,7 +777,7 @@ inla.stack.remove.unused = function(stack)
     return(stack)
 }
 
-inla.stack.compress = function(stack, remove.unused=TRUE)
+inla.stack.compress <- function(stack, remove.unused=TRUE, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -828,22 +842,23 @@ inla.stack.compress = function(stack, remove.unused=TRUE)
 
 
 
-inla.stack = function(...)
+inla.stack <- function(...)
 {
     UseMethod("inla.stack")
 }
 
 
-inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
+inla.stack.default <- function(data, A, effects, tag="", compress=TRUE,
+                               remove.unused=TRUE, ...)
 {
-    input.nrow = function(x) {
+    input.nrow <- function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            nrow(x),
                            inla.ifelse(is.data.frame(x),
                                        rep(nrow(x), ncol(x)),
                                        length(x))))
     }
-    input.ncol = function(x) {
+    input.ncol <- function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
                            ncol(x),
                            inla.ifelse(is.data.frame(x),
@@ -851,17 +866,17 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
                                        1L)))
     }
 
-    input.list.nrow = function(l) {
+    input.list.nrow <- function(l) {
         if (is.data.frame(l))
             return(input.nrow(l))
         return(do.call(c, lapply(l, input.nrow)))
     }
-    input.list.ncol = function(l) {
+    input.list.ncol <- function(l) {
         if (is.data.frame(l))
             return(input.ncol(l))
         return(do.call(c, lapply(l, input.ncol)))
     }
-    input.list.names = function(l) {
+    input.list.names <- function(l) {
         if (is.data.frame(l))
             return(colnames(l))
         is.df = sapply(l, is.data.frame)
@@ -880,7 +895,7 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
     }
 
 
-    parse.input.list = function(l, n.A, error.tag, tag="") {
+    parse.input.list <- function(l, n.A, error.tag, tag="") {
         ncol = input.list.ncol(l)
         nrow = input.list.nrow(l)
         names = input.list.names(l)
@@ -1045,7 +1060,7 @@ inla.stack.default = function(data, A, effects, tag="", compress=TRUE, remove.un
 
 }
 
-inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=TRUE)
+inla.stack.inla.data.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
 
@@ -1084,7 +1099,7 @@ inla.stack.inla.data.stack = function(..., compress=TRUE, remove.unused=TRUE)
 
 
 
-inla.stack.index = function(stack, tag)
+inla.stack.index <- function(stack, tag, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -1099,7 +1114,7 @@ inla.stack.index = function(stack, tag)
     }
 }
 
-inla.stack.do.extract = function(dat)
+inla.stack.do.extract <- function(dat, ...)
 {
     inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
 
@@ -1117,21 +1132,21 @@ inla.stack.do.extract = function(dat)
 }
 
 
-inla.stack.LHS = function(stack)
+inla.stack.LHS <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
     return(inla.stack.do.extract(stack$data))
 }
 
-inla.stack.RHS = function(stack)
+inla.stack.RHS <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
     return(inla.stack.do.extract(stack$effects))
 }
 
-inla.stack.data = function(stack, ...)
+inla.stack.data <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -1140,7 +1155,7 @@ inla.stack.data = function(stack, ...)
              list(...)))
 }
 
-inla.stack.A = function(stack)
+inla.stack.A <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
     return(stack$A)

@@ -1,5 +1,8 @@
 ## 'spde' model functions
-
+## Export: inla.spde.precision!inla.spde1 inla.spde.result!inla.spde1
+## Export: inla.spde1.create inla.spde1.imatern inla.spde1.matern
+## Export: inla.spde1.matern.osc inla.spde1.models inla.spde1.precision
+## Export: inla.spde1.query inla.spde1.result
 
 inla.spde1.create =
     function(mesh,
@@ -414,11 +417,3 @@ inla.spde1.matern.osc = function(mesh, ...)
 ## spde.common-connections:
 inla.spde.precision.inla.spde1 = inla.spde1.precision
 inla.spde.result.inla.spde1 = inla.spde1.result
-
-
-
-
-## Deprecated functions:
-inla.spde.create = inla.spde1.create
-inla.spde.query = inla.spde1.query
-

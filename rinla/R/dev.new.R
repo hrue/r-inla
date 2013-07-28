@@ -1,4 +1,4 @@
-## Nothing to Export.
+## Export: inla.dev.new
 
 `inla.dev.new` = function(...)
 {
