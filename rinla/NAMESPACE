@@ -4,6 +4,6 @@ import(sp)
 import(splines)
 
 # Export all names
-exportPattern(".")
+# exportPattern(".")
 
 
