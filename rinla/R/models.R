@@ -2222,7 +2222,7 @@
                       pdf = "iid123d"
                       ),
 
-             zz = list(
+             z = list(
                       hyper = list(
                               theta = list(
                                       name = "log precision",

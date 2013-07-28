@@ -416,7 +416,7 @@ typedef enum {
 	F_AR1,
 	F_AR,
 	F_OU,
-	F_ZZ,
+	F_Z,
 	F_BYM,
 	F_GENERIC0,
 	F_GENERIC1,
@@ -974,7 +974,7 @@ typedef struct {
 	GMRFLib_graph_tp  *graph_AB;
 	GMRFLib_tabulate_Qfunc_tp  *Qfunc_A;
 	GMRFLib_tabulate_Qfunc_tp  *Qfunc_B;
-} inla_zz_arg_tp;
+} inla_z_arg_tp;
 
 typedef struct {
 	int *array;
@@ -1074,7 +1074,7 @@ double Qfunc_generic2(int i, int j, void *arg);
 double Qfunc_group(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
-double Qfunc_zz(int i, int j, void *arg);
+double Qfunc_z(int i, int j, void *arg);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double exp_taylor(double x, double x0, int order);
