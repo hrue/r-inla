@@ -12143,10 +12143,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "M", ctmp);
 			}
 			/*
-			 * if given, then argument N must be equal m.
+			 * if given, then argument N must be equal n+m.
 			 */
 			itmp = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
-			if (itmp > -1 && m != itmp) {
+			if (itmp > -1 && n+m != itmp) {
 				GMRFLib_sprintf(&ctmp, "Model z: dim(Z)[2] = %1d  !=  argument.N = %1d", m, itmp);
 				inla_error_general(ctmp);
 			}

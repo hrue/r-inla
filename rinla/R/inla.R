@@ -1454,7 +1454,9 @@
                 gp$random.spec[[r]]$NREP = NREP = nrep
 
                 ## make sure these are set so they will be used by the `copy'-feature
-                gp$random.spec[[r]]$n = n
+                if (is.null(gp$random.spec[[r]]$n)) {
+                    gp$random.spec[[r]]$n = n
+                }
                 gp$random.spec[[r]]$ngroup = ngroup
                 gp$random.spec[[r]]$nrep = nrep
 
