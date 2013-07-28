@@ -974,7 +974,7 @@ typedef struct {
 
 typedef struct {
 	double **log_prec;
-	int n; // Z is n x n
+	int n; // Z is n x m
 	int m;
 	GMRFLib_graph_tp  *graph_A;
 	GMRFLib_graph_tp  *graph_B;

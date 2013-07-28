@@ -291,7 +291,11 @@
     }
 
     if (inla.one.of(random.spec$model, "zz")) {
-        ## Cmatrix and Z: for model zz
+        ## This is for the random-effect Z*z, where Z is a n x m
+        ## matrix and z are N_m(0, prec*C). We rewrite this as a model
+        ## for zz = (Z*z, z), where Z*z is N(z, high.precision). This
+        ## gives the precision matrix for zz as A+prec*B, where A and
+        ## B are defined below.
         Z = inla.as.sparse(random.spec$Z)
         Z.n = dim(Z)[1]
         Z.m = dim(Z)[2]
@@ -307,26 +311,20 @@
                       sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
                 rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
                       Cm)))
-
-        print(A)
-        print(B)
-
-        ## precision matrix is then 'A+tau*B'
+        ## dimensions
+        cat("zz.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("zz.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
+        ## matrix A
         file.A = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A, filename = file.A)
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("zz.Amatrix = ", file.A, "\n", append=TRUE, sep = " ", file = file)
-
+        ## matrix B
         file.B = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
         cat("zz.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
-
-        cat("zz.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
-        cat("zz.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
-
     } else {
-
         ## only used for generic models in here
         if (!is.null(random.spec$Cmatrix)) {
             if (is.character(random.spec$Cmatrix)) {
