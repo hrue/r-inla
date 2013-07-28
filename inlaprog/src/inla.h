@@ -967,13 +967,13 @@ typedef struct {
 
 typedef struct {
 	double **log_prec;
-	int n; // Z is n x m
+	int n;						       // Z is n x m
 	int m;
-	GMRFLib_graph_tp  *graph_A;
-	GMRFLib_graph_tp  *graph_B;
-	GMRFLib_graph_tp  *graph_AB;
-	GMRFLib_tabulate_Qfunc_tp  *Qfunc_A;
-	GMRFLib_tabulate_Qfunc_tp  *Qfunc_B;
+	GMRFLib_graph_tp *graph_A;
+	GMRFLib_graph_tp *graph_B;
+	GMRFLib_graph_tp *graph_AB;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_A;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_B;
 } inla_z_arg_tp;
 
 typedef struct {
