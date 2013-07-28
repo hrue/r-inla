@@ -4159,8 +4159,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 		p_zeroinflated = map_probability(ds->data_observations.prob2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	}
 
-	/* 
-	   THE REST IS THE SAME AS FOR STRATA3
+	/*
+	 * THE REST IS THE SAME AS FOR STRATA3 
 	 */
 
 	LINK_INIT;
@@ -4254,10 +4254,10 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double 
 		size = exp(ds->data_observations.log_sizes[1][GMRFLib_thread_id][0]);
 	}
 
-	/* 
-	   THE REST IS THE SAME AS FOR STRATA2
+	/*
+	 * THE REST IS THE SAME AS FOR STRATA2 
 	 */
-	
+
 
 	LINK_INIT;
 	if (m > 0) {
@@ -12142,7 +12142,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_sprintf(&ctmp, "%1d", m);
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "M", ctmp);
 			}
-			/* 
+			/*
 			 * if given, then argument N must be equal m.
 			 */
 			itmp = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
@@ -12154,7 +12154,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tn=[%1d]\n", n);
 				printf("\t\tm=[%1d]\n", m);
 			}
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n + m; /* Yes, this is correct */
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n + m;	/* Yes, this is correct */
 			break;
 
 		case F_2DIID:
@@ -13746,7 +13746,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
-		if (tmp == 0.0){
+		if (tmp == 0.0) {
 			inla_error_general("The initial value for the scaling (beta) in a copy-model, cannot be zero");
 			assert(tmp != 0.0);
 			exit(1);
@@ -14408,8 +14408,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
 
 		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
-		GMRFLib_graph_tp *graph_A = NULL *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL;
-		
+		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL;
+
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &tmp_graph, Am, n, NULL, NULL, NULL);
 		GMRFLib_prune_graph(&graph_A, tmp_graph, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
 		GMRFLib_free_graph(tmp_graph);
@@ -14442,7 +14442,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->graph_B = graph_B;
 		arg->Qfunc_B = Qfunc_B;
 		arg->graph_AB = graph_AB;
-		
+
 		mb->f_Qfunc[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0;
@@ -17679,7 +17679,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				SET_GROUP_RHO(1);
 
-				/* 
+				/*
 				 * Do not add the contribution from the augmented model (Z*z), but only the dimension m part, z.
 				 */
 				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
