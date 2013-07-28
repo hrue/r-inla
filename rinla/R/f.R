@@ -537,6 +537,15 @@
         }
     }
 
+    if (inla.one.of(model, c("z"))) {
+        if (is.null(Z)) {
+            stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
+        }
+        if (is.null(n)) {
+            n = sum(dim(Z))
+        }
+    }
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -570,13 +579,6 @@
     }
     if (!missing(prec.linear) || !missing(mean.linear)) {
         stop("Arguments 'mean.linear' and 'prec.linear' are defined only for model='linear'.")
-    }
-
-    if (inla.one.of(model, "positive")) {
-        if (!is.null(n)) {
-            stop(paste("model = positive require n = 1, not n =", n))
-        }
-        n=1
     }
 
     if (inla.one.of(model, c("spde"))) {
@@ -663,12 +665,6 @@
             diagonal = inla.set.f.default()$diagonal
         } else {
             diagonal = 0
-        }
-    }
-
-    if (inla.one.of(model, c("z"))) {
-        if (is.null(Z)) {
-            stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
         }
     }
 
@@ -810,7 +806,7 @@
             hyper = hyper,
             label = term,
             model=model,
-            n=n,
+            n = n,
             ncol = ncol,
             ngroup = ngroup,
             nrep = nrep,

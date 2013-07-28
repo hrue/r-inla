@@ -2715,8 +2715,8 @@ inla.models()
 								\item{aug.factor = }{`1'}
 								\item{aug.constr = }{`NULL'}
 								\item{n.div.by = }{`NULL'}
-								\item{n.required = }{`FALSE'}
-								\item{set.default.values = }{`FALSE'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
 								\item{pdf = }{`z.pdf'}
 							 }
 						 }
