@@ -417,8 +417,6 @@ typedef enum {
 	F_AR,
 	F_OU,
 	F_Z,
-	F_ZADD,
-	F_ZZ,
 	F_BYM,
 	F_GENERIC0,
 	F_GENERIC1,
@@ -969,19 +967,14 @@ typedef struct {
 
 typedef struct {
 	double **log_prec;
-	int n;						       /* number of elements in F_Z and F_ZADD */
-} inla_z_arg_tp;
-
-typedef struct {
-	double **log_prec;
-	int n; // Z is n x n
+	int n;						       // Z is n x m
 	int m;
-	GMRFLib_graph_tp  *graph_A;
-	GMRFLib_graph_tp  *graph_B;
-	GMRFLib_graph_tp  *graph_AB;
-	GMRFLib_tabulate_Qfunc_tp  *Qfunc_A;
-	GMRFLib_tabulate_Qfunc_tp  *Qfunc_B;
-} inla_zz_arg_tp;
+	GMRFLib_graph_tp *graph_A;
+	GMRFLib_graph_tp *graph_B;
+	GMRFLib_graph_tp *graph_AB;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_A;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_B;
+} inla_z_arg_tp;
 
 typedef struct {
 	int *array;
@@ -1082,7 +1075,6 @@ double Qfunc_group(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);
-double Qfunc_zz(int i, int j, void *arg);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double exp_taylor(double x, double x0, int order);
@@ -1145,7 +1137,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
 int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
-int fixup_zadd(inla_tp * mb);
 int inla_INLA(inla_tp * mb);
 int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
 int inla_add_copyof(inla_tp * mb);
