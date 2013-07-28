@@ -7,7 +7,7 @@
 ## Export: inla.mesh.map.lim inla.mesh.parse.segm.input inla.mesh.query
 ## Export: inla.mesh.segment inla.nonconvex.hull inla.nonconvex.hull.basic
 ## Export: inla.parse.queries inla.simplify.curve
-## Export: match.arg.vector
+## Export: plot.inla.trimesh match.arg.vector
 ## Internal: inla.internal.sp2segment.join inla.mesh.filter.locations
 ##
 ## S3methods
@@ -20,7 +20,7 @@
 ## Export: inla.sp2segment!Polygon inla.sp2segment!Polygons
 ## Export: inla.sp2segment!SpatialPolygons
 ## Export: inla.sp2segment!SpatialPolygonsDataFrame
-## Export: lines!inla.mesh.segment plot!inla.mesh plot!inla.trimesh
+## Export: lines!inla.mesh.segment plot!inla.mesh
 ## Export: print!summary.inla.mesh summary!inla.mesh
 
 
