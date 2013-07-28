@@ -1479,19 +1479,14 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 double Qfunc_z(int i, int j, void *arg)
 {
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
-	return map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-}
-double Qfunc_zz(int i, int j, void *arg)
-{
-	inla_zz_arg_tp *a = (inla_zz_arg_tp *) arg;
 	double value = 0.0;
 
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A)) {
 		value += a->Qfunc_A->Qfunc(i, j, a->Qfunc_A->Qfunc_arg);
 	}
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
-		double prec =  map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-		value += a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
+		double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		value += prec * a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
 	}
 	return value;
 }
@@ -4164,8 +4159,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 		p_zeroinflated = map_probability(ds->data_observations.prob2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	}
 
-	/* 
-	   THE REST IS THE SAME AS FOR STRATA3
+	/*
+	 * THE REST IS THE SAME AS FOR STRATA3 
 	 */
 
 	LINK_INIT;
@@ -4259,10 +4254,10 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double 
 		size = exp(ds->data_observations.log_sizes[1][GMRFLib_thread_id][0]);
 	}
 
-	/* 
-	   THE REST IS THE SAME AS FOR STRATA2
+	/*
+	 * THE REST IS THE SAME AS FOR STRATA2 
 	 */
-	
+
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6659,11 +6654,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	inla_add_copyof(mb);
 
 	/*
-	 * fixup z/zadd terms 
-	 */
-	fixup_zadd(mb);
-
-	/*
 	 * type = linear 
 	 */
 	for (sec = 0; sec < nsec; sec++) {
@@ -6912,47 +6902,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 	iniparser_freedict(ini);
 	return mb;
-}
-int fixup_zadd(inla_tp * mb)
-{
-	int k, kk, nf, debug = 0;
-
-	nf = mb->nf;
-	for (k = 0; k < nf; k++) {
-		if (mb->f_id[k] == F_Z) {
-			/*
-			 * we have Z 
-			 */
-			inla_z_arg_tp *a = (inla_z_arg_tp *) mb->f_Qfunc_arg[k];
-
-			if (debug) {
-				printf("F_Z present %d\n", k);
-			}
-
-			for (kk = k + 1; kk < nf; kk++) {
-				/*
-				 * If a new F_Z appears, stop 
-				 */
-				if (mb->f_id[kk] == F_Z)
-					break;
-				/*
-				 * If a F_ZADD, add it to the current F_Z 
-				 */
-				if (mb->f_id[kk] == F_ZADD) {
-					if (debug) {
-						printf("Found F_ZADD at kk = %d\n", kk);
-					}
-					mb->f_Qfunc_arg[kk] = mb->f_Qfunc_arg[k];
-					a->n++;
-				}
-			}
-			if (debug) {
-				printf("n = %d\n", a->n);
-			}
-		}
-	}
-
-	return GMRFLib_SUCCESS;
 }
 int inla_tolower(char *string)
 {
@@ -11520,14 +11469,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else if (OneOf("Z")) {
 		mb->f_id[mb->nf] = F_Z;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Z model");
-	} else if (OneOf("ZADD")) {
-		mb->f_id[mb->nf] = F_ZADD;
-		mb->f_ntheta[mb->nf] = 0;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Zadd model");
-	} else if (OneOf("ZZ")) {
-		mb->f_id[mb->nf] = F_ZZ;
-		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("ZZ model");
 	} else if (OneOf("SPDE")) {
 		mb->f_id[mb->nf] = F_SPDE;
@@ -11578,10 +11519,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW2:
 	case F_CRW2:
 	case F_Z:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");
-		break;
-
-	case F_ZZ:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");
 		break;
 
@@ -11691,9 +11628,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_MATERN2D:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
-		break;
-
-	case F_ZADD:
 		break;
 
 	case F_MEC:
@@ -12195,41 +12129,32 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			break;
 
 		case F_Z:
-		case F_ZADD:
-			/*
-			 * Z-model
-			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			n = iniparser_getint(ini, inla_string_join(secname, "N"), 1);
-			if (n != 1) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
-			}
-			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-			break;
-
-		case F_ZZ:
 			/*
 			 * ZZ-model. Here Z is a n x m matrix, and the dimension of the model is (Z*z,z) which is n+m
 			 */
-			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
-			n = iniparser_getint(ini, inla_string_join(secname, "zz.N"), 0);
-			m = iniparser_getint(ini, inla_string_join(secname, "zz.M"), 0);
+			n = iniparser_getint(ini, inla_string_join(secname, "z.N"), 0);
+			m = iniparser_getint(ini, inla_string_join(secname, "z.M"), 0);
 			if (n == 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
+				GMRFLib_sprintf(&ctmp, "%1d", n);
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ctmp);
 			}
 			if (m == 0) {
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "M", ptmp);
+				GMRFLib_sprintf(&ctmp, "%1d", m);
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "M", ctmp);
+			}
+			/*
+			 * if given, then argument N must be equal n+m.
+			 */
+			itmp = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
+			if (itmp > -1 && n+m != itmp) {
+				GMRFLib_sprintf(&ctmp, "Model z: dim(Z)[2] = %1d  !=  argument.N = %1d", m, itmp);
+				inla_error_general(ctmp);
 			}
 			if (mb->verbose) {
 				printf("\t\tn=[%1d]\n", n);
 				printf("\t\tm=[%1d]\n", m);
 			}
-			Free(ptmp);
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n + m; /* Yes, this is correct */
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n + m;	/* Yes, this is correct */
 			break;
 
 		case F_2DIID:
@@ -12390,7 +12315,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW2:
 	case F_CRW2:
 	case F_Z:
-	case F_ZZ:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -13822,7 +13746,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
-		if (tmp == 0.0){
+		if (tmp == 0.0) {
 			inla_error_general("The initial value for the scaling (beta) in a copy-model, cannot be zero");
 			assert(tmp != 0.0);
 			exit(1);
@@ -14186,9 +14110,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_ZADD:
-		break;
-
 	case F_MATERN2D:
 	{
 		itmp = iniparser_getint(ini, inla_string_join(secname, "NU"), 1);
@@ -14479,45 +14400,40 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_ZZ:
+	case F_Z:
 	{
-		char *Am, *Bm;
+		char *Am = NULL, *Bm = NULL;
 
-		Am = iniparser_getstring(ini, inla_string_join(secname, "zz.Amatrix"), NULL);
-		Bm = iniparser_getstring(ini, inla_string_join(secname, "zz.Bmatrix"), NULL);
+		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
+		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
 
-		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL;
-		GMRFLib_tabulate_Qfunc_tp *Qfunc_B = NULL;
-		GMRFLib_graph_tp *graph_A = NULL;
-		GMRFLib_graph_tp *graph_B = NULL;
-		GMRFLib_graph_tp *graph_AB = NULL;
-		GMRFLib_graph_tp *tmp_graph = NULL;
-		
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, n, NULL, NULL, NULL);
-		GMRFLib_prune_graph(&tmp_graph, graph_A, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
-		GMRFLib_free_graph(graph_A);
-		graph_A = tmp_graph;
+		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
+		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL;
 
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, n, NULL, NULL, log_prec);
-		GMRFLib_prune_graph(&tmp_graph, graph_B, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
-		GMRFLib_free_graph(graph_B);
-		graph_B = tmp_graph;
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &tmp_graph, Am, n, NULL, NULL, NULL);
+		GMRFLib_prune_graph(&graph_A, tmp_graph, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
+		GMRFLib_free_graph(tmp_graph);
 
-		//GMRFLib_print_Qfunc(stdout, graph_A, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
-		//GMRFLib_print_Qfunc(stdout, graph_B, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &tmp_graph, Bm, n, NULL, NULL, log_prec);
+		GMRFLib_prune_graph(&graph_B, tmp_graph, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
+		GMRFLib_free_graph(tmp_graph);
 
 		GMRFLib_graph_tp *gs[2];
 		gs[0] = graph_A;
 		gs[1] = graph_B;
 		GMRFLib_union_graph(&graph_AB, gs, 2);
 
-		//GMRFLib_print_graph(stdout, graph_A);
-		//GMRFLib_print_graph(stdout, graph_B);
-		//GMRFLib_print_graph(stdout, graph_AB);
+		if (0) {
+			GMRFLib_print_Qfunc(stdout, graph_A, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
+			GMRFLib_print_Qfunc(stdout, graph_B, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
+			GMRFLib_print_graph(stdout, graph_A);
+			GMRFLib_print_graph(stdout, graph_B);
+			GMRFLib_print_graph(stdout, graph_AB);
+		}
 
-		inla_zz_arg_tp *arg;
+		inla_z_arg_tp *arg = NULL;
 
-		arg = Calloc(1, inla_zz_arg_tp);
+		arg = Calloc(1, inla_z_arg_tp);
 		arg->log_prec = log_prec;
 		arg->n = n;
 		arg->m = m;
@@ -14526,8 +14442,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->graph_B = graph_B;
 		arg->Qfunc_B = Qfunc_B;
 		arg->graph_AB = graph_AB;
-		
-		mb->f_Qfunc[mb->nf] = Qfunc_zz;
+
+		mb->f_Qfunc[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -14535,31 +14451,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
-	case F_Z:
-	{
-		inla_z_arg_tp *arg;
-
-		arg = Calloc(1, inla_z_arg_tp);
-		arg->log_prec = log_prec;
-		arg->n = 1;
-		mb->f_Qfunc[mb->nf] = Qfunc_z;
-		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		mb->f_rankdef[mb->nf] = 0;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		assert(mb->f_n[mb->nf] == 1);
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), 1, 0, 0);
-		break;
-	}
-
-	case F_ZADD:
-		mb->f_Qfunc[mb->nf] = Qfunc_z;
-		mb->f_Qfunc_arg[mb->nf] = NULL;		       /* for the moment */
-		mb->f_rankdef[mb->nf] = 0;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		assert(mb->f_n[mb->nf] == 1);
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), 1, 0, 0);
-		break;
 
 	case F_2DIID:
 	{
@@ -17778,7 +17669,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 			}
 
-			case F_ZZ:
+			case F_Z:
 			{
 				if (NOT_FIXED(f_fixed[i][0])) {
 					log_precision = theta[count];
@@ -17786,48 +17677,17 @@ double extra(double *theta, int ntheta, void *argument)
 				} else {
 					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				}
-				inla_zz_arg_tp *aa = (inla_zz_arg_tp *) mb->f_Qfunc_arg[i];
+				SET_GROUP_RHO(1);
+
+				/*
+				 * Do not add the contribution from the augmented model (Z*z), but only the dimension m part, z.
+				 */
+				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
 				double m = aa->m;
 				val += mb->f_nrep[i] * (normc_g +
 							gcorr * (LOG_NORMC_GAUSSIAN * (m - mb->f_rankdef[i]) + (m - mb->f_rankdef[i]) / 2.0 * log_precision));
 				if (NOT_FIXED(f_fixed[i][0])) {
 					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				break;
-			}
-
-			case F_Z:
-			{
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_Z is not yet prepared for ngroup > 1\n");
-					exit(EXIT_FAILURE);
-				}
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
-				double n = aa->n;
-				val +=
-				    mb->f_nrep[i] * (normc_g +
-						     gcorr * (LOG_NORMC_GAUSSIAN * (n - mb->f_rankdef[i]) + (n - mb->f_rankdef[i]) / 2.0 * log_precision));
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				break;
-			}
-
-			case F_ZADD:
-			{
-				/*
-				 * added above for F_Z 
-				 */
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_ZADD is not yet prepared for ngroup > 1\n");
-					exit(EXIT_FAILURE);
 				}
 				break;
 			}

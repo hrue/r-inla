@@ -473,17 +473,19 @@
 
     ## check that the Q matrix is defined if and only if the model is
     ## generic. same with the Cmatrix
-    if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
-        if (is.null(Cmatrix)) {
-            stop("For generic models the Cmatrix has to be provided")
-        }
-        Cmatrix = inla.sparse.check(Cmatrix)
-        if (is.null(n)) {
-            n = inla.sparse.dim(Cmatrix)[1]
-        }
-    } else {
-        if (!is.null(Cmatrix)) {
-            stop("Cmatrix is only used for generic models")
+    if (!inla.one.of(model, "z")) {
+        if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
+            if (is.null(Cmatrix)) {
+                stop("For generic models the Cmatrix has to be provided")
+            }
+            Cmatrix = inla.sparse.check(Cmatrix)
+            if (is.null(n)) {
+                n = inla.sparse.dim(Cmatrix)[1]
+            }
+        } else {
+            if (!is.null(Cmatrix)) {
+                stop(paste("Cmatrix is only used for this model:",  model))
+            }
         }
     }
 
@@ -535,6 +537,15 @@
         }
     }
 
+    if (inla.one.of(model, c("z"))) {
+        if (is.null(Z)) {
+            stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
+        }
+        if (is.null(n)) {
+            n = sum(dim(Z))
+        }
+    }
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -568,13 +579,6 @@
     }
     if (!missing(prec.linear) || !missing(mean.linear)) {
         stop("Arguments 'mean.linear' and 'prec.linear' are defined only for model='linear'.")
-    }
-
-    if (inla.one.of(model, "positive")) {
-        if (!is.null(n)) {
-            stop(paste("model = positive require n = 1, not n =", n))
-        }
-        n=1
     }
 
     if (inla.one.of(model, c("spde"))) {
@@ -661,18 +665,6 @@
             diagonal = inla.set.f.default()$diagonal
         } else {
             diagonal = 0
-        }
-    }
-
-    if (inla.one.of(model, c("z"))) {
-        if (is.null(Z)) {
-            stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
-        }
-    }
-
-    if (inla.one.of(model, c("zz"))) {
-        if (is.null(Z)) {
-            stop("With model [zz] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"zz\")")
         }
     }
 
@@ -814,7 +806,7 @@
             hyper = hyper,
             label = term,
             model=model,
-            n=n,
+            n = n,
             ncol = ncol,
             ngroup = ngroup,
             nrep = nrep,
