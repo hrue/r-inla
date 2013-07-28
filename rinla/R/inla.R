@@ -1347,7 +1347,7 @@
                 gp$random.spec[[r]]$rgeneric$Id = nrgeneric
             }
             
-            if (gp$random.spec[[r]]$model != "linear" && gp$random.spec[[r]]$model != "z") {
+            if (gp$random.spec[[r]]$model != "linear") {
                 ##in this case we have to add a FFIELD section.........
                 count.random = count.random+1
                 xx=rf[, r +1]
@@ -1762,8 +1762,7 @@
                                     results.dir=paste("random.effect", inla.num(count.random), sep=""), 
                                     only.hyperparam= only.hyperparam,
                                     data.dir=data.dir)
-            }
-            else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
+            } else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ##....while here we have to add a LINEAR section
                 count.linear = count.linear+1
                 xx=rf[, r +1]
@@ -1792,14 +1791,6 @@
                                          file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
                                          results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
                                          control.fixed = cont, only.hyperparam=only.hyperparam)
-            }
-            else if (inla.one.of(gp$random.spec[[r]]$model, "z")) {
-                if (dim(gp$random.spec[[r]]$Z)[1] != NData)
-                    stop(paste("\n\tNumber of data is", NData, "but dimension of Z is", dim(gp$random.spec[[r]]$Z)))
-
-                inla.z.section(file=file.ini, random.spec = gp$random.spec[[r]], data.dir = data.dir,
-                               results.dir = results.dir, only.hyperparam = only.hyperparam, k.off = count.random)
-                count.random  = count.random + dim(gp$random.spec[[r]]$Z)[2]
             } else {
                 stop("This should not happen.")
             }

@@ -1479,11 +1479,6 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 double Qfunc_z(int i, int j, void *arg)
 {
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
-	return map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-}
-double Qfunc_zz(int i, int j, void *arg)
-{
-	inla_zz_arg_tp *a = (inla_zz_arg_tp *) arg;
 	double value = 0.0;
 
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A)) {
@@ -11471,8 +11466,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_MATERN2D;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Matern2D model");
-	} else if (OneOf("ZZ")) {
-		mb->f_id[mb->nf] = F_ZZ;
+	} else if (OneOf("Z")) {
+		mb->f_id[mb->nf] = F_Z;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("ZZ model");
 	} else if (OneOf("SPDE")) {
@@ -11523,7 +11518,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
-	case F_ZZ:
+	case F_Z:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");
 		break;
 
@@ -12133,12 +12128,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 			break;
 
-		case F_ZZ:
+		case F_Z:
 			/*
 			 * ZZ-model. Here Z is a n x m matrix, and the dimension of the model is (Z*z,z) which is n+m
 			 */
-			n = iniparser_getint(ini, inla_string_join(secname, "zz.N"), 0);
-			m = iniparser_getint(ini, inla_string_join(secname, "zz.M"), 0);
+			n = iniparser_getint(ini, inla_string_join(secname, "z.N"), 0);
+			m = iniparser_getint(ini, inla_string_join(secname, "z.M"), 0);
 			if (n == 0) {
 				GMRFLib_sprintf(&ctmp, "%1d", n);
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ctmp);
@@ -12319,7 +12314,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW1:
 	case F_RW2:
 	case F_CRW2:
-	case F_ZZ:
+	case F_Z:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -14405,12 +14400,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_ZZ:
+	case F_Z:
 	{
 		char *Am = NULL, *Bm = NULL;
 
-		Am = iniparser_getstring(ini, inla_string_join(secname, "zz.Amatrix"), NULL);
-		Bm = iniparser_getstring(ini, inla_string_join(secname, "zz.Bmatrix"), NULL);
+		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
+		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
 
 		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
 		GMRFLib_graph_tp *graph_A = NULL *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL;
@@ -14436,9 +14431,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_print_graph(stdout, graph_AB);
 		}
 
-		inla_zz_arg_tp *arg = NULL;
+		inla_z_arg_tp *arg = NULL;
 
-		arg = Calloc(1, inla_zz_arg_tp);
+		arg = Calloc(1, inla_z_arg_tp);
 		arg->log_prec = log_prec;
 		arg->n = n;
 		arg->m = m;
@@ -14448,7 +14443,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->Qfunc_B = Qfunc_B;
 		arg->graph_AB = graph_AB;
 		
-		mb->f_Qfunc[mb->nf] = Qfunc_zz;
+		mb->f_Qfunc[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -17674,7 +17669,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 			}
 
-			case F_ZZ:
+			case F_Z:
 			{
 				if (NOT_FIXED(f_fixed[i][0])) {
 					log_precision = theta[count];
@@ -17687,7 +17682,7 @@ double extra(double *theta, int ntheta, void *argument)
 				/* 
 				 * Do not add the contribution from the augmented model (Z*z), but only the dimension m part, z.
 				 */
-				inla_zz_arg_tp *aa = (inla_zz_arg_tp *) mb->f_Qfunc_arg[i];
+				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
 				double m = aa->m;
 				val += mb->f_nrep[i] * (normc_g +
 							gcorr * (LOG_NORMC_GAUSSIAN * (m - mb->f_rankdef[i]) + (m - mb->f_rankdef[i]) / 2.0 * log_precision));

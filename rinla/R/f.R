@@ -473,7 +473,7 @@
 
     ## check that the Q matrix is defined if and only if the model is
     ## generic. same with the Cmatrix
-    if (!inla.one.of(model, "zz")) {
+    if (!inla.one.of(model, "z")) {
         if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
             if (is.null(Cmatrix)) {
                 stop("For generic models the Cmatrix has to be provided")
@@ -669,12 +669,6 @@
     if (inla.one.of(model, c("z"))) {
         if (is.null(Z)) {
             stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
-        }
-    }
-
-    if (inla.one.of(model, c("zz"))) {
-        if (is.null(Z)) {
-            stop("With model [zz] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"zz\")")
         }
     }
 
