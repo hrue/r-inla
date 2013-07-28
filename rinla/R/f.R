@@ -473,17 +473,19 @@
 
     ## check that the Q matrix is defined if and only if the model is
     ## generic. same with the Cmatrix
-    if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
-        if (is.null(Cmatrix)) {
-            stop("For generic models the Cmatrix has to be provided")
-        }
-        Cmatrix = inla.sparse.check(Cmatrix)
-        if (is.null(n)) {
-            n = inla.sparse.dim(Cmatrix)[1]
-        }
-    } else {
-        if (!is.null(Cmatrix)) {
-            stop("Cmatrix is only used for generic models")
+    if (!inla.one.of(model, "zz")) {
+        if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
+            if (is.null(Cmatrix)) {
+                stop("For generic models the Cmatrix has to be provided")
+            }
+            Cmatrix = inla.sparse.check(Cmatrix)
+            if (is.null(n)) {
+                n = inla.sparse.dim(Cmatrix)[1]
+            }
+        } else {
+            if (!is.null(Cmatrix)) {
+                stop(paste("Cmatrix is only used for this model:",  model))
+            }
         }
     }
 
