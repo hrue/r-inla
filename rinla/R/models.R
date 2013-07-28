@@ -2222,30 +2222,6 @@
                       pdf = "iid123d"
                       ),
 
-              z = list(
-                      hyper = list(
-                              theta = list(
-                                      name = "log precision",
-                                      short.name = "prec",
-                                      initial = 4,
-                                      fixed = FALSE,
-                                      prior = "loggamma",
-                                      param = c(1, 0.00005),
-                                      to.theta = function(x) log(x),
-                                      from.theta = function(x) exp(x)
-                                      )
-                              ),
-                      constr = FALSE,
-                      nrow.ncol = FALSE,
-                      augmented = FALSE,
-                      aug.factor = 1L,
-                      aug.constr = NULL,
-                      n.div.by = NULL,
-                      n.required = FALSE,
-                      set.default.values = FALSE,
-                      pdf = NA
-                      ),
-
              zz = list(
                       hyper = list(
                               theta = list(
