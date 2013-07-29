@@ -54,7 +54,7 @@ idx.X = c(1:pX, rep(NA, pZ))
 idx.Z = c(rep(NA,pX), 1:pZ)
 
 hyper.fixed = list(prec = list(initial = log(0.00001), fixed=TRUE))
-param.Z =  param.data #  param.data = list(prec = list(param = c(1.0e-3, 1.0e-3))) # defined earlier
+param.Z =  param.beta #  param.beta = list(prec = list(param = c(1.0e-3, 1.0e-3))) # defined earlier
 formula = y ~ -1 + f(idx.X,  model="iid", hyper = hyper.fixed) + f(idx.Z,  model="iid", hyper = param.Z)
 result1 = inla(formula, data = list(y=data$y, idx.X=idx.X, idx.Z=idx.Z),
                control.predictor = list(A=cbind(X, Z)), control.family = list(hyper = param.data))   
