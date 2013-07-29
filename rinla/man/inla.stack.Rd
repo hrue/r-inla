@@ -3,8 +3,8 @@
 \alias{inla.stack.index}
 \alias{inla.stack.data}
 \alias{inla.stack.A}
-\alias{inla.stack.default}
-\alias{inla.stack.inla.data.stack}
+\alias{inla.stack.sum}
+\alias{inla.stack.join}
 \alias{inla.data.stack}
 \alias{inla.data.stack.info}
 \title{
@@ -14,20 +14,31 @@
   Combine data, effects and observation matrices
 }
 \usage{
-## Create data stack:
-inla.stack(data, A, effects, tag = NULL, ...)
+## Create data stack as a sum of predictors:
+inla.stack.sum(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
 
 ## Join two or more data stacks:
-inla.stack(...)
+inla.stack.join(..., compress=TRUE, remove.unused=TRUE)
+
+## Shorthand for inla.stack.join and inla.stack.sum:
+inla.stack(..., compress=TRUE, remove.unused=TRUE)
 
 ## Extract tagged indices:
 inla.stack.index(stack, tag)
 
-## Extract data for inla call, and join with other variables:
+## Extract data for inla call, and optionally join with other variables:
 inla.stack.data(stack, ...)
 
 ## Extract "A matrix" for control.predictor:
 inla.stack.A(stack)
+
+## Extract data associated with the "left hand side" of the model:
+## (e.g. the data itself, Ntrials, link, E, ...)
+inla.stack.LHS(stack)
+
+## Extract data associated with the "right hand side" of the model
+## (all the covariates/predictors)
+inla.stack.RHS(stack)
 }
 \arguments{
   \item{data}{
@@ -37,16 +48,26 @@ inla.stack.A(stack)
     A list of observation matrices.
   }
   \item{effects}{
-    A list of effects.  Each list element corresponds to an observation
-    matrix, and must either be a single vector or a list of vectors.
+    A collection of effects/predictors.  Each list element corresponds
+    to an observation matrix, and must either be a single vector or a
+    list of vectors.
   }
   \item{tag}{
     A string specifying a tag for later identification.
   }
+  \item{stack}{
+    An \code{inla.data.stack} object, created by a call to \code{inla.stack},
+    \code{inla.stack.sum}, or \code{inla.stack.join}.
+  }
   \item{...}{
-    Two or more data stacks of class \code{inla.data.stack}, created by
-    a call to \code{inla.stack}.
-    (Used only when joining data stacks, not when creating them.)
+    For \code{inla.stack.join}, two or more data stacks of class
+    \code{inla.data.stack}, created by a call to \code{inla.stack},
+    \code{inla.stack.sum}, or \code{inla.stack.join}.
+
+    For \code{inla.stack.data}, a list of variables to be joined with
+    the data list.
+
+    Otherwise unused.
   }
 }
 \details{
@@ -106,6 +127,7 @@ inla.stack.A(stack)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
+  \code{\link{inla.spde.make.A}},
   \code{\link{inla.spde.make.index}}
 }
 \examples{
