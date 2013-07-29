@@ -6,8 +6,8 @@
 ## Export: inla.spde.sample inla.spde.sample!default
 ## Export: inla.spde.sample!inla.spde inla.stack inla.stack.A
 ## Export: inla.stack.LHS inla.stack.RHS inla.stack.compress
-## Export: inla.stack.data inla.stack!default inla.stack.do.extract
-## Export: inla.stack.index inla.stack!inla.data.stack
+## Export: inla.stack.data inla.stack.sum inla.stack.do.extract
+## Export: inla.stack.index inla.stack.join
 ## Export: inla.stack.remove.unused rbind!inla.data.stack.info
 ## Internal: inla.spde.homogenise_B_matrix
 
@@ -736,7 +736,7 @@ rbind.inla.data.stack.info <- function(...)
 }
 
 
-inla.stack.remove.unused <- function(stack, ...)
+inla.stack.remove.unused <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -777,7 +777,7 @@ inla.stack.remove.unused <- function(stack, ...)
     return(stack)
 }
 
-inla.stack.compress <- function(stack, remove.unused=TRUE, ...)
+inla.stack.compress <- function(stack, remove.unused=TRUE)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -842,14 +842,22 @@ inla.stack.compress <- function(stack, remove.unused=TRUE, ...)
 
 
 
-inla.stack <- function(...)
+inla.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 {
-    UseMethod("inla.stack")
+    if (all(sapply(list(...), function(x) inherits(x, "inla.data.stack")))) {
+        return(inla.stack.join(...,
+                               compress=compress,
+                               remove.unused=remove.unused))
+    } else {
+        return(inla.stack.sum(...,
+                              compress=compress,
+                              remove.unused=remove.unused))
+    }
 }
 
 
-inla.stack.default <- function(data, A, effects, tag="", compress=TRUE,
-                               remove.unused=TRUE, ...)
+inla.stack.sum <- function(data, A, effects, tag="", compress=TRUE,
+                           remove.unused=TRUE, ...)
 {
     input.nrow <- function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -1060,7 +1068,7 @@ inla.stack.default <- function(data, A, effects, tag="", compress=TRUE,
 
 }
 
-inla.stack.inla.data.stack <- function(..., compress=TRUE, remove.unused=TRUE)
+inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
 
@@ -1099,7 +1107,7 @@ inla.stack.inla.data.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 
 
 
-inla.stack.index <- function(stack, tag, ...)
+inla.stack.index <- function(stack, tag)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -1114,7 +1122,7 @@ inla.stack.index <- function(stack, tag, ...)
     }
 }
 
-inla.stack.do.extract <- function(dat, ...)
+inla.stack.do.extract <- function(dat)
 {
     inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
 
@@ -1132,14 +1140,14 @@ inla.stack.do.extract <- function(dat, ...)
 }
 
 
-inla.stack.LHS <- function(stack, ...)
+inla.stack.LHS <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
     return(inla.stack.do.extract(stack$data))
 }
 
-inla.stack.RHS <- function(stack, ...)
+inla.stack.RHS <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
 
@@ -1155,7 +1163,7 @@ inla.stack.data <- function(stack, ...)
              list(...)))
 }
 
-inla.stack.A <- function(stack, ...)
+inla.stack.A <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
     return(stack$A)

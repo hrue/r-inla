@@ -1802,7 +1802,7 @@ inla.mesh.basis <- function(mesh,
                             degree=2,
                             knot.placement="uniform.area",
                             rot.inv=TRUE,
-                            boundary="f",
+                            boundary="free",
                             free.clamped=TRUE,
                             ...)
 {
