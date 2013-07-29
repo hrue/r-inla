@@ -1,4 +1,4 @@
-## Nothing to Export!
+## Export: inla.sparse.matrix.pattern
 
 ## Various utility functions
 
@@ -766,7 +766,7 @@
     return(factor.matrix)
 }
 
-`inla.is.installed` = function(pkg) 
+`inla.is.installed` = function(pkg)
 {
     ## return TRUE if PKG is installed and FALSE if not
     return (is.element(pkg, installed.packages()[,1L]))
@@ -813,4 +813,4 @@
         }
     }
     return (invisible())
-}    
+}
