@@ -1,5 +1,3 @@
-## contributed by CtB; thanks!
-
 library(INLA)
 # read the data and set names
 data = as.data.frame(read.table("stacks.dat"))
@@ -44,7 +42,9 @@ rownames(ridge) = rownames(simple)
 print(simple)
 print(ridge)
 
-# A-matrix method: rigde regression as a mixed model (fixed effects == intercept, random effects for coefficients of predictors)
+# A-matrix method: rigde regression as a mixed model
+# y = X beta + Z b + e
+# (beta = fixed effects == intercept,  b = random effects for coefficients of predictors)
 X = matrix(1,nrow = n, ncol= 1)           # intercept
 Z = as.matrix(data[,1 + 1:3]) # predictors
 
