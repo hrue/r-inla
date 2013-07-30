@@ -10,16 +10,24 @@
 ## Export: plot.inla.trimesh match.arg.vector
 ## Internal: inla.internal.sp2segment.join inla.mesh.filter.locations
 ##
-## S3methods
+## S3methods; also export some methods explicitly
 ## Export: extract.groups inla.mesh.project inla.mesh.projector
 ## Export: inla.sp2segment
 ## Export: extract.groups!inla.mesh.segment
+## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
+## Export: inla.mesh.project.inla.mesh.projector
+## Export: inla.mesh.projector.inla.mesh inla.mesh.projector.inla.mesh.1d
 ## Export: inla.mesh.project!inla.mesh inla.mesh.project!inla.mesh.1d
 ## Export: inla.mesh.project!inla.mesh.projector
 ## Export: inla.mesh.projector!inla.mesh inla.mesh.projector!inla.mesh.1d
+## Export: inla.sp2segment.Polygon inla.sp2segment.Polygons
+## Export: inla.sp2segment.SpatialPolygons
+## Export: inla.sp2segment.SpatialPolygonsDataFrame
 ## Export: inla.sp2segment!Polygon inla.sp2segment!Polygons
 ## Export: inla.sp2segment!SpatialPolygons
 ## Export: inla.sp2segment!SpatialPolygonsDataFrame
+## Export: lines.inla.mesh.segment plot.inla.mesh
+## Export: print.summary.inla.mesh summary.inla.mesh
 ## Export: lines!inla.mesh.segment plot!inla.mesh
 ## Export: print!summary.inla.mesh summary!inla.mesh
 

@@ -1,4 +1,5 @@
 ## Export: inla.sparse.matrix.pattern
+## Export: inla.my.update
 
 ## Various utility functions
 

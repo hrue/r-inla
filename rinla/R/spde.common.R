@@ -857,7 +857,7 @@ inla.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 
 
 inla.stack.sum <- function(data, A, effects, tag="", compress=TRUE,
-                           remove.unused=TRUE, ...)
+                           remove.unused=TRUE)
 {
     input.nrow <- function(x) {
         return(inla.ifelse(is.matrix(x) || is(x, "Matrix"),
@@ -1061,11 +1061,13 @@ inla.stack.sum <- function(data, A, effects, tag="", compress=TRUE,
     stack = list(A=A.matrix, data=data, effects=effects)
     class(stack) = "inla.data.stack"
 
-    if (compress)
+    if (compress) {
         return(inla.stack.compress(stack, remove.unused=remove.unused))
-    else
+    } else if (remove.unused) {
+        return(inla.stack.remove.unused(stack))
+    } else {
         return(stack)
-
+    }
 }
 
 inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
@@ -1096,10 +1098,13 @@ inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
                    sep=""))
     }
 
-    if (compress)
+    if (compress) {
         return(inla.stack.compress(S.output, remove.unused=remove.unused))
-    else
+    } else if (remove.unused) {
+        return(inla.stack.remove.unused(S.output))
+    } else {
         return(S.output)
+    }
 }
 
 
