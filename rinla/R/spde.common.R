@@ -57,7 +57,7 @@ inla.extract.el.data.frame <- function(M, match, by.row=TRUE, ...)
 
 inla.extract.el.list <- function(M, match, ...)
 {
-    return(M[sapply(names(M), inla.regex.match, match=match)], ...)
+    return(M[sapply(names(M), inla.regex.match, match=match)])
 }
 
 
@@ -845,18 +845,22 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 inla.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     if (all(sapply(list(...), function(x) inherits(x, "inla.data.stack")))) {
-        return(inla.stack.join(...,
-                               compress=compress,
-                               remove.unused=remove.unused))
+        return(do.call(inla.stack.join,
+                       c(list(...),
+                         compress=compress,
+                         remove.unused=remove.unused)))
     } else {
-        return(inla.stack.sum(...,
-                              compress=compress,
-                              remove.unused=remove.unused))
+        return(do.call(inla.stack.sum,
+                       c(list(...),
+                         compress=compress,
+                         remove.unused=remove.unused)))
     }
 }
 
 
-inla.stack.sum <- function(data, A, effects, tag="", compress=TRUE,
+inla.stack.sum <- function(data, A, effects,
+                           tag="",
+                           compress=TRUE,
                            remove.unused=TRUE)
 {
     input.nrow <- function(x) {
@@ -964,11 +968,6 @@ inla.stack.sum <- function(data, A, effects, tag="", compress=TRUE,
 
         return(info)
     }
-
-
-    if (length(list(...))>0)
-        warning(paste("Extra argument '", names(list(...)), "' ignored.",
-                      collapse="\n", sep=""))
 
     if (is.null(tag))
         stop("'tag' must not be 'NULL'")
