@@ -15,7 +15,7 @@
 }
 \usage{
 ## Create data stack as a sum of predictors:
-inla.stack.sum(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE, ...)
+inla.stack.sum(data, A, effects, tag="", compress=TRUE, remove.unused=TRUE)
 
 ## Join two or more data stacks:
 inla.stack.join(..., compress=TRUE, remove.unused=TRUE)
@@ -66,8 +66,6 @@ inla.stack.RHS(stack)
 
     For \code{inla.stack.data}, a list of variables to be joined with
     the data list.
-
-    Otherwise unused.
   }
 }
 \details{
