@@ -55,6 +55,16 @@ inla.stack.RHS(stack)
   \item{tag}{
     A string specifying a tag for later identification.
   }
+  \item{compress}{
+    If \code{TRUE}, compress the model by removing duplicated rows of
+    effects, replacing the corresponding A-matrix columns with a single
+    column containing the sum.
+  }
+  \item{remove.unused}{
+    If \code{TRUE}, compress the model by removing rows of effects
+    corresponding to all-zero columns in the A matrix (and removing
+    those columns).
+  }
   \item{stack}{
     An \code{inla.data.stack} object, created by a call to \code{inla.stack},
     \code{inla.stack.sum}, or \code{inla.stack.join}.
