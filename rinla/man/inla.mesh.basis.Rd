@@ -90,7 +90,9 @@ basis = inla.mesh.basis(mesh, n=c(4,5))
 
 proj = inla.mesh.projector(mesh)
 image(proj$x, proj$y, inla.mesh.project(proj, basis[,7]))
-plot(mesh, rgl=TRUE, col=basis[,7], draw.edges=FALSE, draw.vertices=FALSE)
+if (require(rgl)) {
+  plot(mesh, rgl=TRUE, col=basis[,7], draw.edges=FALSE, draw.vertices=FALSE)
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -98,14 +98,16 @@ result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
 plot(mesh)
-require(rgl)
-plot(mesh, rgl=TRUE,
-     result$summary.random$field[,"mean"],
-     color.palette = colorRampPalette(c("blue","green","red")))
-## Plot residual field:
-plot(mesh, rgl=TRUE
-     result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
-     color.palette = colorRampPalette(c("blue","green","red")))
+if (require(rgl)) {
+  ## Plot the posterior mean:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"],
+       color.palette = colorRampPalette(c("blue","green","red")))
+  ## Plot residual field:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
+       color.palette = colorRampPalette(c("blue","green","red")))
+  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

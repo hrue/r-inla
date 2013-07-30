@@ -91,16 +91,17 @@ result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
 plot(mesh)
-## For now, use old plotting methods to show fields:
-col.pal = colorRampPalette(c("blue","cyan","green","yellow","red"))
-plot(old.mesh.class(mesh),
-     result$summary.random$field[,"mean"],
-     color.palette = col.pal)
-## Plot residual field:
-plot(old.mesh.class(mesh),
-     result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
-     color.palette = col.pal)
-
+if (require(rgl)) {
+  col.pal = colorRampPalette(c("blue","cyan","green","yellow","red"))
+  ## Plot the posterior mean:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"],
+       color.palette = col.pal)
+  ## Plot residual field:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
+       color.palette = col.pal)
+}  
 result.field = inla.spde.result(result, "field", spde)
 plot(result.field$marginals.range.nominal[[1]])
 }
