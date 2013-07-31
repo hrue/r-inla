@@ -1,5 +1,9 @@
-## Export: inla.sparse.matrix.pattern
-## Export: inla.my.update
+## Useful for users:
+## Export: inla.sparse.matrix.pattern inla.factor2matrix
+## Used in examples and/or argument defaults:
+## Export: inla.tempfile inla.ifelse
+## Perhaps export, perhaps not: inla.my.update
+## Can be accessed as INLA:::inla.my.update
 
 ## Various utility functions
 
