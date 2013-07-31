@@ -22,7 +22,7 @@ inla.dBind <- function(...)
     if (length(A) == 1)
         return(A[[1]])
     B = A[[1]]
-    for (k in seq_len(length(A)-1L)) {
+    for (k in seq_len(length(A)-1L)+1L) {
         B = (rBind(cBind(B, Matrix(0, nrow(B), ncol(A[[k]]))),
                    cBind(Matrix(0, nrow(A[[k]]), ncol(B)), A[[k]])))
     }
