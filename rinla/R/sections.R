@@ -325,9 +325,6 @@
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
         cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
-        Cm.logdet = as.numeric(determinant(Cm, log=TRUE)$modulus)
-        cat("z.logCdet = ", format(Cm.logdet, digits=20), "\n", append=TRUE, sep = " ", file = file)
-        cat("z.logCprec = ", format(log(random.spec$precision), digits=20), "\n", append=TRUE, sep = " ", file = file)
     }
     ## if the Cmatrix is defined we need to process it except if its
     ## the z-model for which this has already been done.

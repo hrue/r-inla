@@ -969,8 +969,6 @@ typedef struct {
 	double **log_prec;
 	int n;						       // Z is n x m
 	int m;
-	double logCdet;					       /* the log determinant of the precision matrix for z */
-	double logCprec;					       /* the logprec for (v - Z*z) */
 	GMRFLib_graph_tp *graph_A;
 	GMRFLib_graph_tp *graph_B;
 	GMRFLib_graph_tp *graph_AB;

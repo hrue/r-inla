@@ -538,13 +538,24 @@
     }
 
     if (inla.one.of(model, c("z"))) {
-        stopifnot(is.null(constr) || !constr)
-        stopifnot(is.null(extraconstr) || !extraconstr)
         if (is.null(Z)) {
             stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
         }
         if (is.null(n)) {
             n = sum(dim(Z))
+        }
+        if (!is.null(constr) && constr == TRUE) {
+            ## let constr=TRUE be defined as sum(z)=0 only.
+            constr=FALSE 
+            zn = dim(Z)[1L]
+            zm = dim(Z)[2L]
+            z.row = c(rep(0, zn), rep(1, zm))
+            if (is.null(extraconstr)) {
+                extraconstr = list(A = matrix(z.row, 1, zn+zm), e=0)
+            } else {
+                extraconstr$A = rbind(extraconstr$A, z.row)
+                extraconstr$e = c(extraconstr$e, 0)
+            }
         }
     }
 
