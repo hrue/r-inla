@@ -270,7 +270,7 @@
         ##!\item{of}{TODO}
         of=NULL,
 
-        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model.}
+        ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model or the z-model.}
         precision = 1.0e9,
 
         ##!\item{range}{A vector of size two giving the lower and
@@ -538,6 +538,8 @@
     }
 
     if (inla.one.of(model, c("z"))) {
+        stopifnot(is.null(constr) || !constr)
+        stopifnot(is.null(extraconstr) || !extraconstr)
         if (is.null(Z)) {
             stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
         }

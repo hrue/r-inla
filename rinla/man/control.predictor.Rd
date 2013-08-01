@@ -28,6 +28,7 @@ The function \code{inla.set.control.predictor.default} returns a list with all t
 \item{quantiles}{  A list of quantiles to compute for the linear predictor}
 \item{cross}{  Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention).}
 \item{A}{  The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.}
+\item{precision}{  The precision for eta* - A*eta,}
 \item{link}{  Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.}
 }
 \seealso{

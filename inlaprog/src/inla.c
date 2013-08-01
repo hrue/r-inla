@@ -1485,12 +1485,31 @@ double Qfunc_z(int i, int j, void *arg)
 		value += a->Qfunc_A->Qfunc(i, j, a->Qfunc_A->Qfunc_arg);
 	}
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
-		double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-		value += prec * a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
+		/* 
+		   doit like this, as most of the elements in B are zero
+		 */
+		double q = a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
+		if (q) {
+			value += q*map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		}
 	}
+	//printf("i j val %d %d %.10f\n", i, j, value);
 	return value;
 }
+double Qfunc_z_NOTINUSE(int i, int j, void *arg)
+{
+	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
+	double value = 0.0;
+	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
+	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A)) {
+		value += a->Qfunc_A->Qfunc(i, j, a->Qfunc_A->Qfunc_arg);
+	}
+	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
+		value += a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
+	}
+	return value * prec;
+}
 double Qfunc_rgeneric(int i, int j, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
@@ -11203,7 +11222,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, m = 0, s = 0, itmp, id, bvalue = 0, fixed, order;
+	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order;
 	int R2c = -1, c2R = -1, Id = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
 	    *filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL;
@@ -11469,7 +11488,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else if (OneOf("Z")) {
 		mb->f_id[mb->nf] = F_Z;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("ZZ model");
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Z model");
 	} else if (OneOf("SPDE")) {
 		mb->f_id[mb->nf] = F_SPDE;
 		mb->f_ntheta[mb->nf] = 4;
@@ -12132,29 +12151,29 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * ZZ-model. Here Z is a n x m matrix, and the dimension of the model is (Z*z,z) which is n+m
 			 */
-			n = iniparser_getint(ini, inla_string_join(secname, "z.N"), 0);
-			m = iniparser_getint(ini, inla_string_join(secname, "z.M"), 0);
-			if (n == 0) {
-				GMRFLib_sprintf(&ctmp, "%1d", n);
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ctmp);
+			zn = iniparser_getint(ini, inla_string_join(secname, "z.n"), 0);
+			zm = iniparser_getint(ini, inla_string_join(secname, "z.m"), 0);
+			if (zn == 0) {
+				GMRFLib_sprintf(&ctmp, "%1d", zn);
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "z.n", ctmp);
 			}
-			if (m == 0) {
-				GMRFLib_sprintf(&ctmp, "%1d", m);
-				inla_error_field_is_void(__GMRFLib_FuncName, secname, "M", ctmp);
+			if (zm == 0) {
+				GMRFLib_sprintf(&ctmp, "%1d", zm);
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "z.m", ctmp);
 			}
 			/*
 			 * if given, then argument N must be equal n+m.
 			 */
 			itmp = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
-			if (itmp > -1 && n+m != itmp) {
-				GMRFLib_sprintf(&ctmp, "Model z: dim(Z)[2] = %1d  !=  argument.N = %1d", m, itmp);
+			if (itmp > -1 && zn+zm != itmp) {
+				GMRFLib_sprintf(&ctmp, "Model z: dim(Z)[2] = %1d  !=  argument.N = %1d", zm, itmp);
 				inla_error_general(ctmp);
 			}
 			if (mb->verbose) {
-				printf("\t\tn=[%1d]\n", n);
-				printf("\t\tm=[%1d]\n", m);
+				printf("\t\tz.n=[%1d]\n", zn);
+				printf("\t\tz.m=[%1d]\n", zm);
 			}
-			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n + m;	/* Yes, this is correct */
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = zn + zm;	/* Yes, this is correct */
 			break;
 
 		case F_2DIID:
@@ -14403,54 +14422,43 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_Z:
 	{
 		char *Am = NULL, *Bm = NULL;
-
+		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
+		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL, *gs[2];
+		inla_z_arg_tp *arg = NULL;
+		
 		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, zn+zm, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, zn+zm, NULL, NULL, NULL);
 
-		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
-		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL;
-
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &tmp_graph, Am, n, NULL, NULL, NULL);
-		GMRFLib_prune_graph(&graph_A, tmp_graph, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
-		GMRFLib_free_graph(tmp_graph);
-
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &tmp_graph, Bm, n, NULL, NULL, log_prec);
-		GMRFLib_prune_graph(&graph_B, tmp_graph, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
-		GMRFLib_free_graph(tmp_graph);
-
-		GMRFLib_graph_tp *gs[2];
 		gs[0] = graph_A;
 		gs[1] = graph_B;
 		GMRFLib_union_graph(&graph_AB, gs, 2);
 
-		if (0) {
-			GMRFLib_print_Qfunc(stdout, graph_A, Qfunc_A->Qfunc, Qfunc_A->Qfunc_arg);
-			GMRFLib_print_Qfunc(stdout, graph_B, Qfunc_B->Qfunc, Qfunc_B->Qfunc_arg);
-			GMRFLib_print_graph(stdout, graph_A);
-			GMRFLib_print_graph(stdout, graph_B);
-			GMRFLib_print_graph(stdout, graph_AB);
-		}
-
-		inla_z_arg_tp *arg = NULL;
-
 		arg = Calloc(1, inla_z_arg_tp);
+		arg->n = zn;
+		arg->m = zm;
 		arg->log_prec = log_prec;
-		arg->n = n;
-		arg->m = m;
 		arg->graph_A = graph_A;
 		arg->Qfunc_A = Qfunc_A;
 		arg->graph_B = graph_B;
 		arg->Qfunc_B = Qfunc_B;
 		arg->graph_AB = graph_AB;
 
+		/* 
+		 * logCdet = log(det(Cm)). logCprec = log(precision)
+		 */
+		arg->logCdet = iniparser_getdouble(ini, inla_string_join(secname, "z.logCdet"), NAN);
+		assert(!ISNAN(arg->logCdet));
+		arg->logCprec = iniparser_getdouble(ini, inla_string_join(secname, "z.logCprec"), NAN);
+		assert(!ISNAN(arg->logCprec));
+
 		mb->f_Qfunc[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		GMRFLib_copy_graph(&(mb->f_graph[mb->nf]), graph_AB);
 		break;
 	}
-
 
 	case F_2DIID:
 	{
@@ -16394,6 +16402,15 @@ double extra(double *theta, int ntheta, void *argument)
 	if (!mb->predictor_fixed) {
 		val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 	}
+
+	/* 
+	   If we have an A-matrix
+	 */
+	if (mb->predictor_m > 0){
+		log_precision = log(mb->predictor_Aext_precision);
+		val = mb->predictor_m * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
+	}
+
 	if (mb->data_ntheta_all) {
 		int check = 0;
 
@@ -17678,14 +17695,17 @@ double extra(double *theta, int ntheta, void *argument)
 					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 				}
 				SET_GROUP_RHO(1);
+				
+				inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
 
-				/*
-				 * Do not add the contribution from the augmented model (Z*z), but only the dimension m part, z.
-				 */
-				inla_z_arg_tp *aa = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
-				double m = aa->m;
 				val += mb->f_nrep[i] * (normc_g +
-							gcorr * (LOG_NORMC_GAUSSIAN * (m - mb->f_rankdef[i]) + (m - mb->f_rankdef[i]) / 2.0 * log_precision));
+							gcorr * (
+								mb->f_ngroup[i] * (
+									// This is the z-part
+									arg->m * LOG_NORMC_GAUSSIAN + arg->m * 0.5 * log_precision
+									+ 0.5 * arg->logCdet + 
+									// and this is the v-part, v ~ N(Zz, ..)
+									arg->n * (LOG_NORMC_GAUSSIAN  + 0.5 * arg->logCprec))));
 				if (NOT_FIXED(f_fixed[i][0])) {
 					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 				}

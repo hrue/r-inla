@@ -1,6 +1,7 @@
 \documentclass[a4paper,11pt]{article}
 \usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
+\usepackage{amsmath}
 \usepackage{listings}
 \begin{document}
 
@@ -8,8 +9,8 @@
 
 \subsection*{Parametrization}
 
-The z-model is an implementation of the ``classical'' way to define a
-mixed model, through
+The z-model is an implementation of the ``classical'' way to define
+the ``random effect'' part of a mixed model, through
 \begin{displaymath}
     \eta = \ldots + Z z 
 \end{displaymath}
@@ -19,12 +20,13 @@ the augmented model
 \begin{displaymath}
     \widetilde{z} =
     \begin{pmatrix}
-        Zz \\
-        z
+        v \\
+        z 
     \end{pmatrix}
 \end{displaymath}
-where the precision matrix for $z$ is $\tau C$ where $C > 0$ is a
-$m\times m$ (fixed) matrix.
+where $v \sim {\mathcal N}_{n}(Zz, \kappa I)$, where $\kappa$ is a high
+fixed precision, and where the precision matrix for $z$ is $\tau C$
+where $C > 0$ is a $m\times m$ (fixed) matrix.
 
 \subsection*{Hyperparameters}
 
@@ -43,13 +45,13 @@ precision = <precision>)
 \end{verbatim}
 where the \texttt{Z}-matrix argument defines the $Z$ matrix and is
 required. The \texttt{Cmatrix} defines the $C$ matrix and if not
-given, taken to the the diagonal matrix with the appropriate
-dimension. The \texttt{precision} parameter defines the precision for
-$Zz | z$.
+given, taken to the the diagonal matrix with dimension $m$. The
+\texttt{precision} parameter defines the value of $\kappa$.
+
 
 If $Z$ is a $n\times m$ matrix then the $C$ matrix must be $m\times m$
 matrix, and $\widetilde z$ has length $n+m$. The $n$ first terms of
-$\widetilde z$ is then $Zz$ and the last $m$ terms of $\widetilde z$
+$\widetilde z$ is then $v$ and the last $m$ terms of $\widetilde z$
 is then $z$.
 
 \subsubsection*{Hyperparameter spesification and default values}
