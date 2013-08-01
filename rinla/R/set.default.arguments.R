@@ -466,7 +466,7 @@
          ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
          A = NULL,
 
-         ##:ARGUMENT precision The precision for eta - A*eta,
+         ##:ARGUMENT: precision The precision for eta* - A*eta,
          precision = exp(15),
 
          ##:ARGUMENT: link Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.
