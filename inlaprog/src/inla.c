@@ -1486,29 +1486,14 @@ double Qfunc_z(int i, int j, void *arg)
 	}
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
 		/* 
-		   doit like this, as most of the elements in B are zero
+		 * doit like this, as most of the elements in B are zero
 		 */
 		double q = a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
 		if (q) {
 			value += q*map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		}
 	}
-	//printf("i j val %d %d %.10f\n", i, j, value);
 	return value;
-}
-double Qfunc_z_NOTINUSE(int i, int j, void *arg)
-{
-	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
-	double value = 0.0;
-	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A)) {
-		value += a->Qfunc_A->Qfunc(i, j, a->Qfunc_A->Qfunc_arg);
-	}
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
-		value += a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
-	}
-	return value * prec;
 }
 double Qfunc_rgeneric(int i, int j, void *arg)
 {
@@ -14424,7 +14409,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		char *Am = NULL, *Bm = NULL;
 		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
 		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL, *gs[2];
-		inla_z_arg_tp *arg = NULL;
+		inla_z_arg_tp *arg = NULL, *arg_orig;
+		double **log_prec_orig;
 		
 		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
@@ -14445,18 +14431,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->Qfunc_B = Qfunc_B;
 		arg->graph_AB = graph_AB;
 
-		/* 
-		 * logCdet = log(det(Cm)). logCprec = log(precision)
-		 */
-		arg->logCdet = iniparser_getdouble(ini, inla_string_join(secname, "z.logCdet"), NAN);
-		assert(!ISNAN(arg->logCdet));
-		arg->logCprec = iniparser_getdouble(ini, inla_string_join(secname, "z.logCprec"), NAN);
-		assert(!ISNAN(arg->logCprec));
+		HYPER_NEW(log_prec_orig, log_prec[0][0]);
+		arg_orig = Calloc(1, inla_z_arg_tp);
+		memcpy(arg_orig, arg, sizeof(inla_z_arg_tp));
+		arg_orig->log_prec = log_prec_orig;
 
 		mb->f_Qfunc[mb->nf] = Qfunc_z;
+		mb->f_Qfunc_orig[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
 		mb->f_rankdef[mb->nf] = 0;
 		GMRFLib_copy_graph(&(mb->f_graph[mb->nf]), graph_AB);
+		GMRFLib_copy_graph(&(mb->f_graph_orig[mb->nf]), graph_AB);
 		break;
 	}
 
@@ -17696,16 +17682,77 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				SET_GROUP_RHO(1);
 				
-				inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg[i];
+				inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg_orig[i];
+				arg->log_prec[GMRFLib_thread_id][0] = log_precision;
+				
+				// Parts of this code is a copy from F_SPDE2
+				static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
 
-				val += mb->f_nrep[i] * (normc_g +
-							gcorr * (
-								mb->f_ngroup[i] * (
-									// This is the z-part
-									arg->m * LOG_NORMC_GAUSSIAN + arg->m * 0.5 * log_precision
-									+ 0.5 * arg->logCdet + 
-									// and this is the v-part, v ~ N(Zz, ..)
-									arg->n * (LOG_NORMC_GAUSSIAN  + 0.5 * arg->logCprec))));
+				if (problem == NULL) {
+#pragma omp critical
+					{
+						if (problem == NULL) {
+							problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+						}
+					}
+				}
+
+				/*
+				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
+				 */
+				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(mb->f_graph_orig[i]->n, double);
+
+				while (!ok) {
+					retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+								      mb->f_graph_orig[i],
+								      mb->f_Qfunc_orig[i],
+								      mb->f_Qfunc_arg_orig[i], NULL, mb->f_constr_orig[i],
+								      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GMRFLib_eps(0.5);
+
+						for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+
+						/*
+						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+						 */
+						problem[i] = NULL;
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						GMRFLib_ERROR(retval);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+
+				GMRFLib_evaluate(problem[i]);
+				val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
 				if (NOT_FIXED(f_fixed[i][0])) {
 					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 				}
