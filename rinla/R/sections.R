@@ -293,7 +293,7 @@
     if (inla.one.of(random.spec$model, "z")) {
         ## This is for the random-effect Z*z, where Z is a n x m
         ## matrix and z are N_m(0, prec*C). We rewrite this as a model
-        ## for zz = (Z*z, z), where Z*z is N(z, high.precision). This
+        ## for zz = (v, z), where v is N(Z*z, high.precision). This
         ## gives the precision matrix for zz as A+prec*B, where A and
         ## B are defined below.
         Z = inla.as.sparse(random.spec$Z)
@@ -307,10 +307,11 @@
         }
         stopifnot(all(Z.m == dim(Cm)))
         B = inla.as.sparse(cBind(
-                rBind(sparseMatrix(dims = c(Z.n, Z.n), i = 1, j = 1, x = 0),  # n x n zero-matrix
+                rBind(Diagonal(Z.n, 0.0),  # n x n zero-matrix
                       sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
                 rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
                       Cm)))
+
         ## dimensions
         cat("z.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
         cat("z.m = ", Z.m,"\n", append=TRUE, sep = " ", file = file)
@@ -324,8 +325,10 @@
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
         cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+        Cm.logdet = as.numeric(determinant(Cm, log=TRUE)$modulus)
+        cat("z.logCdet = ", format(Cm.logdet, digits=20), "\n", append=TRUE, sep = " ", file = file)
+        cat("z.logCprec = ", format(log(random.spec$precision), digits=20), "\n", append=TRUE, sep = " ", file = file)
     }
-
     ## if the Cmatrix is defined we need to process it except if its
     ## the z-model for which this has already been done.
     if (!inla.one.of(random.spec$model, "z") && !is.null(random.spec$Cmatrix)) {
