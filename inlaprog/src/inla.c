@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2013 Havard Rue
@@ -1484,12 +1485,12 @@ double Qfunc_z(int i, int j, void *arg)
 		value += a->Qfunc_A->Qfunc(i, j, a->Qfunc_A->Qfunc_arg);
 	}
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
-		/* 
+		/*
 		 * doit like this, as most of the elements in B are zero
 		 */
 		double q = a->Qfunc_B->Qfunc(i, j, a->Qfunc_B->Qfunc_arg);
 		if (q) {
-			value += q*map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+			value += q * map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		}
 	}
 	return value;
@@ -12149,7 +12150,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			 * if given, then argument N must be equal n+m.
 			 */
 			itmp = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
-			if (itmp > -1 && zn+zm != itmp) {
+			if (itmp > -1 && zn + zm != itmp) {
 				GMRFLib_sprintf(&ctmp, "Model z: dim(Z)[2] = %1d  !=  argument.N = %1d", zm, itmp);
 				inla_error_general(ctmp);
 			}
@@ -14410,11 +14411,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL, *gs[2];
 		inla_z_arg_tp *arg = NULL, *arg_orig;
 		double **log_prec_orig;
-		
+
 		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, zn+zm, NULL, NULL, NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, zn+zm, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, zn + zm, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, zn + zm, NULL, NULL, NULL);
 
 		gs[0] = graph_A;
 		gs[1] = graph_B;
@@ -16376,7 +16377,7 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 
 
-	/* 
+	/*
 	 * this is for the linear predictor
 	 */
 	mb = (inla_tp *) argument;
@@ -16391,10 +16392,10 @@ double extra(double *theta, int ntheta, void *argument)
 		val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 	}
 
-	/* 
+	/*
 	 * this is for the A-matrix
 	 */
-	if (mb->predictor_m > 0){
+	if (mb->predictor_m > 0) {
 		log_precision = log(mb->predictor_Aext_precision);
 		val += mb->predictor_m * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
 	}
@@ -17455,7 +17456,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int count_ref = count;
 
 			if (!mb->fixed_mode) {
-				count += spde2_ntheta; /* as SET_GROUP_RHO need 'count' */
+				count += spde2_ntheta;	       /* as SET_GROUP_RHO need 'count' */
 			}
 			SET_GROUP_RHO(spde2_ntheta);
 
@@ -17682,10 +17683,10 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			SET_GROUP_RHO(1);
-				
+
 			inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg_orig[i];
 			arg->log_prec[GMRFLib_thread_id][0] = log_precision;
-				
+
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
@@ -17809,7 +17810,7 @@ double extra(double *theta, int ntheta, void *argument)
 				AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
 				BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
 				CC += SQR(mb->f_locations[i][ii] - mean_x) *
-					(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+				    (1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
 			}
 			val += mb->f_nrep[i] * (normc_g + gcorr * (2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 								   + mb->f_ngroup[i] * 0.5 * (AA + BB)
@@ -17854,8 +17855,7 @@ double extra(double *theta, int ntheta, void *argument)
 				scale_correction /= nii;
 			}
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction -
-													    log(SQR(beta)))));
+								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction - log(SQR(beta)))));
 			break;
 		}
 
@@ -17911,8 +17911,7 @@ double extra(double *theta, int ntheta, void *argument)
 			if (mb->f_cyclic[i]) {
 				logdet = inla_ar1_cyclic_logdet(N_orig, phi);
 				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
-									   ngroup * 0.5 * logdet));
+									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise + ngroup * 0.5 * logdet));
 			} else {
 				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise
@@ -17991,13 +17990,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BYM:
 		{
-			if (NOT_FIXED(f_fixed[i][0])) {	/* iid */
+			if (NOT_FIXED(f_fixed[i][0])) {	       /* iid */
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (NOT_FIXED(f_fixed[i][1])) {	/* spatial */
+			if (NOT_FIXED(f_fixed[i][1])) {	       /* spatial */
 				log_precision1 = theta[count];
 				count++;
 			} else {
@@ -18025,7 +18024,7 @@ double extra(double *theta, int ntheta, void *argument)
 				exit(EXIT_FAILURE);
 			}
 
-			assert(mb->f_ntheta[i] == 3);  /* yes */
+			assert(mb->f_ntheta[i] == 3);	       /* yes */
 			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision0 = theta[count];
 				count++;
@@ -18133,8 +18132,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 * n is the small length 
 			 */
 			double n = (double) (mb->f_n[i] / dim);	/* YES! */
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n 
-															 */
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n */
 								   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
 			if (fail) {
 				val += PENALTY;
@@ -18148,8 +18146,7 @@ double extra(double *theta, int ntheta, void *argument)
 					static char first = 1;
 					if (first) {
 						fprintf(stderr,
-							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-							nfixed);
+							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n", nfixed);
 						first = 0;
 					}
 				}
