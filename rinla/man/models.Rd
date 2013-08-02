@@ -2718,6 +2718,7 @@ inla.models()
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
 								\item{pdf = }{`z.pdf'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
