@@ -1,6 +1,8 @@
-## Nothing to export
+## Export: inla.is.fmesher.file inla.read.fmesher.file inla.write.fmesher.file
+## Export: fmesher.read fmesher.write inla.fmesher.make.dir
 
 ## The 'fmesher'-file format is for internal use only
+## but it is used in some low-level examples.
 
 `inla.is.fmesher.file` = function(filename)
 {
