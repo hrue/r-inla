@@ -12,6 +12,7 @@ syntax: glob
 *.dvi
 *.bbl
 *.blg
+*.fls
 
 # switch to regexp syntax.
 syntax: regexp

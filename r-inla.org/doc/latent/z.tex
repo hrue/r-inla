@@ -3,6 +3,7 @@
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{listings}
+\usepackage{verbatim}
 \begin{document}
 
 \section*{The z-model}
@@ -26,7 +27,8 @@ the augmented model
 \end{displaymath}
 where $v \sim {\mathcal N}_{n}(Zz, \kappa I)$, where $\kappa$ is a high
 fixed precision, and where the precision matrix for $z$ is $\tau C$
-where $C > 0$ is a $m\times m$ (fixed) matrix.
+where $C > 0$ is a $m\times m$ (fixed) matrix and $\tau$ is the
+precision parameter. 
 
 \subsection*{Hyperparameters}
 
@@ -34,25 +36,30 @@ The precision parameter of the z-model is represented as
 \begin{displaymath}
     \theta = \log(\tau)
 \end{displaymath}
-and prior is assigned to $\theta$
+and prior is assigned to $\theta$. The parameter $\kappa$ is kept
+fixed at all times.
 
 \subsection*{Specification}
 
 The z-model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>, model="z", Z = <Z>, Cmatrix = <Cmat>, hyper = <hyper>,
-precision = <precision>)
+   precision = <precision>)
 \end{verbatim}
-where the \texttt{Z}-matrix argument defines the $Z$ matrix and is
-required. The \texttt{Cmatrix} defines the $C$ matrix and if not
-given, taken to the the diagonal matrix with dimension $m$. The
-\texttt{precision} parameter defines the value of $\kappa$.
-
+where the required \texttt{Z}-matrix argument defines the $Z$
+matrix. The (optional) \texttt{Cmatrix} defines the $C$ matrix and is
+by default taken to the the diagonal matrix with dimension $m$.  The
+\texttt{precision} parameter defines the value of $\kappa$, and
+\texttt{hyper} the hyperparameter spesification for $\tau$.
 
 If $Z$ is a $n\times m$ matrix then the $C$ matrix must be $m\times m$
 matrix, and $\widetilde z$ has length $n+m$. The $n$ first terms of
-$\widetilde z$ is then $v$ and the last $m$ terms of $\widetilde z$
-is then $z$.
+$\widetilde z$ is $v$ and the last $m$ terms of $\widetilde z$ is $z$.
+
+If \texttt{constr=TRUE} is given, then this is defined as
+$\sum_{i=1}^{m}z_{i} = 0$. If \texttt{extraconstr} is given, then it
+is applied to $\widetilde z$, hence \texttt{extraconstr\$A} must be a
+$k\times (n+m)$ matrix where $k$ is the number of linear constraints.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/z.tex}
@@ -60,7 +67,11 @@ is then $z$.
 
 \subsection*{Example}
 
+{\small\verbatiminput{example-z.R}}
+
 \subsection*{Notes}
+
+None.
 
 \end{document}
 
