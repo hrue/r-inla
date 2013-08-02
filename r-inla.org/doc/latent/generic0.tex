@@ -92,9 +92,9 @@ where $n$ is the dimension of the $C$ matrix, and NOT the correct one
     \tau^{n/2}\; \left(\frac{1}{2\pi}\right)^{n/2}\; \mid C\mid^{1/2}.
 \end{displaymath}
 Different algorithms are required to compute the determinant depending
-on the structure and size of $C$, and therefore this constant is not
-computed. However, for most/near-all use of this \texttt{generic0}
-model, this constant is not of interest.
+on the structure and size of $C$ (and it might be singular), and
+therefore this constant is not computed. However, for near-all use of
+this \texttt{generic0} model, this constant is not of interest.
 
 The missing constant \emph{only matters} for the marginal likelihood
 value.  Say you are comparing two runs with two models, one where this

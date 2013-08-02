@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2013 Havard Rue
@@ -16377,6 +16376,9 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 
 
+	/* 
+	 * this is for the linear predictor
+	 */
 	mb = (inla_tp *) argument;
 	if (!mb->predictor_fixed) {
 		log_precision = theta[count];
@@ -16384,17 +16386,17 @@ double extra(double *theta, int ntheta, void *argument)
 	} else {
 		log_precision = mb->predictor_log_prec[GMRFLib_thread_id][0];
 	}
-	val = mb->predictor_n * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
+	val += mb->predictor_n * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
 	if (!mb->predictor_fixed) {
 		val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 	}
 
 	/* 
-	   If we have an A-matrix
+	 * this is for the A-matrix
 	 */
 	if (mb->predictor_m > 0){
 		log_precision = log(mb->predictor_Aext_precision);
-		val = mb->predictor_m * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
+		val += mb->predictor_m * (LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log_precision);
 	}
 
 	if (mb->data_ntheta_all) {
@@ -17144,939 +17146,952 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
-	if (mb->ntheta > 0) {
-		for (i = 0; i < mb->nf; i++) {
-			switch (mb->f_id[i]) {
-			case F_RW2D:
-			case F_BESAG:
-			case F_GENERIC0:
-			case F_SEASONAL:
-			case F_IID:
-			case F_RW1:
-			case F_RW2:
-			case F_CRW2:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				SET_GROUP_RHO(1);
-
-				double scale_correction = 0.0;
-				if (mb->f_id[i] == F_IID && mb->f_scale[i]) {
-					int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
-
-					for (ii = 0; ii < nii; ii++) {
-						scale_correction += log(mb->f_scale[i][ii]);
-					}
-					scale_correction /= nii;
-				}
-
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-									   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction)));
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				break;
+	for (i = 0; i < mb->nf; i++) {
+		switch (mb->f_id[i]) {
+		case F_RW2D:
+		case F_BESAG:
+		case F_GENERIC0:
+		case F_SEASONAL:
+		case F_IID:
+		case F_RW1:
+		case F_RW2:
+		case F_CRW2:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+			SET_GROUP_RHO(1);
 
-			case F_SPDE:
-			{
-				int k, nT, nK, nt, Toffset = 0, Koffset = 0;
-				double t;
-				inla_spde_tp *spde;
-				double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
-
-				spde = (inla_spde_tp *) mb->f_model[i];
-				assert(spde->Qfunc_arg == spde);
-
-				nT = spde->Tmodel->ntheta;
-				nK = spde->Kmodel->ntheta;
-				nt = mb->f_ntheta[i];
-
-				fixed0 = !NOT_FIXED(f_fixed[i][0]);
-				fixed1 = !NOT_FIXED(f_fixed[i][1]);
-				fixed2 = !NOT_FIXED(f_fixed[i][2]);
-				fixed3 = !NOT_FIXED(f_fixed[i][3]);
-				init0 = mb->f_initial[i][0];
-				init1 = mb->f_initial[i][1];
-				init2 = mb->f_initial[i][2];
-				init3 = mb->f_initial[i][3];
-
-				Tpar = Calloc(nT, double);
-				Kpar = Calloc(nK, double);
-
-				if (debug) {
-					P(i);
-					P(mb->f_fixed[i][0]);
-					P(mb->f_fixed[i][1]);
-					P(mb->f_fixed[i][2]);
-					P(mb->f_fixed[i][3]);
-					P(nT);
-					P(nK);
-					P(nt);
-					P(fixed0);
-					P(fixed1);
-					P(fixed2);
-					P(fixed3);
-					P(init0);
-					P(init1);
-					P(init2);
-					P(init3);
-				}
-
-				if (nT) {
-					if (fixed0) {
-						Tpar[0] = init0;
-					} else {
-						Tpar[0] = theta[count];
-						Toffset++;
-					}
-					if (nT > 1) {
-						if (fixed2) {
-							for (k = 1; k < nT; k++)
-								Tpar[k] = init2;
-						} else {
-							for (k = 1; k < nT; k++) {
-								Tpar[k] = theta[count + Toffset];
-								Toffset++;
-							}
-						}
-					}
-					spde->Tmodel->theta_extra[GMRFLib_thread_id] = Tpar;
-				}
-
-				if (debug) {
-					P(count);
-					P(Toffset);
-					for (k = 0; k < nT; k++) {
-						printf("Tpar[%d] = %g\n", k, Tpar[k]);
-					}
-				}
-
-				if (nK) {
-					if (fixed1) {
-						Kpar[0] = init1;
-					} else {
-						Kpar[0] = theta[count + Toffset];
-						Koffset++;
-					}
-					if (nK > 1) {
-						if (fixed2) {
-							for (k = 1; k < nK; k++)
-								Kpar[k] = init2;
-						} else {
-							for (k = 1; k < nK; k++) {
-								Kpar[k] = theta[count + Koffset + Toffset];
-								Koffset++;
-							}
-						}
-					}
-					spde->Kmodel->theta_extra[GMRFLib_thread_id] = Kpar;
-				}
-
-				if (debug) {
-					P(count);
-					P(Toffset);
-					P(Koffset);
-					for (k = 0; k < nT; k++) {
-						printf("Tpar[%d] = %g\n", k, Tpar[k]);
-					}
-					for (k = 0; k < nK; k++) {
-						printf("Kpar[%d] = %g\n", k, Kpar[k]);
-					}
-				}
-
-				if (fixed3) {
-					spde->oc[GMRFLib_thread_id][0] = init3;
-				} else {
-					spde->oc[GMRFLib_thread_id][0] = theta[count + Koffset + Toffset];
-				}
-
-				if (debug) {
-					printf("call extra() with\n");
-					for (k = 0; k < nT; k++) {
-						printf("Tmodel %d %g\n", k, spde->Tmodel->theta_extra[GMRFLib_thread_id][k]);
-					}
-					for (k = 0; k < nK; k++) {
-						printf("Kmodel %d %g\n", k, spde->Kmodel->theta_extra[GMRFLib_thread_id][k]);
-					}
-					printf("Oc %g\n", spde->oc[GMRFLib_thread_id][0]);
-				}
-
-				/*
-				 * T 
-				 */
-				if (nT) {
-					if (NOT_FIXED(f_fixed[i][0])) {
-						t = theta[count];
-						val += PRIOR_EVAL(mb->f_prior[i][0], &t);
-						count++;
-					}
-					for (k = 1; k < nT; k++) {
-						if (NOT_FIXED(f_fixed[i][2])) {
-							t = theta[count];
-							val += PRIOR_EVAL(mb->f_prior[i][2], &t);
-							count++;
-						}
-					}
-				}
-
-				/*
-				 * K 
-				 */
-				if (nK) {
-					if (NOT_FIXED(f_fixed[i][1])) {
-						t = theta[count];
-						val += PRIOR_EVAL(mb->f_prior[i][1], &t);
-						count++;
-					}
-					for (k = 1; k < nK; k++) {
-						if (NOT_FIXED(f_fixed[i][2])) {
-							t = theta[count];
-							val += PRIOR_EVAL(mb->f_prior[i][2], &t);
-							count++;
-						}
-					}
-				}
-				/*
-				 * Ocillating coeff 
-				 */
-				if (!fixed3) {
-					t = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][3], &t);
-					count++;
-				}
-
-				if (debug) {
-					P(nT);
-					P(nK);
-					P(mb->f_ntheta[i]);
-				}
-				assert(IMAX(4, nT + nK + 1) + (mb->f_ngroup[i] > 1 ? 1 : 0) == mb->f_ntheta[i]);
-
-				SET_GROUP_RHO(IMAX(4, nT + nK + 1));
-
-				static GMRFLib_problem_tp **problem = NULL;
-#pragma omp threadprivate(problem)
-
-				if (problem == NULL) {
-#pragma omp critical
-					{
-						if (problem == NULL) {
-							problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-						}
-					}
-				}
-
-				/*
-				 * do a check for numerical not pos def matrix here, as its so close to being singular 
-				 */
-				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;;
-				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-				double *cc_add = Calloc(spde->graph->n, double);
-
-				while (!ok) {
-					retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
-								      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
-								      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
-					switch (retval) {
-					case GMRFLib_EPOSDEF:
-					{
-						int ii;
-						double eps = GMRFLib_eps(0.5);
-
-						for (ii = 0; ii < spde->graph->n; ii++) {
-							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
-						}
-
-						/*
-						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
-						 */
-						problem[i] = NULL;
-						break;
-					}
-
-					case GMRFLib_SUCCESS:
-						ok = 1;
-						break;
-
-					default:
-						/*
-						 * some other error 
-						 */
-						GMRFLib_set_error_handler(old_handler);
-						GMRFLib_ERROR(retval);
-						abort();
-						break;
-					}
-
-					if (++num_try >= num_try_max) {
-						FIXME("This should not happen. Contact developers...");
-						abort();
-					}
-				}
-				Free(cc_add);
-				GMRFLib_set_error_handler(old_handler);
-
-				GMRFLib_evaluate(problem[i]);
-				val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
-
-				if (nT) {
-					spde->Tmodel->theta_extra[GMRFLib_thread_id] = NULL;
-				}
-				if (nK) {
-					spde->Kmodel->theta_extra[GMRFLib_thread_id] = NULL;
-				}
-
-				Free(Tpar);
-				Free(Kpar);
-				break;
-			}
-
-			case F_SPDE2:
-			{
-				int k, spde2_ntheta;
-				inla_spde2_tp *spde2;
-
-				spde2 = (inla_spde2_tp *) mb->f_model[i];
-				assert(spde2->Qfunc_arg == spde2);
-
-				spde2->debug = 0;
-				spde2_ntheta = spde2->ntheta;
-				if (!mb->fixed_mode) {
-					for (k = 0; k < spde2_ntheta; k++) {
-						spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
-					}
-				}
-				int count_ref = count;
-
-				if (!mb->fixed_mode) {
-					count += spde2_ntheta; /* as SET_GROUP_RHO need 'count' */
-				}
-				SET_GROUP_RHO(spde2_ntheta);
-
-				static GMRFLib_problem_tp **problem = NULL;
-#pragma omp threadprivate(problem)
-
-				if (problem == NULL) {
-#pragma omp critical
-					{
-						if (problem == NULL) {
-							problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-						}
-					}
-				}
-
-				/*
-				 * do a check for numerical not pos def matrix here, as its so close to being singular 
-				 */
-				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-				double *cc_add = Calloc(spde2->graph->n, double);
-
-				while (!ok) {
-					retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
-								      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
-								      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
-					switch (retval) {
-					case GMRFLib_EPOSDEF:
-					{
-						int ii;
-						double eps = GMRFLib_eps(0.5);
-
-						for (ii = 0; ii < spde2->graph->n; ii++) {
-							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
-						}
-
-						/*
-						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
-						 */
-						problem[i] = NULL;
-						break;
-					}
-
-					case GMRFLib_SUCCESS:
-						ok = 1;
-						break;
-
-					default:
-						/*
-						 * some other error 
-						 */
-						GMRFLib_set_error_handler(old_handler);
-						GMRFLib_ERROR(retval);
-						abort();
-						break;
-					}
-
-					if (++num_try >= num_try_max) {
-						FIXME("This should not happen. Contact developers...");
-						abort();
-					}
-				}
-				Free(cc_add);
-				GMRFLib_set_error_handler(old_handler);
-
-				GMRFLib_evaluate(problem[i]);
-				val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
-
-				/*
-				 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
-				 */
-				if (!mb->fixed_mode) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
-				}
-				break;
-			}
-
-			case F_AR:
-			{
-				double log_precision, *pacf, *pacf_intern;
-				int p;
-
-				p = mb->f_order[i];
-				assert(mb->f_ntheta[i] == p + 1);
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-
-				pacf = Calloc(p, double);
-				pacf_intern = Calloc(p, double);
-				for (j = 0; j < p; j++) {
-					if (NOT_FIXED(f_fixed[i][j + 1])) {
-						pacf_intern[j] = theta[count];
-						count++;
-					} else {
-						pacf_intern[j] = mb->f_theta[i][j + 1][GMRFLib_thread_id][0];
-					}
-					pacf[j] = ar_map_pacf(pacf_intern[j], MAP_FORWARD, NULL);
-				}
-				SET_GROUP_RHO(mb->f_ntheta[i]);
-
-				int n_ar;
-				double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
-
-				marginal_Q = Calloc(ISQR(p), double);
-				ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
-				conditional_prec = exp(log_precision) / marginal_prec;
-
-				param = Calloc(1 + p + ISQR(p), double);
-				zero = Calloc(p, double);
-				param[0] = p;
-				for (j = 0; j < ISQR(p); j++) {
-					param[1 + p + j] = marginal_Q[j] * exp(log_precision);
-				}
-
-				n_ar = mb->f_n[i] / mb->f_nrep[i];
-				ldens = priorfunc_mvnorm(zero, param) + (n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
-				val += mb->f_nrep[i] * (ldens * (ngroup - grankdef) + normc_g);
-
-				/*
-				 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
-				 */
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
-
-				Free(pacf);
-				Free(pacf_intern);
-				Free(marginal_Q);
-				Free(param);
-				Free(zero);
-
-				break;
-			}
-
-			case F_GENERIC1:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					beta_intern = theta[count];
-					count++;
-				} else {
-					beta_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				beta = map_probability(beta_intern, MAP_FORWARD, NULL);
-				SET_GROUP_RHO(2);
-
-				double logdet_Q = 0.0;
-				Generic1_tp *a = (Generic1_tp *) mb->f_Qfunc_arg[i];
-				for (j = 0; j < n_orig; j++) {
-					logdet_Q += log(1.0 - beta * a->eigenvalues[j] / a->max_eigenvalue);
-				}
-
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_n[i] - mb->f_rankdef[i])
-									   + (mb->f_n[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * logdet_Q));
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &beta_intern);
-				}
-				break;
-			}
-
-			case F_GENERIC2:
-			{
-				/*
-				 * OOPS: even though the parameters are (log_prec, h2_inter), the prior is defined on (log_prec, log_prec_unstruct), with the proper
-				 * Jacobian added. 
-				 */
-				double h2;
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					h2_intern = theta[count];
-					count++;
-				} else {
-					h2_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				h2 = map_probability(h2_intern, MAP_FORWARD, NULL);
-				SET_GROUP_RHO(2);
-
-				double log_prec_unstruct = log(h2 / (1.0 - h2)) + log_precision;
-				double n = (double) mb->f_n[i];
-
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0) +
-									   +(n - mb->f_rankdef[i]) / 2.0 * log_precision + n / 2.0 * log_prec_unstruct));
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &log_prec_unstruct);
-				}
-				/*
-				 * The Jacobian for the change of variables, is
-				 * 
-				 * | d log_prec_unstruct / d h2_intern | = 1, so no need to correct for the Jacobian from the change of variables. 
-				 */
-				break;
-			}
-
-			case F_Z:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				SET_GROUP_RHO(1);
-				
-				inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg_orig[i];
-				arg->log_prec[GMRFLib_thread_id][0] = log_precision;
-				
-				// Parts of this code is a copy from F_SPDE2
-				static GMRFLib_problem_tp **problem = NULL;
-#pragma omp threadprivate(problem)
-
-				if (problem == NULL) {
-#pragma omp critical
-					{
-						if (problem == NULL) {
-							problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-						}
-					}
-				}
-
-				/*
-				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
-				 */
-				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-				double *cc_add = Calloc(mb->f_graph_orig[i]->n, double);
-
-				while (!ok) {
-					retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
-								      mb->f_graph_orig[i],
-								      mb->f_Qfunc_orig[i],
-								      mb->f_Qfunc_arg_orig[i], NULL, mb->f_constr_orig[i],
-								      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
-					switch (retval) {
-					case GMRFLib_EPOSDEF:
-					{
-						int ii;
-						double eps = GMRFLib_eps(0.5);
-
-						for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
-							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
-						}
-
-						/*
-						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
-						 */
-						problem[i] = NULL;
-						break;
-					}
-
-					case GMRFLib_SUCCESS:
-						ok = 1;
-						break;
-
-					default:
-						/*
-						 * some other error 
-						 */
-						GMRFLib_set_error_handler(old_handler);
-						GMRFLib_ERROR(retval);
-						abort();
-						break;
-					}
-
-					if (++num_try >= num_try_max) {
-						FIXME("This should not happen. Contact developers...");
-						abort();
-					}
-				}
-				Free(cc_add);
-				GMRFLib_set_error_handler(old_handler);
-
-				GMRFLib_evaluate(problem[i]);
-				val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				break;
-			}
-
-			case F_MEC:
-			{
-				double mean_x, log_precision_x, log_precision_obs;
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					beta = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
-					count++;
-				} else {
-					beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-
-				if (NOT_FIXED(f_fixed[i][1])) {
-					log_precision_obs = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision_obs);
-					count++;
-				} else {
-					log_precision_obs = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-
-				if (NOT_FIXED(f_fixed[i][2])) {
-					mean_x = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
-					count++;
-				} else {
-					mean_x = mb->f_theta[i][2][GMRFLib_thread_id][0];
-				}
-
-				if (NOT_FIXED(f_fixed[i][3])) {
-					log_precision_x = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][3], &log_precision_x);
-					count++;
-				} else {
-					log_precision_x = mb->f_theta[i][3][GMRFLib_thread_id][0];
-				}
-
-				SET_GROUP_RHO(4);
-
-				double AA = 0.0, BB = 0.0, CC = 0.0;
+			double scale_correction = 0.0;
+			if (mb->f_id[i] == F_IID && mb->f_scale[i]) {
 				int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
 
-				/*
-				 * we need to do it like this as the scale[i] varies with 'i'.
-				 */
-				assert(mb->f_scale[i]);
 				for (ii = 0; ii < nii; ii++) {
-					AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
-					BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
-					CC += SQR(mb->f_locations[i][ii] - mean_x) *
-					    (1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+					scale_correction += log(mb->f_scale[i][ii]);
 				}
-				val += mb->f_nrep[i] * (normc_g + gcorr * (2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-									   + mb->f_ngroup[i] * 0.5 * (AA + BB)
-									   /*
-									    * and the exponent which depends on the precisions. we need to correct with ngroup here as its
-									    * not scaled with f_N that already is corrected for ngroup.
-									    */
-									   - mb->f_ngroup[i] * 0.5 * CC));
-				break;
+				scale_correction /= nii;
 			}
 
-			case F_MEB:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					beta = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
-					count++;
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction)));
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			break;
+		}
+
+		case F_SPDE:
+		{
+			int k, nT, nK, nt, Toffset = 0, Koffset = 0;
+			double t;
+			inla_spde_tp *spde;
+			double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
+
+			spde = (inla_spde_tp *) mb->f_model[i];
+			assert(spde->Qfunc_arg == spde);
+
+			nT = spde->Tmodel->ntheta;
+			nK = spde->Kmodel->ntheta;
+			nt = mb->f_ntheta[i];
+
+			fixed0 = !NOT_FIXED(f_fixed[i][0]);
+			fixed1 = !NOT_FIXED(f_fixed[i][1]);
+			fixed2 = !NOT_FIXED(f_fixed[i][2]);
+			fixed3 = !NOT_FIXED(f_fixed[i][3]);
+			init0 = mb->f_initial[i][0];
+			init1 = mb->f_initial[i][1];
+			init2 = mb->f_initial[i][2];
+			init3 = mb->f_initial[i][3];
+
+			Tpar = Calloc(nT, double);
+			Kpar = Calloc(nK, double);
+
+			if (debug) {
+				P(i);
+				P(mb->f_fixed[i][0]);
+				P(mb->f_fixed[i][1]);
+				P(mb->f_fixed[i][2]);
+				P(mb->f_fixed[i][3]);
+				P(nT);
+				P(nK);
+				P(nt);
+				P(fixed0);
+				P(fixed1);
+				P(fixed2);
+				P(fixed3);
+				P(init0);
+				P(init1);
+				P(init2);
+				P(init3);
+			}
+
+			if (nT) {
+				if (fixed0) {
+					Tpar[0] = init0;
 				} else {
-					beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+					Tpar[0] = theta[count];
+					Toffset++;
 				}
-
-				if (NOT_FIXED(f_fixed[i][1])) {
-					log_precision = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision);
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-
-				SET_GROUP_RHO(2);
-
-				double scale_correction = 0.0;
-				int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
-
-				/*
-				 * we need to do it like this as the scale[i] varies with 'i'.
-				 */
-				if (mb->f_scale[i]) {
-					for (ii = 0; ii < nii; ii++) {
-						scale_correction += log(mb->f_scale[i][ii]);
+				if (nT > 1) {
+					if (fixed2) {
+						for (k = 1; k < nT; k++)
+							Tpar[k] = init2;
+					} else {
+						for (k = 1; k < nT; k++) {
+							Tpar[k] = theta[count + Toffset];
+							Toffset++;
+						}
 					}
-					scale_correction /= nii;
 				}
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
-									   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction -
-														    log(SQR(beta)))));
-				break;
+				spde->Tmodel->theta_extra[GMRFLib_thread_id] = Tpar;
 			}
 
-			case F_R_GENERIC:
-			{
-#if !defined(WINDOWS)
-				int ntheta = mb->f_ntheta[i], ii;
-				inla_rgeneric_tp *def;
-				double *param, log_norm_const, log_prior;
+			if (debug) {
+				P(count);
+				P(Toffset);
+				for (k = 0; k < nT; k++) {
+					printf("Tpar[%d] = %g\n", k, Tpar[k]);
+				}
+			}
 
-				def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
-				param = Calloc(ntheta, double);
-				for (ii = 0; ii < ntheta; ii++) {
-					param[ii] = theta[count];
+			if (nK) {
+				if (fixed1) {
+					Kpar[0] = init1;
+				} else {
+					Kpar[0] = theta[count + Toffset];
+					Koffset++;
+				}
+				if (nK > 1) {
+					if (fixed2) {
+						for (k = 1; k < nK; k++)
+							Kpar[k] = init2;
+					} else {
+						for (k = 1; k < nK; k++) {
+							Kpar[k] = theta[count + Koffset + Toffset];
+							Koffset++;
+						}
+					}
+				}
+				spde->Kmodel->theta_extra[GMRFLib_thread_id] = Kpar;
+			}
+
+			if (debug) {
+				P(count);
+				P(Toffset);
+				P(Koffset);
+				for (k = 0; k < nT; k++) {
+					printf("Tpar[%d] = %g\n", k, Tpar[k]);
+				}
+				for (k = 0; k < nK; k++) {
+					printf("Kpar[%d] = %g\n", k, Kpar[k]);
+				}
+			}
+
+			if (fixed3) {
+				spde->oc[GMRFLib_thread_id][0] = init3;
+			} else {
+				spde->oc[GMRFLib_thread_id][0] = theta[count + Koffset + Toffset];
+			}
+
+			if (debug) {
+				printf("call extra() with\n");
+				for (k = 0; k < nT; k++) {
+					printf("Tmodel %d %g\n", k, spde->Tmodel->theta_extra[GMRFLib_thread_id][k]);
+				}
+				for (k = 0; k < nK; k++) {
+					printf("Kmodel %d %g\n", k, spde->Kmodel->theta_extra[GMRFLib_thread_id][k]);
+				}
+				printf("Oc %g\n", spde->oc[GMRFLib_thread_id][0]);
+			}
+
+			/*
+			 * T 
+			 */
+			if (nT) {
+				if (NOT_FIXED(f_fixed[i][0])) {
+					t = theta[count];
+					val += PRIOR_EVAL(mb->f_prior[i][0], &t);
 					count++;
 				}
+				for (k = 1; k < nT; k++) {
+					if (NOT_FIXED(f_fixed[i][2])) {
+						t = theta[count];
+						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
+						count++;
+					}
+				}
+			}
+
+			/*
+			 * K 
+			 */
+			if (nK) {
+				if (NOT_FIXED(f_fixed[i][1])) {
+					t = theta[count];
+					val += PRIOR_EVAL(mb->f_prior[i][1], &t);
+					count++;
+				}
+				for (k = 1; k < nK; k++) {
+					if (NOT_FIXED(f_fixed[i][2])) {
+						t = theta[count];
+						val += PRIOR_EVAL(mb->f_prior[i][2], &t);
+						count++;
+					}
+				}
+			}
+			/*
+			 * Ocillating coeff 
+			 */
+			if (!fixed3) {
+				t = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][3], &t);
+				count++;
+			}
+
+			if (debug) {
+				P(nT);
+				P(nK);
+				P(mb->f_ntheta[i]);
+			}
+			assert(IMAX(4, nT + nK + 1) + (mb->f_ngroup[i] > 1 ? 1 : 0) == mb->f_ntheta[i]);
+
+			SET_GROUP_RHO(IMAX(4, nT + nK + 1));
+
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+
+			if (problem == NULL) {
 #pragma omp critical
 				{
-					WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_NORM_CONST);
-					WRITE(def->c2R, param, ntheta, double);
-					READ(def->R2c, &log_norm_const, 1, double);
-					WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_PRIOR);
-					WRITE(def->c2R, param, ntheta, double);
-					READ(def->R2c, &log_prior, 1, double);
+					if (problem == NULL) {
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(spde->graph->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.5);
+
+					for (ii = 0; ii < spde->graph->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
 				}
 
-				SET_GROUP_RHO(ntheta);
-				val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-				Free(param);
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+
+				default:
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			if (nT) {
+				spde->Tmodel->theta_extra[GMRFLib_thread_id] = NULL;
+			}
+			if (nK) {
+				spde->Kmodel->theta_extra[GMRFLib_thread_id] = NULL;
+			}
+
+			Free(Tpar);
+			Free(Kpar);
+			break;
+		}
+
+		case F_SPDE2:
+		{
+			int k, spde2_ntheta;
+			inla_spde2_tp *spde2;
+
+			spde2 = (inla_spde2_tp *) mb->f_model[i];
+			assert(spde2->Qfunc_arg == spde2);
+
+			spde2->debug = 0;
+			spde2_ntheta = spde2->ntheta;
+			if (!mb->fixed_mode) {
+				for (k = 0; k < spde2_ntheta; k++) {
+					spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+				}
+			}
+			int count_ref = count;
+
+			if (!mb->fixed_mode) {
+				count += spde2_ntheta; /* as SET_GROUP_RHO need 'count' */
+			}
+			SET_GROUP_RHO(spde2_ntheta);
+
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL) {
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(spde2->graph->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.5);
+
+					for (ii = 0; ii < spde2->graph->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+
+				default:
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			/*
+			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 */
+			if (!mb->fixed_mode) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+			}
+			break;
+		}
+
+		case F_AR:
+		{
+			double log_precision, *pacf, *pacf_intern;
+			int p;
+
+			p = mb->f_order[i];
+			assert(mb->f_ntheta[i] == p + 1);
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+
+			pacf = Calloc(p, double);
+			pacf_intern = Calloc(p, double);
+			for (j = 0; j < p; j++) {
+				if (NOT_FIXED(f_fixed[i][j + 1])) {
+					pacf_intern[j] = theta[count];
+					count++;
+				} else {
+					pacf_intern[j] = mb->f_theta[i][j + 1][GMRFLib_thread_id][0];
+				}
+				pacf[j] = ar_map_pacf(pacf_intern[j], MAP_FORWARD, NULL);
+			}
+			SET_GROUP_RHO(mb->f_ntheta[i]);
+
+			int n_ar;
+			double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
+
+			marginal_Q = Calloc(ISQR(p), double);
+			ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
+			conditional_prec = exp(log_precision) / marginal_prec;
+
+			param = Calloc(1 + p + ISQR(p), double);
+			zero = Calloc(p, double);
+			param[0] = p;
+			for (j = 0; j < ISQR(p); j++) {
+				param[1 + p + j] = marginal_Q[j] * exp(log_precision);
+			}
+
+			n_ar = mb->f_n[i] / mb->f_nrep[i];
+			ldens = priorfunc_mvnorm(zero, param) + (n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
+			val += mb->f_nrep[i] * (ldens * (ngroup - grankdef) + normc_g);
+
+			/*
+			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 */
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
+
+			Free(pacf);
+			Free(pacf_intern);
+			Free(marginal_Q);
+			Free(param);
+			Free(zero);
+
+			break;
+		}
+
+		case F_GENERIC1:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				beta_intern = theta[count];
+				count++;
+			} else {
+				beta_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			beta = map_probability(beta_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
+
+			double logdet_Q = 0.0;
+			Generic1_tp *a = (Generic1_tp *) mb->f_Qfunc_arg[i];
+			for (j = 0; j < n_orig; j++) {
+				logdet_Q += log(1.0 - beta * a->eigenvalues[j] / a->max_eigenvalue);
+			}
+
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_n[i] - mb->f_rankdef[i])
+								   + (mb->f_n[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * 0.5 * logdet_Q));
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &beta_intern);
+			}
+			break;
+		}
+
+		case F_GENERIC2:
+		{
+			/*
+			 * OOPS: even though the parameters are (log_prec, h2_inter), the prior is defined on (log_prec, log_prec_unstruct), with the proper
+			 * Jacobian added. 
+			 */
+			double h2;
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				h2_intern = theta[count];
+				count++;
+			} else {
+				h2_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			h2 = map_probability(h2_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
+
+			double log_prec_unstruct = log(h2 / (1.0 - h2)) + log_precision;
+			double n = (double) mb->f_n[i];
+
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0) +
+								   +(n - mb->f_rankdef[i]) / 2.0 * log_precision + n / 2.0 * log_prec_unstruct));
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_prec_unstruct);
+			}
+			/*
+			 * The Jacobian for the change of variables, is
+			 * 
+			 * | d log_prec_unstruct / d h2_intern | = 1, so no need to correct for the Jacobian from the change of variables. 
+			 */
+			break;
+		}
+
+		case F_Z:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			SET_GROUP_RHO(1);
+				
+			inla_z_arg_tp *arg = (inla_z_arg_tp *) mb->f_Qfunc_arg_orig[i];
+			arg->log_prec[GMRFLib_thread_id][0] = log_precision;
+				
+			// Parts of this code is a copy from F_SPDE2
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL) {
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			/*
+			 * do a check for numerical not pos def matrix here, as it may be close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(mb->f_graph_orig[i]->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      mb->f_graph_orig[i],
+							      mb->f_Qfunc_orig[i],
+							      mb->f_Qfunc_arg_orig[i], NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.5);
+
+					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+
+				default:
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			break;
+		}
+
+		case F_MEC:
+		{
+			double mean_x, log_precision_x, log_precision_obs;
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				beta = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				count++;
+			} else {
+				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+
+			if (NOT_FIXED(f_fixed[i][1])) {
+				log_precision_obs = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision_obs);
+				count++;
+			} else {
+				log_precision_obs = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+
+			if (NOT_FIXED(f_fixed[i][2])) {
+				mean_x = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
+				count++;
+			} else {
+				mean_x = mb->f_theta[i][2][GMRFLib_thread_id][0];
+			}
+
+			if (NOT_FIXED(f_fixed[i][3])) {
+				log_precision_x = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][3], &log_precision_x);
+				count++;
+			} else {
+				log_precision_x = mb->f_theta[i][3][GMRFLib_thread_id][0];
+			}
+
+			SET_GROUP_RHO(4);
+
+			double AA = 0.0, BB = 0.0, CC = 0.0;
+			int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
+
+			/*
+			 * we need to do it like this as the scale[i] varies with 'i'.
+			 */
+			assert(mb->f_scale[i]);
+			for (ii = 0; ii < nii; ii++) {
+				AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
+				BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+				CC += SQR(mb->f_locations[i][ii] - mean_x) *
+					(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
+			}
+			val += mb->f_nrep[i] * (normc_g + gcorr * (2.0 * LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
+								   + mb->f_ngroup[i] * 0.5 * (AA + BB)
+								   /*
+								    * and the exponent which depends on the precisions. we need to correct with ngroup here as its
+								    * not scaled with f_N that already is corrected for ngroup.
+								    */
+								   - mb->f_ngroup[i] * 0.5 * CC));
+			break;
+		}
+
+		case F_MEB:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				beta = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				count++;
+			} else {
+				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+
+			if (NOT_FIXED(f_fixed[i][1])) {
+				log_precision = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision);
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+
+			SET_GROUP_RHO(2);
+
+			double scale_correction = 0.0;
+			int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
+
+			/*
+			 * we need to do it like this as the scale[i] varies with 'i'.
+			 */
+			if (mb->f_scale[i]) {
+				for (ii = 0; ii < nii; ii++) {
+					scale_correction += log(mb->f_scale[i][ii]);
+				}
+				scale_correction /= nii;
+			}
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision + scale_correction -
+													    log(SQR(beta)))));
+			break;
+		}
+
+		case F_R_GENERIC:
+		{
+#if !defined(WINDOWS)
+			int ntheta = mb->f_ntheta[i], ii;
+			inla_rgeneric_tp *def;
+			double *param, log_norm_const, log_prior;
+
+			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
+			param = Calloc(ntheta, double);
+			for (ii = 0; ii < ntheta; ii++) {
+				param[ii] = theta[count];
+				count++;
+			}
+#pragma omp critical
+			{
+				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_NORM_CONST);
+				WRITE(def->c2R, param, ntheta, double);
+				READ(def->R2c, &log_norm_const, 1, double);
+				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_PRIOR);
+				WRITE(def->c2R, param, ntheta, double);
+				READ(def->R2c, &log_prior, 1, double);
+			}
+
+			SET_GROUP_RHO(ntheta);
+			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+			Free(param);
 #endif							       /* !defined(WINDOWS) */
-				break;
+			break;
+		}
+
+		case F_AR1:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-
-			case F_AR1:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					phi_intern = theta[count];
-					count++;
-				} else {
-					phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				phi = map_phi(phi_intern, MAP_FORWARD, NULL);
-				SET_GROUP_RHO(2);
-
-				double log_precision_noise = log_precision - log(1.0 - SQR(phi));
-
-				if (mb->f_cyclic[i]) {
-					logdet = inla_ar1_cyclic_logdet(N_orig, phi);
-					val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-										   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
-										   ngroup * 0.5 * logdet));
-				} else {
-					val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-										   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise
-										   + ngroup * 0.5 * log(1.0 - SQR(phi))));
-				}
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
-				}
-				break;
+			if (NOT_FIXED(f_fixed[i][1])) {
+				phi_intern = theta[count];
+				count++;
+			} else {
+				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
+			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
 
-			case F_OU:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
-					count++;
-				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					phi_intern = theta[count];
-					count++;
-				} else {
-					phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				phi = map_exp(phi_intern, MAP_FORWARD, NULL);
-				SET_GROUP_RHO(2);
+			double log_precision_noise = log_precision - log(1.0 - SQR(phi));
 
-				int ii;
-				double ou_nc = 0.0;
-				int nn = ((inla_ou_arg_tp *) mb->f_Qfunc_arg_orig[i])->n;
-				for (ii = 1; ii < nn; ii++) {
-					ou_nc -= log(1.0 - exp(-2.0 * phi * (mb->f_locations[i][ii] - mb->f_locations[i][ii - 1])));
-				}
+			if (mb->f_cyclic[i]) {
+				logdet = inla_ar1_cyclic_logdet(N_orig, phi);
 				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * ou_nc / 2.0));
+									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+									   ngroup * 0.5 * logdet));
+			} else {
+				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
+									   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision_noise
+									   + ngroup * 0.5 * log(1.0 - SQR(phi))));
+			}
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+			}
+			break;
+		}
 
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
-				}
-				break;
+		case F_OU:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				phi_intern = theta[count];
+				count++;
+			} else {
+				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			phi = map_exp(phi_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
+
+			int ii;
+			double ou_nc = 0.0;
+			int nn = ((inla_ou_arg_tp *) mb->f_Qfunc_arg_orig[i])->n;
+			for (ii = 1; ii < nn; ii++) {
+				ou_nc -= log(1.0 - exp(-2.0 * phi * (mb->f_locations[i][ii] - mb->f_locations[i][ii - 1])));
+			}
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
+								   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * ou_nc / 2.0));
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+			}
+			break;
+		}
+
+		case F_BESAG2:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				a_intern = theta[count];
+				count++;
+			} else {
+				a_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			SET_GROUP_RHO(2);
+			// N is 2*graph->n here. 
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
+								   + (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern)));
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &a_intern);
+			}
+			break;
+		}
+
+		case F_BYM:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {	/* iid */
+				log_precision0 = theta[count];
+				count++;
+			} else {
+				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {	/* spatial */
+				log_precision1 = theta[count];
+				count++;
+			} else {
+				log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			SET_GROUP_RHO(2);
+
+			double n = (double) mb->f_n[i];
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0)
+								   + n / 2.0 * log_precision0	/* iid */
+								   + (n - mb->f_rankdef[i]) / 2.0 * log_precision1));	/* spatial */
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
+			}
+			break;
+		}
+
+		case F_2DIID:
+		{
+			if (mb->f_ngroup[i] > 1) {
+				fprintf(stderr, "\n\n F_2DIID is not yet prepared for ngroup > 1\n");
+				exit(EXIT_FAILURE);
 			}
 
-			case F_BESAG2:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision = theta[count];
+			assert(mb->f_ntheta[i] == 3);  /* yes */
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision0 = theta[count];
+				count++;
+			} else {
+				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				log_precision1 = theta[count];
+				count++;
+			} else {
+				log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][2])) {
+				rho_intern = theta[count];
+				count++;
+			} else {
+				rho_intern = mb->f_theta[i][2][GMRFLib_thread_id][0];
+			}
+			rho = map_rho(rho_intern, MAP_FORWARD, NULL);
+			double n = (double) mb->f_n[i];
+			assert(mb->f_ngroup[i] == 1);
+			val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
+						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
+						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
+			}
+			if (NOT_FIXED(f_fixed[i][2])) {
+				val += PRIOR_EVAL(mb->f_prior[i][2], &rho_intern);
+			}
+			break;
+		}
+
+		case F_IID1D:
+		case F_IID2D:
+		case F_IID3D:
+		case F_IID4D:
+		case F_IID5D:
+		{
+			int jj, count_ref = count;
+			int dim = WISHART_DIM(i);
+			assert(dim > 0);
+
+			int nt = inla_iid_wishart_nparam(dim);
+			double log_jacobian = 0.0;
+			double *theta_vec = Calloc(nt, double);
+			int k = 0;
+			nfixed = 0;
+			for (j = 0; j < dim; j++) {
+				if (NOT_FIXED(f_fixed[i][k])) {
+					theta_vec[k] = theta[count];
 					count++;
 				} else {
-					log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+					nfixed++;
+					theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
 				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					a_intern = theta[count];
-					count++;
-				} else {
-					a_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				SET_GROUP_RHO(2);
-				// N is 2*graph->n here. 
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
-									   + (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern)));
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &a_intern);
-				}
-				break;
+				log_jacobian += log(map_precision(theta_vec[k], MAP_DFORWARD, NULL));
+				theta_vec[k] = map_precision(theta_vec[k], MAP_FORWARD, NULL);
+				k++;
 			}
 
-			case F_BYM:
-			{
-				if (NOT_FIXED(f_fixed[i][0])) {	/* iid */
-					log_precision0 = theta[count];
-					count++;
-				} else {
-					log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {	/* spatial */
-					log_precision1 = theta[count];
-					count++;
-				} else {
-					log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				SET_GROUP_RHO(2);
-
-				double n = (double) mb->f_n[i];
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (n / 2.0 + (n - mb->f_rankdef[i]) / 2.0)
-									   + n / 2.0 * log_precision0	/* iid */
-									   + (n - mb->f_rankdef[i]) / 2.0 * log_precision1));	/* spatial */
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
-				}
-				break;
-			}
-
-			case F_2DIID:
-			{
-				if (mb->f_ngroup[i] > 1) {
-					fprintf(stderr, "\n\n F_2DIID is not yet prepared for ngroup > 1\n");
-					exit(EXIT_FAILURE);
-				}
-
-				assert(mb->f_ntheta[i] == 3);  /* yes */
-				if (NOT_FIXED(f_fixed[i][0])) {
-					log_precision0 = theta[count];
-					count++;
-				} else {
-					log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					log_precision1 = theta[count];
-					count++;
-				} else {
-					log_precision1 = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][2])) {
-					rho_intern = theta[count];
-					count++;
-				} else {
-					rho_intern = mb->f_theta[i][2][GMRFLib_thread_id][0];
-				}
-				rho = map_rho(rho_intern, MAP_FORWARD, NULL);
-				double n = (double) mb->f_n[i];
-				assert(mb->f_ngroup[i] == 1);
-				val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is N=2n */
-							+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
-							+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * log(1.0 - SQR(rho)));
-				if (NOT_FIXED(f_fixed[i][0])) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
-				}
-				if (NOT_FIXED(f_fixed[i][2])) {
-					val += PRIOR_EVAL(mb->f_prior[i][2], &rho_intern);
-				}
-				break;
-			}
-
-			case F_IID1D:
-			case F_IID2D:
-			case F_IID3D:
-			case F_IID4D:
-			case F_IID5D:
-			{
-				int jj, count_ref = count;
-				int dim = WISHART_DIM(i);
-				assert(dim > 0);
-
-				int nt = inla_iid_wishart_nparam(dim);
-				double log_jacobian = 0.0;
-				double *theta_vec = Calloc(nt, double);
-				int k = 0;
-				nfixed = 0;
-				for (j = 0; j < dim; j++) {
+			for (j = 0; j < dim; j++) {
+				for (jj = j + 1; jj < dim; jj++) {
 					if (NOT_FIXED(f_fixed[i][k])) {
 						theta_vec[k] = theta[count];
 						count++;
@@ -18084,299 +18099,284 @@ double extra(double *theta, int ntheta, void *argument)
 						nfixed++;
 						theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
 					}
-					log_jacobian += log(map_precision(theta_vec[k], MAP_DFORWARD, NULL));
-					theta_vec[k] = map_precision(theta_vec[k], MAP_FORWARD, NULL);
+					log_jacobian += log(map_rho(theta_vec[k], MAP_DFORWARD, NULL));
+					theta_vec[k] = map_rho(theta_vec[k], MAP_FORWARD, NULL);
 					k++;
 				}
+			}
+			assert(k == nt);
 
-				for (j = 0; j < dim; j++) {
-					for (jj = j + 1; jj < dim; jj++) {
-						if (NOT_FIXED(f_fixed[i][k])) {
-							theta_vec[k] = theta[count];
-							count++;
-						} else {
-							nfixed++;
-							theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
-						}
-						log_jacobian += log(map_rho(theta_vec[k], MAP_DFORWARD, NULL));
-						theta_vec[k] = map_rho(theta_vec[k], MAP_FORWARD, NULL);
-						k++;
-					}
-				}
-				assert(k == nt);
-
-				fail = inla_iid_wishart_adjust(dim, theta_vec);
-				Q = gsl_matrix_calloc(dim, dim);
-				k = 0;
-				for (j = 0; j < dim; j++) {
-					gsl_matrix_set(Q, j, j, 1.0 / theta_vec[k]);
+			fail = inla_iid_wishart_adjust(dim, theta_vec);
+			Q = gsl_matrix_calloc(dim, dim);
+			k = 0;
+			for (j = 0; j < dim; j++) {
+				gsl_matrix_set(Q, j, j, 1.0 / theta_vec[k]);
+				k++;
+			}
+			for (j = 0; j < dim; j++) {
+				for (jj = j + 1; jj < dim; jj++) {
+					double value = theta_vec[k] / sqrt(theta_vec[j] * theta_vec[jj]);
+					gsl_matrix_set(Q, j, jj, value);
+					gsl_matrix_set(Q, jj, j, value);
 					k++;
 				}
-				for (j = 0; j < dim; j++) {
-					for (jj = j + 1; jj < dim; jj++) {
-						double value = theta_vec[k] / sqrt(theta_vec[j] * theta_vec[jj]);
-						gsl_matrix_set(Q, j, jj, value);
-						gsl_matrix_set(Q, jj, j, value);
-						k++;
-					}
-				}
-				assert(k == nt);
+			}
+			assert(k == nt);
 
-				GMRFLib_gsl_spd_inverse(Q);
-				logdet = GMRFLib_gsl_spd_logdet(Q);
-				gsl_matrix_free(Q);
+			GMRFLib_gsl_spd_inverse(Q);
+			logdet = GMRFLib_gsl_spd_logdet(Q);
+			gsl_matrix_free(Q);
 
-				SET_GROUP_RHO(nt);
+			SET_GROUP_RHO(nt);
 
-				/*
-				 * n is the small length 
-				 */
-				double n = (double) (mb->f_n[i] / dim);	/* YES! */
-				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n 
-																 */
-									   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
-				if (fail) {
-					val += PENALTY;
-				}
-
-				/*
-				 * if all parameters are fixed, there is no prior to add
-				 */
-				if (count - count_ref > 0) {
-					if (nfixed) {
-						static char first = 1;
-						if (first) {
-							fprintf(stderr,
-								"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-								nfixed);
-							first = 0;
-						}
-					}
-					/*
-					 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
-					 * log_precision1, rho_intern). 
-					 */
-					val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
-				}
-				break;
+			/*
+			 * n is the small length 
+			 */
+			double n = (double) (mb->f_n[i] / dim);	/* YES! */
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the total length is N=dim*n 
+															 */
+								   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
+			if (fail) {
+				val += PENALTY;
 			}
 
-			case F_MATERN2D:
-			{
+			/*
+			 * if all parameters are fixed, there is no prior to add
+			 */
+			if (count - count_ref > 0) {
+				if (nfixed) {
+					static char first = 1;
+					if (first) {
+						fprintf(stderr,
+							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
+							nfixed);
+						first = 0;
+					}
+				}
 				/*
-				 * this is the safe version, which also works correctly for diagonal > 0. It is possible to reuse the calculations for the same
-				 * range and different precision, provided diagonal = 0, but care must be taken about the constraints.
+				 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1, rho), to theta = (log_precision0,
+				 * log_precision1, rho_intern). 
 				 */
+				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
+			}
+			break;
+		}
 
-				typedef struct {
-					int n;
-					int N;
-					int ngroup;
-					int nrep;
-					double precision;
-					double range;
-					double *c;
-					double rankdef1;
-					GMRFLib_matern2ddef_tp *matern2ddef;
-					GMRFLib_problem_tp *problem;
-				} Hold_tp;
-				static Hold_tp **hold = NULL;
+		case F_MATERN2D:
+		{
+			/*
+			 * this is the safe version, which also works correctly for diagonal > 0. It is possible to reuse the calculations for the same
+			 * range and different precision, provided diagonal = 0, but care must be taken about the constraints.
+			 */
+
+			typedef struct {
+				int n;
+				int N;
+				int ngroup;
+				int nrep;
+				double precision;
+				double range;
+				double *c;
+				double rankdef1;
+				GMRFLib_matern2ddef_tp *matern2ddef;
+				GMRFLib_problem_tp *problem;
+			} Hold_tp;
+			static Hold_tp **hold = NULL;
 #pragma omp threadprivate(hold)
-				int jj;
-				Hold_tp *h;
-				GMRFLib_matern2ddef_tp *q;
+			int jj;
+			Hold_tp *h;
+			GMRFLib_matern2ddef_tp *q;
 
-				if (!hold) {
-					hold = Calloc(mb->nf, Hold_tp *);
-				}
-
-				if (!hold[i]) {
-					h = hold[i] = Calloc(1, Hold_tp);
-
-					h->nrep = mb->f_nrep[i];
-					h->ngroup = mb->f_ngroup[i];
-					h->n = mb->f_n[i] / h->ngroup;
-					h->N = mb->f_N[i] / h->ngroup;
-
-					assert(h->N == mb->f_graph_orig[i]->n);
-
-					if (debug) {
-						P(h->n);
-						P(h->N);
-						P(h->nrep);
-						P(h->ngroup);
-					}
-
-					if (mb->f_diag[i]) {
-						h->c = Calloc(h->N, double);
-						for (jj = 0; jj < h->N; jj++) {
-							h->c[jj] = mb->f_diag[i];
-						}
-					}
-
-					q = (GMRFLib_matern2ddef_tp *) mb->f_Qfunc_arg_orig[i];
-					if (debug) {
-						P(q->nrow);
-						P(q->ncol);
-						P(q->cyclic);
-						P(q->nu);
-					}
-
-					h->matern2ddef = Calloc(1, GMRFLib_matern2ddef_tp);
-					memcpy(h->matern2ddef, q, sizeof(GMRFLib_matern2ddef_tp));
-					h->matern2ddef->prec = &h->precision;
-					h->matern2ddef->range = &h->range;
-
-					h->matern2ddef->log_prec = NULL;
-					h->matern2ddef->log_prec_omp = NULL;
-					h->matern2ddef->log_range = NULL;
-					h->matern2ddef->log_range_omp = NULL;
-				} else {
-					h = hold[i];
-				}
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
-					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
-					count++;
-				} else {
-					h->precision = map_precision(mb->f_theta[i][0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					h->range = map_range(theta[count], MAP_FORWARD, NULL);
-					val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
-					count++;
-				} else {
-					h->range = map_range(mb->f_theta[i][1][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-				}
-
-				SET_GROUP_RHO(2);
-
-				GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-						     (void *) h->matern2ddef, NULL, mb->f_constr_orig[i],
-						     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
-				if (debug) {
-					P(h->precision);
-					P(h->range);
-					P(h->problem->sub_logdens);
-				}
-				val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
-				break;
+			if (!hold) {
+				hold = Calloc(mb->nf, Hold_tp *);
 			}
 
-			case F_BESAGPROPER:
-			{
-				typedef struct {
-					int n;
-					int N;
-					int ngroup;
-					int nrep;
-					double **log_prec;
-					double **log_diag;
-					double *c;
-					double rankdef1;
-					inla_besag_proper_Qfunc_arg_tp *def;
-					GMRFLib_problem_tp *problem;
-				} Hold_tp;
-				static Hold_tp **hold = NULL;
+			if (!hold[i]) {
+				h = hold[i] = Calloc(1, Hold_tp);
+
+				h->nrep = mb->f_nrep[i];
+				h->ngroup = mb->f_ngroup[i];
+				h->n = mb->f_n[i] / h->ngroup;
+				h->N = mb->f_N[i] / h->ngroup;
+
+				assert(h->N == mb->f_graph_orig[i]->n);
+
+				if (debug) {
+					P(h->n);
+					P(h->N);
+					P(h->nrep);
+					P(h->ngroup);
+				}
+
+				if (mb->f_diag[i]) {
+					h->c = Calloc(h->N, double);
+					for (jj = 0; jj < h->N; jj++) {
+						h->c[jj] = mb->f_diag[i];
+					}
+				}
+
+				q = (GMRFLib_matern2ddef_tp *) mb->f_Qfunc_arg_orig[i];
+				if (debug) {
+					P(q->nrow);
+					P(q->ncol);
+					P(q->cyclic);
+					P(q->nu);
+				}
+
+				h->matern2ddef = Calloc(1, GMRFLib_matern2ddef_tp);
+				memcpy(h->matern2ddef, q, sizeof(GMRFLib_matern2ddef_tp));
+				h->matern2ddef->prec = &h->precision;
+				h->matern2ddef->range = &h->range;
+
+				h->matern2ddef->log_prec = NULL;
+				h->matern2ddef->log_prec_omp = NULL;
+				h->matern2ddef->log_range = NULL;
+				h->matern2ddef->log_range_omp = NULL;
+			} else {
+				h = hold[i];
+			}
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
+				count++;
+			} else {
+				h->precision = map_precision(mb->f_theta[i][0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				h->range = map_range(theta[count], MAP_FORWARD, NULL);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
+				count++;
+			} else {
+				h->range = map_range(mb->f_theta[i][1][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+			}
+
+			SET_GROUP_RHO(2);
+
+			GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+					     (void *) h->matern2ddef, NULL, mb->f_constr_orig[i],
+					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+			if (debug) {
+				P(h->precision);
+				P(h->range);
+				P(h->problem->sub_logdens);
+			}
+			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+			break;
+		}
+
+		case F_BESAGPROPER:
+		{
+			typedef struct {
+				int n;
+				int N;
+				int ngroup;
+				int nrep;
+				double **log_prec;
+				double **log_diag;
+				double *c;
+				double rankdef1;
+				inla_besag_proper_Qfunc_arg_tp *def;
+				GMRFLib_problem_tp *problem;
+			} Hold_tp;
+			static Hold_tp **hold = NULL;
 #pragma omp threadprivate(hold)
 
-				int jj;
-				Hold_tp *h;
+			int jj;
+			Hold_tp *h;
 
-				if (!hold) {
-					hold = Calloc(mb->nf, Hold_tp *);
-				}
+			if (!hold) {
+				hold = Calloc(mb->nf, Hold_tp *);
+			}
 
-				if (!hold[i]) {
-					h = hold[i] = Calloc(1, Hold_tp);
+			if (!hold[i]) {
+				h = hold[i] = Calloc(1, Hold_tp);
 
-					h->nrep = mb->f_nrep[i];
-					h->ngroup = mb->f_ngroup[i];
-					h->n = mb->f_n[i] / h->ngroup;
-					h->N = mb->f_N[i] / h->ngroup;
+				h->nrep = mb->f_nrep[i];
+				h->ngroup = mb->f_ngroup[i];
+				h->n = mb->f_n[i] / h->ngroup;
+				h->N = mb->f_N[i] / h->ngroup;
 
-					assert(h->N == mb->f_graph_orig[i]->n);
+				assert(h->N == mb->f_graph_orig[i]->n);
 
-					if (debug) {
-						P(h->n);
-						P(h->N);
-						P(h->nrep);
-						P(h->ngroup);
-					}
-
-					HYPER_NEW(h->log_prec, 0.0);
-					HYPER_NEW(h->log_diag, 0.0);
-
-					if (mb->f_diag[i]) {
-						h->c = Calloc(h->N, double);
-						for (jj = 0; jj < h->N; jj++) {
-							h->c[jj] = mb->f_diag[i];
-						}
-					}
-
-					h->def = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
-					memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
-					h->def->log_prec = h->log_prec;
-					h->def->log_diag = h->log_diag;
-				} else {
-					h = hold[i];
-				}
-
-				if (NOT_FIXED(f_fixed[i][0])) {
-					h->log_prec[GMRFLib_thread_id][0] = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
-					count++;
-				} else {
-					h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
-				}
-				if (NOT_FIXED(f_fixed[i][1])) {
-					h->log_diag[GMRFLib_thread_id][0] = theta[count];
-					val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
-					count++;
-				} else {
-					h->log_diag[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
-				}
-
-				SET_GROUP_RHO(2);
-
-				GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
-						     (void *) h->def, NULL, mb->f_constr_orig[i],
-						     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				if (debug) {
-					P(h->log_prec[GMRFLib_thread_id][0]);
-					P(h->log_diag[GMRFLib_thread_id][0]);
-					P(h->problem->sub_logdens);
+					P(h->n);
+					P(h->N);
+					P(h->nrep);
+					P(h->ngroup);
 				}
-				val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
-				break;
+
+				HYPER_NEW(h->log_prec, 0.0);
+				HYPER_NEW(h->log_diag, 0.0);
+
+				if (mb->f_diag[i]) {
+					h->c = Calloc(h->N, double);
+					for (jj = 0; jj < h->N; jj++) {
+						h->c[jj] = mb->f_diag[i];
+					}
+				}
+
+				h->def = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
+				memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
+				h->def->log_prec = h->log_prec;
+				h->def->log_diag = h->log_diag;
+			} else {
+				h = hold[i];
 			}
 
-			case F_COPY:
-			{
-				if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
-					beta = theta[count];
-					count++;
-				} else {
-					/*
-					 * not needed 
-					 */
-					// if (mb->f_theta[i]) {
-					// beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
-					// }
-				}
-				if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
-					val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
-				}
-				break;
+			if (NOT_FIXED(f_fixed[i][0])) {
+				h->log_prec[GMRFLib_thread_id][0] = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
+				count++;
+			} else {
+				h->log_prec[GMRFLib_thread_id][0] = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				h->log_diag[GMRFLib_thread_id][0] = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][1], &theta[count]);
+				count++;
+			} else {
+				h->log_diag[GMRFLib_thread_id][0] = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
 
-			default:
-				P(mb->f_id[i]);
-				abort();
-				assert(0 == 1);
-				break;
+			SET_GROUP_RHO(2);
+
+			GMRFLib_init_problem(&(h->problem), NULL, NULL, h->c, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
+					     (void *) h->def, NULL, mb->f_constr_orig[i],
+					     (!h->problem ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+			if (debug) {
+				P(h->log_prec[GMRFLib_thread_id][0]);
+				P(h->log_diag[GMRFLib_thread_id][0]);
+				P(h->problem->sub_logdens);
 			}
+			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
+			break;
+		}
+
+		case F_COPY:
+		{
+			if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
+				beta = theta[count];
+				count++;
+			} else {
+				/*
+				 * not needed 
+				 */
+				// if (mb->f_theta[i]) {
+				// beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				// }
+			}
+			if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+			}
+			break;
+		}
+
+		default:
+			P(mb->f_id[i]);
+			abort();
+			assert(0 == 1);
+			break;
 		}
 	}
 
