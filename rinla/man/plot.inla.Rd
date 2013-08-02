@@ -10,7 +10,7 @@
    Takes am \code{inla} object produced by \code{inla} and plot the results
  }
  \usage{
- \method{plot}{inla}(x, 
+ \method{plot}{inla}(x,
               plot.fixed.effects = TRUE,
               plot.lincomb = TRUE,
               plot.random.effects = TRUE,
@@ -18,10 +18,10 @@
               plot.predictor = TRUE,
               plot.q = TRUE,
               plot.cpo = TRUE,
-              single = FALSE, 
+              single = FALSE,
               postscript = FALSE,
               pdf = FALSE,
-              prefix = "inla.plots/figure-", 
+              prefix = "inla.plots/figure-",
               ...)
  }
  \arguments{
@@ -43,15 +43,17 @@
    \item{postscript}{Boolean indicating if postscript files should be produced instead}
    \item{pdf}{Boolean indicating if PDF files should be produced instead}
    \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.} 
+   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
  }
  \value{The return value is a list of the files created (if any).}
  \author{Havard Rue \email{hrue@math.ntnu.no} }
  \seealso{\code{\link{inla}}}
  \examples{
-     result = inla(...)
-     plot(result)
-     plot(result, single=TRUE)
-     plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+\dontrun{
+result = inla(...)
+plot(result)
+plot(result, single=TRUE)
+plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+   }
  }
  \keyword{plot}
