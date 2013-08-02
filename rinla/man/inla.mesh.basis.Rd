@@ -1,34 +1,61 @@
 \name{inla.mesh.basis}
 \alias{inla.mesh.basis}
 \title{
-  Basis functions for an inla.mesh
+  Basis functions for inla.mesh
 }
 \description{
-  Calculate basis functions on an \code{\link{inla.mesh}}
+  Calculate basis functions on a 1d or 2d \code{\link{inla.mesh}}
 }
 \usage{
 inla.mesh.basis(mesh,
-                type=c("b.spline", "sph.harm"),
+                type="b.spline",
                 n=3,
                 degree=2,
-                knot.placement=c("uniform.area","uniform.latitude"),
-                rot.inv=TRUE)
+                knot.placement="uniform.area",
+                rot.inv=TRUE,
+                boundary="free",
+                free.clamped=TRUE,
+                ...)
 }
 \arguments{
   \item{mesh}{
+    An \code{inla.mesh.1d} or \code{inla.mesh} object.
   }
   \item{type}{
+    \code{b.spline} (default) for B-spline basis functions,
+    \code{sph.harm} for spherical harmonics (available opnly for meshes on the
+    sphere)
   }
   \item{n}{
-    For B-splines, the number of basis functions.  For spherical
-    harmonics, \code{n} is the maximal harmonic order.
+    For B-splines, the number of basis functions in each direction (for
+    1d meshes \code{n} must be a scalar, and for planar 2d meshes a 2-vector).
+    For spherical harmonics, \code{n} is the maximal harmonic order.
   }
   \item{degree}{
     Degree of B-spline polynomials.
+    See \code{\link{inla.mesh.1d}}.
   }
   \item{knot.placement}{
+    For B-splines on the sphere, controls the latitudinal placements of
+    knots. \code{"uniform.area"} (default) gives uniform spacing in
+    sin(latitude), \code{"uniform.latitude"} gives uniform spacing in
+    latitudes.
   }
   \item{rot.inv}{
+    For spherical harmonics on a sphere, \code{rot.inv=TRUE} gives the
+    rotationally invariant subset of basis functions.
+  }
+  \item{boundary}{
+    Boundary specification, default is free boundaries.
+    See \code{\link{inla.mesh.1d}} for more information.
+  }
+  \item{free.clamped}{
+    If \code{TRUE} and \code{boundary} is \code{"free"}, the boundary
+    basis functions are clamped to 0/1 at the interval boundary by
+    repeating the boundary knots.
+  }
+  \item{...}{
+    
   }
 }
 \details{
@@ -52,17 +79,20 @@ inla.mesh.basis(mesh,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.create}}
+  \code{\link{inla.mesh.1d}}
+  \code{\link{inla.mesh.2d}}
 }
 \examples{
 n = 100
 loc = matrix(runif(n*2), n, 2)
-mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
-basis = inla.mesh.basis(mesh, n=5)
+mesh = inla.mesh.2d(loc, max.edge=0.05)
+basis = inla.mesh.basis(mesh, n=c(4,5))
 
 proj = inla.mesh.projector(mesh)
-image(proj$x, proj$y, inla.mesh.projector(proj, basis[,2]))
-plot(old.mesh.class(mesh), basis[,2], draw.edges=FALSE, draw.vertices=FALSE)
+image(proj$x, proj$y, inla.mesh.project(proj, basis[,7]))
+if (require(rgl)) {
+  plot(mesh, rgl=TRUE, col=basis[,7], draw.edges=FALSE, draw.vertices=FALSE)
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
