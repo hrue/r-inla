@@ -2243,7 +2243,7 @@
                      n.div.by = NULL,
                      n.required = TRUE,
                      set.default.values = TRUE,
-                     pdf = "z.pdf", 
+                     pdf = "z", 
                      status = "experimental"
                      ),
 
