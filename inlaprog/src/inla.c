@@ -14408,7 +14408,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 		char *Am = NULL, *Bm = NULL;
 		GMRFLib_tabulate_Qfunc_tp *Qfunc_A = NULL, *Qfunc_B = NULL;
-		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *tmp_graph = NULL, *gs[2];
+		GMRFLib_graph_tp *graph_A = NULL, *graph_B = NULL, *graph_AB = NULL, *gs[2];
 		inla_z_arg_tp *arg = NULL, *arg_orig;
 		double **log_prec_orig;
 
@@ -14440,7 +14440,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_z;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
-		mb->f_rankdef[mb->nf] = 0;
+		mb->f_rankdef[mb->nf] = 0;		       /* default value */
 		GMRFLib_copy_graph(&(mb->f_graph[mb->nf]), graph_AB);
 		GMRFLib_copy_graph(&(mb->f_graph_orig[mb->nf]), graph_AB);
 		break;
@@ -14832,7 +14832,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->f_rankdef[mb->nf] = 1.0;
 				}
 			} else {
-				mb->f_rankdef[mb->nf] = rwdef->order;
+				abort();
 			}
 			GMRFLib_make_rw_graph(&(mb->f_graph[mb->nf]), rwdef);
 			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
@@ -14916,8 +14916,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			for (j = 0; j < nnc; j++) {
 				printf("\t\tConstraint[%1d]\n", j);
-				for (i = 0; i < DMIN(PREVIEW, mb->f_N[mb->nf]); i++) {
-					printf("\t\t\tA[%1d] = %f\n", i, mb->f_constr[mb->nf]->a_matrix[i * nnc + j]);
+				int k = 0;
+				for (i = 0; i < mb->f_N[mb->nf]; i++) {
+					double a = mb->f_constr[mb->nf]->a_matrix[i * nnc + j];
+					if (!ISZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
+						printf("\t\t\tA[%1d] = %f\n", i, a);
+						k++;
+					}
+					if (k > PREVIEW)
+						break;
 				}
 				printf("\t\t\te[%1d] = %f\n", j, mb->f_constr[mb->nf]->e_vector[j]);
 			}
@@ -14944,7 +14951,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	} else {
 		/*
 		 * use the previously set default value for the rankdef.  only in the case of a proper model, correct for sumzero
-		 
 		 * constraint 
 		 */
 		if (ISZERO(mb->f_rankdef[mb->nf])) {
