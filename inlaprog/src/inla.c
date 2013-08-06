@@ -17711,7 +17711,9 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(mb->f_graph_orig[i]->n, double);
+			double *cc_add = Calloc(arg->n * arg->m, double);
+
+			assert(mb->f_graph_orig[i]->n == arg->n * arg->m);
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
@@ -17724,8 +17726,11 @@ double extra(double *theta, int ntheta, void *argument)
 				{
 					int ii;
 					double eps = GMRFLib_eps(0.5);
-
-					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
+					
+					/* 
+					 * only need to add for the z-part; the last m components.
+					 */
+					for (ii = arg->n; ii < arg->n + arg->m; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
 
