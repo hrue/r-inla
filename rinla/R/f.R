@@ -541,6 +541,9 @@
         if (is.null(Z)) {
             stop("With model [z] then covariate-matrix Z is required. Example: f(ind, Z=Z, model=\"z\")")
         }
+        if (!is.null(rankdef) && rankdef != 0) {
+            stop("Option rankdef!=0, is not allowed for model='z'; use 'constr' or 'extraconstr' to define intrinsic models from proper ones.")
+        }
         if (is.null(n)) {
             n = sum(dim(Z))
         }
