@@ -93,30 +93,32 @@ mv -f $DD/$zipINLA .
 ls -l INLA*gz INLA*zip
 www=../www/binaries
 
+old="$tgzINLA-$bdate"
+
 if [ $# -ge 1 -a "$1" == "1" ]; then
-	cp -v $tgzINLA Old/"$tgzINLA-$bdate"
-
-	cp -v $tgzINLA $www/INLA.tgz
-	cp -v $zipINLA $www/INLA.zip
-	cp -v $SRC     INLA-source.tgz
-
-	cp -v $tgzINLA $www/testing/INLA.tgz
-	cp -v $zipINLA $www/testing/INLA.zip
-	cp -v $SRC     $www/testing/INLA-source.tgz
-
-	echo $bdate >  $www/build.date
-	echo $bdate >  $www/testing/build.date
-
-	##gnome-terminal --title=hrue@mc -x ssh -t mc.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/INLA.tgz; sudo R CMD INSTALL INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/lib64/R/library; sleep 3" &
+    cp -v $tgzINLA Old/$old ## remove?
+    cp -v $tgzINLA $www/INLA.tgz
+    cp -v $zipINLA $www/INLA.zip
+    cp -v $SRC     INLA-source.tgz
+    cp -v $tgzINLA $www/testing/Old/$old
+    cp -v $tgzINLA $www/testing/INLA.tgz
+    cp -v $zipINLA $www/testing/INLA.zip
+    cp -v $SRC     $www/testing/INLA-source.tgz
+    
+    echo $bdate >  $www/build.date
+    echo $bdate >  $www/testing/build.date
+    
+    ##gnome-terminal --title=hrue@mc -x ssh -t mc.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/INLA.tgz; sudo R CMD INSTALL INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/lib64/R/library; sleep 3" &
 
 fi
 
 if [ $# -ge 1 -a "$1" == "2" ]; then
-	cp -v $tgzINLA Old/"$tgzINLA-$bdate"
-	cp -v $tgzINLA $www/testing/INLA.tgz
-	cp -v $zipINLA $www/testing/INLA.zip
-	cp -v $SRC     $www/testing/INLA-source.tgz
-	echo $bdate >  $www/testing/build.date
+    cp -v $tgzINLA Old/$old ## remove?
+    cp -v $tgzINLA $www/testing/Old/$old
+    cp -v $tgzINLA $www/testing/INLA.tgz
+    cp -v $zipINLA $www/testing/INLA.zip
+    cp -v $SRC     $www/testing/INLA-source.tgz
+    echo $bdate >  $www/testing/build.date
 fi
 
 {
