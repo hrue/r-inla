@@ -10,6 +10,9 @@ all:; \
 	-make -C gmrflib TAGS
 	## update the TAGS-file
 	-make -C inlaprog src/TAGS
+	##
+	-make doc-links
+
 
 ## The following finds all .tex files in
 ##   r-inla.org/doc/{prior,latent,likelihood}
