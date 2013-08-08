@@ -49,8 +49,8 @@
 ##!X = inla.qsolve(Q, B, method = "backward")
 ##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
 ##!
-##!Q.file = inla.write.fmesher.file(Q)
-##!B.file = inla.write.fmesher.file(B)
+##!Q.file = INLA:::inla.write.fmesher.file(Q)
+##!B.file = INLA:::inla.write.fmesher.file(B)
 ##!X = inla.qsolve(Q.file, B.file, method = "backward")
 ##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
 ##!unlink(Q.file)
