@@ -30,7 +30,7 @@ inla.spde1.create(mesh,
 }
 \details{
   Note: This is an old spde object format retained for backwards
-  compatibility.  Please use \link{\code{inla.spde2}} models for new
+  compatibility.  Please use \code{\link{inla.spde2}} models for new
   code.
   
   This method constructs an object for SPDE models.  Currently implemented:
