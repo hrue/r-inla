@@ -98,6 +98,7 @@ result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
 plot(mesh)
+\donttest{
 if (require(rgl)) {
   ## Plot the posterior mean:
   plot(mesh, rgl=TRUE,
@@ -107,7 +108,8 @@ if (require(rgl)) {
   plot(mesh, rgl=TRUE,
        result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
        color.palette = colorRampPalette(c("blue","green","red")))
-  }
+}
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

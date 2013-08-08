@@ -91,6 +91,7 @@ result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
 plot(mesh)
+\donttest{
 if (require(rgl)) {
   col.pal = colorRampPalette(c("blue","cyan","green","yellow","red"))
   ## Plot the posterior mean:
@@ -101,7 +102,8 @@ if (require(rgl)) {
   plot(mesh, rgl=TRUE,
        result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
        color.palette = col.pal)
-}  
+}
+}
 result.field = inla.spde.result(result, "field", spde)
 plot(result.field$marginals.range.nominal[[1]])
 }
