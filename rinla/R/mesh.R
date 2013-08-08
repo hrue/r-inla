@@ -500,9 +500,12 @@ inla.mesh.map <- function(loc,
 inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
                               y=seq(0, 1, length.out=2),
                               z=NULL,
-                              dims = (inla.ifelse(is.matrix(x),
-                                                  dim(x),
-                                                  c(length(x), length(y)))),
+                              dims =
+                              if (is.matrix(x)) {
+                                  dim(x)
+                              } else {
+                                  c(length(x), length(y))
+                              },
                               units = NULL)
 {
     units = match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
