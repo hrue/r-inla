@@ -30,7 +30,7 @@
  r = inla.qreordering(g)
  m = inla.graph2matrix(g)
  r = inla.qreordering(m)
- m.file = inla.write.fmesher.file(m)
+ m.file = INLA:::inla.write.fmesher.file(m)
  r = inla.qreordering(m.file)
  unlink(m.file)
 }

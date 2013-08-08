@@ -48,7 +48,7 @@
  marginal.variances = diag(inla.qinv(Q))
 
  ## read the sparse matrix from a file in the 'i, j, value' format
- filename = inla.tempfile()
+ filename = INLA:::inla.tempfile()
  write(t(cbind(Q@i+1L,  Q@j+1L,  Q@x)), ncol=3, file=filename)
  Qinv = inla.qinv(filename)
  unlink(filename)
