@@ -1,15 +1,43 @@
-inla.mesh.segm = function(...)
-{
-    warning("'inla.mesh.segm' is deprecated.  Use 'inla.mesh.segment' instead.")
-    return(inla.mesh.segment(...))
-}
+## Export: inla.contour.segment inla.delaunay inla.fmesher.smorg
+## Export: inla.generate.colors inla.mesh inla.mesh.1d inla.mesh.1d.A
+## Export: inla.mesh.1d.bary inla.mesh.1d.fem inla.mesh.2d inla.mesh.basis
+## Export: inla.mesh.boundary inla.mesh.create inla.mesh.create.helper
+## Export: inla.mesh.deriv inla.mesh.extract.segments inla.mesh.fem
+## Export: inla.mesh.interior inla.mesh.lattice inla.mesh.map
+## Export: inla.mesh.map.lim inla.mesh.parse.segm.input inla.mesh.query
+## Export: inla.mesh.segment inla.nonconvex.hull inla.nonconvex.hull.basic
+## Export: inla.parse.queries inla.simplify.curve
+## Export: plot.inla.trimesh match.arg.vector
+## Internal: inla.internal.sp2segment.join inla.mesh.filter.locations
+##
+## S3methods; also export some methods explicitly
+## Export: extract.groups inla.mesh.project inla.mesh.projector
+## Export: inla.sp2segment
+## Export: extract.groups!inla.mesh.segment
+## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
+## Export: inla.mesh.project.inla.mesh.projector
+## Export: inla.mesh.projector.inla.mesh inla.mesh.projector.inla.mesh.1d
+## Export: inla.mesh.project!inla.mesh inla.mesh.project!inla.mesh.1d
+## Export: inla.mesh.project!inla.mesh.projector
+## Export: inla.mesh.projector!inla.mesh inla.mesh.projector!inla.mesh.1d
+## Export: inla.sp2segment.Polygon inla.sp2segment.Polygons
+## Export: inla.sp2segment.SpatialPolygons
+## Export: inla.sp2segment.SpatialPolygonsDataFrame
+## Export: inla.sp2segment!Polygon inla.sp2segment!Polygons
+## Export: inla.sp2segment!SpatialPolygons
+## Export: inla.sp2segment!SpatialPolygonsDataFrame
+## Export: lines.inla.mesh.segment plot.inla.mesh
+## Export: print.summary.inla.mesh summary.inla.mesh
+## Export: lines!inla.mesh.segment plot!inla.mesh
+## Export: print!summary.inla.mesh summary!inla.mesh
 
 
-inla.mesh.segment =
-    function(loc=NULL,
-             idx=NULL,
-             grp=NULL,
-             is.bnd=TRUE)
+
+
+inla.mesh.segment <- function(loc=NULL,
+                              idx=NULL,
+                              grp=NULL,
+                              is.bnd=TRUE)
 {
     if ((missing(loc) || is.null(loc)) &&
         (missing(idx) || is.null(idx)))
@@ -91,12 +119,12 @@ inla.mesh.segment =
 }
 
 
-lines.inla.mesh.segment =
-    function(segm, loc=NULL, col=NULL,
-             colors=c("black", "blue", "red", "green"),
-             add=TRUE, xlim=NULL, ylim=NULL,
-             rgl=FALSE, ...)
+lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
+                                    colors=c("black", "blue", "red", "green"),
+                                    add=TRUE, xlim=NULL, ylim=NULL,
+                                    rgl=FALSE, ...)
 {
+    segm = x
     if (!is.null(segm$loc))
         loc = segm$loc
     stopifnot(!is.null(loc), ncol(loc)>=2)
@@ -142,8 +170,12 @@ lines.inla.mesh.segment =
 
 
 
-`inla.generate.colors` = function(color, color.axis = NULL, color.n=512,
-  color.palette = cm.colors, color.truncate=FALSE, alpha=NULL)
+`inla.generate.colors` <- function(color,
+                                   color.axis = NULL,
+                                   color.n=512,
+                                   color.palette = cm.colors,
+                                   color.truncate=FALSE,
+                                   alpha=NULL)
   {
     if (is.character(color)) {
       colors = color
@@ -205,11 +237,14 @@ lines.inla.mesh.segment =
   }
 
 
-`plot.inla.trimesh` = function(TV, S, color = NULL, color.axis = NULL,
-  color.n=512, color.palette = cm.colors, color.truncate=FALSE, alpha=NULL,
-  lwd = 1, specular = "black",
-  draw.vertices=TRUE, draw.edges=TRUE, edge.color=rgb(0.3, 0.3, 0.3), ...)
+`plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
+                                color.n=512, color.palette = cm.colors,
+                                color.truncate=FALSE, alpha=NULL,
+                                lwd = 1, specular = "black",
+                                draw.vertices=TRUE, draw.edges=TRUE,
+                                edge.color=rgb(0.3, 0.3, 0.3), ...)
 {
+    TV = x
     require(rgl)
 
     ## Make indices 1 based.  Deprecated and is deactivated.
@@ -271,71 +306,28 @@ lines.inla.mesh.segment =
 ##    Ecol = Ecol[tETV]
 
 
-`plot.inla.fmesher.mesh` = function(m, color = "green", size = 2, lwd=2, add=FALSE, draw.vertices=TRUE, ...)
+
+
+
+plot.inla.mesh <- function(x,
+                           col="white",
+                           t.sub=1:nrow(mesh$graph$tv),
+                           add=FALSE,
+                           lwd=1,
+                           xlim = range(mesh$loc[,1]),
+                           ylim = range(mesh$loc[,2]),
+                           main = NULL,
+                           rgl = FALSE,
+                           size = 2,
+                           draw.vertices=FALSE,
+                           vertex.color="black",
+                           draw.edges=TRUE,
+                           edge.color=rgb(0.3, 0.3, 0.3),
+                           draw.segments=draw.edges,
+                           ...)
 {
-    warning("This function is deprecated.  Use plot(mesh, rgl=TRUE, ...) instead.")
-
-    ## a simple function that plots the mesh from inla.fmesher.mesh()
-    require(rgl)
-
-    if (length(color) == 1)
-        color = rep(color, dim(m$mesh$s)[1])
-
-    stopifnot(inla.require("rgl"))
-    if (!add) {
-        dev=open3d()
-        view3d(0, 0, fov=0)
-    } else {
-        dev = NULL
-    }
-    if (draw.vertices)
-        points3d(m$mesh$s[m$locations.idx, ],
-                 size=2*size, lwd=lwd, color = "blue", ...)
-    plot.inla.trimesh(m$mesh$tv, m$mesh$s, color = color,
-                      size=size, lwd=lwd,
-                      draw.vertices=draw.vertices, add=add, ...)
-
-    return (invisible(dev))
-}
-
-
-old.mesh.class = function(...)
-{
-    UseMethod("old.mesh.class")
-}
-
-old.mesh.class.inla.mesh = function(mesh, ...)
-{
-    warning("The old mesh class is no longer supported.")
-    fmesh=list(mesh=mesh)
-    fmesh$mesh$s = mesh$loc
-    fmesh$mesh$tv = mesh$graph$tv
-    fmesh$locations.idx = mesh$idx$loc
-    class(fmesh)="inla.fmesher.mesh"
-    return(fmesh)
-}
-
-
-
-plot.inla.mesh =
-    function(mesh,
-             t.sub=1:nrow(mesh$graph$tv),
-             add=FALSE,
-             lwd=1,
-             col="white",
-             xlim = range(mesh$loc[,1]),
-             ylim = range(mesh$loc[,2]),
-             main = NULL,
-             rgl = FALSE,
-             size = 2,
-             draw.vertices=FALSE,
-             vertex.color="black",
-             draw.edges=TRUE,
-             edge.color=rgb(0.3, 0.3, 0.3),
-             draw.segments=draw.edges,
-             ...)
-{
-    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+    inla.require.inherits(x, "inla.mesh", "'mesh'")
+    mesh = x
 
     if (rgl) {
         stopifnot(inla.require("rgl"))
@@ -408,9 +400,9 @@ plot.inla.mesh =
 }
 
 
-inla.mesh.map.lim =
-    function(loc=NULL,
-             projection=c("default", "longlat", "longsinlat", "mollweide"))
+inla.mesh.map.lim <- function(loc=NULL,
+                              projection=(c("default", "longlat",
+                                            "longsinlat", "mollweide")))
 {
     projection = match.arg(projection)
     if (identical(projection, "default")) {
@@ -433,10 +425,10 @@ inla.mesh.map.lim =
     return(lim)
 }
 
-inla.mesh.map =
-    function(loc,
-             projection=c("default", "longlat", "longsinlat", "mollweide"),
-             inverse=TRUE)
+inla.mesh.map <- function(loc,
+                          projection=(c("default", "longlat",
+                                        "longsinlat", "mollweide")),
+                          inverse=TRUE)
 {
     projection = match.arg(projection)
     if (identical(projection, "default")) {
@@ -505,14 +497,13 @@ inla.mesh.map =
 }
 
 
-inla.mesh.lattice =
-    function(x=seq(0, 1, length.out=2),
-             y=seq(0, 1, length.out=2),
-             z=NULL,
-             dims = (inla.ifelse(is.matrix(x),
-                                 dim(x),
-                                 c(length(x), length(y)))),
-             units = NULL)
+inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
+                              y=seq(0, 1, length.out=2),
+                              z=NULL,
+                              dims = (inla.ifelse(is.matrix(x),
+                                                  dim(x),
+                                                  c(length(x), length(y)))),
+                              units = NULL)
 {
     units = match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
 
@@ -571,16 +562,15 @@ inla.mesh.lattice =
 }
 
 
-extract.groups = function(...)
+extract.groups <- function(...)
 {
     UseMethod("extract.groups")
 }
 
-extract.groups.inla.mesh.segment =
-    function(segm,
-             groups,
-             groups.new=groups,
-             ...)
+extract.groups.inla.mesh.segment <- function(segm,
+                                             groups,
+                                             groups.new=groups,
+                                             ...)
 {
     inla.require.inherits(segm, "inla.mesh.segment", "'segm'")
 
@@ -609,14 +599,13 @@ extract.groups.inla.mesh.segment =
 
 
 
-inla.mesh.parse.segm.input =
-    function(boundary=NULL,
-             interior=NULL,
-             segm.offset=0L,
-             loc.offset=0L)
+inla.mesh.parse.segm.input <- function(boundary=NULL,
+                                       interior=NULL,
+                                       segm.offset=0L,
+                                       loc.offset=0L)
 {
 ###########################################
-    homogenise.segm.input = function(x, is.bnd)
+    homogenise.segm.input <- function(x, is.bnd)
     {
         if (is.matrix(x) || is.vector(x)) { ## Coordinates or indices
             x = (inla.ifelse(is.matrix(x),x,
@@ -641,7 +630,7 @@ inla.mesh.parse.segm.input =
         return(ret)
     }
 ##################################################
-    homogenise.segm.grp = function(input) {
+    homogenise.segm.grp <- function(input) {
         grp.idx = 0L
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
             inla.require.inherits(input[[k]],
@@ -660,7 +649,7 @@ inla.mesh.parse.segm.input =
         return(input)
     }
 ##################################################
-    parse.segm.input = function(input, segm.offset=0L, loc.offset=0L)
+    parse.segm.input <- function(input, segm.offset=0L, loc.offset=0L)
     {
         loc = NULL
         bnd = list(loc=NULL, idx = matrix(,0,2), grp = matrix(,0,1))
@@ -731,7 +720,7 @@ inla.mesh.parse.segm.input =
 ## Old code.  Filtering is now done in fmesher itself.
 ## Retained for now so that we can check if the results are the same.
 ##
-inla.mesh.filter.locations = function(loc, cutoff)
+inla.mesh.filter.locations <- function(loc, cutoff)
     {
         ## Map locations to nodes, avoiding near-duplicates.
         loc.n = nrow(loc)
@@ -781,7 +770,7 @@ inla.mesh.filter.locations = function(loc, cutoff)
 
 
 
-inla.mesh = function(...)
+inla.mesh <- function(...)
 {
     args = list(...)
     if (length(args)>0) {
@@ -795,21 +784,20 @@ inla.mesh = function(...)
 }
 
 
-inla.mesh.create =
-    function(loc=NULL, tv=NULL,
-             boundary=NULL, interior=NULL,
-             extend = (missing(tv) || is.null(tv)),
-             refine=FALSE,
-             lattice=NULL,
-             globe=NULL,
-             cutoff = 0,
-             plot.delay = NULL,
-             data.dir,
-             keep = (!missing(data.dir) && !is.null(data.dir)),
-             timings = FALSE)
+inla.mesh.create <- function(loc=NULL, tv=NULL,
+                             boundary=NULL, interior=NULL,
+                             extend = (missing(tv) || is.null(tv)),
+                             refine=FALSE,
+                             lattice=NULL,
+                             globe=NULL,
+                             cutoff = 0,
+                             plot.delay = NULL,
+                             data.dir,
+                             keep = (!missing(data.dir) && !is.null(data.dir)),
+                             timings = FALSE)
 {
     if (!timings) {
-        system.time = function(expr) {
+        system.time <- function(expr) {
             expr
             structure(c(0,0,0,0,0), class = "proc_time")
         }
@@ -1113,8 +1101,11 @@ inla.mesh.create =
 
 
 
-inla.mesh.extract.segments <-
-    function(mesh.loc, mesh.idx, mesh.grp, grp=NULL, is.bnd)
+inla.mesh.extract.segments <- function(mesh.loc,
+                                       mesh.idx,
+                                       mesh.grp,
+                                       grp=NULL,
+                                       is.bnd)
 {
     segments = list()
     if (nrow(mesh.idx)>0) {
@@ -1137,8 +1128,7 @@ inla.mesh.extract.segments <-
         return(NULL)
 }
 
-inla.mesh.boundary <-
-    function(mesh, grp=NULL)
+inla.mesh.boundary <- function(mesh, grp=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1149,8 +1139,7 @@ inla.mesh.boundary <-
                                       TRUE))
 }
 
-inla.mesh.interior <-
-    function(mesh, grp=NULL)
+inla.mesh.interior <- function(mesh, grp=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1358,7 +1347,7 @@ inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 ##
 
 
-inla.delaunay = function(loc, ...)
+inla.delaunay <- function(loc, ...)
 {
     hull = chull(loc[,1],loc[,2])
     bnd = inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE)
@@ -1376,16 +1365,16 @@ inla.delaunay = function(loc, ...)
 
 
 
-inla.mesh.query = function(mesh, ...)
+inla.mesh.query <- function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    not.known = function (mesh, queryname)
+    not.known <- function(mesh, queryname)
     {
         stop(paste("Query '", queryname,
                    "' unknown.", sep=""))
     }
-    not.implemented = function (mesh, queryname)
+    not.implemented <- function(mesh, queryname)
     {
         stop(paste("Query '", queryname,
                    "' not implemented for inla.mesh.", sep=""))
@@ -1489,7 +1478,7 @@ inla.mesh.query = function(mesh, ...)
     return(result)
 }
 
-summary.inla.mesh = function(object, verbose=FALSE, ...)
+summary.inla.mesh <- function(object, verbose=FALSE, ...)
 {
     x=object
     ## provides a summary for a mesh object
@@ -1510,7 +1499,7 @@ summary.inla.mesh = function(object, verbose=FALSE, ...)
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
 
-    my.segm = function(x) {
+    my.segm <- function(x) {
         if (is.null(x))
             return(list(n=0, grps=NULL))
         n = max(0, nrow(x$idx))
@@ -1533,9 +1522,9 @@ summary.inla.mesh = function(object, verbose=FALSE, ...)
     return (ret)
 }
 
-print.summary.inla.mesh = function(x, ...)
+print.summary.inla.mesh <- function(x, ...)
 {
-    my.print.proc_time = function (x, ...)
+    my.print.proc_time <- function (x, ...)
     {
         if (!is.matrix(x)) {
             y = matrix(x,1,5)
@@ -1575,7 +1564,7 @@ print.summary.inla.mesh = function(x, ...)
     cat("Vertices:\t", as.character(x$nV), "\n", sep="")
     cat("Triangles:\t", as.character(x$nT), "\n", sep="")
 
-    my.print.segm = function(x) {
+    my.print.segm <- function(x) {
         cat(as.character(x$n))
         if (!is.null(x$grps)) {
             n = length(x$grps)
@@ -1604,12 +1593,12 @@ print.summary.inla.mesh = function(x, ...)
 
 
 
-inla.mesh.project = function(...)
+inla.mesh.project <- function(...)
 {
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
+inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1642,7 +1631,7 @@ inla.mesh.project.inla.mesh = function(mesh, loc, field=NULL, ...)
     return (list(t=ti, bary=b, A=A, ok=ok))
 }
 
-inla.mesh.project.inla.mesh.1d = function(mesh, loc, field=NULL, ...)
+inla.mesh.project.inla.mesh.1d <- function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
@@ -1658,7 +1647,7 @@ inla.mesh.project.inla.mesh.1d = function(mesh, loc, field=NULL, ...)
 }
 
 
-inla.mesh.project.inla.mesh.projector =
+inla.mesh.project.inla.mesh.projector <-
     function(projector, field, ...)
 {
     inla.require.inherits(projector, "inla.mesh.projector", "'projector'")
@@ -1687,12 +1676,12 @@ inla.mesh.project.inla.mesh.projector =
 }
 
 
-inla.mesh.projector = function(...)
+inla.mesh.projector <- function(...)
 {
     UseMethod("inla.mesh.projector")
 }
 
-inla.mesh.projector.inla.mesh =
+inla.mesh.projector.inla.mesh <-
     function(mesh,
              loc=NULL,
              lattice=NULL,
@@ -1745,7 +1734,7 @@ inla.mesh.projector.inla.mesh =
 }
 
 
-inla.mesh.projector.inla.mesh.1d =
+inla.mesh.projector.inla.mesh.1d <-
     function(mesh,
              loc=NULL,
              xlim=mesh$interval,
@@ -1768,7 +1757,7 @@ inla.mesh.projector.inla.mesh.1d =
 
 
 
-inla.internal.make.spline.mesh =
+inla.internal.make.spline.mesh <-
     function(interval, m, degree, boundary, free.clamped)
 {
     boundary =
@@ -1815,16 +1804,15 @@ inla.internal.make.spline.mesh =
 }
 
 
-inla.mesh.basis =
-    function(mesh,
-             type="b.spline",
-             n=3,
-             degree=2,
-             knot.placement="uniform.area",
-             rot.inv=TRUE,
-             boundary="f",
-             free.clamped=TRUE,
-             ...)
+inla.mesh.basis <- function(mesh,
+                            type="b.spline",
+                            n=3,
+                            degree=2,
+                            knot.placement="uniform.area",
+                            rot.inv=TRUE,
+                            boundary="free",
+                            free.clamped=TRUE,
+                            ...)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
 
@@ -1924,7 +1912,7 @@ inla.mesh.basis =
 
 
 
-inla.parse.queries = function(...)
+inla.parse.queries <-function(...)
 {
     queries = list(...)
     if (length(queries)==0)
@@ -1964,17 +1952,16 @@ inla.parse.queries = function(...)
 
 
 
-`inla.fmesher.smorg` =
-    function(loc, tv,
-             fem=NULL,
-             aniso=NULL,
-             gradients=FALSE,
-             sph0=NULL,
-             sph=NULL,
-             bspline=NULL,
-             points2mesh=NULL,
-             output=NULL,
-             keep=FALSE)
+`inla.fmesher.smorg` <- function(loc, tv,
+                                 fem=NULL,
+                                 aniso=NULL,
+                                 gradients=FALSE,
+                                 sph0=NULL,
+                                 sph=NULL,
+                                 bspline=NULL,
+                                 points2mesh=NULL,
+                                 output=NULL,
+                                 keep=FALSE)
 {
     prefix = inla.fmesher.make.prefix(NULL, NULL)
 
@@ -2070,38 +2057,10 @@ inla.parse.queries = function(...)
 
 
 
-inla.mesh.1d.old = function(loc, interval=range(loc), cyclic=FALSE)
-{
-    loc.orig = loc
-    if (cyclic)
-        loc = sort(unique(((loc-interval[1]) %% diff(interval)) + interval[1]))
-    else
-        loc = sort(unique(pmax(interval[1], pmin(interval[2], loc))))
-    if (length(loc)<2)
-        stop("Meshes must have at least two unique nodes.")
-    if (loc[1]<interval[1])
-        stop("All 'loc' must be >= interval[1].")
-    if (loc[length(loc)]>interval[2])
-        stop("All 'loc' must be <= interval[2].")
-
-    mesh =
-        list(n=length(loc),
-             loc=loc,
-             interval=interval,
-             cyclic=cyclic,
-             manifold = inla.ifelse(cyclic, "S1", "R1"),
-             idx = list(loc=NULL))
-    class(mesh) = "inla.mesh.1d"
-
-    mesh$idx$loc =
-        inla.mesh.1d.bary(mesh, loc.orig, method="nearest")$index[,1]
-
-    return(invisible(mesh))
-}
-
-
 ## Like match.arg, but for a vector of options 'arg'
-match.arg.vector = function(arg=NULL, choices, length=NULL) {
+match.arg.vector <- function(arg=NULL,
+                             choices,
+                             length=NULL) {
     if (is.null(length)) {
         length = inla.ifelse(is.null(arg), 1, length(arg))
     }
@@ -2121,7 +2080,12 @@ match.arg.vector = function(arg=NULL, choices, length=NULL) {
 }
 
 ## Deprecated: cyclic
-inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.clamped=FALSE, cyclic=FALSE)
+inla.mesh.1d <- function(loc,
+                         interval=range(loc),
+                         boundary=NULL,
+                         degree=1,
+                         free.clamped=FALSE,
+                         cyclic=FALSE)
 {
     ## Note: do not change the order of these options without also
     ## changing 'basis.reduction' below.
@@ -2250,7 +2214,7 @@ inla.mesh.1d = function(loc, interval=range(loc), boundary=NULL, degree=1, free.
     return(invisible(mesh))
 }
 
-inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
+inla.mesh.1d.bary <- function(mesh, loc, method=c("linear", "nearest"))
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     method = match.arg(method)
@@ -2283,7 +2247,7 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
     }
 
     ## Binary split method:
-    do.the.split = function(knots, loc) {
+    do.the.split <- function(knots, loc) {
         n = length(knots)
         if (n <= 2L) {
             return(rep(1L, length(loc)))
@@ -2324,12 +2288,11 @@ inla.mesh.1d.bary = function(mesh, loc, method=c("linear", "nearest"))
     return(list(index=index, bary=bary))
 }
 
-inla.mesh.1d.A =
-    function(mesh, loc,
-             weights=NULL,
-             derivatives=NULL,
-             method=c("linear", "nearest", "quadratic")
-             )
+inla.mesh.1d.A <- function(mesh, loc,
+                           weights=NULL,
+                           derivatives=NULL,
+                           method=c("linear", "nearest", "quadratic")
+                           )
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
@@ -2384,7 +2347,7 @@ inla.mesh.1d.A =
                                    is.null(derivatives),
                                    FALSE, TRUE))
 
-            adjust.matrix = function(mesh, A) {
+            adjust.matrix <- function(mesh, A) {
                 A = inla.as.dgTMatrix(A)
                 i = A@i+1L
                 j = A@j+1L
@@ -2593,7 +2556,7 @@ inla.mesh.1d.A =
     }
 }
 
-inla.mesh.1d.fem = function(mesh)
+inla.mesh.1d.fem <- function(mesh)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
@@ -2736,7 +2699,7 @@ inla.mesh.1d.fem = function(mesh)
 
 
 
-inla.mesh.fem = function(mesh, order=2)
+inla.mesh.fem <- function(mesh, order=2)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     if (inherits(mesh, "inla.mesh.1d")) {
@@ -2755,7 +2718,7 @@ inla.mesh.fem = function(mesh, order=2)
 
 
 
-inla.mesh.deriv = function(mesh, loc)
+inla.mesh.deriv <- function(mesh, loc)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     if (inherits(mesh, "inla.mesh.1d")) {
@@ -2804,7 +2767,7 @@ inla.mesh.deriv = function(mesh, loc)
 
 
 ## Input: list of segments, all closed polygons.
-inla.sp2segment.internal.join = function(inp, grp=NULL) {
+inla.internal.sp2segment.join <- function(inp, grp=NULL) {
     out.loc = matrix(0,0,2)
     out.idx = matrix(0,0,2)
     if (is.null(grp)) {
@@ -2834,13 +2797,13 @@ inla.sp2segment.internal.join = function(inp, grp=NULL) {
 }
 
 
-inla.sp2segment = function(...)
+inla.sp2segment <- function(...)
 {
     require(sp)
     UseMethod("inla.sp2segment")
 }
 
-inla.sp2segment.SpatialPolygons =
+inla.sp2segment.SpatialPolygons <-
     function(sp, join=TRUE, grp=NULL, ...)
 {
     require(sp)
@@ -2851,28 +2814,28 @@ inla.sp2segment.SpatialPolygons =
         if (missing(grp)) {
             grp = 1:length(segm)
         }
-        segm = inla.sp2segment.internal.join(segm, grp=grp)
+        segm = inla.internal.sp2segment.join(segm, grp=grp)
     }
     return(segm)
 }
 
-inla.sp2segment.SpatialPolygonsDataFrame =
+inla.sp2segment.SpatialPolygonsDataFrame <-
     function(sp, ...)
 {
     return(inla.sp2segment.SpatialPolygons(sp, ...))
 }
 
-inla.sp2segment.Polygons =
+inla.sp2segment.Polygons <-
     function(sp, join=TRUE, ...)
 {
     require(sp)
     segm = as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x)))
     if (join)
-        segm = inla.sp2segment.internal.join(segm, grp=NULL)
+        segm = inla.internal.sp2segment.join(segm, grp=NULL)
     return(segm)
 }
 
-inla.sp2segment.Polygon =
+inla.sp2segment.Polygon <-
     function(sp, ...)
 {
     require(sp)
@@ -2898,7 +2861,7 @@ inla.sp2segment.Polygon =
 
 
 
-inla.simplify.curve = function(loc, idx, eps) {
+inla.simplify.curve <- function(loc, idx, eps) {
     ## Variation of Ramer-Douglas-Peucker
     ## Uses width epsilon ellipse instead of rectangle,
     ## motivated by prediction ellipse for Brownian bridge
@@ -2943,7 +2906,7 @@ inla.simplify.curve = function(loc, idx, eps) {
 }
 
 
-inla.contour.segment =
+inla.contour.segment <-
     function(x = seq(0, 1, length.out = nrow(z)),
              y = seq(0, 1, length.out = ncol(z)),
              z, nlevels = 10,
@@ -3062,7 +3025,7 @@ inla.contour.segment =
 
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
-inla.nonconvex.hull.basic =
+inla.nonconvex.hull.basic <-
     function(points, offset=-0.15, resolution=40, eps=NULL)
 {
     if (length(offset)==1)
@@ -3121,7 +3084,7 @@ inla.nonconvex.hull.basic =
 ## The implementation is based on the identity
 ##   dilation(a) & closing(b) = dilation(a+b) & erosion(b)
 ## where all operations are with respect to disks with the specified radii.
-inla.nonconvex.hull =
+inla.nonconvex.hull <-
     function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL)
 {
     if (length(resolution)==1)

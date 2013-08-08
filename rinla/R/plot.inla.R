@@ -8,7 +8,7 @@
 ##!   Takes am \code{inla} object produced by \code{inla} and plot the results
 ##! }
 ##! \usage{
-##! \method{plot}{inla}(x, 
+##! \method{plot}{inla}(x,
 ##!              plot.fixed.effects = TRUE,
 ##!              plot.lincomb = TRUE,
 ##!              plot.random.effects = TRUE,
@@ -16,10 +16,10 @@
 ##!              plot.predictor = TRUE,
 ##!              plot.q = TRUE,
 ##!              plot.cpo = TRUE,
-##!              single = FALSE, 
+##!              single = FALSE,
 ##!              postscript = FALSE,
 ##!              pdf = FALSE,
-##!              prefix = "inla.plots/figure-", 
+##!              prefix = "inla.plots/figure-",
 ##!              ...)
 ##! }
 ##! \arguments{
@@ -41,16 +41,18 @@
 ##!   \item{postscript}{Boolean indicating if postscript files should be produced instead}
 ##!   \item{pdf}{Boolean indicating if PDF files should be produced instead}
 ##!   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.} 
+##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
 ##! }
 ##! \value{The return value is a list of the files created (if any).}
 ##! \author{Havard Rue \email{hrue@math.ntnu.no} }
 ##! \seealso{\code{\link{inla}}}
 ##! \examples{
-##!     result = inla(...)
-##!     plot(result)
-##!     plot(result, single=TRUE)
-##!     plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+##!\dontrun{
+##!result = inla(...)
+##!plot(result)
+##!plot(result, single=TRUE)
+##!plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+##!   }
 ##! }
 ##! \keyword{plot}
 
@@ -63,15 +65,15 @@
              plot.predictor = TRUE,
              plot.q = TRUE,
              plot.cpo = TRUE,
-             single = FALSE, 
+             single = FALSE,
              postscript = FALSE,
-             pdf = FALSE, 
-             prefix = "inla.plots/figure-", 
+             pdf = FALSE,
+             prefix = "inla.plots/figure-",
              ...)
 {
     figure.count = 1L
     figures = c()
-    
+
     if (postscript && pdf) {
         stop("Only one of 'postscript' and 'pdf' can be generated at the time.")
     }
@@ -99,7 +101,7 @@
             found = FALSE
             while(!found) {
                 filename = paste(prefix,
-                        inla.ifelse(regexpr("/$", prefix), "", "/"), 
+                        inla.ifelse(regexpr("/$", prefix), "", "/"),
                         figure.count,
                         inla.ifelse(postscript, ".eps", ".pdf"), sep="")
                 if (file.exists(filename)) {
@@ -126,10 +128,10 @@
             if (names(dev.cur()) != "null device") {
                 dev.off()
             }
-        } 
+        }
         return (invisible())
     }
-        
+
     close.and.new.plot = function(...)
     {
         close.plot(...)
@@ -139,7 +141,7 @@
 
     ##
     initiate.plot(...)
-    
+
     if (plot.fixed.effects) {
         ## plot marginals for the fixed effects
         fix = x$marginals.fixed
@@ -161,7 +163,7 @@
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
-                
+
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.fixed[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
@@ -193,7 +195,7 @@
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
-                
+
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb.derived[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
@@ -230,7 +232,7 @@
                     par(mfrow=c(plot.layout[1], plot.layout[2]))
                 }
                 ip = ip + 1
-                
+
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
@@ -294,9 +296,9 @@
                                     if (r.N > r.n) {
                                         rep.txt = paste(rep.txt, " part:", ii, sep="")
                                     }
-                            
-                                    idx = (r.rep-1)*r.N +  (r.group-1)*r.N.orig + (ii-1)*r.n.orig + (1:r.n.orig)  
-                            
+
+                                    idx = (r.rep-1)*r.N +  (r.group-1)*r.N.orig + (ii-1)*r.n.orig + (1:r.n.orig)
+
                                     ## if the dimension is > 1, then plot the means++
                                     ##
                                     xval = NULL
@@ -330,7 +332,7 @@
                                                  axes=TRUE, ylab="", xlab="", type=tp, lwd=2)
                                         }
                                     }
-                    
+
                                     lq = grep("quan", colnames(rr))
                                     main=inla.nameunfix(labels.random[i])
 
@@ -348,7 +350,7 @@
                                                 points(xval, yval, type=tp, lty=2)
                                             } else {
                                                 points(as.factor(xval), yval, pch=19)
-                                            }                                                
+                                            }
                                             sub = gsub("quant", "%", paste(sub, colnames(qq)[j]))
                                         }
                                         title(main=inla.nameunfix(main), sub=paste(inla.nameunfix(sub), rep.txt))
@@ -374,9 +376,9 @@
                                 if (ngroup > 1) {
                                     rep.txt = paste(rep.txt, ", group", r.group)
                                 }
-                            
+
                                 idx = (r.rep-1)*ngroup + r.group
-                            
+
                                 ## if the dimension is 1, the plot the marginals
                                 ##
                                 if (!is.null(x$marginals.random[[i]])) {
@@ -441,7 +443,7 @@
             } else {
                 nm = n
             }
-        
+
             for(m in inla.ifelse(A, 1:2, 1)) {
                 if (m == 1) {
                     idx = 1:nm
@@ -461,7 +463,7 @@
                 } else {
                     msg = ""
                 }
-            
+
                 if (!is.null(lp)) {
                     close.and.new.plot(...)
                     if (!is.null(fv)) {
@@ -483,9 +485,9 @@
                         }
                         title(main=paste("Linear Predictor", msg), sub= inla.nameunfix(sub))
                     }
-                    else 
+                    else
                         title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
-            
+
                     if (single) {
                         close.and.new.plot()
                     }
@@ -503,7 +505,7 @@
                             }
                             title(main=paste("Fitted values (inv.link(lin.pred))", msg), sub = inla.nameunfix(sub))
                         }
-                        else 
+                        else
                             title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
                     }
                 }

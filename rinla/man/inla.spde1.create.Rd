@@ -1,20 +1,18 @@
-\name{inla.spde.create}
-\alias{inla.spde.create}
-\alias{inla.spde}
+\name{inla.spde1.create}
+\alias{inla.spde1.create}
+\alias{inla.spde1}
 \title{
-  SPDE model objects for INLA
+  Old SPDE model objects for INLA
 }
 \description{
-  Create an \code{inla.spde} model object.
+  Create an \code{inla.spde1} model object.
 }
 \usage{
 ## Create an SPDE model object:
-inla.spde.create(mesh,
-                 model = c("matern", "imatern"),
-                 param = NULL,
-                 ...)
-%## Create an SPDE object based on INLA parameter estimates:
-%inla.spde.something(inla, name, spde, ...)
+inla.spde1.create(mesh,
+                  model = c("matern", "imatern", "matern.osc"),
+                  param = NULL,
+                  ...)
 }
 \arguments{
   \item{mesh}{
@@ -31,6 +29,10 @@ inla.spde.create(mesh,
   }
 }
 \details{
+  Note: This is an old spde object format retained for backwards
+  compatibility.  Please use \link{\code{inla.spde2}} models for new
+  code.
+  
   This method constructs an object for SPDE models.  Currently implemented:
 
   \code{model="matern"}
@@ -60,7 +62,7 @@ inla.spde.create(mesh,
   }
 }
 \value{
-  An \code{inla.spde} object.
+  An \code{inla.spde1} object.
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
@@ -77,8 +79,8 @@ inla.spde.create(mesh,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.basis}},
-  \code{\link{inla.spde.query}}
+  \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.basis}},
+  \code{\link{inla.spde1.query}}
 }
 \examples{
 n = 100
@@ -96,14 +98,16 @@ result = inla(formula, data=data, family="normal")
 
 ## Plot the mesh structure:
 plot(mesh)
-## For now, use old plotting methods to show fields:
-plot(old.mesh.class(mesh),
-     result$summary.random$field[,"mean"],
-     color.palette = colorRampPalette(c("blue","green","red")))
-## Plot residual field:
-plot(old.mesh.class(mesh),
-     result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
-     color.palette = colorRampPalette(c("blue","green","red")))
+if (require(rgl)) {
+  ## Plot the posterior mean:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"],
+       color.palette = colorRampPalette(c("blue","green","red")))
+  ## Plot residual field:
+  plot(mesh, rgl=TRUE,
+       result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
+       color.palette = colorRampPalette(c("blue","green","red")))
+  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
