@@ -67,8 +67,8 @@ summary(g)
 plot(g)
 inla.spy(g)
 ## when defining the graph directly in the call, we can use a mix of character and numbers
-g = inla.read.graph(3, 1, "1 2 2 1 1 3", 0)
-inla.spy(3, 1, "1 2 2 1 1 3 0")
-inla.spy(3, 1, "1 2 2 1 1 3 0",  reordering=3:1)
+g = inla.read.graph(c(3, 1, "1 2 2 1 1 3", 0))
+inla.spy(c(3, 1, "1 2 2 1 1 3 0"))
+inla.spy(c(3, 1, "1 2 2 1 1 3 0"),  reordering=3:1)
 inla.write.graph(c(3, 1, "1 2 2 1 1 3 0"))
 }
