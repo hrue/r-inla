@@ -1,4 +1,32 @@
-## Export: print.inla
+## Export: print!inla
+
+##!\name{print.inla}
+##!\alias{print.inla}
+##!\title{Print a INLA fit }
+##!\description{
+##!Print a INLA fit
+##!}
+##!\usage{
+##!\method{print}{inla}(x,...)
+##!}
+##!\arguments{
+##!  \item{x}{An inla-object (output from an \code{\link{inla}}-call).}
+##!  \item{...}{ other arguments.}
+##!}
+##!\details{
+##! None
+##!}
+##!\value{
+##! None
+##!}
+##!\author{Havard Rue}
+##!
+##!\seealso{ \code{\link{inla}} }
+##!\examples{
+##!## None
+##!}
+##!
+##!\keyword{}
 
 `print.inla` = function(x, ...)
 {
@@ -64,4 +92,6 @@
     } else {
         cat("The model has no random effects\n\n")
     }
+
+    return(invisible())
 }
