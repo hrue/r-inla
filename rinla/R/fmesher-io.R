@@ -1,5 +1,4 @@
-## Export: inla.is.fmesher.file inla.read.fmesher.file inla.write.fmesher.file
-## Export: fmesher.read fmesher.write inla.fmesher.make.dir
+## Nothing to export
 
 ## The 'fmesher'-file format is for internal use only
 ## but it is used in some low-level examples.
