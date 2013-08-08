@@ -126,10 +126,17 @@ fi
     cat $D/os.R
     echo '`givemeINLA` = function(...) inla.installer(...)'
     echo 'if (!exists("inla.lib")) inla.lib = NULL'
-    echo 'givemeINLA(lib = inla.lib)'
+    echo 'givemeINLA(testing=FALSE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA.R
-
+{
+    cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' 
+    cat $D/os.R
+    echo '`givemeINLA` = function(...) inla.installer(...)'
+    echo 'if (!exists("inla.lib")) inla.lib = NULL'
+    echo 'givemeINLA(testing=TRUE, lib = inla.lib)'
+    echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
+} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA-testing.R
     
 ( 
     cd $www; 
