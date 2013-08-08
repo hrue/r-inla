@@ -70,5 +70,5 @@ inla.spy(g)
 g = inla.read.graph(3, 1, "1 2 2 1 1 3", 0)
 inla.spy(3, 1, "1 2 2 1 1 3 0")
 inla.spy(3, 1, "1 2 2 1 1 3 0",  reordering=3:1)
-inla.write.graph(3, 1, "1 2 2 1 1 3 0")
+inla.write.graph(c(3, 1, "1 2 2 1 1 3 0"))
 }
