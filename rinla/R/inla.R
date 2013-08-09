@@ -798,7 +798,7 @@
             stop(paste("Unknown value for flag 'expand.factor.strategy' in 'control.fixed':",
                        cont.fixed$expand.factor.strategy))
         }
-        
+
         gp$model.matrix = model.matrix(new.fix.formula,
                 data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
                 contrasts.arg = contrasts)
@@ -807,7 +807,7 @@
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
         ## otherwise signal an error.
         if (any(is.na(gp$model.matrix))) {
-            if (inla.one.of(cont.fixed$strategy.expand.factor, "inla")) {
+            if (inla.one.of(cont.fixed$expand.factor.strategy, "inla")) {
                 gp$model.matrix[is.na(gp$model.matrix)] = 0
             } else {
                 stop(paste("With control.fixed = list(expand.factor.strategy='model.matrix'),", 
