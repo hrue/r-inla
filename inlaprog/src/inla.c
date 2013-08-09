@@ -17713,7 +17713,7 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(arg->n * arg->m, double);
 
-			assert(mb->f_graph_orig[i]->n == arg->n * arg->m);
+			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
