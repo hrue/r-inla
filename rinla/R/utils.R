@@ -1,5 +1,4 @@
-## Useful for users:
-## Export: inla.sparse.matrix.pattern inla.factor2matrix
+## Nothing to export
 
 ## Various utility functions
 
