@@ -1,4 +1,4 @@
-## Export:  inla.ssh.copy.id
+## Export:  inla.ssh.copy.id  inla.remote
 
 ##!\name{inla.ssh.copy.id}
 ##!\alias{inla.ssh.copy.id}
