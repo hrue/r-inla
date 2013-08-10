@@ -10,6 +10,7 @@
 \alias{inla.graph}
 \alias{summary.inla.graph}
 \alias{plot.inla.graph}
+\alias{print.inla.graph.summary}
 \title{Read and write a graph-object}
 \description{Reads a graph-object to a file and write graph-object to file}
 \usage{
@@ -51,8 +52,6 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{
-    \code{\link{inla.matrix2graph}}
-    \code{\link{inla.graph2matrix}} 
     \code{\link{inla.spy}}
 }
 \examples{

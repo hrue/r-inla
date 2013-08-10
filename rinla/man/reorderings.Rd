@@ -15,6 +15,7 @@
 }
 
 \arguments{
+ None
 }
 
 \value{The names of all available reorderings}

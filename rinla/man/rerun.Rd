@@ -6,7 +6,9 @@
  \alias{inla.rerun}
  \alias{rerun}
 
- \title{Rerun an inla-call}
+ \title{Rerun an analysis}
+ \description{Rerun \code{\link{inla}} on an
+              inla-object (output from \code{link{inla}})} 
  \usage{
  inla.rerun(object, plain=FALSE)
  }

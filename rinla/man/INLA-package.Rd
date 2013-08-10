@@ -22,14 +22,13 @@ NOTE: \tab This package has no version number yet; it is to heavily developed
 at the moment; see \code{inla.googlecode.com} and \code{www.r-inla.org}
 }
 
-Please see the web-site \cite{www.r-inla.org} for further details.
+See the web-site \cite{www.r-inla.org} for further details.
 } 
 %%
 
 \author{Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson and
   Andrea Riebler}
 
-\references{
-}
+%%\references{}
 
-\keyword{}
+%%\keyword{}

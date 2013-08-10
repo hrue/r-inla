@@ -43,9 +43,4 @@ posterior mean and standard deviations for the hyperparameters
   \item{family}{the component from \code{object}.}   
 }
 \author{Sara Martino}
-
 \seealso{ \code{\link{inla}} }
-\examples{
-}
-
-\keyword{ list }

@@ -16,7 +16,6 @@ inla.hyperpar.sample(n, result, intern=FALSE)
 }
 
 \arguments{
-
   \item{n}{Integer. Number of samples required.}
   \item{result}{An \code{inla}-object,  f.ex the output from an \code{inla}-call.}
   \item{intern}{Logical. If \code{TRUE} then produce samples in the
@@ -26,6 +25,8 @@ inla.hyperpar.sample(n, result, intern=FALSE)
 }
 
 \value{%%
+ A matrix where each sample is a row. The contents of the column
+ is described in the rownames.
 }
 %%
 

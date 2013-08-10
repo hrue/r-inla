@@ -3,26 +3,29 @@
 ##!\name{inla.ssh.copy.id}
 ##!\alias{inla.ssh.copy.id}
 ##!\alias{ssh.copy.id}
+##!\alias{inla.remote}
 ##!
-##!\title{Setup remote-access}
+##!\title{Setup remote computing}
 ##!
-##!\description{Print the path to the internal script to transfer ssh-keys}
+##!\description{Initialize the definition file and print the path to the internal script to transfer ssh-keys}
 ##!
 ##!\usage{
+##!inla.remote()
 ##!inla.ssh.copy.id()
 ##!}
 ##!\arguments{
+## None
 ##!}
 ##!
 ##!\value{%%
-##!  The path to the internal script to transfer ssh-keys
+##! \code{inla.remote} is used once to setup the remote host information
+##! file (definition file) in the users home directory; see the FAQ entry on this
+##! issue for more information. 
+##! \code{inla.ssh.copy.id} will return the path to the internal script to transfer ssh-keys.
 ##!}
-##!%%
-##!
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!
 ##!\examples{
-##!##TODO
+##!##See the FAQ entry on this issue on r-inla.org.
 ##!}
 
 
