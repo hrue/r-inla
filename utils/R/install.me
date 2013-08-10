@@ -1,13 +1,15 @@
 #!/bin/bash
 set -u
 
-VERSION=0.0-$(date +%s)
+epoch=$(date +%s)
+VERSION=0.0-$epoch
+
 
 test -d Old || mkdir Old
 rm INLA*tgz INLA*zip
 
-bdate=$(date +%Y%m%d%H%M)
-date=$(date)
+bdate=$(date -d @$epoch +%Y%m%d%H%M)
+date=$(date -d @$epoch)
 D=inla/rinla/R
 
 inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
