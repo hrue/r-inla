@@ -18,7 +18,6 @@ echo "bdate=$bdate"
 echo "inlahg=$inlahg"
 echo "hg=$hg"
 
-
 ## update these lines in the function with the updated hgid's and build-date
 tt=.tt
 test -f $tt && rm -rf $tt
@@ -28,7 +27,8 @@ cat $D/inla.version.R | \
          /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
          /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
          /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
-	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" > $tt
+         /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
+	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
 mv -f $tt $D/inla.version.R
 
 ( cd $D; ./make-man-pages; )

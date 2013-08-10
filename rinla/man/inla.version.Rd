@@ -12,12 +12,13 @@
 
 \usage{
 inla.version(what = c("default",
-                     "info", 
-                     "hgid",
-                     "rinla",
-                     "inla",
-                     "date",
-                     "bdate"))
+                      "version", 
+                      "info", 
+                      "hgid",
+                      "rinla",
+                      "inla",
+                      "date",
+                      "bdate"))
 }
 
 \arguments{

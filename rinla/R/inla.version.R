@@ -10,12 +10,13 @@
 ##!
 ##!\usage{
 ##!inla.version(what = c("default",
-##!                     "info", 
-##!                     "hgid",
-##!                     "rinla",
-##!                     "inla",
-##!                     "date",
-##!                     "bdate"))
+##!                      "version", 
+##!                      "info", 
+##!                      "hgid",
+##!                      "rinla",
+##!                      "inla",
+##!                      "date",
+##!                      "bdate"))
 ##!}
 ##!
 ##!\arguments{
@@ -39,6 +40,7 @@
 ##!}
 
 `inla.version` = function (what = c("default",
+                                   "version", 
                                    "info", 
                                    "hgid",
                                    "rinla",
@@ -50,12 +52,13 @@
     inla.hgid = "EXAMPLE hgid: bc0bd174e33d  date: Mon Mar 05 10:05:06 2012 +0100"
     date = "EXAMPLE Mon Mar 5 10:15:43 CET 2012"
     bdate = "EXAMPLE201203071055"
-    
+    version = "EXAMPLE0_0-123"
     what = match.arg(what)
 
     if (what %in% c("default", "info")) {
 
         cat("\n")
+        cat(paste("\n\tINLA version ............: ",  version, "\n",  sep=""))
         cat(paste("\n\tINLA build date .........: ",  date, "\n",  sep=""))
         cat(paste(  "\tINLA hgid ...............: ", rinla.hgid, "\n", sep=""))
         cat(paste(  "\tINLA-program hgid .......: ", inla.hgid, "\n", sep=""))
@@ -79,6 +82,8 @@
         return (date) 
     } else if (what %in% "bdate") {
         return (bdate) 
+    } else if (what %in% "version") {
+        return (version) 
     }
  
     stop("This should not happen.")
