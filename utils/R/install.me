@@ -1,8 +1,9 @@
 #!/bin/bash
 set -u
 
-test -d Old || mkdir Old
+VERSION=0.0-$(date +%s)
 
+test -d Old || mkdir Old
 rm INLA*tgz INLA*zip
 
 bdate=$(date +%Y%m%d%H%M)
@@ -41,7 +42,7 @@ rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/.
 desc="INLA/DESCRIPTION"
 {
     egrep -v '^(Version:|Date:)' $desc
-    echo "Version: 0.0-$(date +%s)"
+    echo "Version: $VERSION"
     echo "Date: $(date '+%Y-%m-%d') ($hg)"
 } > $tt && mv -f $tt $desc
 
@@ -172,3 +173,5 @@ fi
     } > SHA1SUM
 )
 
+rm -f $tgzINLA 
+rm -f $zipINLA 
