@@ -42,7 +42,7 @@ test -d INLA || mkdir INLA
 ## Modify the DESCRIPTION file
 desc="INLA/DESCRIPTION"
 {
-    egrep -v '^(Version:|Date:)' $desc
+    egrep -v '^(Version:|Date:)' inla/rinla/DESCRIPTION
     echo "Version: $VERSION"
     echo "Date: $(date '+%Y-%m-%d') ($hg)"
 } > $tt && mv -f $tt $desc
