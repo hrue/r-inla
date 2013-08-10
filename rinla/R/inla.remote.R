@@ -14,7 +14,7 @@
 ##!inla.ssh.copy.id()
 ##!}
 ##!\arguments{
-## None
+##! None
 ##!}
 ##!
 ##!\value{%%
