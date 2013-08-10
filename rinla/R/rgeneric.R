@@ -36,9 +36,7 @@
 ##!  Using this function require the \code{multicore}-package, and
 ##!  only runs smoothly under Linux.}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!
-##!\examples{
-##!}
+
 
 `inla.rgeneric.define` = function(model.def = NULL, ...)
 {
