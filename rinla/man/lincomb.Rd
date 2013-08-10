@@ -18,6 +18,7 @@ inla.make.lincombs(...)
    \item{...}{Arguments; see examples}
 }
 \value{
+ A structure to be passed on to \code{\link{inla}} argument \code{lincomb} 
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{TODO}
