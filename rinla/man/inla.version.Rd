@@ -26,7 +26,8 @@ inla.version(what = c("default",
 }
 
 \value{%%
-  \code{inla.version} either display the current version information using \code{cat} with
+  \code{inla.version} either display the current version information using \code{cat}
+  with
   \code{default} or \code{info},  or return the version number/information
   for other spesific requests through the call.
 }
