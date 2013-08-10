@@ -37,6 +37,14 @@ test -d INLA || mkdir INLA
 test -f INLA/NAMESPACE && rm -f INLA/NAMESPACE ## as otherwise the date is wrong...
 rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
 
+## Modify the DESCRIPTION file
+desc="INLA/DESCRIPTION"
+{
+    egrep -v '^(Version:|Date:)' $desc
+    echo "Version: 0.0-$(date +%s)"
+    echo "Date: $(date '+%Y-%m-%d') ($hg)"
+} > $tt && mv -f $tt $desc
+
 ## generate the exports defined in the R-files
 {
     echo ""
