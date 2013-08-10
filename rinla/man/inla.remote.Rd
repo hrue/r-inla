@@ -16,6 +16,7 @@ inla.remote()
 inla.ssh.copy.id()
 }
 \arguments{
+ None
 }
 
 \value{%%

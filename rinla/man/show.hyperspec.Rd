@@ -14,6 +14,7 @@
 inla.show.hyperspec(result)
 }
 \arguments{
+ \item{result}{An \code {inla} -object} 
 }
 
 \value{%%
