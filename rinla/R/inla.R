@@ -1,5 +1,4 @@
 ## Export: inla
-## Export: inla.show.hyperspec
 
 ##! \name{inla}
 ##! \alias{inla}
@@ -2062,24 +2061,3 @@
     return (data)
 }
 
-`inla.show.hyperspec` = function(result)
-{
-    stopifnot(any(inherits(result, "inla")))
-    tfile = tempfile()
-    capture.output(str(result$all.hyper), file=tfile)
-    all.hyper = readLines(tfile)
-    unlink(tfile)
-    
-    all.hyper = gsub("\\.\\.", "  ", all.hyper)    
-    for(r in c("inla\\.read\\.only",
-               "attr\\(", "to\\.theta",
-               "from\\.theta")) {
-        idx = grep(r, all.hyper)
-        if (length(idx) > 0) {
-            all.hyper = all.hyper[-idx]
-        }
-    }
-
-    cat(all.hyper, sep="\n")
-    return (invisible())
-}

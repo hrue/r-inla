@@ -4,18 +4,20 @@
 ##! \alias{inla.rerun}
 ##! \alias{rerun}
 ##!
-##! \title{Rerun an inla-call}
+##! \title{Rerun an analysis}
+##! \description{Rerun \code{\link{inla}} on an
+##!              inla-object (output from \code{link{inla}})} 
 ##! \usage{
 ##! inla.rerun(object, plain=FALSE)
 ##! }
 ##! \arguments{
 ##!
-`inla.rerun` = function(
-        ##!\item{object}{An \code{inla}-object, ie the output from an \code{inla}-call} 
-        object, 
-        ##!\item{plain}{Logical. If \code{FALSE} (default), then make
-        ##!changes in \code{object} to improve the performance}
-        plain = FALSE) 
+`inla.rerun` <- function(
+    ##!\item{object}{An \code{inla}-object, ie the output from an \code{inla}-call} 
+    object, 
+    ##!\item{plain}{Logical. If \code{FALSE} (default), then make
+    ##!changes in \code{object} to improve the performance}
+    plain = FALSE) 
     ##!}
     ##!\value{This function will take the result in \code{object},  and rerun \code{inla} again.
     ##!       If \code{plain}  is \code{FALSE},  start  the optimization from the mode in \code{object} so that

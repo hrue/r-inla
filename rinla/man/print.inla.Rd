@@ -27,5 +27,3 @@ Print a INLA fit
 \examples{
 ## None
 }
-
-\keyword{}

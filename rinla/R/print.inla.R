@@ -25,8 +25,6 @@
 ##!\examples{
 ##!## None
 ##!}
-##!
-##!\keyword{}
 
 `print.inla` = function(x, ...)
 {

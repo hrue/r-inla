@@ -44,9 +44,6 @@
 ##!       and so on,  but they are simpler to use a arguments
 ##!       to other functions.}
 ##! \author{Havard Rue \email{hrue@math.ntnu.no}}
-##! 
-##! \examples{
-##!}
 
 `inla.link.log` = function(x, inverse = FALSE)
 {

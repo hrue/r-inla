@@ -41,12 +41,8 @@
 ##!  \item{family}{the component from \code{object}.}   
 ##!}
 ##!\author{Sara Martino}
-##!
 ##!\seealso{ \code{\link{inla}} }
-##!\examples{
-##!}
-##!
-##!\keyword{ list }
+
 
 `summary.inla` = function(object, ...)
 {
