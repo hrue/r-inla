@@ -110,9 +110,14 @@
     else
         inla.call = opt$inla.call
 
+    if (is.null(opt$fmesher.call))
+        fmesher.call = inla.fmesher.call.builtin()
+    else
+        fmesher.call = opt$fmesher.call
+
     default.opt = list(
             inla.call = inla.call,
-            fmesher.call = inla.fmesher.call.builtin(),
+            fmesher.call = fmesher.call, 
             inla.arg = NULL,
             fmesher.arg = "", 
             num.threads = NULL, 
