@@ -149,6 +149,9 @@
             rownames(R) = colnames(R) = tag[id]
             misc$lincomb.derived.covariance.matrix = R
         }
+
+        ## also put the linkfunctions here
+        misc$linkfunctions = linkfunctions
     }
 
     ## add the names of the theta's here, as they are available.
@@ -167,7 +170,6 @@
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
                  version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))),
-            list(linkfunctions = linkfunctions), 
             list(Q=res.q),
             res.graph, ok = res.ok)
     class(res) = "inla"
