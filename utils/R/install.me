@@ -5,7 +5,6 @@ epoch=$(date +%s)
 VERSION=0.0-$epoch
 
 
-test -d Old || mkdir Old
 rm INLA*tgz INLA*zip
 
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
@@ -100,15 +99,14 @@ mv -f $DD/$zipINLA .
 
 ls -l INLA*gz INLA*zip
 www=../www/binaries
-
+OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 if [ $# -ge 1 -a "$1" == "1" ]; then
-    cp -v $tgzINLA Old/$old ## remove?
     cp -v $tgzINLA $www/INLA.tgz
     cp -v $zipINLA $www/INLA.zip
     cp -v $SRC     INLA-source.tgz
-    cp -v $tgzINLA $www/testing/Old/$old
+    cp -v $tgzINLA $OldDir/$old
     cp -v $tgzINLA $www/testing/INLA.tgz
     cp -v $zipINLA $www/testing/INLA.zip
     cp -v $SRC     $www/testing/INLA-source.tgz
@@ -121,8 +119,7 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
 fi
 
 if [ $# -ge 1 -a "$1" == "2" ]; then
-    cp -v $tgzINLA Old/$old ## remove?
-    cp -v $tgzINLA $www/testing/Old/$old
+    cp -v $tgzINLA $OldDir/$old
     cp -v $tgzINLA $www/testing/INLA.tgz
     cp -v $zipINLA $www/testing/INLA.zip
     cp -v $SRC     $www/testing/INLA-source.tgz
