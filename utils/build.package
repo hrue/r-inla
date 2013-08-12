@@ -28,10 +28,8 @@ TDIR=$(echo ~/tmp)
 test -d $TDIR || mkdir -p $TDIR
 
 TMPDIR=$(echo $TDIR/.BuildINLA)
-if [ -d $TMPDIR ]; then
-    rm -rf $TMPDIR
-    mkdir -p $TMPDIR
-fi
+test -d $TMPDIR && rm -rf $TMPDIR
+mkdir -p $TMPDIR
 
 LOGFILE=$TMPDIR/LOG
 
