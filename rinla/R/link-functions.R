@@ -1,5 +1,6 @@
 ## Export: inla.link.log inla.link.invlog inla.link.logit inla.link.invlogit inla.link.probit
 ## Export: inla.link.invprobit inla.link.cloglog inla.link.invcloglog inla.link.tan inla.link.invtan
+## Export: inla.link.identity inla.link.invidentity inla.link.invalid
 
 ##! \name{link}
 ##! \alias{link}
@@ -14,6 +15,9 @@
 ##! \alias{inla.link.invcloglog}
 ##! \alias{inla.link.tan}
 ##! \alias{inla.link.invtan}
+##! \alias{inla.link.identity}
+##! \alias{inla.link.invidentity}
+##! \alias{inla.link.invalid}
 ##! 
 ##! \title{Link functions in INLA}
 ##! 
@@ -30,6 +34,9 @@
 ##! inla.link.invcloglog(x, inverse=FALSE)
 ##! inla.link.tan(x, inverse=FALSE)
 ##! inla.link.invtan(x, inverse=FALSE)
+##! inla.link.identity(x, inverse=FALSE)
+##! inla.link.invidentity(x, inverse=FALSE)
+##! inla.link.invalid(x, inverse=FALSE)
 ##! }
 ##! 
 ##! \arguments{
@@ -108,4 +115,19 @@
 `inla.link.invtan` = function(x, inverse = FALSE)
 {
     return (inla.link.tan(x, inverse = !inverse))
+}
+`inla.link.identity` = function(x, inverse = FALSE)
+{
+    return (x)
+}
+`inla.link.invidentity` = function(x, inverse = FALSE)
+{
+    return (x)
+}
+
+
+## this is the invalid one
+`inla.link.invalid` = function(x, inverse = FALSE)
+{
+    stop("An invalid link-function is used.")
 }
