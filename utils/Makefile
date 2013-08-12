@@ -45,7 +45,7 @@ update-build-yourself :;
 
 www :;
 	$(MAKE) update-r-inla.org
-	rsync -auvL --delete www/. ~/www/www.inla/. 
+	rsync -auvL www/. ~/www/www.inla/. 
 
 Rinla-local :;
 	make update-inla
