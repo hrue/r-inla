@@ -15,6 +15,9 @@
  \alias{inla.link.invcloglog}
  \alias{inla.link.tan}
  \alias{inla.link.invtan}
+ \alias{inla.link.identity}
+ \alias{inla.link.invidentity}
+ \alias{inla.link.invalid}
  
  \title{Link functions in INLA}
  
@@ -31,6 +34,9 @@
  inla.link.invcloglog(x, inverse=FALSE)
  inla.link.tan(x, inverse=FALSE)
  inla.link.invtan(x, inverse=FALSE)
+ inla.link.identity(x, inverse=FALSE)
+ inla.link.invidentity(x, inverse=FALSE)
+ inla.link.invalid(x, inverse=FALSE)
  }
  
  \arguments{

@@ -20053,6 +20053,7 @@ int inla_output(inla_tp * mb)
 			inla_output_detail_x(mb->dir, mb->x_file, mb->nx_file);
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
 			inla_output_hgid(mb->dir);
+			inla_output_linkfunctions(mb->dir, mb);
 			if ((!mb->reuse_mode) || (mb->reuse_mode && mb->reuse_mode_but_restart)) {
 				// disable output theta-mode to file '.inla-mode'
 				// inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
@@ -20766,6 +20767,49 @@ int inla_output_hgid(const char *dir)
 		inla_error_open_file(nndir);
 	}
 	fprintf(fp, "%s\n", RCSId);
+	fclose(fp);
+	Free(nndir);
+
+	return INLA_OK;
+}
+int inla_output_linkfunctions(const char *dir, inla_tp *mb)
+{
+	char *nndir = NULL;
+
+	FILE *fp = NULL;
+
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+
+	int i;
+	for (i = 0; i < mb->predictor_ndata; i++) {
+		
+		if (mb->predictor_invlinkfunc[i] == link_probit){
+			fprintf(fp, "probit\n");
+		} else if (mb->predictor_invlinkfunc[i] == link_tan) {
+			fprintf(fp, "tan\n");
+		} else if (mb->predictor_invlinkfunc[i] == link_cloglog) {
+			fprintf(fp, "cloglog\n");
+		} else if (mb->predictor_invlinkfunc[i] == link_log) {
+			fprintf(fp, "log\n");
+		} else if (mb->predictor_invlinkfunc[i] == link_logit) {
+			fprintf(fp, "logit\n");
+		} else if (mb->predictor_invlinkfunc[i] == link_identity) {
+			fprintf(fp, "identity\n");
+		} else if (mb->predictor_invlinkfunc[i] == NULL) {
+			fprintf(fp, "invalid\n");
+		} else {
+			fprintf(fp, "invalid\n");
+		}
+	}
+	// maybe for later
+	// mb->predictor_invlinkfunc_arg[i]
+	// mb->predictor_invlinkfunc_covariates[i]
+
 	fclose(fp);
 	Free(nndir);
 

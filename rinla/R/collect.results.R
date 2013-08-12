@@ -94,7 +94,8 @@
     theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode", sep=""))[-1]
     x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode", sep=""))[-1]
     hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid", sep=""))
-    
+    linkfunctions = readLines(paste(results.dir,.Platform$file.sep,"linkfunctions", sep=""))
+
     if (length(theta.mode)>0) {
         res.hyper = inla.collect.hyperpar(results.dir, debug)
 
@@ -165,7 +166,8 @@
                                       log.posterior.mode = misc$log.posterior.mode),
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
-                 version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))), 
+                 version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))),
+            list(linkfunctions = linkfunctions), 
             list(Q=res.q),
             res.graph, ok = res.ok)
     class(res) = "inla"
