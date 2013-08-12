@@ -20778,38 +20778,66 @@ int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 
 	FILE *fp = NULL;
 
-	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions");
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions.names");
 	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
 
-	int i;
-	for (i = 0; i < mb->predictor_ndata; i++) {
-		
-		if (mb->predictor_invlinkfunc[i] == link_probit){
+	int i, j;
+	
+	for (j = 0;  j < mb->nds; j++) {
+		link_func_tp *lf = mb->data_sections[j].predictor_invlinkfunc;
+
+		if (lf == link_probit){
 			fprintf(fp, "probit\n");
-		} else if (mb->predictor_invlinkfunc[i] == link_tan) {
+		} else if (lf == link_tan) {
 			fprintf(fp, "tan\n");
-		} else if (mb->predictor_invlinkfunc[i] == link_cloglog) {
+		} else if (lf == link_cloglog) {
 			fprintf(fp, "cloglog\n");
-		} else if (mb->predictor_invlinkfunc[i] == link_log) {
+		} else if (lf == link_log) {
 			fprintf(fp, "log\n");
-		} else if (mb->predictor_invlinkfunc[i] == link_logit) {
+		} else if (lf == link_logit) {
 			fprintf(fp, "logit\n");
-		} else if (mb->predictor_invlinkfunc[i] == link_identity) {
+		} else if (lf == link_identity) {
 			fprintf(fp, "identity\n");
-		} else if (mb->predictor_invlinkfunc[i] == NULL) {
+		} else if (lf == NULL) {
 			fprintf(fp, "invalid\n");
 		} else {
 			fprintf(fp, "invalid\n");
 		}
 	}
-	// maybe for later
-	// mb->predictor_invlinkfunc_arg[i]
-	// mb->predictor_invlinkfunc_covariates[i]
+	fclose(fp);
+	Free(nndir);
 
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions.link");
+	inla_fnmfix(nndir);
+	fp = fopen(nndir, "wb");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	
+	/* 
+	 * need to use double as we need NAN
+	 */
+	double *idx = Calloc(mb->predictor_ndata, double);
+	for(i = 0; i < mb->predictor_ndata; i++) {
+		int found;
+
+		idx[i] = NAN;
+		for (j = found = 0; j < mb->nds && !found; j++) {
+			if (mb->data_sections[j].predictor_invlinkfunc == mb->predictor_invlinkfunc[i]){
+				found = 1;
+				idx[i] = j;
+			}
+		}
+	}
+	
+	fwrite((void *) &(mb->predictor_ndata), sizeof(int), 1, fp);
+	fwrite((void *) idx, sizeof(double), (size_t) mb->predictor_ndata, fp);
+	Free(idx);
+	
 	fclose(fp);
 	Free(nndir);
 
