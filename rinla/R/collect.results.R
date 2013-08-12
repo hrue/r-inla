@@ -94,7 +94,20 @@
     theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode", sep=""))[-1]
     x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode", sep=""))[-1]
     hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid", sep=""))
-    linkfunctions = readLines(paste(results.dir,.Platform$file.sep,"linkfunctions", sep=""))
+    
+    lfn.fnm = paste(results.dir,.Platform$file.sep,"linkfunctions.names", sep="")
+    if (file.exists(lfn.fnm)) {
+        linkfunctions.names = readLines(lfn.fnm)
+        fp = file(paste(results.dir,.Platform$file.sep,"linkfunctions.link", sep=""), "rb")
+        n = readBin(fp, integer(), 1)
+        idx = readBin(fp, double(), n)
+        ok = which(!is.nan(idx))
+        idx[ok] = idx[ok] + 1
+        close(fp)
+        linkfunctions = list(names = linkfunctions.names, link = as.integer(idx))
+    } else {
+        linkfunctions = NULL
+    }
 
     if (length(theta.mode)>0) {
         res.hyper = inla.collect.hyperpar(results.dir, debug)
