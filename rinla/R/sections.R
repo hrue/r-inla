@@ -297,9 +297,10 @@
         ## gives the precision matrix for zz as A+prec*B, where A and
         ## B are defined below.
         Z = inla.as.sparse(random.spec$Z)
+        tZ = Matrix::t(Z) ## Workaround here. (Aug 12 2013)
         Z.n = dim(Z)[1]
         Z.m = dim(Z)[2]
-        A = inla.as.sparse(random.spec$precision * cBind(rBind(Diagonal(Z.n), -t(Z)), rBind(-Z, t(Z) %*% Z)))
+        A = inla.as.sparse(random.spec$precision * cBind(rBind(Diagonal(Z.n), -tZ), rBind(-Z, tZ %*% Z)))
         if (is.null(random.spec$Cmatrix)) {
             Cm = inla.as.sparse(Diagonal(Z.m))
         } else {
