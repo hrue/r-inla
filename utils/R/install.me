@@ -4,7 +4,6 @@ set -u
 epoch=$(date +%s)
 VERSION=0.0-$epoch
 
-
 rm INLA*tgz INLA*zip
 
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
@@ -22,6 +21,11 @@ echo "hg=$hg"
 ## update these lines in the function with the updated hgid's and build-date
 tt=.tt
 test -f $tt && rm -rf $tt
+
+## We need to remove these as we change them
+for f in INLA/NAMESPACE INLA/DESCRIPTION; do
+    test -f $f && rm -f $f
+done
 
 rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
 
