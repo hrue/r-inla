@@ -1183,6 +1183,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		       const char *sdir, map_func_tp * func, void *func_arg,
 		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
 int inla_output_hgid(const char *dir);
+int inla_output_linkfunctions(const char *dir, inla_tp *mb);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose);
