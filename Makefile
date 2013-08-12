@@ -31,3 +31,11 @@ doc-links:
 	done
 	hg status rinla/inst/doc/
 	@echo "Documentation link building finished."
+
+## Build a INLA-package without the binaries
+INLA-package:
+	utils/build.package
+
+
+##
+.PHONY: doc-links INLA-package all
