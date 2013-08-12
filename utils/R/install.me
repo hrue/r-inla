@@ -49,26 +49,7 @@ desc="INLA/DESCRIPTION"
     echo "Version: $VERSION"
     echo "Date: $(date '+%Y-%m-%d') ($hg)"
 } > $tt && mv -f $tt $desc
-
-## generate the exports defined in the R-files
-{
-    echo ""
-    echo "# The functions to be exported are defined in the R-code with"
-    echo "# lines as:"
-    echo "# ## Export: func1"
-    echo "# ## Export: func1 func2"
-    echo "# etc..."
-
-    find INLA/R -name \*.R | while read f; do
-	egrep "^## *Export *:" $f | while read ff; do
-	    echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
-		awk '{nf = split($0, a, /!/)
-                      if (nf == 2) print "S3method(" a[1] ", "  a[2] ")"
-                      if (nf == 1) print "export(" a[1] ")" }'
-	done
-    done
-} | tee --append INLA/NAMESPACE
-
+ 
 ~hrue/bin/fix-permissions INLA
 
 SRC=INLA-source.tgz
