@@ -18,6 +18,7 @@
  \alias{inla.link.identity}
  \alias{inla.link.invidentity}
  \alias{inla.link.invalid}
+ \alias{inla.link.invinvalid}
  
  \title{Link functions in INLA}
  
@@ -37,6 +38,7 @@
  inla.link.identity(x, inverse=FALSE)
  inla.link.invidentity(x, inverse=FALSE)
  inla.link.invalid(x, inverse=FALSE)
+ inla.link.invinvalid(x, inverse=FALSE)
  }
  
  \arguments{
