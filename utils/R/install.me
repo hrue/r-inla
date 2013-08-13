@@ -4,7 +4,7 @@ set -u
 epoch=$(date +%s)
 VERSION=0.0-$epoch
 
-rm INLA*tgz INLA*zip
+rm INLA*tar.gz INLA*tgz INLA*zip
 
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
@@ -13,6 +13,7 @@ D=inla/rinla/R
 inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
 hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
 
+echo "epoch=$epoch"
 echo "date=$date"
 echo "bdate=$bdate"
 echo "inlahg=$inlahg"
@@ -57,6 +58,9 @@ cat $D/inla.version.R | \
 	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
 mv -f $tt $D/inla.version.R
 
+##echo $D/inla.version.R
+##cat $D/inla.version.R
+
 ( cd $D; ./make-man-pages; )
 
 test -d INLA || mkdir INLA
@@ -71,15 +75,15 @@ desc="INLA/DESCRIPTION"
  
 ~hrue/bin/fix-permissions INLA
 
-SRC=INLA-source.tgz
-tar cvfzh INLA-source.tgz INLA
-
 mf="INLA.pdf"
 test -f $mf && rm -f $mf
-R --vanilla CMD Rd2pdf --no-preview --batch INLA || exit 1
+R --vanilla CMD Rd2pdf --no-preview --batch INLA >/dev/null 2>&1 || exit 1
 md="INLA/inst/doc/manual"
 test -d $md || mkdir $md
 cp $mf $md/$mf
+
+SRC=INLA-source.tgz
+tar cvfzh INLA-source.tgz INLA
 
 R --vanilla CMD build INLA || exit 1
 
@@ -117,9 +121,6 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
     
     echo $bdate >  $www/build.date
     echo $bdate >  $www/testing/build.date
-    
-    ##gnome-terminal --title=hrue@mc -x ssh -t mc.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/INLA.tgz; sudo R CMD INSTALL INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/lib64/R/library; sleep 3" &
-
 fi
 
 if [ $# -ge 1 -a "$1" == "2" ]; then
