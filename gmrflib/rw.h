@@ -118,7 +118,6 @@ __BEGIN_DECLS
 	 * scale the prec: only for order = 0. Not public
 	 */
 	double *scale0;
-	
 } GMRFLib_rwdef_tp;
 
 /*!
@@ -182,7 +181,7 @@ typedef struct {
 	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
 	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
+
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
@@ -232,6 +231,10 @@ typedef struct {
 	 */
 	double *scale0;
 
+	/* 
+	 * scale the prec: for any order. 
+	 */
+	double *prec_scale;
 } GMRFLib_crwdef_tp;
 
 
@@ -306,6 +309,8 @@ double GMRFLib_rw2d(int node, int nnode, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
+int GMRFLib_crw_scale_OLD(void *def);
+int GMRFLib_crw_scale(void *def);
 
 __END_DECLS
 #endif

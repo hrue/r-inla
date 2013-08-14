@@ -213,7 +213,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 
 	GMRFLib_crwdef_tp *crwdef = (GMRFLib_crwdef_tp *) def;
 
-	prec = GMRFLib_SET_PREC(crwdef);
+	prec = GMRFLib_SET_PREC(crwdef) * (crwdef->prec_scale ? crwdef->prec_scale[0] : 1.0);
 	n = crwdef->n;
 	use_pos = (crwdef->position ? 1 : 0);
 	order = crwdef->order;
@@ -222,7 +222,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 	 * this is the easy case. Note that this case has an additional 'scale0' parameter
 	 */
 	if (order == 0) {
-		return (node == nnode ? ((crwdef->scale0 ? crwdef->scale0[node] : 1.0) * prec) : 0.0);
+		return (node == nnode ? (crwdef->scale0 ? crwdef->scale0[node] : 1.0) * prec : 0.0);
 	}
 	assert(order > 0);
 
@@ -897,6 +897,188 @@ int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 	GMRFLib_EWRAP0(GMRFLib_prune_graph(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_rw2d, (void *) def));
 
 	GMRFLib_free_graph(g);
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_crw_scale_OLD(void *def)
+{
+	/*
+	 * This approach uses the 'ginv' approach. to slow
+	 */
+
+	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
+	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
+
+	crwdef->n = odef->n;
+	assert(odef->order > 0);
+	crwdef->order = odef->order;
+	crwdef->si = GMRFLib_FALSE;
+	crwdef->prec = NULL;
+	crwdef->log_prec = NULL;
+	crwdef->log_prec_omp = NULL;
+	crwdef->position = odef->position;
+	assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
+	crwdef->layout = odef->layout;
+	crwdef->work = NULL;
+	crwdef->scale0 = NULL;
+
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_make_crw_graph(&graph, crwdef);
+
+	gsl_matrix *Q = gsl_matrix_alloc(crwdef->n, crwdef->n);
+	size_t i, j, k;
+
+	/*
+	 * yes, use dense matrix
+	 */
+	for (i = 0; i < (size_t) graph->n; i++) {
+		gsl_matrix_set(Q, i, i, GMRFLib_crw(i, i, crwdef));
+		for (k = 0; k < (size_t) graph->nnbs[i]; k++) {
+			double value;
+
+			j = (size_t) graph->nbs[i][k];
+			value = GMRFLib_crw(i, j, crwdef);
+			gsl_matrix_set(Q, i, j, value);
+			gsl_matrix_set(Q, j, i, value);
+		}
+	}
+
+	GMRFLib_gsl_ginv(Q);
+	double sum = 0.0, scale;
+
+	if (crwdef->position) {
+		for (i = 0; i < Q->size1; i++) {
+			if (i == 0) {
+				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i + 1] - crwdef->position[i]) * 0.5;
+			} else if (i == Q->size1 - 1) {
+				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i] - crwdef->position[i - 1]) * 0.5;
+			} else {
+				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i + 1] - crwdef->position[i - 1]) * 0.5;
+			}
+		}
+		scale = exp(sum / (crwdef->position[Q->size1 - 1] - crwdef->position[0]));
+	} else {
+		/*
+		 * there is a correction 0.5 at the two endpoints that is different with the discrete and the general case
+		 */
+		for (i = 0; i < Q->size1; i++) {
+			sum += log(gsl_matrix_get(Q, i, i));
+		}
+		scale = exp(sum / Q->size1);
+	}
+
+	odef->prec_scale = Calloc(1, double);
+	odef->prec_scale[0] = scale;
+
+	gsl_matrix_free(Q);
+	Free(crwdef);
+	GMRFLib_free_graph(graph);
+
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_crw_scale(void *def)
+{
+	/*
+	 * This approach uses the constrained sampling approach, much faster
+	 */
+
+	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
+	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
+
+	crwdef->n = odef->n;
+	assert(odef->order > 0);
+	crwdef->order = odef->order;
+	crwdef->si = GMRFLib_FALSE;
+	crwdef->prec = NULL;
+	crwdef->log_prec = NULL;
+	crwdef->log_prec_omp = NULL;
+	crwdef->position = odef->position;
+	assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
+	crwdef->layout = odef->layout;
+	crwdef->work = NULL;
+	crwdef->scale0 = NULL;
+
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_make_crw_graph(&graph, crwdef);
+
+	int i, constr_no, free_position = 0;
+
+	/*
+	 * make sure we have defined the positions, as the code is easier with it
+	 */
+	if (!(crwdef->position)) {
+		free_position = 1;
+		crwdef->position = Calloc(graph->n, double);
+		for (i = 0; i < graph->n; i++) {
+			crwdef->position[i] = i;
+		}
+	}
+
+	double *len = Calloc(graph->n, double);
+	for (i = 0; i < graph->n; i++) {
+		if (i == 0) {
+			len[i] = (crwdef->position[i + 1] - crwdef->position[i]) / 2.0;
+		} else if (i == graph->n - 1) {
+			len[i] = (crwdef->position[i] - crwdef->position[i - 1]) / 2.0;
+		} else {
+			len[i] = (crwdef->position[i + 1] - crwdef->position[i - 1]) / 2.0;
+		}
+	}
+
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_make_empty_constr(&constr);
+	constr->nc = crwdef->order;
+	constr->a_matrix = Calloc(constr->nc * graph->n, double);
+	constr_no = 0;
+	for (i = 0; i < graph->n; i++) {
+		/*
+		 * the constant case
+		 */
+		constr->a_matrix[i * constr->nc + constr_no] = len[i];
+	}
+
+	if (crwdef->order == 2) {
+		double len_acum = 0.0;
+
+		constr_no = 1;
+		for (i = 0; i < graph->n; i++) {
+			/*
+			 * the linear case
+			 */
+			len_acum += len[i];
+			constr->a_matrix[i * constr->nc + constr_no] = len_acum;
+		}
+	}
+
+	constr->e_vector = Calloc(constr->nc, double);
+	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
+
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
+	GMRFLib_problem_tp *problem;
+
+	for (i = 0; i < graph->n; i++) {
+		c[i] = eps;
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+
+	double sum = 0.0;
+	for (i = 0; i < graph->n; i++) {
+		sum += log(*(GMRFLib_Qinv_get(problem, i, i))) * len[i];
+	}
+
+	odef->prec_scale = Calloc(1, double);
+	odef->prec_scale[0] = exp(sum / (crwdef->position[graph->n - 1] - crwdef->position[0]));
+
+	Free(c);
+	Free(crwdef);
+	Free(len);
+	GMRFLib_free_constr(constr);
+	GMRFLib_free_graph(graph);
+	if (free_position) {
+		Free(crwdef->position);
+	}
 
 	return GMRFLib_SUCCESS;
 }
