@@ -18,7 +18,7 @@ mod1 = inla(formula1, data=data,
 
 # to implement this we have to use copies, and change the data set
 data$beta1 = rep(1,21)
-data$beta2 = rep(2,1)
+data$beta2 = rep(2,21)
 data$beta3 = rep(3,21)
 
 # this is the prior for the precision of beta
