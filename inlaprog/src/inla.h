@@ -855,6 +855,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	int si;						       /* expert option... */
 	double **log_prec;
+	double *prec_scale;
 } inla_besag_Qfunc_arg_tp;
 
 typedef struct {
@@ -862,6 +863,7 @@ typedef struct {
 	double **log_prec;
 	double **log_a;					       /* the parameter a */
 	double precision;				       /* the copy precision */
+	double *prec_scale;
 } inla_besag2_Qfunc_arg_tp;
 
 typedef struct {
@@ -1337,6 +1339,8 @@ int ar_test1();
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 double Qfunc_ar(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
+int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp *arg);
+int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp *arg);
 
 
 /* 

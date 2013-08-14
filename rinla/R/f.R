@@ -60,6 +60,7 @@
 ##!         scale = NULL, 
 ##!         strata = NULL, 
 ##!         rgeneric = NULL, 
+##!         standardise=FALSE, 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -299,7 +300,10 @@
         ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
         rgeneric = NULL, 
 
+        ##!\item{standardise}{Logical. If \code{TRUE} then standardise the RW1 and RW2 and BESAG and BYM and BESAG2 models so the their (generlized) variance is 1. Default \code{FALSE}} 
         ##!\item{debug}{Enable local debug output}
+        standardise = FALSE,
+        
         debug = FALSE)
 {
     ##!}
@@ -805,6 +809,10 @@
         }
     }
 
+    if (!missing(standardise) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2"))) {
+        stop("Option 'standardise' is only used for models RW1 and RW2 and BESAG and BYM")
+    }
+
     ret=list(
             Cmatrix = Cmatrix,
             Z=Z,
@@ -846,7 +854,8 @@
             weights=weights,
             scale = scale,
             strata = strata,
-            rgeneric = rgeneric
+            rgeneric = rgeneric, 
+            standardise = as.logical(standardise)
             )
 
     return (ret)
