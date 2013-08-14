@@ -2289,6 +2289,7 @@ double Qfunc_besag(int i, int j, void *arg)
 	} else {
 		prec = 1.0;
 	}
+	prec *= (a->prec_scale ? a->prec_scale[0] : 1.0);
 
 	if (a->si) {
 		if (i == j) {
@@ -2314,6 +2315,8 @@ double Qfunc_besag2(int i, int j, void *arg)
 	} else {
 		prec = 1.0;
 	}
+	prec *= (aa->prec_scale ? aa->prec_scale[0] : 1.0);
+
 	if (aa->log_a) {
 		a = map_exp(aa->log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	} else {
@@ -14254,6 +14257,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->graph->n, arg->graph->n, 0);
 		}
 		arg->log_prec = log_prec;
+
+		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		if (std) {
+			GMRFLib_besag_scale(arg);
+		}
+		if (mb->verbose) {
+			printf("\t\tstandardise[%1d]\n", std);
+			if (std) {
+				printf("\t\tstandardise: prec_scale[%g]\n", arg->prec_scale[0]);
+			}
+		}
+
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -14268,6 +14283,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_besag2;
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
 		arg->graph = mb->f_graph[mb->nf];
+
+		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		if (std) {
+			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
+			besag_arg->graph = arg->graph;
+			GMRFLib_besag_scale(besag_arg);
+			arg->prec_scale = besag_arg->prec_scale;	/* yes, steal that pointer */
+			Free(besag_arg);
+		}
+		if (mb->verbose) {
+			printf("\t\tstandardise[%1d]\n", std);
+			if (std) {
+				printf("\t\tstandardise: prec_scale[%g]\n", arg->prec_scale[0]);
+			}
+		}
+
 		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->graph);
 		arg->precision = mb->f_precision[mb->nf];
 		arg->log_prec = log_prec;
@@ -14299,6 +14330,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
 		arg->besag_arg->log_prec = log_prec1;
+
+		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		if (std) {
+			GMRFLib_besag_scale(arg->besag_arg);
+		}
+		if (mb->verbose) {
+			printf("\t\tstandardise[%1d]\n", std);
+			if (std)
+				printf("\t\tstandardise: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+		}
 
 		/*
 		 * remaing ones 
@@ -14890,6 +14931,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 			}
 			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
+
+			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2) {
+				int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+				if (std) {
+					GMRFLib_crw_scale((void *) crwdef);
+				}
+				if (mb->verbose) {
+					printf("\t\tstandardise[%1d]\n", std);
+					if (std)
+						printf("\t\tstandardise: prec_scale[%g]\n", crwdef->prec_scale[0]);
+				}
+			}
 
 			GMRFLib_make_crw_graph(&(mb->f_graph[mb->nf]), crwdef);
 			mb->f_Qfunc[mb->nf] = GMRFLib_crw;
@@ -17726,8 +17779,8 @@ double extra(double *theta, int ntheta, void *argument)
 				{
 					int ii;
 					double eps = GMRFLib_eps(0.5);
-					
-					/* 
+
+					/*
 					 * only need to add for the z-part; the last m components.
 					 */
 					for (ii = arg->n; ii < arg->n + arg->m; ii++) {
@@ -20772,7 +20825,7 @@ int inla_output_hgid(const char *dir)
 
 	return INLA_OK;
 }
-int inla_output_linkfunctions(const char *dir, inla_tp *mb)
+int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 {
 	char *nndir = NULL;
 
@@ -20786,11 +20839,11 @@ int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 	}
 
 	int i, j;
-	
-	for (j = 0;  j < mb->nds; j++) {
+
+	for (j = 0; j < mb->nds; j++) {
 		link_func_tp *lf = mb->data_sections[j].predictor_invlinkfunc;
 
-		if (lf == link_probit){
+		if (lf == link_probit) {
 			fprintf(fp, "probit\n");
 		} else if (lf == link_tan) {
 			fprintf(fp, "tan\n");
@@ -20817,27 +20870,27 @@ int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	
-	/* 
+
+	/*
 	 * need to use double as we need NAN
 	 */
 	double *idx = Calloc(mb->predictor_ndata, double);
-	for(i = 0; i < mb->predictor_ndata; i++) {
+	for (i = 0; i < mb->predictor_ndata; i++) {
 		int found;
 
 		idx[i] = NAN;
 		for (j = found = 0; j < mb->nds && !found; j++) {
-			if (mb->data_sections[j].predictor_invlinkfunc == mb->predictor_invlinkfunc[i]){
+			if (mb->data_sections[j].predictor_invlinkfunc == mb->predictor_invlinkfunc[i]) {
 				found = 1;
 				idx[i] = j;
 			}
 		}
 	}
-	
+
 	fwrite((void *) &(mb->predictor_ndata), sizeof(int), 1, fp);
 	fwrite((void *) idx, sizeof(double), (size_t) mb->predictor_ndata, fp);
 	Free(idx);
-	
+
 	fclose(fp);
 	Free(nndir);
 
@@ -22278,16 +22331,126 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 	fclose(fp);
 	return INLA_OK;
 }
+
+int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
+{
+	/*
+	 * OLD version: SLOW
+	 */
+
+	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
+	inla_besag_Qfunc_arg_tp *odef = arg;
+
+	GMRFLib_copy_graph(&(def->graph), odef->graph);
+	def->si = GMRFLib_FALSE;
+	def->log_prec = NULL;
+	def->prec_scale = NULL;
+
+	gsl_matrix *Q = gsl_matrix_alloc(def->graph->n, def->graph->n);
+	size_t i, j, k;
+
+	/*
+	 * yes, use dense matrix
+	 */
+	for (i = 0; i < def->graph->n; i++) {
+		gsl_matrix_set(Q, i, i, Qfunc_besag(i, i, def));
+		for (k = 0; k < def->graph->nnbs[i]; k++) {
+			double value;
+
+			j = def->graph->nbs[i][k];
+			value = Qfunc_besag(i, j, def);
+			gsl_matrix_set(Q, i, j, value);
+			gsl_matrix_set(Q, j, i, value);
+		}
+	}
+
+	GMRFLib_gsl_ginv(Q);
+	double sum = 0.0, scale;
+
+	for (i = 0; i < def->graph->n; i++) {
+		sum += log(gsl_matrix_get(Q, i, i));
+	}
+	scale = exp(sum / def->graph->n);
+
+	odef->prec_scale = Calloc(1, double);
+	odef->prec_scale[0] = scale;
+
+	gsl_matrix_free(Q);
+	GMRFLib_free_graph(def->graph);
+	Free(def);
+
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg)
+{
+	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
+	inla_besag_Qfunc_arg_tp *odef = arg;
+
+	GMRFLib_copy_graph(&(def->graph), odef->graph);
+	def->si = GMRFLib_FALSE;
+	def->log_prec = NULL;
+	def->prec_scale = NULL;
+
+	int i;
+	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+
+	for (i = 0; i < def->graph->n; i++) {
+		c[i] = eps;
+	}
+
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_make_empty_constr(&constr);
+	constr->a_matrix = Calloc(def->graph->n, double);
+	for (i = 0; i < def->graph->n; i++) {
+		constr->a_matrix[i] = 1.0;
+	}
+	constr->nc = 1;
+	constr->e_vector = Calloc(1, double);
+	constr->e_vector[0] = 0.0;
+	GMRFLib_prepare_constr(constr, def->graph, GMRFLib_TRUE);
+
+	GMRFLib_problem_tp *problem;
+	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+
+	double sum = 0.0;
+	for (i = 0; i < def->graph->n; i++) {
+		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
+	}
+
+	arg->prec_scale = Calloc(1, double);
+	arg->prec_scale[0] = exp(sum / def->graph->n);
+
+	GMRFLib_free_problem(problem);
+	GMRFLib_free_graph(def->graph);
+	GMRFLib_free_constr(constr);
+	Free(def);
+
+	return GMRFLib_SUCCESS;
+}
+
 int testit(int argc, char **argv)
 {
-	printf("%s\n", strupc("abc"));
-	printf("%s\n", strupc("ABC"));
-	printf("[%s]\n", strcrop("ABC   "));
-	exit(EXIT_SUCCESS);
-
-
-
 	if (1) {
+		double a_data[] = { 0.18, 0.41, 0.14, 0.51,
+			0.60, 0.24, 0.30, 0.13,
+			0.57, 0.99, 0.97, 0.19,
+			0.96, 0.58, 0.66, 0.85
+		};
+
+		gsl_matrix_view m = gsl_matrix_view_array(a_data, 4, 4);
+		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
+		int retval;
+
+		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
+		printf("\n");
+		retval = GMRFLib_gsl_ginv(A);
+		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
+
+		exit(EXIT_SUCCESS);
+	}
+
+	if (0) {
 		double lambda = 10;
 		re_init(&lambda);
 	}

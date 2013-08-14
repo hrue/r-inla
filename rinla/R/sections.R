@@ -217,6 +217,10 @@
         }
     }
 
+    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2"))) {
+        cat("standardise = ", as.numeric(random.spec$standardise), "\n", sep = " ", file = file,  append = TRUE)
+    }
+    
     if (inla.one.of(random.spec$model, "ar")) {
         ## set a default prior for order > 1 if the param is given only for p=1
         par = random.spec$hyper$theta2$param

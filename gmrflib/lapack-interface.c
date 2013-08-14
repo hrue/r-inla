@@ -1,7 +1,7 @@
 
 /* lapack-interface.c
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2013 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -252,6 +252,51 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 
 	gsl_vector_free(x);
 	gsl_matrix_free(L);
+
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_gsl_ginv(gsl_matrix * A)
+{
+	/* 
+	 * replace n x n matrix A with its generlized inverse
+	 */
+
+	assert(A && (A->size1 == A->size2));
+	
+	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
+	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
+	gsl_vector *S = gsl_vector_alloc(A->size1);
+	gsl_vector *work = gsl_vector_alloc(A->size1);
+	
+	gsl_linalg_SV_decomp(U, V, S, work);
+
+	size_t i;
+	double tol = GMRFLib_eps(0.5);
+	double one = 1.0, zero = 0.0;
+	double s_max = gsl_vector_get(S, 0);
+	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
+	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
+
+	for(i = 0;  i < A->size1; i++){
+		double s = gsl_vector_get(S, i);
+		
+		if (s < tol * s_max) {
+			gsl_matrix_set(M2, i, i, 0.0);
+		} else {
+			gsl_matrix_set(M2, i, i, 1.0/s);
+		}
+	}
+	
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, V, M1, zero, M2);
+	gsl_matrix_memcpy(A, M2);
+
+	gsl_matrix_free(U);
+	gsl_matrix_free(V);
+	gsl_matrix_free(M1);
+	gsl_matrix_free(M2);
+	gsl_vector_free(S);
+	gsl_vector_free(work);
 
 	return GMRFLib_SUCCESS;
 }
