@@ -14258,14 +14258,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		arg->log_prec = log_prec;
 
-		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
 			GMRFLib_besag_scale(arg);
 		}
 		if (mb->verbose) {
-			printf("\t\tstandardise[%1d]\n", std);
+			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
-				printf("\t\tstandardise: prec_scale[%g]\n", arg->prec_scale[0]);
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}
 		}
 
@@ -14284,7 +14284,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
 		arg->graph = mb->f_graph[mb->nf];
 
-		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
 			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
 			besag_arg->graph = arg->graph;
@@ -14293,9 +14293,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			Free(besag_arg);
 		}
 		if (mb->verbose) {
-			printf("\t\tstandardise[%1d]\n", std);
+			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
-				printf("\t\tstandardise: prec_scale[%g]\n", arg->prec_scale[0]);
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}
 		}
 
@@ -14331,14 +14331,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
 		arg->besag_arg->log_prec = log_prec1;
 
-		int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
 			GMRFLib_besag_scale(arg->besag_arg);
 		}
 		if (mb->verbose) {
-			printf("\t\tstandardise[%1d]\n", std);
+			printf("\t\tscale.model[%1d]\n", std);
 			if (std)
-				printf("\t\tstandardise: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 		}
 
 		/*
@@ -14933,14 +14933,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
 
 			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2) {
-				int std = iniparser_getint(ini, inla_string_join(secname, "STANDARDISE"), 0);
+				int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 				if (std) {
 					GMRFLib_crw_scale((void *) crwdef);
 				}
 				if (mb->verbose) {
-					printf("\t\tstandardise[%1d]\n", std);
+					printf("\t\tscale.model[%1d]\n", std);
 					if (std)
-						printf("\t\tstandardise: prec_scale[%g]\n", crwdef->prec_scale[0]);
+						printf("\t\tscale.model: prec_scale[%g]\n", crwdef->prec_scale[0]);
 				}
 			}
 
