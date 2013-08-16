@@ -41,7 +41,8 @@ The besag2 model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="besag2", graph=<graph>
               precision=<precision>, hyper = <hyper>,
-              adjust.for.con.comp = TRUE)
+              adjust.for.con.comp = TRUE,
+              scale.model = FALSE)
 \end{verbatim}
 
 The precision is the precision defining how equal the two copies of
@@ -58,6 +59,13 @@ adjustment can be disabled setting this option to \texttt{FALSE}. If
 interpreted as a sum-to-zero constraint on \emph{each} connected
 component in the graph and the \texttt{rankdef} parameter is set
 depending on the number of connected components.
+
+The logical option \verb|scale.model| determine if the model $z$
+should be scaled to have an average variance (the diagonal of the
+generalized inverse) equal to 1. This makes prior spesification much
+easier. Default is \verb|FALSE| so that the model is not scaled.
+
+
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/besag2.tex}

@@ -75,9 +75,17 @@ assigned to $\log\tau$.
 
 The {\tt rw2d} model is specified insiede the {\tt f()} function as:
 \begin{verbatim}
-f(<whatever>,model="rw2d",nrow=<n.of rows>,ncol=<n.of columns>,
-                          hyper= <hyper>
+f(<whatever>,model="rw2d",
+  nrow=<n.of rows>,ncol=<n.of columns>,
+  hyper= <hyper>, scale.model = FALSE)
 \end{verbatim}
+
+The logical option \verb|scale.model| determine if the model should be
+scaled to have an average variance (the diagonal of the generalized
+inverse) equal to 1. This makes prior spesification much
+easier. Default is \verb|FALSE| so that the model is not scaled.
+
+
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/rw2d.tex}
