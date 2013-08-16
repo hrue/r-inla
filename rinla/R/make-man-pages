@@ -15,7 +15,8 @@ inla.models.generate.Rd("../man/models.Rd") ' | R --vanilla
 
 function mmp ()
 {
-    awk '/:NAME:/{
+    awk '/:EXTRA:/ {$1=""; extra = $0; next}
+   /:NAME:/{
 	name=$2
 	f=  MANDIR "/" name ".Rd"
 	print "Make help page", f >> "/dev/stderr"
@@ -38,8 +39,10 @@ function mmp ()
 	print "\\arguments{" >> f
 	print "\\item{...}{Additional arguments; none for the moment}" >> f
 	print "}" >> f
+        print " " extra >> f
 	print "\\value{" >> f
         print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement. These are as follows." >> f
+        extra = ""
 	next;}
     /:ARGUMENT:/{ arg=$2; $1="";$2=""; desc=$0;
 	print "\\item{" arg "}{" desc "}" >> f

@@ -16,6 +16,7 @@ inla.set.control.hazard.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
+ 
 \value{
 The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)}

@@ -16,6 +16,7 @@ inla.set.control.results.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
+ 
 \value{
 The function \code{inla.set.control.results.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{return.marginals.random}{  A boolean variable; read the marginals for the fterms? (Default TRUE)}

@@ -16,6 +16,7 @@ inla.set.control.link.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
+  The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
 \value{
 The function \code{inla.set.control.link.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{link}{  The name of the link function/model}
