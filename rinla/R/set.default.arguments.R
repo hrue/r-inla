@@ -18,6 +18,7 @@
 `inla.set.control.lincomb.default` =
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.lincomb
     list(
          ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
@@ -32,6 +33,7 @@
 `inla.set.control.group.default` =
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.group
     list(
         ##:ARGUMENT: model Group model (one of 'exchangable', 'ar1',  'ar', 'rw1', 'rw2' or 'besag')
@@ -67,6 +69,7 @@
 `inla.set.control.mix.default` =
     function(...)
 {
+    ##:EXTRA: The \code{control.mix} -list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood spesific. (This option is EXPERIMENTAL.)
     ##:NAME: control.mix
     list(
         ##:ARGUMENT: model The model for the random effect. Currently, only \code{model='gaussian'} is implemented
@@ -93,6 +96,7 @@
 `inla.set.control.link.default` =
     function(...)
 {
+    ##:EXTRA: The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
     ##:NAME: control.link
     list(
         ##:ARGUMENT: link The name of the link function/model
@@ -131,6 +135,7 @@
 `inla.set.control.expert.default` =
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.expert
     list(
         ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)
@@ -146,6 +151,7 @@
 `inla.set.control.compute.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.compute
     list(
         ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
@@ -190,6 +196,7 @@
 `inla.set.control.family.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.family
     list(
         ##:ARGUMENT: hyper Definition of the hyperparameters
@@ -241,6 +248,7 @@
 `inla.set.control.data.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.data
     ##:SEEALSO: inla
     return (inla.set.control.family.default(...))
@@ -249,6 +257,7 @@
 `inla.set.control.fixed.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.fixed
     list(
         ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model.
@@ -288,6 +297,7 @@
     family = "gaussian"
     inla.eval.dots(..., allowed.names = c("family"))
 
+    ##:EXTRA: 
     ##:NAME: control.inla
     ans = list(
             ##:ARGUMENT: strategy  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
@@ -434,6 +444,7 @@
 `inla.set.control.predictor.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.predictor
     list(
          ##:ARGUMENT: hyper Definition of the hyperparameters.
@@ -478,6 +489,7 @@
 `inla.set.control.results.default`=
     function(...)
 {
+    ##:EXTRA: 
     ##:NAME: control.results
     list(
          ##:ARGUMENT: return.marginals.random A boolean variable; read the marginals for the fterms? (Default TRUE)
@@ -492,6 +504,7 @@
     function(...)
 {
     ## this is internal use only...
+    ##:EXTRA: 
     ##:NAME: control.mode
     list(
          ##:ARGUMENT: result Prevous result from inla(). Use the theta- and x-mode from this run.
@@ -514,6 +527,7 @@
 `inla.set.control.hazard.default` =
     function(...)
 {
+    ##:EXTRA:
     ##:NAME: control.hazard
     list(
          ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)
