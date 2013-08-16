@@ -217,7 +217,7 @@
         }
     }
 
-    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2"))) {
+    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
         cat("scale.model = ", as.numeric(random.spec$scale.model), "\n", sep = " ", file = file,  append = TRUE)
     }
     
