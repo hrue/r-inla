@@ -575,6 +575,7 @@ double GMRFLib_rw2d(int node, int nnode, void *def)
 	nrow = rw2ddef->nrow;
 	ncol = rw2ddef->ncol;
 	prec = GMRFLib_SET_PREC(rw2ddef);
+	prec *= (rw2ddef->prec_scale ? rw2ddef->prec_scale[0] : 1.0);
 
 	GMRFLib_node2lattice(node, &i, &j, nrow, ncol);
 	GMRFLib_node2lattice(nnode, &ii, &jj, nrow, ncol);
@@ -1002,7 +1003,7 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_make_crw_graph(&graph, crwdef);
 
-	int i, constr_no, free_position = 0;
+	int i, free_position = 0;
 
 	/*
 	 * make sure we have defined the positions, as the code is easier with it
@@ -1030,31 +1031,23 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_make_empty_constr(&constr);
 	constr->nc = crwdef->order;
 	constr->a_matrix = Calloc(constr->nc * graph->n, double);
-	constr_no = 0;
 	for (i = 0; i < graph->n; i++) {
-		/*
-		 * the constant case
-		 */
-		constr->a_matrix[i * constr->nc + constr_no] = len[i];
+		constr->a_matrix[i * constr->nc + 0] = len[i];
 	}
 
 	if (crwdef->order == 2) {
 		double len_acum = 0.0;
 
-		constr_no = 1;
 		for (i = 0; i < graph->n; i++) {
-			/*
-			 * the linear case
-			 */
 			len_acum += len[i];
-			constr->a_matrix[i * constr->nc + constr_no] = len_acum;
+			constr->a_matrix[i * constr->nc + 1] = len_acum;
 		}
 	}
 
 	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.3833);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1076,9 +1069,87 @@ int GMRFLib_crw_scale(void *def)
 	Free(len);
 	GMRFLib_free_constr(constr);
 	GMRFLib_free_graph(graph);
+	GMRFLib_free_problem(problem);
 	if (free_position) {
 		Free(crwdef->position);
 	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_rw2d_scale(void *def)
+{
+	GMRFLib_rw2ddef_tp *rw2ddef = Calloc(1, GMRFLib_rw2ddef_tp);
+	GMRFLib_rw2ddef_tp *odef = (GMRFLib_rw2ddef_tp *) def;
+
+	rw2ddef->nrow = odef->nrow;
+	rw2ddef->ncol = odef->ncol;
+	rw2ddef->order = odef->order;
+	assert(rw2ddef->order == 2);
+	rw2ddef->cyclic = odef->cyclic;
+	rw2ddef->bvalue = odef->bvalue;
+	rw2ddef->log_prec = NULL;
+	rw2ddef->log_prec_omp = NULL;
+	rw2ddef->prec_scale = NULL;
+
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_make_rw2d_graph(&graph, rw2ddef);
+
+	int i, j, k;
+	double *c = NULL;
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_problem_tp *problem = NULL;
+
+	if (rw2ddef->bvalue != GMRFLib_BVALUE_ZERO) {
+		GMRFLib_make_empty_constr(&constr);
+		constr->nc = (rw2ddef->cyclic ? 1 : 3);
+		constr->a_matrix = Calloc(constr->nc * graph->n, double);
+		if (constr->nc == 1) {
+			for (i = 0; i < graph->n; i++) {
+				constr->a_matrix[i * constr->nc + 0] = 1.0;
+			}
+		} else {
+			for (j = 0; j < rw2ddef->ncol; j++) {
+				for (i = 0; i < rw2ddef->nrow; i++) {
+					GMRFLib_lattice2node(&k, i, j, rw2ddef->nrow, rw2ddef->ncol);
+					constr->a_matrix[k * constr->nc + 0] = 1;
+					constr->a_matrix[k * constr->nc + 1] = i - rw2ddef->nrow / 2.0;
+					constr->a_matrix[k * constr->nc + 2] = j - rw2ddef->ncol / 2.0;
+				}
+			}
+		}
+
+		constr->e_vector = Calloc(constr->nc, double);
+		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
+
+		double eps = GMRFLib_eps(0.3833);
+		c = Calloc(graph->n, double);
+		for (i = 0; i < graph->n; i++) {
+			c[i] = eps;
+		}
+	} else {
+		/*
+		 * The model is proper if BVALUE_ZERO is set, no need to add anything on the diagonal
+		 */
+		constr = NULL;
+	}
+
+	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+
+	double sum = 0.0;
+	for (i = 0; i < graph->n; i++) {
+		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
+	}
+
+	odef->prec_scale = Calloc(1, double);
+	odef->prec_scale[0] = exp(sum / graph->n);
+
+	Free(c);
+	Free(rw2ddef);
+	GMRFLib_free_constr(constr);
+	GMRFLib_free_graph(graph);
+	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
 }

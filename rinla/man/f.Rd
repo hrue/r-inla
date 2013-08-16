@@ -206,7 +206,7 @@ used for other models at the time being.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
 \item{strata}{A stratum vector. It meaning depends on the model.}
 \item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
-\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 models so the their (generlized) variance is 1. Default \code{FALSE}} 
+\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default \code{FALSE}} 
 \item{debug}{Enable local debug output}
 }
 \value{TODO}
