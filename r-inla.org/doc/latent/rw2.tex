@@ -36,11 +36,18 @@ and the prior is defined on $\theta$.
 
 The RW2 model is specified inside the {\tt f()} function as
 \begin{verbatim}
- f(<whatever>,model="rw2",values=<values>,cyclic=<TRUE,FALSE>,
+ f(<whatever>, model="rw2", values=<values>,
+   cyclic=FALSE, scale.model = FALSE)
 \end{verbatim}
 The (optional) argument {\tt values } is a numeric or factor vector
 giving the values assumed by the covariate for which we want the
 effect to be estimated. See the example for RW1 for an application.
+
+The logical option \verb|scale.model| determine if the model should be
+scaled to have an average variance (the diagonal of the generalized
+inverse) equal to 1. This makes prior spesification much
+easier. Default is \verb|FALSE| so that the model is not scaled.
+
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/rw2.tex}

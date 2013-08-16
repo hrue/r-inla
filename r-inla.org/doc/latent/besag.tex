@@ -30,7 +30,8 @@ and the prior is defined on $\theta_{1}$.
 The besag model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="besag",graph=<graph>,
-   hyper=<hyper>, adjust.for.con.comp = TRUE)
+   hyper=<hyper>, adjust.for.con.comp = TRUE,
+   scale.model = FALSE)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
@@ -43,6 +44,12 @@ adjustment can be disabled setting this option to \texttt{FALSE}. If
 interpreted as a sum-to-zero constraint on \emph{each} connected
 component in the graph and the \texttt{rankdef} parameter is set to
 the number of connected components.
+
+The logical option \verb|scale.model| determine if the model should be
+scaled to have an average variance (the diagonal of the generalized
+inverse) equal to 1. This makes prior spesification much
+easier. Default is \verb|FALSE| so that the model is not scaled.
+
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/besag.tex}

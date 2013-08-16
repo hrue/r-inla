@@ -8,16 +8,24 @@
 
 \subsection*{Parametrization}
 
-This model is simply the sum of a \lstinline$besag$ model and a
-\lstinline$iid$ model.
- 
-The benefite is that this allows to get the posterior marginals of the
-sum of the spatial and iid model; otherwise it offers no advantages.
+This model is simply a union of the  \lstinline$besag$ model $u$ and a
+\lstinline$iid$ model $v$, so that
+\begin{displaymath}
+    x =
+    \begin{pmatrix}
+        v + u\\
+        u
+    \end{pmatrix}
+\end{displaymath}
+Note that the length of $x$ is $2n$ if the length of $u$ (and $v$) is
+$n$. The benefite is that this allows to get the posterior marginals
+of the sum of the spatial and iid model; otherwise it offers no
+advantages.
 
 \subsection*{Hyperparameters}
 The hyperparameters are the precision $\tau_1$ of the \lstinline$iid$
-model and the precision $\tau_2$ of the \lstinline$besag$ model.  The
-precision parameters are represented as
+model ($v$) and the precision $\tau_2$ of the \lstinline$besag$ model
+($u$).  The precision parameters are represented as
 \begin{displaymath}
     \theta=(\theta_1,\theta_2) =(\log \tau_1,\log \tau_2)
 \end{displaymath}
@@ -28,7 +36,8 @@ and the prior is defined on $\mathbf{\theta}$.
 The bym model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="bym",graph=<graph>,
-   hyper=<hyper>, adjust.for.con.comp = TRUE)
+   hyper=<hyper>, adjust.for.con.comp = TRUE,
+   scale.model = FALSE)
 \end{verbatim}
 
 The neighbourhood structure of $\mathbf{x}$ is passed to the program
@@ -40,6 +49,13 @@ disabled setting this option to \texttt{FALSE}. This means that
 \texttt{constr=TRUE} is interpreted as a sum-to-zero constraint on
 \emph{each} connected component and the \texttt{rankdef} parameter is
 set accordingly. 
+
+The logical option \verb|scale.model| determine if the
+besag-model-part of the model $u$ should be scaled to have an average
+variance (the diagonal of the generalized inverse) equal to 1. This
+makes prior spesification much easier. Default is \verb|FALSE| so that
+the model is not scaled.
+
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/bym.tex}
