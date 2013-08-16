@@ -300,7 +300,7 @@
         ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
         rgeneric = NULL, 
 
-        ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 models so the their (generlized) variance is 1. Default \code{FALSE}} 
+        ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default \code{FALSE}} 
         ##!\item{debug}{Enable local debug output}
         scale.model = FALSE,
         
@@ -809,7 +809,7 @@
         }
     }
 
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2"))) {
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
         stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM")
     }
 

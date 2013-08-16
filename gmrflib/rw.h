@@ -301,6 +301,8 @@ typedef struct {
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
+
+	double *prec_scale;
 } GMRFLib_rw2ddef_tp;
 
 double GMRFLib_rw(int node, int nnode, void *rwdef);
@@ -311,6 +313,7 @@ int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
 int GMRFLib_crw_scale_OLD(void *def);
 int GMRFLib_crw_scale(void *def);
+int GMRFLib_rw2d_scale(void *def);
 
 __END_DECLS
 #endif

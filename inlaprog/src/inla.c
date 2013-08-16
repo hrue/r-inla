@@ -14432,11 +14432,23 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg = Calloc(1, GMRFLib_rw2ddef_tp);
 		arg->nrow = mb->f_nrow[mb->nf];
 		arg->ncol = mb->f_ncol[mb->nf];
+		arg->order = 2;
 		arg->cyclic = mb->f_cyclic[mb->nf];
 		arg->bvalue = bvalue;
 		arg->prec = NULL;
 		arg->log_prec = NULL;
 		arg->log_prec_omp = log_prec;
+		
+		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
+		if (std) {
+			GMRFLib_rw2d_scale((void *) arg);
+		}
+		if (mb->verbose) {
+			printf("\t\tscale.model[%1d]\n", std);
+			if (std)
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+		}
+		
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = (bvalue == GMRFLib_BVALUE_ZERO ? 0.0 : (arg->cyclic ? 1.0 : 3.0));
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
