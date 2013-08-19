@@ -14258,11 +14258,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		arg->log_prec = log_prec;
 
+		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			GMRFLib_besag_scale(arg);
+			GMRFLib_besag_scale(arg, adj);
 		}
 		if (mb->verbose) {
+			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
@@ -14284,15 +14286,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
 		arg->graph = mb->f_graph[mb->nf];
 
+		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
 			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
 			besag_arg->graph = arg->graph;
-			GMRFLib_besag_scale(besag_arg);
+			GMRFLib_besag_scale(besag_arg, adj);
 			arg->prec_scale = besag_arg->prec_scale;	/* yes, steal that pointer */
 			Free(besag_arg);
 		}
 		if (mb->verbose) {
+			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
@@ -14331,11 +14335,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
 		arg->besag_arg->log_prec = log_prec1;
 
+		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			GMRFLib_besag_scale(arg->besag_arg);
+			GMRFLib_besag_scale(arg->besag_arg, adj);
 		}
 		if (mb->verbose) {
+			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			if (std)
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
@@ -14438,7 +14444,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->prec = NULL;
 		arg->log_prec = NULL;
 		arg->log_prec_omp = log_prec;
-		
+
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
 			GMRFLib_rw2d_scale((void *) arg);
@@ -14448,7 +14454,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (std)
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 		}
-		
+
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = (bvalue == GMRFLib_BVALUE_ZERO ? 0.0 : (arg->cyclic ? 1.0 : 3.0));
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -22364,9 +22370,9 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 	/*
 	 * yes, use dense matrix
 	 */
-	for (i = 0; i < def->graph->n; i++) {
+	for (i = 0; i < (size_t) def->graph->n; i++) {
 		gsl_matrix_set(Q, i, i, Qfunc_besag(i, i, def));
-		for (k = 0; k < def->graph->nnbs[i]; k++) {
+		for (k = 0; k < (size_t) def->graph->nnbs[i]; k++) {
 			double value;
 
 			j = def->graph->nbs[i][k];
@@ -22379,7 +22385,7 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 	GMRFLib_gsl_ginv(Q);
 	double sum = 0.0, scale;
 
-	for (i = 0; i < def->graph->n; i++) {
+	for (i = 0; i < (size_t) def->graph->n; i++) {
 		sum += log(gsl_matrix_get(Q, i, i));
 	}
 	scale = exp(sum / def->graph->n);
@@ -22393,7 +22399,7 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg)
+int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 {
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
 	inla_besag_Qfunc_arg_tp *odef = arg;
@@ -22403,30 +22409,37 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg)
 	def->log_prec = NULL;
 	def->prec_scale = NULL;
 
-	int i;
-	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+	int i, j, *cc = NULL, n = def->graph->n;
+	if (adj) {
+		cc = GMRFLib_connected_components(def->graph);
+	} else {
+		cc = Calloc(n, int);
+	}
 
-	for (i = 0; i < def->graph->n; i++) {
+	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+	for (i = 0; i < n; i++) {
 		c[i] = eps;
 	}
 
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_make_empty_constr(&constr);
-	constr->a_matrix = Calloc(def->graph->n, double);
-	for (i = 0; i < def->graph->n; i++) {
-		constr->a_matrix[i] = 1.0;
+
+	constr->nc = 1 + GMRFLib_imax_value(cc, def->graph->n, NULL);
+	constr->a_matrix = Calloc(n * constr->nc, double);
+	for (i = 0; i < n; i++) {
+		j = cc[i];
+		constr->a_matrix[i * constr->nc + j] = 1.0;
 	}
-	constr->nc = 1;
-	constr->e_vector = Calloc(1, double);
-	constr->e_vector[0] = 0.0;
+	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, def->graph, GMRFLib_TRUE);
+	// GMRFLib_print_constr(stdout, constr, def->graph);
 
 	GMRFLib_problem_tp *problem;
 	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
-	for (i = 0; i < def->graph->n; i++) {
+	for (i = 0; i < n; i++) {
 		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 	}
 
@@ -22437,6 +22450,7 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg)
 	GMRFLib_free_graph(def->graph);
 	GMRFLib_free_constr(constr);
 	Free(def);
+	Free(cc);
 
 	return GMRFLib_SUCCESS;
 }
@@ -22452,11 +22466,10 @@ int testit(int argc, char **argv)
 
 		gsl_matrix_view m = gsl_matrix_view_array(a_data, 4, 4);
 		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
-		int retval;
 
 		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
 		printf("\n");
-		retval = GMRFLib_gsl_ginv(A);
+		GMRFLib_gsl_ginv(A);
 		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
 
 		exit(EXIT_SUCCESS);
