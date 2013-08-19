@@ -220,6 +220,9 @@
     if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
         cat("scale.model = ", as.numeric(random.spec$scale.model), "\n", sep = " ", file = file,  append = TRUE)
     }
+    if (inla.one.of(random.spec$model, c("besag", "bym", "besag2"))) {
+        cat("adjust.for.con.comp = ", as.numeric(random.spec$adjust.for.con.comp), "\n", sep = " ", file = file,  append = TRUE)
+    }
     
     if (inla.one.of(random.spec$model, "ar")) {
         ## set a default prior for order > 1 if the param is given only for p=1

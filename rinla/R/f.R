@@ -776,6 +776,10 @@
                 } else {
                     extraconstr = list(A = AA, e = ee)
                 }
+            } else {
+                if (!missing(adjust.for.con.comp)) {
+                    stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2' and 'bym'.")
+                }
             }
 
             ## set correct rankdef if not set manually. well, this is
@@ -855,7 +859,8 @@
             scale = scale,
             strata = strata,
             rgeneric = rgeneric, 
-            scale.model = as.logical(scale.model)
+            scale.model = as.logical(scale.model),
+            adjust.for.con.comp = as.logical(adjust.for.con.comp)
             )
 
     return (ret)

@@ -1340,7 +1340,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 double Qfunc_ar(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp *arg);
-int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp *arg);
+int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp *arg, int adj);
 
 
 /* 
