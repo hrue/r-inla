@@ -197,6 +197,11 @@ typedef struct {
 	 */
 	double user_stdev;
 
+	/** 
+	 * \brief The mode in user scale (set if !NAN)
+	 */
+	double user_mode;
+	
 	/**
 	 * \brief The offset that is used for standarisation.
 	 *
