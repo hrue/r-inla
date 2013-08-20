@@ -504,7 +504,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 				xpm = Calloc(2 * npm, double);
 				ldm = xpm + npm;
-				for (xval = low, i = 0; xval < high; xval += dx, i++) {
+				for (xval = low, i = 0; i < npm; xval += dx, i++) {
 					xpm[i] = xval;
 				}
 				density->log_norm_const = 0.0;
@@ -587,6 +587,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	 */
 	density->user_mean = density->std_stdev * density->mean + density->std_mean;
 	density->user_stdev = density->std_stdev * density->stdev;
+	density->user_mode = NAN;			       /* yes, this is the value if its not computed */
 
 	/*
 	 * new style speedup 
@@ -607,17 +608,24 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			dx = (high - low) / (npm - 1.0);
 
 			xpm = Calloc(2 * npm, double);
-
 			ldm = xpm + npm;
-			for (xval = low, i = 0; xval < high; xval += dx, i++) {
+			for (xval = low, i = 0; i < npm; xval += dx, i++) {
 				xpm[i] = xval;
 			}
 			GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
 			GMRFLib_adjust_vector(ldm, npm);       /* so its well-behaved... */
 		}
 
-		work = Calloc(4 * np, double);
+		/* 
+		 * find the mode fitting a quadratic around the best point, like a one-step Newton-Raphson, since we have so excellent initial value
+		 */
+		int imax;
+		GMRFLib_max_value(ldm, npm-1, &imax);
+		density->user_mode = density->std_mean + density->std_stdev *
+			(xpm[imax] -
+			 (((ldm[imax+1]-ldm[imax-1])/(2.0*dx))/((ldm[imax+1]-2.0*ldm[imax]+ldm[imax-1])/SQR(dx))));
 
+		work = Calloc(4 * np, double);
 		dens = work;
 		val = work + np;
 		p = work + 2 * np;
@@ -1504,6 +1512,7 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		fprintf(fp, "%-35s %16.10f\n", "Stdev", density->stdev);
 		fprintf(fp, "%-35s %16.10f\n", "User mean", density->user_mean);
 		fprintf(fp, "%-35s %16.10f\n", "User stdev", density->user_stdev);
+		fprintf(fp, "%-35s %16.10f\n", "User mode", density->user_mode);
 		fprintf(fp, "%-35s %16.10f\n", "Standarisation: mean", density->std_mean);
 		fprintf(fp, "%-35s %16.10f\n", "Standarisation: stdev", density->std_stdev);
 		switch (density->type) {
