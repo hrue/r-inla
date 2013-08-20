@@ -575,7 +575,7 @@ inla.internal.experimental.mode = FALSE
                             debug=debug)
                     summ = c(summ, mm[, 2L])
                     if (first.time)
-                        col.nam = c(col.nam, "mode")
+                        col.nam = c(col.nam, "xmode")
                 }
 
                 if (length(grep("^cdf.dat$", dir.fix))>0L) {
@@ -697,17 +697,19 @@ inla.internal.experimental.mode = FALSE
                     xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,
                             "quantiles.dat", sep="")), debug=debug)
                     len = dim(xx)[2L]
-                    qq = xx[, 2L]
+                    qq = xx[, seq(2L, len, by=2L), drop=FALSE]
                     col.nam = c(col.nam, paste(as.character(xx[, 1L]),"quant", sep=""))
-                    dd = cbind(dd, qq)
+                    dd = cbind(dd, t(qq))
                 }
 
                 ##read mode if existing
                 if (length(grep("^mode.dat$", dir.lincomb))>0L) {
                     mm = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep="")),
                             debug=debug)
-                    dd = cbind(dd, mm[, 2L])
-                    col.nam = c(col.nam, "mode")
+                    len = dim(mm)[2L]
+                    qq = mm[, seq(2L, len, by=2L), drop=FALSE]
+                    dd = cbind(dd, t(qq))
+                    col.nam = c(col.nam, "xmode")
                 }
 
                 ##read cdf if existing
@@ -864,8 +866,7 @@ inla.internal.experimental.mode = FALSE
         else
             failure.res = NULL
         rm(xx)
-    }
-    else {
+    } else {
         cpo.res = NULL
         pit.res = NULL
         failure.res = NULL
@@ -895,8 +896,7 @@ inla.internal.experimental.mode = FALSE
         po.res=numeric(n)
         po.res[1L:n] = NA
         po.res[xx[seq(1L, len, by=2L)] +1L] = xx[seq(2L, len, by=2L)]
-    }
-    else {
+    } else {
         po.res = NULL
     }
 
@@ -1053,7 +1053,7 @@ inla.internal.experimental.mode = FALSE
                         debug=debug)
                 summ = c(summ, qq[, 2L])
                 if (first.time)
-                    col.nam = c(col.nam, "mode")
+                    col.nam = c(col.nam, "xmode")
             }
 
             if (length(grep("^cdf.dat$", dir(dir.hyper)))>0L) {
@@ -1133,7 +1133,7 @@ inla.internal.experimental.mode = FALSE
                         debug=debug)
                 summ = c(summ, qq[, 2L])
                 if (first.time)
-                    col.nam = c(col.nam, "mode")
+                    col.nam = c(col.nam, "xmode")
             }
             if (length(grep("^cdf.dat$", dir(dir.hyper)))>0L) {
                 qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")),
@@ -1163,8 +1163,7 @@ inla.internal.experimental.mode = FALSE
         names(internal.marginal.hyper) = inla.namefix(names.hyper)
         rownames(internal.summary.hyper) = inla.namefix(names.hyper)
         colnames(internal.summary.hyper) = inla.namefix(col.nam)
-    }
-    else {
+    } else {
         internal.summary.hyper=NULL
         internal.marginal.hyper=NULL
     }
@@ -1254,7 +1253,7 @@ inla.internal.experimental.mode = FALSE
             xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
             len = dim(xx)[2L]
             qq = xx[, seq(2L, len, by=2L)]
-            col.nam = c(col.nam, "mode")
+            col.nam = c(col.nam, "xmode")
             dd = cbind(dd, qq)
             rm(xx)
         }
@@ -1270,8 +1269,7 @@ inla.internal.experimental.mode = FALSE
             col.nam = c(col.nam, paste(as.character(xx[, 1L])," cdf", sep=""))
             dd = cbind(dd, t(qq))
             rm(xx)
-        }
-        else {
+        } else {
             if (debug)
                 cat("... no cdf.dat\n")
         }
@@ -1359,7 +1357,7 @@ inla.internal.experimental.mode = FALSE
                 xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2L]
                 qq = xx[, seq(2L, len, by=2L)]
-                col.nam = c(col.nam, "mode")
+                col.nam = c(col.nam, "xmode")
                 dd = cbind(dd, qq)
                 rm(xx)
             }
@@ -1500,7 +1498,7 @@ inla.internal.experimental.mode = FALSE
                             debug=debug)
                     len = dim(xx)[2L]
                     qq = xx[, seq(2L, len, by=2L)]
-                    col.nam = c(col.nam, "mode")
+                    col.nam = c(col.nam, "xmode")
                     dd = cbind(dd, qq)
                 }
 
@@ -1671,9 +1669,9 @@ inla.internal.experimental.mode = FALSE
                     xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"mode.dat", sep="")),
                             debug=debug)
                     len = dim(xx)[2L]
-                    qq = xx[, seq(2L, len, by=2L)]
-                    col.nam = c(col.nam, "mode")
-                    dd = cbind(dd, qq)
+                    qq = xx[, seq(2L, len, by=2L), drop=FALSE]
+                    col.nam = c(col.nam, "xmode")
+                    dd = cbind(dd, t(qq))
                 }
 
                 ##read cdf if existing
