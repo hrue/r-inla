@@ -48,6 +48,12 @@
         ##:ARGUMENT: graph The graph spesification (Only applies to model 'besag')
         graph = NULL, 
 
+        ##:ARGUMENT: scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default FALSE)
+        scale.model = FALSE, 
+
+        ##:ARGUMENT: adjust.for.con.comp Adjust for connected components when scale.model=TRUE?
+        adjust.for.con.comp = TRUE, 
+
         ##:ARGUMENT: hyper Definition of the hyperparameter(s)
         hyper = NULL,
 
