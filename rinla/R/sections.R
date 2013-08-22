@@ -256,6 +256,8 @@
         if (!inla.one.of(random.spec$model, "copy")) { 
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
             inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
+            inla.write.boolean.field("group.scale.model", random.spec$control.group$scale.model, file)
+            inla.write.boolean.field("group.adjust.for.con.comp", random.spec$control.group$adjust.for.con.comp, file)
             if (inla.one.of(random.spec$control.group$model, "ar")) {
                 ## 'order' is only used for model=ar
                 p = inla.ifelse(is.null(random.spec$control.group$order), 0, as.integer(random.spec$control.group$order))

@@ -118,6 +118,7 @@ __BEGIN_DECLS
 	 * scale the prec: only for order = 0. Not public
 	 */
 	double *scale0;
+
 } GMRFLib_rwdef_tp;
 
 /*!
