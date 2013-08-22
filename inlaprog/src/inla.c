@@ -1253,11 +1253,15 @@ double Qfunc_group(int i, int j, void *arg)
 
 		case G_RW1:
 		case G_RW2:
-			fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
+			if (a->crwdef) {
+				fac = prec * GMRFLib_crw(igroup, jgroup, (void *) (a->crwdef));
+			} else {
+				fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
+			}
 			break;
 
 		case G_BESAG:
-			fac = prec * a->graph->nnbs[igroup];
+			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
 		default:
@@ -1282,11 +1286,15 @@ double Qfunc_group(int i, int j, void *arg)
 
 		case G_RW1:
 		case G_RW2:
-			fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
+			if (a->crwdef) {
+				fac = prec * GMRFLib_crw(igroup, jgroup, (void *) (a->crwdef));
+			} else {
+				fac = prec * GMRFLib_rw(igroup, jgroup, (void *) (a->rwdef));
+			}
 			break;
 
 		case G_BESAG:
-			fac = -1.0;
+			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
 		default:
@@ -15403,6 +15411,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_N[mb->nf] *= ng;
 			mb->f_rankdef[mb->nf] *= ng;
 
+			int adj = iniparser_getint(ini, inla_string_join(secname, "GROUP.ADJUST.FOR.CON.COMP"), 1);
+			int std = iniparser_getint(ini, inla_string_join(secname, "GROUP.SCALE.MODEL"), 0);
+
 			/*
 			 * setup the new Qfunc++ 
 			 */
@@ -15420,15 +15431,54 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			def->group_rho_intern = group_rho_intern;
 			def->group_prec_intern = group_prec_intern;
 			if (mb->f_group_model[mb->nf] == G_RW1 || mb->f_group_model[mb->nf] == G_RW2) {
-				def->rwdef = Calloc(1, GMRFLib_rwdef_tp);
-				def->rwdef->n = ng;
-				def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
-				def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
-				def->rwdef->si = GMRFLib_FALSE;
-				def->rwdef->prec = Calloc(1, double);
-				def->rwdef->prec[0] = 1.0;
-				def->rwdef->log_prec = NULL;
-				def->rwdef->log_prec_omp = NULL;
+				if (def->cyclic) {
+					/*
+					 * as cyclic is only implemented for GMRFLib_rw()
+					 */
+					def->rwdef = Calloc(1, GMRFLib_rwdef_tp);
+					def->rwdef->n = ng;
+					def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
+					def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
+					def->rwdef->si = GMRFLib_FALSE;
+					def->rwdef->prec = Calloc(1, double);
+					def->rwdef->prec[0] = 1.0;
+					def->rwdef->log_prec = NULL;
+					def->rwdef->log_prec_omp = NULL;
+					if (std) {
+						char *err;
+						GMRFLib_sprintf(&err, "Group: cannot scale.model with option cylic=TRUE. Contact developers.");
+						inla_error_general(err);
+						exit(1);
+					}
+				} else {
+					/*
+					 * otherwise, we use the general function
+					 */
+					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
+					def->crwdef->n = ng;
+					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
+					def->crwdef->si = GMRFLib_FALSE;
+					def->crwdef->prec = Calloc(1, double);
+					def->crwdef->prec[0] = 1.0;
+					def->crwdef->log_prec = NULL;
+					def->crwdef->log_prec_omp = NULL;
+					def->crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
+					def->crwdef->position = Calloc(ng, double);
+					int kk;
+					for (kk = 0; kk < ng; kk++) {
+						def->crwdef->position[kk] = (double) kk;
+					}
+					if (std) {
+						GMRFLib_crw_scale((void *) def->crwdef);
+					}
+					if (mb->verbose) {
+						printf("\t\tgroup.scale.model[%1d]\n", std);
+						if (std) {
+							printf("\t\tgroup.scale.model: prec_scale[%g]\n", def->crwdef->prec_scale[0]);
+						}
+					}
+				}
+
 			} else if (mb->f_group_model[mb->nf] == G_AR) {
 				def->ardef = Calloc(1, ar_def_tp);
 				def->ardef->n = mb->f_ngroup[mb->nf];
@@ -15444,10 +15494,26 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						def->ardef->hold_pacf_intern[i][j] = GMRFLib_uniform();
 					}
 				}
+			} else if (mb->f_group_model[mb->nf] == G_BESAG) {
+				def->besagdef = Calloc(1, inla_besag_Qfunc_arg_tp);
+				def->besagdef->graph = mb->f_group_graph[mb->nf];
+				if (std) {
+					GMRFLib_besag_scale((void *) def->besagdef, adj);
+				}
+				if (mb->verbose) {
+					printf("\t\tgroup.scale.model[%1d]\n", std);
+					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
+					if (std) {
+						printf("\t\tgroup.scale.model: prec_scale[%g]\n", def->besagdef->prec_scale[0]);
+					}
+				}
 			} else {
 				def->rwdef = NULL;
+				def->crwdef = NULL;
 				def->ardef = NULL;
+				def->besagdef = NULL;
 			}
+
 			if (mb->f_bfunc2[mb->nf]) {
 				/*
 				 * then revise the contents
@@ -21818,7 +21884,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							fprintf(fp, "%1d ", i);
 						}
 					}
-					if (G.binary){
+					if (G.binary) {
 						D3W(1.0, NAN, density[i]->user_mode);
 					} else {
 						fprintf(fp, " %g\n", density[i]->user_mode);
@@ -21877,7 +21943,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							fprintf(fp, "%1d ", i);
 						}
 					}
-					if (G.binary){
+					if (G.binary) {
 						D2W(1.0, gdensity[i]->user_mode);
 					} else {
 						fprintf(fp, " %g\n", gdensity[i]->user_mode);

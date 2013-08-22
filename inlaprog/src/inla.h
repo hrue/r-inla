@@ -608,19 +608,6 @@ typedef struct {
 	double **hold_Qmarg;				       /* dim = p */
 } ar_def_tp;
 
-typedef struct {
-	int N;
-	int ngroup;
-	int type;
-	int cyclic;
-	GMRFLib_graph_tp *graph;
-	GMRFLib_Qfunc_tp *Qfunc;
-	void *Qfunc_arg;
-	double **group_rho_intern;
-	double **group_prec_intern;
-	GMRFLib_rwdef_tp *rwdef;
-	ar_def_tp *ardef;
-} inla_group_def_tp;
 
 typedef struct {
 	double precision;
@@ -1026,6 +1013,23 @@ typedef struct {
 } inla_rgeneric_tp;
 
 
+typedef struct {
+	int N;
+	int ngroup;
+	int type;
+	int cyclic;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_Qfunc_tp *Qfunc;
+	void *Qfunc_arg;
+	double **group_rho_intern;
+	double **group_prec_intern;
+	GMRFLib_rwdef_tp *rwdef;
+	GMRFLib_crwdef_tp *crwdef;
+	ar_def_tp *ardef;
+	inla_besag_Qfunc_arg_tp *besagdef;
+} inla_group_def_tp;
+
+
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_INITIAL "initial"
@@ -1186,7 +1190,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		       const char *sdir, map_func_tp * func, void *func_arg,
 		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
 int inla_output_hgid(const char *dir);
-int inla_output_linkfunctions(const char *dir, inla_tp *mb);
+int inla_output_linkfunctions(const char *dir, inla_tp * mb);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose);
@@ -1340,8 +1344,8 @@ int ar_test1();
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 double Qfunc_ar(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
-int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp *arg);
-int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp *arg, int adj);
+int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg);
+int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
 
 
 /* 
