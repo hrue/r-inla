@@ -14862,6 +14862,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("*** Warning ***\tAssume values are equal spaced.\n\n");
 			}
 
+			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
+			if (mb->f_cyclic[mb->nf]){
+				if (std){
+					char *msg;
+					GMRFLib_sprintf(&msg, "model[%s]. scale.model=TRUE but this model cannot be scaled, since cyclic=TRUE. Contact developers.\n", model);
+					inla_error_general(msg);
+					exit(1);
+				}
+			}
+
 			rwdef = Calloc(1, GMRFLib_rwdef_tp);
 			rwdef->n = mb->f_n[mb->nf];
 			if (mb->f_id[mb->nf] == F_IID) {
@@ -14958,8 +14968,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
 
-			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2) {
-				int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
+			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
+			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
 				if (std) {
 					GMRFLib_crw_scale((void *) crwdef);
 				}
@@ -14967,6 +14977,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tscale.model[%1d]\n", std);
 					if (std)
 						printf("\t\tscale.model: prec_scale[%g]\n", crwdef->prec_scale[0]);
+				}
+			} else {
+				if (std){
+					char *msg;
+					GMRFLib_sprintf(&msg, "model[%s]. scale.model=TRUE but this model cannot be scaled. Contact developers\n", model);
+					inla_error_general(msg);
+					exit(1);
 				}
 			}
 
