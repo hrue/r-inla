@@ -16,8 +16,8 @@ inla.set.control.data.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
- 
 \value{
+ 
 The function \code{inla.set.control.data.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 }
 \seealso{

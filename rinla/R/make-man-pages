@@ -39,8 +39,8 @@ function mmp ()
 	print "\\arguments{" >> f
 	print "\\item{...}{Additional arguments; none for the moment}" >> f
 	print "}" >> f
-        print " " extra >> f
 	print "\\value{" >> f
+        print " " extra >> f
         print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement. These are as follows." >> f
         extra = ""
 	next;}

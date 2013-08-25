@@ -16,8 +16,8 @@ inla.set.control.lincomb.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
- 
 \value{
+ 
 The function \code{inla.set.control.lincomb.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{precision}{  The precision for the artificial tiny noise. Default 1e09.}
 \item{verbose}{  Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}

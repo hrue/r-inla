@@ -16,8 +16,8 @@ inla.set.control.group.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
- 
 \value{
+ 
 The function \code{inla.set.control.group.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  Group model (one of 'exchangable', 'ar1', 'ar', 'rw1', 'rw2' or 'besag')}
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}

@@ -16,8 +16,8 @@ inla.set.control.family.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
- 
 \value{
+ 
 The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters}
 \item{initial}{  (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.}

@@ -16,8 +16,8 @@ inla.set.control.inla.default(...)
 \arguments{
 \item{...}{Additional arguments; none for the moment}
 }
- 
 \value{
+ 
 The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
 \item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
