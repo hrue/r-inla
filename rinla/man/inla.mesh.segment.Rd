@@ -1,14 +1,26 @@
 \name{inla.mesh.segment}
 \alias{inla.mesh.segment}
+\alias{inla.contour.segment}
 \title{
   Constraint segments for inla.mesh
 }
 \description{
-  Constructs an \code{inla.mesh.segment} object that can be used to specify
-  boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
+  Constructs \code{inla.mesh.segment} objects that can be used to specify
+  boundary and interior constraint edges in calls to
+  \code{\link{inla.mesh}}.
 }
 \usage{
 inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
+
+inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
+                     y = seq(0, 1, length.out = ncol(z)),
+                     z,
+                     nlevels = 10,
+                     levels = pretty(range(z, na.rm = TRUE), nlevels),
+                     groups = seq_len(length(levels)),
+                     positive = TRUE,
+                     eps = NULL)
+
 }
 \arguments{
   \item{loc}{
@@ -30,6 +42,17 @@ inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
   \item{is.bnd}{
     \code{TRUE} if the segments are boundary segments, otherwise \code{FALSE}.
   }
+  \item{x, y, z, nlevels, levels}{Parameters specifying a set of surface
+    contours, with syntax described in \code{\link{contour}}.
+}
+  \item{groups}{Vector of group ID:s, one for each contour level.
+}
+  \item{positive}{\code{TRUE} if the contours should encircle positive
+    level excursions in a counter clockwise direction.
+}
+\item{eps}{
+  Tolerance for \code{\link{inla.simplify.curve}}.
+}
 }
 %%\details{
 %%  Some text. \describe{Some more text} Further text.
@@ -51,7 +74,8 @@ inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh}}
+  \code{\link{inla.mesh.create}},
+  \code{\link{inla.mesh.2d}}
 }
 \examples{
 ## Create a square boundary and a diagonal interior segment

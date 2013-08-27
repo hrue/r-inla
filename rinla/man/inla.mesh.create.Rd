@@ -1,6 +1,7 @@
 \name{inla.mesh.create}
 \alias{inla.mesh}
 \alias{inla.mesh.create}
+\alias{inla.delaunay}
 \title{
   High-quality triangulations
 }
@@ -20,6 +21,8 @@ inla.mesh.create(loc = NULL,
                  data.dir,
                  keep = (!missing(data.dir) && !is.null(data.dir)),
                  timings = FALSE)
+
+inla.delaunay(loc, ...)
 }
 \arguments{
   \item{loc}{
@@ -90,8 +93,19 @@ inla.mesh.create(loc = NULL,
   \item{timings}{
     If \code{TRUE}, obtain timings for the mesh construction.
   }
+  \item{...}{
+    Optional parameters passed on to \code{inla.mesh.create}.
+  }
 }
 \details{
+  \code{inla.mesh.create} generates triangular meshes on subsets of
+  \eqn{R^2}{R^2} and \eqn{S^2}{S^2}.  Use the higher level wrapper
+  function \code{\link{inla.mesh.2d}} for greater control over mesh
+  resolution and coarser domain extensions.
+
+  \code{inla.delaunay} is a wrapper function for obtaining the convex
+  hull of a point set and calling \code{inla.mesh.create} to generate
+  the classical Delaunay tringulation.
 }
 \value{
   An \code{inla.mesh} object.
@@ -111,10 +125,15 @@ inla.mesh.create(loc = NULL,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
+  \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.1d}},
   \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.lattice}}, \code{\link{inla.mesh.query}}
 }
 \examples{
 loc = matrix(runif(10*2),10,2)
+
+mesh = inla.delaunay(loc)
+plot(mesh)
+
 mesh = inla.mesh.create(loc,
                         interior=inla.mesh.segment(idx=1:2),
                         extend=TRUE,
