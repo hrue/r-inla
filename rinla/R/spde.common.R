@@ -13,20 +13,7 @@
 
 inla.dBind <- function(...)
 {
-    ## TODO: Replace iterative algorithm by index based code and a
-    ## single sparseMatrix call to avoid reallocating memory, if that
-    ## runs faster.
-    A = list(...)
-    if (length(A) < 1)
-        return(NULL)
-    if (length(A) == 1)
-        return(A[[1]])
-    B = A[[1]]
-    for (k in seq_len(length(A)-1L)+1L) {
-        B = (rBind(cBind(B, Matrix(0, nrow(B), ncol(A[[k]]))),
-                   cBind(Matrix(0, nrow(A[[k]]), ncol(B)), A[[k]])))
-    }
-    return(B)
+    return(bdiag(...))
 }
 
 inla.extract.el <- function(M, ...)
