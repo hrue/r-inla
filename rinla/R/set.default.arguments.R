@@ -656,8 +656,14 @@
 
 inla.make.completion.function = function(...)
 {
+    my.eval = function(command, envir = parent.frame(),
+            enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) 
+    {
+        return(eval(parse(text = command), envir, enclos))
+    }
+
     xx = sort(list(...)[[1L]])
-    inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
+    my.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
     aa = match.call()[-1L]
     ret = list()
     for(a in names(aa)) {
