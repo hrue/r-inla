@@ -28,38 +28,6 @@
 ## Export: control.mode
 ## Export: control.hazard
 
-inla.make.completion.function = function(...)
-{
-    xx = sort(list(...)[[1L]])
-    INLA:::inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
-    aa = match.call()[-1L]
-    ret = list()
-    for(a in names(aa)) {
-        if (!missing(a)) {
-            xx = get(a)
-            names(xx) = a
-            ret = c(ret, xx)
-        }
-    }
-    return (ret)
-}"))
-}
-
-## test-implementation
-##`control.lincomb` = function(precision, verbose)
-##{
-##    aa = match.call()[-1]
-##    ret = list()
-##    for(a in names(aa)) {
-##        if (!missing(a)) {
-##            xx = get(a)
-##            names(xx) = a
-##            ret = c(ret, xx)
-##        }
-##    }
-##    return (ret)
-##}
-
 
 
 ### Defines default arguments
@@ -78,9 +46,6 @@ inla.make.completion.function = function(...)
 
     ##:SEEALSO: inla
 }
-
-control.lincomb = inla.make.completion.function(names(inla.set.control.lincomb.default()))
-
 
 `inla.set.control.group.default` =
     function(...)
@@ -124,9 +89,6 @@ control.lincomb = inla.make.completion.function(names(inla.set.control.lincomb.d
     ##:SEEALSO: inla
 }
 
-control.group = inla.make.completion.function(names(inla.set.control.group.default()))
-
-
 
 `inla.set.control.mix.default` =
     function(...)
@@ -154,8 +116,6 @@ control.group = inla.make.completion.function(names(inla.set.control.group.defau
 
     ##:SEEALSO: inla
 }
-
-control.mix = inla.make.completion.function(names(inla.set.control.mix.default()))
 
 `inla.set.control.link.default` =
     function(...)
@@ -190,8 +150,6 @@ control.mix = inla.make.completion.function(names(inla.set.control.mix.default()
     ##:SEEALSO: inla
 }
 
-control.link = inla.make.completion.function(names(inla.set.control.link.default()))
-
 
 `inla.set.f.default` =
     function(...)
@@ -214,9 +172,6 @@ control.link = inla.make.completion.function(names(inla.set.control.link.default
 
     ##:SEEALSO: inla
 }
-
-control.expert = inla.make.completion.function(names(inla.set.control.expert.default()))
-
 
 
 `inla.set.control.compute.default`=
@@ -263,9 +218,6 @@ control.expert = inla.make.completion.function(names(inla.set.control.expert.def
         
     ##:SEEALSO: inla
 }
-
-control.compute = inla.make.completion.function(names(inla.set.control.compute.default()))
-
 
 `inla.set.control.family.default`=
     function(...)
@@ -319,9 +271,6 @@ control.compute = inla.make.completion.function(names(inla.set.control.compute.d
     ##:SEEALSO: inla
 }
 
-control.family = inla.make.completion.function(names(inla.set.control.family.default()))
-
-
 `inla.set.control.data.default`=
     function(...)
 {
@@ -367,9 +316,6 @@ control.family = inla.make.completion.function(names(inla.set.control.family.def
 
     ##:SEEALSO: inla
 }
-
-control.fixed = inla.make.completion.function(names(inla.set.control.fixed.default()))
-
 
 `inla.set.control.inla.default`=
     function(...)
@@ -521,9 +467,6 @@ control.fixed = inla.make.completion.function(names(inla.set.control.fixed.defau
     return (ans)
 }
 
-control.inla = inla.make.completion.function(names(inla.set.control.inla.default()))
-
-
 
 `inla.set.control.predictor.default`=
     function(...)
@@ -570,9 +513,6 @@ control.inla = inla.make.completion.function(names(inla.set.control.inla.default
     ##:SEEALSO: inla
 }
 
-control.predictor = inla.make.completion.function(names(inla.set.control.predictor.default()))
-
-
 `inla.set.control.results.default`=
     function(...)
 {
@@ -586,9 +526,6 @@ control.predictor = inla.make.completion.function(names(inla.set.control.predict
          return.marginals.predictor=TRUE)
     ##:SEEALSO: inla
 }
-
-control.results = inla.make.completion.function(names(inla.set.control.results.default()))
-
 
 `inla.set.control.mode.default`=
     function(...)
@@ -613,8 +550,6 @@ control.results = inla.make.completion.function(names(inla.set.control.results.d
          fixed = FALSE)
     ##:SEEALSO: inla
 }
-
-control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 
 `inla.set.control.hazard.default` =
     function(...)
@@ -656,8 +591,6 @@ control.mode = inla.make.completion.function(names(inla.set.control.mode.default
          si = FALSE)
     ##:SEEALSO: inla
 }
-
-control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
 
 ## check control-arguments
 
@@ -703,3 +636,52 @@ control.hazard = inla.make.completion.function(names(inla.set.control.hazard.def
 
     return(contr)
 }
+
+
+
+## test-implementation
+##`control.lincomb` = function(precision, verbose)
+##{
+##    aa = match.call()[-1]
+##    ret = list()
+##    for(a in names(aa)) {
+##        if (!missing(a)) {
+##            xx = get(a)
+##            names(xx) = a
+##            ret = c(ret, xx)
+##        }
+##    }
+##    return (ret)
+##}
+
+inla.make.completion.function = function(...)
+{
+    xx = sort(list(...)[[1L]])
+    INLA:::inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
+    aa = match.call()[-1L]
+    ret = list()
+    for(a in names(aa)) {
+        if (!missing(a)) {
+            xx = get(a)
+            names(xx) = a
+            ret = c(ret, xx)
+        }
+    }
+    return (ret)
+}"))
+}
+
+control.lincomb = inla.make.completion.function(names(inla.set.control.lincomb.default()))
+control.group = inla.make.completion.function(names(inla.set.control.group.default()))
+control.mix = inla.make.completion.function(names(inla.set.control.mix.default()))
+control.link = inla.make.completion.function(names(inla.set.control.link.default()))
+control.expert = inla.make.completion.function(names(inla.set.control.expert.default()))
+control.compute = inla.make.completion.function(names(inla.set.control.compute.default()))
+control.family = inla.make.completion.function(names(inla.set.control.family.default()))
+control.fixed = inla.make.completion.function(names(inla.set.control.fixed.default()))
+control.inla = inla.make.completion.function(names(inla.set.control.inla.default()))
+control.predictor = inla.make.completion.function(names(inla.set.control.predictor.default()))
+control.results = inla.make.completion.function(names(inla.set.control.results.default()))
+control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
+control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
+
