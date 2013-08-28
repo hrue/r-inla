@@ -255,10 +255,10 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_gsl_ginv(gsl_matrix * A)
+int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 {
 	/* 
-	 * replace n x n matrix A with its generlized inverse
+	 * replace n x n matrix A with its generlized inverse.  if TOL > 0, use that tolerance. If rankdef is set, use that. If both are set, give an error.
 	 */
 
 	assert(A && (A->size1 == A->size2));
@@ -271,19 +271,47 @@ int GMRFLib_gsl_ginv(gsl_matrix * A)
 	gsl_linalg_SV_decomp(U, V, S, work);
 
 	size_t i;
-	double tol = GMRFLib_eps(0.5);
 	double one = 1.0, zero = 0.0;
 	double s_max = gsl_vector_get(S, 0);
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
-	for(i = 0;  i < A->size1; i++){
-		double s = gsl_vector_get(S, i);
-		
-		if (s < tol * s_max) {
-			gsl_matrix_set(M2, i, i, 0.0);
-		} else {
-			gsl_matrix_set(M2, i, i, 1.0/s);
+	assert(!(tol > 0.0 && (rankdef >= 0 && rankdef <= (int) A->size1)));
+	if (tol > 0.0){
+		for(i = 0;  i < A->size1; i++){
+			double s = gsl_vector_get(S, i);
+			
+			if (s < tol * s_max) {
+				gsl_matrix_set(M2, i, i, 0.0);
+			} else {
+				gsl_matrix_set(M2, i, i, 1.0/s);
+			}
+		}
+	} else {
+		assert(rankdef >= 0);
+		assert(rankdef <= (int)A->size1);
+
+		double first = gsl_vector_get(S, 0);
+		double last = gsl_vector_get(S, A->size1-1);
+
+		for(i = 0;  i < A->size1; i++){
+			double s = gsl_vector_get(S, i);
+			
+			if (first > last){
+				// do not use the last 'rdef's
+				if (i < (int) A->size1 - rankdef){
+					gsl_matrix_set(M2, i, i, 1.0/s);
+				} else {
+					gsl_matrix_set(M2, i, i, 0.0);
+				}
+			} else {
+				// do not use the first 'rdef's
+				if (i < rankdef){
+					gsl_matrix_set(M2, i, i, 0.0);
+				} else {
+					gsl_matrix_set(M2, i, i, 1.0/s);
+				}
+			}
 		}
 	}
 	
