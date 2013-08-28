@@ -20,7 +20,6 @@
 ## Export: control.expert
 ## Export: control.compute
 ## Export: control.family
-## Export: control.data
 ## Export: control.fixed
 ## Export: control.inla
 ## Export: control.predictor
@@ -693,4 +692,3 @@ control.predictor = inla.make.completion.function(names(inla.set.control.predict
 control.results = inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
-
