@@ -321,7 +321,10 @@
     function(...)
 {
     family = "gaussian"
-    inla.eval.dots(..., allowed.names = c("family"))
+    xx = list(...)[1]
+    if (!is.null(xx$family)) {
+        family = xx$family
+    }
 
     ##:EXTRA: 
     ##:NAME: control.inla
