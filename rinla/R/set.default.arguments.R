@@ -13,6 +13,55 @@
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
 
+## Export: control.lincomb
+## Export: control.group
+## Export: control.mix
+## Export: control.link
+## Export: control.expert
+## Export: control.compute
+## Export: control.family
+## Export: control.data
+## Export: control.fixed
+## Export: control.inla
+## Export: control.predictor
+## Export: control.results
+## Export: control.mode
+## Export: control.hazard
+
+inla.make.completion.function = function(...)
+{
+    xx = sort(list(...)[[1L]])
+    INLA:::inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
+    aa = match.call()[-1L]
+    ret = list()
+    for(a in names(aa)) {
+        if (!missing(a)) {
+            xx = get(a)
+            names(xx) = a
+            ret = c(ret, xx)
+        }
+    }
+    return (ret)
+}"))
+}
+
+## test-implementation
+##`control.lincomb` = function(precision, verbose)
+##{
+##    aa = match.call()[-1]
+##    ret = list()
+##    for(a in names(aa)) {
+##        if (!missing(a)) {
+##            xx = get(a)
+##            names(xx) = a
+##            ret = c(ret, xx)
+##        }
+##    }
+##    return (ret)
+##}
+
+
+
 ### Defines default arguments
 
 `inla.set.control.lincomb.default` =
@@ -29,6 +78,9 @@
 
     ##:SEEALSO: inla
 }
+
+control.lincomb = inla.make.completion.function(names(inla.set.control.lincomb.default()))
+
 
 `inla.set.control.group.default` =
     function(...)
@@ -72,6 +124,10 @@
     ##:SEEALSO: inla
 }
 
+control.group = inla.make.completion.function(names(inla.set.control.group.default()))
+
+
+
 `inla.set.control.mix.default` =
     function(...)
 {
@@ -98,6 +154,8 @@
 
     ##:SEEALSO: inla
 }
+
+control.mix = inla.make.completion.function(names(inla.set.control.mix.default()))
 
 `inla.set.control.link.default` =
     function(...)
@@ -132,11 +190,15 @@
     ##:SEEALSO: inla
 }
 
+control.link = inla.make.completion.function(names(inla.set.control.link.default()))
+
+
 `inla.set.f.default` =
     function(...)
 {
-    list(diagonal = 1e-6)
+    list(diagonal = .Machine$double.eps^0.3833) ## almost 1e-6 on my computer
 }
+
 
 `inla.set.control.expert.default` =
     function(...)
@@ -152,6 +214,9 @@
 
     ##:SEEALSO: inla
 }
+
+control.expert = inla.make.completion.function(names(inla.set.control.expert.default()))
+
 
 
 `inla.set.control.compute.default`=
@@ -198,6 +263,9 @@
         
     ##:SEEALSO: inla
 }
+
+control.compute = inla.make.completion.function(names(inla.set.control.compute.default()))
+
 
 `inla.set.control.family.default`=
     function(...)
@@ -251,6 +319,9 @@
     ##:SEEALSO: inla
 }
 
+control.family = inla.make.completion.function(names(inla.set.control.family.default()))
+
+
 `inla.set.control.data.default`=
     function(...)
 {
@@ -296,6 +367,9 @@
 
     ##:SEEALSO: inla
 }
+
+control.fixed = inla.make.completion.function(names(inla.set.control.fixed.default()))
+
 
 `inla.set.control.inla.default`=
     function(...)
@@ -447,6 +521,10 @@
     return (ans)
 }
 
+control.inla = inla.make.completion.function(names(inla.set.control.inla.default()))
+
+
+
 `inla.set.control.predictor.default`=
     function(...)
 {
@@ -492,6 +570,9 @@
     ##:SEEALSO: inla
 }
 
+control.predictor = inla.make.completion.function(names(inla.set.control.predictor.default()))
+
+
 `inla.set.control.results.default`=
     function(...)
 {
@@ -505,6 +586,9 @@
          return.marginals.predictor=TRUE)
     ##:SEEALSO: inla
 }
+
+control.results = inla.make.completion.function(names(inla.set.control.results.default()))
+
 
 `inla.set.control.mode.default`=
     function(...)
@@ -529,6 +613,8 @@
          fixed = FALSE)
     ##:SEEALSO: inla
 }
+
+control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 
 `inla.set.control.hazard.default` =
     function(...)
@@ -571,6 +657,7 @@
     ##:SEEALSO: inla
 }
 
+control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
 
 ## check control-arguments
 

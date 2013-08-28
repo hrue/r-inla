@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.predictor} for use in \code{inla}}
 \usage{
 inla.set.control.predictor.default(...)
+control.predictor(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.predictor} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.predictor.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters.}
 \item{fixed}{  (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)}

@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
+control.inla(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.inla} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
 \item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
