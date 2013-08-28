@@ -57,7 +57,7 @@ Rinla-install:;
 	make update-R
 	make MAC=$(MAC) -C R install
 	make www
-	do-rsync-www
+	-do-rsync-www
 	-gnome-terminal -e 'ssh -t hrue@inla.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/INLA.tgz; sudo R CMD INSTALL --library=/usr/local/lib/R/site-library INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/local/lib/R/site-library"'
 
 Rinla-testing :;
