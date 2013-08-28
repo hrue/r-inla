@@ -1,10 +1,10 @@
 \name{inla.generate.colors}
 \alias{inla.generate.colors}
 \title{
-%%  ~~function to do ... ~~
+Add TITLE
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Add DESCRIPTION
 }
 \usage{
 inla.generate.colors(color,
