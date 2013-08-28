@@ -657,7 +657,7 @@
 inla.make.completion.function = function(...)
 {
     xx = sort(list(...)[[1L]])
-    INLA:::inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
+    inla.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
     aa = match.call()[-1L]
     ret = list()
     for(a in names(aa)) {
