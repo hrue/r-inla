@@ -985,9 +985,6 @@ int GMRFLib_crw_scale(void *def)
 	/*
 	 * This approach uses the constrained sampling approach, much faster
 	 */
-
-	FIXME("crw_scale");
-
 	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
 	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
 
@@ -1054,7 +1051,6 @@ int GMRFLib_crw_scale(void *def)
 	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
 	GMRFLib_problem_tp *problem;
 
-	eps *= 0.001;
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
 	}
