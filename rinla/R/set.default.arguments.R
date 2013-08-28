@@ -462,7 +462,7 @@
             
 
     ## use default Gaussian strategy if the observations are gaussian
-    if (all(inla.strcasecmp(family, "gaussian")))
+    if (all(tolower(family) %in% "gaussian"))
         ans$strategy = "gaussian"
 
     ##:SEEALSO: inla
