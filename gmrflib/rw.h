@@ -119,6 +119,8 @@ __BEGIN_DECLS
 	 */
 	double *scale0;
 
+	double *prec_scale;
+
 } GMRFLib_rwdef_tp;
 
 /*!
@@ -314,6 +316,7 @@ int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
 int GMRFLib_crw_scale_OLD(void *def);
 int GMRFLib_crw_scale(void *def);
+int GMRFLib_rw_scale(void *def);
 int GMRFLib_rw2d_scale(void *def);
 
 __END_DECLS
