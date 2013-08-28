@@ -14863,14 +14863,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
-			if (mb->f_cyclic[mb->nf]){
-				if (std){
-					char *msg;
-					GMRFLib_sprintf(&msg, "model[%s]. scale.model=TRUE but this model cannot be scaled, since cyclic=TRUE. Contact developers.\n", model);
-					inla_error_general(msg);
-					exit(1);
-				}
-			}
 
 			rwdef = Calloc(1, GMRFLib_rwdef_tp);
 			rwdef->n = mb->f_n[mb->nf];
@@ -14912,6 +14904,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				abort();
 			}
 			GMRFLib_make_rw_graph(&(mb->f_graph[mb->nf]), rwdef);
+			if (std) {
+				GMRFLib_rw_scale((void *) rwdef);
+			}
+			if (mb->verbose) {
+				printf("\t\tscale.model[%1d]\n", std);
+				if (std)
+					printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
+			}
+
 			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
 			mb->f_Qfunc_arg[mb->nf] = (void *) rwdef;
 			mb->f_N[mb->nf] = mb->f_graph[mb->nf]->n;
@@ -14979,7 +14980,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						printf("\t\tscale.model: prec_scale[%g]\n", crwdef->prec_scale[0]);
 				}
 			} else {
-				if (std){
+				if (std) {
 					char *msg;
 					GMRFLib_sprintf(&msg, "model[%s]. scale.model=TRUE but this model cannot be scaled. Contact developers\n", model);
 					inla_error_general(msg);
@@ -14996,7 +14997,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 	}
-
 
 	/*
 	 * read optional extra constraint 
@@ -22588,7 +22588,8 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 		}
 	}
 
-	GMRFLib_gsl_ginv(Q);
+	FIXME("ASSUME NCC=1!!!!");
+	GMRFLib_gsl_ginv(Q, -1, 1);
 	double sum = 0.0, scale;
 
 	for (i = 0; i < (size_t) def->graph->n; i++) {
@@ -22675,7 +22676,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
 		printf("\n");
-		GMRFLib_gsl_ginv(A);
+		GMRFLib_gsl_ginv(A, GMRFLib_eps(0.5), -1);
 		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
 
 		exit(EXIT_SUCCESS);
