@@ -31,7 +31,12 @@ checkit = function(n, eps = sqrt(.Machine$double.eps))
         }
         scale2 = exp(mean(log(diag(Sig))))
 
-        return(list(scale1=scale1, scale2=scale2))
+        ## correction at the edges
+        d = log(diag(Sig))
+        n = dim(A)[2]
+        scale3 = exp((0.5*d[1] + sum(d[2:(n-1)]) + 0.5*d[n])/(n-1))
+
+        return(list(scale1=scale1, scale2=scale2, scale3=scale3))
     }
 
     return (list(
