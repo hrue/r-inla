@@ -63,6 +63,7 @@ double GMRFLib_rw(int node, int nnode, void *def)
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
 
 	prec = GMRFLib_SET_PREC(rwdef);
+	prec *= (rwdef->prec_scale ? rwdef->prec_scale[0] : 1.0);
 
 	/*
 	 * this is the easy case. Note that this case has an additional 'scale0' parameter
@@ -945,7 +946,7 @@ int GMRFLib_crw_scale_OLD(void *def)
 		}
 	}
 
-	GMRFLib_gsl_ginv(Q);
+	GMRFLib_gsl_ginv(Q, -1.0, crwdef->order);
 	double sum = 0.0, scale;
 
 	if (crwdef->position) {
@@ -978,11 +979,14 @@ int GMRFLib_crw_scale_OLD(void *def)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_crw_scale(void *def)
 {
 	/*
 	 * This approach uses the constrained sampling approach, much faster
 	 */
+
+	FIXME("crw_scale");
 
 	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
 	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
@@ -1047,9 +1051,10 @@ int GMRFLib_crw_scale(void *def)
 	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.3833);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
 	GMRFLib_problem_tp *problem;
 
+	eps *= 0.001;
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
 	}
@@ -1073,6 +1078,100 @@ int GMRFLib_crw_scale(void *def)
 	if (free_position) {
 		Free(crwdef->position);
 	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_rw_scale(void *def)
+{
+	GMRFLib_rwdef_tp *rwdef = Calloc(1, GMRFLib_rwdef_tp);
+	GMRFLib_rwdef_tp *odef = (GMRFLib_rwdef_tp *) def;
+
+	rwdef->n = odef->n;
+	assert(odef->order > 0);
+	rwdef->order = odef->order;
+	rwdef->cyclic = odef->cyclic;
+	rwdef->si = GMRFLib_FALSE;
+	rwdef->prec = NULL;
+	rwdef->log_prec = NULL;
+	rwdef->log_prec_omp = NULL;
+	rwdef->scale0 = odef->scale0;
+
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_make_rw_graph(&graph, rwdef);
+
+	int i;
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_make_empty_constr(&constr);
+	if (!rwdef->cyclic) {
+		/*
+		 * cyclic == FALSE
+		 */
+		if (rwdef->order == 0) {
+			constr->nc = 0;
+		} else if (rwdef->order == 1) {
+			constr->nc = 1;
+			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+			for (i = 0; i < graph->n; i++) {
+				constr->a_matrix[i * constr->nc + 0] = 1.0;
+			}
+		} else if (rwdef->order == 2) {
+			constr->nc = 2;
+			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+			for (i = 0; i < graph->n; i++) {
+				constr->a_matrix[i * constr->nc + 0] = 1.0;
+				constr->a_matrix[i * constr->nc + 1] = (i - graph->n / 2.0);
+			}
+		} else {
+			assert(0 == 1);
+		}
+	} else {
+		/*
+		 * cyclic == TRUE
+		 */
+		if (rwdef->order == 0) {
+			constr->nc = 0;
+		} else if (rwdef->order == 1 || rwdef->order == 2) {
+			constr->nc = 1;
+			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+			for (i = 0; i < graph->n; i++) {
+				constr->a_matrix[i * constr->nc + 0] = 1.0;
+			}
+		} else {
+			assert(0 == 1);
+		}
+	}
+
+	if (constr->nc) {
+		constr->e_vector = Calloc(constr->nc, double);
+		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
+	} else {
+		GMRFLib_free_constr(constr);
+		constr = NULL;
+	}
+
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
+	GMRFLib_problem_tp *problem;
+
+	for (i = 0; i < graph->n; i++) {
+		c[i] = eps;
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+
+	double sum = 0.0;
+	for (i = 0; i < graph->n; i++) {
+		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
+	}
+
+	odef->prec_scale = Calloc(1, double);
+	odef->prec_scale[0] = exp(sum / graph->n);
+
+	Free(c);
+	Free(rwdef);
+	GMRFLib_free_constr(constr);
+	GMRFLib_free_graph(graph);
+	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1122,7 +1221,7 @@ int GMRFLib_rw2d_scale(void *def)
 		constr->e_vector = Calloc(constr->nc, double);
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-		double eps = GMRFLib_eps(0.3833);
+		double eps = GMRFLib_eps(.75);
 		c = Calloc(graph->n, double);
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;

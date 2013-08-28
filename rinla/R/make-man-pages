@@ -9,9 +9,8 @@ source("inlaEnv.R")
 source("models.R")
 source("models-generate.R")
 source("utils.R")
-source("inla.version.R")
+source("version.R")
 inla.models.generate.Rd("../man/models.Rd") ' | R --vanilla
-
 
 function mmp ()
 {
@@ -35,12 +34,14 @@ function mmp ()
 	print "\\usage{" >> f
 	##print "inla(formula, ..., " name "=list( <arg>=<value>[, <arg>=<value>]))" >>f
         print "inla.set." name ".default(...)" >> f
+        print name "(...)" >> f
 	print "}" >> f
 	print "\\arguments{" >> f
-	print "\\item{...}{Additional arguments; none for the moment}" >> f
+	print "\\item{...}{Possible arguments}" >> f
 	print "}" >> f
 	print "\\value{" >> f
         print " " extra >> f
+        print "The function \\code{" name "} is used to TAB-complete arguments and returns a list of given arguments." >> f
         print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement. These are as follows." >> f
         extra = ""
 	next;}

@@ -95,7 +95,7 @@ double dnrm2_(int *n, double *x, int *inc);
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A);
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
-int GMRFLib_gsl_ginv(gsl_matrix * A);
+int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 
 __END_DECLS
 #endif
