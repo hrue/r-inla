@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.hazard} for use in \code{inla}}
 \usage{
 inla.set.control.hazard.default(...)
+control.hazard(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.hazard} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)}
 \item{hyper}{  The definition of the hyperparameters.}

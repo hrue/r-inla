@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.mode} for use in \code{inla}}
 \usage{
 inla.set.control.mode.default(...)
+control.mode(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.mode} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.mode.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{result}{  Prevous result from inla(). Use the theta- and x-mode from this run.}
 \item{theta}{  The theta-mode/initial values for theta. This option has preference over result$mode$theta.}

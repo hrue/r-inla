@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
+control.family(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.family} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters}
 \item{initial}{  (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.}

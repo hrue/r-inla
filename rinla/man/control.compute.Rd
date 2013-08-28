@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
+control.compute(...)
 }
 \arguments{
-\item{...}{Additional arguments; none for the moment}
+\item{...}{Possible arguments}
 }
 \value{
  
+The function \code{control.compute} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
