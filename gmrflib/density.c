@@ -1324,7 +1324,7 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 	(*density)->mean_gaussian = mean;
 	(*density)->stdev_gaussian = stdev;
 
-	GMRFLib_EWRAP0(GMRFLib_init_density(*density, GMRFLib_FALSE));
+	GMRFLib_EWRAP0(GMRFLib_init_density(*density, GMRFLib_TRUE));
 
 	return GMRFLib_SUCCESS;
 }

@@ -21872,7 +21872,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			Free(nndir);
 		}
 	}
-	if (output->mode) {
+	if (output->mode && (!func && !tfunc)) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
 			inla_fnmfix(nndir);
