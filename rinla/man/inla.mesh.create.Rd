@@ -3,7 +3,7 @@
 \alias{inla.mesh.create}
 \alias{inla.delaunay}
 \title{
-  High-quality triangulations
+  Low level function for high-quality triangulations
 }
 \description{
   Create a constrained refined Delaunay triangulation (CRDT) for a set of
@@ -70,7 +70,7 @@ inla.delaunay(loc, ...)
   }
   \item{cutoff}{
     The minimum allowed distance between points.  Point at most as far
-    apart as this are replaced by a single vertex.
+    apart as this are replaced by a single vertex prior to the mesh refinement step.
   }
   \item{plot.delay}{
     On Linux (and Mac if appropriate X11 libraries are installed),

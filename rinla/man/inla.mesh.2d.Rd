@@ -1,0 +1,97 @@
+\name{inla.mesh.2d}
+\alias{inla.mesh.2d}
+\title{
+High-quality triangulations
+}
+\description{
+  Create a triangle mesh based on initial point locations, specified or
+  automatic boundaries, and mesh quality parameters.
+}
+\usage{
+inla.mesh.2d(loc = NULL,
+             loc.domain = NULL,
+             offset = NULL,
+             n = NULL,
+             boundary = NULL,
+             interior = NULL,
+             max.edge,
+             min.angle = NULL,
+             cutoff = 0,
+             plot.delay = NULL)
+}
+\arguments{
+  \item{loc}{
+    Matrix of point locations to be used as initial triangulation nodes.
+  }
+  \item{loc.domain}{
+    Matrix of point locations used to determine the domain extent.
+  }
+  \item{offset}{
+    The automatic extension distance.  One or two values, for an inner
+    and an optional outer extension.  If negative, interpreted as a
+    factor relative to the approximate data diameter (default=-0.10???)
+  }
+  \item{n}{
+    The number of initial nodes in the automatic extensions (default=16)
+  }
+  \item{boundary}{
+    A list of one or two \code{\link{inla.mesh.segment}} objects
+    describing domain boundaries.
+  }
+  \item{interior}{
+    An  \code{\link{inla.mesh.segment}} object describing desired
+    interior edges.
+  }
+  \item{max.edge}{
+    The largest allowed triangle edge length.  One or two values.
+  }
+  \item{min.angle}{
+    The smallest allowed triangle angle.  One or two values. (Default=21)
+  }
+  \item{cutoff}{
+    The minimum allowed distance between points.  Point at most as far
+    apart as this are replaced by a single vertex prior to the mesh
+    refinement step.
+  }
+  \item{plot.delay}{
+    On Linux (and Mac if appropriate X11 libraries are installed),
+    specifying a nonnegative numeric value activates a rudimentary
+    plotting system in the underlying \code{fmesher} program, showing
+    the triangulation algorithm at work, with waiting time factor
+    \code{plot.delay} between each step.
+
+    On all systems, specifying any negative value activates displaying
+    the result after each step of the multi-step domain extension
+    algorithm.
+  }
+}
+\details{
+  %%  ~~ If necessary, more details than the description above ~~
+}
+\value{
+%%  ~Describe the value returned
+%%  If it is a LIST, use
+%%  \item{comp1 }{Description of 'comp1'}
+%%  \item{comp2 }{Description of 'comp2'}
+%% ...
+}
+\references{
+%% ~put references to the literature/web site here ~
+}
+\author{
+Finn Lindgren \email{finn.lindgren@gmail.com}
+}
+\note{
+%%  ~~further notes~~
+}
+
+%% ~Make other sections like Warning with \section{Warning }{....} ~
+
+\seealso{
+%% ~~objects to See Also as \code{\link{help}}, ~~~
+}
+\examples{
+}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+%%\keyword{ ~kwd1 }
