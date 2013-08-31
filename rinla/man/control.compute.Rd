@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(...)
+control.compute(config, cpo, dic, gdensity, graph, hyperpar, lsfs, mlik, openmp.strategy, q, return.marginals, smtp)
 }
 \arguments{
 \item{...}{Possible arguments}
