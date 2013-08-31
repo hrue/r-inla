@@ -4,6 +4,8 @@
 \alias{inla.mesh.projector.inla.mesh}
 \alias{inla.mesh.project.inla.mesh}
 \alias{inla.mesh.project.inla.mesh.projector}
+\alias{inla.mesh.project.inla.mesh.1d}
+\alias{inla.mesh.projector.inla.mesh.1d}
 \title{
   Methods for projecting to/from an inla.mesh
 }
@@ -11,36 +13,63 @@
   Calculate a lattice projection to/from an \code{\link{inla.mesh}}
 }
 \usage{
-inla.mesh.project(mesh, loc)
-inla.mesh.projector(mesh, xlim, ylim, dims, projection)
-inla.mesh.project(projector, field)
+inla.mesh.project(...)
+inla.mesh.projector(...)
+
+\method{inla.mesh.projector}{inla.mesh}(mesh,
+             loc = NULL,
+             lattice = NULL,
+             xlim = range(mesh$loc[,1]),
+             ylim = range(mesh$loc[,2]),
+             dims = c(100,100),
+             projection = NULL)
+
+\method{inla.mesh.projector}{inla.mesh.1d}(mesh,
+             loc = NULL,
+             xlim = mesh$interval,
+             dims = 100, ...)
+
+\method{inla.mesh.project}{inla.mesh.projector}(projector, field, ...)
+
+\method{inla.mesh.project}{inla.mesh}(mesh, loc, field = NULL, ...)
+\method{inla.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, ...)
 }
 \arguments{
   \item{mesh}{
+    An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.
   }
   \item{loc}{
+    Projection locations.
+  }
+  \item{lattice}{
+    An \code{\link{inla.mesh.lattice}} object.
   }
   \item{xlim}{
+    X-axis limits for a lattice.
   }
   \item{ylim}{
+    Y-axis limits for a lattice.
   }
   \item{dims}{
+    Lattice dimensions.
+  }
+  \item{field}{
+    Basis function weights, one per mesh basis function, describing the
+    function to be avaluated at the projection locationssFunction values for on the mesh 
   }
   \item{projection}{
-    One of \code{c("default", "longlat", "longsinlat")}.
+    One of \code{c("default", "longlat", "longsinlat", "mollweide")}.
   }
 }
 \details{
+  The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a
+  shortcut to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
 }
 \value{
   For \code{inla.mesh.project(mesh, ...)}, a list with projection information.
   For \code{inla.mesh.projector(mesh, ...)}, an \code{inla.mesh.projector} object.
-  For \code{inla.mesh.project(projector, ...)}, a field projected
-  from the mesh onto a grid.
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+  For \code{inla.mesh.project(projector, field, ...)}, a field projected
+  from the mesh onto the locations given by the projector object.
 }
 \references{
 %% ~put references to the literature/web site here ~
@@ -55,7 +84,9 @@ inla.mesh.project(projector, field)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh}}
+  \code{\link{inla.mesh}},
+  \code{\link{inla.mesh.1d}},
+  \code{\link{inla.mesh.lattice}}
 }
 \examples{
 n = 20
