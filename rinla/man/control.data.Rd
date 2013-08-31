@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.data} for use in \code{inla}}
 \usage{
 inla.set.control.data.default(...)
-control.data(...)
+control.data()
 }
 \arguments{
 \item{...}{Possible arguments}
