@@ -26,11 +26,13 @@
  \alias{inla.marginal.transform}
  \alias{marginal.transform}
  \alias{inla.tmarginal}
+ \alias{inla.mmarginal}
+ \alias{mmarginal}
  
  \title{Functions which operates on marginals}
  
  \description{Density, distribution function, quantile function, random
-      generation, hpd-interval, interpolation, expectations and transformations of
+      generation, hpd-interval, interpolation, expectations, mode and transformations of
       marginals obtained by \code{inla} or \code{inla.hyperpar()}.
  These functions computes the density (inla.dmarginal), 
  the distribution function (inla.pmarginal), 
@@ -38,6 +40,7 @@
  random generation (inla.rmarginal), 
  spline smoothing (inla.smarginal), 
  computes expected values (inla.emarginal), 
+ computes the mode (inla.mmarginal), 
  and transforms the marginal (inla.tmarginal).
  }
  
@@ -49,6 +52,7 @@
  inla.hpdmarginal(p, marginal, len = 1024)
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
  inla.emarginal(fun, marginal, ...)
+ inla.mmarginal(marginal)
  inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
                 method = c("quantile", "linear"),  ...) 
  }
@@ -102,7 +106,9 @@
  
  \value{%%
    \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
-   interpolated values do extrapolation using the factor given, whereas
+   interpolated values do extrapolation using the factor given, 
+   \code{inla.mmarginal} returns the list \code{list(x=..., log.y=...)}
+   giving the coordinate of the mode, whereas
    the remaining function returns what they say they should do.  }
  %%
  

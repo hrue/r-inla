@@ -1,4 +1,4 @@
-## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal inla.smarginal inla.emarginal inla.tmarginal
+## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal inla.smarginal inla.emarginal inla.tmarginal inla.mmarginal
 ## NOT-YET-IN-USE-Export: summary!inla.marginal plot!inla.marginal
 
 ##! \name{marginal}
@@ -25,11 +25,13 @@
 ##! \alias{inla.marginal.transform}
 ##! \alias{marginal.transform}
 ##! \alias{inla.tmarginal}
+##! \alias{inla.mmarginal}
+##! \alias{mmarginal}
 ##! 
 ##! \title{Functions which operates on marginals}
 ##! 
 ##! \description{Density, distribution function, quantile function, random
-##!      generation, hpd-interval, interpolation, expectations and transformations of
+##!      generation, hpd-interval, interpolation, expectations, mode and transformations of
 ##!      marginals obtained by \code{inla} or \code{inla.hyperpar()}.
 ##! These functions computes the density (inla.dmarginal), 
 ##! the distribution function (inla.pmarginal), 
@@ -37,6 +39,7 @@
 ##! random generation (inla.rmarginal), 
 ##! spline smoothing (inla.smarginal), 
 ##! computes expected values (inla.emarginal), 
+##! computes the mode (inla.mmarginal), 
 ##! and transforms the marginal (inla.tmarginal).
 ##! }
 ##! 
@@ -48,6 +51,7 @@
 ##! inla.hpdmarginal(p, marginal, len = 1024)
 ##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
 ##! inla.emarginal(fun, marginal, ...)
+##! inla.mmarginal(marginal)
 ##! inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
 ##!                method = c("quantile", "linear"),  ...) 
 ##! }
@@ -101,7 +105,9 @@
 ##! 
 ##! \value{%%
 ##!   \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
-##!   interpolated values do extrapolation using the factor given, whereas
+##!   interpolated values do extrapolation using the factor given, 
+##!   \code{inla.mmarginal} returns the list \code{list(x=..., log.y=...)}
+##!   giving the coordinate of the mode, whereas
 ##!   the remaining function returns what they say they should do.  }
 ##! %%
 ##! 
@@ -434,6 +440,22 @@
     }
 
     return (ret)
+}
+
+`inla.mmarginal` = function(m)
+{
+    p = seq(0.01, 0.99, by=0.01)
+    n = length(p)
+    x = inla.qmarginal(p, m)
+    d = inla.dmarginal(x, m, log=TRUE)
+    idx = which.max(d)
+    res = optimize(
+            f = inla.dmarginal,
+            interval = c(x[max(1L, idx-1L)], x[min(n, idx+1L)]),
+            maximum = TRUE,
+            ## arguments to inla.dmarginal
+            marginal = m, log=TRUE)
+    return (list(x = res$maximum, log.y = res$objective))
 }
 
 `inla.is.marginal` = function(m)
