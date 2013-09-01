@@ -3,7 +3,7 @@ source("../../../rinla/R/inlaEnv.R")
 source("../../../rinla/R/models.R")
 source("../../../rinla/R/models-generate.R")
 source("../../../rinla/R/utils.R")
-source("../../../rinla/R/inla.version.R")
+source("../../../rinla/R/version.R")
 m = inla.models()
 for(nm in names(m)) {
     if (!file.exists(nm))
