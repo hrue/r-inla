@@ -1,11 +1,11 @@
 ## keep track of updates needed to be done
 
 all:; \
-	## update the doc extracted from the R-files
-	-make -C r-inla.org/doc
 	## update the TAGS-file and the man-files that are generated
 	## automatically 
 	-make -C rinla/R 
+	## update the doc extracted from the R-files
+	-make -C r-inla.org/doc
 	## update the TAGS-file
 	-make -C gmrflib TAGS
 	## update the TAGS-file
@@ -24,7 +24,7 @@ all:; \
 ## which keeps it inside the mercurial clone.
 doc-links:
 	@echo "Building documentation links from r-inla.org to rinla."
-	@for dir in prior latent likelihood; do \
+	@for dir in prior latent likelihood link; do \
 	  find "r-inla.org/doc/$$dir" -name \*.tex | \
 		sed "s!r-inla.org/doc/\(.*\)\.tex!ln -sf ../../../../r-inla.org/doc/\1.pdf rinla/inst/doc/\1.pdf!" | sh -e ;\
 	  hg status r-inla.org/doc/$$dir/*.tex ;\
