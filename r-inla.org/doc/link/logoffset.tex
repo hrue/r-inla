@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Linkmodel: logoffset}
+
+\subsection*{Parametrization}
+
+This model is an extention of the ``log''-link, to include an
+additional scaled offset, so that
+\begin{displaymath}
+    y_{i} \;\sim\; \text{Poisson}(\beta x_{i} + \exp(\eta_{i}))
+\end{displaymath}
+where $\beta \ge 0$ is an optional hyperparameter (default fixed to be 1),
+$x_{i}$ is a (required) non-negative covariate.
+
+
+\subsection*{Hyperparameters}
+
+The  parameter $\beta$ represented as
+\begin{displaymath}
+    \theta =\log \beta
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta}$.
+
+\subsection*{Specification}
+
+Use \texttt{model="logoffset"} within \texttt{control.link}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/link/logoffset.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+n = 1000
+off = rpois(n, lambda = 1)
+x = rnorm(n)
+lambda = off + exp(1 + x)
+y = rpois(n, lambda = lambda)
+
+r = inla(y ~ 1 + x, data = data.frame(y, x, link.cov = off),
+        family = "poisson",
+        control.family = list(
+                control.link = list(
+                        model = "logoffset", 
+                        hyper = list(
+                                beta = list(
+                                        initial = 0, 
+                                        ##fixed = TRUE
+                                        fixed = FALSE
+                                        )))), 
+        link.covariates = link.cov)
+\end{verbatim}
+
+
+\subsection*{Notes}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
