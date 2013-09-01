@@ -2583,17 +2583,35 @@
              logit = list(hyper = list()), 
              probit = list(hyper = list()), 
              tan = list(hyper = list()), 
-             test1 = list(hyper = list(
-                                  beta = list(
-                                          name = "beta",
-                                          short.name = "b",
-                                          prior = "normal",
-                                          param = c(0, 100),
-                                          initial = 0,
-                                          fixed = FALSE,
-                                          to.theta = function(x) x,
-                                          from.theta = function(x) x
-                                          ))),
+             logoffset = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     prior = "normal",
+                                     param = c(0, 100),
+                                     initial = 0,
+                                     fixed = TRUE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )),
+                     pdf = "logoffset"
+                     ), 
+
+             test1 = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     prior = "normal",
+                                     param = c(0, 100),
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ))
+                     ),
+
              special1 = list(
                       hyper = list(
                               theta1 = list(
@@ -2783,7 +2801,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log", "test1", "special1"),
+                      link = c("default", "log", "logoffset", "test1", "special1"),
                       pdf = "poisson"
                       ),
 
@@ -2813,7 +2831,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log"),
+                      link = c("default", "log", "logoffset"),
                       pdf = "gpoisson",
                       status = "experimental"
                       ),
@@ -2939,7 +2957,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log"),
+                      link = c("default", "log", "logoffset"),
                       pdf = "nbinomial"
                       ),
 

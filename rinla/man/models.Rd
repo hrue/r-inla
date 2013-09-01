@@ -3131,9 +3131,32 @@ inla.models()
 				 }
 				\item{Model `tan'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `logoffset'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 100'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{pdf = }{`logoffset'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `test1'.}{Number of hyperparmeters are 1.
 					 \describe{
-						\item{Hyperparameter `beta'}{
+						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
@@ -3410,7 +3433,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log logoffset'}
 								\item{pdf = }{`gpoisson'}
 								\item{status = }{`experimental'}
 							 }
@@ -3558,7 +3581,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log logoffset'}
 								\item{pdf = }{`nbinomial'}
 							 }
 						 }
