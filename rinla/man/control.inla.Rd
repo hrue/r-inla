@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adjust.weights, cmin, cpo.diff, cutoff, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, interpolator, int.strategy, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adjust.weights, cmin, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, interpolator, int.strategy, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -53,6 +53,7 @@ The function \code{inla.set.control.inla.default} returns a list with all the de
 \item{stencil}{  Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5 or 7).}
 \item{lincomb.derived.only}{  A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)}
 \item{lincomb.derived.correlation.matrix}{  A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)}
+\item{diagonal}{  Expert use only! Add a this value on the diagonal of the joint precision matrix.}
 \item{numint.maxfeval}{  Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)}
 \item{numint.relerr}{  Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)}
 \item{numint.abserr}{  Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}

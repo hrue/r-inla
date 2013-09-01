@@ -122,7 +122,7 @@
     ##:EXTRA: The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
     ##:NAME: control.link
     list(
-        ##:ARGUMENT: link The name of the link function/model
+        ##:ARGUMENT: model The name of the link function/model
         model = "default",
 
         ##:ARGUMENT: order The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.
@@ -197,7 +197,7 @@
         ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
         cpo=FALSE,
 
-        ##:ARGUMENT: lsfs A boolean variable if the predictive ordinate should be computed
+        ##:ARGUMENT: po A boolean variable if the predictive ordinate should be computed
         po=FALSE,
         
         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
@@ -251,7 +251,7 @@
         ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
         gamma = 1.0,
 
-        ##:ARGUMENT: sh.shape.max Maximum value for the shape-parameter for Skew Normal observations
+        ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations
         sn.shape.max = 5.0,
 
         ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
@@ -424,7 +424,7 @@
             ##:ARGUMENT: lincomb.derived.correlation.matrix A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
             lincomb.derived.correlation.matrix = FALSE,
 
-            ## NOT DOCUMENTED (expert only)
+            ##:ARGUMENT: diagonal Expert use only! Add a this value on the diagonal of the joint precision matrix.
             diagonal = 0.0,
 
             ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)

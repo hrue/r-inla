@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, param, prior, sh.shape.max, variant)
+control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, param, prior, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -30,7 +30,7 @@ The function \code{inla.set.control.family.default} returns a list with all the 
 \item{alpha}{  The parameter 'alpha' for the asymmetric Laplace likelihood (default 0.5)}
 \item{epsilon}{  The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)}
 \item{gamma}{  The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)}
-\item{sh.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
+\item{sn.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
 \item{gev.scale.xi}{  The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{variant}{  This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
 \item{control.mix}{  See \code{?control.mix}}
