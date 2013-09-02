@@ -442,19 +442,19 @@
     return (ret)
 }
 
-`inla.mmarginal` = function(m)
+`inla.mmarginal` = function(marginal)
 {
     p = seq(0.01, 0.99, by=0.01)
     n = length(p)
-    x = inla.qmarginal(p, m)
-    d = inla.dmarginal(x, m, log=TRUE)
+    x = inla.qmarginal(p, marginal)
+    d = inla.dmarginal(x, marginal, log=TRUE)
     idx = which.max(d)
     res = optimize(
             f = inla.dmarginal,
             interval = c(x[max(1L, idx-1L)], x[min(n, idx+1L)]),
             maximum = TRUE,
             ## arguments to inla.dmarginal
-            marginal = m, log=TRUE)
+            marginal = marginal, log=TRUE)
     return (list(x = res$maximum, log.y = res$objective))
 }
 
