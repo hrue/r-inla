@@ -1156,7 +1156,8 @@ int inla_error_missing_required_field(const char *funcname, const char *secname,
 int inla_error_open_file(const char *msg);
 int inla_iid3d_adjust(double *rho);
 int inla_initial_setup(inla_tp * mb);
-int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc);
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode,
+			GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc);
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x_ORIG(double **x, int *n, double xmin, double xmax, double mean);
 int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
