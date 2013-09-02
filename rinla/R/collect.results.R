@@ -575,7 +575,7 @@ inla.internal.experimental.mode = FALSE
                             debug=debug)
                     summ = c(summ, mm[, 2L])
                     if (first.time)
-                        col.nam = c(col.nam, "xmode")
+                        col.nam = c(col.nam, "mode")
                 }
 
                 if (length(grep("^cdf.dat$", dir.fix))>0L) {
@@ -709,7 +709,7 @@ inla.internal.experimental.mode = FALSE
                     len = dim(mm)[2L]
                     qq = mm[, seq(2L, len, by=2L), drop=FALSE]
                     dd = cbind(dd, t(qq))
-                    col.nam = c(col.nam, "xmode")
+                    col.nam = c(col.nam, "mode")
                 }
 
                 ##read cdf if existing
@@ -1053,7 +1053,7 @@ inla.internal.experimental.mode = FALSE
                         debug=debug)
                 summ = c(summ, qq[, 2L])
                 if (first.time)
-                    col.nam = c(col.nam, "xmode")
+                    col.nam = c(col.nam, "mode")
             }
 
             if (length(grep("^cdf.dat$", dir(dir.hyper)))>0L) {
@@ -1133,7 +1133,7 @@ inla.internal.experimental.mode = FALSE
                         debug=debug)
                 summ = c(summ, qq[, 2L])
                 if (first.time)
-                    col.nam = c(col.nam, "xmode")
+                    col.nam = c(col.nam, "mode")
             }
             if (length(grep("^cdf.dat$", dir(dir.hyper)))>0L) {
                 qq = inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep="")),
@@ -1253,7 +1253,7 @@ inla.internal.experimental.mode = FALSE
             xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
             len = dim(xx)[2L]
             qq = xx[, seq(2L, len, by=2L)]
-            col.nam = c(col.nam, "xmode")
+            col.nam = c(col.nam, "mode")
             dd = cbind(dd, qq)
             rm(xx)
         }
@@ -1357,7 +1357,7 @@ inla.internal.experimental.mode = FALSE
                 xx = inla.interpret.vector(inla.read.binary.file(file), debug=debug)
                 len = dim(xx)[2L]
                 qq = xx[, seq(2L, len, by=2L)]
-                col.nam = c(col.nam, "xmode")
+                col.nam = c(col.nam, "mode")
                 dd = cbind(dd, qq)
                 rm(xx)
             }
@@ -1498,7 +1498,7 @@ inla.internal.experimental.mode = FALSE
                             debug=debug)
                     len = dim(xx)[2L]
                     qq = xx[, seq(2L, len, by=2L)]
-                    col.nam = c(col.nam, "xmode")
+                    col.nam = c(col.nam, "mode")
                     dd = cbind(dd, qq)
                 }
 
@@ -1670,7 +1670,7 @@ inla.internal.experimental.mode = FALSE
                             debug=debug)
                     len = dim(xx)[2L]
                     qq = xx[, seq(2L, len, by=2L), drop=FALSE]
-                    col.nam = c(col.nam, "xmode")
+                    col.nam = c(col.nam, "mode")
                     dd = cbind(dd, t(qq))
                 }
 
