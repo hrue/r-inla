@@ -4,19 +4,18 @@
 \docType{data}
 \title{The PRborder data}
 \description{
-  TODO
+  A data matrix with Longitude and Latitude coordinates for the boundary
+  of Parana State. 
 }
 \usage{data(PRborder)}
 \format{
-  A data frame .... TODO
   \describe{
-    \item{xx}{TODO}
+    \item{Longtiude}{The Longtiude coordinate}
+    \item{Latitude}{The Latitude coordinate}
   }
 }
 
-\source{
-This is the dataset from TODO
-}
+\seealso{PRprec}
 
 %%\examples{}
 \keyword{datasets}
