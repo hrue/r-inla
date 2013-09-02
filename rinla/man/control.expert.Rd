@@ -16,13 +16,13 @@ control.expert(cpo.idx, cpo.manual)
 }
 \arguments{
 \item{...}{Possible arguments}
+\item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)}
+\item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION.)}
 }
 \value{
  
 The function \code{control.expert} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
-\item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)}
-\item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION.)}
+The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

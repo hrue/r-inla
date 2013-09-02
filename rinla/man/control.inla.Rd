@@ -16,11 +16,6 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
- 
-The function \code{control.inla} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{strategy}{  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
 \item{int.strategy}{  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
 \item{interpolator}{  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}
@@ -64,6 +59,11 @@ The function \code{inla.set.control.inla.default} returns a list with all the de
 \item{stupid.search}{  Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)}
 \item{stupid.search.max.iter}{  Maximum number of iterations allowed for the stupid-search-algorithm.}
 \item{stupid.search.factor}{  Factor (>=1) to increase the step-length with after each new interation.}
+}
+\value{
+ 
+The function \code{control.inla} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

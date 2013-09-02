@@ -16,11 +16,6 @@ control.link(fixed, hyper, initial, model, nq, order, param, prior)
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
-  The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
-The function \code{control.link} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.link.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{nq}{  Number of quadrature-points used to do the numerical integration}
@@ -29,6 +24,11 @@ The function \code{inla.set.control.link.default} returns a list with all the de
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)}
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)}
+}
+\value{
+  The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
+The function \code{control.link} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.link.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

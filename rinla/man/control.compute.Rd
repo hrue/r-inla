@@ -16,11 +16,6 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
- 
-The function \code{control.compute} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
@@ -33,6 +28,11 @@ The function \code{inla.set.control.compute.default} returns a list with all the
 \item{smtp}{  The sparse-matrix solver, one of 'smtp' (default) or 'band'}
 \item{graph}{  A boolean variable if the graph itself should be returned. (Default FALSE.)}
 \item{gdensity}{  A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
+}
+\value{
+ 
+The function \code{control.compute} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

@@ -16,11 +16,6 @@ control.hazard(constr, cutpoints, fixed, hyper, initial, model, n.intervals, par
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
- 
-The function \code{control.hazard} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)}
 \item{hyper}{  The definition of the hyperparameters.}
 \item{fixed}{  (OBSOLETE!) A boolean variable; is the precision for 'model' fixed? (Default FALSE.)}
@@ -32,6 +27,11 @@ The function \code{inla.set.control.hazard.default} returns a list with all the 
 \item{cutpoints}{  The cutpoints to use. If not specified the they are compute from 'n.intervals' and the maximum length of the interval. (Default NULL)}
 \item{strata.name}{  The name of the stratefication variable for the baseline hazard in the data.frame}
 \item{si}{  A boolean variable; should all the Gaussian approximations configurations be written to files?}
+}
+\value{
+ 
+The function \code{control.hazard} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

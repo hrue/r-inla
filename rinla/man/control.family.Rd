@@ -16,11 +16,6 @@ control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scal
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
- 
-The function \code{control.family} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{hyper}{  Definition of the hyperparameters}
 \item{initial}{  (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).}
@@ -35,6 +30,11 @@ The function \code{inla.set.control.family.default} returns a list with all the 
 \item{variant}{  This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
 \item{control.mix}{  See \code{?control.mix}}
 \item{control.link}{  See \code{?control.link}}
+}
+\value{
+ 
+The function \code{control.family} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 

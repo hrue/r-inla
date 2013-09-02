@@ -16,11 +16,6 @@ control.group(adjust.for.con.comp, cyclic, fixed, graph, hyper, initial, model, 
 }
 \arguments{
 \item{...}{Possible arguments}
-}
-\value{
- 
-The function \code{control.group} is used to TAB-complete arguments and returns a list of given arguments.
-The function \code{inla.set.control.group.default} returns a list with all the default values of all parameters within this control statement. These are as follows.
 \item{model}{  Group model (one of 'exchangable', 'ar1', 'ar', 'rw1', 'rw2' or 'besag')}
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
 \item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
@@ -32,6 +27,11 @@ The function \code{inla.set.control.group.default} returns a list with all the d
 \item{fixed}{  (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale}
 \item{param}{  (OBSOLETE!) Prior parameters}
+}
+\value{
+ 
+The function \code{control.group} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.group.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
 \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.data}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
