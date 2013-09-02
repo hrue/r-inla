@@ -39,18 +39,18 @@ function mmp ()
 	print "}" >> f
 	print "\\arguments{" >> f
 	print "\\item{...}{Possible arguments}" >> f
-	print "}" >> f
-	print "\\value{" >> f
-        print " " extra >> f
-        print "The function \\code{" name "} is used to TAB-complete arguments and returns a list of given arguments." >> f
-        print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement. These are as follows." >> f
-        extra = ""
 	next;}
     /:ARGUMENT:/{ arg=$2; $1="";$2=""; desc=$0;
 	print "\\item{" arg "}{" desc "}" >> f
 	next;}
     /:SEEALSO:/ {
 	print "}" >> f
+	print "\\value{" >> f
+        print " " extra >> f
+        print "The function \\code{" name "} is used to TAB-complete arguments and returns a list of given arguments." >> f
+        print "The function \\code{inla.set." name ".default} returns a list with all the default values of all parameters within this control statement." >> f
+        print "}" >> f
+        extra = ""
 	print "\\seealso{" >> f
 	print SEEALSO >> f
 	for(i=2;i<=NF-1;i++){
