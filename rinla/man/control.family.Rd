@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, param, prior, sn.shape.max, variant)
+control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -21,7 +21,7 @@ control.family(alpha, control.link, control.mix, epsilon, fixed, gamma, gev.scal
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).}
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution}
 \item{fixed}{  (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.}
-\item{link}{  (OBSOLETE! Use \code{control.link=list(model=...)} instead.) The link function to use.}
+\item{link}{  (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.}
 \item{alpha}{  The parameter 'alpha' for the asymmetric Laplace likelihood (default 0.5)}
 \item{epsilon}{  The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)}
 \item{gamma}{  The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)}

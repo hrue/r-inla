@@ -239,7 +239,7 @@
         ##:ARGUMENT: fixed (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.
         fixed=NULL,
 
-        ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=...)} instead.) The link function to use.
+        ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.
         link= "default",
 
         ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
