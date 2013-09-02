@@ -21261,7 +21261,7 @@ int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta)
 	return INLA_OK;
 #undef EXIT_READ_FAIL
 }
-int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -21270,7 +21270,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 	if (!func && !tfunc) {
 		*d_mean = density->user_mean;
 		*d_stdev = density->user_stdev;
-
+		*d_mode = density->user_mode;
+		
 		return GMRFLib_SUCCESS;
 	}
 #define MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
@@ -21280,6 +21281,10 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 	(tfunc ? (_stdev_user)*ABS(tfunc->func(_mean_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov)) : \
 	 (_stdev_user)))
 
+#define TRANSFORMED_LOGDENS(_x, _logdens) (func ? ((_logdens) - log(ABS(func(_x, MAP_DFORWARD, func_arg)))) : \
+					   (tfunc ? ((_logdens) - log(ABS(tfunc->func(_x, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov)))) : \
+				       (_logdens)))
+
 	int i, k, debug = 0;
 	int npm = 4 * GMRFLib_faster_integration_np;
 	double dxx, d, xx_local, fval;
@@ -21287,6 +21292,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 	double sum[3] = { 0.0, 0.0, 0.0 };
 	double *xpm, *ldm, *work;
 
+	double tlogdens, tlogdens_max = NAN;
+	int idx_tlogdens_max = -1;
+	
 	work = Calloc(2 * npm, double);
 	xpm = work;
 	ldm = work + npm;
@@ -21314,6 +21322,15 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 		sum[0] += d * w[k];
 		sum[1] += d * w[k] * fval;
 		sum[2] += d * w[k] * SQR(fval);
+
+		/* 
+		 * extract the mode
+		 */
+		tlogdens = TRANSFORMED_LOGDENS(xx_local, ldm[i]);
+		if (idx_tlogdens_max < 0 || tlogdens > tlogdens_max){
+			idx_tlogdens_max = i;
+			tlogdens_max = tlogdens;
+		}
 	}
 	sum[0] *= dxx / 3.0;				       /* this should be 1.0 */
 	sum[1] *= dxx / 3.0;
@@ -21324,8 +21341,37 @@ int inla_integrate_func(double *d_mean, double *d_stdev, GMRFLib_density_tp * de
 		printf("NEW mean %g simple %g\n", sum[1] / sum[0], MAP_X(density->user_mean));
 		printf("NEW stdev %g simple %g\n", sqrt(sum[2] / sum[0] - SQR(sum[1] / sum[0])), MAP_STDEV(density->user_stdev, density->user_mean));
 	}
+
 	*d_mean = sum[1] / sum[0];
 	*d_stdev = sqrt(DMAX(0.0, sum[2] / sum[0] - SQR(*d_mean)));
+
+	/* 
+	 * adjust the  mode. use a 2.order polynomial
+	 *
+	 * > ans := solve({ a+b*x0+c*x0^2=d0, a+b*x1+c*x1^2=d1,a+b*x2+c*x2^2=d2}, [a,b,c]):
+	 * > a := rhs(ans[1,1]):                                                           
+	 * > b := rhs(ans[1,2]):
+	 * > c := rhs(ans[1,3]):
+	 * > simplify(-b/(2*c));
+	 *         2        2        2        2        2        2
+	 *    d0 x1  - d0 x2  - d1 x0  + d1 x2  + d2 x0  - d2 x1
+         *    ---------------------------------------------------
+         *      2 (d0 x1 - d0 x2 - d1 x0 + d1 x2 + d2 x0 - d2 x1)
+	 */
+
+	double xx[3], tld[3];
+
+	idx_tlogdens_max = IMAX(1, IMIN(npm-2, idx_tlogdens_max)); /* so that we can do interpolation */
+	for(k = 0; k < 3; k++){
+		i = idx_tlogdens_max - 1 + k;
+		xx[k] = GMRFLib_density_std2user(xpm[i], density);
+		tld[k] = TRANSFORMED_LOGDENS(xx[k], ldm[i]);
+		xx[k] = MAP_X(xx[k]);			       /* need it in the transformed scale */
+	}
+	*d_mode = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
+		   tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) / (
+			   tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] + tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
+
 	Free(work);
 #undef MAP_X
 #undef MAP_STDEV
@@ -21360,6 +21406,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	double x, x_user, dens, dens_user, p, xp, *xx;
+	double d_mean, d_stdev, d_mode = NAN, g_mode = NAN;
 	int i, ii, j, nn, ndiv;
 	int add_empty = 1;
 
@@ -21423,9 +21470,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			}
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
-					double d_mean, d_stdev;
-
-					inla_integrate_func(&d_mean, &d_stdev, density[i], FUNC, FUNC_ARG, TFUNC(i));
+					inla_integrate_func(&d_mean, &d_stdev, &d_mode, density[i], FUNC, FUNC_ARG, TFUNC(i));
 					if (locations) {
 						if (G.binary) {
 							D3W(locations[i % ndiv], d_mean, d_stdev);
@@ -21475,9 +21520,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			}
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
-					double d_mean, d_stdev;
-
-					inla_integrate_func(&d_mean, &d_stdev, gdensity[i], FUNC, FUNC_ARG, TFUNC(i));
+					inla_integrate_func(&d_mean, &d_stdev, &g_mode, gdensity[i], FUNC, FUNC_ARG, TFUNC(i));
 					if (locations) {
 						if (G.binary) {
 							D3W(locations[i % ndiv], d_mean, d_stdev);
@@ -21978,7 +22021,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			Free(nndir);
 		}
 	}
-	if (output->mode && (!func && !tfunc)) {
+	if (output->mode) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
 			inla_fnmfix(nndir);
@@ -22008,9 +22051,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					if (G.binary) {
-						D3W(1.0, NAN, density[i]->user_mode);
+						D3W(1.0, NAN, d_mode);
 					} else {
-						fprintf(fp, " %g\n", density[i]->user_mode);
+						fprintf(fp, " %g\n", d_mode);
 					}
 				} else {
 					if (add_empty) {
@@ -22067,9 +22110,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					if (G.binary) {
-						D2W(1.0, gdensity[i]->user_mode);
+						D2W(1.0, g_mode);
 					} else {
-						fprintf(fp, " %g\n", gdensity[i]->user_mode);
+						fprintf(fp, " %g\n", g_mode);
 					}
 				} else {
 					if (add_empty) {
