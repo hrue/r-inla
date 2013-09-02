@@ -4,7 +4,7 @@
 \docType{data}
 \title{The PRprec data}
 \description{
-  TODO
+  A data frame with daily rainfall in the Parana State. 
 }
 \usage{data(PRprec)}
 \format{
@@ -13,376 +13,374 @@
     \item{Altitude}{TODO}
     \item{Latitude}{TODO}
     \item{Longitude}{TODO}
-    \item{d0101}{TODO}
-    \item{d0102}{TODO}
-    \item{d0103}{TODO}
-    \item{d0104}{TODO}
-    \item{d0105}{TODO}
-    \item{d0106}{TODO}
-    \item{d0107}{TODO}
-    \item{d0108}{TODO}
-    \item{d0109}{TODO}
-    \item{d0110}{TODO}
-    \item{d0111}{TODO}
-    \item{d0112}{TODO}
-    \item{d0113}{TODO}
-    \item{d0114}{TODO}
-    \item{d0115}{TODO}
-    \item{d0116}{TODO}
-    \item{d0117}{TODO}
-    \item{d0118}{TODO}
-    \item{d0119}{TODO}
-    \item{d0120}{TODO}
-    \item{d0121}{TODO}
-    \item{d0122}{TODO}
-    \item{d0123}{TODO}
-    \item{d0124}{TODO}
-    \item{d0125}{TODO}
-    \item{d0126}{TODO}
-    \item{d0127}{TODO}
-    \item{d0128}{TODO}
-    \item{d0129}{TODO}
-    \item{d0130}{TODO}
-    \item{d0131}{TODO}
-    \item{d0201}{TODO}
-    \item{d0202}{TODO}
-    \item{d0203}{TODO}
-    \item{d0204}{TODO}
-    \item{d0205}{TODO}
-    \item{d0206}{TODO}
-    \item{d0207}{TODO}
-    \item{d0208}{TODO}
-    \item{d0209}{TODO}
-    \item{d0210}{TODO}
-    \item{d0211}{TODO}
-    \item{d0212}{TODO}
-    \item{d0213}{TODO}
-    \item{d0214}{TODO}
-    \item{d0215}{TODO}
-    \item{d0216}{TODO}
-    \item{d0217}{TODO}
-    \item{d0218}{TODO}
-    \item{d0219}{TODO}
-    \item{d0220}{TODO}
-    \item{d0221}{TODO}
-    \item{d0222}{TODO}
-    \item{d0223}{TODO}
-    \item{d0224}{TODO}
-    \item{d0225}{TODO}
-    \item{d0226}{TODO}
-    \item{d0227}{TODO}
-    \item{d0228}{TODO}
-    \item{d0301}{TODO}
-    \item{d0302}{TODO}
-    \item{d0303}{TODO}
-    \item{d0304}{TODO}
-    \item{d0305}{TODO}
-    \item{d0306}{TODO}
-    \item{d0307}{TODO}
-    \item{d0308}{TODO}
-    \item{d0309}{TODO}
-    \item{d0310}{TODO}
-    \item{d0311}{TODO}
-    \item{d0312}{TODO}
-    \item{d0313}{TODO}
-    \item{d0314}{TODO}
-    \item{d0315}{TODO}
-    \item{d0316}{TODO}
-    \item{d0317}{TODO}
-    \item{d0318}{TODO}
-    \item{d0319}{TODO}
-    \item{d0320}{TODO}
-    \item{d0321}{TODO}
-    \item{d0322}{TODO}
-    \item{d0323}{TODO}
-    \item{d0324}{TODO}
-    \item{d0325}{TODO}
-    \item{d0326}{TODO}
-    \item{d0327}{TODO}
-    \item{d0328}{TODO}
-    \item{d0329}{TODO}
-    \item{d0330}{TODO}
-    \item{d0331}{TODO}
-    \item{d0401}{TODO}
-    \item{d0402}{TODO}
-    \item{d0403}{TODO}
-    \item{d0404}{TODO}
-    \item{d0405}{TODO}
-    \item{d0406}{TODO}
-    \item{d0407}{TODO}
-    \item{d0408}{TODO}
-    \item{d0409}{TODO}
-    \item{d0410}{TODO}
-    \item{d0411}{TODO}
-    \item{d0412}{TODO}
-    \item{d0413}{TODO}
-    \item{d0414}{TODO}
-    \item{d0415}{TODO}
-    \item{d0416}{TODO}
-    \item{d0417}{TODO}
-    \item{d0418}{TODO}
-    \item{d0419}{TODO}
-    \item{d0420}{TODO}
-    \item{d0421}{TODO}
-    \item{d0422}{TODO}
-    \item{d0423}{TODO}
-    \item{d0424}{TODO}
-    \item{d0425}{TODO}
-    \item{d0426}{TODO}
-    \item{d0427}{TODO}
-    \item{d0428}{TODO}
-    \item{d0429}{TODO}
-    \item{d0430}{TODO}
-    \item{d0501}{TODO}
-    \item{d0502}{TODO}
-    \item{d0503}{TODO}
-    \item{d0504}{TODO}
-    \item{d0505}{TODO}
-    \item{d0506}{TODO}
-    \item{d0507}{TODO}
-    \item{d0508}{TODO}
-    \item{d0509}{TODO}
-    \item{d0510}{TODO}
-    \item{d0511}{TODO}
-    \item{d0512}{TODO}
-    \item{d0513}{TODO}
-    \item{d0514}{TODO}
-    \item{d0515}{TODO}
-    \item{d0516}{TODO}
-    \item{d0517}{TODO}
-    \item{d0518}{TODO}
-    \item{d0519}{TODO}
-    \item{d0520}{TODO}
-    \item{d0521}{TODO}
-    \item{d0522}{TODO}
-    \item{d0523}{TODO}
-    \item{d0524}{TODO}
-    \item{d0525}{TODO}
-    \item{d0526}{TODO}
-    \item{d0527}{TODO}
-    \item{d0528}{TODO}
-    \item{d0529}{TODO}
-    \item{d0530}{TODO}
-    \item{d0531}{TODO}
-    \item{d0601}{TODO}
-    \item{d0602}{TODO}
-    \item{d0603}{TODO}
-    \item{d0604}{TODO}
-    \item{d0605}{TODO}
-    \item{d0606}{TODO}
-    \item{d0607}{TODO}
-    \item{d0608}{TODO}
-    \item{d0609}{TODO}
-    \item{d0610}{TODO}
-    \item{d0611}{TODO}
-    \item{d0612}{TODO}
-    \item{d0613}{TODO}
-    \item{d0614}{TODO}
-    \item{d0615}{TODO}
-    \item{d0616}{TODO}
-    \item{d0617}{TODO}
-    \item{d0618}{TODO}
-    \item{d0619}{TODO}
-    \item{d0620}{TODO}
-    \item{d0621}{TODO}
-    \item{d0622}{TODO}
-    \item{d0623}{TODO}
-    \item{d0624}{TODO}
-    \item{d0625}{TODO}
-    \item{d0626}{TODO}
-    \item{d0627}{TODO}
-    \item{d0628}{TODO}
-    \item{d0629}{TODO}
-    \item{d0630}{TODO}
-    \item{d0701}{TODO}
-    \item{d0702}{TODO}
-    \item{d0703}{TODO}
-    \item{d0704}{TODO}
-    \item{d0705}{TODO}
-    \item{d0706}{TODO}
-    \item{d0707}{TODO}
-    \item{d0708}{TODO}
-    \item{d0709}{TODO}
-    \item{d0710}{TODO}
-    \item{d0711}{TODO}
-    \item{d0712}{TODO}
-    \item{d0713}{TODO}
-    \item{d0714}{TODO}
-    \item{d0715}{TODO}
-    \item{d0716}{TODO}
-    \item{d0717}{TODO}
-    \item{d0718}{TODO}
-    \item{d0719}{TODO}
-    \item{d0720}{TODO}
-    \item{d0721}{TODO}
-    \item{d0722}{TODO}
-    \item{d0723}{TODO}
-    \item{d0724}{TODO}
-    \item{d0725}{TODO}
-    \item{d0726}{TODO}
-    \item{d0727}{TODO}
-    \item{d0728}{TODO}
-    \item{d0729}{TODO}
-    \item{d0730}{TODO}
-    \item{d0731}{TODO}
-    \item{d0801}{TODO}
-    \item{d0802}{TODO}
-    \item{d0803}{TODO}
-    \item{d0804}{TODO}
-    \item{d0805}{TODO}
-    \item{d0806}{TODO}
-    \item{d0807}{TODO}
-    \item{d0808}{TODO}
-    \item{d0809}{TODO}
-    \item{d0810}{TODO}
-    \item{d0811}{TODO}
-    \item{d0812}{TODO}
-    \item{d0813}{TODO}
-    \item{d0814}{TODO}
-    \item{d0815}{TODO}
-    \item{d0816}{TODO}
-    \item{d0817}{TODO}
-    \item{d0818}{TODO}
-    \item{d0819}{TODO}
-    \item{d0820}{TODO}
-    \item{d0821}{TODO}
-    \item{d0822}{TODO}
-    \item{d0823}{TODO}
-    \item{d0824}{TODO}
-    \item{d0825}{TODO}
-    \item{d0826}{TODO}
-    \item{d0827}{TODO}
-    \item{d0828}{TODO}
-    \item{d0829}{TODO}
-    \item{d0830}{TODO}
-    \item{d0831}{TODO}
-    \item{d0901}{TODO}
-    \item{d0902}{TODO}
-    \item{d0903}{TODO}
-    \item{d0904}{TODO}
-    \item{d0905}{TODO}
-    \item{d0906}{TODO}
-    \item{d0907}{TODO}
-    \item{d0908}{TODO}
-    \item{d0909}{TODO}
-    \item{d0910}{TODO}
-    \item{d0911}{TODO}
-    \item{d0912}{TODO}
-    \item{d0913}{TODO}
-    \item{d0914}{TODO}
-    \item{d0915}{TODO}
-    \item{d0916}{TODO}
-    \item{d0917}{TODO}
-    \item{d0918}{TODO}
-    \item{d0919}{TODO}
-    \item{d0920}{TODO}
-    \item{d0921}{TODO}
-    \item{d0922}{TODO}
-    \item{d0923}{TODO}
-    \item{d0924}{TODO}
-    \item{d0925}{TODO}
-    \item{d0926}{TODO}
-    \item{d0927}{TODO}
-    \item{d0928}{TODO}
-    \item{d0929}{TODO}
-    \item{d0930}{TODO}
-    \item{d1001}{TODO}
-    \item{d1002}{TODO}
-    \item{d1003}{TODO}
-    \item{d1004}{TODO}
-    \item{d1005}{TODO}
-    \item{d1006}{TODO}
-    \item{d1007}{TODO}
-    \item{d1008}{TODO}
-    \item{d1009}{TODO}
-    \item{d1010}{TODO}
-    \item{d1011}{TODO}
-    \item{d1012}{TODO}
-    \item{d1013}{TODO}
-    \item{d1014}{TODO}
-    \item{d1015}{TODO}
-    \item{d1016}{TODO}
-    \item{d1017}{TODO}
-    \item{d1018}{TODO}
-    \item{d1019}{TODO}
-    \item{d1020}{TODO}
-    \item{d1021}{TODO}
-    \item{d1022}{TODO}
-    \item{d1023}{TODO}
-    \item{d1024}{TODO}
-    \item{d1025}{TODO}
-    \item{d1026}{TODO}
-    \item{d1027}{TODO}
-    \item{d1028}{TODO}
-    \item{d1029}{TODO}
-    \item{d1030}{TODO}
-    \item{d1031}{TODO}
-    \item{d1101}{TODO}
-    \item{d1102}{TODO}
-    \item{d1103}{TODO}
-    \item{d1104}{TODO}
-    \item{d1105}{TODO}
-    \item{d1106}{TODO}
-    \item{d1107}{TODO}
-    \item{d1108}{TODO}
-    \item{d1109}{TODO}
-    \item{d1110}{TODO}
-    \item{d1111}{TODO}
-    \item{d1112}{TODO}
-    \item{d1113}{TODO}
-    \item{d1114}{TODO}
-    \item{d1115}{TODO}
-    \item{d1116}{TODO}
-    \item{d1117}{TODO}
-    \item{d1118}{TODO}
-    \item{d1119}{TODO}
-    \item{d1120}{TODO}
-    \item{d1121}{TODO}
-    \item{d1122}{TODO}
-    \item{d1123}{TODO}
-    \item{d1124}{TODO}
-    \item{d1125}{TODO}
-    \item{d1126}{TODO}
-    \item{d1127}{TODO}
-    \item{d1128}{TODO}
-    \item{d1129}{TODO}
-    \item{d1130}{TODO}
-    \item{d1201}{TODO}
-    \item{d1202}{TODO}
-    \item{d1203}{TODO}
-    \item{d1204}{TODO}
-    \item{d1205}{TODO}
-    \item{d1206}{TODO}
-    \item{d1207}{TODO}
-    \item{d1208}{TODO}
-    \item{d1209}{TODO}
-    \item{d1210}{TODO}
-    \item{d1211}{TODO}
-    \item{d1212}{TODO}
-    \item{d1213}{TODO}
-    \item{d1214}{TODO}
-    \item{d1215}{TODO}
-    \item{d1216}{TODO}
-    \item{d1217}{TODO}
-    \item{d1218}{TODO}
-    \item{d1219}{TODO}
-    \item{d1220}{TODO}
-    \item{d1221}{TODO}
-    \item{d1222}{TODO}
-    \item{d1223}{TODO}
-    \item{d1224}{TODO}
-    \item{d1225}{TODO}
-    \item{d1226}{TODO}
-    \item{d1227}{TODO}
-    \item{d1228}{TODO}
-    \item{d1229}{TODO}
-    \item{d1230}{TODO}
-    \item{d1231}{TODO}
+    \item{d0101}{Daily rainfall at day "mmdd"}
+    \item{d0102}{Daily rainfall at day "mmdd"}
+    \item{d0103}{Daily rainfall at day "mmdd"}
+    \item{d0104}{Daily rainfall at day "mmdd"}
+    \item{d0105}{Daily rainfall at day "mmdd"}
+    \item{d0106}{Daily rainfall at day "mmdd"}
+    \item{d0107}{Daily rainfall at day "mmdd"}
+    \item{d0108}{Daily rainfall at day "mmdd"}
+    \item{d0109}{Daily rainfall at day "mmdd"}
+    \item{d0110}{Daily rainfall at day "mmdd"}
+    \item{d0111}{Daily rainfall at day "mmdd"}
+    \item{d0112}{Daily rainfall at day "mmdd"}
+    \item{d0113}{Daily rainfall at day "mmdd"}
+    \item{d0114}{Daily rainfall at day "mmdd"}
+    \item{d0115}{Daily rainfall at day "mmdd"}
+    \item{d0116}{Daily rainfall at day "mmdd"}
+    \item{d0117}{Daily rainfall at day "mmdd"}
+    \item{d0118}{Daily rainfall at day "mmdd"}
+    \item{d0119}{Daily rainfall at day "mmdd"}
+    \item{d0120}{Daily rainfall at day "mmdd"}
+    \item{d0121}{Daily rainfall at day "mmdd"}
+    \item{d0122}{Daily rainfall at day "mmdd"}
+    \item{d0123}{Daily rainfall at day "mmdd"}
+    \item{d0124}{Daily rainfall at day "mmdd"}
+    \item{d0125}{Daily rainfall at day "mmdd"}
+    \item{d0126}{Daily rainfall at day "mmdd"}
+    \item{d0127}{Daily rainfall at day "mmdd"}
+    \item{d0128}{Daily rainfall at day "mmdd"}
+    \item{d0129}{Daily rainfall at day "mmdd"}
+    \item{d0130}{Daily rainfall at day "mmdd"}
+    \item{d0131}{Daily rainfall at day "mmdd"}
+    \item{d0201}{Daily rainfall at day "mmdd"}
+    \item{d0202}{Daily rainfall at day "mmdd"}
+    \item{d0203}{Daily rainfall at day "mmdd"}
+    \item{d0204}{Daily rainfall at day "mmdd"}
+    \item{d0205}{Daily rainfall at day "mmdd"}
+    \item{d0206}{Daily rainfall at day "mmdd"}
+    \item{d0207}{Daily rainfall at day "mmdd"}
+    \item{d0208}{Daily rainfall at day "mmdd"}
+    \item{d0209}{Daily rainfall at day "mmdd"}
+    \item{d0210}{Daily rainfall at day "mmdd"}
+    \item{d0211}{Daily rainfall at day "mmdd"}
+    \item{d0212}{Daily rainfall at day "mmdd"}
+    \item{d0213}{Daily rainfall at day "mmdd"}
+    \item{d0214}{Daily rainfall at day "mmdd"}
+    \item{d0215}{Daily rainfall at day "mmdd"}
+    \item{d0216}{Daily rainfall at day "mmdd"}
+    \item{d0217}{Daily rainfall at day "mmdd"}
+    \item{d0218}{Daily rainfall at day "mmdd"}
+    \item{d0219}{Daily rainfall at day "mmdd"}
+    \item{d0220}{Daily rainfall at day "mmdd"}
+    \item{d0221}{Daily rainfall at day "mmdd"}
+    \item{d0222}{Daily rainfall at day "mmdd"}
+    \item{d0223}{Daily rainfall at day "mmdd"}
+    \item{d0224}{Daily rainfall at day "mmdd"}
+    \item{d0225}{Daily rainfall at day "mmdd"}
+    \item{d0226}{Daily rainfall at day "mmdd"}
+    \item{d0227}{Daily rainfall at day "mmdd"}
+    \item{d0228}{Daily rainfall at day "mmdd"}
+    \item{d0301}{Daily rainfall at day "mmdd"}
+    \item{d0302}{Daily rainfall at day "mmdd"}
+    \item{d0303}{Daily rainfall at day "mmdd"}
+    \item{d0304}{Daily rainfall at day "mmdd"}
+    \item{d0305}{Daily rainfall at day "mmdd"}
+    \item{d0306}{Daily rainfall at day "mmdd"}
+    \item{d0307}{Daily rainfall at day "mmdd"}
+    \item{d0308}{Daily rainfall at day "mmdd"}
+    \item{d0309}{Daily rainfall at day "mmdd"}
+    \item{d0310}{Daily rainfall at day "mmdd"}
+    \item{d0311}{Daily rainfall at day "mmdd"}
+    \item{d0312}{Daily rainfall at day "mmdd"}
+    \item{d0313}{Daily rainfall at day "mmdd"}
+    \item{d0314}{Daily rainfall at day "mmdd"}
+    \item{d0315}{Daily rainfall at day "mmdd"}
+    \item{d0316}{Daily rainfall at day "mmdd"}
+    \item{d0317}{Daily rainfall at day "mmdd"}
+    \item{d0318}{Daily rainfall at day "mmdd"}
+    \item{d0319}{Daily rainfall at day "mmdd"}
+    \item{d0320}{Daily rainfall at day "mmdd"}
+    \item{d0321}{Daily rainfall at day "mmdd"}
+    \item{d0322}{Daily rainfall at day "mmdd"}
+    \item{d0323}{Daily rainfall at day "mmdd"}
+    \item{d0324}{Daily rainfall at day "mmdd"}
+    \item{d0325}{Daily rainfall at day "mmdd"}
+    \item{d0326}{Daily rainfall at day "mmdd"}
+    \item{d0327}{Daily rainfall at day "mmdd"}
+    \item{d0328}{Daily rainfall at day "mmdd"}
+    \item{d0329}{Daily rainfall at day "mmdd"}
+    \item{d0330}{Daily rainfall at day "mmdd"}
+    \item{d0331}{Daily rainfall at day "mmdd"}
+    \item{d0401}{Daily rainfall at day "mmdd"}
+    \item{d0402}{Daily rainfall at day "mmdd"}
+    \item{d0403}{Daily rainfall at day "mmdd"}
+    \item{d0404}{Daily rainfall at day "mmdd"}
+    \item{d0405}{Daily rainfall at day "mmdd"}
+    \item{d0406}{Daily rainfall at day "mmdd"}
+    \item{d0407}{Daily rainfall at day "mmdd"}
+    \item{d0408}{Daily rainfall at day "mmdd"}
+    \item{d0409}{Daily rainfall at day "mmdd"}
+    \item{d0410}{Daily rainfall at day "mmdd"}
+    \item{d0411}{Daily rainfall at day "mmdd"}
+    \item{d0412}{Daily rainfall at day "mmdd"}
+    \item{d0413}{Daily rainfall at day "mmdd"}
+    \item{d0414}{Daily rainfall at day "mmdd"}
+    \item{d0415}{Daily rainfall at day "mmdd"}
+    \item{d0416}{Daily rainfall at day "mmdd"}
+    \item{d0417}{Daily rainfall at day "mmdd"}
+    \item{d0418}{Daily rainfall at day "mmdd"}
+    \item{d0419}{Daily rainfall at day "mmdd"}
+    \item{d0420}{Daily rainfall at day "mmdd"}
+    \item{d0421}{Daily rainfall at day "mmdd"}
+    \item{d0422}{Daily rainfall at day "mmdd"}
+    \item{d0423}{Daily rainfall at day "mmdd"}
+    \item{d0424}{Daily rainfall at day "mmdd"}
+    \item{d0425}{Daily rainfall at day "mmdd"}
+    \item{d0426}{Daily rainfall at day "mmdd"}
+    \item{d0427}{Daily rainfall at day "mmdd"}
+    \item{d0428}{Daily rainfall at day "mmdd"}
+    \item{d0429}{Daily rainfall at day "mmdd"}
+    \item{d0430}{Daily rainfall at day "mmdd"}
+    \item{d0501}{Daily rainfall at day "mmdd"}
+    \item{d0502}{Daily rainfall at day "mmdd"}
+    \item{d0503}{Daily rainfall at day "mmdd"}
+    \item{d0504}{Daily rainfall at day "mmdd"}
+    \item{d0505}{Daily rainfall at day "mmdd"}
+    \item{d0506}{Daily rainfall at day "mmdd"}
+    \item{d0507}{Daily rainfall at day "mmdd"}
+    \item{d0508}{Daily rainfall at day "mmdd"}
+    \item{d0509}{Daily rainfall at day "mmdd"}
+    \item{d0510}{Daily rainfall at day "mmdd"}
+    \item{d0511}{Daily rainfall at day "mmdd"}
+    \item{d0512}{Daily rainfall at day "mmdd"}
+    \item{d0513}{Daily rainfall at day "mmdd"}
+    \item{d0514}{Daily rainfall at day "mmdd"}
+    \item{d0515}{Daily rainfall at day "mmdd"}
+    \item{d0516}{Daily rainfall at day "mmdd"}
+    \item{d0517}{Daily rainfall at day "mmdd"}
+    \item{d0518}{Daily rainfall at day "mmdd"}
+    \item{d0519}{Daily rainfall at day "mmdd"}
+    \item{d0520}{Daily rainfall at day "mmdd"}
+    \item{d0521}{Daily rainfall at day "mmdd"}
+    \item{d0522}{Daily rainfall at day "mmdd"}
+    \item{d0523}{Daily rainfall at day "mmdd"}
+    \item{d0524}{Daily rainfall at day "mmdd"}
+    \item{d0525}{Daily rainfall at day "mmdd"}
+    \item{d0526}{Daily rainfall at day "mmdd"}
+    \item{d0527}{Daily rainfall at day "mmdd"}
+    \item{d0528}{Daily rainfall at day "mmdd"}
+    \item{d0529}{Daily rainfall at day "mmdd"}
+    \item{d0530}{Daily rainfall at day "mmdd"}
+    \item{d0531}{Daily rainfall at day "mmdd"}
+    \item{d0601}{Daily rainfall at day "mmdd"}
+    \item{d0602}{Daily rainfall at day "mmdd"}
+    \item{d0603}{Daily rainfall at day "mmdd"}
+    \item{d0604}{Daily rainfall at day "mmdd"}
+    \item{d0605}{Daily rainfall at day "mmdd"}
+    \item{d0606}{Daily rainfall at day "mmdd"}
+    \item{d0607}{Daily rainfall at day "mmdd"}
+    \item{d0608}{Daily rainfall at day "mmdd"}
+    \item{d0609}{Daily rainfall at day "mmdd"}
+    \item{d0610}{Daily rainfall at day "mmdd"}
+    \item{d0611}{Daily rainfall at day "mmdd"}
+    \item{d0612}{Daily rainfall at day "mmdd"}
+    \item{d0613}{Daily rainfall at day "mmdd"}
+    \item{d0614}{Daily rainfall at day "mmdd"}
+    \item{d0615}{Daily rainfall at day "mmdd"}
+    \item{d0616}{Daily rainfall at day "mmdd"}
+    \item{d0617}{Daily rainfall at day "mmdd"}
+    \item{d0618}{Daily rainfall at day "mmdd"}
+    \item{d0619}{Daily rainfall at day "mmdd"}
+    \item{d0620}{Daily rainfall at day "mmdd"}
+    \item{d0621}{Daily rainfall at day "mmdd"}
+    \item{d0622}{Daily rainfall at day "mmdd"}
+    \item{d0623}{Daily rainfall at day "mmdd"}
+    \item{d0624}{Daily rainfall at day "mmdd"}
+    \item{d0625}{Daily rainfall at day "mmdd"}
+    \item{d0626}{Daily rainfall at day "mmdd"}
+    \item{d0627}{Daily rainfall at day "mmdd"}
+    \item{d0628}{Daily rainfall at day "mmdd"}
+    \item{d0629}{Daily rainfall at day "mmdd"}
+    \item{d0630}{Daily rainfall at day "mmdd"}
+    \item{d0701}{Daily rainfall at day "mmdd"}
+    \item{d0702}{Daily rainfall at day "mmdd"}
+    \item{d0703}{Daily rainfall at day "mmdd"}
+    \item{d0704}{Daily rainfall at day "mmdd"}
+    \item{d0705}{Daily rainfall at day "mmdd"}
+    \item{d0706}{Daily rainfall at day "mmdd"}
+    \item{d0707}{Daily rainfall at day "mmdd"}
+    \item{d0708}{Daily rainfall at day "mmdd"}
+    \item{d0709}{Daily rainfall at day "mmdd"}
+    \item{d0710}{Daily rainfall at day "mmdd"}
+    \item{d0711}{Daily rainfall at day "mmdd"}
+    \item{d0712}{Daily rainfall at day "mmdd"}
+    \item{d0713}{Daily rainfall at day "mmdd"}
+    \item{d0714}{Daily rainfall at day "mmdd"}
+    \item{d0715}{Daily rainfall at day "mmdd"}
+    \item{d0716}{Daily rainfall at day "mmdd"}
+    \item{d0717}{Daily rainfall at day "mmdd"}
+    \item{d0718}{Daily rainfall at day "mmdd"}
+    \item{d0719}{Daily rainfall at day "mmdd"}
+    \item{d0720}{Daily rainfall at day "mmdd"}
+    \item{d0721}{Daily rainfall at day "mmdd"}
+    \item{d0722}{Daily rainfall at day "mmdd"}
+    \item{d0723}{Daily rainfall at day "mmdd"}
+    \item{d0724}{Daily rainfall at day "mmdd"}
+    \item{d0725}{Daily rainfall at day "mmdd"}
+    \item{d0726}{Daily rainfall at day "mmdd"}
+    \item{d0727}{Daily rainfall at day "mmdd"}
+    \item{d0728}{Daily rainfall at day "mmdd"}
+    \item{d0729}{Daily rainfall at day "mmdd"}
+    \item{d0730}{Daily rainfall at day "mmdd"}
+    \item{d0731}{Daily rainfall at day "mmdd"}
+    \item{d0801}{Daily rainfall at day "mmdd"}
+    \item{d0802}{Daily rainfall at day "mmdd"}
+    \item{d0803}{Daily rainfall at day "mmdd"}
+    \item{d0804}{Daily rainfall at day "mmdd"}
+    \item{d0805}{Daily rainfall at day "mmdd"}
+    \item{d0806}{Daily rainfall at day "mmdd"}
+    \item{d0807}{Daily rainfall at day "mmdd"}
+    \item{d0808}{Daily rainfall at day "mmdd"}
+    \item{d0809}{Daily rainfall at day "mmdd"}
+    \item{d0810}{Daily rainfall at day "mmdd"}
+    \item{d0811}{Daily rainfall at day "mmdd"}
+    \item{d0812}{Daily rainfall at day "mmdd"}
+    \item{d0813}{Daily rainfall at day "mmdd"}
+    \item{d0814}{Daily rainfall at day "mmdd"}
+    \item{d0815}{Daily rainfall at day "mmdd"}
+    \item{d0816}{Daily rainfall at day "mmdd"}
+    \item{d0817}{Daily rainfall at day "mmdd"}
+    \item{d0818}{Daily rainfall at day "mmdd"}
+    \item{d0819}{Daily rainfall at day "mmdd"}
+    \item{d0820}{Daily rainfall at day "mmdd"}
+    \item{d0821}{Daily rainfall at day "mmdd"}
+    \item{d0822}{Daily rainfall at day "mmdd"}
+    \item{d0823}{Daily rainfall at day "mmdd"}
+    \item{d0824}{Daily rainfall at day "mmdd"}
+    \item{d0825}{Daily rainfall at day "mmdd"}
+    \item{d0826}{Daily rainfall at day "mmdd"}
+    \item{d0827}{Daily rainfall at day "mmdd"}
+    \item{d0828}{Daily rainfall at day "mmdd"}
+    \item{d0829}{Daily rainfall at day "mmdd"}
+    \item{d0830}{Daily rainfall at day "mmdd"}
+    \item{d0831}{Daily rainfall at day "mmdd"}
+    \item{d0901}{Daily rainfall at day "mmdd"}
+    \item{d0902}{Daily rainfall at day "mmdd"}
+    \item{d0903}{Daily rainfall at day "mmdd"}
+    \item{d0904}{Daily rainfall at day "mmdd"}
+    \item{d0905}{Daily rainfall at day "mmdd"}
+    \item{d0906}{Daily rainfall at day "mmdd"}
+    \item{d0907}{Daily rainfall at day "mmdd"}
+    \item{d0908}{Daily rainfall at day "mmdd"}
+    \item{d0909}{Daily rainfall at day "mmdd"}
+    \item{d0910}{Daily rainfall at day "mmdd"}
+    \item{d0911}{Daily rainfall at day "mmdd"}
+    \item{d0912}{Daily rainfall at day "mmdd"}
+    \item{d0913}{Daily rainfall at day "mmdd"}
+    \item{d0914}{Daily rainfall at day "mmdd"}
+    \item{d0915}{Daily rainfall at day "mmdd"}
+    \item{d0916}{Daily rainfall at day "mmdd"}
+    \item{d0917}{Daily rainfall at day "mmdd"}
+    \item{d0918}{Daily rainfall at day "mmdd"}
+    \item{d0919}{Daily rainfall at day "mmdd"}
+    \item{d0920}{Daily rainfall at day "mmdd"}
+    \item{d0921}{Daily rainfall at day "mmdd"}
+    \item{d0922}{Daily rainfall at day "mmdd"}
+    \item{d0923}{Daily rainfall at day "mmdd"}
+    \item{d0924}{Daily rainfall at day "mmdd"}
+    \item{d0925}{Daily rainfall at day "mmdd"}
+    \item{d0926}{Daily rainfall at day "mmdd"}
+    \item{d0927}{Daily rainfall at day "mmdd"}
+    \item{d0928}{Daily rainfall at day "mmdd"}
+    \item{d0929}{Daily rainfall at day "mmdd"}
+    \item{d0930}{Daily rainfall at day "mmdd"}
+    \item{d1001}{Daily rainfall at day "mmdd"}
+    \item{d1002}{Daily rainfall at day "mmdd"}
+    \item{d1003}{Daily rainfall at day "mmdd"}
+    \item{d1004}{Daily rainfall at day "mmdd"}
+    \item{d1005}{Daily rainfall at day "mmdd"}
+    \item{d1006}{Daily rainfall at day "mmdd"}
+    \item{d1007}{Daily rainfall at day "mmdd"}
+    \item{d1008}{Daily rainfall at day "mmdd"}
+    \item{d1009}{Daily rainfall at day "mmdd"}
+    \item{d1010}{Daily rainfall at day "mmdd"}
+    \item{d1011}{Daily rainfall at day "mmdd"}
+    \item{d1012}{Daily rainfall at day "mmdd"}
+    \item{d1013}{Daily rainfall at day "mmdd"}
+    \item{d1014}{Daily rainfall at day "mmdd"}
+    \item{d1015}{Daily rainfall at day "mmdd"}
+    \item{d1016}{Daily rainfall at day "mmdd"}
+    \item{d1017}{Daily rainfall at day "mmdd"}
+    \item{d1018}{Daily rainfall at day "mmdd"}
+    \item{d1019}{Daily rainfall at day "mmdd"}
+    \item{d1020}{Daily rainfall at day "mmdd"}
+    \item{d1021}{Daily rainfall at day "mmdd"}
+    \item{d1022}{Daily rainfall at day "mmdd"}
+    \item{d1023}{Daily rainfall at day "mmdd"}
+    \item{d1024}{Daily rainfall at day "mmdd"}
+    \item{d1025}{Daily rainfall at day "mmdd"}
+    \item{d1026}{Daily rainfall at day "mmdd"}
+    \item{d1027}{Daily rainfall at day "mmdd"}
+    \item{d1028}{Daily rainfall at day "mmdd"}
+    \item{d1029}{Daily rainfall at day "mmdd"}
+    \item{d1030}{Daily rainfall at day "mmdd"}
+    \item{d1031}{Daily rainfall at day "mmdd"}
+    \item{d1101}{Daily rainfall at day "mmdd"}
+    \item{d1102}{Daily rainfall at day "mmdd"}
+    \item{d1103}{Daily rainfall at day "mmdd"}
+    \item{d1104}{Daily rainfall at day "mmdd"}
+    \item{d1105}{Daily rainfall at day "mmdd"}
+    \item{d1106}{Daily rainfall at day "mmdd"}
+    \item{d1107}{Daily rainfall at day "mmdd"}
+    \item{d1108}{Daily rainfall at day "mmdd"}
+    \item{d1109}{Daily rainfall at day "mmdd"}
+    \item{d1110}{Daily rainfall at day "mmdd"}
+    \item{d1111}{Daily rainfall at day "mmdd"}
+    \item{d1112}{Daily rainfall at day "mmdd"}
+    \item{d1113}{Daily rainfall at day "mmdd"}
+    \item{d1114}{Daily rainfall at day "mmdd"}
+    \item{d1115}{Daily rainfall at day "mmdd"}
+    \item{d1116}{Daily rainfall at day "mmdd"}
+    \item{d1117}{Daily rainfall at day "mmdd"}
+    \item{d1118}{Daily rainfall at day "mmdd"}
+    \item{d1119}{Daily rainfall at day "mmdd"}
+    \item{d1120}{Daily rainfall at day "mmdd"}
+    \item{d1121}{Daily rainfall at day "mmdd"}
+    \item{d1122}{Daily rainfall at day "mmdd"}
+    \item{d1123}{Daily rainfall at day "mmdd"}
+    \item{d1124}{Daily rainfall at day "mmdd"}
+    \item{d1125}{Daily rainfall at day "mmdd"}
+    \item{d1126}{Daily rainfall at day "mmdd"}
+    \item{d1127}{Daily rainfall at day "mmdd"}
+    \item{d1128}{Daily rainfall at day "mmdd"}
+    \item{d1129}{Daily rainfall at day "mmdd"}
+    \item{d1130}{Daily rainfall at day "mmdd"}
+    \item{d1201}{Daily rainfall at day "mmdd"}
+    \item{d1202}{Daily rainfall at day "mmdd"}
+    \item{d1203}{Daily rainfall at day "mmdd"}
+    \item{d1204}{Daily rainfall at day "mmdd"}
+    \item{d1205}{Daily rainfall at day "mmdd"}
+    \item{d1206}{Daily rainfall at day "mmdd"}
+    \item{d1207}{Daily rainfall at day "mmdd"}
+    \item{d1208}{Daily rainfall at day "mmdd"}
+    \item{d1209}{Daily rainfall at day "mmdd"}
+    \item{d1210}{Daily rainfall at day "mmdd"}
+    \item{d1211}{Daily rainfall at day "mmdd"}
+    \item{d1212}{Daily rainfall at day "mmdd"}
+    \item{d1213}{Daily rainfall at day "mmdd"}
+    \item{d1214}{Daily rainfall at day "mmdd"}
+    \item{d1215}{Daily rainfall at day "mmdd"}
+    \item{d1216}{Daily rainfall at day "mmdd"}
+    \item{d1217}{Daily rainfall at day "mmdd"}
+    \item{d1218}{Daily rainfall at day "mmdd"}
+    \item{d1219}{Daily rainfall at day "mmdd"}
+    \item{d1220}{Daily rainfall at day "mmdd"}
+    \item{d1221}{Daily rainfall at day "mmdd"}
+    \item{d1222}{Daily rainfall at day "mmdd"}
+    \item{d1223}{Daily rainfall at day "mmdd"}
+    \item{d1224}{Daily rainfall at day "mmdd"}
+    \item{d1225}{Daily rainfall at day "mmdd"}
+    \item{d1226}{Daily rainfall at day "mmdd"}
+    \item{d1227}{Daily rainfall at day "mmdd"}
+    \item{d1228}{Daily rainfall at day "mmdd"}
+    \item{d1229}{Daily rainfall at day "mmdd"}
+    \item{d1230}{Daily rainfall at day "mmdd"}
+    \item{d1231}{Daily rainfall at day "mmdd"}
   }
 }
-\source{
-  This is the dataset from TODO
-}
+\seealso{PRborder}
 %%\examples{}
 \keyword{datasets}
 
