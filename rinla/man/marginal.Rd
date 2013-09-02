@@ -107,9 +107,7 @@
  \value{%%
    \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
    interpolated values do extrapolation using the factor given, 
-   \code{inla.mmarginal} returns the list \code{list(x=..., log.y=...)}
-   giving the coordinate of the mode, whereas
-   the remaining function returns what they say they should do.  }
+   and the remaining function returns what they say they should do.  }
  %%
  
  \author{Havard Rue \email{hrue@math.ntnu.no}}
