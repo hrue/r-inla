@@ -9,23 +9,27 @@
 }
 \usage{
 inla.spde.make.index(name,
-                     n.mesh,
+                     n.spde,
                      n.group = 1,
-                     n.repl = 1)
+                     n.repl = 1,
+                     ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{name}{
     A character string with the base name of the effect.
 }
-  \item{n.mesh}{
-%%     ~~Describe \code{n.mesh} here~~
+\item{n.spde}{
+  The size of the model, typically from \code{spde$n.spde}.
 }
-  \item{n.group}{
-%%     ~~Describe \code{n.group} here~~
+\item{n.group}{
+  The size of the \code{group} model.
 }
-  \item{n.repl}{
-%%     ~~Describe \code{n.repl} here~~
+\item{n.repl}{
+  The number of model replicates.
+}
+\item{...}{
+  Additional parameters.  Currently unused.
 }
 }
 \details{
@@ -33,7 +37,7 @@ inla.spde.make.index(name,
 }
 \value{
   A list of named index vectors.
-\item{name }{Indices into the mesh}
+\item{name }{Indices into the vector of latent variables}
 \item{name.group }{'group' indices}
 \item{name.repl }{Indices for replicates}
 }
@@ -57,7 +61,7 @@ inla.spde.make.index(name,
 loc = matrix(runif(100*2),100,2)
 mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(0.1,0.5))
 spde = inla.spde2.matern(mesh)
-index = inla.spde.make.index("spatial", mesh$n, n.repl=2)
+index = inla.spde.make.index("spatial", spde$n.spde, n.repl=2)
 spatial.A = inla.spde.make.A(mesh, loc,
                              index=rep(1:nrow(loc), 2),
                              repl=rep(1:2, each=nrow(loc)))
