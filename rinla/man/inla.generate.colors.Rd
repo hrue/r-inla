@@ -1,10 +1,10 @@
 \name{inla.generate.colors}
 \alias{inla.generate.colors}
 \title{
-Add TITLE
+  Generate text RGB color specifications.
 }
 \description{
-Add DESCRIPTION
+  Generates a tex RGB color specification matrix based on a color palette.
 }
 \usage{
 inla.generate.colors(color,
