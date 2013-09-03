@@ -248,7 +248,7 @@ bdate=$(date  +%Y%m%d%H%M)
     echo "        return($bdate)"
     echo "    }"
     echo "}"
-} > $D/inla.version.R
+} > $D/version.R
 
 
 test -d INLA && rm -rf INLA

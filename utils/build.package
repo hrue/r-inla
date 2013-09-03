@@ -57,14 +57,14 @@ logit "remove the bin-directory"
 rm -rf INLA/inst/bin
 
 logit "Modify the inla.version-function"
-cat INLA/R/inla.version.R | \
+cat INLA/R/version.R | \
     awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
          /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" hg "\")"; next;}
          /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
          /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
          /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
 	 {print}' hg="$hg" hg="$hg" bdate="$bdate" date="$date" version="$VERSION" > $tt && \
-	     mv -f $tt INLA/R/inla.version.R
+	     mv -f $tt INLA/R/version.R
 
 logit "Modify the DESCRIPTION file"
 ## Modify the DESCRIPTION file
