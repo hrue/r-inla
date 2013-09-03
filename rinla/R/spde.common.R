@@ -279,9 +279,9 @@ inla.spde.result <- function(...)
 
 
 
-inla.spde.make.index <- function(name, n.spde, n.group=1, n.repl=1, n.mesh=NULL)
+inla.spde.make.index <- function(name, n.spde, n.group=1, n.repl=1, ...)
 {
-    if (!missing(n.mesh)) {
+    if ("n.mesh" %in% names(list(...))) {
         warning("'n.mesh' is deprecated, please use 'n.spde' instead.")
         if (missing(n.spde) || is.null(n.spde))
             n.spde = n.mesh
@@ -480,8 +480,7 @@ inla.spde.make.A =
              block = NULL,
              n.block = NULL,
              block.rescale = c("none", "count", "weights", "sum"),
-             n.mesh = NULL,
-             group.method = NULL)
+             ...)
 ## Deprecated/obsolete parameters: n.mesh, group.method
 {
     ## A.loc can be specified instead of mesh+loc, optionally with
@@ -489,11 +488,11 @@ inla.spde.make.A =
     ## A.group can be specified instead of group and/or group.mesh,
     ## optionally with group.index supplied.
 
-    if (!missing(n.mesh)) {
+    if ("n.mesh" %in% names(list(...))) {
         warning("'n.mesh' is deprecated, use 'n.spde' instead.")
         n.spde = n.mesh
     }
-    if (!missing(group.method)) {
+    if ("group.method" %in% names(list(...))) {
         group.method = match.arg(group.method, c("nearest", "S0", "S1"))
         warning(paste("'group.method=", group.method,
                       "' is deprecated.  Specify 'degree=",

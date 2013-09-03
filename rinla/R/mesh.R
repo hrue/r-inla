@@ -388,11 +388,9 @@ plot.inla.mesh <- function(x,
         }
         if (!add && missing(main)) {
             if (mesh$meta$is.refined) {
-                title("Constrained refined Delaunay triangulation",
-                      deparse(substitute(mesh)))
+                title("Constrained refined Delaunay triangulation", ...)
             } else {
-                title("Constrained Delaunay triangulation",
-                      deparse(substitute(mesh)))
+                title("Constrained Delaunay triangulation", ...)
             }
         }
         return(invisible())
