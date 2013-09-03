@@ -4,7 +4,8 @@
   Function space definition objects for 1D SPDE models.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Create a 1D mesh specification \code{inla.mesh.1d} object, that
+  defines a function space for 1D SPDE models.
 }
 \usage{
 inla.mesh.1d(loc,
