@@ -1355,7 +1355,7 @@ inla.delaunay <- function(loc, ...)
     mesh =
         inla.mesh.create(loc=loc,
                          boundary=bnd,
-                         extend=FALSE,
+                         extend=list(n=3),
                          refine=FALSE,
                          ...)
     return(invisible(mesh))
@@ -2949,7 +2949,7 @@ inla.contour.segment <-
     mesh =
         inla.mesh.create(lattice=latt,
                          boundary=latt$segm,
-                         extend=(list(n=21,
+                         extend=(list(n=3,
                                       offset=(max(diff(range(x)),
                                                   diff(range(y)))*0.1)
                                       ))
@@ -3133,7 +3133,7 @@ inla.nonconvex.hull <-
     mesh.dilation =
         inla.mesh.create(loc=xy,
                          boundary=segm.dilation,
-                         extend=(list(n=21,
+                         extend=(list(n=3,
                                       offset=(max(diff(ax[[1]]),
                                                   diff(ax[[2]]))*0.1)
                                       ))
