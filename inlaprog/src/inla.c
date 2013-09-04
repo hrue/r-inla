@@ -22772,7 +22772,7 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 		cc = Calloc(n, int);
 	}
 
-	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.75);
 	for (i = 0; i < n; i++) {
 		c[i] = eps;
 	}
@@ -22791,7 +22791,37 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	// GMRFLib_print_constr(stdout, constr, def->graph);
 
 	GMRFLib_problem_tp *problem;
-	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
+
+	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	
+	while (!ok) {
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
+		switch (retval) {
+		case GMRFLib_EPOSDEF:
+		{
+			for (i = 0; i < n; i++){
+				c[i] *= 10.0;
+			}
+			problem = NULL;
+			break;
+		}
+		case GMRFLib_SUCCESS:
+			ok = 1;
+			break;
+		default:
+			GMRFLib_set_error_handler(old_handler);
+			GMRFLib_ERROR(retval);
+			abort();
+			break;
+		}
+		if (++num_try >= num_try_max) {
+			FIXME("This should not happen. Contact developers...");
+			abort();
+		}
+	}
+	GMRFLib_set_error_handler(old_handler);
+
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
