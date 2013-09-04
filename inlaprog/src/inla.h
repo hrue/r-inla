@@ -420,6 +420,7 @@ typedef enum {
 	F_MEC,
 	F_MEB,
 	F_R_GENERIC,
+	F_SLM, 
 	P_LOGGAMMA,					       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -832,6 +833,8 @@ struct inla_tp_struct {
 	GMRFLib_ai_misc_output_tp *misc_output;
 };
 
+
+
 typedef struct {
 	GMRFLib_graph_tp *graph;
 	int si;						       /* expert option... */
@@ -947,6 +950,28 @@ typedef struct {
 
 	inla_wishart_hold_tp **hold;
 } inla_iid_wishart_arg_tp;
+
+typedef struct 
+{
+	int n;
+	int m;
+
+	double rho_min;
+	double rho_max;
+	double **log_prec;
+	double **logit_rho;
+
+	GMRFLib_graph_tp *graph_A1;
+	GMRFLib_graph_tp *graph_A2;
+	GMRFLib_graph_tp *graph_B;
+	GMRFLib_graph_tp *graph_C;
+	GMRFLib_graph_tp *graph_slm;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_A1;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_A2;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_B;
+	GMRFLib_tabulate_Qfunc_tp *Qfunc_C;
+}
+	inla_slm_arg_tp;
 
 typedef struct {
 	double **log_prec;
@@ -1075,6 +1100,7 @@ double Qfunc_group(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);
+double Qfunc_slm(int i, int j, void *arg);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
 double exp_taylor(double x, double x0, int order);

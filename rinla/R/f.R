@@ -30,7 +30,7 @@
 ##!         fixed = NULL,
 ##!         season.length=NULL,
 ##!         constr = NULL,
-##!         extraconstr=NULL,
+##!         extraconstr=list(A=NULL, e=NULL),
 ##!         values=NULL,
 ##!         cyclic = NULL,
 ##!         diagonal = NULL,
@@ -164,7 +164,7 @@
         ##!\code{f}-model.  Note that this constraint comes
         ##!additional to the sum-to-zero constraint defined if
         ##!\code{constr = TRUE}.}
-        extraconstr=NULL,
+        extraconstr=list(A=NULL, e=NULL), 
 
         ##!\item{values}{An optional vector giving all values
         ##!assumed by the covariate for which we want estimated the
@@ -303,6 +303,9 @@
         ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
         scale.model = NULL, 
         
+        ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.}, 
+        args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
+
         ##!\item{debug}{Enable local debug output}
         debug = FALSE)
 {
@@ -323,13 +326,19 @@
     ## model=model.object
     hyper.default = NULL
 
+    empty.extraconstr = function(ec)
+    {
+        return (is.null(ec) || all(sapply(ec, is.null)))
+    }
+
     ## if model is a particular class, then use this to set default
     ## arguments to all names(formals(f)) (except the "...").
     ## THIS FEATURE IS EXPERIMENTAL FOR THE MOMENT!  OOPS: the classes
     ## are defined in the function inla.model.object.classes() as this
     ## is also used in the inla() function itself.
     if (any(inherits(model, inla.model.object.classes()))) {
-        arguments = names(formals(INLA::f))
+        atmp = paste(unlist(lapply(as.list(formals(INLA::f)), function(x) names(x))))
+        arguments = unique(sort(c(names(formals(INLA::f)), atmp[-which(nchar(atmp) == 0L)])))
         arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
         ## add this one manually
         arguments = c(arguments, "hyper.default")
@@ -449,10 +458,9 @@
     }
 
     ## then we compare these with the legal ones in f(), and
-    ## flag an error its not among the legal ones.  OOPS: Need to add
-    ## some dummy arguments which are those inside the extraconstr and
-    ## Cmatrix argument, and inla.group() as well.
-    arguments = c(names(formals(INLA::f)), "A", "e")
+    ## flag an error its not among the legal ones.
+    atmp = paste(unlist(lapply(as.list(formals(INLA::f)), function(x) names(x))))
+    arguments = unique(sort(c(names(formals(INLA::f)), atmp[-which(nchar(atmp) == 0L)])))
     arguments = arguments[-grep("^[.][.][.]$", arguments)]
     for(elm in args.eq) {
         if (!is.element(elm, arguments)) {
@@ -557,7 +565,7 @@
             zn = dim(Z)[1L]
             zm = dim(Z)[2L]
             z.row = c(rep(0, zn), rep(1, zm))
-            if (is.null(extraconstr)) {
+            if (empty.extraconstr(extraconstr)) {
                 extraconstr = list(A = matrix(z.row, 1, zn+zm), e=0)
             } else {
                 extraconstr$A = rbind(extraconstr$A, z.row)
@@ -566,6 +574,33 @@
         }
     }
 
+    if (inla.one.of(model, c("slm"))) {
+        stopifnot(!is.null(args.slm))
+        stopifnot(!is.null(args.slm$rho.min) && length(args.slm$rho.min) == 1L)
+        stopifnot(!is.null(args.slm$rho.max) && length(args.slm$rho.max) == 1L)
+        stopifnot(args.slm$rho.max > args.slm$rho.max)
+        stopifnot(!is.null(args.slm$X) && inla.is.matrix(args.slm$X))
+        stopifnot(!is.null(args.slm$W) && inla.is.matrix(args.slm$W))
+        stopifnot(!is.null(args.slm$Q.beta) && inla.is.matrix(args.slm$Q.beta))
+
+        ## make sure they are sparse
+        args.slm$X = inla.as.sparse(args.slm$X)
+        args.slm$W = inla.as.sparse(args.slm$W)
+        args.slm$Q.beta = inla.as.sparse(args.slm$Q.beta)
+
+        slm.n = dim(args.slm$X)[1L]
+        slm.m = dim(args.slm$X)[2L]
+        stopifnot(all(dim(args.slm$X) == c(slm.n, slm.m)))
+        stopifnot(all(dim(args.slm$W) == c(slm.n, slm.n)))
+        stopifnot(all(dim(args.slm$Q.beta) == c(slm.m, slm.m)))
+
+        if (missing(n) || is.null(n)) {
+            n = slm.n + slm.m
+        } else {
+            stopifnot(n == slm.n + slm.m)
+        }
+    }
+        
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -688,7 +723,7 @@
         }
     }
 
-    if (!is.null(extraconstr)) {
+    if (!empty.extraconstr(extraconstr)) {
         ##check
         A=extraconstr$A
         e=extraconstr$e
@@ -769,7 +804,7 @@
                 }
                 stopifnot(k-1L == cc.n2)
 
-                if (!is.null(extraconstr)) {
+                if (!empty.extraconstr(extraconstr)) {
                     dimA = dim(extraconstr$A)[1] ## need to remember this one for the 'rankdef'
                     extraconstr$A = rbind(AA, extraconstr$A)
                     extraconstr$e = c(ee, extraconstr$e)
@@ -797,7 +832,7 @@
 
             ## need this, either if there is extraconstr or if there
             ## are regions without neighbours.
-            if (is.null(diagonal) && (!is.null(extraconstr) || any(cc.n == 1))) {
+            if (is.null(diagonal) && (!empty.extraconstr(extraconstr) || any(cc.n == 1))) {
                 diagonal = inla.set.f.default()$diagonal
                 if (debug) {
                     print(paste("set diagonal = ", diagonal))
@@ -865,7 +900,8 @@
             strata = strata,
             rgeneric = rgeneric, 
             scale.model = as.logical(scale.model),
-            adjust.for.con.comp = as.logical(adjust.for.con.comp)
+            adjust.for.con.comp = as.logical(adjust.for.con.comp),
+            args.slm = args.slm
             )
 
     return (ret)
