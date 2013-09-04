@@ -106,13 +106,13 @@ test -d $md || mkdir $md
 cp INLA.pdf $md
 
 logit "Build the INLA package"
-R --vanilla CMD build INLA >> $LOGFILE 2>&1 || exit 1
+R --vanilla CMD build --resave-data INLA >> $LOGFILE 2>&1 || exit 1
 
 INLA=$(echo INLA_*.tar.gz)
 tgzINLA=${INLA%%.tar.gz}.tgz
 mv $INLA $tgzINLA 
 
-logit "Package buildt!s"
+logit "Package built!"
 
 package=$(echo $TMPDIR/INLA*tgz)
 logit "You can install it using 'R --vanilla CMD INSTALL $package'"
