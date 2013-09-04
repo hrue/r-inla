@@ -814,7 +814,7 @@
     }
 
     if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
-        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM")
+        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D.")
     }
     if (missing(scale.model) || is.null(scale.model)) {
         ## must doit like this otherwise we run into problems when
