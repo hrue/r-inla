@@ -57,7 +57,7 @@
   graphics plot.  Allows 3D plotting and color surface plotting.
 }
 \item{size}{
-  Size of vertex points in \code{rgl} plotting.
+  Size of vertex points in \code{rgl} plotting. See \code{rgl.material}.
 }
 \item{draw.vertices}{
   If \code{TRUE}, draw triengle vertices.
@@ -80,30 +80,30 @@
   systems.
 }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
-\value{
+%}
+%\value{
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-}
-\references{
+%}
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{plot.inla.trimesh}}
 }
 \examples{
 mesh = inla.mesh.create(globe=10)

@@ -86,7 +86,7 @@ inla.spde.make.A(mesh = NULL, loc = NULL, index = NULL,
   grouped by a \code{block} specification.  See
   \code{\link{inla.spde.make.block.A}} for details.
 }
-  \item{\ldots}{
+  \item{\dots}{
   Additional parameters.  Currently unused.
 }
 }
