@@ -6,7 +6,7 @@
 ## Export: inla.spde.sample inla.spde.sample!default
 ## Export: inla.spde.sample!inla.spde inla.stack inla.stack.A
 ## Export: inla.stack.LHS inla.stack.RHS inla.stack.compress
-## Export: inla.stack.data inla.stack.sum inla.stack.do.extract
+## Export: inla.stack.data inla.stack.sum
 ## Export: inla.stack.index inla.stack.join
 ## Export: inla.stack.remove.unused rbind!inla.data.stack.info
 ## Internal: inla.spde.homogenise_B_matrix

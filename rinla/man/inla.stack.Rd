@@ -7,11 +7,17 @@
 \alias{inla.stack.join}
 \alias{inla.data.stack}
 \alias{inla.data.stack.info}
+\alias{inla.stack.compress}
+\alias{inla.stack.remove.unused}
+\alias{inla.stack.LHS}
+\alias{inla.stack.RHS}
 \title{
   Data stacking for advanced INLA models
 }
 \description{
-  Combine data, effects and observation matrices
+  Functions for combining data, effects and observation matrices into
+  \code{inla.stack} object, and extracting information from such
+  objects.
 }
 \usage{
 ## Create data stack as a sum of predictors:
@@ -22,6 +28,12 @@ inla.stack.join(..., compress=TRUE, remove.unused=TRUE)
 
 ## Shorthand for inla.stack.join and inla.stack.sum:
 inla.stack(..., compress=TRUE, remove.unused=TRUE)
+
+## Compress an existing stack:
+inla.stack.compress(stack, remove.unused=TRUE)
+
+## Remove unused entries from an existing stack:
+inla.stack.remove.unused(stack)
 
 ## Extract tagged indices:
 inla.stack.index(stack, tag)
