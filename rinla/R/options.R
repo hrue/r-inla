@@ -57,6 +57,10 @@
 ##!     show.warning.control.data : Give a warning for using the obsolete argument
 ##!                                \code{control.data} instead of \code{control.family} 
 ##! 
+##!     scale.model.default : The default value of argument \code{scale.model} which
+##!                           optionally scale intrinisic models to have generalized
+##!                           unit average variance 
+##!
 ##! The options are stored in the variable \code{inla.options} in the
 ##!     \code{.GlobalEnv}-environment.
 ##!   }
@@ -90,7 +94,8 @@
                                     "cygwin.home",
                                     "enable.inla.argument.weights",
                                     "show.warning.graph.file",
-                                    "show.warning.control.data"))
+                                    "show.warning.control.data",
+                                    "scale.model.default"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -132,7 +137,8 @@
             ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
             enable.inla.argument.weights = FALSE, 
             show.warning.graph.file = TRUE, 
-            show.warning.control.data = TRUE
+            show.warning.control.data = TRUE,
+            scale.model.default = FALSE
             )
 
     res = c()
@@ -172,7 +178,8 @@
                                              "cygwin.home",
                                              "enable.inla.argument.weights",
                                              "show.warning.graph.file", 
-                                             "show.warning.control.data"), value)
+                                             "show.warning.control.data",
+                                             "scale.model.default"), value)
     {
         envir = inla.get.inlaEnv()
 
