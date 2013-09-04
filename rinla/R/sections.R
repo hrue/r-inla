@@ -218,6 +218,9 @@
     }
 
     if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
+        if (is.null(random.spec$scale.model)) {
+            random.spec$scale.model = inla.getOption("scale.model.default")
+        }
         cat("scale.model = ", as.numeric(random.spec$scale.model), "\n", sep = " ", file = file,  append = TRUE)
     }
     if (inla.one.of(random.spec$model, c("besag", "bym", "besag2"))) {
@@ -256,6 +259,9 @@
         if (!inla.one.of(random.spec$model, "copy")) { 
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
             inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
+            if (is.null(random.spec$control.group$scale.model)) {
+                random.spec$control.group$scale.model = inla.getOption("scale.model.default")
+            }
             inla.write.boolean.field("group.scale.model", random.spec$control.group$scale.model, file)
             inla.write.boolean.field("group.adjust.for.con.comp", random.spec$control.group$adjust.for.con.comp, file)
             if (inla.one.of(random.spec$control.group$model, "ar")) {

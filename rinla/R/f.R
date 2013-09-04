@@ -60,7 +60,7 @@
 ##!         scale = NULL, 
 ##!         strata = NULL, 
 ##!         rgeneric = NULL, 
-##!         scale.model = inla.getOption("scale.model.default"), 
+##!         scale.model = NULL, 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -300,8 +300,8 @@
         ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
         rgeneric = NULL, 
 
-        ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default \code{inla.getOption("scale.model.default")}} 
-        scale.model = inla.getOption("scale.model.default"),
+        ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
+        scale.model = NULL, 
         
         ##!\item{debug}{Enable local debug output}
         debug = FALSE)
@@ -815,6 +815,11 @@
 
     if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
         stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM")
+    }
+    if (missing(scale.model) || is.null(scale.model)) {
+        ## must doit like this otherwise we run into problems when
+        ## compiling the package
+        scale.model = inla.getOption("scale.model.default")
     }
 
     ret=list(
