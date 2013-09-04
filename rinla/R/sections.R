@@ -356,6 +356,79 @@
         }
     }
 
+    if (inla.one.of(random.spec$model, "slm")) {
+        ## This is the spatial-lag-model (SLM),  with
+        ## N_C(b,  Q = kappa*A1 + A2 + rho*kappa*B + rho^2*kappa*C)
+        X = random.spec$args.slm$X
+        W = random.spec$args.slm$W
+        Q = random.spec$args.slm$Q.beta
+        slm.n = dim(X)[1L]
+        slm.m = dim(X)[2L]
+
+        cat("slm.n = ", slm.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("slm.m = ", slm.m,"\n", append=TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", randoms.spec$args.slm$rho.min,"\n", append=TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", randoms.spec$args.slm$rho.max,"\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix A1
+        A1 = cBind(
+                rBind(Diagonal(slm.n),
+                      -t(X)), 
+                rBind(-X,
+                      t(X) %*% X))
+        file.A1 = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(A1, filename = file.A1)
+        file.A1 = gsub(data.dir, "$inladatadir", file.A1, fixed=TRUE)
+        cat("slm.A1matrix = ", file.A1, "\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix A2
+        A2 = cBind(
+                rBind(Matrix(0, slm.n, slm.n),
+                      Matrix(0, slm.m, slm.n)),
+                rBind(Matrix(0, slm.n, slm.m),
+                      Q))
+        file.A2 = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(A2, filename = file.A2)
+        file.A2 = gsub(data.dir, "$inladatadir", file.A2, fixed=TRUE)
+        cat("slm.A2matrix = ", file.A2, "\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix B
+        B = cBind(
+                rbind(-(t(W) + W),
+                      t(X) %*% W), 
+                rbind(t(W) %*% X,
+                      Matrix(0, slm.m, slm.m)))
+        file.B = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(B, filename = file.B)
+        file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
+        cat("slm.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix C
+        C = cBind(
+                rbind(t(W) %*% W,
+                      Matrix(0, slm.m, slm.n))
+                rbind(Matrix(0, slm.n, slm.m), 
+                      Matrix(0, slm.m, slm.m)))
+        file.C = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(C, filename = file.C)
+        file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
+        cat("slm.Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
+    }
+
+    ## if the Cmatrix is defined we need to process it except if its
+    ## the z-model for which this has already been done.
+    if (!inla.one.of(random.spec$model, "z") && !is.null(random.spec$Cmatrix)) {
+        if (is.character(random.spec$Cmatrix)) {
+            fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
+            cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
+        } else {
+            file.C = inla.tempfile(tmpdir=data.dir)
+            inla.write.fmesher.file(random.spec$Cmatrix, filename = file.C)
+            file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
+            cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
+        }
+    }
+
     if (!is.null(random.spec$rankdef)) {
         cat("rankdef = ", random.spec$rankdef,"\n", append=TRUE, sep = " ", file = file)
     }
