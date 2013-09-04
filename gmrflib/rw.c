@@ -1054,7 +1054,36 @@ int GMRFLib_crw_scale(void *def)
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
 	}
-	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+
+	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	
+	while (!ok) {
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		switch (retval) {
+		case GMRFLib_EPOSDEF:
+			for (i = 0; i < graph->n; i++){
+				c[i] *= 10.0;
+			}
+			problem = NULL;
+			break;
+		case GMRFLib_SUCCESS:
+			ok = 1;
+			break;
+		default:
+			GMRFLib_set_error_handler(old_handler);
+			GMRFLib_ERROR(retval);
+			abort();
+			break;
+		}
+		
+		if (++num_try >= num_try_max) {
+			FIXME("This should not happen. Contact developers...");
+			abort();
+		}
+	}
+	GMRFLib_set_error_handler(old_handler);
+	
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
@@ -1152,7 +1181,36 @@ int GMRFLib_rw_scale(void *def)
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
 	}
-	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+
+	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	
+	while (!ok) {
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		switch (retval) {
+		case GMRFLib_EPOSDEF:
+			for (i = 0; i < graph->n; i++){
+				c[i] *= 10.0;
+			}
+			problem = NULL;
+			break;
+		case GMRFLib_SUCCESS:
+			ok = 1;
+			break;
+		default:
+			GMRFLib_set_error_handler(old_handler);
+			GMRFLib_ERROR(retval);
+			abort();
+			break;
+		}
+		
+		if (++num_try >= num_try_max) {
+			FIXME("This should not happen. Contact developers...");
+			abort();
+		}
+	}
+	GMRFLib_set_error_handler(old_handler);
+
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
@@ -1229,7 +1287,35 @@ int GMRFLib_rw2d_scale(void *def)
 		constr = NULL;
 	}
 
-	GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+	
+	while (!ok) {
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		switch (retval) {
+		case GMRFLib_EPOSDEF:
+			for (i = 0; i < graph->n; i++){
+				c[i] *= 10.0;
+			}
+			problem = NULL;
+			break;
+		case GMRFLib_SUCCESS:
+			ok = 1;
+			break;
+		default:
+			GMRFLib_set_error_handler(old_handler);
+			GMRFLib_ERROR(retval);
+			abort();
+			break;
+		}
+		
+		if (++num_try >= num_try_max) {
+			FIXME("This should not happen. Contact developers...");
+			abort();
+		}
+	}
+	GMRFLib_set_error_handler(old_handler);
+
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
