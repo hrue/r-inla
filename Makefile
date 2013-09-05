@@ -36,6 +36,13 @@ doc-links:
 INLA-package:
 	utils/build.package
 
+## Check the latest built package from INLA-package:
+R = R
+## R = ~/R-dev/bin/R
+FILENAME := $(shell ls -rt ~/tmp/.BuildINLA/INLA_*.tgz | grep -v _R_ | tail -1 )
+INLA-package-check:
+	@echo Checking $(FILENAME)
+	$(R) --vanilla CMD check --no-examples $(FILENAME)
 
 ##
-.PHONY: doc-links INLA-package all
+.PHONY: doc-links INLA-package all INLA-package-check
