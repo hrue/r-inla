@@ -2273,10 +2273,20 @@
 
              slm = list(
                      hyper = list(
-                             theta = list(
+                             theta1 = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     initial = 4,
+                                     fixed = FALSE,
+                                     prior = "loggamma",
+                                     param = c(1, 0.00005),
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ), 
+                             theta2 = list(
                                      name = "rho",
                                      short.name = "rho",
-                                     initial = 4,
+                                     initial = 0,
                                      fixed = FALSE,
                                      prior = "normal",
                                      param = c(0, 10),
