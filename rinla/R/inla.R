@@ -1715,7 +1715,7 @@
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
-                    
+
                     if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
                         stop(paste("\n\tncol in matrix A(extraconstraint) does not correspont to the length of f:",
                                    ncol(A),
