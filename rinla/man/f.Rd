@@ -32,7 +32,7 @@
          fixed = NULL,
          season.length=NULL,
          constr = NULL,
-         extraconstr=NULL,
+         extraconstr=list(A=NULL, e=NULL),
          values=NULL,
          cyclic = NULL,
          diagonal = NULL,
@@ -207,6 +207,7 @@ used for other models at the time being.}
 \item{strata}{A stratum vector. It meaning depends on the model.}
 \item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
+\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.}, 
 \item{debug}{Enable local debug output}
 }
 \value{TODO}

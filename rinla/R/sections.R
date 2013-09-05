@@ -367,8 +367,8 @@
 
         cat("slm.n = ", slm.n,"\n", append=TRUE, sep = " ", file = file)
         cat("slm.m = ", slm.m,"\n", append=TRUE, sep = " ", file = file)
-        cat("slm.rho.min = ", randoms.spec$args.slm$rho.min,"\n", append=TRUE, sep = " ", file = file)
-        cat("slm.rho.max = ", randoms.spec$args.slm$rho.max,"\n", append=TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", random.spec$args.slm$rho.min,"\n", append=TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", random.spec$args.slm$rho.max,"\n", append=TRUE, sep = " ", file = file)
 
         ## matrix A1
         A1 = cBind(
@@ -394,9 +394,9 @@
 
         ## matrix B
         B = cBind(
-                rbind(-(t(W) + W),
+                rBind(-(t(W) + W),
                       t(X) %*% W), 
-                rbind(t(W) %*% X,
+                rBind(t(W) %*% X,
                       Matrix(0, slm.m, slm.m)))
         file.B = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(B, filename = file.B)
@@ -405,9 +405,9 @@
 
         ## matrix C
         C = cBind(
-                rbind(t(W) %*% W,
-                      Matrix(0, slm.m, slm.n))
-                rbind(Matrix(0, slm.n, slm.m), 
+                rBind(t(W) %*% W,
+                      Matrix(0, slm.m, slm.n)), 
+                rBind(Matrix(0, slm.n, slm.m), 
                       Matrix(0, slm.m, slm.m)))
         file.C = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(C, filename = file.C)

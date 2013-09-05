@@ -2754,6 +2754,49 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `slm'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`rho'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) 1/(1+exp(-x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{pdf = }{`slm'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `matern2d'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -2807,8 +2850,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                          if (low == -Inf && high == Inf) {} \code{                                              return (x)} \code{                                          } else {} \code{                                              stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                              return (log( - (low - x)/(high -x)))} \code{                                          }} \code{                                      }}'}
-							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                          if (low == -Inf && high == Inf) {} \code{                                              return (x)} \code{                                          } else {} \code{                                              stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                              return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                          }} \code{                                      }}'}
+							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (low == -Inf && high == Inf) {} \code{                                             return (x)} \code{                                         } else {} \code{                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         }} \code{                                     }}'}
+							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (low == -Inf && high == Inf) {} \code{                                             return (x)} \code{                                         } else {} \code{                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         }} \code{                                     }}'}
 							}
 						}
 					 }

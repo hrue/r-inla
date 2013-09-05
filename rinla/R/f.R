@@ -578,7 +578,7 @@
         stopifnot(!is.null(args.slm))
         stopifnot(!is.null(args.slm$rho.min) && length(args.slm$rho.min) == 1L)
         stopifnot(!is.null(args.slm$rho.max) && length(args.slm$rho.max) == 1L)
-        stopifnot(args.slm$rho.max > args.slm$rho.max)
+        stopifnot(args.slm$rho.max > args.slm$rho.min)
         stopifnot(!is.null(args.slm$X) && inla.is.matrix(args.slm$X))
         stopifnot(!is.null(args.slm$W) && inla.is.matrix(args.slm$W))
         stopifnot(!is.null(args.slm$Q.beta) && inla.is.matrix(args.slm$Q.beta))
@@ -868,7 +868,7 @@
             cyclic=cyclic,
             d=d,
             diagonal = diagonal,
-            extraconstr=extraconstr,
+            extraconstr= inla.ifelse(empty.extraconstr(extraconstr), NULL,  extraconstr), 
             graph=graph,
             group = group,
             hyper = hyper,

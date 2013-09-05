@@ -14784,9 +14784,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, slm_n + slm_m, NULL, NULL, NULL);
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_C, &graph_C, Cm, slm_n + slm_m, NULL, NULL, NULL);
 
-		FIXME("Matrix A1");
-		GMRFLib_print_Qfunc(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
-		exit(0);
+		//FIXME("Matrix A1");
+		//GMRFLib_print_Qfunc(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
+		//exit(0);
 		
 		gs[0] = graph_A1;
 		gs[1] = graph_A2;
@@ -21727,12 +21727,15 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	double x, x_user, dens, dens_user, p, xp, *xx;
-	double d_mean, d_stdev, d_mode = NAN, g_mode = NAN;
+	double d_mean, d_stdev, *d_mode = NULL, *g_mode = NULL;
 	int i, ii, j, nn, ndiv;
 	int add_empty = 1;
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
+
+	d_mode = Calloc(n, double);
+	g_mode = Calloc(n, double);
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
@@ -21791,7 +21794,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			}
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
-					inla_integrate_func(&d_mean, &d_stdev, &d_mode, density[i], FUNC, FUNC_ARG, TFUNC(i));
+					inla_integrate_func(&d_mean, &d_stdev, &d_mode[i], density[i], FUNC, FUNC_ARG, TFUNC(i));
 					if (locations) {
 						if (G.binary) {
 							D3W(locations[i % ndiv], d_mean, d_stdev);
@@ -21841,7 +21844,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			}
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
-					inla_integrate_func(&d_mean, &d_stdev, &g_mode, gdensity[i], FUNC, FUNC_ARG, TFUNC(i));
+					inla_integrate_func(&d_mean, &d_stdev, &g_mode[i], gdensity[i], FUNC, FUNC_ARG, TFUNC(i));
 					if (locations) {
 						if (G.binary) {
 							D3W(locations[i % ndiv], d_mean, d_stdev);
@@ -22372,9 +22375,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					if (G.binary) {
-						D3W(1.0, NAN, d_mode);
+						D3W(1.0, NAN, d_mode[i]);
 					} else {
-						fprintf(fp, " %g\n", d_mode);
+						fprintf(fp, " %g\n", d_mode[i]);
 					}
 				} else {
 					if (add_empty) {
@@ -22431,9 +22434,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						}
 					}
 					if (G.binary) {
-						D2W(1.0, g_mode);
+						D2W(1.0, g_mode[i]);
 					} else {
-						fprintf(fp, " %g\n", g_mode);
+						fprintf(fp, " %g\n", g_mode[i]);
 					}
 				} else {
 					if (add_empty) {
@@ -22626,6 +22629,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			Free(nndir);
 		}
 	}
+
+	Free(d_mode);
+	Free(g_mode);
+
 #undef MAP_DENS
 #undef MAP_X
 #undef MAP_INCREASING
