@@ -546,7 +546,7 @@
                                      name = "log phi",
                                      short.name = "phi",
                                      prior = "normal",
-                                     param = c(-2, 1),
+                                     param = c(0, .2),
                                      initial = -1,
                                      fixed = FALSE,
                                      to.theta = function(x) log(x), 

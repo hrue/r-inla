@@ -663,7 +663,7 @@ inla.models()
 							\item{name = }{`log phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`normal'}
-							\item{param = }{`-2 1'}
+							\item{param = }{`0 0.2'}
 							\item{initial = }{`-1'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
