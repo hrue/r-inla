@@ -3532,7 +3532,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				fprintf(stderr, "\n");
 
 				gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
-				a_change++;
+				a_change += 1000;
 			}
 		}
 
