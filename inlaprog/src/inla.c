@@ -18295,10 +18295,9 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(arg->n * arg->m, double);
+			double *cc_add = Calloc(arg->n + arg->m, double);
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
-
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      mb->f_graph_orig[i],
@@ -18345,7 +18344,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			GMRFLib_evaluate(problem[i]);
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
-
+		
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
