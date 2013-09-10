@@ -682,21 +682,36 @@ rbind.inla.data.stack.info <- function(...)
     external.names = names(names)
     internal.names = do.call(c, names)
 
-    data =
-        do.call(rbind,
-                lapply(l, function(x) {
-                    missing.names =
-                        setdiff(internal.names,
-                                do.call(c, x$names))
-                    if (length(missing.names)>0) {
-                        df = matrix(NA, x$nrow, length(missing.names))
-                        colnames(df) = missing.names
-                        df = as.data.frame(df)
-                        return(cbind(x$data, df))
-                    } else {
-                        return(x$data)
-                    }
-                }))
+    factors = rep(FALSE, length(internal.names))
+    names(factors) = internal.names
+    factor.names <-
+        lapply(l, function(x) do.call(c,
+                                      x$names[do.call(c,
+                                                      lapply(x$data,
+                                                             is.factor))]))
+    for (factor.loop in seq_along(l)) {
+        factors[factor.names[[factor.loop]]] = TRUE
+    }
+
+    handle.missing.columns <- function(x) {
+        missing.names =
+            setdiff(internal.names,
+                    do.call(c, x$names))
+        if (length(missing.names)>0) {
+            df <- c(rep(list(rep(NA, x$nrow)),
+                        sum(!factors[missing.names])),
+                    rep(list(rep(as.factor(NA), x$nrow)),
+                        sum(factors[missing.names])))
+            names(df) <- c(missing.names[!factors[missing.names]],
+                           missing.names[factors[missing.names]])
+            df = as.data.frame(df)
+            return(cbind(x$data, df))
+        } else {
+            return(x$data)
+        }
+    }
+
+    data = do.call(rbind, lapply(l, handle.missing.columns))
 
     offset = 0
     index = list()
