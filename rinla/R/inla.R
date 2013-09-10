@@ -787,7 +787,6 @@
             }
             return (na.pass(x))
         }
-
         if (inla.one.of(cont.fixed$expand.factor.strategy, "inla")) {
             ## expand all factors as matrices
             data.same.len = inla.expand.factors(data.same.len)

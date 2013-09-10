@@ -1555,6 +1555,12 @@ double Qfunc_slm(int i, int j, void *arg)
 	rho_std = map_probability(a->logit_rho[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rho = a->rho_min + rho_std * (a->rho_max - a->rho_min);
 	
+	if (0) {
+		if (i == j && i == 0){
+			printf("log_prec %.12f  logit_rho %.12f\n", a->log_prec[GMRFLib_thread_id][0], a->logit_rho[GMRFLib_thread_id][0]);
+		}
+	}
+
 	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A1)) {
 		value += prec * a->Qfunc_A1->Qfunc(i, j, a->Qfunc_A1->Qfunc_arg);
 	}
@@ -12328,7 +12334,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			if (mb->verbose) {
 				printf("\t\tslm.n=[%1d]\n", slm_n);
-				printf("\t\tslm.m=[%1d]\n", slm_n);
+				printf("\t\tslm.m=[%1d]\n", slm_m);
 			}
 
 			slm_rho_min = iniparser_getdouble(ini, inla_string_join(secname, "slm.rho.min"), 0);
@@ -17873,7 +17879,7 @@ double extra(double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GMRFLib_eps(0.75);
 
 					for (ii = 0; ii < spde->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -17972,7 +17978,7 @@ double extra(double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GMRFLib_eps(0.75);
 
 					for (ii = 0; ii < spde2->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -18204,7 +18210,7 @@ double extra(double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GMRFLib_eps(0.75);
 
 					/*
 					 * only need to add for the z-part; the last m components.
@@ -18263,9 +18269,9 @@ double extra(double *theta, int ntheta, void *argument)
 				logit_rho = theta[count];
 				count++;
 			} else {
-				logit_rho = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				logit_rho = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
-			SET_GROUP_RHO(2); ;
+			SET_GROUP_RHO(2);
 
 			inla_slm_arg_tp *arg = (inla_slm_arg_tp *) mb->f_Qfunc_arg_orig[i];
 			arg->log_prec[GMRFLib_thread_id][0] = log_precision;
@@ -18303,12 +18309,8 @@ double extra(double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
-
-					/*
-					 * only need to add for the z-part; the last m components.
-					 */
-					for (ii = arg->n; ii < arg->n + arg->m; ii++) {
+					double eps = GMRFLib_eps(0.75);
+					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
 
