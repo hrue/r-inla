@@ -286,6 +286,14 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		Free(bnew_local);
 	}
 
+	if (0) {
+		FIXME1("FIX");
+		for (i = 0; i < G.nhyper; i++) {
+			printf("theta%1d = %.12f ", i, x[i]);
+		}
+		printf(" %.12f %.12f\n", - *fx, -ffx);
+	}
+
 	*fx += ffx;					       /* add contributions */
 	*fx *= -1.0;					       /* domin() do minimisation */
 	fx_local = *fx;
