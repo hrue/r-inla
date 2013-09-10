@@ -189,8 +189,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	/*
 	 * use forward differences for the gradient and central differences for the (final) hessian 
 	 */
-	(*ai_par)->gradient_forward_finite_difference = GMRFLib_FALSE;	/* use central difference */
 	(*ai_par)->gradient_forward_finite_difference = GMRFLib_TRUE;	/* use forward difference */
+	(*ai_par)->gradient_forward_finite_difference = GMRFLib_FALSE;	/* use central difference */
 	(*ai_par)->gradient_finite_difference_step_len = 0.01;
 
 	(*ai_par)->hessian_forward_finite_difference = GMRFLib_TRUE;	/* use forward difference */
