@@ -1119,14 +1119,20 @@ inla.stack.do.extract <- function(dat)
 {
     inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
 
-    out =
-        lapply(names(dat$names),
-               function(x) inla.ifelse(dat$ncol[[x]]>1,
-                                       matrix(do.call(c,
-                                                      dat$data[dat$names[[x]]]),
-                                              dat$nrow,
-                                              dat$ncol[[x]]),
-                                       as.vector(as.matrix(dat$data[dat$names[[x]]]))))
+    handle.entry <- function(x)
+    {
+        if (dat$ncol[[x]]>1) {
+            return(matrix(do.call(c,
+                                  dat$data[dat$names[[x]]]),
+                          dat$nrow,
+                          dat$ncol[[x]]))
+        } else if (is.factor(dat$data[[dat$names[[x]]]])) {
+            return(dat$data[[dat$names[[x]]]])
+        }
+        return(as.vector(dat$data[[dat$names[[x]]]]))
+    }
+
+    out = lapply(names(dat$names), handle.entry)
     names(out) = names(dat$names)
 
     return(out)
