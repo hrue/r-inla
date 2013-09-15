@@ -1965,8 +1965,8 @@
             }
             ## remove the .Evironment attribute, as it will fail if
             ## its rerun if .Environment is not there.
-            attr(r$.args$formula, ".Environment") = NULL
-
+            attr(the.args$formula, ".Environment") = NULL
+            
             ## further fix for $control.family until the c(param = numeric(0)) issue is solved. 
             if (n.family > 1L) {
                 ## we need to fix the case where there this option is
