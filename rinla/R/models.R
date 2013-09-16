@@ -3329,6 +3329,7 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "identity"),
+                      status = "disabled", 
                       pdf = "laplace"
                       ),
 
@@ -4363,8 +4364,14 @@
             } else if (inla.strcasecmp(status, "disabled")) {
                 assign(var, TRUE, envir = envir)
                 msg = paste("Model '", model, "' in section '", section, "' is marked as '", status,
-                        "'; do not use.", sep="")
-                stop(msg)
+                        "'.\n  Usage is not recommended and unsupported.\n", sep="")
+                var = paste("enable.model.", section, ".", model, sep="")
+                if (!(exists(var, envir = envir) && get(var, envir = envir))) {
+                    msg = paste(c(msg, paste("  You can enable it setting variable '", var,
+                            "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n",
+                            "  If you chose to do so, you are on your own.", sep="")))
+                    stop(msg)
+                }
             }
         }
         
