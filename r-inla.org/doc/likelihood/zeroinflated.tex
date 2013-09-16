@@ -126,6 +126,37 @@ example for both type 0 and type 1.
 
 \verbatiminput{example-zero-inflated-binomial.R}
 
+\clearpage
+
+\subsection*{Advanced example}
+
+In the following example we estimate the parameters in a simulated
+example for a type0 likelihood, where one linear predictor enters the
+zero-probability and one other linear predictor enters the non-zero
+Poisson for example. The same trick can be used for other models of
+type0.  The trick is that the likelihood
+\begin{displaymath}
+    p^{*} 1_{[y=0]} + (1-p^{*}) P(y | y > 0)
+\end{displaymath}
+can be reformulated as a Bernoulli likelihood for the
+``class''-variable
+\begin{displaymath}
+    z =
+    \begin{cases}
+        1, & \text{if\; }y=0\\
+        0, & \text{if\; }y > 0.
+    \end{cases}
+\end{displaymath}
+where $p^{*}$ is the probability for success, and zero-inflated type0
+likelihood (with fixed $p = 0$) for those $y > 0$. Since $p^{*}$ and
+the linear predictor in $P$ is separated into two likelihoods, we can
+apply one linear predictor to each one, hence extend the basic model
+to cases where $p^{*}$ also depends on a linear predictor.  Here is a
+small simulated example doing this.
+\verbatiminput{zeroinflated-example-type0.R}
+
+
+
 \subsection*{Notes}
 
 None.
