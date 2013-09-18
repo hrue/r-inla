@@ -22,9 +22,9 @@ inla.mesh.interior(mesh, grp = NULL)
     constrain groups are extracted.
   }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
   A list of \code{inla.mesh.segment} objects.
 %%  ~Describe the value returned
@@ -33,15 +33,15 @@ inla.mesh.interior(mesh, grp = NULL)
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

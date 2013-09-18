@@ -67,30 +67,30 @@ inla.matern.cov.s2(nu, kappa, x,
       }{S(k) = (2k+1) / (4 pi (kappa^4 + 2 kappa^2 cos(pi  
       theta) k(k+1) + k^2(k+1)^2)^((\nu + 1)/2) )}
 }
-\value{
+%\value{
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-}
-\references{
+%}
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
+%\seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
-}
-\examples{
-}
+%}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %%\keyword{ ~kwd1 }

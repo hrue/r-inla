@@ -52,8 +52,8 @@ Finn Lindgren \email{finn.lindgren@gmail.com}
 \seealso{
 \code{\link{inla.spde.make.A}}
 }
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }

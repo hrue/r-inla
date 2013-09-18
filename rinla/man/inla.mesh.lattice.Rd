@@ -30,8 +30,8 @@ inla.mesh.lattice(x = seq(0, 1, length.out=2),
     One of \code{c("default", "longlat", "longsinlat")}.
   }
 }
-\details{
-}
+%\details{
+%}
 \value{
   An \code{inla.mesh.lattice} object.
 %%  If it is a LIST, use
@@ -39,15 +39,15 @@ inla.mesh.lattice(x = seq(0, 1, length.out=2),
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

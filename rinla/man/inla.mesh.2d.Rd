@@ -65,32 +65,41 @@ inla.mesh.2d(loc = NULL,
     algorithm.
   }
 }
-\details{
+%\details{
   %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
+  An \code{inla.mesh} object.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{inla.mesh.create}},
+\code{\link{inla.delaunay}}
 }
 \examples{
+loc = matrix(runif(10*2),10,2)
+
+mesh = inla.mesh.2d(loc,
+                    boundary=list(inla.nonconvex.hull(loc, 0.1, 0.15),
+                                  inla.nonconvex.hull(loc, 0.2, 0.2)),
+                    max.edge=c(0.05, 0.1))
+plot(mesh)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
