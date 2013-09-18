@@ -14,7 +14,7 @@ inla.mesh.fem(mesh, order = 2)
 
 ## 1D meshes, order 2 models only
 inla.mesh.1d.fem(mesh)
-}}
+}
 \arguments{
   \item{mesh}{
     An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.

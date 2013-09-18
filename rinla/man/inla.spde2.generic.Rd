@@ -78,7 +78,7 @@ inla.spde2.theta2phi2(spde, theta)
 %%%  ~~ If necessary, more details than the description above ~~
 %}
 \value{
-  For \code{inla.spde2.generic}, an \code{\list{inla.spde2}} object.
+  For \code{inla.spde2.generic}, an \code{\link{inla.spde2}} object.
 
   For \code{inla.spde2.theta2phi0/1/2}, a vector of \eqn{\phi}{phi} values.
 }
