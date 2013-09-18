@@ -13,13 +13,17 @@ inla.mesh.query(mesh, ...)
   \item{mesh}{
     An \code{inla.mesh} object.
   }
-  \item{tt.neighbours}{
-    Compute neighbour triangles for triangles; list of vectors:
-    list(triangles, orders)
-  }
-  \item{vt.neighbours}{
-    Compute neighbour triangles for vertices; list of vectors:
-    list(vertices, orders)
+  \item{\dots}{Query arguments.
+    \itemize{
+      \item{tt.neighbours}{
+	Compute neighbour triangles for triangles; list of vectors:
+	list(triangles, orders)
+      }
+      \item{vt.neighbours}{
+	Compute neighbour triangles for vertices; list of vectors:
+	list(vertices, orders)
+      }
+    }
   }
 }
 \details{

@@ -1,6 +1,6 @@
 ## Export: inla.dBind inla.extract.el inla.extract.el!data.frame
 ## Export: inla.extract.el!list inla.extract.el!matrix inla.matern.cov
-## Export: inla.matern.cov.s2 inla.regex.match inla.row.kron
+## Export: inla.matern.cov.s2 inla.row.kron
 ## Export: inla.spde.make.A inla.spde.make.block.A inla.spde.make.index
 ## Export: inla.spde.models inla.spde.precision inla.spde.result
 ## Export: inla.spde.sample inla.spde.sample!default
@@ -9,7 +9,7 @@
 ## Export: inla.stack.data inla.stack.sum
 ## Export: inla.stack.index inla.stack.join
 ## Export: inla.stack.remove.unused rbind!inla.data.stack.info
-## Internal: inla.spde.homogenise_B_matrix
+## Internal: inla.spde.homogenise_B_matrix inla.regex.match
 
 inla.dBind <- function(...)
 {

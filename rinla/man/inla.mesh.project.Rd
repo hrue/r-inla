@@ -71,15 +71,15 @@ inla.mesh.projector(...)
   For \code{inla.mesh.project(projector, field, ...)}, a field projected
   from the mesh onto the locations given by the projector object.
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
