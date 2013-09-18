@@ -814,3 +814,26 @@
     }
     return (invisible())
 }
+
+
+`match.arg.vector` <- function(arg=NULL,
+                               choices,
+                               length=NULL) {
+    ## Like match.arg, but for a vector of options 'arg'
+    if (is.null(length)) {
+        length = inla.ifelse(is.null(arg), 1, length(arg))
+    }
+    if (is.null(arg)) {
+        arg = match.arg(arg, choices)
+    } else {
+        for (k in seq_along(arg)) {
+            arg[k] = match.arg(arg[k], choices)
+        }
+    }
+    if (length(arg) < length) {
+        arg = c(arg, rep(arg, length-length(arg)))
+    } else if (length(arg) > length) {
+        stop('Option list too long.')
+    }
+    return(arg)
+}
