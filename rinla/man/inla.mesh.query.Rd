@@ -26,8 +26,8 @@ inla.mesh.query(mesh, ...)
     }
   }
 }
-\details{
-}
+%\details{
+%}
 \value{
   A list of query results.
 %%  If it is a LIST, use
@@ -35,13 +35,13 @@ inla.mesh.query(mesh, ...)
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
-}
+%\references{
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
-}
+%\note{
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

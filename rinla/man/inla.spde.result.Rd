@@ -1,4 +1,5 @@
 \name{inla.spde.result}
+\alias{inla.spde.result}
 \alias{inla.spde.result.inla.spde1}
 \alias{inla.spde.result.inla.spde2}
 \alias{inla.spde1.result}

@@ -63,13 +63,13 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 }
-\references{
-}
+%\references{
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
-}
+%\note{
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

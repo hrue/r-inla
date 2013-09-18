@@ -1,7 +1,6 @@
 \name{extract.groups}
 \alias{extract.groups}
 \alias{extract.groups.inla.mesh.segment}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Extract tagged boundary/internal segments.  
 }
@@ -10,8 +9,8 @@ Extract tagged boundary/internal segments.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-%%extract.groups(...)
-%%
+extract.groups(...)
+
 \method{extract.groups}{inla.mesh.segment}(
   segm, groups, groups.new = groups, ...) 
 }
@@ -31,29 +30,28 @@ Extract tagged boundary/internal segments.
 %%     ~~Describe \code{\dots} here~~
 }
 \item{\dots}{
-  Additional arguments, currently unused.
-%%     ~~Describe \code{\dots} here~~
+  Additional arguments, passed on to other methods.
 }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
-\value{
+%}
+%\value{
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-}
-\references{
+%}
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -61,8 +59,8 @@ Finn Lindgren \email{finn.lindgren@gmail.com}
 \code{\link{inla.mesh.segment}}
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %%\keyword{ ~kwd1 }
