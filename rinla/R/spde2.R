@@ -637,12 +637,24 @@ inla.spde2.theta2phi2 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
 
-##    warning("TODO: support link functions for phi2")
-    if (spde$n.theta>0)
-        return((spde$param.inla$B2[,1, drop=TRUE] +
+    if (spde$n.theta>0) {
+        phi = ((spde$param.inla$B2[,1, drop=TRUE] +
                 spde$param.inla$B2[,-1, drop=FALSE] %*% theta))
-    else
-        return((spde$param.inla$B2[,1, drop=TRUE]))
+    } else {
+        phi = ((spde$param.inla$B2[,1, drop=TRUE]))
+    }
+    if (spde$param.inla$transform == "identity") {
+        return(phi)
+    } else if (spde$param.inla$transform == "logit") {
+        return(2/(1+exp(-phi))-1)
+    } else if (spde$param.inla$transform == "log") {
+        return(exp(phi)-1)
+    } else {
+        warning(paste("Unknown link function '",
+                      spde$param.inla$transform,
+                      "' phi2.  Using identity link instead.", sep="")
+        return(phi)
+    }
 }
 
 inla.spde2.precision =

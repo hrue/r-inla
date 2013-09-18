@@ -1,6 +1,5 @@
 \name{inla.spde2.matern}
 \alias{inla.spde2.matern}
-\alias{inla.spde2}
 \title{
   Matern SPDE model object for INLA
 }
@@ -72,7 +71,8 @@ inla.spde2.matern(mesh,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.basis}},
+  \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
+  \code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
   \code{\link{inla.spde2.generic}}
 }
 \examples{

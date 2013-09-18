@@ -3,7 +3,7 @@
 ## Export: inla.spde1.create inla.spde.create
 ## Export: inla.spde1.imatern inla.spde1.matern
 ## Export: inla.spde1.matern.osc inla.spde1.models inla.spde1.precision
-## Export: inla.spde1.query inla.spde1.result
+## Export: inla.spde1.result
 
 inla.spde1.create =
     function(mesh,
