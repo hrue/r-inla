@@ -28,21 +28,21 @@ inla.simplify.curve(loc, idx, eps)
 \value{
   An index vector into \code{loc} specifying the simplified polygonal curve.
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
+%\seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
-}
+%}
 \examples{
 theta = seq(0, 2*pi, length=1000)
 loc = cbind(cos(theta), sin(theta))

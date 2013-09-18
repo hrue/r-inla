@@ -114,13 +114,13 @@ inla.delaunay(loc, ...)
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
-}
+%\references{
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
-}
+%\note{
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
