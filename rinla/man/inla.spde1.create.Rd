@@ -1,5 +1,9 @@
 \name{inla.spde1.create}
+\alias{inla.spde.create}
 \alias{inla.spde1.create}
+\alias{inla.spde1.matern}
+\alias{inla.spde1.imatern}
+\alias{inla.spde1.matern.osc}
 \alias{inla.spde1}
 \title{
   Old SPDE model objects for INLA
@@ -13,6 +17,11 @@ inla.spde1.create(mesh,
                   model = c("matern", "imatern", "matern.osc"),
                   param = NULL,
                   ...)
+
+## Shortcuts to the matern, imatern and matern.osc models:
+inla.spde1.matern(mesh, ...)
+inla.spde1.imatern(mesh, ...)
+inla.spde1.matern.osc(mesh, ...)
 }
 \arguments{
   \item{mesh}{
@@ -25,7 +34,7 @@ inla.spde1.create(mesh,
     Model specific parameters.
   }
   \item{...}{
-    
+    Additional parameters passed on to other methods.
   }
 }
 \details{
@@ -68,19 +77,19 @@ inla.spde1.create(mesh,
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
-}
+%\references{
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
-}
+%\note{
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.basis}},
-  \code{\link{inla.spde1.query}}
+  \code{\link{inla.spde2.matern}}, \code{\link{inla.mesh.2d}},
+  \code{\link{inla.mesh.basis}}
 }
 \examples{
 n = 100

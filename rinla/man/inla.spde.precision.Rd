@@ -40,9 +40,9 @@ inla.spde2.precision(spde,
     Internal parameter for a generic model.  Expert option only.
   }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
   A sparse precision matrix.
 %%  ~Describe the value returned
@@ -51,23 +51,27 @@ inla.spde2.precision(spde,
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{inla.spde.models}},
+\code{\link{inla.spde2.generic}},
+\code{\link{inla.spde2.theta2phi0}},
+\code{\link{inla.spde2.theta2phi1}},
+\code{\link{inla.spde2.theta2phi2}}
 }
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }

@@ -3027,25 +3027,25 @@ inla.contour.segment <-
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
 inla.nonconvex.hull.basic <-
-    function(points, offset=-0.15, resolution=40, eps=NULL)
+    function(points, convex=-0.15, resolution=40, eps=NULL)
 {
-    if (length(offset)==1)
-        offset = rep(offset,2)
+    if (length(convex)==1)
+        convex = rep(convex,2)
     if (length(resolution)==1)
         resolution = rep(resolution,2)
     lim = rbind(range(points[,1]), range(points[,2]))
-    ex = offset
-    if (offset[1]<0) {ex[1] = -offset[1]*diff(lim[1,])}
-    if (offset[2]<0) {ex[2] = -offset[2]*diff(lim[2,])}
+    ex = convex
+    if (convex[1]<0) {ex[1] = -convex[1]*diff(lim[1,])}
+    if (convex[2]<0) {ex[2] = -convex[2]*diff(lim[2,])}
 
     domain = c(diff(lim[1,]), diff(lim[2,])) + 2*ex
     dif = domain/(resolution-1)
-    if (any(dif > min(offset))) {
-        req.res = ceiling(domain/offset+1)
+    if (any(dif > min(convex))) {
+        req.res = ceiling(domain/convex+1)
         warning(paste("Resolution (",
                       paste(resolution,collapse=","),
-                      ") too small for offset (",
-                      paste(offset,collapse=","),
+                      ") too small for convex (",
+                      paste(convex,collapse=","),
                       ").\n",
                       "Resolution >=(",
                       paste(req.res,collapse=","),
@@ -3096,7 +3096,7 @@ inla.nonconvex.hull <-
     if (convex<0) {convex = -convex*approx.diam}
     if (concave<0) {concave = -concave*approx.diam}
     if (concave==0) {
-        return(inla.nonconvex.hull.basic(points,convex,resolution))
+        return(inla.nonconvex.hull.basic(points, convex, resolution, eps))
     }
 
     ex = convex+concave
