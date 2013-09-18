@@ -652,7 +652,7 @@ inla.spde2.theta2phi2 = function(spde, theta)
     } else {
         warning(paste("Unknown link function '",
                       spde$param.inla$transform,
-                      "' phi2.  Using identity link instead.", sep="")
+                      "' phi2.  Using identity link instead.", sep=""))
         return(phi)
     }
 }
