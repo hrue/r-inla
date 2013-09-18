@@ -32,24 +32,24 @@ inla.spde.make.index(name,
   Additional parameters.  Currently unused.
 }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
   A list of named index vectors.
 \item{name }{Indices into the vector of latent variables}
 \item{name.group }{'group' indices}
 \item{name.repl }{Indices for replicates}
 }
-\references{
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

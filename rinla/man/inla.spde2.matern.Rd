@@ -33,7 +33,10 @@ inla.spde2.matern(mesh,
   \item{theta.prior.mean}{(overrides \code{prior.*})}
   \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint prior
   precision for \eqn{theta}.}
-  \item{fractional.method}{}
+  \item{fractional.method}{Specifies the approximation method to use for
+    fractional (non-integer) \code{alpha} values. \code{'parsimonious'}
+    gives an overall approximate minimal covariance error, \code{'null'}
+    uses approximates low-order properties.}
 }
 \details{
   This method constructs a Matern SPDE model.
@@ -60,13 +63,13 @@ inla.spde2.matern(mesh,
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
-\references{
-}
+%\references{
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
-}
+%\note{
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

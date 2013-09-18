@@ -86,8 +86,8 @@ Finn Lindgren \email{finn.lindgren@gmail.com}
 \seealso{
 \code{\link{plot.inla.mesh}}
 }
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }
