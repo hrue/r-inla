@@ -2,13 +2,13 @@
 ## Export: inla.generate.colors inla.mesh inla.mesh.1d inla.mesh.1d.A
 ## Export: inla.mesh.1d.bary inla.mesh.1d.fem inla.mesh.2d inla.mesh.basis
 ## Export: inla.mesh.boundary inla.mesh.create inla.mesh.create.helper
-## Export: inla.mesh.deriv inla.mesh.extract.segments inla.mesh.fem
+## Export: inla.mesh.deriv inla.mesh.fem
 ## Export: inla.mesh.interior inla.mesh.lattice inla.mesh.map
-## Export: inla.mesh.map.lim inla.mesh.parse.segm.input inla.mesh.query
+## Export: inla.mesh.map.lim inla.mesh.query
 ## Export: inla.mesh.segment inla.nonconvex.hull inla.nonconvex.hull.basic
-## Export: inla.parse.queries inla.simplify.curve
-## Export: plot.inla.trimesh match.arg.vector
+## Export: inla.simplify.curve plot.inla.trimesh
 ## Internal: inla.internal.sp2segment.join inla.mesh.filter.locations
+## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 ##
 ## S3methods; also export some methods explicitly
 ## Export: extract.groups inla.mesh.project inla.mesh.projector
@@ -2058,27 +2058,6 @@ inla.parse.queries <-function(...)
 
 
 
-## Like match.arg, but for a vector of options 'arg'
-match.arg.vector <- function(arg=NULL,
-                             choices,
-                             length=NULL) {
-    if (is.null(length)) {
-        length = inla.ifelse(is.null(arg), 1, length(arg))
-    }
-    if (is.null(arg)) {
-        arg = match.arg(arg, choices)
-    } else {
-        for (k in seq_along(arg)) {
-            arg[k] = match.arg(arg[k], choices)
-        }
-    }
-    if (length(arg) < length) {
-        arg = c(arg, rep(arg, length-length(arg)))
-    } else if (length(arg) > length) {
-        stop('Option list too long.')
-    }
-    return(arg)
-}
 
 ## Deprecated: cyclic
 inla.mesh.1d <- function(loc,
@@ -2086,13 +2065,13 @@ inla.mesh.1d <- function(loc,
                          boundary=NULL,
                          degree=1,
                          free.clamped=FALSE,
-                         cyclic=FALSE)
+                         ...)
 {
     ## Note: do not change the order of these options without also
     ## changing 'basis.reduction' below.
     boundary.options = c("neumann", "dirichlet", "free", "cyclic")
 
-    if (!missing(cyclic)) {
+    if ("cyclic" %in% names(list(...))) {
         warning(paste("Option 'cyclic' is deprecated.",
                       "  Use 'boundary=\"cyclic\"' instead.", sep=""))
         if (cyclic) {
