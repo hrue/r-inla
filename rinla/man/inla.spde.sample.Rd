@@ -6,51 +6,59 @@
   Sample from SPDE models
 }
 \description{
-  Produce samples from a SPDE model
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Old methods fo sampling from a SPDE model.  For new code, use
+  \code{\link{inla.spde.precision}} and \code{\link{inla.qsample}}
+  instead.
 }
 \usage{
-inla.spde.sample(precision, seed=NULL)
-inla.spde.sample(spde, seed=NULL, ...)
+inla.spde.sample(...)
+
+\method{inla.spde.sample}{default}(precision, seed=NULL)
+\method{inla.spde.sample}{inla.spde}(spde, seed=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{precision}{
+    A precision matrix.
   }
   \item{seed}{
+    The seed for the pseudo-random generator.
   }
   \item{spde}{
+    An \code{inla.spde} object.
   }
   \item{\dots}{
+    Parameters passed on to other methods.
   }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the description above ~~
-}
-\value{
+%}
+%\value{
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-}
-\references{
+%}
+%\references{
 %% ~put references to the literature/web site here ~
-}
+%}
 \author{
   Finn Lindgren \email{finn.lindgren@gmail.com}
 }
-\note{
+%\note{
 %%  ~~further notes~~
-}
+%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{inla.spde.precision}}
+  \code{\link{inla.spde.precision}},
+  \code{\link{inla.qsample}}
 }
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }

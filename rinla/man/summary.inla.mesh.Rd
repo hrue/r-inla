@@ -5,7 +5,7 @@
   Summarizing triangular mesh objects
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Construct and print \code{inla.mesh} object summaries
 }
 \usage{
 \method{summary}{inla.mesh}(object, verbose = FALSE, ...)
@@ -54,8 +54,8 @@ Finn Lindgren \email{finn.lindgren@gmail.com}
 %\seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 %}
-\examples{
-}
+%\examples{
+%}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %\keyword{ ~kwd1 }
