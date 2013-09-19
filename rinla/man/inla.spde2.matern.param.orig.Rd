@@ -17,22 +17,23 @@ inla.spde2.matern.param.orig(mesh, alpha = 2,
                              theta.prior.mean = NULL,
                              theta.prior.prec = 0.1)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{mesh}{
     The mesh to build the model on, as an \code{\link{inla.mesh}} object.
   }
-  \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported. (\eqn
-{\nu=\alpha-d/2})}
- \item{B.tau}{Matrix with specification of log-linear model for \eqn{\tau}.}
-  \item{B.kappa}{Matrix with specification of log-linear model for \eqn{\kappa}.}
+  \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}
+    supported. (\eqn{\nu=\alpha-d/2})}
+  \item{B.tau}{Matrix with specification of log-linear model for
+    \eqn{\tau}.}
+  \item{B.kappa}{Matrix with specification of log-linear model for
+    \eqn{\kappa}.}
   \item{prior.variance.nominal}{Nominal prior mean for the field variance}
   \item{prior.range.nominal}{Nominal prior mean for the spatial range}
   \item{prior.tau}{Prior mean for tau (overrides \code{prior.variance.nominal})}
   \item{prior.kappa}{Prior mean for kappa (overrides \code{prior.range.nominal})}
   \item{theta.prior.mean}{(overrides \code{prior.*})}
-  \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint prior
-  precision for \eqn{theta}.}
+  \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint
+    prior precision for \eqn{theta}.}
 }
 %\details{
 %%  ~~ If necessary, more details than the description above ~~
