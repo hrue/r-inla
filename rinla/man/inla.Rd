@@ -30,7 +30,6 @@ inla(
     control.compute = list(),
     control.predictor = list(),
     control.family = list(),
-    control.data = list(),
     control.inla = list(),
     control.results = list(),
     control.fixed = list(),
@@ -134,8 +133,6 @@ how to define such linear combinations.}
 \item{control.predictor}{ See
 \code{?control.predictor}}
 \item{control.family}{ See \code{?control.family}}
-\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
-      see \code{?control.family}}
 \item{control.inla}{ See \code{?control.inla}}
 \item{control.results}{ See \code{?control.result}}
 \item{control.fixed}{ See \code{?control.fixed}}

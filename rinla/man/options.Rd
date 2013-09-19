@@ -56,9 +56,6 @@
      show.warning.graph.file : Give a warning for using the obsolete argument
                                \code{graph.file} instead of \code{graph} 
 
-     show.warning.control.data : Give a warning for using the obsolete argument
-                                \code{control.data} instead of \code{control.family} 
- 
      scale.model.default : The default value of argument \code{scale.model} which
                            optionally scale intrinisic models to have generalized
                            unit average variance 

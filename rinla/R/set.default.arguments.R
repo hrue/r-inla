@@ -5,7 +5,6 @@
 ## Export: inla.set.control.expert.default
 ## Export: inla.set.control.compute.default
 ## Export: inla.set.control.family.default
-## Export: inla.set.control.data.default
 ## Export: inla.set.control.fixed.default
 ## Export: inla.set.control.inla.default
 ## Export: inla.set.control.predictor.default
@@ -20,7 +19,6 @@
 ## Export: control.expert
 ## Export: control.compute
 ## Export: control.family
-## Export: control.data
 ## Export: control.fixed
 ## Export: control.inla
 ## Export: control.predictor
@@ -269,15 +267,6 @@
         )
 
     ##:SEEALSO: inla
-}
-
-`inla.set.control.data.default`=
-    function(...)
-{
-    ##:EXTRA: 
-    ##:NAME: control.data
-    ##:SEEALSO: inla
-    return (inla.set.control.family.default(...))
 }
 
 `inla.set.control.fixed.default`=
@@ -693,5 +682,3 @@ control.predictor = inla.make.completion.function(names(inla.set.control.predict
 control.results = inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
-## for backward-compat; yes this is correct...
-control.data = inla.make.completion.function(names(inla.set.control.family.default()))
