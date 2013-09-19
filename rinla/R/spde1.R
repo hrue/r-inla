@@ -1,4 +1,5 @@
 ## 'spde' model functions
+## Export: inla.spde.precision.inla.spde1 inla.spde.result.inla.spde1
 ## Export: inla.spde.precision!inla.spde1 inla.spde.result!inla.spde1
 ## Export: inla.spde1.create inla.spde.create
 ## Export: inla.spde1.imatern inla.spde1.matern

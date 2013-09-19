@@ -12,15 +12,25 @@ Calculates the precision matrix for given parameter values based on an
 \code{inla.spde} model object.
 }
 \usage{
+%% Standard usage for inla.spde2.models:
+%% inla.spde.precision(spde, theta = c(...))
+
 inla.spde.precision(...)
-inla.spde1.precision(spde,
-                     theta.T=NULL, theta.K=NULL,
-                     tau=NULL, kappa2=NULL)
+
+\method{inla.spde.precision}{inla.spde2}(spde,
+                    theta = NULL,
+                    phi0 = inla.spde2.theta2phi0(spde, theta),
+                    phi1 = inla.spde2.theta2phi1(spde, theta),
+                    phi2 = inla.spde2.theta2phi2(spde, theta), ...)
 inla.spde2.precision(spde,
                      theta = NULL,
                      phi0 = inla.spde2.theta2phi0(spde, theta),
                      phi1 = inla.spde2.theta2phi1(spde, theta),
-                     phi2 = inla.spde2.theta2phi2(spde, theta))
+                     phi2 = inla.spde2.theta2phi2(spde, theta), ...)
+
+## For deprecated inla.spde1 models:
+\method{inla.spde.precision}{inla.spde1}(spde, ...)
+inla.spde1.precision(spde, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -39,6 +49,9 @@ inla.spde2.precision(spde,
   \item{phi2}{
     Internal parameter for a generic model.  Expert option only.
   }
+  \item{\dots}{
+    Additional parameters passed on to other methods.
+    }
 }
 %\details{
 %%  ~~ If necessary, more details than the description above ~~
