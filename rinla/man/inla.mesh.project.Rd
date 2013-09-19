@@ -22,7 +22,8 @@ inla.mesh.projector(...)
              xlim = range(mesh$loc[,1]),
              ylim = range(mesh$loc[,2]),
              dims = c(100,100),
-             projection = NULL)
+             projection = NULL,
+             ...)
 
 \method{inla.mesh.projector}{inla.mesh.1d}(mesh,
              loc = NULL,
@@ -53,6 +54,7 @@ inla.mesh.projector(...)
   \item{dims}{
     Lattice dimensions.
   }
+  \item{projector}{An \code{inla.mesh.projector} object.}
   \item{field}{
     Basis function weights, one per mesh basis function, describing the
     function to be avaluated at the projection locationssFunction values for on the mesh 
@@ -60,6 +62,7 @@ inla.mesh.projector(...)
   \item{projection}{
     One of \code{c("default", "longlat", "longsinlat", "mollweide")}.
   }
+  \item{\dots}{Additional arguments passed on to methods.}
 }
 \details{
   The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a

@@ -1,4 +1,5 @@
 \name{inla.sp2segment}
+\alias{inla.sp2segment}
 \alias{inla.sp2segment.Polygon}
 \alias{inla.sp2segment.Polygons}
 \alias{inla.sp2segment.SpatialPolygons}

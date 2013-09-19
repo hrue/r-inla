@@ -398,9 +398,10 @@ plot.inla.mesh <- function(x,
 }
 
 
-inla.mesh.map.lim <- function(loc=NULL,
-                              projection=(c("default", "longlat",
-                                            "longsinlat", "mollweide")))
+inla.mesh.map.lim <-
+    function(loc=NULL,
+             projection=
+             c("default", "longlat", "longsinlat", "mollweide"))
 {
     projection = match.arg(projection)
     if (identical(projection, "default")) {
@@ -423,10 +424,11 @@ inla.mesh.map.lim <- function(loc=NULL,
     return(lim)
 }
 
-inla.mesh.map <- function(loc,
-                          projection=(c("default", "longlat",
-                                        "longsinlat", "mollweide")),
-                          inverse=TRUE)
+inla.mesh.map <-
+    function(loc,
+             projection=
+             c("default", "longlat", "longsinlat", "mollweide"),
+             inverse=TRUE)
 {
     projection = match.arg(projection)
     if (identical(projection, "default")) {
