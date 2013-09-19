@@ -125,11 +125,11 @@
         print(cc[[i]])
         print(eigen(cc[[i]], symmetric=TRUE, only.values = TRUE)$values)
 
-        xx = rmvnorm(nn[i], mean = mm[[i]], sigma = cc[[i]] + diag(diagonal, nrow=n))
+        xx = mvtnorm::rmvnorm(nn[i], mean = mm[[i]], sigma = cc[[i]] + diag(diagonal, nrow=n))
         dd = numeric(nn[i])
         dd[] = 0
         for(k in 1:n.mix) {
-            dd = dd + p[k] * dmvnorm(xx, mean = mm[[k]], sigma = cc[[k]] + diag(diagonal, nrow=n), log=FALSE)
+            dd = dd + p[k] * mvtnorm::dmvnorm(xx, mean = mm[[k]], sigma = cc[[k]] + diag(diagonal, nrow=n), log=FALSE)
         }
         d[j + 1:nn[i]] = dd
         j = j + nn[i]
@@ -137,7 +137,7 @@
 
     dd = 0
     for(k in 1:n.mix) {
-        dd = dd + p[k] * dmvnorm(x.star, mean = mm[[k]], sigma = cc[[k]], log=FALSE)
+        dd = dd + p[k] * mvtnorm::dmvnorm(x.star, mean = mm[[k]], sigma = cc[[k]], log=FALSE)
     }
     stopifnot(length(d) == n.samples)
     p.value = sum(dd < d)/n.samples
