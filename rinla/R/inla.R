@@ -28,7 +28,6 @@
 ##!    control.compute = list(),
 ##!    control.predictor = list(),
 ##!    control.family = list(),
-##!    control.data = list(),
 ##!    control.inla = list(),
 ##!    control.results = list(),
 ##!    control.fixed = list(),
@@ -168,10 +167,6 @@
         
         ##!\item{control.family}{ See \code{?control.family}}
         control.family = list(),
-        
-        ##!\item{control.data}{Argument \code{control.data} have been renamed to \code{control.family};
-        ##!      see \code{?control.family}}
-        control.data = list(),
         
         ##!\item{control.inla}{ See \code{?control.inla}}
         control.inla = list(),
@@ -419,18 +414,6 @@
                 stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
                            "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
             }
-        }
-    }
-
-    ## if 'control.data' is set and not 'control.family', do the swap here. if both are set,  give an error
-    if (!missing(control.family) && !missing(control.data)) {
-        stop("Argument 'control.data' have been renamed to 'control.family'; please use only 'control.family'.")
-    }
-    if (missing(control.family) && !missing(control.data)) {
-        control.family = control.data
-        if (inla.getOption("show.warning.control.data")) {
-            inla.setOption("show.warning.control.data", FALSE)
-            warning("Argument 'control.data' have been renamed to 'control.family'; please use 'control.family' in the future.")
         }
     }
 
@@ -1022,7 +1005,7 @@
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
-    mf$control.family = NULL; mf$control.data = NULL;
+    mf$control.family = NULL; 
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
@@ -1954,14 +1937,12 @@
             ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
             the.args = list()
             for (nm in names(formals(inla))) {
-                if (!(nm %in% "control.data")) {
-                    nnm = nm
-                    nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
-                    nnm = gsub("^data$", "data.orig", nnm) 
-                    nnm = gsub("^formula$", "formula.orig", nnm) 
-                    nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
-                    inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
-                }
+                nnm = nm
+                nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
+                nnm = gsub("^data$", "data.orig", nnm) 
+                nnm = gsub("^formula$", "formula.orig", nnm) 
+                nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
+                inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
             }
             ## remove the .Evironment attribute, as it will fail if
             ## its rerun if .Environment is not there.

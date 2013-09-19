@@ -682,7 +682,7 @@ represents the hyperparameters of the Gaussian model.
 A random effects model can be defined using the {\tt f()}-function.
 % :
 % \begin{verbatim}
-% 	f(<covariate>, [<weights>], model=<identifier>, hyper, ...)
+%       f(<covariate>, [<weights>], model=<identifier>, hyper, ...)
 % \end{verbatim}
 This function allows to specify the latent model to be used, the prior distributions
  for its hyperparameters, linear constraints,
@@ -697,18 +697,18 @@ random effect for each observation. This is simply an index
 $c=1,2,\ldots,n$, with $n$ denoting the total number of observations,
 leading to:
 \begin{verbatim}
-	f(c, model="iid")
+        f(c, model="iid")
 \end{verbatim}
 A smooth effect, e.g.~a random walk of second order (RW2),
 of a covariate $\mm{c}=(c_1, \ldots, c_n)^\top$, assuming
 covariate values $c_i$ for observation $i$, can be obtained by
 \begin{verbatim}
-	f(c, model="rw2")
+        f(c, model="rw2")
 \end{verbatim}
 The second argument of the {\tt f()}-function is an optional vector of
 known weights $\mm{w}$ (one for each covariate value), leading to
 \begin{verbatim}
-	f(c, w, model="rw2")
+        f(c, w, model="rw2")
 \end{verbatim}
 
 To  reduce the number of unique values of a covariate the
@@ -721,14 +721,14 @@ groups the covariate values into 20 classes. For more information
 type {\tt ?inla.group} within {\tt R}. The resulting {\tt f()}-function
 changes to
 \begin{verbatim}
-	f(inla.group(c, n=20), w, model="rw2")
+        f(inla.group(c, n=20), w, model="rw2")
 \end{verbatim}
 To define all values assumed by a covariate and
 for which an effect should be estimated,  the optional field
 {\tt values} can be used. Here, a numerical vector, a vector of
 factors or ‘NULL’ can be set:
 \begin{verbatim}
-	f(c, w, model="rw2", values=<values assumed by the covariate>)
+        f(c, w, model="rw2", values=<values assumed by the covariate>)
 \end{verbatim}
 
 \section{Available latent Gaussian models}
@@ -774,11 +774,11 @@ Specific documentation for each model can be found on \url{http://www.r-inla.org
 % @
 which will open a documentation pdf-file. Each documentation file has the same structure:
 \begin{enumerate}
-	\item Description of the model parameterization.
-	\item Definition of the hyperparameters.
-	\item Model specification using R-INLA.
-	\item Hyperparameter specification and default values of the model.
-	\item Illustration of usage using a small simulated example.
+        \item Description of the model parameterization.
+        \item Definition of the hyperparameters.
+        \item Model specification using R-INLA.
+        \item Hyperparameter specification and default values of the model.
+        \item Illustration of usage using a small simulated example.
 \end{enumerate}
 
 
@@ -875,20 +875,20 @@ listed on the help page of the {\tt f()}-function, found via {\tt ?f}.
 The most important options are
 
 \begin{itemize}
-	\item[{\tt constr}:] A boolean variable indicating whether to
-	set a sum to zero. By default the sum to zero constraint is
+        \item[{\tt constr}:] A boolean variable indicating whether to
+        set a sum to zero. By default the sum to zero constraint is
     imposed on all intrinsic models ("iid","rw1","rw2","besag", etc..)
-	\item[{\tt extraconstr}] This argument defines extra linear
-	constraints. The argument is a list with two elements, a matrix
-	{\tt A} and a
-	vector {\tt e}, which defines the extra constraint {\tt Ax = e};
-	leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
-	constraint comes additional to the
-	sum-to-zero constraint defined if {\tt constr = TRUE}.
-	\item[{\tt quantile}:]A vector of maximum $10$ quantiles
-	to compute for each posterior marginal.
-	\item[{\tt rankdef}:] A number *defining* the rank deficiency of
-		the latent model.
+        \item[{\tt extraconstr}] This argument defines extra linear
+        constraints. The argument is a list with two elements, a matrix
+        {\tt A} and a
+        vector {\tt e}, which defines the extra constraint {\tt Ax = e};
+        leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
+        constraint comes additional to the
+        sum-to-zero constraint defined if {\tt constr = TRUE}.
+        \item[{\tt quantile}:]A vector of maximum $10$ quantiles
+        to compute for each posterior marginal.
+        \item[{\tt rankdef}:] A number *defining* the rank deficiency of
+                the latent model.
 \end{itemize}
 
 \section{Looking at the results}
@@ -909,12 +909,12 @@ The most important options are
 
 Consider the scenario
 \begin{equation}
-	\begin{split}
-	{y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
-	\eta_i &= a_i + b_i z_i,\\
-	(a_i, b_i) &\stackrel{\text{iid}}{\sim} \mathcal{N}_2(\mm{0}, \mathbf{Q}^{-1}),
-	\end{split}
-	\label{eq:bivNormal}
+        \begin{split}
+        {y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+        \eta_i &= a_i + b_i z_i,\\
+        (a_i, b_i) &\stackrel{\text{iid}}{\sim} \mathcal{N}_2(\mm{0}, \mathbf{Q}^{-1}),
+        \end{split}
+        \label{eq:bivNormal}
 \end{equation}
 with $i=1, \ldots, n$ and where $\mm{z}$ represents a known covariate. The bivariate Gaussian model for $(a_i, b_i)$ can be defined in {\tt R-INLA} using {\tt f(idx, model="iid2d", n=2*n, ...)}. However, the model definition
 <<echo=TRUE, eval=FALSE>>=
@@ -924,7 +924,7 @@ does not define a model where $\eta_i$ is connected to the two elements $a_i$ an
 
 Let $\mm{v} = (a_1, \ldots, a_n, b_1, \ldots, b_n)^\top$. To implement model~\eqref{eq:bivNormal} we simply create an almost identical copy of $\mm{v}$, namely $\mm{v}^\star$. The latent field is thereby extended to $\mm{v}_c = (\mm{v}, \mm{v}^\star)$ with $\pi(\mm{v}_c) = \pi(\mm{v}) \pi(\mm{v}^\star | \mm{v})$ and
 \begin{equation}
-	\pi(\mm{v}^\star|\mm{v}, \beta, \kappa) \propto \exp\left(-\frac{\kappa}{2} (\mm{v}^\star - \beta \mm{v})^\top(\mm{v}^\star - \beta \mm{v})\right). \label{eq:copy}
+        \pi(\mm{v}^\star|\mm{v}, \beta, \kappa) \propto \exp\left(-\frac{\kappa}{2} (\mm{v}^\star - \beta \mm{v})^\top(\mm{v}^\star - \beta \mm{v})\right). \label{eq:copy}
 \end{equation}
 The precision $\kappa$, fixed to some large value, controls the similarity between $\mm{v}^\star$ and $\mm{v}$ (default value: $10^9$).  Of note, a copied model may contain in addition an unknown scale parameter $\beta$ (compare second example in this section), which per default is fixed to one.
 
@@ -963,11 +963,11 @@ plot(result)
 
 A copied model may also have an unknown scaling parameter. Consider for example
 \begin{equation*}
-	\begin{split}
-	{y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
-	\eta_i &= x_i + \beta x_i z_i.\\
-	\end{split}
-	\label{eq:bivNormal2}
+        \begin{split}
+        {y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+        \eta_i &= x_i + \beta x_i z_i.\\
+        \end{split}
+        \label{eq:bivNormal2}
 \end{equation*}
 Here, $\mm{z}$ still denotes a known covariate, but $\beta \sim \mathcal{N}(\mu, \kappa)$ denotes an unknown scale parameter. In the following example, we estimate $\beta$, assuming  the precision for $\mm{x}$ is known.
 <<>>=
@@ -1002,9 +1002,9 @@ Besides the list of available prior functions for hyperparameters, compare \ref{
 
 There are three ways to specify prior distributions for hyperparameter in INLA:
 \begin{enumerate}
-	\item Use an available prior distribution.
-	\item Define your own prior distribution function using R-like (not equal) syntax as expression.
-	\item Assign a table of x and corresponding y values which represent your prior distribution.
+        \item Use an available prior distribution.
+        \item Define your own prior distribution function using R-like (not equal) syntax as expression.
+        \item Assign a table of x and corresponding y values which represent your prior distribution.
 \end{enumerate}
 
 In the following we will provide more details regarding 2.) and 3.). Finally, we will present an example illustrating (and comparing) the three different possibilities by means of the log-gamma distribution for the precision parameter.
@@ -1311,11 +1311,11 @@ attention.
     \log (\tau)$.
 
     The prior specification for the hyperparameters of the likelihood
-    function should be defined using the \texttt{control.data}
+    function should be defined using the \texttt{control.family}
     argument of the \tv{inla} function, using the following format
 
     \begin{center}
-        \tv{inla(..., control.data = list(hyper = hyper.lik), ...)} 
+        \tv{inla(..., control.family = list(hyper = hyper.lik), ...)} 
     \end{center}
     
     where \texttt{hyper.lik} is a list with one component for each
@@ -1362,7 +1362,7 @@ result = inla(# formula for the linear predictor
               # family distribution
               family,
               # prior for hyperparameters in the likelihood function
-              control.data)
+              control.family)
 \end{verbatim}
 
 After you have run your model with INLA using the above function,
