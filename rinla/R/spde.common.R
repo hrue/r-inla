@@ -284,7 +284,7 @@ inla.spde.make.index <- function(name, n.spde, n.group=1, n.repl=1, ...)
     if ("n.mesh" %in% names(list(...))) {
         warning("'n.mesh' is deprecated, please use 'n.spde' instead.")
         if (missing(n.spde) || is.null(n.spde))
-            n.spde = n.mesh
+            n.spde = list(...)$n.mesh
     }
 
     name.group = paste(name, ".group", sep="")
@@ -490,10 +490,11 @@ inla.spde.make.A =
 
     if ("n.mesh" %in% names(list(...))) {
         warning("'n.mesh' is deprecated, use 'n.spde' instead.")
-        n.spde = n.mesh
+        n.spde = list(...)$n.mesh
     }
     if ("group.method" %in% names(list(...))) {
-        group.method = match.arg(group.method, c("nearest", "S0", "S1"))
+        group.method =
+            match.arg(list(...)$group.method, c("nearest", "S0", "S1"))
         warning(paste("'group.method=", group.method,
                       "' is deprecated.  Specify 'degree=",
                       switch(group.method, nearest="0", S0="0", S1="1"),

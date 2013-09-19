@@ -13,7 +13,7 @@
 \usage{
 inla.spde.sample(...)
 
-\method{inla.spde.sample}{default}(precision, seed=NULL)
+\method{inla.spde.sample}{default}(precision, seed=NULL, ...)
 \method{inla.spde.sample}{inla.spde}(spde, seed=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
