@@ -61,6 +61,7 @@
 ##!         strata = NULL, 
 ##!         rgeneric = NULL, 
 ##!         scale.model = NULL, 
+##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{

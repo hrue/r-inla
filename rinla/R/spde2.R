@@ -646,7 +646,7 @@ inla.spde2.theta2phi2 = function(spde, theta)
     if (spde$param.inla$transform == "identity") {
         return(phi)
     } else if (spde$param.inla$transform == "logit") {
-        return(cos(pi/(1+exp(-phi)))
+        return(cos(pi/(1+exp(-phi))))
     } else if (spde$param.inla$transform == "log") {
         return(2*exp(phi)-1)
     } else {
