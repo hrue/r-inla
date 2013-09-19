@@ -16,7 +16,7 @@
     result.new = result
     rc = result$si
     nc = length(rc)
-    
+
     for (itag in 1:length(rc[[1]]$tag)) {
         n = rc[[1]]$len[itag]
         tag= rc[[1]]$tag[itag]
@@ -37,7 +37,7 @@
             p[config] = rc[[config]]$log.dens
         p = exp(p - max(p))
         p = p/sum(p)
-        
+
         for(config in 1:nc) {
             if (debug) {
                 cat("\tconfig=", config, "prob=", p[config],"\n")
@@ -61,7 +61,7 @@
                         n = dim(cor)[1]
                         lower = rep(qnorm(gamma/2), n)
                         upper = -lower
-                        return (pmvnorm(lower = lower, upper = upper, corr = cor)/(1-alpha) - 1)
+                        return (mvtnorm::pmvnorm(lower = lower, upper = upper, corr = cor)/(1-alpha) - 1)
                     },
                     interval = c(alpha/n, alpha), tol = 1e-3, alpha=alpha)
             gamma = sol$root
@@ -85,7 +85,7 @@
 
             id = which(names(result$summary.random)== tag)
             stopifnot(length(id) == 1)
-            
+
             result.new$summary.random[[id]] = cbind(result.new$summary.random[[id]], lower=lower, upper=upper)
             nm = colnames(result.new$summary.random[[id]])
             nm[c(length(nm)-1, length(nm))] = c(paste(1-alpha, "si.low.quant", sep=""),
