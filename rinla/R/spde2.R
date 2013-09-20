@@ -632,13 +632,13 @@ inla.spde2.iheat =
              extraconstr = NULL)
 {
     ## order=1:
-    ## gamma.t dot(u) + Laplacian (u) = E
+    ## gamma.t dot(u) - Laplacian (u) = E
     ##
     ## order=2:
-    ## gamma.t dot(u) + Laplacian (u) = v
-    ## gamma.t dot(v) + Laplacian (v) = E
+    ## gamma.t dot(u) - Laplacian (u) = v
+    ## gamma.t dot(v) - Laplacian (v) = E
     ##
-    ## (1 - gamma.E Laplacian)^(alpha.E/2) (tau E) = W
+    ## (1 - gamma.E Laplacian)^(alpha.E/2) E = W/sqrt(gamma.s)
     ## gamma.E and alpha.E known
 
     inla.require.inherits(mesh.space, c("inla.mesh", "inla.mesh.1d"),
@@ -659,7 +659,7 @@ inla.spde2.iheat =
     n.space = inla.ifelse(d.space==2, mesh.space$n, mesh.space$m)
     n.time = mesh.time$m
     n.spde = n.space*n.time
-    n.theta = 2L ## tau, gamma.t
+    n.theta = 2L ## gamma.s, gamma.t
 
     if (d.space==2) {
         fem.space = inla.mesh.fem(mesh.space$loc, 2)
