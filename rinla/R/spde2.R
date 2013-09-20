@@ -629,8 +629,7 @@ inla.spde2.iheat =
              param = NULL,
              constr = FALSE,
              extraconstr.int = NULL,
-             extraconstr = NULL,
-)
+             extraconstr = NULL)
 {
     ## order=1:
     ## gamma.t dot(u) + Laplacian (u) = E
