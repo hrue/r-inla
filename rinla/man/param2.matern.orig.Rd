@@ -1,5 +1,5 @@
-\name{inla.spde2.matern.param.orig}
-\alias{inla.spde2.matern.param.orig}
+\name{param2.matern.orig}
+\alias{param2.matern.orig}
 \title{
   Parameter settings for \code{inla.spde2.matern} models.
 }
@@ -7,15 +7,15 @@
   Construct parameter settings for \code{inla.spde2.matern} models.
 }
 \usage{
-inla.spde2.matern.param.orig(mesh, alpha = 2,
-                             B.tau = matrix(c(0, 1, 0), 1, 3),
-                             B.kappa = matrix(c(0, 0, 1), 1, 3),
-                             prior.variance.nominal = 1,
-                             prior.range.nominal = NULL,
-                             prior.tau = NULL,
-                             prior.kappa = NULL,
-                             theta.prior.mean = NULL,
-                             theta.prior.prec = 0.1)
+param2.matern.orig(mesh, alpha = 2,
+                   B.tau = matrix(c(0, 1, 0), 1, 3),
+                   B.kappa = matrix(c(0, 0, 1), 1, 3),
+                   prior.variance.nominal = 1,
+                   prior.range.nominal = NULL,
+                   prior.tau = NULL,
+                   prior.kappa = NULL,
+                   theta.prior.mean = NULL,
+                   theta.prior.prec = 0.1)
 }
 \arguments{
   \item{mesh}{
