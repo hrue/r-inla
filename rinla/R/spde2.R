@@ -1,7 +1,7 @@
 ## 'spde2' model functions
 ## Export: inla.spde.precision.inla.spde2
 ## Export: inla.spde.result!inla.spde2 inla.spde2.generic
-## Export: inla.spde2.matern inla.spde2.matern.param.orig
+## Export: inla.spde2.matern param2.matern.orig
 ## Export: inla.spde2.matern.sd.basis inla.spde2.models
 ## Export: inla.spde2.precision inla.spde2.result
 ## Export: inla.spde2.theta2phi0 inla.spde2.theta2phi1 inla.spde2.theta2phi2
@@ -315,7 +315,7 @@ inla.internal.test.spde2.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, co
 
 
 
-inla.spde2.matern.param.orig =
+param2.matern.orig =
     function(mesh,
              alpha=2,
              B.tau = matrix(c(0,1,0),1,3),
@@ -459,7 +459,7 @@ inla.spde2.matern =
 
     if (is.null(param)) {
         param =
-            inla.spde2.matern.param.orig(
+            param2.matern.orig(
                 mesh, alpha,
                 B.tau, B.kappa,
                 prior.variance.nominal,
@@ -508,6 +508,174 @@ inla.spde2.matern =
             fem$c0 = fem$c1 ## Use higher order matrix.
         }
     }
+
+    if (alpha==2) {
+        B.phi0 = param$B.tau
+        B.phi1 = 2*param$B.kappa
+        M0 = fem$c0
+        M1 = fem$g1
+        M2 = fem$g2
+    } else if (alpha==1) {
+        B.phi0 = param$B.tau
+        B.phi1 = param$B.kappa
+        M0 = fem$c0
+        M1 = fem$g1*0
+        M2 = fem$g1
+    } else if (!param$is.stationary) {
+        stop("Non-stationary Matern with fractional alpha is not implemented.")
+    } else if ((alpha<2) && (alpha>1)) {
+        if (fractional.method == "parsimonious") {
+            lambda = alpha-floor(alpha)
+            b = matrix(c(1,0,0, 1,1,0, 1,2,1),3,3) %*%
+                solve(matrix(1/(c(4:2, 3:1, 2:0)+lambda), 3, 3),
+                      1/(c(4:2)+lambda-alpha))
+        } else if (fractional.method == "null") {
+            b = c(1,alpha,alpha*(alpha-1)/2)
+        } else {
+            stop(paste("Unknown fractional.method '", fractional.method,
+                       "'.", sep=""))
+        }
+        B.phi0 = param$B.tau + (alpha-2)*param$B.kappa
+        B.phi1 = 2*param$B.kappa
+        M0 = fem$c0*b[1]
+        M1 = fem$g1*b[2]/2
+        M2 = fem$g2*b[3]
+    } else if ((alpha<1) && (alpha>0)) {
+        if (fractional.method == "parsimonious") {
+            lambda = alpha-floor(alpha)
+            b = matrix(c(1,0,1,1),2,2) %*%
+                solve(matrix(1/(c(2:1, 1:0)+lambda), 2, 2),
+                      1/(c(2:1)+lambda-alpha))
+        } else if (fractional.method == "null") {
+            b = c(1,alpha)
+        } else {
+            stop(paste("Unknown fractional.method '", fractional.method,
+                       "'.", sep=""))
+        }
+        B.phi0 = param$B.tau + (alpha-1)*param$B.kappa
+        B.phi1 = param$B.kappa
+        M0 = fem$c0*b[1]
+        M1 = fem$g1*0
+        M2 = fem$g1*b[2]
+    } else {
+        stop(paste("Unsupported alpha value (", alpha,
+                   "). Supported values are 0 < alpha <= 2", sep=""))
+    }
+
+    spde =
+        inla.spde2.generic(M0=M0, M1=M1, M2=M2,
+                           B0=B.phi0, B1=B.phi1, B2=1,
+                           theta.mu = param$theta.prior.mean,
+                           theta.Q = param$theta.prior.prec,
+                           transform = "identity",
+                           BLC = param$BLC)
+    spde$model = "matern"
+    spde$BLC = param$BLC
+
+    if (constr || !is.null(extraconstr.int)) {
+        if (constr) {
+            A.constr = matrix(colSums(fem$c1), 1, n.spde)
+            e.constr = 0
+        } else {
+            A.constr = matrix(numeric(0), 0, n.spde)
+            e.constr = c()
+        }
+        if (!is.null(extraconstr.int)) {
+            A.constr =
+                rBind(A.constr,
+                      matrix(extraconstr.int$A %*% fem$c1,
+                             nrow(extraconstr.int$A), n.spde))
+            e.constr = c(e.constr, extraconstr.int$e)
+        }
+        if (!is.null(extraconstr)) {
+            A.constr = rBind(A.constr, extraconstr$A)
+            e.constr = c(e.constr, extraconstr$e)
+        }
+
+        spde$f$constr = FALSE
+        spde$f$extraconstr = list(A=A.constr, e=e.constr)
+    } else if (!is.null(extraconstr)) {
+        spde$f$constr = FALSE
+        spde$f$extraconstr = extraconstr
+    }
+
+    return(invisible(spde))
+}
+
+
+
+
+
+
+
+
+param2.iheat <- function(mesh.space,
+                         mesh.time,
+                         gamma.E = NULL,
+                         alpha.E = NULL,
+                         theta.prior.mean = NULL,
+                         theta.prior.prec = NULL)
+{
+    return(list(gamma.E=gamma.E,
+                alpha.E=alpha.E,
+                theta.prior.mean=theta.prior.mean,
+                theta.prior.prec=theta.prior.prec))
+}
+
+inla.spde2.iheat =
+    function(mesh.space,
+             mesh.time,
+             order=2,
+             param = NULL,
+             constr = FALSE,
+             extraconstr.int = NULL,
+             extraconstr = NULL,
+)
+{
+    ## order=1:
+    ## gamma.t dot(u) + Laplacian (u) = E
+    ##
+    ## order=2:
+    ## gamma.t dot(u) + Laplacian (u) = v
+    ## gamma.t dot(v) + Laplacian (v) = E
+    ##
+    ## (1 - gamma.E Laplacian)^(alpha.E/2) (tau E) = W
+    ## gamma.E and alpha.E known
+
+    inla.require.inherits(mesh.space, c("inla.mesh", "inla.mesh.1d"),
+                          "'mesh.space'")
+    inla.require.inherits(mesh.time, c("inla.mesh.1d"),
+                          "'mesh.time'")
+
+    if (is.null(param)) {
+        param =
+            param2.iheat(
+                mesh.space, mesh.time,
+                theta.prior.mean,
+                theta.prior.prec)
+    }
+
+    d.space = inla.ifelse(inherits(mesh.space, "inla.mesh.1d"), 1, 2)
+    d.time = 1
+    n.space = inla.ifelse(d.space==2, mesh.space$n, mesh.space$m)
+    n.time = mesh.time$m
+    n.spde = n.space*n.time
+    n.theta = 2L ## tau, gamma.t
+
+    if (d.space==2) {
+        fem.space = inla.mesh.fem(mesh.space$loc, 2)
+    } else {
+        fem.space = inla.mesh.1d.fem(mesh.space)
+        if (mesh.space$degree==2) {
+            fem.space$c0 = fem.space$c1 ## Use higher order matrix.
+        }
+    }
+    fem.time = inla.mesh.1d.fem(mesh.time)
+    if (mesh.time$degree==2) {
+        fem.time$c0 = fem.time$c1 ## Use higher order matrix.
+    }
+
+    ## TODO: the rest
 
     if (alpha==2) {
         B.phi0 = param$B.tau
@@ -785,11 +953,6 @@ inla.spde2.models = function()
 ## spde.common-connections:
 inla.spde.precision.inla.spde2 = inla.spde2.precision
 inla.spde.result.inla.spde2 = inla.spde2.result
-
-
-##inla.spde.create(mesh, model=list("matern"), ...)
-##inla.spde.create(mesh, model=list("heat", Qw=..., t=...), ...)
-##inla.spde.create(mesh, model=list("imatern"), ...)
 
 
 ## Deprecated:
