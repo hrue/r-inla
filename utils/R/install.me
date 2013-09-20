@@ -110,7 +110,7 @@ old="$tgzINLA-$bdate"
 if [ $# -ge 1 -a "$1" == "1" ]; then
     cp -v $tgzINLA $www/INLA.tgz
     cp -v $zipINLA $www/INLA.zip
-    cp -v $SRC     INLA-source.tgz
+    cp -v $SRC     $www/INLA-source.tgz
     cp -v $tgzINLA $OldDir/$old
     cp -v $tgzINLA $www/testing/INLA.tgz
     cp -v $zipINLA $www/testing/INLA.zip
