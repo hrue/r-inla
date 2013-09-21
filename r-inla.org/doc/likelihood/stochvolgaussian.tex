@@ -20,7 +20,7 @@ where
 
 \subsection*{Link-function}
 
-The squared scale parameter $\sigma$ is linked to the linear predictor
+The squared of the scale parameter $\sigma$ is linked to the linear predictor
 $\eta$ as:
 \[
 \sigma^{2} =\exp(\eta) + 1/\tau
@@ -35,7 +35,8 @@ This likelihood has one hyperparmeter
 \end{displaymath}
 and the prior is defined on $\theta$.
 
-See \texttt{Notes} for more info about the possible offset in the variance.
+See \texttt{Notes} for more info about the possible offset in the
+variance, as default $1/\tau=0$ and fixed.
 
 \subsection*{Specification}
 
@@ -71,8 +72,9 @@ result=inla(formula,family="stochvol",data=data)
 
 \subsection*{Notes}
 
-The default confiuration fixed $\theta$ so that $\tau=0$.  If $\theta$
-is random, then you must also set a reasonable initial value.
+The default setting treat $\theta$ as fixed and with an initial value
+so that $1/\tau=0$.  If $\theta$ is random, then you \emph{must} also
+give it a reasonable initial value.
 
 
 
