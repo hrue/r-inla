@@ -4200,7 +4200,31 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `stochvol'.}{Number of hyperparmeters are 0.
+				\item{Model `stochvol'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`500'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.005'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`stochvolgaussian'}
+							 }
+						 }
+					 }
 				 }
 				\item{Model `stochvolt'.}{Number of hyperparmeters are 1.
 					 \describe{

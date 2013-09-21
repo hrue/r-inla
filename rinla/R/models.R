@@ -3439,6 +3439,16 @@
 
               stochvol = list(
                       hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 500,  ## yes, this is correct
+                                      fixed = TRUE,   ## yes, this is correct
+                                      prior = "loggamma",
+                                      param = c(1, 0.005),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
                               ),
                       survival = FALSE,
                       discrete = FALSE,

@@ -11,7 +11,7 @@
 The Gaussian likelihood for stochastic volatility models is defined
 as:
 \[
-\pi(y |\eta )=\sigma \epsilon
+y |\ldots =\sigma \epsilon
 \]
 where
 \[
@@ -23,12 +23,19 @@ where
 The squared scale parameter $\sigma$ is linked to the linear predictor
 $\eta$ as:
 \[
-\sigma^{2} =\exp(\eta)
+\sigma^{2} =\exp(\eta) + 1/\tau
 \]
+where $1/\tau$ is an possible offset in the variance.
 
 \subsection*{Hyperparameters}
 
-None
+This likelihood has one hyperparmeter
+\begin{displaymath}
+    \theta = \log(\tau)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+See \texttt{Notes} for more info about the possible offset in the variance.
 
 \subsection*{Specification}
 
@@ -64,7 +71,9 @@ result=inla(formula,family="stochvol",data=data)
 
 \subsection*{Notes}
 
-None
+The default confiuration fixed $\theta$ so that $\tau=0$.  If $\theta$
+is random, then you must also set a reasonable initial value.
+
 
 
 \end{document}
