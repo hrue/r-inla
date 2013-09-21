@@ -2,6 +2,19 @@
 %% This file is generated automatically from models.R
 \begin{description}
 	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[initial] 500
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 1 0.005
+	 	 	\item[to.theta] \verb|function(x) log(x)|
+	 	 	\item[from.theta] \verb|function(x) exp(x)|
+	 	 \end{description}
+	 \end{description}
 	\item[survival] FALSE
 	\item[discrete] FALSE
 	\item[link] default log
