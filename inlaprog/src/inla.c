@@ -5725,7 +5725,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
-	 * y ~ N(0, var = exp(x)) 
+	 * y ~ N(0, var = exp(x) + 1/tau) 
 	 */
 	int i;
 
@@ -5734,16 +5734,19 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 	}
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], var;
+	double tau = map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double var_offset;
 
 	LINK_INIT;
+	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0/tau);
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR(y) / var;
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
-			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi(ABS(y) / sqrt(var)));
 		}
 	}
@@ -10002,6 +10005,54 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			Free(from_theta);
 			Free(to_theta);
 			Free(ctmp);
+		}
+		break;
+	}
+
+	case L_STOCHVOL:
+	{
+		/*
+		 * get options related to the stochvol; the log-offset in the variance
+		 */
+		double initial_value = 500.0;
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1); /* yes, default fixed */
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log.offset[%g]\n", ds->data_observations.log_offset_prec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log offset precision for stochvol", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Offset precision for stochvol", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
 		}
 		break;
 	}
@@ -17388,6 +17439,18 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 			}
+
+			case L_STOCHVOL:
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is
+					 * included in the likelihood function. this is the offset precision
+					 */
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
 
 			case L_STOCHVOL_T:
 				if (!ds->data_fixed) {

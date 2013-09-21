@@ -194,6 +194,11 @@ typedef struct {
 	double *strata_tstrata;				       /* strata_t (type int) */
 
 
+	/* 
+	 * stocvol
+	 */
+	double **log_offset_prec;
+	
 	/*
 	 * stochvol_t: y ~ Student-t_dof (x) with Variance=1. dof_intern_svt = log(dof - 2).
 	 */
