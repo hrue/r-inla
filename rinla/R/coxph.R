@@ -1,29 +1,36 @@
 ## Export: inla.coxph
+## Export: inla.cbind.data.frames
 
 ##! \name{inla.coxph}
+##! \name{inla.cbind.data.frames}
 ##! \alias{inla.coxph}
+##! \alias{inla.cbind.data.frames}
 ##! \alias{coxph}
+##! \alias{cbind.data.frames}
 ##! 
 ##! \title{Convert a Cox proportional hazard model into Poisson regression}
 ##! 
-##! \description{This function is used to convert manually a Cox proportional hazard model into Poisson regression}
+##! \description{Tools to convert manually a Cox proportional hazard model into Poisson regression}
 ##! \usage{
 ##!     inla.coxph(formula, data, control.hazard = list())
+##!     inla.cbind.data.frames(...)
 ##! }
 ##! 
 ##! \arguments{
 ##!   \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
 ##!   \item{data}{All the data used in the formula,  as a list.}
-##!   \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}}
+##!   \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
+##!   \item{...}{Data.frames to be cbind-ed,  padding with NA's.}
 ##!}
 ##!\value{
-##!      A list of new expanded variables to be used in the \code{inla}-call.
+##!      \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
+##!      \code{inla.cbind.data.frames} returns a new data.frame.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! 
 ##!\examples{
-##!n = 1000
-##!x = runif(n)
+##!n = 100
+##!x = runif(n) 
 ##!lambda = exp(1+x)
 ##!y = rexp(n, rate=lambda)
 ##!event = rep(1,n)
@@ -37,6 +44,23 @@
 ##!        E = p$E,
 ##!        .internal = p$.internal)
 ##!summary(model)
+##!
+##!## joint model
+##!interc2 = rep(1, n)
+##!y = 1 + x + rnorm(n, sd=0.1)
+##!df = data.frame(interc2, x, y)
+##!
+##!df.joint = inla.cbind.data.frames(p$data, df)
+##!Y = cbind(df.joint$y..coxph, df.joint$y)
+##!df.joint = as.list(df.joint)
+##!df.joint$Y = Y
+##!formula = update(p$formula, Y ~ interc2 -1 + .)
+##!
+##!rr = inla(formula,
+##!        family = c("poisson", "gaussian"),
+##!        data = df.joint,
+##!        E = df.joint$E,
+##!        .internal = p$.internal)
 ##!}
 
 `inla.coxph` = function(formula, data, control.hazard = list())
@@ -96,8 +120,13 @@
         }
     }
     
+    ##if -1 the intercept is not included
+    intercept = inla.ifelse(attr(terms(formula), "intercept") == 0, FALSE, TRUE)
+
     f.hazard = paste(
-            "~ . + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
+            "~",
+            inla.ifelse(intercept, "1 +", "-1 +"), 
+            ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
             inla.ifelse(!is.null(baseline.hazard.values),
                                inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
             ", hyper = ", enquote(cont.hazard$hyper),
@@ -105,7 +134,7 @@
             ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
             inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
             ")", sep="")[2L]
-
+    
     new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
     
     return (list(formula = new.formula, 
@@ -113,4 +142,63 @@
                  family = "poisson", 
                  E = res$data$E..coxph, 
                  .internal = list(baseline.hazard.cutpoints = res$cutpoints)))
+}
+
+`inla.cbind.data.frames` = function(...)
+{
+    ## cbind data.frames padding with NA
+
+    cbind.two.data.frames = function(df1, df2)
+    {
+        df = NULL
+        nr1 = nrow(df1)
+        nr2 = nrow(df2)
+        nams = sort(unique(c(names(df1), names(df2))), decreasing=TRUE)
+        
+        for(nam in nams) {
+            if (nam %in% names(df1)) {
+                idx = which(names(df1) %in% nam)
+                if (nam %in% names(df)) {
+                    idxx = which(names(df) %in% nam)
+                    df[1:nr1, idxx] = df1[1:nr1, idx]
+                } else {
+                    if (!is.null(df)) {
+                        df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)), df)
+                    } else {
+                        df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)))
+                    }
+                    names(df)[1] = nam
+                }
+            }
+            if (nam %in% names(df2)) {
+                idx = which(names(df2) %in% nam)
+                if (nam %in% names(df)) {
+                    idxx = which(names(df) %in% nam)
+                    df[nr1 + 1:nr2, idxx] = df2[1:nr2, idx]
+                } else {
+                    if (!is.null(df)) {
+                        df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]), df)
+                    } else {
+                        df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]))
+                    }
+                    names(df)[1] = nam
+                }
+            }
+        }
+
+        return (df)
+    }
+
+    args = list(...)
+    stopifnot(length(args) >= 2L)
+
+    for(i in 2L:length(args)) {
+        if (i == 2L) {
+            df = cbind.two.data.frames(args[[1]], args[[2]])
+        } else {
+            df = cbind.two.data.frames(df, args[[i]])
+        }
+    }
+
+    return (df)
 }
