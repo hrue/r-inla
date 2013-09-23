@@ -131,7 +131,7 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
 	log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
 
-#define PENALTY (-100.0)					       /* wishart3d: going over limit... */
+#define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
 #define READ(fd, buf, num, type)					\
 	if (1) {							\
@@ -1039,22 +1039,20 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 
 	if (!cov) {
 		char *msg;
-		GMRFLib_sprintf(&msg,
-				"You need to pass the covariates to the link.model[logoffset] in the inla()-argument 'link.covariates'");
+		GMRFLib_sprintf(&msg, "You need to pass the covariates to the link.model[logoffset] in the inla()-argument 'link.covariates'");
 		inla_error_general(msg);
 		exit(1);
 	}
 	if (cov[0] < 0.0) {
 		char *msg;
-		GMRFLib_sprintf(&msg,
-				"The covariates to link.model[logoffset] must be all >= 0.0. Yours is [%g].", cov[0]);
+		GMRFLib_sprintf(&msg, "The covariates to link.model[logoffset] must be all >= 0.0. Yours is [%g].", cov[0]);
 		inla_error_general(msg);
 		exit(1);
 	}
 
 	p = (Link_param_tp *) param;
 	beta = exp(p->beta_intern[GMRFLib_thread_id][0]);
-	off = beta*cov[0];
+	off = beta * cov[0];
 
 	switch (typ) {
 	case MAP_FORWARD:
@@ -1554,9 +1552,9 @@ double Qfunc_slm(int i, int j, void *arg)
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rho_std = map_probability(a->logit_rho[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rho = a->rho_min + rho_std * (a->rho_max - a->rho_min);
-	
+
 	if (0) {
-		if (i == j && i == 0){
+		if (i == j && i == 0) {
 			printf("log_prec %.12f  logit_rho %.12f\n", a->log_prec[GMRFLib_thread_id][0], a->logit_rho[GMRFLib_thread_id][0]);
 		}
 	}
@@ -5738,7 +5736,7 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 	double var_offset;
 
 	LINK_INIT;
-	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0/tau);
+	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0 / tau);
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
@@ -10017,7 +10015,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		double initial_value = 500.0;
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1); /* yes, default fixed */
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 1);	/* yes, default fixed */
 		if (!ds->data_fixed && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
@@ -11404,7 +11402,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-		**mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0;
+	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -13605,7 +13603,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
-			
+
 			mb->theta[mb->ntheta] = rho_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
@@ -14841,10 +14839,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, slm_n + slm_m, NULL, NULL, NULL);
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_C, &graph_C, Cm, slm_n + slm_m, NULL, NULL, NULL);
 
-		//FIXME("Matrix A1");
-		//GMRFLib_print_Qfunc(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
-		//exit(0);
-		
+		// FIXME("Matrix A1");
+		// GMRFLib_print_Qfunc(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
+		// exit(0);
+
 		gs[0] = graph_A1;
 		gs[1] = graph_A2;
 		gs[2] = graph_B;
@@ -16795,7 +16793,7 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 double extra(double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0;
-	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt, logit_rho, 
+	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0;
 
@@ -18407,7 +18405,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			GMRFLib_evaluate(problem[i]);
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
-		
+
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
@@ -21646,7 +21644,8 @@ int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta)
 	return INLA_OK;
 #undef EXIT_READ_FAIL
 }
-int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg,
+			GMRFLib_transform_array_func_tp * tfunc)
 {
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -21656,7 +21655,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		*d_mean = density->user_mean;
 		*d_stdev = density->user_stdev;
 		*d_mode = density->user_mode;
-		
+
 		return GMRFLib_SUCCESS;
 	}
 #define MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
@@ -21679,7 +21678,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 	double tlogdens, tlogdens_max = NAN;
 	int idx_tlogdens_max = -1;
-	
+
 	work = Calloc(2 * npm, double);
 	xpm = work;
 	ldm = work + npm;
@@ -21708,11 +21707,11 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		sum[1] += d * w[k] * fval;
 		sum[2] += d * w[k] * SQR(fval);
 
-		/* 
+		/*
 		 * extract the mode
 		 */
 		tlogdens = TRANSFORMED_LOGDENS(xx_local, ldm[i]);
-		if (idx_tlogdens_max < 0 || tlogdens > tlogdens_max){
+		if (idx_tlogdens_max < 0 || tlogdens > tlogdens_max) {
 			idx_tlogdens_max = i;
 			tlogdens_max = tlogdens;
 		}
@@ -21730,7 +21729,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 	*d_mean = sum[1] / sum[0];
 	*d_stdev = sqrt(DMAX(0.0, sum[2] / sum[0] - SQR(*d_mean)));
 
-	/* 
+	/*
 	 * adjust the  mode. use a 2.order polynomial
 	 *
 	 * > ans := solve({ a+b*x0+c*x0^2=d0, a+b*x1+c*x1^2=d1,a+b*x2+c*x2^2=d2}, [a,b,c]):
@@ -21740,22 +21739,22 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 	 * > simplify(-b/(2*c));
 	 *         2        2        2        2        2        2
 	 *    d0 x1  - d0 x2  - d1 x0  + d1 x2  + d2 x0  - d2 x1
-         *    ---------------------------------------------------
-         *      2 (d0 x1 - d0 x2 - d1 x0 + d1 x2 + d2 x0 - d2 x1)
+	 *    ---------------------------------------------------
+	 *      2 (d0 x1 - d0 x2 - d1 x0 + d1 x2 + d2 x0 - d2 x1)
 	 */
 
 	double xx[3], tld[3];
 
-	idx_tlogdens_max = IMAX(1, IMIN(npm-2, idx_tlogdens_max)); /* so that we can do interpolation */
-	for(k = 0; k < 3; k++){
+	idx_tlogdens_max = IMAX(1, IMIN(npm - 2, idx_tlogdens_max));	/* so that we can do interpolation */
+	for (k = 0; k < 3; k++) {
 		i = idx_tlogdens_max - 1 + k;
 		xx[k] = GMRFLib_density_std2user(xpm[i], density);
 		tld[k] = TRANSFORMED_LOGDENS(xx[k], ldm[i]);
 		xx[k] = MAP_X(xx[k]);			       /* need it in the transformed scale */
 	}
 	*d_mode = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
-		   tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) / (
-			   tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] + tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
+		   tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) / (tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] +
+												tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
 
 	Free(work);
 #undef MAP_X
@@ -23186,13 +23185,13 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-	
+
 	while (!ok) {
 		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 		{
-			for (i = 0; i < n; i++){
+			for (i = 0; i < n; i++) {
 				c[i] *= 10.0;
 			}
 			problem = NULL;
@@ -23419,6 +23418,54 @@ int testit(int argc, char **argv)
 	exit(EXIT_SUCCESS);
 }
 
+double inla_jpd(double *theta, inla_jpd_tp * arg)
+{
+	typedef struct {
+		int ntheta;
+		double *theta_mode;
+		double *stdev_corr_pos;
+		double *stdev_corr_neg;
+		gsl_vector *sqrt_eigen_values;
+		gsl_matrix *eigen_vectors;
+	} inla_jpd_tp;
+
+
+	/*
+	 * joint posterior for theta
+	 */
+
+	int i;
+	double value = 0.0, sd, log_nc = 0.0, jpd, *z;
+
+	z = Calloc(arg->ntheta, double);
+	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);
+
+	for (i = 0; i < arg->ntheta; i++) {
+		if (arg->stdev_corr_pos && arg->stdev_corr_neg) {
+			sd = (z[i] > 0 ? arg->stdev_corr_pos[i] : arg->stdev_corr_neg[i]);
+		} else {
+			sd = 1.0;
+		}
+		value += -0.5 * SQR(z[i] / sd);
+	}
+
+	/*
+	 * this is the normalizing constant
+	 */
+	log_nc += 0.5 * arg->ntheta * log(2.0 * M_PI);
+	for (i = 0; i < arg->ntheta; i++) {
+		log_nc += 0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)) +
+				 0.5 * (log(SQR(arg->stdev_corr_pos[i])) + log(SQR(arg->stdev_corr_neg[i]))));
+	}
+
+	/*
+	 * and then the log-joint-posterior-density
+	 */
+	jpd = value - log_nc;
+
+	Free(z);
+	return jpd;
+}
 int main(int argc, char **argv)
 {
 #define USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
