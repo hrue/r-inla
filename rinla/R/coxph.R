@@ -1,4 +1,4 @@
-##! Export: inla.coxph
+## Export: inla.coxph
 
 ##! \name{inla.coxph}
 ##! \alias{inla.coxph}
@@ -8,13 +8,13 @@
 ##! 
 ##! \description{This function is used to convert manually a Cox proportional hazard model into Poisson regression}
 ##! \usage{
-##!     inla.coxph(formula, data, control.hazard)
+##!     inla.coxph(formula, data, control.hazard = list())
 ##! }
 ##! 
 ##! \arguments{
 ##!   \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
 ##!   \item{data}{All the data used in the formula,  as a list.}
-##!   \item{control.hazard}{Control the model for the baseline-hazard.}
+##!   \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}}
 ##!}
 ##!\value{
 ##!      A list of new expanded variables to be used in the \code{inla}-call.
@@ -39,7 +39,7 @@
 ##!summary(model)
 ##!}
 
-`inla.coxph` = function(formula, data, control.hazard)
+`inla.coxph` = function(formula, data, control.hazard = list())
 {
     ## convert a coxph-model into poisson-regression and return a new
     ## data-list with the expand variables and new variables to use in
@@ -63,8 +63,6 @@
         stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
                    class(y.surv), "'", sep=""))
     }
-    if (missing(control.hazard))
-        control.hazard = list()
     control.hazard = inla.check.control(control.hazard, data)
     cont.hazard = inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] = control.hazard
@@ -108,8 +106,8 @@
             inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
             ")", sep="")[2L]
 
-    new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ . )
-
+    new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
+    
     return (list(formula = new.formula, 
                  data = res$data,
                  family = "poisson", 
