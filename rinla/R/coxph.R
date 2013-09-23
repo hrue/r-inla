@@ -8,7 +8,7 @@
 ##! 
 ##! \description{This function is used to convert manually a Cox proportional hazard model into Poisson regression}
 ##! \usage{
-##!     inla.coxph(formula, data, control.hazard = list())
+##!     inla.coxph(formula, data, control.hazard)
 ##! }
 ##! 
 ##! \arguments{
@@ -39,7 +39,7 @@
 ##!summary(model)
 ##!}
 
-`inla.coxph` = function(formula, data, control.hazard = list())
+`inla.coxph` = function(formula, data, control.hazard)
 {
     ## convert a coxph-model into poisson-regression and return a new
     ## data-list with the expand variables and new variables to use in
@@ -63,6 +63,8 @@
         stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
                    class(y.surv), "'", sep=""))
     }
+    if (missing(control.hazard))
+        control.hazard = list()
     control.hazard = inla.check.control(control.hazard, data)
     cont.hazard = inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] = control.hazard
@@ -74,9 +76,9 @@
     }
 
     idx = min(which(names(res$data) %in% ".y.surv"))
-    names(res$data)[idx] = "y.poisson"
+    names(res$data)[idx] = "y..coxph"
     idx = min(which(names(res$data) %in% ".E"))
-    names(res$data)[idx] = "E.poisson"
+    names(res$data)[idx] = "E..coxph"
 
     if (!is.null(cont.hazard$cutpoints)) {
         baseline.hazard.values = seq(1, length(cont.hazard$cutpoints)-1)
@@ -106,11 +108,11 @@
             inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
             ")", sep="")[2L]
 
-    new.formula = update(update(formula, as.formula(f.hazard)), y.poisson ~ . ),     
-    return (list(
-        formula = new.formula, 
-        data = res$data,
-        family = "poisson", 
-        E = res$data$E.poisson, 
-        .internal = list(baseline.hazard.cutpoints = res$cutpoints)))
+    new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ . )
+
+    return (list(formula = new.formula, 
+                 data = res$data,
+                 family = "poisson", 
+                 E = res$data$E..coxph, 
+                 .internal = list(baseline.hazard.cutpoints = res$cutpoints)))
 }

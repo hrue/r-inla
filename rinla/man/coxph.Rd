@@ -11,7 +11,7 @@
  
  \description{This function is used to convert manually a Cox proportional hazard model into Poisson regression}
  \usage{
-     inla.coxph(formula, data, control.hazard = list())
+     inla.coxph(formula, data, control.hazard)
  }
  
  \arguments{
