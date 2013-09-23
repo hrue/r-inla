@@ -1,6 +1,6 @@
 ## Nothing to export from here
 
-`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
+`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default(), suffix="")
 {
     n.intervals = control.hazard$n.intervals
     cutpoints = control.hazard$cutpoints
@@ -28,6 +28,10 @@
         new.dataframe = as.data.frame(matrix(0.0, length(new.data$y), dim(dataframe)[2L]))
         for(i in 1L:dim(dataframe)[2L])
             new.dataframe[, i] = rep(dataframe[, i], expand)
+
+        ## alternative code,  not faster...
+        ## new.dataframe = apply(dataframe, 2, rep, times = expand)  
+
         new.dataframe = as.data.frame(new.dataframe)
         ## just give some name that we are able to recognise afterwards
         names(new.dataframe) = paste("fake.dataframe.names", 1L:dim(new.dataframe)[2L])

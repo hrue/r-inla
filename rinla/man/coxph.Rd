@@ -11,7 +11,7 @@
  
  \title{Convert a Cox proportional hazard model into Poisson regression}
  
- \description{Tools to convert manually a Cox proportional hazard model into Poisson regression}
+ \description{Tools to convert a Cox proportional hazard model into Poisson regression}
  \usage{
      inla.coxph(formula, data, control.hazard = list())
      inla.cbind.data.frames(...)
@@ -30,6 +30,7 @@
 \author{Havard Rue \email{hrue@math.ntnu.no}}
  
 \examples{
+## Standard example of how to convert a coxph into a Poisson regression
 n = 100
 x = runif(n) 
 lambda = exp(1+x)
@@ -37,8 +38,7 @@ y = rexp(n, rate=lambda)
 event = rep(1,n)
 data = list(y=y, event=event, x=x)
 y.surv = inla.surv(y, event)
-p = inla.coxph(yy.surv ~ x,
-        list(y.surv = y.surv,  x=x))
+p = inla.coxph(yy.surv ~ x, list(y.surv = y.surv,  x=x))
 model = inla(p$formula, 
         family = p$family, 
         data=p$data,
@@ -46,17 +46,21 @@ model = inla(p$formula,
         .internal = p$.internal)
 summary(model)
 
-## joint model
+## Doing it manually makes it possible to do a coxph model
+## jointly with other models
 interc2 = rep(1, n)
 y = 1 + x + rnorm(n, sd=0.1)
 df = data.frame(interc2, x, y)
 
 df.joint = inla.cbind.data.frames(p$data, df)
+## Make the new respose
 Y = cbind(df.joint$y..coxph, df.joint$y)
+## Add it to the data.frame which must now become a list
 df.joint = as.list(df.joint)
 df.joint$Y = Y
+## Add the second model into the formula
 formula = update(p$formula, Y ~ interc2 -1 + .)
-
+## And we're done...
 rr = inla(formula,
         family = c("poisson", "gaussian"),
         data = df.joint,

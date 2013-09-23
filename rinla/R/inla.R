@@ -640,7 +640,7 @@
         result$call.orig = deparse(match.call())
         return (result)
     }
-
+    
     ## this is nice hack ;-) we keep the original response. then we
     ## delete it from 'data' keeping a copy of the original one
     y...orig = eval(parse(text=formula[2]), data)
