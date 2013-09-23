@@ -2,7 +2,6 @@
 ## Export: inla.cbind.data.frames
 
 ##!\name{inla.coxph}
-##!\name{inla.cbind.data.frames}
 ##!\alias{inla.coxph}
 ##!\alias{inla.cbind.data.frames}
 ##!\alias{coxph}
