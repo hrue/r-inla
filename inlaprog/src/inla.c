@@ -6609,7 +6609,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->gaussian_data = GMRFLib_TRUE;
 
 	/*
-	 * ...then parse the sections in this order: EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, OUTPUT
+	 * ...then parse the sections in this order: EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
 	 * 
 	 * it is easier to do it like this, instead of insisting the user to write the section in a spesific order.
 	 * 
@@ -6739,7 +6739,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		Free(sectype);
 	}
 
-
 	inla_add_copyof(mb);
 
 	/*
@@ -6755,6 +6754,24 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			found++;
 			sec_read[sec] = 1;
 			inla_parse_linear(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
+	 * type = UPDATE
+	 */
+	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "UPDATE")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[UPDATE]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_update(mb, ini, sec, make_dir);
 		}
 		Free(secname);
 		Free(sectype);
@@ -6819,6 +6836,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		Free(secname);
 		Free(sectype);
 	}
+
 
 	/*
 	 * type = lincomb
@@ -16733,6 +16751,89 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	return INLA_OK;
 }
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
+{
+	/*
+	 * parse section = UPDATE
+	 */
+	int i, j, k;
+	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL;
+	double tmp, tmp_ref;
+	GMRFLib_matrix_tp *M = NULL;
+	
+	if (mb->verbose) {
+		printf("\tinla_parse_update...\n");
+	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FILENAME"), NULL));
+	if (mb->verbose) {
+		printf("\t\tfilename[%s]\n", filename);
+	}
+
+	if (filename){
+		M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		mb->update = Calloc(1, inla_update_tp);
+
+		int i = 0, j = 0, nt, k, kk;
+		
+		mb->update->ntheta = nt = (int) GMRFLib_matrix_get(i++, j, M);
+		if (mb->verbose){
+			printf("\t\tntheta = %1d\n", nt);
+		}
+
+		mb->update->theta_mode = Calloc(nt, double);
+		for(k = 0; k<nt; k++){
+			mb->update->theta_mode[k] = GMRFLib_matrix_get(i++, j, M);
+			if (mb->verbose){
+				printf("\t\ttheta.mode[%1d] = %.10g\n", k, mb->update->theta_mode[k]);
+			}
+		}
+		mb->update->stdev_corr_pos = Calloc(nt, double);
+		for(k = 0; k<nt; k++){
+			mb->update->stdev_corr_pos[k] = GMRFLib_matrix_get(i++, j, M);
+			if (mb->verbose){
+				printf("\t\tstdev.corr.pos[%1d] = %.10g\n", k, mb->update->stdev_corr_pos[k]);
+			}
+		}
+		mb->update->stdev_corr_neg = Calloc(nt, double);
+		for(k = 0; k<nt; k++){
+			mb->update->stdev_corr_neg[k] = GMRFLib_matrix_get(i++, j, M);
+			if (mb->verbose){
+				printf("\t\tstdev.corr.neg[%1d] = %.10g\n", k, mb->update->stdev_corr_neg[k]);
+			}
+		}
+		mb->update->sqrt_eigen_values = gsl_vector_calloc((size_t) nt);
+		for(k = 0; k<nt; k++){
+			gsl_vector_set(mb->update->sqrt_eigen_values, k, GMRFLib_matrix_get(i++, j, M));
+			if (mb->verbose){
+				printf("\t\tsqrt.eigen.values[%1d] = %.10g\n", k,
+				       gsl_vector_get(mb->update->sqrt_eigen_values, k));
+			}
+		}
+		mb->update->eigen_vectors = gsl_matrix_calloc((size_t) nt, (size_t) nt);
+		for(kk = 0; kk<nt; kk++){
+			for(k = 0; k<nt; k++){
+				/* 
+				 * column based storage...
+				 */
+				gsl_matrix_set(mb->update->eigen_vectors, k, kk, GMRFLib_matrix_get(i++, j, M));
+				if (mb->verbose){
+					printf("\t\teigenvectors[%1d,%1d] = %.10g\n", k, kk, 
+					       gsl_matrix_get(mb->update->eigen_vectors, k, kk));
+				}
+			}
+		}
+		assert(1 == M->ncol);
+		assert(i == M->nrow);
+		GMRFLib_matrix_free(M);
+	}
+	
+	return INLA_OK;
+}
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -16792,7 +16893,8 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 
 double extra(double *theta, int ntheta, void *argument)
 {
-	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0;
+	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0, evaluate_hyper_prior = 1;
+
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0;
@@ -16909,10 +17011,19 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 
 
+	mb = (inla_tp *) argument;
+
+	/* 
+	 * this will evaluate all the hyperparameters and disable EVAL_PRIOR...
+	 */
+	if (mb->update){
+		val += inla_update_density(theta, mb->update);
+		evaluate_hyper_prior = 0;
+	}
+
 	/*
 	 * this is for the linear predictor
 	 */
-	mb = (inla_tp *) argument;
 	if (!mb->predictor_fixed) {
 		log_precision = theta[count];
 		count++;
@@ -23418,24 +23529,14 @@ int testit(int argc, char **argv)
 	exit(EXIT_SUCCESS);
 }
 
-double inla_jpd(double *theta, inla_jpd_tp * arg)
+double inla_update_density(double *theta, inla_update_tp * arg)
 {
-	typedef struct {
-		int ntheta;
-		double *theta_mode;
-		double *stdev_corr_pos;
-		double *stdev_corr_neg;
-		gsl_vector *sqrt_eigen_values;
-		gsl_matrix *eigen_vectors;
-	} inla_jpd_tp;
-
-
 	/*
 	 * joint posterior for theta
 	 */
 
 	int i;
-	double value = 0.0, sd, log_nc = 0.0, jpd, *z;
+	double value = 0.0, sd, log_nc = 0.0, update_dens, *z;
 
 	z = Calloc(arg->ntheta, double);
 	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);
@@ -23461,10 +23562,10 @@ double inla_jpd(double *theta, inla_jpd_tp * arg)
 	/*
 	 * and then the log-joint-posterior-density
 	 */
-	jpd = value - log_nc;
+	update_dens = value - log_nc;
 
 	Free(z);
-	return jpd;
+	return update_dens;
 }
 int main(int argc, char **argv)
 {

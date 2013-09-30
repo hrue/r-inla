@@ -37,6 +37,7 @@ inla(
     control.expert = list(),
     control.hazard = list(),
     control.lincomb = list(),
+    control.update = list(), 
     only.hyperparam = FALSE,
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
@@ -140,6 +141,7 @@ how to define such linear combinations.}
 \item{control.expert}{ See \code{?control.expert}}
 \item{control.hazard}{ See \code{?control.hazard}}
 \item{control.lincomb}{ See \code{?control.lincomb}}
+\item{control.update}{ See \code{?control.update}}
 \item{only.hyperparam}{ A boolean variable saying if
 only the hyperparameters should be computed. This option is mainly used
 internally. (TODO: This option should not be located here,  change it!)}

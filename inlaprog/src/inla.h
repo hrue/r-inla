@@ -483,9 +483,11 @@ typedef struct {
 /* 
    This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
  */
-#define PRIOR_EVAL(p_, arg_) ((p_).priorfunc ?				\
-			      (p_).priorfunc(arg_, (p_).parameters)  :	\
-			      inla_eval((p_).expression, arg_))
+#define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior? \
+			      ((p_).priorfunc ?				\
+			       (p_).priorfunc(arg_, (p_).parameters)  : \
+			       inla_eval((p_).expression, arg_)) \
+			      : 0.0)
 
 typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *tab;
@@ -619,6 +621,14 @@ typedef struct {
 	void *map_beta_arg;
 } inla_copy_arg_tp;
 
+typedef struct {
+	int ntheta;
+	double *theta_mode;
+	double *stdev_corr_pos;
+	double *stdev_corr_neg;
+	gsl_vector *sqrt_eigen_values;
+	gsl_matrix *eigen_vectors;
+} inla_update_tp;
 
 struct inla_tp_struct {
 	/*
@@ -836,6 +846,11 @@ struct inla_tp_struct {
 	 * misc output from INLA() 
 	 */
 	GMRFLib_ai_misc_output_tp *misc_output;
+
+	/* 
+	 * if at use
+	 */
+	inla_update_tp *update;
 };
 
 
@@ -1050,16 +1065,6 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
 
-typedef struct {
-	int ntheta;
-	double *theta_mode;
-	double *stdev_corr_pos;
-	double *stdev_corr_neg;
-	gsl_vector *sqrt_eigen_values;
-	gsl_matrix *eigen_vectors;
-} inla_jpd_tp;
-
-
 
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
@@ -1129,7 +1134,7 @@ double iid_mfunc(int idx, void *arg);
 double inla_Phi(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
-double inla_jpd(double *theta, inla_jpd_tp * arg);
+double inla_update_density(double *theta, inla_update_tp * arg);
 double inla_log_Phi(double x);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
 double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
