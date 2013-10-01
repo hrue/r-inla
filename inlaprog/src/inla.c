@@ -16756,9 +16756,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * parse section = UPDATE
 	 */
-	int i, j, k;
-	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL;
-	double tmp, tmp_ref;
+	char *secname = NULL, *filename = NULL;
 	GMRFLib_matrix_tp *M = NULL;
 	
 	if (mb->verbose) {
