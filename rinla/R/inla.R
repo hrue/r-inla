@@ -520,7 +520,7 @@
         data.tmp = inla.remove(as.character(formula[2]), data)
         data.f = inla.fix.data(data.tmp, len.y.surv)
         ## check for any matrices in data.f
-        if (is.list(data.f)) {
+        if (is.list(data.f) && length(data.f) > 0L) {
             mat.name = names(data.f)[which(sapply(data.f, inla.is.matrix))]
             if (length(mat.name) > 0L)
                 warning(paste(c("'data' contains matrix: ", paste(mat.name, collapse=", ", sep=""),
