@@ -1,13 +1,13 @@
 \chapter{Semicontinuous model to daily rainfall}\label{ch:semic}
 
+
+\SweaveOpts{prefix.string=figs/semicont}
 <<sett,echo=FALSE,results=hide>>=
-options(width=60, prompt = " ", continue = "   ")
-options(width=75)
-require(INLA)
-require(geoR)
+options(width=75, prompt = " ", continue = "   ")
 require(splancs)
+require(INLA)
 require(gridExtra)
-##inla.setOption(inla.call='remote')
+inla.setOption(inla.call='remote')
 @ 
 
 The daily rainfall data is one type of data that 
@@ -131,35 +131,44 @@ first component of the model.
 \section{Fitting the model and some results}
 
 To define a SPDE model we need a mesh. 
-We prepare the mesh using the border coordinates with
-<<>>=
-(mesh <- inla.mesh.create.helper(, PRborder, cutoff=.15,
-                                 max.edge=c(.15, .3), offset=c(.2,.3)))$n
+
+We use the mesh builded for the Paran\'a state on the 
+Chapter~\ref{ch:mesh}. 
+<<echo=F>>=
+load('prmesh2.RData')
 @ 
-Also, we need to prepare the data in 
+The SPDE model definition is made by 
+<<spdedef>>=
+spde <- inla.spde2.matern(prmesh2, alpha=2)
+@ 
+
+We have to prepare the data in 
 addequate form using the stack functionality. 
-First we get the predictor matrix and the indexes
+First we get the predictor matrix with 
 <<A>>=
-A <- inla.spde.make.A(mesh, loc=as.matrix(PRprec[,1:2]))
-ind.z <- inla.spde.make.index(name='iz', n.mesh=mesh$n)
-ind.y <- inla.spde.make.index(name='iy', n.mesh=mesh$n)
+A <- inla.spde.make.A(prmesh2, loc=as.matrix(PRprec[,1:2]))
 @ 
 because we have a $2$ times $n$ data, we need predictor 
 matrix with $2\times n$ rows. Specificaly, 
 we need additional rows with zeros, below \code{A} to 
 first part, and at end of \code{A} to second part. 
+<<a0>>=
+a0 <- Matrix(0, nrow(A), ncol(A))
+@ 
 Also, for the intercept we need a vector with $1$ 
 on first $n$ elements to estimate $\alpha_z$ and 
 $0$ on last $n$ components.
+<<z.beta0>>=
+z.beta0 <- rep(1:0, each=n)
+@ 
 And the referse of this to estimate $\alpha_y$.
-So, we have 
+
+The data stack is defined by 
 <<stack>>=
-a0 <- Matrix(0, nrow(A), ncol(A))
-zIntrcpt <- rep(1:0, each=n)
 stk <- inla.stack(tag='est', data=list(y=Y), 
                   A=list(rBind(A, a0), 1, rBind(a0, A), 1), 
-                  effects=list(ind.z, zIntercept=zIntrcpt, 
-                    ind.y, yIntercept=1-zIntrcpt))
+                  effects=list(i.z=1:spde$n.spde, z.b0=z.beta0, 
+                    i.y=1:spde$n.spde, y.b0=1-z.beta0))
 @ 
 The intercepts here are estimated in same way 
 when we have covariate. In this case, the 
@@ -168,15 +177,13 @@ corresponding to the response unaffected by it.
 So, we have list of effects with length four, 
 the index set of random effect on each response 
 and the intercept on each response. 
-A different way is used on Chapter~\ref{sec:prprec}. 
 
-To fit the model, we define one SPDE model and we 
-make inference to $\beta$ usint the copy of the strategy 
+To fit the model, we make inference to $\beta$ 
+using the copy of the strategy 
 with \code{fixed=FALSE}.
 <<model>>=
-spde <- inla.spde2.matern(mesh, alpha=2)
-res <- inla(y ~ 0 + zIntercept + yIntercept + 
-            f(iz, model=spde) + f(iy, copy='iz', fixed=FALSE), 
+res <- inla(y ~ 0 + z.b0 + y.b0 + 
+            f(i.z, model=spde) + f(i.y, copy='i.z', fixed=FALSE), 
             family=c('binomial', 'gamma'), 
             data=inla.stack.data(stk), control.compute=list(dic=TRUE),
             control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
@@ -213,7 +220,7 @@ effect $x_i$ is shared by $z$ and $y$.
 In other words, the probability of rain occurrence 
 is correlated with the amoung of the rain, 
 like the prefencential sampling 
-problem~\cite{diggleMS:2010}. 
+problem~\cite{diggleetal:2010}. 
 
 We look the posterior marginal distributions 
 of $\alpha_z$, $\alpha_y$, 
@@ -253,11 +260,11 @@ We see on the Figure~\ref{fig:xq} the mean
 and this quantiles for each $x$ in order of 
 the posterior mean, with code below 
 <<xq,eval=F>>=
-ordx <- order(res$summary.random$iz$mean)
+ordx <- order(res$summary.random$i.z$mean)
 par(mar=c(3,3,0.5,0.5), mgp=c(1.5,0.5,0), las=1)
-plot(res$summary.random$iz$mean[ordx], type='l', ylab='x',
-     ylim=range(res$summary.random$iz[, 4:6]))
-for (i in c(4,6)) lines(res$summary.random$iz[ordx,i], lty=2)
+plot(res$summary.random$i.z$mean[ordx], type='l', ylab='x',
+     ylim=range(res$summary.random$i.z[, 4:6]))
+for (i in c(4,6)) lines(res$summary.random$i.z[ordx,i], lty=2)
 abline(h=0, lty=3)
 @ 
 \begin{figure}\centering 
@@ -275,7 +282,7 @@ with $x$ with the DIC of the model without it.
 
 We fit the model without $x$ with
 <<refit>>=
-res0 <- inla(y ~ 0 + zIntercept + yIntercept, 
+res0 <- inla(y ~ 0 + z.b0 + y.b0, 
             family=c('binomial', 'gamma'), 
             data=inla.stack.data(stk), control.compute=list(dic=TRUE),
             control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
@@ -304,7 +311,7 @@ To obtain results for the variance and for the
 practical range we need a post processing.  
 We obtain the marginal distribution for both by
 <<resfield>>=
-res.f <- inla.spde2.result(res, 'iz', spde, do.transf=TRUE)
+res.f <- inla.spde2.result(res, 'i.z', spde, do.transf=TRUE)
 @ 
 The posterior mean for the marginal variance 
 <<mvar>>=
@@ -317,7 +324,8 @@ inla.emarginal(function(x) x, res.f$marginals.range.nominal[[1]])
 
 At the Figure~\ref{fig:xpars} we look the posterior 
 distribution to $\kappa$, $\sigma_x^2$ and of the 
-practical range. 
+practical range. The $\kappa$ and practical range 
+are on degrees units. 
 <<xpars,eval=F>>= 
 par(mfrow=c(1,3), mar=c(3,3.5,0,0), mgp=c(1.5, .5, 0), las=0) 
 plot.default(inla.tmarginal(function(x) exp(x), res$marginals.hy[[3]]), 
@@ -340,14 +348,15 @@ plot.default(res.f$marginals.range.nominal[[1]], type='l',
 Another interesting result is the map of the random field. 
 To get it we use get the projector with
 <<projgrid>>=
+data(PRborder)
 (nxy <- round(c(diff(range(PRborder[,1])), diff(range(PRborder[,2])))/.02))
-projgrid <- inla.mesh.projector(mesh, xlim=range(PRborder[,1]), 
+projgrid <- inla.mesh.projector(prmesh2, xlim=range(PRborder[,1]), 
                                 ylim=range(PRborder[,2]), dims=nxy)
 @ 
 and get the posterior mean and posterior standard deviation with 
 <<projpred>>=
-xmean <- inla.mesh.project(projgrid, res$summary.random$iz$mean)
-xsd <- inla.mesh.project(projgrid, res$summary.random$iz$sd)
+xmean <- inla.mesh.project(projgrid, res$summary.random$i.z$mean)
+xsd <- inla.mesh.project(projgrid, res$summary.random$i.z$sd)
 @ 
 
 To good visualization, we make NA the values corresponding of the 
