@@ -73,8 +73,8 @@
     }
 
     name.y = inla.formula2character(formula[2])
-    tmp = (name.y %in% names(data))
-    if (tmp) {
+    tmp = (names(data) %in% name.y)
+    if (any(tmp)) {
         y.surv = data[[which(tmp)]]
         data[[which(tmp)]] = NULL
     } else {
