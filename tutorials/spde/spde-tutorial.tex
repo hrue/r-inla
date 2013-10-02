@@ -14,6 +14,8 @@
 \newcommand{\bK}{\mbox{\protect \boldmath $K$}}
 \newcommand{\bQ}{\mbox{\protect \boldmath $Q$}}
 \newcommand{\bM}{\mbox{\protect \boldmath $M$}}
+\newcommand{\bU}{\mbox{\protect \boldmath $U$}}
+\newcommand{\bV}{\mbox{\protect \boldmath $V$}}
 
 \newcommand{\bby}{\mbox{\protect \boldmath $y$}}
 \newcommand{\bbu}{\mbox{\protect \boldmath $u$}}
@@ -33,23 +35,31 @@ Suggestions are welcome to \texttt{elias@r-inla.org}}
   to spatial point refered data, the called 
   geostatistical model, using INLA and SPDE. 
   Before a fast introduction on such models, 
-  we start with a toy example to show details. 
+  we start with the mesh building 
+  (necessary to fit the models) and show the application 
+  on a toy example with details. 
   In forward examples we presents some funcionalities 
   to fit more complex models, such as  non-Gaussian,  
-  models with two likelihoods, ... 
+  models with two likelihoods, such as a semi-continuous,  
+  missaligned and preferential sampling, where we model 
+  jointly the point pattern process. Also, we introduce 
+  the non-stationary SPDE models, space-time model, data-cloning.
 \end{abstract} 
+
+\input{updates} 
 
 \tableofcontents
 
-%%% first section (need it on tutoriaḷ?)
-\input{spde-tutorial-introduction}
-\input{spde-tutorial-likelihoodintro}
-%%% next sections are one file each
-\input{spde-tutorial-toy}
-\input{spde-tutorial-rain}
-\input{spde-tutorial-semicontinuous}
-\input{spde-tutorial-jcovar}
-\input{spde-tutorial-nonstationar}
+\input{spde-tutorial-likelihoodintro} 
+\input{spde-tutorial-spde-introduction}
+\input{spde-tutorial-toy} 
+\input{spde-tutorial-rain} 
+\input{spde-tutorial-semicontinuous} 
+\input{spde-tutorial-jcovar} 
+\input{spde-tutorial-nonstationar} 
+\input{spde-tutorial-prefsampl} 
+\input{spde-tutorial-spacetime} 
+\input{spde-tutorial-datacloning} 
 
 \bibliographystyle{apalike}
 \bibliography{spde-tutorial}
