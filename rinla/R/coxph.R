@@ -32,7 +32,7 @@
 ##!event = rep(1,n)
 ##!data = list(y=y, event=event, x=x)
 ##!y.surv = inla.surv(y, event)
-##!p = inla.coxph(yy.surv ~ x, list(y.surv = y.surv,  x=x))
+##!p = inla.coxph(y.surv ~ x, list(y.surv = y.surv,  x=x))
 ##!model = inla(p$formula, 
 ##!        family = p$family, 
 ##!        data=p$data,
@@ -73,8 +73,8 @@
     }
 
     name.y = inla.formula2character(formula[2])
-    tmp = (name.y %in% names(data))
-    if (tmp) {
+    tmp = (names(data) %in% name.y)
+    if (any(tmp)) {
         y.surv = data[[which(tmp)]]
         data[[which(tmp)]] = NULL
     } else {
