@@ -322,7 +322,7 @@
             xx = xx[-is.val]
         }
     }
-browser()
+
     ## just spline-interpolate the inverse mapping
     fq = splinefun(d, xx, method = "monoH.FC")
 
