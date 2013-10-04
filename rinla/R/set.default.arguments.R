@@ -1,4 +1,5 @@
 ## Export: inla.set.control.lincomb.default
+## Export: inla.set.control.update.default
 ## Export: inla.set.control.group.default
 ## Export: inla.set.control.mix.default
 ## Export: inla.set.control.link.default
@@ -13,6 +14,7 @@
 ## Export: inla.set.control.hazard.default
 
 ## Export: control.lincomb
+## Export: control.update
 ## Export: control.group
 ## Export: control.mix
 ## Export: control.link
@@ -30,17 +32,30 @@
 
 ### Defines default arguments
 
+`inla.set.control.update.default` =
+    function(...)
+{
+    ##:EXTRA: 
+    ##:NAME: control.update
+    list(
+        ##:ARGUMENT: result Update the joint posterior for the hyperparameters from result
+        result = NULL
+        )
+    
+    ##:SEEALSO: inla
+}
+
 `inla.set.control.lincomb.default` =
     function(...)
 {
     ##:EXTRA: 
     ##:NAME: control.lincomb
     list(
-         ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
-         precision = 10^9,
+        ##:ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
+        precision = 10^9,
 
-         ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
-         verbose = TRUE)
+        ##:ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
+        verbose = TRUE)
 
     ##:SEEALSO: inla
 }
@@ -669,6 +684,7 @@ inla.make.completion.function = function(...)
 }"))
 }
 
+control.update = inla.make.completion.function(names(inla.set.control.update.default()))
 control.lincomb = inla.make.completion.function(names(inla.set.control.lincomb.default()))
 control.group = inla.make.completion.function(names(inla.set.control.group.default()))
 control.mix = inla.make.completion.function(names(inla.set.control.mix.default()))

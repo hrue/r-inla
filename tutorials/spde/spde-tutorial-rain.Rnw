@@ -1,11 +1,9 @@
-\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec}
+\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{ch:prprec}
 
+\SweaveOpts{prefix.string=figs/rain}
 <<opts,echo=F,results=hide>>=
-options(width=60, prompt = " ", continue = "   ")
-options(width=75)
+options(width=75, prompt = " ", continue = "   ")
 require(INLA)
-require(geoR)
-require(splancs)
 require(gridExtra)
 inla.setOption(inla.call='remote')
 @ 
@@ -20,7 +18,7 @@ All these data are freely available from the ANA website.
 \section{The data set}
 
 It have data on more one thousand of locations within 
-Paran\'a, a state at south of Brazil. 
+Paran\'a state, a state at south of Brazil. 
 We have daily rainfall data on each day of the year 
 2011 on 616 locations, including stations within the 
 Paran\'a state and around its border. 
@@ -30,9 +28,11 @@ and call it with
 <<start,results=hide>>=
 data(PRprec)
 @ 
-We have the coordinates on first two columns, altitude, 
+We have the coordinates at first two columns, 
+altitude at third column  
 and more 365 columns, one for each day with the 
 daily accumulated precipitation. 
+
 We show bellow some data of four stations: 
 the with missing altitude with less latitude, 
 the stations with extremes longitudes and
@@ -67,6 +67,11 @@ accumulated precipitation on January of 2012.
 We compute this covariate with
 <<meanjan>>=
 PRprec$precMean <- rowMeans(PRprec[,3+1:31], na.rm=TRUE)
+@ 
+
+Also we have the Paran\'a state border 
+<<prborder>>=
+data(PRborder)
 @ 
 
 We visualize the locations on 
@@ -142,22 +147,18 @@ left graph at Figure~\ref{fig:paranastations}) and computes
 the distance from each station to the 
 neighbor coordinate of this line. 
 
-Before the distance computation, we do a 
-projection of the \texttt{latlon} coordinates 
-on a projection where the distance units 
-are in Kilometers.
+We compute the distances in Km units 
+using the \code{spDists()} function 
+from \pkg{sp} package 
 <<project>>=
-require(rgdal)
-sprj <- '+proj=utm +zone=22 +south +ellps=WGS84 +units=km'
-xy <- project(as.matrix(PRprec[,1:2]), sprj)
-bord <- project(PRborder, sprj)
+coords <- as.matrix(PRprec[,1:2])
+mat.dists <- spDists(coords, PRborder[1034:1078,], longlat=TRUE)
 @ 
-
-We compute these distances using 
-the \code{nndistF()} function provided 
-by \pkg{splancs} package, \cite{splancs}. 
+This function computes the distance between each 
+location on the first points set to each one on the 
+second points set. So, we need to take the minimum
 <<distseacalc>>=
-PRprec$"seaDist" <- nndistF(bord[1034:1078,], xy)
+PRprec$"seaDist" <- apply(mat.dists, 1, min)
 @ 
 We see the dispersion plots 
 at Figure~\ref{fig:disppred}. 
@@ -195,108 +196,69 @@ were $F$ is the distance to sea or the longitude and $F0_k$
 is a knot (choose on range of the covariate values) and $w_k$ 
 are regression coefficients with first order random walk prior. 
 
-We start with the construction of the constrained 
-refined Delaunay triangulation (CRDT). 
-The use of the points with \code{cutoff=0} is not 
-good in this case because we have some stations very 
-close than another and other far of another. 
-Using the \code{nndistG()} function of the 
-\pkg{splancs}, \cite{splancs}, we compute the 
-distance from each station to its neighbor station
-<<summarydists>>=
-summary(nndistG(as.matrix(PRprec[,1:2]))$dists)
+We use the mesh builded for the Paran\'a state on the 
+Chapter~\ref{ch:mesh}. 
+<<echo=F>>=
+load('prmesh2.RData')
 @ 
-and we have station at same location to another 
-and stations at 35 kilometers from other. 
-So, is more good to use \code{cutoff} greater than 0.
 
-The Paran\'a state border is formed by a sequence of 
-\Sexpr{format(nrow(bord))} 
-coordinates, that form the segments. 
-The half of this segments are separated by less than 
-\Sexpr{format(median(sqrt(rowSums((bord[-1,]-bord[-nrow(bord),])^2))))}
- Kilometer and we have segments up to
-\Sexpr{format(max(sqrt(rowSums((bord[-1,]-bord[-nrow(bord),])^2))))}
-Kilometers. 
-<<distbord>>=
-summary(sqrt(rowSums((bord[-1,]-bord[-nrow(bord),])^2)))
+The projector matrix can be done by 
+<<projA>>=
+A <- inla.spde.make.A(prmesh2, loc=coords)
 @ 
-In this case, we need \code{cutoff} greater than 0. 
-Because if we use \code{cutoff=0}, we have small 
-triangles on the mesh on left of Figure~\ref{fig:prmesh12}. 
-On the right mesh on this Figure, we have a good 
-mesh created using \code{cutoff=15} and this 
-same value to the maximum length of inner edges. 
-<<premsh12>>=
-(mesh0 <- inla.mesh.create.helper(, bord, cutoff=0,
-                                 max.edge=c(15, 30), offset=c(15,30)))$n
-(mesh <- inla.mesh.create.helper(, bord, cutoff=15,
-                                 max.edge=c(15, 30), offset=c(15,30)))$n
+The SPDE model is defined by
+<<spdem>>=
+spde <- inla.spde2.matern(prmesh2, alpha=2)
 @ 
-These meshes are visualized on Figure~\ref{fig:prmesh12} 
-with commands below
-<<cvprmeshes,eval=FALSE>>=
-xlm <- range(bord[,1])*c(.9, 1.1)
-par(mfrow=c(1,2), mar=c(0,0,2,0))  
-plot(bord, type='l', asp=1, axes=FALSE, xlim=xlm)
-plot(mesh0, add=TRUE);   lines(bord, col=2) 
-plot(bord, type='l', asp=1, axes=FALSE, xlim=xlm)
-plot(mesh, add=TRUE);   lines(bord, col=2)  
-@ 
-\begin{figure}\centering
-<<vmeshs,echo=F,fig=T,eps=F,width=10,height=4>>=
-<<cvprmeshes>>
-@ 
-\caption{Two meshes to Paran\'a state}
-\label{fig:prmesh12}
-\end{figure}. 
-
-To fit the model, we use the stack functionality 
-to prepare the data. 
+and the stack data is defined to include four effects: 
+the GRF, intercept, west coordinate and distance to sea
 <<stackpr>>=
-A <- inla.spde.make.A(mesh, loc=xy)
-ind <- inla.spde.make.index(name='i', n.mesh=mesh$n)
-stk.dat <- inla.stack(data=list(y=PRprec$precMean), A=list(A,1,1), 
-                      effects=list(c(ind, list(Intercept=1)), 
-                        gWest=inla.group(xy[,1]), 
+stk.dat <- inla.stack(data=list(y=PRprec$precMean), A=list(A,1,1,1), 
+                      effects=list(i=1:spde$n.spde, Intercept=rep(1, nrow(A)), 
+                        gWest=inla.group(coords[,1]), 
                         gSeaDist=inla.group(PRprec$seaDist)), tag='dat')
 @ 
-In this stack the intercept is included as 
-one element on the index list set and the 
-covariates as new elements of effects list. 
-So the effects list in this example has three 
-elements: the index set and two covariates.
-A different way is used on Chapter~\ref{ch:semic}. 
 
-<<fitgamma1>>=
-spde <- inla.spde2.matern(mesh, alpha=2)
+We fit the two models using the same stack data. 
+We just use different formula. For the model 
+with west coordinate we have 
+<<fitwestcoo>>=
 f.west <- y ~ 0 + Intercept + f(gWest, model='rw1') + f(i, model=spde)
-f.sead <- y ~ 0 + Intercept + f(gSeaDist, model='rw1') + f(i, model=spde)
 r.west <- inla(f.west, family='Gamma', control.compute=list(dic=TRUE),
                data=inla.stack.data(stk.dat), 
                control.predictor=list(A=inla.stack.A(stk.dat), compute=TRUE))
+@ 
+
+For the model with distance to sea covariate we have 
+<<fitdistsea>>=
+f.sead <- y ~ 0 + Intercept + f(gSeaDist, model='rw1') + f(i, model=spde)
 r.sead <- inla(f.sead, family='Gamma', control.compute=list(dic=TRUE),
                data=inla.stack.data(stk.dat), 
                control.predictor=list(A=inla.stack.A(stk.dat), compute=TRUE))
 @ 
+
 We have the DIC of each model with 
 <<dics>>=
 c(r.west$dic$dic, r.sead$dic$dic)
 @ 
-and choose the model with distance to sea as covariate. 
+and choose the model that with distance to sea as covariate. 
+
 We got the summary of posterior distribution of the intercept with 
 <<betasumary1>>=
 r.sead$summary.fixed
 @ 
+
 To dispersion parameter of the gamma likelihood we have 
 <<disp>>=
 r.sead$summary.hy[1,]
 @ 
+
 To dispersion parameter of the coefficients of the 
 sea distance covariate we have 
 <<disp>>=
 r.sead$summary.hy[2,]
 @ 
+
 And, to $log(\kappa)$ we have 
 <<logkappa>>=
 r.sead$summary.hy[4,]
@@ -324,7 +286,7 @@ mean and 95\% credibility interval of the
 distance to sea effect at Figure~\ref{fig:dseaeff}. 
 We choose $1/\kappa$ instead $kappa$ because 
 $1/\kappa$ is the range parameter and in 
-this case is expressed in kilometer units.
+this case is expressed in degrees units.
 <<seacoefs,eval=F>>= 
 par(mfrow=c(2,3), mar=c(3,3.5,0,0), mgp=c(1.5, .5, 0), las=0) 
 plot(r.sead$marginals.fix[[1]], type='l', xlab='Intercept', ylab='Density') 
@@ -374,7 +336,7 @@ So, we have the DIC of both models with
 c(r0.sead$dic$dic, r.sead$dic$dic)
 @ 
 and conclude that the spatial effect is significantly 
-to the model for precipitation. 
+to explain the precipitation. 
 
 \section{Prediction of the random field} 
 
@@ -386,19 +348,22 @@ each direction by default.
 The Paran\'a state shape is more width than height. 
 So, we choose diferent shape of grid to get an 
 adequate cell size. We use 
-<<nxy>>=
-(nxy <- round(c(diff(range(bord[,1])), diff(range(bord[,2])))/4))
+<<ncoords>>=
+(stepsize <- 4*1/111)
+(nxy <- round(c(diff(range(PRborder[,1])), diff(range(PRborder[,2])))/stepsize))
 @ 
 Here we divide the range of each coordinate 
-by $4$. Its because we have the coordinates  
+by $4$ kilometers on degree scale. 
+We use (4/111) factor because each degree 
+has aproximately 111 kilometers. 
+Its because we have the coordinates  
 with units in kilometers and we want 
 each cell on the grid with $4\times 4$ km.
 
 Now, we get the projector with
 <<projgrid>>=
-
-projgrid <- inla.mesh.projector(mesh, xlim=range(bord[,1]), 
-                                ylim=range(bord[,2]), dims=nxy)
+projgrid <- inla.mesh.projector(prmesh2, xlim=range(PRborder[,1]), 
+                                ylim=range(PRborder[,2]), dims=nxy)
 @ 
 and get the posterior mean and posterior standard deviation with 
 <<projpred>>=
@@ -411,8 +376,9 @@ points of the grid out of the border of the Paran\'a state.
 To do it, we use the function \code{inout()} on \pkg{splancs} 
 package, with
 <<sp>>=
+require(splancs)
 table(xy.in <- inout(projgrid$lattice$loc, 
-                     cbind(bord[,1], bord[,2])))
+                     cbind(PRborder[,1], PRborder[,2])))
 xmean[!xy.in] <- xsd[!xy.in] <- NA
 @ 
 We visualize the this on Figure~\ref{fig:xrain1}. 
@@ -457,7 +423,7 @@ Now we get the covariate values
 at each point on the grid. 
 First we compute the distance to sea
 <<seadcov0>>=
-seaDist0 <- nndistF(bord[1034:1078,], prdcoo)
+seaDist0 <- apply(spDists(PRborder[1034:1078,], prdcoo, longlat=TRUE), 2, min)
 @ 
 and found the knot group, using the same 
 used on the model
@@ -469,8 +435,9 @@ g.seadist <- ug.seadist[ig0]
 and put it into on a stack to prediction and 
 join with the stack data 
 <<stkprd>>=
-stk.prd <- inla.stack(data=list(y=NA), A=list(Aprd,1), 
-                      effects=list(c(ind, list(Intercept=1)), 
+stk.prd <- inla.stack(data=list(y=NA), A=list(Aprd,1,1), 
+                      effects=list(i=1:spde$n.spde, 
+                        Intercept=rep(1,nrow(Aprd)), 
                         gSeaDist=g.seadist), tag='prd')
 stk.all <- inla.stack(stk.dat, stk.prd)
 @ 
@@ -526,4 +493,4 @@ We see at this Figure a clear pattern
 on the average of the daily accumulated 
 precipitation occurred on January of 2012. 
 It's high near to sea and lower 
-at north west part of the Paran\'a state.
+at north west side of the Paran\'a state.

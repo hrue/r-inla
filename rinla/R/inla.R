@@ -35,6 +35,7 @@
 ##!    control.expert = list(),
 ##!    control.hazard = list(),
 ##!    control.lincomb = list(),
+##!    control.update = list(), 
 ##!    only.hyperparam = FALSE,
 ##!    inla.call = inla.getOption("inla.call"),
 ##!    inla.arg = inla.getOption("inla.arg"),
@@ -188,6 +189,9 @@
         
         ##!\item{control.lincomb}{ See \code{?control.lincomb}}
         control.lincomb = list(),
+        
+        ##!\item{control.update}{ See \code{?control.update}}
+        control.update = list(),
         
         ##!\item{only.hyperparam}{ A boolean variable saying if
         ##!only the hyperparameters should be computed. This option is mainly used
@@ -461,6 +465,7 @@
     control.expert = inla.check.control(control.expert, data)
     control.hazard = inla.check.control(control.hazard, data)
     control.lincomb = inla.check.control(control.lincomb, data)
+    control.update = inla.check.control(control.update, data)
 
     n.family = length(family)
     for(i in 1:n.family) {
@@ -515,7 +520,7 @@
         data.tmp = inla.remove(as.character(formula[2]), data)
         data.f = inla.fix.data(data.tmp, len.y.surv)
         ## check for any matrices in data.f
-        if (is.list(data.f)) {
+        if (is.list(data.f) && length(data.f) > 0L) {
             mat.name = names(data.f)[which(sapply(data.f, inla.is.matrix))]
             if (length(mat.name) > 0L)
                 warning(paste(c("'data' contains matrix: ", paste(mat.name, collapse=", ", sep=""),
@@ -623,8 +628,9 @@
                 control.fixed = control.fixed,
                 control.mode = control.mode,
                 control.expert = control.expert,
-                control.lincomb = control.lincomb,
                 control.hazard = control.hazard,
+                control.lincomb = control.lincomb,
+                control.update = control.update,
                 only.hyperparam = only.hyperparam,
                 inla.call = inla.call,
                 inla.arg = inla.arg,
@@ -640,7 +646,7 @@
         result$call.orig = deparse(match.call())
         return (result)
     }
-
+    
     ## this is nice hack ;-) we keep the original response. then we
     ## delete it from 'data' keeping a copy of the original one
     y...orig = eval(parse(text=formula[2]), data)
@@ -1005,7 +1011,7 @@
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
-    mf$control.family = NULL; 
+    mf$control.family = NULL;  mf$control.update = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
@@ -1800,6 +1806,11 @@
     cont.lincomb = inla.set.control.lincomb.default()
     cont.lincomb[names(control.lincomb)] = control.lincomb
     inla.lincomb.section(file=file.ini, data.dir=data.dir, contr=cont.lincomb, lincomb=lincomb)
+    
+    ## create update section
+    cont.update = inla.set.control.update.default()
+    cont.update[names(control.update)] = control.update
+    inla.update.section(file=file.ini, data.dir=data.dir, contr=cont.update)
     
     ## now, do the job
     if (debug) {

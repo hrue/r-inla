@@ -879,6 +879,28 @@
     }
 }
 
+`inla.update.section` = function(file, data.dir, contr)
+{
+    if (!is.null(contr$result) && length(contr$result$mode$theta) > 0L)
+    {
+        file.update = inla.tempfile(tmpdir=data.dir)
+        cat("[INLA.update]\n", sep = " ", file = file,  append = TRUE)
+        cat("type = update\n", sep = " ", file = file,  append = TRUE)
+        x = c(
+                length(contr$result$mode$theta),
+                contr$result$mode$theta,
+                contr$result$misc$stdev.corr.positive,
+                contr$result$misc$stdev.corr.negative,
+                1/sqrt(contr$result$misc$cov.intern.eigenvalues), ## this is what is required
+                c(contr$result$misc$cov.intern.eigenvectors) ## column-wise storage
+                )
+        x = as.matrix(x, ncol = 1L)
+        inla.write.fmesher.file(x, filename = file.update)
+        file.update = gsub(data.dir, "$inladatadir", file.update, fixed=TRUE)
+        cat("filename = ", file.update, "\n", sep = " ", file = file,  append = TRUE)
+    }
+}
+
 `inla.lincomb.section` = function(file, data.dir, contr, lincomb)
 {
     ## this one write binary format files...
