@@ -1,0 +1,313 @@
+\input{spde-tutorial-spde-results}
+\input{spde-tutorial-mesh}
+
+\section{The projector matrix}\label{sec:projmat} 
+
+\SweaveOpts{prefix.string=figs/mesh}
+<<sett,echo=F,results=hide>>=
+options(width=75, prompt = " ", continue = "   ")
+require(INLA)
+data(SPDEtoy)
+load('mesh1.RData')
+load('mesh5.RData')
+@ 
+
+Because the SPDE model is defined on the 
+mesh, we need an appropriate specification 
+of the linear predictor for the data response. 
+For details on this please see~\cite{lindgren:2012}. 
+
+The key is that we have a random field 
+modeled at the mesh vertices, with dimention $m$, 
+and a response at $n$ locations. 
+So, we need to define how the random field and 
+other model components are linked to the response. 
+
+Let the matrix $\bA$ that links the 
+process on the mesh vertices triangles 
+with the locations response. 
+This matrix is called the projector matrix 
+because it do the projection of the 
+latent field modeled at mesh vertices 
+to data locations. 
+
+The projector matrix can be builded with 
+the \code{inla.spde.make.A} function. 
+Considering that each mesh vertices has a weight, 
+the value for one point within one triangle is 
+the projection of the plane (formed by these 
+three weights) at this point location. 
+This projection is just a weighted average 
+with the weights computed by the 
+\code{inla.spde.make.A()} function. 
+Using the toy data set and the mesh five we have
+<<proj2>>=
+coords <- as.matrix(SPDEtoy[,1:2])
+A5 <- inla.spde.make.A(mesh5, loc=coords)
+@ 
+
+This matrix has dimention equal the number of 
+data locations by the number of vertices on 
+the mesh 
+<<dima1>>=
+dim(A5)
+@ 
+We have exact three non-zero elemens on each line 
+<<a5lines>>=
+table(rowSums(A5>0))
+@ 
+because each location points are 
+inside one of the triangles. 
+These three non-zero elements 
+on each line sums one
+<<rsum>>=
+table(rowSums(A5))
+@ 
+because multiplication with any vector weights 
+at mesh nodes by this matrix is the projection 
+of these weights at the location points. 
+
+We have some columns on the projector 
+matrix with all elements equals zero. 
+<<colsA>>=
+table(colSums(A5)>0)
+@ 
+This columns corresponds the triangles 
+without any location point inside.
+This columns that can be droped and 
+the stack functionality (section~\ref{sec:stack}) 
+automatically handles this situation.
+
+When we have a mesh where each location 
+points are on the vertice set, the projector 
+matrix has exact one line with nonzero element
+<<eacha1>>=
+A1 <- inla.spde.make.A(mesh1, loc=coords)
+table(rowSums(A1>0))
+@
+and all these elements are equals one 
+<<summarya1>>=
+table(rowSums(A1))
+@ 
+because in this case the the projection on the 
+location points are just the weight at the 
+corresponding node (at same location) of the mesh. 
+
+\section{GRF sampling through SPDE}\label{sec:simula} 
+
+The main thing is that the SPDE make the model 
+on the mesh vertices and we need to make simulation 
+on a set o location points. 
+We start by defining the spde model 
+<<spde>>=
+spde5 <- inla.spde2.matern(mesh5, alpha=2)
+@ 
+and build the precision matrix associated. 
+
+It can be done by the \code{inla.spde2.precision()} function. 
+On this function, we have to provide the SPDE model 
+and the parameters $\theta$ on the SPDE parametrization. 
+$\theta$ is a length two vector where the second element 
+is the logarithim of the scale parameter, $log(\kappa)$, 
+and the second one is the 'local variance parameter' $\tau$
+such that the marginal variance $\sigma_x^2$ is 
+\[ \sigma_x^2 = \frac{1}{4\pi\tau^2\kappa^2} \] 
+and we have that 
+\[log(\tau) = \theta_1 = -log(4\kappa\sigma_x^2\pi)/2 \]. 
+
+Considering $\kappa=5$ and $\sigma_x^2=1$ 
+<<params>>=
+kappa <- 5;    s2x <- 1
+@ 
+we have 
+<<theta>>=
+theta <- c(-log(2*kappa*s2x*sqrt(pi)), log(kappa))
+@ 
+and we have the precision matrix by 
+<<q5>>=
+Q5 <- inla.spde2.precision(spde5, theta)
+@ 
+
+Now, we can use the \code{inla.qsample()} function 
+to get a sample at mesh nodes by 
+<<x5>>=
+x5 <- inla.qsample(Q=Q5)
+@ 
+and to get a sample at the locations, we just 
+project it with the projector matrix by 
+<<x>>=
+x <- drop(A5%*%x5)
+@ 
+
+We can have a more general function to generate 
+one or more samples, by defining a function that 
+need just the coordinates and model parameters. 
+A mesh can be provided and if not it is also 
+generated within this function 
+<<loadrspde,echo=F,results=hide>>=
+source('spde-tutorial-functions.R') 
+@ 
+<<rspde>>=
+rspde
+@ 
+
+We can generate samples at a milion of locations in some seconds by 
+<<sample>>=
+pts1 <- matrix(runif(2e6), ncol=2)
+x1 <- rspde(pts1, kappa=5)
+summary(x1)
+table(x1>0)
+@ 
+and we have the attributes together 
+<<attribs>>=
+names(attributes(x1))
+attr(x1, 'cpu') ### time in seconds
+attr(x1, 'mesh')$n ### number of mesh nodes 
+dim(attr(x1, 'Q')) 
+dim(attr(x1, 'A'))
+@ 
+
+This function is used on some of next Chapters.
+
+\section{Maximum likelihood inference}
+
+We have that the latent random field is distributed as 
+\[ x \sim N(0, \bQ)\;.\]
+Under the toy model where we just add a noise, we have 
+\[y|x \sim N(\bA x, \b1 \sigma^2_y)\;.\]
+So, it is easy to integrate out $x$ an get the 
+marginal likelihood and this is 
+\[ y \sim N(\bA x, (\bA \bQ^{-1}\bA' + \b1\sigma_y^2)) \;.\]
+
+To eval the marginal likelihood efficiently 
+we need to take care on the evaluation of 
+the determinant of the covariance 
+matrix $(\bA \bQ^{-1}\bA' + \b1\sigma_y^2)$ and also 
+the evaluation of the precision matrix 
+$(\bA \bQ^{-1}\bA' + \b1\sigma_y^2)^{-1}$. 
+
+To evaluate the determinant, we use the 
+matrix determinant lemma that, for 
+any invertible matrix $\bW$ and also 
+invertible matrix $\bC$ we have  
+\[det(\bC + \bU \bW \bV') = 
+  det(\bW^{-1} + \bV'\bC^{-1}\bU) det(\bW) det(\bC)\;.\]
+Considering $\bW=\bQ^{-1}$ and $\bC=\b1 \sigma_y^2$ 
+we have the following function to implement it 
+<<precdetf>>=
+prec.det.f <- function(U, Q, tau.y) {
+  d1 <- determinant(crossprod(U*tau.y, U) + Q)$modulus
+  (d1 - determinant(Q)$modulus) - nrow(U)*log(tau.y)
+}
+@ 
+where \code{tau.y} is the likelihood precision.
+
+The precision matrix can be evaluated 
+using the Woodbury matrix identity. 
+It says that for $\bC$ and $\bW$ invertible 
+matrices we have  
+\[(\bC + \bU \bW \bV)^{-1} = 
+ \bC^{-1} - \bC^{-1}\bU(\bW^{-1} + 
+  \bV \bC^{-1}\bU)^{-1}\bV \bC^{-1}\;.\]
+We implement it with the following function
+<<precf>>=
+precy.f <- function(U, Q, tau.y) {
+  Bi <- Diagonal(nrow(U), rep(tau.y, nrow(U)))
+  VBi <- crossprod(U, Bi)
+  R <- inla.qinv(Q + VBi%*%U) 
+  forceSymmetric(Bi - crossprod(VBi, R)%*%VBi)
+}
+@ 
+
+Considering $\theta$ and $log(\sigma_y^2)$ the 
+three parameter vetor, we have the following 
+negative of the log likelihood function 
+<<nllf>>=
+nllf <- function(pars, X, y, A, verbose=TRUE) {
+  if (verbose) cat(pars, '')
+  m <- inla.spde2.precision(spde, theta=pars[1:2]) 
+  ldet <- prec.det.f(A, m, exp(-pars[3]))
+  m <- precy.f(A, m, exp(-pars[3]))
+  Xm <- crossprod(X,m)
+  beta <- drop(solve(Xm%*%X, sum(Xm*y)))
+  y <- drop(y-X%*%beta)
+  ss <- y%*%m%*%y
+  r <- drop((ss + length(y)*log(2*pi) + ldet)/2)
+  if (verbose) cat(beta, r, '\n')
+  attr(r, 'beta') <- beta
+  return(r)
+}
+@ 
+
+We proceed the maximum likelihood estimation, 
+for the toy example dataset and compare with 
+the results from \pkg{geoR} package of previous Chapter. 
+We remember also the true parameter values
+<<true>>=
+beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+@ 
+
+We call the data
+<<spdetoydata>>=
+data(SPDEtoy)
+@ 
+build the mesh (using the true scale parameter to 
+determine the edge lengths and \code{cutoff}), 
+SPDE model (with $\alpha=2$) 
+and the projector matrix
+<<dprep>>=
+xy <- as.matrix(SPDEtoy[,1:2])
+(mesh <- inla.mesh.2d(xy, max.edge=1/(c(1.7,0.7)*kappa), 
+                      cutoff=1/(5*kappa)))$n
+spde <- inla.spde2.matern(mesh)
+A <- inla.mesh.project(mesh, loc=xy)$A
+@ 
+
+The maximum likelihood estimation is done 
+using the \code{optim()} function. 
+Using the default Nelder-Mead method
+<<nm>>=
+opt <- optim(c(-4,2,-1.5), nllf, hessian=TRUE,
+             X=matrix(1,nrow(xy)), y=SPDEtoy[,3], A=A, verbose=FALSE)
+@ 
+and the BFGS method 
+<<bfgs>>=
+opt.b <- optim(c(-4,2,-1.5), nllf, hessian=TRUE, method='BFGS',
+               X=matrix(1,nrow(xy)), y=SPDEtoy[,3], A=A, verbose=FALSE)
+@ 
+we have the same results 
+<<nmbfgs>>=
+rbind(opt$par, opt.b$par)
+@ 
+
+We also define a function to map the 
+SPDE model parameters to the 
+$\sigma_x^2$ and $\kappa$ user parameters. 
+The function bellow recieve $\theta$, 
+$\log(\sigma_y^2)$ and $\beta$ (regression 
+parameters) and return $\sigma_x^2$, $\kappa$, 
+$sigma_y^2$ and $\beta$. 
+<<par2user>>=
+par2user <- function(pars, A, X, y) {
+  m <- inla.spde2.precision(spde, theta=pars[1:2]) 
+  m <- precy.f(A, m, exp(-pars[3]))
+  Xm <- crossprod(X,m)
+  beta <- drop(solve(Xm%*%X, sum(Xm*y)))
+  k2s22 <- exp(sum(pars[1:2])*2)
+  c(s2x=1/(4*pi*k2s22), kappa=exp(pars[2]), s2e=exp(pars[3]), beta=beta)
+}
+@ 
+We use this function to compare the results with 
+the results by \code{geoR} package. 
+<<lkf,echo=F,results=hide>>=
+require(geoR)
+system.time(lkf <- likfit(as.geodata(SPDEtoy),
+                          ini=c(1,1/7), kappa=1, nugget=sigma2e))
+@ 
+We have 
+<<compare>>=
+rbind(spde=par2user(opt$par, A=A, X=matrix(1, nrow(A)), y=SPDEtoy[,3]),
+      geoR=c(lkf$sigmasq, 1/lkf$phi, lkf$nugget, lkf$beta), 
+      true=c(sigma2x, kappa, sigma2e, beta0))
+@ 
+
