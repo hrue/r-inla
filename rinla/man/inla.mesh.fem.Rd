@@ -31,7 +31,7 @@ inla.mesh.1d.fem(mesh)
   \item{c1 }{\code{c1[i,j] = < psi_i, psi_j >}}
   \item{g1 }{\code{g1[i,j] = < grad psi_i, grad psi_j >}}
   \item{g2 }{\code{g2 = g1 * c0^-1 * g1}}
-  \item{gk }{\code{g2 = g1 * (c0^-1 * g1)^k}, up to and including
+  \item{gk }{\code{gk = g1 * (c0^-1 * g1)^(k-1)}, up to and including
     \code{k=order}}
 }
 %\references{
