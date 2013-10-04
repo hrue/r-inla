@@ -1,6 +1,6 @@
 ## Nothing to export from here
 
-`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
+`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default(), suffix="")
 {
     n.intervals = control.hazard$n.intervals
     cutpoints = control.hazard$cutpoints
@@ -24,25 +24,40 @@
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation, event=event, cutpoints=cutpoints)
     expand = table(new.data$indicator)
 
-    if(!missing(dataframe)) {
+    if(!missing(dataframe) && prod(dim(dataframe)) > 0L) {
         new.dataframe = as.data.frame(matrix(0.0, length(new.data$y), dim(dataframe)[2L]))
         for(i in 1L:dim(dataframe)[2L])
             new.dataframe[, i] = rep(dataframe[, i], expand)
+
+        ## alternative code,  not faster...
+        ## new.dataframe = apply(dataframe, 2, rep, times = expand)  
+
         new.dataframe = as.data.frame(new.dataframe)
         ## just give some name that we are able to recognise afterwards
         names(new.dataframe) = paste("fake.dataframe.names", 1L:dim(new.dataframe)[2L])
-    }
-    else
+    } else {
         new.dataframe=NULL
+    }
 
-    res = data.frame(
-            .y.surv = new.data$y,
-            .E = new.data$E,
-            baseline.hazard = new.data$baseline.hazard,
-            baseline.hazard.idx = new.data$baseline.hazard,
-            baseline.hazard.time = cutpoints[new.data$baseline.hazard],
-            baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
-            dataframe=new.dataframe)
+    if (!is.null(new.dataframe)) {
+        res = data.frame(
+                .y.surv = new.data$y,
+                .E = new.data$E,
+                baseline.hazard = new.data$baseline.hazard,
+                baseline.hazard.idx = new.data$baseline.hazard,
+                baseline.hazard.time = cutpoints[new.data$baseline.hazard],
+                baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
+                dataframe=new.dataframe)
+    } else {
+        res = data.frame(
+                .y.surv = new.data$y,
+                .E = new.data$E,
+                baseline.hazard = new.data$baseline.hazard,
+                baseline.hazard.idx = new.data$baseline.hazard,
+                baseline.hazard.time = cutpoints[new.data$baseline.hazard],
+                baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard])
+    }
+        
     names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
     return (list(data = res, cutpoints = cutpoints))
@@ -141,7 +156,6 @@
     col.data = grep("(subject)|(time)|(event)", names(dataframe))
     if (length(col.data) != 3L)
         stop("data.frame does not contains columns with names `subject', `time' and `event'")
-
 
     ##  rewriting the covariates as per new data
     for(i in 1L: dim(dataframe.copy)[2L])

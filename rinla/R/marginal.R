@@ -197,10 +197,9 @@
 
     is.mat = is.matrix(marginal)
     m = inla.marginal.fix(marginal)
-    r = range(m$x)
-    r = r[2] - r[1]
+    r = diff(range(m$x))
     ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r,
-            n = factor*length(m$x))
+            n = factor*length(m$x),  method = "natural")
     if (!log) {
         ans$y = exp(ans$y)
     }
@@ -323,6 +322,7 @@
             xx = xx[-is.val]
         }
     }
+
     ## just spline-interpolate the inverse mapping
     fq = splinefun(d, xx, method = "monoH.FC")
 

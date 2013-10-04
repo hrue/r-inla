@@ -1,16 +1,18 @@
-To start, we look at the model and fitting process 
-by view of parametrization used in a software 
-commonly used to Analise the point refereed data 
-in \pkg{R}, the \pkg{geoR} package, \cite{geoR}. 
-But, before it, we show how we simulate 
-a dataset. 
+\input{spde-tutorial-introduction}
 
 \section{Simulation of a data set} 
 
+\SweaveOpts{prefix.string=figs/sim}
 <<echo=F,results=hide>>=
-options(width=60, prompt = " ", continue = "   ")
-options(width=75)
+options(width=75, prompt = " ", continue = "   ")
 @ 
+
+First we took a look at the model %%and fitting process 
+from parametrization used in a commonly software 
+used to analyse the point refereed data 
+in \pkg{R}, the \pkg{geoR} package, \cite{geoR}. 
+In this section we show how we simulate a dataset 
+with this parametrization. 
 
 We remember here that one realization of 
 a GF is just one realization of a 
@@ -93,44 +95,57 @@ legend('topright', format(q, dig=2), pch=1, pt.cex=q/10)
 
 In this section we get the maximum likelihood 
 estimation of the parameters of the model used to 
-simulate the data on the last section. 
+simulate the data on the previous section. 
 We know that is adequate the use of the partial 
 derivatives with respect to each parameter and 
 the Fisher information matrix to use the Fisher 
 scoring algorithm. 
-But we take derivatives only with respect to $\beta$ 
-and, for the others parameters we naively use one of 
-the quasi-Newton methods, without using derivatives. 
-In \cite{diggleribeiro:2007} it have more detail to 
-estimate the other parameters. 
-It is easy to get 
+Under Gaussian likelihood we have that the 
+mean and variance are independently. 
+So, taking the derivative with respect to $\beta$ 
+we get 
 \[ (\bF^{'}\Sigma^{-1}\bF)\hat{\beta} = \bF^{'}\bF \]
 So, we want to write a likelihood function as a function 
 of the unknown parameters and the data. 
+For the others parameters we naively use one of 
+the quasi-Newton methods, without using derivatives. 
 
-One detail is that we use the matrix of distances 
-between the points because it is not necessary to 
-recalculate it at each interaction of the algorithm. 
-Another is that the function defined return the 
-negative of the logarithm of the likelihood function, 
-because, by default, the algorithm find the minimum 
-of a function. 
-A bit of comment is that in the calculus of the 
-likelihood, we take vantages of the symmetry property 
-of the covariance matrix to invert it. 
+There are another details to a good performance on 
+the maximum likelihood estimation. One is to write 
+the variance parameters, $\sigma^2_e$ and $\sigma^2_x$, 
+in terms of the relative one. Such details are on 
+the \textit{Model Based Geostatistics} book, 
+\cite{diggleribeiro:2007}, and on the \pkg{geoR} 
+functions documentations. 
 
-So, we have the function defined bellow as function 
-of four parameters ($\sigma_e^2$, $\sigma_x^2$, 
-$\kappa$ and $\nu$) and the data
+Here we just write the negative of the multivariate 
+normal density, considering the mean as a regression 
+with identity link and the covariance with Mat\'ern 
+covariance plus the nugget effect. 
+In the function implemented bellow, we have the 
+also that the matrix of distances 
+between the points because are one of the arguments, 
+because it is not necessary to recalculate 
+at each interaction of the minimization algorithm. 
+We use the negative of the logarithm of the likelihood 
+function because, by default, the algorithm 
+find the minimum of a function. 
+In the computation of the likelihood, we use the Cholesky 
+factorization to compute the determinant and also the inverse 
+of the covariance matrix. 
+The implemented function is a function of the 
+four length parameters vector ($\sigma_e^2$, 
+$\sigma_x^2$, $\kappa$ and $\nu$), the covariate (design) 
+matrix, the data and the matrix of distances:
 <<lik1>>=
-nllf <- function(pars, ff, data, distmat) {
-  m <- 2^(1-pars[4])*(pars[3]*distmat)^pars[4]*
-    besselK(distmat*pars[3],pars[4])/gamma(pars[4])
+nllf <- function(pars, ff, data, m) {
+  m <- 2^(1-pars[4])*(pars[3]*m)^pars[4]*
+    besselK(m*pars[3],pars[4])/gamma(pars[4])
   diag(m) <- 1;   m <- pars[1]*diag(length(data)) + pars[2]*m
-  L <- chol(m);   m <- chol2inv(L)
+  m <- chol(m);   ldet <- sum(log(diag(m)));  m <- chol2inv(m)
   beta <- solve(crossprod(ff, m)%*%ff, crossprod(ff, m)%*%data) 
   z <- data-ff%*%beta;   ss <- drop(crossprod(z,m)%*%z) 
-  return(length(data)*log(2*pi)/2 +sum(log(diag(L))) +0.5*ss)
+  return(ldet + (nrow(m)*log(2*pi) + ss)/2)
 }
 @ 
 the first argument of this function is the vector of the five 
@@ -150,7 +165,7 @@ Hessian matrix to use in asymptotic inference.
 We got the maximum likelihood estimates
 <<llfit1>>=
 (ores <- optim(c(sigma2e, sigma2x, kappa, nu), nllf, hessian=TRUE, 
-               ff=matrix(1,n), data=y1, distmat=as.matrix(dmat), 
+               ff=matrix(1,n), data=y1, m=as.matrix(dmat), 
                method='L-BFGS-B', lower=rep(1e-5,4)))$par
 @ 
 and the squared root of the hessian diagonal 
@@ -173,23 +188,20 @@ grf1 <- grf(grid=pts, cov.pars=c(sigma2x, 1/kappa), mean=beta0,
 @ 
 
 Also, we have the \code{likfit()} function to perform the 
-maximum likelihood estimation. This function for solve of 
-the estimation of such five parameters don't uses a optimization 
-algorithm in five dimensions. Because it is possible to 
-get close forms expressions to $\beta_0$, $\sigma^2_e$ and 
-for $\sigma^2_s$, \cite{diggleribeiro:2007}. 
-So this function works better than the 'naive' solution 
-presented here. 
-We got the maximum likelihood estimates by
+maximum likelihood estimation. With this function we 
+also got the maximum likelihood estimates for the 
+smoothness parameter by
 <<withgeoR>>=
 (g1res <- likfit(grf1, ini=c(sigma2x, 1/kappa), messages=FALSE,
                  nugget=sigma2e, kappa=nu, fix.kappa=FALSE))
 @ 
-the \code{tausq} is $\sigma_e^2$ and \code{kappa} 
-is the smoothness parameter. 
+In the \code{geoR} parametrization, 
+the $\sigma_e^2$ is called \code{tausq}, $1/\kappa$ is 
+called \code{phi} and the smoothness parameter $\nu$ 
+is called \code{kappa}. 
 
 But, for comparison with INLA results, we fix the 
-smoothness parameter on the true value used to simulate 
+smoothness parameter $\nu$ on the true value used to simulate 
 the data, and find the maximum likelihood estimates to 
 another parameters by
 <<geoRtoy-l>>=
@@ -199,6 +211,6 @@ another parameters by
 Notice that we also estimate the mean parameter $\beta$, 
 the parameter of fixed effect part of the model. 
 Also, we note that the likelihood has similar value, 
-probably because the estimated value of $\nu$ is similar 
-to its true value. 
+just because the estimated value of $\nu$ is very 
+close to the fixed value. 
 

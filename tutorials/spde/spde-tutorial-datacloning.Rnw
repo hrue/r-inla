@@ -1,0 +1,138 @@
+\chapter{Data cloning example}\label{ch:dclon} 
+
+\SweaveOpts{prefix.string=figs/dclon}
+<<sett,echo=F,results=hide>>=
+options(width=75, prompt = " ", continue = "   ")
+require(INLA)
+inla.setOption(inla.call='remote')
+@ 
+
+The data clone algorithm for spatial models is described in 
+\url{http://www.sciencedirect.com/science/article/pii/S0167947310004329}. 
+In the \pkg{INLA} package we have an example 
+with the hybrid data clone when the 
+random effect are 'iid' on 
+\url{http://www.math.ntnu.no/inla/r-inla.org/papers/FS8-2010-R.pdf}
+
+Here we use the hybrid data cloning 
+approach to see what happens with the 
+parameters of the toy spatial continuous 
+model considering the SPDE model. 
+
+We use the toy data set 
+<<toydat>>=
+data(SPDEtoy)
+coords <- as.matrix(SPDEtoy[,1:2])
+@ 
+with the mesh 
+<<mesh>>=
+(mesh <- inla.mesh.create.helper(coords, 
+                                 max.e=c(0.15, 0.2), cutoff=0.02))$n
+@ 
+to build the model
+<<spde>>=
+spde <- inla.spde2.matern(mesh)
+@ 
+
+We consider a set of values for the 
+number of clones. 
+By cloning we use the \code{replica} 
+option on the latent field definition 
+function \code{f()}. 
+The \code{inla.spde.make.index} function 
+allow us to make the replica index. 
+
+In the following code we do a loop 
+on the number o clones an fit the model 
+with replications 
+<<dclonerun>>=
+n <- nrow(coords); k <- c(1,2,3,5,10); names(k) <- k
+resk <- list()
+for (i in 1:length(k)) {
+  kk <- k[i]
+  A <- inla.spde.make.A(mesh, loc=coords, 
+                        index=rep(1:n, kk), repl=rep(1:kk, each=n))
+  ind <- inla.spde.make.index(name='i', n.spde=spde$n.spde, n.repl=kk)
+  st.dat <- inla.stack(data=list(resp=rep(SPDEtoy[,3], kk)),
+                       A=list(A,1),
+                       effects=list(ind, list(m=rep(1,n*kk))), tag='est')
+  resk[[i]] <- inla(resp ~ 0 + m + f(i, model=spde, replicate=i.repl),
+                    data=inla.stack.data(st.dat),
+                    control.predictor=list(A=inla.stack.A(st.dat),
+                      compute=TRUE))
+}
+@ 
+
+Also we get the posterior marginal distribution 
+of the marginal variance and practical range with
+<<rfpars>>=
+res.f <- lapply(1:length(resk), function(i)
+                inla.spde2.result(resk[[i]], 'i', spde, do.transf=TRUE))
+@ 
+
+We collect the results of the posterior mean 
+and posterior variance of each parameter with 
+<<>>=
+r <- list()
+r$intercept <- sapply(resk, function(x)
+                     c(x$summary.fix[1,1], x$summary.fix[1,2]^2))
+r$variance.lik <- sapply(resk, function(x) {
+  d <- inla.tmarginal(function(x) 1/x, x$marginals.hyperpar[[1]]) 
+  r <- inla.emarginal(function(x) x, d)
+  c(r, inla.emarginal(function(x) (x-r)^2, d))
+})
+r$marginal.variance <- sapply(res.f, function(x) {
+  e <- inla.emarginal(function(x) x, x$marginals.variance.nom[[1]])
+  c(e, inla.emarginal(function(x) (x - e)^2,
+                      x$marginals.variance.nominal[[1]]))
+})
+r$kappa <- sapply(resk, function(x) {
+  e <- inla.emarginal(function(x) exp(x), x$marginals.hy[[3]])
+  c(e, inla.emarginal(function(x) (exp(x) - e)^2, x$marginals.hy[[3]]))
+})
+@ 
+<<likfit,echo=F,results=hide>>=
+require(geoR)
+lk <- likfit(as.geodata(SPDEtoy), ini=c(5,.1), nugget=.1, kappa=1)
+lk.est <- c(lk$beta, lk$nugget, lk$cov.pars)
+lk.est[4] <- 1/lk.est[4]
+@ 
+
+The main think in data clonning is to visualize 
+the posterior mean and the posterior variance of 
+the parameters. When we don't have identificability 
+problem we see that the mean converges to the 
+likelihood estimate and the posterior variance 
+converges to zero. 
+
+We visualize the posterior mean and posterior 
+variance of each parameter ($\beta_0$, $\sigma_y^2$, 
+$\sigma_x^2$ and $\kappa$) relative to 
+the result without clone ($k=1$). 
+Also, to compare, we visualize the 
+likelihood estimate. 
+This graphs are on the 
+Figure~\ref{fig:dclon} with 
+<<dcloneplot, eval=F>>=
+par(mfrow=c(2, 2), mar=c(3,3,2,1), mgp=c(1.5,.5,0))
+for (i in 1:length(r)) {
+  plot(k, r[[i]][2, ]/r[[i]][2,1], type='o', ylim=c(0, 1.2),
+       ylab='relative to k=1', main=names(r)[i])
+  lines(k, r[[i]][1, ]/r[[i]][1,1], type='o', lty=2, col=2)
+  abline(h=1, col=4, lty=3)
+  abline(h=lk.est[i]/r[[i]][1,1], col=3, lty=3)
+}
+legend('bottomleft', c('Posterior mean', 'Posterior variance'),
+       lty=1, col=2:1, bty='n')
+@ 
+\setkeys{Gin}{width=0.9\textwidth}
+\begin{figure}\centering 
+<<dclonevis,fig=T,eps=F,echo=F,width=5.5,height=5.5>>=
+<<dcloneplot>>
+@ 
+\caption{Relative posterior mean (blue dashed line), 
+  likelihood estimate (green dashed line) and 
+  posterior variance (black line) for each parameter 
+  of the toy model.}
+\label{fig:dclon}
+\end{figure}
