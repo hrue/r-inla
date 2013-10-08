@@ -4526,6 +4526,25 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p;
 
+	/* 
+	 * this is a special case that should just return 0 or 1
+	 */
+	if (ISZERO(y) && ISZERO(n)){
+		if (m > 0){
+			for (i = 0; i < m; i++) {
+				logll[i] = 0.0;		       /* log(1) = 0 */
+			} 
+		} else {
+			for(i = 0; i < -m; i++){
+				logll[i] = 1.0;
+			}
+		}
+		return GMRFLib_SUCCESS;
+	}
+		
+	/* 
+	 * this is the normal case...
+	 */
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
@@ -7991,6 +8010,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BINOMIAL:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.nb[i] <= 0.0 ||
+				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
+					// we allow for binomial(0,p) if y = 0
+					if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))){
+						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
+								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+						inla_error_general(msg);
+					}
+				}
+			}
+		}
+		break;
+
 	case L_ZEROINFLATEDBINOMIAL0:
 	case L_ZEROINFLATEDBINOMIAL1:
 	case L_ZEROINFLATEDBINOMIAL2:
