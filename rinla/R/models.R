@@ -3676,7 +3676,7 @@
                       pdf = "zeroinflated"
                       ),
 
-              zeroinflatedbinomial2 = list(
+              zeroninflatedbinomial2 = list(
                       hyper = list(
                               theta1 = list(
                                       name = "alpha1",
