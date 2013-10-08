@@ -39,28 +39,18 @@
         new.dataframe=NULL
     }
 
-    if (!is.null(new.dataframe)) {
-        res = data.frame(
-                .y.surv = new.data$y,
-                .E = new.data$E,
-                baseline.hazard = new.data$baseline.hazard,
-                baseline.hazard.idx = new.data$baseline.hazard,
-                baseline.hazard.time = cutpoints[new.data$baseline.hazard],
-                baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
-                dataframe=new.dataframe)
-    } else {
-        res = data.frame(
-                .y.surv = new.data$y,
-                .E = new.data$E,
-                baseline.hazard = new.data$baseline.hazard,
-                baseline.hazard.idx = new.data$baseline.hazard,
-                baseline.hazard.time = cutpoints[new.data$baseline.hazard],
-                baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard])
-    }
+    res = data.frame(
+            y..coxph = new.data$y,
+            E..coxph = new.data$E,
+            baseline.hazard = cutpoints[new.data$baseline.hazard],
+            baseline.hazard.idx = new.data$baseline.hazard,
+            baseline.hazard.time = cutpoints[new.data$baseline.hazard],
+            baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
+            new.dataframe)
         
     names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
-    return (list(data = res, cutpoints = cutpoints))
+    return (list(data = res, data.list = list(baseline.hazard.values = cutpoints)))
 }
 
 `inla.get.poisson.data.1` = function(time, truncation, event, cutpoints)
@@ -163,16 +153,16 @@
     names(new.dataframe) = names(dataframe)[-col.data]
    
     res = data.frame(
-            .y.surv = new.data$y,
-            .E = new.data$E,
-            baseline.hazard   = new.data$baseline.haz, 
+            y..coxph = new.data$y,
+            E..coxph = new.data$E,
+            baseline.hazard = cutpoints[new.data$baseline.haz], 
             baseline.hazard.idx = new.data$baseline.haz,
             baseline.hazard.time = cutpoints[new.data$baseline.haz],
             baseline.hazard.length = diff(cutpoints)[new.data$baseline.haz],
-            subject=new.data$indicator,
+            subject = new.data$indicator,
             new.dataframe)
     
-    return (list(data = res, cutpoints = cutpoints))
+    return (list(data = res, data.list = list(baseline.hazard.values = cutpoints)))
 }
 
 `inla.get.poisson.data.2` = function( subject, time, event, cutpoints)
