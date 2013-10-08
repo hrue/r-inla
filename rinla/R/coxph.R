@@ -9,109 +9,120 @@
 ##!\title{Convert a Cox proportional hazard model into Poisson regression}
 ##!\description{Tools to convert a Cox proportional hazard model into Poisson regression}
 ##!\usage{
-##!    inla.coxph(formula, data, control.hazard = list())
+##!    inla.coxph(formula, data, control.hazard = list(), debug=FALSE)
 ##!    inla.cbind.data.frames(...)
 ##!}
 ##!\arguments{
 ##!  \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
 ##!  \item{data}{All the data used in the formula,  as a list.}
 ##!  \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
-##!  \item{...}{Data.frames to be cbind-ed,  padding with \code{NA}.}
+##!  \item{debug}{Print debug-information}
+##!  \item{...}{Data.frames to be \code{cbind}-ed,  padding with \code{NA}.}
 ##!}
 ##!\value{
 ##!      \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
-##!      \code{inla.cbind.data.frames} returns a new data.frame.
+##!      Note that element \code{data} and \code{data.list} needs to be merged into
+##!      a \code{list} to be passed as the \code{data} argument. See the example for details.
+##!      \code{inla.cbind.data.frames} returns the new data.frame.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\examples{
+##!## How the cbind.data.frames works:
+##!df1 = data.frame(x=1:2, y=2:3, z=3:4)
+##!df2 = data.frame(x=3:4, yy=4:5, zz=5:6)
+##!inla.cbind.data.frames(df1, df2)
+##!
 ##!## Standard example of how to convert a coxph into a Poisson regression
-##!n = 100
-##!x = runif(n) 
+##!n = 1000
+##!x = runif(n)
 ##!lambda = exp(1+x)
 ##!y = rexp(n, rate=lambda)
 ##!event = rep(1,n)
 ##!data = list(y=y, event=event, x=x)
 ##!y.surv = inla.surv(y, event)
-##!p = inla.coxph(y.surv ~ x, list(y.surv = y.surv,  x=x))
-##!model = inla(p$formula, 
+##!intercept1 = rep(1, n)
+##!p = inla.coxph(y.surv ~ -1 + intercept1 + x,
+##!               list(y.surv = y.surv,  x=x, intercept1 = intercept1))
+##!
+##!r = inla(p$formula, 
 ##!        family = p$family, 
-##!        data=p$data,
-##!        E = p$E,
-##!        .internal = p$.internal)
-##!summary(model)
+##!        data=c(as.list(p$data), p$data.list), 
+##!        E = p$E)
+##!summary(r)
 ##!
-##!## Doing it manually makes it possible to do a coxph model
-##!## jointly with other models
-##!interc2 = rep(1, n)
+##!## How to use this in a joint model
+##!intercept2 = rep(1, n)
 ##!y = 1 + x + rnorm(n, sd=0.1)
-##!df = data.frame(interc2, x, y)
+##!df = data.frame(intercept2, x, y)
 ##!
-##!df.joint = inla.cbind.data.frames(p$data, df)
-##!## Make the new respose
-##!Y = cbind(df.joint$y..coxph, df.joint$y)
-##!## Add it to the data.frame which must now become a list
-##!df.joint = as.list(df.joint)
-##!df.joint$Y = Y
-##!## Add the second model into the formula
-##!formula = update(p$formula, Y ~ interc2 -1 + .)
-##!## And we're done...
+##!## new need to cbind the data.frames, and then add the list-part of
+##!## the data
+##!df.joint = c(as.list(inla.cbind.data.frames(p$data, df)), p$data.list)
+##!df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
+##!
+##!## merge the formulas, recall to add '-1' and to use the new joint
+##!## reponse 'Y'
+##!formula = update(p$formula, Y ~ intercept2 -1 + .)
+##!
 ##!rr = inla(formula,
-##!        family = c("poisson", "gaussian"),
+##!        family = c(p$family, "gaussian"),
 ##!        data = df.joint,
-##!        E = df.joint$E,
-##!        .internal = p$.internal)
+##!        E = df.joint$E)
 ##!}
 
-`inla.coxph` = function(formula, data, control.hazard = list())
+`inla.coxph` = function(formula, data, control.hazard = list(), debug=FALSE)
 {
     ## convert a coxph-model into poisson-regression and return a new
     ## data-list with the expand variables and new variables to use in
     ## the poisson regression
 
     if (is.data.frame(data)) {
-        stop("'data' must be a 'list' not 'data.frame'.")
+        data = as.list(data)
     }
 
     name.y = inla.formula2character(formula[2])
     tmp = (names(data) %in% name.y)
+    y.surv = NULL
     if (any(tmp)) {
+        if (sum(tmp) > 1) {
+            stop(inla.paste(c("Several entries in 'data' match the name of the response:",
+                              "response=", name.y, ", matches=", sum(tmp),".")))
+        }
         y.surv = data[[which(tmp)]]
         data[[which(tmp)]] = NULL
     } else {
-        stop(inla.paste(c("The reponse '", name.y, "' is not in 'data'."), sep=""))
+        try.res = try(inla.eval(inla.paste(c("y.surv = with(data,", name.y,")"))), silent=TRUE)
+        if (inherits(try.res, "try-error")) {
+            stop(inla.paste(c("The reponse '", name.y, "' is not in 'data' and trying to expand it, failed."),
+                            sep=""))
+        }
     }
-    data = as.data.frame(data)
-    
+    len.y.surv = max(sapply(y.surv, length))
+    data.f = inla.fix.data(data, len.y.surv, revert=FALSE)
+    data.l = inla.fix.data(data, len.y.surv, revert=TRUE)
+    data.f = try(as.data.frame(data.f),  silent=TRUE)
+    if (inherits(data.f, "try-error")) {
+        stop("Fail to convert 'data' into a 'data.frame' even after 'inla.fix.data'.")
+    }
+
     if (class(y.surv) != "inla.surv") {
         stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
                    class(y.surv), "'", sep=""))
     }
-    control.hazard = inla.check.control(control.hazard, data)
+    control.hazard = inla.check.control(control.hazard, data.f)
     cont.hazard = inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] = control.hazard
     cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
             cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
 
     if (is.null(y.surv$subject)) {
-        res = inla.expand.dataframe.1(y.surv, data, control.hazard = cont.hazard)
+        res = inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
     } else {
-        res = inla.expand.dataframe.2(y.surv, data, control.hazard = cont.hazard)
-    }
-
-    idx = min(which(names(res$data) %in% ".y.surv"))
-    names(res$data)[idx] = "y..coxph"
-    idx = min(which(names(res$data) %in% ".E"))
-    names(res$data)[idx] = "E..coxph"
-
-    if (!is.null(cont.hazard$cutpoints)) {
-        baseline.hazard.values = seq(1, length(cont.hazard$cutpoints)-1)
-    } else if (!is.null(cont.hazard$n.intervals)) {
-        baseline.hazard.values = seq(1, cont.hazard$n.intervals)
-    } else {
-        baseline.hazard.values = NULL
+        res = inla.expand.dataframe.2(y.surv, data.f, control.hazard = cont.hazard)
     }
 
     strata.var = NULL
+    strata.tmp = NULL
     if (!is.null(cont.hazard$strata.name)) {
         if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
             ## strata = "x"
@@ -120,16 +131,31 @@
             stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
         }
     }
+    if (!is.null(strata.var)) {
+        if (!is.element(strata.var, names(data.f))) {
+            stop(inla.paste(c("Variable `", strata.var,
+                              "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
+                              names(data.f))))
+        }
+        if (debug) print("apply inla.strata() on strata.var")
+        ## cleaner code...
+        strata.tmp = inla.strata(inla.get(strata.var, data.f))
+        data.f[[strata.var]] = strata.tmp$strata
+        data.l$baseline.hazard.strata.coding = strata.tmp$coding
+        ## old code:
+        ##inla.eval(paste("strata.tmp = inla.strata(data.f$", strata.var, ")", sep=""))
+        ##inla.eval(paste("data.f$", strata.var, " = strata.tmp$strata"))
+        ##inla.eval(paste("data.l$baseline.hazard.strata.coding = strata.tmp$coding"))
+    }
     
-    ##if -1 the intercept is not included
+    ## if -1 the intercept is not included
     intercept = inla.ifelse(attr(terms(formula), "intercept") == 0, FALSE, TRUE)
 
     f.hazard = paste(
             "~",
             inla.ifelse(intercept, "1 +", "-1 +"), 
             ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
-            inla.ifelse(!is.null(baseline.hazard.values),
-                               inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
+            ", values = baseline.hazard.values", 
             ", hyper = ", enquote(cont.hazard$hyper),
             ", constr = ", cont.hazard$constr,
             ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
@@ -138,11 +164,17 @@
     
     new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
     
+    data.list = c(res$data.list, data.l)
+    if (!is.null(strata.tmp)) {
+        data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
+    }
+
     return (list(formula = new.formula, 
                  data = res$data,
+                 data.list = data.list, 
                  family = "poisson", 
-                 E = res$data$E..coxph, 
-                 .internal = list(baseline.hazard.cutpoints = res$cutpoints)))
+                 E = res$data$E..coxph,
+                 control.hazard = cont.hazard))
 }
 
 `inla.cbind.data.frames` = function(...)
