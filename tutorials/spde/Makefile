@@ -1,5 +1,5 @@
 RnwSOURCES = $(wildcard *.Rnw)
-texDepends = spde-tutorial.tex spde-tutorial-introduction.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib
+texDepends = updates.tex spde-tutorial.tex spde-tutorial-introduction.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib
 
 all : spde-tutorial.pdf
 

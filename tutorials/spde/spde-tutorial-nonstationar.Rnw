@@ -264,14 +264,13 @@ So, if we want a linear constrait,
 we need to use $\bC$. 
 
 That matrix is obtained by the 
-\code{inla.mesh.fem()} function: 
-<<aconstr>>=
-Aconstr <- matrix(diag(inla.mesh.fem(mesh)$c0), 1)
-@ 
-and we do the simulation with 
+\code{inla.mesh.fem()} function and 
+is available directly in outputs of 
+\code{inla.spde2.matern()} function. 
+So, we do the simulation with 
 <<constrs>>=
-s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=list(A=Aconstr,e=0)))
-s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=list(A=Aconstr,e=0)))
+s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=spde$f$extraconstr))
+s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=spde$f$extraconstr))
 @ 
 and we have
 <<comparss>>=

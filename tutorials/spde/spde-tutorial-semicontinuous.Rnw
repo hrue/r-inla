@@ -81,8 +81,8 @@ legend('topright', format(q.y, dig=2), pch=1, bty='n',
 <<vrain,echo=F,fig=T,eps=F,width=11,height=4.5>>=
 <<rain>>
 @ 
-\caption{Map of precipitation (left) and histogram of 
-positive precipitation (right).} 
+\caption{Histogram of positive precipitation 
+  and map of precipitation.} 
 \label{fig:rain}
 \end{figure}
 
@@ -93,19 +93,6 @@ $z_i$ and the gamma for $y_i$.
 z_i \sim \text{Bernoulli}(p_i) \;\;\;\;\;\;\;
 y_i \sim \text{Gamma}(a_i, b_i)
 \]
-So, we need a two column response matrix 
-one for each response and $2\times n$ rows. 
-We put the first response on first column 
-at first $n$ rows and the second response 
-on last $n$ rows of second column.
-<<Y>>=
-n <- nrow(PRprec)
-Y <- matrix(NA, 2*n, 2)
-Y[1:n, 1] <- z
-Y[n + 1:n, 2] <- y
-@ 
-later we associate, on the model formulae, 
-one likelihood for each column.
 
 We define the linear predictor to first component by 
 \[
@@ -144,39 +131,36 @@ spde <- inla.spde2.matern(prmesh2, alpha=2)
 
 We have to prepare the data in 
 addequate form using the stack functionality. 
-First we get the predictor matrix with 
+First we get the predictor matrix for the 
+SPDE model effect with 
 <<A>>=
 A <- inla.spde.make.A(prmesh2, loc=as.matrix(PRprec[,1:2]))
 @ 
-because we have a $2$ times $n$ data, we need predictor 
-matrix with $2\times n$ rows. Specificaly, 
-we need additional rows with zeros, below \code{A} to 
-first part, and at end of \code{A} to second part. 
-<<a0>>=
-a0 <- Matrix(0, nrow(A), ncol(A))
-@ 
-Also, for the intercept we need a vector with $1$ 
-on first $n$ elements to estimate $\alpha_z$ and 
-$0$ on last $n$ components.
-<<z.beta0>>=
-z.beta0 <- rep(1:0, each=n)
-@ 
-And the referse of this to estimate $\alpha_y$.
 
-The data stack is defined by 
+Taking into account that we need to model two 
+responses together, the response is a two column matrix. 
+The data stack for the rain occurence is 
 <<stack>>=
-stk <- inla.stack(tag='est', data=list(y=Y), 
-                  A=list(rBind(A, a0), 1, rBind(a0, A), 1), 
-                  effects=list(i.z=1:spde$n.spde, z.b0=z.beta0, 
-                    i.y=1:spde$n.spde, y.b0=1-z.beta0))
+stk.z <- inla.stack(tag='est.z', 
+                    data=list(y=cbind(z, NA)), ### first column
+                    A=list(A, 1), 
+                    effects=list(
+                      list(i.z=1:spde$n.spde), 
+                      list(z.b0=rep(1,length(z)))))
 @ 
-The intercepts here are estimated in same way 
-when we have covariate. In this case, the 
-covariate is assigned $0$ (zero) at positions 
-corresponding to the response unaffected by it. 
-So, we have list of effects with length four, 
-the index set of random effect on each response 
-and the intercept on each response. 
+The data stack for the precipitation amount is 
+<<stack>>=
+stk.y <- inla.stack(tag='est.y', 
+                    data=list(y=cbind(NA, y)), ### first column
+                    A=list(A, 1), 
+                    effects=list(
+                      list(i.y=1:spde$n.spde), 
+                      list(y.b0=rep(1,length(y)))))
+@ 
+The full data stack is 
+<<stk.full>>=
+stk.zy <- inla.stack(stk.z, stk.y)
+@ 
 
 To fit the model, we make inference to $\beta$ 
 using the copy of the strategy 
@@ -185,8 +169,8 @@ with \code{fixed=FALSE}.
 res <- inla(y ~ 0 + z.b0 + y.b0 + 
             f(i.z, model=spde) + f(i.y, copy='i.z', fixed=FALSE), 
             family=c('binomial', 'gamma'), 
-            data=inla.stack.data(stk), control.compute=list(dic=TRUE),
-            control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
+            data=inla.stack.data(stk.zy), control.compute=list(dic=TRUE),
+            control.predictor=list(A=inla.stack.A(stk.zy), compute=TRUE))
 @ 
 
 Now, we look at the summary of the posterior distribution 
@@ -284,8 +268,8 @@ We fit the model without $x$ with
 <<refit>>=
 res0 <- inla(y ~ 0 + z.b0 + y.b0, 
             family=c('binomial', 'gamma'), 
-            data=inla.stack.data(stk), control.compute=list(dic=TRUE),
-            control.predictor=list(A=inla.stack.A(stk), compute=TRUE))
+            data=inla.stack.data(stk.zy), control.compute=list(dic=TRUE),
+            control.predictor=list(A=inla.stack.A(stk.zy), compute=TRUE))
 @ 
 and we have
 <<dics>>=

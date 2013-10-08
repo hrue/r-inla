@@ -4,6 +4,7 @@
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 require(INLA)
+noremote <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 @ 
 
@@ -27,7 +28,7 @@ coords <- as.matrix(SPDEtoy[,1:2])
 with the mesh 
 <<mesh>>=
 (mesh <- inla.mesh.create.helper(coords, 
-                                 max.e=c(0.15, 0.2), cutoff=0.02))$n
+                                 max.e=c(0.15, 0.2), cutoff=0.02))$n 
 @ 
 to build the model
 <<spde>>=
@@ -92,10 +93,12 @@ r$kappa <- sapply(resk, function(x) {
 })
 @ 
 <<likfit,echo=F,results=hide>>=
-require(geoR)
-lk <- likfit(as.geodata(SPDEtoy), ini=c(5,.1), nugget=.1, kappa=1)
-lk.est <- c(lk$beta, lk$nugget, lk$cov.pars)
-lk.est[4] <- 1/lk.est[4]
+source('spde-tutorial-functions.R')
+inla.setOption(inla.call=noremote)
+A <- inla.spde.make.A(mesh, loc=coords)
+opt.b <- optim(c(-4,2,-1.5), nllf, hessian=TRUE, method='BFGS',
+               X=matrix(1,nrow(coords)), y=SPDEtoy[,3], A=A, verbose=FALSE)
+lk.est <- par2user(opt.b$par, A, matrix(1,nrow(coords),1), SPDEtoy[,3])[c(4,3,1,2)]
 @ 
 
 The main think in data clonning is to visualize 
