@@ -213,10 +213,12 @@ spde <- inla.spde2.matern(prmesh2, alpha=2)
 and the stack data is defined to include four effects: 
 the GRF, intercept, west coordinate and distance to sea
 <<stackpr>>=
-stk.dat <- inla.stack(data=list(y=PRprec$precMean), A=list(A,1,1,1), 
-                      effects=list(i=1:spde$n.spde, Intercept=rep(1, nrow(A)), 
-                        gWest=inla.group(coords[,1]), 
-                        gSeaDist=inla.group(PRprec$seaDist)), tag='dat')
+stk.dat <- inla.stack(data=list(y=PRprec$precMean), 
+                      A=list(A,1), tag='dat', 
+                      effects=list(list(i=1:spde$n.spde), 
+                        list(Intercept=rep(1, nrow(A)), 
+                             gWest=inla.group(coords[,1]), 
+                             gSeaDist=inla.group(PRprec$seaDist))))
 @ 
 
 We fit the two models using the same stack data. 

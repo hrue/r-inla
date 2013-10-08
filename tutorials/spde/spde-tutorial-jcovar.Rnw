@@ -133,36 +133,24 @@ to solve in pratice, we don't have
 the covariate on the response locations. 
 The misalignment implies in different 
 predictor matrix for response and covariate. 
-Also, we need a matrix with zeros to add on 
-each of the predictor matrix to associate with 
-the NA elements on response matrix defined later 
 <<Apred>>=
-Ac <- rBind(inla.spde.make.A(mesh, loc=loc.c), 
-            Matrix(0, n.y, mesh$n))
-Ay <- rBind(Matrix(0, n.c, mesh$n), 
-            inla.spde.make.A(mesh, loc=loc.y))
+Ac <- inla.spde.make.A(mesh, loc=loc.c)
+Ay <- inla.spde.make.A(mesh, loc=loc.y)
 @ 
 
 To predict the covariate jointly, we need 
 to model it jointly and we need two likelihoods. 
 So, the response is formed by two colums matrix. 
-We fill the first lines of first column of this 
-matrix with the covariate values and the last 
-lines of the second column with the response values. 
-All the another positions is filled with NA.
-
-We need an additional carefull 
-in the data management. 
-Because we want to estimate the effect 
-of the covariate with the copy strategy, 
-we need that the index on the both 
-random field math the random field
+The data stack can be obtained by 
 <<dat>>=
-stk <- inla.stack(list(Y=cbind(c(cc[1:n.c], rep(NA,n.y)), 
-                         c(rep(NA,n.c), yy))), 
-                  A=list(Ac, Ay), tag='dat', 
-                  effects=list(data.frame(m=1:mesh$n), 
-                    data.frame(a.y=1, c.y=1:mesh$n, x=1:mesh$n)))
+stk.c <- inla.stack(data=list(y=cbind(cc[1:n.c], NA)), 
+                    A=list(Ac), tag='dat.c', 
+                    effects=list(m=1:mesh$n))
+stk.y <- inla.stack(data=list(y=cbind(NA, yy)), 
+                    A=list(Ay, 1), 
+                    effects=list(list(c.y=1:mesh$n, x=1:mesh$n), 
+                      list(a.y=rep(1,length(yy)))))
+stk <- inla.stack(stk.c, stk.y)
 @ 
 
 The estimation of the regression coefficient 
@@ -173,9 +161,9 @@ For example, is possible to know, a priori, the signal.
 We set a $N(-3, 25)$ prior to $\beta$. 
 Also, we define the formulae for the model. 
 <<formula>>=
-form <- Y ~  0 + f(m, model=spde) + 
+form <- y ~  0 + f(m, model=spde) + 
   a.y + f(x, model=spde) + f(c.y, copy='m', fixed=FALSE, 
-               hyper=list(theta=list(param=c(-3,25), initial=1))) 
+               hyper=list(theta=list(param=c(-3,25), initial=-3))) 
 @ 
 define the spde model and fit the model with 
 <<fit>>=
@@ -325,7 +313,7 @@ the posterior variance on the locations.
 
 We get this matrix by
 <<prdmat>>=
-mesh2locs <- rBind(Ac[1:n.c,], Ay[n.c+1:n.y, ])
+mesh2locs <- rBind(Ac, Ay)
 @ 
 and the posterior mean and posterior standard deviations with 
 <<predicted>>=
