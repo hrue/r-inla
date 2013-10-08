@@ -10,55 +10,63 @@
 \title{Convert a Cox proportional hazard model into Poisson regression}
 \description{Tools to convert a Cox proportional hazard model into Poisson regression}
 \usage{
-    inla.coxph(formula, data, control.hazard = list())
+    inla.coxph(formula, data, control.hazard = list(), debug=FALSE)
     inla.cbind.data.frames(...)
 }
 \arguments{
   \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
   \item{data}{All the data used in the formula,  as a list.}
   \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
-  \item{...}{Data.frames to be cbind-ed,  padding with \code{NA}.}
+  \item{debug}{Print debug-information}
+  \item{...}{Data.frames to be \code{cbind}-ed,  padding with \code{NA}.}
 }
 \value{
       \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
-      \code{inla.cbind.data.frames} returns a new data.frame.
+      Note that element \code{data} and \code{data.list} needs to be merged into
+      a \code{list} to be passed as the \code{data} argument. See the example for details.
+      \code{inla.cbind.data.frames} returns the new data.frame.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \examples{
+## How the cbind.data.frames works:
+df1 = data.frame(x=1:2, y=2:3, z=3:4)
+df2 = data.frame(x=3:4, yy=4:5, zz=5:6)
+inla.cbind.data.frames(df1, df2)
+
 ## Standard example of how to convert a coxph into a Poisson regression
-n = 100
-x = runif(n) 
+n = 1000
+x = runif(n)
 lambda = exp(1+x)
 y = rexp(n, rate=lambda)
 event = rep(1,n)
 data = list(y=y, event=event, x=x)
 y.surv = inla.surv(y, event)
-p = inla.coxph(y.surv ~ x, list(y.surv = y.surv,  x=x))
-model = inla(p$formula, 
+intercept1 = rep(1, n)
+p = inla.coxph(y.surv ~ -1 + intercept1 + x,
+               list(y.surv = y.surv,  x=x, intercept1 = intercept1))
+
+r = inla(p$formula, 
         family = p$family, 
-        data=p$data,
-        E = p$E,
-        .internal = p$.internal)
-summary(model)
+        data=c(as.list(p$data), p$data.list), 
+        E = p$E)
+summary(r)
 
-## Doing it manually makes it possible to do a coxph model
-## jointly with other models
-interc2 = rep(1, n)
+## How to use this in a joint model
+intercept2 = rep(1, n)
 y = 1 + x + rnorm(n, sd=0.1)
-df = data.frame(interc2, x, y)
+df = data.frame(intercept2, x, y)
 
-df.joint = inla.cbind.data.frames(p$data, df)
-## Make the new respose
-Y = cbind(df.joint$y..coxph, df.joint$y)
-## Add it to the data.frame which must now become a list
-df.joint = as.list(df.joint)
-df.joint$Y = Y
-## Add the second model into the formula
-formula = update(p$formula, Y ~ interc2 -1 + .)
-## And we're done...
+## new need to cbind the data.frames, and then add the list-part of
+## the data
+df.joint = c(as.list(inla.cbind.data.frames(p$data, df)), p$data.list)
+df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
+
+## merge the formulas, recall to add '-1' and to use the new joint
+## reponse 'Y'
+formula = update(p$formula, Y ~ intercept2 -1 + .)
+
 rr = inla(formula,
-        family = c("poisson", "gaussian"),
+        family = c(p$family, "gaussian"),
         data = df.joint,
-        E = df.joint$E,
-        .internal = p$.internal)
+        E = df.joint$E)
 }

@@ -503,114 +503,16 @@
         have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
 
     if (have.surv && (inla.one.of(family, c("coxph")))) {
-        ## in this case, we expand the data-frame into a sequence of
-        ## Poisson observations, and call inla() again.
-
         ## This is not supported yet. 
         stopifnot(is.null(control.predictor$A))
-
-        cont.hazard = inla.set.control.hazard.default()
-        cont.hazard[names(control.hazard)] = control.hazard
-        y.surv = eval(parse(text=formula[2]), data)
-        if (class(y.surv) != "inla.surv") {
-            stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
-                       class(y.surv), "'", sep=""))
-        }
-        len.y.surv = max(sapply(y.surv, length))
-        data.tmp = inla.remove(as.character(formula[2]), data)
-        data.f = inla.fix.data(data.tmp, len.y.surv)
-        ## check for any matrices in data.f
-        if (is.list(data.f) && length(data.f) > 0L) {
-            mat.name = names(data.f)[which(sapply(data.f, inla.is.matrix))]
-            if (length(mat.name) > 0L)
-                warning(paste(c("'data' contains matrix: ", paste(mat.name, collapse=", ", sep=""),
-                                ", and this will throw an error if used like this: y ~ A")))
-        }
-        data.f = as.data.frame(data.f) ## this will 'fail' if data.f contains a matrix
-        data.not.f = inla.fix.data(data.tmp, len.y.surv, revert=TRUE)
-        if (!is.null(weights)) {
-            data.f$.weights = weights
-        }
-        if (is.null(y.surv$subject)) {
-            res = inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
-            new.data = res$data
-            .internal$baseline.hazard.cutpoints = res$cutpoints
-        } else {
-            res = inla.expand.dataframe.2(y.surv, data.f, control.hazard = cont.hazard)
-            new.data = res$data
-            .internal$baseline.hazard.cutpoints = res$cutpoints
-        }
-
-        if (cont.hazard$model != "rw1" && cont.hazard$model != "rw2")
-            stop(paste("Valid models for the hazard is `rw1' and `rw2'; you have", cont.hazard$model))
-        
-        ## This is the strata-part, making the baseline hazard
-        ## replicates according to the strata.
-        strata.var = NULL
-        if (!is.null(cont.hazard$strata.name)) {
-            if (is.character(cont.hazard$strata.name) && length(cont.hazard$strata.name)==1) {
-                ## strata = "x"
-                strata.var = cont.hazard$strata
-            } else {
-                stop("Argument to `strata.name' must be the name of a variable in the data.frame.")
-            }
-        }
-        if (debug)
-            print(paste("strata.var", strata.var))
-        if (!is.null(strata.var)) {
-            if (!is.element(strata.var, names(new.data))) {
-                stop(inla.paste(c("Variable `", strata.var,
-                                  "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
-                                  names(new.data))))
-            }
-
-            if (debug) print("apply inla.strata() on strata.var")
-            inla.eval(paste("strata.tmp = inla.strata(new.data$", strata.var, ")", sep=""))
-            inla.eval(paste("new.data$", strata.var, " = strata.tmp$strata"))
-            inla.eval(paste(".internal$baseline.hazard.strata.coding = strata.tmp$coding"))
-        }
-        
-        ## make sure that the dimension of the baseline-hazard is
-        ## correct, but setting 'values' correct.
-        if (!is.null(cont.hazard$cutpoints)) {
-            baseline.hazard.values = seq(1, length(cont.hazard$cutpoints)-1)
-        } else if (!is.null(cont.hazard$n.intervals)) {
-            baseline.hazard.values = seq(1, cont.hazard$n.intervals)
-        } else {
-            baseline.hazard.values = NULL
-        }
-        
-        cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
-                cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
-        all.hyper$hazard$hyper = cont.hazard$hyper
-
-        f.hazard = paste(
-                "+ f(baseline.hazard, model=\"", cont.hazard$model,"\"",
-                inla.ifelse(!is.null(baseline.hazard.values),
-                            inla.paste(c(", values = ", inla.2list(baseline.hazard.values))), ""),
-                ", hyper = ", enquote(cont.hazard$hyper),
-                ", constr = ", cont.hazard$constr,
-                ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
-                inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
-                ")", sep="")
-
-        ## to prevent a warning with R CMD check
-        surv.formula = NULL
-        inla.eval(paste("surv.formula = .y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
-
-        if (debug) {
-            print(f.hazard)
-            print(inla.formula2character(surv.formula[3]))
-            print(paste("surv.formula = y.surv ~ ", inla.formula2character(formula[3]), f.hazard))
-        }
-
+        cph = inla.coxph(formula, data, control.hazard, debug = debug)
         result = inla(
-                surv.formula,
-                family = "poisson",
-                data = c(new.data, data.not.f),
+                cph$formula,
+                family = cph$family,
+                data = c(as.list(cph$data), cph$data.list), 
                 contrasts = contrasts, 
                 quantiles=quantiles,
-                E = new.data$.E,
+                E = cph$E,
                 ## these should be expanded as well???  Will give an error...
                 offset= offset,
                 scale = scale,
@@ -2009,7 +1911,11 @@
 {
     ## extract all entries in 'data' with length='n'. if 'revert',  do the oposite
     if (is.data.frame(data)) {
-        return (data)
+        if (dim(data)[1L] == n) {
+            return (inla.ifelse(revert, data.frame(), data))
+        } else {
+            return (inla.ifelse(!revert, data.frame(), data))
+        }
     }
     if (is.list(data) && length(data) > 0L) {
         idx = which(sapply(
