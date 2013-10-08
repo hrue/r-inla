@@ -11,8 +11,12 @@ spde-tutorial.pdf : $(texDepends)
 	@echo generating file $@
 	@R --vanilla -e 'Sweave("$^")' </dev/null
 
+install: spde-tutorial.pdf
+	distill spde-tutorial.pdf
+	cp spde-tutorial.pdf ../../inla/r-inla.org/tutorials/spde/spde-tutorial.pdf
+
 clean :; latexmk -C
 
-.PHONY: clean
+.PHONY: clean install
 
 
