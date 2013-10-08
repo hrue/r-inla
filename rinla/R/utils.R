@@ -837,3 +837,12 @@
     }
     return(arg)
 }
+
+`inla.get` = function(var, data = NULL)
+{
+    if (is.null(data)) {
+        return (get(var))
+    } else {
+        return (get(var, envir = as.environment(data)))
+    }
+}
