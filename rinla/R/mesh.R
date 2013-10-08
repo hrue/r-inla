@@ -1261,6 +1261,10 @@ inla.mesh.2d <-
 
     ## Triangulate to get inner domain boundary
     ## Constraints included only to get proper domain extent
+    ## First, attach the loc points to the domain definition set
+    if (!is.null(loc) && !is.null(loc.domain)) {
+        loc.domain = rbind(loc.domain, loc)
+    }
     mesh1 =
         inla.mesh.create(loc=loc.domain,
                          boundary=boundary[[1]],
@@ -1308,7 +1312,7 @@ inla.mesh.2d <-
     mesh3 =
         inla.mesh.create(loc=rbind(loc, mesh2$loc),
                          boundary=boundary[[2]],
-                         interior=list(boundary2[[1]], interior2),
+                         interior=c(boundary2, interior2),
                          cutoff=cutoff,
                          extend=list(n=n[2], offset=offset[2]),
                          refine=
@@ -1318,8 +1322,33 @@ inla.mesh.2d <-
                          plot.delay=plot.delay)
 
     ## Hide generated points, to match regular inla.mesh.create output
-    ## TODO: correctly translate the corresponding segm indices.
     mesh3$idx$loc = mesh3$idx$loc[seq_len(nrow(loc))]
+
+    ## Obtain the corresponding segm indices.
+    segm.loc = matrix(0.0, 0, 3)
+    for (k in seq_along(boundary)) {
+        if (!is.null(boundary[[k]])) {
+            segm.loc = rbind(segm.loc, boundary[[k]]$loc)
+        }
+    }
+    for (k in seq_along(interior)) {
+        if (!is.null(interior[[k]])) {
+            segm.loc = rbind(segm.loc, interior[[k]]$loc)
+        }
+    }
+    if (nrow(segm.loc) > 0) {
+        proj = inla.mesh.project(mesh3, loc=segm.loc)
+        mesh3$idx$segm = rep(NA, nrow(segm.loc))
+        if (any(proj$ok)) {
+            t.idx <- proj$t[proj$ok]
+            tv.idx <- max.col(proj$bary[proj$ok,,drop=FALSE],
+                              ties.method="first")
+            mesh3$idx$segm[proj$ok] <-
+                mesh3$graph$tv[t.idx + nrow(mesh3$graph$tv)*(tv.idx-1)]
+        }
+    } else {
+        mesh3$idx$segm = NULL
+    }
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
         inla.dev.new()
