@@ -10,8 +10,9 @@ bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
 D=inla/rinla/R
 
-inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
 hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
+##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
+inlahg=$hg
 
 echo "epoch=$epoch"
 echo "date=$date"
