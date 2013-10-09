@@ -921,6 +921,7 @@ inla.internal.experimental.mode = FALSE
         file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"deviance_e.dat", sep="")
         if (inla.is.fmesher.file(file)) {
             dev.e = c(inla.read.fmesher.file(file))
+            dev.e[is.nan(dev.e)] = NA
         } else {
             dev.e = NULL
         }
@@ -928,16 +929,49 @@ inla.internal.experimental.mode = FALSE
         file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"e_deviance.dat", sep="")
         if (inla.is.fmesher.file(file)) {
             e.dev = c(inla.read.fmesher.file(file))
+            e.dev[is.nan(e.dev)] = NA
         } else {
             e.dev = NULL
         }
+
+        file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"family_idx.dat", sep="")
+        if (inla.is.fmesher.file(file)) {
+            f.idx = c(inla.read.fmesher.file(file)) + 1L  ## convert to R-indexing
+            f.idx[is.nan(f.idx)] = NA
+        } else {
+            f.idx = NULL
+        }
+
+        ## if there there is no data at all, then all dic'values are
+        ## NA. the returned values are 0, so we override them here.
+        if (all(is.na(f.idx))) {
+            dic.values[] = NA
+        }
+
+        local.dic = 2.0*e.dev - dev.e
+        local.p.eff = e.dev - dev.e
+        
+        if (!is.null(f.idx)) {
+            n.fam = max(f.idx, na.rm = TRUE)
+            fam.dic = numeric(n.fam)
+            fam.p.eff = numeric(n.fam)
+            for(i in 1:n.fam) {
+                idx = which(f.idx == i)
+                fam.dic[i] = sum(local.dic[idx])
+                fam.p.eff[i] = sum(local.p.eff[idx])
+            }
+        }
+
         dic = list(
                 "dic" = dic.values[4L],
                 "p.eff"= dic.values[3L],
-                "local.dic" = 2.0*e.dev - dev.e, 
-                "local.p.eff" = e.dev - dev.e, 
                 "mean.deviance" = dic.values[1L],
-                "deviance.mean" = dic.values[2L])
+                "deviance.mean" = dic.values[2L], 
+                "family.dic" = fam.dic, 
+                "family.p.eff" = fam.p.eff, 
+                "family" = f.idx, 
+                "local.dic" = local.dic, 
+                "local.p.eff" = local.p.eff)
     } else {
         dic = NULL
     }
