@@ -677,6 +677,8 @@ struct inla_tp_struct {
 	int predictor_n;				       /* dimension of \eta */
 	int predictor_m;				       /* dimension of \tilde{\eta}, the extended predictor */
 	int predictor_ndata;				       /* dimension of the data, ie _n if _m is 0, otherwise _m */
+	double *family_idx;				       /* which family {1,2,..} each data-point belongs to */
+	int len_family_idx;				       /* need to pass this as well */
 
 	char *predictor_tag;				       /* the tag */
 	char *predictor_dir;				       /* the directory */
@@ -847,7 +849,7 @@ struct inla_tp_struct {
 	 */
 	GMRFLib_ai_misc_output_tp *misc_output;
 
-	/* 
+	/*
 	 * if at use
 	 */
 	inla_update_tp *update;
@@ -1256,7 +1258,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		       const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname,
 		       int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
-int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose);
+int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
 int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);

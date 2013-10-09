@@ -4526,23 +4526,23 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p;
 
-	/* 
+	/*
 	 * this is a special case that should just return 0 or 1
 	 */
-	if (ISZERO(y) && ISZERO(n)){
-		if (m > 0){
+	if (ISZERO(y) && ISZERO(n)) {
+		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				logll[i] = 0.0;		       /* log(1) = 0 */
-			} 
+			}
 		} else {
-			for(i = 0; i < -m; i++){
+			for (i = 0; i < -m; i++) {
 				logll[i] = 1.0;
 			}
 		}
 		return GMRFLib_SUCCESS;
 	}
-		
-	/* 
+
+	/*
 	 * this is the normal case...
 	 */
 	LINK_INIT;
@@ -6966,6 +6966,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->loglikelihood = Calloc(mb->predictor_ndata, GMRFLib_logl_tp *);
 	mb->loglikelihood_arg = Calloc(mb->predictor_ndata, void *);
 	mb->d = Calloc(mb->predictor_ndata, double);
+	mb->family_idx = Calloc(mb->predictor_ndata, double);
+	mb->len_family_idx = mb->predictor_ndata;
 
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
@@ -6980,11 +6982,13 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			exit(EXIT_FAILURE);
 		}
 
-		if (found == 1) {
+		if (found) {
+			mb->family_idx[i] = k;
 			mb->loglikelihood[i] = mb->data_sections[k].loglikelihood;
 			mb->loglikelihood_arg[i] = (void *) &(mb->data_sections[k]);
 			mb->d[i] = mb->data_sections[k].data_observations.d[i];
 		} else {
+			mb->family_idx[i] = NAN;
 			mb->loglikelihood[i] = NULL;
 			mb->loglikelihood_arg[i] = NULL;
 			mb->d[i] = 0.0;
@@ -8016,7 +8020,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.nb[i] <= 0.0 ||
 				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
 					// we allow for binomial(0,p) if y = 0
-					if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))){
+					if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))) {
 						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
 								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
 						inla_error_general(msg);
@@ -16792,7 +16796,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 */
 	char *secname = NULL, *filename = NULL;
 	GMRFLib_matrix_tp *M = NULL;
-	
+
 	if (mb->verbose) {
 		printf("\tinla_parse_update...\n");
 	}
@@ -16806,56 +16810,54 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tfilename[%s]\n", filename);
 	}
 
-	if (filename){
+	if (filename) {
 		M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		mb->update = Calloc(1, inla_update_tp);
 
 		int i = 0, j = 0, nt, k, kk;
-		
+
 		mb->update->ntheta = nt = (int) GMRFLib_matrix_get(i++, j, M);
-		if (mb->verbose){
+		if (mb->verbose) {
 			printf("\t\tntheta = %1d\n", nt);
 		}
 
 		mb->update->theta_mode = Calloc(nt, double);
-		for(k = 0; k<nt; k++){
+		for (k = 0; k < nt; k++) {
 			mb->update->theta_mode[k] = GMRFLib_matrix_get(i++, j, M);
-			if (mb->verbose){
+			if (mb->verbose) {
 				printf("\t\ttheta.mode[%1d] = %.10g\n", k, mb->update->theta_mode[k]);
 			}
 		}
 		mb->update->stdev_corr_pos = Calloc(nt, double);
-		for(k = 0; k<nt; k++){
+		for (k = 0; k < nt; k++) {
 			mb->update->stdev_corr_pos[k] = GMRFLib_matrix_get(i++, j, M);
-			if (mb->verbose){
+			if (mb->verbose) {
 				printf("\t\tstdev.corr.pos[%1d] = %.10g\n", k, mb->update->stdev_corr_pos[k]);
 			}
 		}
 		mb->update->stdev_corr_neg = Calloc(nt, double);
-		for(k = 0; k<nt; k++){
+		for (k = 0; k < nt; k++) {
 			mb->update->stdev_corr_neg[k] = GMRFLib_matrix_get(i++, j, M);
-			if (mb->verbose){
+			if (mb->verbose) {
 				printf("\t\tstdev.corr.neg[%1d] = %.10g\n", k, mb->update->stdev_corr_neg[k]);
 			}
 		}
 		mb->update->sqrt_eigen_values = gsl_vector_calloc((size_t) nt);
-		for(k = 0; k<nt; k++){
+		for (k = 0; k < nt; k++) {
 			gsl_vector_set(mb->update->sqrt_eigen_values, k, GMRFLib_matrix_get(i++, j, M));
-			if (mb->verbose){
-				printf("\t\tsqrt.eigen.values[%1d] = %.10g\n", k,
-				       gsl_vector_get(mb->update->sqrt_eigen_values, k));
+			if (mb->verbose) {
+				printf("\t\tsqrt.eigen.values[%1d] = %.10g\n", k, gsl_vector_get(mb->update->sqrt_eigen_values, k));
 			}
 		}
 		mb->update->eigen_vectors = gsl_matrix_calloc((size_t) nt, (size_t) nt);
-		for(kk = 0; kk<nt; kk++){
-			for(k = 0; k<nt; k++){
-				/* 
+		for (kk = 0; kk < nt; kk++) {
+			for (k = 0; k < nt; k++) {
+				/*
 				 * column based storage...
 				 */
 				gsl_matrix_set(mb->update->eigen_vectors, k, kk, GMRFLib_matrix_get(i++, j, M));
-				if (mb->verbose){
-					printf("\t\teigenvectors[%1d,%1d] = %.10g\n", k, kk, 
-					       gsl_matrix_get(mb->update->eigen_vectors, k, kk));
+				if (mb->verbose) {
+					printf("\t\teigenvectors[%1d,%1d] = %.10g\n", k, kk, gsl_matrix_get(mb->update->eigen_vectors, k, kk));
 				}
 			}
 		}
@@ -16863,7 +16865,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		assert(i == M->nrow);
 		GMRFLib_matrix_free(M);
 	}
-	
+
 	return INLA_OK;
 }
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
@@ -17045,10 +17047,10 @@ double extra(double *theta, int ntheta, void *argument)
 
 	mb = (inla_tp *) argument;
 
-	/* 
+	/*
 	 * this will evaluate all the hyperparameters and disable EVAL_PRIOR...
 	 */
-	if (mb->update){
+	if (mb->update) {
 		val += inla_update_density(theta, mb->update);
 		evaluate_hyper_prior = 0;
 	}
@@ -20833,7 +20835,7 @@ int inla_output(inla_tp * mb)
 				inla_output_detail_po(mb->dir, mb->po, mb->predictor_ndata, local_verbose);
 			}
 			if (mb->dic) {
-				inla_output_detail_dic(mb->dir, mb->dic, local_verbose);
+				inla_output_detail_dic(mb->dir, mb->dic, mb->family_idx, mb->len_family_idx, local_verbose);
 			}
 			if (mb->output->mlik) {
 				inla_output_detail_mlik(mb->dir, &(mb->mlik), local_verbose);
@@ -21097,13 +21099,24 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	Free(nndir);
 	return INLA_OK;
 }
-int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose)
+int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
+	double *tmp = NULL;
+
+#define PAD_WITH_NA(xx)							\
+	if (1) {							\
+		tmp = Calloc(len_family_idx, double);			\
+		memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
+		int i;							\
+		for(i = dic->n_deviance; i < len_family_idx; i++){	\
+			tmp[i] = NAN;					\
+		}							\
+	}
 
 	if (!dic) {
 		return INLA_OK;
@@ -21140,18 +21153,26 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose
 		GMRFLib_matrix_tp *M = NULL;
 
 		M = Calloc(1, GMRFLib_matrix_tp);
-		M->nrow = dic->n_deviance;
+		M->nrow = len_family_idx;
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
-		M->A = dic->e_deviance;
 
+		PAD_WITH_NA(dic->e_deviance);
+		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");
 		inla_fnmfix(nndir);
-
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		M->A = dic->deviance_e;
+		Free(tmp);
 
+		PAD_WITH_NA(dic->deviance_e);
+		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
+		inla_fnmfix(nndir);
+		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
+		Free(tmp);
+
+		M->A = family_idx;
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "family_idx.dat");
 		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 
@@ -21161,6 +21182,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, int verbose
 
 	Free(ndir);
 	Free(nndir);
+#undef PAD_WITH_NA
 	return INLA_OK;
 }
 int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **theta_from, char **theta_to,

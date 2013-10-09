@@ -963,7 +963,8 @@ int GMRFLib_test_something____omp(void)
 		x[1] = 3.0 + (i + 1) * 0.1;
 		GMRFLib_thread_id = omp_get_thread_num();
 		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL, NULL);
-		printf("x %g %g f %.12f [%1d]\n", x[0], x[1], fx[0], GMRFLib_thread_id);
+		if (0)
+			printf("x %g %g f %.12f [%1d]\n", x[0], x[1], fx[0], GMRFLib_thread_id);
 
 		GMRFLib_free_ai_store(ais);
 	}
