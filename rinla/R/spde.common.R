@@ -520,17 +520,26 @@ inla.spde.make.A =
     }
 
     n.group =
-        inla.ifelse(is.null(n.group),
-                    max(1, inla.ifelse(is.null(group), 1,
-                                       inla.ifelse(length(group)==0, 1,
-                                                   max(group)))),
-                    n.group)
+        ifelse(!is.null(n.group),
+               n.group,
+               ifelse(!is.null(A.group),
+                      nrow(A.group),
+                      ifelse(!is.null(group.mesh),
+                             group.mesh$m,
+                             max(1,
+                                 ifelse(is.null(group),
+                                        1,
+                                        ifelse(length(group)==0,
+                                               1,
+                                               max(group)))))))
     n.repl =
-        inla.ifelse(is.null(n.repl),
-                    max(1, inla.ifelse(is.null(repl), 1,
-                                       inla.ifelse(length(repl)==0, 1,
-                                                   max(repl)))),
-                    n.repl)
+        ifelse(!is.null(n.repl),
+               n.repl,
+               max(1, ifelse(is.null(repl),
+                             1,
+                             ifelse(length(repl)==0,
+                                    1,
+                                    max(repl)))))
 
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
@@ -547,48 +556,51 @@ inla.spde.make.A =
     }
     ## Now 'index' points into the rows of 'A.loc'
 
-    n.block =
-        inla.ifelse(is.null(n.block),
-                    inla.ifelse(is.null(block), length(index), max(block)))
+    if (is.null(n.block)) {
+        n.block = ifelse(is.null(block), length(index), max(block))
+    }
     block.rescale = match.arg(block.rescale)
 
     ## Handle group semantics:
-    if (is.null(group.mesh)) {
-        if (is.null(group))
-            group = rep(1L, length(index))
-        else if (length(group) == 1)
-            group = rep(group, length(index))
-        else if (length(group) != length(index))
-            stop(paste("length(group) != length(index): ",
-                       length(group), " != ", length(index),
-                       sep=""))
-    } else if (is.null(A.group)) {
-        n.group = group.mesh$m
-        if (is.null(group))
-            group = rep(group.mesh$mid[1], length(index))
-        else if (length(group) == 1)
-            group = rep(group, length(index))
-        else if (length(group) != length(index))
-            stop(paste("length(group) != length(index): ",
-                       length(group), " != ", length(index),
-                       sep=""))
-
-        A.group = inla.mesh.1d.A(group.mesh, loc=group)
-        if (is.null(group.index)) {
-            group.index = seq_len(nrow(A.group))
+    ## TODO: FIXME!!! group, group.index, group.mesh, A.group, etc
+    if (!is.null(A.group)) {
+        if (!is.null(group) || !is.null(group.mesh)) {
+            warning("'A.group' has been specified; ignoring non-NULL 'group' or 'group.mesh'.")
         }
-        ## Now 'group.index' points into the rows of 'A.group'
+    } else if (!is.null(group.mesh)) {
+        if (is.null(group)) {
+            group = rep(group.mesh$mid[1], length(index))
+        }
+    } else if (is.null(group)) {
+        group = rep(1L, length(index))
+    } else if (length(group) == 1) {
+        group = rep(group, length(index))
+    }
+    if (is.null(group.index)) {
+        group.index = seq_len(length(group))
+    }
+    ## Now 'group.index' points into the rows of 'A.group' or 'group'
+    if (length(group.index) != length(index)) {
+        stop(paste("length(group.index) != length(index): ",
+                   length(group.index), " != ", length(index),
+                   sep=""))
     }
 
+    if (!is.null(group.mesh) && is.null(A.group)) {
+        A.group = inla.mesh.1d.A(group.mesh, loc=group)
+    }
+    ## Now 'group.index' points into the rows of 'A.group' or 'group'
+
     ## Handle repl semantics:
-    if (is.null(repl))
+    if (is.null(repl)) {
         repl = rep(1, length(index))
-    else if (length(repl) == 1)
+    } else if (length(repl) == 1) {
         repl = rep(repl, length(index))
-    else if (length(repl) != length(index))
+    } else if (length(repl) != length(index)) {
         stop(paste("length(repl) != length(index): ",
                    length(repl), " != ", length(index),
                    sep=""))
+    }
 
     if (length(index) > 0L) {
         A.loc = inla.as.dgTMatrix(A.loc[index,,drop=FALSE])
@@ -617,7 +629,7 @@ inla.spde.make.A =
                 ##                   weights=weights))
             } else {
                 i = 1L+A.loc@i
-                group.i = group[i]
+                group.i = group[group.index[i]]
                 repl.i = repl[i]
                 weights.i = weights[i]
                 A = (sparseMatrix(i=i,
