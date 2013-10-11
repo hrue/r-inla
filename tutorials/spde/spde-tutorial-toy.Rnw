@@ -57,13 +57,6 @@ we don't have observed the response.
 In this section we use the default 
 priors for all the parameters. 
 
-<<likfit,echo=F,results=hide>>=
-require(geoR)
-lk <- likfit(as.geodata(SPDEtoy), ini=c(5,.1), nugget=.1, kappa=1)
-lk.est <- c(lk$beta, lk$nugget, lk$cov.pars)
-lk.est[4] <- 1/lk.est[4]
-@ 
-
 To the estimation mesh we need to define the mesh. 
 We show it on Chapter~\ref{ch:mesh} and here 
 we use the fift mesh builded 
@@ -569,7 +562,7 @@ maximum likelihood estimates from
 
 We fit the model, using each one of the six meshes, 
 and put the results in a list with the code bellow 
-<<meshes,echo=F,results=hide>>=
+<<meshes>>=
 lrf <- lres <- l.dat <- l.spde <- l.a <- list()
 for (k in 1:6) {
   l.a[[k]] <- inla.spde.make.A(get(paste('mesh', k, sep='')), loc=coords)
@@ -605,6 +598,17 @@ we define $\alpha=2$ on definition of the SPDE model.
 beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
 @ 
 and the maximum likelihood estimates are 
+<<likfit,echo=F,results=hide>>=
+source('spde-tutorial-functions.R')
+mesh <- mesh5
+spde <- inla.spde2.matern(mesh)
+inla.setOption(inla.call=noremote)
+A <- inla.spde.make.A(mesh, loc=coords)
+opt.b <- optim(c(-4,2,-1.5), nllf, hessian=TRUE, method='BFGS',
+               X=matrix(1,nrow(coords)), y=SPDEtoy[,3], A=A, verbose=FALSE)
+lk.est <- par2user(opt.b$par, A, matrix(1,nrow(coords),1), SPDEtoy[,3])[c(4,3,1,2)]
+@ 
+
 <<lkv>>=
 lk.est
 @ 

@@ -23,8 +23,10 @@ use the SPDE approach instead occurence counts on cells,
 There are the main advantages on this approach 
 the consideration of the loc-Cox likelihood directly. 
 
-
 \section{Data simulation} 
+
+The data simulated on this section is used also 
+on the Chapter~\ref{ch:prefsampl}. 
 
 In this section we use the \texttt{rLGCP()} function 
 from \textbf{\textsf{spatstat}} package to do the simulation. 
@@ -228,7 +230,8 @@ abline(v=sqrt(8*1)/kappa, col=2)
 \end{figure}
 
 
-\chapter{Geostatistical inference under preferential sampling}\label{ch:prefs}
+\chapter{Geostatistical inference under 
+  preferential sampling}\label{ch:prefsampl}
 
 In some cases the effort on sampling depends on the response. 
 For example, is more common to have stations collecting data 
@@ -251,7 +254,7 @@ Here, we show geoestatistical inference under preferencial
 sampling using SPDE. 
 
 We use the values of the LGRF simulated on the 
-previous Chapter to define the response. 
+Chapter~\ref{ch:lcox} to define the response. 
 We just take the values of closest grid centers 
 to each location of the point pattern, 
 change the signal and divide by two. 
@@ -324,45 +327,38 @@ It is more easy by using the \texttt{inla.stack()}
 following previous examples for two likelihood models. 
 
 We consider the point pattern 'observation' on the first 
-column and the response values on the second column
-<<Y>>=
-Y <- cbind(c(resp, rep(NA, nv+n)), 
-           c(rep(NA, n), y.pp))
+column and the response values on the second column. 
+So, we just redefine the stack for the 
+response and also for the point process. 
+We put the response on the first column 
+and the Poisson data for the point process 
+as the second column. 
+Also, to avoid the expected number of cases as NA 
+for the Poisson likelihood, we set it as zero 
+on the response data stack. 
+For the SPDE effect on the point process part 
+we have to model it as a copy of the SPDE 
+effect at response part. 
+We do it by defining a index set with different name 
+and use it on the copy feature later. 
+<<ppstk>>=
+stk2.y <- inla.stack(data=list(y=cbind(resp,NA), e=rep(0,n)), 
+                     A=list(lmat, 1), tag='resp2',
+                     effects=list(i=1:nv, beta=rep(1,n)))
+stk2.pp <- inla.stack(data=list(y=cbind(NA,y.pp), e=e.pp), 
+                      A=list(A.pp), tag='pp2',
+                      effects=list(j=1:nv)) 
 @ 
-
-We define two projector matrix, one for each response. 
-Both need to have same number of rows of the matrix response 
-and number of columns twice the number of points on the mesh. 
-This number of columns is because we have the 
-replication of the field and join together two set of index, 
-one for each response. 
-
-The first, for response, is 
-<<Aresp>>=
-Aj.resp <- rBind(lmat, Matrix(0,nv+n, nv))
-@ 
-The second, for point pattern, is 
-<<App>>=
-Aj.pp <- rBind(Matrix(0, n, nv), A.pp)
-@ 
-
-The index set is the same as before but we have to add NA 
-at end for the first response and at begin for the second.
-Both are defined on the \texttt{effects} element on the 
-\texttt{inla.stack()} function together to intercept. 
-So, we have
-<<jdata>>=
-j.stk <- inla.stack(data=list(resp=Y, 
-                      e=c(rep(NA, n), e.pp)), 
-                    A=list(Aj.resp, Aj.pp),  
-                    effects=list(i=1:nv, j=1:nv), tag='prefs.d')
+and join both together
+<<j.stk>>=
+j.stk <- inla.stack(stk2.y, stk2.pp)
 @ 
 
 Now, we fit the geostatistical model under preferential sampling. 
 To put the LGRF on both likelihood, we have to use the copy 
 strategy. 
 <<j-res>>=
-j.res <- inla(resp ~ 0 + f(i, model=spde) + 
+j.res <- inla(y ~ 0 + f(i, model=spde) + 
               f(j, copy='i', fixed=FALSE), 
               data=inla.stack.data(j.stk), 
               family=c('gaussian', 'poisson'), 
@@ -378,6 +374,9 @@ j.rf <- inla.spde2.result(j.res, 'i', spde)
 
 
 We can visualize the posterior distribution on the Figure\ref{fig:jpars}. 
+The negative signal to the copy parameter $\beta$ is due to the 
+fact that we define the response with opposite signal of the 
+latent field used to do the simulation of the point process. 
 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
