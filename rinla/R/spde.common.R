@@ -568,10 +568,17 @@ inla.spde.make.A =
             group = rep(group.mesh$mid[1], length(index))
         else if (length(group) == 1)
             group = rep(group, length(index))
-        else if (length(group) != length(index))
-            stop(paste("length(group) != length(index): ",
-                       length(group), " != ", length(index),
-                       sep=""))
+        else if (is.null(group.index)) {
+            if (length(group) != length(index))
+                stop(paste("length(group) != length(index): ",
+                           length(group), " != ", length(index),
+                           sep=""))
+        } else {
+            if (length(group.index) != length(index))
+                stop(paste("length(group.group) != length(index): ",
+                           length(group.group), " != ", length(index),
+                           sep=""))
+        }
 
         A.group = inla.mesh.1d.A(group.mesh, loc=group)
         if (is.null(group.index)) {
