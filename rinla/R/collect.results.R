@@ -934,22 +934,23 @@ inla.internal.experimental.mode = FALSE
             e.dev = NULL
         }
 
+        f.idx = NULL
         file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"family_idx.dat", sep="")
         if (inla.is.fmesher.file(file)) {
             f.idx = c(inla.read.fmesher.file(file)) + 1L  ## convert to R-indexing
             f.idx[is.nan(f.idx)] = NA
-        } else {
-            f.idx = NULL
         }
 
         ## if there there is no data at all, then all dic'values are
         ## NA. the returned values are 0, so we override them here.
-        if (all(is.na(f.idx))) {
+        if (!is.null(f.idx) && all(is.na(f.idx))) {
             dic.values[] = NA
         }
 
         local.dic = 2.0*e.dev - dev.e
         local.p.eff = e.dev - dev.e
+        fam.dic = dic.values[4L]
+        fam.p.eff = dic.values[3L]
         
         if (!is.null(f.idx)) {
             n.fam = max(f.idx, na.rm = TRUE)
