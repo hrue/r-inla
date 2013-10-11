@@ -8010,6 +8010,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BINOMIAL:
+	case L_ZERO_N_INFLATEDBINOMIAL2:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -8031,7 +8032,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBETABINOMIAL0:
 	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
-	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_BETABINOMIAL:
 	case L_TEST_BINOMIAL_1:
 		for (i = 0; i < mb->predictor_ndata; i++) {
