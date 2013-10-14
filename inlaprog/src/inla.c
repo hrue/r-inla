@@ -23587,14 +23587,14 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 	 * joint posterior for theta
 	 */
 
-	int i;
-	double value = 0.0, sd, log_nc = 0.0, update_dens, *z;
+	int i, corr = (arg->stdev_corr_pos && arg->stdev_corr_neg);
+	double value = 0.0, sd, log_nc, update_dens, *z;
 
 	z = Calloc(arg->ntheta, double);
 	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);
 
 	for (i = 0; i < arg->ntheta; i++) {
-		if (arg->stdev_corr_pos && arg->stdev_corr_neg) {
+		if (corr) {
 			sd = (z[i] > 0 ? arg->stdev_corr_pos[i] : arg->stdev_corr_neg[i]);
 		} else {
 			sd = 1.0;
@@ -23605,10 +23605,14 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 	/*
 	 * this is the normalizing constant
 	 */
-	log_nc += 0.5 * arg->ntheta * log(2.0 * M_PI);
+	log_nc = 0.5 * arg->ntheta * log(2.0 * M_PI);
 	for (i = 0; i < arg->ntheta; i++) {
-		log_nc += 0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)) +
-				 0.5 * (log(SQR(arg->stdev_corr_pos[i])) + log(SQR(arg->stdev_corr_neg[i]))));
+		if (corr) {
+			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)) +
+					  0.5 * (log(SQR(arg->stdev_corr_pos[i])) + log(SQR(arg->stdev_corr_neg[i]))));
+		} else {
+			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)));
+		}
 	}
 
 	/*
