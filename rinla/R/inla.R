@@ -43,8 +43,7 @@
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
-##!    debug = inla.getOption("debug"),
-##!    .internal = list()
+##!    debug = inla.getOption("debug")
 ##!    )
 ##!
 ##! }
@@ -236,10 +235,7 @@
         
         ##!\item{debug}{ If \code{TRUE}, then enable some debug
         ##!output.  }
-        debug = inla.getOption("debug"),
-        
-        ##!\item{.internal}{For internal use only.}
-        .internal = list()
+        debug = inla.getOption("debug")
         )
     ##!}
 
@@ -540,9 +536,7 @@
                 keep = keep,
                 working.directory = working.directory,
                 silent = silent,
-                debug = debug,
-                ## internal options used to transfer data after expansions
-                .internal = .internal)
+                debug = debug)
 
         ## replace the argument so it can be reused, if...
         result$call.orig = deparse(match.call())
@@ -918,7 +912,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
     mf$inla.arg = NULL; mf$lincomb=NULL;
-    mf$.internal = NULL; mf$data = data.same.len
+    mf$data = data.same.len
 
     if (gp$n.fix > 0)
         mf$formula = gp$fixf
