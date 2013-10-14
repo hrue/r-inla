@@ -45,8 +45,7 @@ inla(
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    debug = inla.getOption("debug"),
-    .internal = list()
+    debug = inla.getOption("debug")
     )
 
  }
@@ -171,7 +170,6 @@ working files }
 \code{inla}-program.}
 \item{debug}{ If \code{TRUE}, then enable some debug
 output.  }
-\item{.internal}{For internal use only.}
 }
 \value{%%
 \code{inla} returns an object of class \code{"inla"}. This is a list
