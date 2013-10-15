@@ -67,6 +67,7 @@
         cat(        "\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
         cat(        "\t                         : Daniel Simpson <dp.simpson@gmail.com>\n")
         cat(        "\t                         : Andrea Riebler <andrea.riebler@math.ntnu.no>\n")
+        cat(        "\t                         : Elias Teixeira Krainski <elias.krainski@math.ntnu.no>\n")
         cat(        "\tWeb-page ................: http://www.r-inla.org\n")
         cat(        "\tEmail support ...........: help@r-inla.org\n")
         cat(        "\t                         : r-inla-discussion-group@googlegroups.com\n")
