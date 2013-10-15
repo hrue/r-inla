@@ -52,7 +52,24 @@
     filename = paste(results.dir,  "/.ok",  sep="")
     res.ok = file.exists(filename)
     if (!res.ok) {
-        inla.inlaprogram.has.crashed()
+        ## try this one instead
+        results.dir.new = paste(results.dir,  "/results.files", sep="")
+        filename = paste(results.dir.new,  "/.ok",  sep="")
+        res.ok = file.exists(filename)
+        if (res.ok) {
+            if (debug) {
+                cat(paste("inla.collect.results: retry with directory", results.dir.new, "\n"))
+            }
+            return (inla.collect.results(results.dir.new, 
+                                         control.results = control.results, 
+                                         debug = debug, 
+                                         only.hyperparam = only.hyperparam, 
+                                         file.log = file.log))
+        } else {
+            ## neither directories contain the file /.ok, then we
+            ## assume the inla-program has crashed
+            inla.inlaprogram.has.crashed()
+        }
     }
  
     if (!only.hyperparam) {
