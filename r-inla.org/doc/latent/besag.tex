@@ -62,6 +62,11 @@ For examples of application of this model see the {\tt Bym}, {\tt Munich}, {\tt 
 
 The besag model intrinsic with rankdef 1.
 
+The term $\frac{1}{2}\log(|R|^{*})$ of the normalisation constant is
+not computed, hence you need to add this part to the log marginal
+likelihood estimate, if you need it. Here $R$ is the precision matrix
+with a unit precision parameter.
+
 \end{document}
 
 
