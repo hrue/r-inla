@@ -217,13 +217,13 @@
         }
     }
 
-    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
+    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d"))) {
         if (is.null(random.spec$scale.model)) {
             random.spec$scale.model = inla.getOption("scale.model.default")
         }
         cat("scale.model = ", as.numeric(random.spec$scale.model), "\n", sep = " ", file = file,  append = TRUE)
     }
-    if (inla.one.of(random.spec$model, c("besag", "bym", "besag2"))) {
+    if (inla.one.of(random.spec$model, c("besag", "bym", "bym2", "besag2"))) {
         cat("adjust.for.con.comp = ", as.numeric(random.spec$adjust.for.con.comp), "\n", sep = " ", file = file,  append = TRUE)
     }
     
