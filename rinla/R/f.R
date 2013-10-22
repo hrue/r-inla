@@ -282,7 +282,7 @@
         range = NULL,
 
         ##!\item{adjust.for.con.comp}{If TRUE (default), adjust some
-        ##!of the models (currently: besag, bym and besag2) if the
+        ##!of the models (currently: besag, bym, bym2 and besag2) if the
         ##!number of connected components in graph is larger than
         ##!1. If FALSE, do nothing.}
         adjust.for.con.comp = TRUE,
@@ -518,7 +518,7 @@
     }
 
     ## chech that the graph is provided, if required. Set 'n' from the graph.
-    if (inla.one.of(model, c("besag", "bym", "besagproper"))) {
+    if (inla.one.of(model, c("besag", "bym", "bym2", "besagproper"))) {
         if (is.null(graph)) {
             stop(paste("The 'graph' has to be provided for model", model))
         }
@@ -740,12 +740,12 @@
         ##    "e=", deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
 
-    if (adjust.for.con.comp && inla.one.of(model, c("besag", "besag2", "bym"))) {
+    if (adjust.for.con.comp && inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
 
         ## I am not sure if this is the best place to do this, but for
         ## the time being I'll do this here.
 
-        ## For the model = "besag", "bym" and "besag2", we need to
+        ## For the model = "besag", "bym", "bym2" and "besag2", we need to
         ## check if the graph contains more than 1 connected
         ## components. If so, we need to modify the meaning of
         ## constr=TRUE, and set the correct value of rankdef.
@@ -778,7 +778,7 @@
                 ## need to redefine the meaning of constr = TRUE to mean
                 ## constr=TRUE for all connected components with size > 1
 
-                ## like bym place the constr on the second half
+                ## like bym/bym2 place the constr on the second half
                 m = inla.model.properties(model, "latent")
                 if (m$augmented) {
                     N = m$aug.factor * n
@@ -814,7 +814,7 @@
                 }
             } else {
                 if (!missing(adjust.for.con.comp)) {
-                    stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2' and 'bym'.")
+                    stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2', 'bym' and 'bym2'.")
                 }
             }
 
@@ -849,13 +849,16 @@
         }
     }
 
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "besag2", "rw2d"))) {
-        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D.")
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d"))) {
+        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 and BESAG2 and RW2D.")
     }
     if (missing(scale.model) || is.null(scale.model)) {
         ## must doit like this otherwise we run into problems when
         ## compiling the package
         scale.model = inla.getOption("scale.model.default")
+        if (inla.one.of(model, "bym2")) {
+            scale.model = TRUE
+        }
     }
 
     ret=list(
