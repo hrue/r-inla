@@ -14848,12 +14848,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * make the new augmented graph 
 		 */
 		g = mb->f_graph[mb->nf];
-		inla_make_bym_graph(&(mb->f_graph[mb->nf]), g);
+		inla_make_bym_graph(&(mb->f_graph[mb->nf]), g); /* yes, its the same graph */
 		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
-		assert(std == 1);
+		assert(std == 1);			       /* this has to be true for this model */
 
 		GMRFLib_besag_scale(arg->besag_arg, adj);
 		if (mb->verbose) {
@@ -18962,13 +18962,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BYM2:
 		{
-			if (NOT_FIXED(f_fixed[i][0])) {	       /* iid */
+			if (NOT_FIXED(f_fixed[i][0])) {	       
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (NOT_FIXED(f_fixed[i][1])) {	       /* spatial */
+			if (NOT_FIXED(f_fixed[i][1])) {	       
 				rho_intern = theta[count];
 				count++;
 			} else {
