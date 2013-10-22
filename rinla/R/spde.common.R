@@ -114,13 +114,20 @@ inla.matern.cov <- function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, e
                 covariance[ok] =
                     2^(1-nu)/gamma(nu) * (y[ok])^nu*besselK(y[ok], nu)
                 if (any(!ok)) {
-                    b = epsilon^(nu+1)*besselK(epsilon, nu-1)/
-                        (gamma(nu)*2^(nu-1)-epsilon^nu*besselK(epsilon, nu))
-                    yy = (y[!ok]/epsilon)^b
-                    covariance[!ok] =
-                        (1*(1-yy) +
-                         (2^(1-nu)/gamma(nu)*
-                          epsilon^nu*besselK(epsilon, nu))*yy)
+                    scale = 2^(1-nu)/gamma(nu)
+                    ## corr = scale y^nu K_nu(y)
+                    ##      = 1 - b y^(2 nu) + o(y^(2 nu), 0 < \nu < 1
+                    ##      = 1 - b y^2 + o(y^2), 1 <= \nu
+                    ## (1-corr(eps)/vari)/eps^(2nu) = b
+                    if (nu < 1) {
+                        exponent = 2*nu
+                    } else {
+                        exponent = 2
+                    }
+                    corr.eps <-
+                        scale * epsilon^nu * besselK(epsilon, nu)
+                    b = (1-corr.eps)/epsilon^exponent
+                    covariance[!ok] = (1-b*y[!ok]^exponent)
                 }
             }
             return(covariance)
