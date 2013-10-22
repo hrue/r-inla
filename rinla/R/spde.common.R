@@ -132,13 +132,21 @@ inla.matern.cov <- function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, e
                     (y[ok])^nu*besselK(y[ok], nu)
             if (any(!ok)) {
                 if (nu>0) { ## Regular Matern case
-                    b = epsilon^(nu+1)*besselK(epsilon, nu-1)/
-                        (gamma(nu)*2^(nu-1)-epsilon^nu*besselK(epsilon, nu))
-                    yy = (y[!ok]/epsilon)^b
-                    covariance[!ok] =
-                        ((2^(1-nu)/gamma(nu+d/2)/(4*pi)^(d/2)/kappa^(2*nu))*
-                         (gamma(nu)*2^(nu-1)*(1-yy) +
-                          epsilon^nu*besselK(epsilon, nu)*yy))
+                    vari = gamma(nu)/gamma(nu+d/2)/(4*pi)^(d/2)/kappa^(2*nu)
+                    scale = 2^(1-nu)/gamma(nu)
+                    ## corr = scale y^nu K_nu(y)
+                    ##      = 1 - b y^(2 nu) + o(y^(2 nu), 0 < \nu < 1
+                    ##      = 1 - b y^2 + o(y^2), 1 <= \nu
+                    ## (1-corr(eps)/vari)/eps^(2nu) = b
+                    if (nu < 1) {
+                        exponent = 2*nu
+                    } else {
+                        exponent = 2
+                    }
+                    corr.eps <-
+                        scale * epsilon^nu * besselK(epsilon, nu)
+                    b = (1-corr.eps)/epsilon^exponent
+                    covariance[!ok] = vari*(1-b*y[!ok]^exponent)
                 } else if (nu==0) { ## Limiting Matern case
                     g = 0.577215664901484 ## Euler's constant
                     covariance[!ok] =
