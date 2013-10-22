@@ -336,6 +336,40 @@
                      pdf = "bym"
                      ),
 
+             bym2 = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     prior = "loggamma",
+                                     param = c(1, 0.0005),
+                                     initial = 4,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ),
+                             theta2 = list(
+                                     name = "logit rho",
+                                     short.name = "rho",
+                                     prior = "gaussian",
+                                     param = c(0, 0.45),
+                                     initial = -3,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )
+                             ),
+                     constr = TRUE,
+                     nrow.ncol = FALSE,
+                     augmented = TRUE,
+                     aug.factor = 2L,
+                     aug.constr = 2L,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     pdf = "bym2"
+                     ),
+
              besagproper = list(
                      hyper = list(
                              theta1 = list(
