@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Proper/Non-intrinsic Besag model for spatial effects
+    (variant 2)}
+
+\subsection*{Parametrization}
+
+The (2nd) proper version of the Besag model for random vector
+$\mathbf{x}=(x_1,\dots,x_n)$ is defined with precision
+matrix\footnote{ Brian G Leroux, Xingye Lei, and Norman
+    Breslow. Estimation of disease rates in small areas: A new mixed
+    model for spatial dependence. In Statistical Models in
+    Epidemiology, the Environment, and Clinical Trials, pages 179–191.
+    Springer, 2000}
+\begin{equation}\label{eq.besag}
+    \tau ((1-\lambda) I + \lambda R)
+\end{equation}
+where $R$ is the (unit precision) precision matrix for the Besag
+model, $\tau$ is a precision parameter and $0<\lambda<1$.
+
+\subsection*{Hyperparameters}
+
+The precision parameter $\tau$ is represented as
+\begin{displaymath}
+    \theta_{1} =\log \tau
+\end{displaymath}
+and the prior is defined on $\theta_{1}$. The $\lambda$ parameter is
+represented as
+\begin{displaymath}
+    \theta_{2} = \log\left( \lambda/(1-\lambda)\right)
+\end{displaymath}
+and the prior is defined on $\theta_{2}$. 
+
+\subsection*{Specification}
+
+The model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="besagproper2", graph=<graph>,
+   hyper=<hyper>)
+\end{verbatim}
+
+The neighbourhood structure of $\mathbf{x}$ is passed to the program
+through the {\tt graph} argument.  The structure of this file is
+described below.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/besagproper2.tex}
+
+
+\subsection*{Example}
+
+\verbatiminput{besagproper2-example.R}
+
+\subsection*{Notes}
+
+None
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+

@@ -399,6 +399,7 @@ typedef enum {
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGPROPER,
+	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux  et al. */
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,
@@ -415,6 +416,7 @@ typedef enum {
 	F_OU,
 	F_Z,
 	F_BYM,
+	F_BYM2,
 	F_GENERIC0,
 	F_GENERIC1,
 	F_GENERIC2,
@@ -880,10 +882,24 @@ typedef struct {
 } inla_bym_Qfunc_arg_tp;
 
 typedef struct {
+	int n;
+	int N;
+	double **log_prec;
+	double **logit_rho;
+	inla_besag_Qfunc_arg_tp *besag_arg;
+} inla_bym2_Qfunc_arg_tp;
+
+typedef struct {
 	GMRFLib_graph_tp *graph;
 	double **log_prec;				       /* precision */
 	double **log_diag;				       /* the value added to the diagonal. diag = 0 is the besag model */
 } inla_besag_proper_Qfunc_arg_tp;
+
+typedef struct {
+	GMRFLib_graph_tp *graph;
+	double **log_prec;				       /* precision */
+	double **logit_lambda;				       /* the lambda parameter */
+} inla_besag_proper2_Qfunc_arg_tp;
 
 typedef struct {
 	/*
@@ -1111,7 +1127,9 @@ double Qfunc_ar1(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
 double Qfunc_besag2(int i, int j, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
+double Qfunc_besagproper2(int i, int j, void *arg);
 double Qfunc_bym(int i, int j, void *arg);
+double Qfunc_bym2(int i, int j, void *arg);
 double Qfunc_copy_part00(int i, int j, void *arg);
 double Qfunc_copy_part01(int i, int j, void *arg);
 double Qfunc_copy_part11(int i, int j, void *arg);

@@ -16,14 +16,14 @@
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[name] log diagonal
-	 	 	\item[short.name] diag
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1
-	 	 	\item[initial] 1
+	 	 	\item[name] logit lambda
+	 	 	\item[short.name] lambda
+	 	 	\item[prior] gaussian
+	 	 	\item[param] 0 0.45
+	 	 	\item[initial] 3
 	 	 	\item[fixed] FALSE
-	 	 	\item[to.theta] \verb|function(x) log(x)|
-	 	 	\item[from.theta] \verb|function(x) exp(x)|
+	 	 	\item[to.theta] \verb|function(x) log(x/(1-x))|
+	 	 	\item[from.theta] \verb|function(x) exp(x)/(1+exp(x))|
 	 	 \end{description}
 	 \end{description}
 	\item[constr] FALSE
@@ -35,5 +35,5 @@
 	\item[n.required] TRUE
 	\item[set.default.values] TRUE
 	\item[status] experimental
-	\item[pdf] besagproper
+	\item[pdf] besagproper2
 \end{description}
