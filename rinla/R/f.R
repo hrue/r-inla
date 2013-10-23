@@ -518,7 +518,7 @@
     }
 
     ## chech that the graph is provided, if required. Set 'n' from the graph.
-    if (inla.one.of(model, c("besag", "bym", "bym2", "besagproper"))) {
+    if (inla.one.of(model, c("besag", "bym", "bym2", "besagproper", "besagproper2"))) {
         if (is.null(graph)) {
             stop(paste("The 'graph' has to be provided for model", model))
         }

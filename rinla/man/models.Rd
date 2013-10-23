@@ -428,8 +428,8 @@ inla.models()
 							\item{param = }{`0 0.45'}
 							\item{initial = }{`-3'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
 							}
 						}
 					 }
@@ -488,7 +488,52 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`besagproper'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `besagproper2'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-04'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`logit lambda'}
+							\item{short.name = }{`lambda'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 0.45'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`besagproper2'}
 							 }
 						 }
 					 }

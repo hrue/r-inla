@@ -355,8 +355,8 @@
                                      param = c(0, 0.45),
                                      initial = -3,
                                      fixed = FALSE,
-                                     to.theta = function(x) log(x),
-                                     from.theta = function(x) exp(x)
+                                     to.theta = function(x) log(x/(1-x)),
+                                     from.theta = function(x) exp(x)/(1+exp(x))
                                      )
                              ),
                      constr = TRUE,
@@ -402,7 +402,43 @@
                      n.div.by = NULL,
                      n.required = TRUE,
                      set.default.values = TRUE,
+                     status = "experimental", 
                      pdf = "besagproper"
+                     ),
+
+             besagproper2 = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     prior = "loggamma",
+                                     param = c(1, 0.0005),
+                                     initial = 2,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ),
+                             theta2 = list(
+                                     name = "logit lambda",
+                                     short.name = "lambda",
+                                     prior = "gaussian",
+                                     param = c(0, 0.45),
+                                     initial = 3,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x/(1-x)),
+                                     from.theta = function(x) exp(x)/(1+exp(x))
+                                     )
+                             ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "besagproper2"
                      ),
 
              ar1 = list(
