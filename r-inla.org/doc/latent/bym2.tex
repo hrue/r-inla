@@ -1,0 +1,88 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{listings}
+\begin{document}
+
+\section*{Bym2 model for spatial effects}
+
+\subsection*{Parametrization}
+
+This model is a reparameterisation of the BYM-model, which is a union
+of the \lstinline$besag$ model $u^{*}$ and a \lstinline$iid$ model $v^{*}$, so
+that
+\begin{displaymath}
+    x =
+    \begin{pmatrix}
+        v^{*} + u^{*}\\
+        u^{*}
+    \end{pmatrix}
+\end{displaymath}
+where both $u^{*}$ and $v^{*}$ has a precision (hyper-)parameter.  The
+length of $x$ is $2n$ if the length of $u^{*}$ (and $v^{*}$) is
+$n$. The BYM2 model uses a different parameterisation of the
+hyperparameters where
+\begin{displaymath}
+    x =
+    \begin{pmatrix}
+        \frac{1}{\sqrt{\tau}}\left(\sqrt{1-\rho} \;v + \sqrt{\rho} \;u\right)\\
+        u
+    \end{pmatrix}
+\end{displaymath}
+where both $u$ and $v$ are \emph{standardised} to have (generalised)
+variance equal to one.  The \emph{marginal} precision is then $\tau$
+and the proportion of the marginal variance explained by the spatial
+effect ($u$) is $\rho$.
+
+\subsection*{Hyperparameters}
+The hyperparameters are the margainal precision $\tau$ and the mixing
+parameter $\rho$.  The marginal precision $\tau$ is represented as
+\begin{displaymath}
+    \theta_{1} = \log(\tau)
+\end{displaymath}
+and the mixing parameter as
+\begin{displaymath}
+    \theta_{2} = \log\left(\frac{\rho}{1-\rho}\right)
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta} = (\theta_{1}, \theta_{2})$.
+
+\subsection*{Specification}
+
+The bym2 model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="bym2", graph=<graph>,
+   hyper=<hyper>, adjust.for.con.comp = TRUE)
+\end{verbatim}
+The neighbourhood structure of $\mathbf{x}$ is passed to the program
+through the {\tt graph} argument.
+
+The option \verb|adjust.for.con.comp| adjust the model if the graph
+has more than one connected compoment, and this adjustment can be
+disabled setting this option to \texttt{FALSE}. This means that
+\texttt{constr=TRUE} is interpreted as a sum-to-zero constraint on
+\emph{each} connected component and the \texttt{rankdef} parameter is
+set accordingly. 
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/bym2.tex}
+
+
+\subsection*{Example}
+
+
+\subsection*{Notes}
+
+The term $\frac{1}{2}\log(|R|^{*})$ of the normalisation constant is
+not computed, hence you need to add this part to the log marginal
+likelihood estimate, if you need it. Here $R$ is the precision matrix
+for the standardised Besag part of the model.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

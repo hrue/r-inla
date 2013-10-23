@@ -342,8 +342,8 @@
                                      name = "log precision",
                                      short.name = "prec",
                                      prior = "loggamma",
-                                     param = c(1, 0.0005),
-                                     initial = 4,
+                                     param = c(1, .1),
+                                     initial = log(10),
                                      fixed = FALSE,
                                      to.theta = function(x) log(x),
                                      from.theta = function(x) exp(x)
@@ -367,6 +367,7 @@
                      n.div.by = NULL,
                      n.required = TRUE,
                      set.default.values = TRUE,
+                     status = "experimental", 
                      pdf = "bym2"
                      ),
 
