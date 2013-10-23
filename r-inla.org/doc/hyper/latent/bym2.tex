@@ -8,32 +8,32 @@
 	 	 	\item[name] log precision
 	 	 	\item[short.name] prec
 	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-04
-	 	 	\item[initial] 2
+	 	 	\item[param] 1 0.1
+	 	 	\item[initial] 2.30258509299405
 	 	 	\item[fixed] FALSE
 	 	 	\item[to.theta] \verb|function(x) log(x)|
 	 	 	\item[from.theta] \verb|function(x) exp(x)|
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[name] log diagonal
-	 	 	\item[short.name] diag
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1
-	 	 	\item[initial] 1
+	 	 	\item[name] logit rho
+	 	 	\item[short.name] rho
+	 	 	\item[prior] gaussian
+	 	 	\item[param] 0 0.45
+	 	 	\item[initial] -3
 	 	 	\item[fixed] FALSE
-	 	 	\item[to.theta] \verb|function(x) log(x)|
-	 	 	\item[from.theta] \verb|function(x) exp(x)|
+	 	 	\item[to.theta] \verb|function(x) log(x/(1-x))|
+	 	 	\item[from.theta] \verb|function(x) exp(x)/(1+exp(x))|
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
+	\item[constr] TRUE
 	\item[nrow.ncol] FALSE
-	\item[augmented] FALSE
-	\item[aug.factor] 1
-	\item[aug.constr] 
+	\item[augmented] TRUE
+	\item[aug.factor] 2
+	\item[aug.constr] 2
 	\item[n.div.by] 
 	\item[n.required] TRUE
 	\item[set.default.values] TRUE
 	\item[status] experimental
-	\item[pdf] besagproper
+	\item[pdf] bym2
 \end{description}

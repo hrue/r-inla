@@ -12,30 +12,31 @@
 ## Updated: 23.10.2013 /FL
 ##################################
 
-## Note: To rerun inla, set have.result=FALSE
+## User-overrideable configuration:
+## Set any of these variables to alternate values before sourcing this file.
+
+## To force a rerun of inla, set force.rerun=TRUE
+## If "result" does not exist, inla will be rerun regardless of this setting.
+if (!exists("force.rerun")) { force.rerun=FALSE }
+## For which day do you want the prediction?
+if (!exists("i_day")) { i_day = 122 }
+## Do you want to run inla() on a remote server?
+## Requires having run  inla.remote()  previously.
+if (!exists("do.remote")) { do.remote = FALSE }
+## Do you want to print (to png/pdf files)?
+if (!exists("do.print")) { do.print = FALSE }
+## Path for the Covariates directory
+if (!exists("pm10.path")) { pm10.path = "Covariates/" }
 
 graphics.off()
-if (!exists("have.result") ||
-    (exists("have.result") && !have.result)) {
-    have.result = FALSE
-
-    ##--- For which day do you want the prediction?
-    i_day = 122
-    ##--- Do you want to run inla() on a remote server?
-    ##--- Requires having run  inla.remote()  previously.
-    do.remote=FALSE
-    ##--- Do you want to print (to png/pdf files)?
-    do.print = FALSE
-
-    ##--- Path for the Covariates directory
-    path = "Covariates/"
+if (force.rerun || !exists("result")) {
 
     require(INLA)
     require(fields)
     require(abind)
 
     ##--- Source the function for selecting the covariates for a given day
-    source(paste(path,"Covariates_selector.R",sep=""))
+    source(paste(pm10.path,"Covariates_selector.R",sep=""))
 
     ## ################################
     ## Load the data
@@ -226,11 +227,11 @@ if (!exists("have.result") ||
     }
     print(summary(result))
 
-    have.result = TRUE
+    force.rerun = FALSE
 } else {
-    print.noquote("Note:")
-    print.noquote("Detected  have.result==TRUE, so not rerunning inla.")
-    print.noquote("Set have.result=FALSE to rerun.")
+    print.noquote("Note: Detected existing 'result' variable,")
+    print.noquote("      and force.rerun=FALSE, so not rerunning inla.")
+    print.noquote("      Set force.rerun=TRUE to recompute the results.")
 }
 
 ## ############################
@@ -334,14 +335,14 @@ approx.hyperpar =
 print(approx.hyperpar)
 
 ##--- Load the covariate arrays (each array except for A is 56x72x182)
-load(paste(path,"Altitude_GRID.RData",sep="")) #A; AltitudeGRID
-load(paste(path,"WindSpeed_GRID.RData",sep="")) #WS; WindSpeedGRID
-load(paste(path,"HMix_GRID.RData",sep="")) #HMIX; HMixMaxGRID
-load(paste(path,"Emi_GRID.RData",sep="")) #EMI; EmiGRID
-load(paste(path,"Temp_GRID.RData",sep="")) #TEMP; Mean_Temp
-load(paste(path,"Prec_GRID.RData",sep="")) #PREC; Prec
+load(paste(pm10.path,"Altitude_GRID.RData",sep="")) #A; AltitudeGRID
+load(paste(pm10.path,"WindSpeed_GRID.RData",sep="")) #WS; WindSpeedGRID
+load(paste(pm10.path,"HMix_GRID.RData",sep="")) #HMIX; HMixMaxGRID
+load(paste(pm10.path,"Emi_GRID.RData",sep="")) #EMI; EmiGRID
+load(paste(pm10.path,"Temp_GRID.RData",sep="")) #TEMP; Mean_Temp
+load(paste(pm10.path,"Prec_GRID.RData",sep="")) #PREC; Prec
 ##--- Load the Piemonte grid c(309,529),c(4875,5159),dims=c(56,72)
-load(paste(path,"Piemonte_grid.RData",sep=""))
+load(paste(pm10.path,"Piemonte_grid.RData",sep=""))
 
 ##--- Extract the covariate for day i_day (you get a 56X72 matrix)
 covariate_array_std =
