@@ -159,7 +159,7 @@ if (force.rerun || !exists("result")) {
 
     field.indices =
         inla.spde.make.index("field",
-                             n.mesh=mesh$n,
+                             n.spde=spde$n.spde,
                              n.group=n_days)
     stack.est =
         inla.stack(data=list(logPM10=Piemonte_data$logPM10),
@@ -331,7 +331,7 @@ approx.hyperpar =
     rbind(obs.var=c(sigma2eps_m1, sigma2eps_stdev, sigma2eps_quantiles),
           spde.var.nom=c(var.nom.m1, var.nom.stdev, var.nom.quantiles),
           spde.range.nom=c(range.nom.m1, range.nom.stdev, range.nom.quantiles),
-          AR.rho=result$summary.hyperpar["GroupRho for field",])
+          AR.rho=result$summary.hyperpar["GroupRho for field",1:5])
 print(approx.hyperpar)
 
 ##--- Load the covariate arrays (each array except for A is 56x72x182)
