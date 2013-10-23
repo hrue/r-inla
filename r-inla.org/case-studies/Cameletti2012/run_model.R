@@ -9,6 +9,7 @@
 ## Updated: 05.12.2011 /FL
 ## Updated: 16.01.2012 /FL
 ## Updated: 27.04.2012 /FL
+## Updated: 23.10.2013 /FL
 ##################################
 
 ## Note: To rerun inla, set have.result=FALSE
@@ -107,15 +108,15 @@ if (!exists("have.result") ||
     ## Triangulation using borders
     ## ################################
     mesh =
-        inla.mesh.create.helper(points=cbind(coordinates$UTMX,
-                                             coordinates$UTMY),
-                                points.domain=borders,
-                                offset=c(10, 140),
-                                max.edge=c(50, 1000),
-                                min.angle=c(26, 21),
-                                cutoff=0,
-                                plot.delay=NULL
-                                )
+        inla.mesh.2d(loc=cbind(coordinates$UTMX,
+                               coordinates$UTMY),
+                     loc.domain=borders,
+                     offset=c(10, 140),
+                     max.edge=c(50, 1000),
+                     min.angle=c(26, 21),
+                     cutoff=0,
+                     plot.delay=NULL
+                     )
 
     ##--- Plot the triangulation
     if (do.print)
@@ -210,6 +211,7 @@ if (!exists("have.result") ||
                  family="gaussian",
                  control.predictor=list(A=inla.stack.A(stack), compute=TRUE),
                  control.compute=list(cpo=FALSE),
+                 control.inla = list(reordering = "metis"),
                  keep=FALSE, verbose=TRUE,
                  inla.call="remote", num.threads=12)
     } else {
@@ -219,6 +221,7 @@ if (!exists("have.result") ||
                  family="gaussian",
                  control.predictor=list(A=inla.stack.A(stack), compute=TRUE),
                  control.compute=list(cpo=FALSE),
+                 control.inla = list(reordering = "metis"),
                  keep=FALSE, verbose=TRUE)
     }
     print(summary(result))
