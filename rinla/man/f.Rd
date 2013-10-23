@@ -198,7 +198,7 @@ upper range for the scaling parameter \code{beta} in the
 model \code{COPY}. If low = high then the identity mapping
 is used.}
 \item{adjust.for.con.comp}{If TRUE (default), adjust some
-of the models (currently: besag, bym and besag2) if the
+of the models (currently: besag, bym, bym2 and besag2) if the
 number of connected components in graph is larger than
 1. If FALSE, do nothing.}
 \item{order}{Defines the \code{order} of the model: for
