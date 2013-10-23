@@ -205,6 +205,7 @@ if (force.rerun || !exists("result")) {
     ## Call INLA and get results
     ## ################################
     ## Attention!!! Set do.remote=FALSE to disable inla.remote
+    ## reordering="metis" is needed to prevent crashes on some systems.
     if (!exists("do.remote") || do.remote) {
         result =
             inla(formula,
