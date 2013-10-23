@@ -413,8 +413,8 @@ inla.models()
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-04'}
-							\item{initial = }{`4'}
+							\item{param = }{`1 0.1'}
+							\item{initial = }{`2.30258509299405'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
@@ -444,6 +444,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`bym2'}
 							 }
 						 }
