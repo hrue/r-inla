@@ -159,8 +159,6 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_OFF;
 	(*ai_par)->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_FAST;	/* to match the ->fast mode above */
 
-	(*ai_par)->si_directory = NULL;
-
 	/*
 	 * none of these are used, but they are the defaults if the user wants improved approximations 
 	 */
@@ -275,7 +273,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 */
 int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 {
-	int show_expert_options = 1, i;
+	int show_expert_options = 1;
 
 	if (!ai_par) {
 		return GMRFLib_SUCCESS;
@@ -330,8 +328,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 			fprintf(fp, "Compute the derivative exact\n");
 		}
 	}
-	fprintf(fp, "\tSI directory: \t%s\n", (ai_par->si_directory == NULL ? "<NONE>" : ai_par->si_directory));
-
 	fprintf(fp, "\tParameters for improved approximations\n");
 	fprintf(fp, "\t\tNumber of points evaluate:\t %d\n", ai_par->n_points);
 	fprintf(fp, "\t\tStep length to compute derivatives numerically:\t %g\n", ai_par->step_len);
@@ -398,14 +394,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		 * expert options goes here 
 		 */
 		fprintf(fp, "\tCPO manual calculation[%s]\n", (ai_par->cpo_manual ? "Yes" : "No"));
-	}
-
-	if (ai_par->si_idx) {
-		fprintf(fp, "\tDump information\n");
-		fprintf(fp, "\t\tnd = %1d\n", ai_par->si_idx->nd);
-		for (i = 0; i < ai_par->si_idx->nd; i++) {
-			fprintf(fp, "\t\t block %1d: start=%1d len=%1d tag=[%s]\n", i, ai_par->si_idx->start[i], ai_par->si_idx->len[i], ai_par->si_idx->tag[i]);
-		}
 	}
 	fprintf(fp, "\n");
 
@@ -3258,7 +3246,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
-	need_Qinv = ((compute_n || ai_par->compute_nparam_eff || ai_par->si_directory) ? 1 : 0);
+	need_Qinv = ((compute_n || ai_par->compute_nparam_eff) ? 1 : 0);
 
 	for (i = 0; i < compute_n; i++) {
 		j = compute_idx[i];
@@ -3804,7 +3792,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
 			if (need_Qinv) {
 				GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
-				GMRFLib_ai_si(ai_par, 0.0, theta_mode, nhyper, graph, ai_store);
 			}
 			ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
@@ -3971,7 +3958,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (need_Qinv) {
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv */
-						GMRFLib_ai_si(ai_par, log_dens, theta_local, nhyper, graph, ai_store_id);
 					}
 					// GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 					ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
@@ -4105,7 +4091,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					if (need_Qinv) {
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv */
-						GMRFLib_ai_si(ai_par, log_dens, theta, nhyper, graph, ai_store);
 					}
 					ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
@@ -4248,7 +4233,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							weights_local = log_dens;
 							if (need_Qinv) {
 								GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv */
-								GMRFLib_ai_si(ai_par, log_dens, theta_local, nhyper, graph, ai_store_id);
 							}
 							ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 							dens_local = Calloc(graph->n, GMRFLib_density_tp *);
@@ -4453,7 +4437,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							tref = GMRFLib_cpu();
 							if (need_Qinv) {
 								GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv */
-								GMRFLib_ai_si(ai_par, log_dens, theta, nhyper, graph, ai_store);
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
@@ -4609,7 +4592,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							tref = GMRFLib_cpu();
 							if (need_Qinv) {
 								GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv */
-								GMRFLib_ai_si(ai_par, log_dens, theta, nhyper, graph, ai_store);
 							}
 							ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
@@ -4729,12 +4711,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);	/* nhyper=0, so theta=NULL is ok */
 
 			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
-			/*
-			 * if compute_n > 0 it will be written out below, if compute_n=0, we have to do this here. 
-			 */
-			if (compute_n == 0) {
-				GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
-			}
 			Free(bnew);
 		}
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
@@ -4772,7 +4748,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ai_store_id[i] = NULL; /* to prevent it from beeing Free's twice */
 					if (need_Qinv) {
 						GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
-						GMRFLib_ai_si(ai_par, 0.0, NULL, 0, graph, ai_store);
 					}
 					break;
 				}
@@ -6247,162 +6222,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	}
 
 	*lindens = d;
-
-	return GMRFLib_SUCCESS;
-}
-int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, int nhyper, GMRFLib_graph_tp * graph, GMRFLib_ai_store_tp * ai_store)
-{
-	/*
-	 * SI: write the covariances, marginals, theta to file. There are two output-formats: standard txt-format, and R-output 
-	 */
-
-	if (!ai_par || ai_par->si_directory == NULL)
-		return GMRFLib_SUCCESS;
-
-	GMRFLib_ai_si_tp *d = ai_par->si_idx;
-	double *p = NULL, *pi = NULL, *pj = NULL;
-	int i, j = 0, jj, k, c, use_R_format = 1, use_txt_format = 0;
-	static int config[2] = { 1, 1 };
-	char *fnm;
-	FILE *fp;
-
-	if (!d || d->nd <= 0) {
-		return GMRFLib_SUCCESS;
-	}
-
-	if (use_txt_format) {
-		FIXME("use_txt_format is not yet rewritten for si_idx");
-		exit(1);
-#pragma omp critical
-		{
-			GMRFLib_sprintf(&fnm, "%s/%s-%.4d.txt", ai_par->si_directory, "configuration", config[0]);
-			c = config[0];
-			config[0]++;
-		}
-
-		fp = fopen(fnm, "w");
-		GMRFLib_ASSERT(fp != NULL, GMRFLib_EOPENFILE);
-
-		/*
-		 * ordinary output 
-		 */
-		fprintf(fp, "Configuration:\n\t%d\n", c);
-		fprintf(fp, "Log-density:\n\t%.6g\n", logdens);
-		fprintf(fp, "Theta:\n\t");
-		for (i = 0; i < nhyper; i++)
-			fprintf(fp, " %.6g", theta[i]);
-		fprintf(fp, "\n");
-		fprintf(fp, "Marginals (i,mean,stdev):\n");
-		for (i = 0; i < graph->n; i++) {
-			p = GMRFLib_Qinv_get(ai_store->problem, i, i);
-			fprintf(fp, "\t%d %.6g %.6g\n", i, ai_store->problem->mean_constr[i], (p ? sqrt(*p) : 0.0));
-		}
-		fprintf(fp, "Covariances (i,j,Cov(i,j)):\n");
-		for (i = 0; i < graph->n; i++) {
-			for (jj = 0; jj < graph->nnbs[i]; jj++) {
-				j = graph->nbs[i][jj];
-				if (i < j) {
-					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
-					fprintf(fp, "\t%d %d %.6g\n", i, j, (p ? *p : 0.0));
-				}
-			}
-		}
-		fclose(fp);
-	}
-
-	if (use_R_format) {
-#pragma omp critical
-		{
-			GMRFLib_sprintf(&fnm, "%s/%s-%.4d.R", ai_par->si_directory, "configuration", config[1]);
-			c = config[1];
-			config[1]++;
-		}
-
-		fp = fopen(fnm, "w");
-		GMRFLib_ASSERT(fp != NULL, GMRFLib_EOPENFILE);
-
-		/*
-		 * output as an R-list 
-		 */
-
-		fprintf(fp, "if (exists(\"inla.si.configuration\") && !is.list(inla.si.configuration)) inla.si.configuration = list()\n");
-		fprintf(fp, "if (!exists(\"inla.si.configuration\")) inla.si.configuration = list()\n");
-		fprintf(fp, "inla.si.configuration[[%1d]] = list(\n", c);
-		fprintf(fp, "log.dens=c(%.6g),\n", logdens);
-		if (nhyper > 0) {
-			fprintf(fp, "theta=c(");
-			for (i = 0; i < nhyper - 1; i++)
-				fprintf(fp, " %.6g,", theta[i]);
-			fprintf(fp, " %.6g),\n", theta[nhyper - 1]);
-		} else {
-			fprintf(fp, "theta = NULL,\n");
-		}
-
-		fprintf(fp, "tags=c(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\"%s", d->tag[k], (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "),\n");
-
-		fprintf(fp, "start=c(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d%s", d->start[k], (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "),\n");
-
-		fprintf(fp, "len=c(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "%1d%s", d->len[k], (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "),\n");
-
-		fprintf(fp, "mean=list(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\" = c(", d->tag[k]);
-			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
-				fprintf(fp, " %.6g%s", ai_store->problem->mean_constr[i], (i < d->start[k] + d->len[k] - 1 ? "," : ""));
-			}
-			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "),\n");
-
-		fprintf(fp, "sd=list(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\" = c(", d->tag[k]);
-			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
-				p = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				if (p) {
-					fprintf(fp, " %.6g%s", sqrt(*p), (i < d->start[k] + d->len[k] - 1 ? "," : ""));
-				} else {
-					fprintf(fp, " NA%s", (i < d->start[k] + d->len[k] - 1 ? "," : ""));
-				}
-			}
-			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "),\n");
-
-		fprintf(fp, "cor=list(");
-		for (k = 0; k < d->nd; k++) {
-			fprintf(fp, "\"%s\" = c(", d->tag[k]);
-			for (i = d->start[k]; i < d->start[k] + d->len[k]; i++) {
-				pi = GMRFLib_Qinv_get(ai_store->problem, i, i);
-				for (j = d->start[k]; j < d->start[k] + d->len[k]; j++) {
-					p = GMRFLib_Qinv_get(ai_store->problem, i, j);
-					pj = GMRFLib_Qinv_get(ai_store->problem, j, j);
-					if (p) {
-						fprintf(fp, " %.6g%s", *p / sqrt(*pi * *pj), (((j < d->start[k] + d->len[k] - 1)
-											       || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
-					} else {
-						fprintf(fp, " NA%s", (((j < d->start[k] + d->len[k] - 1)
-								       || (i < d->start[k] + d->len[k] - 1)) ? "," : ""));
-					}
-				}
-			}
-			fprintf(fp, ")%s\n", (k < d->nd - 1 ? "," : ""));
-		}
-		fprintf(fp, "))\n");
-		fclose(fp);
-	}
 
 	return GMRFLib_SUCCESS;
 }
