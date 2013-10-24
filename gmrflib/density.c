@@ -862,7 +862,7 @@ double GMRFLib_evaluate_density_kld__intern(double x, void *param)
 double GMRFLib_density_Pinv_f(double x, void *param)
 {
 	GMRFLib_density_properties_tp *prop = (GMRFLib_density_properties_tp *) param;
-	double px;
+	double px = NAN;
 
 	GMRFLib_density_P(&px, x, prop->density);
 
