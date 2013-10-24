@@ -232,18 +232,6 @@ typedef enum {
 	 ((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" :		\
 	  ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!")))
 
-/**
- * \brief SI: Which idices to dump type
- */
-typedef struct {
-	int nd;
-	int *start;
-	int *len;
-	char **tag;
-} GMRFLib_ai_si_tp;
-
-
-
 
 /**
  * \brief Parameters for doing approximate inference
@@ -305,16 +293,6 @@ typedef struct {
 	 * \brief Write info about the marginal for the hyperparameters
 	 */
 	FILE *fp_hyperparam;
-
-	/**
-	 * \brief Dump intermediate results in this directory (expert option)
-	 */
-	char *si_directory;
-
-	/**
-	 * \brief Which indexes to dump
-	 */
-	GMRFLib_ai_si_tp *si_idx;
 
 	/**
 	 * \brief  The integration strategy.
@@ -954,7 +932,6 @@ int GMRFLib_ai_correct_cpodens(double *dens, double *x, int *n, GMRFLib_ai_param
 int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp * cpo);
 int GMRFLib_ai_po_free(GMRFLib_ai_po_tp * po);
 int GMRFLib_ai_do_MC_error_check(double *statistics, GMRFLib_problem_tp * problem, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, int nsamp);
-int GMRFLib_ai_si(GMRFLib_ai_param_tp * ai_par, double logdens, double *theta, int nhyper, GMRFLib_graph_tp * graph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_problem_tp * problem, double *c, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *izz, int *len, int *k_max, int len_length, int nhyper);
 int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);

@@ -2383,18 +2383,7 @@ double Qfunc_besag(int i, int j, void *arg)
 		prec = 1.0;
 	}
 	prec *= (a->prec_scale ? a->prec_scale[0] : 1.0);
-
-	if (a->si) {
-		if (i == j) {
-			return prec * a->graph->nnbs[i];
-		}
-		if (GMRFLib_is_neighb(i, j, a->graph))
-			return -prec;
-		else
-			return 0.0;			       /* dummy */
-	} else {
-		return prec * (i == j ? a->graph->nnbs[i] : -1.0);
-	}
+	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
 double Qfunc_besag2(int i, int j, void *arg)
 {
@@ -2448,7 +2437,7 @@ double Qfunc_besagproper2(int i, int j, void *arg)
 	double prec;
 	double lambda;
 
-	a = (inla_besag_proper_Qfunc_arg_tp *) arg;
+	a = (inla_besag_proper2_Qfunc_arg_tp *) arg;
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	lambda = map_probability(a->logit_lambda[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	if (i == j) {
@@ -11531,7 +11520,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_constr = Realloc(mb->f_constr, mb->nf + 1, GMRFLib_constr_tp *);
 	mb->f_constr_orig = Realloc(mb->f_constr_orig, mb->nf + 1, GMRFLib_constr_tp *);
 	mb->f_diag = Realloc(mb->f_diag, mb->nf + 1, double);
-	mb->f_si = Realloc(mb->f_si, mb->nf + 1, int);
 	mb->f_compute = Realloc(mb->f_compute, mb->nf + 1, int);
 	mb->f_fixed = Realloc(mb->f_fixed, mb->nf + 1, int *);
 	mb->f_initial = Realloc(mb->f_initial, mb->nf + 1, double *);
@@ -11579,7 +11567,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(constr, NULL);
 	SET(constr_orig, NULL);
 	SET(diag, 0.0);
-	SET(si, 0);
 	SET(compute, 1);
 	SET(fixed, NULL);
 	SET(initial, NULL);
@@ -11958,10 +11945,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_diag[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "DIAGONAL"), 0.0);
 	if (mb->verbose) {
 		printf("\t\tdiagonal=[%g]\n", mb->f_diag[mb->nf]);
-	}
-	mb->f_si[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "SI"), 0);
-	if (mb->verbose) {
-		printf("\t\tsi=[%1d] (if possible)\n", mb->f_si[mb->nf]);
 	}
 	mb->f_id_names[mb->nf] = inla_read_file_contents(GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ID.NAMES"), NULL)));
 	if (mb->verbose) {
@@ -14829,14 +14812,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besag;
 		arg = Calloc(1, inla_besag_Qfunc_arg_tp);
-		arg->si = mb->f_si[mb->nf];
 		GMRFLib_copy_graph(&(arg->graph), mb->f_graph[mb->nf]);
-		if (arg->si) {
-			/*
-			 * make a fake graph 
-			 */
-			GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->graph->n, arg->graph->n, 0);
-		}
 		arg->log_prec = log_prec;
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
@@ -15591,7 +15567,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				assert(mb->f_id[mb->nf] == F_RW2);
 				rwdef->order = 2;
 			}
-			rwdef->si = mb->f_si[mb->nf];
 			rwdef->prec = NULL;
 			rwdef->log_prec = NULL;
 			rwdef->log_prec_omp = log_prec;
@@ -15622,7 +15597,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			    mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) && !mb->f_cyclic[mb->nf]) {
 			crwdef = Calloc(1, GMRFLib_crwdef_tp);
 			crwdef->n = mb->f_n[mb->nf];
-			crwdef->si = mb->f_si[mb->nf];
 			crwdef->prec = NULL;
 			crwdef->log_prec = NULL;
 			crwdef->log_prec_omp = log_prec;
@@ -16158,7 +16132,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					def->rwdef->n = ng;
 					def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
 					def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
-					def->rwdef->si = GMRFLib_FALSE;
 					def->rwdef->prec = Calloc(1, double);
 					def->rwdef->prec[0] = 1.0;
 					def->rwdef->log_prec = NULL;
@@ -16176,7 +16149,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
 					def->crwdef->n = ng;
 					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
-					def->crwdef->si = GMRFLib_FALSE;
 					def->crwdef->prec = Calloc(1, double);
 					def->crwdef->prec[0] = 1.0;
 					def->crwdef->log_prec = NULL;
@@ -16639,7 +16611,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * parse section = INLA 
 	 */
-	int i, j, k;
 	char *secname = NULL, *opt = NULL, *msg = NULL, *filename = NULL, *default_int_strategy = NULL, *defname = NULL, *r, *ctmp;
 	double tmp, tmp_ref;
 
@@ -16997,46 +16968,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		GMRFLib_reorder = G.reorder;		       /* yes! */
 	}
 
-	if (make_dir) {
-		char *fnm;
-
-		k = 0;
-		for (i = 0; i < mb->idx_tot; i++) {
-			j = find_tag(mb, mb->idx_tag[i]);
-			if (j >= 0 && mb->f_si[j])
-				k++;
-		}
-		if (k) {
-			GMRFLib_sprintf(&fnm, "%s/%s", mb->dir, "si");
-			mb->ai_par->si_directory = fnm;
-			inla_mkdir(fnm);
-
-			mb->ai_par->si_idx = Calloc(1, GMRFLib_ai_si_tp);
-			mb->ai_par->si_idx->nd = k;
-			mb->ai_par->si_idx->start = Calloc(k, int);
-			mb->ai_par->si_idx->len = Calloc(k, int);
-			mb->ai_par->si_idx->tag = Calloc(k, char *);
-
-			if (mb->ai_par->si_idx) {
-				k = 0;
-				for (i = 0; i < mb->idx_tot; i++) {
-					j = find_tag(mb, mb->idx_tag[i]);
-					if (j >= 0 && mb->f_si[j]) {
-						mb->ai_par->si_idx->start[k] = mb->idx_start[i];
-						mb->ai_par->si_idx->len[k] = mb->idx_n[i];
-						mb->ai_par->si_idx->tag[k] = GMRFLib_strdup(mb->idx_tag[i]);
-						k++;
-					}
-				}
-				assert(k == mb->ai_par->si_idx->nd);
-			}
-		} else {
-			mb->ai_par->si_idx = NULL;
-		}
-	} else {
-		mb->ai_par->si_idx = NULL;
-	}
-
 	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO.REQ.DIFF.LOGDENS"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = iniparser_getdouble(ini, inla_string_join(secname, "CPO.DIFF"), mb->ai_par->cpo_req_diff_logdens);
 	mb->ai_par->cpo_req_diff_logdens = DMAX(0.0, mb->ai_par->cpo_req_diff_logdens);
@@ -17070,7 +17001,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 */
 	char *secname = NULL, *filename = NULL;
 	GMRFLib_matrix_tp *M = NULL;
-
+	
 	if (mb->verbose) {
 		printf("\tinla_parse_update...\n");
 	}
@@ -23659,7 +23590,6 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 	inla_besag_Qfunc_arg_tp *odef = arg;
 
 	GMRFLib_copy_graph(&(def->graph), odef->graph);
-	def->si = GMRFLib_FALSE;
 	def->log_prec = NULL;
 	def->prec_scale = NULL;
 
@@ -23705,7 +23635,6 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	inla_besag_Qfunc_arg_tp *odef = arg;
 
 	GMRFLib_copy_graph(&(def->graph), odef->graph);
-	def->si = GMRFLib_FALSE;
 	def->log_prec = NULL;
 	def->prec_scale = NULL;
 
