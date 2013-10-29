@@ -12616,7 +12616,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 
 	// read locations also here if not read before
-	if (!mb->f_locations[mb->nf]){
+	if (!mb->f_locations[mb->nf]) {
 		filename = GMRFLib_strdup(file_loc);
 		if (filename)
 			if (mb->verbose) {
@@ -12624,13 +12624,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		inla_read_data_all(&(mb->f_locations[mb->nf]), &nlocations, filename);
 		mb->f_n[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "N"), -99);
-		if (mb->f_N[mb->nf] > nlocations){
+		if (mb->f_N[mb->nf] > nlocations) {
 			double *t = Calloc(mb->f_N[mb->nf], double);
 			memcpy(t, mb->f_locations[mb->nf], nlocations * sizeof(double));
 			Free(mb->f_locations[mb->nf]);
 			mb->f_locations[mb->nf] = t;
-			for(i=nlocations; i< mb->f_N[mb->nf]; i++){
-				mb->f_locations[mb->nf][i] = i+1;
+			for (i = nlocations; i < mb->f_N[mb->nf]; i++) {
+				mb->f_locations[mb->nf][i] = i + 1;
 			}
 		}
 		if (mb->f_n[mb->nf] != -99 && nlocations != mb->f_n[mb->nf]) {
@@ -14948,7 +14948,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * make the new augmented graph 
 		 */
 		g = mb->f_graph[mb->nf];
-		inla_make_bym_graph(&(mb->f_graph[mb->nf]), g); /* yes, its the same graph */
+		inla_make_bym_graph(&(mb->f_graph[mb->nf]), g);	/* yes, its the same graph */
 		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
@@ -15656,7 +15656,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 
 					int ii;
-					for(ii = mb->f_n[mb->nf]; ii < 2*mb->f_n[mb->nf]; ii++){
+					for (ii = mb->f_n[mb->nf]; ii < 2 * mb->f_n[mb->nf]; ii++) {
 						t[ii] *= -1.0;
 					}
 
@@ -17023,7 +17023,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 */
 	char *secname = NULL, *filename = NULL;
 	GMRFLib_matrix_tp *M = NULL;
-	
+
 	if (mb->verbose) {
 		printf("\tinla_parse_update...\n");
 	}
@@ -19045,13 +19045,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BYM2:
 		{
-			if (NOT_FIXED(f_fixed[i][0])) {	       
+			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (NOT_FIXED(f_fixed[i][1])) {	       
+			if (NOT_FIXED(f_fixed[i][1])) {
 				rho_intern = theta[count];
 				count++;
 			} else {

@@ -616,14 +616,13 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			GMRFLib_adjust_vector(ldm, npm);       /* so its well-behaved... */
 		}
 
-		/* 
+		/*
 		 * find the mode fitting a quadratic around the best point, like a one-step Newton-Raphson, since we have so excellent initial value
 		 */
 		int imax;
-		GMRFLib_max_value(ldm, npm-1, &imax);
+		GMRFLib_max_value(ldm, npm - 1, &imax);
 		density->user_mode = density->std_mean + density->std_stdev *
-			(xpm[imax] -
-			 (((ldm[imax+1]-ldm[imax-1])/(2.0*dx))/((ldm[imax+1]-2.0*ldm[imax]+ldm[imax-1])/SQR(dx))));
+		    (xpm[imax] - (((ldm[imax + 1] - ldm[imax - 1]) / (2.0 * dx)) / ((ldm[imax + 1] - 2.0 * ldm[imax] + ldm[imax - 1]) / SQR(dx))));
 
 		work = Calloc(4 * np, double);
 		dens = work;
@@ -1104,7 +1103,7 @@ int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_
 
 	GMRFLib_density_combine(density_to, NULL, n, &density_from, &weights);
 	(*density_to)->flags = density_from->flags;
-	
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities, double *weights)
@@ -1537,7 +1536,7 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		}
 
 		int i;
-		for(i=0; i<8; i++){
+		for (i = 0; i < 8; i++) {
 			fprintf(fp, "Flag %1d = %1d\n", i, GMRFLib_getbit(density->flags, i));
 		}
 

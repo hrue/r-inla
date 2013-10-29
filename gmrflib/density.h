@@ -201,7 +201,7 @@ typedef struct {
 	 * \brief The mode in user scale (set if !NAN)
 	 */
 	double user_mode;
-	
+
 	/**
 	 * \brief The offset that is used for standarisation.
 	 *
@@ -253,8 +253,7 @@ typedef struct {
 
 } GMRFLib_density_tp;
 
-typedef enum
-{
+typedef enum {
 	DENSITY_FLAGS_FAILURE = 0
 } GMRFLib_density_flag_tp;
 

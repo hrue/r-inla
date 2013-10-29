@@ -399,7 +399,7 @@ typedef enum {
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGPROPER,
-	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux  et al. */
+	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,

@@ -1276,7 +1276,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}						\
 		}							\
 	}
-	
+
 	GMRFLib_ENTER_ROUTINE;
 
 
@@ -4973,7 +4973,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
-			memcpy(misc_output->cov_lin, ptmp, ISQR(nlin)*sizeof(double));
+			memcpy(misc_output->cov_lin, ptmp, ISQR(nlin) * sizeof(double));
 
 			double *ptmp_scale = Calloc(ISQR(nlin), double);
 			for (i = 0; i < nlin; i++) {
@@ -5049,7 +5049,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			ii = compute_idx[j];
 			if (cpo_theta[ii]) {
 				for (jj = 0; jj < dens_count; jj++) {
-					if (!ISNAN(cpo_theta[ii][jj])) /* we ignore those that have failed */
+					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
 						Z[ii] += adj_weights[jj] / cpo_theta[ii][jj];
 				}
 			}
@@ -5300,8 +5300,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 				for (i = 0; i < nhyper; i++) {
 					marginal_likelihood->marginal_likelihood_integration -=
-						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
-						       0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+					    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+						   0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 				}
 			} else {
 				double integral = 0.0, log_jacobian = 0.0;
