@@ -1165,7 +1165,6 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
-double log_apbex(double a, double b);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
