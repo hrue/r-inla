@@ -249,7 +249,15 @@ typedef struct {
 	GMRFLib_spline_tp *P;
 	GMRFLib_spline_tp *Pinv;
 
+	GMRFLib_uchar flags;				       /* can set various flags */
+
 } GMRFLib_density_tp;
+
+typedef enum
+{
+	DENSITY_FLAGS_FAILURE = 0
+} GMRFLib_density_flag_tp;
+
 
 /* 
    this object is used for computing properties of the density

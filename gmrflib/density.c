@@ -1103,7 +1103,8 @@ int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_
 	double weights = 1.0;
 
 	GMRFLib_density_combine(density_to, NULL, n, &density_from, &weights);
-
+	(*density_to)->flags = density_from->flags;
+	
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities, double *weights)
@@ -1534,6 +1535,12 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 			fprintf(fp, "     %-30s %16.10f\n", "x_max", density->x_max);
 			break;
 		}
+
+		int i;
+		for(i=0; i<8; i++){
+			fprintf(fp, "Flag %1d = %1d\n", i, GMRFLib_getbit(density->flags, i));
+		}
+
 		fflush(fp);
 	}
 	return GMRFLib_SUCCESS;
