@@ -1216,38 +1216,56 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	if (cpo_density) {						\
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL, fac = 2.0, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
-			int np = 51, _one = 1, _debug = 0, _i, ex = 2;	\
-			 						\
-			work = Calloc(4*np+ex, double); /* storage */	\
-			ld = &work[0];					\
-			logcor = &work[np];				\
-			x_user = &work[2*np];				\
-			xp = &work[3*np];				\
-			GMRFLib_ghq_abscissas(&xp_tmp, np);		\
-			memcpy(xp+1, xp_tmp, np*sizeof(double));	\
-			xp[0] = xp[1]*fac;				\
-			xp[np+1] = xp[np]*fac;				\
-			GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
-			GMRFLib_density_std2user_n(x_user, xp, np, *density); \
-			loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
-			for(_i=0; _i < np; _i++)			\
-				logcor[_i] *= d[idx];			\
-			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one); /* ld = ld - logcor */ \
-			if (_debug && np) {			\
-				for(_i = 0; _i < np + ex; _i++)		\
-					printf("CPO: %d %g %g\n", idx, xp[_i], ld[_i]);	\
-				printf("CPO: \n");			\
-			}						\
-			GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par); \
-			if (np > 4) {					\
-				GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld, \
-						       (*density)->std_mean, (*density)->std_stdev, GMRFLib_FALSE); \
-				if (_debug) {				\
-					P((*density)->std_mean);	\
-					P((*density)->std_stdev);	\
+			int itry, np_orig = 51, _debug = 0, _one = 1, _i, ex = 2; \
+			double cor_eps = GMRFLib_eps(0.75), cor_max;	\
+									\
+			work = Calloc(4*np_orig+ex, double); /* storage */ \
+			for(itry = 0; itry < 2;	itry++)			\
+			{						\
+				int np = np_orig;			\
+				int flag = 0;				\
+				ld = &work[0];				\
+				logcor = &work[np];			\
+				x_user = &work[2*np];			\
+				xp = &work[3*np];			\
+				GMRFLib_ghq_abscissas(&xp_tmp, np);	\
+				memcpy(xp+1, xp_tmp, np*sizeof(double)); \
+				xp[0] = xp[1]*fac;			\
+				xp[np+1] = xp[np]*fac;			\
+				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
+				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
+				loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
+				for(_i=0; _i < np; _i++) {		\
+					logcor[_i] *= d[idx];		\
 				}					\
-			} else {					\
-				*cpo_density = NULL;			\
+				if (itry == 1 && cor_eps > 0.0) {	\
+					flag = 1;			\
+					cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL)); \
+					for(_i=0; _i < np; _i++) {	\
+						ld[_i] = ld[_i] + logcor[_i] - 2.0*GMRFLib_log_apbex(cor_max, logcor[_i]); \
+					}				\
+				} else {				\
+					daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld - logcor */	\
+				}					\
+				if (_debug && np) {			\
+					for(_i = 0; _i < np + ex; _i++)	\
+						printf("CPO: %d %g %g\n", idx, xp[_i], ld[_i]);	\
+					printf("CPO: \n");		\
+				}					\
+				GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par); \
+				if (np > 4) {				\
+					GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld, \
+							       (*density)->std_mean, (*density)->std_stdev, GMRFLib_FALSE); \
+					if (_debug) {			\
+						P((*density)->std_mean); \
+						P((*density)->std_stdev); \
+					}				\
+					if (flag && cpo_density) GMRFLib_setbit(&((*cpo_density)->flags), DENSITY_FLAGS_FAILURE); \
+				} else {				\
+					*cpo_density = NULL;		\
+				}					\
+				if (*cpo_density || itry == 1)		\
+					break;				\
 			}						\
 			Free(work);					\
 		} else {						\
@@ -1258,7 +1276,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}						\
 		}							\
 	}
-
+	
 	GMRFLib_ENTER_ROUTINE;
 
 
@@ -3068,6 +3086,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			failure_theta[ii][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[ii][dens_count], \
 										    &pit_theta[ii][dens_count], ii, cpodens, \
 										    (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
+			if (cpodens && GMRFLib_getbit(cpodens->flags, DENSITY_FLAGS_FAILURE)) { \
+				failure_theta[ii][dens_count] = 1.0;	\
+			}						\
 		}							\
 		if (dic) {						\
 			deviance_theta[ii][dens_count] = GMRFLib_ai_dic_integrate(ii, dens[ii][dens_count], \
@@ -3088,6 +3109,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			failure_theta_local[ii] +=			\
 				GMRFLib_ai_cpopit_integrate(&cpo_theta_local[ii], &pit_theta_local[ii],	\
 							    ii, cpodens, (ai_par->cpo_manual ? 1.0 : d[ii]), loglFunc, loglFunc_arg, xx_mode); \
+			if (cpodens && GMRFLib_getbit(cpodens->flags, DENSITY_FLAGS_FAILURE)) { \
+				failure_theta_local[ii] += 1.0; \
+			}						\
 		}							\
 		if (dic) {						\
 			deviance_theta_local[ii] =			\
@@ -5025,7 +5049,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			ii = compute_idx[j];
 			if (cpo_theta[ii]) {
 				for (jj = 0; jj < dens_count; jj++) {
-					if (cpo_theta[ii][jj]) /* we ignore those that have failed */
+					if (!ISNAN(cpo_theta[ii][jj])) /* we ignore those that have failed */
 						Z[ii] += adj_weights[jj] / cpo_theta[ii][jj];
 				}
 			}
@@ -5040,7 +5064,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				(*cpo)->value[ii] = Calloc(1, double);
 
 				for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
-					if (cpo_theta[ii][jj]) {
+					if (!ISNAN(cpo_theta[ii][jj])) {
 						evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
 						evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
 					}
@@ -5058,7 +5082,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				(*cpo)->pit_value[ii] = Calloc(1, double);
 				(*cpo)->failure[ii] = Calloc(1, double);
 				for (jj = 0, evalue = evalue2 = evalue_one = 0.0; jj < dens_count; jj++) {
-					if (cpo_theta[ii][jj]) {
+					if (!ISNAN(cpo_theta[ii][jj])) {
 						evalue += pit_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
 						evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
 					}
@@ -6288,10 +6312,10 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	double fail = 0.0;
 	if (!cpo_density) {
 		if (cpo) {
-			*cpo = 0.0;
+			*cpo = NAN;
 		}
 		if (pit) {
-			*pit = 1.0;
+			*pit = NAN;
 		}
 		fail = 1.0;
 
@@ -6391,7 +6415,7 @@ double GMRFLib_ai_po_integrate(double *po, int idx, GMRFLib_density_tp * po_dens
 	double fail = 0.0;
 	if (!po_density) {
 		if (po) {
-			*po = 0.0;
+			*po = NAN;
 		}
 		fail = 1.0;
 

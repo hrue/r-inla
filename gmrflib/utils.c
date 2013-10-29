@@ -457,6 +457,24 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 
 	return GMRFLib_SUCCESS;
 }
+double GMRFLib_log_apbex(double a, double b)
+{
+        /*
+         * try to evaluate log(a + exp(b)) safely 
+         */
+
+        if (a == 0.0)
+                return b;
+
+        double B = exp(b);
+
+        if (B > a) {
+                return b + log(1.0 + a / B);
+        } else {
+                return log(a) + log(1.0 + B / a);
+        }
+}
+
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;
