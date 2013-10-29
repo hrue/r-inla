@@ -91,7 +91,7 @@ static const char RCSId[] = HGVERSION;
 #include "re.h"
 #include "ar.h"
 
-#define PREVIEW    10
+#define PREVIEW (20)
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
@@ -402,23 +402,6 @@ int inla_print_sha1(FILE * fp, unsigned char *md)
 		return INLA_OK;
 	}
 #endif
-}
-double log_apbex(double a, double b)
-{
-	/*
-	 * try to evaluate log(a + exp(b)) safely 
-	 */
-
-	if (a == 0.0)
-		return b;
-
-	double B = exp(b);
-
-	if (B > a) {
-		return b + log(1.0 + a / B);
-	} else {
-		return log(a) + log(1.0 + B / a);
-	}
 }
 double map_identity(double arg, map_arg_tp typ, void *param)
 {
@@ -5312,7 +5295,7 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 			b = (p * rho - p - rho + 1.0) / rho;
 			tmp = log(1.0 - pzero) + normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
 			if (y == 0) {
-				logll[i] = log_apbex(pzero, tmp);
+				logll[i] = GMRFLib_log_apbex(pzero, tmp);
 			} else {
 				logll[i] = tmp;
 			}
@@ -12600,6 +12583,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 				mb->f_N[mb->nf] = mb->f_n[mb->nf] = nlocations;
 				if (mb->verbose) {
+					printf("\t\t\tnlocations=[%1d]\n", nlocations);
 					for (i = 0; i < IMIN(PREVIEW, nlocations); i++) {
 						printf("\t\t\tlocations[%1d]=[%g]\n", i, mb->f_locations[mb->nf][i]);
 					}
@@ -12627,6 +12611,38 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			 */
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			break;
+		}
+	}
+
+
+	// read locations also here if not read before
+	if (!mb->f_locations[mb->nf]){
+		filename = GMRFLib_strdup(file_loc);
+		if (filename)
+			if (mb->verbose) {
+				printf("\t\tfile for locations=[%s]\n", filename);
+			}
+		inla_read_data_all(&(mb->f_locations[mb->nf]), &nlocations, filename);
+		mb->f_n[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "N"), -99);
+		if (mb->f_N[mb->nf] > nlocations){
+			double *t = Calloc(mb->f_N[mb->nf], double);
+			memcpy(t, mb->f_locations[mb->nf], nlocations * sizeof(double));
+			Free(mb->f_locations[mb->nf]);
+			mb->f_locations[mb->nf] = t;
+			for(i=nlocations; i< mb->f_N[mb->nf]; i++){
+				mb->f_locations[mb->nf][i] = i+1;
+			}
+		}
+		if (mb->f_n[mb->nf] != -99 && nlocations != mb->f_n[mb->nf]) {
+			GMRFLib_sprintf(&msg, "Number of locations and N does not match: %d != %d\n", nlocations, mb->f_n[mb->nf]);
+			inla_error_general(msg);
+			exit(EXIT_FAILURE);
+		}
+		if (mb->verbose) {
+			printf("\t\t\tnlocations=[%1d]\n", nlocations);
+			for (i = 0; i < IMIN(PREVIEW, nlocations); i++) {
+				printf("\t\t\tlocations[%1d]=[%g]\n", i, mb->f_locations[mb->nf][i]);
+			}
 		}
 	}
 
@@ -15632,12 +15648,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_rankdef[mb->nf] = 2.0;
 
 				/*
-				 * duplicate the locations, if they are present
+				 * duplicate the locations and swap the sign, if they are present
 				 */
 				if (mb->f_locations[mb->nf]) {
 					double *t = Calloc(2 * mb->f_n[mb->nf], double);
 					memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 					memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+
+					int ii;
+					for(ii = mb->f_n[mb->nf]; ii < 2*mb->f_n[mb->nf]; ii++){
+						t[ii] *= -1.0;
+					}
+
 					mb->f_locations[mb->nf] = t;
 				}
 			} else {
