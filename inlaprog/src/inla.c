@@ -12623,7 +12623,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tfile for locations=[%s]\n", filename);
 			}
 		inla_read_data_all(&(mb->f_locations[mb->nf]), &nlocations, filename);
-		mb->f_n[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "N"), -99);
 		if (mb->f_N[mb->nf] > nlocations) {
 			double *t = Calloc(mb->f_N[mb->nf], double);
 			memcpy(t, mb->f_locations[mb->nf], nlocations * sizeof(double));
@@ -12633,7 +12632,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_locations[mb->nf][i] = i + 1;
 			}
 		}
-		if (mb->f_n[mb->nf] != -99 && nlocations != mb->f_n[mb->nf]) {
+		if (nlocations != mb->f_n[mb->nf]) {
 			GMRFLib_sprintf(&msg, "Number of locations and N does not match: %d != %d\n", nlocations, mb->f_n[mb->nf]);
 			inla_error_general(msg);
 			exit(EXIT_FAILURE);
