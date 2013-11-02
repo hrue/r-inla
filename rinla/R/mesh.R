@@ -40,13 +40,16 @@ inla.mesh.segment <- function(loc=NULL,
                               is.bnd=TRUE)
 {
     if ((missing(loc) || is.null(loc)) &&
-        (missing(idx) || is.null(idx)))
+        (missing(idx) || is.null(idx))) {
         stop("At most one of 'loc' and 'idx' may be missing or null.")
+    }
     if (!missing(loc) && !is.null(loc)) {
-        if (!is.matrix(loc))
-            stop("'loc' must be a a matrix")
-        if (!is.double(loc))
+        if (!is.matrix(loc)) {
+            loc = as.matrix(loc)
+        }
+        if (!is.double(loc)) {
             storage.mode(loc) = "double"
+        }
         if (missing(idx) || is.null(idx))
             idx = (inla.ifelse(is.bnd,
                                c(1:nrow(loc),1),
@@ -1180,10 +1183,16 @@ inla.mesh.2d <-
         stop("max.edge must be specified")
     }
 
-    if (missing(loc) || is.null(loc))
+    if (missing(loc) || is.null(loc)) {
         loc = matrix(c(0.0), 0, 3)
-    if (missing(loc.domain) || is.null(loc.domain))
+    } else if (!is.matrix(loc)) {
+        loc = as.matrix(loc)
+    }
+    if (missing(loc.domain) || is.null(loc.domain)) {
         loc.domain = loc
+    } else if (!is.matrix(loc.domain)) {
+        loc.domain = as.matrix(loc.domain)
+    }
     if (missing(boundary)) {
         boundary = list(NULL)
     } else {
