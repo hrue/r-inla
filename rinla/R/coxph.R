@@ -158,7 +158,6 @@
             ", values = baseline.hazard.values", 
             ", hyper = ", enquote(cont.hazard$hyper),
             ", constr = ", cont.hazard$constr,
-            ", si = ", inla.ifelse(cont.hazard$si, "TRUE", "FALSE"),
             inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
             ")", sep="")[2L]
     
