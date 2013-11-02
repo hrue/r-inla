@@ -573,11 +573,11 @@
 
         if (!(is.null(cpo) || length(cpo) == 0L)) {
             n.fail = sum(failure != 0.0)
-            plot(cpo, main = paste("The CPO-values", ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
+            plot(cpo, main = paste("The CPO-values", ", nfail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
             if (n.fail > 0) {
                 points(cpo[ failure > 0 ], pch=20L)
             }
-            hist(cpo, main = paste("Histogram of the CPO-values", ", n.fail", n.fail, sep=""), xlab = "Probability",
+            hist(cpo, main = paste("Histogram of the CPO-values", ", nfail", n.fail, sep=""), xlab = "Probability",
                  n = max(20L, min(round(length(pit)/10L), 100L)))
         }
     }

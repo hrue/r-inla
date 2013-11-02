@@ -87,11 +87,6 @@ __BEGIN_DECLS
 	int cyclic;
 
 	/**
-	 * \brief Use a dense representation to allow `si' (EXPERT Option)
-	 */
-	int si;
-
-	/**
 	 *  \brief A (possible) pointer to the precision 
 	 * 
 	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.

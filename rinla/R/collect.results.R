@@ -81,7 +81,6 @@
         res.po = inla.collect.po(results.dir, debug)
         res.random = inla.collect.random(results.dir, control.results$return.marginals.random, debug)
         res.predictor = inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
-        res.configurations = inla.collect.configurations(results.dir, debug)
         res.spde2.blc = inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
 
         file=paste(results.dir,.Platform$file.sep,"neffp",.Platform$file.sep,"neffp.dat", sep="")
@@ -98,7 +97,6 @@
         res.po = NULL
         res.random=NULL
         res.predictor =NULL
-        res.configurations = NULL
         res.spde2.blc = NULL
         neffp =NULL
     }
@@ -192,7 +190,7 @@
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
             list(cpo=res.cpo.pit), list(po = res.po), 
             res.random, res.predictor, res.hyper,
-            res.configurations, res.offset, res.spde2.blc, logfile, 
+            res.offset, res.spde2.blc, logfile, 
             list(misc = misc,
                  dic=res.dic, mode = list(theta = theta.mode, x = x.mode,
                                       theta.tags = theta.tags, mode.status = mode.status,
@@ -1848,31 +1846,6 @@ inla.internal.experimental.mode = FALSE
             }
         }
         return (x)
-    }
-}
-
-`inla.collect.configurations` = function (results.dir, debug=FALSE) 
-{
-    ## to prevent a warning from R CMD check
-    inla.si.configuration = NULL
-    
-    d = paste(results.dir, "/si", sep="")
-    if (file.exists(d)) {
-        if (debug) {
-            print(paste("collect configurations for si from dir=", d))
-        }
-        for (f in list.files(d, pattern="^configuration.*[.]R$", full.names=TRUE)) {
-            if (debug) {
-                print(paste("...read", f))
-            }
-            source(f)
-        }
-        return (list(si = inla.si.configuration))
-    } else {
-        if (debug) {
-            print(paste("no si configurations to collect from dir=", d))
-        }
-        return (list(si = NULL))
     }
 }
 
