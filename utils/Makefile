@@ -52,6 +52,10 @@ Rinla-local :;
 	make update-R
 	make MAC=$(MAC) -C R local
 
+Rinla-local-Ronly :;
+	make update-R
+	make MAC=$(MAC) -C R local
+
 Rinla-install:;
 	make update-inla
 	make update-R
@@ -75,4 +79,6 @@ Rinla-testing-Ronly :;
 	-do-rsync-www
 	-gnome-terminal -e 'ssh -t hrue@inla.math.ntnu.no "source .bash_profile; source .bashrc; sudo ls; cd; cd tmp; test -f INLA.tgz && rm INLA.tgz; wget http://www.math.ntnu.no/inla/binaries/testing/INLA.tgz; sudo R CMD INSTALL --library=/usr/local/lib/R/site-library INLA.tgz; sudo ~hrue/bin/fix-permissions /usr/local/lib/R/site-library"'
 
-.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install
+.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install Rinla-local Rinla-local-Ronly
+
+
