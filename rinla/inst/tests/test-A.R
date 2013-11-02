@@ -19,5 +19,5 @@ test_that("Case 1", {
     
     expect_true(all(abs(r$summary.fixed[, "mean"] - 1) < eps))
     expect_true(all(abs(rr$summary.fixed[, "mean"] - 1) < eps))
-    expext_true(all(abs(r$summary.fixed- rr$summary.fixed) < 0.05))
+    expect_true(all(abs(r$summary.fixed- rr$summary.fixed) < 0.05))
 })
