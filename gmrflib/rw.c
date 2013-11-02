@@ -765,12 +765,7 @@ double GMRFLib_rw2d(int node, int nnode, void *def)
 */
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
 {
-	if (def->si) {
-		GMRFLib_make_linear_graph(graph, def->n, def->n, 0);
-	} else {
-		GMRFLib_make_linear_graph(graph, def->n, def->order, def->cyclic);
-	}
-
+	GMRFLib_make_linear_graph(graph, def->n, def->order, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
@@ -796,19 +791,6 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 	GMRFLib_graph_tp *gg = NULL;
 
 	n = def->n;
-
-	if (def->si) {
-		/*
-		 * this case is particular easy 
-		 */
-		if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
-			GMRFLib_make_linear_graph(graph, n, n, 0);
-		} else {
-			GMRFLib_make_linear_graph(graph, 2 * n, 2 * n, 0);
-		}
-
-		return GMRFLib_SUCCESS;
-	}
 
 	if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
 		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_make_linear_graph(graph, n, n, 0);
@@ -915,7 +897,6 @@ int GMRFLib_crw_scale_OLD(void *def)
 	crwdef->n = odef->n;
 	assert(odef->order > 0);
 	crwdef->order = odef->order;
-	crwdef->si = GMRFLib_FALSE;
 	crwdef->prec = NULL;
 	crwdef->log_prec = NULL;
 	crwdef->log_prec_omp = NULL;
@@ -991,7 +972,6 @@ int GMRFLib_crw_scale(void *def)
 	crwdef->n = odef->n;
 	assert(odef->order > 0);
 	crwdef->order = odef->order;
-	crwdef->si = GMRFLib_FALSE;
 	crwdef->prec = NULL;
 	crwdef->log_prec = NULL;
 	crwdef->log_prec_omp = NULL;
@@ -1116,7 +1096,6 @@ int GMRFLib_rw_scale(void *def)
 	assert(odef->order > 0);
 	rwdef->order = odef->order;
 	rwdef->cyclic = odef->cyclic;
-	rwdef->si = GMRFLib_FALSE;
 	rwdef->prec = NULL;
 	rwdef->log_prec = NULL;
 	rwdef->log_prec_omp = NULL;

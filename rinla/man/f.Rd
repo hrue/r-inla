@@ -52,7 +52,6 @@
          spde2.transform = c("logit", "log", "identity"),
          mean.linear = inla.set.control.fixed.default()$mean, 
          prec.linear = inla.set.control.fixed.default()$prec, 
-         si=FALSE,
          compute = TRUE,
          of=NULL,
          precision = 1.0e9,
@@ -185,7 +184,6 @@ possible values are \code{c(0, 1, 2, 3)}}
 only used if \code{model="linear"}}
 \item{prec.linear}{Prior precision for the linear
 component, only used if \code{model="linear"}}
-\item{si}{TODO}
 \item{compute}{ A boolean variable indicating wheather the
  marginal posterior distribution for the nodes in the
  \code{f()} model should be computed or not. This is

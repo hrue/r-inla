@@ -399,7 +399,7 @@ typedef enum {
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGPROPER,
-	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux  et al. */
+	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
 	F_SEASONAL,
 	F_IID,
 	F_2DIID,
@@ -753,7 +753,6 @@ struct inla_tp_struct {
 	double ****f_theta;
 	map_func_tp ***f_theta_map;
 	void ***f_theta_map_arg;
-	int *f_si;
 	int *f_compute;
 	int **f_fixed;
 	double **f_initial;
@@ -861,7 +860,6 @@ struct inla_tp_struct {
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
-	int si;						       /* expert option... */
 	double **log_prec;
 	double *prec_scale;
 } inla_besag_Qfunc_arg_tp;
@@ -1167,7 +1165,6 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
-double log_apbex(double a, double b);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
@@ -1324,6 +1321,7 @@ int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *from_theta,
 			    const char *to_theta, const char *default_prior);
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);

@@ -50,7 +50,6 @@
 ##!         spde2.transform = c("logit", "log", "identity"),
 ##!         mean.linear = inla.set.control.fixed.default()$mean, 
 ##!         prec.linear = inla.set.control.fixed.default()$prec, 
-##!         si=FALSE,
 ##!         compute = TRUE,
 ##!         of=NULL,
 ##!         precision = 1.0e9,
@@ -258,9 +257,6 @@
         ##!\item{prec.linear}{Prior precision for the linear
         ##!component, only used if \code{model="linear"}}
         prec.linear = inla.set.control.fixed.default()$prec, 
-
-        ##!\item{si}{TODO}
-        si=FALSE,
 
         ##!\item{compute}{ A boolean variable indicating wheather the
         ##! marginal posterior distribution for the nodes in the
@@ -892,7 +888,6 @@
             replicate = replicate,
             same.as = same.as,
             season.length = season.length,
-            si = si,
             spde.prefix = spde.prefix,
             spde2.prefix = spde2.prefix,
             spde2.transform = spde2.transform,
