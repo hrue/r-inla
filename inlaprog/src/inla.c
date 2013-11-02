@@ -12616,7 +12616,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 
 	// read locations also here if not read before
-	if (!mb->f_locations[mb->nf]) {
+	if (!mb->f_locations[mb->nf] && mb->f_n[mb->nf] > 0) {
 		filename = GMRFLib_strdup(file_loc);
 		if (filename)
 			if (mb->verbose) {
