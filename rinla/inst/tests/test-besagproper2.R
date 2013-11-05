@@ -1,4 +1,4 @@
-context("test 'latent besagproper'")
+context("test 'latent besagproper2'")
 
 test_that("Case 1", {
     set.seed(1234)
