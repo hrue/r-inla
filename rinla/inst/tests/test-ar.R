@@ -1,4 +1,4 @@
-context("test 'latent-ar'")
+context("test 'latent ar'")
 
 test_that("Case 1", {
     for(i in 1:20) {
