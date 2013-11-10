@@ -191,7 +191,6 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("cbinomial"))) {
-        
         if (!(is.matrix(Ntrials) && all(dim(Ntrials) == c(n.data, 2)))) {
             stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data, "x", 2, "-matrix; see the documentation."))
         }
