@@ -28,7 +28,7 @@ test_that("Case 1", {
           param = c(0,0.2), prior = "normal") +
               f(j2, initial=0, fixed=FALSE)
     
-    r = inla(formula, data = data.frame(i2,ii2,ww2,Y,j2),
+    r = inla(formula, data = list(Y=Y, i2=i2,ii2=ii2,ww2=ww2,j2=j2),
             family = c("gaussian","gaussian"),
             control.family = list(
                     list(initial = log(1/sd^2), fixed = TRUE),
