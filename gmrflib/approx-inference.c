@@ -3807,6 +3807,17 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
+		// need to reset this, as ai_store is not set correctly
+		if (x_mode) {
+			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		}
+		GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+		log_dens_mode *= -1.0;
+		SET_THETA_MODE;
+		if (x_mode) {
+			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		}
+
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE, NULL);
 
 		if (timer) {
