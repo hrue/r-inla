@@ -856,8 +856,12 @@
 {
     inla.rw(n, order=2L)
 }
-`inla.rw` = function(n, order=1L)
+`inla.rw` = function(n, order=1L, sparse=TRUE)
 {
     U = diff(diag(n), diff=order)
-    return (t(U) %*% U)
+    if (sparse) {
+        return (inla.as.sparse(t(U) %*% U))
+    } else {
+        return (t(U) %*% U)
+    }
 }
