@@ -14,7 +14,7 @@
 
 \vspace{-1cm}
 \begin{center}\begin{minipage}[c]{0.9\textwidth}\centering
-This article quickly ilustrates how to do a 
+This document ilustrates how to do a 
 geostatistical fully Bayesian analysis
 through the \textbf{S}tochastic \textbf{P}artial 
 \textbf{D}iferential \textbf{E}quation 
