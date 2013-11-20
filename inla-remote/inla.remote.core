@@ -1,8 +1,14 @@
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
 
+maketemp () {
+    mktemp -t inla.remote.XXXXXXXX
+}
+
 compress_put="z"
 compress_get="z"
+## this one is fixed, do not change
+SSHDefaultPort=22
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     set -vx
@@ -32,12 +38,12 @@ fi
 RemoteINLA="/usr/local/bin/inla"
 RemoteHost=inla.math.ntnu.no
 RemoteUser=$USER
-Port=22
+Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
 
 if [ -r "$INIFILE" ]; then
     if [ "$INLA_OS" == "windows" ]; then
-	TMP=$(mktemp -t inla.remote.XXXXXXXX)	
+	TMP=$(maketemp)
 	tr -d \\015 < "$INIFILE" > $TMP
 	source $TMP
 	rm -r $TMP
@@ -65,7 +71,7 @@ if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     } 1>&2
 fi
 
-TMP=$(mktemp -t inla.remote.XXXXXXXX)
+TMP=$(maketemp)
 {
     echo "inladatadir=data.files"
     echo "inlaresdir=results.files"
@@ -112,16 +118,18 @@ if [ $verbose == 1 ]; then
 fi
 
 ## Problems has been reported using the natural first approach for
-## Cygwin/Windows, so we divide the code here...
-if [ $CYGWIN == 0 ]; then
+## Cygwin/Windows, so we divide the code here... Note that if Port !=
+## $SSHDefaultPort we need to use the second approach
+
+if [ $CYGWIN == 0 -a $Port == $SSHDefaultPort ]; then
     ## Linux and Mac
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
 else
-    ## Cygwin/Windows
+    ## Cygwin/Windows or Port != $SSHDefaultPort
     tarfile=results$RANDOM$RANDOM.tar
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
-    tarfile_to=$(mktemp).tar
+    tarfile_to=$(maketemp).tar
     scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
     tar xfm "$tarfile_to"
     rm -f "$tarfile_to"
