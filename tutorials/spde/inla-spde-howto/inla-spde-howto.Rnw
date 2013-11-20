@@ -45,8 +45,8 @@ exponential correlation function
 
 <<locations,tidy=FALSE>>=
 n = 200; coo = matrix(runif(2*n), n) 
-k <- 10;   s2rf <- 0.7 ## RF params.
-R <- s2rf*exp(-k*as.matrix(dist(coo))) 
+k <- 10;   s2s <- 0.7 ## RF params.
+R <- s2s*exp(-k*as.matrix(dist(coo))) 
 @ 
 
 \textbf{RF} sample, a multivariate Normal realization 
@@ -68,8 +68,6 @@ y <- lin.pred + rnorm(n, 0, sqrt(s2e))
 1. \textbf{Mesh:} 
 a triangulation to discretize the 
 random field (RF) at $m$ nodes. 
-The additional triangles outer domain 
-is to avoid boundary effects. 
 
 <<fmesh, tidy=FALSE, pars=list(mar=c(0,0,0.7,0)), out.width='0.45\\textwidth', fig.align='center'>>= 
 mesh <- inla.mesh.2d(
@@ -79,15 +77,17 @@ mesh <- inla.mesh.2d(
 plot(mesh, asp=1);  points(coo, col='red')
 @ 
 
-A little warning about the triangle on the mesh. 
-Is good to have they aproximately isosceles. 
-Also, we have to look at the range of the process 
-and compare it with the edges lengths 
-of the inner mesh triangles. 
-We need the lengths of the edges to be 
+A little warning about the mesh. 
+The additional triangles outer domain 
+is to avoid boundary effects. 
+Is good to have aproximately 
+isosceles triangles. 
+And, to avoid tiny triangles. 
+We need to have edges lengths 
+of the inner mesh triangles 
 less than the range of the process. 
-If it is too small, there might 
-not be any spatial effect. 
+Of course, if it is too small, there 
+might not be any spatial effect. 
 
 2. \textbf{Define the $n\times m$ projector matrix} to project 
  the process at the mesh nodes to locations 
@@ -169,10 +169,10 @@ abline(v=s2e, col=2) ## add true value
 \begin{multicols}{2} 
 
 The SPDE approach uses a local variance, $\tau^2$, 
-such that $\sigma_{rf}^2=1/(2\pi\kappa^2\tau^2)$. 
-On \textbf{\textsf{INLA}} we work $\log(\tau^2)$
-and $\log(\kappa)$. So, especially for 
-$\sigma_{rf}^2$, we have to do 
+such that $\sigma_{s}^2=1/(2\pi\kappa^2\tau^2)$. 
+On \textbf{\textsf{INLA}} we work log($\tau^2$)
+and log($\kappa$). So, especially for 
+$\sigma_{s}^2$, we have to do 
 an additional computation. 
 The PMDs for all RF parameters on 
 user scale are computed by
@@ -191,14 +191,14 @@ It can be visualized by
 
 <<rfpars, pars=list(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0)), fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
 plot(rf$marginals.var[[1]], ty='l', 
-     xlab=expression(sigma[rf]^2), yla='Density')
-abline(v=s2rf, col=2) ## add the true value
+     xlab=expression(sigma[s]^2), yla='Density')
+abline(v=s2s, col=2) ## add the true value
 plot(rf$marginals.kap[[1]], type='l',
      xlab=expression(kappa), ylab='Density')
 abline(v=k, col=2) ## add the true value
 plot(rf$marginals.range[[1]], type='l', 
      xlab='range nominal', ylab='Density')
-abline(v=sqrt(4)/k, col=2) ## add the true value
+abline(v=sqrt(4)/k, col=2) ## add the 'true' value
 @
 
 \section{Projection on a grid}
@@ -255,16 +255,15 @@ p.res <- inla(formula, data=inla.stack.data(stk.full), ## full stack
                   A=inla.stack.A(stk.full))) ## using full stack data
 @ 
 
-Get the prediction data index and 
-collect the PMD to work with 
+Get the prediction data index and collect the 
+linear predictor PMDs  to work with 
 
 <<ypost>>=
 pred.ind <- inla.stack.index(stk.full, tag='pred')$data
 ypost <- p.res$marginals.fitted.values[pred.ind]
 @ 
 
-Visualize PMD for the linear predictor at target 
-locations with commands bellow
+Visualize with commands bellow
 
 <<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
 names(ypost) <- paste('y', seq_along(ypost), sep='_');     library(plyr) 
