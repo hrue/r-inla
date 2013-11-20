@@ -243,7 +243,7 @@ ppost <- p.res$marginals.fitted.values[pred.ind]
 Visualize PMD for the linear predictor at target 
 locations with commands bellow
 <<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
-names(ppost) <- seq_along(ppost);     library(plyr) 
+names(ppost) <- paste('y', seq_along(ppost), sep='_');     library(plyr) 
 xyplot(y~x | .id, ldply(ppost), panel='llines', xlab='y', ylab='Density')
 @ 
 
