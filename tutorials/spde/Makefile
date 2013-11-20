@@ -12,7 +12,7 @@ spde-tutorial.pdf : $(texDepends)
         @R --vanilla -e 'Sweave("$^")' </dev/null
 
 install:; distill spde-tutorial.pdf
-        cp spde-tutorial.pdf ../../../inla/r-inla.org/tutorials/spde/spde-tutorial.pdf
+        cp spde-tutorial.pdf ../../r-inla.org/tutorials/spde/spde-tutorial.pdf
 
 clean :; latexmk -C
 
