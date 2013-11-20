@@ -186,13 +186,13 @@ abline(v=sqrt(8)/k, col=2) ## add the true value
 
 \section{Projection on a grid}
 
-An important result is the map of the 
-RF on a grid. 
-The simplest way to have it is to define
-the projector matrix and project the posterior 
-mean and posterior standard deviation on a grid 
+An interesting result is the map of the RF on a grid. 
+The simplest way to have it is by projection. 
+We just have to define the projector matrix 
+and project, for example, the posterior 
+mean and posterior standard deviation on the grid. 
 <<project-grid>>=
-gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=c(200,200))
+gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=c(300,300))
 g.mean <- inla.mesh.project(gproj, res$summary.random$s$mean)
 g.sd <- inla.mesh.project(gproj, res$summary.random$s$sd)
 @ 
