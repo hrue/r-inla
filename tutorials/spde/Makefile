@@ -4,15 +4,15 @@ texDepends = updates.tex spde-tutorial.tex spde-tutorial-introduction.tex spde-t
 all : spde-tutorial.pdf
 
 spde-tutorial.pdf : $(texDepends)
-        @echo generating spde-tutorial.pdf
-        latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
+	@echo generating spde-tutorial.pdf
+	latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
 
 %.tex : %.Rnw
-        @echo generating file $@
-        @R --vanilla -e 'Sweave("$^")' </dev/null
+	@echo generating file $@
+	@R --vanilla -e 'Sweave("$^")' </dev/null
 
 install:; distill spde-tutorial.pdf
-        cp spde-tutorial.pdf ../../r-inla.org/tutorials/spde/spde-tutorial.pdf
+	cp spde-tutorial.pdf ../../r-inla.org/tutorials/spde/spde-tutorial.pdf
 
 clean :; latexmk -C
 
