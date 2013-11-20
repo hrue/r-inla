@@ -11,6 +11,9 @@ inla-spde-howto.pdf : $(texDepends)
 	@echo generating file $@
 	@R --vanilla -e 'library(knitr); knit("$^")' </dev/null
 
+install:; distill inla-spde-howto.pdf
+        cp inla-spde-howto.pdf ../../../../inla/r-inla.org/tutorials/spde/inla-spde-howto.pdf
+
 clean :; latexmk -C
 
 .PHONY: clean
