@@ -4212,6 +4212,11 @@
                       pdf = "logitbeta"
                       ),
 
+              spline = list(
+                      nparameters = 2L,
+                      pdf = "spline"
+                      ),
+             
               jeffreystdf = list(
                       nparameters = 0L,
                       pdf = "jeffreystdf"

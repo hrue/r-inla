@@ -1898,6 +1898,16 @@ double priorfunc_sasprior(double *x, double *parameters)
 	}
 	return val;
 }
+double priorfunc_spline(double *x, double *parameters)
+{
+	double u = parameters[0], alpha = parameters[1], theta, val, xx2;
+
+	theta = -log(alpha)/u;
+	xx2 = (*x)/2.0;
+	val = log(theta/2.0) - theta * exp(-xx2) - xx2;
+
+	return val;
+}
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 {
 	double df = map_dof(x[0], MAP_FORWARD, NULL);
@@ -6525,6 +6535,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
+	} else if (!strcasecmp(prior->name, "SPLINE")) {
+		prior->id = P_SPLINE;
+		prior->priorfunc = priorfunc_spline;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0.1;	       /* u */
+			prior->parameters[1] = 0.001;	       /* alpha */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
 	} else if (!strcasecmp(prior->name, "LOGITBETA")) {
 		prior->id = P_LOGITBETA;
