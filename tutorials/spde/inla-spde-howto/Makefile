@@ -12,7 +12,7 @@ inla-spde-howto.pdf : $(texDepends)
 	@R --vanilla -e 'library(knitr); knit("$^")' </dev/null
 
 install:; distill inla-spde-howto.pdf
-	cp -v inla-spde-howto.pdf ../../../../inla/r-inla.org/tutorials/spde/inla-spde-howto.pdf
+	cp -v inla-spde-howto.pdf ../../../r-inla.org/tutorials/spde/inla-spde-howto.pdf
 
 clean :; latexmk -C
 
