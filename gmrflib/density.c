@@ -1084,9 +1084,7 @@ const gsl_interp_type *GMRFLib_density_interp_type(int n)
 	 * return the interpolation type depending on the number of points 
 	 */
 
-	if (n >= (int) gsl_interp_akima->min_size) {	       /* n >= 5 */
-		return gsl_interp_akima;
-	} else if (n >= (int) gsl_interp_cspline->min_size) {  /* n >= 3 */
+	if (n >= (int) gsl_interp_cspline->min_size) {  /* n >= 3 */
 		return gsl_interp_cspline;
 	} else if (n >= (int) gsl_interp_linear->min_size) {   /* n >= 2 */
 		return gsl_interp_linear;
