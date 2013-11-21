@@ -1,0 +1,42 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Spline prior}
+
+\subsection*{Parametrization}
+The spline-prior has density 
+\begin{equation}
+    \pi(x) = \frac{\theta}{2} \exp\left(
+      -\theta\exp\left(-\frac{x}{2}\right) - \frac{x}{2}
+    \right)
+\end{equation}
+for $x>0$ where
+\begin{displaymath}
+    \theta = -\frac{\ln(\alpha)}{u}
+\end{displaymath}
+and $(u, \alpha{})$ are the parameters to this prior. 
+
+\subsection*{Specification}
+The spline prior for the hyperparameters is specified inside the
+{\tt f()} function as 
+\begin{center}
+    {\tt f(<whatever>, hyper = list(<theta> =
+        list(prior="spline", param=c(<u>,<alpha>))))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+This prior is experimental and for internal use only
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
