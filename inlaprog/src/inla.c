@@ -2527,11 +2527,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 		break;
 
-	case L_GAUSSIAN_WINDOW:
-		idiv = 3;
-		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
-		break;
-
 	case L_IID_GAMMA:
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
@@ -3039,46 +3034,6 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
-		}
-	}
-
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * not in use 
-	 */
-	assert(0 == 1);
-	abort();
-
-	/*
-	 * y ~ Normal(x, stdev) in window [lower, upper]
-	 */
-	if (m == 0) {
-		return GMRFLib_SUCCESS;
-	}
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, ypred, sprec, lower = -1.0, upper = 1.0, yy;	// OOOOPS!!!!
-
-	LINK_INIT;
-	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_gaussian[idx];
-	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
-	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-	sprec = sqrt(prec);
-
-	for (i = 0; i < m; i++) {
-		ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-		yy = (y - ypred) * sprec;
-		if (yy <= lower) {
-			logll[i] = inla_log_Phi((lower - ypred) * sprec);
-		} else if (yy >= upper) {
-			logll[i] = inla_log_Phi(-(upper - ypred) * sprec);
-		} else {
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - SQR(yy));
 		}
 	}
 
@@ -7669,9 +7624,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	if (!strcasecmp(ds->data_likelihood, "GAUSSIAN") || !strcasecmp(ds->data_likelihood, "NORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
-	} else if (!strcasecmp(ds->data_likelihood, "GAUSSIANWINDOW") || !strcasecmp(ds->data_likelihood, "NORMALWINDOW")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian_window;
-		ds->data_id = L_GAUSSIAN_WINDOW;
 	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
@@ -7827,18 +7779,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
-					inla_error_general(msg);
-				}
-			}
-		}
-		break;
-
-	case L_GAUSSIAN_WINDOW:
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Gaussian_window weight[%1d] = %g is void\n",
-							secname, i, ds->data_observations.weight_gaussian[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -8183,52 +8123,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_GAUSSIAN_WINDOW:
-
-		/*
-		 * get options related to the gaussian window
-		 */
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
-		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian_window observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian_window observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -17338,18 +17232,6 @@ double extra(double *theta, int ntheta, void *argument)
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
 			case L_GAUSSIAN:
-				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
-					count++;
-				}
-				break;
-
-			case L_GAUSSIAN_WINDOW:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood

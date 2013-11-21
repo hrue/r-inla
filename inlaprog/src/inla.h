@@ -394,7 +394,6 @@ typedef enum {
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
-	L_GAUSSIAN_WINDOW,
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1354,7 +1353,6 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_gaussian_window(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

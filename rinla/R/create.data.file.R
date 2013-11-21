@@ -43,7 +43,6 @@
 
     if (inla.one.of(family, c("gaussian",
                               "normal",
-                              "gaussianwindow",
                               "t",
                               "laplace",
                               "sn",
