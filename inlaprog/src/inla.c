@@ -35,9 +35,6 @@ static const char RCSId[] = HGVERSION;
 #if defined(__sun__)
 #include <stdlib.h>
 #endif
-#if defined(__FreeBSD__)
-#include <unistd.h>
-#endif
 #if defined(__linux__)
 #include <getopt.h>
 #endif
@@ -23927,7 +23924,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:c")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -24099,6 +24096,19 @@ int main(int argc, char **argv)
 			enable_core_file = 1;		       /* allow for core files */
 			break;
 
+		case 'p':
+		{
+#if !defined(WINDOWS)
+			long int pid = (long int) getpid();
+			FILE *fp_pid = fopen(".inla.pid", "w");
+			if (fp_pid){
+				fprintf(fp_pid, "%ld\n", pid);
+				fclose(fp_pid);
+			}
+#endif
+		}
+			break;
+			
 		default:
 			USAGE;
 			exit(EXIT_FAILURE);
