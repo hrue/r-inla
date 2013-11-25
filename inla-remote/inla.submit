@@ -66,15 +66,14 @@ fi
 
 model=$(echo "$@" | awk '{print $NF}')
 dir=${model%/*}
-rdir=tmp/.inla.remote/inla-job-$(date | tr '[ :]' -)
+rdir=tmp/.inla.remote/inla-job-$(date | tr '[ :]' -)---$RANDOM$RANDOM
 args=$(echo "$@" | awk '{$NF="";print}')
 
 verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo -e "\n\t$INLA_HGVERSION"
-	echo -e "\n\tSubmit job [$INLA_SUBMIT_ID] at host $RemoteHost\n" 
+	echo -e "\tSubmit job [$INLA_SUBMIT_ID] at host $RemoteHost" 
     } 1>&2
 fi
 
@@ -94,5 +93,6 @@ tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     echo $INLA_SUBMIT_ID > jobid; \
+    echo > working; \
     tar xfm$compress_put - ; \
-    { $RemoteINLA $args Model.ini && echo > done; } </dev/null > LOG 2>&1 &" &
+    { rm -f working; $RemoteINLA $args Model.ini && echo > done; } </dev/null > LOG 2>&1 &" &
