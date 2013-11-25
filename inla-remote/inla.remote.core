@@ -59,15 +59,14 @@ fi
 
 model=$(echo "$@" | awk '{print $NF}')
 dir=${model%/*}
-rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)
+rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)-$RANDOM$RANDOM
 args=$(echo "$@" | awk '{$NF="";print}')
 
 verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo -e "\n\t$INLA_HGVERSION"
-	echo -e "\tRun $RemoteINLA at host $RemoteHost\n" 
+	echo -e "\tRun $RemoteINLA at host $RemoteHost" 
     } 1>&2
 fi
 

@@ -491,7 +491,7 @@
                length(grep("/inla.submit$", inla.call)) > 0) {
         remote = TRUE
         submit = TRUE
-        submit.id = gsub("[ :]", "-", date())             
+        submit.id = paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1,min=1E8,max=1E9-1)), sep="")
         inla.call = system.file("bin/remote/inla.submit", package="INLA")
         if (inla.os("windows")) {
             inla.call = paste(inla.call, ".cygwin", sep="")

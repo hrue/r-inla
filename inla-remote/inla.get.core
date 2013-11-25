@@ -80,11 +80,11 @@ if [ $no -eq 0 -a "$id" = "NULL" ]; then
         mkdir -p $rdir; \
         cd $rdir; \
     	for d in \$(ls -1 .); do \
-           if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid ]; then \
+           if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
        	       if [ -f \$d/done ]; then \
 	           status="\""DONE"\""; \
                elif [ \$(echo \$(ps -p \$(cat \$d/.inla.pid) -o comm=) | grep -s inla) ]; then \
-	           status="\""RUNNING"\""; \
+	           status="\""RUNNING(\$(ps -p \$(cat \$d/.inla.pid) -o time=))"\""; \
 	       else	\
 	           status="\""ABORTED"\""; \
                fi; \
@@ -97,7 +97,7 @@ else
             cd $rdir; \
 	    nno=0; \
     	    for d in \$(ls -1 .); do \
-                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid ]; then \
+                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
 	            nno=\$[ \$nno + 1 ]; \
 	            if [ $no -eq \$nno ]; then \
 	                 cd \$d; \
@@ -115,7 +115,7 @@ else
             cd $rdir; \
 	    nno=0; \
     	    for d in \$(ls -1 .); do \
-                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid ]; then \
+                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
 	            nno=\$[ \$nno + 1 ]; \
 	            if [ \$(cat \$d/jobid) = "$id" ]; then \
 	                 cd \$d; \
@@ -130,7 +130,7 @@ else
              done"
     fi
     scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to" >/dev/null 2>&1 || \
-        {  echo "ERROR: Job is not yet finished or does not exists; try 'inla.get()'"; exit; }
+        {  echo "ERROR: Job is not yet finished or does not exist; try 'inla.get()'"; exit; }
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "rm -f $rdir/$tarfile" 
     tar xfm  "$tarfile_to" -C $dirto
     rm -f "$tarfile_to"
