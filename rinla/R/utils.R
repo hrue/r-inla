@@ -838,7 +838,7 @@
     return(arg)
 }
 
-`inla.get` = function(var, data = NULL)
+`inla.get.var` = function(var, data = NULL)
 {
     if (is.null(data)) {
         return (get(var))

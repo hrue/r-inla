@@ -139,7 +139,7 @@
         }
         if (debug) print("apply inla.strata() on strata.var")
         ## cleaner code...
-        strata.tmp = inla.strata(inla.get(strata.var, data.f))
+        strata.tmp = inla.strata(inla.get.var(strata.var, data.f))
         data.f[[strata.var]] = strata.tmp$strata
         data.l$baseline.hazard.strata.coding = strata.tmp$coding
         ## old code:

@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+CYGWIN=0
+
+## This script submit a job
+
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
 
@@ -18,6 +24,7 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "INLA_OS $INLA_OS"
     echo "INLA_CYGWIN_HOME $INLA_CYGWIN_HOME"
     echo "INLA_HGVERSION $INLA_HGVERSION"
+    echo "INLA_SUBMIT_ID"
 fi
 
 if [ "$INLA_OS" == "windows" ]; then
@@ -59,7 +66,7 @@ fi
 
 model=$(echo "$@" | awk '{print $NF}')
 dir=${model%/*}
-rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)
+rdir=tmp/.inla.remote/inla-job-$(date | tr '[ :]' -)
 args=$(echo "$@" | awk '{$NF="";print}')
 
 verbose=0
@@ -67,7 +74,7 @@ if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
 	echo -e "\n\t$INLA_HGVERSION"
-	echo -e "\tRun $RemoteINLA at host $RemoteHost\n" 
+	echo -e "\n\tSubmit job [$INLA_SUBMIT_ID] at host $RemoteHost\n" 
     } 1>&2
 fi
 
@@ -79,22 +86,6 @@ TMP=$(maketemp)
 } > $TMP
 mv -f $TMP $model
 
-## if this script is interupted, then cleanup on the remote host
-function kill_inla_remote
-{
-    ## only need for CYGWIN
-    if [ $CYGWIN == 1 -a -f "$tarfile_to" ]; then
-	rm -f "$tarfile_to"
-    fi
-    prog=${RemoteINLA##*/}
-	ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
-	    rm -rf $rdir; \
-	    pkill -u $USER $prog; \
-	    sleep 3; \
-	    pkill -9 -u $USER $prog" < /dev/null  > /dev/null 2>&1 &
-}
-trap kill_inla_remote SIGINT SIGTERM
-
 ## finally, do the job...  Do this in two steps, as it seems that for
 ## long jobs the pipe gets terminated.
 cd $dir > /dev/null
@@ -102,35 +93,6 @@ cd $dir > /dev/null
 tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
+    echo $INLA_SUBMIT_ID > jobid; \
     tar xfm$compress_put - ; \
-    $RemoteINLA $args Model.ini"
-
-if [ $verbose == 1 ]; then
-   {
-       echo 
-       echo -e " *** Computations finished at $(date)"
-       echo -e " *** Transfer the results...\n" 
-       if [ $CYGWIN == 1 ]; then
-	   echo -e " *** Since you are using Cygwin/Windows, the transfer is done in a"
-	   echo -e " *** more robust way which is somewhat slower; sorry about that...\n"
-       fi
-   } 1>&2
-fi
-
-## Problems has been reported using the natural first approach for
-## Cygwin/Windows, so we divide the code here... Note that if Port !=
-## $SSHDefaultPort we need to use the second approach
-
-if [ $CYGWIN == 0 -a $Port == $SSHDefaultPort ]; then
-    ## Linux and Mac
-    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
-else
-    ## Cygwin/Windows or Port != $SSHDefaultPort
-    tarfile=results$RANDOM$RANDOM.tar
-    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
-    tarfile_to=$(maketemp).tar
-    scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
-    tar xfm "$tarfile_to"
-    rm -f "$tarfile_to"
-fi
+    { $RemoteINLA $args Model.ini && echo > done; } </dev/null > LOG 2>&1 &" &
