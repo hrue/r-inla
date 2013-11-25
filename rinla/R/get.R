@@ -103,7 +103,7 @@
             output = lapply(
                     strsplit(output, " +"),
                     function(a) {
-                        names(a) = c("id","pid", "status")
+                        names(a) = c("id", "pid", "status")
                         return(as.list(a))
                     })
         } else {
