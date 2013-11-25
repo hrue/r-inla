@@ -119,6 +119,10 @@
     result.tmp$.args$control.mode$result = result.tmp
     result.tmp$.args$control.mode$restart = restart
 
+    ## cannot use this function with inla.call="submit", if so, then
+    ## replace this into inla.call="remote"
+    result.tmp$.args$inla.call = sub("inla.submit", "inla.remote", result.tmp$.args$inla.call)
+        
     ## call itself
     result.tmp = inla.rerun(result.tmp, plain = TRUE)
     

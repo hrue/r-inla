@@ -63,7 +63,7 @@ fi
 
 model=$(echo "$@" | awk '{print $NF}')
 dir=${model%/*}
-rdir=tmp/.inla.remote/inla-job-$RANDOM-$RANDOM-$RANDOM
+rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)
 args=$(echo "$@" | awk '{$NF="";print}')
 
 verbose=0
