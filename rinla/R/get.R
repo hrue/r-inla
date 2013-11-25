@@ -1,4 +1,4 @@
-## Export: inla.get print|inla.get summary|inla.get
+## Export: inla.get print!inla.get summary!inla.get
 
 ##!\name{inla.get}
 ##!\alias{inla.get}
@@ -75,7 +75,7 @@
         bat.file = paste(tempfile(), ".BAT",  sep="")
         cat("@echo off\n",  file=bat.file, append=FALSE)
         cat(paste(shQuote(inla.call), inla.ifelse(is.null(id), "NULL", id), as.numeric(remove)))
-        output = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE), intern=TRUE)
+        output = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE, intern=TRUE))
         unlink(bat.file)
     }
 
