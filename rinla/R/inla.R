@@ -475,14 +475,27 @@
     ## if the user specify inla.call="remote" or "inla.remote" then
     ## use the internal inlaprogram
     remote = FALSE
+    submit = FALSE
+    submit.id = ""
     if (inla.strcasecmp(inla.call, "remote") ||
         inla.strcasecmp(inla.call, "inla.remote") ||
         length(grep("/inla.remote$", inla.call)) > 0 ||
         length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
         remote = TRUE
         inla.call = system.file("bin/remote/inla.remote", package="INLA")
-        if (inla.os("windows"))
+        if (inla.os("windows")) {
             inla.call = paste(inla.call, ".cygwin", sep="")
+        }
+    } else if (inla.strcasecmp(inla.call, "submit") ||
+               inla.strcasecmp(inla.call, "inla.submit") ||
+               length(grep("/inla.submit$", inla.call)) > 0) {
+        remote = TRUE
+        submit = TRUE
+        submit.id = gsub("[ :]", "-", date())             
+        inla.call = system.file("bin/remote/inla.submit", package="INLA")
+        if (inla.os("windows")) {
+            inla.call = paste(inla.call, ".cygwin", sep="")
+        } 
     }
     
     ## Need to do this here.
@@ -1736,6 +1749,7 @@
         arg.b = ""
     }
     
+    ## collect all. we might add '-p' later if inla.call="submit"
     all.args = paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, sep=" ")
 
     ## define some environment variables for remote computing
@@ -1745,16 +1759,22 @@
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
-    if (remote && inla.os("windows")) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
-        inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
-        inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
-                        inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
-    } else {
-        inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-        ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
-        if (Sys.getenv("SSH_AUTH_SOCK") == "") {
+    if (remote || submit) {
+        if (submit) {
+            all.args = paste(all.args,  "-p") ## need this option
+            inla.eval(paste("Sys.setenv(", "\"INLA_SUBMIT_ID\"", "=\"", submit.id, "\"", ")", sep=""))
+        }
+        if (inla.os("windows")) {
             inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+            inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
+            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
+                            inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
+        } else {
+            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
+            ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
+            if (Sys.getenv("SSH_AUTH_SOCK") == "") {
+                inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+            }
         }
     }
 
@@ -1792,7 +1812,7 @@
                 }
             }
         } else if (inla.os("windows")) {
-            if (!remote) {
+            if (!remote && !submit) {
                 if (verbose) {
                     echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
@@ -1809,6 +1829,7 @@
                     }
                 }
             } else {
+                ## remote || submit
                 echoc = try(inla.cygwin.run.command(
                         paste(inla.cygwin.map.filename(inla.call),
                               all.args,
@@ -1827,9 +1848,13 @@
         my.time.used[3] = Sys.time()
 
         if (echoc == 0L) {
-            ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                    only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
-            if (!is.list(ret)) {
+            if (!submit) {
+                ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
+                        only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
+                if (!is.list(ret)) {
+                    ret = list()
+                }
+            } else {
                 ret = list()
             }
             
@@ -1889,7 +1914,7 @@
         if (debug && !keep) {
             cat("clean up\n")
         }
-        if (!keep) {
+        if (!keep && !submit) {
             try(unlink(inla.dir, recursive=TRUE), silent = TRUE)
         }
     } else {
@@ -1897,7 +1922,12 @@
     }
         
     ##
-    return (ret)
+    if (submit) {
+        ret$misc$inla.dir = inla.dir
+        ret.sub = list(ret = ret, id = submit.id)
+    } else {
+        return (ret)
+    }
 }
 
 
