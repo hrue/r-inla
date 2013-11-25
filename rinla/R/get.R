@@ -11,7 +11,7 @@
 ##!\usage{
 ##!inla.get(id = NULL, remove = TRUE)
 ##!\method{summary}{inla.get}(object,...)
-##!\method{print}{summary.inla.get}(x,...)
+##!\method{print}{inla.get}(x,...)
 ##!}
 ##!\arguments{
 ##!  \item{id}{The job-id which is the output from \code{inla} when the job is submitted,  the
