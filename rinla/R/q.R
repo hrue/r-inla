@@ -37,7 +37,7 @@
 ##!a job on the server and \code{inla.qnuke} remove all jobs on the server.
 ##!
 ##!The recommended procedure is to use \code{r=inla(...,
-##!inla.call="submit")} and then do \code{r=inla.get(r)} at a later
+##!inla.call="submit")} and then do \code{r=inla.qget(r)} at a later
 ##!stage.  If the job is not finished, then \code{r} will not be
 ##!overwritten and this step can be repeated.  The reason for this
 ##!procedure, is that some information usually stored in the result

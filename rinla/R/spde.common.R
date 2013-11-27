@@ -427,8 +427,6 @@ inla.spde.make.block.A =
              weights = NULL,
              rescale = c("none", "count", "weights", "sum"))
 {
-    require(Matrix)
-
     A = inla.as.dgTMatrix(A)
     N = nrow(A)
     ## length(block) should be == N or 1
