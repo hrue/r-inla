@@ -3,7 +3,6 @@
 CYGWIN=0
 
 #!/usr/bin/env bash
-
 CYGWIN=0
 
 ## This is the inla.q-script for handling the remote inla-queue
@@ -12,10 +11,10 @@ CYGWIN=0
 ## just have to add the environment
 
 maketemp () {
-    mktemp -t inla.get.XXXXXXXX
+    mktemp -t inla.q.XXXXXXXX
 }
 makedtemp () {
-    mktemp -d -t inla.get.XXXXXXXX
+    mktemp -d -t inla.q.XXXXXXXX
 }
 
 compress_put="z"
@@ -103,14 +102,13 @@ if [ "$cmd" = "stat" ]; then
 
 elif [ "$cmd" = "get" ]; then    
 
-    if [ $no -gt 0 ]; then
-        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
             cd $rdir; \
 	    nno=0; \
     	    for d in \$(ls -1 .); do \
                 if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
 	            nno=\$[ \$nno + 1 ]; \
-	            if [ $no -eq \$nno ]; then \
+	            if [ $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
 	                 cd \$d; \
 			 if [ -f done ]; then \
 			     tar cf ../$tarfile results.files; \
@@ -121,27 +119,8 @@ elif [ "$cmd" = "get" ]; then
 	            fi; \
                 fi; \
              done"
-    else
-        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
-            cd $rdir; \
-	    nno=0; \
-    	    for d in \$(ls -1 .); do \
-                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid ]; then \
-	            nno=\$[ \$nno + 1 ]; \
-	            if [ \! -f \$d/working -a \$(cat \$d/jobid) = "$id" ]; then \
-	                 cd \$d; \
-			 if [ -f done ]; then \
-		             tar cf ../$tarfile results.files; \
-			     if [ $remove -eq 1 ]; then \
-                                 cd ..; rm -rf \$d; \
-                             fi; \
-                         fi; \
-	            fi; \
-                fi; \
-             done"
-    fi
     scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to" >/dev/null 2>&1 || \
-        {  echo "ERROR: Job is not yet finished or does not exist; try 'inla.get()'"; exit; }
+        {  echo "ERROR Job is not yet finished or does not exist; try 'inla.qstat()'"; exit; }
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "rm -f $rdir/$tarfile" 
     tar xfm  "$tarfile_to" -C $dirto
     rm -f "$tarfile_to"
@@ -149,16 +128,15 @@ elif [ "$cmd" = "get" ]; then
     echo "$dirto"
 
 elif [ "$cmd" = "del" ]; then
-
-    if [ $no -gt 0 ]; then
-	del="$no"
-        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+    
+    del="$no"
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
             cd $rdir; \
 	    nno=0; \
     	    for d in \$(ls -1 .); do \
                 if [ -d \$d -a -f \$d/jobid ]; then \
 	            nno=\$[ \$nno + 1 ]; \
-	            if [ $no -eq \$nno ]; then \
+	            if [ $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
 	                if [ -f \$d/working ]; then \
                             kill \$(cat \$d/.inla.pid); \
                         fi; \
@@ -166,21 +144,21 @@ elif [ "$cmd" = "del" ]; then
                     fi; \
                 fi; \
              done" > /dev/null 2>&1
-    else
-	del="$id"
-        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+    echo "DELETE $del"
+
+elif [ "$cmd" = "nuke" ]; then
+    
+    del="$no"
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
             cd $rdir; \
     	    for d in \$(ls -1 .); do \
                 if [ -d \$d -a -f \$d/jobid ]; then \
-	            if [ \$(cat \$d/jobid) = "$id" ]; then \
-	                if [ -f \$d/working ]; then \
-                            kill \$(cat \$d/.inla.pid); \
-                        fi; \
-	                rm -rf \$d; \
+	            if [ -f \$d/working ]; then \
+                        kill \$(cat \$d/.inla.pid); \
                     fi; \
+	            rm -rf \$d; \
                 fi; \
              done" > /dev/null 2>&1
-    fi
-    echo "DELETE $del"
+    echo "NUKE"
 
 fi
