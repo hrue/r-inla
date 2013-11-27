@@ -2,6 +2,7 @@
 
 ##!\name{inla.qstat}
 ##!\alias{inla.qstat}
+##!\alias{inla.q}
 ##!\alias{inla.qget}
 ##!\alias{inla.qdel}
 ##!\alias{inla.qnuke}
@@ -9,29 +10,44 @@
 ##!\alias{print.inla.q}
 ##!\title{Control and view a remote inla-queue}
 ##!\description{
-##!Control and view a remote inla-queue of submitte jobs
+##!Control and view a remote inla-queue of submitted jobs
 ##!}
 ##!\usage{
 ##!inla.qget(id, remove = TRUE)
 ##!inla.qdel(id)
-##!inla.qstat()
+##!inla.qstat(id)
 ##!inla.qnuke()
 ##!\method{summary}{inla.q}(object,...)
 ##!\method{print}{inla.q}(x,...)
 ##!}
 ##!\arguments{
 ##!  \item{id}{The job-id which is the output from \code{inla} when the job is submitted,  the
-##!            job-number or job-name}
-##!  \item{remove}{Logical If FALSE, leave the job on the server after getting-it, otherwise remove it.}
-##!  \item{x}{An \code{inla.get}-object,  which is the output from \code{inla.get()}}
-##!  \item{object}{An \code{inla.get}-object,  which is the output from \code{inla.get()}}
+##!            job-number or job-name. For \code{inla.qstat}, \code{id} is optional and if omitted
+##!            all the jobs will be listed.}
+##!  \item{remove}{Logical If FALSE, leave the job on the server after retrival,
+##!                otherwise remove it (default).}
+##!  \item{x}{An \code{inla.q}-object which is the output from \code{inla.qstat}}
+##!  \item{object}{An \code{inla.q}-object  which is the output from \code{inla.qstat}}
 ##!  \item{...}{ other arguments.}
 ##!}
 ##!\details{
-##!\code{inla.qstat} shows jobs on the server,
+##!\code{inla.qstat} show job(s) on the server,
 ##!\code{inla.qget} fetch the results (and by default remove
 ##!the files on the server),  \code{inla.qdel} removes 
-##!a job on the server and \code{inla.qnuke} remove all the jobs on the server.
+##!a job on the server and \code{inla.qnuke} remove all jobs on the server.
+##!
+##!The recommended procedure is to use \code{r=inla(...,
+##!inla.call="submit")} and then do \code{r=inla.get(r)} at a later
+##!stage.  If the job is not finished, then \code{r} will not be
+##!overwritten and this step can be repeated.  The reason for this
+##!procedure, is that some information usually stored in the result
+##!object does not go through the remote server, hence have to be
+##!appended to the results that are retrieved from the server. Hence
+##!doing \code{r=inla(..., inla.call="submit")} and then later retrive
+##!it using \code{r=inla.qget(1)}, say, then \code{r} does not contain
+##!all the usual information.  All the main results are there, but
+##!administrative information which is required to call
+##!\code{inla.hyperpar} or \code{inla.rerun} are not there.
 ##!}
 ##!\value{
 ##!  \code{inla.qstat} returns an \code{inla.q}-object with information about current jobs.
@@ -42,7 +58,7 @@
 ##!\dontrun{
 ##!r = inla(y~1, data = data.frame(y=rnorm(10)), inla.call="submit")
 ##!inla.qstat()
-##!r = inla.get(r, remove=FALSE)
+##!r = inla.qget(r, remove=FALSE)
 ##!inla.qdel(1)
 ##!inla.qnuke()
 ##!}
@@ -56,31 +72,30 @@
 `print.inla.q` = function(x, ...)
 {
     if (length(x) == 0) {
-        cat("No jobs available\n")
+        ##cat("No jobs available\n")
     } else {
-        if (length(x) == 1) {
-            cat("You have", length(x), "job\n")
-        } else {
-            cat("You have", length(x), "jobs\n")
-        }
         for(k in seq_along(x)) {
-            cat("\t Job:", k, "\tName:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
+            cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
         }
     }
+    return (invisible(x))
 }
 
 `inla.qget` = function(id, remove = TRUE)
 {
     return (inla.q(cmd = "get", id = id, remove = remove))
 }
+
 `inla.qdel` = function(id)
 {
     return (inla.q(cmd = "del", id = id))
 }
-`inla.qstat` = function()
+
+`inla.qstat` = function(id)
 {
-    return (inla.q(cmd = "stat"))
+    return (inla.q(cmd = "stat", id = id))
 }
+
 `inla.qnuke` = function()
 {
     return (inla.q(cmd = "nuke"))
@@ -158,7 +173,7 @@
             output = lapply(
                     strsplit(output, " +"),
                     function(a) {
-                        names(a) = c("id", "pid", "status")
+                        names(a) = c("id", "no", "pid", "status")
                         return(as.list(a))
                     })
         } else {
