@@ -2,13 +2,9 @@
 
 CYGWIN=0
 
-#!/usr/bin/env bash
-CYGWIN=0
-
-## This is the inla.q-script for handling the remote inla-queue
-
-## This version works both for Linux/Mac and Windows under CYGWIN. We
-## just have to add the environment
+## This is the inla.q-script for handling the remote inla-queue.  This
+## version works both for Linux/Mac and Windows under CYGWIN. We just
+## have to add the environment
 
 maketemp () {
     mktemp -t inla.q.XXXXXXXX
@@ -136,7 +132,6 @@ elif [ "$cmd" = "get" ]; then
 
 elif [ "$cmd" = "del" ]; then
     
-    del="$no"
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
             cd $rdir; \
 	    nno=0; \
@@ -151,7 +146,12 @@ elif [ "$cmd" = "del" ]; then
                     fi; \
                 fi; \
              done" > /dev/null 2>&1
-    echo "DELETE $del"
+
+    if [ $no -gt 0 ]; then
+	echo "DELETE $no"
+    else
+	echo "DELETE $id"
+    fi
 
 elif [ "$cmd" = "nuke" ]; then
     
