@@ -80,6 +80,9 @@ if [ "$id" = "NULL" ]; then
     no=0
 else
     no=$(echo "$id" | awk '{print int($1)}')
+    if [ $no -eq 0 ]; then
+	no=-1
+    fi
 fi  
 
 if [ "$cmd" = "stat" ]; then
@@ -87,17 +90,21 @@ if [ "$cmd" = "stat" ]; then
    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
         mkdir -p $rdir; \
         cd $rdir; \
+	nno=0; \
     	for d in \$(ls -1 .); do \
-           if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
-       	       if [ -f \$d/done ]; then \
-	           status="\""DONE"\""; \
-               elif [ \$(echo \$(ps -p \$(cat \$d/.inla.pid) -o comm=) | grep -s inla) ]; then \
-	           status="\""RUNNING(\$(ps -p \$(cat \$d/.inla.pid) -o time=))"\""; \
-	       else	\
-	           status="\""ABORTED"\""; \
-               fi; \
-	       echo \"\$(cat \$d/jobid)    \$(cat \$d/.inla.pid)    \$status\"; \
-           fi; \
+            if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
+	        nno=\$[ \$nno + 1 ]; \
+	        if [ $no -eq 0 -o $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
+       	            if [ -f \$d/done ]; then \
+	                status="\""Finished"\""; \
+                    elif [ \$(echo \$(ps -p \$(cat \$d/.inla.pid) -o comm=) | grep -s inla) ]; then \
+	                status="\""Running(\$(ps -p \$(cat \$d/.inla.pid) -o time=))"\""; \
+	            else	\
+	                status="\""Aborted"\""; \
+                    fi; \
+	            echo \"\$(cat \$d/jobid) \$nno   \$(cat \$d/.inla.pid)    \$status\"; \
+                fi; \
+            fi; \
         done"
 
 elif [ "$cmd" = "get" ]; then    
