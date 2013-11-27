@@ -1,4 +1,4 @@
-## Export: inla.qstat inla.qdel inla.qget print!inla.q summary!inla.q
+## Export: inla.qstat inla.qdel inla.qget inla.qnuke print!inla.q summary!inla.q
 
 ##!\name{inla.qstat}
 ##!\alias{inla.qstat}
