@@ -2484,7 +2484,6 @@ inla.mesh.1d.A <- function(mesh, loc,
             if (FALSE) { ## Only for debugging.
                 ## Using bs():
                 ## Note: Intermediate step constructs dense matrix.
-                require(splines)
                 bsobj =
                     bs(x=loc,
                        knots=knots,
@@ -2819,14 +2818,12 @@ inla.internal.sp2segment.join <- function(inp, grp=NULL) {
 
 inla.sp2segment <- function(...)
 {
-    require(sp)
     UseMethod("inla.sp2segment")
 }
 
 inla.sp2segment.SpatialPolygons <-
     function(sp, join=TRUE, grp=NULL, ...)
 {
-    require(sp)
     segm = list()
     for (k in 1:length(sp@polygons))
         segm[[k]] = inla.sp2segment(sp@polygons[[k]], join=TRUE)
@@ -2848,7 +2845,6 @@ inla.sp2segment.SpatialPolygonsDataFrame <-
 inla.sp2segment.Polygons <-
     function(sp, join=TRUE, ...)
 {
-    require(sp)
     segm = as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x)))
     if (join)
         segm = inla.internal.sp2segment.join(segm, grp=NULL)
@@ -2858,7 +2854,6 @@ inla.sp2segment.Polygons <-
 inla.sp2segment.Polygon <-
     function(sp, ...)
 {
-    require(sp)
     loc = sp@coords[-dim(sp@coords)[1L],,drop=FALSE]
     n = dim(loc)[1L]
     if (sp@hole)
