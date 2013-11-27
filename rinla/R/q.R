@@ -4,6 +4,7 @@
 ##!\alias{inla.qstat}
 ##!\alias{inla.qget}
 ##!\alias{inla.qdel}
+##!\alias{inla.qnuke}
 ##!\alias{summary.inla.q}
 ##!\alias{print.inla.q}
 ##!\title{Control and view a remote inla-queue}
@@ -14,6 +15,7 @@
 ##!inla.qget(id, remove = TRUE)
 ##!inla.qdel(id)
 ##!inla.qstat()
+##!inla.qnuke()
 ##!\method{summary}{inla.q}(object,...)
 ##!\method{print}{inla.q}(x,...)
 ##!}
@@ -28,8 +30,8 @@
 ##!\details{
 ##!\code{inla.qstat} shows jobs on the server,
 ##!\code{inla.qget} fetch the results (and by default remove
-##!the files on the server),  wheras \code{inla.qdel} removes 
-##!a job on the server.
+##!the files on the server),  \code{inla.qdel} removes 
+##!a job on the server and \code{inla.qnuke} remove all the jobs on the server.
 ##!}
 ##!\value{
 ##!  \code{inla.qstat} returns an \code{inla.q}-object with information about current jobs.
@@ -42,6 +44,7 @@
 ##!inla.qstat()
 ##!r = inla.get(r, remove=FALSE)
 ##!inla.qdel(1)
+##!inla.qnuke()
 ##!}
 ##!}
 
@@ -78,8 +81,12 @@
 {
     return (inla.q(cmd = "stat"))
 }
+`inla.qnuke` = function()
+{
+    return (inla.q(cmd = "nuke"))
+}
 
-`inla.q` = function(cmd = c("get", "del", "stat"), id, remove = TRUE)
+`inla.q` = function(cmd = c("get", "del", "stat", "nuke"), id, remove = TRUE)
 {
     cmd = match.arg(cmd)
     ## define some environment variables for remote computing
@@ -127,6 +134,8 @@
     } else if (length(grep("^DELETE", output)) > 0) {
         output = gsub("^DELETE *", "", output)
         cat("Delete job", output, "\n")
+    } else if (length(grep("^NUKE", output)) > 0) {
+        output = gsub("^NUKE *", "", output)
     } else if (length(output) > 0 && length(strsplit(output, " ")[[1]]) == 1) {
         r = inla.collect.results(output)
         rr = c(r, ret)
