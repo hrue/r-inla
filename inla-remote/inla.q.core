@@ -1,4 +1,8 @@
-## This is the get-job script
+#!/usr/bin/env bash
+
+CYGWIN=0
+
+## This is the inla.q-script for handling the remote inla-queue
 
 ## This version works both for Linux/Mac and Windows under CYGWIN. We
 ## just have to add the environment
@@ -62,20 +66,21 @@ else
     exit 1
 fi
 
-id="$1"
-remove=$2
+cmd="$1"
+id="$2"
+remove="$3"
 rdir=tmp/.inla.remote
 tarfile=results$RANDOM$RANDOM.tar
 tarfile_to=$(maketemp).tar
 dirto=$(makedtemp)
-
 if [ "$id" = "NULL" ]; then
     no=0
 else
     no=$(echo "$id" | awk '{print int($1)}')
 fi  
 
-if [ $no -eq 0 -a "$id" = "NULL" ]; then
+if [ "$cmd" = "stat" ]; then
+
    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
         mkdir -p $rdir; \
         cd $rdir; \
@@ -91,7 +96,9 @@ if [ $no -eq 0 -a "$id" = "NULL" ]; then
 	       echo \"\$(cat \$d/jobid)    \$(cat \$d/.inla.pid)    \$status\"; \
            fi; \
         done"
-else
+
+elif [ "$cmd" = "get" ]; then    
+
     if [ $no -gt 0 ]; then
         ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
             cd $rdir; \
@@ -99,7 +106,7 @@ else
     	    for d in \$(ls -1 .); do \
                 if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
 	            nno=\$[ \$nno + 1 ]; \
-	            if [ $no -eq \$nno ]; then \
+	            if [ $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
 	                 cd \$d; \
 			 if [ -f done ]; then \
 			     tar cf ../$tarfile results.files; \
@@ -115,9 +122,9 @@ else
             cd $rdir; \
 	    nno=0; \
     	    for d in \$(ls -1 .); do \
-                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
+                if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid ]; then \
 	            nno=\$[ \$nno + 1 ]; \
-	            if [ \$(cat \$d/jobid) = "$id" ]; then \
+	            if [ \! -f \$d/working -a \$(cat \$d/jobid) = "$id" ]; then \
 	                 cd \$d; \
 			 if [ -f done ]; then \
 		             tar cf ../$tarfile results.files; \
@@ -136,4 +143,40 @@ else
     rm -f "$tarfile_to"
     rm -f "${tarfile_to%.tar}"
     echo "$dirto"
-fi  
+
+elif [ "$cmd" = "del" ]; then
+
+    if [ $no -gt 0 ]; then
+	del="$no"
+        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+            cd $rdir; \
+	    nno=0; \
+    	    for d in \$(ls -1 .); do \
+                if [ -d \$d -a -f \$d/jobid ]; then \
+	            nno=\$[ \$nno + 1 ]; \
+	            if [ $no -eq \$nno ]; then \
+	                if [ -f \$d/working ]; then \
+                            kill \$(cat \$d/.inla.pid); \
+                        fi; \
+	                rm -rf \$d; \
+                    fi; \
+                fi; \
+             done" > /dev/null 2>&1
+    else
+	del="$id"
+        ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+            cd $rdir; \
+    	    for d in \$(ls -1 .); do \
+                if [ -d \$d -a -f \$d/jobid ]; then \
+	            if [ \$(cat \$d/jobid) = "$id" ]; then \
+	                if [ -f \$d/working ]; then \
+                            kill \$(cat \$d/.inla.pid); \
+                        fi; \
+	                rm -rf \$d; \
+                    fi; \
+                fi; \
+             done" > /dev/null 2>&1
+    fi
+    echo "DELETE $del"
+
+fi

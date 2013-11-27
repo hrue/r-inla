@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 
-all : inla.remote inla.remote.cygwin inla.get inla.get.cygwin inla.submit inla.submit.cygwin
+all : inla.remote inla.remote.cygwin inla.q inla.q.cygwin inla.submit inla.submit.cygwin
 
 inla.remote : inla.remote.core
 	rm -f $@
@@ -12,12 +12,12 @@ inla.remote.cygwin : inla.remote.core
 	{ echo '#!/usr/bin/env.exe bash.exe'; echo; echo "CYGWIN=1"; echo; cat $^; } > $@
 	chmod 755 $@
 
-inla.get : inla.get.core
+inla.q : inla.q.core
 	rm -f $@
 	{ echo '#!/usr/bin/env bash'; echo; echo "CYGWIN=0"; echo; cat $^; } > $@
 	chmod 755 $@
 
-inla.get.cygwin : inla.get.core
+inla.q.cygwin : inla.q.core
 	rm -f $@
 	{ echo '#!/usr/bin/env.exe bash.exe'; echo; echo "CYGWIN=1"; echo; cat $^; } > $@
 	chmod 755 $@
