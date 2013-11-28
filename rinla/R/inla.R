@@ -525,8 +525,8 @@
                 ## these should be expanded as well???  Will give an error...
                 offset= offset,
                 scale = scale,
-                ##
-                weights = inla.ifelse(is.null(weights), NULL, new.data$.weights), 
+                weights = weights, 
+                ## 
                 Ntrials = NULL,         # Not used for the poisson
                 strata = NULL,          # Not used for the poisson
                 lincomb = lincomb,
