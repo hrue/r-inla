@@ -686,8 +686,14 @@
             return (na.pass(x))
         }
         if (inla.one.of(cont.fixed$expand.factor.strategy, "inla")) {
-            ## expand all factors as matrices
-            data.same.len = inla.expand.factors(data.same.len)
+            ## expand all factors as matrices, exclude possible
+            ## factors in the f()'s. it is ok to include all terms in
+            ## the f()'s as duplicated names are not allowed.
+            exclude.names = c()
+            for (k in seq_along(gp$random.spec)) {
+                exclude.names = c(exclude.names, gp$random.spec[[k]]$label)
+            }
+            data.same.len = inla.expand.factors(data.same.len, exclude.names)
         } else if (inla.one.of(cont.fixed$expand.factor.strategy, "model.matrix")) {
             ## do nothing
         } else {
@@ -1970,16 +1976,18 @@
     stop("Should not happen.")
 }
 
-`inla.expand.factors` = function(data)
+`inla.expand.factors` = function(data, exclude.names = c())
 {
     ## replace factors in 'data' with their expanded version we get
     ## from model.matrix without any intercept.
     for(k in seq_along(data)) {
         if (is.factor(data[[k]])) {
-            formula = as.formula(paste("~ -1 + ",  names(data)[k]))
-            tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-            colnames(tmp) = levels(data[[k]])
-            data[[k]] = tmp
+            if (!(names(data)[k] %in% exclude.names)) {
+                formula = as.formula(paste("~ -1 + ",  names(data)[k]))
+                tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
+                colnames(tmp) = levels(data[[k]])
+                data[[k]] = tmp
+            }
         }
     }
     return (data)
