@@ -468,7 +468,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	/*
 	 * initialize 'density': compute the mean, stdev and the norm_const (for the log spline fit) 
 	 */
-	int i, k, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np;
+	int i, k, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np, debug = 0;
 	double result, error, eps = GMRFLib_eps(1. / 2.), tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
 	    NULL, *ldm = NULL, *xp = NULL, integral, w[2] = {
 	4.0, 2.0}, dx = 0.0, m1, m2;
@@ -499,6 +499,12 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			high = density->x_max;
 			dx = (high - low) / (npm - 1.0);
 
+			if (debug) {
+				P(low);
+				P(high);
+				P(dx);
+			}
+
 			if (GMRFLib_faster_integration) {
 				double ldmax, log_integral;
 
@@ -509,6 +515,13 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				}
 				density->log_norm_const = 0.0;
 				GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
+
+				if (debug){
+					for(i = 0; i<npm; i++){
+						printf("INIT: i %d xpm %g ldm %g\n", i, xpm[i], ldm[i]);
+					}
+				}
+
 				ldmax = GMRFLib_max_value(ldm, npm, NULL);
 				GMRFLib_adjust_vector(ldm, npm);	/* so its well-behaved... */
 
@@ -535,6 +548,11 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 					m2 += SQR(xpm[i]) * exp(ldm[i]) * w[k];
 				}
 				m2 *= dx / 3.0;
+
+				if (debug){
+					P(m1);
+					P(m2);
+				}
 
 				density->mean = m1;
 				density->stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
@@ -1430,10 +1448,10 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
+			GMRFLib_density_adjust_vector(ldens, n);	/* prevent extreme cases for the spline */
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
-			GMRFLib_density_adjust_vector(ldens, n);	/* prevent extreme cases for the spline */
 
 			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->accel = gsl_interp_accel_alloc());

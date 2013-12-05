@@ -1232,11 +1232,17 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				memcpy(xp+1, xp_tmp, np*sizeof(double)); \
 				xp[0] = xp[1]*fac;			\
 				xp[np+1] = xp[np]*fac;			\
+				if (_debug) GMRFLib_density_printf(stdout, *density); \
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
 				loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
 				for(_i=0; _i < np; _i++) {		\
 					logcor[_i] *= d[idx];		\
+				}					\
+				if (_debug && np) {			\
+					for(_i = 0; _i < np + ex; _i++)	\
+						printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,\
+						       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i]-logcor[_i]); \
 				}					\
 				if (itry == 1 && cor_eps > 0.0) {	\
 					flag = 1;			\
@@ -1245,21 +1251,16 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 						ld[_i] = ld[_i] + logcor[_i] - 2.0*GMRFLib_log_apbex(cor_max, logcor[_i]); \
 					}				\
 				} else {				\
-					daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld - logcor */	\
-				}					\
-				if (_debug && np) {			\
-					for(_i = 0; _i < np + ex; _i++)	\
-						printf("CPO: %d %g %g\n", idx, xp[_i], ld[_i]);	\
-					printf("CPO: \n");		\
+					daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld - logcor */ \
 				}					\
 				GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par); \
+				if (_debug && np) {			\
+					for(_i = 0; _i < np; _i++)	\
+						printf("CPO AFTER: %d %g %g\n", idx, xp[_i], ld[_i]);	\
+				}					\
 				if (np > 4) {				\
 					GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld, \
 							       (*density)->std_mean, (*density)->std_stdev, GMRFLib_FALSE); \
-					if (_debug) {			\
-						P((*density)->std_mean); \
-						P((*density)->std_stdev); \
-					}				\
 					if (flag && cpo_density) GMRFLib_setbit(&((*cpo_density)->flags), DENSITY_FLAGS_FAILURE); \
 				} else {				\
 					*cpo_density = NULL;		\
@@ -6377,7 +6378,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 
 		FILE *fp = fopen(ff, "w");
 		for (i = 0; i < np; i++) {
-			fprintf(fp, "%g %g %g\n", xp[i], dens[i], exp(loglik[i]));
+			fprintf(fp, "%g %g %g %g\n", xp[i], dens[i], exp(loglik[i]), prob[i]);
 		}
 		fclose(fp);
 		printf("write file %s\n", ff);
@@ -6399,6 +6400,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 		integral2 += w[k] * xpi[i];
 		integral_one += w[k] * dens[i];
 	}
+	
 	if (ISZERO(integral_one)) {
 		fail = 1.0;
 		integral = integral2 = 0.0;
