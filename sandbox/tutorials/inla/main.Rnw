@@ -1095,7 +1095,7 @@ prior.expression = "expression:
 ## use suitable support points x
 lprec = seq(-10, 10, len=100)
 ## link the x and corresponding y values into a string which begins with "table:""
-prior.table = inla.paste(c("table:", cbind(lprec, prior.function(lprec))))
+prior.table = paste(c("table:", cbind(lprec, prior.function(lprec))), sep="", collapse=" ")
 
 # simulate some data
 n = 50
