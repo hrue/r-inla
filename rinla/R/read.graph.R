@@ -110,14 +110,15 @@
         s[] = 0L
         k = 1L
         
-        ## this is the new version which is much better suited for R. 
-        do.visit = function(idxs) {
+        do.visit = function(x) x ## just to avoid warning for missing
+                                 ## function 'do.visit' during compile
+        do.visit = inla.cmpfun(function(idxs) {
             if (any(s[idxs] == 0L)) {
                 which.idxs = idxs[which(s[idxs] == 0L)]
                 s[which.idxs] <<- k
                 ## its ok to refer to 'graph' here:
                 visit.nodes = unique(unlist(lapply(which.idxs, function(x) graph$nbs[[x]])))
-
+                
                 ## check which of the visit.nodes that needs to be
                 ## visited. although this is done already in the
                 ## beginning of this routine, but we do that also here
@@ -128,15 +129,19 @@
                 }
             }
             return (invisible())
-        }
+        })
 
+        ## need to allow for larger recursion depth,  temporary
+        ex.save = getOption("expressions")
+        options(expressions=500000L)
         for (i in 1L:n) {
             if (s[i] == 0L) {
                 do.visit(i)
                 k = k + 1L
             }
         }
-
+        options(paste("expressions=", ex.save,  sep=""))
+        
         cc$id = s
         cc$n = max(s)
         cc$nodes = lapply(1L:cc$n, function(cc.id, cs) which(cc.id == cs), cs = s)
@@ -146,12 +151,18 @@
     return(graph)
 }
 
-`inla.read.graph` = function(...)
+`inla.graph.size` = function(...)
+{
+    return(inla.read.graph(..., size.only = TRUE))
+}
+    
+
+`inla.read.graph` = function(..., size.only = FALSE)
 {
     ## graph is either a filename, a graph-object, a (sparse) matrix,
     ## or a list of integers or strings defining the graph.
 
-    `inla.read.graph.ascii.internal` = function(filename, offset = 0L)
+    `inla.read.graph.ascii.internal` = function(filename, offset = 0L, size.only = FALSE)
     {
         ## offset it needed if the graph is zero-based, then offset is
         ## set to 1.
@@ -170,6 +181,10 @@
         s = s[!is.na(s)]
     
         n = s[1L]
+        if (size.only) {
+            return(n)
+        }
+
         g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
 
         k = 2L
@@ -200,7 +215,7 @@
         return (g)
     }
 
-    `inla.read.graph.binary.internal` = function(filename, offset=0L)
+    `inla.read.graph.binary.internal` = function(filename, offset=0L, size.only = FALSE)
     {
         ## offset it needed if the graph is zero-based, then offset is
         ## set to 1.
@@ -237,6 +252,9 @@
 
         ## then the rest is the graph
         n = s[1L]
+        if (size.only) {
+            return (n)
+        }
         g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n))
 
         ## graphs are always 1-based by definition
@@ -267,14 +285,17 @@
         return (g)
     }
 
-    `inla.matrix2graph.internal` = function(Q)
+    `inla.matrix2graph.internal` = function(Q, size.only = FALSE)
     {
         if (missing(Q)) {
             return (NULL)
         }
     
-        Q = inla.as.dgTMatrix(Q)
         n = dim(Q)
+        if (size.only) {
+            return(n[1L])
+        }
+        Q = inla.as.dgTMatrix(Q)
 
         if (n[1] != n[2]) {
             stop(paste("Matrix must be a square matrix, dim(Q) =", dim(Q)))
@@ -284,34 +305,60 @@
         g = list(n = n, nnbs = numeric(n), nbs = rep(list(numeric()), n), graph.file = NA)
 
         if (TRUE) {
-            ## new improved version, using apply
-            g$nbs = lapply(1L:n,
-                    function(i, Q) {
-                        row = inla.sparse.get(Q, row = i)
-                        if (length(row$j) > 0) {
-                            row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
-                        }
-                        return (row$j)
-                    }, Q=Q)
-            g$nnbs = sapply(g$nbs, length)
-        } else {
-            ## keep old version...
+            diag(Q) = 1
+            Q = inla.as.sparse(Q) ## to avoid possible duplicates
+            ord = order(Q@i)
+            Q@i = Q@i[ord]
+            Q@j = Q@j[ord]
+            Q@x = Q@x[ord]
+            hash.len = table(Q@i)
+            hash.idx = c(1L, 1L+cumsum(hash.len))
+            stopifnot(length(hash.len) == ncol(Q))
+
             for(i in 1L:n) {
-                row = inla.sparse.get(Q, row = i)
-                nb = length(row$j)
-                if (nb > 0) {
-                    ## setting elements of a sparse-matrix to 0 does not
-                    ## necessarily remove that entry.
-                    row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
-                    nb = length(row$j)
+                if (hash.len[i] > 1L) {
+                    idx = hash.idx[i]:(hash.idx[i] + hash.len[i] - 1L)
+                    j = Q@j[idx] + 1L
+                    x = Q@x[idx]
+                    j = j[ (x != 0.0) & (j != i) ]
+                } else {
+                    j = NULL
                 }
-                g$nnbs[i] = nb
-                if (g$nnbs[i] > 0L) {
-                    g$nbs[[i]] = row$j
+                g$nbs[[i]] = j
+                g$nnbs[i] = length(j)
+            }
+        } else {
+            if (TRUE) {
+                ## new improved version, using apply. DO NOT PASS 'Q' as argument,  slower...
+                g$nbs = lapply(1L:n,
+                        inla.cmpfun(function(i) {
+                            ## inline: row = inla.sparse.get(Q, row = i)
+                            idx = which(Q@i == i-1L)
+                            row = list(i = i, j = Q@j[idx] + 1L, values = Q@x[idx])
+                            if (length(row$j) > 0) {
+                                row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+                            }
+                            return (row$j)
+                        }))
+                g$nnbs = sapply(g$nbs, length)
+            } else {
+                ## keep old version...
+                for(i in 1L:n) {
+                    row = inla.sparse.get(Q, row = i)
+                    nb = length(row$j)
+                    if (nb > 0) {
+                        ## setting elements of a sparse-matrix to 0 does not
+                        ## necessarily remove that entry.
+                        row$j = row$j[ (row$values != 0.0) & (row$j != i) ]
+                        nb = length(row$j)
+                    }
+                    g$nnbs[i] = nb
+                    if (g$nnbs[i] > 0L) {
+                        g$nbs[[i]] = row$j
+                    }
                 }
             }
-        }
-        
+        }        
         class(g) = "inla.graph"
         g = inla.add.graph.cc(g)
     
@@ -331,9 +378,9 @@
         ## if the file exists, its a file
         if (length(graph) == 1L && file.exists(graph)) {
             ## try binary first, if it fail, try ascii
-            g = inla.read.graph.binary.internal(...)
+            g = inla.read.graph.binary.internal(..., size.only = size.only)
             if (is.null(g)) {
-                g = inla.read.graph.ascii.internal(...)
+                g = inla.read.graph.ascii.internal(..., size.only = size.only)
             }
             return (g)
         } else {
@@ -341,7 +388,7 @@
             tfile = tempfile()
             cat(unlist(args), sep = "\n", file=tfile,  append=FALSE)
             ## recursive call
-            g = inla.read.graph(tfile)
+            g = inla.read.graph(tfile, size.only = size.only)
             unlink(tfile)
             return (g)
         }
@@ -349,7 +396,7 @@
         ## no need to do anything. 
         return (graph)
     } else {
-        return (inla.matrix2graph.internal(...))
+        return (inla.matrix2graph.internal(..., size.only = size.only))
     }
 
     stopifnot(FALSE)

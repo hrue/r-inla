@@ -837,7 +837,6 @@
     }
     return(arg)
 }
-
 `inla.get.var` = function(var, data = NULL)
 {
     if (is.null(data)) {
@@ -846,6 +845,32 @@
         return (get(var, envir = as.environment(data)))
     }
 }
+`inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL) 
+{
+    ## from MASS:::ginv, but with added option 'rankdef'.
+    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x))) 
+        stop("'x' must be a numeric or complex matrix")
+    if (!is.matrix(x)) 
+        x <- as.matrix(x)
+    xsvd <- svd(x)
+    if (is.complex(x)) 
+        xsvd$u <- Conj(xsvd$u)
+    if (is.null(rankdef)) {
+        Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
+    }
+    else {
+        n = length(xsvd$d)
+        stopifnot(rankdef >= 1 && rankdef <= n)
+        Positive <- c(rep(TRUE, n - rankdef), rep(FALSE, rankdef))
+    }
+    if (all(Positive)) 
+        xsvd$v %*% (1/xsvd$d * t(xsvd$u))
+    else if (!any(Positive)) 
+        array(0, dim(x)[2:1])
+    else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) * 
+        t(xsvd$u[, Positive, drop = FALSE]))
+}
+
 
 ## nice to have these around
 `inla.rw1` = function(n)
@@ -856,12 +881,42 @@
 {
     inla.rw(n, order=2L)
 }
-`inla.rw` = function(n, order=1L, sparse=TRUE)
+`inla.rw` = function(n, order=1L, sparse=TRUE, scale.model = FALSE)
 {
-    U = diff(diag(n), diff=order)
-    if (sparse) {
-        return (inla.as.sparse(t(U) %*% U))
+    if (scale.model) {
+        Q = inla.rw(n, order = order,  sparse=TRUE,  scale.model=FALSE)
+        Q = exp(mean(log(diag(inla.ginv(as.matrix(Q), rankdef = order))))) * Q
+        return (Q)
     } else {
-        return (t(U) %*% U)
+        U = diff(diag(n), diff=order)
+        if (sparse) {
+            return (inla.as.sparse(t(U) %*% U))
+        } else {
+            return (t(U) %*% U)
+        }
+    }
+}
+
+##
+`inla.mclapply` = function(..., mc.cores = NULL)
+{
+    if (inla.require("parallel") && inla.os("linux")) {
+        if (is.null(mc.cores)) {
+            mc.cores = inla.getOption("num.threads")
+            if (is.null(mc.cores)) {
+                mc.cores = 2L
+            }
+        }
+        return (mclapply(..., mc.cores = mc.cores))
+    } else {
+        return (lapply(...))
+    }
+}
+`inla.cmpfun` = function(fun, options = list(optimize = 3L))
+{
+    if (inla.require("compiler")) {
+        return (cmpfun(fun, options = options))
+    } else {
+        return(fun)
     }
 }
