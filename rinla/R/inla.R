@@ -620,7 +620,6 @@
         y...fake = c(y...orig)
         y...fake[is.na(y...fake)] = Inf ## otherwise model.matrix() fails below
     }
-
     if (debug) {
         cat("n.family", n.family, "\n")
     }
@@ -1789,25 +1788,25 @@
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
             if (nrgeneric > 0L) {
-                if (!inla.require("multicore")) {
-                    stop("Library 'multicore' is required to use the 'rgeneric'-model.")
+                if (!inla.require("parallel")) {
+                    stop("Library 'parallel' is required to use the 'rgeneric'-model.")
                 }
                 if (inla.os("mac")) {
                     ## cannot run in verbose mode
                     all.args = gsub("-v", "", all.args)
-                    tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
+                    tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                 } else {
                     if (verbose) {
-                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
+                        tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                     } else {
-                        tmp.0 = multicore::parallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                        tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
                                 inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
                     }
                 }
                 for (i in 1L:nrgeneric) {
-                    inla.eval(paste("tmp.", i, " = multicore::parallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
+                    inla.eval(paste("tmp.", i, " = mcparallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
                 }
-                inla.eval(paste("tmp = multicore::collect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
+                inla.eval(paste("tmp = mccollect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
                 echoc = tmp[[1L]]
             } else {
                 if (verbose) {
