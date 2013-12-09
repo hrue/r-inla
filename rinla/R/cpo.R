@@ -72,20 +72,7 @@
             cat("Compute new CPO/PIT values manually, for", length(idx.fail), "cases...\n")
         }
 
-        ## if multicore exists, we will do the 'lapply'-loop in parallel
-        if (inla.os("linux")) {
-            if (inla.require("multicore")) {
-                lapply.func = "mclapply"
-            } else {
-                warning("Please consider installing package 'multicore' which will speed-up the calculations in 'inla.cpo()'.")
-                lapply.func = "lapply"
-            }
-        } else {
-            lapply.func = "lapply"
-        }
-
-        res = do.call(lapply.func,
-                args = list(
+        res = inla.mclapply(
                         idx.fail,
                         function(idx, result) {
                             result$.args$control.expert = list(cpo.manual = TRUE, cpo.idx = idx)
@@ -97,8 +84,7 @@
                                     restart = recompute.mode)
                             rr = inla.rerun(result, plain = TRUE)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
-                        },
-                        result = result))
+                        },  result = result, mc.cores = result$.args$num.threads)
         
         result.new$cpo$cpo[idx.fail] = unlist(lapply(res, function(xx) return (xx$cpo)))
         result.new$cpo$pit[idx.fail] = unlist(lapply(res, function(xx) return (xx$pit)))

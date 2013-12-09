@@ -518,7 +518,7 @@
         if (is.null(graph)) {
             stop(paste("The 'graph' has to be provided for model", model))
         }
-        n.from.graph = inla.read.graph(graph)$n
+        n.from.graph = inla.graph.size(graph)
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph' is void:", n.from.graph))
         }
@@ -532,7 +532,7 @@
             stop(paste("The graph has to be provided for model", model))
         }
         ## read n from the graph
-        n.from.graph = 2L*inla.read.graph(graph)$n
+        n.from.graph = 2L*inla.graph.size(graph)
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph' is void:", n.from.graph))
         }
