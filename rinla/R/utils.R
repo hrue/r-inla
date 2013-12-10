@@ -884,8 +884,10 @@
 `inla.rw` = function(n, order=1L, sparse=TRUE, scale.model = FALSE)
 {
     if (scale.model) {
-        Q = inla.rw(n, order = order,  sparse=TRUE,  scale.model=FALSE)
-        Q = exp(mean(log(diag(inla.ginv(as.matrix(Q), rankdef = order))))) * Q
+        Q = inla.rw(n, order = order,  sparse=sparse,  scale.model=FALSE)
+        fac = exp(mean(log(diag(inla.ginv(as.matrix(Q), rankdef = order)))))
+        Q = fac * Q
+        if (sparse) Q = inla.as.sparse(Q)
         return (Q)
     } else {
         U = diff(diag(n), diff=order)
