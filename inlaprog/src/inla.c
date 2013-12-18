@@ -24284,6 +24284,7 @@ int main(int argc, char **argv)
 			mb_old = inla_build(argv[arg], verbose, 1);
 			mb_new = inla_build(argv[arg], verbose, 0);
 			inla_MCMC(mb_old, mb_new);
+			inla_output_ok(mb_old->dir);
 		}
 	}
 
@@ -24292,9 +24293,11 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * final output
+	 * final output (if not mcmc mode)
 	 */
-	inla_output_ok(mb->dir);
+	if (mb) {
+		inla_output_ok(mb->dir);
+	}
 
 	return EXIT_SUCCESS;
 #undef USAGE_intern
