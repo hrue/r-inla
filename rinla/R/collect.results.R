@@ -525,9 +525,10 @@ inla.internal.experimental.mode = FALSE
 {
     fnm = paste(dir, "/size.dat", sep="")
     siz = inla.read.binary.file(fnm)
-    if (length(siz) != 5L)
-        stop(paste("length of siz is not 5L: fnm=", fnm))
-
+    if (length(siz) != 5L) {
+        return(rep(0L, 5))
+        ##stop(paste("length of siz is not 5L: fnm=", fnm))
+    }
     if (is.na(siz[1L]) || siz[1L] < 0L) stop("siz[1L] = NA")
     if (is.na(siz[2L]) || siz[2L] <= 0L) siz[2L] = siz[1L]
     if (is.na(siz[3L]) || siz[3L] <= 0L) siz[3L] = siz[2L]
