@@ -3,6 +3,7 @@
 \SweaveOpts{prefix.string=figs/nonstationar} 
 <<opts,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
+require(lattice) 
 require(INLA)
 require(gridExtra)
 lcall <- inla.getOption('inla.call')
@@ -80,7 +81,8 @@ pl01 <- cbind(c(0,1,1,0,0), c(0,0,1,1,0))
 @ 
 and build a mesh on the polygon with 
 <<mesh>>=
-(mesh <- inla.mesh.create.helper(, pl01, max.edge=c(0.07,.12)))$n
+(mesh <- inla.mesh.2d(, pl01, cutoff=0.03, 
+                      max.edge=c(0.07,.12)))$n
 @ 
 
 Now, we define the non stationary SPDE model. 

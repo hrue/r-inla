@@ -1,11 +1,14 @@
 \chapter{A space time example}
 
-\SweaveOpts{prefix.string=figs/spacetime}
+\SweaveOpts{prefix.string=figs/spacetime} 
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
+require(lattice) 
 require(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call=lcall)
+source('spde-tutorial-functions.R')
+load('prmesh1.RData')
 @ 
 
 In this chapter we show an example on fitting 
@@ -17,6 +20,10 @@ one for the temporal domain.
 The spatio-temporal separable model is defined 
 by the kronecker product between the precision 
 of these two models. 
+
+In this example we show that it is allowed 
+to have different locations on different times. 
+Also, we show the use of a categorical covariate. 
 
 \section{Data simulation} 
 
@@ -30,10 +37,6 @@ Because we need that the example run faster,
 we use the low resolution mesh for 
 Paran\'a state border created on the 
 section~\ref{ch:mesh}.
-<<echo=F,results=hide>>=
-load('prmesh1.RData')
-source('spde-tutorial-functions.R')
-@ 
 
 There is two options to simulate from 
 Cameletti's model. One is based on the 
@@ -51,7 +54,7 @@ First we define a set of points as the same on the
 data(PRprec)
 coords <- as.matrix(PRprec[,1:2])
 @ 
-and set $k=10$, the time dimention 
+and set $k=12$, the time dimention 
 <<k>>=
 k <- 12
 @ 
@@ -90,7 +93,7 @@ for (j in 1:k)
 <<ftimevisual,echo=F,fig=TRUE,eps=FALSE,width=7.5,height=7>>=
 <<timevisual>>
 @ 
-\caption{Realization of the spatio temporal model.} 
+\caption{Realization of the spatio temporal random field.} 
 \label{fig:timevisual}
 \end{figure}
 
@@ -113,6 +116,28 @@ y <- beta[unclass(ccov)] + x
 tapply(y, ccov, mean)
 @ 
 
+To show that is allowed to have different 
+locations on different times, we drop some 
+of the observations. We do it by just 
+selecting a half of the simulated data. 
+We do it by creating a index for the 
+selected observations
+<<seldat>>=
+isel <- sample(1:(n*k), n*k/2) 
+@ 
+and we organize the data on a \code{data.frame} 
+<<dat>>=
+dat <- data.frame(y=as.vector(y), w=ccov, 
+                  time=rep(1:k, each=n), 
+                  xcoo=rep(coords[,1], k), 
+                  ycoo=rep(coords[,2], k))[isel, ] 
+@ 
+
+In real applications some times we have 
+completely missaligned locations between 
+different times. The code provided here 
+to fit the model still work on this situation. 
+
 \section{Data stack preparation} 
 
 Now, we need the data preparation to build the 
@@ -120,28 +145,33 @@ spatio-temporal model.
 The index set is made taking into account 
 the number of weights on the SPDE model 
 and the number of groups
-<<ind>>=
-iset <- inla.spde.make.index('i', n.spde=attr(x.k, 'spde')$n.spde, n.group=k)
+<<rfind>>=
+spde <- attr(x.k, 'spde')
+iset <- inla.spde.make.index('i', n.spde=spde$n.spde, n.group=k)
 @ 
+Notice that the index set for the latent field 
+is not depending on the data set locations. 
+It only depends on the SPDE model size and 
+on the time dimention. 
 
 The projector matrix must be defined considering 
-the temporal dimention. This can be defined using 
-the group argument on the \code{inla.spde.make.A()} function
+the coordinates of the observed data. 
+We have to inform the time index for the group 
+to build the projector matrix. 
+This also must be defined on the 
+\code{inla.spde.make.A()} function
 <<apred>>=
-A <- inla.spde.make.A(prmesh1, cbind(rep(coords[,1], k), 
-                                     rep(coords[,2], k)), 
-                      group=rep(1:k, each=n))
+A <- inla.spde.make.A(mesh=prmesh1, 
+                      loc=cbind(dat$xcoo, dat$ycoo), 
+                      group=dat$time) 
 @ 
 
 The effects on the stack are a list with two elements, 
-one is the index set and another the categorical covariate 
-<<stkeff>>=
-str(list(iset, ccov=ccov))
-@ 
+one is the index set and another the categorical covariate. 
 The stack data is defined as 
-<<ind>>=
-sdat <- inla.stack(tag='stdata', data=list(y=as.vector(y)), 
-                   A=list(A,1),  effects=list(iset,ccov=ccov)) 
+<<stack>>=
+sdat <- inla.stack(tag='stdata', data=list(y=dat$y), 
+                   A=list(A,1),  effects=list(iset, w=dat$w)) 
 @ 
 
 \section{Fitting the model and some results}
@@ -164,10 +194,10 @@ on the \code{control.fixed} argument list.
 inla.setOption(inla.call='remote')
 @ 
 <<ft>>=
-res <- inla(y ~ 0 + ccov + 
-            f(i, model=attr(x.k, 'spde'), group=i.group, 
-              control.group=list(model='ar1', hyper=h.spec)), 
-            data=inla.stack.data(sdat), 
+formulae <- y ~ 0 + w + 
+    f(i, model=spde, group=i.group, 
+      control.group=list(model='ar1', hyper=h.spec)) 
+res <- inla(formulae,  data=inla.stack.data(sdat), 
             control.predictor=list(compute=TRUE, A=inla.stack.A(sdat)), 
             control.family=list(initial=20, fixed=TRUE), 
             control.inla=list(strategy='gaussian'), 
@@ -177,7 +207,7 @@ res <- inla(y ~ 0 + ccov +
 The summary of the covariate coefficients 
 (together the observed mean for each covariate level) 
 <<sbeta>>=
-round(cbind(observed=tapply(y, ccov, mean), res$summary.fixed), 4) 
+round(cbind(observed=tapply(dat$y, dat$w, mean), res$summary.fixed), 4) 
 @ 
 
 The summary for the posterior marginal distribution 
@@ -200,8 +230,8 @@ plot(res$marginals.hyper[[3]], type='l',
      xlab=expression(beta), ylab='Density')
 abline(v=rho, col=2)
 plot(rf$marginals.variance.nominal[[1]], type='l', 
-     xlab=expression(1/sigma[x]), ylab='Density')
-abline(v=1/params[1], col=2)
+     xlab=expression(sigma[x]), ylab='Density')
+abline(v=params[1], col=2)
 plot(rf$marginals.kappa[[1]], type='l',
      xlab=expression(kappa), ylab='Density')
 abline(v=params[2], col=2)
@@ -240,7 +270,7 @@ str(idat <- inla.stack.index(sdat, 'stdata')$data)
 and compute the correlation between the 
 the posterior mean and the response by 
 <<meanrf>>=
-cor(as.vector(y), res$summary.linear.predictor$mean[idat])
+cor(dat$y, res$summary.linear.predictor$mean[idat])
 @ 
 
 We also can do prediction for each time and visualize it. 
@@ -279,13 +309,63 @@ can be made by the comands bellow
 require(gridExtra)
 do.call(function(...) grid.arrange(..., nrow=4), 
         lapply(xmean, levelplot,  xlab='', ylab='',
-               col.regions=topo.colors(100), scale=list(draw=FALSE)))
+               col.regions=topo.colors(16), scale=list(draw=FALSE)))
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
 <<vstrf,echo=F,fig=TRUE,eps=FALSE,width=10,height=10>>=
 <<strf>>
 @ 
-\caption{Visualization of the spatio temporal random field.} 
+\caption{Visualization of the posterior mean of the 
+  spatio temporal random field.} 
 \label{fig:strf}
 \end{figure}
+
+\section{Validation} 
+
+The results on previous section are done using 
+part of the simulated data. 
+Now we prepare another stack with the simulated data 
+don't used in the simulation. 
+This part of the simulated data are used as a evaluation data. 
+
+<<stkv>>=
+vdat <- data.frame(y=as.vector(y), w=ccov, 
+                   time=rep(1:k, each=n), 
+                   xcoo=rep(coords[,1], k), 
+                   ycoo=rep(coords[,2], k))[-isel, ] 
+Aval <- inla.spde.make.A(prmesh1, loc=cbind(vdat$xcoo, vdat$ycoo), 
+                         group=vdat$time) 
+stval <- inla.stack(tag='stval', data=list(y=NA), 
+                    A=list(Aval,1),  effects=list(iset, w=vdat$w)) 
+@ 
+
+Now, we just use a full data stack to fit the model 
+<<val>>=
+stfull <- inla.stack(sdat, stval) 
+vres <- inla(formulae,  data=inla.stack.data(stfull), 
+             control.predictor=list(compute=TRUE, A=inla.stack.A(stfull)), 
+             control.family=list(initial=20, fixed=TRUE), 
+             control.inla=list(strategy='gaussian'), 
+             control.fixed=list(expand.factor.strategy='inla'))
+@ 
+
+We can look at fitted values for the validation data. 
+We can plot the predicted versus observed values to look at goodness of fit.
+First, we found the index for this data from full stack data. 
+<<indval>>=
+ival <- inla.stack.index(stfull, 'stval')$data 
+@ 
+We plot it with following commands and visualize at Figure~\ref{fig:stval}. 
+<<stvalplot>>=
+plot(vres$summary.fitted.values$mean[ival], vdat$y, 
+     asp=1, xlab='Posterior mean', ylab='Observed') 
+abline(0:1, col=gray(.7)) 
+@ 
+\begin{figure}\centering
+<<vstval,echo=FALSE,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<stvalplot>>
+@
+\caption{Validation: Observed versus posterior mean.}
+\label{fig:stval}\end{figure}
+
