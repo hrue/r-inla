@@ -1,8 +1,8 @@
-\input{spde-tutorial-introduction}
+\input{spde-tutorial-introduction} 
 
 \section{Simulation of a data set} 
 
-\SweaveOpts{prefix.string=figs/sim}
+\SweaveOpts{prefix.string=figs/lik}
 <<echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 @ 
@@ -100,84 +100,115 @@ We know that is adequate the use of the partial
 derivatives with respect to each parameter and 
 the Fisher information matrix to use the Fisher 
 scoring algorithm. 
+Also, we can have closed expressions for some 
+parameters. 
+
+To get good performance on the maximum likelihood estimation, 
+we can write the variance parameter of the noise, 
+$\sigma^2_e$, in terms of the relative one, 
+$r=\sigma_e^2/\sigma_x^2$, such that 
+\[
+Cov(\bby) = \sigma^2_x(r\bI + \bC )
+\]
+where $\bC$ is the correlation matrix. 
+
 Under Gaussian likelihood we have that the 
 mean and variance are independently. 
-So, taking the derivative with respect to $\beta$ 
+Taking the derivative with respect to $\beta$ 
 we get 
-\[ (\bF^{'}\Sigma^{-1}\bF)\hat{\beta} = \bF^{'}\bF \]
-So, we want to write a likelihood function as a function 
-of the unknown parameters and the data. 
-For the others parameters we naively use one of 
-the quasi-Newton methods, without using derivatives. 
+\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\bby \]
+where $\bW = (r\bI + \bC )^{-1}$. 
+With this parametrization we can derive 
+with respect to $\sigma_x^2$ and have 
+\[
+\hat{\sigma}_x^2 = (y_i-\bF\hat{\beta})^{'}\bW(y_i-\bF\hat{\beta})/n\;.
+\]
 
-There are another details to a good performance on 
-the maximum likelihood estimation. One is to write 
-the variance parameters, $\sigma^2_e$ and $\sigma^2_x$, 
-in terms of the relative one. Such details are on 
-the \textit{Model Based Geostatistics} book, 
-\cite{diggleribeiro:2007}, and on the \pkg{geoR} 
-functions documentations. 
+Now, we can work with a concentrated log-likelihood, 
+that is a function of the noise relative variance $r$, 
+the scale $\kappa$ and the smoothness parameter $\nu$ 
+\[
+-\frac{1}{2}(|\bW| + n(\log(2\pi\hat{\sigma}_x^2)+1))
+\]
 
-Here we just write the negative of the multivariate 
+We use the quasi-Newton methods to find the 
+maximum likelihood estimates of these three parameters. 
+
+The likelihood function is just the the multivariate 
 normal density, considering the mean as a regression 
 with identity link and the covariance with Mat\'ern 
 covariance plus the nugget effect. 
-In the function implemented bellow, we have the 
+In the implemented function (bellow), we have the 
 also that the matrix of distances 
 between the points because are one of the arguments, 
 because it is not necessary to recalculate 
 at each interaction of the minimization algorithm. 
+
 We use the negative of the logarithm of the likelihood 
 function because, by default, the algorithm 
 find the minimum of a function. 
-In the computation of the likelihood, we use the Cholesky 
-factorization to compute the determinant and also the inverse 
-of the covariance matrix. 
-The implemented function is a function of the 
-four length parameters vector ($\sigma_e^2$, 
-$\sigma_x^2$, $\kappa$ and $\nu$), the covariate (design) 
-matrix, the data and the matrix of distances:
+In the computation of the likelihood, we use the 
+Cholesky factorization to compute the determinant 
+and also the inverse of the covariance matrix. 
 <<lik1>>=
-nllf <- function(pars, ff, data, m) {
-  m <- 2^(1-pars[4])*(pars[3]*m)^pars[4]*
-    besselK(m*pars[3],pars[4])/gamma(pars[4])
-  diag(m) <- 1;   m <- pars[1]*diag(length(data)) + pars[2]*m
-  m <- chol(m);   ldet <- sum(log(diag(m)));  m <- chol2inv(m)
-  beta <- solve(crossprod(ff, m)%*%ff, crossprod(ff, m)%*%data) 
-  z <- data-ff%*%beta;   ss <- drop(crossprod(z,m)%*%z) 
-  return(ldet + (nrow(m)*log(2*pi) + ss)/2)
+nllf <- function(pars, ff, y, m) {
+  m <- 2^(1-pars[3])*(pars[2]*m)^pars[3]*
+    besselK(m*pars[2],pars[3])/gamma(pars[3])
+  diag(m) <- 1 + pars[1] 
+  m <- chol(m) 
+  ldet.5 <- sum(log(diag(m))) 
+  m <- chol2inv(m)
+  beta <- solve(crossprod(ff, m)%*%ff, 
+                crossprod(ff, m)%*%y) 
+  z <- y-ff%*%beta   
+  s2x.hat <- mean(crossprod(m,z)*z) 
+  res <- ldet.5 + nrow(m)*(1+log(2*pi*s2x.hat))/2
+  attr(res, 'param') <- ### to return the parameters together
+      c(beta=beta, s2e=pars[1]*s2x.hat, 
+        s2x=s2x.hat, kappa=pars[2], nu=pars[3])
+  return(res)
 }
 @ 
-the first argument of this function is the vector of the five 
-parameters of the model, such as $\beta_0$, $\sigma^2_e$, 
-$\sigma^2_s$, $\kappa$ and $\nu$. 
+The implemented function is a function of the 
+three length parameters vector ($r$,
+$\kappa$ and $\nu$), the covariate (design) 
+matrix, the data and the matrix of distances:
 
 For test, we calculates the likelihood at true values of the 
-parameters and at another set of the values
+parameters 
 <<nlltest>>=
-c(nllf(c(sigma2e, sigma2x, kappa, nu), matrix(1,n), y1, as.matrix(dmat)), 
-  nllf(c(0, sigma2x, kappa, nu), matrix(1,n), y1, as.matrix(dmat)))
+(nllf(c(sigma2e/sigma2x, kappa, nu), matrix(1,n), y1, as.matrix(dmat)))
 @ 
-We get the maximum likelihood estimates with 'L-BFGS-B' 
-method implemented on \code{optim()} function. 
-Also, using \code{hessian=TRUE}, we got the approximate 
-Hessian matrix to use in asymptotic inference. 
-We got the maximum likelihood estimates
-<<llfit1>>=
-(ores <- optim(c(sigma2e, sigma2x, kappa, nu), nllf, hessian=TRUE, 
-               ff=matrix(1,n), data=y1, m=as.matrix(dmat), 
-               method='L-BFGS-B', lower=rep(1e-5,4)))$par
-@ 
-and the squared root of the hessian diagonal 
-<<diaghess>>=
-(se <- sqrt(diag(solve(ores$hessian))))
+and at another set of the values
+<<nlltest2>>=
+(nllf(c(0, kappa, nu), matrix(1,n), y1, as.matrix(dmat)))
 @ 
 
-This naive solution by likelihood is to show how it works. 
-But, in the \pkg{geoR} package, we have functions to get simulations 
-and to do estimation. The difference is that the \pkg{geoR} 
-package uses $\phi=1/kappa$ for the scale parameter and 
-it calls kappa for the smoothness parameter.
+We get the maximum likelihood estimates with 'L-BFGS-B' 
+method implemented on \code{optim()} function. 
+The maximum likelihood estimates for $r$, 
+$\kappa$ and $\nu$ are
+<<llfit1>>=
+(ores <- optim(c(sigma2e/sigma2x, kappa, nu), nllf, hessian=TRUE, 
+               ff=matrix(1,n), y=y1, m=as.matrix(dmat), 
+               method='L-BFGS-B', lower=rep(1e-5,3)))$par
+@ 
+and we got all the estimated parameters just 
+evaluating our concentrated log-likelihood again 
+to get all estimatives 
+<<diaghess>>=
+(lkhat <- attr(nllf(ores$par, matrix(1,n), 
+                    y1, as.matrix(dmat)), 'param'))
+@ 
+
+This solution by likelihood is to show how it works. 
+In the \pkg{geoR} package, we have functions to do
+simulations and also to perform likelihood estimation. 
+The difference is that the \pkg{geoR} 
+package uses $\phi=1/\kappa$ for the scale parameter and 
+it calls kappa for the smoothness parameter. 
+Also  $\sigma_e^2$ is called \code{tausq}
+
 The \code{grf()} function can be used to get samples of the 
 geostatistical model from many correlation 
 functions. To get exactly the same data, we use 
@@ -195,22 +226,15 @@ smoothness parameter by
 (g1res <- likfit(grf1, ini=c(sigma2x, 1/kappa), messages=FALSE,
                  nugget=sigma2e, kappa=nu, fix.kappa=FALSE))
 @ 
-In the \code{geoR} parametrization, 
-the $\sigma_e^2$ is called \code{tausq}, $1/\kappa$ is 
-called \code{phi} and the smoothness parameter $\nu$ 
-is called \code{kappa}. 
 
-But, for comparison with INLA results, we fix the 
-smoothness parameter $\nu$ on the true value used to simulate 
-the data, and find the maximum likelihood estimates to 
+If we fix the smoothness parameter $\nu$ on the value, 
+we find the maximum likelihood estimates to 
 another parameters by
 <<geoRtoy-l>>=
 (fit.l <- likfit(grf1, ini.cov.pars=c(sigma2x, 1/kappa), 
                  nugget=sigma2e, kappa=1, messages=FALSE))
 @ 
-Notice that we also estimate the mean parameter $\beta$, 
-the parameter of fixed effect part of the model. 
-Also, we note that the likelihood has similar value, 
-just because the estimated value of $\nu$ is very 
-close to the fixed value. 
+Notice that likelihood here has similar value than previous, 
+just because the previously estimated value of $\nu$ is  
+close to the fixed value here. 
 

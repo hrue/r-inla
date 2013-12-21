@@ -1,6 +1,6 @@
 \section{The triangulation}\label{ch:mesh} 
 
-\SweaveOpts{prefix.string=figs/mesh}
+\SweaveOpts{prefix.string=figs/mesh} 
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 require(INLA)
@@ -234,7 +234,7 @@ the boundary by its convexity,
 concavity and resolution.
 We make some boundaries and build a mesh
 with each one to understand better it. 
-<<ncmesh>>=
+<<nonconmesh>>=
 bound1 <- inla.nonconvex.hull(p5)
 bound2 <- inla.nonconvex.hull(p5, convex=0.5, concave=-0.15)
 bound3 <- inla.nonconvex.hull(p5, concave=0.5)
@@ -247,8 +247,8 @@ m13 <- inla.mesh.2d(boundary=bound4, cutoff=0.05, max.edge=c(.1,.2))
 @ 
 
 These meshes are visualized on 
-Figure~\ref{fig:ncmesh} by commands bellow 
-<<ncmeshv,eval=F>>=
+Figure~\ref{fig:nonconmesh} by commands bellow 
+<<nonconmeshv,eval=F>>=
 par(mfrow=c(2,2), mar=c(0,0,1,0))
 for (i in 10:13) { 
    plot(get(paste('m', i, sep='')), asp=1, main='') 
@@ -257,11 +257,11 @@ for (i in 10:13) {
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vncmeshv,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
-<<ncmeshv>>
+<<vnonconmeshv,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<nonconmeshv>>
 @ 
 \caption{Non-convex meshes with different boundaries.}
-\label{fig:ncmesh}
+\label{fig:nonconmesh}
 \end{figure}
 
 The \code{m10} mesh is builded with a boundary 
@@ -296,7 +296,7 @@ The first mesh forces the location points
 as vertices of the mesh. 
 <<mesh12>>=
 mesh1 <- inla.mesh.2d(coords, max.edge=c(0.035, 0.1)) 
-mesh2 <- inla.mesh.2d(coords, max.edge=c(0.1, 0.2)) 
+mesh2 <- inla.mesh.2d(coords, max.edge=c(0.15, 0.2)) 
 @ 
 
 The second and third meshes are based on 
@@ -304,7 +304,7 @@ the points, but we use the cutoff greather
 than zero to avoid small triangles on regions 
 where we have more density observations 
 <<mesh3>>=
-mesh3 <- inla.mesh.2d(coords, max.edge=c(0.1, 0.2), cutoff=0.03)
+mesh3 <- inla.mesh.2d(coords, max.edge=c(0.15, 0.2), cutoff=0.02)
 @ 
 
 We also build three other meshes based on the 
@@ -312,9 +312,9 @@ domain area. These are builded to have
 aproximately the same number of vertices than 
 previous 
 <<mesh456>>=
-mesh4 <- inla.mesh.2d(, pl.dom, max.e=c(0.04, 0.1), cutoff=0.015)
-mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.08, 0.2), cutoff=0.025)
-mesh6 <- inla.mesh.2d(, pl.dom, max.e=c(0.10, 0.2), cutoff=0.045)
+mesh4 <- inla.mesh.2d(, pl.dom, max.e=c(0.0355, 0.1))
+mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))
+mesh6 <- inla.mesh.2d(, pl.dom, max.e=c(0.11, 0.2))
 @ 
 
 The number of nodes on each one of these meshes are 
@@ -388,7 +388,7 @@ plot(prmesh2, asp=1, main='');   lines(PRborder, col=3)
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vprmeshecho=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=3.5>>=
+<<vprmesh,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=3.5>>=
 <<prmesh>>
 @ 
 \caption{Mesh for Paran\'a state}

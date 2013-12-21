@@ -48,7 +48,7 @@ window and use it to do the point process simulation.
 There is an internal parameter to control the 
 resolution of the grid. We change it to
 <<gridres>>=
-spatstat.options(npixel=100)
+spatstat.options(npixel=300)
 @ 
 
 First we define the model parameter for 
@@ -59,7 +59,7 @@ The expected number of points is its
 exponential times the area fo the window. 
 We use 
 <<>>=
-beta0 <- 3
+beta0 <- 1.5 
 @ 
 So, the expected number of points is 
 <<n-exp>>=
@@ -72,7 +72,7 @@ covariance function with $\nu=1$.
 So, here we just fix it on this value. 
 The other parameters are the variance and scale
 <<>>=
-sigma2x <- 1;      kappa <- 1
+sigma2x <- 1;      kappa <- 3 
 @ 
 
 Doing the simulation
@@ -130,13 +130,12 @@ plot(xy, cex=0.3+(z-min(z))/diff(range(z)), asp=1, xlab='', ylab='',
 
 \section{Inference} 
 
-Following\cite{simpsonetal:2011} we can estimate the parameters 
+Following \cite{simpsonetal:2011} we can estimate the parameters 
 of the log-Cox point process model using few command lines. 
 
 Creating the mesh 
 <<mesh>>=
-(nv <- (mesh <- inla.mesh.2d(loc.dom=as.matrix(expand.grid(win$x, win$y)), 
-                             cutoff=.15, max.edge=c(.3, .5)))$n)
+(nv <- (mesh <- inla.mesh.2d(xy, cutoff=0.1, max.edge=c(.5, 1)))$n)
 @ 
 
 Defining the SPDE model 
@@ -212,7 +211,7 @@ plot(pp.rf$marginals.variance.nominal[[1]], type='l',
      xlab=expression(sigma^2), ylab='Density')
 abline(v=sigma2x, col=2)
 plot(pp.rf$marginals.kappa[[1]], type='l', 
-     xlab=expression(kappa^2), ylab='Density')
+     xlab=expression(kappa), ylab='Density')
 abline(v=kappa, col=2)
 plot(pp.rf$marginals.range.nominal[[1]], type='l', 
      xlab='Nominal range', ylab='Density')
@@ -299,7 +298,7 @@ plot(u.rf$marginals.variance.nominal[[1]], type='l',
      xlab=expression(sigma^2), ylab='Density')
 abline(v=sigma2x, col=2)
 plot(u.rf$marginals.kappa[[1]], type='l', 
-     xlab=expression(kappa^2), ylab='Density')
+     xlab=expression(kappa), ylab='Density')
 abline(v=kappa, col=2)
 plot(u.rf$marginals.range.nominal[[1]], type='l', 
      xlab='Nominal range', ylab='Density')
@@ -344,10 +343,10 @@ and use it on the copy feature later.
 <<ppstk>>=
 stk2.y <- inla.stack(data=list(y=cbind(resp,NA), e=rep(0,n)), 
                      A=list(lmat, 1), tag='resp2',
-                     effects=list(i=1:nv, beta=rep(1,n)))
+                     effects=list(i=1:nv, b.y=rep(1,n)))
 stk2.pp <- inla.stack(data=list(y=cbind(NA,y.pp), e=e.pp), 
-                      A=list(A.pp), tag='pp2',
-                      effects=list(j=1:nv)) 
+                      A=list(A.pp, 1), tag='pp2',
+                      effects=list(j=1:nv, b.pp=rep(1,n+nv))) 
 @ 
 and join both together
 <<j.stk>>=
@@ -358,12 +357,13 @@ Now, we fit the geostatistical model under preferential sampling.
 To put the LGRF on both likelihood, we have to use the copy 
 strategy. 
 <<j-res>>=
-j.res <- inla(y ~ 0 + f(i, model=spde) + 
+j.res <- inla(y ~ 0 + b.y + b.pp + f(i, model=spde) + 
               f(j, copy='i', fixed=FALSE), 
               data=inla.stack.data(j.stk), 
               family=c('gaussian', 'poisson'), 
               control.predictor=list(A=inla.stack.A(j.stk)), 
               E=inla.stack.data(j.stk)$e)
+j.res$summary.fix
 @ 
 
 Computing the marginals posterior distributions 
@@ -385,11 +385,13 @@ par(mfrow=c(2,2), mar=c(3,3,0.5,0.5), mgp=c(2,1,0))
 plot(j.res$marginals.hy[[length(j.res$marginals.hy)]], type='l', 
      xlab=expression(beta), ylab='Density', col=4)
 plot(j.rf$marginals.variance.nominal[[1]], type='l', 
-     xlim=range(j.rf$marginals.variance[[1]][,1], u.rf$marginals.variance[[1]][,1]), 
-     ylim=range(j.rf$marginals.variance[[1]][,2], u.rf$marginals.variance[[1]][,2]), 
-     xlab=expression(sigma^2), ylab='Density', col=4)
-lines(u.rf$marginals.variance.nominal[[1]], col=3)
-abline(v=sigma2x, col=2, lty=2)
+     xlim=range(j.rf$marginals.variance[[1]][,1], 
+         u.rf$marginals.variance[[1]][,1]), 
+     ylim=range(j.rf$marginals.variance[[1]][,2], 
+         u.rf$marginals.variance[[1]][,2]), 
+     xlab=expression(sigma^2), ylab='Density', col=4) 
+lines(u.rf$marginals.variance.nominal[[1]], col=3) 
+abline(v=sigma2x, col=2, lty=2) 
 plot(j.rf$marginals.kappa[[1]], type='l', 
      xlim=range(j.rf$marginals.kappa[[1]][,1], u.rf$marginals.kappa[[1]][,1]), 
      ylim=range(j.rf$marginals.kappa[[1]][,2], u.rf$marginals.kappa[[1]][,2]), 
