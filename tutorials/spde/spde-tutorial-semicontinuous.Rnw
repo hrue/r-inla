@@ -2,7 +2,7 @@
 
 \SweaveOpts{prefix.string=figs/semicont}
 <<sett,echo=FALSE,results=hide>>=
-options(width=75)##, prompt = " ", continue = "   ") 
+options(width=75, prompt = " ", continue = "   ") 
 require(splancs) 
 require(INLA) 
 require(gridExtra) 
