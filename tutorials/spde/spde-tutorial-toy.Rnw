@@ -1,8 +1,9 @@
 \chapter{A toy example} 
 
-\SweaveOpts{prefix.string=figs/toy}
+\SweaveOpts{prefix.string=figs/toy} 
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
+require(lattice) 
 require(INLA)
 noremote <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
@@ -120,8 +121,13 @@ that is a sum of two components each one
 can be represented as a product of a projector 
 matrix and an effect. 
 
+We have that the SPDE approach defines 
+a model on the mesh nodes, and usually the number 
+of nodes are not equal to the number of locations 
+where we have data observed. 
 The \code{inla.stack} function allow us to 
-work 'easily' with more than one responses.
+work with predictors that includes terms with 
+different dimentions. 
 The three main \code{inla.stack()} arguments 
 are the \code{data} vectors list, a list of 
 projector matrices (each one related to one 
@@ -600,13 +606,11 @@ beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
 and the maximum likelihood estimates are 
 <<likfit,echo=F,results=hide>>=
 source('spde-tutorial-functions.R')
-mesh <- mesh5
-spde <- inla.spde2.matern(mesh)
 inla.setOption(inla.call=noremote)
-A <- inla.spde.make.A(mesh, loc=coords)
-opt.b <- optim(c(-4,2,-1.5), nllf, hessian=TRUE, method='BFGS',
-               X=matrix(1,nrow(coords)), y=SPDEtoy[,3], A=A, verbose=FALSE)
-lk.est <- par2user(opt.b$par, A, matrix(1,nrow(coords),1), SPDEtoy[,3])[c(4,3,1,2)]
+system.time(opt.b <- optim(
+    c(-1,2), negLogLikFun, hessian=TRUE, method='BFGS',
+    X=matrix(1,nrow(coords)), A=A5, y=SPDEtoy[,3], spde=spde5)) 
+lk.est <- par2user(opt.b$par, matrix(1,nrow(coords),1), A5, SPDEtoy[,3], spde5) 
 @ 
 
 <<lkv>>=
