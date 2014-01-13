@@ -394,7 +394,11 @@
         }
     } else if (class(graph) == "inla.graph") {
         ## no need to do anything. 
-        return (graph)
+        if (size.only) {
+            return (graph$n)
+        } else {
+            return (graph)
+        }
     } else {
         return (inla.matrix2graph.internal(..., size.only = size.only))
     }
