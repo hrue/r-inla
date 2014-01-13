@@ -718,6 +718,11 @@
         ## this have to match
         stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
 
+        if (any(is.infinite(gp$model.matrix))) {
+            n.infs = sum(is.infinite(gp$model.matrix))
+            stop(paste("There are", n.infs, "Inf's in the model.matrix. This is not allowed."))
+        }
+
         ## n.fix can have been changed here due to a `-1'
         gp$n.fix = dim(gp$model.matrix)[2L]
 
