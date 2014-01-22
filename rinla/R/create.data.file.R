@@ -3,17 +3,17 @@
 `inla.create.data.file` = function(
         y.orig = NULL,
         MPredictor = NULL,
-        mf=NULL,
-        scale=NULL,
-        weights=NULL, 
-        E=NULL,
-        Ntrials=NULL,
-        strata=NULL, 
-        event=NULL,
-        family=NULL,
-        data.dir=NULL,
-        file=NULL,
-        debug=FALSE)
+        mf = NULL,
+        scale = NULL,
+        weights = NULL, 
+        E = NULL,
+        Ntrials = NULL,
+        strata = NULL, 
+        event = NULL,
+        family = NULL,
+        data.dir = NULL,
+        file = NULL,
+        debug = FALSE)
 {
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
@@ -30,7 +30,7 @@
         cat("inla.create.data.file: n.data = ", n.data, "\n")
     }
     
-    if (!is.null(weights)) {
+    if (!is.null(weights) && !is.function(weights)) {
         if (length(weights) == 1L) {
             weights = rep(weights, n.data)
         }
@@ -265,7 +265,7 @@
     file.data = gsub(data.dir, "$inladatadir", file.data, fixed=TRUE)
 
     file.weights = inla.tempfile(tmpdir=data.dir)
-    if (!is.null(weights)) {
+    if (!is.null(weights) && !is.function(weights)) {
         if (inla.getOption("internal.binary.mode")) {
             inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug=debug)
         } else {
