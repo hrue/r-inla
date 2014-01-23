@@ -8,14 +8,18 @@
 
 \subsection*{Parametrization}
 
-A model for seasonal variation with periodicity $m$ for the random vector $\mathcal{x}=(x_1,\dots,x_n)$, $n>m$ is obtained assuming that the sums $x_i+x_{i+1}+\dots+x_{i+m-1}$ are independent Gaussian with preciosion $\tau$.
+A model for seasonal variation with periodicity $m$ for the random
+vector $\mathcal{x}=(x_1,\dots,x_n)$, $n>m$ is obtained assuming that
+the sums $x_i+x_{i+1}+\dots+x_{i+m-1}$ are independent Gaussian with
+preciosion $\tau$.
 
 The density for $\mathbf{x}$ is derived from the $n-m+1$ increments as
 \begin{eqnarray}
-\pi(\mathbf{x}|\tau) &\propto& \tau^{\frac{(n-m+1)}{2}} \exp\left\{-\frac{\tau}{2}\sum (x_i+x_{i+1}+\dots+x_{i+m-1})^2\right\}\\
-& = &\tau^{\frac{(n-m+1)}{2}}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
+    \pi(\mathbf{x}|\tau) &\propto& \tau^{\frac{(n-m+1)}{2}} \exp\left\{-\frac{\tau}{2}\sum (x_i+x_{i+1}+\dots+x_{i+m-1})^2\right\}\\
+    & = &\tau^{\frac{(n-m+1)}{2}}\exp\left\{-\frac{1}{2}\mathbf{x}^T\mathbf{Q}\mathbf{x} \right\}
 \end{eqnarray}
-where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure matrix reflecting the neighbourhood structure of the model.
+where $\mathbf{Q}=\tau\mathbf{R}$ and $\mathbf{R}$ is the structure
+matrix reflecting the neighbourhood structure of the model.
 
 
 \subsection*{Hyperparameters}
@@ -43,15 +47,14 @@ The seasonal model is specified inside the {\tt f()} function as
 \begin{verbatim}
 n=203
 n.seas=12
-trend=seq(1:n)
-seasonal=rep(1:n.seas, ceiling(n/n.seas))[1:n]
+trend=1:n
+seasonal.sim=rep(1:n.seas, ceiling(n/n.seas))[1:n]
 
 a=1
 b=0.5
-y = rnorm(n,a+b*trend,1)+rnorm(n,0.2*seasonal,1)
+y = rnorm(n,a+b*trend,1)+rnorm(n,0.2*seasonal.sim,1)
 
 data=data.frame(y=y,trend=trend,seasonal=trend)
-
 formula = y~f(trend,model="rw2")+f(seasonal,model="seasonal",
               season.length=n.seas)
 result=inla(formula,family="gaussian",data=data)
