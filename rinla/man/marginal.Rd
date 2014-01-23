@@ -28,6 +28,8 @@
  \alias{inla.tmarginal}
  \alias{inla.mmarginal}
  \alias{mmarginal}
+ \alias{inla.zmarginal}
+ \alias{zmarginal}
  
  \title{Functions which operates on marginals}
  
@@ -41,7 +43,7 @@
  spline smoothing (inla.smarginal), 
  computes expected values (inla.emarginal), 
  computes the mode (inla.mmarginal), 
- and transforms the marginal (inla.tmarginal).
+ transforms the marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
  }
  
  \usage{
@@ -55,6 +57,7 @@
  inla.mmarginal(marginal)
  inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
                 method = c("quantile", "linear"),  ...) 
+ inla.zmarginal(marginal, silent = FALSE)
  }
  \arguments{
  
@@ -102,6 +105,8 @@
                  which is argument \code{n} in \code{spline}}
    
     \item{method}{Which method should be used to layout points for where the transformation is computed.}
+
+    \item{silent}{Output the result visually (TRUE) or just through the call.}
  }
  
  \value{%%
@@ -157,5 +162,7 @@
  
  ## inla.marginal-results (they shouldn't be perfect!)
  print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2]))
+ ## using the buildt-in function
+ inla.zmarginal(m)
  }
  
