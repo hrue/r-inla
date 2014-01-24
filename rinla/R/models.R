@@ -4197,6 +4197,16 @@
                       pdf = "spline"
                       ),
              
+              rho0 = list(
+                      nparameters = 2L,
+                      pdf = "rho0"
+                      ),
+             
+              rho1 = list(
+                      nparameters = 2L,
+                      pdf = "rho1"
+                      ),
+             
               jeffreystdf = list(
                       nparameters = 0L,
                       pdf = "jeffreystdf"

@@ -448,6 +448,8 @@ typedef enum {
 	P_TABLE,
 	P_JEFFREYS_T_DF,
 	P_SPLINE, 
+	P_RHO0,
+	P_RHO1, 
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1,
 	G_RW1,
@@ -1204,6 +1206,8 @@ double priorfunc_logitbeta(double *x, double *parameters);
 double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters);
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_normal(double *x, double *parameters);
+double priorfunc_rho0(double *x, double *parameters);
+double priorfunc_rho1(double *x, double *parameters);
 double priorfunc_sasprior(double *x, double *parameters);
 double priorfunc_spline(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
