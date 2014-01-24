@@ -126,7 +126,7 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
-	log(fabs(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
+	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
@@ -1899,11 +1899,80 @@ double priorfunc_spline(double *x, double *parameters)
 {
 	double u = parameters[0], alpha = parameters[1], theta, val, xx2;
 
-	theta = -log(alpha)/u;
-	xx2 = (*x)/2.0;
-	val = log(theta/2.0) - theta * exp(-xx2) - xx2;
+	theta = -log(alpha) / u;
+	xx2 = (*x) / 2.0;
+	val = log(theta / 2.0) - theta * exp(-xx2) - xx2;
 
 	return val;
+}
+double priorfunc_rho0(double *x, double *parameters)
+{
+	// alpha = Prob(rho > u)
+	int debug = 0;
+	double u = parameters[0], alpha = parameters[1];
+	double rho = map_rho(*x, MAP_FORWARD, NULL);
+	double ldens, lambda, ljac, val, mu;
+
+	mu = sqrt(-log(1.0 - SQR(rho)));
+	lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
+	ldens = log(lambda) - lambda * mu + log(ABS(rho) / (1.0 - SQR(rho))) - log(mu);
+	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
+
+	val = ldens + ljac;
+
+	if (debug) {
+		fprintf(stderr, "mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
+		fprintf(stderr, "theta %g val %g\n",*x,val);
+	}
+
+	return val;
+}
+double priorfunc_rho1(double *x, double *parameters)
+{
+	// alpha = Prob(rho > u)
+	int debug = 0;
+	double u = parameters[0], alpha = parameters[1];
+	double lambda, rho, ljac, ldens, val;
+
+	// solve for lambda
+#define Fsolve(lam) ((exp(-(lam)*sqrt(1.0-u))/(1-exp(-M_SQRT2*(lam)))) - alpha)
+
+	int count = 0, count_max = 10000;
+	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1./3.), eps_lambda = 1e-6, df;
+
+	lambda = 1.0;
+	if (Fsolve(lambda) > 0.0) {
+		while (Fsolve(lambda) > 0.0) {
+			lambda += lambda_step;
+			assert(count++ < count_max);
+		}
+	} else {
+		while (Fsolve(lambda) < 0.0 && lambda >= eps_lambda) {
+			lambda -= lambda_step;
+			assert(count++ < count_max);
+		}
+	}
+		
+	if (debug) {
+		printf("u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
+	}
+	count = 0;
+	while (ABS(lambda - lambda_initial) > eps_lambda) {
+		lambda_initial = lambda;
+		df = (Fsolve(lambda_initial + h) - Fsolve(lambda_initial - h)) / (2.0 * h);
+		lambda = lambda_initial - Fsolve(lambda) / df;
+		if (debug) {
+			printf("iteration=%d lambda=%g\n", count, lambda);
+		}
+		assert(count++ < count_max);
+	}
+#undef Fsolve
+	rho = map_rho(*x, MAP_FORWARD, NULL);
+	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
+	ldens = log(lambda) - lambda * sqrt(1.0 - rho) - log(1.0 - exp(-M_SQRT2 * lambda)) - log(2.0 * sqrt(1.0 - rho));
+	val = ldens + ljac;
+
+	return (val);
 }
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
 {
@@ -2004,7 +2073,7 @@ double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters)
 
 	val = priorfunc_normal(&sd, parameters) - log(gsl_cdf_gaussian_Q(-parameters[0], 1.0 / sqrt(parameters[1]))) +
 	    // log(Jacobian)
-	    log(fabs(-0.5 * sd));
+	    log(ABS(-0.5 * sd));
 
 	return val;
 }
@@ -2874,7 +2943,7 @@ double inla_Phi(double x)
 	/*
 	 * the un-log version of inla_log_Phi 
 	 */
-	if (fabs(x) < 7.0) {
+	if (ABS(x) < 7.0) {
 		return gsl_cdf_ugaussian_P(x);
 	} else {
 		return exp(inla_log_Phi(x));
@@ -2884,12 +2953,12 @@ double inla_log_Phi(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
 	// This version is ok for all x but kept constant for for |x| > 25.
-	if (fabs(x) < 7.0) {
+	if (ABS(x) < 7.0) {
 		return (log(gsl_cdf_ugaussian_P(x)));
 	} else {
 		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
 
-		if (fabs(x) < 25.0) {
+		if (ABS(x) < 25.0) {
 			t1 = 1.77245385090551602729816748334;
 			t3 = M_SQRT2;
 			t4 = t3 / t1;
@@ -2996,7 +3065,7 @@ int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_ve
 				a = alpha;
 			} else {
 				a = 1.0 - alpha;
-				u = fabs(u);
+				u = ABS(u);
 			}
 			logll[i] = lnc - tau / ggamma * (-M_LN2 + ggamma * a * u + log(1.0 + exp(-2.0 * ggamma * a * u))) - 0.5 * tau * epsilon * SQR(a * u);
 		}
@@ -6520,6 +6589,38 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "RHO0")) {
+		prior->id = P_RHO0;
+		prior->priorfunc = priorfunc_rho0;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0.5;	       /* u */
+			prior->parameters[1] = 0.5;	       /* alpha */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
+	} else if (!strcasecmp(prior->name, "RHO1")) {
+		prior->id = P_RHO1;
+		prior->priorfunc = priorfunc_rho1;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0.5;	       /* u */
+			prior->parameters[1] = 0.5;	       /* alpha */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
 	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
 		prior->id = P_EXPRESSION;
 		prior->expression = GMRFLib_strdup(prior->name);
@@ -8874,7 +8975,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "SN.SHAPE.MAX"), 5.0);
 		ds->data_observations.shape_max_skew_normal = iniparser_getdouble(ini, inla_string_join(secname, "SNSHAPEMAX"), tmp);
-		ds->data_observations.shape_max_skew_normal = fabs(ds->data_observations.shape_max_skew_normal);
+		ds->data_observations.shape_max_skew_normal = ABS(ds->data_observations.shape_max_skew_normal);
 		if (mb->verbose) {
 			printf("\t\tshape.max[%g]\n", ds->data_observations.shape_max_skew_normal);
 		}
@@ -19464,7 +19565,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 		}
 		x = xnew;
 
-		if (fabs(deriv / dderiv) < eps) {
+		if (ABS(deriv / dderiv) < eps) {
 			break;
 		}
 		if (++niter > niter_max) {
@@ -24101,14 +24202,14 @@ int main(int argc, char **argv)
 #if !defined(WINDOWS)
 			long int pid = (long int) getpid();
 			FILE *fp_pid = fopen(".inla.pid", "w");
-			if (fp_pid){
+			if (fp_pid) {
 				fprintf(fp_pid, "%ld\n", pid);
 				fclose(fp_pid);
 			}
 #endif
 		}
 			break;
-			
+
 		default:
 			USAGE;
 			exit(EXIT_FAILURE);

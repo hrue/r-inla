@@ -1,0 +1,54 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{The rho1 prior}
+
+\subsection*{Parametrization}
+The rho1-prior is a density for a correction $\rho$ with a reference
+in $\rho=1$. The density for $\rho$ is
+\begin{displaymath}
+    \pi(\rho) = \frac{\lambda \exp(-\lambda \mu(\rho))}{%%
+        1-\exp(-\sqrt{2}\lambda)} \; J(\rho)
+\end{displaymath}
+where
+\begin{displaymath}
+    \mu(\rho) = \sqrt{1-\rho}
+\end{displaymath}
+and
+\begin{displaymath}
+    J(\rho) = \frac{1}{2\sqrt{1-\rho}}
+\end{displaymath}
+The parameter $\lambda$ is defined through
+\begin{displaymath}
+    \text{Prob}( \rho > u) = \alpha, \qquad -1 < u < 1, \quad 0<\alpha<1
+\end{displaymath}
+where $(u, \alpha{})$ are the parameters to this prior. The solution
+is implicite
+\begin{displaymath}
+    \frac{\exp(-\lambda \sqrt{1-u})}{1-\exp(-\sqrt{2}\lambda)} = \alpha
+\end{displaymath}
+
+\subsection*{Specification}
+The spline prior for the hyperparameters is specified inside the
+{\tt f()} function as 
+\begin{center}
+    {\tt f(<whatever>, hyper = list(<theta> =
+        list(prior="rho1", param=c(<u>,<alpha>))))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+This prior is experimental and for internal use only
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
