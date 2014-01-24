@@ -1921,8 +1921,8 @@ double priorfunc_rho0(double *x, double *parameters)
 	val = ldens + ljac;
 
 	if (debug) {
-		fprintf(stderr, "mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "theta %g val %g\n",*x,val);
+		fprintf(stderr, "priorfunc_rho0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
+		fprintf(stderr, "priorfunc_rho0: theta %g val %g\n",*x,val);
 	}
 
 	return val;
@@ -1932,13 +1932,13 @@ double priorfunc_rho1(double *x, double *parameters)
 	// alpha = Prob(rho > u)
 	int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
-	double lambda, rho, ljac, ldens, val;
+	double lambda, rho, ljac, ldens, val, mu;
 
 	// solve for lambda
-#define Fsolve(lam) ((exp(-(lam)*sqrt(1.0-u))/(1-exp(-M_SQRT2*(lam)))) - alpha)
+#define Fsolve(_lam) ((exp(-(_lam)*sqrt(1.0-u))/(1-exp(-M_SQRT2*(_lam)))) - alpha)
 
 	int count = 0, count_max = 10000;
-	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1./3.), eps_lambda = 1e-6, df;
+	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1./3.), eps_lambda = GMRFLib_eps(0.5), df;
 
 	lambda = 1.0;
 	if (Fsolve(lambda) > 0.0) {
@@ -1954,22 +1954,24 @@ double priorfunc_rho1(double *x, double *parameters)
 	}
 		
 	if (debug) {
-		printf("u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
+		printf("priorfunc_rho1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
 	}
+
 	count = 0;
 	while (ABS(lambda - lambda_initial) > eps_lambda) {
 		lambda_initial = lambda;
 		df = (Fsolve(lambda_initial + h) - Fsolve(lambda_initial - h)) / (2.0 * h);
 		lambda = lambda_initial - Fsolve(lambda) / df;
 		if (debug) {
-			printf("iteration=%d lambda=%g\n", count, lambda);
+			printf("priorfunc_rho1: iteration=%d lambda=%g\n", count, lambda);
 		}
 		assert(count++ < count_max);
 	}
 #undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
+	mu = sqrt(1.0 - rho);
+	ldens = log(lambda) - lambda * mu - log(1.0 - exp(-M_SQRT2 * lambda)) - log(2.0 * mu);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
-	ldens = log(lambda) - lambda * sqrt(1.0 - rho) - log(1.0 - exp(-M_SQRT2 * lambda)) - log(2.0 * sqrt(1.0 - rho));
 	val = ldens + ljac;
 
 	return (val);
