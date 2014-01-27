@@ -17,7 +17,12 @@ for $x>0$ where
 \begin{displaymath}
     \theta = -\frac{\ln(\alpha)}{u}
 \end{displaymath}
-and $(u, \alpha{})$ are the parameters to this prior. 
+and $(u, \alpha{})$ are the parameters to this prior. The
+interpretation of $(u,\alpha)$ is that
+\begin{displaymath}
+    \text{Prob}(\sigma > u) = \alpha
+\end{displaymath}
+where $\sigma = \exp(-x/2)$, as $x$ is normally the log-precision.
 
 \subsection*{Specification}
 The spline prior for the hyperparameters is specified inside the
