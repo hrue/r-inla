@@ -223,8 +223,8 @@
         keep = inla.getOption("keep"),
         
         ##!\item{working.directory}{ A string giving the name
-        ##!of an alternative directory where to store the
-        ##!working files }
+        ##!of an non-existing directory where to store the
+        ##!working files.}
         working.directory = inla.getOption("working.directory"),
         
         ##!\item{silent}{If equal to 1L or TRUE, then the
@@ -889,12 +889,16 @@
             ans=file.exists(working.directory)
         }
         inla.dir=working.directory
-        ## if several inla()'s are run in parallel, we might have a
-        ## conflict. if so, create a random name
-        if (file.exists(inla.dir)) {
+        tmp = inla.dir.create(inla.dir, StopOnError = FALSE) ## return NULL if fail
+        if (is.null(tmp)) {
+            ## this is the failsafe-option
             inla.dir = paste(inla.dir, "-", substring(as.character(runif(1)), 3), sep="")
+            tmp = inla.dir.create(inla.dir, StopOnError = FALSE)
+            if (is.null(tmp)) {
+                stop(paste("Cannot create directory [", inla.dir,
+                           "] even after trying a random dirname. I give up.", sep=""))
+            }
         }
-        inla.dir.create(inla.dir)
         cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
     } else {
         ##create a temporary directory
