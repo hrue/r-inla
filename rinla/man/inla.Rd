@@ -162,8 +162,8 @@ files) should be kept. If TRUE and no
 \code{working.directory} is specified the working
 files are stored in a directory called "inla".  }
 \item{working.directory}{ A string giving the name
-of an alternative directory where to store the
-working files }
+of an non-existing directory where to store the
+working files.}
 \item{silent}{If equal to 1L or TRUE, then the
 \code{inla}-program would be ``silent''. If equal to
 2L, then supress also error messages from the
