@@ -23,14 +23,20 @@ and
 \end{displaymath}
 The parameter $\lambda$ is defined through
 \begin{displaymath}
-    \text{Prob}( \rho > u) = \alpha, \qquad -1 < u < 1, \quad 0<\alpha<1
+    \text{Prob}( \rho > u) = \alpha, \qquad -1 < u < 1, \quad
+    \sqrt{\frac{1-u}{2}} <\alpha<1
 \end{displaymath}
 where $(u, \alpha{})$ are the parameters to this prior. The solution
 is implicite
 \begin{displaymath}
     \frac{\exp(-\lambda \sqrt{1-u})}{1-\exp(-\sqrt{2}\lambda)} = \alpha
 \end{displaymath}
-
+which explains why we have have
+\begin{displaymath}
+    \alpha > \mu(u)/\sqrt{2} = \sqrt{\frac{1-u}{2}}
+\end{displaymath}
+for a solution to exists with $\lambda > 0$. 
+So for $u=1/2$ then $\alpha > 1/2$.
 \subsection*{Specification}
 The spline prior for the hyperparameters is specified inside the
 {\tt f()} function as 
