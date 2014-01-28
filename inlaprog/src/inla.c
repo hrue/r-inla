@@ -1935,10 +1935,17 @@ double priorfunc_rho1(double *x, double *parameters)
 	double lambda, rho, ljac, ldens, val, mu;
 
 	// solve for lambda
-#define Fsolve(_lam) ((exp(-(_lam)*sqrt(1.0-u))/(1-exp(-M_SQRT2*(_lam)))) - alpha)
+#define Fsolve(_lam) ((exp(-(_lam)*sqrt(1.0-u))/(1.0-exp(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 10000;
 	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1./3.), eps_lambda = GMRFLib_eps(0.5), df;
+
+	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u)/2.0) && alpha < 1.0)) {
+		char *msg;
+		GMRFLib_sprintf(&msg, "Wrong rho1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
+		inla_error_general(msg);
+		exit(1);
+	}
 
 	lambda = 1.0;
 	if (Fsolve(lambda) > 0.0) {
@@ -1970,7 +1977,7 @@ double priorfunc_rho1(double *x, double *parameters)
 #undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
 	mu = sqrt(1.0 - rho);
-	ldens = log(lambda) - lambda * mu - log(1.0 - exp(-M_SQRT2 * lambda)) - log(2.0 * mu);
+	ldens = log(lambda) - lambda * mu - log(1.0 - exp(-lambda * M_SQRT2)) - log(2.0 * mu);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
 	val = ldens + ljac;
 
