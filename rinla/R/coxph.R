@@ -157,6 +157,9 @@
             ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
             ", values = baseline.hazard.values", 
             ", hyper = ", enquote(cont.hazard$hyper),
+            ", scale.model = ", inla.ifelse(is.null(cont.hazard$scale.model),
+                                            inla.getOption("scale.model.default"),
+                                            cont.hazard$scale.model), 
             ", constr = ", cont.hazard$constr,
             inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
             ")", sep="")[2L]
