@@ -594,8 +594,8 @@
          ##:ARGUMENT: strata.name The name of the stratefication variable for the baseline hazard in the data.frame
          strata.name = NULL,
 
-         ##:ARGUMENT: si A boolean variable; should all the Gaussian approximations configurations be written to files?
-         si = FALSE)
+        ##:ARGUMENT: scale.model Scale the baseline hazard model (RW1, RW2) so the generalized variance is 1. (Default \code{inla.getOption("scale.model.default")}.)
+        scale.model = NULL)
     ##:SEEALSO: inla
 }
 
