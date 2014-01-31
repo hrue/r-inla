@@ -1922,7 +1922,7 @@ double priorfunc_rho0(double *x, double *parameters)
 
 	if (debug) {
 		fprintf(stderr, "priorfunc_rho0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "priorfunc_rho0: theta %g val %g\n",*x,val);
+		fprintf(stderr, "priorfunc_rho0: theta %g val %g\n", *x, val);
 	}
 
 	return val;
@@ -1938,9 +1938,9 @@ double priorfunc_rho1(double *x, double *parameters)
 #define Fsolve(_lam) ((exp(-(_lam)*sqrt(1.0-u))/(1.0-exp(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 10000;
-	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1./3.), eps_lambda = GMRFLib_eps(0.5), df;
+	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
 
-	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u)/2.0) && alpha < 1.0)) {
+	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Wrong rho1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
 		inla_error_general(msg);
@@ -1959,7 +1959,7 @@ double priorfunc_rho1(double *x, double *parameters)
 			assert(count++ < count_max);
 		}
 	}
-		
+
 	if (debug) {
 		printf("priorfunc_rho1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
 	}
@@ -14860,7 +14860,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			GMRFLib_besag_scale(arg, adj);
+			inla_besag_scale(arg, adj);
 		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
@@ -14890,7 +14890,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
 			besag_arg->graph = arg->graph;
-			GMRFLib_besag_scale(besag_arg, adj);
+			inla_besag_scale(besag_arg, adj);
 			arg->prec_scale = besag_arg->prec_scale;	/* yes, steal that pointer */
 			Free(besag_arg);
 		}
@@ -14937,7 +14937,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			GMRFLib_besag_scale(arg->besag_arg, adj);
+			inla_besag_scale(arg->besag_arg, adj);
 		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
@@ -14981,7 +14981,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
 		assert(std == 1);			       /* this has to be true for this model */
 
-		GMRFLib_besag_scale(arg->besag_arg, adj);
+		inla_besag_scale(arg->besag_arg, adj);
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
@@ -16237,7 +16237,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				def->besagdef = Calloc(1, inla_besag_Qfunc_arg_tp);
 				def->besagdef->graph = mb->f_group_graph[mb->nf];
 				if (std) {
-					GMRFLib_besag_scale((void *) def->besagdef, adj);
+					inla_besag_scale((void *) def->besagdef, adj);
 				}
 				if (mb->verbose) {
 					printf("\t\tgroup.scale.model[%1d]\n", std);
@@ -23616,7 +23616,7 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 	return INLA_OK;
 }
 
-int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
+int inla_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 {
 	/*
 	 * OLD version: SLOW
@@ -23665,7 +23665,7 @@ int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 {
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
 	inla_besag_Qfunc_arg_tp *odef = arg;
@@ -23689,7 +23689,27 @@ int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_make_empty_constr(&constr);
 
-	constr->nc = 1 + GMRFLib_imax_value(cc, def->graph->n, NULL);
+	int ncc = 1 + GMRFLib_imax_value(cc, def->graph->n, NULL);	/* number of the connected components */
+	int *c_cc = Calloc(ncc, int);			       /* the number of nodes in each group */
+
+	// check that we have at least two in each group
+	for (i = 0; i < n; i++) {
+		c_cc[cc[i]]++;
+	}
+	for (j = 0; j < ncc; j++) {
+		assert(c_cc[j] > 0);			       /* this should not happend */
+		if (c_cc[j] == 1) {
+			char *msg;
+			GMRFLib_sprintf(&msg,
+					"One of the %1d connected components in the graph for the Besag model, has only 1 element; fail to apply scale.model=TRUE",
+					ncc);
+			inla_error_general(msg);
+			exit(1);
+		}
+	}
+	Free(c_cc);
+
+	constr->nc = ncc;
 	constr->a_matrix = Calloc(n * constr->nc, double);
 	for (i = 0; i < n; i++) {
 		j = cc[i];
