@@ -447,9 +447,9 @@ typedef enum {
 	P_EXPRESSION,
 	P_TABLE,
 	P_JEFFREYS_T_DF,
-	P_SPLINE, 
+	P_SPLINE,
 	P_RHO0,
-	P_RHO1, 
+	P_RHO1,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1,
 	G_RW1,
@@ -1223,8 +1223,8 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
-int GMRFLib_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
-int GMRFLib_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg);
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
+int inla_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg);
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
