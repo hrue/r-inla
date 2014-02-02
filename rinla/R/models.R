@@ -4117,116 +4117,121 @@
     return
     list(prior =
          list(
-              normal = list(
-                      nparameters = 2L,
-                      pdf = "gaussian"
-                      ),
-              gaussian = list(
-                      nparameters = 2L,
-                      pdf = "gaussian"
-                      ),
-              wishart1d = list(
-                      nparameters = 2L,
-                      pdf = "iid123d"
-                      ),
-              wishart2d = list(
-                      nparameters = 4L,
-                      pdf = "iid123d"
-                      ),
-              wishart3d = list(
-                      nparameters = 7L,
-                      pdf = "iid123d"
-                      ),
-              wishart4d = list(
-                      nparameters = 11L,
-                      pdf = "iid123d"
-                      ),
-              wishart5d = list(
-                      nparameters = 16L,
-                      pdf = "iid123d"
-                      ),
-              loggamma = list(
-                      nparameters = 2L,
-                      pdf = "prior-loggamma"
-                      ),
-              minuslogsqrtruncnormal = list(
-                      nparameters = 2L,
-                      pdf = "prior-logtnorm"
-                      ),
-              logtnormal = list(
-                      nparameters = 2L,
-                      pdf = "prior-logtnorm"
-                      ),
-              logtgaussian = list(
-                      nparameters = 2L,
-                      pdf = "prior-logtnorm"
-                      ),
-              flat=list(
-                      nparameters = 0L,
-                      pdf = "various-flat"
-                      ),
-              logflat=list(
-                      nparameters = 0L,
-                      pdf = "various-flat"
-                      ),
-              logiflat=list(
-                      nparameters = 0L,
-                      pdf = "various-flat"
-                      ),
+             normal = list(
+                     nparameters = 2L,
+                     pdf = "gaussian"
+                     ),
+             gaussian = list(
+                     nparameters = 2L,
+                     pdf = "gaussian"
+                     ),
+             wishart1d = list(
+                     nparameters = 2L,
+                     pdf = "iid123d"
+                     ),
+             wishart2d = list(
+                     nparameters = 4L,
+                     pdf = "iid123d"
+                     ),
+             wishart3d = list(
+                     nparameters = 7L,
+                     pdf = "iid123d"
+                     ),
+             wishart4d = list(
+                     nparameters = 11L,
+                     pdf = "iid123d"
+                     ),
+             wishart5d = list(
+                     nparameters = 16L,
+                     pdf = "iid123d"
+                     ),
+             loggamma = list(
+                     nparameters = 2L,
+                     pdf = "prior-loggamma"
+                     ),
+             minuslogsqrtruncnormal = list(
+                     nparameters = 2L,
+                     pdf = "prior-logtnorm"
+                     ),
+             logtnormal = list(
+                     nparameters = 2L,
+                     pdf = "prior-logtnorm"
+                     ),
+             logtgaussian = list(
+                     nparameters = 2L,
+                     pdf = "prior-logtnorm"
+                     ),
+             flat=list(
+                     nparameters = 0L,
+                     pdf = "various-flat"
+                     ),
+             logflat=list(
+                     nparameters = 0L,
+                     pdf = "various-flat"
+                     ),
+             logiflat=list(
+                     nparameters = 0L,
+                     pdf = "various-flat"
+                     ),
 
-              mvnorm = list(
-                      nparameters = -1L,
-                      pdf = "mvnorm"
-                      ),
+             mvnorm = list(
+                     nparameters = -1L,
+                     pdf = "mvnorm"
+                     ),
 
-              ## this is the 'no prior needed' prior
-              none = list(nparameters = 0L),
+             ## this is the 'no prior needed' prior
+             none = list(nparameters = 0L),
 
-              betacorrelation = list(
-                      nparameters = 2L,
-                      pdf = "betacorrelation"
-                      ),
+             betacorrelation = list(
+                     nparameters = 2L,
+                     pdf = "betacorrelation"
+                     ),
 
-              logitbeta = list(
-                      nparameters = 2L,
-                      pdf = "logitbeta"
-                      ),
+             logitbeta = list(
+                     nparameters = 2L,
+                     pdf = "logitbeta"
+                     ),
 
-              spline = list(
-                      nparameters = 2L,
-                      pdf = "spline"
-                      ),
+             spline = list(
+                     nparameters = 2L,
+                     pdf = "spline"
+                     ),
              
-              rho0 = list(
-                      nparameters = 2L,
-                      pdf = "rho0"
-                      ),
+             dof = list(
+                     nparameters = 2L,
+                     pdf = "dof"
+                     ),
              
-              rho1 = list(
-                      nparameters = 2L,
-                      pdf = "rho1"
-                      ),
+             rho0 = list(
+                     nparameters = 2L,
+                     pdf = "rho0"
+                     ),
              
-              jeffreystdf = list(
-                      nparameters = 0L,
-                      pdf = "jeffreystdf"
-                      ),
+             rho1 = list(
+                     nparameters = 2L,
+                     pdf = "rho1"
+                     ),
+             
+             jeffreystdf = list(
+                     nparameters = 0L,
+                     pdf = "jeffreystdf"
+                     ),
 
-              sasprior = list(
-                      nparameters = 1L,
-                      pdf = "sasprior"
-                      ), 
+             sasprior = list(
+                     nparameters = 1L,
+                     pdf = "sasprior"
+                     ), 
 
-              "expression:" = list(
-                  nparameters = -1L,
-                  pdf = "expression"
-                  ), 
+             "expression:" = list(
+                     nparameters = -1L,
+                     pdf = "expression"
+                     ), 
 
-              "table:" = list(
-                  nparameters = -1L,
-                  pdf = "table"
-                  )
-              )
+             "table:" = list(
+                     nparameters = -1L,
+                     pdf = "table"
+                     )
+             )
          )
 }
 

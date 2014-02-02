@@ -1,7 +1,7 @@
 
-/* interpol.h
+/* dbp.h
  * 
- * Copyright (C) 2011 Havard Rue
+ * Copyright (C) 2014 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
  *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
  *
  */
-#ifndef __INLA_INTERPOL_H__
-#define __INLA_INTERPOL_H__
+#ifndef __INLA_DBP_H__
+#define __INLA_DBP_H__
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -43,13 +43,12 @@ __BEGIN_DECLS
 /* 
  *
  */
+    GMRFLib_spline_tp * inla_dbp_dof_create_spline(void);
+double inla_dbp_dof_dof(double d);
+double inla_dbp_dof_kld_approx(double dof);
+double inla_dbp_dof_d(double dof);
 
-GMRFLib_spline_tp * inla_spline_create(double *x, double *y, int n);
-GMRFLib_spline_tp *inla_spline_create_from_matrix(GMRFLib_matrix_tp *M);
-double inla_spline_eval(double x, GMRFLib_spline_tp * s);
-double inla_spline_eval_deriv(double x, GMRFLib_spline_tp * s);
-double inla_spline_eval_deriv2(double x, GMRFLib_spline_tp * s);
-int inla_spline_free(GMRFLib_spline_tp * s);
+
 
 __END_DECLS
 #endif

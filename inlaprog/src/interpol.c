@@ -1,4 +1,3 @@
-
 /* interpol.c
  * 
  * Copyright (C) 2011 Havard Rue
@@ -94,6 +93,40 @@ double inla_spline_eval(double x, GMRFLib_spline_tp * s)
 		val = NAN;
 	} else {
 		val = gsl_spline_eval(s->spline, x, s->accel);
+	}
+
+	return val;
+}
+
+double inla_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
+{
+	/*
+	 * Evaluate the derivative of the spline 's' in point 'x' 
+	 */
+
+	double val;
+
+	if (x < s->xmin || x > s->xmax) {
+		val = NAN;
+	} else {
+		val = gsl_spline_eval_deriv(s->spline, x, s->accel);
+	}
+
+	return val;
+}
+
+double inla_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
+{
+	/*
+	 * Evaluate the 2.derivative of the spline 's' in point 'x' 
+	 */
+
+	double val;
+
+	if (x < s->xmin || x > s->xmax) {
+		val = NAN;
+	} else {
+		val = gsl_spline_eval_deriv2(s->spline, x, s->accel);
 	}
 
 	return val;
