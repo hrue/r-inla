@@ -5105,6 +5105,8 @@ inla.models()
 				 }
 				\item{Model `spline'.}{					 Number of parameters in the prior = 2 
 				 }
+				\item{Model `dof'.}{					 Number of parameters in the prior = 2 
+				 }
 				\item{Model `rho0'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `rho1'.}{					 Number of parameters in the prior = 2 

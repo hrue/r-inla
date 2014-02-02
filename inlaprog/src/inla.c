@@ -87,6 +87,7 @@ static const char RCSId[] = HGVERSION;
 #include "interpol.h"
 #include "re.h"
 #include "ar.h"
+#include "dbp.h"
 
 #define PREVIEW (20)
 #define MODEFILENAME ".inla-mode"
@@ -1883,6 +1884,38 @@ double Qfunc_ou(int i, int j, void *arg)
 	}
 	abort();
 	return 0.0;
+}
+double priorfunc_dbp_dof(double *x, double *parameters)
+{
+	double u = parameters[0], alpha = parameters[1], lambda, dof, val, deriv;
+	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+	double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
+	double step = dof * 1e-3, xa[5], f[5];		       /* step-size is found empirically */
+	int k;
+
+	dof = map_dof(*x, MAP_FORWARD, NULL);
+	lambda = -log(alpha) / inla_dbp_dof_d(u);
+
+	// be somewhat careful evaluating the derivative
+	xa[0] = dof - 2.0 * step;
+	xa[1] = dof - step;
+	xa[2] = dof;
+	xa[3] = dof + step;
+	xa[4] = dof + 2.0 * step;
+	for (k = 0; k < sizeof(xa) / sizeof(double); k++) {
+		f[k] = inla_dbp_dof_d(xa[k]);
+	}
+	deriv = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
+	val = log(lambda) - lambda * xa[2] + log(ABS(deriv)) + log(ABS(map_dof(*x, MAP_DFORWARD, NULL)));
+
+	if (0) {
+		P(dof);
+		P(xa[2]);
+		P(lambda);
+		P(val);
+	}
+
+	return val;
 }
 double priorfunc_sasprior(double *x, double *parameters)
 {
@@ -6578,6 +6611,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			prior->parameters = Calloc(2, double);
 			prior->parameters[0] = 0.1;	       /* u */
 			prior->parameters[1] = 0.001;	       /* alpha */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
+	} else if (!strcasecmp(prior->name, "DOF")) {
+		prior->id = P_DOF;
+		prior->priorfunc = priorfunc_dbp_dof;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double); /* Prob(dof < u) = alpha */
+			prior->parameters[0] = 10.0;	       /* u */
+			prior->parameters[1] = 0.5;	       /* alpha */
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
