@@ -1887,35 +1887,41 @@ double Qfunc_ou(int i, int j, void *arg)
 }
 double priorfunc_dbp_dof(double *x, double *parameters)
 {
+#define NP 5
+	int k, debug=0;
 	double u = parameters[0], alpha = parameters[1], lambda, dof, val, deriv;
 	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
-	double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
-	double step = dof * 1e-3, xa[5], f[5];		       /* step-size is found empirically */
-	int k;
+	double step, dofs[NP], f[NP];
 
 	dof = map_dof(*x, MAP_FORWARD, NULL);
 	lambda = -log(alpha) / inla_dbp_dof_d(u);
-
 	// be somewhat careful evaluating the derivative
-	xa[0] = dof - 2.0 * step;
-	xa[1] = dof - step;
-	xa[2] = dof;
-	xa[3] = dof + step;
-	xa[4] = dof + 2.0 * step;
-	for (k = 0; k < sizeof(xa) / sizeof(double); k++) {
-		f[k] = inla_dbp_dof_d(xa[k]);
+	step = sqrt(dof) * 1e-3;			       /* step-size is found empirically */
+	if (dof - 2.0 * step < 2.003){			       /* if we're to close to the lower limit */
+		step = (dof - 2.003)/2.0;
+	}
+	
+	dofs[0] = dof - 2.0 * step;
+	dofs[1] = dof - step;
+	dofs[2] = dof;
+	dofs[3] = dof + step;
+	dofs[4] = dof + 2.0 * step;
+	for (k = 0; k < NP; k++) {
+		f[k] = inla_dbp_dof_d(dofs[k]);
 	}
 	deriv = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
-	val = log(lambda) - lambda * xa[2] + log(ABS(deriv)) + log(ABS(map_dof(*x, MAP_DFORWARD, NULL)));
-
-	if (0) {
+	val = log(lambda) - lambda * f[2] + log(ABS(deriv)) + log(ABS(map_dof(*x, MAP_DFORWARD, NULL)));
+	
+	if (debug) {
 		P(dof);
-		P(xa[2]);
+		P(f[2]);
+		P(deriv);
 		P(lambda);
 		P(val);
 	}
-
+	
 	return val;
+#undef NP
 }
 double priorfunc_sasprior(double *x, double *parameters)
 {
