@@ -36,6 +36,7 @@ static const char RCSId[] = HGVERSION;
 
 #include "interpol.h"
 #include "dbp.h"
+#include "inla.h"
 
 
 
@@ -81,6 +82,12 @@ double inla_dbp_dof_d(double dof)
 		kld = inla_spline_eval(dof, spline);
 	} else {
 		kld = inla_dbp_dof_kld_approx(dof);
+	}
+
+	if (ISNAN(kld)) {
+		char *msg;
+		GMRFLib_sprintf(&msg, "inla_dbp_dof_d: return NAN with dof = %.12f\n", dof);
+		inla_error_general(msg);
 	}
 
 	return sqrt(2.0 * kld);
