@@ -525,7 +525,7 @@
                 ## these should be expanded as well???  Will give an error...
                 offset= offset,
                 scale = scale,
-                weights = weights, 
+                weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
                 ## 
                 Ntrials = NULL,         # Not used for the poisson
                 strata = NULL,          # Not used for the poisson
