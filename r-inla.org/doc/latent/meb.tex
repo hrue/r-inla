@@ -13,10 +13,12 @@ This is an implementation of the Berksom measurement error model for a
 fixed effect. The observed covariate is $w$ but it is $x$
 that goes into the linear predictor
 \begin{displaymath}
-    \eta = \ldots + \beta x + \ldots \ ,
+\eta = \ldots + \beta x + \ldots \ ,
 \end{displaymath}
-where $x = w + u$, $u$ is Gaussian with precision $\tau_u\times s$,
- and $s$ is a vector of fixed scalings. 
+where $x = w + u$. The error term $u$ is Gaussian with prior $\mathcal{N}(0, \tau_u\mathbf{D})$\footnote{Note:
+The second argument in ${\mathcal N}(,)$ is the precision not the
+variance.}, where $\tau_u$ is the observational precision of the error $\text{Prec}(u|x)$) with possible heteroscedasticy, encoded in the entries $d_i$ of the diagonal matrix $\mathbf{D}$. The vector $s$ contains the fixed scalings $s=(d_1,\ldots,d_n)$ (with $n$ the number of data points).
+
 
 
 \subsection*{Hyperparameters}
@@ -24,11 +26,11 @@ where $x = w + u$, $u$ is Gaussian with precision $\tau_u\times s$,
 This model has 2 hyperparameters, $\theta = (\theta_{1}, \theta_{2})$.
 The hyperparameter specification is as follows:
 \begin{displaymath}
-    \theta_{1} = \beta
+\theta_{1} = \beta
 \end{displaymath}
 and the prior is defined on $\theta_{1}$,
 \begin{displaymath}
-    \theta_{2} = \log(\tau_u)
+\theta_{2} = \log(\tau_u)
 \end{displaymath}
 and the prior is defined on $\theta_{2}$.
 
@@ -37,7 +39,7 @@ and the prior is defined on $\theta_{2}$.
 The MEB is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(w, [<weights>,] model="meb", hyper = <hyper>, scale = <s>)
+f(w, [<weights>,] model="meb", scale = <s>, values= <w>, hyper = <hyper>)
 \end{verbatim}
 Here, \texttt{w} are the observed covariates, and the fixed scaling of
 the observational precision is given in argument \texttt{scale}. If
@@ -45,7 +47,7 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 
 Note that only the unique values of \texttt{w} are used, so if two or
 more elements of \texttt{w} are \emph{identical}, then they refer to
-the \emph{same} element in the covariate $x$.
+the \emph{same} element in the covariate $x$. If data points with identical $w$ values belong to different $x$ values (e.g., different individuals), please add a \emph{tiny} random value to $w$ to make this difference obvious to the model.
 
 
 \subsubsection*{Hyperparameter specification and default values}
@@ -58,14 +60,14 @@ the \emph{same} element in the covariate $x$.
 \subsection*{Notes}
 
 \begin{itemize}
-\item \texttt{INLA} provide the posterior of $\nu=\beta x$ and NOT
-    $x$.  The results comes (default) in the order given by the sorted
-    (from low to high) values of \texttt{x} and the field \texttt{ID}
-    gives the mapping.
+\item \texttt{INLA} provides the posteriors of $\nu_i=\beta x_i$ and NOT $x_i$.
+\item The posteriors of $\nu_i$ come (default) in the order given by the sorted
+(from low to high) values of \texttt{w}. The entry \verb|$ID|
+gives the mapping.
 \item The option \verb|scale| defines the scaling in the same order as
-    argument \verb|values|.  It is therefore adviced to also give
-    argument \verb|values| when \verb|scale| is used to be sure that
-    they are consistent.
+argument \verb|values|. It is therefore adviced to also give
+argument \verb|values| when \verb|scale| is used to be sure that
+they are consistent.
 \end{itemize}
 
 
@@ -73,7 +75,6 @@ the \emph{same} element in the covariate $x$.
 
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% TeX-master: t
-%%% End: 
-
+%%% End:
