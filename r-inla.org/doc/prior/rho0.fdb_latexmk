@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1390551588 "rho0.tex" "rho0.pdf" "rho0" 1391340339
+["pdflatex"] 1390551588 "rho0.tex" "rho0.pdf" "rho0" 1391707275
   "/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1386728452 1233247 084abc04491bbaddf9df11bd94b261bd ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
@@ -37,6 +37,6 @@
   "rho0.aux" 1390551588 8 a94a2480d3289e625eea47cd1b285758 ""
   "rho0.tex" 1390550447 1345 ba7f379f666955f57783820e094d6486 ""
   (generated)
+  "rho0.aux"
   "rho0.pdf"
   "rho0.log"
-  "rho0.aux"
