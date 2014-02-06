@@ -1379,6 +1379,15 @@
 
                 if (!is.null(gp$random.spec[[r]]$values)) {
 
+                    ## in any case they must be unique:
+                    if (length(gp$random.spec[[r]]$values) != length(unique(gp$random.spec[[r]]$values))) {
+                        stop(paste("The 'values' given in f(",
+                                   gp$random.spec[[r]]$term, ",..., values=...) are not unique:\n",
+                                   "    length(values)=", length(gp$random.spec[[r]]$values),
+                                   " but length(unique(values))=", length(unique(gp$random.spec[[r]]$values)), 
+                                   sep=""))
+                    }
+
                     ## values are given. then either both must be numeric or a factor,  or factor x character
 
                     if (is.numeric(xx) && is.numeric(gp$random.spec[[r]]$values)) {
