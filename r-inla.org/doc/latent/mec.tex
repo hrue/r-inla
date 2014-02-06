@@ -10,28 +10,27 @@
 \subsection*{Parametrization}
 
 This is an implementation of the classical ME model for a fixed
-effect. It is best described by an example, let  the model be
+effect. It is best described by an example, let the model be
 \begin{displaymath}
-    y = \beta x + \epsilon{}
+\eta = \beta x + \epsilon{}
 \end{displaymath}
-where $y$ is the response, $\beta$ the effect of the true covariate
+where $\eta$ is the linear predictor, $\beta$ the effect of the true covariate
 $x$ with zero mean Gaussian noise $\epsilon$. The issue is that $x$ is
 not observed directly, but only through $w$, where
 \begin{displaymath}
-    w = x + u
+w = x + u
 \end{displaymath}
 where $u$ is zero mean Gaussian noise. Even though this setup is
 possible to implement using basic features ("copy" and multiple
-likelihoods), we provide the following model which replaces the above,
+likelihoods), we provide the following model which reparametrizes the above,
 \begin{displaymath}
-    y = \nu + \epsilon{}
+\eta = \nu + \epsilon{}
 \end{displaymath}
 where $\nu=\beta x$ has the correct distribution depending on various parameters:
-$\beta$ has prior $\pi(\beta)$, $x$ is apriori ${\mathcal N}(\mu_{x}
-{I}, \tau_{x} {I})$, and $s\times\tau_u$ is the observation
-precision for $x$ (i.e., $\text{Prec}(u|x)$).\footnote{Note:
-    The second argument in ${\mathcal N}(,)$ is the precision not the
-    variance.} Here, $s$ is a vector of fixed scalings.
+$\beta$ has prior $\pi(\beta)$, and $x$ is apriori ${\mathcal N}(\mu_{x}
+{I}, \tau_{x} {I})$\footnote{Note:
+The second argument in ${\mathcal N}(,)$ is the precision not the
+variance.}. The error is apriori $u\sim\mathcal{N}(0,\tau_u \mathbf{D})$, where $\tau_u$ is the observational precision of the error $\text{Prec}(u|x)$) with possible heteroscedasticy, encoded in the entries $d_i$ of the diagonal matrix $\mathbf{D}$. The vector $s$ contains the fixed scalings $s=(d_1,\ldots,d_n)$ (with $n$ the number of data points).
 
 
 
@@ -47,19 +46,19 @@ ME model, please use the appropriate choices for
 
 The hyperparameter specification is as follows:
 \begin{displaymath}
-    \theta_{1} = \beta
+\theta_{1} = \beta
 \end{displaymath}
 and the prior is defined on $\theta_{1}$,
 \begin{displaymath}
-    \theta_{2} = \log(\tau_u)
+\theta_{2} = \log(\tau_u)
 \end{displaymath}
 and the prior is defined on $\theta_{2}$,
 \begin{displaymath}
-    \theta_{3} = \mu_{x}
+\theta_{3} = \mu_{x}
 \end{displaymath}
 and the prior is defined on $\theta_{3}$,
 \begin{displaymath}
-    \theta_{4} = \log(\tau_{\text{x}})
+\theta_{4} = \log(\tau_{\text{x}})
 \end{displaymath}
 and the prior is defined on $\theta_{4}$.
 
@@ -69,13 +68,15 @@ and the prior is defined on $\theta_{4}$.
 The MEC is specified inside the {\tt f()}
 function as
 \begin{verbatim}
- f(w, [<weights>,] model="mec", hyper = <hyper>, scale = <s>)
+f(w, [<weights>,] model="mec", scale = <s>, values= <w>, hyper = <hyper>)
 \end{verbatim}
 
 The \texttt{w} are the observed values of the true but unknown covariates
 $x$, with the \emph{assumption}, that if two or more elements of
 \texttt{w} are \emph{identical}, then they refer to the
-\emph{same} element in the true covariate $x$. The fixed scaling of
+\emph{same} element in the true covariate $x$. If data points with identical $w$ values belong to different $x$ values (e.g., different individuals), please add a \emph{tiny} random value to $w$ to make this difference obvious to the model.
+
+The fixed scaling of
 the observational precision is given in argument \texttt{scale}. If
 the argument \texttt{scale} is not given, then $s$ is set to $1$.
 
@@ -90,14 +91,14 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 \subsection*{Notes}
 
 \begin{itemize}
-\item \texttt{INLA} provide the posterior of $\nu$ and NOT $x$.
-\item The posterior of $\nu$ comes (default) in the order given by the sorted
-    (from low to high) values of \texttt{w}. The entry \verb|$ID|
-    gives the mapping.
+\item \texttt{INLA} provides the posteriors of $\nu_i=\beta x_i$ and NOT $x_i$.
+\item The posteriors of $\nu_i$ come (default) in the order given by the sorted
+(from low to high) values of \texttt{w}. The entry \verb|$ID|
+gives the mapping.
 \item The option \verb|scale| defines the scaling in the same order as
-    argument \verb|values|.  It is therefore adviced to also give
-    argument \verb|values| when \verb|scale| is used to be sure that
-    they are consistent.
+argument \verb|values|. It is therefore adviced to also give
+argument \verb|values| when \verb|scale| is used to be sure that
+they are consistent.
 \end{itemize}
 
 
@@ -105,7 +106,6 @@ the argument \texttt{scale} is not given, then $s$ is set to $1$.
 
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% TeX-master: t
-%%% End: 
-
+%%% End:
