@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1391278479 "dof.tex" "dof.pdf" "dof" 1391340339
+["pdflatex"] 1391278479 "dof.tex" "dof.pdf" "dof" 1391707275
   "/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1386728452 1233247 084abc04491bbaddf9df11bd94b261bd ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
@@ -34,6 +34,6 @@
   "dof.aux" 1391278479 8 a94a2480d3289e625eea47cd1b285758 ""
   "dof.tex" 1391278447 1038 f84ecf4a7b42ac06e5295016313f850f ""
   (generated)
-  "dof.log"
   "dof.aux"
+  "dof.log"
   "dof.pdf"
