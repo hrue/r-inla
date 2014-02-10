@@ -1,5 +1,6 @@
 #!/bin/bash
 set -u
+set -vx
 
 epoch=$(date +%s)
 VERSION=0.0-$epoch
@@ -50,6 +51,7 @@ rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/.
     done
 } >> INLA/NAMESPACE || exit 1
 
+rm -f $tt 2>/dev/null
 cat $D/version.R | \
     awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
          /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
