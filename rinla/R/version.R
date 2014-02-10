@@ -60,7 +60,7 @@
 
         cat("\n")
         cat(paste("\n\tINLA version ............: ",  version, "\n",  sep=""))
-        cat(paste(  "\tINLA build date .........: ",  date, "\n",  sep=""))
+        cat(paste(  "\tINLA date ...............: ",  date, "\n",  sep=""))
         cat(paste(  "\tINLA hgid ...............: ", rinla.hgid, "\n", sep=""))
         cat(paste(  "\tINLA-program hgid .......: ", inla.hgid, "\n", sep=""))
         cat(        "\tMaintainers .............: Havard Rue <hrue@math.ntnu.no>\n")
