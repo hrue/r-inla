@@ -10,7 +10,7 @@ rm INLA*tar.gz INLA*tgz INLA*zip
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
 D=inla/rinla/R
-DD=INLA/rinla/R
+DD=INLA/R
 
 hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
 ##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
@@ -60,10 +60,12 @@ cat $D/version.R | \
          /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
          /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
 	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
+cp $tt $D/version.R
 mv -f $tt $DD/version.R
 
-##echo "bdate: $bdate"
-##cat $D/version.R
+echo "bdate: $bdate"
+cat $D/version.R
+cat $DD/version.R
 ##exit
 
 ( cd $D; ./make-man-pages; )
