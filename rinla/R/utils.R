@@ -872,8 +872,26 @@
     else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) * 
         t(xsvd$u[, Positive, drop = FALSE]))
 }
+`inla.gdet` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL, log=TRUE)
+{
+    x = as.matrix(x)
+    lambda = eigen(x, only.values = TRUE)$values
+    if (is.null(rankdef)) {
+        non.zero = (lambda > max(tol * max(lambda), 0))
+        lambda = lambda[non.zero]
+    } else {
+        if (rankdef > 0) {
+            lambda = sort(lambda)
+            lambda = lambda[-(1:rankdef)]
+        }
+    }
 
-
+    if (log) {
+        return (sum(log(lambda)))
+    } else {
+        return (prod(lambda))
+    }
+}
 ## nice to have these around
 `inla.rw1` = function(n)
 {
