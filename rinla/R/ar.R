@@ -114,7 +114,12 @@ inla.ar.phi2acf = function(phi)
         }
         b[i] = -phi[i]
     }
-    r = solve(A, b)
+    r = try(solve(A, b), silent = TRUE)
+    ## if the model is singular,  then return nothing
+    if (inherits(r, "try-error")) {
+        return (numeric(0))
+    }
+    r = pmax(-1, pmin(1, r)) ## known to be true
     return (c(1, r))
 }
 inla.ar.pacf2acf = function(pac)
