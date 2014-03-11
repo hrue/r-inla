@@ -1,5 +1,7 @@
 ## Export: inla.ar.pacf2phi
 ## Export: inla.ar.phi2pacf
+## Export: inla.ar.pacf2acf
+## Export: inla.ar.phi2acf
 
 ##!\name{inla.ar}
 ##!\alias{inla.ar.pacf2phi}
@@ -8,16 +10,25 @@
 ##!\alias{inla.ar.phi2pacf}
 ##!\alias{ar.phi2pacf}
 ##!\alias{phi2pacf}
+##!\alias{inla.ar.phi2acf}
+##!\alias{ar.phi2acf}
+##!\alias{phi2acf}
+##!\alias{inla.ar.pacf2acf}
+##!\alias{ar.pacf2acf}
+##!\alias{pacf2acf}
 ##!
 ##!\title{Convert between parameterizations for the AR(p) model}
 ##!
-##!\description{These functions convert between the AR(p) coefficients \code{phi} and
-##!             the partial autorcorrelation coefficients \code{pacf}.
+##!\description{These functions convert between the AR(p) coefficients \code{phi}, 
+##!             the partial autorcorrelation coefficients \code{pacf} and the
+##!             autocorrelation function \code{acf}.
 ##!             The \code{phi}-parameterization is the same as used for \code{arima}-models in \code{R}; see \code{?arima}
 ##!             and the parameter-vector \code{a} in \code{Details}.}
 ##!\usage{
 ##!   inla.ar.pacf2phi(pac)
 ##!   inla.ar.phi2pacf(phi)
+##!   inla.ar.pacf2acf(pac)
+##!   inla.ar.phi2acf(phi)
 ##!}
 ##!
 ##!\arguments{
@@ -27,6 +38,8 @@
 ##!\value{
 ##!  \code{inla.ar.pacf2phi}  returns \code{phi} for given \code{pacf}.
 ##!  \code{inla.ar.phi2pacf}  returns \code{pac} for given \code{phi}.
+##!  \code{inla.ar.phi2acf}  returns \code{acf} for given \code{phi}.
+##!  \code{inla.ar.pacf2acf}  returns \code{acf} for given \code{pacf}.
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##!\examples{
@@ -34,6 +47,10 @@
 ##! phi = inla.ar.pacf2phi(pac)
 ##! pac2 = inla.ar.phi2pacf(phi)
 ##! print(paste("Error:", max(abs(pac2-pac))))
+##! print("Correlation matrix (from pac)")
+##! print(toeplitz(inla.ar.pacf2acf(pac)))
+##! print("Correlation matrix (from phi)")
+##! print(toeplitz(inla.ar.phi2acf(phi)))
 ##!}
 
 
@@ -76,4 +93,31 @@ inla.ar.phi2pacf = function(phi)
     }
     
     return (pac)
+}
+inla.ar.phi2acf = function(phi)
+{
+    ## return acf for given phi
+    p = length(phi)
+    stopifnot(p > 0)
+
+    A = matrix(0, p, p)
+    b = numeric(p)
+
+    for(i in 1:p) {
+        for(j in 1:p) {
+            if (i == j) {
+                A[i, j] = -1.0
+            } else {
+                lag = abs(i-j)
+                A[i, lag] = phi[j] + A[i, lag]
+            }
+        }
+        b[i] = -phi[i]
+    }
+    r = solve(A, b)
+    return (c(1, r))
+}
+inla.ar.pacf2acf = function(pac)
+{
+    return (inla.ar.phi2acf(inla.ar.pacf2phi(pac)))
 }
