@@ -4,10 +4,10 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{Spline prior}
+\section*{PC prior for precision}
 
 \subsection*{Parametrization}
-The spline-prior has density 
+The PC prior for precision has density 
 \begin{equation}
     \pi(x) = \frac{\theta}{2} \exp\left(
       -\theta\exp\left(-\frac{x}{2}\right) - \frac{x}{2}
@@ -22,20 +22,20 @@ interpretation of $(u,\alpha)$ is that
 \begin{displaymath}
     \text{Prob}(\sigma > u) = \alpha
 \end{displaymath}
-where $\sigma = \exp(-x/2)$, as $x$ is normally the log-precision.
+where $\sigma = 1/\sqrt{\exp(x)}$, as $x$ is the log-precision.
 
 \subsection*{Specification}
-The spline prior for the hyperparameters is specified inside the
-{\tt f()} function as 
+This prior for the hyperparameters is specified inside the
+\texttt{hyper}-spesification, as
 \begin{center}
-    {\tt f(<whatever>, hyper = list(<theta> =
-        list(prior="spline", param=c(<u>,<alpha>))))}
+    \texttt{hyper = list(<theta> =
+        list(prior="pc.prec", param=c(<u>,<alpha>)))}
 \end{center}
 
 \subsection*{Example}
 
 \subsection*{Notes}
-This prior is experimental and for internal use only
+
 
 \end{document}
 
