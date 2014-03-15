@@ -4192,24 +4192,24 @@
                      pdf = "logitbeta"
                      ),
 
-             spline = list(
+             pc.prec = list(
                      nparameters = 2L,
-                     pdf = "spline"
+                     pdf = "pc.prec"
                      ),
              
-             dof = list(
+             pc.dof = list(
                      nparameters = 2L,
-                     pdf = "dof"
+                     pdf = "pc.dof"
                      ),
              
-             rho0 = list(
+             pc.rho0 = list(
                      nparameters = 2L,
-                     pdf = "rho0"
+                     pdf = "pc.rho0"
                      ),
              
-             rho1 = list(
+             pc.rho1 = list(
                      nparameters = 2L,
-                     pdf = "rho1"
+                     pdf = "pc.rho1"
                      ),
              
              jeffreystdf = list(

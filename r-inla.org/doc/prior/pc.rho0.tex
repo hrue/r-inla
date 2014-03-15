@@ -4,11 +4,11 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{The rho0 prior}
+\section*{The PC prior for the correlation $\rho$ with $\rho=0$ base-model}
 
 \subsection*{Parametrization}
-The rho0-prior is a density for a correction $\rho$ with a reference
-in $\rho=0$. The density for $\rho$ is
+This prior is the PC prior for the correlation $\rho$ with $\rho=0$ as
+the base-model.. The density for $\rho$ is
 \begin{displaymath}
     \pi(\rho) = \lambda \exp(-\lambda \mu(\rho)) \; J(\rho)
 \end{displaymath}
@@ -31,17 +31,15 @@ is explicite
 \end{displaymath}
 
 \subsection*{Specification}
-The spline prior for the hyperparameters is specified inside the
-{\tt f()} function as 
+This prior for the hyperparameters is specified inside the
+\texttt{hyper}-spesification, as
 \begin{center}
-    {\tt f(<whatever>, hyper = list(<theta> =
-        list(prior="rho0", param=c(<u>,<alpha>))))}
+    \texttt{hyper = list(<theta> = list(prior="pc.rho0", param=c(<u>,<alpha>)))}
 \end{center}
 
 \subsection*{Example}
 
 \subsection*{Notes}
-This prior is experimental and for internal use only
 
 \end{document}
 

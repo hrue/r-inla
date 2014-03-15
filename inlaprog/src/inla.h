@@ -447,10 +447,10 @@ typedef enum {
 	P_EXPRESSION,
 	P_TABLE,
 	P_JEFFREYS_T_DF,
-	P_SPLINE,
-	P_RHO0,
-	P_RHO1,
-	P_DOF,
+	P_PC_PREC,
+	P_PC_RHO0,
+	P_PC_RHO1,
+	P_PC_DOF,
 	G_EXCHANGEABLE,					       /* group models */
 	G_AR1,
 	G_RW1,
@@ -1196,7 +1196,6 @@ double mfunc_mec(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
-double priorfunc_dbp_dof(double *x, double *parameters);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
@@ -1208,10 +1207,11 @@ double priorfunc_logitbeta(double *x, double *parameters);
 double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters);
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_normal(double *x, double *parameters);
-double priorfunc_rho0(double *x, double *parameters);
-double priorfunc_rho1(double *x, double *parameters);
+double priorfunc_pc_dof(double *x, double *parameters);
+double priorfunc_pc_prec(double *x, double *parameters);
+double priorfunc_pc_rho0(double *x, double *parameters);
+double priorfunc_pc_rho1(double *x, double *parameters);
 double priorfunc_sasprior(double *x, double *parameters);
-double priorfunc_spline(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);

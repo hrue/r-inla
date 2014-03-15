@@ -1885,7 +1885,7 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
-double priorfunc_dbp_dof(double *x, double *parameters)
+double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
 	int k, debug=0;
@@ -1934,7 +1934,7 @@ double priorfunc_sasprior(double *x, double *parameters)
 	}
 	return val;
 }
-double priorfunc_spline(double *x, double *parameters)
+double priorfunc_pc_prec(double *x, double *parameters)
 {
 	double u = parameters[0], alpha = parameters[1], theta, val, xx2;
 
@@ -1944,7 +1944,7 @@ double priorfunc_spline(double *x, double *parameters)
 
 	return val;
 }
-double priorfunc_rho0(double *x, double *parameters)
+double priorfunc_pc_rho0(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
 	int debug = 0;
@@ -1960,13 +1960,13 @@ double priorfunc_rho0(double *x, double *parameters)
 	val = ldens + ljac;
 
 	if (debug) {
-		fprintf(stderr, "priorfunc_rho0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "priorfunc_rho0: theta %g val %g\n", *x, val);
+		fprintf(stderr, "priorfunc_pc_rho0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
+		fprintf(stderr, "priorfunc_pc_rho0: theta %g val %g\n", *x, val);
 	}
 
 	return val;
 }
-double priorfunc_rho1(double *x, double *parameters)
+double priorfunc_pc_rho1(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
 	int debug = 0;
@@ -2000,7 +2000,7 @@ double priorfunc_rho1(double *x, double *parameters)
 	}
 
 	if (debug) {
-		printf("priorfunc_rho1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
+		printf("priorfunc_pc_rho1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
 	}
 
 	count = 0;
@@ -2009,7 +2009,7 @@ double priorfunc_rho1(double *x, double *parameters)
 		df = (Fsolve(lambda_initial + h) - Fsolve(lambda_initial - h)) / (2.0 * h);
 		lambda = lambda_initial - Fsolve(lambda) / df;
 		if (debug) {
-			printf("priorfunc_rho1: iteration=%d lambda=%g\n", count, lambda);
+			printf("priorfunc_pc_rho1: iteration=%d lambda=%g\n", count, lambda);
 		}
 		assert(count++ < count_max);
 	}
@@ -6605,9 +6605,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
 		}
-	} else if (!strcasecmp(prior->name, "SPLINE")) {
-		prior->id = P_SPLINE;
-		prior->priorfunc = priorfunc_spline;
+	} else if (!strcasecmp(prior->name, "pc.prec")) {
+		prior->id = P_PC_PREC;
+		prior->priorfunc = priorfunc_pc_prec;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
@@ -6621,9 +6621,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "DOF")) {
-		prior->id = P_DOF;
-		prior->priorfunc = priorfunc_dbp_dof;
+	} else if (!strcasecmp(prior->name, "pc.dof")) {
+		prior->id = P_PC_DOF;
+		prior->priorfunc = priorfunc_pc_dof;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
@@ -6653,9 +6653,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "RHO0")) {
-		prior->id = P_RHO0;
-		prior->priorfunc = priorfunc_rho0;
+	} else if (!strcasecmp(prior->name, "pc.rho0")) {
+		prior->id = P_PC_RHO0;
+		prior->priorfunc = priorfunc_pc_rho0;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
@@ -6669,9 +6669,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "RHO1")) {
-		prior->id = P_RHO1;
-		prior->priorfunc = priorfunc_rho1;
+	} else if (!strcasecmp(prior->name, "pc.rho1")) {
+		prior->id = P_PC_RHO1;
+		prior->priorfunc = priorfunc_pc_rho1;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {

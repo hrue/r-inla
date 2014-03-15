@@ -1,0 +1,37 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{PC prior for the degrees of freedom (dof)}
+
+\subsection*{Parametrization}
+
+The dof-prior has a tabulated density and is the PC prior for the
+degrees of freedom parameter in the Student-t distribution.  The
+parameters to this prior is $(u, \alpha{})$, with the interpretation
+that
+\begin{displaymath}
+    \text{Prob}(\nu < u) = \alpha
+\end{displaymath}
+where $\nu$ is the degrees of freedom.
+
+\subsection*{Specification}
+The PC prior for the dof is specified in the \texttt{hyper}-argument, as
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.dof", param=c(<u>, <alpha>)))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
