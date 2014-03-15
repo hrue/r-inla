@@ -349,8 +349,8 @@
                                      from.theta = function(x) exp(x)
                                      ),
                              theta2 = list(
-                                     name = "logit rho",
-                                     short.name = "rho",
+                                     name = "logit phi",
+                                     short.name = "phi",
                                      prior = "gaussian",
                                      param = c(0, 0.45),
                                      initial = -3,
@@ -4212,6 +4212,12 @@
                      pdf = "pc.rho1"
                      ),
              
+             ## this is the generic one,  which is case-spesific and possibly adaptive
+             pc = list(
+                     nparameters = 2L,
+                     pdf = NULL
+                     ), 
+
              jeffreystdf = list(
                      nparameters = 0L,
                      pdf = "jeffreystdf"

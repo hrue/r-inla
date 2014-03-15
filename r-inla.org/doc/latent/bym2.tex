@@ -10,8 +10,8 @@
 \subsection*{Parametrization}
 
 This model is a reparameterisation of the BYM-model, which is a union
-of the \lstinline$besag$ model $u^{*}$ and a \lstinline$iid$ model $v^{*}$, so
-that
+of the \lstinline$besag$ model $u^{*}$ and a \lstinline$iid$ model
+$v^{*}$, so that
 \begin{displaymath}
     x =
     \begin{pmatrix}
@@ -26,24 +26,25 @@ hyperparameters where
 \begin{displaymath}
     x =
     \begin{pmatrix}
-        \frac{1}{\sqrt{\tau}}\left(\sqrt{1-\rho} \;v + \sqrt{\rho} \;u\right)\\
+        \frac{1}{\sqrt{\tau}}\left(\sqrt{1-\phi} \;v +
+          \sqrt{\phi} \;u\right)\\
         u
     \end{pmatrix}
 \end{displaymath}
 where both $u$ and $v$ are \emph{standardised} to have (generalised)
 variance equal to one.  The \emph{marginal} precision is then $\tau$
 and the proportion of the marginal variance explained by the spatial
-effect ($u$) is $\rho$.
+effect ($u$) is $\phi$.
 
 \subsection*{Hyperparameters}
 The hyperparameters are the margainal precision $\tau$ and the mixing
-parameter $\rho$.  The marginal precision $\tau$ is represented as
+parameter $\phi$.  The marginal precision $\tau$ is represented as
 \begin{displaymath}
     \theta_{1} = \log(\tau)
 \end{displaymath}
 and the mixing parameter as
 \begin{displaymath}
-    \theta_{2} = \log\left(\frac{\rho}{1-\rho}\right)
+    \theta_{2} = \log\left(\frac{\phi}{1-\phi}\right)
 \end{displaymath}
 and the prior is defined on $\mathbf{\theta} = (\theta_{1}, \theta_{2})$.
 
