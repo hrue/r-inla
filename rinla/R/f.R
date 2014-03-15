@@ -754,6 +754,9 @@
         if (g$cc$n == 1) {
             ## hole graph is just one connected component. all is
             ## fine, no need to do anything
+            if (is.null(rankdef)) {
+                rankdef = 1L
+            }
         } else {
 
             ## issue a warning, as the model has 'changed' compared to earlier versions.

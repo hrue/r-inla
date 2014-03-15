@@ -1219,7 +1219,7 @@ double Qfunc_bym2(int i, int j, void *arg)
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double rho = map_probability(a->logit_rho[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double rho = map_probability(a->logit_phi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - rho);
 	}
@@ -11950,7 +11950,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_BYM2:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* rho */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* phi */
 		break;
 
 	case F_AR1:
@@ -14482,14 +14482,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		SetInitial(1, tmp);
-		HYPER_INIT(rho_intern, tmp);
+		HYPER_INIT(phi_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise rho_intern [%g]\n", tmp);
+			printf("\t\tinitialise phi_intern [%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
 		}
 		mb->f_theta[mb->nf] = Calloc(2, double **);
 		mb->f_theta[mb->nf][0] = log_prec0;
-		mb->f_theta[mb->nf][1] = rho_intern;
+		mb->f_theta[mb->nf][1] = phi_intern;
 
 		if (!mb->f_fixed[mb->nf][0]) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -14521,7 +14521,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Logit rho for %s", mb->f_tag[mb->nf]);
+			GMRFLib_sprintf(&msg, "Logit phi for %s", mb->f_tag[mb->nf]);
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Rho for %s", mb->f_tag[mb->nf]);
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -14533,7 +14533,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
 
-			mb->theta[mb->ntheta] = rho_intern;
+			mb->theta[mb->ntheta] = phi_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -15049,7 +15049,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->n = mb->f_n[mb->nf];
 		arg->N = mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf];
 		arg->log_prec = log_prec0;
-		arg->logit_rho = rho_intern;
+		arg->logit_phi = phi_intern;
 
 		/*
 		 * general 
@@ -19121,23 +19121,23 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			if (NOT_FIXED(f_fixed[i][1])) {
-				rho_intern = theta[count];
+				phi_intern = theta[count];
 				count++;
 			} else {
-				rho_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
 			SET_GROUP_RHO(2);
 
 			double n = (double) mb->f_n[i];
-			double rho = map_probability(rho_intern, MAP_FORWARD, NULL);
+			double phi = map_probability(phi_intern, MAP_FORWARD, NULL);
 
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision0 - log(1.0 - rho))));
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision0 - log(1.0 - phi))));
 
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}
 			if (NOT_FIXED(f_fixed[i][1])) {
-				val += PRIOR_EVAL(mb->f_prior[i][1], &rho_intern);
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
 			break;
 		}

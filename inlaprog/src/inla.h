@@ -886,7 +886,7 @@ typedef struct {
 	int n;
 	int N;
 	double **log_prec;
-	double **logit_rho;
+	double **logit_phi;
 	inla_besag_Qfunc_arg_tp *besag_arg;
 } inla_bym2_Qfunc_arg_tp;
 

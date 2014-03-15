@@ -422,8 +422,8 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{name = }{`logit rho'}
-							\item{short.name = }{`rho'}
+							\item{name = }{`logit phi'}
+							\item{short.name = }{`phi'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.45'}
 							\item{initial = }{`-3'}
@@ -5110,6 +5110,8 @@ inla.models()
 				\item{Model `pc.rho0'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `pc.rho1'.}{					 Number of parameters in the prior = 2 
+				 }
+				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
 				 }

@@ -234,6 +234,24 @@
             random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
         }
     }
+
+    ## possible adaptive priors
+    if (inla.one.of(random.spec$model, "bym2")) {
+        stopifnot(random.spec$hyper$theta2$short.name == "phi") ## just a check...
+        if (random.spec$hyper$theta2$prior == "pc") {
+            ## this is the pc-prior which is adaptive for this
+            ## model. compute the prior here.
+            random.spec$hyper$theta2$prior = inla.pc.bym.phi(
+                    graph = random.spec$graph,
+                    rankdef = random.spec$rankdef,
+                    u = random.spec$hyper$theta2$param[1L],
+                    alpha = random.spec$hyper$theta2$param[2L],
+                    scale.model = TRUE,
+                    return.as.table = TRUE)
+            random.spec$hyper$theta2$param = numeric(0)
+        }
+    }
+
     inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
