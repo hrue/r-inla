@@ -341,9 +341,9 @@
                              theta1 = list(
                                      name = "log precision",
                                      short.name = "prec",
-                                     prior = "loggamma",
-                                     param = c(1, .1),
-                                     initial = log(10),
+                                     prior = "pc.prec",
+                                     param = c(1, .01),
+                                     initial = 4,
                                      fixed = FALSE,
                                      to.theta = function(x) log(x),
                                      from.theta = function(x) exp(x)
@@ -351,8 +351,8 @@
                              theta2 = list(
                                      name = "logit phi",
                                      short.name = "phi",
-                                     prior = "gaussian",
-                                     param = c(0, 0.45),
+                                     prior = "pc",
+                                     param = c(0.5, -1),
                                      initial = -3,
                                      fixed = FALSE,
                                      to.theta = function(x) log(x/(1-x)),
