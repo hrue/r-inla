@@ -412,9 +412,9 @@ inla.models()
 							 \describe{
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.1'}
-							\item{initial = }{`2.30258509299405'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`1 0.01'}
+							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
@@ -424,8 +424,8 @@ inla.models()
 							 \describe{
 							\item{name = }{`logit phi'}
 							\item{short.name = }{`phi'}
-							\item{prior = }{`gaussian'}
-							\item{param = }{`0 0.45'}
+							\item{prior = }{`pc'}
+							\item{param = }{`0.5 -1'}
 							\item{initial = }{`-3'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
