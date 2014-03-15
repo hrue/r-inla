@@ -5103,13 +5103,13 @@ inla.models()
 				 }
 				\item{Model `logitbeta'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `spline'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.prec'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `dof'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.dof'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `rho0'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.rho0'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `rho1'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.rho1'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
 				 }
