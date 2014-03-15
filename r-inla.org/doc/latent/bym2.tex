@@ -79,6 +79,13 @@ not computed, hence you need to add this part to the log marginal
 likelihood estimate, if you need it. Here $R$ is the precision matrix
 for the standardised Besag part of the model.
 
+The generic PC-prior for $\phi$ is available as \texttt{prior="pc"}
+and parameters \texttt{param="c(u, alpha)"}, where $\text{Prob}(\phi
+\le u) = \alpha$. If $\alpha < 0$ or $\alpha>1$, then it is set to a value
+close to the minimum value of $\alpha$ allowed. This prior depends on
+the graph and its computational cost is ${\mathcal O}(n^{3})$.
+
+
 \end{document}
 
 
