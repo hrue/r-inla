@@ -1969,7 +1969,7 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 double priorfunc_pc_rho1(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
-	int debug = 1;
+	int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double lambda, rho, ljac, ldens, val, mu;
 
