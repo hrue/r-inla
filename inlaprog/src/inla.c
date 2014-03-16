@@ -1969,12 +1969,12 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 double priorfunc_pc_rho1(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
-	int debug = 0;
+	int debug = 1;
 	double u = parameters[0], alpha = parameters[1];
 	double lambda, rho, ljac, ldens, val, mu;
 
 	// solve for lambda
-#define Fsolve(_lam) ((exp(-(_lam)*sqrt(1.0-u))/(1.0-exp(-(_lam)*M_SQRT2))) - alpha)
+#define Fsolve(_lam) (((1.0 - exp(-(_lam)*sqrt(1.0-u)))/(1.0-exp(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 10000;
 	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
@@ -2013,6 +2013,9 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 		}
 		assert(count++ < count_max);
 	}
+	if (debug)
+		printf("priorfunc_pc_rho1: function value %g\n", Fsolve(lambda));
+	
 #undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
 	mu = sqrt(1.0 - rho);
