@@ -3066,6 +3066,25 @@
                       pdf = "nbinomial"
                       ),
 
+              simplex = list(
+                      hyper = list(
+                              theta = list(
+                                      name = "log precision",
+                                      short.name = "prec",
+                                      initial = 4,
+                                      fixed = FALSE,
+                                      prior = "loggamma",
+                                      param = c(1, 0.00005),
+                                      to.theta = function(x) log(x),
+                                      from.theta = function(x) exp(x)
+                                      )
+                              ),
+                      survival = FALSE,
+                      discrete = FALSE,
+                      link = c("default", "logit", "probit", "cloglog"),
+                      pdf = "simplex"
+                      ),
+
               gaussian = list(
                       hyper = list(
                               theta = list(

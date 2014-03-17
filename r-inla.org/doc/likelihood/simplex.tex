@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Simplex}
+
+\subsection*{Parametrisation}
+
+The Simplex distribution has the following density
+\begin{displaymath}
+\pi(y)=\frac{\sqrt{(s\tau)}}{\sqrt{2\pi[y(1-y)]^3}}\exp\left\{\frac{-(s\tau)
+      (y-\mu)^2}{2y(1-y)\mu^2(1-\mu)^2} \right\}
+\end{displaymath}
+has has a continuously responses $ 0<y<1$ where
+\begin{itemize}
+\item[$\mu:$] is the mean,
+\item[$\tau:$] is a precision parameter, and
+\item[$s$:] is a fixed scaling, $s>0$.    
+\end{itemize}
+For the simplex distribution we have 
+\begin{displaymath}
+E(y) = \mu 
+\end{displaymath}
+
+\subsection*{Link-function}
+The linear predictor $\eta$ is linked to the mean $\mu$ using a
+default logit-link,
+\begin{displaymath}
+    \mu = \frac{\exp{(\eta)}}{1+\exp{(\eta)}}.
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the precision parameter $\tau$, which is
+represented as
+\begin{displaymath}
+    \tau = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{simplex}$
+\item Required arguments: $y$.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/simplex.tex}
+ 
+ 
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-simplex.R}
+ 
+\subsection*{Notes}
+ 
+ None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
