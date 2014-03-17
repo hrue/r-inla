@@ -1,10 +1,15 @@
 ## NOT-YET-Export: 
 
-inla.pc.bym.Q = function(graph, rankdef = 1)
+inla.pc.bym.Q = function(graph, rankdef = 1, scale.model = FALSE)
 {
     Q = -inla.graph2matrix(graph)
     diag(Q) = 0
     diag(Q) = -rowSums(Q)
+    if (scale.model) {
+        fac = exp(mean(log(diag(INLA:::inla.ginv(
+                x=as.matrix(Q), rankdef=rankdef)))))
+        Q = fac * Q
+    }
     return (Q)
 }
 
