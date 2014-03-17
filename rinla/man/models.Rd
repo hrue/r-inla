@@ -3719,6 +3719,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `simplex'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default logit probit cloglog'}
+								\item{pdf = }{`simplex'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `gaussian'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
