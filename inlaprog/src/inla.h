@@ -173,6 +173,12 @@ typedef struct {
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
 	/*
+	 * y ~ Simplex(....,1/(weight*prec))
+	 */
+	double **log_prec_simplex;
+	double *weight_simplex;				       /* weights: Variance = 1/(weight*prec) */
+
+	/*
 	 * y ~ Logistic, Variance = 1/ (weight * prec)
 	 */
 	double **log_prec_logistic;
@@ -394,6 +400,7 @@ typedef enum {
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
+	L_SIMPLEX, 
 	F_RW2D,						       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1373,6 +1380,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

@@ -53,6 +53,7 @@
                               "circularnormal",
                               "wrappedcauchy",
                               "iidgamma",
+                              "simplex", 
                               "gamma"))) {
 
         if (is.null(scale)) {
@@ -111,7 +112,7 @@
                                      "zeroinflatednbinomial0",
                                      "zeroinflatednbinomial1",
                                      "zeroinflatednbinomial2"))) {
-
+        
         if (is.null(E)) {
             E = rep(1.0, n.data)
         }

@@ -2644,6 +2644,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_SIMPLEX:
+		idiv = 3;
+		a[0] = ds->data_observations.weight_simplex = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_IID_GAMMA:
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
@@ -3152,6 +3157,40 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ simplex
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, yy, ypyp, lprec, prec, w, ypred;
+
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_simplex[idx];
+	lprec = ds->data_observations.log_prec_simplex[GMRFLib_thread_id][0] + log(w);
+	prec = map_precision(ds->data_observations.log_prec_simplex[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			yy = y * (1.0 - y);
+			ypyp = ypred * (1.0 - ypred);
+			logll[i] = 0.5 * lprec - 0.5 * (log(2.0 * M_PI) + 3.0 * log(yy))
+				- prec * SQR(y-ypred) / (2.0 * yy * SQR(ypyp));
+		}
+	} else {
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+
 	}
 
 	LINK_END;
@@ -7789,6 +7828,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	if (!strcasecmp(ds->data_likelihood, "GAUSSIAN") || !strcasecmp(ds->data_likelihood, "NORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "SIMPLEX")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_simplex;
+		ds->data_id = L_SIMPLEX;
 	} else if (!strcasecmp(ds->data_likelihood, "IIDGAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_iid_gamma;
 		ds->data_id = L_IID_GAMMA;
@@ -7944,6 +7986,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_SIMPLEX:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_simplex[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Simplex weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_simplex[i]);
+					inla_error_general(msg);
+				}
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1) {
+					GMRFLib_sprintf(&msg, "%s: Simplex data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -8297,6 +8354,50 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
+	case L_SIMPLEX:
+		/*
+		 * get options related to the gaussian 
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_simplex, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_prec[%g]\n", ds->data_observations.log_prec_simplex[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Simplex observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Simplex observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_simplex;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -17397,6 +17498,18 @@ double extra(double *theta, int ntheta, void *argument)
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
 			case L_GAUSSIAN:
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
+
+			case L_SIMPLEX:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
