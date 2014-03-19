@@ -1,36 +1,94 @@
-## Export: inla.pc.rcormat
+## Export: inla.pc.cormat.dim2p inla.pc.cormat.p2dim inla.pc.cormat.theta2R
+## Export: inla.pc.cormat.R2theta inla.pc.cormat.r2R inla.pc.cormat.R2r
+## Export: inla.pc.cormat.r2theta inla.pc.cormat.theta2r inla.pc.cormat.permute
+## Export: inla.pc.cormat.rtheta inla.pc.cormat.dtheta
 
-##! \name{pc.rcormat}
-##! \alias{inla.pc.rcormat}
-##! \alias{pc.rcormat}
-##! \alias{pc.dcormat}
-##! \alias{inla.pc.dcormat}
+##! \name{pc.cormat}
+##! \alias{inla.pc.cormat}
+##! \alias{inla.pc.cormat.dim2p}
+##! \alias{cormat.dim2p}
+##! \alias{inla.pc.cormat.p2dim}
+##! \alias{cormat.p2dim}
+##! \alias{inla.pc.cormat.theta2R}
+##! \alias{cormat.theta2R}
+##! \alias{inla.pc.cormat.R2theta}
+##! \alias{cormat.R2theta}
+##! \alias{inla.pc.cormat.r2R}
+##! \alias{cormat.r2R}
+##! \alias{inla.pc.cormat.R2r}
+##! \alias{cormat.R2r}
+##! \alias{inla.pc.cormat.r2theta}
+##! \alias{cormat.r2theta}
+##! \alias{inla.pc.cormat.theta2r}
+##! \alias{cormat.theta2r}
+##! \alias{inla.pc.cormat.permute}
+##! \alias{cormat.permute}
+##! \alias{inla.pc.cormat.rtheta}
+##! \alias{cormat.rtheta}
+##! \alias{inla.pc.cormat.dtheta}
+##! \alias{cormat.dtheta}
 ##! 
 ##! \title{Utility functions for the PC prior for a correlation matrix}
 ##! 
 ##! \description{Functions to evaluate and sample from the 
 ##!              PC prior for a correlation matrix.}
 ##! \usage{
-##! inla.pc.rcormat(n=1, p, lambda=1, permute = TRUE)
-##! inla.pc.dcormat(cormat, lambda=1, permute = TRUE, log=FALSE)
+##!    inla.pc.cormat.dim2p(dim)
+##!    inla.pc.cormat.p2dim(p)
+##!    inla.pc.cormat.theta2R(theta)
+##!    inla.pc.cormat.R2theta(R)
+##!    inla.pc.cormat.r2R(r)
+##!    inla.pc.cormat.R2r(R)
+##!    inla.pc.cormat.r2theta(r)
+##!    inla.pc.cormat.theta2r(theta)
+##!    inla.pc.cormat.permute(R)
+##!    inla.pc.cormat.rtheta(n=1, p, lambda = 1)
+##!    inla.pc.cormat.dtheta(theta, lambda = 1, log = TRUE)
 ##! }
 ##! \arguments{
+##!   \item{dim}{The dimension of \code{theta}, the parameterisatin of the correlation matrix}
+##!   \item{p}{The dimension the correlation matrix}
+##!   \item{theta}{A vector of parameters for the correlation matrix}
+##!   \item{r}{The off diagonal elements of a correlation matrix}
+##!   \item{R}{A correlation matrix}
 ##!   \item{n}{Number of observations}
 ##!   \item{p}{The dimension of the matrix}
-##!   \item{lambda}{The rate parameter}
-##!   \item{permute}{Make the prior exchangable.}
-##!   \item{cormat}{A correlation matrix}
+##!   \item{lambda}{The rate parameter in the prior}
 ##!   \item{log}{Logical. Return the density in natural or log-scale.}
 ##! }
 ##! \details{
+##!    The parameterisation of a correlation matrix of dimension \code{p} has \code{dim}
+##!    parameters: \code{\theta} which are in the interval -pi to pi.
+##!    The alternative parameterisation is through the off-diagonal elements \code{r} of the
+##!    correlation matrix \code{R}. The functions \code{inla.pc.cormat.<A>2<B>} convert between
+##!    parameterisations \code{<A>} to parameterisations \code{<B>},  where both
+##!    \code{<A>} and \code{<B>} are one of \code{theta},  \code{r} and \code{R},
+##!    and \code{p} and \code{dim}. 
 ##! }
-##!\value{%%
-##!  \code{inla.pc.dcormat} gives the density and 
-##!  \code{inla.pc.rcormat} generates random deviates (a
-##!        list of correlation matrices).
+##! \value{%%
+##!     \code{inla.pc.cormat.rtheta} generate samples from the prior,  returning a matrix
+##!     where each row is a sample of \code{theta}.
+##!     \code{inla.pc.cormat.dtheta} evaluates the density of \code{theta}.
+##!     \code{inla.pc.cormat.permute} randomly permutes a correlation matrix,
+##!     which is useful if an exchangable sample of a correlation matrix is required.
 ##! }
 ##! \author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! \examples{
+##!  p = 4
+##!  print(paste("theta has length", inla.pc.cormat.p2dim(p)))
+##!  theta = inla.pc.cormat.rtheta(n=1, p=4, lambda = 1)
+##!  print("sample theta:")
+##!  print(theta)
+##!  print(paste("log.dens", inla.pc.cormat.dtheta(theta, log=TRUE)))
+##!  print("r:")
+##!  r = inla.pc.cormat.theta2r(theta)
+##!  print(r)
+##!  print("A sample from the non-exchangable prior, R:")
+##!  R = inla.pc.cormat.r2R(r)
+##!  print(R)
+##!  print("A sample from the exchangable prior, R:")
+##!  R = inla.pc.cormat.permute(R)
+##!  print(R)
 ##! }
 
 inla.pc.cormat.dim2p = function(dim)
@@ -47,8 +105,6 @@ inla.pc.cormat.p2dim = function(p)
 
 inla.pc.cormat.theta2R = function(theta)
 {
-    ## convert from theta to a correlation matrix
-
     p = inla.pc.cormat.dim2p(length(theta))
     theta.m = matrix(NA, p, p)
     theta.m[lower.tri(theta.m)] = theta
@@ -69,13 +125,13 @@ inla.pc.cormat.theta2R = function(theta)
         }
     }
     R = B %*% t(B)
-
+    diag(R) = 1.0  ## so that its exactly 1, not just numerically 1
+    
     return(R)
 }
 
 inla.pc.cormat.R2theta = function(R)
 {
-    ## convert from correlation matrix to theta vector
     L = t(chol(R))
     p = dim(R)[1]
 
@@ -105,12 +161,30 @@ inla.pc.cormat.r2R = function(r)
     R[lower.tri(R)] = r
     R = t(R)
     R[lower.tri(R)] = r
+    diag(R) = 1.0
+
     return (R)
 }
 
 inla.pc.cormat.R2r = function(R)
 {
     return (R[lower.tri(R)])
+}
+
+inla.pc.cormat.r2theta = function(r)
+{
+    R = inla.pc.cormat.r2R(r)
+    theta = inla.pc.cormat.R2theta(R)
+
+    return(theta)
+}
+
+inla.pc.cormat.theta2r = function(theta)
+{
+    R = inla.pc.cormat.theta2R(theta)
+    r = inla.pc.cormat.R2r(R)
+
+    return (r)
 }
 
 inla.pc.cormat.permute = function(R)
@@ -131,15 +205,14 @@ inla.pc.cormat.rtheta = function(n=1, p, lambda = 1)
     
     rcormat = function(n, p, lambda)
     {
-        m = inla.pc.cormat.p2dim(p)
-
+        q = inla.pc.cormat.p2dim(p)
         ## sample a point on the simplex
         r = rexp(1, rate = lambda)
-        gamma = rexp(m)
+        gamma = rexp(q)
         gamma = (gamma/sum(gamma)) * r^2/2 
         theta = asin(exp(-gamma))
         ## sample branch by random
-        branch = sample(c(0, 1), size = m, replace=TRUE)
+        branch = sample(c(0, 1), size = q, replace=TRUE)
         theta = branch * theta + (1-branch) * (pi - theta)
         return (theta)
     }
@@ -185,6 +258,3 @@ inla.pc.cormat.internal.test.1 = function(n, p, lim = 0.99)
 
     return(list(mean = mu, sd = s, z = z))
 }
-
-    
-    
