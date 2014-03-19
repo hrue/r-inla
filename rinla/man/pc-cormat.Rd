@@ -51,13 +51,12 @@
    \item{r}{The off diagonal elements of a correlation matrix}
    \item{R}{A correlation matrix}
    \item{n}{Number of observations}
-   \item{p}{The dimension of the matrix}
    \item{lambda}{The rate parameter in the prior}
    \item{log}{Logical. Return the density in natural or log-scale.}
  }
  \details{
     The parameterisation of a correlation matrix of dimension \code{p} has \code{dim}
-    parameters: \code{\theta} which are in the interval -pi to pi.
+    parameters: \code{theta} which are in the interval -pi to pi.
     The alternative parameterisation is through the off-diagonal elements \code{r} of the
     correlation matrix \code{R}. The functions \code{inla.pc.cormat.<A>2<B>} convert between
     parameterisations \code{<A>} to parameterisations \code{<B>},  where both

@@ -14,7 +14,7 @@
 \title{Read and write a graph-object}
 \description{Reads a graph-object to a file and write graph-object to file}
 \usage{
-inla.read.graph(...)
+inla.read.graph(..., size.only = FALSE)
 inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...)
 
 \method{summary}{inla.graph}(object, ...)
@@ -30,6 +30,7 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
     \item{object}{An \code{inla.graph} -object} 
     \item{x}{An \code{inla.graph} -object} 
     \item{y}{Not used}
+    \item{size.only}{Only read the size of the graph}
     \item{...}{Additional arguments. In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 }
 \value{
