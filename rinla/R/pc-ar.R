@@ -38,7 +38,7 @@
 
 inla.pc.ar.rpacf = function(n=1, p, lambda = 1)
 {
-    stopifnot(!missing(p) && p > 1)
+    stopifnot(!missing(p) && p >= 1)
     stopifnot(lambda > 0)
     stopifnot(n >= 1)
     
@@ -59,7 +59,7 @@ inla.pc.ar.rpacf = function(n=1, p, lambda = 1)
 inla.pc.ar.dpacf = function(pac, lambda = 1, log = TRUE)
 {
     p = length(pac)
-    stopifnot(p > 1)
+    stopifnot(p >= 1)
     d = sqrt(sum(-log(1-pac^2)))
     ld = (log(lambda) 
           + lfactorial(p) 
