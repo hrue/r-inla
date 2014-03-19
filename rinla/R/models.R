@@ -2688,6 +2688,30 @@
              logit = list(hyper = list()), 
              probit = list(hyper = list()), 
              tan = list(hyper = list()), 
+             sslogit = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "sensitivity",
+                                     short.name = "sens",
+                                     prior = "logitbeta",
+                                     param = c(10, 5),
+                                     initial = 1,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x/(1-x)),
+                                     from.theta = function(x) exp(x)/(1+exp(x))
+                                     ),
+                             theta2 = list(
+                                     name = "specificity",
+                                     short.name = "spec",
+                                     prior = "logitbeta",
+                                     param = c(10, 5),
+                                     initial = 1,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x/(1-x)),
+                                     from.theta = function(x) exp(x)/(1+exp(x))
+                                     )), 
+                     pdf = "ss"
+                     ), 
              logoffset = list(
                      hyper = list(
                              theta = list(
@@ -2716,7 +2740,6 @@
                                      from.theta = function(x) x
                                      ))
                      ),
-
              special1 = list(
                       hyper = list(
                               theta1 = list(
@@ -2946,7 +2969,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "logit", "probit", "cloglog", "log"),
+                      link = c("default", "logit", "probit", "cloglog", "log", "sslogit"),
                       pdf = "binomial"
                       ),
 
