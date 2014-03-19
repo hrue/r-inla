@@ -347,6 +347,8 @@ typedef struct {
 	double **beta;					       /* one covariate */
 	double **beta_intern;				       /* one covariate */
 	double ***betas;				       /* with variable number of covariates */
+	double **sensitivity_intern;
+	double **specificity_intern;
 } Link_param_tp;
 
 /* 
@@ -473,7 +475,8 @@ typedef enum {
 	LINK_TAN,
 	LINK_TEST1,
 	LINK_SPECIAL1,
-	LINK_LOGOFFSET
+	LINK_LOGOFFSET,
+	LINK_SSLOGIT
 } inla_component_tp;
 
 
@@ -1174,6 +1177,7 @@ double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
+double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
