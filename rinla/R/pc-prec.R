@@ -86,7 +86,6 @@ inla.pc.dprec = function(prec, u, alpha, lambda, log = FALSE)
 inla.pc.qprec = function(p, u, alpha, lambda)
 {
     lambda = inla.pc.prec.lambda(u, alpha, lambda)
-    s = 1/sqrt(prec)
     q = qexp(1-p, rate = lambda)
     qprec = 1/q^2
     return (qprec)
