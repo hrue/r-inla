@@ -396,8 +396,9 @@
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
 
-    ## keep track of all priors
+    ## keep track of all priors and keep the original data
     all.hyper = list()
+    data.orig = data
     
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
@@ -581,9 +582,7 @@
         }
     }
 
-    data.orig = data
     data = inla.remove(as.character(formula[2]), data) 
-    
     if (!is.null(control.predictor$A)) {
         MN = inla.sparse.dim(control.predictor$A)
         MPredictor = MN[1]
@@ -1913,7 +1912,6 @@
                 }
             }
             ## OLD CODE: if (n.family == 1) the.args$control.family = the.args$control.family[[1L]]
-
             ret$all.hyper = all.hyper
             ret$.args = the.args
             ret$call = call
