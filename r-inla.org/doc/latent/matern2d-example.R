@@ -33,6 +33,6 @@ result=inla(formula, family="gaussian", data=data, verbose=TRUE,
 
 ## plot the posterior mean for `predictor' and compare with the truth
 dev.new()
-inla.display.matrix(zi.mat)
+INLA:::inla.display.matrix(zi.mat)
 dev.new()
-inla.display.matrix(inla.vector2matrix(result$summary.linear.predictor$mean,nrow,ncol))
+INLA:::inla.display.matrix(INLA:::inla.vector2matrix(result$summary.linear.predictor$mean,nrow,ncol))
