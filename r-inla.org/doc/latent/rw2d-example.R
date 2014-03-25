@@ -26,6 +26,6 @@ result=inla(formula, family="gaussian", data=data)
 
 #plot the posterior mean for `node' with the truth
 dev.new()
-inla.display.matrix(s.mat)
+INLA:::inla.display.matrix(s.mat)
 dev.new()
-inla.display.matrix(inla.vector2matrix(result$summary.random$node$mean,nrow,ncol))
+INLA:::inla.display.matrix(INLA:::inla.vector2matrix(result$summary.random$node$mean,nrow,ncol))
