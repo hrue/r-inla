@@ -23,17 +23,18 @@
 
 `inla.doc` = function(what, verbose=FALSE)
 {
+    what = inla.trim.family(what)
     sections = names(inla.models())
     m = inla.models()
-    for(section in 1:length(m)) {
 
+    for(section in 1:length(m)) {
         if (verbose) {
             cat(paste("Search in section:", names(m)[section], "\n"))
             cat(paste("\t",  "Names in section:",  names(m[[section]]), "\n"))
         }
 
-        if (inla.is.element(what, m[[section]])) {
-            idx = which(names(m[[section]]) == what)
+        idx = which(inla.trim.family(names(m[[section]])) == what)
+        if (length(idx) > 0L) {
             pdf = m[[section]][[idx]]$pdf
 
             if (verbose) {

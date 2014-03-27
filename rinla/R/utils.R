@@ -331,7 +331,7 @@
     ## lowercase. remove also everything after a `:', so that "name:
     ## a" is "name:".
     family = gsub(":.*$", ":", family)
-    family = tolower(gsub("[_ \t]+", "", family))
+    family = tolower(gsub("[_ \t.]+", "", family))
     return (family)
 }
 
