@@ -20,7 +20,7 @@ if (FALSE) {
         inla.dev.new()
         plot(phis, exp(log.prior(phis)), type="l",
              lwd = 2,  bty = "l",
-             xlab = "Phi",
+             xlab = expression(phi), 
              ylab = "Density")
         if (length(grep("^sar", g)) > 0) {
             fnm = "sardinia-prior.ps"
@@ -108,7 +108,7 @@ inla.dev.new()
 plot(mm.r, type="l", lwd = 2, bty="l",
      xlim = c(0, 1),
      ylim = c(0, 10),
-     xlab = "Phi",
+     xlab = expression(phi), 
      ylab = "Density")
 lines(phis, exp(phi.prior(phis)), lwd = 2,  lty=2)
 if (write.new.figures)
@@ -171,8 +171,9 @@ if (write.new.figures)
 ## prec
 m.p = inla.smarginal(r$internal.marginals.hyperpar[[
         "Log precision for region"]],
-        factor = 100, extrapolate = 0.5)
+        factor = 100, extrapolate = .5)
 mm.p = inla.tmarginal(function(x) exp(x), m.p)
+mm.p = inla.smarginal(mm.p, extrapolate = .25)
 inla.dev.new()
 plot(mm.p, type="l", lwd = 2, bty="l",
      xlim = c(0, 80),
@@ -192,11 +193,12 @@ print(paste("marginal stdev", s))
 m.r = inla.smarginal(r$internal.marginals.hyperpar[["Logit phi for region"]],
         factor = 100, extrapolate = 0.5)
 mm.r = inla.tmarginal(function(x)1/(1+exp(-x)), m.r)
+mm.r = inla.smarginal(mm.r, extrapolate = .6)
 inla.dev.new()
 plot(mm.r, type="l", lwd = 2, bty="l",
      xlim = c(0, 1),
      ylim = c(0, 10),
-     xlab = "Phi",
+     xlab = expression(phi), 
      ylab = "Density")
 lines(phis, exp(phi.prior(phis)), lwd = 2,  lty=2)
 if (write.new.figures)

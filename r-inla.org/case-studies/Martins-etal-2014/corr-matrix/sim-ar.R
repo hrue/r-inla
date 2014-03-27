@@ -16,7 +16,10 @@ X = matrix(unlist(X),ncol=p, byrow=TRUE)
 XX = apply(X, 1, function(x) inla.ar.phi2acf(x)[-1])
 XX = matrix(unlist(XX), ncol = p,  byrow = TRUE)
 colnames(X) = c("psi[1]", "psi[2]", "psi[3]", "psi[4]")
-pairs(X[1:(nsim/10), ], cex=0.1)
+pairs(X[1:(nsim/10), ], cex=0.1,
+      labels = c(expression(psi[1]), expression(psi[2]),
+              expression(psi[3]), expression(psi[4])))
+              
 if (make.new.figures) {
     dev.print(postscript, file="ar4-joint.ps")
 }
