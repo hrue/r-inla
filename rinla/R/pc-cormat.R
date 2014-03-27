@@ -230,7 +230,7 @@ inla.pc.cormat.dtheta = function(theta, lambda = 1, log = TRUE)
     d = sqrt(-log(det(R)))
     ld = (log(lambda) 
           + lfactorial(q) 
-          + (3*q/2 + 1) * log(2.0)
+          + (5*q/2) * log(2.0)
           - 0.5 * log(q+1) 
           - (2*q+1) * log(d)
           - lambda * d
