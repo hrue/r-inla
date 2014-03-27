@@ -4461,6 +4461,7 @@
     } else {
         ms = names(models)
     }
+    ms = inla.trim.family(ms)
     k = grep(paste("^", m, "$", sep=""), ms)
     if (length(k) == 0L) {
         if (stop.on.error) {
