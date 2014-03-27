@@ -63,7 +63,7 @@ inla.pc.ar.dpacf = function(pac, lambda = 1, log = TRUE)
     d = sqrt(sum(-log(1-pac^2)))
     ld = (log(lambda) 
           + lfactorial(p) 
-          + (5*p/2 + 1) * log(2.0)
+          + (7*p/2) * log(2.0)
           - 0.5 * log(p+1) 
           - (2*p+1) * log(d)
           - lambda * d
