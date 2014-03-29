@@ -6694,7 +6694,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
 		}
-	} else if (!strcasecmp(prior->name, "pc.prec")) {
+	} else if (!strcasecmp(prior->name, "PCPREC")) {
 		prior->id = P_PC_PREC;
 		prior->priorfunc = priorfunc_pc_prec;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
@@ -6710,7 +6710,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "pc.dof")) {
+	} else if (!strcasecmp(prior->name, "PCDOF")) {
 		prior->id = P_PC_DOF;
 		prior->priorfunc = priorfunc_pc_dof;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
@@ -6742,7 +6742,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "pc.rho0")) {
+	} else if (!strcasecmp(prior->name, "PCRHO0")) {
 		prior->id = P_PC_RHO0;
 		prior->priorfunc = priorfunc_pc_rho0;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
@@ -6758,7 +6758,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "pc.rho1")) {
+	} else if (!strcasecmp(prior->name, "PCRHO1")) {
 		prior->id = P_PC_RHO1;
 		prior->priorfunc = priorfunc_pc_rho1;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
