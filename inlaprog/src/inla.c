@@ -1649,6 +1649,19 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 
 	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
 }
+double Qfunc_cfe(int i, int j, void *arg)
+{
+	inla_cfe_tp *a = (inla_cfe_tp *) arg;
+	assert(i == j);
+	return (a->precision);
+}
+double mfunc_cfe(int i, void *arg)
+{
+	inla_cfe_tp *a = (inla_cfe_tp *) arg;
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->beta_arg);
+
+	return beta * a->x[i];
+}
 double Qfunc_mec(int i, int j, void *arg)
 {
 	inla_mec_tp *a = (inla_mec_tp *) arg;
@@ -12067,6 +12080,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Copy");
+	} else if (OneOf("CFE")) {
+		mb->f_id[mb->nf] = F_CFE;
+		mb->f_ntheta[mb->nf] = 1;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Constrained fixed effect");
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 	}
@@ -12143,6 +12160,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_COPY:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1");
+		break;
+
+	case F_CFE:
+		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");
 		break;
 
 	case F_IID1D:
@@ -12858,6 +12879,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_COPY:
 		case F_MEC:
 		case F_MEB:
+		case F_CFE:
 		case F_R_GENERIC:
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -14608,13 +14630,85 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Beta_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
 
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = beta;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_beta;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
+			mb->ntheta++;
+		}
+		break;
+	}
+
+	case F_CFE:
+	{
+		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
+		if (mb->verbose) {
+			printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
+		}
+
+		int fixed_default = 0;
+		fixed_default = iniparser_getint(ini, inla_string_join(secname, "FIXED"), fixed_default);
+		if (fixed_default == -1) {
+			mb->f_fixed[mb->nf][0] = 1;
+		}
+		if (mb->verbose && fixed_default == -1) {
+			printf("\t\tfixed=[%d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]);
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(0, tmp);
+		HYPER_INIT(beta, tmp);
+		if (mb->verbose) {
+			printf("\t\trange[%g, %g]\n", range[0], range[1]);
+			printf("\t\tinitialise beta[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+		mb->f_theta[mb->nf] = Calloc(1, double **);
+		mb->f_theta[mb->nf][0] = beta;
+
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;	/* and this one as well */
+
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Beta_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Beta for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+			
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
@@ -15144,6 +15238,33 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = -1;
 		mb->f_id[mb->nf] = F_COPY;
 		break;
+
+	case F_CFE:
+	{
+		inla_cfe_tp *def = Calloc(1, inla_cfe_tp);
+		def->beta = beta;
+		def->beta_arg = mb->f_theta_map_arg[mb->nf][0];
+		def->precision = mb->f_precision[mb->nf];
+		def->x = mb->f_locations[mb->nf];
+
+		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		mb->f_Qfunc[mb->nf] = Qfunc_cfe;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+		mb->f_rankdef[mb->nf] = 0.0;
+		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+		mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_cfe;
+		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+		mb->f_bfunc2[mb->nf]->nreplicate = 1;
+		mb->f_bfunc2[mb->nf]->ngroup = 1;
+		break;
+	}
+
 
 	case F_BESAG:
 	{
@@ -19840,6 +19961,20 @@ double extra(double *theta, int ntheta, void *argument)
 				// }
 			}
 			if (NOT_FIXED(f_fixed[i][0]) && !mb->f_same_as[i]) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+			}
+			break;
+		}
+
+		case F_CFE:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				beta = theta[count];
+				count++;
+			} else {
+				//
+			}
+			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
 			break;
