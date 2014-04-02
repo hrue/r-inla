@@ -216,6 +216,12 @@
             cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
         }
     }
+    if (inla.one.of(random.spec$model, "cfe")) {
+        if (!is.null(random.spec$range)) {
+            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
+            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+        }
+    }
 
     if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d"))) {
         if (is.null(random.spec$scale.model)) {

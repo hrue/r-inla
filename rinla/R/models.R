@@ -2446,6 +2446,44 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = NA
+                     ), 
+
+             cfe = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     initial = 1,
+                                     fixed = FALSE,
+                                     prior = "normal",
+                                     param = c(1, 10),
+                                     to.theta = function(x, low = -Inf, high = Inf) {
+                                         if (low == -Inf && high == Inf) {
+                                             return (x)
+                                         } else {
+                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                             return (log( - (low - x)/(high -x)))
+                                         }
+                                     },
+                                     from.theta = function(x, low = -Inf, high = Inf) {
+                                         if (low == -Inf && high == Inf) {
+                                             return (x)
+                                         } else {
+                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                             return (low + exp(x)/(1+exp(x)) * (high - low))
+                                         }
+                                     }
+                                     )
+                             ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     pdf = NA
                      )
              ##
              )

@@ -356,7 +356,7 @@ typedef struct {
  */
 typedef enum {
 	INVALID_COMPONENT = 0,
-	L_GAUSSIAN,					       /* likelihood-models */
+	L_GAUSSIAN = 1,					       /* likelihood-models */
 	L_LOGISTIC,
 	L_SKEWNORMAL,
 	L_GEV,
@@ -403,7 +403,7 @@ typedef enum {
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
 	L_SIMPLEX, 
-	F_RW2D,						       /* f-models */
+	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
 	F_BESAGPROPER,
@@ -436,8 +436,9 @@ typedef enum {
 	F_MEB,
 	F_R_GENERIC,
 	F_SLM,
-	P_LOGGAMMA,					       /* priors */
-	P_GAUSSIAN,
+	F_CFE, 						       /* constrained fixed effect */
+	P_LOGGAMMA = 2000,				       /* priors */
+	P_GAUSSIAN,					       
 	P_MVGAUSSIAN,
 	P_MVNORM,
 	P_MINUSLOGSQRTRUNCGAUSSIAN,
@@ -460,14 +461,14 @@ typedef enum {
 	P_PC_RHO0,
 	P_PC_RHO1,
 	P_PC_DOF,
-	G_EXCHANGEABLE,					       /* group models */
+	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_AR1,
 	G_RW1,
 	G_RW2,
 	G_AR,
 	G_BESAG,
-	MIX_GAUSSIAN,					       /* mix-models */
-	LINK_IDENTITY,					       /* link-models */
+	MIX_GAUSSIAN = 4000,				       /* mix-models */
+	LINK_IDENTITY = 5000,				       /* link-models */
 	LINK_LOG,
 	LINK_PROBIT,
 	LINK_CLOGLOG,
@@ -1044,6 +1045,16 @@ typedef struct {
 
 
 /* 
+   constrained fixed effect
+ */
+typedef struct {
+	double **beta;
+	void *beta_arg;
+	double *x;
+	double precision;
+} inla_cfe_tp;
+
+/* 
    classic me model
  */
 typedef struct {
@@ -1150,6 +1161,7 @@ double Qfunc_group(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_mec(int i, int j, void *arg);
+double Qfunc_cfe(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
@@ -1204,6 +1216,7 @@ double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double mfunc_mec(int i, void *arg);
+double mfunc_cfe(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
