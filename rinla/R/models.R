@@ -2420,19 +2420,29 @@
                                      prior = "normal",
                                      param = c(1, 10),
                                      to.theta = function(x, low = -Inf, high = Inf) {
-                                         if (low == -Inf && high == Inf) {
+                                         if (all(is.infinite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (x)
-                                         } else {
-                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                         } else if (all(is.finite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (log( - (low - x)/(high -x)))
+                                         } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                             return (log(x-low))
+                                         } else {
+                                             stop("Condition not yet implemented")
                                          }
-                                     },
+                                     }, 
                                      from.theta = function(x, low = -Inf, high = Inf) {
                                          if (low == -Inf && high == Inf) {
+                                             stopifnot(low < high)
                                              return (x)
-                                         } else {
-                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                         } else if (all(is.finite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (low + exp(x)/(1+exp(x)) * (high - low))
+                                         } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                             return (low + exp(x))
+                                         } else {
+                                             stop("Condition not yet implemented")
                                          }
                                      }
                                      )
@@ -2458,19 +2468,29 @@
                                      prior = "normal",
                                      param = c(1, 10),
                                      to.theta = function(x, low = -Inf, high = Inf) {
-                                         if (low == -Inf && high == Inf) {
+                                         if (all(is.infinite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (x)
-                                         } else {
-                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                         } else if (all(is.finite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (log( - (low - x)/(high -x)))
+                                         } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                             return (log(x-low))
+                                         } else {
+                                             stop("Condition not yet implemented")
                                          }
-                                     },
+                                     }, 
                                      from.theta = function(x, low = -Inf, high = Inf) {
                                          if (low == -Inf && high == Inf) {
+                                             stopifnot(low < high)
                                              return (x)
-                                         } else {
-                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))
+                                         } else if (all(is.finite(c(low, high)))) {
+                                             stopifnot(low < high)
                                              return (low + exp(x)/(1+exp(x)) * (high - low))
+                                         } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                             return (low + exp(x))
+                                         } else {
+                                             stop("Condition not yet implemented")
                                          }
                                      }
                                      )
