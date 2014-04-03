@@ -87,7 +87,7 @@ static const char RCSId[] = HGVERSION;
 #include "interpol.h"
 #include "re.h"
 #include "ar.h"
-#include "dbp.h"
+#include "pc-priors.h"
 
 #define PREVIEW (20)
 #define MODEFILENAME ".inla-mode"
@@ -1938,7 +1938,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 	double step, dofs[NP], f[NP];
 
 	dof = map_dof(*x, MAP_FORWARD, NULL);
-	lambda = -log(alpha) / inla_dbp_dof_d(u);
+	lambda = -log(alpha) / inla_pcp_dof_d(u);
 	// be somewhat careful evaluating the derivative
 	step = sqrt(dof) * 1e-3;			       /* step-size is found empirically */
 	if (dof - 2.0 * step < 2.003){			       /* if we're to close to the lower limit */
@@ -1951,7 +1951,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 	dofs[3] = dof + step;
 	dofs[4] = dof + 2.0 * step;
 	for (k = 0; k < NP; k++) {
-		f[k] = inla_dbp_dof_d(dofs[k]);
+		f[k] = inla_pcp_dof_d(dofs[k]);
 	}
 	deriv = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
 	val = log(lambda) - lambda * f[2] + log(ABS(deriv)) + log(ABS(map_dof(*x, MAP_DFORWARD, NULL)));

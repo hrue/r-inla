@@ -1,4 +1,4 @@
-/* dbc.c
+/* pc-priors.c
  * 
  * Copyright (C) 2014 Havard Rue
  * 
@@ -35,12 +35,12 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 #include "interpol.h"
-#include "dbp.h"
+#include "pc-priors.h"
 #include "inla.h"
 
 
 
-double inla_dbp_dof_kld_approx(double dof)
+double inla_pcp_dof_kld_approx(double dof)
 {
 	// this is the kld for dof > 9
 	double t1, t4, t7, t10, t13, t16, t19, t43, t61;
@@ -62,7 +62,7 @@ double inla_dbp_dof_kld_approx(double dof)
 	return t61;
 }
 
-double inla_dbp_dof_d(double dof)
+double inla_pcp_dof_d(double dof)
 {
 	double dof_lim = 9.0, kld;
 
@@ -73,7 +73,7 @@ double inla_dbp_dof_d(double dof)
 #pragma omp critical
 		{
 			if (!spline) {
-				spline = inla_dbp_dof_create_spline();
+				spline = inla_pcp_dof_create_spline();
 			}
 		}
 	}
@@ -81,19 +81,19 @@ double inla_dbp_dof_d(double dof)
 	if (dof < dof_lim) {
 		kld = inla_spline_eval(dof, spline);
 	} else {
-		kld = inla_dbp_dof_kld_approx(dof);
+		kld = inla_pcp_dof_kld_approx(dof);
 	}
 
 	if (ISNAN(kld)) {
 		char *msg;
-		GMRFLib_sprintf(&msg, "inla_dbp_dof_d: return NAN with dof = %.12f\n", dof);
+		GMRFLib_sprintf(&msg, "inla_pcp_dof_d: return NAN with dof = %.12f\n", dof);
 		inla_error_general(msg);
 	}
 
 	return sqrt(2.0 * kld);
 }
 
-double inla_dbp_dof_dof(double d)
+double inla_pcp_dof_dof(double d)
 {
 	// do the inverse interpolation
 
@@ -114,7 +114,7 @@ double inla_dbp_dof_dof(double d)
 				for (i = 0; i < n; i++) {
 					dof = exp(ldof_from + i * (ldof_to - ldof_from) / (n - 1.0));
 					xx[i] = dof;
-					yy[i] = inla_dbp_dof_d(dof);
+					yy[i] = inla_pcp_dof_d(dof);
 				}
 				spline = inla_spline_create(yy, xx, n);	// yes, we want the inverse
 				Free(xx);
@@ -128,7 +128,7 @@ double inla_dbp_dof_dof(double d)
 
 
 
-GMRFLib_spline_tp *inla_dbp_dof_create_spline(void)
+GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
 {
 	double xx[] = {
 		2.002478752000,

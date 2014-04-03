@@ -1,5 +1,5 @@
 
-/* dbp.h
+/* pc-priors.h
  * 
  * Copyright (C) 2014 Havard Rue
  * 
@@ -27,8 +27,8 @@
  *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
  *
  */
-#ifndef __INLA_DBP_H__
-#define __INLA_DBP_H__
+#ifndef __INLA_PC_PRIORS_H__
+#define __INLA_PC_PRIORS_H__
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -43,10 +43,10 @@ __BEGIN_DECLS
 /* 
  *
  */
-    GMRFLib_spline_tp * inla_dbp_dof_create_spline(void);
-double inla_dbp_dof_dof(double d);
-double inla_dbp_dof_kld_approx(double dof);
-double inla_dbp_dof_d(double dof);
+    GMRFLib_spline_tp * inla_pcp_dof_create_spline(void);
+double inla_pcp_dof_dof(double d);
+double inla_pcp_dof_kld_approx(double dof);
+double inla_pcp_dof_d(double dof);
 
 
 
