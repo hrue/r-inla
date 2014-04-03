@@ -5,29 +5,26 @@
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[name] log alpha
-	 	 	\item[short.name] a
-	 	 	\item[initial] 4
+	 	 	\item[name] sensitivity
+	 	 	\item[short.name] sens
+	 	 	\item[prior] logitbeta
+	 	 	\item[param] 10 5
+	 	 	\item[initial] 1
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 25 25
-	 	 	\item[to.theta] \verb!function(x) log(x)!
-	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
+	 	 	\item[name] specificity
+	 	 	\item[short.name] spec
+	 	 	\item[prior] logitbeta
+	 	 	\item[param] 10 5
+	 	 	\item[initial] 1
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
 	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] TRUE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] NA
+	\item[pdf] ss
 \end{description}

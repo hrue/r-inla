@@ -2420,7 +2420,7 @@
                                      prior = "normal",
                                      param = c(1, 10),
                                      to.theta = function(x, low = -Inf, high = Inf) {
-                                         if (all(is.infinite(c(low, high)))) {
+                                         if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
                                          } else if (all(is.finite(c(low, high)))) {
@@ -2433,7 +2433,7 @@
                                          }
                                      }, 
                                      from.theta = function(x, low = -Inf, high = Inf) {
-                                         if (low == -Inf && high == Inf) {
+                                         if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
                                          } else if (all(is.finite(c(low, high)))) {
@@ -2458,7 +2458,7 @@
                      pdf = NA
                      ), 
 
-             cfe = list(
+             clinear = list(
                      hyper = list(
                              theta = list(
                                      name = "beta",
@@ -2468,7 +2468,7 @@
                                      prior = "normal",
                                      param = c(1, 10),
                                      to.theta = function(x, low = -Inf, high = Inf) {
-                                         if (all(is.infinite(c(low, high)))) {
+                                         if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
                                          } else if (all(is.finite(c(low, high)))) {
@@ -2481,7 +2481,7 @@
                                          }
                                      }, 
                                      from.theta = function(x, low = -Inf, high = Inf) {
-                                         if (low == -Inf && high == Inf) {
+                                         if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
                                          } else if (all(is.finite(c(low, high)))) {
@@ -2503,7 +2503,7 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     pdf = NA
+                     pdf = "clinear"
                      )
              ##
              )
