@@ -193,7 +193,8 @@ component, only used if \code{model="linear"}}
 \item{precision}{The precision for the artifical noise added when creating a copy of a model or the z-model.}
 \item{range}{A vector of size two giving the lower and
 upper range for the scaling parameter \code{beta} in the
-model \code{COPY}. If low = high then the identity mapping
+model \code{COPY} and \code{CLINEAR}.
+If \code{low = high} then the identity mapping
 is used.}
 \item{adjust.for.con.comp}{If TRUE (default), adjust some
 of the models (currently: besag, bym, bym2 and besag2) if the

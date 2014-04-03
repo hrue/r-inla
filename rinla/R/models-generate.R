@@ -169,7 +169,7 @@ inla.models()
                     if (is.null(val.src)) {
                         val.src = inla.paste(deparse(val, control="keepInteger"))
                     }
-                    val = paste("\\verb|", val.src, "|", sep="")
+                    val = paste("\\verb!", val.src, "!", sep="")
                 }               
                 cat(tab, "\\item[", nm, "]", " ", inla.paste(val), "\n", sep="")
             }

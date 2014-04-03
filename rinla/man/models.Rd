@@ -2939,8 +2939,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (low == -Inf && high == Inf) {} \code{                                             return (x)} \code{                                         } else {} \code{                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         }} \code{                                     }}'}
-							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (low == -Inf && high == Inf) {} \code{                                             return (x)} \code{                                         } else {} \code{                                             stopifnot((low != -Inf) &&  (high != Inf) && (low < high))} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         }} \code{                                     }}'}
+							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
 							}
 						}
 					 }
@@ -2956,6 +2956,37 @@ inla.models()
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
 								\item{pdf = }{`NA'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `clinear'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 10'}
+							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{pdf = }{`clinear'}
 							 }
 						 }
 					 }
