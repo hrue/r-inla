@@ -8,7 +8,7 @@
 	 	 	\item[name] beta
 	 	 	\item[short.name] b
 	 	 	\item[initial] 1
-	 	 	\item[fixed] TRUE
+	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
 	 	 	\item[param] 1 10
 	 	 	\item[to.theta] \verb!function(x, low = -Inf, high = Inf) {! \verb!                                         if (all(is.infinite(c(low, high))) || low == high) {! \verb!                                             stopifnot(low < high)! \verb!                                             return (x)! \verb!                                         } else if (all(is.finite(c(low, high)))) {! \verb!                                             stopifnot(low < high)! \verb!                                             return (log( - (low - x)/(high -x)))! \verb!                                         } else if (is.finite(low) && is.infinite(high) && high > low) {! \verb!                                             return (log(x-low))! \verb!                                         } else {! \verb!                                             stop("Condition not yet implemented")! \verb!                                         }! \verb!                                     }!
@@ -23,5 +23,5 @@
 	\item[n.div.by] 
 	\item[n.required] FALSE
 	\item[set.default.values] FALSE
-	\item[pdf] NA
+	\item[pdf] clinear
 \end{description}

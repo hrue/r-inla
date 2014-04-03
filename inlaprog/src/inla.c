@@ -1649,15 +1649,15 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 
 	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
 }
-double Qfunc_cfe(int i, int j, void *arg)
+double Qfunc_clinear(int i, int j, void *arg)
 {
-	inla_cfe_tp *a = (inla_cfe_tp *) arg;
+	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
-double mfunc_cfe(int i, void *arg)
+double mfunc_clinear(int i, void *arg)
 {
-	inla_cfe_tp *a = (inla_cfe_tp *) arg;
+	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->beta_arg);
 
 	return beta * a->x[i];
@@ -12080,10 +12080,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Copy");
-	} else if (OneOf("CFE")) {
-		mb->f_id[mb->nf] = F_CFE;
+	} else if (OneOf("CLINEAR")) {
+		mb->f_id[mb->nf] = F_CLINEAR;
 		mb->f_ntheta[mb->nf] = 1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("Constrained fixed effect");
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Constrained linear");
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 	}
@@ -12162,7 +12162,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1");
 		break;
 
-	case F_CFE:
+	case F_CLINEAR:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");
 		break;
 
@@ -12879,7 +12879,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_COPY:
 		case F_MEC:
 		case F_MEB:
-		case F_CFE:
+		case F_CLINEAR:
 		case F_R_GENERIC:
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -14652,7 +14652,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-	case F_CFE:
+	case F_CLINEAR:
 	{
 		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 		if (mb->verbose) {
@@ -15239,16 +15239,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_COPY;
 		break;
 
-	case F_CFE:
+	case F_CLINEAR:
 	{
-		inla_cfe_tp *def = Calloc(1, inla_cfe_tp);
+		inla_clinear_tp *def = Calloc(1, inla_clinear_tp);
 		def->beta = beta;
 		def->beta_arg = mb->f_theta_map_arg[mb->nf][0];
 		def->precision = mb->f_precision[mb->nf];
 		def->x = mb->f_locations[mb->nf];
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
-		mb->f_Qfunc[mb->nf] = Qfunc_cfe;
+		mb->f_Qfunc[mb->nf] = Qfunc_clinear;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -15257,7 +15257,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
 		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
-		mb->f_bfunc2[mb->nf]->mfunc = mfunc_cfe;
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_clinear;
 		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
@@ -19966,7 +19966,7 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		case F_CFE:
+		case F_CLINEAR:
 		{
 			if (NOT_FIXED(f_fixed[i][0])) {
 				beta = theta[count];

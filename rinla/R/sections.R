@@ -216,7 +216,7 @@
             cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
         }
     }
-    if (inla.one.of(random.spec$model, "cfe")) {
+    if (inla.one.of(random.spec$model, "clinear")) {
         if (!is.null(random.spec$range)) {
             cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
             cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
