@@ -4,6 +4,9 @@
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 require(INLA)
+require(splancs)
+require(deldir)
+require(fields)
 inla.setOption(inla.call='remote')
 @ 
 
@@ -59,20 +62,20 @@ The expected number of points is its
 exponential times the area fo the window. 
 We use 
 <<>>=
-beta0 <- 1.5 
+beta0 <- 2
 @ 
 So, the expected number of points is 
 <<n-exp>>=
 exp(beta0) * diff(range(win$x)) * diff(range(win$y))
 @ 
-Is also possible to use a functional.
+Is also possible to use a functional, see Chapter~\ref{ch:lcoxcov}.
 
 On the estimation process we use the Matern 
 covariance function with $\nu=1$. 
 So, here we just fix it on this value. 
 The other parameters are the variance and scale
 <<>>=
-sigma2x <- 1;      kappa <- 3 
+sigma2x <- 0.3;      kappa <- 2
 @ 
 
 Doing the simulation
@@ -85,7 +88,7 @@ lg.s <- rLGCP('matern', beta0,
 Both, the LGRF and the point pattern, are returned. 
 The point pattern locations are 
 <<xy>>=
-(n <- nrow(xy <- cbind(lg.s$x, lg.s$y)))
+(n <- nrow(xy <- cbind(lg.s$x, lg.s$y)[,2:1]))
 @ 
 
 The exponential of simulated values of the LGRF 
@@ -97,29 +100,16 @@ Lam <- attr(lg.s, 'Lambda')
 summary(as.vector(rf.s <- log(Lam$v)))
 @ 
 
-The values of the LGRF is collected (and a summary) 
-at closest grid centers with 
-<<resp>>=
-summary(z <- log(Lam$v[Reduce(
-  'cbind', nearest.pixel(xy[,1], xy[,2], Lam))]))
-@ 
-at point pattern locations we have larger 
-average than the entire simulated random field. 
-
-We see the exponential of the simulated LGRF over the grid, 
-left graph of Figure~\ref{fig:lgrfpp}, and the point pattern with 
-size of points proportional to the LGRF at closest grid center.
+On the Figure~\ref{fig:lgrfpp} we can see the 
+simulated LGRF over the grid and the point pattern simulated 
 <<lgrfpp,eval=F>>=
-par(mfrow=c(1,2), mar=c(0,0,1,.5), mgp=c(1,0.5,0))
-plot(Lam, main='Lambda') 
-par(mar=c(2,2,2.5,0.5))
-plot(xy, cex=0.3+(z-min(z))/diff(range(z)), asp=1, xlab='', ylab='', 
-     main='Simulated point pattern\npoint size proportional of values at')
+par(mfrow=c(1,1))
+image.plot(list(x=Lam$yrow, y=Lam$xcol, z=rf.s), main='log-Lambda', asp=1)
+points(xy, pch=19) 
 @ 
-
-\setkeys{Gin}{width=0.99\textwidth}
+\setkeys{Gin}{width=0.55\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=3.5>>=
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
 <<lgrfpp>>
 @ 
 \caption{Simulated intensity of the point process (left), 
@@ -133,28 +123,88 @@ plot(xy, cex=0.3+(z-min(z))/diff(range(z)), asp=1, xlab='', ylab='',
 Following \cite{simpsonetal:2011} we can estimate the parameters 
 of the log-Cox point process model using few command lines. 
 
-Creating the mesh 
+To do inference for the log-Cox point process model 
+we also need some care on building the mesh and on using it. 
+It is needed that the mes covers the study region. 
+So, we use the \code{loc.domain} argument to build the mesh
 <<mesh>>=
-(nv <- (mesh <- inla.mesh.2d(xy, cutoff=0.1, max.edge=c(.5, 1)))$n)
+loc.d <- 3*t(matrix(c(0,0,1,0,1,1,0,1,0,0), 2))
+(nv <- (mesh <- inla.mesh.2d(loc.d=loc.d, max.e=c(.4,.8), cut=.2))$n) 
 @ 
+which is visualized at Figure~\ref{fig:lcmesh} with following commands 
+<<meshplot,eval=FALSE>>=
+par(mar=c(0,0,0,0))
+plot(mesh, asp=1, main='')
+points(xy, col=4, pch=19); lines(loc.d, col=3)
+@ 
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}\centering
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
+<<meshplot>>
+@ 
+\caption{Mesh used to inference for the log-Cox process.}
+\label{fig:lcmesh}
+\end{figure}
 
 Defining the SPDE model 
 <<spde>>=
 spde <- inla.spde2.matern(mesh=mesh, alpha=2)
 @ 
 
-The trick to the estimation of the log-Cox model 
-is to use the 'relative' area of the each mesh 
-vertices as the expected number of counts 
-on this locations (the integration points). 
-But, at data locations, it needs to set the 
-expected counts as zero (it is just a point). 
-So, we define a vector of data augmented to 
-have length equals the number of edges on 
-the mesh plus the number of events. 
-<<dat0>>=
+The SPDE approach defines the model on the nodes of the mesh. 
+To fit the the log-Cox point process model 
+these points are considered the integration points. 
+Them, the *relative* area of these poins are considered 
+proportional to the expected number of events. 
+It means that at the node on the mesh with has the larger edges 
+we have larger expected value. 
+The \code{diag(spde$param.inla$M0)} 
+gives this value. 
+
+But, the mesh has nodes out of the domain and we have area 
+larger than our domain when we have nodes outer the domain: 
+<<>>=
+sum(diag(spde$param.inla$M0))
+@ 
+
+To correct it we need to set zero for those nodes which are out of the 
+domain and also conect (by it edges) nodes out of the domain. 
+We can use the values for the nodes on the inner domain and 
+with its neighbours also inside the domain. 
+For the nodes near the boundary it becomes hard to deal with. 
+
+First, we can found the mesh nodes within the domain by using 
+the \code{inout()} function from \pkg{splancs} packate, \cite{splancs}.
+<<noin>>=
+require(splancs)
+table(no.in <- inout(mesh$loc, loc.d))
+@ 
+
+Second, we can use the \code{deldir} function from package \pkg{deldir}, 
+\cite{deldir} to compute what we need. 
+We consider the nodes inside the domain and 
+supply the corners of our retangular domain.
+<<deldir,results=hide>>=
+require(deldir)
+dd <- deldir(mesh$loc[no.in,1], mesh$loc[no.in,2], 
+             rw=c(win$xrange, win$yrange))
+@ 
+<<summaryarea>>=
+sum(dd$summary$dir.area)
+@ 
+
+Now we can define the vector with the expected number of cases. 
+It is related to the augumented data that we need 
+to fit using the Poisson likelihood. 
+We can specify that the first observations (number of nodes)
+are zero and the last are ones (number of events). 
+<<y01>>=
 y.pp <- rep(0:1, c(nv, n))
-e.pp <- c(diag(spde$param.inla$M0), rep(0,n))
+@ 
+So, the expected vector can be defined by 
+<<expected>>=
+e.pp <- rep(0, nv + n)
+e.pp[no.in] <- dd$summary$dir.area
 @ 
 
 We must have to define the projector matrix 
@@ -178,8 +228,8 @@ A.pp <- rBind(imat, lmat)
 The data stack can be made by 
 <<stkpp>>=
 stk.pp <- inla.stack(data=list(y=y.pp, e=e.pp), 
-                     A=list(A.pp), tag='pp',
-                     effects=list(i=1:nv)) 
+                     A=list(1,A.pp), tag='pp',
+                     effects=list(list(b0=rep(1,nv+n)), list(i=1:nv))) 
 @ 
 
 The posterior marginals for the parameters 
@@ -187,7 +237,7 @@ of the log-Cox model (on the SPDE approach scale)
 and for the latent random field at integration 
 and location points are obtained by 
 <<ppest>>=
-pp.res <- inla(y ~ 0 + f(i, model=spde), 
+pp.res <- inla(y ~ 0 + b0 + f(i, model=spde), 
                family='poisson', data=inla.stack.data(stk.pp), 
                control.predictor=list(A=inla.stack.A(stk.pp)), 
                E=inla.stack.data(stk.pp)$e)
@@ -196,17 +246,17 @@ pp.res <- inla(y ~ 0 + f(i, model=spde),
 To get the model parameters on the user-scale paramenters
 such as the scale $\kappa$, nominal variance $\sigma^2_x$ 
 and nominal range we use the \texttt{inla.spde2.result()} function 
-<<insp-u,eval=T,echo=F>>=
+<<insp-u,eval=TRUE>>=
 pp.rf <- inla.spde2.result(pp.res, 'i', spde)
 @ 
 
 The posterior distribution of the log-Cox model 
 parameters are visualized on the Figure~\ref{fig:pppost}. 
-
 <<pp-viz,eval=F>>=
-par(mfrow=c(2,2), mar=c(0,0,0,0))
-plot(mesh, asp=1, main='')
-par(mar=c(3,3,1,0.3), mgp=c(2,1,0)) 
+par(mfrow=c(2,2), mar=c(3,3,1,0.3), mgp=c(2,1,0)) 
+plot(pp.res$marginals.fix[[1]], type='l', 
+     xlab=expression(beta[0]), ylab='Density')
+abline(v=beta0, col=2)
 plot(pp.rf$marginals.variance.nominal[[1]], type='l', 
      xlab=expression(sigma^2), ylab='Density')
 abline(v=sigma2x, col=2)
@@ -217,15 +267,151 @@ plot(pp.rf$marginals.range.nominal[[1]], type='l',
      xlab='Nominal range', ylab='Density')
 abline(v=sqrt(8*1)/kappa, col=2)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
+\setkeys{Gin}{width=0.75\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=7.5>>=
 <<pp-viz>>
 @ 
 \caption{Posterior distribution for the parameters of 
   the log-Cox model $\sigma^2$ (left), $\kappa$ (mid) 
   and the nominal range  (right)} 
 \label{fig:pppost}
+\end{figure}
+
+
+\chapter{Including a covariate on the log-Cox process}\label{ch:lcoxcov}
+
+In Chapter~\ref{ch:lcox} we have done simulation considering 
+the underline intensity as just the exponential of a realization 
+of a Gaussian random field. 
+In this chapter we consider that we have an additional effect, 
+which is treated as a covariate. 
+In order to fit the model, it is needed the covariate value everywhere, 
+at the location points and at the integration points. 
+
+The simulation is done considering that the covariate effect is available 
+at the same grid points where the Gaussian process is simulated. 
+So, first we create an artificial covariate at the grid 
+<<gridcov>>=
+y0 <- x0 <- seq(win$xrange[1], win$xrange[2], 
+                length=spatstat.options()$npixel)
+gridcov <- outer(x0, y0, function(x,y) cos(x) - sin(y-2))
+@ 
+Now, the expected number of points is function of the covariate 
+<<n-exp-cov>>=
+beta1 <- -0.5
+sum(exp(beta0 + beta1*gridcov) * diff(x0[1:2])*diff(y0[1:2]))
+@ 
+
+Doing the simulation
+<<simulappc>>=
+set.seed(1)
+lg.s.c <- rLGCP('matern', im(beta0 + beta1*gridcov, xcol=x0, yrow=y0), 
+                c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+@ 
+
+Both, the LGRF and the point pattern, are returned. 
+The point pattern locations are 
+<<xyc>>=
+(n.c <- nrow(xy.c <- cbind(lg.s.c$x, lg.s.c$y)[,2:1]))
+@ 
+
+On the Figure~\ref{fig:lgrfppc} we can see the covariate values and 
+the simulated LGRF over the grid 
+<<lgrfppc,eval=FALSE>>=
+require(fields)
+par(mfrow=c(1,2), mar=c(2,2,1,1), mgp=c(1,0.5,0))
+image.plot(list(x=x0, y=y0, z=gridcov), main='Covariate', asp=1)
+image.plot(list(x=x0, y=y0, z=log(attr(lg.s.c, 'Lambda')$v)), 
+           main='log-Lambda', asp=1)
+points(xy.c, pch=19)
+@ 
+
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=10,height=5>>=
+<<lgrfppc>>
+@ 
+\caption{Covariate (left), simulated intensity of the point process (mid), 
+  simulated point pattern (right).}
+\label{fig:lgrfppc}
+\end{figure}
+
+
+\section{Inference} 
+
+We have to include the covariate values to do the inference. 
+We need to collect it at the point pattern locations and at the 
+mesh nodes from the grid. 
+
+We collect the covariate with the command bellow
+<<collcovar>>=
+covariate = gridcov[Reduce('cbind', nearest.pixel(
+    c(mesh$loc[,1], xy.c[,1]), c(mesh$loc[,2], xy.c[,2]), 
+    im(gridcov, x0, y0)))]
+@ 
+
+The augumented response data is created in same way as before. 
+<<datc>>=
+y.pp.c <- rep(0:1, c(nv, n.c))
+e.pp.c <- rep(0, nv + n.c)
+e.pp.c[no.in] <- dd$summary$dir.area
+@ 
+
+The projector matrix for the observed points locations 
+<<A.c>>=
+lmat.c <- inla.spde.make.A(mesh, xy.c)
+@ 
+The entire projector matrix, using the previous for the 
+integration points, is
+<<App.c>>=
+A.pp.c <- rBind(imat, lmat.c)
+@ 
+
+The data stack is 
+<<stkpp.c>>=
+stk.pp.c <- inla.stack(data=list(y=y.pp.c, e=e.pp.c), 
+                       A=list(1, A.pp.c), tag='pp.c',
+                       effects=list(list(b0=1, covariate=covariate), 
+                           list(i=1:nv)))
+@ 
+
+The model is fitted by 
+<<ppest.c>>=
+pp.c.res <- inla(y ~ 0 + b0 + covariate + f(i, model=spde), 
+                 family='poisson', data=inla.stack.data(stk.pp.c), 
+                 control.predictor=list(A=inla.stack.A(stk.pp.c)), 
+                 E=inla.stack.data(stk.pp.c)$e)
+@ 
+
+Getting the model parameters on the user-scale 
+<<insp-u.c,eval=TRUE>>=
+pp.c.rf <- inla.spde2.result(pp.c.res, 'i', spde)
+@ 
+
+The posterior distribution of the log-Cox model 
+parameters are visualized on the Figure~\ref{fig:pppostc}. 
+
+<<ppc-viz,eval=F>>=
+par(mfrow=c(2,2), mar=c(3,3,1,0.3), mgp=c(2,1,0)) 
+plot(pp.c.res$marginals.fix[[1]], type='l', ylab='Density', 
+     xlab=expression(beta[0])); abline(v=beta0, col=2)
+plot(pp.c.res$marginals.fix[[2]], type='l', ylab='Density', 
+     xlab=expression(beta[1])); abline(v=beta1, col=2)
+plot(pp.rf$marginals.variance.nominal[[1]], type='l', ylab='Density', 
+     xlab=expression(sigma^2)); abline(v=sigma2x, col=2)
+plot(pp.rf$marginals.kappa[[1]], type='l', ylab='Density',
+     xlab=expression(kappa)); abline(v=kappa, col=2)
+@ 
+\setkeys{Gin}{width=0.75\textwidth}
+\begin{figure}\centering
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=7.5>>=
+<<ppc-viz>>
+@ 
+\caption{Posterior distribution for the intercept (top left), 
+  coefficient of the covariate (top right) and the parameters of 
+  the log-Cox model $\sigma^2$ (bottom left), $\kappa$ (bottom right)} 
+\label{fig:pppostc}
 \end{figure}
 
 
@@ -255,9 +441,15 @@ sampling using SPDE.
 We use the values of the LGRF simulated on the 
 Chapter~\ref{ch:lcox} to define the response. 
 We just take the values of closest grid centers 
-to each location of the point pattern, 
-change the signal and divide by two. 
-So, the response values now are inversly 
+to each location of the point pattern. 
+The values of the LGRF is collected (and a summary) 
+at closest grid centers with 
+<<resp>>=
+summary(z <- log(t(Lam$v)[Reduce(
+  'cbind', nearest.pixel(xy[,1], xy[,2], Lam))]))
+@ 
+The response assigned is scaled from the LGRF values plus a noise, 
+which means that the response values is inversly 
 proportional to the points density 
 <<resp>>=
 set.seed(2)
@@ -384,6 +576,7 @@ latent field used to do the simulation of the point process.
 par(mfrow=c(2,2), mar=c(3,3,0.5,0.5), mgp=c(2,1,0))
 plot(j.res$marginals.hy[[length(j.res$marginals.hy)]], type='l', 
      xlab=expression(beta), ylab='Density', col=4)
+abline(v=-1, col=2, lty=2)
 plot(j.rf$marginals.variance.nominal[[1]], type='l', 
      xlim=range(j.rf$marginals.variance[[1]][,1], 
          u.rf$marginals.variance[[1]][,1]), 
@@ -411,4 +604,3 @@ legend('topright', c('True value', 'Usual model', 'Pref_Sampl'),
   $\kappa$ and the nominal range under preferential sampling.}
 \label{fig:jpars}
 \end{figure}
-
