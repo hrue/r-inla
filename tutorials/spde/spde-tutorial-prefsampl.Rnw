@@ -62,7 +62,7 @@ The expected number of points is its
 exponential times the area fo the window. 
 We use 
 <<>>=
-beta0 <- 2
+beta0 <- 3
 @ 
 So, the expected number of points is 
 <<n-exp>>=
@@ -75,7 +75,7 @@ covariance function with $\nu=1$.
 So, here we just fix it on this value. 
 The other parameters are the variance and scale
 <<>>=
-sigma2x <- 0.3;      kappa <- 2
+sigma2x <- 0.2;      kappa <- 2
 @ 
 
 Doing the simulation
@@ -104,6 +104,7 @@ On the Figure~\ref{fig:lgrfpp} we can see the
 simulated LGRF over the grid and the point pattern simulated 
 <<lgrfpp,eval=F>>=
 par(mfrow=c(1,1))
+require(fields)
 image.plot(list(x=Lam$yrow, y=Lam$xcol, z=rf.s), main='log-Lambda', asp=1)
 points(xy, pch=19) 
 @ 
@@ -123,27 +124,40 @@ points(xy, pch=19)
 Following \cite{simpsonetal:2011} we can estimate the parameters 
 of the log-Cox point process model using few command lines. 
 
+\subsection{The mesh and the weights}
+
 To do inference for the log-Cox point process model 
 we also need some care on building the mesh and on using it. 
-It is needed that the mes covers the study region. 
-So, we use the \code{loc.domain} argument to build the mesh
+
+To do inference for the log Cox process, it is not necessarly better 
+to have any location points as any of the mesh nodes, as on the 
+geostatistical analysis where it helps a bit for the estimation 
+of the nugget effect, see~\ref{sec:meshcompare}. 
+We just need a mesh that covers the study region. 
+So, we use the \code{loc.domain} argument to build the mesh. 
+
+An additional thing is that we ignore the second outer extension and 
+we use a small first outer extension. 
+This is because it is not necessary to have nodes out of the study region 
+when it recieves zero weights (see weight computation bellow). 
 <<mesh>>=
 loc.d <- 3*t(matrix(c(0,0,1,0,1,1,0,1,0,0), 2))
-(nv <- (mesh <- inla.mesh.2d(loc.d=loc.d, max.e=c(.4,.8), cut=.2))$n) 
+(nv <- (mesh <- inla.mesh.2d(loc.d=loc.d, off=.2, max.e=.5, cut=.1))$n) 
 @ 
-which is visualized at Figure~\ref{fig:lcmesh} with following commands 
+which is visualized at Figure~\ref{fig:ppmesh} with following commands 
 <<meshplot,eval=FALSE>>=
 par(mar=c(0,0,0,0))
 plot(mesh, asp=1, main='')
 points(xy, col=4, pch=19); lines(loc.d, col=3)
 @ 
+
 \setkeys{Gin}{width=0.5\textwidth}
 \begin{figure}\centering
 <<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
 <<meshplot>>
 @ 
 \caption{Mesh used to inference for the log-Cox process.}
-\label{fig:lcmesh}
+\label{fig:ppmesh}
 \end{figure}
 
 Defining the SPDE model 
@@ -158,7 +172,7 @@ Them, the *relative* area of these poins are considered
 proportional to the expected number of events. 
 It means that at the node on the mesh with has the larger edges 
 we have larger expected value. 
-The \code{diag(spde$param.inla$M0)} 
+The \code{diag(spde\$param.inla\$M0)} 
 gives this value. 
 
 But, the mesh has nodes out of the domain and we have area 
@@ -166,35 +180,69 @@ larger than our domain when we have nodes outer the domain:
 <<>>=
 sum(diag(spde$param.inla$M0))
 @ 
-
-To correct it we need to set zero for those nodes which are out of the 
-domain and also conect (by it edges) nodes out of the domain. 
-We can use the values for the nodes on the inner domain and 
+We can use these values for the nodes on the inner domain and 
 with its neighbours also inside the domain. 
 For the nodes near the boundary it becomes hard to deal with. 
+If it happens to be any node out of the study region and not 
+connected to any inside the istudy region, it recieve zero. 
+So, this is way we build a mesh without a large outer extension. 
 
-First, we can found the mesh nodes within the domain by using 
-the \code{inout()} function from \pkg{splancs} packate, \cite{splancs}.
-<<noin>>=
-require(splancs)
-table(no.in <- inout(mesh$loc, loc.d))
-@ 
-
-Second, we can use the \code{deldir} function from package \pkg{deldir}, 
-\cite{deldir} to compute what we need. 
-We consider the nodes inside the domain and 
-supply the corners of our retangular domain.
+First, we get the Voronoi triangulation for the mesh nodes. 
+We can use the \code{deldir} function from package \pkg{deldir}, 
+\cite{deldir} to compute it. 
 <<deldir,results=hide>>=
 require(deldir)
-dd <- deldir(mesh$loc[no.in,1], mesh$loc[no.in,2], 
-             rw=c(win$xrange, win$yrange))
-@ 
-<<summaryarea>>=
-sum(dd$summary$dir.area)
+dd <- deldir(mesh$loc[,1], mesh$loc[,2])
 @ 
 
-Now we can define the vector with the expected number of cases. 
-It is related to the augumented data that we need 
+Second, we get the polygons (around each mesh nodes) with
+<<tiles>>=
+tiles <- tile.list(dd)
+@ 
+These polygons are defined in a special way. 
+For each of the reference points (the mesh nodes in our case), 
+the polygon around is defined in a way that any location 
+inside this polygon is closer to the respective reference point, 
+rather another of the reference points. 
+We can see these polygons on Figure~\ref{fig:vppmesh}. 
+
+Third, we get the interection polygons between these polygons 
+and the study region polygon, using functions from 
+the \pkg{gpclib} package:
+<<pols>>=
+require(gpclib)
+area.poly(pl.study <- as(loc.d, 'gpc.poly'))
+sum(w <- sapply(tiles, function(p) area.poly(intersect(
+    as(cbind(p$x, p$y), 'gpc.poly'), pl.study))))
+@ 
+and we have some points without any weights (the red ones on Figure~\ref{fig:vppmesh}). 
+<<wsummary>>=
+table(w>0)
+@ 
+
+At Figure~\ref{fig:vppmesh} we can see the Voronoi polygons for the mesh nodes. 
+We can see that the polygons around some mesh does not intersect the domain study area.
+<<vppmesh>>=
+par(mar=c(2,2,1,1), mgp=2:0)
+plot(mesh$loc, asp=1, col=(w==0)+1, pch=19, xlab='', ylab='') 
+for (i in 1:length(tiles)) 
+    lines(c(tiles[[i]]$x, tiles[[i]]$x[1]), c(tiles[[i]]$y, tiles[[i]]$y[1]))
+lines(loc.d, col=3)
+@ 
+
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}\centering
+<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
+<<vppmesh>>
+@ 
+\caption{Voronoy polygons for the mesh used to inference for the log-Cox process.}
+\label{fig:vppmesh}
+\end{figure}
+
+\subsection{The data and projector matrices}
+
+This vector is just what we need to use as the exposure (expected) 
+for the Poisson likelihood and is related to the augumented data that we need 
 to fit using the Poisson likelihood. 
 We can specify that the first observations (number of nodes)
 are zero and the last are ones (number of events). 
@@ -203,8 +251,7 @@ y.pp <- rep(0:1, c(nv, n))
 @ 
 So, the expected vector can be defined by 
 <<expected>>=
-e.pp <- rep(0, nv + n)
-e.pp[no.in] <- dd$summary$dir.area
+e.pp <- c(w, rep(0, n)) 
 @ 
 
 We must have to define the projector matrix 
@@ -231,6 +278,8 @@ stk.pp <- inla.stack(data=list(y=y.pp, e=e.pp),
                      A=list(1,A.pp), tag='pp',
                      effects=list(list(b0=rep(1,nv+n)), list(i=1:nv))) 
 @ 
+
+\subsection{Posterior marginals}
 
 The posterior marginals for the parameters 
 of the log-Cox model (on the SPDE approach scale) 
@@ -288,6 +337,8 @@ In this chapter we consider that we have an additional effect,
 which is treated as a covariate. 
 In order to fit the model, it is needed the covariate value everywhere, 
 at the location points and at the integration points. 
+
+\section{Covariate everywhere}
 
 The simulation is done considering that the covariate effect is available 
 at the same grid points where the Gaussian process is simulated. 
@@ -354,8 +405,7 @@ covariate = gridcov[Reduce('cbind', nearest.pixel(
 The augumented response data is created in same way as before. 
 <<datc>>=
 y.pp.c <- rep(0:1, c(nv, n.c))
-e.pp.c <- rep(0, nv + n.c)
-e.pp.c[no.in] <- dd$summary$dir.area
+e.pp.c <- c(w, rep(0, n.c))
 @ 
 
 The projector matrix for the observed points locations 
@@ -448,12 +498,19 @@ at closest grid centers with
 summary(z <- log(t(Lam$v)[Reduce(
   'cbind', nearest.pixel(xy[,1], xy[,2], Lam))]))
 @ 
-The response assigned is scaled from the LGRF values plus a noise, 
-which means that the response values is inversly 
-proportional to the points density 
+
+These values are the latent field with zero mean plus the defined intercept.
+We define the response as a different intercept $\beta_y$ and multiply the 
+zero mean random field with a $1/\beta$, where $\beta$ is the parameter 
+as the sharing parameter between the intensity 
+of the point process locations and the response. 
+Considering $\beta<0$, it means that the response values is inversly 
+proportional to the points density.  
 <<resp>>=
+beta0.y <- 10;   beta <- -1;   prec.y <- 16
 set.seed(2)
-summary(resp <- -z + rnorm(length(z), 0, 0.2))
+summary(resp <- beta0.y + (z-beta0)/beta + 
+        rnorm(length(z), 0, sqrt(1/prec.y)))
 @ 
 
 \section{Fitting the usual model}
@@ -464,20 +521,21 @@ as fixed. We use the mesh of the previous Chapter.
 
 <<rresp>>= 
 stk.u <- inla.stack(data=list(y=resp), A=list(lmat, 1), 
-                    effects=list(i=1:nv, beta=rep(1,length(resp))))
-u.res <- inla(y ~ 0 + beta + f(i, model=spde), 
+                    effects=list(i=1:nv, b0=rep(1,length(resp))))
+u.res <- inla(y ~ 0 + b0 + f(i, model=spde), 
               data=inla.stack.data(stk.u), 
               control.predictor=list(A=inla.stack.A(stk.u)))
 @ 
 
 Summaries
 <<summaries>>=
-rbind(beta0=u.res$summary.fix[, 1:6], noise.prec=u.res$summary.hy[1,])
+round(cbind(True=c(beta0y=beta0.y, prec.y=prec.y), 
+            rbind(u.res$summary.fix[, 1:6], u.res$summary.hy[1,])), 4)
 @ 
 
 We have to build also the posterior marginals on the
 user-scale paramenters: scale, nominal variance and nominal range
-<<>>=
+<<rfuparams>>=
 u.rf <- inla.spde2.result(u.res, 'i', spde)
 @ 
 
@@ -535,10 +593,10 @@ and use it on the copy feature later.
 <<ppstk>>=
 stk2.y <- inla.stack(data=list(y=cbind(resp,NA), e=rep(0,n)), 
                      A=list(lmat, 1), tag='resp2',
-                     effects=list(i=1:nv, b.y=rep(1,n)))
+                     effects=list(i=1:nv, b0.y=rep(1,n)))
 stk2.pp <- inla.stack(data=list(y=cbind(NA,y.pp), e=e.pp), 
                       A=list(A.pp, 1), tag='pp2',
-                      effects=list(j=1:nv, b.pp=rep(1,n+nv))) 
+                      effects=list(j=1:nv, b0.pp=rep(1,nv+n))) 
 @ 
 and join both together
 <<j.stk>>=
@@ -549,13 +607,13 @@ Now, we fit the geostatistical model under preferential sampling.
 To put the LGRF on both likelihood, we have to use the copy 
 strategy. 
 <<j-res>>=
-j.res <- inla(y ~ 0 + b.y + b.pp + f(i, model=spde) + 
+j.res <- inla(y ~ 0 + b0.pp + b0.y + f(i, model=spde) + 
               f(j, copy='i', fixed=FALSE), 
               data=inla.stack.data(j.stk), 
               family=c('gaussian', 'poisson'), 
               control.predictor=list(A=inla.stack.A(j.stk)), 
               E=inla.stack.data(j.stk)$e)
-j.res$summary.fix
+round(cbind(True=c(beta0, beta0.y), j.res$summary.fix), 4)
 @ 
 
 Computing the marginals posterior distributions 
@@ -564,19 +622,18 @@ on the user-scale random field parameters
 j.rf <- inla.spde2.result(j.res, 'i', spde)
 @ 
 
-
-We can visualize the posterior distribution on the Figure\ref{fig:jpars}. 
+We can visualize the posterior distribution on the Figure~\ref{fig:jpars}. 
 The negative signal to the copy parameter $\beta$ is due to the 
 fact that we define the response with opposite signal of the 
 latent field used to do the simulation of the point process. 
 
-\setkeys{Gin}{width=0.99\textwidth}
+\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
 <<pppost,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
 par(mfrow=c(2,2), mar=c(3,3,0.5,0.5), mgp=c(2,1,0))
 plot(j.res$marginals.hy[[length(j.res$marginals.hy)]], type='l', 
      xlab=expression(beta), ylab='Density', col=4)
-abline(v=-1, col=2, lty=2)
+abline(v=beta, col=2, lty=2)
 plot(j.rf$marginals.variance.nominal[[1]], type='l', 
      xlim=range(j.rf$marginals.variance[[1]][,1], 
          u.rf$marginals.variance[[1]][,1]), 
