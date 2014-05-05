@@ -2373,7 +2373,8 @@
                      n.div.by = NULL,
                      n.required = TRUE,
                      set.default.values = TRUE,
-                     pdf = "slm"
+                     pdf = "slm", 
+                     status = "experimental"
                      ),
 
              matern2d = list(
