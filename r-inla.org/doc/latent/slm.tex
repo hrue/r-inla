@@ -1,0 +1,90 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Spatial lag model for spatial effects}
+
+\subsection*{Parametrization}
+
+The \texttt{slm} model is defined as
+\begin{displaymath}
+    \mathbf{x} = (I_n-\rho W)^{-1}(X\beta +\varepsilon)
+\end{displaymath}
+where $I_n$ is the identity matrix of dimension $n\times n$, $W$ is a
+spatial weights matrix, $X$ is a matrix of covariates, $\rho$ is a
+spatial autocorrelation parameter, $\beta$ are coefficients of the
+covariates and $\varepsilon$ is zero mean Gaussian noise with precision
+$\tau$.
+
+\subsection*{Hyperparameters}
+
+This model has two hyperparameters $\mathbf{\theta} = (\theta_{1},
+\theta_{2})$. The precision parameter $\tau$ is represented as
+\begin{displaymath}
+    \theta_{1} =\log \tau
+\end{displaymath}
+and the prior is defined on $\theta_{1}$. The spatial autocorrelation
+parameter $\rho$ is represented as
+\begin{displaymath}
+    \rho^{*} = \frac{\rho - \rho_{\text{min}}}{
+        \rho_{\text{max}} - \rho_{\text{min}}}
+\end{displaymath}
+and then
+\begin{displaymath}
+    \theta_{2} = \log(\rho^{*}/(1-\rho^{*}))
+\end{displaymath}
+and the prior is defined on $\theta_{2}$. Here, $\rho_{\text{min}}$
+and $\rho_{\text{max}}$ are lower and upper limits of the legal range
+for $\rho$.
+
+\subsection*{Specification}
+
+The slm model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="slm",
+        args.slm = list(rho.min = NULL,
+                        rho.max = NULL,
+                        X = NULL,
+                        W = NULL,
+                        Q.beta = NULL))
+\end{verbatim}
+$\verb|args.slm|$ is used to define the slm-spesific parameters in the
+model.
+\begin{description}
+\item[rho.min and rho.max] define the range in which $\rho$ can take
+    values. Note that, $\rho^{*}$ is in the interval $(0,1)$ and that
+    it is re-scaled to the interval (\verb|rho.min|, \verb|rho.max|)
+    when computing $I_n-\rho W$.  Initial values on $\rho$ need to be
+    re-scaled to the (0,1) interval.
+\item[X] defines the matrix of covariates.
+\item[W] defines the adjacency matrix.
+\item[Q.beta] defines the precision of the vector of coefficients
+    $\beta$ in the model.
+\end{description}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/slm.tex}
+
+
+\subsection*{Example}
+
+{\small\verbatiminput{slm-example.R}}
+
+
+
+\subsection*{Notes}
+
+The estimates of $\beta$ are included at the end of the vector of random
+effects. See the example for details on how to extract them.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
