@@ -1534,44 +1534,50 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	store = Calloc(1, GMRFLib_store_tp);		       /* this can be used ;-) */
 
 	if ((ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) && !(ai_store->correction_term)) {
-		double s = 1.0 / (2.0 * deldif);
-		ai_store->correction_term = Calloc(n, double); /* compute this */
-		ai_store->derivative3 = Calloc(n, double);     /* and this */
-		ai_store->correction_idx = Calloc(n, int);     /* and this one */
+#pragma omp critical
+		{
+			if (!(ai_store->correction_term)){
+				double s = 1.0 / (2.0 * deldif);
+				ai_store->correction_term = Calloc(n, double); /* compute this */
+				ai_store->derivative3 = Calloc(n, double);     /* and this */
+				ai_store->correction_idx = Calloc(n, int);     /* and this one */
 
-		/*
-		 * the same code splitted 
-		 */
-		ai_store->nidx = 0;
-		if (fixed_value) {
-			/*
-			 * NOT IN USE 
-			 */
-			for (i = 0; i < n; i++) {
-				if (d[i] && !fixed_value[i]) {
-					ai_store->correction_idx[ai_store->nidx++] = i;
-					GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i,
-							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
-					GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i,
-							      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
-					ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
-					ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
+				/*
+				 * the same code splitted 
+				 */
+				ai_store->nidx = 0;
+				if (fixed_value) {
+					/*
+					 * NOT IN USE 
+					 */
+					for (i = 0; i < n; i++) {
+						if (d[i] && !fixed_value[i]) {
+							ai_store->correction_idx[ai_store->nidx++] = i;
+							GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i,
+									      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
+							GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i,
+									      fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
+							ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
+							ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
+						}
+					}
+				} else {
+					//printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
+					for (ii = 0; ii < ai_store->nd; ii++) {
+						i = ai_store->d_idx[ii];
+						ai_store->correction_idx[ai_store->nidx++] = i;
+						GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
+								      &(ai_par->stencil));
+						GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
+								      &(ai_par->stencil));
+						ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
+						ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
+					}
 				}
-			}
-		} else {
-			// printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
-			for (ii = 0; ii < ai_store->nd; ii++) {
-				i = ai_store->d_idx[ii];
-				ai_store->correction_idx[ai_store->nidx++] = i;
-				GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-						      &(ai_par->stencil));
-				GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-						      &(ai_par->stencil));
-				ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
-				ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 			}
 		}
 	}
+	
 
 	switch (ai_par->linear_correction) {
 	case GMRFLib_AI_LINEAR_CORRECTION_OFF:
@@ -1749,10 +1755,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, a_sigma, cc, sol1, aa, tmp;
 		GMRFLib_sn_param_tp snp;
 
+		int iii, jjj;
 		third_order_derivative = 0.0;
-		for (j = 0; j < ai_store->nidx; j++) {
-			i = ai_store->correction_idx[j];
-			third_order_derivative += ai_store->derivative3[i] * gsl_pow_3(derivative[i]);
+		for (jjj = 0; jjj < ai_store->nidx; jjj++) {
+			iii = ai_store->correction_idx[jjj];
+			third_order_derivative += ai_store->derivative3[iii] * gsl_pow_3(derivative[iii]);
 		}
 		third_order_derivative *= gsl_pow_3(x_sd);
 
