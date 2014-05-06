@@ -1,6 +1,6 @@
 /* interpol.c
  * 
- * Copyright (C) 2011 Havard Rue
+ * Copyright (C) 2011-2014 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,10 +87,25 @@ double inla_spline_eval(double x, GMRFLib_spline_tp * s)
 	 * Evaluate a spline 's' in point 'x' 
 	 */
 
+	int extrapolate = 1;
 	double val;
-
+	
 	if (x < s->xmin || x > s->xmax) {
-		val = NAN;
+		if (extrapolate){
+			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
+			double deriv;
+			if (x > s->xmax){
+				deriv = inla_spline_eval_deriv(s->xmax, s);
+				val = inla_spline_eval(s->xmax, s) + deriv * (x - s->xmax);
+			} else if (x < s->xmin) {
+				deriv = inla_spline_eval_deriv(s->xmin, s);
+				val = inla_spline_eval(s->xmin, s) + deriv * (x - s->xmin);
+			} else {
+				assert(0 == 1);
+			}
+		} else {
+			val = NAN;
+		}
 	} else {
 		val = gsl_spline_eval(s->spline, x, s->accel);
 	}

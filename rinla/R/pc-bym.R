@@ -24,7 +24,7 @@ inla.pc.bym.phi = function(
         ## use with care, as this only applied to the case where Q is
         ## already scaled.
         scale.model = TRUE,
-        phi.s = 1/(1+exp(-seq(-16, 16,  len = 10000))),
+        phi.s = 1/(1+exp(-seq(-12, 12,  len = 10000))),
         return.as.table = FALSE, 
         debug = FALSE)
 {
