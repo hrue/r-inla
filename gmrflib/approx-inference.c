@@ -1536,11 +1536,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	if ((ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) && !(ai_store->correction_term)) {
 #pragma omp critical
 		{
-			if (!(ai_store->correction_term)){
+			if (!(ai_store->correction_term)) {
 				double s = 1.0 / (2.0 * deldif);
-				ai_store->correction_term = Calloc(n, double); /* compute this */
-				ai_store->derivative3 = Calloc(n, double);     /* and this */
-				ai_store->correction_idx = Calloc(n, int);     /* and this one */
+				ai_store->correction_term = Calloc(n, double);	/* compute this */
+				ai_store->derivative3 = Calloc(n, double);	/* and this */
+				ai_store->correction_idx = Calloc(n, int);	/* and this one */
 
 				/*
 				 * the same code splitted 
@@ -1562,14 +1562,14 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 						}
 					}
 				} else {
-					//printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
+					// printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
 					for (ii = 0; ii < ai_store->nd; ii++) {
 						i = ai_store->d_idx[ii];
 						ai_store->correction_idx[ai_store->nidx++] = i;
-						GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-								      &(ai_par->stencil));
-						GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode, loglFunc, loglFunc_arg, &(ai_par->step_len),
-								      &(ai_par->stencil));
+						GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode, loglFunc, loglFunc_arg,
+								      &(ai_par->step_len), &(ai_par->stencil));
+						GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode, loglFunc, loglFunc_arg,
+								      &(ai_par->step_len), &(ai_par->stencil));
 						ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
 						ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 					}
@@ -1577,7 +1577,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}
 		}
 	}
-	
+
 
 	switch (ai_par->linear_correction) {
 	case GMRFLib_AI_LINEAR_CORRECTION_OFF:
@@ -3814,7 +3814,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
-
 		// need to reset this, as ai_store is not set correctly
 		if (x_mode) {
 			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -6407,7 +6406,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 		integral2 += w[k] * xpi[i];
 		integral_one += w[k] * dens[i];
 	}
-	
+
 	if (ISZERO(integral_one)) {
 		fail = 1.0;
 		integral = integral2 = 0.0;
