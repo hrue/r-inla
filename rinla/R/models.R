@@ -2797,8 +2797,25 @@
                                      fixed = FALSE,
                                      to.theta = function(x) x,
                                      from.theta = function(x) x
-                                     ))
+                                     )),
+                     pdf = NULL
                      ),
+
+             special2 = list(
+                     hyper = list(
+                             theta = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     prior = "normal",
+                                     param = c(0, 10),
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     )),
+                     pdf = NULL
+                     ),
+
              special1 = list(
                       hyper = list(
                               theta1 = list(
@@ -2911,7 +2928,8 @@
                                       to.theta = function(x) x, 
                                       from.theta = function(x) x
                                       )
-                              )
+                              ),
+                     pdf = NULL
                      )
              )
          )
@@ -2988,7 +3006,7 @@
                               ),
                       survival = FALSE,
                       discrete = TRUE,
-                      link = c("default", "log", "logoffset", "test1", "special1"),
+                      link = c("default", "log", "logoffset", "test1", "special1", "special2"),
                       pdf = "poisson"
                       ),
 

@@ -476,6 +476,7 @@ typedef enum {
 	LINK_TAN,
 	LINK_TEST1,
 	LINK_SPECIAL1,
+	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
 	LINK_LOGOFFSET,
 	LINK_SSLOGIT
 } inla_component_tp;
@@ -1187,6 +1188,7 @@ double link_logit(double x, map_arg_tp typ, void *param, double *cov);
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
+double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
