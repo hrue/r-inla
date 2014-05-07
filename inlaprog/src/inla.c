@@ -1080,6 +1080,46 @@ double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 	}
 	return NAN;
 }
+double link_special2(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	Link_param_tp *p;
+	double beta, f;
+
+	if (!cov) {
+		char *msg;
+		GMRFLib_sprintf(&msg, "You need to pass the covariate to the link.model[special2] in the inla()-argument 'link.covariates'");
+		inla_error_general(msg);
+		exit(1);
+	}
+	if (cov[0] <= 0.0 || cov[0] >= 1.0) {
+		char *msg;
+		GMRFLib_sprintf(&msg, "The covariate to link.model[special2] must be between 0 and 1. Your is [%g].", cov[0]);
+		inla_error_general(msg);
+		exit(1);
+	}
+
+	p = (Link_param_tp *) param;
+	beta = p->beta[GMRFLib_thread_id][0];
+	f = (1.0 - cov[0] + cov[0] * exp(beta));
+	
+	switch (typ) {
+	case MAP_FORWARD:
+		return exp(x) * f;
+	case MAP_BACKWARD:
+		return log(x / f);
+	case MAP_DFORWARD:
+		return exp(x) * f;
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		abort();
+	}
+	return NAN;
+
+}
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -11116,6 +11156,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = -1;
 		ds->predictor_invlinkfunc = link_special1;
 		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
+	} else if (!strcasecmp(ds->link_model, "SPECIAL2")) {
+		ds->link_id = LINK_SPECIAL2;
+		ds->link_ntheta = 1;
+		ds->predictor_invlinkfunc = link_special2;
+		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
 	} else {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -11348,6 +11393,56 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link beta for test1", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->beta;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+		break;
+
+	case LINK_SPECIAL2:
+		/*
+		 * exp(eta) * ( 1-x + x*exp(beta) )
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
+		ds->link_fixed = Calloc(1, int);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->order = ds->link_order;
+		ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
+
+		HYPER_NEW(ds->link_parameters->beta, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link beta[%g]\n", ds->link_parameters->beta[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+		ds->link_prior = Calloc(1, Prior_tp);
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link beta for special2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link beta for special2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -18463,6 +18558,14 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case LINK_TEST1:
+				if (!ds->link_fixed[0]) {
+					double beta = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &beta);
+					count++;
+				}
+				break;
+
+			case LINK_SPECIAL2:
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta);
