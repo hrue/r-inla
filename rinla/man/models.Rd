@@ -3371,6 +3371,30 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{pdf = }{`NULL'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `special2'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{pdf = }{`NULL'}
 							 }
 						 }
 					 }
@@ -3513,6 +3537,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{pdf = }{`NULL'}
 							 }
 						 }
 					 }
