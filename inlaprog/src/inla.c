@@ -24337,6 +24337,13 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
+		GMRFLib_graph_tp *graph;
+		GMRFLib_read_graph_ascii(&graph, "zones.graph");
+		exit(0);
+	}
+
+	if (0) {
 		double a_data[] = { 0.18, 0.41, 0.14, 0.51,
 			0.60, 0.24, 0.30, 0.13,
 			0.57, 0.99, 0.97, 0.19,

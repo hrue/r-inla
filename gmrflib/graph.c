@@ -163,9 +163,15 @@ int GMRFLib_read_graph(GMRFLib_graph_tp ** graph, const char *filename)
 }
 int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 {
-	/*
-	 * if that fails, try reading in ascii format. 
-	 */
+#define TO_INT(_ix, _x) \
+	if (1) {							\
+		_ix = (int) (_x);					\
+		if (!ISEQUAL((double) (_ix), (_x))) {			\
+			char *msg;					\
+			GMRFLib_sprintf(&msg, "Error reading graph. This is not an integer [%g]", _x); \
+			GMRFLib_ERROR_MSG(GMRFLib_EGRAPH, msg);		\
+		}							\
+	}
 
 	/*
 	 * read a graph in the following format
@@ -176,17 +182,20 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	 */
 
 	/*
-	 * dec 09: add the posibility to give a 1-based graph. if min(node)=1 and max(node)=n, then this defines a 1-based graph. otherwise, its a 0-based graph. 
+	 * dec 09: add the posibility to give a 1-based graph. if min(node)=1 and max(node)=n, then this defines a 1-based graph.
+	 * otherwise, its a 0-based graph.
 	 */
 
 	int *storage = NULL, n_neig_tot = 0, storage_indx, itmp;
 	int i, j, tnode, min_node, max_node;
+	double dnode, tmp;
 	GMRFLib_io_tp *io = NULL;
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 	GMRFLib_EWRAP0(GMRFLib_make_empty_graph(graph));
 
-	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &((*graph)->n), "%d"));
+	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
+	TO_INT((*graph)->n, tmp);
 	GMRFLib_ASSERT((*graph)->n >= 0, GMRFLib_EPARAMETER);
 
 	(*graph)->nnbs = Calloc((*graph)->n + 1, int);
@@ -196,7 +205,8 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	max_node = INT_MIN;
 
 	for (i = 0; i < (*graph)->n; i++) {
-		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tnode, "%d"));
+		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &dnode, "%lf"));
+		TO_INT(tnode, dnode);
 		if (tnode < 0 || tnode > (*graph)->n) {
 			GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 			return GMRFLib_EREADFILE;
@@ -204,7 +214,8 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		min_node = IMIN(min_node, tnode);
 		max_node = IMAX(max_node, tnode);
 
-		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &itmp, "%d"));
+		GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
+		TO_INT(itmp, tmp);
 		if (itmp < 0 || itmp > (*graph)->n) {
 			GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 			return GMRFLib_EREADFILE;
@@ -216,7 +227,8 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			(*graph)->nbs[tnode] = Calloc((*graph)->nnbs[tnode], int);
 
 			for (j = 0; j < (*graph)->nnbs[tnode]; j++) {
-				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &itmp, "%d"));
+				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
+				TO_INT(itmp, tmp);
 				if (itmp < 0 || itmp > (*graph)->n) {
 					GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 					return GMRFLib_EREADFILE;
@@ -286,6 +298,7 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	}
 
 	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*graph));	       /* prepare the graph for computations */
+#undef TO_INT
 	return GMRFLib_SUCCESS;
 }
 
