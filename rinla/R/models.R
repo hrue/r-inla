@@ -2505,6 +2505,94 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "clinear"
+                     ), 
+
+             sigm = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     initial = 1,
+                                     fixed = FALSE,
+                                     prior = "normal",
+                                     param = c(1, 10),
+                                     to.theta = function(x) x, 
+                                     from.theta = function(x) x
+                                     ),
+                             theta2 = list(
+                                     name = "loghalflife",
+                                     short.name = "halflife",
+                                     initial = 3,
+                                     fixed = FALSE,
+                                     prior = "loggamma",
+                                     param = c(3, 1),
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ), 
+                             theta3 = list(
+                                     name = "logshape",
+                                     short.name = "shape",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "loggamma",
+                                     param = c(10, 10),
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )
+                             ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     pdf = "sigm"
+                     ), 
+
+             revsigm = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "beta",
+                                     short.name = "b",
+                                     initial = 1,
+                                     fixed = FALSE,
+                                     prior = "normal",
+                                     param = c(1, 10),
+                                     to.theta = function(x) x, 
+                                     from.theta = function(x) x
+                                     ),
+                             theta2 = list(
+                                     name = "loghalflife",
+                                     short.name = "halflife",
+                                     initial = 3,
+                                     fixed = FALSE,
+                                     prior = "loggamma",
+                                     param = c(3, 1),
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ), 
+                             theta3 = list(
+                                     name = "logshape",
+                                     short.name = "shape",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "loggamma",
+                                     param = c(10, 10),
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     )
+                             ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     pdf = "sigm"
                      )
              ##
              )

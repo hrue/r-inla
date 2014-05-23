@@ -2992,6 +2992,116 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `sigm'.}{Number of hyperparmeters are 3.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 10'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`loghalflife'}
+							\item{short.name = }{`halflife'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`3 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{name = }{`logshape'}
+							\item{short.name = }{`shape'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`10 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{pdf = }{`sigm'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `revsigm'.}{Number of hyperparmeters are 3.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 10'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`loghalflife'}
+							\item{short.name = }{`halflife'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`3 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{name = }{`logshape'}
+							\item{short.name = }{`shape'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`10 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{pdf = }{`sigm'}
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `group'.}{

@@ -1695,12 +1695,46 @@ double Qfunc_clinear(int i, int j, void *arg)
 	assert(i == j);
 	return (a->precision);
 }
+double Qfunc_sigm(int i, int j, void *arg)
+{
+	inla_sigm_tp *a = (inla_sigm_tp *) arg;
+	assert(i == j);
+	return (a->precision);
+}
 double mfunc_clinear(int i, void *arg)
 {
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->beta_arg);
 
 	return beta * a->x[i];
+}
+double mfunc_sigm(int i, void *arg)
+{
+	inla_sigm_tp *a = (inla_sigm_tp *) arg;
+	double beta, halflife, shape, x, xx;
+
+	beta = a->beta[GMRFLib_thread_id][0];
+	halflife = map_precision(a->log_halflife[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	shape = map_precision(a->log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	x = a->x[i];
+	assert(x >= 0.0);
+
+	xx = pow(x/halflife, shape);
+	return beta * xx/(1.0+xx);
+}
+double mfunc_revsigm(int i, void *arg)
+{
+	inla_sigm_tp *a = (inla_sigm_tp *) arg;
+	double beta, halflife, shape, x, xx;
+
+	beta = a->beta[GMRFLib_thread_id][0];
+	halflife = map_precision(a->log_halflife[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	shape = map_precision(a->log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	x = a->x[i];
+	assert(x >= 0.0);
+
+	xx = pow(x/halflife, shape);
+	return beta * 1.0/(1.0+xx);
 }
 double Qfunc_mec(int i, int j, void *arg)
 {
@@ -11889,7 +11923,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0;
+		**mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0,
+		**log_halflife = NULL,  **log_shape = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -12034,7 +12069,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(log_diag, 0.0);
 	HYPER_NEW(mean_x, 0.0);
 	HYPER_NEW(log_prec_x, 0.0);
-
+	HYPER_NEW(log_halflife, 0.0);
+	HYPER_NEW(log_shape, 0.0);
+	
 	/*
 	 * start parsing 
 	 */
@@ -12179,6 +12216,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_CLINEAR;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Constrained linear");
+	} else if (OneOf("SIGM")) {
+		mb->f_id[mb->nf] = F_SIGM;
+		mb->f_ntheta[mb->nf] = 3;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Sigmodial");
+	} else if (OneOf("REVSIGM")) {
+		mb->f_id[mb->nf] = F_REVSIGM;
+		mb->f_ntheta[mb->nf] = 3;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Reverse sigmodial");
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 	}
@@ -12259,6 +12304,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_CLINEAR:
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");
+		break;
+
+	case F_SIGM: 
+	case F_REVSIGM: 
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// beta
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// log_halflife
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// log_shape
 		break;
 
 	case F_IID1D:
@@ -12975,6 +13027,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_MEC:
 		case F_MEB:
 		case F_CLINEAR:
+		case F_SIGM:
+		case F_REVSIGM:
 		case F_R_GENERIC:
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
@@ -14819,6 +14873,135 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_SIGM: 
+	case F_REVSIGM: 
+	{
+		char *local_name = (mb->f_id[mb->nf] == F_SIGM ? GMRFLib_strdup("SIGM") : GMRFLib_strdup("REVSIGM"));
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 1.0);
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(0, tmp);
+		HYPER_INIT(beta, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise beta[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		mb->f_theta[mb->nf][0] = beta;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "%s beta for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s beta for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = beta;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), log(20.0));
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(1, tmp);
+		HYPER_INIT(log_halflife, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_halflife[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+		mb->f_theta[mb->nf][1] = log_halflife;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			
+			GMRFLib_sprintf(&msg, "%s log_halflife for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s halflife for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = log_halflife;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(1.0));
+		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(2, tmp);
+		HYPER_INIT(log_shape, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_shape[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
+		}
+		mb->f_theta[mb->nf][2] = log_shape;
+		if (!mb->f_fixed[mb->nf][2]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			
+			GMRFLib_sprintf(&msg, "%s log_shape for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s shape for %s", local_name, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][2].to_theta);
+
+			mb->theta[mb->ntheta] = log_shape;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		break;
+	}
+
+
 	case F_BYM:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
@@ -15360,6 +15543,34 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_SIGM:
+	case F_REVSIGM:
+	{
+		// mb->f_id[mb->nf]
+		inla_sigm_tp *def = Calloc(1, inla_sigm_tp);
+		def->beta = beta;
+		def->log_halflife = log_halflife;
+		def->log_shape = log_shape;
+		def->precision = mb->f_precision[mb->nf];
+		def->x = mb->f_locations[mb->nf];
+
+		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		mb->f_Qfunc[mb->nf] = Qfunc_sigm;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+		mb->f_rankdef[mb->nf] = 0.0;
+		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+		mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+		mb->f_bfunc2[mb->nf]->mfunc = (mb->f_id[mb->nf] == F_SIGM ? mfunc_sigm : mfunc_revsigm);
+		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+		mb->f_bfunc2[mb->nf]->nreplicate = 1;
+		mb->f_bfunc2[mb->nf]->ngroup = 1;
+		break;
+	}
 
 	case F_BESAG:
 	{
@@ -17697,7 +17908,9 @@ double extra(double *theta, int ntheta, void *argument)
 
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, skew, kurt, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
-	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0;
+		h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0, 
+		log_halflife, log_shape;
+			
 
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
@@ -20079,6 +20292,41 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+			}
+			break;
+		}
+
+		case F_SIGM:
+		case F_REVSIGM:
+		{
+			if (NOT_FIXED(f_fixed[i][0])) {
+				beta = theta[count];
+				count++;
+			} else {
+				//
+			}
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+			}
+
+			if (NOT_FIXED(f_fixed[i][1])) {
+				log_halflife = theta[count];
+				count++;
+			} else {
+				//
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_halflife);
+			}
+
+			if (NOT_FIXED(f_fixed[i][2])) {
+				log_shape = theta[count];
+				count++;
+			} else {
+				//
+			}
+			if (NOT_FIXED(f_fixed[i][2])) {
+				val += PRIOR_EVAL(mb->f_prior[i][2], &log_shape);
 			}
 			break;
 		}

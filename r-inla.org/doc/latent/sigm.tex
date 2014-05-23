@@ -1,0 +1,99 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Sigmodial effect of a covariate}
+
+\subsection*{Parametrization}
+
+This model implements a non-linear effect of a positive covariate $x$
+as a part of the linear predictor. It comes in two variants,
+\emph{sigmodial}
+\begin{displaymath}
+    \beta \frac{x^{k}}{x^{k} + a^{k}}
+\end{displaymath}
+where $x\ge 0$, $k>0$ and $a>0$, and the \emph{reverse-sigmodial}
+\begin{displaymath}
+    \beta \frac{a^{k}}{x^{k} + a^{k}}.
+\end{displaymath}
+Here, $a$ is the halflife parameter, $k$ the shape-parameter and
+$\beta$ the scaling.
+
+\subsection*{Hyperparameters}
+
+This model has three hyperparameters, the scaling $\beta$, halflife
+$a$ and shape $k$,
+\begin{displaymath}
+    \theta_1 = \beta \qquad \theta_2 = \log(a) \qquad  \theta_3 = \log(k)
+\end{displaymath}
+and the priors are given for $\theta_1, \theta_2$ and $\theta_3$.
+
+
+\subsection*{Specification}
+
+\begin{verbatim}
+    f(x, model="sigm",    hyper = ..., precision = <precision>)
+    f(x, model="revsigm", hyper = ..., precision = <precision>)
+\end{verbatim}
+where \texttt{precision} is the precision for the tiny noise used to
+implement this as a latent model. 
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/sigm.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+sigm = function(x, halflife, shape = 1)
+{
+    xx = (x/halflife)^shape
+    return (xx/(1.0+xx))
+}
+revsigm = function(x, halflife, shape = 1)
+{
+    xx = (x/halflife)^shape
+    return (1.0/(1.0+xx))
+}
+
+n = 1000
+lambda = 10
+s=0.01
+x = rpois(n, lambda = lambda)
+halflife = lambda
+shape = 2
+
+y = sigm(x, halflife, shape) + rnorm(n, sd = s)
+r = inla(y ~ -1 + f(x, model="sigm"),
+        data = data.frame(y, x),
+        family = "gaussian",
+        control.family = list(
+                hyper = list(
+                        prec = list(
+                                initial = log(1/s^2),
+                                fixed = TRUE))))
+summary(r)
+
+y = revsigm(x, halflife, shape) + rnorm(n, sd = s)
+r = inla(y ~ -1 + f(x, model="revsigm"),
+        data = data.frame(y, x),
+        family = "gaussian",
+        control.family = list(
+                hyper = list(
+                        prec = list(
+                                initial = log(1/s^2),
+                                fixed = TRUE))))
+summary(r)
+\end{verbatim}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

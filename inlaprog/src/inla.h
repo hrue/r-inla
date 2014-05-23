@@ -437,6 +437,8 @@ typedef enum {
 	F_R_GENERIC,
 	F_SLM,
 	F_CLINEAR,					       /* constrained fixed effect */
+	F_SIGM, 
+	F_REVSIGM, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,					       
 	P_MVGAUSSIAN,
@@ -1055,6 +1057,18 @@ typedef struct {
 	double precision;
 } inla_clinear_tp;
 
+
+/* 
+   sigmodial and reverse sigmodial
+ */
+typedef struct {
+	double **beta;
+	double **log_halflife;
+	double **log_shape;
+	double *x;
+	double precision;
+} inla_sigm_tp;
+
 /* 
    classic me model
  */
@@ -1163,6 +1177,7 @@ double Qfunc_iid2d(int i, int j, void *arg);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_clinear(int i, int j, void *arg);
+double Qfunc_sigm(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
@@ -1219,6 +1234,8 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double mfunc_mec(int i, void *arg);
 double mfunc_clinear(int i, void *arg);
+double mfunc_sigm(int i, void *arg);
+double mfunc_revsigm(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
