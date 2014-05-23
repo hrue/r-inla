@@ -4,17 +4,17 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{Sigmodial effect of a covariate}
+\section*{Sigmoidal effect of a covariate}
 
 \subsection*{Parametrization}
 
 This model implements a non-linear effect of a positive covariate $x$
 as a part of the linear predictor. It comes in two variants,
-\emph{sigmodial}
+\emph{sigmoidal}
 \begin{displaymath}
     \beta \frac{x^{k}}{x^{k} + a^{k}}
 \end{displaymath}
-where $x\ge 0$, $k>0$ and $a>0$, and the \emph{reverse-sigmodial}
+where $x\ge 0$, $k>0$ and $a>0$, and the \emph{reverse-sigmoidal}
 \begin{displaymath}
     \beta \frac{a^{k}}{x^{k} + a^{k}}.
 \end{displaymath}
@@ -40,7 +40,7 @@ and the priors are given for $\theta_1, \theta_2$ and $\theta_3$.
 where \texttt{precision} is the precision for the tiny noise used to
 implement this as a latent model. 
 
-\subsubsection*{Hyperparameter spesification and default values}
+\subsubsection*{Hyperparameter specification and default values}
 \input{../hyper/latent/sigm.tex}
 
 \subsection*{Example}
@@ -97,3 +97,4 @@ None
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
+
