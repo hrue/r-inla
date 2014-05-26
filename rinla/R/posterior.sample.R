@@ -107,8 +107,16 @@
                                 deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ",", arg[3L], "=", arg.val[3L], ") {}"))
                             }
                         }
-                        body(deriv.func) = D(body(result$misc$from.theta[[i]]), arg[1L])
-                        log.J = log.J - log(abs(deriv.func(cs$config[[k]]$theta[i]))) ## Yes, it's a minus...
+                        try(body(deriv.func) = D(body(result$misc$from.theta[[i]]), arg[1L]), silent=TRUE)
+                        if (class(.Last.value)=='try-error') {
+                            h = .Machine$double.eps^0.25
+                            theta.1 = do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] - h))
+                            theta.2 = do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] + h))
+                            log.J = log.J - log(abs((theta.2 - theta.1)/(2.0*h))) ## Yes, it's a minus...
+                        }
+                        else {
+                            log.J = log.J - log(abs(deriv.func(cs$config[[k]]$theta[i]))) ## Yes, it's a minus...
+                        }
                     }
                     ## print(paste("logJ", log.J))
                 } else {
