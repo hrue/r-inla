@@ -16,6 +16,8 @@ inla.pc.bym.Q = function(graph, rankdef = 1, scale.model = FALSE)
 inla.pc.bym.phi = function(
         graph,
         Q, 
+        eigenvalues = NULL,
+        marginal.variances = NULL, 
         rankdef = 1L,
         ## if alpha is not set,  it will be computed from alpha.min
         alpha,
@@ -30,30 +32,41 @@ inla.pc.bym.phi = function(
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
     
-    ## computes the prior for the mixing parameter `phi'.
-    if (missing(graph) && !missing(Q)) {
+    if (missing(eigenvalues) && missing(marginal.variances)) {
+        ## computes the prior for the mixing parameter `phi'.
+        if (missing(graph) && !missing(Q)) {
+            Q = as.matrix(Q)
+        } else if (!missing(graph) && missing(Q)) {
+            Q = inla.pc.bym.Q(graph, rankdef)
+        } else if (missing(graph) && missing(Q)) {
+            stop("Either <Q> or <graph> must be given.")
+        } else {
+            stop("Only one of <Q> and <graph> can be given.")
+        }
+        
+        if (scale.model) {
+            fac = exp(mean(log(diag(
+                    INLA:::inla.ginv(x=as.matrix(Q),
+                                     rankdef=rankdef)))))
+            Q = fac * Q
+        }
         Q = as.matrix(Q)
-    } else if (!missing(graph) && missing(Q)) {
-        Q = inla.pc.bym.Q(graph, rankdef)
-    } else if (missing(graph) && missing(Q)) {
-        stop("Either <Q> or <graph> must be given.")
+        
+        n = dim(Q)[1]
+        e = eigen(Q)
+        gamma.inv = c(1/e$values[1:(n-rankdef)], rep(0, rankdef))
+        Qinv.d = c(diag(e$vectors %*% diag(gamma.inv) %*% t(e$vectors)))
+        f = mean(Qinv.d)-1
     } else {
-        stop("Only one of <Q> and <graph> can be given.")
+        n = length(eigenvalues)
+        gamma.inv = c(1/eigenvalues[1:(n-rankdef)], rep(0, rankdef))
+        if (length(marginal.variances) == 1) {
+            Qinv.d = rep(marginal.variances,  n)
+        } else {
+            Qinv.d = marginal.variances
+        }
+        f = mean(Qinv.d)-1
     }
-
-    if (scale.model) {
-        fac = exp(mean(log(diag(
-                INLA:::inla.ginv(x=as.matrix(Q),
-                                 rankdef=rankdef)))))
-        Q = fac * Q
-    }
-    Q = as.matrix(Q)
-
-    n = dim(Q)[1]
-    e = eigen(Q)
-    gamma.inv = c(1/e$values[1:(n-rankdef)], rep(0, rankdef))
-    Qinv.d = c(diag(e$vectors %*% diag(gamma.inv) %*% t(e$vectors)))
-    f = mean(Qinv.d)-1
 
     d = numeric(length(phi.s))
     k = 1
