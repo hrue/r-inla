@@ -107,7 +107,7 @@
                                 deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ",", arg[3L], "=", arg.val[3L], ") {}"))
                             }
                         }
-                        try(body(deriv.func) = D(body(result$misc$from.theta[[i]]), arg[1L]), silent=TRUE)
+                        body(deriv.func) = try(D(body(result$misc$from.theta[[i]]), arg[1L]), silent=TRUE)
                         if (class(.Last.value)=='try-error') {
                             h = .Machine$double.eps^0.25
                             theta.1 = do.call(result$misc$from.theta[[i]], args = list(cs$config[[k]]$theta[i] - h))
