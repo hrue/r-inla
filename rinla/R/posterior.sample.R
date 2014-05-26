@@ -99,8 +99,13 @@
                         if (length(arg) == 1L) {
                             deriv.func = inla.eval(paste("function(", arg, ") {}"))
                         } else {
-                            stopifnot(length(arg) == 2L)
-                            deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ") {}"))
+                            if (length(arg)==2L) {
+                                deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ") {}"))
+                            }
+                            else {
+                                stopifnot(length(arg) == 3L)
+                                deriv.func = inla.eval(paste("function(", arg[1L], ",",  arg[2L], "=", arg.val[2L], ",", arg[3L], "=", arg.val[3L], ") {}"))
+                            }
                         }
                         body(deriv.func) = D(body(result$misc$from.theta[[i]]), arg[1L])
                         log.J = log.J - log(abs(deriv.func(cs$config[[k]]$theta[i]))) ## Yes, it's a minus...
