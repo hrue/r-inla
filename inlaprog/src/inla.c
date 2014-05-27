@@ -1290,14 +1290,14 @@ double Qfunc_bym2(int i, int j, void *arg)
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double rho = map_probability(a->logit_phi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_probability(a->logit_phi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	if (IMAX(i, j) < n) {
-		return prec / (1.0 - rho);
+		return prec / (1.0 - phi);
 	}
 	if (IMIN(i, j) >= n) {
-		return (i == j ? rho / (1.0 - rho) : 0.0) + Qfunc_besag(i - n, j - n, a->besag_arg);
+		return (i == j ? phi / (1.0 - phi) : 0.0) + Qfunc_besag(i - n, j - n, a->besag_arg);
 	}
-	return -sqrt(rho * prec) / (1.0 - rho);
+	return -sqrt(phi * prec) / (1.0 - phi);
 }
 double Qfunc_group(int i, int j, void *arg)
 {
