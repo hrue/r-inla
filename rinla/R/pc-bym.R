@@ -46,8 +46,7 @@ inla.pc.bym.phi = function(
         
         if (scale.model) {
             fac = exp(mean(log(diag(
-                    INLA:::inla.ginv(x=as.matrix(Q),
-                                     rankdef=rankdef)))))
+                    INLA:::inla.ginv(x=as.matrix(Q), rankdef=rankdef)))))
             Q = fac * Q
         }
         Q = as.matrix(Q)
@@ -59,23 +58,32 @@ inla.pc.bym.phi = function(
         f = mean(Qinv.d)-1
     } else {
         n = length(eigenvalues)
+        eigenvalues = sort(eigenvalues, decreasing=TRUE)
+        eigenvalues = pmax(eigenvalues, 0)
         gamma.inv = c(1/eigenvalues[1:(n-rankdef)], rep(0, rankdef))
-        if (length(marginal.variances) == 1) {
-            Qinv.d = rep(marginal.variances,  n)
-        } else {
-            Qinv.d = marginal.variances
-        }
-        f = mean(Qinv.d)-1
+        f = mean(marginal.variances) - 1.0
     }
 
     d = numeric(length(phi.s))
     k = 1
     for(phi in phi.s) {
         aa = n*phi*f
-        bb = sum(log(1-phi + phi*gamma.inv))
-        d[k] = sqrt(aa - bb)
+        ##bb = sum(log(1-phi + phi*gamma.inv))
+        bb = sum(log1p(-phi + phi*gamma.inv))
+        ## sometimes we *might* experience numerical problems, so we need
+        ## to remove (if any) small phi's.
+        if (aa >= bb) {
+            d[k] = sqrt(aa - bb)
+        } else {
+            d[k] = NA
+        }
         k = k + 1
     }
+    ## remove phi's that failed
+    remove = is.na(d)
+    d = d[!remove]
+    phi.s = phi.s[!remove]
+    ##
     phi.s = c(0, phi.s)
     d = c(0, d)
     f.d = splinefun(phi.s, d)
@@ -98,15 +106,19 @@ inla.pc.bym.phi = function(
         }
 
         f.target = function(lam, alpha, d.u, d.max) {
-            return ((1-exp(-lam*d.u)/(1-exp(-lam*d.max)) - alpha)^2)
+            value = ((1-exp(-lam*d.u)/(1-exp(-lam*d.max)) - alpha)^2)
+            ##my.debug("lam=", lam, "value=", value)
+            return (value)
         }
 
-        lam = exp(seq(-5, 3, len=1000))
+        lam = exp(seq(-10, 3, len=25))
+        idx = which.min(f.target(lam, alpha, f.d(u), d.max))
+        lam = exp(seq(log(lam[idx-1]), log(lam[idx+1]), len=25))
         idx = which.min(f.target(lam, alpha, f.d(u), d.max))
         r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
                 maximum = FALSE,
                 alpha = alpha, d.u = f.d(u), d.max = d.max)
-        stopifnot(abs(r$objective) < 1e-5)
+        stopifnot(abs(r$objective) < 1e-3)
         lambda = r$minimum
         my.debug("found lambda = ", lambda)
     }
