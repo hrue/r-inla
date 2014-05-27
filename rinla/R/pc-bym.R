@@ -16,6 +16,8 @@ inla.pc.bym.Q = function(graph, rankdef = 1, scale.model = FALSE)
 inla.pc.bym.phi = function(
         graph,
         Q, 
+        eigenvalues = NULL,
+        marginal.variances = NULL, 
         rankdef = 1L,
         ## if alpha is not set,  it will be computed from alpha.min
         alpha,
@@ -30,39 +32,58 @@ inla.pc.bym.phi = function(
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
     
-    ## computes the prior for the mixing parameter `phi'.
-    if (missing(graph) && !missing(Q)) {
+    if (missing(eigenvalues) && missing(marginal.variances)) {
+        ## computes the prior for the mixing parameter `phi'.
+        if (missing(graph) && !missing(Q)) {
+            Q = as.matrix(Q)
+        } else if (!missing(graph) && missing(Q)) {
+            Q = inla.pc.bym.Q(graph, rankdef)
+        } else if (missing(graph) && missing(Q)) {
+            stop("Either <Q> or <graph> must be given.")
+        } else {
+            stop("Only one of <Q> and <graph> can be given.")
+        }
+        
+        if (scale.model) {
+            fac = exp(mean(log(diag(
+                    INLA:::inla.ginv(x=as.matrix(Q), rankdef=rankdef)))))
+            Q = fac * Q
+        }
         Q = as.matrix(Q)
-    } else if (!missing(graph) && missing(Q)) {
-        Q = inla.pc.bym.Q(graph, rankdef)
-    } else if (missing(graph) && missing(Q)) {
-        stop("Either <Q> or <graph> must be given.")
+        
+        n = dim(Q)[1]
+        e = eigen(Q)
+        gamma.inv = c(1/e$values[1:(n-rankdef)], rep(0, rankdef))
+        Qinv.d = c(diag(e$vectors %*% diag(gamma.inv) %*% t(e$vectors)))
+        f = mean(Qinv.d)-1
     } else {
-        stop("Only one of <Q> and <graph> can be given.")
+        n = length(eigenvalues)
+        eigenvalues = sort(eigenvalues, decreasing=TRUE)
+        eigenvalues = pmax(eigenvalues, 0)
+        gamma.inv = c(1/eigenvalues[1:(n-rankdef)], rep(0, rankdef))
+        f = mean(marginal.variances) - 1.0
     }
-
-    if (scale.model) {
-        fac = exp(mean(log(diag(
-                INLA:::inla.ginv(x=as.matrix(Q),
-                                 rankdef=rankdef)))))
-        Q = fac * Q
-    }
-    Q = as.matrix(Q)
-
-    n = dim(Q)[1]
-    e = eigen(Q)
-    gamma.inv = c(1/e$values[1:(n-rankdef)], rep(0, rankdef))
-    Qinv.d = c(diag(e$vectors %*% diag(gamma.inv) %*% t(e$vectors)))
-    f = mean(Qinv.d)-1
 
     d = numeric(length(phi.s))
     k = 1
     for(phi in phi.s) {
         aa = n*phi*f
-        bb = sum(log(1-phi + phi*gamma.inv))
-        d[k] = sqrt(aa - bb)
+        ##bb = sum(log(1-phi + phi*gamma.inv))
+        bb = sum(log1p(-phi + phi*gamma.inv))
+        ## sometimes we *might* experience numerical problems, so we need
+        ## to remove (if any) small phi's.
+        if (aa >= bb) {
+            d[k] = sqrt(aa - bb)
+        } else {
+            d[k] = NA
+        }
         k = k + 1
     }
+    ## remove phi's that failed
+    remove = is.na(d)
+    d = d[!remove]
+    phi.s = phi.s[!remove]
+    ##
     phi.s = c(0, phi.s)
     d = c(0, d)
     f.d = splinefun(phi.s, d)
@@ -85,15 +106,19 @@ inla.pc.bym.phi = function(
         }
 
         f.target = function(lam, alpha, d.u, d.max) {
-            return ((1-exp(-lam*d.u)/(1-exp(-lam*d.max)) - alpha)^2)
+            value = ((1-exp(-lam*d.u)/(1-exp(-lam*d.max)) - alpha)^2)
+            ##my.debug("lam=", lam, "value=", value)
+            return (value)
         }
 
-        lam = exp(seq(-5, 3, len=1000))
+        lam = exp(seq(-10, 3, len=25))
+        idx = which.min(f.target(lam, alpha, f.d(u), d.max))
+        lam = exp(seq(log(lam[idx-1]), log(lam[idx+1]), len=25))
         idx = which.min(f.target(lam, alpha, f.d(u), d.max))
         r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
                 maximum = FALSE,
                 alpha = alpha, d.u = f.d(u), d.max = d.max)
-        stopifnot(abs(r$objective) < 1e-5)
+        stopifnot(abs(r$objective) < 1e-3)
         lambda = r$minimum
         my.debug("found lambda = ", lambda)
     }
