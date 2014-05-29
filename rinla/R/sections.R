@@ -223,7 +223,7 @@
         }
     }
 
-    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d"))) {
+    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
         if (is.null(random.spec$scale.model)) {
             random.spec$scale.model = inla.getOption("scale.model.default")
         }
@@ -242,19 +242,30 @@
     }
 
     ## possible adaptive priors
-    if (inla.one.of(random.spec$model, "bym2")) {
+    if (inla.one.of(random.spec$model, c("bym2", "rw2diid"))) {
         stopifnot(random.spec$hyper$theta2$short.name == "phi") ## just a check...
         if (random.spec$hyper$theta2$prior == "pc") {
             ## this is the pc-prior which is adaptive for this
             ## model. compute the prior here.
-            random.spec$hyper$theta2$prior = inla.pc.bym.phi(
-                    graph = random.spec$graph,
-                    rankdef = random.spec$rankdef,
-                    u = random.spec$hyper$theta2$param[1L],
-                    alpha = random.spec$hyper$theta2$param[2L],
-                    scale.model = TRUE,
-                    return.as.table = TRUE)
-            random.spec$hyper$theta2$param = numeric(0)
+            if (inla.one.of(random.spec$model, "bym2")) {
+                random.spec$hyper$theta2$prior = inla.pc.bym.phi(
+                        graph = random.spec$graph,
+                        rankdef = random.spec$rankdef,
+                        u = random.spec$hyper$theta2$param[1L],
+                        alpha = random.spec$hyper$theta2$param[2L],
+                        scale.model = TRUE,
+                        return.as.table = TRUE)
+                random.spec$hyper$theta2$param = numeric(0)
+            } else if (inla.one.of(random.spec$model, "rw2diid")) {
+                random.spec$hyper$theta2$prior = inla.pc.rw2diid.phi(
+                        size = c(random.spec$nrow,  random.spec$ncol), 
+                        u = random.spec$hyper$theta2$param[1L],
+                        alpha = random.spec$hyper$theta2$param[2L],
+                        return.as.table = TRUE)
+                random.spec$hyper$theta2$param = numeric(0)
+            } else {
+                stop("This should not happpen.")
+            }
         }
     }
 

@@ -211,12 +211,12 @@ inla.pc.rw2diid.phi = function(
         return(base2)
     }
 
-    inverse = function(base, rankdef)
+    inverse = function(base, rankdef, factor = 100)
     {
         eig = Re(DFT2(base))
         eig.max = max(eig)
         if (missing(rankdef)) {
-            pos = eig > eig.max * sqrt(.Machine$double.eps) 
+            pos = eig > eig.max * factor * .Machine$double.eps
         } else {
             eig.sort = sort(eig)
             if (rankdef > 0) {
@@ -285,8 +285,8 @@ inla.pc.rw2diid.phi = function(
         size[k] = good.size[min(which(size[k] <= good.size))]
     }
 
-    base = make.base(size, delta)
-    base = base * inverse(base)[1, 1]
+    base = make.base(size)
+    base = base * inverse(base, rankdef = 1L)[1, 1]
     marg.var = 1.0
     e.values = pmax(0, eigenvalues(base))
 

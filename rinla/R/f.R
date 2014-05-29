@@ -659,8 +659,8 @@
 
     ## cyclic is only valid for rw1, rw2 and rw2d-models
     if (!is.null(cyclic) && cyclic &&
-        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw1c2", "rw2c2", "ar1"))) {
-        stop("Cyclic defined only for rw1, rw1c2, rw2, rw2c2, rw2d and ar1 models")
+        !inla.one.of(model, c("rw1", "rw2", "rw2d", "rw2diid", "ar1"))) {
+        stop("Cyclic defined only for rw1, rw1c2, rw2, rw2d, rw2diid and ar1 models")
     }
 
     need.nrow.ncol = inla.model.properties(model, "latent")$nrow.ncol
@@ -850,14 +850,14 @@
         }
     }
 
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d"))) {
-        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 and BESAG2 and RW2D.")
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
+        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 andBESAG2 and RW2D and RW2DIID.")
     }
     if (missing(scale.model) || is.null(scale.model)) {
         ## must doit like this otherwise we run into problems when
         ## compiling the package
         scale.model = inla.getOption("scale.model.default")
-        if (inla.one.of(model, "bym2")) {
+        if (inla.one.of(model, c("bym2", "rw2diid"))) {
             scale.model = TRUE
         }
     }

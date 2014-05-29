@@ -2342,6 +2342,41 @@
                      pdf = "rw2d"
                      ),
 
+             rw2diid = list(
+                     hyper = list(
+                             theta1 = list(
+                                     name = "log precision",
+                                     short.name = "prec",
+                                     prior = "pc.prec",
+                                     param = c(1, .01),
+                                     initial = 4,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x),
+                                     from.theta = function(x) exp(x)
+                                     ),
+                             theta2 = list(
+                                     name = "logit phi",
+                                     short.name = "phi",
+                                     prior = "pc",
+                                     param = c(0.5, -1),
+                                     initial = -3,
+                                     fixed = FALSE,
+                                     to.theta = function(x) log(x/(1-x)),
+                                     from.theta = function(x) exp(x)/(1+exp(x))
+                                     )
+                             ),
+                     constr = TRUE,
+                     nrow.ncol = TRUE,
+                     augmented = TRUE,
+                     aug.factor = 2L,
+                     aug.constr = 2L,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "rw2diid"
+                     ),
+
              slm = list(
                      hyper = list(
                              theta1 = list(
