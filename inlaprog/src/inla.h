@@ -439,6 +439,7 @@ typedef enum {
 	F_CLINEAR,					       /* constrained fixed effect */
 	F_SIGM, 
 	F_REVSIGM, 
+	F_RW2DIID, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,					       
 	P_MVGAUSSIAN,
@@ -605,13 +606,6 @@ typedef struct {
 	int mix_ntheta;
 } Data_section_tp;
 
-
-typedef struct {
-	int n;
-	GMRFLib_Qfunc_tp *Qfunc;
-	void *Qfunc_arg;
-	double **rho_intern;
-} inla_rwc2_def_tp;
 
 typedef struct {
 	int n;
@@ -903,6 +897,15 @@ typedef struct {
 	double **logit_phi;
 	inla_besag_Qfunc_arg_tp *besag_arg;
 } inla_bym2_Qfunc_arg_tp;
+
+typedef struct {
+	int n;
+	int N;
+	double **log_prec;
+	double **logit_phi;
+	GMRFLib_rw2ddef_tp *rw2ddef;
+} inla_rw2diid_Qfunc_arg_tp;
+
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
@@ -1450,6 +1453,8 @@ unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
 
+int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp *def);
+double Qfunc_rw2diid(int i, int j, void *arg);
 
 /* 
 ***
