@@ -2843,6 +2843,50 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `rw2diid'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`1 0.01'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`logit phi'}
+							\item{short.name = }{`phi'}
+							\item{prior = }{`pc'}
+							\item{param = }{`0.5 -1'}
+							\item{initial = }{`-3'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`TRUE'}
+								\item{nrow.ncol = }{`TRUE'}
+								\item{augmented = }{`TRUE'}
+								\item{aug.factor = }{`2'}
+								\item{aug.constr = }{`2'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`rw2diid'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `slm'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
