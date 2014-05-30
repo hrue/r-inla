@@ -1,0 +1,84 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{listings}
+\begin{document}
+
+\section*{RW2DIID model for spatial effects}
+
+\subsection*{Parametrization}
+
+This model is a union of the \lstinline$RW2D$ model $u^{*}$ and a
+\lstinline$iid$ model $v^{*}$, so that
+\begin{displaymath}
+    x =
+    \begin{pmatrix}
+        v^{*} + u^{*}\\
+        u^{*}
+    \end{pmatrix}
+\end{displaymath}
+where both $u^{*}$ and $v^{*}$ has a precision (hyper-)parameter.  The
+length of $x$ is $2n$ if the length of $u^{*}$ (and $v^{*}$) is
+$n$. The RW2DIID model uses a different parameterisation of the
+hyperparameters where
+\begin{displaymath}
+    x =
+    \begin{pmatrix}
+        \frac{1}{\sqrt{\tau}}\left(\sqrt{1-\phi} \;v +
+          \sqrt{\phi} \;u\right)\\
+        u
+    \end{pmatrix}
+\end{displaymath}
+where both $u$ and $v$ are \emph{standardised} to have (generalised)
+variance equal to one.  The \emph{marginal} precision is then $\tau$
+and the proportion of the marginal variance explained by the spatial
+effect ($u$) is $\phi$.
+
+\subsection*{Hyperparameters}
+The hyperparameters are the margainal precision $\tau$ and the mixing
+parameter $\phi$.  The marginal precision $\tau$ is represented as
+\begin{displaymath}
+    \theta_{1} = \log(\tau)
+\end{displaymath}
+and the mixing parameter as
+\begin{displaymath}
+    \theta_{2} = \log\left(\frac{\phi}{1-\phi}\right)
+\end{displaymath}
+and the prior is defined on $\mathbf{\theta} = (\theta_{1}, \theta_{2})$.
+
+\subsection*{Specification}
+
+The rw2diid model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="rw2didd", nrow=<nrow>, ncol=<ncol>,
+   hyper=<hyper>)
+\end{verbatim}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/rw2diid.tex}
+
+
+\subsection*{Example}
+
+
+\subsection*{Notes}
+
+The term $\frac{1}{2}\log(|R|^{*})$ of the normalisation constant is
+not computed, hence you need to add this part to the log marginal
+likelihood estimate, if you need it. Here $R$ is the precision matrix
+for the standardised RW2D part of the model.
+
+The generic PC-prior for $\phi$ is available as \texttt{prior="pc"}
+and parameters \texttt{param="c(u, alpha)"}, where $\text{Prob}(\phi
+\le u) = \alpha$. If $\alpha < 0$ or $\alpha>1$, then it is set to a value
+close to the minimum value of $\alpha$ allowed.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

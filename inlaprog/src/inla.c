@@ -15822,10 +15822,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->rw2ddef->order = 2;
 		arg->rw2ddef->bvalue = bvalue;
 		arg->rw2ddef->cyclic = mb->f_cyclic[mb->nf];
-		arg->rw2ddef->prec = NULL;
-		arg->rw2ddef->log_prec = NULL;
-		arg->rw2ddef->log_prec_omp = NULL;
-		
+
 		inla_make_rw2diid_graph(&(mb->f_graph[mb->nf]), arg->rw2ddef);
 		std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
 		assert(std == 1);			       /* this has to be true for this model */
