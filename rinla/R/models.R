@@ -2359,7 +2359,7 @@
                                      short.name = "phi",
                                      prior = "pc",
                                      param = c(0.5, -1),
-                                     initial = -3,
+                                     initial = 3,
                                      fixed = FALSE,
                                      to.theta = function(x) log(x/(1-x)),
                                      from.theta = function(x) exp(x)/(1+exp(x))

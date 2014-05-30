@@ -2863,7 +2863,7 @@ inla.models()
 							\item{short.name = }{`phi'}
 							\item{prior = }{`pc'}
 							\item{param = }{`0.5 -1'}
-							\item{initial = }{`-3'}
+							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
