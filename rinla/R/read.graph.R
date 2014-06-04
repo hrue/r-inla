@@ -118,6 +118,7 @@
                 which.idxs = idxs[which(s[idxs] == 0L)]
                 s[which.idxs] <<- k
                 ## its ok to refer to 'graph' here:
+                browser()
                 visit.nodes = unique(unlist(lapply(which.idxs, function(x) graph$nbs[[x]])))
                 
                 ## check which of the visit.nodes that needs to be
@@ -211,6 +212,9 @@
 
         stopifnot(k -1L == length(s))
         class(g) = "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs = c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
         g = inla.add.graph.cc(g)
 
         return (g)
@@ -281,6 +285,9 @@
         }
         stopifnot(k -1L == length(s))
         class(g) = "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs = c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
         g = inla.add.graph.cc(g)
 
         return (g)
@@ -361,8 +368,10 @@
             }
         }        
         class(g) = "inla.graph"
+        if (length(g$nbs) < g$n) {
+            g$nbs = c(g$nbs, rep(list(numeric()), g$n - length(g$nbs)))
+        }
         g = inla.add.graph.cc(g)
-    
         return (g)
     }
 
