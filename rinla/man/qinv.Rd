@@ -13,13 +13,14 @@
               The diagonal and values for the neighbours in the inverse, are provided.}
 
  \usage{
-     inla.qinv(Q, reordering = inla.reorderings())
+     inla.qinv(Q, constr, reordering = inla.reorderings())
  }
 
  \arguments{
 
    \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix,  or
            a (ascii-)filename with entries in the following format \code{i j Qij}.}
+   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
    \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
