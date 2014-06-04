@@ -32,28 +32,26 @@
             cat(paste("Search in section:", names(m)[section], "\n"))
             cat(paste("\t",  "Names in section:",  names(m[[section]]), "\n"))
         }
-
         x = inla.trim.family(names(m[[section]]))
         if (length(x) > 0L) {
-            idx = grep(what, inla.trim.family(names(m[[section]])))
-        } else {
-            idx = numeric(0)
-        }
-        if (length(idx) > 0L) {
-            for(i in idx) {
-                pdf = m[[section]][[i]]$pdf
-                if (!is.null(pdf) && !is.na(pdf)) {
-                    if (verbose) {
-                        cat(paste("\t\t", "Found name:", names(m[[section]])[i], "\n"))
-                        cat(paste("\t\t"," ", "Open pdf  : ", pdf, ".pdf", sep="", "\n"))
+            idx = grep(what, x)
+            if (length(idx) > 0L) {
+                for(i in idx) {
+                    pdf = m[[section]][[i]]$pdf
+                    if (!is.null(pdf) && !is.na(pdf)) {
+                        if (verbose) {
+                            cat(paste("\t\t", "Found name:", names(m[[section]])[i], "\n"))
+                            cat(paste("\t\t"," ", "Open pdf  : ", pdf, ".pdf", sep="", "\n"))
+                        }
+                        RShowDoc(paste(sections[[section]], "/", pdf,  sep=""),
+                                 "pdf", "INLA")
                     }
-                    RShowDoc(paste(sections[[section]], "/", pdf,  sep=""),
-                             "pdf", "INLA")
                 }
             }
         }
     }
 }
+
 
 
 
