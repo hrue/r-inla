@@ -1,6 +1,7 @@
 ## NOT-YET-Export: 
 
-inla.sparse.det = function(Q, rankdef=0, log=TRUE, eps = sqrt(.Machine$double.eps))
+inla.sparse.det.bym = function(Q, rankdef,
+        adjust.for.con.comp = TRUE, log=TRUE, eps = sqrt(.Machine$double.eps))
 {
     ## compute the (log-)determinant. If rankdef > 0, then assume a
     ## sum to zero constraint on each connected component.
@@ -8,22 +9,28 @@ inla.sparse.det = function(Q, rankdef=0, log=TRUE, eps = sqrt(.Machine$double.ep
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
     constr = NULL
-    if (rankdef > 0) {
+    if (adjust.for.con.comp) {
         g = inla.read.graph(Q)
         nc = g$cc$n
         constr = list(A = matrix(0, nc, n), e = rep(0, nc))
         for(k in 1:nc) {
             constr$A[k, g$cc$nodes[[k]]] = 1
         }
-        d = diag(Q)
-        diag(Q) = d + max(d) * eps
+    } else {
+        nc = 1
+        constr = list(A = matrix(1, nc, n), e = rep(1, nc))
     }
+    if (missing(rankdef)) {
+        rankdef = nc
+    }
+    d = diag(Q)
+    diag(Q) = d + max(d) * eps
     res = inla.qsample(n=1, Q=Q, sample = matrix(0, n, 1), constr = constr)
-    logdet = 2 * (res$logdens + (n-rankdef)/2*log(2*pi))
+    logdet = 2.0 * (res$logdens + (n-rankdef)/2.0*log(2.0*pi))
     return (if (log) logdet else exp(logdet))
 }
 
-inla.scale.model = function(Q, rankdef = 0, eps = sqrt(.Machine$double.eps))
+inla.scale.model = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
 {
     ## scale Q. If rankdef > 0, then assume a sum to zero constraint
     ## on each connected component.
@@ -31,26 +38,30 @@ inla.scale.model = function(Q, rankdef = 0, eps = sqrt(.Machine$double.eps))
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
     constr = NULL
-    if (rankdef > 0) {
-        g = inla.read.graph(Q)
+
+    g = inla.read.graph(Q)
+    if (adjust.for.con.comp) {
         nc = g$cc$n
         constr = list(A = matrix(0, nc, n), e = rep(0, nc))
         for(k in 1:nc) {
             constr$A[k, g$cc$nodes[[k]]] = 1
         }
-        QQ = Q + Diagonal(n) * max(diag(Q)) * eps
     } else {
-        QQ = Q
+        nc = 1
+        constr = list(A = matrix(1, nc, n), e = rep(0, nc))
     }
-    res = inla.qinv(QQ, constr = constr)
+    res = inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr = constr)
     fac = exp(mean(log(diag(res))))
     Q = fac * Q
 
     return (Q)
 }
 
-inla.pc.bym.Q = function(graph, rankdef = 1, scale.model = FALSE)
+inla.pc.bym.Q = function(graph, rankdef, scale.model = FALSE)
 {
+    if (missing(rankdef)) {
+        rankdef = graph$cc$n
+    }
     Q = -inla.graph2matrix(graph)
     diag(Q) = 0
     diag(Q) = -rowSums(Q)
@@ -68,7 +79,7 @@ inla.pc.bym.phi = function(
         Q, 
         eigenvalues = NULL,
         marginal.variances = NULL, 
-        rankdef = 1L,
+        rankdef,
         ## if alpha is not set,  it will be computed from alpha.min
         alpha,
         u = 1/2,
@@ -77,6 +88,7 @@ inla.pc.bym.phi = function(
         ## where Q is already scaled.
         scale.model = TRUE,
         return.as.table = FALSE, 
+        adjust.for.con.comp = TRUE, 
         ## where to switch to alternative strategy
         dim.limit = 1000L, 
         eps = sqrt(.Machine$double.eps), 
@@ -96,19 +108,33 @@ inla.pc.bym.phi = function(
             stop("Only one of <Q> and <graph> can be given.")
         }
         
+        g = NULL
+        if (missing(rankdef)) {
+            if (adjust.for.con.comp) {
+                g = inla.read.graph(Q)
+                nc = g$cc$n
+            } else {
+                nc = 1
+            }
+            rankdef = nc
+        }
+
         n = dim(Q)[1]
         if (n >= dim.limit) {
             if (scale.model) {
-                Q = inla.scale.model(Q, rankdef = rankdef)
+                Q = inla.scale.model(Q, adjust.for.con.comp = adjust.for.con.comp)
             }
             if (rankdef > 0) {
-                if (rankdef > 0) {
-                    g = inla.read.graph(Q)
+                if (adjust.for.con.comp) {
+                    if (is.null(g)) g = inla.read.graph(Q)  ## if 'g' exists...
                     nc = g$cc$n
                     constr = list(A = matrix(0, nc, n), e = rep(0, nc))
                     for(k in 1:nc) {
                         constr$A[k, g$cc$nodes[[k]]] = 1
                     }
+                } else {
+                    nc = 1
+                    constr = list(A = matrix(1, nc, n), e = rep(0, nc))
                 }
                 Qinv.d = diag(inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr))
             } else {
@@ -135,7 +161,6 @@ inla.pc.bym.phi = function(
         f = mean(marginal.variances) - 1.0
         use.eigenvalues = TRUE
     }
-
     
     if (use.eigenvalues) {
         phi.s = 1/(1+exp(-seq(-12, 12,  len = 1000)))
@@ -159,15 +184,24 @@ inla.pc.bym.phi = function(
         ## alternative strategy
         phi.s = 1/(1+exp(-seq(-12, 12, len=40)))
         d = numeric(length(phi.s))
-        log.q1.det = inla.sparse.det(Q, rankdef = rankdef)
+        log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
         d = unlist(inla.mclapply(phi.s, 
                 function(phi) {
                     aa = n*phi*f
-                    ## add eps for stability for small phi
-                    eps = sqrt(.Machine$double.eps)
+                    ## add eps for stability for small phi. This is
+                    ## hack to get it close to the eigenvalue
+                    ## solution...
+                    if (phi <= 0.5) {
+                        eps = sqrt(.Machine$double.eps)
+                        rdef = 0
+                    } else {
+                        eps = 0
+                        rdef = 1
+                    }
                     bb = n * log((1.0 - phi)/phi) +
-                        inla.sparse.det(Q + (phi/(1-phi) + eps) * Diagonal(n)) -
-                            (log.q1.det - (n-rankdef) * log(phi))
+                        inla.sparse.det.bym(Q + (phi/(1-phi) + eps) * Diagonal(n), rankdef = rdef,
+                                            adjust.for.con.comp = adjust.for.con.comp) -
+                                                (log.q1.det - (n-rankdef) * log(phi))
                     return (if (aa >= bb) sqrt(aa-bb) else NA)
                 }))
     }
@@ -229,7 +263,7 @@ inla.pc.bym.phi = function(
     ## the kernel-term '-log(phi.s*(1-phi.s))'
     h = 1e-5
     log.jac = log(abs(ff.d(phi.intern + h) - ff.d(phi.intern - h))/(2*h)) - log(phi.s*(1-phi.s))
-    log.prior = log(lambda) - lambda * d + log.jac - log(1-exp(-lambda * f.d(1)))
+    log.prior = log(lambda) - lambda * d + log.jac - log(1-exp(-lambda * d.max))
     
     if (return.as.table) {
         ## return this prior as a "table:" converted to the internal
