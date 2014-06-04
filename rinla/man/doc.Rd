@@ -13,7 +13,7 @@ inla.doc(what, verbose=FALSE)
 }
 \arguments{
 \item{what}{What to view documentation about;
-            name of latent model,  name of prior,  etc.}
+            name of latent model,  name of prior,  etc. (A regular expression.)}
 \item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}

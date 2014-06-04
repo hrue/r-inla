@@ -11,7 +11,7 @@
 ##!}
 ##!\arguments{
 ##!\item{what}{What to view documentation about;
-##!            name of latent model,  name of prior,  etc.}
+##!            name of latent model,  name of prior,  etc. (A regular expression.)}
 ##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
@@ -33,19 +33,21 @@
             cat(paste("\t",  "Names in section:",  names(m[[section]]), "\n"))
         }
 
-        idx = which(inla.trim.family(names(m[[section]])) == what)
+        x = inla.trim.family(names(m[[section]]))
+        if (length(x) > 0L) {
+            idx = grep(what, inla.trim.family(names(m[[section]])))
+        } else {
+            idx = numeric(0)
+        }
         if (length(idx) > 0L) {
-            pdf = m[[section]][[idx]]$pdf
-
-            if (verbose) {
-                cat(paste("\t\t", "Found name:", names(m[[section]])[idx], "\n"))
-                cat(paste("\t\t"," ", "Open pdf  : ", pdf, ".pdf", sep="", "\n"))
-            }
-
-            if (!is.null(pdf) && !is.na(pdf)) {
-                ## just in case its more than one file
-                for (pf in pdf) {
-                    RShowDoc(paste(sections[[section]], "/", pf,  sep=""),
+            for(i in idx) {
+                pdf = m[[section]][[i]]$pdf
+                if (!is.null(pdf) && !is.na(pdf)) {
+                    if (verbose) {
+                        cat(paste("\t\t", "Found name:", names(m[[section]])[i], "\n"))
+                        cat(paste("\t\t"," ", "Open pdf  : ", pdf, ".pdf", sep="", "\n"))
+                    }
+                    RShowDoc(paste(sections[[section]], "/", pdf,  sep=""),
                              "pdf", "INLA")
                 }
             }
