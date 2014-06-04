@@ -24301,7 +24301,7 @@ int inla_divisible(int n, int by)
 	else
 		return ((-by) * (n / (-by)) == n ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
-int inla_qinv(const char *filename, const char *outfilename)
+int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 {
 	/*
 	 * Compute the marginal variances for Cij file in FILENAME and output on stdout, the marginal variances 
@@ -24311,12 +24311,28 @@ int inla_qinv(const char *filename, const char *outfilename)
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
-
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_matrix_tp *constr_x = NULL;
+	FILE *fp;
+	
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+	fp = fopen(constrfile, "r");
+	if (fp) {
+		fclose(fp);
+		constr_x = GMRFLib_read_fmesher_file(constrfile, 0L, SEEK_CUR);
+		if (constr_x->A[0] > 0) {
+			constr = Calloc(1, GMRFLib_constr_tp);
+			constr->nc = (int) constr_x->A[0];
+			constr->a_matrix = &constr_x->A[1];
+			constr->e_vector = &constr_x->A[constr->nc * graph->n + 1];
+			GMRFLib_prepare_constr(constr, graph, 1);
+		}
+	}
+	
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
-	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
 
 	/*
@@ -24326,7 +24342,6 @@ int inla_qinv(const char *filename, const char *outfilename)
 
 	M->nrow = graph->n;
 	M->ncol = graph->n;
-
 	M->elems = 0;
 	for (i = 0; i < graph->n; i++) {
 		M->elems += 1 + graph->nnbs[i];
@@ -24353,7 +24368,7 @@ int inla_qinv(const char *filename, const char *outfilename)
 	}
 	assert(k == M->elems);
 
-	GMRFLib_write_fmesher_file(M, outfilename, (long int) 0, -1);
+	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	return 0;
 }
@@ -25279,7 +25294,7 @@ int main(int argc, char **argv)
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	if (G.mode == INLA_MODE_QINV) {
-		inla_qinv(argv[optind], argv[optind + 1]);
+		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(EXIT_SUCCESS);
 	}
 	if (G.mode == INLA_MODE_QSOLVE) {
