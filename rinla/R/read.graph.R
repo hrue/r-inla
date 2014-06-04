@@ -118,7 +118,6 @@
                 which.idxs = idxs[which(s[idxs] == 0L)]
                 s[which.idxs] <<- k
                 ## its ok to refer to 'graph' here:
-                browser()
                 visit.nodes = unique(unlist(lapply(which.idxs, function(x) graph$nbs[[x]])))
                 
                 ## check which of the visit.nodes that needs to be
