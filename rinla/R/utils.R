@@ -857,7 +857,7 @@
     xsvd <- svd(x)
     if (is.complex(x)) 
         xsvd$u <- Conj(xsvd$u)
-    if (is.null(rankdef)) {
+    if (is.null(rankdef) || rankdef == 0) {
         Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
     }
     else {
@@ -876,7 +876,7 @@
 {
     x = as.matrix(x)
     lambda = eigen(x, only.values = TRUE)$values
-    if (is.null(rankdef)) {
+    if (is.null(rankdef) || rankdef == 0) {
         non.zero = (lambda > max(tol * max(lambda), 0))
         lambda = lambda[non.zero]
     } else {
@@ -926,7 +926,7 @@
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
             if (is.null(mc.cores)) {
-                mc.cores = 2L
+                mc.cores = detectCores()
             }
         }
         return (mclapply(..., mc.cores = mc.cores))
