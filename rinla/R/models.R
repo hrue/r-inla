@@ -1821,6 +1821,1021 @@
                      pdf = "spde2"
                      ),
 
+             spde3 = list(
+                     ## to many parameters here, but ...
+                     hyper = list(
+                             theta1 = list(
+                                     name = "theta1",
+                                     short.name = "t1",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "mvnorm",
+                                     param = c(1, 1),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta2 = list(
+                                     name = "theta2",
+                                     short.name = "t2",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta3 = list(
+                                     name = "theta3",
+                                     short.name = "t3",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta4 = list(
+                                     name = "theta4",
+                                     short.name = "t4",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta5 = list(
+                                     name = "theta5",
+                                     short.name = "t5",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta6 = list(
+                                     name = "theta6",
+                                     short.name = "t6",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta7 = list(
+                                     name = "theta7",
+                                     short.name = "t7",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta8 = list(
+                                     name = "theta8",
+                                     short.name = "t8",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta9 = list(
+                                     name = "theta9",
+                                     short.name = "t9",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta10 = list(
+                                     name = "theta10",
+                                     short.name = "t10",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta11 = list(
+                                     name = "theta11",
+                                     short.name = "t11",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta12 = list(
+                                     name = "theta12",
+                                     short.name = "t12",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta13 = list(
+                                     name = "theta13",
+                                     short.name = "t13",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta14 = list(
+                                     name = "theta14",
+                                     short.name = "t14",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta15 = list(
+                                     name = "theta15",
+                                     short.name = "t15",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta16 = list(
+                                     name = "theta16",
+                                     short.name = "t16",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta17 = list(
+                                     name = "theta17",
+                                     short.name = "t17",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta18 = list(
+                                     name = "theta18",
+                                     short.name = "t18",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta19 = list(
+                                     name = "theta19",
+                                     short.name = "t19",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta20 = list(
+                                     name = "theta20",
+                                     short.name = "t20",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta21 = list(
+                                     name = "theta21",
+                                     short.name = "t21",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta22 = list(
+                                     name = "theta22",
+                                     short.name = "t22",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta23 = list(
+                                     name = "theta23",
+                                     short.name = "t23",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta24 = list(
+                                     name = "theta24",
+                                     short.name = "t24",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta25 = list(
+                                     name = "theta25",
+                                     short.name = "t25",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta26 = list(
+                                     name = "theta26",
+                                     short.name = "t26",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta27 = list(
+                                     name = "theta27",
+                                     short.name = "t27",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta28 = list(
+                                     name = "theta28",
+                                     short.name = "t28",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta29 = list(
+                                     name = "theta29",
+                                     short.name = "t29",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta30 = list(
+                                     name = "theta30",
+                                     short.name = "t30",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta31 = list(
+                                     name = "theta31",
+                                     short.name = "t31",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta32 = list(
+                                     name = "theta32",
+                                     short.name = "t32",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta33 = list(
+                                     name = "theta33",
+                                     short.name = "t33",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta34 = list(
+                                     name = "theta34",
+                                     short.name = "t34",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta35 = list(
+                                     name = "theta35",
+                                     short.name = "t35",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta36 = list(
+                                     name = "theta36",
+                                     short.name = "t36",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta37 = list(
+                                     name = "theta37",
+                                     short.name = "t37",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta38 = list(
+                                     name = "theta38",
+                                     short.name = "t38",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta39 = list(
+                                     name = "theta39",
+                                     short.name = "t39",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta40 = list(
+                                     name = "theta40",
+                                     short.name = "t40",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta41 = list(
+                                     name = "theta41",
+                                     short.name = "t41",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta42 = list(
+                                     name = "theta42",
+                                     short.name = "t42",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta43 = list(
+                                     name = "theta43",
+                                     short.name = "t43",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta44 = list(
+                                     name = "theta44",
+                                     short.name = "t44",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta45 = list(
+                                     name = "theta45",
+                                     short.name = "t45",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta46 = list(
+                                     name = "theta46",
+                                     short.name = "t46",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta47 = list(
+                                     name = "theta47",
+                                     short.name = "t47",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta48 = list(
+                                     name = "theta48",
+                                     short.name = "t48",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta49 = list(
+                                     name = "theta49",
+                                     short.name = "t49",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta50 = list(
+                                     name = "theta50",
+                                     short.name = "t50",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta51 = list(
+                                     name = "theta51",
+                                     short.name = "t51",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta52 = list(
+                                     name = "theta52",
+                                     short.name = "t52",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta53 = list(
+                                     name = "theta53",
+                                     short.name = "t53",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta54 = list(
+                                     name = "theta54",
+                                     short.name = "t54",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta55 = list(
+                                     name = "theta55",
+                                     short.name = "t55",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta56 = list(
+                                     name = "theta56",
+                                     short.name = "t56",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta57 = list(
+                                     name = "theta57",
+                                     short.name = "t57",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta58 = list(
+                                     name = "theta58",
+                                     short.name = "t58",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta59 = list(
+                                     name = "theta59",
+                                     short.name = "t59",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta60 = list(
+                                     name = "theta60",
+                                     short.name = "t60",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta61 = list(
+                                     name = "theta61",
+                                     short.name = "t61",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta62 = list(
+                                     name = "theta62",
+                                     short.name = "t62",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta63 = list(
+                                     name = "theta63",
+                                     short.name = "t63",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta64 = list(
+                                     name = "theta64",
+                                     short.name = "t64",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta65 = list(
+                                     name = "theta65",
+                                     short.name = "t65",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta66 = list(
+                                     name = "theta66",
+                                     short.name = "t66",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta67 = list(
+                                     name = "theta67",
+                                     short.name = "t67",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta68 = list(
+                                     name = "theta68",
+                                     short.name = "t68",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta69 = list(
+                                     name = "theta69",
+                                     short.name = "t69",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta70 = list(
+                                     name = "theta70",
+                                     short.name = "t70",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta71 = list(
+                                     name = "theta71",
+                                     short.name = "t71",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta72 = list(
+                                     name = "theta72",
+                                     short.name = "t72",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta73 = list(
+                                     name = "theta73",
+                                     short.name = "t73",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta74 = list(
+                                     name = "theta74",
+                                     short.name = "t74",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta75 = list(
+                                     name = "theta75",
+                                     short.name = "t75",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta76 = list(
+                                     name = "theta76",
+                                     short.name = "t76",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta77 = list(
+                                     name = "theta77",
+                                     short.name = "t77",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta78 = list(
+                                     name = "theta78",
+                                     short.name = "t78",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta79 = list(
+                                     name = "theta79",
+                                     short.name = "t79",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta80 = list(
+                                     name = "theta80",
+                                     short.name = "t80",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta81 = list(
+                                     name = "theta81",
+                                     short.name = "t81",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta82 = list(
+                                     name = "theta82",
+                                     short.name = "t82",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta83 = list(
+                                     name = "theta83",
+                                     short.name = "t83",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta84 = list(
+                                     name = "theta84",
+                                     short.name = "t84",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta85 = list(
+                                     name = "theta85",
+                                     short.name = "t85",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta86 = list(
+                                     name = "theta86",
+                                     short.name = "t86",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta87 = list(
+                                     name = "theta87",
+                                     short.name = "t87",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta88 = list(
+                                     name = "theta88",
+                                     short.name = "t88",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta89 = list(
+                                     name = "theta89",
+                                     short.name = "t89",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta90 = list(
+                                     name = "theta90",
+                                     short.name = "t90",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta91 = list(
+                                     name = "theta91",
+                                     short.name = "t91",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta92 = list(
+                                     name = "theta92",
+                                     short.name = "t92",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta93 = list(
+                                     name = "theta93",
+                                     short.name = "t93",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta94 = list(
+                                     name = "theta94",
+                                     short.name = "t94",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta95 = list(
+                                     name = "theta95",
+                                     short.name = "t95",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta96 = list(
+                                     name = "theta96",
+                                     short.name = "t96",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta97 = list(
+                                     name = "theta97",
+                                     short.name = "t97",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta98 = list(
+                                     name = "theta98",
+                                     short.name = "t98",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta99 = list(
+                                     name = "theta99",
+                                     short.name = "t99",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     ),
+                             theta100 = list(
+                                     name = "theta100",
+                                     short.name = "t100",
+                                     initial = 0,
+                                     fixed = FALSE,
+                                     prior = "none",
+                                     param = numeric(0),
+                                     to.theta = function(x) x,
+                                     from.theta = function(x) x
+                                     )
+                             ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     pdf = "spde3"
+                     ),
+
              iid1d = list(
                      hyper = list(
                              theta = list(

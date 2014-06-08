@@ -83,6 +83,7 @@ static const char RCSId[] = HGVERSION;
 #include "inla.h"
 #include "spde.h"
 #include "spde2.h"
+#include "spde3.h"
 #include "eval.h"
 #include "interpol.h"
 #include "re.h"
@@ -95,6 +96,7 @@ static const char RCSId[] = HGVERSION;
 
 #define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
 #define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
+#define SPDE3_MAXTHETA (100)			       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
 #define LINK_MAXTHETA (10)				       /* as given in models.R */
 
@@ -11966,6 +11968,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	inla_spde_tp *spde_model_orig = NULL;
 	inla_spde2_tp *spde2_model = NULL;
 	inla_spde2_tp *spde2_model_orig = NULL;
+	inla_spde3_tp *spde3_model = NULL;
+	inla_spde3_tp *spde3_model_orig = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
@@ -12243,6 +12247,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_SPDE2;
 		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE2 model");
+	} else if (OneOf("SPDE3")) {
+		mb->f_id[mb->nf] = F_SPDE3;
+		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE3 model");
 	} else if (OneOf("AR")) {
 		mb->f_id[mb->nf] = F_AR;
 		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
@@ -12327,6 +12335,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_SPDE2:
+		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
+		break;
+
+	case F_SPDE3:
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
 		break;
@@ -13062,6 +13075,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// nothing to do
 			break;
 
+		case F_SPDE3:
+			// nothing to do
+			break;
+
 		case F_IID:
 		case F_RW1:
 		case F_RW2:
@@ -13579,6 +13596,154 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
 
 			mb->theta[mb->ntheta] = spde2_model->theta[i];
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+		break;
+	}
+
+	case F_SPDE3:
+	{
+		char *spde3_prefix, *transform;
+
+		spde3_prefix = GMRFLib_strdup(".");
+		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3_PREFIX"), spde3_prefix);
+		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3.PREFIX"), spde3_prefix);
+		spde3_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE3PREFIX"), spde3_prefix);
+		if (mb->verbose) {
+			printf("\t\tspde3.prefix = [%s]\n", spde3_prefix);
+		}
+
+		transform = GMRFLib_strdup("logit");
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3_TRANSFORM"), transform);
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3.TRANSFORM"), transform);
+		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE3TRANSFORM"), transform);
+		if (mb->verbose) {
+			printf("\t\tspde3.transform = [%s]\n", transform);
+		}
+
+		/*
+		 * need to read this twice. can save memory by changing the pointer from spde3_model_orig to spde3_model, like for B and M matrices and
+		 * BLC. maybe do later
+		 */
+		inla_spde3_build_model(&spde3_model_orig, (const char *) spde3_prefix, (const char *) transform);
+		mb->f_model[mb->nf] = (void *) spde3_model_orig;
+
+		inla_spde3_build_model(&spde3_model, (const char *) spde3_prefix, (const char *) transform);
+
+		/*
+		 * set up userfunc2 that computes the marginal of BLC*theta.intern 
+		 */
+		GMRFLib_ai_INLA_userfunc2_n++;
+
+		GMRFLib_ai_INLA_userfunc2_args = Realloc(GMRFLib_ai_INLA_userfunc2_args, GMRFLib_ai_INLA_userfunc2_n, void *);
+		GMRFLib_ai_INLA_userfunc2_args[GMRFLib_ai_INLA_userfunc2_n - 1] = (void *) spde3_model;
+		GMRFLib_ai_INLA_userfunc2 = Realloc(GMRFLib_ai_INLA_userfunc2, GMRFLib_ai_INLA_userfunc2_n, GMRFLib_ai_INLA_userfunc2_tp *);
+		GMRFLib_ai_INLA_userfunc2[GMRFLib_ai_INLA_userfunc2_n - 1] = (GMRFLib_ai_INLA_userfunc2_tp *) inla_spde3_userfunc2;
+
+		char *ltag;
+		GMRFLib_sprintf(&ltag, "%s", secname);
+		GMRFLib_ai_INLA_userfunc2_tag = Realloc(GMRFLib_ai_INLA_userfunc2_tag, GMRFLib_ai_INLA_userfunc2_n, char *);
+		GMRFLib_ai_INLA_userfunc2_tag[GMRFLib_ai_INLA_userfunc2_n - 1] = ltag;
+
+		/*
+		 * now we know the number of hyperparameters ;-) 
+		 */
+		int ntheta;
+
+		mb->f_ntheta[mb->nf] = ntheta = spde3_model->ntheta;
+		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);	/* need to do this here as we do not know n_theta upfront */
+		if (mb->verbose) {
+			printf("\t\tntheta = [%1d]\n", ntheta);
+		}
+
+		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
+			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
+					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
+			inla_error_general(ptmp);
+			exit(EXIT_FAILURE);
+		}
+
+		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
+		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+
+		/*
+		 * mark all possible as read 
+		 */
+		for (i = 0; i < SPDE3_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		/*
+		 * need to know where in the theta-list the spde3 parameters are 
+		 */
+		spde3_model->theta_first_idx = mb->ntheta;
+
+		/*
+		 * then read those we need 
+		 */
+		for (i = 0; i < ntheta; i++) {
+			double theta_initial = 0.0;
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (mb->f_fixed[mb->nf][i]) {
+				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE3 model.");
+				exit(EXIT_FAILURE);
+			}
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
+			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				theta_initial = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_INIT(spde3_model->theta[i], theta_initial);
+
+			if (mb->verbose) {
+				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
+				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
+			}
+
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
+
+			mb->theta[mb->ntheta] = spde3_model->theta[i];
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -15950,6 +16115,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_graph[mb->nf] = spde2_model->graph;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde2_model->n;
+		break;
+
+	case F_SPDE3:
+		mb->f_Qfunc[mb->nf] = spde3_model->Qfunc;
+		mb->f_Qfunc_arg[mb->nf] = spde3_model->Qfunc_arg;
+		mb->f_graph[mb->nf] = spde3_model->graph;
+		mb->f_rankdef[mb->nf] = 0;
+		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde3_model->n;
 		break;
 
 	case F_AR:
@@ -19350,6 +19523,102 @@ double extra(double *theta, int ntheta, void *argument)
 					double eps = GMRFLib_eps(0.75);
 
 					for (ii = 0; ii < spde2->graph->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+
+				default:
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			/*
+			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 */
+			if (!mb->fixed_mode) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+			}
+			break;
+		}
+
+		case F_SPDE3:
+		{
+			int k, spde3_ntheta;
+			inla_spde3_tp *spde3;
+
+			spde3 = (inla_spde3_tp *) mb->f_model[i];
+			assert(spde3->Qfunc_arg == spde3);
+
+			spde3->debug = 0;
+			spde3_ntheta = spde3->ntheta;
+			if (!mb->fixed_mode) {
+				for (k = 0; k < spde3_ntheta; k++) {
+					spde3->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+				}
+			}
+			int count_ref = count;
+
+			if (!mb->fixed_mode) {
+				count += spde3_ntheta;	       /* as SET_GROUP_RHO need 'count' */
+			}
+			SET_GROUP_RHO(spde3_ntheta);
+
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL) {
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(spde3->graph->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.75);
+
+					for (ii = 0; ii < spde3->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
 

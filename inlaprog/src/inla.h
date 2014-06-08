@@ -440,6 +440,7 @@ typedef enum {
 	F_SIGM, 
 	F_REVSIGM, 
 	F_RW2DIID, 
+	F_SPDE3, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,					       
 	P_MVGAUSSIAN,
