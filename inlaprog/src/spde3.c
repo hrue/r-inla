@@ -46,6 +46,136 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 extern G_tp G;						       /* import some global parametes from inla */
 
+int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const char *transform)
+{
+	int i, debug = 1;
+	inla_spde3_tp *model = NULL;
+	char *fnm = NULL;
+
+	model = Calloc(1, inla_spde3_tp);
+
+	if (strcasecmp(transform, "logit") == 0) {
+		model->transform = SPDE3_TRANSFORM_LOGIT;
+	} else if (strcasecmp(transform, "log") == 0) {
+		model->transform = SPDE3_TRANSFORM_LOG;
+	} else if (strcasecmp(transform, "identity") == 0) {
+		model->transform = SPDE3_TRANSFORM_IDENTITY;
+	} else {
+		assert(0 == 1);
+	}
+
+	model->B = Calloc(4, GMRFLib_matrix_tp *);
+	model->M = Calloc(4, GMRFLib_matrix_tp *);
+	for (i = 0; i < 4; i++) {
+		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "B", i);
+		model->B[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+
+		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "M", i);
+		model->M[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	}
+
+	for (i = 1; i < 4; i++) {
+		/*
+		 * all need the same dimensions n x (p+1) 
+		 */
+		assert(model->B[0]->nrow == model->B[i]->nrow);
+		assert(model->B[0]->ncol == model->B[i]->ncol);
+
+		/*
+		 * all are square with the same dimension n x n 
+		 */
+		assert(model->M[i]->nrow == model->M[i]->ncol);
+		assert(model->M[0]->nrow == model->M[i]->nrow);
+
+		/*
+		 * and the number of rows must be the same 
+		 */
+		assert(model->B[i]->nrow == model->M[i]->nrow);
+	}
+
+	model->n = model->M[0]->nrow;
+	model->ntheta = model->B[0]->ncol - 1;
+
+	// since this matrix is non-symmetric, its is convenient to have access to the graph for for the transpose as well.
+	model->M3t = GMRFLib_matrix_transpose(model->M[3]);
+	
+	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
+	if (GMRFLib_is_fmesher_file((const char *) fnm, 0L, -1) == GMRFLib_SUCCESS) {
+		model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
+	} else {
+		model->BLC = NULL;
+	}
+
+	if (debug) {
+		P(model->n);
+		P(model->ntheta);
+	}
+
+	/*
+	 * I need to build the graph. Need to add both M_ij and M_ji as M1 can be non-symmetric. 
+	 */
+	GMRFLib_ged_tp *ged = NULL;
+	GMRFLib_ged_init(&ged, NULL);
+
+#define ADD_GRAPH(_G)							\
+	{								\
+		int i_, j_, jj_;					\
+		for(i_ = 0; i_ < _G->n; i_++) {				\
+			GMRFLib_ged_add(ged, i_, i_);			\
+			for(jj_ = 0; jj_ < _G->nnbs[i_]; jj_++){	\
+				j_ = _G->nbs[i_][jj_];			\
+				GMRFLib_ged_add(ged, i_, j_);		\
+				GMRFLib_ged_add(ged, j_, i_);		\
+			}						\
+		}							\
+	}
+
+	for (i = 0; i < 3; i++) {
+		ADD_GRAPH(model->M[i]->graph);
+	}
+
+#undef ADD_GRAPH
+
+	/* 
+	 * add the graph-contributions for the \sum_k d_k M_ki M_kj = \sum_k d_k M^t_ik M_kj - term for M^(3). M^(3) is non-symmetric.  the graph is row-wise, so
+	 * g->nnbs[i] is the number of neighours to row i. so M_ki is M^t_ik.
+	 */
+	int j, jj, k, kk;
+	GMRFLib_graph_tp *g = model->M3t->graph;
+	GMRFLib_graph_tp *gg = model->M[3]->graph;
+		
+	for(i=0; i < model->n; i++) {
+		// case k = i. then we get M_ii*M_ij, so we need to add all neighbours to i.
+		for(kk = 0; kk < gg->nnbs[i]; kk++){
+			j = gg->nbs[i][kk];
+			GMRFLib_ged_add(ged, i, j);
+		}
+		// case i ~ k
+		for(kk = 0; kk < g->nnbs[i]; kk++){
+			k = g->nbs[i][kk];
+			// we have now M_ik, and k!=i. then we need to add all j for which j = k ...
+			j = k;
+			GMRFLib_ged_add(ged, i, j);
+			// ...or j ~ k
+			for(jj = 0; jj < gg->nnbs[k]; jj++) {
+				j = gg->nbs[k][jj];
+				GMRFLib_ged_add(ged, i, j);
+			}
+		}
+	}
+
+	GMRFLib_ged_build(&(model->graph), ged);
+	assert(model->n == model->graph->n);
+	GMRFLib_ged_free(ged);
+
+	model->Qfunc = inla_spde3_Qfunction;
+	model->Qfunc_arg = (void *) model;
+
+	HYPER_NEW2(model->theta, 0.0, model->ntheta);
+	*smodel = model;
+
+	return INLA_OK;
+}
 double inla_spde3_Qfunction(int i, int j, void *arg)
 {
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
@@ -53,10 +183,11 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 	int k, kk;
 
 	/*
-	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
+	 * to hold the i'th and j'th and k'th row of the B-matrices. use one storage only
 	 */
-	double *row_i = Calloc(2 * model->B[0]->ncol, double);
-	double *row_j = &row_i[model->B[0]->ncol];
+	double *row_i = Calloc(3 * model->B[0]->ncol, double), *row_j, *row_k;
+	row_j = &row_i[model->B[0]->ncol];
+	row_k = &row_i[2*model->B[0]->ncol];
 
 	for (k = 0; k < 3; k++) {
 		if (i == j) {
@@ -89,7 +220,6 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 			}
 		}
 	}
-	Free(row_i);
 
 	for (k = 0; k < 2; k++) {
 		d_i[k] = exp(phi_i[k]);
@@ -137,109 +267,39 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 				   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
 				   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
 
+	// Add the new M^(3) term
+#define COMPUTE_D3(_d3, _k) if (1)					\
+	{								\
+		double _tmp = 0.0;					\
+		int _kk;						\
+		GMRFLib_matrix_get_row(row_k, _k, model->B[3]);		\
+		_tmp = row_k[0];					\
+		for (_kk = 1; _kk < model->B[3]->ncol; _kk++) {		\
+			_tmp += row_k[_kk] * model->theta[_kk - 1][GMRFLib_thread_id][0]; \
+		}							\
+		_d3 = exp(_tmp);					\
+	}
+	
+	double m3_value = 0.0, d3 = NAN;
+	GMRFLib_graph_tp *g = model->M3t->graph;
+	
+	// k = i
+	k = i;
+	COMPUTE_D3(d3, k);				       /* compute d3 */
+	m3_value += GMRFLib_matrix_get(i,k, model->M3t) * GMRFLib_matrix_get(j, k, model->M3t) * d3;
+	// k ~ i
+	for(kk = 0; kk < g->nnbs[i]; kk++){
+		k = g->nbs[i][kk];
+		COMPUTE_D3(d3, k);			       /* compute d3 */
+		m3_value += GMRFLib_matrix_get(i, k, model->M3t) * GMRFLib_matrix_get(j, k, model->M3t) * d3;
+	}
+	value += d_i[0] * d_j[0] * m3_value;
+
+#undef D3
+	Free(row_i);
+	
 	return value;
 }
-
-int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const char *transform)
-{
-	int i, debug = 0;
-	inla_spde3_tp *model = NULL;
-	char *fnm = NULL;
-
-	model = Calloc(1, inla_spde3_tp);
-
-	if (strcasecmp(transform, "logit") == 0) {
-		model->transform = SPDE3_TRANSFORM_LOGIT;
-	} else if (strcasecmp(transform, "log") == 0) {
-		model->transform = SPDE3_TRANSFORM_LOG;
-	} else if (strcasecmp(transform, "identity") == 0) {
-		model->transform = SPDE3_TRANSFORM_IDENTITY;
-	} else {
-		assert(0 == 1);
-	}
-
-	model->B = Calloc(3, GMRFLib_matrix_tp *);
-	model->M = Calloc(3, GMRFLib_matrix_tp *);
-	for (i = 0; i < 3; i++) {
-		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "B", i);
-		model->B[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-
-		GMRFLib_sprintf(&fnm, "%s%s%1d", prefix, "M", i);
-		model->M[i] = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-	}
-
-	for (i = 1; i < 3; i++) {
-		/*
-		 * all need the same dimensions n x (p+1) 
-		 */
-		assert(model->B[0]->nrow == model->B[i]->nrow);
-		assert(model->B[0]->ncol == model->B[i]->ncol);
-
-		/*
-		 * all are square with the same dimension n x n 
-		 */
-		assert(model->M[i]->nrow == model->M[i]->ncol);
-		assert(model->M[0]->nrow == model->M[i]->nrow);
-
-		/*
-		 * and the number of rows must be the same 
-		 */
-		assert(model->B[i]->nrow == model->M[i]->nrow);
-	}
-
-	model->n = model->M[0]->nrow;
-	model->ntheta = model->B[0]->ncol - 1;
-
-	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
-	if (GMRFLib_is_fmesher_file((const char *) fnm, 0L, -1) == GMRFLib_SUCCESS) {
-		model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-	} else {
-		model->BLC = NULL;
-	}
-
-	if (debug) {
-		P(model->n);
-		P(model->ntheta);
-	}
-
-	/*
-	 * I need to build the graph. Need to add both M_ij and M_ji as M1 can be non-symmetric. 
-	 */
-	GMRFLib_ged_tp *ged = NULL;
-	GMRFLib_ged_init(&ged, NULL);
-
-#define ADD_GRAPH(_G)							\
-	{								\
-		int i_, j_, jj_;					\
-		for(i_ = 0; i_ < _G->n; i_++) {				\
-			GMRFLib_ged_add(ged, i_, i_);			\
-			for(jj_ = 0; jj_ < _G->nnbs[i_]; jj_++){	\
-				j_ = _G->nbs[i_][jj_];			\
-				GMRFLib_ged_add(ged, i_, j_);		\
-				GMRFLib_ged_add(ged, j_, i_);		\
-			}						\
-		}							\
-	}
-
-	for (i = 0; i < 3; i++) {
-		ADD_GRAPH(model->M[i]->graph);
-	}
-
-#undef ADD_GRAPH
-
-	GMRFLib_ged_build(&(model->graph), ged);
-	assert(model->n == model->graph->n);
-	GMRFLib_ged_free(ged);
-
-	model->Qfunc = inla_spde3_Qfunction;
-	model->Qfunc_arg = (void *) model;
-
-	HYPER_NEW2(model->theta, 0.0, model->ntheta);
-	*smodel = model;
-
-	return INLA_OK;
-}
-
 int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
@@ -250,7 +310,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 
 	/*
 	 * Cov_spde3: Covariance between the local theta's in this spde3 model. Cov: covariance between all theta's in the full model. Theta_spde3: the theta's in
-	 * this spde3 model. Theta: the theta's in the full model. 
+	 * this spde3 model. Theta: the theta's in the full model.
 	 */
 #define Cov_spde3(_i, _j) covmat[(idx_offset + (_i)) + nhyper * (idx_offset + (_j))]
 #define Cov(_i, _j)       covmat[(_i) + nhyper * (_j)]

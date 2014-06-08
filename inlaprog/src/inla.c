@@ -15978,7 +15978,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 		int std;
 		inla_rw2diid_Qfunc_arg_tp *arg = NULL;
-		GMRFLib_graph_tp *g = NULL;
 
 		arg = Calloc(1, inla_rw2diid_Qfunc_arg_tp);
 		arg->rw2ddef = Calloc(1, GMRFLib_rw2ddef_tp);
