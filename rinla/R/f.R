@@ -48,6 +48,8 @@
 ##!         spde.prefix = NULL,
 ##!         spde2.prefix = NULL,
 ##!         spde2.transform = c("logit", "log", "identity"),
+##!         spde3.prefix = NULL,
+##!         spde3.transform = c("logit", "log", "identity"),
 ##!         mean.linear = inla.set.control.fixed.default()$mean, 
 ##!         prec.linear = inla.set.control.fixed.default()$prec, 
 ##!         compute = TRUE,
@@ -250,6 +252,12 @@
         ##!\item{spde2.transform}{TODO}
         spde2.transform = c("logit", "log", "identity"),
 
+        ##!\item{spde3.prefix}{TODO}
+        spde3.prefix = NULL,
+
+        ##!\item{spde3.transform}{TODO}
+        spde3.transform = c("logit", "log", "identity"),
+
         ##!\item{mean.linear}{Prior mean for the linear component,
         ##!only used if \code{model="linear"}}
         mean.linear = inla.set.control.fixed.default()$mean, 
@@ -381,8 +389,8 @@
     inla.is.model(model, "latent", stop.on.error=TRUE)
 
     if (!is.null(constr)) {
-        if (inla.one.of(model, c("spde2", "spde")) && constr) {
-            stop("Option 'constr=TRUE' is disabled for model='spde2' and 'spde'; please refer to the spde-tutorial.")
+        if (inla.one.of(model, c("spde3", "spde2", "spde")) && constr) {
+            stop("Option 'constr=TRUE' is disabled for model='spde2' and 'spde' and 'spde3'; please refer to the spde-tutorial.")
         }
     }
 
@@ -652,6 +660,13 @@
     }
     spde2.transform = match.arg(spde2.transform, several.ok = FALSE)
 
+    if (inla.one.of(model, c("spde3"))) {
+        if (is.null(spde3.prefix)) {
+            stop("Argument spde3.prefix=NULL is required for model = spde3")
+        }
+    }
+    spde3.transform = match.arg(spde3.transform, several.ok = FALSE)
+
     if (inla.one.of(model,"seasonal") &&
         is.null(season.length)) {
         stop("The length of the season has to be provided in season.length")
@@ -896,6 +911,8 @@
             spde.prefix = spde.prefix,
             spde2.prefix = spde2.prefix,
             spde2.transform = spde2.transform,
+            spde3.prefix = spde3.prefix,
+            spde3.transform = spde3.transform,
             term=term,
             values=values,
             order = order, 
@@ -916,5 +933,5 @@
 `inla.model.object.classes` = function()
 {
     return (c("inla.model.class", "inla.wrapper.model",
-              "inla.spde", "inla.spde1", "inla.spde2"))
+              "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3"))
 }

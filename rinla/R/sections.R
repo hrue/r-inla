@@ -204,6 +204,12 @@
         cat("spde2.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
         cat("spde2.transform =", random.spec$spde2.transform, "\n", sep = " ", file = file,  append = TRUE)
     }
+    if (!is.null(random.spec$spde3.prefix)) {
+        ## need a special one, as spde3.prefix is not a file or a directory...
+        fnm = inla.copy.dir.for.section.spde(random.spec$spde3.prefix, data.dir)
+        cat("spde3.prefix =", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        cat("spde3.transform =", random.spec$spde3.transform, "\n", sep = " ", file = file,  append = TRUE)
+    }
     if (inla.one.of(random.spec$model, "copy")) {
         if (!is.null(random.spec$of)) {
             cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
