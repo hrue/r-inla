@@ -98,9 +98,10 @@ inla.delaunay(loc, ...)
   \item{timings}{
     If \code{TRUE}, obtain timings for the mesh construction.
   }
-  \item{quality.loc}{
-    Per vertex \code{max.edge} target specification for each location in
-    \code{loc}.  Only used if refining the mesh.
+  \item{quality.spec}{
+    List of vectors of per vertex \code{max.edge} target specification
+    for each location in \code{loc}, \code{boundary/interior}
+    (\code{segm}), and \code{lattice}.  Only used if refining the mesh.
   }
   \item{...}{
     Optional parameters passed on to \code{inla.mesh.create}.
@@ -148,6 +149,14 @@ mesh = inla.mesh.create(loc,
                         extend=TRUE,
                         refine=list(max.edge=0.1))
 plot(mesh)
+
+loc2 = matrix(c(0,1,1,0, 0,0,1,1), 4, 2);
+mesh2 = inla.mesh.create(loc=loc,
+                         boundary=inla.mesh.segment(loc2),
+                         interior=inla.mesh.segment(idx=1:2),
+                         quality.spec=list(segm=0.2, loc=0.05),
+                         refine=list(min.angle=26))
+plot(mesh2)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

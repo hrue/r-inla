@@ -801,7 +801,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                              data.dir,
                              keep = (!missing(data.dir) && !is.null(data.dir)),
                              timings = FALSE,
-                             quality.loc=NULL)
+                             quality.spec=NULL)
 {
     if (!timings) {
         system.time <- function(expr) {
@@ -859,13 +859,21 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     else
         idx0 = c()
 
-    if (!is.null(quality.loc)) {
-        quality <- c(rep(NA, segm.n),
-                     rep(NA, lattice.n),
-                     quality.loc)
-        ## NA:s will be replaced with max.edge settings below.
-    } else {
+    if (is.null(quality.spec)) {
         quality <- NULL
+    } else {
+        quality <- rep(NA, segm.n+lattice.n+loc.n)
+        ## Order must be same as for loc0 above.
+        if (!is.null(quality.spec$segm)) {
+            quality[seq_len(segm.n)] <- quality.spec$segm
+        }
+        if (!is.null(quality.spec$lattice)) {
+            quality[segm.n+seq_len(lattice.n)] <- quality.spec$lattice
+        }
+        if (!is.null(quality.spec$loc)) {
+            quality[segm.n+lattice.n+seq_len(loc.n)] <- quality.spec$loc
+        }
+        ## NA:s will be replaced with max.edge settings below.
     }
 
     ## Where to put the files?
