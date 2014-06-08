@@ -518,7 +518,7 @@ int main(int argc, char* argv[])
     }
   }
   LOG("s0 input read." << std::endl);
-  if ((args_info.globe_given>0) && (args_info.globe_arg>1)) {
+  if ((args_info.globe_given>0) && (args_info.globe_arg>0)) {
     input_s0_names.push_back(string(".globe"));
     matrices.attach(".globe",
 		    (Matrix<double>*)fmesh::make_globe_points(args_info.globe_arg),
