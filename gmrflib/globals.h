@@ -112,6 +112,7 @@ typedef double GMRFLib_cpu_tp(void);
 typedef double *GMRFLib_ai_INLA_userfunc0_tp(GMRFLib_problem_tp * problem, double *theta, int nhyper);
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(double *theta, int nhyper, double *covmat);
 typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
+typedef double *GMRFLib_ai_INLA_userfunc3_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 
 /* 
    define the global variables, unless __GMRFLib_DONT_DEFINE_GLOBALS is set
@@ -186,6 +187,13 @@ extern GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc2_density;
 extern int GMRFLib_ai_INLA_userfunc2_n;
 extern int *GMRFLib_ai_INLA_userfunc2_len;
 extern char **GMRFLib_ai_INLA_userfunc2_tag;
+
+extern GMRFLib_ai_INLA_userfunc3_tp **GMRFLib_ai_INLA_userfunc3;
+extern void **GMRFLib_ai_INLA_userfunc3_args;
+extern GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc3_density;
+extern int GMRFLib_ai_INLA_userfunc3_n;
+extern int *GMRFLib_ai_INLA_userfunc3_len;
+extern char **GMRFLib_ai_INLA_userfunc3_tag;
 
 /* 
    switch for integration type (TRUE/FALSE)
