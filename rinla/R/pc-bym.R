@@ -32,9 +32,6 @@ inla.sparse.det.bym = function(Q, rankdef,
 
 inla.scale.model = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
 {
-    ## scale Q. If rankdef > 0, then assume a sum to zero constraint
-    ## on each connected component.
-
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
     constr = NULL
@@ -57,18 +54,11 @@ inla.scale.model = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.c
     return (Q)
 }
 
-inla.pc.bym.Q = function(graph, rankdef, scale.model = FALSE)
+inla.pc.bym.Q = function(graph)
 {
-    if (missing(rankdef)) {
-        rankdef = graph$cc$n
-    }
     Q = -inla.graph2matrix(graph)
     diag(Q) = 0
     diag(Q) = -rowSums(Q)
-    if (scale.model) {
-        fac = exp(mean(log(diag(inla.ginv(x=as.matrix(Q), rankdef=rankdef)))))
-        Q = fac * Q
-    }
     return (Q)
 }
 
@@ -101,7 +91,7 @@ inla.pc.bym.phi = function(
         if (missing(graph) && !missing(Q)) {
             Q = inla.as.sparse(Q)
         } else if (!missing(graph) && missing(Q)) {
-            Q = inla.pc.bym.Q(graph, rankdef)
+            Q = inla.pc.bym.Q(graph)
         } else if (missing(graph) && missing(Q)) {
             stop("Either <Q> or <graph> must be given.")
         } else {
@@ -163,6 +153,8 @@ inla.pc.bym.phi = function(
     }
     
     if (use.eigenvalues) {
+        ## this is fast for low dimension where we can compute the
+        ## eigenvalues
         phi.s = 1/(1+exp(-seq(-12, 12,  len = 1000)))
         d = numeric(length(phi.s))
         k = 1
@@ -181,7 +173,7 @@ inla.pc.bym.phi = function(
             k = k + 1
         }
     } else {
-        ## alternative strategy
+        ## alternative strategy for larger matrices
         phi.s = 1/(1+exp(-seq(-12, 12, len=40)))
         d = numeric(length(phi.s))
         log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
