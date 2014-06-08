@@ -240,13 +240,13 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 	return INLA_OK;
 }
 
-int inla_spde3_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
+int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
 	 * compute the marginals for BLC*theta
 	 */
 
-	GMRFLib_userfunc2_arg_tp *a = (GMRFLib_userfunc2_arg_tp *) arg;
+	GMRFLib_userfunc3_arg_tp *a = (GMRFLib_userfunc3_arg_tp *) arg;
 
 	/*
 	 * Cov_spde3: Covariance between the local theta's in this spde3 model. Cov: covariance between all theta's in the full model. Theta_spde3: the theta's in
@@ -263,7 +263,7 @@ int inla_spde3_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 
 	int use_new_version = 1;
 	int i, ii, jj;
-	inla_spde3_tp *model = (inla_spde3_tp *) GMRFLib_ai_INLA_userfunc2_args[number];
+	inla_spde3_tp *model = (inla_spde3_tp *) GMRFLib_ai_INLA_userfunc3_args[number];
 
 	if (model->BLC == NULL) {
 		return INLA_OK;
@@ -277,15 +277,15 @@ int inla_spde3_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 
 	assert(ncol - 1 == model->ntheta);
 
-	if (!GMRFLib_ai_INLA_userfunc2_len) {
-		GMRFLib_ai_INLA_userfunc2_len = Calloc(GMRFLib_ai_INLA_userfunc2_n, int);
+	if (!GMRFLib_ai_INLA_userfunc3_len) {
+		GMRFLib_ai_INLA_userfunc3_len = Calloc(GMRFLib_ai_INLA_userfunc3_n, int);
 	}
-	GMRFLib_ai_INLA_userfunc2_len[number] = nrow;
+	GMRFLib_ai_INLA_userfunc3_len[number] = nrow;
 
-	if (!GMRFLib_ai_INLA_userfunc2_density) {
-		GMRFLib_ai_INLA_userfunc2_density = Calloc(GMRFLib_ai_INLA_userfunc2_n, GMRFLib_density_tp **);
+	if (!GMRFLib_ai_INLA_userfunc3_density) {
+		GMRFLib_ai_INLA_userfunc3_density = Calloc(GMRFLib_ai_INLA_userfunc3_n, GMRFLib_density_tp **);
 	}
-	GMRFLib_ai_INLA_userfunc2_density[number] = Calloc(nrow, GMRFLib_density_tp *);
+	GMRFLib_ai_INLA_userfunc3_density[number] = Calloc(nrow, GMRFLib_density_tp *);
 
 	if (use_new_version) {
 		for (i = 0; i < nrow; i++) {
@@ -351,7 +351,7 @@ int inla_spde3_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 				}
 				ldens_values[ii] = GMRFLib_ai_integrator_func(nhyper, x, iarg);
 			}
-			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc2_density[number][i]),
+			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc3_density[number][i]),
 					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 
 			Free(Sigma_a);
@@ -374,7 +374,7 @@ int inla_spde3_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first column is a constant offset */
 				}
 			}
-			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
+			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc3_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
 		}
 	}
 

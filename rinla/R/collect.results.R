@@ -1823,8 +1823,7 @@ inla.internal.experimental.mode = FALSE
 {
     ## a copy from collect.random
     alldir = dir(results.dir)
-    ##                    YES, ^spde2.blc IS CORRECT
-    random = alldir[grep("^spde2.blc", alldir)]
+    random = alldir[grep("^spde3.blc", alldir)]
     n.random = length(random)
     if (debug)
         print("collect random effects")

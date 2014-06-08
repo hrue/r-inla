@@ -823,6 +823,13 @@ typedef struct {
 	gsl_matrix *eigen_vectors;
 } GMRFLib_userfunc2_arg_tp;
 
+typedef struct {
+	double *stdev_corr_neg;
+	double *stdev_corr_pos;
+	gsl_vector *sqrt_eigen_values;
+	gsl_matrix *eigen_vectors;
+} GMRFLib_userfunc3_arg_tp;
+
 typedef enum {
 	GMRFLib_TRANSFORM_FORWARD = 1,			       /* same as in inla.h */
 	GMRFLib_TRANSFORM_BACKWARD = 2,			       /* same as in inla.h */
