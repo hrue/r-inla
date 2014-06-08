@@ -244,7 +244,7 @@ inla.pc.cormat.internal.test.1 = function(n, p, lim = 0.99)
     m = inla.pc.cormat.p2dim(p)
     ppi = lim*pi
     X = matrix(runif(n*m, min=-ppi, max=ppi), n, m)
-    INLA:::inla.require("parallel")
+    inla.require("parallel")
     d = mclapply(1:n,
             function(k, lambda, log) {
                 return (inla.pc.cormat.dtheta(X[k, ], lambda = lambda, log=log))
