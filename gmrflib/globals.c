@@ -180,6 +180,13 @@ int GMRFLib_ai_INLA_userfunc2_n = 0;
 int *GMRFLib_ai_INLA_userfunc2_len = NULL;
 char **GMRFLib_ai_INLA_userfunc2_tag = NULL;
 
+GMRFLib_ai_INLA_userfunc3_tp **GMRFLib_ai_INLA_userfunc3 = NULL;
+void **GMRFLib_ai_INLA_userfunc3_args = NULL;
+GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc3_density = NULL;
+int GMRFLib_ai_INLA_userfunc3_n = 0;
+int *GMRFLib_ai_INLA_userfunc3_len = NULL;
+char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
+
 /* 
    use faster integration than GSL?
  */
