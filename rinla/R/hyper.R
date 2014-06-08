@@ -183,7 +183,7 @@ inla.set.hyper = function(
                     if (len < 0L) {
                         ## this is a special case, where the number of
                         ## parameters in the prior vary. first example
-                        ## is the spde2 model. in this case, we just
+                        ## is the spde2/spde3 model. in this case, we just
                         ## eat all the remaining parameters.
                         skip.final.check = TRUE
                     } else {
