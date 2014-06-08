@@ -800,7 +800,8 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                              plot.delay = NULL,
                              data.dir,
                              keep = (!missing(data.dir) && !is.null(data.dir)),
-                             timings = FALSE)
+                             timings = FALSE,
+                             quality.loc=NULL)
 {
     if (!timings) {
         system.time <- function(expr) {
@@ -852,42 +853,20 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                        0L,
                                        segm.n+lattice.n))
 
-    if (TRUE) {
-        loc0 = rbind(segm$loc, lattice$loc, loc)
-        if ((!is.null(loc0)) && (nrow(loc0)>0))
-            idx0 = 1:nrow(loc0)
-        else
-            idx0 = c()
+    loc0 = rbind(segm$loc, lattice$loc, loc)
+    if ((!is.null(loc0)) && (nrow(loc0)>0))
+        idx0 = 1:nrow(loc0)
+    else
+        idx0 = c()
+
+    if (!is.null(quality.loc)) {
+        quality <- c(rep(NA, segm.n),
+                     rep(NA, lattice.n),
+                     quality.loc)
+        ## NA:s will be replaced with max.edge settings below.
     } else {
-        ##
-        ## Old code.  Filtering is now done in fmesher itself.
-        ## Retained for now so that we can check if the results are the same.
-        ##
-
-        tmp = (inla.mesh.filter.locations(rbind(segm$loc, lattice$loc, loc),
-                                          cutoff))
-        loc0 = tmp$loc
-        idx0 = tmp$node.idx
-
-        ## Remap indices
-        if (!is.null(segm$bnd)) {
-            segm$bnd$idx = (matrix(idx0[(as.vector(segm$bnd$idx)+segm.n-1L) %%
-                                        (segm.n+lattice.n+loc.n)+1L],
-                                   nrow=nrow(segm$bnd$idx),
-                                   ncol=ncol(segm$bnd$idx)))
-        }
-        if (!is.null(segm$int)) {
-            segm$int$idx = (matrix(idx0[segm.n+as.vector(segm$int$idx)],
-                                   nrow=nrow(segm$int$idx),
-                                   ncol=ncol(segm$int$idx)))
-        }
-        if (!is.null(tv)) {
-            tv = (matrix(idx0[segm.n+lattice.n+as.vector(tv)],
-                         nrow=nrow(tv),
-                         ncol=ncol(tv)))
-        }
+        quality <- NULL
     }
-
 
     ## Where to put the files?
     if (keep) {
@@ -981,6 +960,17 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
         is.refined = TRUE
+
+        if (!is.null(quality)) {
+            quality[is.na(quality)] <- rcdt[3]
+            quality.file <-
+                fmesher.write(inla.affirm.double(as.matrix(quality)),
+                              prefix, "input.quality")
+            all.args <- (paste(all.args,
+                               " --input=input.quality",
+                               " --quality=input.quality",
+                               sep=""))
+        }
     } else {
         is.refined = FALSE
     }

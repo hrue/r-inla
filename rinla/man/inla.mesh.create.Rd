@@ -21,7 +21,8 @@ inla.mesh.create(loc = NULL,
                  plot.delay = NULL,
                  data.dir,
                  keep = (!missing(data.dir) && !is.null(data.dir)),
-                 timings = FALSE)
+                 timings = FALSE,
+                 quality.loc = NULL)
 
 inla.delaunay(loc, ...)
 }
@@ -96,6 +97,10 @@ inla.delaunay(loc, ...)
   }
   \item{timings}{
     If \code{TRUE}, obtain timings for the mesh construction.
+  }
+  \item{quality.loc}{
+    Per vertex \code{max.edge} target specification for each location in
+    \code{loc}.  Only used if refining the mesh.
   }
   \item{...}{
     Optional parameters passed on to \code{inla.mesh.create}.
