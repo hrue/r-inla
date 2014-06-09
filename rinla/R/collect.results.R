@@ -1835,7 +1835,7 @@ inla.internal.experimental.mode = FALSE
         for(i in 1L:n.random) {
             tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
-                names.random[i] = "missing NAME". 
+                names.random[i] = "missing NAME"
             else
                 names.random[i] = inla.namefix(readLines(tag, n=1L))
             modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
