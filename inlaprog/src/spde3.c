@@ -97,8 +97,8 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 	model->ntheta = model->B[0]->ncol - 1;
 
 	// since this matrix is non-symmetric, its is convenient to have access to the graph for for the transpose as well.
-	model->M3t = GMRFLib_matrix_transpose(model->M[3]);
-	
+	model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
+
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "BLC");
 	if (GMRFLib_is_fmesher_file((const char *) fnm, 0L, -1) == GMRFLib_SUCCESS) {
 		model->BLC = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
@@ -136,28 +136,28 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 #undef ADD_GRAPH
 
-	/* 
-	 * add the graph-contributions for the \sum_k d_k M_ki M_kj = \sum_k d_k M^t_ik M_kj - term for M^(3). M^(3) is non-symmetric.  the graph is row-wise, so
-	 * g->nnbs[i] is the number of neighours to row i. so M_ki is M^t_ik.
+	/*
+	 * add the graph-contributions for the \sum_k d_k M_ki M_kj = \sum_k d_k M^T_ik M_kj - term for M^(3). M^(3) is non-symmetric.  the graph is row-wise, so
+	 * g->nnbs[i] is the number of neighours to row i. so M_ki is M^T_ik.
 	 */
 	int j, jj, k, kk;
-	GMRFLib_graph_tp *g = model->M3t->graph;
+	GMRFLib_graph_tp *g = model->M3transpose->graph;
 	GMRFLib_graph_tp *gg = model->M[3]->graph;
-		
-	for(i=0; i < model->n; i++) {
-		// case k = i. then we get M_ii*M_ij, so we need to add all neighbours to i.
-		for(kk = 0; kk < gg->nnbs[i]; kk++){
+
+	for (i = 0; i < model->n; i++) {
+		// case k = i. then we get M_ii*M_ij, so we need to add all M3-neighbours to i.
+		for (kk = 0; kk < gg->nnbs[i]; kk++) {
 			j = gg->nbs[i][kk];
 			GMRFLib_ged_add(ged, i, j);
 		}
 		// case i ~ k
-		for(kk = 0; kk < g->nnbs[i]; kk++){
+		for (kk = 0; kk < g->nnbs[i]; kk++) {
 			k = g->nbs[i][kk];
-			// we have now M_ik, and k!=i. then we need to add all j for which j = k ...
+			// we have now M_ik, and k!=i. then we need to add j for which j = k ...
 			j = k;
 			GMRFLib_ged_add(ged, i, j);
-			// ...or j ~ k
-			for(jj = 0; jj < gg->nnbs[k]; jj++) {
+			// ... and then all M3-neighbours to k
+			for (jj = 0; jj < gg->nnbs[k]; jj++) {
 				j = gg->nbs[k][jj];
 				GMRFLib_ged_add(ged, i, j);
 			}
@@ -187,7 +187,7 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 	 */
 	double *row_i = Calloc(3 * model->B[0]->ncol, double), *row_j, *row_k;
 	row_j = &row_i[model->B[0]->ncol];
-	row_k = &row_i[2*model->B[0]->ncol];
+	row_k = &row_i[2 * model->B[0]->ncol];
 
 	for (k = 0; k < 3; k++) {
 		if (i == j) {
@@ -270,7 +270,7 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 	// Add the new M^(3) term
 #define COMPUTE_D3(_d3, _k) if (1)					\
 	{								\
-		double _tmp = 0.0;					\
+		double _tmp = NAN;					\
 		int _kk;						\
 		GMRFLib_matrix_get_row(row_k, _k, model->B[3]);		\
 		_tmp = row_k[0];					\
@@ -279,24 +279,31 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 		}							\
 		_d3 = exp(_tmp);					\
 	}
+
+	// For the M3-term, it is easier to work with M3transpose. We need to be careful since M3 is generally not symmetric.
+	double m3_value = 0.0, d3 = NAN, tmp;
+	GMRFLib_graph_tp *g = model->M3transpose->graph;
+	double *m3t_row_i = Calloc(2*g->n, double);
+	double *m3t_row_j = m3t_row_i + g->n;
+	int i_min;
 	
-	double m3_value = 0.0, d3 = NAN;
-	GMRFLib_graph_tp *g = model->M3t->graph;
-	
-	// k = i
-	k = i;
-	COMPUTE_D3(d3, k);				       /* compute d3 */
-	m3_value += GMRFLib_matrix_get(i,k, model->M3t) * GMRFLib_matrix_get(j, k, model->M3t) * d3;
-	// k ~ i
-	for(kk = 0; kk < g->nnbs[i]; kk++){
-		k = g->nbs[i][kk];
-		COMPUTE_D3(d3, k);			       /* compute d3 */
-		m3_value += GMRFLib_matrix_get(i, k, model->M3t) * GMRFLib_matrix_get(j, k, model->M3t) * d3;
+	GMRFLib_matrix_get_row(m3t_row_i, i, model->M3transpose);
+	GMRFLib_matrix_get_row(m3t_row_j, j, model->M3transpose);
+
+	i_min = (g->nnbs[i] <= g->nnbs[j] ? i : j);	       /* loop over the one with fewest neigbours */
+	for(kk = 0; kk <= g->nnbs[i_min]; kk++) {	       /* yes! we want '<=' */
+		k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min); /* since we include the case k=i here */
+		tmp = m3t_row_i[k] * m3t_row_j[k];
+		if (tmp) {				       /* this term is often zero, and computing D3 is expensive */
+			COMPUTE_D3(d3, k);
+			m3_value += tmp * d3;
+		}
 	}
 	value += d_i[0] * d_j[0] * m3_value;
 
 #undef D3
 	Free(row_i);
+	Free(m3t_row_i);
 	
 	return value;
 }
