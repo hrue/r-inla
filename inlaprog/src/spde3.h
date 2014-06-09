@@ -63,8 +63,8 @@ typedef struct {
 	GMRFLib_matrix_tp **B;
 	GMRFLib_matrix_tp **M;
 	GMRFLib_matrix_tp *BLC;
-	GMRFLib_matrix_tp *M3t;				       /* the transpose of M3 */
-	
+	GMRFLib_matrix_tp *M3transpose;			       /* the transpose of M3 */
+
 
 	double ***theta;
 

@@ -25090,10 +25090,86 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 
 	return GMRFLib_SUCCESS;
 }
+double inla_update_density(double *theta, inla_update_tp * arg)
+{
+	/*
+	 * joint posterior for theta
+	 */
 
+	int i, corr = (arg->stdev_corr_pos && arg->stdev_corr_neg);
+	double value = 0.0, sd, log_nc, update_dens, *z;
+
+	z = Calloc(arg->ntheta, double);
+	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);
+
+	for (i = 0; i < arg->ntheta; i++) {
+		if (corr) {
+			sd = (z[i] > 0 ? arg->stdev_corr_pos[i] : arg->stdev_corr_neg[i]);
+		} else {
+			sd = 1.0;
+		}
+		value += -0.5 * SQR(z[i] / sd);
+	}
+
+	/*
+	 * this is the normalizing constant
+	 */
+	log_nc = 0.5 * arg->ntheta * log(2.0 * M_PI);
+	for (i = 0; i < arg->ntheta; i++) {
+		if (corr) {
+			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)) +
+					  0.5 * (log(SQR(arg->stdev_corr_pos[i])) + log(SQR(arg->stdev_corr_neg[i]))));
+		} else {
+			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)));
+		}
+	}
+
+	/*
+	 * and then the log-joint-posterior-density
+	 */
+	update_dens = value - log_nc;
+
+	Free(z);
+	return update_dens;
+}
 int testit(int argc, char **argv)
 {
-	if (1) {
+	if (1){
+		// testing spde3
+
+		inla_spde3_tp * smodel = NULL;
+		int i, j, jj, n, t, p;
+		
+		inla_spde3_build_model(&smodel, "./", "identity");
+		n = smodel->graph->n;
+		p = smodel->ntheta;
+
+		GMRFLib_matrix_tp *theta = GMRFLib_read_fmesher_file("theta", 0, -1);
+
+		for(i = 0; i < p; i++){
+			printf("theta[%1d] = %g\n", i, GMRFLib_matrix_get(i, 0, theta));
+			for(t = 0; t < GMRFLib_MAX_THREADS; t++){
+				smodel->theta[i][t][0] = GMRFLib_matrix_get(i, 0, theta);
+			}
+		}
+
+		GMRFLib_matrix_tp *Q = Calloc(1, GMRFLib_matrix_tp);
+		Q->nrow = Q->ncol = n;
+		Q->elems = ISQR(n);
+		Q->A = Calloc(ISQR(n), double);
+
+		for(i = 0; i < n; i++){
+			Q->A[ i + i * n ] = inla_spde3_Qfunction(i, i, (void *) smodel);
+			#pragma omp parallel private(jj, j)
+			for(jj = 0; jj < smodel->graph->nnbs[i]; jj++){
+				j = smodel->graph->nbs[i][jj];
+				Q->A[ i + j * n ] = Q->A[ j + i * n ] = inla_spde3_Qfunction(i, j, (void *) smodel);
+			}
+		}
+		GMRFLib_write_fmesher_file(Q, "Q", 0, -1);
+	}
+
+	if (0) {
 		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 		GMRFLib_graph_tp *graph;
 		GMRFLib_read_graph_ascii(&graph, "zones.graph");
@@ -25282,49 +25358,6 @@ int testit(int argc, char **argv)
 	}
 
 	exit(EXIT_SUCCESS);
-}
-
-double inla_update_density(double *theta, inla_update_tp * arg)
-{
-	/*
-	 * joint posterior for theta
-	 */
-
-	int i, corr = (arg->stdev_corr_pos && arg->stdev_corr_neg);
-	double value = 0.0, sd, log_nc, update_dens, *z;
-
-	z = Calloc(arg->ntheta, double);
-	GMRFLib_ai_theta2z(z, arg->ntheta, arg->theta_mode, theta, arg->sqrt_eigen_values, arg->eigen_vectors);
-
-	for (i = 0; i < arg->ntheta; i++) {
-		if (corr) {
-			sd = (z[i] > 0 ? arg->stdev_corr_pos[i] : arg->stdev_corr_neg[i]);
-		} else {
-			sd = 1.0;
-		}
-		value += -0.5 * SQR(z[i] / sd);
-	}
-
-	/*
-	 * this is the normalizing constant
-	 */
-	log_nc = 0.5 * arg->ntheta * log(2.0 * M_PI);
-	for (i = 0; i < arg->ntheta; i++) {
-		if (corr) {
-			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)) +
-					  0.5 * (log(SQR(arg->stdev_corr_pos[i])) + log(SQR(arg->stdev_corr_neg[i]))));
-		} else {
-			log_nc += -0.5 * (2.0 * log(gsl_vector_get(arg->sqrt_eigen_values, (unsigned int) i)));
-		}
-	}
-
-	/*
-	 * and then the log-joint-posterior-density
-	 */
-	update_dens = value - log_nc;
-
-	Free(z);
-	return update_dens;
 }
 int main(int argc, char **argv)
 {
