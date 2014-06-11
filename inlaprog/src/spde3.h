@@ -52,6 +52,13 @@ __BEGIN_DECLS
 	SPDE3_TRANSFORM_IDENTITY			       /* x */
 } spde3_transform_tp;
 
+typedef struct
+{
+	double *theta;
+	double *d3;
+}
+	inla_spde3_d3store_tp;
+
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
@@ -65,6 +72,7 @@ typedef struct {
 	GMRFLib_matrix_tp *BLC;
 	GMRFLib_matrix_tp *M3transpose;			       /* the transpose of M3 */
 
+	inla_spde3_d3store_tp **store;
 
 	double ***theta;
 
