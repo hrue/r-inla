@@ -281,12 +281,25 @@ namespace fmesh {
       \brief Insert a constraint edge into a CDT.
     */
     Dart CDTInsertSegment(const DartPair& dp, const DartList& trace,
-			  triangleSetT& triangles);
+			  triangleSetT& triangles,
+			  const bool is_boundary,
+			  const constrMetaT& meta);
     /*!
-      \brief Insert a constraint edge into a CDT.
+      \brief Detect if a new constraint edge needs to be split,
+      and add a new vertex to the CDT if needed.
+
+      Returns the index of the splitting vertex.
+      If the return value is negative, splitting was not done.
+      If the return value is non-negative, the "trace" list invalidated.
+    */
+    int CDTSplitSegment(const DartPair& dp, const DartList& trace);
+    /*!
+      \brief Insert a constraint edge into a CDT, splitting if needed.
     */
     Dart CDTInsertSegment(const int v0, const int v1,
-			  triangleSetT& triangles);
+			  triangleSetT& triangles,
+			  const bool is_boundary,
+			  const constrMetaT& meta);
     /*!
       \brief Build a CDT from constraint edge lists. Called by prepareCDT,
       CDTBoundary and CDTInterior.
