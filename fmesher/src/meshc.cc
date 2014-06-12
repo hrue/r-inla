@@ -940,16 +940,16 @@ namespace fmesh {
     }
     
     MESHC_LOG("diameter = " << diameter << endl);
-    MESHC_LOG("margin = " << margin <<endl);
+    MESHC_LOG("margin = " << margin << endl);
 
     if (diameter+2*margin+margin>=M_PI) {
       /* The whole sphere needs to be covered. */
-      MESHC_LOG("Cover the whole sphere.");
+      MESHC_LOG("Cover the whole sphere." << endl);
 
       if (nV<3) { /* Not enough points for even one triangle,
 		     needs special treatment. */
 	NOT_IMPLEMENTED;
-	MESHC_LOG("nV=" << nV);
+	MESHC_LOG("nV=" << nV << endl);
 	return false;
       }
       
@@ -1067,7 +1067,7 @@ namespace fmesh {
       M_->TV_append(TV);
     } else {
       /* Calculate tight enclosure. */
-      MESHC_LOG("Calculate tight enclosure.");
+      MESHC_LOG("Calculate tight enclosure." << endl);
 
       /* Construct interior boundary normals. */
       /* This initialises the enclosure. */
@@ -1120,7 +1120,7 @@ namespace fmesh {
 	}
       }
 
-      MESHC_LOG("Add margin.");
+      MESHC_LOG("Add margin." << endl);
       {
 	double th;
 	double margini;
@@ -1147,7 +1147,7 @@ namespace fmesh {
       }
 
       /* Calculate intersections. */
-      MESHC_LOG("Calculate enclosure boundary.");
+      MESHC_LOG("Calculate enclosure boundary." << endl);
       Matrix3double S(sides);
       {
 	Point nip, nipp;
@@ -1169,7 +1169,7 @@ namespace fmesh {
       }
 
       /* Construct enclosure triangles. */
-      MESHC_LOG("Construct enclosure triangles.");
+      MESHC_LOG("Construct enclosure triangles." << endl);
       Matrix3int TV(sides-2);
       for (i=0;i<sides-2;i++) {
 	TV(i) = Int3(nV+(0),
@@ -1227,7 +1227,7 @@ namespace fmesh {
     int nV = (int)M_->nV();
 
     if (nV<1) {
-      MESHC_LOG("Need at least one vertex to calculate enclosure.");
+      MESHC_LOG("Need at least one vertex to calculate enclosure." << endl);
       return false;
     }
 
@@ -1235,7 +1235,7 @@ namespace fmesh {
       sides = 3;
 
     /* Calculate tight enclosure. */
-    MESHC_LOG("Calculate tight enclosure.");
+    MESHC_LOG("Calculate tight enclosure." << endl);
 
     int i;
 
@@ -1276,7 +1276,7 @@ namespace fmesh {
 	}
 	margin = -diameter*margin;
       } else {
-	MESHC_LOG("Calculate margin.");
+	MESHC_LOG("Calculate margin." << endl);
 	for (i=0;i<sides/2;i++) {
 	  diam = -d[i]-d[(i+sides/2)%sides];
 	  if (diam>diameter)
@@ -1291,12 +1291,12 @@ namespace fmesh {
     
     MESHC_LOG("margin = " << margin << endl);
 
-    MESHC_LOG("Add margin.");
+    MESHC_LOG("Add margin." << endl);
     for (i=0;i<sides;i++) {
       d[i] -= margin;
     }
 
-    MESHC_LOG("Calculate enclosure boundary.");
+    MESHC_LOG("Calculate enclosure boundary." << endl);
 
     Point S[sides];
     double a0, a1, n01;
@@ -1312,7 +1312,7 @@ namespace fmesh {
     }
 
     /* Add enclosure triangles. */
-    MESHC_LOG("Add enclosure triangles.");
+    MESHC_LOG("Add enclosure triangles." << endl);
     Int3 TV[sides-2];
     for (i=0;i<sides-2;i++) {
       TV[i][0] = nV+(0);
@@ -1343,7 +1343,7 @@ namespace fmesh {
       return CETsphere(sides,margin);
       break;
     default:
-      MESHC_LOG("Only planar enclosures implemented yet.");
+      MESHC_LOG("Only planar enclosures implemented yet." << endl);
       NOT_IMPLEMENTED;
       return false;
     }
@@ -1604,7 +1604,9 @@ namespace fmesh {
   /*! Alg. 6.2+6.1 */
   Dart MeshC::CDTInsertSegment(const DartPair& dp,
 			       const DartList& trace,
-			       triangleSetT& triangles)
+			       triangleSetT& triangles,
+			       const bool is_boundary,
+			       const constrMetaT& meta)
   {
     if (!prepareCDT()) return Dart();
 
@@ -1616,13 +1618,6 @@ namespace fmesh {
     MESHC_LOG("Segment crosses " << trace.size()
 	      << " edges." << endl);
 
-    if (trace.size()<=1) {
-      MESHC_LOG("Too short trace (" << trace.size() << ")."
-		<< " Should have been handled by caller."
-		<< endl);
-      return Dart();
-    }
-
     Dart dh;
     Dart d0(dp.first);
     Dart d1(dp.second);
@@ -1631,6 +1626,28 @@ namespace fmesh {
 
     int v0(d0.v());
     int v1(d1.v());
+
+    if (trace.size()<=1) {
+      /* Only one crossing edge, swap directly. */
+      MESHC_LOG("Short trace (" << trace.size() << ").  Swapping directly."
+		<< endl);
+      
+      Dart ds = swapEdge(*trace.begin());
+      if (ds.v() == v1) ds.orbit1();
+      if (ds.v() != v0) ds = Dart();
+      
+      MESHC_LOG("Segment dart " << ds << endl);
+
+      if (!ds.isnull()) {      
+	if (is_boundary)
+	  boundary_.insert(ds, meta);
+	else
+	  interior_.insert(ds, meta);
+      }
+      
+      return ds;
+    }
+
     for (DartList::const_iterator i(trace.begin());
 	 i != trace.end(); i++) {
       dh = *i;
@@ -1836,13 +1853,78 @@ namespace fmesh {
 
     MESHC_LOG("Segment dart " << dc << endl);
 
+    if (!dc.isnull()) {      
+      if (is_boundary)
+	boundary_.insert(dc, meta);
+      else
+	interior_.insert(dc, meta);
+    }
+
     return dc;
   }
 
 
+  int MeshC::CDTSplitSegment(const DartPair& dp, const DartList& trace)
+  {
+    MESHC_LOG(dp);
+    MESHC_LOG("Edge trace:" << endl << trace);
+
+    Dart dh;
+    Dart d0(dp.first);
+    Dart d1(dp.second);
+
+    int v0(d0.v());
+    int v1(d1.v());
+    bool split(false);
+    double delta;
+    for (DartList::const_iterator i(trace.begin());
+	 i != trace.end(); i++) {
+      dh = *i;
+      MESHC_LOG("Testing edge for interference: " << dh << endl)
+
+      MESHC_LOG("Testing vertex for interference: " << dh.v() << endl);
+      delta = M_->inLeftHalfspace(M_->S(v0),M_->S(v1),M_->S(dh.v()));
+      split = ((delta >= -MESH_EPSILON) & (delta <= MESH_EPSILON));
+
+      if (!split) {
+	/* Test the other edge vertex. */ 
+	dh.orbit2();
+	MESHC_LOG("Testing vertex for interference: " << dh.v() << endl);
+	delta = M_->inLeftHalfspace(M_->S(v0),M_->S(v1),M_->S(dh.v()));
+	split = ((delta >= -MESH_EPSILON) & (delta <= MESH_EPSILON));
+
+	if (!split) {
+	  dh.orbit2rev();
+	  /* Test for interfering segment. */ 
+	  split = isSegment(dh);
+	  if (split) {
+	    MESHC_LOG("Segment interference detected." << endl);
+
+	    NOT_IMPLEMENTED;
+	    MESHC_LOG("New segment will be approximate." << endl);
+	  }
+	}
+      }
+
+      if (split) {
+	/* Vertex is on the new segment line: split. */
+	MESHC_LOG("Splitting new segment at vertex " << dh.v() << endl)
+	  return dh.v();
+      }
+
+      MESHC_LOG("No interference from edge detected.")
+    }
+
+    MESHC_LOG("No interference from trace detected.")
+
+    return -1;
+  }
+
 
   Dart MeshC::CDTInsertSegment(const int v0, const int v1,
-			       triangleSetT& triangles)
+			       triangleSetT& triangles,
+			       const bool is_boundary,
+			       const constrMetaT& meta)
   {
     if (!prepareCDT()) return Dart();
     MESHC_LOG("Inserting segment ("
@@ -1874,25 +1956,42 @@ namespace fmesh {
       dh0.alpha0();
       if (v1 == dh0.v()) {
 	dh0.alpha0();
+	if (is_boundary)
+	  boundary_.insert(dh0, meta);
+	else
+	  interior_.insert(dh0, meta);
 	return dh0;
       } else {
 	dh1.orbit1();
+	if (is_boundary)
+	  boundary_.insert(dh1, meta);
+	else
+	  interior_.insert(dh1, meta);
 	return dh1;
       }
     }
 
-    /* Only one crossing edge, swap directly. */
-    if (trace.size()==1) {
-      Dart ds = swapEdge(*trace.begin());
-      if (ds.v() == v1) ds.orbit1();
-      if (ds.v() != v0) ds = Dart();
-
-      MESHC_LOG("Segment dart " << ds << endl);
-
-      return ds;
+    /* Check if the new segment needs to be split at a vertex or
+       crossing segment */
+    int v2 = CDTSplitSegment(dhp,trace);
+    if (v2 >= 0) {
+      /* Recursively insert the split segment pieces, returning a dart
+	 originating at the first point. */
+      MESHC_LOG("Split segment at vertex " << v2 << endl);
+      MESHC_LOG("InsertSegment (" << v2 << "," << v1 << ")" << endl);
+      CDTInsertSegment(v2, v1, triangles, is_boundary, meta);
+      MESHC_LOG("InsertSegment (" << v2 << "," << v1 << ")" << endl);
+      Dart dreturn(CDTInsertSegment(v0, v2, triangles, is_boundary, meta));
+      MESHC_LOG("Two segments inserted: #1 = " << dreturn);
+      return dreturn;
+    } else {
+      /* No crossing segments or points-on-line, so insert the new
+	 segment. */
+      MESHC_LOG("No splitting required." << endl);
+      Dart dreturn(CDTInsertSegment(dhp, trace, triangles, is_boundary, meta));
+      MESHC_LOG("One segment inserted: " << dreturn);
+      return dreturn;
     }
-
-    return CDTInsertSegment(dhp,trace,triangles);
   }
 
 
@@ -1935,17 +2034,13 @@ namespace fmesh {
     }
 
     triangleSetT triangles;
-    Dart ds(CDTInsertSegment(v0,v1,triangles));
+    Dart ds(CDTInsertSegment(v0,v1,triangles,boundary,meta));
     if (ds.isnull()) {
       MESHC_LOG((boundary ? "Boundary" : "Interior")
 		<< " segment not inserted ("
 		<< v0 << "," << v1 << ")" << endl);
       return ds;
     }
-    if (boundary)
-      boundary_.insert(ds,meta);
-    else
-      interior_.insert(ds,meta);
     LOP(triangles);
     MESHC_LOG((boundary ? "Boundary" : "Interior")
 	      << " segment inserted "
