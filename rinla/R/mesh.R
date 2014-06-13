@@ -796,7 +796,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                              refine=FALSE,
                              lattice=NULL,
                              globe=NULL,
-                             cutoff = 0,
+                             cutoff = 1e-12,
                              plot.delay = NULL,
                              data.dir,
                              keep = (!missing(data.dir) && !is.null(data.dir)),
@@ -1170,7 +1170,7 @@ inla.mesh.2d <-
              interior=NULL, ## User-specified constraints for the inner domain
              max.edge,
              min.angle=NULL, ## Angle constraint for the entire domain
-             cutoff=0, ## Only add input points further apart than this
+             cutoff=1e-12, ## Only add input points further apart than this
              plot.delay=NULL)
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
@@ -1210,7 +1210,7 @@ inla.mesh.2d <-
     if (missing(min.angle) || is.null(min.angle))
         min.angle = c(21)
     if (missing(cutoff) || is.null(cutoff))
-        cutoff = 0
+        cutoff = 1e-12
     if (missing(plot.delay) || is.null(plot.delay))
         plot.delay = NULL
 

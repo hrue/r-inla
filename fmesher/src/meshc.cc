@@ -1974,21 +1974,34 @@ namespace fmesh {
     /* Check if the new segment needs to be split at a vertex or
        crossing segment */
     int v2 = CDTSplitSegment(dhp,trace);
+    Dart dreturn;
     if (v2 >= 0) {
       /* Recursively insert the split segment pieces, returning a dart
 	 originating at the first point. */
       MESHC_LOG("Split segment at vertex " << v2 << endl);
       MESHC_LOG("InsertSegment (" << v2 << "," << v1 << ")" << endl);
-      CDTInsertSegment(v2, v1, triangles, is_boundary, meta);
-      MESHC_LOG("InsertSegment (" << v2 << "," << v1 << ")" << endl);
-      Dart dreturn(CDTInsertSegment(v0, v2, triangles, is_boundary, meta));
-      MESHC_LOG("Two segments inserted: #1 = " << dreturn);
+      dreturn = CDTInsertSegment(v2, v1, triangles, is_boundary, meta);
+      MESHC_LOG("Second part inserted: #1 = " << dreturn << endl);
+      MESHC_LOG("Target segment = (" << v2 << "," << v1 << ")" << endl);
+      Dart dtmp(dreturn);
+      dtmp.orbit1();
+      MESHC_LOG("Actual segment = (" << dreturn.v() << "," << dtmp.v() << ")" << endl);
+      LOP(triangles);
+      triangles.clear();
+
+      MESHC_LOG("InsertSegment (" << v0 << "," << v2 << ")" << endl);
+      dreturn = CDTInsertSegment(v0, v2, triangles, is_boundary, meta);
+      MESHC_LOG("First part inserted: #1 = " << dreturn << endl);
+      MESHC_LOG("Target segment = (" << v0 << "," << v2 << ")" << endl);
+      dtmp = dreturn;
+      dtmp.orbit1();
+      MESHC_LOG("Actual segment = (" << dreturn.v() << "," << dtmp.v() << ")" << endl);
       return dreturn;
     } else {
       /* No crossing segments or points-on-line, so insert the new
 	 segment. */
       MESHC_LOG("No splitting required." << endl);
-      Dart dreturn(CDTInsertSegment(dhp, trace, triangles, is_boundary, meta));
+      dreturn = CDTInsertSegment(dhp, trace, triangles, is_boundary, meta);
       MESHC_LOG("One segment inserted: " << dreturn);
       return dreturn;
     }
@@ -2020,6 +2033,7 @@ namespace fmesh {
 	dh = insertNode(v0,dh);
 	if (dh.isnull()) {
 	  MESHC_LOG("CDT: Failed to insert node " << v0 << endl << *this);
+	  return dh;
 	}	
       }
       MESHC_LOG("CDT: Checked" << endl);
@@ -2028,6 +2042,7 @@ namespace fmesh {
 	dh = insertNode(v1,dh);
 	if (dh.isnull()) {
 	  MESHC_LOG("CDT: Failed to insert node " << v1 << endl << *this);
+	  return dh;
 	}
       }
       MESHC_LOG("CDT: Checked" << endl);
