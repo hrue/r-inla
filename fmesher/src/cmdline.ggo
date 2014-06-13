@@ -78,7 +78,7 @@ section "Triangulation options"
 option "input" T "Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points."
        string typestr="NAME" multiple(1-) optional
 option "cutoff" - "Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point." double typestr="DISTANCE"
-       default="0.0" optional
+       default="1.0e-12" optional
 option "spheretolerance" - "The tolerance for determining that the input lies on a sphere." double typestr="DISTANCE"
        default="1.0e-7" optional
 option "cet" E "Convex encapsulation parameters" double typestr="PARAM"
