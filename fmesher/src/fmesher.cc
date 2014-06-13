@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
     aniso_names.push_back(string(args_info.aniso_arg[i]));
   }
 
-  double cutoff = 0.0;
+  double cutoff = 1.0e-12;
   if (args_info.cutoff_given>0)
     cutoff = args_info.cutoff_arg;
   double sphere_tolerance = 1.0e-7;
