@@ -221,6 +221,9 @@ namespace fmesh {
     double triangleCircumcircleRadius(const Point& s0,
 				      const Point& s1,
 				      const Point& s2) const;
+    double edgeIntersection(const Point& s00, const Point& s01,
+			    const Point& s10, const Point& s11,
+			    Point& c) const;
 
     void triangleBoundingBox(int t, Point& mini, Point& maxi) const;
     double triangleArea(int t) const;
