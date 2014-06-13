@@ -240,6 +240,17 @@ void filter_locations(Matrix<double>& S,
 }
 
 
+void invalidate_unused_vertex_indices(const Mesh& M,
+				      Matrix<int>& idx)
+{
+  for (size_t v=0; v<idx.rows(); v++) {
+    if ((idx(v,0)>=0) &&
+	((idx(v,0) >= M.nV()) || (M.VT(idx(v,0))==-1))) {
+      idx(v,0) = -1;
+    }
+  }
+}
+
 void remap_vertex_indices(const Matrix<int>& idx, Matrix<int>& matrix)
 {
   LOG("Remapping vertex indices for an index matrix." << endl);
@@ -783,6 +794,7 @@ int main(int argc, char* argv[])
 	}
 	/* Remove everything outside the boundary segments, if any. */
 	MC.PruneExterior();
+	invalidate_unused_vertex_indices(M, idx);
 	/* Nothing more to do here.  Cannot refine non R2/S2 meshes. */
       } else {
 	/* If we don't already have a triangulation, we must create one. */
@@ -806,6 +818,7 @@ int main(int argc, char* argv[])
 	
 	/* Remove everything outside the boundary segments, if any. */
 	MC.PruneExterior();
+	invalidate_unused_vertex_indices(M, idx);
 	
 	if (args_info.rcdt_given) {
 	  /* Calculate the RCDT: */
