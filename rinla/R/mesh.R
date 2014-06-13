@@ -1024,6 +1024,9 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                 segm = (inla.ifelse(segm.n>0,
                                     idx.all[idx0[(1:segm.n)]],
                                     NULL))))
+    if (!is.null(idx$loc)) idx$loc[idx$loc == 0L] = NA
+    if (!is.null(idx$lattice)) idx$lattice[idx$lattice == 0L] = NA
+    if (!is.null(idx$segm)) idx$segm[idx$segm == 0L] = NA
 
     ## Read constraint segment information:
     segm.bnd = (inla.mesh.segment(NULL,
@@ -1052,9 +1055,6 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
         if (!is.null(idx$segm)) idx$segm = idx.map[idx$segm]
         segm.bnd$idx = matrix(idx.map[segm.bnd$idx], nrow(segm.bnd$idx), 2)
         segm.int$idx = matrix(idx.map[segm.int$idx], nrow(segm.int$idx), 2)
-        if (!is.null(idx$loc)) idx$loc[idx$loc == 0L] = NA
-        if (!is.null(idx$lattice)) idx$lattice[idx$lattice == 0L] = NA
-        if (!is.null(idx$segm)) idx$segm[idx$segm == 0L] = NA
         segm.bnd$idx[segm.bnd$idx == 0L] = NA
         segm.int$idx[segm.int$idx == 0L] = NA
     }
