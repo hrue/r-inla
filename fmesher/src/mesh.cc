@@ -1025,6 +1025,37 @@ namespace fmesh {
     return triangleCircumcircleRadius(s0,s1,s2);
   }
 
+  /*!
+    \brief Calculate intersection between two edges.
+   */
+  double Mesh::edgeIntersection(const Point& s00, const Point& s01,
+				const Point& s10, const Point& s11,
+				Point& c) const
+  {
+    Point e0, e1, e00, e01;
+    Point n(0.0,0.0,1.0);
+    double beta(0.5);
+
+    Vec::diff(e0,s01,s00);
+    Vec::diff(e1,s11,s10);
+
+    if (type_ == Mesh::Mtype_sphere) {
+      n.cross(s00,s01);
+    }
+    e00.cross(n,e0);
+    e01.diff(s00,s10);
+    c = s10;
+    beta = Vec::scalar(e00,e01)/Vec::scalar(e00,e1);
+    c.accum(e1, beta);
+
+    if (type_ == Mesh::Mtype_sphere) {
+      Vec::rescale(c,1./Vec::length(c));
+      beta = s10.angle(c)/s10.angle(s11);
+    }
+
+    return beta;
+  }
+  
   bool Mesh::triangleEdgeLengths(int t, Point& len) const
   {
     if ((t<0) || (t>=(int)nT())) return 0.0;
