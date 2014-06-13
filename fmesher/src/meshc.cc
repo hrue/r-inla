@@ -1877,6 +1877,7 @@ namespace fmesh {
     int v1(d1.v());
     bool split(false);
     double delta;
+    int dhv1;
     for (DartList::const_iterator i(trace.begin());
 	 i != trace.end(); i++) {
       dh = *i;
@@ -1889,8 +1890,9 @@ namespace fmesh {
       if (!split) {
 	/* Test the other edge vertex. */ 
 	dh.orbit2();
-	MESHC_LOG("Testing vertex for interference: " << dh.v() << endl);
-	delta = M_->inLeftHalfspace(M_->S(v0),M_->S(v1),M_->S(dh.v()));
+	dhv1 = dh.v();
+	MESHC_LOG("Testing vertex for interference: " << dhv1 << endl);
+	delta = M_->inLeftHalfspace(M_->S(v0),M_->S(v1),M_->S(dhv1));
 	split = ((delta >= -MESH_EPSILON) & (delta <= MESH_EPSILON));
 
 	if (!split) {
@@ -1900,8 +1902,17 @@ namespace fmesh {
 	  if (split) {
 	    MESHC_LOG("Segment interference detected." << endl);
 
-	    NOT_IMPLEMENTED;
-	    MESHC_LOG("New segment will be approximate." << endl);
+	    Point c;
+	    double beta = M_->edgeIntersection(M_->S(v0), M_->S(v1),
+					       M_->S(dh.v()), M_->S(dhv1),
+					       c);
+	    MESHC_LOG("Splitting segment at " << c << endl);
+
+	    int v = addVertex(c);
+	    if ((state_>=State_RCDT) && big_.usingQv())
+	      big_.setQv(v,std::exp(std::log(big_.getQv(dh.v()))*(1.-beta)+
+				    std::log(big_.getQv(dhv1))*beta));
+	    dh = splitEdgeDelaunay(dh, v);
 	  }
 	}
       }
