@@ -920,9 +920,9 @@
 }
 
 ##
-`inla.mclapply` = function(..., mc.cores = NULL)
+`inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
-    if (inla.require("parallel") && inla.os("linux")) {
+    if (parallel && inla.require("parallel") && inla.os("linux")) {
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
             if (is.null(mc.cores)) {
