@@ -16668,6 +16668,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				assert(mb->f_id[mb->nf] == F_RW2);
 				rwdef->order = 2;
 			}
+			assert(rwdef->n > rwdef->order);
 			rwdef->prec = NULL;
 			rwdef->log_prec = NULL;
 			rwdef->log_prec_omp = log_prec;
@@ -16751,7 +16752,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 			}
 			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
-
+			assert(crwdef->n > crwdef->order);
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
 				if (std) {
