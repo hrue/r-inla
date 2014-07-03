@@ -72,7 +72,7 @@ namespace fmesh {
 	    sph(i,Idxs2[k]) = M_2_SQRT_PI * GSL_res_array[k];
 	  }
 	  for (m = 1; m <= max_order; m++) {
-	    scaling_sin = M_2_SQRT_PI * M_SQRT2 * sin(-m * phi);
+	    scaling_sin = M_2_SQRT_PI * M_SQRT2 * sin(-(m * phi));
 	    scaling_cos = M_2_SQRT_PI * M_SQRT2 * cos(m * phi);
 	    gsl_sf_legendre_sphPlm_array(max_order, m, S[i][2], GSL_res_array);
 	    for (k = m; k <= max_order; k++) {
