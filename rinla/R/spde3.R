@@ -5,7 +5,7 @@
 ## Export: inla.spde3.matern.sd.basis inla.spde3.models
 ## Export: inla.spde3.precision inla.spde3.result
 ## Export: inla.spde3.theta2phi0 inla.spde3.theta2phi1
-## Export: inla.spde3.theta2phi2 inla.spde3.theta3phi2
+## Export: inla.spde3.theta2phi2 inla.spde3.theta2phi3
 ## Internal: inla.internal.spde3.matern.B.tau
 ## Internal: inla.internal.test.spde3.sd.basis
 
