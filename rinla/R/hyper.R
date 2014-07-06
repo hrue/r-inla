@@ -46,19 +46,19 @@ inla.set.hyper = function(
     if (nhyper == 0L) {
         if (!is.null(initial) && length(initial) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'initial' is ",
-                              initial), sep=""))
+                              initial), sep=" "))
         }
         if (!is.null(fixed) && length(fixed) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'fixed' is",
-                              fixed), sep=""))
+                              fixed), sep=" "))
         }
         if (!is.null(param) && length(param) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'param' is",
-                              param), sep=""))
+                              param), sep=" "))
         }
         if (!is.null(prior) && length(prior) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'prior' is",
-                              param), sep=""))
+                              param), sep=" "))
         }
         return (hyper.new)
     }
@@ -76,11 +76,11 @@ inla.set.hyper = function(
 
             if (is.null(nm)) {
                 stop(paste("Missing name/keyword in `hyper'; must be one of ", inla.paste(valid.keywords),  ".",
-                           sep=""))
+                           sep=" "))
             }
             if (!any(inla.strcasecmp(nm, valid.keywords))) {
                 stop(paste("Unknown keyword in `hyper' `",  nm,
-                           "'. Must be one of ",  inla.paste(valid.keywords),  ".",  sep=""))
+                           "'. Must be one of ",  inla.paste(valid.keywords),  ".",  sep=" "))
             }
         }
     }
@@ -354,19 +354,19 @@ FIXIT.")
     if (nhyper == 0L) {
         if (!is.null(initial) && length(initial) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'initial' is ",
-                              initial), sep=""))
+                              initial), sep=" "))
         }
         if (!is.null(fixed) && length(fixed) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'fixed' is",
-                              fixed), sep=""))
+                              fixed), sep=" "))
         }
         if (!is.null(param) && length(param) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'param' is",
-                              param), sep=""))
+                              param), sep=" "))
         }
         if (!is.null(prior) && length(prior) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'prior' is",
-                              param), sep=""))
+                              param), sep=" "))
         }
         return (hyper.new)
     }
@@ -385,11 +385,11 @@ FIXIT.")
 
             if (is.null(nm)) {
                 stop(paste("Missing name/keyword in `hyper'; must be one of ", inla.paste(valid.keywords),  ".",
-                           sep=""))
+                           sep=" "))
             }
             if (!any(inla.strcasecmp(nm, valid.keywords))) {
                 stop(paste("Unknown keyword in `hyper' `",  nm,
-                           "'. Must be one of ",  inla.paste(valid.keywords),  ".",  sep=""))
+                           "'. Must be one of ",  inla.paste(valid.keywords),  ".",  sep=" "))
             }
         }
 
