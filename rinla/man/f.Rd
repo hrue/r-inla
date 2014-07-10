@@ -50,6 +50,8 @@
          spde.prefix = NULL,
          spde2.prefix = NULL,
          spde2.transform = c("logit", "log", "identity"),
+         spde3.prefix = NULL,
+         spde3.transform = c("logit", "log", "identity"),
          mean.linear = inla.set.control.fixed.default()$mean, 
          prec.linear = inla.set.control.fixed.default()$prec, 
          compute = TRUE,
@@ -180,6 +182,8 @@ possible values are \code{c(0, 1, 2, 3)}}
 \item{spde.prefix}{TODO}
 \item{spde2.prefix}{TODO}
 \item{spde2.transform}{TODO}
+\item{spde3.prefix}{TODO}
+\item{spde3.transform}{TODO}
 \item{mean.linear}{Prior mean for the linear component,
 only used if \code{model="linear"}}
 \item{prec.linear}{Prior precision for the linear
