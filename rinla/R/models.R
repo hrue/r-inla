@@ -3938,7 +3938,7 @@
                                      to.theta = function(x) x,
                                      from.theta = function(x) x
                                      )),
-                     pdf = NULL
+                     pdf = NA
                      ),
 
              special2 = list(
@@ -3953,7 +3953,7 @@
                                      to.theta = function(x) x,
                                      from.theta = function(x) x
                                      )),
-                     pdf = NULL
+                     pdf = NA
                      ),
 
              special1 = list(
@@ -4069,7 +4069,7 @@
                                       from.theta = function(x) x
                                       )
                               ),
-                     pdf = NULL
+                     pdf = NA
                      )
              )
          )
@@ -5012,7 +5012,7 @@
                       survival = FALSE,
                       discrete = FALSE,
                       link = c("default", "logit", "probit", "cloglog"),
-                      pdf = "add-file-here"
+                      pdf = NA
                       ),
 
               zeroinflatedbetabinomial2 = list(
@@ -5474,7 +5474,7 @@
              ## this is the generic one,  which is case-spesific and possibly adaptive
              pc = list(
                      nparameters = 2L,
-                     pdf = NULL
+                     pdf = NA
                      ), 
 
              jeffreystdf = list(
