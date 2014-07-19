@@ -13796,7 +13796,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
-		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		mb->f_theta[mb->nf] = Calloc(AR_MAXTHETA+1, double **);
 
 		HYPER_NEW(log_prec, 0.0);
 		mb->f_theta[mb->nf][0] = log_prec;
