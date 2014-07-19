@@ -260,11 +260,19 @@
 {
     ## remove NAME FROM. Works for both lists and data.frames
 
-    if (is.list(from) || is.data.frame(from))
-        for(nm in name)
-            if (length(grep(nm, names(from))) > 0)
-                inla.eval(paste("from$", nm, "=NULL", sep=""))
-
+    if (FALSE) {
+        ## OLD CODE
+        if (is.list(from) || is.data.frame(from))
+            for(nm in name)
+                if (length(grep(nm, names(from))) > 0)
+                    inla.eval(paste("from$", nm, "=NULL", sep=""))
+    } else {
+        ## NEW CODE
+        if (is.list(from) || is.data.frame(from))
+            for(nm in name)
+                from[which(nm == names(from))] = NULL
+    }
+    
     return (from)
 }
 
