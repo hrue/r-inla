@@ -6126,7 +6126,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 				mean += weight * problem->mean_constr[k];
 				imean += weight * improved_mean[k];
 			}
-			var = DMAX(0.0, var - var_corr);
+			var = DMAX(DBL_EPSILON, var - var_corr);
 			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 
 			Free(a);
@@ -6272,7 +6272,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			mean = ddot_(&n, a, &one, problem->mean_constr, &one);
 			imean = ddot_(&n, a, &one, improved_mean, &one);
 
-			var = DMAX(0.0, var - var_corr);
+			var = DMAX(DBL_EPSILON, var - var_corr);
 			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 
 			Free(v);
