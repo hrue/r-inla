@@ -18,7 +18,7 @@ epil.inla.fit.1 = inla(Seizure ~ Base + Trt + I(Base*Trt) + Age + V4 +
 
 epil.hyperpar.1 = inla.hyperpar(epil.inla.fit.1)
 summary(epil.inla.fit.1)
-inla.expectation(function(x) 1/x^.5, epil.hyperpar.1$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, epil.hyperpar.1$marginals[[1]])
 
 epil.inla.fit.2 = inla(Seizure ~ Base + Trt + I(Base*Trt) + Age + V4 +
         f(id,model="iid",param=c(2, 1.240), diagonal=0) +
@@ -27,7 +27,7 @@ epil.inla.fit.2 = inla(Seizure ~ Base + Trt + I(Base*Trt) + Age + V4 +
 
 epil.hyperpar.2 = inla.hyperpar(epil.inla.fit.2)
 summary(epil.inla.fit.2)
-inla.expectation(function(x) 1/x^.5, epil.hyperpar.2$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, epil.hyperpar.2$marginals[[1]])
 
 epil.inla.fit.3 = inla(Seizure ~ Base + Trt + I(Base*Trt) + Age +
         Visit +f(id, model="2diidwishartpart0", param=c(5, 2.277904,
@@ -37,6 +37,6 @@ epil.inla.fit.3 = inla(Seizure ~ Base + Trt + I(Base*Trt) + Age +
 
 epil.hyperpar.3 = inla.hyperpar(epil.inla.fit.3)
 summary(epil.inla.fit.3)
-inla.expectation(function(x) 1/x^.5, epil.hyperpar.3$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, epil.hyperpar.3$marginals[[1]])
 
 

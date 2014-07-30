@@ -13,4 +13,4 @@ oxford.inla.fit = inla(formula, data=oxford, family="binomial", Ntrials=total)
 
 oxford.hyperpar = inla.hyperpar (oxford.inla.fit)
 summary(oxford.inla.fit)
-inla.expectation(function(x) 1/x^.5, oxford.hyperpar$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, oxford.hyperpar$marginals[[1]])

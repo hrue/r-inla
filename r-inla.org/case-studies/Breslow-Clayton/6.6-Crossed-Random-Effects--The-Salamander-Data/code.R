@@ -32,7 +32,7 @@ salamander.e1.hyperpar = inla.hyperpar (salamander.e1.inla.fit)
 summary(salamander.e1.inla.fit)
 summary(salamander.e1.hyperpar)
 
-inla.expectation(function(x) 1/x^.5, salamander.e1.hyperpar$marginals[[1]])
-inla.expectation(function(x) 1/x^.5, salamander.e1.hyperpar$marginals[[2]])
+inla.emarginal(function(x) 1/x^.5, salamander.e1.hyperpar$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, salamander.e1.hyperpar$marginals[[2]])
 
 ## same for salamander.e2 and salamander.e3
