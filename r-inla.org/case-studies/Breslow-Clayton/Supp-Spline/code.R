@@ -43,4 +43,4 @@ bone.inla.fit = inla(spnbmd ~ ethnic + age +
         data=bone, family="gaussian", control.predictor=list(compute=TRUE) )
 bone.hyperpar = inla.hyperpar (bone.inla.fit)
 summary(bone.inla.fit)
-inla.expectation(function(x) 1/x^.5, bone.hyperpar$marginals.hyperpar[[1]])
+inla.emarginal(function(x) 1/x^.5, bone.hyperpar$marginals.hyperpar[[1]])
