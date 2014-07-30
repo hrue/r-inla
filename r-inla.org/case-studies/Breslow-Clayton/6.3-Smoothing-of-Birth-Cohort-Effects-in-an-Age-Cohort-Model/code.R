@@ -42,4 +42,4 @@ iceland.inla.fit = inla(cases ~ -1 + as.factor(age) + f(year,
         control.predictor=list(compute=TRUE) )
 iceland.hyperpar = inla.hyperpar (iceland.inla.fit)
 summary(iceland.inla.fit)
-inla.expectation(function(x) 1/x^.5, iceland.hyperpar$marginals[[1]])
+inla.emarginal(function(x) 1/x^.5, iceland.hyperpar$marginals[[1]])
