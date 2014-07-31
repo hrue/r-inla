@@ -89,7 +89,8 @@ typedef enum {
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
 	INLA_MODE_SASPRIOR,
-	INLA_MODE_TESTIT = 99
+	INLA_MODE_PCPRIOR_BYM_EXAMPLE, 
+	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
 typedef enum {
