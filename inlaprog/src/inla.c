@@ -19180,6 +19180,92 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
+	if (G.mode == INLA_MODE_PCPRIOR_BYM_EXAMPLE) {
+		static int first = 1;
+		if (first){
+			fprintf(stderr, "\n\nEnter INLA_MODE_PCPRIOR_BYM_EXAMPLE!!!\n");
+			first = 0;
+		}
+
+		assert(mb->nf == 2);
+		assert(mb->f_id[0] == F_BYM2);
+		assert(mb->f_id[1] == F_RW2);
+
+		i = 0;
+		if (NOT_FIXED(f_fixed[i][0])) {
+			log_precision = theta[count];
+			count++;
+		} else {
+			log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+		}
+		if (NOT_FIXED(f_fixed[i][1])) {
+			phi_intern = theta[count];
+			count++;
+		} else {
+			phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+		}
+		SET_GROUP_RHO(2);
+		
+		double n = (double) mb->f_n[i];
+		double phi = map_probability(phi_intern, MAP_FORWARD, NULL);
+		
+		val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n +
+							   n / 2.0 * (log_precision - log(1.0 - phi))));
+		
+		if (NOT_FIXED(f_fixed[i][0])) {
+			// YES...
+			//val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+		}
+		if (NOT_FIXED(f_fixed[i][1])) {
+			val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+		}
+
+		i = 1;
+		double log_precision_rw2;
+		
+		if (NOT_FIXED(f_fixed[i][0])) {
+			log_precision_rw2 = theta[count];
+			count++;
+		} else {
+			log_precision_rw2 = mb->f_theta[i][0][GMRFLib_thread_id][0];
+		}
+		SET_GROUP_RHO(1);
+		
+		double scale_correction = 0.0;
+		if (mb->f_id[i] == F_IID && mb->f_scale[i]) {
+			int ii, nii = mb->f_N[i] / mb->f_ngroup[i];
+			
+			for (ii = 0; ii < nii; ii++) {
+				scale_correction += log(mb->f_scale[i][ii]);
+			}
+			scale_correction /= nii;
+		}
+		
+		val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+							   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision_rw2 + scale_correction)));
+		if (NOT_FIXED(f_fixed[i][0])) {
+			// YES...
+			//val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision_rw2);
+		}
+
+		double tau, log_tau, tau1, tau2, mix_phi;
+
+		tau1 = exp(log_precision);
+		tau2 = exp(log_precision_rw2);
+		mix_phi = tau2/(tau1 + tau2);
+		tau = mix_phi * tau1;
+		log_tau = log(tau);
+
+		fprintf(stderr, "tau1 %g tau2 %g tau %g mix_phi %g\n", tau1, tau2, tau, mix_phi);
+		i = 0;
+		val += PRIOR_EVAL(mb->f_prior[i][0], &log_tau);
+		// + uniform prior for mix_phi on [0,1], for which log(prior) = log(1) = 0,
+		// + log(Jacobian) = log(tau1 * tau2 / pow(tau1 + tau2, 3.0))
+		val += log(1.0) + log_precision + log_precision_rw2 - 3.0 * log(tau1 + tau2);
+		return (val);
+	}
+
+
 	for (i = 0; i < mb->nf; i++) {
 		switch (mb->f_id[i]) {
 		case F_RW2D:
@@ -25467,6 +25553,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_GRAPH;
 			} else if (!strncasecmp(optarg, "SASPRIOR", 8)) {
 				G.mode = INLA_MODE_SASPRIOR;
+			} else if (!strncasecmp(optarg, "PCPRIORBYMEXAMPLE", 17)) {
+				G.mode = INLA_MODE_PCPRIOR_BYM_EXAMPLE;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -25629,45 +25717,37 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_QSOLVE) {
+	} else if (G.mode == INLA_MODE_QSOLVE) {
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_QREORDERING) {
+	} else if (G.mode == INLA_MODE_QREORDERING) {
 		inla_qreordering(argv[optind]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_QSAMPLE) {
+	} else if (G.mode == INLA_MODE_QSAMPLE) {
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_FINN) {
+	} else if (G.mode == INLA_MODE_FINN) {
 		inla_finn(argv[optind]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_GRAPH) {
+	} else if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_SASPRIOR) {
+	} else if (G.mode == INLA_MODE_SASPRIOR) {
 		/*
 		 * create it, if it isn't there. add logjac if it's not in the table 
 		 */
 		double lambda = 1.0;
 		re_sas_table_check(&lambda);
 		exit(EXIT_SUCCESS);
-	}
-	if (G.mode == INLA_MODE_TESTIT) {
+	} else if (G.mode == INLA_MODE_TESTIT) {
 		testit(argc, argv);
 		exit(EXIT_SUCCESS);
+	} else {
+		/*
+		 * DO AS NORMAL...
+		 */
 	}
-
-	/*
-	 * DO AS NORMAL 
-	 */
-
 
 	if (!silent || verbose) {
 		fprintf(stdout, "\n\t%s\n", RCSId);
@@ -25700,7 +25780,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "\nRun in mode=[%s]\n", "MCMC");
 		}
 	}
-	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
+	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER || G.mode == INLA_MODE_PCPRIOR_BYM_EXAMPLE) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
 				printf("Processing file [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
