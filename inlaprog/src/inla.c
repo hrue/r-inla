@@ -21253,7 +21253,7 @@ int inla_INLA(inla_tp * mb)
 			mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output);
 
 	/*
-	 * add offset to the linear predictor 
+	 * add the offsets to the linear predictor. Add the offsets to the 'configs' (if any), at a later stage. 
 	 */
 #pragma omp parallel for private(i)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
@@ -23217,6 +23217,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					fwrite((void *) mo->configs[id]->config[i]->theta, sizeof(double), (size_t) mo->configs[id]->ntheta, fp);
 					fwrite((void *) mo->configs[id]->config[i]->mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
+					fwrite((void *) &(OFFSET3(0)), sizeof(double), (size_t) mo->configs[id]->n, fp); // To be added later.
 					fwrite((void *) mo->configs[id]->config[i]->Q, sizeof(double), (size_t) mo->configs[id]->nz, fp);
 					fwrite((void *) mo->configs[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs[id]->nz, fp);
 				}
