@@ -446,6 +446,11 @@ inla.internal.experimental.mode = FALSE
                 }
                 mean = readBin(fp, numeric(), configs$n)
                 improved.mean = readBin(fp, numeric(), configs$n)
+                ## read and add the offsets here
+                offsets = readBin(fp, numeric(), configs$n)
+                mean = mean + offsets
+                improved.mean = improved.mean + offsets
+
                 Q = readBin(fp, numeric(), configs$nz)
                 Qinv = readBin(fp, numeric(), configs$nz)
                 dif = which(configs$i != configs$j)
