@@ -45,6 +45,10 @@ $(FMESHER) : src/$(FMESHER)
 src/$(FMESHER) :
 	make -C src CC=$(CC) CXX=$(CXX) FLAGS="$(FLAGS)" $(FMESHER)
 
+debug :
+	make clean
+	CXX="\"$(CXX) -DDEBUG\"" make $(FMESHER)
+
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
 	cp src/$(FMESHER_TEST) .
 
@@ -88,4 +92,5 @@ dummytarget: ;
 
 .PHONY: depend clean clean-doc clean-deps uninstall install tags doc \
 	dummytarget \
-	src/$(FMESHER) src/$(FMESHER_TEST)
+	src/$(FMESHER) src/$(FMESHER_TEST) \
+	debug
