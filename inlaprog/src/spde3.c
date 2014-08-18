@@ -95,18 +95,19 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 	model->n = model->M[0]->nrow;
 	model->ntheta = model->B[0]->ncol - 1;
 
-	if (debug){
+	if (debug) {
 		P(model->M[3]->elems);
 	}
 
-	/* big savings if M[3] is a matrix with only zeros */
-	if (model->M[3]->elems == 0) {			       
+	/*
+	 * big savings if M[3] is a matrix with only zeros 
+	 */
+	if (model->M[3]->elems == 0) {
 		GMRFLib_matrix_free(model->M[3]);
 		model->M[3] = NULL;
-	} 
-
+	}
 	// since this matrix is non-symmetric, its is convenient to have access to the graph for for the transpose as well.
-	if (model->M[3]){
+	if (model->M[3]) {
 		model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
 	} else {
 		model->M3transpose = NULL;
@@ -178,7 +179,7 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 			}
 		}
 	}
-	
+
 	GMRFLib_ged_build(&(model->graph), ged);
 	assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
@@ -187,17 +188,17 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 	model->Qfunc_arg = (void *) model;
 
 	model->store = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_spde3_d3store_tp *);
-	for(i = 0; i < ISQR(GMRFLib_MAX_THREADS);  i++){
+	for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 		int j;
 
 		model->store[i] = Calloc(1, inla_spde3_d3store_tp);
 		model->store[i]->theta = Calloc(model->ntheta, double);
-		for(j = 0; j < model->ntheta;  j++){
+		for (j = 0; j < model->ntheta; j++) {
 			model->store[i]->theta[j] = GMRFLib_uniform();
 		}
 		model->store[i]->d3 = NULL;		       /* alloc this one when it is used */
 	}
-	
+
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
 	*smodel = model;
 
@@ -309,51 +310,50 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 
 	if (model->M[3]) {
 		int id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
-		
+
 		if (use_store) {
 			// check if we need to recompute storage
 			int recompute = 0;
-			for(k = 0; k < model->ntheta; k++){
+			for (k = 0; k < model->ntheta; k++) {
 				if (model->theta[k][GMRFLib_thread_id][0] != model->store[id]->theta[k]) {
 					recompute = 1;
 					break;
 				}
 			}
-			if (recompute){
+			if (recompute) {
 				fprintf(stderr, "recompute id=%1d\n", id);
-				for(k = 0; k < model->ntheta; k++){
+				for (k = 0; k < model->ntheta; k++) {
 					model->store[id]->theta[k] = model->theta[k][GMRFLib_thread_id][0];
 				}
-				if (!(model->store[id]->d3)){
+				if (!(model->store[id]->d3)) {
 					model->store[id]->d3 = Calloc(model->n, double);
 				}
-				for(k = 0; k < model->n; k++){
+				for (k = 0; k < model->n; k++) {
 					COMPUTE_D3(model->store[id]->d3[k], k);
 				}
 			}
-		}			
-
+		}
 		// For the M3-term, it is easier to work with M3transpose. We need to be careful since M3 is generally not symmetric.
 		double m3_value = 0.0, d3 = NAN, tmp;
 		GMRFLib_graph_tp *g = model->M3transpose->graph;
-		double *m3t_row_i = Calloc(2*g->n, double);
+		double *m3t_row_i = Calloc(2 * g->n, double);
 		double *m3t_row_j = m3t_row_i + g->n;
 		int i_min;
-	
+
 		GMRFLib_matrix_get_row(m3t_row_i, i, model->M3transpose);
 		GMRFLib_matrix_get_row(m3t_row_j, j, model->M3transpose);
 
-		i_min = (g->nnbs[i] <= g->nnbs[j] ? i : j);	       /* loop over the one with fewest neigbours */
-		if (use_store){
-			for(kk = 0; kk <= g->nnbs[i_min]; kk++) {	       /* yes! we want '<=' */
-				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min); /* since we include the case k=i here */
+		i_min = (g->nnbs[i] <= g->nnbs[j] ? i : j);    /* loop over the one with fewest neigbours */
+		if (use_store) {
+			for (kk = 0; kk <= g->nnbs[i_min]; kk++) {	/* yes! we want '<=' */
+				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min);	/* since we include the case k=i here */
 				m3_value += m3t_row_i[k] * m3t_row_j[k] * model->store[id]->d3[k];
 			}
 		} else {
-			for(kk = 0; kk <= g->nnbs[i_min]; kk++) {	       /* yes! we want '<=' */
-				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min); /* since we include the case k=i here */
+			for (kk = 0; kk <= g->nnbs[i_min]; kk++) {	/* yes! we want '<=' */
+				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min);	/* since we include the case k=i here */
 				tmp = m3t_row_i[k] * m3t_row_j[k];
-				if (tmp) {				       /* this term is often zero, and computing D3 is expensive */
+				if (tmp) {		       /* this term is often zero, and computing D3 is expensive */
 					COMPUTE_D3(d3, k);
 					m3_value += tmp * d3;
 				}
@@ -362,10 +362,9 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 		Free(m3t_row_i);
 		value += d_i[0] * d_j[0] * m3_value;
 	}
-	
 #undef D3
 	Free(row_i);
-	
+
 	return value;
 }
 int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)

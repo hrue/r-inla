@@ -77,9 +77,9 @@ typedef struct {
 	double *skew;					       /* x */
 	double *kurt;					       /* y */
 	double *level;					       /* various z's */
-	double *length;	
-	double *point;	
-	double *logjac;	
+	double *length;
+	double *point;
+	double *logjac;
 } re_sas_prior_tp;
 
 
