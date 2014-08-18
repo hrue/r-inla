@@ -1,3 +1,4 @@
+
 /* interpol.c
  * 
  * Copyright (C) 2011-2014 Havard Rue
@@ -89,12 +90,12 @@ double inla_spline_eval(double x, GMRFLib_spline_tp * s)
 
 	int extrapolate = 1;
 	double val;
-	
+
 	if (x < s->xmin || x > s->xmax) {
-		if (extrapolate){
+		if (extrapolate) {
 			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
 			double deriv;
-			if (x > s->xmax){
+			if (x > s->xmax) {
 				deriv = inla_spline_eval_deriv(s->xmax, s);
 				val = inla_spline_eval(s->xmax, s) + deriv * (x - s->xmax);
 			} else if (x < s->xmin) {

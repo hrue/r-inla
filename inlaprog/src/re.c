@@ -178,7 +178,7 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		/*
 		 * we have already computed these values
 		 */
-		if (debug){
+		if (debug) {
 			printf("Have already %.12f %.12f --> %.12f %.12f\n", pin[id][0], pin[id][1], pout[id][0], pout[id][1]);
 		}
 		memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
@@ -858,7 +858,7 @@ int re_join_contourLines(re_contour_tp * c)
 		}
 	}
 
-	int imin = 0, jmin = 0, imindir=0, jmindir=0;
+	int imin = 0, jmin = 0, imindir = 0, jmindir = 0;
 	double dmin = DBL_MAX;
 
 	for (i = 0; i < c->nc; i++) {
@@ -1011,7 +1011,6 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 		P(kurt);
 		abort();
 	}
-
 #undef WRAPIT
 #undef INBETWEEN
 	return DMAX(0.0, DMIN(len, c->length[ic]));
@@ -1022,17 +1021,17 @@ double re_sas_table_log_integral(double *param)
 	int i, j;
 	double skew, kurt, sum = 0.0, val, *pri = NULL;
 
-	for(i=1; i<sas_prior_table->nx-1; i++){
-		for(j=1; j<sas_prior_table->ny-1; j++){
+	for (i = 1; i < sas_prior_table->nx - 1; i++) {
+		for (j = 1; j < sas_prior_table->ny - 1; j++) {
 			skew = sas_prior_table->skew[i];
 			kurt = sas_prior_table->kurt[i];
 			pri = re_sas_evaluate_log_prior(skew, kurt, param);
 			val = pri[0];
 			Free(pri);
-			if (!ISNAN(val)){
-				sum += exp(val) * 
-					((sas_prior_table->skew[i+1] - sas_prior_table->skew[i-1])/2.0) *
-					((sas_prior_table->kurt[j+1] - sas_prior_table->kurt[j-1])/2.0);
+			if (!ISNAN(val)) {
+				sum += exp(val) *
+				    ((sas_prior_table->skew[i + 1] - sas_prior_table->skew[i - 1]) / 2.0) *
+				    ((sas_prior_table->kurt[j + 1] - sas_prior_table->kurt[j - 1]) / 2.0);
 			}
 		}
 	}
@@ -1047,7 +1046,7 @@ int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 	 */
 
 	int ix, iy;
-	
+
 	ix = re_find_in_table_general(skew, sas_prior_table->skew, sas_prior_table->nx);
 	iy = re_find_in_table_general(kurt, sas_prior_table->kurt, sas_prior_table->ny);
 
@@ -1064,14 +1063,13 @@ int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 	x = skew;
 	y = kurt;
 
-	if (!(x >= x1 && x <= x2) || !(y >= y1 && y <= y2)){
+	if (!(x >= x1 && x <= x2) || !(y >= y1 && y <= y2)) {
 		output[0] = NAN;
 		output[1] = NAN;
 		output[2] = NAN;
 
 		return GMRFLib_SUCCESS;
 	}
-	
 #define INTERPOLATE(idx, what) if (1) {					\
 		fQ11 = TABLE_GENERIC(ix, iy, what);			\
 		fQ21 = TABLE_GENERIC(ix + 1, iy, what);			\
@@ -1089,7 +1087,7 @@ int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 	} else {
 		output[3] = NAN;
 	}
-	
+
 	output[0] = DMAX(0.0, output[0]);
 	output[1] = DMAX(0.0, output[1]);
 	output[2] = DMAX(0.0, DMIN(output[1], output[2]));
@@ -1139,19 +1137,19 @@ int re_sas_table_add_logjac(int debug)
 
 	assert(sas_prior_table);
 	logjac = Calloc(sas_prior_table->nz, double);
-	for(i=0; i<sas_prior_table->nz; i++){
+	for (i = 0; i < sas_prior_table->nz; i++) {
 		logjac[i] = NAN;
 	}
 
 #pragma omp parallel for private(i, j)
-	for(i=off; i<sas_prior_table->nx-off; i++) {
-		if (debug){
+	for (i = off; i < sas_prior_table->nx - off; i++) {
+		if (debug) {
 			printf(".");
 			fflush(stdout);
 		}
-		for(j = off; j<sas_prior_table->ny-off; j++) {
+		for (j = off; j < sas_prior_table->ny - off; j++) {
 			double output[4], ddefault = 0.01, target_level = 0.01, Jacobian, lev[3], poi[3], len[3],
-				dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt, skew, kurt;
+			    dkurt, dskew, dlevel_dskew, dpoint_dskew, dlevel_dkurt, dpoint_dkurt, skew, kurt;
 			int iter, iter_max = 100, adaptive = 1;
 
 			skew = sas_prior_table->skew[i];
@@ -1162,7 +1160,7 @@ int re_sas_table_add_logjac(int debug)
 			len[0] = output[1];
 			poi[0] = output[2];
 
-			if (!ISNAN(lev[0]) && !ISNAN(len[0]) && !ISNAN(poi[0])){
+			if (!ISNAN(lev[0]) && !ISNAN(len[0]) && !ISNAN(poi[0])) {
 				if (skew <= 0.0) {
 					dskew = -ddefault;
 					dkurt = 2 * ddefault;
@@ -1171,35 +1169,33 @@ int re_sas_table_add_logjac(int debug)
 					dkurt = 2 * ddefault;
 				}
 
-				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX &&
-				    kurt + dkurt > KURT_MIN && kurt + dkurt < KURT_MAX) {
+				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX && kurt + dkurt > KURT_MIN && kurt + dkurt < KURT_MAX) {
 
 					do {
 						re_find_in_sas_prior_table(output, skew + dskew, kurt);
-						if (ISNAN(output[0])){
+						if (ISNAN(output[0])) {
 							dskew *= 0.9;
 						}
-					} while(ISNAN(output[0]));
+					} while (ISNAN(output[0]));
 
 					if (adaptive) {
-						for(iter = 0; iter < iter_max; iter++) {
-							double f = (iter < iter_max / 2 ? 0.9 :
-								    (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
+						for (iter = 0; iter < iter_max; iter++) {
+							double f = (iter < iter_max / 2 ? 0.9 : (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew + dskew, kurt);
-							if (ISNAN(output[0])){
+							if (ISNAN(output[0])) {
 								dskew /= f;
 								re_find_in_sas_prior_table(output, skew + dskew, kurt);
 								break;
 							}
 
-							if (ABS(output[0] - lev[0]) > target_level){
+							if (ABS(output[0] - lev[0]) > target_level) {
 								dskew *= f;
 							} else {
 								dskew /= f;
 							}
 						}
 					}
-					//P(ABS(output[0]-lev[0])/target_level);
+					// P(ABS(output[0]-lev[0])/target_level);
 
 					lev[1] = output[0];
 					len[1] = output[1];
@@ -1207,65 +1203,65 @@ int re_sas_table_add_logjac(int debug)
 
 					do {
 						re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-						if (ISNAN(output[0])){
+						if (ISNAN(output[0])) {
 							dkurt *= 0.9;
 						}
-					} while(ISNAN(output[0]));
+					} while (ISNAN(output[0]));
 
 					if (adaptive) {
-						for(iter = 0; iter < iter_max; iter++) {
-							double f = (iter < iter_max / 2 ? 0.9 :
-								    (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
+						for (iter = 0; iter < iter_max; iter++) {
+							double f = (iter < iter_max / 2 ? 0.9 : (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew, kurt + dkurt);
-							if (ISNAN(output[0])){
+							if (ISNAN(output[0])) {
 								dkurt /= f;
 								re_find_in_sas_prior_table(output, skew, kurt + dkurt);
 								break;
 							}
-							if (ABS(output[0] - lev[0]) > target_level){
+							if (ABS(output[0] - lev[0]) > target_level) {
 								dkurt *= f;
 							} else {
 								dkurt /= f;
 							}
 						}
 					}
-					//P(ABS(output[0]-lev[0])/target_level);
-					
+					// P(ABS(output[0]-lev[0])/target_level);
+
 					lev[2] = output[0];
 					len[2] = output[1];
 					poi[2] = output[2];
 
 					dlevel_dskew = (lev[1] - lev[0]) / dskew;
-					dpoint_dskew = (poi[1]/len[1] - poi[0]/len[0]) / dskew;
+					dpoint_dskew = (poi[1] / len[1] - poi[0] / len[0]) / dskew;
 					dlevel_dkurt = (lev[2] - lev[0]) / dkurt;
-					dpoint_dkurt = (poi[2]/len[2] - poi[0]/len[0]) / dkurt;
+					dpoint_dkurt = (poi[2] / len[2] - poi[0] / len[0]) / dkurt;
 
 					Jacobian = ABS(dlevel_dskew * dpoint_dkurt - dpoint_dskew * dlevel_dkurt);
 					logjac[i + j * sas_prior_table->nx] = log(Jacobian);
 
-					if (0 && ABS(skew) < 0.1){
+					if (0 && ABS(skew) < 0.1) {
 						printf("skew %g kurt %g\n", skew, kurt);
 						printf("\t       lev %g len %g point %g\n", lev[0], len[0], poi[0]);
 						printf("\tskew:  lev %g len %g point %g\n", lev[1], len[1], poi[1]);
 						printf("\tkurt:  lev %g len %g point %g\n", lev[2], len[2], poi[2]);
 						printf("\tdskew: lev %g point %g\n", dlevel_dskew, dpoint_dskew);
 						printf("\tdkurt: lev %g point %g\n", dlevel_dkurt, dpoint_dkurt);
-						printf("\tlog(a x b) = log(Jac) %g %g = %g\n", dlevel_dskew * dpoint_dkurt, dpoint_dskew * dlevel_dkurt, log(Jacobian));
+						printf("\tlog(a x b) = log(Jac) %g %g = %g\n", dlevel_dskew * dpoint_dkurt, dpoint_dskew * dlevel_dkurt,
+						       log(Jacobian));
 					}
 				}
 			}
 		}
 	}
 
-	if (debug){
+	if (debug) {
 		printf("\n");
 		fflush(stdout);
 	}
 
 	sas_prior_table->logjac = logjac;
-	
+
 	FILE *fp;
-	if (debug){
+	if (debug) {
 		fprintf(stderr, "Add logjac tot the prior-table %s\n", SAS_PRIOR_TABLE);
 	}
 	fp = fopen(SAS_PRIOR_TABLE, "wb");
@@ -1279,14 +1275,14 @@ int re_sas_table_add_logjac(int debug)
 	fwrite(sas_prior_table->point, sizeof(double), (size_t) sas_prior_table->nz, fp);
 	fwrite(sas_prior_table->logjac, sizeof(double), (size_t) sas_prior_table->nz, fp);
 	fclose(fp);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
 
 int re_sas_table_init(double *param)
 {
-	/* 
+	/*
 	 * only read it
 	 */
 	re_sas_prior_table_core(1, 0, 1, param);
@@ -1298,7 +1294,7 @@ int re_sas_table_init(double *param)
 
 int re_sas_table_check(double *param)
 {
-	/* 
+	/*
 	 * this will create the table if its not there, and add the logjac if its not there already
 	 */
 	re_sas_prior_table_core(1, 1, 1, param);
@@ -1312,18 +1308,18 @@ int re_sas_table_check(double *param)
 	double *ldddd = Calloc(ISQR(n), double);
 	double *lddddd = Calloc(ISQR(n), double);
 	double s, k;
-	
+
 	for (s = -1.5, i = 0; i < n; s += 2 * 1.5 / (n - 1.0), i++) {
 		skew[i] = s;
-		if (i == 0 || i == n-1)
+		if (i == 0 || i == n - 1)
 			printf("skew[%d]  = %g\n", i, skew[i]);
 	}
 	for (k = 2.1, i = 0; i < n; k += (7 - 2.0) / (n - 1), i++) {
 		kurt[i] = k;
-		if (i == 0 || i == n-1)
+		if (i == 0 || i == n - 1)
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 	}
-	
+
 #pragma omp parallel for private(j, i, ii)
 	for (j = 0; j < n; j++) {
 		for (i = 0; i < n; i++) {
@@ -1346,7 +1342,7 @@ int re_sas_table_check(double *param)
 			}
 		}
 	}
-	
+
 	FILE *fp = fopen("testing1.dat", "w");
 	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 	for (i = 0; i < n; i++)
@@ -1356,10 +1352,10 @@ int re_sas_table_check(double *param)
 	for (j = ii = 0; j < n; j++)
 		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", ld[ii++]);
-	
+
 	fclose(fp);
 	printf("wrote file 1\n");
-	
+
 	fp = fopen("testing2.dat", "w");
 	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 	for (i = 0; i < n; i++)
@@ -1369,10 +1365,10 @@ int re_sas_table_check(double *param)
 	for (j = ii = 0; j < n; j++)
 		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", ldd[ii++]);
-	
+
 	fclose(fp);
 	printf("wrote file 2\n");
-	
+
 	fp = fopen("testing3.dat", "w");
 	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 	for (i = 0; i < n; i++)
@@ -1382,10 +1378,10 @@ int re_sas_table_check(double *param)
 	for (j = ii = 0; j < n; j++)
 		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", lddd[ii++]);
-	
+
 	fclose(fp);
 	printf("wrote file 3\n");
-	
+
 	fp = fopen("testing4.dat", "w");
 	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 	for (i = 0; i < n; i++)
@@ -1395,10 +1391,10 @@ int re_sas_table_check(double *param)
 	for (j = ii = 0; j < n; j++)
 		for (i = 0; i < n; i++)
 			fprintf(fp, "%g\n", ldddd[ii++]);
-	
+
 	fclose(fp);
 	printf("wrote file 4\n");
-	
+
 	fp = fopen("testing5.dat", "w");
 	fprintf(fp, "%d\n%d\n%d\n", n, n, ISQR(n));
 	for (i = 0; i < n; i++)
@@ -1410,7 +1406,7 @@ int re_sas_table_check(double *param)
 			fprintf(fp, "%g\n", lddddd[ii++]);
 	fclose(fp);
 	printf("wrote file 5\n");
-	
+
 	return GMRFLib_SUCCESS;
 }
 int re_sas_table_create(double *param)
@@ -1463,7 +1459,7 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 		ret = fread(s->point, sizeof(double), (size_t) s->nz, fp);
 		assert(ret == (size_t) s->nz);
 		ret = fread(s->logjac, sizeof(double), (size_t) s->nz, fp);
-		if (ret == (size_t)0){
+		if (ret == (size_t) 0) {
 			if (debug) {
 				fprintf(stderr, "\tlogjac is not available.\n");
 			}
@@ -1485,17 +1481,16 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 		}
 
 		sas_prior_table_log_integral = re_sas_table_log_integral(param);
-		if (debug){
+		if (debug) {
 			fprintf(stderr, "sas_prior_table: log(integral) = %g for param = %g\n", sas_prior_table_log_integral, param[0]);
 		}
 
 		return GMRFLib_SUCCESS;
 	}
 
-	if (read_only){
+	if (read_only) {
 		return !GMRFLib_SUCCESS;
 	}
-
 //#pragma omp critical
 	{
 		if (!sas_prior_table) {
@@ -1597,7 +1592,7 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 			return re_sas_prior_table_core(read_only, add_logjac, debug, param);
 		}
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1716,10 +1711,10 @@ double re_sas_log_prior(double *val, double *param)
 	double *p, rval;
 	static int first = 1;
 
-	if (first){
+	if (first) {
 #pragma omp critical
 		{
-			if (first){
+			if (first) {
 				fprintf(stderr, "INIT SAS PRIOR WITH LAMBDA = %g\n", param[0]);
 				re_init(param);
 				first = 0;
@@ -1744,8 +1739,7 @@ double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 	point = output[2];
 	logjac = output[3];
 
-	if (ISNAN(level) || ISNAN(length) || ISNAN(point) || !re_valid_skew_kurt(NULL, skew, kurt))
-	{
+	if (ISNAN(level) || ISNAN(length) || ISNAN(point) || !re_valid_skew_kurt(NULL, skew, kurt)) {
 		pri = Calloc(5, double);
 		pri[0] = NAN;
 		pri[1] = NAN;
@@ -1756,10 +1750,10 @@ double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 		return pri;
 	}
 
-	
+
 	ldens_uniform = log(1 / length);
 	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */
-	
+
 	pri = Calloc(5, double);
 	pri[0] = ldens_uniform + ldens_dist + logjac - sas_prior_table_log_integral;
 	pri[1] = level;

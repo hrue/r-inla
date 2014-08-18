@@ -43,9 +43,8 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-GMRFLib_spline_tp * inla_spline_create(double *x, double *y, int n);
-GMRFLib_spline_tp *inla_spline_create_from_matrix(GMRFLib_matrix_tp *M);
+    GMRFLib_spline_tp * inla_spline_create(double *x, double *y, int n);
+GMRFLib_spline_tp *inla_spline_create_from_matrix(GMRFLib_matrix_tp * M);
 double inla_spline_eval(double x, GMRFLib_spline_tp * s);
 double inla_spline_eval_deriv(double x, GMRFLib_spline_tp * s);
 double inla_spline_eval_deriv2(double x, GMRFLib_spline_tp * s);

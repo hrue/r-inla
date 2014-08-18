@@ -41,9 +41,7 @@
 #endif
 
 __BEGIN_DECLS
-
 // 
-
 double inla_eval(char *expression, double *x);
 double inla_eval_expression(char *expression, double *x);
 double inla_eval_table(char *expression, double *x);
