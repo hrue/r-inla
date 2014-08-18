@@ -4,7 +4,7 @@ source(system.file("demodata/Leuk-map.R", package="INLA"))
 g = system.file("demodata/Leuk.graph", package="INLA")
 
 formula = inla.surv(Leuk$time, Leuk$cens) ~ sex + age +
-    f(inla.group(wbc), model="rw1")+
+    f(inla.group(wbc), model="rw2")+
     f(inla.group(tpi), model="rw2")+
     f(district,model="besag",graph = g)
 
