@@ -1,3 +1,4 @@
+
 /* eval.c
  * 
  * Copyright (C) 2011  Havard Rue
@@ -225,10 +226,10 @@ double inla_eval_table(char *expression, double *xval)
 	GMRFLib_spline_tp *s;
 	GMRFLib_matrix_tp *M = NULL;
 
-	while(*expression == ' ' || *expression == '\t') {
+	while (*expression == ' ' || *expression == '\t') {
 		expression++;
 	}
-	if (debug){
+	if (debug) {
 		fprintf(stderr, "OPEN FILE[%s]\n", expression);
 	}
 	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
@@ -243,20 +244,19 @@ double inla_eval_table(char *expression, double *xval)
 #pragma omp critical
 		{
 			double xx;
-			for(xx = -20;  xx < 20;  xx += .1)
-				printf("TABLE %g %g\n", xx,  inla_spline_eval(xx, s));
+			for (xx = -20; xx < 20; xx += .1)
+				printf("TABLE %g %g\n", xx, inla_spline_eval(xx, s));
 			exit(1);
 		}
 	}
 
 	if (ISNAN(value)) {
 		char *msg;
-		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.",
-				*xval, s->xmin, s->xmax);
+		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
 		inla_error_general(msg);
 		exit(1);
 	}
-		
+
 	GMRFLib_matrix_free(M);
 	inla_spline_free(s);
 

@@ -43,7 +43,6 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 double bessel_Knu(double alpha, double x);
 void bessel_K(double *x, double *alpha, long *nb, long *ize, double *bk, long *ncalc);
 double bessel_ftrunc(double x);

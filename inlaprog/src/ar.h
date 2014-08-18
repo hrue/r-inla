@@ -43,8 +43,5 @@ __BEGIN_DECLS
 /* 
  * The defs has been moved to file inla.h
  */
-
-
-
-__END_DECLS
+    __END_DECLS
 #endif

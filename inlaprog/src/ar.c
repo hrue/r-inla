@@ -274,7 +274,7 @@ double Qfunc_ar(int i, int j, void *arg)
 	}
 
 	if (eq) {
-                /*
+		/*
 		 * use what we already have
 		 */
 		int node, nnode;

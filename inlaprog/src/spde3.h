@@ -52,12 +52,10 @@ __BEGIN_DECLS
 	SPDE3_TRANSFORM_IDENTITY			       /* x */
 } spde3_transform_tp;
 
-typedef struct
-{
+typedef struct {
 	double *theta;
 	double *d3;
-}
-	inla_spde3_d3store_tp;
+} inla_spde3_d3store_tp;
 
 typedef struct {
 	int n;

@@ -89,7 +89,7 @@ typedef enum {
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
 	INLA_MODE_SASPRIOR,
-	INLA_MODE_PCPRIOR_BYM_EXAMPLE, 
+	INLA_MODE_PCPRIOR_BYM_EXAMPLE,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -403,7 +403,7 @@ typedef enum {
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
-	L_SIMPLEX, 
+	L_SIMPLEX,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -438,12 +438,12 @@ typedef enum {
 	F_R_GENERIC,
 	F_SLM,
 	F_CLINEAR,					       /* constrained fixed effect */
-	F_SIGM, 
-	F_REVSIGM, 
-	F_RW2DIID, 
-	F_SPDE3, 
+	F_SIGM,
+	F_REVSIGM,
+	F_RW2DIID,
+	F_SPDE3,
 	P_LOGGAMMA = 2000,				       /* priors */
-	P_GAUSSIAN,					       
+	P_GAUSSIAN,
 	P_MVGAUSSIAN,
 	P_MVNORM,
 	P_MINUSLOGSQRTRUNCGAUSSIAN,
@@ -1455,7 +1455,7 @@ unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
 
-int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp *def);
+int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 double Qfunc_rw2diid(int i, int j, void *arg);
 
 /* 
