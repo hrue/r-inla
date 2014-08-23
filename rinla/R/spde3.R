@@ -15,7 +15,7 @@
 
 inla.spde3.generic <-
     function(M0, M1, M2, M3, B0, B1, B2, B3, theta.mu, theta.Q,
-             transform = c("logit","log","identity"),
+             transform = c("identity","log","logit","shiftedlog","oldlogit"),
              theta.initial = theta.mu,
              fixed = rep(FALSE, length(theta.mu)),
              theta.fixed = theta.initial[fixed],
@@ -821,10 +821,14 @@ inla.spde3.theta2phi2 = function(spde, theta)
     }
     if (spde$param.inla$transform == "identity") {
         return(phi)
-    } else if (spde$param.inla$transform == "logit") {
-        return(cos(pi/(1+exp(-phi))))
     } else if (spde$param.inla$transform == "log") {
+        return(exp(phi))
+    } else if (spde$param.inla$transform == "logit") {
+        return((1-exp(phi))/(1+exp(phi))
+    } else if (spde$param.inla$transform == "shiftedlog") {
         return(2*exp(phi)-1)
+    } else if (spde$param.inla$transform == "oldlogit") {
+        return(cos(pi/(1+exp(-phi))))
     } else {
         warning(paste("Unknown link function '",
                       spde$param.inla$transform,
@@ -860,7 +864,7 @@ inla.spde3.precision =
     D0 <- Diagonal(spde$n.spde, phi0)
     D1 <- Diagonal(spde$n.spde, phi1)
     D12 <- Diagonal(spde$n.spde, phi1*phi2)
-    D3 <- Diagonal(spde$n.spde, phi3)
+    D3 <- Diagonal(nrow(spde$param.inla$M3), phi3)
     Q <- (D0 %*% (D1 %*% spde$param.inla$M0 %*% D1 +
                   D12 %*% spde$param.inla$M1 +
                   t(spde$param.inla$M1) %*% D12 +
