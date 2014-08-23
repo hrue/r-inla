@@ -84,20 +84,17 @@ init :
 	mkdir -p $(INCPREFIX)
 
 download : init
-	( test -d inla && $(MAKE) download-update ) || \
+	@( test -d inla && $(MAKE) download-update ) || \
 	( rm -rf inla && hg clone https://inla.googlecode.com/hg inla )
-	ln -sTf $(PREFIX) inla/local
-
-sync-taucs :
-	rsync -avz --delete inla/extlibs/taucs-2.2--my-fix/ taucs-2.2--my-fix/
+	@ln -sTf $(PREFIX) inla/local
 
 download-update : init
-	cd inla ; hg pull ; hg update
-	ln -sTf $(PREFIX) inla/local
+	@cd inla ; hg pull ; hg update
+	@ln -sTf $(PREFIX) inla/local
 
 download-jss2014 : download-update
-	cd inla ; hg update -r jss2014
-	ln -sTf $(PREFIX) inla/local
+	@cd inla ; hg update -r jss2014
+	@ln -sTf $(PREFIX) inla/local
 
 bin :
 	$(MAKE) taucs
@@ -115,30 +112,34 @@ fmesher :
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) FLAGS="$(FLAGS)" $(ARGS) EXTLIBS="-lX11 -lgsl -lgslcblas -lxcb -lpthread -lXau -lXdmcp"
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) install
-	rsync -a $(PREFIX)/bin/fmesher $(BINPREFIX)/fmesher$(BITS)
-	rm $(PREFIX)/bin/fmesher
+	@rsync -a $(PREFIX)/bin/fmesher $(BINPREFIX)/fmesher$(BITS)
+	@rm $(PREFIX)/bin/fmesher
 
 inla :
 	ln -sTf /usr/include $(INCPREFIX)/muParser
 	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
 	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS)
 	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) install
-	rsync -a $(PREFIX)/bin/inla $(BINPREFIX)/inla$(BITS)
-	rm $(PREFIX)/bin/inla $(PREFIX)/bin/inla-snapshot
+	@rsync -a $(PREFIX)/bin/inla $(BINPREFIX)/inla$(BITS)
+	@rm $(PREFIX)/bin/inla $(PREFIX)/bin/inla-snapshot
 
 GMRFLib :
 	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
 	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS)
 	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) install
 
+sync-taucs :
+	mkdir -p $(MAINDIR)/tmp
+	@rsync -avz --delete inla/extlibs/taucs-2.2--my-fix/ tmp/taucs-2.2--my-fix/
+
 taucs : sync-taucs
-	$(MAKE) -C taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS) -k clean
-	$(MAKE) -C taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS)
-	cp -v -f taucs-2.2--my-fix/lib/linux/libtaucs.a $(PREFIX)/lib
+	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS) -k clean
+	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS)
+	@cp -v -f $(MAINDIR)/tmp/taucs-2.2--my-fix/lib/linux/libtaucs.a $(PREFIX)/lib
 
 package :
-	rm -f inla/INLA_*.tgz
+	@rm -f inla/INLA_*.tgz
 	cd inla ; utils/build-package-bin $(PREFIX)/bin $(MAINDIR)/tmp
-	mv inla/INLA_*.tgz .
+	@mv inla/INLA_*.tgz .
 
-.PHONY: all inla GMRFLib taucs download download-update update fmesher bin init download-jss2014 sync-taucs
+.PHONY: all inla GMRFLib taucs download download-update update fmesher bin init download-jss2014 sync-taucs package
