@@ -1,11 +1,13 @@
 ## 'spde3' model functions
-## Export: inla.spde.precision.inla.spde3
-## Export: inla.spde.result!inla.spde3 inla.spde3.generic
-## Export: inla.spde3.matern param2.matern.orig
-## Export: inla.spde3.matern.sd.basis inla.spde3.models
-## Export: inla.spde3.precision inla.spde3.result
-## Export: inla.spde3.theta2phi0 inla.spde3.theta2phi1
-## Export: inla.spde3.theta2phi2 inla.spde3.theta2phi3
+## Not to be exported until interface ready to be used:
+## Internal: inla.spde.precision.inla.spde3
+## Internal: inla.spde.result!inla.spde3 inla.spde3.generic
+## Internal: inla.spde3.matern param2.matern.orig
+## Internal: inla.spde3.matern.sd.basis inla.spde3.models
+## Internal: inla.spde3.precision inla.spde3.result
+## Internal: inla.spde3.theta2phi0 inla.spde3.theta2phi1
+## Internal: inla.spde3.theta2phi2 inla.spde3.theta2phi3
+##
 ## Internal: inla.internal.spde3.matern.B.tau
 ## Internal: inla.internal.test.spde3.sd.basis
 
