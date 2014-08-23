@@ -85,7 +85,7 @@ init :
 
 download : init
 	( test -d inla && $(MAKE) download-update ) || \
-	hg clone https://inla.googlecode.com/hg inla
+	( rm -rf inla && hg clone https://inla.googlecode.com/hg inla )
 	ln -sTf $(PREFIX) inla/local
 
 sync-taucs :
