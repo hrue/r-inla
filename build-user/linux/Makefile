@@ -73,15 +73,15 @@ all :;
 
 ## Package list updated 2014-08-23
 LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-metis-dev \
-	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas3-base \
+	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas-dev \
 	libblas-dev libmuparser-dev
 lib-install :
 	$(APT) install $(LIBPKG)
 
 init :
-	mkdir -p $(LIBPREFIX)
-	mkdir -p $(BINPREFIX)
-	mkdir -p $(INCPREFIX)
+	@mkdir -p $(LIBPREFIX)
+	@mkdir -p $(BINPREFIX)
+	@mkdir -p $(INCPREFIX)
 
 download : init
 	@( test -d inla && $(MAKE) download-update ) || \
@@ -92,7 +92,8 @@ download-update : init
 	@cd inla ; hg pull ; hg update
 	@ln -sTf $(PREFIX) inla/local
 
-download-jss2014 : download-update
+download-jss2014 :
+	@(MAKE) download
 	@cd inla ; hg update -r jss2014
 	@ln -sTf $(PREFIX) inla/local
 
