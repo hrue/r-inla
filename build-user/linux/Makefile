@@ -93,7 +93,7 @@ download-update : init
 	@ln -sTf $(PREFIX) inla/local
 
 download-jss2014 :
-	@(MAKE) download
+	@$(MAKE) download
 	@cd inla ; hg update -r jss2014
 	@ln -sTf $(PREFIX) inla/local
 
