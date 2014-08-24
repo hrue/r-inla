@@ -1,44 +1,49 @@
+## Makefile for downloading the source code and building
+## a binary package of R-INLA
+##
+## Run 'make' with no arguments for usage instructions
+##
 ## This Makefile has been tested under Debian GNU/Linux, but should
 ## also work under Ubuntu.
 ## Requirements:
 ##   mercurial
 ##   A full gcc/g++/gfortran installation
 ##   lib*-dev packages, see target lib-install below
-## Run 'make' with no arguments for usage instructions
 ##
 ## If you already have a cloned inla code repository in a subdirectory 'inla',
 ## you can skip all 'download-' steps, and instead run
 ##   make -f inla/build-user/linux/Makefile
+##
+## Finn Lindgren, 2014-08-24, finn.lindgren@gmail.com
 
-## This Makefile is only supported for 'linux'
+SHELL = /bin/bash
+
+## This Makefile is only supported for platform 'linux':
 PLATFORM = linux
-## Must match the machine architecture (32 or 64)
+## Must match the machine architecture (32 or 64):
 BITS = 64
 ## Compiler flags
 FLAGS = -m64 -std=gnu99 -Wall -O2 -mtune=generic -mfpmath=sse \
 	-msse2 -funroll-loops -ftracer -fopenmp -pipe
 
-## You probably don't need o edit anything below this line
+## You probably don't need to edit anything below this line
 
+## For Debian or Ubuntu package installation in lib-install:
+APT=aptitude
+
+## Path configuration:
 MAINDIR=$(PWD)
 PREFIX = $(MAINDIR)/local
 BINPREFIX = $(PREFIX)/bin/$(PLATFORM)
 LIBPREFIX = $(PREFIX)/lib
 INCPREFIX = $(PREFIX)/include
 
-SHELL = /bin/bash
+## Compiler options:
 CC=gcc
 CXX=g++
 FC=gfortran
 LD=$(CXX)
 ARGS = CC="$(CC)" CXX="$(CXX)" FC="$(FC)" LD="$(LD)"
-
-## For Debian or Ubuntu package installation in lib-install:
-APT=aptitude
-
-
-##FLAGS = -std=gnu99 -march=native -mfpmath=sse -msse2 -O3 -ftracer -pipe
-##FLAGS = -std=gnu99 -m32 -mtune=generic -mfpmath=sse -msse2 -O3 -ftracer -pipe
 
 all :;
 	@(echo "";\
