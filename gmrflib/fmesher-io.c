@@ -528,6 +528,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 			g->nnbs[i]++;
 		}
 	}
+
 	GMRFLib_prepare_graph(g);
 	M->graph = g;
 
@@ -655,6 +656,8 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 		if (M->A) {
 			for (j = 0; j < M->ncol; j++, idx += M->nrow) {
+				//printf("nrow %d ncol %d j %d idx %d\n", M->nrow, M->ncol, j, idx);
+				//if (j == 12 && idx == 26) abort();
 				values[j] = M->A[idx];
 			}
 		} else {

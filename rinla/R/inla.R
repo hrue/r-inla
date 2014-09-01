@@ -1842,7 +1842,10 @@
                     cat("@echo off\n",  file=bat.file, append=FALSE)
                     cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
                               inla.ifelse(silent == 2L, "2>NUL", "")), file=bat.file, append=TRUE)
-                    echoc = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE), silent=FALSE)
+                    ## this one fails on windows in run from within emacs
+                    ##echoc = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE), silent=FALSE)
+                    ## try this one which is reported to work
+                    echoc = try(system2(bat.file, wait=TRUE), silent=FALSE)
                     unlink(bat.file)
                 }
                 if (echoc != 0L) {
