@@ -53,12 +53,16 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	model = Calloc(1, inla_spde3_tp);
 
-	if (!strcasecmp(transform, "logit")) {
-		model->transform = SPDE3_TRANSFORM_LOGIT;
+	if (!strcasecmp(transform, "identity")) {
+		model->transform = SPDE3_TRANSFORM_IDENTITY;
 	} else if (!strcasecmp(transform, "log")) {
 		model->transform = SPDE3_TRANSFORM_LOG;
-	} else if (!strcasecmp(transform, "identity")) {
-		model->transform = SPDE3_TRANSFORM_IDENTITY;
+	} else if (!strcasecmp(transform, "shiftedlog")) {
+		model->transform = SPDE3_TRANSFORM_SHIFTEDLOG;
+	} else if (!strcasecmp(transform, "logit")) {
+		model->transform = SPDE3_TRANSFORM_LOGIT;
+	} else if (!strcasecmp(transform, "oldlogit")) {
+		model->transform = SPDE3_TRANSFORM_OLDLOGIT;
 	} else {
 		assert(0 == 1);
 	}
@@ -75,38 +79,39 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	for (i = 1; i < 4; i++) {
 		/*
-		 * all need the same dimensions n x (p+1) 
+		 * all need the same dimensions n x (p+1) , except for B[3]
 		 */
-		assert(model->B[0]->nrow == model->B[i]->nrow);
+		if (i != 3) {
+			assert(model->B[0]->nrow == model->B[i]->nrow);
+		}
 		assert(model->B[0]->ncol == model->B[i]->ncol);
 
 		/*
-		 * all are square with the same dimension n x n 
+		 * all are square with the same dimension n x n, except M[3]
 		 */
-		assert(model->M[i]->nrow == model->M[i]->ncol);
-		assert(model->M[0]->nrow == model->M[i]->nrow);
+		if (i != 3) {
+			assert(model->M[i]->nrow == model->M[i]->ncol);
+		}
+		assert(model->M[0]->ncol == model->M[i]->ncol);
 
 		/*
-		 * and the number of rows must be the same 
+		 * and the number of rows of B must be the same as the number of cols of M
 		 */
 		assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
 
 	model->n = model->M[0]->nrow;
+	model->n3 = model->M[3]->nrow;
 	model->ntheta = model->B[0]->ncol - 1;
 
-	if (debug) {
-		P(model->M[3]->elems);
-	}
-
 	/*
-	 * big savings if M[3] is a matrix with only zeros 
+	 * big savings possible if M[3] is a matrix with only zeros 
 	 */
 	if (model->M[3]->elems == 0) {
 		GMRFLib_matrix_free(model->M[3]);
 		model->M[3] = NULL;
 	}
-	// since this matrix is non-symmetric, its is convenient to have access to the graph for for the transpose as well.
+	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the graph gives the entries for for each row.
 	if (model->M[3]) {
 		model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
 	} else {
@@ -122,11 +127,12 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	if (debug) {
 		P(model->n);
+		P(model->n3);
 		P(model->ntheta);
 	}
 
 	/*
-	 * I need to build the graph. Need to add both M_ij and M_ji as M1 can be non-symmetric. 
+	 * I need to build the graph. Need to add both M_ij and M_ji as M3 can be non-symmetric. 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
@@ -159,7 +165,7 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 		GMRFLib_graph_tp *g = model->M3transpose->graph;
 		GMRFLib_graph_tp *gg = model->M[3]->graph;
 
-		for (i = 0; i < model->n; i++) {
+		for (i = 0; i < model->n3; i++) {
 			// case k = i. then we get M_ii*M_ij, so we need to add all M3-neighbours to i.
 			for (kk = 0; kk < gg->nnbs[i]; kk++) {
 				j = gg->nbs[i][kk];
@@ -208,7 +214,7 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 {
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
 	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
-	int k, kk, use_store = 1;
+	int k, kk, use_store = 1, debug = 0;
 
 	/*
 	 * to hold the i'th and j'th and k'th row of the B-matrices. use one storage only
@@ -259,14 +265,20 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 	 */
 	if (i == j) {
 		switch (model->transform) {
-		case SPDE3_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			break;
-		case SPDE3_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			break;
 		case SPDE3_TRANSFORM_IDENTITY:
 			d_i[2] = phi_i[2];
+			break;
+		case SPDE3_TRANSFORM_LOG:
+			d_i[2] = exp(phi_i[2]);
+			break;
+		case SPDE3_TRANSFORM_SHIFTEDLOG:
+			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
+			break;
+		case SPDE3_TRANSFORM_LOGIT:
+			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
+			break;
+		case SPDE3_TRANSFORM_OLDLOGIT:
+			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
 			break;
 		default:
 			assert(0 == 1);
@@ -274,17 +286,25 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 		d_j[2] = d_i[2];
 	} else {
 		switch (model->transform) {
-		case SPDE3_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
-			break;
-		case SPDE3_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
-			break;
 		case SPDE3_TRANSFORM_IDENTITY:
 			d_i[2] = phi_i[2];
 			d_j[2] = phi_j[2];
+			break;
+		case SPDE3_TRANSFORM_LOG:
+			d_i[2] = exp(phi_i[2]);
+			d_j[2] = exp(phi_j[2]);
+			break;
+		case SPDE3_TRANSFORM_SHIFTEDLOG:
+			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
+			d_j[2] = 2.0 * exp(phi_j[2]) - 1.0;
+			break;
+		case SPDE3_TRANSFORM_LOGIT:
+			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
+			d_j[2] = (1.0 - exp(phi_j[2])) / (1.0 + exp(phi_j[2]));
+			break;
+		case SPDE3_TRANSFORM_OLDLOGIT:
+			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
+			d_j[2] = cos(M_PI / (1.0 + exp(-phi_j[2])));
 			break;
 		default:
 			assert(0 == 1);
@@ -321,14 +341,16 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 				}
 			}
 			if (recompute) {
-				fprintf(stderr, "recompute id=%1d\n", id);
+				if (debug) {
+					fprintf(stderr, "recompute id=%1d\n", id);
+				}
 				for (k = 0; k < model->ntheta; k++) {
 					model->store[id]->theta[k] = model->theta[k][GMRFLib_thread_id][0];
 				}
 				if (!(model->store[id]->d3)) {
-					model->store[id]->d3 = Calloc(model->n, double);
+					model->store[id]->d3 = Calloc(model->n3, double);
 				}
-				for (k = 0; k < model->n; k++) {
+				for (k = 0; k < model->n3; k++) {
 					COMPUTE_D3(model->store[id]->d3[k], k);
 				}
 			}
@@ -342,20 +364,24 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 
 		GMRFLib_matrix_get_row(m3t_row_i, i, model->M3transpose);
 		GMRFLib_matrix_get_row(m3t_row_j, j, model->M3transpose);
-
 		i_min = (g->nnbs[i] <= g->nnbs[j] ? i : j);    /* loop over the one with fewest neigbours */
+
 		if (use_store) {
 			for (kk = 0; kk <= g->nnbs[i_min]; kk++) {	/* yes! we want '<=' */
 				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min);	/* since we include the case k=i here */
-				m3_value += m3t_row_i[k] * m3t_row_j[k] * model->store[id]->d3[k];
+				if (k < model->n3) {	       /* it might be that M3_ii is not there */
+					m3_value += m3t_row_i[k] * m3t_row_j[k] * model->store[id]->d3[k];
+				}
 			}
 		} else {
 			for (kk = 0; kk <= g->nnbs[i_min]; kk++) {	/* yes! we want '<=' */
 				k = (kk < g->nnbs[i_min] ? g->nbs[i_min][kk] : i_min);	/* since we include the case k=i here */
-				tmp = m3t_row_i[k] * m3t_row_j[k];
-				if (tmp) {		       /* this term is often zero, and computing D3 is expensive */
-					COMPUTE_D3(d3, k);
-					m3_value += tmp * d3;
+				if (k < model->n3) {	       /* it might be that M3_ii is not there */
+					tmp = m3t_row_i[k] * m3t_row_j[k];
+					if (tmp) {	       /* this term is often zero, and computing D3 is expensive */
+						COMPUTE_D3(d3, k);
+						m3_value += tmp * d3;
+					}
 				}
 			}
 		}

@@ -25248,12 +25248,16 @@ int testit(int argc, char **argv)
 		Q->A = Calloc(ISQR(n), double);
 
 
+		int ntimes=10, itim;
+
+		for(itim = 0; itim < ntimes; itim++){
 #pragma omp parallel for private(i, jj, j)
-		for (i = 0; i < n; i++) {
-			Q->A[i + i * n] = inla_spde3_Qfunction(i, i, (void *) smodel);
-			for (jj = 0; jj < smodel->graph->nnbs[i]; jj++) {
-				j = smodel->graph->nbs[i][jj];
-				Q->A[i + j * n] = Q->A[j + i * n] = inla_spde3_Qfunction(i, j, (void *) smodel);
+			for (i = 0; i < n; i++) {
+				Q->A[i + i * n] = inla_spde3_Qfunction(i, i, (void *) smodel);
+				for (jj = 0; jj < smodel->graph->nnbs[i]; jj++) {
+					j = smodel->graph->nbs[i][jj];
+					Q->A[i + j * n] = Q->A[j + i * n] = inla_spde3_Qfunction(i, j, (void *) smodel);
+				}
 			}
 		}
 		GMRFLib_write_fmesher_file(Q, "Q", 0, -1);
