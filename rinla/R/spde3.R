@@ -1,12 +1,11 @@
 ## 'spde3' model functions
-## Not to be exported until interface ready to be used:
-## Internal: inla.spde.precision.inla.spde3
-## Internal: inla.spde.result!inla.spde3 inla.spde3.generic
-## Internal: inla.spde3.matern param2.matern.orig
-## Internal: inla.spde3.matern.sd.basis inla.spde3.models
-## Internal: inla.spde3.precision inla.spde3.result
-## Internal: inla.spde3.theta2phi0 inla.spde3.theta2phi1
-## Internal: inla.spde3.theta2phi2 inla.spde3.theta2phi3
+## External: inla.spde.precision.inla.spde3
+## External: inla.spde.result!inla.spde3 inla.spde3.generic
+## External: inla.spde3.matern param2.matern.orig
+## External: inla.spde3.matern.sd.basis inla.spde3.models
+## External: inla.spde3.precision inla.spde3.result
+## External: inla.spde3.theta2phi0 inla.spde3.theta2phi1
+## External: inla.spde3.theta2phi2 inla.spde3.theta2phi3
 ##
 ## Internal: inla.internal.spde3.matern.B.tau
 ## Internal: inla.internal.test.spde3.sd.basis
@@ -24,6 +23,7 @@ inla.spde3.generic <-
              BLC = cbind(0.0, diag(nrow=length(theta.mu))),
              ...)
 {
+    warning("The spde3 interface is still experimental and may be changed without notice.")
     transform = match.arg(transform)
 
     if (!inla.is.matrix(M0)) stop("M0 must be of a matrix type.")
