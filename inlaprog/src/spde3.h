@@ -46,10 +46,12 @@ __BEGIN_DECLS
 /* 
    
  */
-    typedef enum {
-	SPDE3_TRANSFORM_LOGIT = 1,			       /* cos(pi/(1+exp(-x)) */
-	SPDE3_TRANSFORM_LOG,				       /* 2*exp(x)-1 */
-	SPDE3_TRANSFORM_IDENTITY			       /* x */
+typedef enum {
+	SPDE3_TRANSFORM_IDENTITY = 1,			       /* x */
+	SPDE3_TRANSFORM_LOG,				       /* exp(x) */
+	SPDE3_TRANSFORM_SHIFTEDLOG,			       /* 2*exp(x)-1 */
+	SPDE3_TRANSFORM_LOGIT,				       /* (1-exp(x))/(1+exp(x)) */
+	SPDE3_TRANSFORM_OLDLOGIT			       /* cos(pi/(1+exp(-x))) */
 } spde3_transform_tp;
 
 typedef struct {
@@ -59,6 +61,7 @@ typedef struct {
 
 typedef struct {
 	int n;
+	int n3;						       /* for B[3] and M[3] */
 	int ntheta;					       /* that is `p' in Finn's notes */
 	int debug;
 	int theta_first_idx;
