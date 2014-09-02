@@ -63,16 +63,24 @@ inla.mesh.segment <- function(loc=NULL,
             stop("'idx' must be a vector or a matrix")
         if (is.vector(idx))
             idx = as.matrix(idx, nrow=length(idx), ncol=1)
-        if (ncol(idx)==1) {
-            if (nrow(idx)<2)
-                warning("Segment specification must have at least 2 idxices.")
-            idx = matrix(c(idx[-nrow(idx)],idx[-1]), nrow(idx)-1, 2)
+        if (ncol(idx) == 1) {
+            if (nrow(idx) < 2) {
+                if (nrow(idx) == 1) {
+                    warning("Segment specification must have at least 2, or 0, indices.")
+                }
+                idx <- matrix(0L, 0, 2)
+            } else {
+                idx = matrix(c(idx[-nrow(idx)],idx[-1]), nrow(idx)-1, 2)
+            }
         }
         storage.mode(idx) <- "integer"
-        if (!is.null(loc) && (max(idx, na.rm=TRUE)>nrow(loc)))
+        if (!is.null(loc) &&
+            (nrow(idx) > 0) &&
+            (max(idx, na.rm=TRUE) > nrow(loc))) {
             warning("Segment indices (max=", max(idx, na.rm=TRUE),
                     ") exceed specified location list length (",
                     nrow(loc), ").")
+        }
     }
 
     if (!missing(grp) && !is.null(grp)) {
@@ -110,7 +118,7 @@ inla.mesh.segment <- function(loc=NULL,
         idx.new = rep(0L, nrow(loc))
         idx.new[as.vector(idx)] = 1L
         loc = loc[idx.new==1L,, drop=FALSE]
-        idx.new[idx.new==1L] = 1L:sum(idx.new)
+        idx.new[idx.new==1L] = seq_len(sum(idx.new))
         idx = (matrix(idx.new[as.vector(idx)],
                       nrow=nrow(idx),
                       ncol=ncol(idx)))
