@@ -31,6 +31,9 @@ endif
 ifeq ($(USERNAME),finnkrl)
   PREFIX = $(HOME)/local
 endif
+ifeq ($(USERNAME),fl353)
+  PREFIX = $(HOME)/local
+endif
 ifeq ($(USERNAME),hrue)
   PREFIX = $(HOME)/p/inla/work/local
 endif
