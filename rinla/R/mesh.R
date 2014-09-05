@@ -7,12 +7,11 @@
 ## Export: inla.mesh.map.lim inla.mesh.query
 ## Export: inla.mesh.segment inla.nonconvex.hull inla.nonconvex.hull.basic
 ## Export: inla.simplify.curve plot.inla.trimesh
-## Internal: inla.internal.sp2segment.join inla.mesh.filter.locations
+## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 ##
 ## S3methods; also export some methods explicitly
 ## Export: extract.groups inla.mesh.project inla.mesh.projector
-## Export: inla.sp2segment
 ## Export: extract.groups!inla.mesh.segment
 ## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
 ## Export: inla.mesh.project.inla.mesh.projector
@@ -20,17 +19,10 @@
 ## Export: inla.mesh.project!inla.mesh inla.mesh.project!inla.mesh.1d
 ## Export: inla.mesh.project!inla.mesh.projector
 ## Export: inla.mesh.projector!inla.mesh inla.mesh.projector!inla.mesh.1d
-## Export: inla.sp2segment.Polygon inla.sp2segment.Polygons
-## Export: inla.sp2segment.SpatialPolygons
-## Export: inla.sp2segment.SpatialPolygonsDataFrame
-## Export: inla.sp2segment!Polygon inla.sp2segment!Polygons
-## Export: inla.sp2segment!SpatialPolygons
-## Export: inla.sp2segment!SpatialPolygonsDataFrame
 ## Export: lines.inla.mesh.segment plot.inla.mesh
 ## Export: print.summary.inla.mesh summary.inla.mesh
 ## Export: lines!inla.mesh.segment plot!inla.mesh
 ## Export: print!summary.inla.mesh summary!inla.mesh
-
 
 
 
@@ -2784,96 +2776,6 @@ inla.mesh.deriv <- function(mesh, loc)
     return (list(A=info$A, dx=dx, dy=dy, dz=dz))
 }
 
-
-
-
-
-
-
-
-## Input: list of segments, all closed polygons.
-inla.internal.sp2segment.join <- function(inp, grp=NULL) {
-    out.loc = matrix(0,0,2)
-    out.idx = matrix(0,0,2)
-    if (is.null(grp)) {
-        out.grp = NULL
-    } else {
-        out.grp = c()
-    }
-    for (k in seq_along(inp)) {
-        inp.loc = inp[[k]]$loc
-        inp.idx = inp[[k]]$idx
-        inp.grp = inp[[k]]$grp
-        offset = nrow(out.loc)
-        n = nrow(as.matrix(inp.idx))
-        if (!is.null(grp) && is.null(inp.grp)) {
-            inp.grp = rep(grp[k], n)
-        }
-        if (ncol(as.matrix(inp.idx))==1) {
-            inp.idx = cbind(inp.idx, inp.idx[c(2:n,1)])
-        }
-        out.loc = rbind(out.loc, inp.loc)
-        out.idx = rbind(out.idx, inp.idx+offset)
-        if (!is.null(grp)) {
-            out.grp = c(out.grp, inp.grp)
-        }
-    }
-    out = inla.mesh.segment(loc=out.loc,idx=out.idx,grp=out.grp,is.bnd=FALSE)
-}
-
-
-inla.sp2segment <- function(...)
-{
-    UseMethod("inla.sp2segment")
-}
-
-inla.sp2segment.SpatialPolygons <-
-    function(sp, join=TRUE, grp=NULL, ...)
-{
-    segm = list()
-    for (k in 1:length(sp@polygons))
-        segm[[k]] = inla.sp2segment(sp@polygons[[k]], join=TRUE)
-    if (join) {
-        if (missing(grp)) {
-            grp = 1:length(segm)
-        }
-        segm = inla.internal.sp2segment.join(segm, grp=grp)
-    }
-    return(segm)
-}
-
-inla.sp2segment.SpatialPolygonsDataFrame <-
-    function(sp, ...)
-{
-    return(inla.sp2segment.SpatialPolygons(sp, ...))
-}
-
-inla.sp2segment.Polygons <-
-    function(sp, join=TRUE, ...)
-{
-    segm = as.list(lapply(sp@Polygons, function (x) inla.sp2segment(x)))
-    if (join)
-        segm = inla.internal.sp2segment.join(segm, grp=NULL)
-    return(segm)
-}
-
-inla.sp2segment.Polygon <-
-    function(sp, ...)
-{
-    loc = sp@coords[-dim(sp@coords)[1L],,drop=FALSE]
-    n = dim(loc)[1L]
-    if (sp@hole)
-        if (sp@ringDir==1)
-            idx = c(1L:n,1L)
-        else
-            idx = c(1L,seq(n,1L,length.out=n))
-    else
-        if (sp@ringDir==1)
-            idx = c(1L,seq(n,1L,length.out=n))
-        else
-            idx = c(1L:n,1L)
-    return(inla.mesh.segment(loc=loc, idx=idx, is.bnd=TRUE))
-}
 
 
 
