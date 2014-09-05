@@ -312,6 +312,7 @@ int GMRFLib_sn_fit_f(const gsl_vector * param, void *data, gsl_vector * f);
 int GMRFLib_sn_fit_fdf(const gsl_vector * param, void *data, gsl_vector * f, gsl_matrix * J);
 int GMRFLib_sn_logdensity(double *ldens, double x, void *param);
 int GMRFLib_sn_moments(double *mean, double *stdev, GMRFLib_sn_param_tp * p);
+int GMRFLib_sn_skewness(double *skewness, GMRFLib_sn_param_tp * p);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
