@@ -447,10 +447,6 @@ inla.internal.experimental.mode = FALSE
                 mean = readBin(fp, numeric(), configs$n)
                 improved.mean = readBin(fp, numeric(), configs$n)
                 skewness = readBin(fp, numeric(), configs$n)
-
-                print(paste("READING SKEWNESS"))
-                print(skewness[1:10])
-
                 ## read and add the offsets here
                 offsets = readBin(fp, numeric(), configs$n)
                 mean = mean + offsets
