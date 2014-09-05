@@ -446,6 +446,7 @@ inla.internal.experimental.mode = FALSE
                 }
                 mean = readBin(fp, numeric(), configs$n)
                 improved.mean = readBin(fp, numeric(), configs$n)
+                skewness = readBin(fp, numeric(), configs$n)
                 ## read and add the offsets here
                 offsets = readBin(fp, numeric(), configs$n)
                 mean = mean + offsets
@@ -470,6 +471,7 @@ inla.internal.experimental.mode = FALSE
                                       log.posterior = log.post, 
                                       mean = mean,
                                       improved.mean = improved.mean,
+                                      skewness = skewness, 
                                       Q = sparseMatrix(
                                               i = c(configs.i, iadd),
                                               j = c(configs.j, jadd),
