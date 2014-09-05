@@ -247,6 +247,17 @@ int GMRFLib_sn_moments(double *mean, double *stdev, GMRFLib_sn_param_tp * p)
 	}
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_sn_skewness(double *skewness, GMRFLib_sn_param_tp * p)
+{
+	/*
+	 * compute the skewness of the sn (https://en.wikipedia.org/wiki/Skew_normal_distribution)
+	 */
+	if (p && skewness) {
+		double delta = p->alpha / sqrt(1.0 + SQR(p->alpha));
+		*skewness = (4.0 - M_PI) / 2.0 * pow(delta * sqrt(2.0/M_PI), 3.0) / pow(1.0 - 2 * SQR(delta) / M_PI, 3.0/2.0);
+	}
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_sn_fit(GMRFLib_sn_param_tp * param, double *fval, double *x, double *log_density, int n)
 {
 	/*
