@@ -2984,19 +2984,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		Free(_improved_mean);					\
 	}
 
-#define ADD_CONFIG(_store, _theta, _log_posterior)					\
+#define ADD_CONFIG(_store, _theta, _log_posterior)			\
 	if (1) {							\
 		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
+		double *_skewness = Calloc(graph->n, double);		\
 		for(_i = 0; _i<graph->n; _i++) {			\
+			_skewness[_i] = NAN;				\
 			if (dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
+				if (dens[_i][dens_count]->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) { \
+					GMRFLib_sn_skewness(&(_skewness[_i]), dens[_i][dens_count]->sn_param); \
+				}					\
 			} else {					\
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _improved_mean, (_store)->problem); \
+		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _improved_mean, _skewness, (_store)->problem); \
 		Free(_improved_mean);					\
+		Free(_skewness);					\
 	}
 
 
@@ -5795,7 +5801,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
-			    double *improved_mean, GMRFLib_problem_tp * gmrf_approx)
+			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -5861,7 +5867,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
 	int ii, jj, k, kk;
-	double *Qinv, *Q, *mean, *imean;
+	double *Qinv, *Q, *mean, *imean, *skew;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
@@ -5877,8 +5883,10 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 	mean = Calloc(g->n, double);
 	imean = Calloc(g->n, double);
+	skew = Calloc(g->n, double);
 	memcpy(mean, gmrf_approx->mean_constr, g->n * sizeof(double));
 	memcpy(imean, improved_mean, g->n * sizeof(double));
+	memcpy(skew, skewness, g->n * sizeof(double));
 
 	Qinv = Calloc(mo->configs[id]->nz, double);
 	for (k = 0; k < mo->configs[id]->nz; k++) {
@@ -5902,6 +5910,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Qinv = Qinv;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->improved_mean = imean;
+	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
