@@ -1,5 +1,18 @@
-\name{inla.sp2segment}
+\name{as.inla.mesh.segment}
+\alias{as.inla.mesh.segment}
+\alias{as.inla.mesh.segment.Line}
+\alias{as.inla.mesh.segment.Lines}
+\alias{as.inla.mesh.segment.SpatialLines}
+\alias{as.inla.mesh.segment.SpatialLinesDataFrame}
+\alias{as.inla.mesh.segment.Polygon}
+\alias{as.inla.mesh.segment.Polygons}
+\alias{as.inla.mesh.segment.SpatialPolygons}
+\alias{as.inla.mesh.segment.SpatialPolygonsDataFrame}
 \alias{inla.sp2segment}
+\alias{inla.sp2segment.Line}
+\alias{inla.sp2segment.Lines}
+\alias{inla.sp2segment.SpatialLines}
+\alias{inla.sp2segment.SpatialLinesDataFrame}
 \alias{inla.sp2segment.Polygon}
 \alias{inla.sp2segment.Polygons}
 \alias{inla.sp2segment.SpatialPolygons}
@@ -11,8 +24,22 @@
   Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
 }
 \usage{
-inla.sp2segment(...)
+as.inla.mesh.segment(...)
+inla.sp2segment(...) ## For backwards compatibility
 
+\method{as.inla.mesh.segment}{Line}(sp, reverse=TRUE, ...)
+\method{as.inla.mesh.segment}{Lines}(sp, join=TRUE, ...)
+\method{as.inla.mesh.segment}{SpatialLines}(sp, join=TRUE, grp=NULL, ...)
+\method{as.inla.mesh.segment}{SpatialLinesDataFrame}(sp, ...)
+\method{as.inla.mesh.segment}{Polygon}(sp, ...)
+\method{as.inla.mesh.segment}{Polygons}(sp, join=TRUE, ...)
+\method{as.inla.mesh.segment}{SpatialPolygons}(sp, join=TRUE, grp=NULL, ...)
+\method{as.inla.mesh.segment}{SpatialPolygonsDataFrame}(sp, ...)
+
+\method{inla.sp2segment}{Line}(sp, reverse=FALSE, ...)
+\method{inla.sp2segment}{Lines}(sp, join=TRUE, ...)
+\method{inla.sp2segment}{SpatialLines}(sp, join=TRUE, grp=NULL, ...)
+\method{inla.sp2segment}{SpatialLinesDataFrame}(sp, ...)
 \method{inla.sp2segment}{Polygon}(sp, ...)
 \method{inla.sp2segment}{Polygons}(sp, join=TRUE, ...)
 \method{inla.sp2segment}{SpatialPolygons}(sp, join=TRUE, grp=NULL, ...)
@@ -32,10 +59,13 @@ inla.sp2segment(...)
   \item{grp}{
     Group ID specification for each polygon, as used by
     \code{\link{inla.mesh.segment}}, one ID per polygon.
-}
-\item{\dots}{
-  Additional arguments passed on to other methods.
-}
+  }
+  \item{reverse}{
+    Logical, indicating if the line sequence should be traversed backwards.
+  }
+  \item{\dots}{
+    Additional arguments passed on to other methods.
+  }
 }
 %\details{
 %%  ~~ If necessary, more details than the description above ~~
