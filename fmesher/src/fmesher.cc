@@ -323,12 +323,10 @@ public:
     start = _search_map.lower_bound(point[0]);
     // Handle boundary case:
     // If max < point, then lower=end and upper=end, so we need to
-    // start at the last element instead.
-    if (start == found_iter) {
-      --start;
-    }
-
-    bool forward = true;
+    // skip the forward part and only run backward.
+    bool forward = (start != found_iter);
+    bool outside_bound = false;
+    
     iter = start;
     while ((forward && iter != _search_map.end()) ||
 	   (!forward && iter != _search_map.begin())) {
@@ -338,34 +336,46 @@ public:
       if (found || have_bound) {
 	// Check upper bound first
 	dist = iter->first - point[0];
-	dist = dist*dist;
-	if ((found && (dist >= shortest_dist)) ||
-	    (have_bound && (dist > distance2_bound))) {
-	  break;
+	if ((forward && dist > 0.0) ||
+	    (!forward && dist < 0.0)) {
+	  dist = dist*dist;
+	  if ((found && (dist >= shortest_dist)) ||
+	      (have_bound && (dist > distance2_bound))) {
+	    outside_bound = true;
+	  }
 	}
       }
-      dist = distance2(point, iter->second);
-      LOG("distance2 = " << dist << endl);
-      LOG("found = " << found <<
-	  ", shortest_dist = " << shortest_dist << endl);
-      LOG("have_bound = " << have_bound <<
-	  ", distance2_bound = " << distance2_bound << endl);
-      if ((!found || (dist < shortest_dist)) &&
-	  (!have_bound || (dist <= distance2_bound))) {
-	found = true;
-	found_iter = iter;
-	shortest_dist = dist;
-      } 
+      if (!outside_bound) {
+	dist = distance2(point, iter->second);
+	LOG("distance2 = " << dist << endl);
+	LOG("found = " << found <<
+	    ", shortest_dist = " << shortest_dist << endl);
+	LOG("have_bound = " << have_bound <<
+	    ", distance2_bound = " << distance2_bound << endl);
+	if ((!found || (dist < shortest_dist)) &&
+	    (!have_bound || (dist <= distance2_bound))) {
+	  found = true;
+	  found_iter = iter;
+	  shortest_dist = dist;
+	  LOG("shortest updated" << endl);
+	} else {
+	  LOG("no action" << endl);
+	}
+      }
       if (forward) {
 	++iter;
-	if (iter == _search_map.end()) {
-	  forward = false;
-	  iter = start;
-	}
+      }
+      if ((iter == _search_map.end()) || (forward && outside_bound)) {
+	outside_bound = false;
+	forward = false;
+	iter = start;
+	LOG("reverse" << endl);
+      } else if (!forward && outside_bound) {
+	break;
       }
     }
 
-    LOG("found = " << found << endl);
+    LOG("Finished. found = " << found << endl);
     return found_iter;
   };
   iterator operator() (double const * point) {
