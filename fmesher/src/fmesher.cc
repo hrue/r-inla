@@ -297,33 +297,47 @@ public:
     return _search_map.end();
   };
 
-  iterator operator() (double const * point) {
+  // Find nearest neighbour, optionally with distance <= bound
+  iterator find_nn_bounded(double const * point,
+			   bool have_bound,
+			   double distance2_bound) {
     iterator iter, start;
     double dist;
+    bool _have_bound = have_bound; // true if we've found at least one
+				   // neighbour or cutoff_bound supplied.
     double shortest_dist = -1.0;
-    bool found = false; // true if we've found at least one neighbour.
-    iterator found_iter; // pointer to the closest found neighbour
-    
+    iterator found_iter(_search_map.end()); // pointer to the closest
+					    // found neighbour
+    if (_have_bound) {
+      shortest_dist = distance2_bound;
+    }
+
     size_t const size = _search_map.size();
     if (size == 0) {
       return _search_map.end();
     } else if (size == 1) {
-      return _search_map.begin();
+      found_iter = _search_map.begin();
+      if (_have_bound &&
+	  distance2(point, found_iter->second) > distance2_bound) {
+	return _search_map.end();
+      }
+      return found_iter;
     }
-    found_iter = _search_map.end();
+
     start = _search_map.lower_bound(point[0]);
-    // Handle boundary cases
-    // If max < point, lower=end and upper=end, start and last element instead
-    //    if (start == found_iter) {
-    //      --start;
-    //    }
+    // Handle boundary case:
+    // If max < point, then lower=end and upper=end, so we need to
+    // start at the last element instead.
+    if (start == found_iter) {
+      --start;
+    }
     LOG("Size: " << size << endl);
-    
+
     LOG("upper" << endl);
     for (iter=start;
 	 iter != _search_map.end();
 	 ++iter) {
-      if (found) {
+      if (_have_bound) {
 	// Check upper bound first
 	dist = iter->first - point[0];
 	if (dist*dist >= shortest_dist) {
@@ -331,8 +345,8 @@ public:
 	}
       }
       dist = distance2(point, iter->second);
-      if (!found || dist < shortest_dist) {
-	found = true;
+      if (!_have_bound || dist < shortest_dist) {
+	_have_bound = true;
 	found_iter = iter;
 	shortest_dist = dist;
 	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
@@ -345,7 +359,7 @@ public:
     while (iter != _search_map.begin()) {
       --iter;
       LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
-      if (found) {
+      if (_have_bound) {
 	// Check upper bound first
 	dist = iter->first - point[0];
 	if (dist*dist >= shortest_dist) {
@@ -353,8 +367,8 @@ public:
 	}
       }
       dist = distance2(point, iter->second);
-      if (!found || dist < shortest_dist) {
-	found = true;
+      if (!_have_bound || dist < shortest_dist) {
+	_have_bound = true;
 	found_iter = iter;
 	shortest_dist = dist;
 	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
@@ -364,6 +378,13 @@ public:
 
     LOG("finished" << endl);
     return found_iter;
+  };
+  iterator operator() (double const * point) {
+    return find_nn_bounded(point, false, 0.0);
+  };
+  iterator operator() (double const * point,
+		       double cutoff) {
+    return find_nn_bounded(point, true, cutoff*cutoff);
   };
 };
 
@@ -390,9 +411,8 @@ void filter_locations(Matrix<double>& S,
 
   LOG("Identify 'unique' points." << endl);
   for (size_t v=0; v < Nv; v++) {
-    nniter = nnl(S[v]);
-    if (nniter != nnl.end() &&
-	nnl.distance(S[v], nniter->second) <= cutoff) {
+    nniter = nnl(S[v], cutoff);
+    if (nniter != nnl.end()) {
       // Exclude node
       remap[excl_next] = v;
       idx(v,0) = excl_next;
@@ -416,7 +436,7 @@ void filter_locations(Matrix<double>& S,
     idx(remap[v],0) = idx(nniter->second,0);
     LOG("Excluded vertex "
     	<< remap[v] << " remapped to "
-    	<< idx(v,0) << "."
+    	<< idx(remap[v],0) << "."
     	<< endl);
   }
   LOG("Done identifying nearest points." << endl);
