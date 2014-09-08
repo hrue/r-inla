@@ -327,9 +327,7 @@ public:
     if (start == found_iter) {
       --start;
     }
-    LOG("Size: " << size << endl);
 
-    LOG("upper" << endl);
     bool forward = true;
     iter = start;
     while ((forward && iter != _search_map.end()) ||
@@ -347,25 +345,27 @@ public:
 	}
       }
       dist = distance2(point, iter->second);
+      LOG("distance2 = " << dist << endl);
+      LOG("found = " << found <<
+	  ", shortest_dist = " << shortest_dist << endl);
+      LOG("have_bound = " << have_bound <<
+	  ", distance2_bound = " << distance2_bound << endl);
       if ((!found || (dist < shortest_dist)) &&
 	  (!have_bound || (dist <= distance2_bound))) {
 	found = true;
 	found_iter = iter;
 	shortest_dist = dist;
-	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
-	LOG("found!" << endl);
       } 
       if (forward) {
 	++iter;
-	if (iter != _search_map.end()) {
-	  LOG("lower" << endl);
+	if (iter == _search_map.end()) {
 	  forward = false;
 	  iter = start;
 	}
       }
     }
 
-    LOG("finished" << endl);
+    LOG("found = " << found << endl);
     return found_iter;
   };
   iterator operator() (double const * point) {
@@ -417,10 +417,11 @@ void filter_locations(Matrix<double>& S,
   LOG("All vertices handled." << endl);
 
   LOG("Identifying nearest points for excluded locations." << endl);
-  for (size_t v=incl_next; v < Nv; ++v) {
+  for (size_t v=Nv; v > incl_next;) {
+    --v;
     nniter = nnl(S[remap[v]]);
     if (nniter == nnl.end()) {
-      LOG("Internal error: No nearest neighbour found.");
+      cout << "Internal error: No nearest neighbour found." << endl;
     }
     idx(remap[v],0) = idx(nniter->second,0);
     LOG("Excluded vertex "
