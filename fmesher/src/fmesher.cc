@@ -303,21 +303,17 @@ public:
 			   double distance2_bound) {
     iterator iter, start;
     double dist;
-    bool _have_bound = have_bound; // true if we've found at least one
-				   // neighbour or cutoff_bound supplied.
+    bool found = false; // true if we've found at least one neighbour.
     double shortest_dist = -1.0;
     iterator found_iter(_search_map.end()); // pointer to the closest
 					    // found neighbour
-    if (_have_bound) {
-      shortest_dist = distance2_bound;
-    }
 
     size_t const size = _search_map.size();
     if (size == 0) {
       return _search_map.end();
     } else if (size == 1) {
       found_iter = _search_map.begin();
-      if (_have_bound &&
+      if (have_bound &&
 	  distance2(point, found_iter->second) > distance2_bound) {
 	return _search_map.end();
       }
@@ -334,46 +330,39 @@ public:
     LOG("Size: " << size << endl);
 
     LOG("upper" << endl);
-    for (iter=start;
-	 iter != _search_map.end();
-	 ++iter) {
-      if (_have_bound) {
-	// Check upper bound first
-	dist = iter->first - point[0];
-	if (dist*dist >= shortest_dist) {
-	  break;
-	}
-      }
-      dist = distance2(point, iter->second);
-      if (!_have_bound || dist < shortest_dist) {
-	_have_bound = true;
-	found_iter = iter;
-	shortest_dist = dist;
-	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
-	LOG("found!" << endl);
-      } 
-    }
-
-    LOG("lower" << endl);
+    bool forward = true;
     iter = start;
-    while (iter != _search_map.begin()) {
-      --iter;
-      LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
-      if (_have_bound) {
+    while ((forward && iter != _search_map.end()) ||
+	   (!forward && iter != _search_map.begin())) {
+      if (!forward) {
+	--iter;
+      }
+      if (found || have_bound) {
 	// Check upper bound first
 	dist = iter->first - point[0];
-	if (dist*dist >= shortest_dist) {
+	dist = dist*dist;
+	if ((found && (dist >= shortest_dist)) ||
+	    (have_bound && (dist > distance2_bound))) {
 	  break;
 	}
       }
       dist = distance2(point, iter->second);
-      if (!_have_bound || dist < shortest_dist) {
-	_have_bound = true;
+      if ((!found || (dist < shortest_dist)) &&
+	  (!have_bound || (dist <= distance2_bound))) {
+	found = true;
 	found_iter = iter;
 	shortest_dist = dist;
 	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
 	LOG("found!" << endl);
       } 
+      if (forward) {
+	++iter;
+	if (iter != _search_map.end()) {
+	  LOG("lower" << endl);
+	  forward = false;
+	  iter = start;
+	}
+      }
     }
 
     LOG("finished" << endl);
