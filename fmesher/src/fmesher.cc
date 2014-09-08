@@ -1,10 +1,12 @@
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "fmesher.hh"
 
@@ -162,10 +164,15 @@ void map_points_to_mesh_convex(const Mesh& M,
 }
 
 
+//#ifdef DEBUG
+#define filter_locations filter_locations_faster
+//#else
+//#define filter_locations filter_locations_slow
+//#endif
 
-void filter_locations(Matrix<double>& S,
-		      Matrix<int>& idx,
-		      double cutoff)
+void filter_locations_slow(Matrix<double>& S,
+			   Matrix<int>& idx,
+			   double cutoff)
 {
   size_t dim = S.cols();
   size_t idx_next = 0;
@@ -237,6 +244,190 @@ void filter_locations(Matrix<double>& S,
   }
 
   LOG("Done identifying nearest points." << endl);
+}
+
+
+
+
+/*
+ * http://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+ */
+template<typename T> class IndexMatrixComparator
+{
+  Matrix<T> const * const _values;
+public:
+  IndexMatrixComparator(Matrix<T> const * values) :
+    _values(values) {}
+public:
+  bool operator() (int i, int j) const {
+    return (*_values)[i][0] < (*_values)[j][0];
+  }
+};
+
+template<typename T>
+std::ostream& operator<< (std::ostream& out, const std::vector<T> v) {
+    int last = v.size() - 1;
+    out << "[";
+    for(int i = 0; i < last; i++)
+        out << v[i] << ", ";
+    out << v[last] << "]";
+    return out;
+}
+
+void filter_locations_faster(Matrix<double>& S,
+			     Matrix<int>& idx,
+			     double cutoff)
+{
+  size_t dim = S.cols();
+  std::vector<bool> included(S.rows());
+  std::vector<int> reo(S.rows());
+  std::vector<int> ireo(S.rows());
+  std::vector<int> idx_included(S.rows());
+  int idx_next = 0;
+  typedef std::list<int> excludedT;
+  excludedT excluded;
+
+  LOG("Filtering locations." << endl);
+
+  IndexMatrixComparator<double> comp(&S);
+  for (size_t v=0; v<S.rows(); v++) {
+    reo[v] = v;
+    included[v] = false;
+  }
+  std::sort(reo.begin(), reo.end(), comp);
+  for (size_t v=0; v<S.rows(); v++) {
+    ireo[reo[v]] = v;
+  }
+
+  /* Identify "unique" points. */
+  double dist;
+  Point s = Point(0.0, 0.0, 0.0);
+  Point diff = Point(0.0, 0.0, 0.0);
+  size_t v_try;
+  double diff_x;
+  for (size_t v=0; v<S.rows(); v++) {
+    bool was_excluded = false;
+    for (size_t d=0; d<dim; d++)
+      s[d] = S[v][d];
+    if (v > 0) {
+      for (int v_delta=1; int(ireo[v])+v_delta < S.rows(); v_delta++) {
+	v_try = reo[ireo[v]+v_delta];
+	diff_x = S[v_try][0] - s[0];
+	if (diff_x > cutoff) {
+	  break;
+	}
+	if (included[v_try]) {
+	  for (size_t d=0; d<dim; d++)
+	    diff[d] = S[v_try][d]-s[d];
+	  if (diff.length() <= cutoff) {
+	    was_excluded = true;
+	    break;
+	  }
+	}
+      }
+      if (!was_excluded) {
+	for (int v_delta=-1; int(ireo[v])+v_delta >= 0; v_delta--) {
+	  v_try = reo[int(ireo[v])+v_delta];
+	  diff_x = s[0] - S[v_try][0];
+	  if (diff_x > cutoff) {
+	    break;
+	  }
+	  if (included[v_try]) {
+	    for (size_t d=0; d<dim; d++)
+	      diff[d] = S[v_try][d]-s[d];
+	    if (diff.length() <= cutoff) {
+	      was_excluded = true;
+	      break;
+	    }
+	  }
+	}
+      }
+    }
+    if (was_excluded) {
+      excluded.push_back(v);
+    } else {
+      included[v] = true;
+      idx(v,0) = idx_next;
+      idx_included[idx_next] = v;
+      idx_next++;
+    }
+  }
+
+  LOG("All vertices handled." << endl);
+
+  LOG("Identifying nearest points." << endl);
+
+  /* Identify nearest nodes for excluded locations. */
+  for (excludedT::const_iterator i=excluded.begin();
+       i != excluded.end();
+       i++) {
+    size_t v = (*i);
+    for (size_t d=0; d<dim; d++)
+      s[d] = S[v][d];
+    double nearest_dist = -1.0;
+    int nearest_idx = -1;
+    for (int v_delta=1; int(ireo[v])+v_delta < S.rows(); v_delta++) {
+      v_try = reo[ireo[v]+v_delta];
+      diff_x = S[v_try][0] - s[0];
+      if ((nearest_idx >= 0) && (diff_x >= nearest_dist)) {
+	break;
+      }
+      if (included[v_try]) {
+	for (size_t d=0; d<dim; d++)
+	  diff[d] = S[v_try][d]-s[d];
+	dist = diff.length();
+	if ((nearest_idx<0) || (dist<nearest_dist)) {
+	  nearest_idx = v_try;
+	  nearest_dist = dist;
+	}
+      }
+    }
+    for (int v_delta=-1; int(ireo[v])+v_delta >= 0; v_delta--) {
+      v_try = reo[ireo[v]+v_delta];
+      diff_x = s[0] - S[v_try][0];
+      if ((nearest_idx >= 0) && (diff_x >= nearest_dist)) {
+	break;
+      }
+      if (included[v_try]) {
+	for (size_t d=0; d<dim; d++)
+	  diff[d] = S[v_try][d]-s[d];
+	dist = diff.length();
+	if ((nearest_idx<0) || (dist<nearest_dist)) {
+	  nearest_idx = v_try;
+	  nearest_dist = dist;
+	}
+      }
+    }
+    idx(v,0) = idx(nearest_idx,0);
+    //    LOG("Excluded vertex "
+    //	<< v << " remapped to "
+    //	<< nearest_idx << "."
+    //	<< endl);
+  }
+
+  LOG("Done identifying nearest points." << endl);
+  //  LOG("S = " << S)
+
+  //  LOG("idx = " << idx)
+    //  LOG("included = " << included << endl)
+    //  LOG("idx_included = " << idx_included << endl)
+
+  LOG("Compactify storage from " << S.rows() << " to " << idx_next << endl);
+  for (size_t v=0; v < idx_next; v++) {
+    //    LOG("(v, idx_included[v]) = (" << v << ", "
+    //	<< idx_included[v] << ")" << endl)
+    for (size_t d=0; d<dim; d++)
+      S(v,d) = S[idx_included[v]][d];
+  }
+  LOG("Compactify storage done." << endl);
+
+  /* Remove excess storage. */
+  LOG("Remove excess storage." << endl);
+  //  LOG("S = " << S << S.rows() << idx_next << endl)
+  S.rows(idx_next);
+  //  LOG("S = " << S << S.rows() << idx_next << endl)
+
+  LOG("Excess storage removed." << endl);
 }
 
 

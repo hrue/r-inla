@@ -46,7 +46,7 @@ src/$(FMESHER) :
 	make -C src CC=$(CC) CXX=$(CXX) FLAGS="$(FLAGS)" $(FMESHER)
 
 debug :
-	make clean
+##	make clean
 	CXX="\"$(CXX) -DDEBUG\"" make $(FMESHER)
 
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
