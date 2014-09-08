@@ -164,12 +164,6 @@ void map_points_to_mesh_convex(const Mesh& M,
 }
 
 
-//#ifdef DEBUG
-#define filter_locations filter_locations_faster
-//#else
-//#define filter_locations filter_locations_slow
-//#endif
-
 void filter_locations_slow(Matrix<double>& S,
 			   Matrix<int>& idx,
 			   double cutoff)
@@ -249,21 +243,6 @@ void filter_locations_slow(Matrix<double>& S,
 
 
 
-/*
- * http://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
- */
-template<typename T> class IndexMatrixComparator
-{
-  Matrix<T> const * const _values;
-public:
-  IndexMatrixComparator(Matrix<T> const * values) :
-    _values(values) {}
-public:
-  bool operator() (int i, int j) const {
-    return (*_values)[i][0] < (*_values)[j][0];
-  }
-};
-
 template<typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T> v) {
     int last = v.size() - 1;
@@ -274,158 +253,188 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T> v) {
     return out;
 }
 
-void filter_locations_faster(Matrix<double>& S,
-			     Matrix<int>& idx,
-			     double cutoff)
+
+
+class NNLocator
 {
-  size_t dim = S.cols();
-  std::vector<bool> included(S.rows());
-  std::vector<int> reo(S.rows());
-  std::vector<int> ireo(S.rows());
-  std::vector<int> idx_included(S.rows());
-  int idx_next = 0;
-  typedef std::list<int> excludedT;
-  excludedT excluded;
+  std::multimap<double, size_t> _search_map;
+  Matrix<double> const * _S;
+  int _dim;
+public:
+  NNLocator(Matrix<double> * S,
+	    int dim) :
+    _search_map(), _S(S), _dim(dim) {}
+public:
+  double distance2(double const * point, int v) {
+    double diff;
+    double dist = 0.0;
+    for (int d=0; d < _dim; ++d) {
+      diff = point[d]-(*_S)[v][d];
+      dist += diff*diff;
+    }
+    return dist;
+  };
+  double distance(double const * point, int v) {
+    return std::sqrt(distance2(point, v));
+  };
+
+  typedef std::multimap<double, size_t>::value_type value_type;
+  typedef std::multimap<double, size_t>::iterator iterator;
+  typedef std::multimap<double, size_t>::const_iterator const_iterator;
+  typedef std::multimap<double, size_t>::reverse_iterator reverse_iterator;
+  typedef std::multimap<double, size_t>::const_reverse_iterator const_reverse_iterator;
+
+  iterator insert(int idx) {
+    return _search_map.insert(value_type((*_S)[idx][0], idx));
+  };
+  iterator insert(iterator position, int idx) {
+    return _search_map.insert(position, value_type((*_S)[idx][0], idx));
+  };
+  iterator begin() {
+    return _search_map.begin();
+  };
+  iterator end() {
+    return _search_map.end();
+  };
+
+  iterator operator() (double const * point) {
+    iterator iter, start;
+    double dist;
+    double shortest_dist = -1.0;
+    bool found = false; // true if we've found at least one neighbour.
+    iterator found_iter; // pointer to the closest found neighbour
+    
+    size_t const size = _search_map.size();
+    if (size == 0) {
+      return _search_map.end();
+    } else if (size == 1) {
+      return _search_map.begin();
+    }
+    found_iter = _search_map.end();
+    start = _search_map.lower_bound(point[0]);
+    // Handle boundary cases
+    // If max < point, lower=end and upper=end, start and last element instead
+    //    if (start == found_iter) {
+    //      --start;
+    //    }
+    LOG("Size: " << size << endl);
+    
+    LOG("upper" << endl);
+    for (iter=start;
+	 iter != _search_map.end();
+	 ++iter) {
+      if (found) {
+	// Check upper bound first
+	dist = iter->first - point[0];
+	if (dist*dist >= shortest_dist) {
+	  break;
+	}
+      }
+      dist = distance2(point, iter->second);
+      if (!found || dist < shortest_dist) {
+	found = true;
+	found_iter = iter;
+	shortest_dist = dist;
+	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
+	LOG("found!" << endl);
+      } 
+    }
+
+    LOG("lower" << endl);
+    iter = start;
+    while (iter != _search_map.begin()) {
+      --iter;
+      LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
+      if (found) {
+	// Check upper bound first
+	dist = iter->first - point[0];
+	if (dist*dist >= shortest_dist) {
+	  break;
+	}
+      }
+      dist = distance2(point, iter->second);
+      if (!found || dist < shortest_dist) {
+	found = true;
+	found_iter = iter;
+	shortest_dist = dist;
+	LOG(iter->first << ", " << iter->second << ", dist = " << dist << endl);
+	LOG("found!" << endl);
+      } 
+    }
+
+    LOG("finished" << endl);
+    return found_iter;
+  };
+};
+
+
+void filter_locations(Matrix<double>& S,
+		      Matrix<int>& idx,
+		      double cutoff)
+{
+  int const dim = S.cols();
+  int const Nv = S.rows();
+  NNLocator nnl(&S, dim);
+  int incl_next = 0;
+  int excl_next = Nv-1;
+  std::vector<int> remap(Nv); // New node ordering; included first,
+			      // then excluded.
 
   LOG("Filtering locations." << endl);
 
-  IndexMatrixComparator<double> comp(&S);
-  for (size_t v=0; v<S.rows(); v++) {
-    reo[v] = v;
-    included[v] = false;
-  }
-  std::sort(reo.begin(), reo.end(), comp);
-  for (size_t v=0; v<S.rows(); v++) {
-    ireo[reo[v]] = v;
+  for (size_t v=0; v < Nv; v++) {
+    remap[v] = -1;
   }
 
-  /* Identify "unique" points. */
-  double dist;
-  Point s = Point(0.0, 0.0, 0.0);
-  Point diff = Point(0.0, 0.0, 0.0);
-  size_t v_try;
-  double diff_x;
-  for (size_t v=0; v<S.rows(); v++) {
-    bool was_excluded = false;
-    for (size_t d=0; d<dim; d++)
-      s[d] = S[v][d];
-    if (v > 0) {
-      for (int v_delta=1; int(ireo[v])+v_delta < S.rows(); v_delta++) {
-	v_try = reo[ireo[v]+v_delta];
-	diff_x = S[v_try][0] - s[0];
-	if (diff_x > cutoff) {
-	  break;
-	}
-	if (included[v_try]) {
-	  for (size_t d=0; d<dim; d++)
-	    diff[d] = S[v_try][d]-s[d];
-	  if (diff.length() <= cutoff) {
-	    was_excluded = true;
-	    break;
-	  }
-	}
-      }
-      if (!was_excluded) {
-	for (int v_delta=-1; int(ireo[v])+v_delta >= 0; v_delta--) {
-	  v_try = reo[int(ireo[v])+v_delta];
-	  diff_x = s[0] - S[v_try][0];
-	  if (diff_x > cutoff) {
-	    break;
-	  }
-	  if (included[v_try]) {
-	    for (size_t d=0; d<dim; d++)
-	      diff[d] = S[v_try][d]-s[d];
-	    if (diff.length() <= cutoff) {
-	      was_excluded = true;
-	      break;
-	    }
-	  }
-	}
-      }
-    }
-    if (was_excluded) {
-      excluded.push_back(v);
+  NNLocator::iterator nniter;
+
+  LOG("Identify 'unique' points." << endl);
+  for (size_t v=0; v < Nv; v++) {
+    nniter = nnl(S[v]);
+    if (nniter != nnl.end() &&
+	nnl.distance(S[v], nniter->second) <= cutoff) {
+      // Exclude node
+      remap[excl_next] = v;
+      idx(v,0) = excl_next;
+      --excl_next;
     } else {
-      included[v] = true;
-      idx(v,0) = idx_next;
-      idx_included[idx_next] = v;
-      idx_next++;
+      // Include node
+      nnl.insert(nniter, v); // Hint position nniter
+      remap[incl_next] = v;
+      idx(v,0) = incl_next;
+      ++incl_next;
     }
   }
-
   LOG("All vertices handled." << endl);
 
-  LOG("Identifying nearest points." << endl);
-
-  /* Identify nearest nodes for excluded locations. */
-  for (excludedT::const_iterator i=excluded.begin();
-       i != excluded.end();
-       i++) {
-    size_t v = (*i);
-    for (size_t d=0; d<dim; d++)
-      s[d] = S[v][d];
-    double nearest_dist = -1.0;
-    int nearest_idx = -1;
-    for (int v_delta=1; int(ireo[v])+v_delta < S.rows(); v_delta++) {
-      v_try = reo[ireo[v]+v_delta];
-      diff_x = S[v_try][0] - s[0];
-      if ((nearest_idx >= 0) && (diff_x >= nearest_dist)) {
-	break;
-      }
-      if (included[v_try]) {
-	for (size_t d=0; d<dim; d++)
-	  diff[d] = S[v_try][d]-s[d];
-	dist = diff.length();
-	if ((nearest_idx<0) || (dist<nearest_dist)) {
-	  nearest_idx = v_try;
-	  nearest_dist = dist;
-	}
-      }
+  LOG("Identifying nearest points for excluded locations." << endl);
+  for (size_t v=incl_next; v < Nv; ++v) {
+    nniter = nnl(S[remap[v]]);
+    if (nniter == nnl.end()) {
+      LOG("Internal error: No nearest neighbour found.");
     }
-    for (int v_delta=-1; int(ireo[v])+v_delta >= 0; v_delta--) {
-      v_try = reo[ireo[v]+v_delta];
-      diff_x = s[0] - S[v_try][0];
-      if ((nearest_idx >= 0) && (diff_x >= nearest_dist)) {
-	break;
-      }
-      if (included[v_try]) {
-	for (size_t d=0; d<dim; d++)
-	  diff[d] = S[v_try][d]-s[d];
-	dist = diff.length();
-	if ((nearest_idx<0) || (dist<nearest_dist)) {
-	  nearest_idx = v_try;
-	  nearest_dist = dist;
-	}
-      }
-    }
-    idx(v,0) = idx(nearest_idx,0);
-    //    LOG("Excluded vertex "
-    //	<< v << " remapped to "
-    //	<< nearest_idx << "."
-    //	<< endl);
+    idx(remap[v],0) = idx(nniter->second,0);
+    LOG("Excluded vertex "
+    	<< remap[v] << " remapped to "
+    	<< idx(v,0) << "."
+    	<< endl);
   }
-
   LOG("Done identifying nearest points." << endl);
-  //  LOG("S = " << S)
 
-  //  LOG("idx = " << idx)
-    //  LOG("included = " << included << endl)
-    //  LOG("idx_included = " << idx_included << endl)
-
-  LOG("Compactify storage from " << S.rows() << " to " << idx_next << endl);
-  for (size_t v=0; v < idx_next; v++) {
-    //    LOG("(v, idx_included[v]) = (" << v << ", "
-    //	<< idx_included[v] << ")" << endl)
-    for (size_t d=0; d<dim; d++)
-      S(v,d) = S[idx_included[v]][d];
+  LOG("Compactify storage from " << Nv << " to " << incl_next << endl);
+  for (size_t v=0; v < incl_next; ++v) {
+    // In-place overwrite allowed since remapping of included nodes
+    // was order preserving.  If no filtering done, no need to copy data.
+    if (v != remap[v]) {
+      for (size_t d=0; d<dim; d++)
+	S(v,d) = S[remap[v]][d];
+    }
   }
   LOG("Compactify storage done." << endl);
 
   /* Remove excess storage. */
   LOG("Remove excess storage." << endl);
-  //  LOG("S = " << S << S.rows() << idx_next << endl)
-  S.rows(idx_next);
-  //  LOG("S = " << S << S.rows() << idx_next << endl)
+  S.rows(incl_next);
 
   LOG("Excess storage removed." << endl);
 }
