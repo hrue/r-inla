@@ -16,7 +16,7 @@ inla.mesh.2d(loc = NULL,
              interior = NULL,
              max.edge,
              min.angle = NULL,
-             cutoff = 0,
+             cutoff = 1e-12,
              plot.delay = NULL)
 }
 \arguments{
