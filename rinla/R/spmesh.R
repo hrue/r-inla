@@ -2,20 +2,6 @@
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
-## Export: inla.sp2segment.Polygon inla.sp2segment.Polygons
-## Export: inla.sp2segment.SpatialPolygons
-## Export: inla.sp2segment.SpatialPolygonsDataFrame
-## Export: inla.sp2segment!Polygon
-## Export: inla.sp2segment!Polygons
-## Export: inla.sp2segment!SpatialPolygons
-## Export: inla.sp2segment!SpatialPolygonsDataFrame
-## Export: inla.sp2segment.Line
-## Export: inla.sp2segment.Lines
-## Export: inla.sp2segment.SpatialLines
-## Export: inla.sp2segment.SpatialLinesDataFrame
-## Export: inla.sp2segment!Line inla.sp2segment!Lines
-## Export: inla.sp2segment!SpatialLines
-## Export: inla.sp2segment!SpatialLinesDataFrame
 ## Export: as.inla.mesh.segment
 ## Export: as.inla.mesh.segment!Polygon
 ## Export: as.inla.mesh.segment!Polygons
@@ -76,6 +62,13 @@ as.inla.mesh.segment <-
 {
     UseMethod("as.inla.mesh.segment")
 }
+
+inla.sp2segment <-
+    function(sp, ...)
+{
+    UseMethod("as.inla.mesh.segment")
+}
+
 
 as.inla.mesh.segment.Line <-
     function(sp, reverse=FALSE, ...)
@@ -167,65 +160,4 @@ as.inla.mesh.segment.Polygon <-
         else
             idx = c(1L:n,1L)
     return(inla.mesh.segment(loc=loc, idx=idx, is.bnd=TRUE))
-}
-
-
-
-
-
-
-
-
-inla.sp2segment <-
-    function(sp, ...)
-{
-    UseMethod("inla.sp2segment")
-}
-
-inla.sp2segment.Line <-
-    function (sp, reverse=FALSE, ...)
-{
-    as.inla.mesh.segment.Line(sp, reverse=reverse, ...)
-}
-
-inla.sp2segment.Lines <-
-    function (sp, join = TRUE, ...)
-{
-    as.inla.mesh.segment.Lines(sp, join=join, ...)
-}
-
-inla.sp2segment.SpatialLines <-
-    function (sp, join = TRUE, grp = NULL, ...)
-{
-    as.inla.mesh.segment.SpatialLines(sp, join=join, grp=grp, ...)
-}
-
-inla.sp2segment.SpatialLinesDataFrame <-
-    function (sp, ...)
-{
-    as.inla.mesh.segment.SpatialLines(sp, ...)
-}
-
-inla.sp2segment.SpatialPolygons <-
-    function(sp, join=TRUE, grp=NULL, ...)
-{
-    as.inla.mesh.segment.SpatialPolygons(sp, join=join, grp=grp, ...)
-}
-
-inla.sp2segment.SpatialPolygonsDataFrame <-
-    function(sp, ...)
-{
-    as.inla.mesh.segment.SpatialPolygons(sp, ...)
-}
-
-inla.sp2segment.Polygons <-
-    function(sp, join=TRUE, ...)
-{
-    as.inla.mesh.segment.Polygons(sp, join=join, ...)
-}
-
-inla.sp2segment.Polygon <-
-    function(sp, ...)
-{
-    as.inla.mesh.segment.Polygons(s, ...)
 }

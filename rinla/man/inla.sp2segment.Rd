@@ -9,14 +9,6 @@
 \alias{as.inla.mesh.segment.SpatialPolygons}
 \alias{as.inla.mesh.segment.SpatialPolygonsDataFrame}
 \alias{inla.sp2segment}
-\alias{inla.sp2segment.Line}
-\alias{inla.sp2segment.Lines}
-\alias{inla.sp2segment.SpatialLines}
-\alias{inla.sp2segment.SpatialLinesDataFrame}
-\alias{inla.sp2segment.Polygon}
-\alias{inla.sp2segment.Polygons}
-\alias{inla.sp2segment.SpatialPolygons}
-\alias{inla.sp2segment.SpatialPolygonsDataFrame}
 \title{
   Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
 }
@@ -35,15 +27,6 @@ inla.sp2segment(...) ## For backwards compatibility
 \method{as.inla.mesh.segment}{Polygons}(sp, join=TRUE, ...)
 \method{as.inla.mesh.segment}{SpatialPolygons}(sp, join=TRUE, grp=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialPolygonsDataFrame}(sp, ...)
-
-\method{inla.sp2segment}{Line}(sp, reverse=FALSE, ...)
-\method{inla.sp2segment}{Lines}(sp, join=TRUE, ...)
-\method{inla.sp2segment}{SpatialLines}(sp, join=TRUE, grp=NULL, ...)
-\method{inla.sp2segment}{SpatialLinesDataFrame}(sp, ...)
-\method{inla.sp2segment}{Polygon}(sp, ...)
-\method{inla.sp2segment}{Polygons}(sp, join=TRUE, ...)
-\method{inla.sp2segment}{SpatialPolygons}(sp, join=TRUE, grp=NULL, ...)
-\method{inla.sp2segment}{SpatialPolygonsDataFrame}(sp, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
