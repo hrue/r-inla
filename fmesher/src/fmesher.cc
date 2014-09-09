@@ -257,19 +257,19 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T> v) {
 
 class NNLocator
 {
-  std::multimap<double, size_t> _search_map;
-  Matrix<double> const * _S;
+  std::multimap<double, size_t> search_map_;
+  Matrix<double> const * S_;
   int _dim;
 public:
   NNLocator(Matrix<double> * S,
 	    int dim) :
-    _search_map(), _S(S), _dim(dim) {}
+    search_map_(), S_(S), _dim(dim) {}
 public:
   double distance2(double const * point, int v) {
     double diff;
     double dist = 0.0;
     for (int d=0; d < _dim; ++d) {
-      diff = point[d]-(*_S)[v][d];
+      diff = point[d]-(*S_)[v][d];
       dist += diff*diff;
     }
     return dist;
@@ -285,16 +285,16 @@ public:
   typedef std::multimap<double, size_t>::const_reverse_iterator const_reverse_iterator;
 
   iterator insert(int idx) {
-    return _search_map.insert(value_type((*_S)[idx][0], idx));
+    return search_map_.insert(value_type((*S_)[idx][0], idx));
   };
   iterator insert(iterator position, int idx) {
-    return _search_map.insert(position, value_type((*_S)[idx][0], idx));
+    return search_map_.insert(position, value_type((*S_)[idx][0], idx));
   };
   iterator begin() {
-    return _search_map.begin();
+    return search_map_.begin();
   };
   iterator end() {
-    return _search_map.end();
+    return search_map_.end();
   };
 
   // Find nearest neighbour, optionally with distance <= bound
@@ -305,22 +305,22 @@ public:
     double dist;
     bool found = false; // true if we've found at least one neighbour.
     double shortest_dist = -1.0;
-    iterator found_iter(_search_map.end()); // pointer to the closest
+    iterator found_iter(search_map_.end()); // pointer to the closest
 					    // found neighbour
 
-    size_t const size = _search_map.size();
+    size_t const size = search_map_.size();
     if (size == 0) {
-      return _search_map.end();
+      return search_map_.end();
     } else if (size == 1) {
-      found_iter = _search_map.begin();
+      found_iter = search_map_.begin();
       if (have_bound &&
 	  distance2(point, found_iter->second) > distance2_bound) {
-	return _search_map.end();
+	return search_map_.end();
       }
       return found_iter;
     }
 
-    start = _search_map.lower_bound(point[0]);
+    start = search_map_.lower_bound(point[0]);
     // Handle boundary case:
     // If max < point, then lower=end and upper=end, so we need to
     // skip the forward part and only run backward.
@@ -328,8 +328,8 @@ public:
     bool outside_bound = false;
     
     iter = start;
-    while ((forward && iter != _search_map.end()) ||
-	   (!forward && iter != _search_map.begin())) {
+    while ((forward && iter != search_map_.end()) ||
+	   (!forward && iter != search_map_.begin())) {
       if (!forward) {
 	--iter;
       }
@@ -365,7 +365,7 @@ public:
       if (forward) {
 	++iter;
       }
-      if ((iter == _search_map.end()) || (forward && outside_bound)) {
+      if ((iter == search_map_.end()) || (forward && outside_bound)) {
 	outside_bound = false;
 	forward = false;
 	iter = start;
