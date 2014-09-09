@@ -17,12 +17,12 @@ inla.mesh.create(loc = NULL,
                  refine = FALSE,
                  lattice = NULL,
                  globe = NULL,
-                 cutoff = 0,
+                 cutoff = 1e-12,
                  plot.delay = NULL,
                  data.dir,
                  keep = (!missing(data.dir) && !is.null(data.dir)),
                  timings = FALSE,
-                 quality.loc = NULL)
+                 quality.spec = NULL)
 
 inla.delaunay(loc, ...)
 }

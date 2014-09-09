@@ -16,10 +16,10 @@
   Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
 }
 \usage{
-as.inla.mesh.segment(...)
-inla.sp2segment(...) ## For backwards compatibility
+as.inla.mesh.segment(sp, ...)
+inla.sp2segment(sp, ...) ## For backwards compatibility
 
-\method{as.inla.mesh.segment}{Line}(sp, reverse=TRUE, ...)
+\method{as.inla.mesh.segment}{Line}(sp, reverse=FALSE, ...)
 \method{as.inla.mesh.segment}{Lines}(sp, join=TRUE, ...)
 \method{as.inla.mesh.segment}{SpatialLines}(sp, join=TRUE, grp=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialLinesDataFrame}(sp, ...)
