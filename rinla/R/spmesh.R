@@ -5,20 +5,24 @@
 ## Export: inla.sp2segment.Polygon inla.sp2segment.Polygons
 ## Export: inla.sp2segment.SpatialPolygons
 ## Export: inla.sp2segment.SpatialPolygonsDataFrame
-## Export: inla.sp2segment!Polygon inla.sp2segment!Polygons
+## Export: inla.sp2segment!Polygon
+## Export: inla.sp2segment!Polygons
 ## Export: inla.sp2segment!SpatialPolygons
 ## Export: inla.sp2segment!SpatialPolygonsDataFrame
-## Export: inla.sp2segment.Line inla.sp2segment.Lines
+## Export: inla.sp2segment.Line
+## Export: inla.sp2segment.Lines
 ## Export: inla.sp2segment.SpatialLines
 ## Export: inla.sp2segment.SpatialLinesDataFrame
 ## Export: inla.sp2segment!Line inla.sp2segment!Lines
 ## Export: inla.sp2segment!SpatialLines
 ## Export: inla.sp2segment!SpatialLinesDataFrame
 ## Export: as.inla.mesh.segment
-## Export: as.inla.mesh.segment!Polygon as.inla.mesh.segment!Polygons
+## Export: as.inla.mesh.segment!Polygon
+## Export: as.inla.mesh.segment!Polygons
 ## Export: as.inla.mesh.segment!SpatialPolygons
 ## Export: as.inla.mesh.segment!SpatialPolygonsDataFrame
-## Export: as.inla.mesh.segment!Line as.inla.mesh.segment!Lines
+## Export: as.inla.mesh.segment!Line
+## Export: as.inla.mesh.segment!Lines
 ## Export: as.inla.mesh.segment!SpatialLines
 ## Export: as.inla.mesh.segment!SpatialLinesDataFrame
 
@@ -171,6 +175,12 @@ as.inla.mesh.segment.Polygon <-
 
 
 
+
+inla.sp2segment <-
+    function(sp, ...)
+{
+    UseMethod("inla.sp2segment")
+}
 
 inla.sp2segment.Line <-
     function (sp, reverse=FALSE, ...)
