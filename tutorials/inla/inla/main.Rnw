@@ -1,0 +1,1510 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{block}
+\usepackage{my-showkeys}
+\usepackage{fancyvrb}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{verbatim}
+
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+engine='R',fig.path='figures/figure',tidy=FALSE,split=FALSE,dev='postscript',dev='pdf'
+)
+@
+
+
+\newcommand{\tv}{\texttt}
+\def\Fig#1{Figure~\ref{#1}}
+\def\Tab#1{Table~\ref{#1}}
+\def\Thm#1{Theorem~\ref{#1}}
+\def\Cor#1{Corrolary~\ref{#1}}
+\def\Sec#1{Section~\ref{#1}}
+\def\eref#1{(\ref{#1})}
+\def\Eref#1{Eq.~(\ref{#1})}
+\def\miscinfo#1#2{{\footnotesize\indent\textsc{#1: }\ignorespaces #2}}   
+\def\R{\mathbb{R}}
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\def\bs#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\def\Var{\text{Var}}
+\def\Corr{\text{Corr}}
+\def\E{\text{E}}
+\def\Prec{\text{Prec}}
+\def\Trace{\text{Trace}}
+
+\usepackage[colon,longnamesfirst]{natbib}
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\title{A tutorial for \tv{R-INLA}}
+\author{H. Rue \& T.\ G.\ Martins \& A. Riebler\\
+ Department of Mathematical Sciences\\
+ Norwegian University of Science and Technology\\
+ N-7491 Trondheim, Norway}
+\maketitle
+
+<<echo=FALSE>>=
+options(width=60, prompt = " ", continue = " ")
+@
+<<echo=FALSE, cache=TRUE>>=
+library(INLA)
+library(xtable)
+@
+%%
+
+
+\chapter{Introduction to \tv{R-INLA}}
+\label{intro:0}
+
+This chapter gives a brief introduction to \tv{R-INLA}; answering
+questions like ``What is it?'', ``What models can I use it for?'',
+``How do I install it?'', ``How can I get help?'' and so on.
+
+\section{What it is?}
+\label{intro:1}
+
+\tv{R-INLA} is an implementation in \tv{R}\footnote{Strictly speaking,
+    it is an \tv{R}-interface towards the \tv{inla-program} written in
+    \tv{C}.} of the \tv{INLA} approach to do \emph{approximate
+    Bayesian inference} for a class of \emph{latent Gaussian models}.
+
+\emph{Latent Gaussian models} is an important class of statistical
+models, and in our opinion, the most important and most widely used
+model class in (applied) statistics. The details are given in
+\Sec{intro:2}. This class includes most/many of dynamic linear models,
+stochastic volatility models, generalized linear (mixed) models,
+generalized additive (mixed) models, spline smoothing models,
+semiparametric regression models, space-varying (semiparametric)
+regression models, disease mapping models, Log-Gaussian Cox-processes,
+model-based geostatistics and spatio-temporal models.
+
+\emph{Approximate Bayesian inference} means that we do not target to
+do exact inference, meaning that there is not button to tune on in
+order to make the results converge towards the true ones. This
+strategy is very different from the one using MCMC, say, where as the
+number of samples tends to infinity the results get increasingly more
+accurate. Also we do not aim to compute all possible marginals, but
+only the marginals for the parameters in the model and linear
+combinations thereof. These are in most cases the target for the
+statistical analysis. It turns out, that in most cases, we can compute
+approximated marginals for the model parameters both much much quicker
+and more accurate, compared to common MCMC alternatives. The main
+reasons to these achievements, are as follows.
+\begin{enumerate}
+\item We make use of the latent Gaussian field by using Laplace
+    approximations.
+\item We make use of the conditional independence properties of the
+    latent Gaussian field by using numerical algorithms for sparse
+    (symmetric and positive definite) matrices.
+\item We make use of the low dimension of the hyperparameters by using
+    \emph{integrated nested} Laplace approximations.
+\end{enumerate}
+For details about the \tv{INLA}-approach itself, then \cite{art375} is
+a teaser, \cite{art451} is the main reference,
+\cite{col30,col33,art517} are book-chapters about the \tv{INLA}
+approach with applications, \cite{tech106} gives details of new
+extensions in \tv{INLA}, and \cite{tech104} discuss some extensions to
+latent near-Gaussian models.
+
+\section{What models can it be used for?}
+\label{intro:2}
+
+The \tv{INLA} approach is targeted towards the class of \emph{latent
+    Gaussian models} (LGM). At the first stage, there are the
+conditional independent observations $\mm{y}$,
+\begin{displaymath}
+    y_{i} \mid \ldots \;\sim\; \pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})
+\end{displaymath}
+where $\eta_{i}$ is the linear predictor for $y_{i}$ and
+$\mm{\theta}_{1}$ are hyperparameters in the likelihood model
+$\pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})$. The likelihood model
+could be Gaussian, Poisson or some other model. 
+
+At the second stage, we have a model for the linear predictors
+$\mm{\eta}$, as a linear combinations of various Gaussian effects,
+\begin{equation}
+    \eta_{i} = \sum_{j} \beta_{j} z_{ji} + \sum_{k}
+    w_{ki}f_{k}(c_{ki}; \mm{\theta}_{2}).\label{eq:model_linPred}
+\end{equation}
+Here, $\mm{z}$'s are ``fixed effects'' with Gaussian coefficients
+$\mm{\beta}$, $\mm{w}$ are fixed weights and $\mm{f}$ are some
+Gaussian ``random effects''\footnote{We will use the terms ``fixed
+    effects'' and ``random effects'' throughout this tutorial, even
+    though that in a Bayesian context they are all ``random''.} The
+terms $f_{k}(c_{ki}\; \mm{\theta}_{2})$ are general Gaussian ``random
+effects'' models, for which the covariate $c_{ki}$ extract the
+component of it that goes into the $i$th linear predictor. Again,
+$\mm{\theta}_{2}$ are hyperparameters in these general Gaussian
+models. An important assumption, is that the joint density for $\mm{x}
+= (\mm{\eta}, \mm{\beta}, \mm{f})$ is Gaussian with density
+\begin{displaymath}
+    \pi(\mm{x} \mid \mm{\theta}_{2}) \propto |\mm{Q}(\mm{\theta}_{2})|^{1/2}
+    \exp\left(
+      -\frac{1}{2} \mm{x}^{T}\mm{Q}(\mm{\theta}_{2}) \mm{x} +
+      b(\mm{\theta_{2}})^{T} \mm{x}\right)
+\end{displaymath}
+where $\mm{Q}$ is the precision matrix and $\mm{b}$ is the linear
+term, both which can depend on $\mm{\theta}_{2}$.
+
+As the third stage, we have the joint prior $\pi(\mm{\theta})$ for the hyperparameters
+$\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$.
+
+The target for the Bayesian analysis is to compute the posterior
+marginals for each $\theta_{i}$, $\eta_{i}$, $\beta_{i}$ and $f_{ki}$
+given the observations $y$.
+    
+\section{How do I install it?}
+
+The \tv{R-INLA} package is available from the web-site 
+\begin{verbatim}
+    www.r-inla.org
+\end{verbatim}
+which also contains all other available information.
+
+Before installing \tv{R-INLA} you might want to install the
+packages \tv{R-INLA} depends on, these are
+\begin{itemize}
+\item pixmap
+\item sp
+\end{itemize}
+and optionally install suggested (not required) packages 
+\begin{itemize}
+\item numDeriv
+\item Rgraphviz
+\item graph
+\item fields
+\item rgl
+\item mvtnorm
+\item multicore
+\end{itemize}
+There are two ways to install \tv{R-INLA}.
+\begin{enumerate}
+\item Type the following command in \tv{R}
+<<eval=FALSE>>=
+source("http://www.math.ntnu.no/inla/givemeINLA.R")
+@     
+%%
+which will download and install the package. 
+\item You can also install the package manually. If you are using
+    Linux or Mac, then
+ download
+\begin{verbatim}
+http://www.math.ntnu.no/inla/binaries/INLA.tgz
+\end{verbatim}
+and install the package from within \tv{R} using
+<<eval=FALSE>>=
+install.packages("INLA.tgz", repos=NULL, type="source")
+@ 
+%%
+If you are using Windows, then download
+\begin{verbatim}
+http://www.math.ntnu.no/inla/binaries/INLA.zip
+\end{verbatim}
+Start \tv{R} and select the \emph{Packages menu}, then \emph{Install
+    package from local zip file}, then find and highlight the location
+of the zip file and click on open.
+\end{enumerate}
+
+It is important to keep your package up-to-date. Here you have two
+options. 
+\begin{enumerate}
+\item There is a more stable version that is updated once-in-a-while,
+    and you can upgrade it using
+<<eval=FALSE>>=
+inla.upgrade()
+@     
+%%
+\item There is a testing version that is updated frequently and you
+    can upgrade to it, using
+<<eval=FALSE>>=
+inla.upgrade(testing=TRUE)
+@ 
+%%
+and this version will contain the most recent version of the package.
+The testing-version is assumed for all examples at the
+\verb|www.r-inla.org| page. 
+\end{enumerate}
+If you have the testing-version installed, then you can ``downgrade''
+to the most recent stable version doing \verb|inla.upgrade()| and
+\verb|inla.upgrade(testing=TRUE)| will take you back to the more
+recent testing-version. 
+
+You can check which version you have installed using
+<<>>=
+inla.version()
+@ 
+%%
+The ``build date'' shows when the package was compiled and build, the
+``INLA hgid'' is the version and date of the \tv{R}-code and 
+``INLA-program hgid'' is the version and date of the inla-program that
+do all the calculations. The version and date for the inla-program is
+often the same as for the \tv{R}-code, but it can be slightly older. 
+
+If you are interested in recent changes in the package then
+<<eval=FALSE>>=
+inla.changelog()
+@ 
+%%
+will place your browser at the list of the most recent changes. You can also visit
+\begin{verbatim}
+    inla.googlecode.com
+\end{verbatim}
+to view or download the complete source-code. 
+
+
+
+\section{How do I use it?}
+
+If you have installed the \tv{R-INLA} package then
+<<eval=FALSE>>=
+library(INLA)
+@ 
+%%
+will load the library and you are ready to go. 
+
+If you are familiar with the \verb|lm()| function in \tv{R}, then you
+can use the \verb|inla()| function instead of the \verb|lm()| function
+to do a Bayesian analysis. Here is a small example
+<<ex1,cache=TRUE>>=
+n = 100
+x = rnorm(n)
+y = 1 + x + rnorm(n, sd = 0.1)
+formula = y ~ 1 + x
+result = inla(formula, data = data.frame(y,x))
+@
+%%
+The \verb|result|-object contains all the results from the Bayesian analysis.
+You can get a summary with
+<<>>=
+summary(result)
+@ 
+%%
+and posterior summary statistics for the fixed effects (the
+\tv{Intercept} and the covariate \tv{x}) and the observational
+precision (for the Gaussian observations) are shown. These summary
+statistics are derived from the corresponding posterior marginals;
+which can be plotted using
+<<eval=FALSE>>=
+plot(result)
+@ 
+%%
+and the results are shown in~\Fig{fig:11}.
+<<results='asis',echo=FALSE>>=
+figs = plot(result, single=TRUE, postscript=TRUE, prefix="figures/ex1/figure-")
+cat("\\begin{figure}[tbp]\n")
+cat("\n")
+cat("\\centering\n")
+for(i in 1:length(figs)) {
+    cat("\\includegraphics[width=7cm,height=7cm,angle=-90]{", gsub("[.]eps$","",figs[i]), "}\n", sep="")  
+}  
+cat("\\caption{The posterior marginals for the fixed effects for the intercept and covariate \tv{x}, and the precision for the Gaussian observations.}\n")
+cat("\\label{fig:11}\n")
+cat("\\end{figure}\n")
+@ 
+%%
+
+
+\section{How can I get help?}
+\label{sec:gethelp}
+
+There are two options to get help from the \verb|inla-developers| and
+other users. You can either sign up and post your questions to the
+\verb|R-inla discussion group|, see
+\begin{verbatim}
+http://www.r-inla.org/comments-1
+\end{verbatim}
+which is a public discussion group. If you want to questions
+privately, you can email \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|.
+
+
+
+\section{How do I report an error or a new feature request?}
+
+A request for a new feature can be posted to either the discussion
+group or to \verb|help@r-inla.org|; see Section~\ref{sec:gethelp}.
+
+An error is easiest reported to \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|. However, please make sure that you run with
+the latest version of the software, i.e.\ please do 
+<<eval=FALSE>>=
+inla.upgrade(testing=TRUE)
+@ 
+%%
+and rerun your example. If the error is still there, please make us
+aware of it.
+
+
+In order to reproduce the error, we need to rerun your model/code
+locally, hence we will need a copy of the R-code and datasets used to
+generate the error. If the error occurs inside the \verb|inla()|-call,
+then you may do as follows; rerun with
+<<eval=FALSE>>=
+inla( "<your stuff here>",  keep=TRUE, inla.call="")
+@ 
+%%
+which will just generate the internal files, but no inference will be
+done.  In the current (seen from within \verb|R|) directory/folder,
+look for a new directory/folder named \verb|inla.model| and just send
+us that directory/folder. If you have one of these from before, then
+the new models are created as \verb|inla.model-1|,
+\verb|inla.model-2|, etc. In this case, send us the most recent
+one. With this option, your data stays almost secret, in the sense
+that they are there, but in a form that makes it very hard to extract
+any useful information about unless knowing how the model was
+defined. However, it contains in most cases what we need to rerun the
+model and check what is going on.
+
+
+\chapter{Fixed effect models: Bayesian GLM}
+
+This chapter discuss classical fixed effects models in a Bayesian
+context, and is essentially a Bayesian version of \verb|lm()| and
+\verb|glm()|\footnote{Due to implementation issues, large scale (pure)
+    fixed effects models in \tv{R-INLA} may scale badly and run slower
+    than their frequentist alternatives.}.
+
+We will now define Bayesian generalized linear models (BGLMs) to
+perform approximate fully Bayesian inference with INLA. These models
+can be written using a hierarchical representation where the first
+stage is formed by a likelihood function with conditional independence
+properties given the ($n_d \times 1$) vector of linear predictors
+$\bs{\eta}$ and the ($m \times 1$) vector of possible hyperparameters
+$\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 1.}] $\bs{y}|\bs{\eta},\bs{\theta} \sim
+    p(\bs{y}|\bs{\eta},\bs{\theta}) = \prod _{i=1}^{n_d} p(y_i|g^{-1}
+    (\eta _i), \bs{\theta})$,
+\end{list}
+where $\bs{y}$ is the ($n_d \times 1$) vector of data points and
+$g^{-1}(\cdot)$ is the inverse of the link function that connects the
+conditional mean of $y_i$ to the linear predictor $\eta _i$.  The
+second stage is formed by the systematic part of the model and states
+that the covariates are linearly related to the linear predictor. In
+matrix notation,
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta}, \quad
+    \bs{\beta} \sim N(\bs{\mu}, \text{diag}(\bs{\tau}^{-1}))$,
+\end{list}
+where $\bs{X}$ is a ($n_d \times p$) design matrix which have the $p$
+covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
+vector of regression coefficients. INLA attributes independent
+Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
+the regressor coefficients $\beta_i$, $i = 1,...,p$.  The hierarchical
+model is then completed with an appropriate prior distribution for a
+possible vector of hyperparameters $\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+  \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
+\end{list}
+
+\section{Specifying the linear predictor}
+
+As mentioned in Section \ref{bglm:sec:intro}, in generalized linear
+models, each data point is connected, through a link function, to a
+linear predictor. In matrix notation
+\begin{equation}
+    \bs{\eta} = \bs{X}\bs{\beta}.
+    \label{bglm:eq:linear_pred}
+\end{equation}
+
+Similar to linear models in \tv{R} (like \tv{lm()} and \tv{glm()}),
+the model is defined using a \emph{formula}; see
+\verb|?formula|.\footnote{One exception is that the specification
+    ``\texttt{y $\;\mbox{$\sim$}\;$ .}'' is not allowed.}
+That
+    is, the linear predictor can be specified using the formula
+    notation
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; a + b + a:b + c*d}
+\end{center}
+where \texttt{y} is the response and \texttt{a}, \texttt{b},
+\texttt{c} and \texttt{d} are covariates.  The meaning of the symbols
+\texttt{+}, \texttt{:} and \texttt{*} used  are as follows.
+\begin{description}
+\item[``+''] combine main effects, as in \tv{a + b}
+\item[``:''] for interaction terms, as in \tv{a:b}
+\item[``*''] for both main effects and interaction terms, so \tv{c*d = c+d+c:d}
+\end{description}
+In mathematical language, the model would read
+\begin{displaymath}
+    \eta_{i} = \mu 
+    + \beta_{a}a_{i}
+    + \beta_{b}b_{i}
+    + \beta_{ab}a_{i}b_{i}
+    + \beta_{c}c_{i}
+    + \beta_{d}d_{i}
+    + \beta_{cd}c_{i}d_{i}, \qquad i=1, \ldots, n
+\end{displaymath}
+where $\eta_{i}$ is the linear predictor for $y_{i}$ with a not yet
+defined likelihood.
+
+Note that an intercept $\mu$ is automatically added to the model,
+unless you say that you do not want it by adding term $-1$ or $0$:
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; -1 + ....}\\
+    \texttt{y \;\mbox{$\sim$}\; 0 + ....}
+\end{center}
+Similarly, adding term $1$ makes the intercept appear explicitly
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; 1 + ....}
+\end{center}
+A small example will illustrate these features.
+<<>>=
+n = 10
+x = rnorm(n)
+z = rnorm(n)
+y = 1 + x + z + x*z + rnorm(n)
+
+formula = y ~ x*z
+r = inla(formula, data = data.frame(y,x,z))
+r$summary.fixed
+@ 
+%%
+Note that we need to pass a \verb|data.frame| or a \verb|list|
+containing the variables
+
+It is also possible to use the design matrix $\bs{X}$ explicitly as in
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; X}
+\end{center}
+An alternative specification of the last example, is
+<<>>=
+formula = y ~ X
+X = cbind(x=x, z=z, "x:z"=x*z)
+r = inla(formula, data = list(y=y,X=X))
+r$summary.fixed
+@ 
+%%
+\tv{R-INLA} adds prefix ``X'' to the fixed effects names, to make the
+connection to the design-matrix $X$ explicit.
+
+\subsection{Prior for the fixed effects}
+
+As mentioned in Section \ref{bglm:sec:intro}, INLA attributes
+independent Gaussian priors for each fixed effect of the
+model. The mean and precision of each of the priors can be controlled
+using the argument \texttt{control.fixed} of the \texttt{inla}
+function.  The argument \texttt{control.fixed} needs to be a list, and
+the arguments relevant for the prior specification of the fixed
+effects are:
+\begin{itemize}
+\item \texttt{mean.intercept}: prior mean for the intercept. Default value is 
+    \Sexpr{inla.set.control.fixed.default()$mean.intercept}
+\item \texttt{prec.intercept}: precision for the intercept. Default
+    value is
+    \Sexpr{inla.set.control.fixed.default()$prec.intercept}\footnote{Note
+        that the this prior is improper!}
+\item \texttt{mean}: prior mean for all fixed effects except the
+    intercept.  Default is
+    \Sexpr{inla.set.control.fixed.default()$mean}.  Alternatively, a
+    named list with specific means where \texttt{name = default}
+    applies to unmatched names. For example
+    \begin{center}
+        \texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))} 
+    \end{center}
+    assign \texttt{mean = 1} to fixed effect \texttt{a}, \texttt{mean
+        = 2} to effect \texttt{b} and \texttt{mean = 0} to all others.
+\item \texttt{prec}: Similar to the \texttt{mean} argument above,
+    \texttt{prec} set the precision for all fixed effects except the
+    intercept.  Default is
+    \Sexpr{inla.set.control.fixed.default()$prec}.  Alternatively, a
+    named list with specific precisions where \texttt{name = default}
+    applies to unmatched names.
+\end{itemize}
+As an example, assume we have a model with an intercept and four fixed
+effects \tv{a}, \tv{b}, \tv{c} and \tv{d} and we want the intercept to
+have mean $0$ and precision $10$, the fixed effect \tv{b} to have mean
+$3$ and precision $5$ and the remaining to have mean $10$ and
+precision $20$. Then the prior specification in this case would be
+<<eval=FALSE,echo=TRUE>>=
+control.fixed = list(mean.intercept = 0,
+                     prec.intercept = 10,
+                     mean = list(b = 3, default = 10),
+                     prec = list(b = 5, default = 20))
+inla(..., control.fixed = control.fixed)
+@ 
+%%
+
+\section{Looking at the results}
+
+The result from an \tv{inla()}-call returns an object with class
+\tv{inla}
+<<>>=
+class(r)
+@ 
+%%
+and with a lot of contents:
+<<>>=
+names(r)
+@ 
+%%
+Not all of the contents are of interest for the typical user, but some
+of the objects are, which we now will discuss. 
+
+With a result-object you can get a summary using
+<<>>=
+summary(r)
+@ 
+%%
+which shows the call itself, time usage (broken into preprocessing the
+model and data, doing the computations, and reading the results back
+and postprocess them), (statistical) summary for the fixed effects
+(and random effects when they are included), summary for the
+hyperparameters $\theta$, an estimate for the effective number of
+parameters in the model, and number of observations pr effective
+number of parameters, and the estimate for the (log-)marginal
+likelihood.
+
+\subsection{Posterior marginals}
+
+The main task for the inference is to compute posterior
+marginals. These marginals are stored in the object
+\verb|marginals.fixed|
+<<>>=
+str(r$marginals.fixed)
+@ 
+%%
+each element in the list contains a two-column matrix with the
+density-values $(x_{i}, y_{i})$, so
+<<>>=
+head(r$marginals.fixed[["Xx"]])
+@ 
+%%
+and we can plot this marginal
+\begin{center} 
+<<eval=TRUE>>=
+marg = r$marginals.fixed[["Xx"]]
+plot(marg)
+@ 
+%%
+\end{center}
+or make it more smooth
+\begin{center} 
+<<eval=TRUE>>=
+marg = r$marginals.fixed[["Xx"]]
+plot(inla.smarginal(marg), type="l")
+@ 
+%%
+\end{center}
+where \verb|inla.smarginal| interpolates the points using splines (in
+log-scale); see \verb|?inla.smarginal|.
+
+The posterior marginals for the hyperparameters $\theta$, which is
+this simple regression example is the precision for the Gaussian
+observations, is found similarly as
+\verb|marginals.hyper|
+<<>>=
+str(r$marginals.hyper)
+@ 
+%%
+
+From a marginal, we can also compute expectations, like the mean
+<<eval=TRUE>>=
+inla.emarginal(function(x) x, marg)
+@ 
+%%
+or the variance
+<<eval=TRUE>>=
+e = inla.emarginal(function(x) c(x,x^2), marg)
+print(e[2] - e[1]^2)
+@ 
+%%
+or quantiles
+<<>>=
+inla.qmarginal(0.5, marg)
+@ 
+%%
+or produce samples
+<<>>=
+inla.rmarginal(5, marg)
+@ 
+%%
+or compute marginals for a transformed variable
+<<echo=TRUE>>=
+exp.marg = inla.tmarginal(function(x) exp(x), marg)
+plot(inla.smarginal(exp.marg), type="l")
+@ 
+%%
+
+\subsection{Posterior summary}
+
+If only summary-statistics of the posterior marginals are required, then
+<<>>=
+str(r$summary.fixed)
+str(r$summary.hyper)
+@ 
+%%
+provide summaries including the expectation, standard deviations and
+quantiles. For example
+<<>>=
+r$summary.fixed[, "mean"]
+r$summary.hyper[, "mean"]
+@ 
+%%
+provide the posterior means. 
+
+Note that the posterior means reported may deviate, a little, from
+those computed from the marginal itself, like
+<<>>=
+e.1 = r$summary.fixed["Xx", "mean"]
+e.2 = inla.emarginal(function(x) x, r$marginals.fixed[["Xx"]])
+print(e.1 - e.2)
+@ 
+%%
+as those results reported in \verb|r$summary.fixed| are computed with a
+different (and higher) resolution of the posterior marginal.
+
+
+
+\chapter{Likelihood models}
+
+\section{Available models}
+
+
+
+\section{Setting priors for hyperparameters}
+
+\section{\tv{NA} is the response}
+
+
+
+\chapter{Random effects models}
+
+This chapter discusses the definition of random effects models.
+Going back to Equation~\ref{eq:model_linPred}, we describe the
+specification of Gaussian random effects models of the form
+\begin{equation*}
+  \mm{w} \cdot f(\mm{c}; \mm{\theta}),
+\end{equation*}
+where $\mm{w}$ denotes a vector of known weights for the effect and $\mm{\theta}$
+represents the hyperparameters of the Gaussian model.
+
+\section{Model definition using the {\tt f()}-function}
+A random effects model can be defined using the {\tt f()}-function.
+% :
+% \begin{verbatim}
+%       f(<covariate>, [<weights>], model=<identifier>, hyper, ...)
+% \end{verbatim}
+This function allows to specify the latent model to be used, the prior distributions
+ for its hyperparameters, linear constraints,
+and much more. In this section we will describe the most important
+components of the {\tt f()}-function. More advanced topics like replicating
+a latent model, or grouping several latent models will be described later in detail.
+
+\subsection{First two arguments: Covariate and weights vector}
+The {\tt f()}-function takes as first argument the covariate to
+be modeled. To define an independent and identically distributed (iid)
+random effect for each observation. This is simply an index
+$c=1,2,\ldots,n$, with $n$ denoting the total number of observations,
+leading to:
+\begin{verbatim}
+        f(c, model="iid")
+\end{verbatim}
+A smooth effect, e.g.~a random walk of second order (RW2),
+of a covariate $\mm{c}=(c_1, \ldots, c_n)^\top$, assuming
+covariate values $c_i$ for observation $i$, can be obtained by
+\begin{verbatim}
+        f(c, model="rw2")
+\end{verbatim}
+The second argument of the {\tt f()}-function is an optional vector of
+known weights $\mm{w}$ (one for each covariate value), leading to
+\begin{verbatim}
+        f(c, w, model="rw2")
+\end{verbatim}
+
+To  reduce the number of unique values of a covariate the
+helper function {\tt inla.group()} can be used. This might help to reduce
+numerical instabilities. For example,
+\begin{verbatim}
+inla.group(c, n=20)
+\end{verbatim}
+groups the covariate values into 20 classes. For more information
+type {\tt ?inla.group} within {\tt R}. The resulting {\tt f()}-function
+changes to
+\begin{verbatim}
+        f(inla.group(c, n=20), w, model="rw2")
+\end{verbatim}
+To define all values assumed by a covariate and
+for which an effect should be estimated,  the optional field
+{\tt values} can be used. Here, a numerical vector, a vector of
+factors or ‘NULL’ can be set:
+\begin{verbatim}
+        f(c, w, model="rw2", values=<values assumed by the covariate>)
+\end{verbatim}
+
+\section{Available latent Gaussian models}
+
+Table~\ref{tab:latentModels} gives an overview of all implemented latent Gaussian models.
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Model & Identifier\\
+\midrule
+Independent random noise &  {\tt iid}\\
+Random walk of order 1  &     {\tt rw1  }\\
+Random walk of order 2  &    {\tt rw2 }\\
+Random walk of order 2 on a lattice   &    {\tt rw2d  }\\
+Continuous random walk of order 2 &     {\tt crw2   }\\
+Model for seasonal variation &     {\tt seasonal  }\\
+Model for spatial effect   &   {\tt besag   }\\
+Model for spatial effect (proper version)  &    {\tt besagproper    }\\ 
+Model for weighted spatial effects   &    {\tt besag2 }\\
+Model for spatial effect + random effect &     {\tt bym }\\
+Autoregressive model of order 1  &     {\tt ar1 }\\
+Autoregressive model of order p &     {\tt ar}\\
+The Ornstein-Uhlenbeck process  &    {\tt ou}\\
+User defined structure matrix, type 0  &    {\tt generic0 }\\
+User defined structure matrix, type 1   &    {\tt generic1  }\\
+User defined structure matrix, type 2  &     {\tt generic2   }\\
+Model for correlated effects with Wishart prior &\\
+ (dimension 1, 2, 3, 4 and 5) &      {\tt iid1d, iid2d, iid3d, iid4d, iid5d}\\
+%(Quite) general latent model   &    {\tt z   }\\
+Gaussian field with Matern covariance function  &     {\tt matern2d   }\\
+Classical measurement error model &      {\tt mec     }\\
+Berkson measurement error model  &    {\tt meb }\\
+\bottomrule
+\end{tabular}
+\caption{List of latent Gaussian field implemented in the R inla package.}\label{tab:latentModels}
+\end{center}
+\end{table}
+Specific documentation for each model can be found on \url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model documentation can be requested using the function {\tt inla.doc(<identifier>)}, e.g.~{\tt inla.doc("rw1")},
+% , for example
+% <<echo=TRUE, eval=FALSE>>=
+% inla.doc("rw1")
+% @
+which will open a documentation pdf-file. Each documentation file has the same structure:
+\begin{enumerate}
+        \item Description of the model parameterization.
+        \item Definition of the hyperparameters.
+        \item Model specification using R-INLA.
+        \item Hyperparameter specification and default values of the model.
+        \item Illustration of usage using a small simulated example.
+\end{enumerate}
+
+
+\section{Specification of hyperparameter settings}
+
+The model to be used is specified by setting the item
+{\tt model} equal to the model identifier listed in
+Table~\ref{tab:latentModels}, e.g.~{\tt model=mec} to
+use the classical measurement error model.
+
+Each latent model depends on a certain number of hyperparameters,
+e.g.~the {\tt iid} model has one hyperparameter namely the precision,
+for which prior distributions
+need to be specified. The prior distribution is not always defined on
+the original parameter scale but sometimes on a transformed
+quantity. For example precision parameters are modelled on the
+log scale. Of note, posterior marginals and summary estimates are
+returned on the original scale.
+
+To set the details for the hyperparameters the field {\tt hyper} of
+the {\tt f()} function is used, which takes as argument a list. This
+list has as many entries as hyperparameters exist for the latent model.
+For each hyperparameter again a list containing the prior settings is
+defined.
+The prior settings for a precision parameter, in case of the {\tt rw2}
+model for example, are set via:
+\begin{Verbatim}[gobble=0,numbers=left]
+hyper=list(
+  prec=list(
+    prior="loggamma",
+    param=c(1, 1e-04),
+    initial=4,
+    fixed=FALSE,
+    to.theta = function(x) log(x),
+    from.theta = function(x) exp(x)
+  )
+)
+\end{Verbatim}
+{\tt prec} in line 2 is the short name identifier to indicate that
+the settings specified in the subsequent list belong to the precision
+parameter. Internally the precision parameter is log-transformed and
+all prior settings are defined for the transformed parameter.
+The transformation used can be seen in lines 7 and 8.
+Here, we use a log-gamma distribution  with parameters $1$ and
+$1e-04$ (lines 3 and 4). It is also possible to fix the hyperparameter setting
+the field {\tt fixed = TRUE} in line 6.
+The value to which it should be fixed
+is assigned to {\tt initial} in line 5. If {\tt fixed=FALSE} the value
+set in {\tt initial} is used as starting value.
+
+For a latent model with more than one hyperparameter several of prior lists
+can be specified in {\tt hyper}. For example for an AR1 model, which
+has two hyperparameters,  the corresponding specification would be:
+
+\begin{Verbatim}[gobble=0,numbers=left]
+hyper=list(
+  prec=list(
+    prior="loggamma",
+    param=c(1, 1e-04),
+    initial=4,
+    fixed=FALSE,
+    to.theta = function(x) log(x),
+    from.theta = function(x) exp(x)
+  ),
+  rho=list(
+    prior = "normal",
+    param = c(0, 0.15),
+    initial = 2,
+    fixed = FALSE,
+    to.theta = function(x) log((1+x)/(1-x)),
+    from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+  )
+)
+\end{Verbatim}
+Here, a log-gamma distribution with parameters  $1$ and $1e-04$ is assigned
+to the log-precision parameter and a normal distribution with mean $0$
+and precision $0.15$ is assigned to the logit-transformed lag one correlation
+parameter.
+
+The details on the hyperparameters  (number, identifier names, \ldots)
+and default values of all latent models can be requested within {\tt R}
+using the function {\tt inla.model.properties(<identifier>, "latent")}.
+They are also given in the documentary pdf file of the model or
+listed when typing {\tt ?inla.models}.
+
+\section{Prior distributions for the hyperparameters}
+See Sections ....
+
+\section{General options}
+
+Besides the type of latent model and its hyperparameter settings
+some general options can be specified. All available options are
+listed on the help page of the {\tt f()}-function, found via {\tt ?f}.
+The most important options are
+
+\begin{itemize}
+        \item[{\tt constr}:] A boolean variable indicating whether to
+        set a sum to zero. By default the sum to zero constraint is
+    imposed on all intrinsic models ("iid","rw1","rw2","besag", etc..)
+        \item[{\tt extraconstr}] This argument defines extra linear
+        constraints. The argument is a list with two elements, a matrix
+        {\tt A} and a
+        vector {\tt e}, which defines the extra constraint {\tt Ax = e};
+        leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
+        constraint comes additional to the
+        sum-to-zero constraint defined if {\tt constr = TRUE}.
+        \item[{\tt quantile}:]A vector of maximum $10$ quantiles
+        to compute for each posterior marginal.
+        \item[{\tt rankdef}:] A number *defining* the rank deficiency of
+                the latent model.
+\end{itemize}
+
+\section{Looking at the results}
+\section{Example}
+
+\chapter{Options for the \tv{inla}-call}
+
+\section{General options}
+\section{Specific options: \tv{control.xxx}}
+
+
+
+\chapter{Extensions and other cool features}
+
+\section{Using more than one type of likelihood models}
+
+\section{Feature: \tv{copy}}
+
+Consider the scenario
+\begin{equation}
+        \begin{split}
+        {y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+        \eta_i &= a_i + b_i z_i,\\
+        (a_i, b_i) &\stackrel{\text{iid}}{\sim} \mathcal{N}_2(\mm{0}, \mathbf{Q}^{-1}),
+        \end{split}
+        \label{eq:bivNormal}
+\end{equation}
+with $i=1, \ldots, n$ and where $\mm{z}$ represents a known covariate. The bivariate Gaussian model for $(a_i, b_i)$ can be defined in {\tt R-INLA} using {\tt f(idx, model="iid2d", n=2*n, ...)}. However, the model definition
+<<echo=TRUE, eval=FALSE>>=
+formula <- y ~ f(idx, model="iid2d", n=2*n, ...) - 1
+@
+does not define a model where $\eta_i$ is connected to the two elements $a_i$ and $b_i$ of the bivariate Gaussian model. For this purpose the copy feature was added to the INLA function, so that situations where a latent field is needed more than once for each observation can be handled.
+
+Let $\mm{v} = (a_1, \ldots, a_n, b_1, \ldots, b_n)^\top$. To implement model~\eqref{eq:bivNormal} we simply create an almost identical copy of $\mm{v}$, namely $\mm{v}^\star$. The latent field is thereby extended to $\mm{v}_c = (\mm{v}, \mm{v}^\star)$ with $\pi(\mm{v}_c) = \pi(\mm{v}) \pi(\mm{v}^\star | \mm{v})$ and
+\begin{equation}
+        \pi(\mm{v}^\star|\mm{v}, \beta, \kappa) \propto \exp\left(-\frac{\kappa}{2} (\mm{v}^\star - \beta \mm{v})^\top(\mm{v}^\star - \beta \mm{v})\right). \label{eq:copy}
+\end{equation}
+The precision $\kappa$, fixed to some large value, controls the similarity between $\mm{v}^\star$ and $\mm{v}$ (default value: $10^9$).  Of note, a copied model may contain in addition an unknown scale parameter $\beta$ (compare second example in this section), which per default is fixed to one.
+
+
+Using the copy-feature, we can specify model~\eqref{eq:bivNormal} as
+<<echo=TRUE, eval=FALSE>>=
+idx = 1:n
+idx.copy = n + 1:n
+formula <- y ~ f(idx, model="iid2d", n=2*n, ...) +
+               f(idx.copy, z, copy="idx", ...) - 1
+@
+recalling that the first $n$ elements correspond to $\mm{a}$ and the last $n$ elements to $\mm{b}$, and where {\tt z} denotes the covariate. The second  {\tt f()} term defines itself as a copy of {\tt f(idx, \ldots)}, and hence inherits some of its features, such as {\tt n} or {\tt values}.
+
+A simulation is used to illustrate the details of the model specification. The random effects $(a_i, b_i)$, $i=1,\ldots, 1000$ are sampled from a bivariate Gaussian distribution with marginal precisions equal to one and a correlation between $\mm{a}$ and $\mm{b}$ equal to $0.8$. Then, $\mm{y} = (y_1, \ldots, y_n)$ is simulated according to~\eqref{eq:bivNormal} with $\tau=1$.
+<<>>=
+library(mvtnorm)
+n = 1000
+Sigma = matrix(c(1, 0.8, 0.8, 1), 2, 2)
+z = rnorm(n)
+ab = rmvnorm(n, sigma = Sigma) 
+a = ab[, 1]
+b = ab[, 2]
+eta = a + b * z
+y = eta + rnorm(n, sd = 1)
+hyper.gaussian = list(prec = list(prior = "loggamma", param = c(1, 0.2161)))
+idx = 1:n # use only the first n elements (a_1, ..., a_n)
+idx.copy = 1:n + n # use only the last n elements (b_1, ..., b_n)
+formula = y ~ f(idx, model = "iid2d", n = 2*n) +
+              f(idx.copy, z, copy = "idx") - 1
+result = inla(formula, data = list(y = y, z = z, idx=idx, idx.copy = idx.copy),
+              family = "gaussian",
+              control.family = list(hyper = hyper.gaussian))
+
+plot(result)
+@
+
+A copied model may also have an unknown scaling parameter. Consider for example
+\begin{equation*}
+        \begin{split}
+        {y_i} &\sim \mathcal{N}(\eta_i, \tau^{-1}), \\
+        \eta_i &= x_i + \beta x_i z_i.\\
+        \end{split}
+        \label{eq:bivNormal2}
+\end{equation*}
+Here, $\mm{z}$ still denotes a known covariate, but $\beta \sim \mathcal{N}(\mu, \kappa)$ denotes an unknown scale parameter. In the following example, we estimate $\beta$, assuming  the precision for $\mm{x}$ is known.
+<<>>=
+n = 1000
+idx = 1:n
+idx.copy = idx
+x = rnorm(n)
+z = runif(n)
+eta = x + 2*x*z
+y = eta + rnorm(n)
+prior.beta <- c(0, 0.0001)
+formula = y ~ f(idx, model="iid", hyper=list(prec=list(initial=0, fixed=TRUE))) +
+              f(idx.copy, z, copy="idx",
+                hyper=list(beta=list(prior="normal", param=prior.beta, fixed=FALSE))) - 1
+result = inla(formula, data=data.frame(idx, idx.copy, z, y))
+@
+If the scaling parameter is within a given range, then the option {\tt range = c(l, u)} can be added. In this case $\beta = l + (h-l)\exp(\beta_{\text{local}})/(1+\exp(\beta_{\text{local}}))$, and the prior is defined on $\beta_{\text{local}}$. If $l=h$ or {\tt range = NULL}, then the identity mapping is used. If {\tt h = Inf} and {\tt l != Inf}, then the mapping $l + \exp(\beta_{\text{local}})$ is used. The case {\tt l = Inf} and {\tt h != Inf} is not yet implemented. Models which require the use of the copy function together with the estimation of the unknown scaling parameter can be found for example in the measurement error context, see \citet{muff-etal-2013} for more details and the corresponding R-INLA code.
+
+A model or a copied model can be copied several times. The degree of closeness of $\mm{v}$ and $\mm{v}^\star$ is specified by the argument precision, which represents $\kappa$ in~\eqref{eq:copy}.
+
+\section{Feature: \tv{replicate}}
+
+\section{Feature: \tv{group}}
+
+\section{Feature: \tv{A-matrix}}
+
+\section{Feature: \tv{linear combinations}}
+
+\section{Defining your own prior distribution for hyperparameters}
+
+Besides the list of available prior functions for hyperparameters, compare \ref{sec:}, it is even possible to define user-specific prior distributions. This might be needed to incorporate expert-motivated prior distributions or to use prior distributions that are non-standard.
+
+There are three ways to specify prior distributions for hyperparameter in INLA:
+\begin{enumerate}
+        \item Use an available prior distribution.
+        \item Define your own prior distribution function using R-like (not equal) syntax as expression.
+        \item Assign a table of x and corresponding y values which represent your prior distribution.
+\end{enumerate}
+
+In the following we will provide more details regarding 2.) and 3.). Finally, we will present an example illustrating (and comparing) the three different possibilities by means of the log-gamma distribution for the precision parameter.
+
+\subsection{“Expression”: a do-it-yourself prior}
+
+A user can specify any (univariate) prior distribution by defining an expression for the log-density $\log\pi(\theta)$, as a function of the corresponding $\theta$. Here, it is important to be aware that $\theta$ is defined on the internal scale.
+
+The expression is evaluated using the
+\texttt{muparser}-library\footnote{See
+    \texttt{http://muparser.sourceforge.net/} for more documentation},
+with some changes to make it more
+``\texttt{R}''-like in style. The format is
+\begin{quote}
+    \texttt{expression: <statement>; <statement>; ...; return(<value>)}
+\end{quote}
+where ``\texttt{<statement>}'' is any regular statement (more below)
+and ``\texttt{<value>}'' is the value for the
+log-density of the prior, evaluated at the current value for $\theta$.
+
+Here, is an example defining the log-gamma distribution:
+\begin{verbatim}
+prior.expression = "expression:
+            a = 1;
+            b = 0.1;
+            precision = exp(log_precision);
+            logdens = log(b^a) - lgamma(a)
+                      + (a-1)*log_precision - b*precision;
+            log_jacobian = log_precision;
+            return(logdens + log_jacobian);"
+\end{verbatim}
+
+Some syntax specific notes:
+\begin{enumerate}
+\item \verb|return (x)| (with a space before ``(.)'') is NOT allowed,
+    it must be \verb|return(x)|.
+\item A ``;'' is needed to terminate each expression.
+\item You can use ``\verb|_|'' in variable-names, like
+    \verb|log_precision = <whatever>|; see the following example.
+\end{enumerate}
+
+Known functions that can be used within the \texttt{expression} statement are:
+\begin{itemize}
+\item common math functions, such as \verb exp(x), \verb sin(x), $\ldots$.
+\item \verb|gamma(x)| denotes the gamma-function and \verb|lgamma(x)| is
+    its $\log$ (see \verb|?gamma| in \verb|R|).
+\item \verb|pi| is $\pi$
+\item $x^y$ is expressed as either \verb|x^y| or \verb|pow(x;y)|
+\end{itemize}
+
+\subsection{“Table”: provide a suitable set of support points}
+
+Instead of defining a prior distribution function, it is possible to provide a table of suitable support values $x$ (internal scale) and the corresponding log-density values $y$. INLA fits a spline through the provided points and continues with this in the succeeding computations. Note, there is no transformation into a functional form performed or required.
+
+The input-format for the table is a string, which starts with \texttt{table: } and is then followed by a block of $x$-values and  a block of the corresponding $y$-values, which represent the values of the log-density evaluated on $x$. Thus
+\begin{quote}
+    ``\texttt{table: x\_1 ... x\_n y\_1 ... y\_n}''
+\end{quote}
+
+\subsection{Example: The log-gamma distribution}
+
+We illustrate all three different ways of defining a prior distribution for the residual precision of a normal likelihood. To show that the three definitions lead to the same result we inspect the log-marginal likelihood.
+
+<<echo=FALSE, eval=TRUE>>=
+set.seed(1352)
+@
+<<echo=TRUE, eval=TRUE, tidy=FALSE>>=
+## the loggamma-prior 
+prior.function = function(log_precision) {
+    a = 1;
+    b = 0.1;
+    precision = exp(log_precision);
+    logdens = log(b^a) - lgamma(a) + (a-1)*log_precision - b*precision;
+    log_jacobian = log_precision;
+    return(logdens + log_jacobian)
+}
+
+## implementing the loggamma-prior using "expression:"
+prior.expression = "expression:
+            a = 1;
+            b = 0.1;
+            precision = exp(log_precision);
+            logdens = log(b^a) - lgamma(a)
+                      + (a-1)*log_precision - b*precision;
+            log_jacobian = log_precision;
+            return(logdens + log_jacobian);"
+
+## use suitable support points x
+lprec = seq(-10, 10, len=100)
+## link the x and corresponding y values into a string which begins with "table:""
+prior.table = paste(c("table:", cbind(lprec, prior.function(lprec))), sep="", collapse=" ")
+
+# simulate some data
+n = 50
+y = rnorm(n)
+
+## 1. use the built-in loggamma prior
+r1 = inla(y~1,data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = "loggamma", param = c(1, 0.1)))))
+
+## 2. use the definition using expression
+r2 = inla(y~1,
+        data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = prior.expression))))
+
+## 3. use a table of x and y values representing the loggamma prior
+r3 = inla(y~1,
+        data = data.frame(y),
+        verbose=T,
+        control.family = list(hyper =
+            list(prec = list(prior = prior.table))))
+
+## and we verify that we get the same result using the log-marginal likelihood
+c(r1$mlik[1], r2$mlik[1], r3$mlik[1])
+@
+
+
+\chapter{Troubleshooting and FAQs}
+
+
+
+
+
+\chapter{}
+
+
+
+%%
+\clearpage
+
+
+
+
+\chapter{Bayesian generalized linear model}
+
+\section{Introduction}\label{bglm:sec:intro}
+
+In this chapter, we cover how to define Bayesian generalized linear
+models (BGLMs) to perform approximate fully Bayesian inference with
+INLA. These models can be written using a hierarchical representation
+where the first stage is formed by a likelihood function with
+conditional independence properties given the ($n_d \times 1$) vector
+of linear predictors $\bs{\eta}$ and the ($m \times 1$) vector of
+possible hyperparameters $\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 1.}] $\bs{y}|\bs{\eta},\bs{\theta} \sim
+    p(\bs{y}|\bs{\eta},\bs{\theta}) = \prod _{i=1}^{n_d} p(y_i|g^{-1}
+    (\eta _i), \bs{\theta})$,
+\end{list}
+where $\bs{y}$ is the ($n_d \times 1$) vector of data points and
+$g^{-1}(\cdot)$ is the inverse of the link function that connects the
+conditional mean of $y_i$ to the linear predictor $\eta _i$.  The
+second stage is formed by the systematic part of the model and states
+that the covariates are linearly related to the linear predictor. In
+matrix notation,
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta}, \quad
+    \bs{\beta} \sim N(\bs{\mu}, diag(\bs{\tau}^{-1}))$,
+\end{list}
+where $\bs{X}$ is a ($n_d \times p$) design matrix which have the $p$
+covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
+vector of regression coefficients. INLA attributes independent
+Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
+the regressor coefficients $\beta_i$, $i = 1,...,p$.  The hierarchical
+model is then completed with an appropriate prior distribution for a
+possible vector of hyperparameters $\bs{\theta}$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+  \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
+\end{list}
+
+\section{Latent field}
+
+\subsection{Specifying the linear predictor}
+
+As mentioned in Section \ref{bglm:sec:intro}, in generalized linear
+models, each data point is connected, through a link function, to a
+linear predictor. In matrix notation
+\begin{equation}
+    \bs{\eta} = \bs{X}\bs{\beta}.
+    \label{bglm:eq:linear_pred}
+\end{equation}
+
+The specification of the linear predictor (\ref{bglm:eq:linear_pred})
+in INLA follows the same pattern found in \texttt{lm} and \texttt{glm}
+functions available in \texttt{R}.  That is, the linear predictor can
+be specified using the standard
+\begin{equation}
+    \texttt{formula = y ~ a + b + a:b + c*d}
+    \label{bglm:eq:formulaspec}
+\end{equation}
+where \texttt{y} is the response and \texttt{a}, \texttt{b},
+\texttt{c} and \texttt{d} are covariates.  Table
+\ref{bglm:tab:lmsymbols} display the meaning of the symbols
+\texttt{+}, \texttt{:} and \texttt{*} used in
+(\ref{bglm:eq:formulaspec}).
+
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{|c|l|}
+        \hline
+        + & to combine main effects, as in a + b \\
+        \hline
+        : & for interaction terms, as in a:b; \\
+        \hline
+        * & for both main effects and interaction terms, so c*d = c+d+c:d \\
+        \hline
+    \end{tabular}
+    \caption{Meaning of the symbols used in the formula for specification of fixed effects.}
+    \label{bglm:tab:lmsymbols}
+\end{table}
+
+Instead of using the formula specification
+(\ref{bglm:eq:formulaspec}), it is also possible to use the design
+matrix $\bs{X}$ explicitly as in
+\begin{equation}
+    \texttt{formula = y ~ X}
+    \label{bglm:eq:designspec}
+\end{equation}
+where in this case the design matrix $\bs{X}$ is used as input for the 
+\texttt{inla} function together with the response vector $\bs{y}$ in 
+a list object of the form
+\begin{center}
+    \texttt{inla(..., data = list(y=y, X=X), ...)}
+\end{center}
+
+More details about the two forms (\ref{bglm:eq:formulaspec}) and
+(\ref{bglm:eq:designspec}) of specifying fixed effects in INLA can be
+found on the examples of Section \ref{bglm:sec:examples}.
+
+\subsection{Prior for the fixed effects}
+
+As mentioned in Section \ref{bglm:sec:intro}, INLA attributes
+independent Gaussian priors for each one of the fixed effects of the
+model. The mean and precision of each of the priors can be controlled
+using the argument \texttt{control.fixed} of the \texttt{inla}
+function.  The argument \texttt{control.fixed} needs to be a list, and
+the arguments relevant for the prior specification of the fixed
+effects are:
+\begin{itemize}
+\item \texttt{mean.intercept}: prior mean for the intercept. Default value is 0.
+\item \texttt{prec.intercept}: precision for the intercept. Default value is 0.
+\item \texttt{mean}: prior mean for all fixed effects except the intercept.
+    Alternatively, a named list with specific means where \texttt{name = default} 
+    applies to unmatched names. For example 
+\texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))} assign
+\texttt{mean = 1} to fixed effect \texttt{a}, \texttt{mean = 2} to effect 
+\texttt{b} and \texttt{mean = 0} to all others.
+\item \texttt{prec}: Similar to the \texttt{mean} argument above, \texttt{prec} set the 
+    precision for all fixed effects except the intercept. Alternatively, a named list with 
+    specific precisions where \texttt{name = default} applies to unmatched names.
+\end{itemize}
+
+As an example, assume we have a model with an intercept and four fixed
+effects \tv{a}, \tv{b}, \tv{c} and \tv{d} and we want the intercept to
+have mean $0$ and precision $10$, the fixed effect \tv{b} to have mean
+$3$ and precision $5$ and the remaining to have mean $10$ and
+precision $20$. Then the prior specification in this case would be
+
+\begin{verbatim}
+control.fixed = list(mean.intercept = 0,
+                     prec.intercept = 10,
+                     mean = list(b = 3, default = 10),
+                     prec = list(b = 5, default = 20))
+
+result = inla(..., control.fixed = control.fixed, ...)
+\end{verbatim}
+
+\section{Likelihood function}
+
+For BGLMs, the likelihood function belong to the exponential family,
+as for example the Gaussian and Poisson case. When defining a
+likelihood function for use with INLA, some aspects deserves
+attention.
+\begin{enumerate}
+\item \textbf{Parameterization}: For example, in the Gaussian case, the
+    parameterization used by INLA is mean $\mu$, precision $\tau$, and
+    a possible (known) scale parameter $s$ for each observation, so
+    that for data point $y_i$, we have a mean $\mu_i$ and variance
+    $\sigma_i = \frac{1}{s_i\tau}$
+
+\item \textbf{Link function}: Check how the linear predictor is
+    connected to a specific parameter of the likelihood function. In
+    the Gaussian case, the linear predictor $\eta$ is connected to the
+    mean $\mu$ through an identity link function, while for the
+    Poisson case, the linear predictor is connected to the mean
+    $\lambda$ through $\eta = \log (\lambda)$.
+
+\item \label{bglm:enum:hyper} \textbf{Hyperparameters}: Every unknown
+    likelihood parameter that is not connected to the linear predictor
+    is considered to be a hyperparameter. For the Gaussian likelihood,
+    the precision parameter $\tau$ is considered a
+    hyperparameter. Every hyperparameter has an internal
+    parameterization. For example, the internal parameterization of the
+    precision parameter $\tau$ in the Gaussian case is $\theta = \log
+    (\tau)$, and the prior specification is done using the
+    $\theta$-parameterization.
+
+\item \textbf{Prior for hyperparameters}: As mentioned on item
+    \ref{bglm:enum:hyper}, the priors for the hyperparameters are
+    defined using the internal parameterization. For example, in the
+    Gaussian case the prior is defined for $\theta$, where $\theta =
+    \log (\tau)$.
+
+    The prior specification for the hyperparameters of the likelihood
+    function should be defined using the \texttt{control.family}
+    argument of the \tv{inla} function, using the following format
+
+    \begin{center}
+        \tv{inla(..., control.family = list(hyper = hyper.lik), ...)} 
+    \end{center}
+    
+    where \texttt{hyper.lik} is a list with one component for each
+    hyperparameter in the likelihood, and each component on this list
+    should be a list with information about the prior distribution for
+    that specific hyperparameter.
+ 
+    For the Gaussian case, we would have:
+    
+\begin{verbatim}
+  hyper.lik = list(prec = prec) # There is only one
+                                # hyperparameter
+
+  prec = list(prior = "loggamma", # name of the prior
+              param = c(2,0.01),  # parameters of the prior
+              initial = log(200)) # initial value for 
+                                  # optmization algorithm.
+\end{verbatim}
+    
+    This might seem a little complicated now but will become clearer
+    when we go through several examples later in Section
+    \ref{bglm:sec:examples}.
+    
+\end{enumerate}
+
+\section{Goodness of fit and predictive measures}
+
+\section{\tv{inla()} function and the resulting object}
+
+Up to this point we have learned how to include fixed effects in the
+linear predictor, how to chose the family of the likelihood function,
+and how to set up priors for the fixed effects and the hyperparameters
+in the model. Now we just need to join all this together and use it as
+arguments for the \tv{inla()} function:
+
+\begin{verbatim}
+## calling the inla function
+result = inla(# formula for the linear predictor
+              formula,
+              # prior for the fixed effects
+              control.fixed,
+              # dataset
+              data,
+              # family distribution
+              family,
+              # prior for hyperparameters in the likelihood function
+              control.family)
+\end{verbatim}
+
+After you have run your model with INLA using the above function,
+the resulting object will be stored in the \tv{result} variable. This
+will be a S3 object with several attributes and we will now highlight
+the most important ones.
+
+With \tv{result\$summary.fixed} one can access the summary matrix for
+the fixed effects which contains by default the mean, standard
+deviation, and the $(0.025, 0.5, 0.975)$ quantiles. Similarly, we use
+\tv{result\$summary.hyper} to obtain the summary matrix for the
+hyperparameters in the model.
+
+In some applications we need to go beyond point estimates and have
+access to the posterior distributions of the fixed effects and
+hyperparameters.  We can access those with
+\tv{result\$marginals.fixed} and \tv{result\$marginals.hyper},
+respectively. Those objects are a named list with one element for each
+parameter, and each of these elements are a matrix with two columns
+where the first column hold the x-axis and the second column hold the
+y-axis of the marginal posterior distribution. As an example, if we
+fit a model where the linear predictor is defined by
+\begin{center}
+\tv{formula = y ~ 1 + a + b}
+\end{center}
+we can expect something similar to the following structure for 
+\tv{result\$marginals.fixed}:
+
+\small{
+\begin{verbatim}
+$`(Intercept)`
+                x            y
+ [1,] -35.2578230 1.672335e-08
+ [2,] -31.2495132 6.823312e-08
+         ...         ...
+[80,] 108.5801057 2.072500e-08
+[81,] 112.7888309 4.417685e-09
+
+$a
+                  x            y
+ [1,] -0.7176915644 1.999485e-06
+ [2,] -0.6841669015 8.158126e-06
+          ...          ...
+[80,]  0.4853387317 2.477937e-06
+[81,]  0.5205396278 5.281901e-07
+
+$b
+                 x            y
+ [1,] -0.688182689 2.624530e-06
+ [2,] -0.662642127 1.070838e-05
+           ...         ...
+[80,]  0.228338654 3.252553e-06
+[81,]  0.255156244 6.933052e-07
+\end{verbatim}
+}
+\noindent That is, in this example, \tv{result\$marginals.fixed}
+returns a named list with elements \tv{(Intercept)}, \tv{a} and
+\tv{b}, each of which is a matrix with two columns, as expected.
+
+
+\section{Examples}\label{bglm:sec:examples}
+
+\subsection{Carbohydrate data - Normal linear model}
+
+\subsubsection*{Example description}
+
+The data displayed in table \ref{tab:bayesglm:carbdata} was taken from
+\cite{dobson1983introduction}.  The data show responses, percentages
+of total calories obtained from complex carbohydrates, for twenty male
+insulin-dependent diabetics who had been on a high-carbohydrate diet
+for six months. Compliance with the regime was thought to be related
+to age (in years), body weight (relative to 'ideal' weight for height)
+and other components of the diet, such as the percentage of calories
+as protein. These other variables are treated as explanatory
+variables.
+
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{c|c|c|c}
+        \hline
+        Carbohydrate & Age & Weight & Protein \\
+        \hline
+        33 & 33 & 100 & 14 \\
+        40 & 47 & 92  & 15 \\
+        37 & 49 & 135 & 18 \\
+        27 & 35 & 144 & 12 \\
+        30 & 46 & 140 & 15 \\
+        43 & 52 & 101 & 15 \\ 
+        34 & 62 & 95  & 14 \\
+        48 & 23 & 101 & 17 \\ 
+        30 & 32 & 98  & 15 \\
+        38 & 42 & 105 & 14 \\
+        50 & 31 & 108 & 17 \\
+        51 & 61 & 85  & 19 \\
+        30 & 63 & 130 & 19 \\
+        36 & 40 & 127 & 20 \\
+        41 & 50 & 109 & 15 \\
+        42 & 64 & 107 & 16 \\
+        46 & 56 & 117 & 18 \\
+        24 & 61 & 100 & 13 \\
+        35 & 48 & 118 & 18 \\
+        37 & 28 & 102 & 14 \\
+        \hline
+    \end{tabular}
+    \caption{Carbohydrate, age, relative weight and protein for twenty 
+        male insulin-dependent diabetics; for units, see text.}
+    \label{tab:bayesglm:carbdata}
+\end{table}
+
+\subsubsection*{Model definition}
+
+A possible model to analyze this data is
+
+\begin{enumerate}
+\item $y_i|\eta_i, \tau \sim N(\eta_i, \tau^{-1})$, $i=1,...,20$. 
+\item $\eta_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3}$
+\item $\tau \sim Gamma(2, 0.01)$, $p(\beta_j) \propto 1$, $j=0,1,2,3$
+\end{enumerate}
+in which carbohydrate $y$ is linearly related to age $x_1$, relative weight $x_2$
+and protein $x_3$. 
+
+
+\subsubsection*{INLA code}
+
+
+{\small\bibliography{thiago,hrue}}
+
+\end{document}
+
+
+There is a dedicated web-site for \tv{R-INLA}
+\begin{verbatim}
+    http://www.r-inla.org
+\end{verbatim}
+and for the source-code itself
+\begin{verbatim}
+    http://inla.googlecode.com
+\end{verbatim}
