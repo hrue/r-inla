@@ -14,7 +14,7 @@
 <<include=FALSE>>=
 library(knitr)
 opts_chunk$set(
-engine='R',fig.path='figures/figure',tidy=FALSE,split=FALSE,dev='postscript',dev='pdf'
+engine='R',fig.path='figures/figure',tidy=FALSE,split=FALSE,dev='pdf'
 )
 @
 
@@ -106,11 +106,11 @@ reasons to these achievements, are as follows.
     \emph{integrated nested} Laplace approximations.
 \end{enumerate}
 For details about the \tv{INLA}-approach itself, then \cite{art375} is
-a teaser, \cite{art451} is the main reference,
-\cite{col30,col33,art517} are book-chapters about the \tv{INLA}
-approach with applications, \cite{tech106} gives details of new
-extensions in \tv{INLA}, and \cite{tech104} discuss some extensions to
-latent near-Gaussian models.
+a teaser, \cite{art451} is the main reference and \cite{art522}
+discuss some new features, \cite{col30,col33,art517} are book-chapters
+about the \tv{INLA} approach with applications, \cite{tech106} gives
+details of new extensions in \tv{INLA}, and \cite{art531} discuss some
+extensions to latent near-Gaussian models.
 
 \section{What models can it be used for?}
 \label{intro:2}
@@ -152,8 +152,8 @@ models. An important assumption, is that the joint density for $\mm{x}
 where $\mm{Q}$ is the precision matrix and $\mm{b}$ is the linear
 term, both which can depend on $\mm{\theta}_{2}$.
 
-As the third stage, we have the joint prior $\pi(\mm{\theta})$ for the hyperparameters
-$\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$.
+As the third stage, we have the joint prior $\pi(\mm{\theta})$ for the
+hyperparameters $\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$.
 
 The target for the Bayesian analysis is to compute the posterior
 marginals for each $\theta_{i}$, $\eta_{i}$, $\beta_{i}$ and $f_{ki}$
