@@ -16,7 +16,7 @@ $(DEPS_DIR) :
 	$(LATEXMK) -pdf -dvi- -ps- -deps-out=$(DEPS_DIR)/$@P $<
 
 %.tex : %.Rnw
-	R -e 'library(knitr); knit("'$@'")'
+	R -e 'library(knitr); knit("'$<'")'
 
 %.png : %.pdf
 	convert $< $@ 
