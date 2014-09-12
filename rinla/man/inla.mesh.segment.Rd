@@ -1,5 +1,7 @@
 \name{inla.mesh.segment}
 \alias{inla.mesh.segment}
+\alias{inla.mesh.segment.default}
+\alias{inla.mesh.segment.inla.mesh.segment}
 \alias{inla.contour.segment}
 \title{
   Constraint segments for inla.mesh
@@ -62,7 +64,7 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
 }
 \item{...}{
   Additional parameters.  When joining segments, a list of
-  \code{inla.mesh.segment} objects.}
+  \code{inla.mesh.segment} objects.
 }
 }
 %%\details{
