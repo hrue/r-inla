@@ -10,7 +10,10 @@
   \code{\link{inla.mesh}}.
 }
 \usage{
-inla.mesh.segment(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE)
+## Create or join inla.mesh.segment objects.
+inla.mesh.segment(...)
+\method{inla.mesh.segment}{default}(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE, ...)
+\method{inla.mesh.segment}{inla.mesh.segment}(..., grp.default = 0)
 
 inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
                      y = seq(0, 1, length.out = ncol(z)),
@@ -42,6 +45,10 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
   \item{is.bnd}{
     \code{TRUE} if the segments are boundary segments, otherwise \code{FALSE}.
   }
+  \item{grp.default}{
+    When joining segments, use this group label for segments that have
+    \code{grp=NULL}.
+  }
   \item{x, y, z, nlevels, levels}{Parameters specifying a set of surface
     contours, with syntax described in \code{\link{contour}}.
 }
@@ -52,6 +59,10 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
 }
 \item{eps}{
   Tolerance for \code{\link{inla.simplify.curve}}.
+}
+\item{...}{
+  Additional parameters.  When joining segments, a list of
+  \code{inla.mesh.segment} objects.}
 }
 }
 %%\details{

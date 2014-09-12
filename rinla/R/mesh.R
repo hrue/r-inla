@@ -5,7 +5,7 @@
 ## Export: inla.mesh.deriv inla.mesh.fem
 ## Export: inla.mesh.interior inla.mesh.lattice inla.mesh.map
 ## Export: inla.mesh.map.lim inla.mesh.query
-## Export: inla.mesh.segment inla.nonconvex.hull inla.nonconvex.hull.basic
+## Export: inla.nonconvex.hull inla.nonconvex.hull.basic
 ## Export: inla.simplify.curve plot.inla.trimesh
 ## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
@@ -13,6 +13,9 @@
 ## S3methods; also export some methods explicitly
 ## Export: extract.groups inla.mesh.project inla.mesh.projector
 ## Export: extract.groups!inla.mesh.segment
+## Export: inla.mesh.segment
+## Export: inla.mesh.segment!default
+## Export: inla.mesh.segment!inla.mesh.segment
 ## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
 ## Export: inla.mesh.project.inla.mesh.projector
 ## Export: inla.mesh.projector.inla.mesh inla.mesh.projector.inla.mesh.1d
@@ -26,10 +29,12 @@
 
 
 
-inla.mesh.segment <- function(loc=NULL,
-                              idx=NULL,
-                              grp=NULL,
-                              is.bnd=TRUE)
+inla.mesh.segment <- function(...) {
+    UseMethod("inla.mesh.segment")
+}
+
+inla.mesh.segment.default <-
+    function(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE, ...)
 {
     if ((missing(loc) || is.null(loc)) &&
         (missing(idx) || is.null(idx))) {
@@ -119,6 +124,39 @@ inla.mesh.segment <- function(loc=NULL,
     ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
     class(ret) <- "inla.mesh.segment"
     return(ret)
+}
+
+inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
+    segm <- list(...)
+    if (!all(unlist(lapply(segm,
+                           function(x) inherits(x,"inla.mesh.segment"))))) {
+        stop("All objects must be of class 'inla.mesh.segment'.")
+    }
+
+    Nloc <- unlist(lapply(segm, function(x) nrow(x$loc)))
+    cumNloc <- c(0, cumsum(Nloc))
+    Nidx <- unlist(lapply(segm, function(x) nrow(x$idx)))
+
+    loc <- do.call(rbind, lapply(segm, function(x) x$loc))
+    idx <- do.call(rbind, lapply(seq_along(segm),
+                                function(x) segm[[x]]$idx+cumNloc[x]))
+    grp <- unlist(lapply(segm,
+                         function(x) {
+                             if (is.null(x$grp)) {
+                                 rep(grp.default, Nidx[x])
+                             } else {
+                                 x$grp
+                             }
+                         }))
+    is.bnd <- unlist(lapply(segm, function(x) x$is.bnd))
+    if (!all(is.bnd) || all(!is.bnd)) {
+        warning("Inconsistent 'is.bnd' attributes.  Setting 'is.bnd=FALSE'.")
+        is.bnd <- FALSE
+    } else {
+        is.bnd <- all(is.bnd)
+    }
+
+    inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
 }
 
 
