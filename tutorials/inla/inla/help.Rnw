@@ -1,0 +1,45 @@
+\section{How can I get help?}
+\label{sec:gethelp}
+
+There are two ways to get help from the \verb|inla-developers| and
+other users. You can either sign up and post your questions to the
+\verb|R-inla discussion group|, see
+\begin{verbatim}
+http://www.r-inla.org/
+\end{verbatim}
+and the email is \verb|r-inla-discussion-group@googlegroups.com|.
+This discussion group is public and viewable for all others.  If you
+want to ask questions in private, email \verb|help@r-inla.org|.
+
+\section{How do I report an error or a new feature request?}
+
+A request for a new feature can be posted to either the discussion
+group or to \verb|help@r-inla.org|; see Section~\ref{sec:gethelp}.
+
+An error is easiest reported to \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|. However, please make sure that you run with
+the latest version of the software, i.e.\ please do 
+<<eval=FALSE>>=
+inla.upgrade(testing=TRUE)
+@ 
+%%
+and rerun your example. If the error is still there, please make us
+aware of it.
+
+In order to reproduce the error, we need to rerun your model/code
+locally, hence we will need a copy of the \tv{R}-code and datasets
+used to generate the error. If the error occurs inside the
+\verb|inla()|-call, then you may do as follows; rerun with
+<<eval=FALSE>>=
+inla(<your stuff here>,  keep=TRUE, inla.call="")
+@ 
+%%
+which will just generate the internal files, but no Bayesian inference
+will be done.  In the current (seen from within \verb|R|)
+directory/folder, look for most recent directory/folder starting with
+\verb|inla.model| and just send us that directory/folder. This option
+keep your data \emph{almost} secret, in the sense that they are there,
+but in a form that makes it very hard to extract any useful
+information about unless knowing how the model was defined. However,
+it contains what we need to rerun your model and check what is causing
+the error.
