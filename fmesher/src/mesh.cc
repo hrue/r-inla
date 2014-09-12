@@ -1835,9 +1835,10 @@ namespace fmesh {
     unlinkTriangle(t);
     relocateTriangle(nT()-1,t);
     TV_.rows(nT()-1);
+    /* Note: nT() was changed by the alteration of TV_. */
+    TT_.rows(nT());
     if (use_TTi_)
-      TTi_.rows(nT()); /* Note: nT() was changed by the alteration of
-			  TV_ above. */
+      TTi_.rows(nT());
     if (use_VT_)
       rebuild_VT();
     return nT();
