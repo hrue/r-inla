@@ -14,6 +14,8 @@
 ## Export: extract.groups inla.mesh.project inla.mesh.projector
 ## Export: extract.groups!inla.mesh.segment
 ## Export: inla.mesh.segment
+## Export: inla.mesh.segment.default
+## Export: inla.mesh.segment.inla.mesh.segment
 ## Export: inla.mesh.segment!default
 ## Export: inla.mesh.segment!inla.mesh.segment
 ## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
@@ -140,12 +142,12 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
     loc <- do.call(rbind, lapply(segm, function(x) x$loc))
     idx <- do.call(rbind, lapply(seq_along(segm),
                                 function(x) segm[[x]]$idx+cumNloc[x]))
-    grp <- unlist(lapply(segm,
+    grp <- unlist(lapply(seq_along(segm),
                          function(x) {
-                             if (is.null(x$grp)) {
+                             if (is.null(segm[[x]]$grp)) {
                                  rep(grp.default, Nidx[x])
                              } else {
-                                 x$grp
+                                 segm[[x]]$grp
                              }
                          }))
     is.bnd <- unlist(lapply(segm, function(x) x$is.bnd))
