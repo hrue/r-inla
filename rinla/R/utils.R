@@ -901,13 +901,13 @@
     }
 }
 ## nice to have these around
-`inla.rw1` = function(n)
+`inla.rw1` = function(n, ...)
 {
-    inla.rw(n, order=1L)
+    inla.rw(n, order=1L, ...)
 }
-`inla.rw2` = function(n)
+`inla.rw2` = function(n, ...)
 {
-    inla.rw(n, order=2L)
+    inla.rw(n, order=2L, ...)
 }
 `inla.rw` = function(n, order=1L, sparse=TRUE, scale.model = FALSE)
 {
