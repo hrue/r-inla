@@ -2,7 +2,7 @@
 
 ### Functions to write the different sections in the .ini-file
 
-`inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L)
+`inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L, low = -Inf, high = Inf)
 {
     stopifnot(!missing(hyper))
     stopifnot(!missing(file))
@@ -52,6 +52,10 @@
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
         to.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$to.theta))
         from.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$from.theta))
+        to.t = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""), to.t)
+        from.t = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""), from.t)
+        to.t = gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""), to.t)
+        from.t = gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""), from.t)
         cat(prefix, "to.theta", suff, " = ", to.t, "\n", file = file, append = TRUE, sep="")
         cat(prefix, "from.theta", suff, " = ", from.t, "\n", file = file, append = TRUE, sep="")
     }
@@ -276,7 +280,15 @@
         }
     }
 
-    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup)
+    if (is.null(random.spec$range)) {
+        low = -Inf
+        high = Inf
+    } else {
+        low = random.spec$range[1]
+        high = random.spec$range[2]
+    }
+    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup, low = low, high = high)
+        
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)

@@ -3470,7 +3470,7 @@
                                      fixed = TRUE,
                                      prior = "normal",
                                      param = c(1, 10),
-                                     to.theta = function(x, low = -Inf, high = Inf) {
+                                     to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3483,7 +3483,7 @@
                                              stop("Condition not yet implemented")
                                          }
                                      }, 
-                                     from.theta = function(x, low = -Inf, high = Inf) {
+                                     from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3518,7 +3518,7 @@
                                      fixed = FALSE,
                                      prior = "normal",
                                      param = c(1, 10),
-                                     to.theta = function(x, low = -Inf, high = Inf) {
+                                     to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3531,7 +3531,7 @@
                                              stop("Condition not yet implemented")
                                          }
                                      }, 
-                                     from.theta = function(x, low = -Inf, high = Inf) {
+                                     from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
