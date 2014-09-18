@@ -466,6 +466,7 @@ typedef enum {
 	P_PC_RHO0,
 	P_PC_RHO1,
 	P_PC_DOF,
+	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_AR1,
 	G_RW1,
@@ -1259,6 +1260,7 @@ double priorfunc_pc_dof(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_rho0(double *x, double *parameters);
 double priorfunc_pc_rho1(double *x, double *parameters);
+double priorfunc_pc_spde_ga(double *x, double *parameters);
 double priorfunc_sasprior(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
