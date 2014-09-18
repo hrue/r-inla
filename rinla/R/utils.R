@@ -176,6 +176,9 @@
     } else if (Sys.getenv("USER") %in% c("elias")) {
         dir.default = "~/inla-project/source/inla/rinla/R"
         bin.default = "~/inla-project/compile/local/bin"
+    } else if (Sys.getenv("USER") %in% c("fuglstad")) {
+        dir.default = "~/XXXXXXXXX/inla-project/source/inla/rinla/R"
+        bin.default = "~/XXXXXXXXX/inla-project/compile/local/bin"
     } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
         dir.default = "~/inla/rinla/R"
         bin.default = "~/local/bin"
