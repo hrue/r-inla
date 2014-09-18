@@ -2993,11 +2993,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			_skewness[_i] = NAN;				\
 			if (dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
-				if (dens[_i][dens_count]->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) { \
-					GMRFLib_sn_skewness(&(_skewness[_i]), dens[_i][dens_count]->sn_param); \
-				} else if (dens[_i][dens_count]->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) { \
-					_skewness[_i] = 0.0;		\
-				}					\
+				_skewness[_i] = dens[_i][dens_count]->skewness;	\
 			} else {					\
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
