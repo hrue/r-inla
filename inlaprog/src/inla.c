@@ -2040,6 +2040,23 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_pc_spde_ga(double *x, double *parameters)
+{
+	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
+	int debug = 0;
+
+	lam1 = -par[0]*log(par[1]);
+	lam2 = -log(par[3])/par[2];
+	ldens = (log(lam1)-theta1-lam1*exp(-theta1)) + (log(lam2)+theta2-lam2*exp(theta2));
+
+	if (debug) {
+		fprintf(stderr, "pc_spde_ga: x = %g %g\n", x[0], x[1]);
+		fprintf(stderr, "            param = %g %g %g %g\n", par[0], par[1], par[2], par[3]);
+		fprintf(stderr, "            lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
+	}
+		
+	return ldens;
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -6684,6 +6701,19 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
 		Free(prior->parameters);
 		prior->parameters = tmp;
+	} else if (!strcasecmp(prior->name, "PCSPDEGA")) {
+		int nparam, i, dim;
+		double *tmp;
+
+		prior->id = P_PC_SPDE_GA;
+		prior->priorfunc = priorfunc_pc_spde_ga;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 4);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
 	} else if (!strcasecmp(prior->name, "MINUSLOGSQRTRUNCNORMAL") || !strcasecmp(prior->name, "MINUSLOGSQRTRUNCGAUSSIAN") ||
 		   // easier names...
 		   !strcasecmp(prior->name, "LOGTNORMAL") || !strcasecmp(prior->name, "LOGTGAUSSIAN")) {
@@ -13511,12 +13541,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
 
-		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
-			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
-					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
-			inla_error_general(ptmp);
-			exit(EXIT_FAILURE);
+		if (!strcasecmp(mb->f_prior[mb->nf][0].name, "MVNORM")) {
+			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
+				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
+						(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
+				inla_error_general(ptmp);
+				exit(EXIT_FAILURE);
+			}
+		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
+			assert(ntheta == 2);		       /* requirement... */
+		} else {
+			assert(0 == 1);			       /* wrong prior used... */
 		}
+		
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);

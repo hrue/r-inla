@@ -5471,6 +5471,12 @@
                      pdf = "pc.rho1"
                      ),
              
+             ## experimental prior from GA
+             pc.spde.GA = list(
+                     nparameters = 4L,
+                     pdf = NA
+                     ), 
+
              ## this is the generic one,  which is case-spesific and possibly adaptive
              pc = list(
                      nparameters = 2L,
