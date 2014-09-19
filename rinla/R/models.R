@@ -4463,45 +4463,45 @@
                       status = "experimental"
                       ),
 
-              sas = list(
-                      hyper = list(
-                              theta1 = list(
-                                      name = "log precision",
-                                      short.name = "prec",
-                                      initial = 0,
-                                      fixed = FALSE,
-                                      prior = "loggamma",
-                                      param = c(1, 0.00005),
-                                      to.theta = function(x) log(x),
-                                      from.theta = function(x) exp(x)
-                                      ),
-                              theta2 = list(
-                                      name = "skewness",
-                                      short.name = "skew",
-                                      initial = 0,
-                                      fixed = FALSE,
-                                      prior = "sasprior", 
-                                      param = 10,
-                                      to.theta = function(x) x,
-                                      from.theta = function(x) x
-                                      ),
-                              theta3 = list(
-                                      name = "kurtosis",
-                                      short.name = "kurt",
-                                      initial = 3,
-                                      fixed = FALSE,
-                                      prior = "none",
-                                      param = numeric(0), 
-                                      to.theta = function(x) (x),
-                                      from.theta = function(x) (x)
-                                      )
-                              ),
-                      survival = FALSE,
-                      discrete = FALSE,
-                      link = c("default", "identity"),
-                      pdf = "sas",
-                      status = "experimental"
-                      ),
+###              sas = list(
+###                      hyper = list(
+###                              theta1 = list(
+###                                      name = "log precision",
+###                                      short.name = "prec",
+###                                      initial = 0,
+###                                      fixed = FALSE,
+###                                      prior = "loggamma",
+###                                      param = c(1, 0.00005),
+###                                      to.theta = function(x) log(x),
+###                                      from.theta = function(x) exp(x)
+###                                      ),
+###                              theta2 = list(
+###                                      name = "skewness",
+###                                      short.name = "skew",
+###                                      initial = 0,
+###                                      fixed = FALSE,
+###                                      prior = "sasprior", 
+###                                      param = 10,
+###                                      to.theta = function(x) x,
+###                                      from.theta = function(x) x
+###                                      ),
+###                              theta3 = list(
+###                                      name = "kurtosis",
+###                                      short.name = "kurt",
+###                                      initial = 3,
+###                                      fixed = FALSE,
+###                                      prior = "none",
+###                                      param = numeric(0), 
+###                                      to.theta = function(x) (x),
+###                                      from.theta = function(x) (x)
+###                                      )
+###                              ),
+###                      survival = FALSE,
+###                      discrete = FALSE,
+###                      link = c("default", "identity"),
+###                      pdf = "sas",
+###                      status = "experimental"
+###                      ),
 
               loggammafrailty = list(
                       hyper = list(
@@ -5488,10 +5488,10 @@
                      pdf = "jeffreystdf"
                      ),
 
-             sasprior = list(
-                     nparameters = 1L,
-                     pdf = "sasprior"
-                     ), 
+###             sasprior = list(
+###                     nparameters = 1L,
+###                     pdf = "sasprior"
+###                     ), 
 
              "expression:" = list(
                      nparameters = -1L,

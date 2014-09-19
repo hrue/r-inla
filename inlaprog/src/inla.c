@@ -2097,6 +2097,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_sasprior(double *x, double *parameters)
 {
+	assert(0==1);					       /* should not be used */
 	double val = re_sas_log_prior(x, parameters);
 	if (0) {
 		P(x[0]);
