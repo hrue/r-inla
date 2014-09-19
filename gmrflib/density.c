@@ -244,12 +244,11 @@ int GMRFLib_sn_moments(double *mean, double *stdev, double *skewness, GMRFLib_sn
 		if (stdev) {
 			*stdev = p->omega * sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 		}
-
-		if (skewness){
+		if (skewness) {
 			/*
 			 * compute the skewness of the sn (https://en.wikipedia.org/wiki/Skew_normal_distribution)
 			 */
-			*skewness = (4.0 - M_PI) / 2.0 * pow(delta * sqrt(2.0/M_PI), 3.0) / pow(1.0 - 2 * SQR(delta) / M_PI, 3.0/2.0);
+			*skewness = (4.0 - M_PI) / 2.0 * pow(delta * sqrt(2.0 / M_PI), 3.0) / pow(1.0 - 2 * SQR(delta) / M_PI, 3.0 / 2.0);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -478,7 +477,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	int i, k, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np, debug = 0;
 	double result, error, eps = GMRFLib_eps(1. / 2.), tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
 	    NULL, *ldm = NULL, *xp = NULL, integral, w[2] = {
-		4.0, 2.0}, dx = 0.0, m1, m2, m3;
+	4.0, 2.0}, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
@@ -524,8 +523,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				density->log_norm_const = 0.0;
 				GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
 
-				if (debug){
-					for(i = 0; i<npm; i++){
+				if (debug) {
+					for (i = 0; i < npm; i++) {
 						printf("INIT: i %d xpm %g ldm %g\n", i, xpm[i], ldm[i]);
 					}
 				}
@@ -544,23 +543,31 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 					ldm[i] -= log_integral;
 				}
 				density->log_norm_const = log_integral + ldmax;
-
-				m1 = xpm[0] * exp(ldm[0]) + xpm[npm - 1] * exp(ldm[npm - 1]);
+				
+				d0 = exp(ldm[0]);
+				d1 = exp(ldm[npm - 1]);
+				x0 = xpm[0];
+				x1 = xpm[npm - 1];
+				m1 = x0 * d0 + x1 * d1;
+				m2 = SQR(x0) * d0 + SQR(x1) * d1;
+				m3 = gsl_pow_3(x0) * d0 + gsl_pow_3(x1) * d1;
 				for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
-					m1 += xpm[i] * exp(ldm[i]) * w[k];
+					double d, x, x2, x3;
+
+					d = exp(ldm[i]) * w[k];
+					x = xpm[i];
+					x2 = x * x;
+					x3 = x * x2;
+
+					m1 += x * d;
+					m2 += x2 * d;
+					m3 += x3 * d;
 				}
 				m1 *= dx / 3.0;
-
-				m2 = SQR(xpm[0]) * exp(ldm[0]) + SQR(xpm[npm - 1]) * exp(ldm[npm - 1]);
-				m3 = gsl_pow_3(xpm[0]) * exp(ldm[0]) + gsl_pow_3(xpm[npm - 1]) * exp(ldm[npm - 1]);
-				for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
-					m2 += SQR(xpm[i]) * exp(ldm[i]) * w[k];
-					m3 += gsl_pow_3(xpm[i]) * exp(ldm[i]) * w[k];
-				}
 				m2 *= dx / 3.0;
 				m3 *= dx / 3.0;
 
-				if (debug){
+				if (debug) {
 					P(m1);
 					P(m2);
 					P(m3);
@@ -611,7 +618,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 				density->stdev = sqrt(DMAX(tmp, 0.0));
 
 
-				/* 
+				/*
 				 *  I do not care to add the skewness computations right now, as this code part is obsolete!
 				 */
 				fprintf(stderr, "\n\n\nTODO: added computation of skewness for a density, HERE!!!\n\n\n");
@@ -1123,7 +1130,7 @@ const gsl_interp_type *GMRFLib_density_interp_type(int n)
 	 * return the interpolation type depending on the number of points 
 	 */
 
-	if (n >= (int) gsl_interp_cspline->min_size) {  /* n >= 3 */
+	if (n >= (int) gsl_interp_cspline->min_size) {	       /* n >= 3 */
 		return gsl_interp_cspline;
 	} else if (n >= (int) gsl_interp_linear->min_size) {   /* n >= 2 */
 		return gsl_interp_linear;
