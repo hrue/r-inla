@@ -1,0 +1,148 @@
+\documentclass[a4paper, twoside, openright, chapterprefix, 11pt]{scrreprt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% Packages %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in, includeheadfoot]{geometry}
+\usepackage{textcomp}
+\usepackage{geometry}                 % anbefalt pakke for  styre marger.
+\usepackage{amsmath,amsfonts,amssymb} % matematikksymboler
+\usepackage{amsthm}                   % for  lage teoremer og lignende.
+\usepackage{graphicx}                 % inkludering av grafikk
+\usepackage{color}
+\usepackage{subfig}                   % hvis du vil kunne ha flere figurer inni en figur
+\usepackage{listings}                 % Fin for inkludering av kildekode
+\usepackage{hyperref}                	% Lager hyperlinker i evt. pdf-dokument, men har noen bugs, den er kommentert bort her.
+\usepackage{natbib}
+\usepackage{my-showkeys}
+\usepackage{alltt}
+\usepackage{amsthm} 
+\hypersetup{colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black}
+\setcounter{secnumdepth}{1} % \section nummereres ikke
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Paper settings %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\parindent 0pt 												% Paragraph indenting
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Colors %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% New commands %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\tv}{\texttt}
+\def\Fig#1{Figure~\ref{#1}}
+\def\Tab#1{Table~\ref{#1}}
+\def\Thm#1{Theorem~\ref{#1}}
+\def\Cor#1{Corrolary~\ref{#1}}
+\def\Sec#1{Section~\ref{#1}}
+\def\eref#1{(\ref{#1})}
+\def\Eref#1{Eq.~(\ref{#1})}
+\def\miscinfo#1#2{{\footnotesize\indent\textsc{#1: }\ignorespaces #2}}
+\def\R{\mathbb{R}}
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\def\bs#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\def\Var{\text{Var}}
+\def\Corr{\text{Corr}}
+\def\E{\text{E}}
+\def\Prec{\text{Prec}}
+\def\Trace{\text{Trace}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Begin document %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%                                 
+
+\begin{document}
+\title{A tutorial for \tv{R-INLA}}
+\author{H. Rue \& T.\ G.\ Martins \& A. Riebler\\
+ Department of Mathematical Sciences\\
+ Norwegian University of Science and Technology\\
+ N-7491 Trondheim, Norway}
+\maketitle
+\pagenumbering{roman} 
+
+\include{englishAbstract}
+
+\tableofcontents
+
+\pagenumbering{arabic}
+\pagestyle{headings}
+\pagenumbering{arabic}
+\include{intro}
+\include{install}
+\include{startingExample}
+\include{modelSpec}
+\include{outputProcessing}
+\include{predictions}
+\include{modelChoice}
+\include{specialOptions}
+\include{help}
+\include{examples}
+
+%\nocite{*}
+\bibliographystyle{dcuurl}
+\bibliography{mybib, thiago}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+
+\appendix
+\include{details} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% End document %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
