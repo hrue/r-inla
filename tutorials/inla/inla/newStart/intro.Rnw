@@ -1,0 +1,93 @@
+\chapter{Introduction}
+
+\section{What is \tv{R-INLA}}
+\tv{R-INLA} is an implementation in \tv{R}\footnote{Strictly speaking,
+    it is an \tv{R}-interface towards the \tv{inla-program} written in
+    \tv{C}.} of the \tv{INLA} approach to do \emph{approximate
+    Bayesian inference} for a class of \emph{latent Gaussian models}.
+
+\emph{Latent Gaussian models} is an important class of statistical
+models, and in our opinion, the most important and most widely used
+model class in (applied) statistics. The details are given in
+\Sec{intro:2}. This class includes most/many of dynamic linear models,
+stochastic volatility models, generalized linear (mixed) models,
+generalized additive (mixed) models, spline smoothing models,
+semiparametric regression models, space-varying (semiparametric)
+regression models, disease mapping models, Log-Gaussian Cox-processes,
+model-based geostatistics and spatio-temporal models.
+
+\emph{Approximate Bayesian inference} means that we do not target to
+do exact inference, meaning that there is not button to tune on in
+order to make the results converge towards the true ones. This
+strategy is very different from the one using MCMC, say, where as the
+number of samples tends to infinity the results get increasingly more
+accurate. Also we do not aim to compute all possible marginals, but
+only the marginals for the parameters in the model and linear
+combinations thereof. These are in most cases the target for the
+statistical analysis. It turns out, that in most cases, we can compute
+approximated marginals for the model parameters both much much quicker
+and more accurate, compared to common MCMC alternatives. The main
+reasons to these achievements, are as follows.
+\begin{enumerate}
+\item We make use of the latent Gaussian field by using Laplace
+    approximations.
+\item We make use of the conditional independence properties of the
+    latent Gaussian field by using numerical algorithms for sparse
+    (symmetric and positive definite) matrices.
+\item We make use of the low dimension of the hyperparameters by using
+    \emph{integrated nested} Laplace approximations.
+\end{enumerate}
+For details about the \tv{INLA}-approach itself, then \cite{art375} is
+a teaser, \cite{art451} is the main reference,
+\cite{col30,col33,art517} are book-chapters about the \tv{INLA}
+approach with applications, \cite{tech106} gives details of new
+extensions in \tv{INLA}, and \cite{tech104} discuss some extensions to
+latent near-Gaussian models.
+
+\section{What models can it be used for?}
+\label{intro:2}
+
+The \tv{INLA} approach is targeted towards the class of \emph{latent
+    Gaussian models} (LGM). At the first stage, there are the
+conditional independent observations $\mm{y}$,
+\begin{displaymath}
+    y_{i} \mid \ldots \;\sim\; \pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})
+\end{displaymath}
+where $\eta_{i}$ is the linear predictor for $y_{i}$ and
+$\mm{\theta}_{1}$ are hyperparameters in the likelihood model
+$\pi(y_{i} \mid \eta_{i}, \mm{\theta}_{1})$. The likelihood model
+could be Gaussian, Poisson or some other model.
+
+At the second stage, we have a model for the linear predictors
+$\mm{\eta}$, as a linear combinations of various Gaussian effects,
+\begin{equation}
+    \eta_{i} = \sum_{j} \beta_{j} z_{ji} + \sum_{k}
+    w_{ki}f_{k}(c_{ki}; \mm{\theta}_{2}).\label{eq:model_linPred}
+\end{equation}
+Here, $\mm{z}$'s are ``fixed effects'' with Gaussian coefficients
+$\mm{\beta}$, $\mm{w}$ are fixed weights and $\mm{f}$ are some
+Gaussian ``random effects''\footnote{We will use the terms ``fixed
+    effects'' and ``random effects'' throughout this tutorial, even
+    though that in a Bayesian context they are all ``random''.} The
+terms $f_{k}(c_{ki}\; \mm{\theta}_{2})$ are general Gaussian ``random
+effects'' models, for which the covariate $c_{ki}$ extract the
+component of it that goes into the $i$th linear predictor. Again,
+$\mm{\theta}_{2}$ are hyperparameters in these general Gaussian
+models. An important assumption, is that the joint density for $\mm{x}
+= (\mm{\eta}, \mm{\beta}, \mm{f})$ is Gaussian with density
+\begin{displaymath}
+    \pi(\mm{x} \mid \mm{\theta}_{2}) \propto |\mm{Q}(\mm{\theta}_{2})|^{1/2}
+    \exp\left(
+      -\frac{1}{2} \mm{x}^{T}\mm{Q}(\mm{\theta}_{2}) \mm{x} +
+      b(\mm{\theta_{2}})^{T} \mm{x}\right)
+\end{displaymath}
+where $\mm{Q}$ is the precision matrix and $\mm{b}$ is the linear
+term, both which can depend on $\mm{\theta}_{2}$.
+
+As the third stage, we have the joint prior $\pi(\mm{\theta})$ for the hyperparameters
+$\mm{\theta} = (\mm{\theta}_{1}, \mm{\theta}_{2})$.
+
+The target for the Bayesian analysis is to compute the posterior
+marginals for each $\theta_{i}$, $\eta_{i}$, $\beta_{i}$ and $f_{ki}$
+given the observations $y$.
+    

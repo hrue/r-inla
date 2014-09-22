@@ -1,0 +1,4 @@
+\chapter{Examples}
+
+List several example from the webpage, such as survival,
+BYM, measurement error, \ldots.
