@@ -1,4 +1,7 @@
 \chapter{Starting example}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 Provide an example that illustrates the most central point of R-INLA
 and also points common to several examples. Thus, maybe an

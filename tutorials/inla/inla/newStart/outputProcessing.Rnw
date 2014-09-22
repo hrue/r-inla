@@ -1,4 +1,7 @@
 \chapter{Output processing}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 \section{Access the output and plotting}
 

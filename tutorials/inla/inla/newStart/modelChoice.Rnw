@@ -1,4 +1,7 @@
 \chapter{Goodness of fit and predictive measures}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 \section{Deviance information criterion}
 

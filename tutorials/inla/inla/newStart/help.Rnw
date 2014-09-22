@@ -1,4 +1,7 @@
 \chapter{General issues}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 \section{Running \tv{R-INLA} remotely}
 

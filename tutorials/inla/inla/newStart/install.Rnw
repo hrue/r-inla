@@ -1,5 +1,12 @@
 \chapter{How to install the \tv{R-INLA} package}
 
+<<echo=FALSE>>=
+## need this one in this section
+library(INLA)
+library(devtools)
+@ 
+
+
 The \tv{R-INLA} package is available from the web-site 
 \begin{verbatim}
     www.r-inla.org

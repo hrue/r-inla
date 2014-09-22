@@ -1,1 +1,4 @@
 \chapter{Predictions} 
+<<echo=FALSE>>=
+library(INLA)
+@ 
