@@ -4203,8 +4203,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
-							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
 							}
 						}
 					 }
@@ -4234,8 +4234,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
-							\item{from.theta = }{`\code{function(x, low = -Inf, high = Inf) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (log( - (low - x)/(high -x)))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (log(x-low))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                         if (all(is.infinite(c(low, high))) || low == high) {} \code{                                             stopifnot(low < high)} \code{                                             return (x)} \code{                                         } else if (all(is.finite(c(low, high)))) {} \code{                                             stopifnot(low < high)} \code{                                             return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                         } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                             return (low + exp(x))} \code{                                         } else {} \code{                                             stop("Condition not yet implemented")} \code{                                         }} \code{                                     }}'}
 							}
 						}
 					 }
@@ -5391,57 +5391,6 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit'}
 								\item{pdf = }{`iidlogitbeta'}
-								\item{status = }{`experimental'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `sas'.}{Number of hyperparmeters are 3.
-					 \describe{
-						\item{Hyperparameter `theta1'}{
-							 \describe{
-							\item{name = }{`log precision'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-05'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{name = }{`skewness'}
-							\item{short.name = }{`skew'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`sasprior'}
-							\item{param = }{`10'}
-							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x}'}
-							}
-						}
-						\item{Hyperparameter `theta3'}{
-							 \describe{
-							\item{name = }{`kurtosis'}
-							\item{short.name = }{`kurt'}
-							\item{initial = }{`3'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`none'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) (x)}'}
-							\item{from.theta = }{`\code{function(x) (x)}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{survival = }{`FALSE'}
-								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity'}
-								\item{pdf = }{`sas'}
 								\item{status = }{`experimental'}
 							 }
 						 }
@@ -6604,11 +6553,11 @@ inla.models()
 				 }
 				\item{Model `pc.rho1'.}{					 Number of parameters in the prior = 2 
 				 }
+				\item{Model `pc.spde.GA'.}{					 Number of parameters in the prior = 4 
+				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
-				 }
-				\item{Model `sasprior'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `expression:'.}{					 Number of parameters in the prior = -1 
 				 }
