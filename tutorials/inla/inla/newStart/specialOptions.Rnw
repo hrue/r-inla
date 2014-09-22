@@ -1,0 +1,11 @@
+\chapter{Extended options for the latent field}
+
+\section{Replicate}
+
+\section{Group}
+
+\section{Linear combinations}
+
+\section{Copy}
+
+\section{Running \tv{R-INLA} remotely}
