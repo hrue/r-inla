@@ -1,4 +1,7 @@
 \chapter{Introduction}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 \section{What is \tv{R-INLA}}
 \tv{R-INLA} is an implementation in \tv{R}\footnote{Strictly speaking,

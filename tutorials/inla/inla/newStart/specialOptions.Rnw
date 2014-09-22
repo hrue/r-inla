@@ -1,4 +1,7 @@
 \chapter{Extended options for the latent field}
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
 \section{Replicate}
 

@@ -1,2 +1,5 @@
 \chapter{Details }
+<<echo=FALSE>>=
+library(INLA)
+@ 
 
