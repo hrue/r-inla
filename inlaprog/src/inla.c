@@ -2045,16 +2045,16 @@ double priorfunc_pc_spde_ga(double *x, double *parameters)
 	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
 	int debug = 0;
 
-	lam1 = -par[0]*log(par[1]);
-	lam2 = -log(par[3])/par[2];
-	ldens = (log(lam1)-theta1-lam1*exp(-theta1)) + (log(lam2)+theta2-lam2*exp(theta2));
+	lam1 = -par[0] * log(par[1]);
+	lam2 = -log(par[3]) / par[2];
+	ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
 
 	if (debug) {
 		fprintf(stderr, "pc_spde_ga: x = %g %g\n", x[0], x[1]);
 		fprintf(stderr, "            param = %g %g %g %g\n", par[0], par[1], par[2], par[3]);
 		fprintf(stderr, "            lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
 	}
-		
+
 	return ldens;
 }
 double priorfunc_pc_dof(double *x, double *parameters)
@@ -2097,7 +2097,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_sasprior(double *x, double *parameters)
 {
-	assert(0==1);					       /* should not be used */
+	assert(0 == 1);					       /* should not be used */
 	double val = re_sas_log_prior(x, parameters);
 	if (0) {
 		P(x[0]);
@@ -13554,7 +13554,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		} else {
 			assert(0 == 1);			       /* wrong prior used... */
 		}
-		
+
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
@@ -14160,7 +14160,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = (void *)range;
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
 
@@ -20147,7 +20147,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			beta = mb->f_theta_map[i][0](beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
+			beta = mb->f_theta_map[i][0] (beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision_obs = theta[count];
@@ -20201,7 +20201,7 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_MEB:
 		{
 			double beta_intern;
-			
+
 			if (NOT_FIXED(f_fixed[i][0])) {
 				beta_intern = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
@@ -20209,7 +20209,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			beta = mb->f_theta_map[i][0](beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
+			beta = mb->f_theta_map[i][0] (beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision = theta[count];
@@ -25313,9 +25313,9 @@ int testit(int argc, char **argv)
 		Q->A = Calloc(ISQR(n), double);
 
 
-		int ntimes=10, itim;
+		int ntimes = 10, itim;
 
-		for(itim = 0; itim < ntimes; itim++){
+		for (itim = 0; itim < ntimes; itim++) {
 #pragma omp parallel for private(i, jj, j)
 			for (i = 0; i < n; i++) {
 				Q->A[i + i * n] = inla_spde3_Qfunction(i, i, (void *) smodel);

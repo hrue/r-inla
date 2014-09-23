@@ -543,7 +543,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 					ldm[i] -= log_integral;
 				}
 				density->log_norm_const = log_integral + ldmax;
-				
+
 				d0 = exp(ldm[0]);
 				d1 = exp(ldm[npm - 1]);
 				x0 = xpm[0];
