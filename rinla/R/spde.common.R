@@ -13,7 +13,7 @@
 
 inla.dBind <- function(...)
 {
-    return(bdiag(...))
+    return(.bdiag(list(...)))
 }
 
 inla.extract.el <- function(M, ...)
@@ -1103,15 +1103,12 @@ inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
 
-    data =
-        do.call(rbind.inla.data.stack.info,
-                lapply(S.input, function(x) x$data))
-    effects =
-        do.call(rbind.inla.data.stack.info,
-                lapply(S.input, function(x) x$effects))
-    A =
-        do.call(inla.dBind,
-                lapply(S.input, function(x) x$A))
+    data <- do.call(rbind.inla.data.stack.info,
+                    lapply(S.input, function(x) x$data))
+    effects <- do.call(rbind.inla.data.stack.info,
+                       lapply(S.input, function(x) x$effects))
+    A <- do.call(inla.dBind,
+                 lapply(S.input, function(x) x$A))
 
     S.output = list(A=A, data=data, effects=effects)
     class(S.output) = "inla.data.stack"
