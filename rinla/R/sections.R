@@ -221,18 +221,15 @@
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
-        if (!is.null(random.spec$range)) {
-            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
-            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
-        }
     }
-    if (inla.one.of(random.spec$model, "clinear")) {
-        if (!is.null(random.spec$range)) {
-            cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
-            cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
+    if (inla.one.of(random.spec$model, c("clinear", "copy", "mec", "meb"))) {
+        if (is.null(random.spec$range)) {
+            ## default is the identity mapping
+            random.spec$range = c(0, 0) 
         }
+        cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
+        cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
     }
-
     if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
         if (is.null(random.spec$scale.model)) {
             random.spec$scale.model = inla.getOption("scale.model.default")
