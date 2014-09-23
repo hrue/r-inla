@@ -1,0 +1,14 @@
+\chapter{Starting example}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+Provide an example that illustrates the most central point of R-INLA
+and also points common to several examples. Thus, maybe an
+interesting/popular example including fixed and random effects.
+
+Show data structure, model definition, inla call, output + interpretation.
+
+Goal: After reading this section the reader should already have
+an idea about how \verb|R-INLA| works, its structure, output and some details.
+

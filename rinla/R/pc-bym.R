@@ -30,7 +30,7 @@ inla.sparse.det.bym = function(Q, rankdef,
     return (if (log) logdet else exp(logdet))
 }
 
-inla.scale.model = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
+inla.scale.model.bym = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
 {
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
@@ -53,7 +53,19 @@ inla.scale.model = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.c
 
     return (Q)
 }
+inla.scale.model = function(Q, constr, eps = sqrt(.Machine$double.eps))
+{
+    if (missing(constr)) {
+        stop("Argument missing: constr = list(A=matrix(...), e=c(...))")
+    }
+    Q = inla.as.sparse(Q)
+    n = dim(Q)[1]
+    res = inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr = constr)
+    fac = exp(mean(log(diag(res))))
+    Q = fac * Q
 
+    return (Q)
+}
 inla.pc.bym.Q = function(graph)
 {
     Q = -inla.graph2matrix(graph)
@@ -112,7 +124,7 @@ inla.pc.bym.phi = function(
         n = dim(Q)[1]
         if (n >= dim.limit) {
             if (scale.model) {
-                Q = inla.scale.model(Q, adjust.for.con.comp = adjust.for.con.comp)
+                Q = inla.scale.model.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
             }
             if (rankdef > 0) {
                 if (adjust.for.con.comp) {

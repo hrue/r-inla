@@ -281,7 +281,7 @@
 
         ##!\item{range}{A vector of size two giving the lower and
         ##!upper range for the scaling parameter \code{beta} in the
-        ##!model \code{COPY} and \code{CLINEAR}.
+        ##!model \code{COPY}, \code{CLINEAR}, \code{MEC} and \code{MEB}.
         ##!If \code{low = high} then the identity mapping
         ##!is used.}
         range = NULL,
@@ -431,7 +431,7 @@
         stopifnot(missing(extraconstr))
     }
 
-    if (!inla.one.of(model, c("copy", "clinear"))) {
+    if (!inla.one.of(model, c("copy", "clinear", "mec", "meb"))) {
         stopifnot(missing(range))
     }
 

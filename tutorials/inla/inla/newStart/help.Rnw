@@ -1,0 +1,109 @@
+\chapter{General issues}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+\section{Running \tv{R-INLA} remotely}
+
+
+\section{How can I get help?}
+\label{sec:gethelp}
+
+A detailed description of each function in the R-INLA package
+can be obtained by typing
+<<eval=FALSE>>=
+?function.name
+@
+or
+<<eval=FALSE>>=
+  help(function.name)
+@
+from inside \verb|R|.
+
+For the case in which this is not sufficienter, there are two ways
+to get help from the \verb|inla-developers| and
+other users. You can either sign up and post your questions to the
+\verb|R-inla discussion group|, see
+\begin{verbatim}
+http://www.r-inla.org/
+\end{verbatim}
+and the email is \verb|r-inla-discussion-group@googlegroups.com|.
+This discussion group is public and viewable for all others.  If you
+want to ask questions in private, email \verb|help@r-inla.org|.
+
+\section{How do I report an error or post a new feature request?}
+
+A request for a new feature can be posted to either the discussion
+group or to \verb|help@r-inla.org|; see Section~\ref{sec:gethelp}.
+
+An error is easiest reported to \verb|help@r-inla.org| or
+\verb|hrue@r-inla.org|. However, please make sure that you run with
+the latest version of the software, i.e.\ please do 
+<<eval=FALSE>>=
+inla.upgrade(testing=TRUE)
+@ 
+%%
+and rerun your example. If the error is still there, please make us
+aware of it.
+
+In order to reproduce the error, we need to rerun your model/code
+locally, hence we will need a copy of the \tv{R}-code and datasets
+used to generate the error. If the error occurs inside the
+\verb|inla()|-call, then you may do as follows; rerun with
+<<eval=FALSE>>=
+inla(<your stuff here>,  keep=TRUE, inla.call="")
+@ 
+%%
+which will just generate the internal files, but no Bayesian inference
+will be done.  In the current (seen from within \verb|R|)
+directory/folder, look for most recent directory/folder starting with
+\verb|inla.model| and just send us that directory/folder. This option
+keep your data \emph{almost} secret, in the sense that they are there,
+but in a form that makes it very hard to extract any useful
+information about unless knowing how the model was defined. However,
+it contains what we need to rerun your model and check what is causing
+the error.
+
+\section{How to cite \tv{R-INLA}}
+
+It would be great if the report describing the methodology could
+be cited, which is
+
+\begin{itemize}
+\item[] {\bf Rue, H., Martino, S., and Chopin, N. (2009)}.\\
+Approximate Bayesian inference for
+latent Gaussian models by using integrated nested Laplace
+approximations (with discussion).
+Journal of the Royal Statistical Society: Series B, 71, 319--392.
+\end{itemize}
+
+and mention also the web-cite for where the R-INLA package is
+located, www.r-inla.org. Several new features in the packages,
+plus some developments since the JRSSB-paper, are reported here:
+
+\begin{itemize}
+\item[] {\bf Martins, T., Simpson, D., Lindgren, F. and Rue, H. (2012)}.\\
+Bayesian computing with INLA: new features.
+Computational Statistics and Data Analysis, 67, 68--83.
+\end{itemize}
+
+If you use the spatial SPDE-models, you should also cite
+\begin{itemize}
+\item[] {\bf Lindgren, F., Rue, H. and Lindstr{\o}m, J. (2011)}.
+An explicit link between Gaussian fields and Gaussian Markov
+random fields: The SPDE approach (with discussion).
+Journal of the Royal Statistical Society: Series B, 73, 423--498.
+\end{itemize}
+
+and optionally these ones:
+
+\begin{itemize}
+\item[] {\bf Simpson, D., Lindgren, F. and Rue, H. (2012)}.
+In order to make spatial statistics computationally feasible,
+we need to forget about the covariance function.
+Environmetrics, 23, 65--74.
+
+\item[] {\bf Simpson, D., Lindgren, F. and Rue, H. (2012)}.
+Think continuous: Markovian Gaussian models in spatial statistics.
+Spatial Statistics, 1, 16--29.
+\end{itemize}
