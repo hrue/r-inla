@@ -1,0 +1,14 @@
+\chapter{Extended options for the latent field}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+\section{Replicate}
+
+\section{Group}
+
+\section{Linear combinations}
+
+\section{Copy}
+
+\section{Running \tv{R-INLA} remotely}

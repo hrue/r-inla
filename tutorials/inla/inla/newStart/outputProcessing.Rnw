@@ -1,0 +1,35 @@
+\chapter{Output processing}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+\section{Access the output and plotting}
+
+\section{Transforming posterior marginal distributions}
+Write about
+<<eval=FALSE>>=
+inla.tmarginal
+@
+
+\section{Deriving posterior quantitites}
+Write about
+<<eval=FALSE>>=
+inla.dmarginal
+inla.pmarginal
+inla.emarginal
+inla.qmarginal
+inla.mmarginal
+inla.zmarginal
+inla.hpdmarginal
+@
+
+\section{Sampling from the posterior marginal and posterior distribution}
+Write about
+<<eval=FALSE>>=
+inla.rmarginal
+inla.posterior.sample
+@
+
+\section{Simultaneous credible bands}
+
+How to do this?

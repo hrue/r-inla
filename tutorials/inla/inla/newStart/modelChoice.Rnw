@@ -1,0 +1,13 @@
+\chapter{Goodness of fit and predictive measures}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+\section{Deviance information criterion}
+
+\section{Marginal likelihood} 
+
+\section{Predictive measures}
+
+Write about CPO and PIT, maybe mention details from paper from
+Fahrmeir Festschrift.

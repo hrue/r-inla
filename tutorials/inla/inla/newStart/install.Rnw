@@ -1,0 +1,109 @@
+\chapter{How to install the \tv{R-INLA} package}
+
+<<echo=FALSE>>=
+## need this one in this section
+library(INLA)
+library(devtools)
+@ 
+
+
+The \tv{R-INLA} package is available from the web-site 
+\begin{verbatim}
+    www.r-inla.org
+\end{verbatim}
+which also contains a lot of information, like the documentation,
+help-pages, tutorials, case-studies, the discussion group, etc.
+
+Before installing \tv{R-INLA} you might want to install the
+packages \tv{R-INLA} depends on, these are
+<<echo=FALSE>>=
+description.file = readLines(system.file("DESCRIPTION", package="INLA"))
+deps = parse_deps(description.file[grep("^Depends", description.file)])
+print(deps)
+@ 
+and some of the packages are already included in default builds of
+\tv{R}.
+
+There are also some suggested packages
+<<echo=FALSE>>=
+sugg = parse_deps(description.file[grep("^Suggests", description.file)])
+print(sugg)
+@ 
+which are recommended but not required.
+
+There are two ways to install \tv{R-INLA}.
+\begin{enumerate}
+\item  The following command in \tv{R}
+<<eval=FALSE>>=
+source("http://www.math.ntnu.no/inla/givemeINLA.R")
+##source("http://www.math.ntnu.no/inla/givemeINLA-testing.R")
+@     
+%%
+will download and install the more stable version of the package,
+whereas the ``testing'' command will install the newest testing
+version.
+\item You can also install the package manually.  Using
+    Linux or Mac, then 
+ download
+\begin{verbatim}
+http://www.math.ntnu.no/inla/binaries/INLA.tgz
+\end{verbatim}
+and install the package from within \tv{R} using
+<<eval=FALSE>>=
+install.packages("INLA.tgz", repos=NULL, type="source")
+@ 
+%%
+ Using Windows, your need to download
+\begin{verbatim}
+http://www.math.ntnu.no/inla/binaries/INLA.zip
+\end{verbatim}
+and then start \tv{R} and select the \emph{Packages menu}, then \emph{Install
+    package from local zip file}, then find and highlight the location
+of the zip file and click on open.
+\end{enumerate}
+
+It is important to keep your package up-to-date, as the development is
+still rapid. 
+\begin{enumerate}
+\item To update towards the more stable version, do 
+<<eval=FALSE>>=
+inla.upgrade()
+@     
+%%
+\item To update towards the testing-version, do
+<<eval=FALSE>>=
+inla.upgrade(testing=TRUE)
+@ 
+%%
+The testing-version is the most recent version of the package, and all
+examples on the \verb|www.r-inla.org| page assume this version.
+\end{enumerate}
+If you have the testing-version installed, then you can ``downgrade''
+to the most recent stable version doing \verb|inla.upgrade()| and
+\verb|inla.upgrade(testing=TRUE)| will take you back to the more
+recent testing-version. 
+
+You can check which version you have installed using
+<<size="small">>=
+inla.version()
+@ 
+%%
+The ``build date'' shows when the package was compiled and build, the
+``INLA hgid'' is the version and date of the \tv{R}-code and
+``INLA-program hgid'' is the version and date of the inla-program. The
+version and date for the inla-program is often the same as for the
+\tv{R}-code, but it can be slightly older. You also see the contact
+information and web-adresses for the website and where the source is
+hosted. 
+
+If you are interested in recent changes in the package then
+<<eval=FALSE>>=
+inla.changelog()
+@ 
+%%
+will take your browser to the list of the most recent changes. You can also visit
+\begin{verbatim}
+    inla.googlecode.com
+\end{verbatim}
+to view or download the complete source-code. 
+
