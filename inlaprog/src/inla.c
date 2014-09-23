@@ -1778,7 +1778,7 @@ double Qfunc_mec(int i, int j, void *arg)
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
 	assert(i == j);
@@ -1789,7 +1789,7 @@ double mfunc_mec(int i, void *arg)
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double mean_x = map_identity(a->mean_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double *x_obs = a->x_obs;
 	double *scale = a->scale;
@@ -1800,7 +1800,7 @@ double Qfunc_meb(int i, int j, void *arg)
 {
 	inla_meb_tp *a = (inla_meb_tp *) arg;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
 	assert(i == j);
@@ -1809,7 +1809,7 @@ double Qfunc_meb(int i, int j, void *arg)
 double mfunc_meb(int i, void *arg)
 {
 	inla_meb_tp *a = (inla_meb_tp *) arg;
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 
 	return beta * a->x[i];
 }
@@ -13944,12 +13944,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
+
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+
 		if (mb->verbose) {
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+			printf("\t\trange[%g, %g]\n", range[0], range[1]);
 		}
 
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;	/* and this one as well */
 		mb->f_theta[mb->nf][0] = beta;
+
 		if (!mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
@@ -13972,9 +13984,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
 
@@ -14106,12 +14118,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
+
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+
 		if (mb->verbose) {
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+			printf("\t\trange[%g, %g]\n", range[0], range[1]);
 		}
 
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;	/* and this one as well */
 		mb->f_theta[mb->nf][0] = beta;
+
 		if (!mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
@@ -14134,9 +14158,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *)range;
 			mb->ntheta++;
 		}
 
@@ -14989,9 +15013,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *range = NULL;
 		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
 		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
-		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]);
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
-		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
 		if (tmp == 0.0) {
@@ -15066,9 +15088,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *range = NULL;
 		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
 		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
-		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]);
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
-		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -16457,6 +16477,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->x_obs = mb->f_locations[mb->nf];
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
+		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
@@ -16509,6 +16530,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
+		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_meb;
@@ -20116,15 +20138,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_MEC:
 		{
-			double mean_x, log_precision_x, log_precision_obs;
+			double mean_x, log_precision_x, log_precision_obs, beta_intern;
 
 			if (NOT_FIXED(f_fixed[i][0])) {
-				beta = theta[count];
-				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				beta_intern = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
 				count++;
 			} else {
-				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+			beta = mb->f_theta_map[i][0](beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision_obs = theta[count];
@@ -20177,13 +20200,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_MEB:
 		{
+			double beta_intern;
+			
 			if (NOT_FIXED(f_fixed[i][0])) {
-				beta = theta[count];
-				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				beta_intern = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
 				count++;
 			} else {
-				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+			beta = mb->f_theta_map[i][0](beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision = theta[count];

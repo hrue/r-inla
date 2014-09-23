@@ -1085,6 +1085,7 @@ typedef struct {
 	double **log_prec_x;
 	double *x_obs;
 	double *scale;
+	void *map_beta_arg;
 } inla_mec_tp;
 
 /* 
@@ -1095,6 +1096,7 @@ typedef struct {
 	double **log_prec;
 	double *x;
 	double *scale;
+	void *map_beta_arg;
 } inla_meb_tp;
 
 typedef struct {
