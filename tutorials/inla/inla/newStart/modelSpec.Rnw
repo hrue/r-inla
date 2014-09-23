@@ -1,0 +1,74 @@
+\chapter{Model specification}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+\section{Define the latent structure}
+
+\subsection{Fixed effects}
+How to specify them.
+
+\subsection{Random effects}
+
+Write about f-field, list possible latent models, write about
+weights and values.
+
+\section{Define hyperpriors for random effects}
+
+\subsection{General structure}
+Write about internal scale.
+
+Use of 
+<<eval=FALSE>>=
+hyper=list(...)
+@
+
+\subsection{List of available priors}
+
+Provide table about what it exists separated by type of parameter:
+precision parameter, correlation, covariance matrix, ...
+
+\subsection{User-defined priors}
+
+Possible using table and expression.
+
+\subsection{Model scaling}
+
+Write about Sigrunns and your paper.
+
+
+\section{Define the observation model and run the model}
+
+\subsection{The inla-call}
+What can be specified.
+
+\subsection{Data structure and available likelhoods}
+\begin{itemize}
+\item Say something about how data need to be organised what needs
+to be provided.
+
+\item Table about likelihoods. Comment that likelihoods cannot be
+defined manually.
+
+\item Mention how to set priors for hyperparameters in the likelihood.
+\end{itemize}
+
+\subsection{Control arguments}
+Write about
+<<eval=FALSE>>=
+?control.fixed
+?control.predictor
+?control.inla
+?control.compute
+?control.results
+@
+
+\subsection{Multiple likelihoods}
+
+
+\section{Improved hyperparameter specification}
+
+Write about
+<<eval=FALSE>>=
+inla.hyperpar
+@

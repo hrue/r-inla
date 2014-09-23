@@ -1,0 +1,7 @@
+\chapter{Examples}
+<<echo=FALSE>>=
+library(INLA)
+@ 
+
+List several example from the webpage, such as survival,
+BYM, measurement error, \ldots.

@@ -46,7 +46,7 @@ __BEGIN_DECLS
 /* 
    
  */
-typedef enum {
+    typedef enum {
 	SPDE3_TRANSFORM_IDENTITY = 1,			       /* x */
 	SPDE3_TRANSFORM_LOG,				       /* exp(x) */
 	SPDE3_TRANSFORM_SHIFTEDLOG,			       /* 2*exp(x)-1 */

@@ -1778,7 +1778,7 @@ double Qfunc_mec(int i, int j, void *arg)
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
 	assert(i == j);
@@ -1789,7 +1789,7 @@ double mfunc_mec(int i, void *arg)
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double mean_x = map_identity(a->mean_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double *x_obs = a->x_obs;
 	double *scale = a->scale;
@@ -1800,7 +1800,7 @@ double Qfunc_meb(int i, int j, void *arg)
 {
 	inla_meb_tp *a = (inla_meb_tp *) arg;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
 	assert(i == j);
@@ -1809,7 +1809,7 @@ double Qfunc_meb(int i, int j, void *arg)
 double mfunc_meb(int i, void *arg)
 {
 	inla_meb_tp *a = (inla_meb_tp *) arg;
-	double beta = map_identity(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta = map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 
 	return beta * a->x[i];
 }
@@ -2040,6 +2040,23 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_pc_spde_ga(double *x, double *parameters)
+{
+	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
+	int debug = 0;
+
+	lam1 = -par[0] * log(par[1]);
+	lam2 = -log(par[3]) / par[2];
+	ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
+
+	if (debug) {
+		fprintf(stderr, "pc_spde_ga: x = %g %g\n", x[0], x[1]);
+		fprintf(stderr, "            param = %g %g %g %g\n", par[0], par[1], par[2], par[3]);
+		fprintf(stderr, "            lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
+	}
+
+	return ldens;
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -2080,6 +2097,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_sasprior(double *x, double *parameters)
 {
+	assert(0 == 1);					       /* should not be used */
 	double val = re_sas_log_prior(x, parameters);
 	if (0) {
 		P(x[0]);
@@ -6684,6 +6702,19 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
 		Free(prior->parameters);
 		prior->parameters = tmp;
+	} else if (!strcasecmp(prior->name, "PCSPDEGA")) {
+		int nparam, i, dim;
+		double *tmp;
+
+		prior->id = P_PC_SPDE_GA;
+		prior->priorfunc = priorfunc_pc_spde_ga;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 4);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
 	} else if (!strcasecmp(prior->name, "MINUSLOGSQRTRUNCNORMAL") || !strcasecmp(prior->name, "MINUSLOGSQRTRUNCGAUSSIAN") ||
 		   // easier names...
 		   !strcasecmp(prior->name, "LOGTNORMAL") || !strcasecmp(prior->name, "LOGTGAUSSIAN")) {
@@ -13511,12 +13542,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
 
-		if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
-			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
-					(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
-			inla_error_general(ptmp);
-			exit(EXIT_FAILURE);
+		if (!strcasecmp(mb->f_prior[mb->nf][0].name, "MVNORM")) {
+			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
+				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
+						(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
+				inla_error_general(ptmp);
+				exit(EXIT_FAILURE);
+			}
+		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
+			assert(ntheta == 2);		       /* requirement... */
+		} else {
+			assert(0 == 1);			       /* wrong prior used... */
 		}
+
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
@@ -13906,12 +13944,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
+
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+
 		if (mb->verbose) {
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+			printf("\t\trange[%g, %g]\n", range[0], range[1]);
 		}
 
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;	/* and this one as well */
 		mb->f_theta[mb->nf][0] = beta;
+
 		if (!mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
@@ -13934,9 +13984,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
 
@@ -14068,12 +14118,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		SetInitial(0, tmp);
 		HYPER_INIT(beta, tmp);
+
+		double *range = NULL;
+		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
+		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
+		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
+
 		if (mb->verbose) {
 			printf("\t\tinitialise beta[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+			printf("\t\trange[%g, %g]\n", range[0], range[1]);
 		}
 
+		mb->f_theta_map[mb->nf] = Calloc(1, map_func_tp *);
+		mb->f_theta_map_arg[mb->nf] = Calloc(1, void *);
+		mb->f_theta_map[mb->nf][0] = map_beta;	       /* need these */
+		mb->f_theta_map_arg[mb->nf][0] = (void *) range;	/* and this one as well */
 		mb->f_theta[mb->nf][0] = beta;
+
 		if (!mb->f_fixed[mb->nf][0]) {
 			/*
 			 * add this \theta 
@@ -14096,9 +14158,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = beta;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
 
@@ -14951,9 +15013,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *range = NULL;
 		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
 		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
-		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]);
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
-		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
 		if (tmp == 0.0) {
@@ -15028,9 +15088,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *range = NULL;
 		range = Calloc(2, double);		       /* need this as it will be stored in the map argument */
 		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
-		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGELOW"), range[0]);
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
-		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGEHIGH"), range[1]);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -16419,6 +16477,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->x_obs = mb->f_locations[mb->nf];
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
+		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
@@ -16471,6 +16530,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
+		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_meb;
@@ -20078,15 +20138,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_MEC:
 		{
-			double mean_x, log_precision_x, log_precision_obs;
+			double mean_x, log_precision_x, log_precision_obs, beta_intern;
 
 			if (NOT_FIXED(f_fixed[i][0])) {
-				beta = theta[count];
-				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				beta_intern = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
 				count++;
 			} else {
-				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+			beta = mb->f_theta_map[i][0] (beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision_obs = theta[count];
@@ -20139,13 +20200,16 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_MEB:
 		{
+			double beta_intern;
+
 			if (NOT_FIXED(f_fixed[i][0])) {
-				beta = theta[count];
-				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
+				beta_intern = theta[count];
+				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
 				count++;
 			} else {
-				beta = mb->f_theta[i][0][GMRFLib_thread_id][0];
+				beta_intern = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+			beta = mb->f_theta_map[i][0] (beta_intern, MAP_FORWARD, mb->f_theta_map_arg[i][0]);
 
 			if (NOT_FIXED(f_fixed[i][1])) {
 				log_precision = theta[count];
@@ -25249,9 +25313,9 @@ int testit(int argc, char **argv)
 		Q->A = Calloc(ISQR(n), double);
 
 
-		int ntimes=10, itim;
+		int ntimes = 10, itim;
 
-		for(itim = 0; itim < ntimes; itim++){
+		for (itim = 0; itim < ntimes; itim++) {
 #pragma omp parallel for private(i, jj, j)
 			for (i = 0; i < n; i++) {
 				Q->A[i + i * n] = inla_spde3_Qfunction(i, i, (void *) smodel);

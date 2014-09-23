@@ -3470,7 +3470,7 @@
                                      fixed = TRUE,
                                      prior = "normal",
                                      param = c(1, 10),
-                                     to.theta = function(x, low = -Inf, high = Inf) {
+                                     to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3483,7 +3483,7 @@
                                              stop("Condition not yet implemented")
                                          }
                                      }, 
-                                     from.theta = function(x, low = -Inf, high = Inf) {
+                                     from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3518,7 +3518,7 @@
                                      fixed = FALSE,
                                      prior = "normal",
                                      param = c(1, 10),
-                                     to.theta = function(x, low = -Inf, high = Inf) {
+                                     to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -3531,7 +3531,7 @@
                                              stop("Condition not yet implemented")
                                          }
                                      }, 
-                                     from.theta = function(x, low = -Inf, high = Inf) {
+                                     from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                                          if (all(is.infinite(c(low, high))) || low == high) {
                                              stopifnot(low < high)
                                              return (x)
@@ -4463,45 +4463,45 @@
                       status = "experimental"
                       ),
 
-              sas = list(
-                      hyper = list(
-                              theta1 = list(
-                                      name = "log precision",
-                                      short.name = "prec",
-                                      initial = 0,
-                                      fixed = FALSE,
-                                      prior = "loggamma",
-                                      param = c(1, 0.00005),
-                                      to.theta = function(x) log(x),
-                                      from.theta = function(x) exp(x)
-                                      ),
-                              theta2 = list(
-                                      name = "skewness",
-                                      short.name = "skew",
-                                      initial = 0,
-                                      fixed = FALSE,
-                                      prior = "sasprior", 
-                                      param = 10,
-                                      to.theta = function(x) x,
-                                      from.theta = function(x) x
-                                      ),
-                              theta3 = list(
-                                      name = "kurtosis",
-                                      short.name = "kurt",
-                                      initial = 3,
-                                      fixed = FALSE,
-                                      prior = "none",
-                                      param = numeric(0), 
-                                      to.theta = function(x) (x),
-                                      from.theta = function(x) (x)
-                                      )
-                              ),
-                      survival = FALSE,
-                      discrete = FALSE,
-                      link = c("default", "identity"),
-                      pdf = "sas",
-                      status = "experimental"
-                      ),
+###              sas = list(
+###                      hyper = list(
+###                              theta1 = list(
+###                                      name = "log precision",
+###                                      short.name = "prec",
+###                                      initial = 0,
+###                                      fixed = FALSE,
+###                                      prior = "loggamma",
+###                                      param = c(1, 0.00005),
+###                                      to.theta = function(x) log(x),
+###                                      from.theta = function(x) exp(x)
+###                                      ),
+###                              theta2 = list(
+###                                      name = "skewness",
+###                                      short.name = "skew",
+###                                      initial = 0,
+###                                      fixed = FALSE,
+###                                      prior = "sasprior", 
+###                                      param = 10,
+###                                      to.theta = function(x) x,
+###                                      from.theta = function(x) x
+###                                      ),
+###                              theta3 = list(
+###                                      name = "kurtosis",
+###                                      short.name = "kurt",
+###                                      initial = 3,
+###                                      fixed = FALSE,
+###                                      prior = "none",
+###                                      param = numeric(0), 
+###                                      to.theta = function(x) (x),
+###                                      from.theta = function(x) (x)
+###                                      )
+###                              ),
+###                      survival = FALSE,
+###                      discrete = FALSE,
+###                      link = c("default", "identity"),
+###                      pdf = "sas",
+###                      status = "experimental"
+###                      ),
 
               loggammafrailty = list(
                       hyper = list(
@@ -5471,6 +5471,12 @@
                      pdf = "pc.rho1"
                      ),
              
+             ## experimental prior from GA
+             pc.spde.GA = list(
+                     nparameters = 4L,
+                     pdf = NA
+                     ), 
+
              ## this is the generic one,  which is case-spesific and possibly adaptive
              pc = list(
                      nparameters = 2L,
@@ -5482,10 +5488,10 @@
                      pdf = "jeffreystdf"
                      ),
 
-             sasprior = list(
-                     nparameters = 1L,
-                     pdf = "sasprior"
-                     ), 
+###             sasprior = list(
+###                     nparameters = 1L,
+###                     pdf = "sasprior"
+###                     ), 
 
              "expression:" = list(
                      nparameters = -1L,
