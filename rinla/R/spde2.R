@@ -452,7 +452,8 @@ inla.spde2.matern =
              prior.tau = NULL,
              prior.kappa = NULL,
              theta.prior.mean = NULL,
-             theta.prior.prec = 0.1)
+             theta.prior.prec = 0.1,
+             n.iid.group = 1)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     fractional.method = match.arg(fractional.method)
@@ -562,41 +563,72 @@ inla.spde2.matern =
                    "). Supported values are 0 < alpha <= 2", sep=""))
     }
 
-    spde =
+    if (n.iid.group == 1) {
+      spde =
         inla.spde2.generic(M0=M0, M1=M1, M2=M2,
                            B0=B.phi0, B1=B.phi1, B2=1,
                            theta.mu = param$theta.prior.mean,
                            theta.Q = param$theta.prior.prec,
                            transform = "identity",
                            BLC = param$BLC)
+    } else {
+      if (nrow(B.phi0) > 1) {
+        B.phi0 <- kronecker(matrix(1, n.iid.group, 1), B.phi0)
+      }
+      if (nrow(B.phi1) > 1) {
+        B.phi1 <- kronecker(matrix(1, n.iid.group, 1), B.phi1)
+      }
+      spde =
+        inla.spde2.generic(M0=kronecker(Diagonal(n.iid.group), M0),
+                           M1=kronecker(Diagonal(n.iid.group), M1),
+                           M2=kronecker(Diagonal(n.iid.group), M2),
+                           B0=B.phi0, B1=B.phi1, B2=1,
+                           theta.mu = param$theta.prior.mean,
+                           theta.Q = param$theta.prior.prec,
+                           transform = "identity",
+                           BLC = param$BLC)
+    }
     spde$model = "matern"
     spde$BLC = param$BLC
 
-    if (constr || !is.null(extraconstr.int)) {
-        if (constr) {
-            A.constr = matrix(colSums(fem$c1), 1, n.spde)
-            e.constr = 0
+    if (constr || !is.null(extraconstr.int) || !is.null(extraconstr)) {
+      A.constr = matrix(numeric(0), 0, n.spde*n.iid.group)
+      e.constr = matrix(numeric(0), 0, 1)
+      if (constr) {
+        A.constr <- rbind(A.constr,
+                          matrix(colSums(fem$c1)/n.iid.group,
+                                 1, n.spde*n.iid.group))
+        e.constr <- rbind(e.constr, 0)
+      }
+      if (!is.null(extraconstr.int)) {
+        if (ncol(extraconstr.int$A) == n.spde) {
+          A.constr <-
+            rbind(A.constr,
+                  kronecker(matrix(1/n.iid.group, 1, n.iid.group),
+                            as.matrix(extraconstr.int$A %*% fem$c1)))
         } else {
-            A.constr = matrix(numeric(0), 0, n.spde)
-            e.constr = c()
+          A.constr <-
+            rbind(A.constr,
+                  as.matrix(extraconstr.int$A %*%
+                              kronecker(Diagonal(n.iid.group),
+                                        fem$c1)))
         }
-        if (!is.null(extraconstr.int)) {
-            A.constr =
-                rBind(A.constr,
-                      matrix(extraconstr.int$A %*% fem$c1,
-                             nrow(extraconstr.int$A), n.spde))
-            e.constr = c(e.constr, extraconstr.int$e)
+        e.constr <- rbind(e.constr, as.matrix(extraconstr.int$e))
+      }
+      if (!is.null(extraconstr)) {
+        if (ncol(extraconstr$A) == n.spde) {
+          A.constr <-
+            rbind(A.constr,
+                  kronecker(matrix(1/n.iid.group, 1, n.iid.group),
+                            as.matrix(extraconstr$A)))
+        } else {
+          A.constr <- rbind(A.constr, as.matrix(extraconstr$A))
         }
-        if (!is.null(extraconstr)) {
-            A.constr = rBind(A.constr, extraconstr$A)
-            e.constr = c(e.constr, extraconstr$e)
-        }
+        e.constr <- rbind(e.constr, as.matrix(extraconstr$e))
+      }
 
-        spde$f$constr = FALSE
-        spde$f$extraconstr = list(A=A.constr, e=e.constr)
-    } else if (!is.null(extraconstr)) {
-        spde$f$constr = FALSE
-        spde$f$extraconstr = extraconstr
+      spde$f$constr = FALSE
+      spde$f$extraconstr = list(A=A.constr, e=e.constr)
     }
 
     return(invisible(spde))
