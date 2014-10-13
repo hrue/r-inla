@@ -68,32 +68,21 @@
         ret = c(ret,  list(cpu.used = NA))
     }
 
-    if(!is.null(object$summary.fixed)) {
-        fixed = round(object$summary.fixed, digits)
-        ret = c(ret, list(fixed=fixed))
-    }
+    if(!is.null(object$summary.fixed) && length(object$summary.fixed) > 0) 
+        ret = c(ret, list(fixed=round(as.matrix(object$summary.fixed), digits)))
 
     if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
-       && (length(object$summary.lincomb) > 0)) {
-        lincomb = round(as.matrix(object$summary.lincomb), digits)
-        ret = c(ret, list(lincomb=lincomb))
-    }
+       && (length(object$summary.lincomb) > 0)) 
+        ret = c(ret, list(lincomb=round(as.matrix(object$summary.lincomb), digits)))
+    
+    if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0)
+        ret = c(ret, list(lincomb.derived=round(as.matrix(object$summary.lincomb.derived), digits)))
 
-    if(!is.null(object$summary.lincomb.derived)
-       && (length(object$summary.lincomb.derived) > 0)) {
-        lincomb = round(as.matrix(object$summary.lincomb.derived), digits)
-        ret = c(ret, list(lincomb.derived=lincomb))
-    }
-
-    if(!is.null(object$summary.hyperpar))
+    if(!is.null(object$summary.hyperpar) && length(object$summary.hyperpar) > 0)
         ret = c(ret, list(hyperpar=round(object$summary.hyperpar, digits)))
     
-
-    if(!is.null(object$summary.random)) {
-        random.name = names(object$summary.random)
-        random.mod =  object$model.random
-        ret = c(ret, list(random.names=random.name, random.model=random.mod))
-    }
+    if(!is.null(object$summary.random) && length(object$summary.random) > 0) 
+        ret = c(ret, list(random.names=names(object$summary.random), random.model=object$model.random))
     
     neffp = object$neffp
     ret = c(ret, list(neffp = round(neffp, digits)))
@@ -131,9 +120,8 @@
         cat("Fixed effects:\n")
         print.default(x$fixed)
         cat("\n")
-    } else {
+    } else 
         cat("The model has no fixed effects\n\n")
-    }
 
     if (inla.is.element("lincomb.derived", x)) {
         cat("Linear combinations (derived):\n")
@@ -154,44 +142,34 @@
         for(i in 1:length(x$random.names))
             cat(paste(inla.nameunfix(x$random.names[i])," ", x$random.model[i],"\n"))
         cat("\n")
-    } else {
+    } else 
         cat("The model has no random effects\n\n")
-    }
 
     if (inla.is.element("hyperpar", x)) {
         cat("Model hyperparameters:\n")
         print(format(x$hyperpar, digits=digits, nsmall=2), quote=FALSE)
         cat("\n")
-    } else {
+    } else 
         cat("The model has no hyperparameters\n\n")
-    }
     
     if (inla.is.element("neffp", x)) {
         cat("Expected number of effective parameters(std dev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
             format(x$neffp[2], digits=digits, nsmall=2),")\n", sep="")
-        cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n")
-        cat("\n")
+        cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n\n")
     } else {
-        cat("Expected number of effective parameters and Number of equivalent replicates not computed\n")
-        cat("\n")
+        cat("Expected number of effective parameters and Number of equivalent replicates not computed\n\n")
     }
 
-    if (inla.is.element("dic", x)) {
+    if (inla.is.element("dic", x)) 
         cat(paste("Deviance Information Criterion: ", format(x$dic$dic, digits=digits, nsmall=2), "\n", 
-                  "Effective number of parameters: ", format(x$dic$p.eff, digits=digits, nsmall=2), "\n", sep=""))
-        cat("\n")
-    }
+                  "Effective number of parameters: ", format(x$dic$p.eff, digits=digits, nsmall=2), "\n\n", sep=""))
      
-    if (inla.is.element("mlik", x)) {
+    if (inla.is.element("mlik", x)) 
         cat(paste("Marginal Likelihood: ", format(x$mlik[2], digits=digits, nsmall=2),"\n"))
-    }
 
-    if (inla.is.element("cpo", x)) {
-        cat("CPO and PIT are computed\n")
-        cat("\n")
-    }
+    if (inla.is.element("cpo", x)) 
+        cat("CPO and PIT are computed\n\n")
 
-    if (inla.is.element("linear.predictor", x)) {
+    if (inla.is.element("linear.predictor", x)) 
         cat("Posterior marginals for linear predictor and fitted values computed\n\n")
-    }
 }
