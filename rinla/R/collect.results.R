@@ -663,7 +663,9 @@ inla.internal.experimental.mode = FALSE
         attr(marginals.fixed,  "inla.tag", "marginals fixed")
     }
 
-    ret = list(names.fixed=names.fixed, summary.fixed=summary.fixed, marginals.fixed=marginals.fixed)
+    ret = list(names.fixed=names.fixed,
+            summary.fixed= as.data.frame(summary.fixed),
+            marginals.fixed=marginals.fixed)
     return(ret)
 }
 
@@ -842,11 +844,11 @@ inla.internal.experimental.mode = FALSE
     }
 
     if (derived) {
-        res = list(summary.lincomb.derived = summary.lincomb[[1L]],
+        res = list(summary.lincomb.derived = as.data.frame(summary.lincomb[[1L]]),
                 marginals.lincomb.derived = inla.ifelse(length(marginals.lincomb) > 0L, marginals.lincomb[[1L]], NULL), 
                 size.lincomb.derived = size.lincomb[[1L]])
     } else {
-        res = list(summary.lincomb = summary.lincomb[[1L]],
+        res = list(summary.lincomb = as.data.frame(summary.lincomb[[1L]]),
                 marginals.lincomb = inla.ifelse(length(marginals.lincomb)>0L, marginals.lincomb[[1L]], NULL), 
                 size.lincomb = size.lincomb[[1L]])
     }
@@ -1235,9 +1237,9 @@ inla.internal.experimental.mode = FALSE
         }
     }
     
-    ret=list(summary.hyperpar=summary.hyper,
+    ret=list(summary.hyperpar= as.data.frame(summary.hyper),
         marginals.hyperpar=marginal.hyper,
-        internal.summary.hyperpar = internal.summary.hyper,
+        internal.summary.hyperpar = as.data.frame(internal.summary.hyper),
         internal.marginals.hyperpar = internal.marginal.hyper)
     return(ret)
 }
@@ -1482,9 +1484,9 @@ inla.internal.experimental.mode = FALSE
     }
 
 
-    res = list(summary.linear.predictor=summary.linear.predictor,
+    res = list(summary.linear.predictor= as.data.frame(summary.linear.predictor),
             marginals.linear.predictor=marginals.linear.predictor,
-            summary.fitted.values=summary.fitted.values,
+            summary.fitted.values=as.data.frame(summary.fitted.values),
             marginals.fitted.values=marginals.fitted.values,
             size.linear.predictor = size.info)
 
@@ -1658,7 +1660,10 @@ inla.internal.experimental.mode = FALSE
         size.random = NULL
     }
     
-    res = list(model.random=model.random, summary.random=summary.random, marginals.random=marginals.random, size.random = size.random)
+    res = list(model.random=model.random,
+            summary.random= as.data.frame(summary.random),
+            marginals.random=marginals.random,
+            size.random = size.random)
     return(res)
 }
 
@@ -1819,7 +1824,10 @@ inla.internal.experimental.mode = FALSE
         size.random = NULL
     }
     
-    res = list(model.spde2.blc=model.random, summary.spde2.blc=summary.random, marginals.spde2.blc=marginals.random, size.spde2.blc = size.random)
+    res = list(model.spde2.blc=model.random,
+            summary.spde2.blc= as.data.frame(summary.random),
+            marginals.spde2.blc=marginals.random,
+            size.spde2.blc = size.random)
     return(res)
 }
 
@@ -1980,7 +1988,10 @@ inla.internal.experimental.mode = FALSE
         size.random = NULL
     }
     
-    res = list(model.spde3.blc=model.random, summary.spde3.blc=summary.random, marginals.spde3.blc=marginals.random, size.spde3.blc = size.random)
+    res = list(model.spde3.blc=model.random,
+            summary.spde3.blc= as.data.frame(summary.random),
+            marginals.spde3.blc=marginals.random,
+            size.spde3.blc = size.random)
     return(res)
 }
 
