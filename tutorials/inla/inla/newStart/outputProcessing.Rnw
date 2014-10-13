@@ -1,9 +1,120 @@
 \chapter{Output processing}
 <<echo=FALSE>>=
+rm(list=ls())
 library(INLA)
 @ 
 
+
+
 \section{Access the output and plotting}
+
+In this section we will discuss how to access the output of the
+Bayesian analysis and how to perform operations on posterior
+marginals. To fix ideas, we will study a simple example
+which implements this model
+\begin{displaymath}
+    y_i = \mu + \beta x_i + u_{j_i} + \epsilon_i
+\end{displaymath}
+where $u$ is a Gaussian random effect, using simulated data.
+<<>>=
+nre = 10
+m = 10
+n = nre * m
+x = rnorm(n)
+re = rnorm(nre)
+idx = rep(1:nre, each = m)
+eta = 1 + x + re[idx]
+y = eta + rnorm(n, sd = 0.1)
+result = inla(y ~ 1 + x + f(idx, model="iid"),  data = data.frame(y, x, idx))
+@ 
+This model has two fixed effects ($\mu$ and $\beta$), 
+one random effect (component) $u$, and two hyperparameters: the
+precisions for the Gaussian noise and the random effect $u$.
+
+\section{Summary of the result}
+
+The usual procedure after an \verb|inla()|-call, is to call \verb|summary|
+<<>>=
+summary(result)
+@ 
+As the name suggest, this will provide us with a summary of the
+results. The interpretation of the output is as follows. 
+\begin{itemize}
+\item The \verb|Call:| entry, is a copy of the arguments to the
+    \verb|inla()|-call.
+\item The \verb|Time-used:| entry, is a table of the wall-clock-time
+    for the calculations, which consists of a pre-processing step
+    where the formula and data are transformed into an appropriate
+    format for the \verb|inla-program|, a \verb|Running inla|-step
+    where the \verb|inla-program| is run in a separate process to do
+    all the calculations, and a post-processing step where all the
+    results are transferred back into \verb|R| and the result object
+    is buildt.
+\item The \verb|Fixed effect| entry, provide summary statistics for
+    the fixed effects.
+\item The \verb|Random effect| entry, provide a list of all the random
+    effect components in the model.
+\item The \verb|Model hyperparameters| entry, provide summary
+    statistics for all the hyperparameters in the model
+\item \verb|Expected number of effective parameters...| is an estimate of the
+    effective number of parameters (where the expectation is taken
+    over the hyperparameters). We use an asymptotic expression for the
+    effective number of parameters \cite[Eq.~(15)]{art413}.
+\item \verb|Number of equivalent replicates| is the number of
+    observations divided by the expectated number of effective parameters.
+\item The \verb|Marginal Likelihood| is the estimate of the log
+    marginal likelihood, computed from the normalizing constant for
+    the posterior of the hyperparameters. 
+\end{itemize}
+
+To get a visual presentation of the results, we can use the
+\verb|plot()|-function 
+<<eval=FALSE>>=
+plot(result)
+@ 
+<<results='asis', echo=FALSE>>=
+figs = plot(result, pdf=TRUE, single=TRUE)
+cat("\\begin{figure}[h]\n")
+cat("\\label{output:fig1}\n")
+for(fig in figs) {
+    cat("  \\subfigure[]{\\rotatebox{0}{")
+    cat("\\includegraphics[height=0.45\\linewidth]{", fig, "}}}\n", sep="")
+}
+cat("\\end{figure}\n")
+@ 
+%%
+which produce the plots in~\Fig{output:fig1}. Figures~(a) and (b)
+shows the posterior marginal of the two fixed effects. Figure~(c)
+shows the posterior mean/median/quantiles of the random effect $u$
+plotted against its index. Figures~(d) and (e) shows the posterior
+marginals of the two hyperparameters, the precisions of the Gaussian
+response and the random effect.
+
+\section{Summaries for fixed and random effects}
+
+Summaries for the posteriors for the fixed and random effects, and the
+hyperparameters, are available directly from the inla-object. For the
+fixed effects, the statistics are stored in a matrix
+with one row for each variable and each statistics in each column
+<<>>=
+str(result$summary.fixed)
+result$summary.fixed
+@ 
+For the random effects, the summary statistics are stored as a list of
+data.frames\footnote{HR: WHY don't we use data.frames for all summaries?}
+<<>>=
+length(result$summary.random)
+names(result$summary.random)
+str(result$summary.random[[1]])
+result$summary.random[[1]]
+@ 
+For the hyperparameters, the summary statistics are stored as a 
+matrix
+<<>>=
+str(result$summary.hyperpar)
+result$summary.hyperpar
+@ 
+
 
 \section{Transforming posterior marginal distributions}
 Write about
