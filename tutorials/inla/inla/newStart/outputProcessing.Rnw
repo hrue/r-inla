@@ -2,6 +2,7 @@
 <<echo=FALSE>>=
 rm(list=ls())
 library(INLA)
+INLA:::inla.my.update()
 @ 
 
 
@@ -74,11 +75,10 @@ plot(result)
 @ 
 <<results='asis', echo=FALSE>>=
 figs = plot(result, pdf=TRUE, single=TRUE)
-cat("\\begin{figure}[h]\n")
-cat("\\label{output:fig1}\n")
+cat("\\begin{figure}[h]\n\\label{output:fig1}\n")
 for(fig in figs) {
-    cat("  \\subfigure[]{\\rotatebox{0}{")
-    cat("\\includegraphics[height=0.45\\linewidth]{", fig, "}}}\n", sep="")
+    cat("\t\\subfigure[]{\\rotatebox{0}{\\includegraphics[height=0.45\\linewidth]{", 
+        fig, "}}}\n", sep="")
 }
 cat("\\end{figure}\n")
 @ 
@@ -94,14 +94,14 @@ response and the random effect.
 
 Summaries for the posteriors for the fixed and random effects, and the
 hyperparameters, are available directly from the inla-object. For the
-fixed effects, the statistics are stored in a matrix
+fixed effects, the statistics are stored as a data.frame
 with one row for each variable and each statistics in each column
 <<>>=
 str(result$summary.fixed)
 result$summary.fixed
 @ 
 For the random effects, the summary statistics are stored as a list of
-data.frames\footnote{HR: WHY don't we use data.frames for all summaries?}
+data.frames
 <<>>=
 length(result$summary.random)
 names(result$summary.random)
@@ -109,20 +109,24 @@ str(result$summary.random[[1]])
 result$summary.random[[1]]
 @ 
 For the hyperparameters, the summary statistics are stored as a 
-matrix
+data.frame
 <<>>=
 str(result$summary.hyperpar)
 result$summary.hyperpar
 @ 
 
 
-\section{Transforming posterior marginal distributions}
+\section{Posteriors Marginals}
+
+internal storage, plotting and spline-interpolation. 
+
+\subsection{Transforming posterior marginal distributions}
 Write about
 <<eval=FALSE>>=
 inla.tmarginal
 @
 
-\section{Deriving posterior quantitites}
+\subsection{Deriving posterior quantitites}
 Write about
 <<eval=FALSE>>=
 inla.dmarginal
@@ -132,12 +136,13 @@ inla.qmarginal
 inla.mmarginal
 inla.zmarginal
 inla.hpdmarginal
+inla.rmarginal
 @
 
-\section{Sampling from the posterior marginal and posterior distribution}
+\subsection{Sampling from the joint posterior}
 Write about
 <<eval=FALSE>>=
-inla.rmarginal
+inla.hyperpar.sample
 inla.posterior.sample
 @
 
