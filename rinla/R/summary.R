@@ -73,12 +73,14 @@
         ret = c(ret, list(fixed=fixed))
     }
 
-    if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")) {
+    if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
+       && (length(object$summary.lincomb) > 0)) {
         lincomb = round(as.matrix(object$summary.lincomb), digits)
         ret = c(ret, list(lincomb=lincomb))
     }
 
-    if(!is.null(object$summary.lincomb.derived)) {
+    if(!is.null(object$summary.lincomb.derived)
+       && (length(object$summary.lincomb.derived) > 0)) {
         lincomb = round(as.matrix(object$summary.lincomb.derived), digits)
         ret = c(ret, list(lincomb.derived=lincomb))
     }
