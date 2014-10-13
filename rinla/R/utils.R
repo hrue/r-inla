@@ -645,7 +645,7 @@
     ## the value is non null and not NA.
     if (any(names(alist) == name)) {
         idx = which(names(alist) == name)
-        if (!is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
+        if (length(alist[[idx]]) > 0 && !is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
             return (TRUE)
         } else {
             return (FALSE)

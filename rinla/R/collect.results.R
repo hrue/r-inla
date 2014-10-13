@@ -844,11 +844,13 @@ inla.internal.experimental.mode = FALSE
     }
 
     if (derived) {
-        res = list(summary.lincomb.derived = as.data.frame(summary.lincomb[[1L]]),
+        res = list(
+                summary.lincomb.derived = as.data.frame(summary.lincomb[[1L]]), 
                 marginals.lincomb.derived = inla.ifelse(length(marginals.lincomb) > 0L, marginals.lincomb[[1L]], NULL), 
                 size.lincomb.derived = size.lincomb[[1L]])
     } else {
-        res = list(summary.lincomb = as.data.frame(summary.lincomb[[1L]]),
+        res = list(
+                summary.lincomb = as.data.frame(summary.lincomb[[1L]]),
                 marginals.lincomb = inla.ifelse(length(marginals.lincomb)>0L, marginals.lincomb[[1L]], NULL), 
                 size.lincomb = size.lincomb[[1L]])
     }
@@ -1660,8 +1662,8 @@ inla.internal.experimental.mode = FALSE
         size.random = NULL
     }
     
-    res = list(model.random=model.random,
-            summary.random= as.data.frame(summary.random),
+   res = list(model.random=model.random,
+            summary.random= lapply(summary.random, as.data.frame), 
             marginals.random=marginals.random,
             size.random = size.random)
     return(res)
@@ -1825,7 +1827,7 @@ inla.internal.experimental.mode = FALSE
     }
     
     res = list(model.spde2.blc=model.random,
-            summary.spde2.blc= as.data.frame(summary.random),
+            summary.spde2.blc= lapply(summary.random, as.data.frame), 
             marginals.spde2.blc=marginals.random,
             size.spde2.blc = size.random)
     return(res)
@@ -1989,7 +1991,7 @@ inla.internal.experimental.mode = FALSE
     }
     
     res = list(model.spde3.blc=model.random,
-            summary.spde3.blc= as.data.frame(summary.random),
+            summary.spde3.blc= lapply(summary.random, as.data.frame), 
             marginals.spde3.blc=marginals.random,
             size.spde3.blc = size.random)
     return(res)
