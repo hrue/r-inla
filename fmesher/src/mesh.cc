@@ -888,7 +888,7 @@ namespace fmesh {
 
     For planes, we use a linear combination of the vertices, with
     weights obtained from
-    http://wapedia.mobi/en/Circumscribed_circle#2. \n
+    http://en.wikipedia.org/wiki/Circumscribed_circle#Barycentric_coordinates_from_cross-_and_dot-products   \n
     Rewriting in our notation, the weights and circumcenter are given by
     \f{align*}{
     a_0  &= - \frac{\|e_0\|^2 (e_1\cdot e_2)}{2\|e_1\times e_2\|^2}
@@ -970,7 +970,7 @@ namespace fmesh {
     \brief Calculate the radius of the triangle circumcircle
 
     We use the formula given at
-    http://wapedia.mobi/en/Circumscribed_circle#2. \n
+    http://en.wikipedia.org/wiki/Circumscribed_circle#Barycentric_coordinates_from_cross-_and_dot-products \n
     Rewriting in our notation, the radius of the circumcircle
     is given by
     \f{align*}{
