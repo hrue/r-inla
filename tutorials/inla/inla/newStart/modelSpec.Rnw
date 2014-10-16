@@ -29,7 +29,7 @@ A formula object is thereby composed of two different types of terms,
 fixed effects just added to the model without additional specification
 and random effects specified using the ${\tt f(.)}$ function. Here,
 additional arguments to describe the underlying latent model are available.
-Both terms will be described in more detail in the following section.
+Both terms will be described in more detail in following section.
 
 
 \section{Define the latent structure}
