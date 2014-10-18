@@ -3803,7 +3803,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 
 	int i, dcode, strata;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
+	double y, prec, w, dof, y_std, fac, ypred;
 
 	int bit_fac = GMRFLib_getbit(ds->variant, (unsigned int) 0);
 	int bit_tail = GMRFLib_getbit(ds->variant, (unsigned int) 1);
