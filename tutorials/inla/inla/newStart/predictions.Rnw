@@ -1,4 +1,66 @@
 \chapter{Predictions} 
 <<echo=FALSE>>=
+rm(list=ls())
 library(INLA)
 @ 
+
+
+In this chapter we will dicuss how to precition using
+\verb|INLA|. This is a bit different from other tools, as there is not
+such thing as a \verb|predict|-function, but we need to include the
+``locations'' (in abstract form), from the start, as estimation and
+prediction are two sides of the same coin. 
+
+\section{The use of \verb|NA|}
+
+Recall that setting an observation to \verb|NA| means \emph{no
+    likelihood contribution} at that location, hence \verb|NA|'s will
+be useful when doing prediction.
+
+We will start with a simple time-series example, where we want to
+predict into the future\footnote{Who doesn't?}. First we simulate some
+data following an AR(1)-process
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+n = 100
+y = arima.sim(n=n, model=list(ar=0.9))
+plot(y,  type="l", xlim = c(1, n+10))
+@ 
+\end{center}
+and the question is what will happen in the future, like for time
+$100+1, \ldots 100+10$?
+
+We can use the fitted AR(1) model to do the predictions. In order to
+this, we need to compute the predictions together with the
+estimation. Hence, we need to add linear predictors for all the
+locations we want to predictor and let the corresponding observations
+be \verb|NA|'s. 
+<<>>=
+n.pred = 10
+nn = n + n.pred
+idx = 1:nn
+yy = c(y, rep(NA, n.pred))
+formula = yy ~ f(idx, model="ar1")
+r = inla(formula, data = data.frame(idx, yy),
+    ## compute posterior marginals for the linear predictors
+    control.predictor = list(compute = TRUE),
+    ## no observational noise: fix the precision to a high value.
+    control.family = list(initial = 10, fixed=TRUE)) 
+@ 
+%%
+We can know that the predictions are the last \verb|n.pred| elements
+in the linear predictor, because we put them there, hence we can
+easily plot the predictions with the prediction interval
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+pred.idx = (n+1):nn
+plot(idx[1:n], r$summary.linear.predictor$mean[1:n], type="l", xlim = c(1, nn))
+lines(idx[pred.idx], r$summary.linear.predictor$mean[pred.idx], col="blue")
+lines(idx[pred.idx], r$summary.linear.predictor$"0.025quant"[pred.idx], col="red")
+lines(idx[pred.idx], r$summary.linear.predictor$"0.975quant"[pred.idx], col="red")
+@ 
+\end{center}
+
+
+\section{Posteriors for predicted fitted values}
+

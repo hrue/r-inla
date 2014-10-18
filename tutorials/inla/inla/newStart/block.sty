@@ -1,0 +1,28 @@
+% block paragraph style  12/5-87 Anund Lie
+%
+% 1993-03-19 Modified to work for minipage and tableofcontents, 
+%            Anders Christensen <anders@pvv.unit.no>
+% 1995-03-08 Modified by Harald Hanche-Olsen <hanche@imf.unit.no>
+%            \tableofcontents should be \edef'd, not merely \def'd.
+% 1997-03-05 Again modified by Harald Hanche-Olsen <hanche@math.ntnu.no>
+%            Added noexpand for peaceful coexistence with packages
+%            that redefine \setlength.
+%            Also fix \listoffigures and listoftables.
+% 1997-03-07 Yet again, by hanche (suggestion from Bård Kjos)
+%            Added check for the existence of macros to be redefined.
+%            Next change should obviously be scheduled for 1999-03.
+%
+\setlength{\parskip}{1.5ex}
+\setlength{\parindent}{0cm}
+
+\def\0#1{\ifx\@undefined#1\else
+\toks0=\expandafter{#1}
+\edef#1{{\noexpand\setlength{\parskip}{0mm}\the\toks0}}
+\fi}
+
+\0\tableofcontents
+\0\listoffigures
+\0\listoftables
+
+\let\old@minipagerestore=\@minipagerestore
+\def\@minipagerestore{\old@minipagerestore\setlength{\parskip}{1.5ex}}
