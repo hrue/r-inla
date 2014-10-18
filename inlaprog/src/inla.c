@@ -3831,8 +3831,14 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	}
 
 
-	lg1 = gsl_sf_lngamma(dof / 2.0);
-	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+	// cache the values of lg1 and lg2
+	static double lg1 = 0.0, lg2 = 0.0, dof_cache = -1.0;
+#pragma omp threadprivate (lg1, lg2, dof_cache)
+	if (dof != dof_cache) {
+		dof_cache = dof;
+		lg1 = gsl_sf_lngamma(dof / 2.0);
+		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+	}
 
 	int use_tail_correction;
 
