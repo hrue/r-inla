@@ -39,12 +39,19 @@
                 for(i in idx) {
                     pdf = m[[section]][[i]]$pdf
                     if (!is.null(pdf) && !is.na(pdf)) {
+                        filename = paste("doc/", sections[[section]], "/", pdf, ".pdf", sep="")
+                        filename.full = system.file(filename, package="INLA")
                         if (verbose) {
+                            cat("\n")
                             cat(paste("\t\t", "Found name:", names(m[[section]])[i], "\n"))
-                            cat(paste("\t\t"," ", "Open pdf  : ", pdf, ".pdf", sep="", "\n"))
+                            cat(paste("\t\t"," ", "pdf           : ", pdf, ".pdf", sep="", "\n"))
+                            cat(paste("\t\t"," ", "filename      : ", filename, sep="", "\n"))
+                            cat(paste("\t\t"," ", "filename.full : ", filename.full, sep="", "\n"))
                         }
-                        RShowDoc(paste(sections[[section]], "/", pdf,  sep=""),
-                                 "pdf", "INLA")
+                        if (file.exists(filename.full)) {
+                            RShowDoc(paste(sections[[section]], "/", pdf,  sep=""),
+                                     "pdf", "INLA")
+                        }
                     }
                 }
             }
