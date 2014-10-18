@@ -3757,7 +3757,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, prec, w, dof, y_std, fac, lg1, lg2, ypred;
+	double y, prec, w, dof, y_std, fac, ypred;
 
 	LINK_INIT;
 	dof = map_dof(ds->data_observations.dof_intern_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -3765,8 +3765,15 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 	w = ds->data_observations.weight_t[idx];
 	prec = map_precision(ds->data_observations.log_prec_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	fac = sqrt((dof / (dof - 2.0)) * prec);
-	lg1 = gsl_sf_lngamma(dof / 2.0);
-	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+
+	// cache the values of lg1 and lg2
+	static double lg1 = 0.0, lg2 = 0.0, dof_cache = -1.0;
+#pragma omp threadprivate (lg1, lg2, dof_cache)
+	if (dof != dof_cache) {
+		dof_cache = dof;
+		lg1 = gsl_sf_lngamma(dof / 2.0);
+		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+	}
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
