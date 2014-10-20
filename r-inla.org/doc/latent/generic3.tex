@@ -1,0 +1,59 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\begin{document}
+
+\section*{Generic3 model}
+
+\subsection*{Parametrization}
+
+The generic3 model implements the following precision matrix
+\begin{equation}\label{eq1}%
+    \mathbf{Q}= \sum_{i = 1}^{m} \tau_i \mm{C}_i
+\end{equation}
+where  $\{\mm{C}_i\}$ are given symmetric matrices, and where
+$\tau_i$ are the precision-parameters.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are 
+\begin{displaymath}
+    \theta_i = \log(\tau_i), \qquad i=1, \ldots, m
+\end{displaymath}
+and priors are assigned to $(\{\theta_i\})$.
+
+\subsection*{Specification}
+
+The generic2model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="generic3", Cmatrix = <list.of.Cmat>, hyper = <hyper>)
+\end{verbatim}
+where {\tt <list.of.Cmat>} is a list of, preferably, sparse-matrices,
+and $m$ is defined as the length of {\tt <list.of.Cmat>}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/generic3.tex}
+
+\subsection*{Example}
+{\small\begin{verbatim}
+
+examples goes here
+\end{verbatim}
+}
+
+
+\subsection*{Notes}
+
+
+\end{document}
+
+
+
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
