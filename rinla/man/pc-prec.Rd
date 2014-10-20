@@ -47,6 +47,7 @@
   \code{inla.pc.qprec} gives the quantile function, and
   \code{inla.pc.rprec} generates random deviates.
  }
+ \seealso{inla.doc("pc.prec")}
  \author{Havard Rue \email{hrue@math.ntnu.no}}
  \examples{
  prec = inla.pc.rprec(100,  lambda = 1)

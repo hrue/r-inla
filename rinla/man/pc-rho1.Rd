@@ -48,6 +48,7 @@
   \code{inla.pc.qcor1} gives the quantile function, and
   \code{inla.pc.rcor1} generates random deviates.
  }
+ \seealso{inla.doc("pc.rho1")}
  \author{Havard Rue \email{hrue@math.ntnu.no}}
  \examples{
  cor = inla.pc.rcor1(100,  lambda = 1)
