@@ -22,8 +22,12 @@
     ## If running in RStudio then don't open a new device,  otherwise,  do.
     dev = getOption("device")
     if (is.character(dev) && inla.strncasecmp(dev, "RStudioGD")) {
-        return (NULL)
+        ret = NULL
     } else {
-        return (dev.new(...))
+        ret = dev.new(...)
     }
+    if (exists("inla.dev.new.hook") && is.function(inla.dev.new.hook)) {
+        inla.dev.new.hook()
+    }
+    return (ret)
 }
