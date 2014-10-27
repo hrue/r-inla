@@ -854,100 +854,10 @@
                          from.theta = function(x) exp(x)
                          ),
                      theta11 = list(
-                         name = "log precision11",
-                         short.name = "prec11",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta12 = list(
-                         name = "log precision12",
-                         short.name = "prec12",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta13 = list(
-                         name = "log precision13",
-                         short.name = "prec13",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta14 = list(
-                         name = "log precision14",
-                         short.name = "prec14",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta15 = list(
-                         name = "log precision15",
-                         short.name = "prec15",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta16 = list(
-                         name = "log precision16",
-                         short.name = "prec16",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta17 = list(
-                         name = "log precision17",
-                         short.name = "prec17",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta18 = list(
-                         name = "log precision18",
-                         short.name = "prec18",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta19 = list(
-                         name = "log precision19",
-                         short.name = "prec19",
-                         initial = 4,
-                         fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
-                         to.theta = function(x) log(x),
-                         from.theta = function(x) exp(x)
-                         ),
-                     theta20 = list(
-                         name = "log precision20",
-                         short.name = "prec20",
-                         initial = 4,
-                         fixed = FALSE,
+                         name = "log precision common",
+                         short.name = "prec.common",
+                         initial = 0,                  ## yes!
+                         fixed = TRUE,                 ## yes!
                          prior = "loggamma",
                          param = c(1, 0.00005),
                          to.theta = function(x) log(x),

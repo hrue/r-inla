@@ -163,12 +163,13 @@ posterior marginal, the values
 \eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
 \deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
 \item{Cmatrix}{The specification of the precision matrix
-for the generic or z models (up to a scaling constant).
+for the generic,  generic3 or z models (up to a scaling constant).
 \code{Cmatrix} is either a
 (dense) matrix, a matrix create using
 \code{Matrix::sparseMatrix()}, or a filename which stores the
 non-zero elements of \code{Cmatrix}, in three columns:
-\code{i}, \code{j} and \code{Qij}.}
+\code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
+it is a list of such spesifications.}
 \item{rankdef}{A number \bold{defining} the rank
 deficiency of the model, with sum-to-zero constraint and
 possible extra-constraints taken into account. See

@@ -97,6 +97,7 @@ static const char RCSId[] = HGVERSION;
 #define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
 #define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
 #define SPDE3_MAXTHETA (100)				       /* as given in models.R */
+#define GENERIC3_MAXTHETA (11)				       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
 #define LINK_MAXTHETA (10)				       /* as given in models.R */
 
@@ -1596,6 +1597,23 @@ double Qfunc_generic2(int i, int j, void *arg)
 	}
 	assert(0 == 1);
 	return 0.0;
+}
+double Qfunc_generic3(int i, int j, void *arg)
+{
+	inla_generic3_tp *a = (inla_generic3_tp *)arg;
+	double prec_common, prec, val = 0.0;
+	int k;
+	
+	for(k = 0; k < a->m; k++){
+		if ((i == j) || GMRFLib_is_neighb(i, j, a->g[k])){
+			prec = map_precision(a->log_prec[k][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+			val += prec * a->tab[k]->Qfunc(i, j, a->tab[k]->Qfunc_arg);
+		}
+	}
+	prec_common = map_precision(a->log_prec[GENERIC3_MAXTHETA-1][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	val *= prec_common;
+
+	return (val);
 }
 double Qfunc_replicate(int i, int j, void *arg)
 {
@@ -6490,31 +6508,49 @@ int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * p
 }
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR0", "PARAMETERS0", "FROM.THETA0", "TO.THETA0", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 0);
 }
 int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR1", "PARAMETERS1", "FROM.THETA1", "TO.THETA1", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 1);
 }
 int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR2", "PARAMETERS2", "FROM.THETA2", "TO.THETA2", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 2);
 }
 int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR3", "PARAMETERS3", "FROM.THETA3", "TO.THETA3", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 3);
 }
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR4", "PARAMETERS4", "FROM.THETA4", "TO.THETA4", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 4);
 }
 int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR5", "PARAMETERS5", "FROM.THETA5", "TO.THETA5", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 5);
 }
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR6", "PARAMETERS6", "FROM.THETA6", "TO.THETA6", default_prior);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6);
+}
+int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N)
+{
+	int val;
+	char *a = NULL, *b = NULL, *c = NULL, *d = NULL; 
+
+	GMRFLib_sprintf(&a, "PRIOR%1d", N);
+	GMRFLib_sprintf(&b, "PARAMETERS%1d", N);
+	GMRFLib_sprintf(&c, "FROM.THETA%1d", N);
+	GMRFLib_sprintf(&d, "TO.THETA%1d", N);
+	val = inla_read_prior_generic(mb, ini, sec, prior,
+				      (const char *)a, (const char *)b, (const char *)c, (const char *)d, default_prior);
+	Free(a);
+	Free(b);
+	Free(c);
+	Free(d);
+
+	return val;
 }
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *default_prior)
@@ -6716,8 +6752,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		Free(prior->parameters);
 		prior->parameters = tmp;
 	} else if (!strcasecmp(prior->name, "PCSPDEGA")) {
-		int nparam, i, dim;
-		double *tmp;
+		int nparam, i;
 
 		prior->id = P_PC_SPDE_GA;
 		prior->priorfunc = priorfunc_pc_spde_ga;
@@ -12206,6 +12241,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_GENERIC2;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic2 model");
+	} else if (OneOf("GENERIC3")) {
+		mb->f_id[mb->nf] = F_GENERIC3;
+		mb->f_ntheta[mb->nf] = GENERIC3_MAXTHETA;      
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("Generic3 model");
 	} else if (OneOf("SEASONAL")) {
 		mb->f_id[mb->nf] = F_SEASONAL;
 		mb->f_ntheta[mb->nf] = 1;
@@ -12482,6 +12521,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision Cmatrix */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* the other precision, but theta1 = h^2 */
 		break;
+
+	case F_GENERIC3:
+		for(i=0; i< GENERIC3_MAXTHETA; i++) {
+			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][i]), "LOGGAMMA", i);
+		}
+		break;				
 
 	case F_2DIID:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 */
@@ -12809,6 +12854,55 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\t\tC(%1d,%1d) = %g\n", i, i, arg->tab->Qfunc(i, i, arg->tab->Qfunc_arg));
 				}
 			}
+			break;
+		}
+
+		case F_GENERIC3:
+		{
+			inla_generic3_tp *arg = Calloc(1, inla_generic3_tp);
+			inla_generic3_tp *arg_orig = Calloc(1, inla_generic3_tp);
+
+			arg->n = iniparser_getint(ini, inla_string_join(secname, "generic3.n"), -1);
+			arg_orig->n = iniparser_getint(ini, inla_string_join(secname, "generic3.n"), -1);
+			arg->m = iniparser_getint(ini, inla_string_join(secname, "generic3.m"), -1);
+			arg_orig->m = iniparser_getint(ini, inla_string_join(secname, "generic3.m"), -1);
+			if (mb->verbose) {
+				printf("\t\tread generic3.n[%1d]\n", arg->n);
+				printf("\t\tread generic3.m[%1d]\n", arg->m);
+			}
+			assert(arg->n > 0);
+			assert(arg->m > 0 && arg->m < GENERIC3_MAXTHETA);
+
+			arg->g = Calloc(arg->m, GMRFLib_graph_tp *);
+			arg_orig->g = Calloc(arg->m, GMRFLib_graph_tp *);
+			arg->tab = Calloc(arg->m, GMRFLib_tabulate_Qfunc_tp *);
+			arg_orig->tab = Calloc(arg->m, GMRFLib_tabulate_Qfunc_tp *);
+			for(k = 0; k < arg->m; k++) {
+				ctmp = NULL;
+				GMRFLib_sprintf(&ctmp, "generic3.Cmatrix.%1d", k);
+				filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL));
+				assert(filename != NULL);
+				if (mb->verbose) {
+					printf("\t\tread Cmatrix[%1d] from file=[%s]\n", k, filename);
+				}
+				GMRFLib_tabulate_Qfunc_from_file(&(arg->tab[k]), &(arg->g[k]), filename, arg->n, NULL, NULL, NULL);
+				GMRFLib_tabulate_Qfunc_from_file(&(arg_orig->tab[k]), &(arg_orig->g[k]), filename, arg_orig->n, NULL, NULL, NULL);
+				Free(ctmp);
+				Free(filename);
+			}
+			GMRFLib_union_graph(&(arg->graph), arg->g, arg->m);
+			GMRFLib_union_graph(&(arg_orig->graph), arg_orig->g, arg_orig->m);
+
+			mb->f_graph[mb->nf] = arg->graph;
+			mb->f_graph_orig[mb->nf] = arg_orig->graph;
+			mb->f_Qfunc[mb->nf] = Qfunc_generic3;
+			mb->f_Qfunc_orig[mb->nf] = Qfunc_generic3;
+			mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+			mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
+			mb->f_locations[mb->nf] = NULL;
+			mb->f_n[mb->nf] = arg->n;
+			mb->f_N[mb->nf] = arg->n;
+			mb->f_rankdef[mb->nf] = 0.0;	       /* default */
 			break;
 		}
 
@@ -14992,6 +15086,67 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_GENERIC3:
+	{
+		inla_generic3_tp *a = (inla_generic3_tp *) mb->f_Qfunc_arg[mb->nf];
+		a->log_prec = Calloc(GENERIC3_MAXTHETA, double **);
+		mb->f_theta[mb->nf] = Calloc(GENERIC3_MAXTHETA, double ***);
+
+		for(k = a->m; k < GENERIC3_MAXTHETA-1; k++){   /* yes, do not include the common scaling */
+			mb->f_fixed[mb->nf][k] = 1;	       /* those not used are set to fixed */
+		}
+		for(k = 0; k < GENERIC3_MAXTHETA; k++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), G.log_prec_initial);
+			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			SetInitial(k, tmp);
+			HYPER_NEW(a->log_prec[k], tmp);
+			if (mb->verbose) {
+				printf("\t\tinitialise log_precision[%1d] = %g\n", k, tmp);
+				printf("\t\tfixed[%1d] = %1d\n", k, mb->f_fixed[mb->nf][k]);
+			}
+			mb->f_theta[mb->nf][k] = a->log_prec[k];
+
+			if (!mb->f_fixed[mb->nf][k]) {
+				/*
+				 * add this \theta 
+				 */
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+				if (k < GENERIC3_MAXTHETA-1){
+					GMRFLib_sprintf(&msg, "Log precision for Cmatrix[[%1d]] for %s", k+1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "Precision for Cmatrix[[%1d]] for %s", k+1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+				} else {
+					GMRFLib_sprintf(&msg, "Log common precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "Common precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+				}
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+
+				mb->theta[mb->ntheta] = a->log_prec[k];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_precision;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+			}
+		}
+		break;
+	}
+
 	case F_COPY:
 	{
 		mb->f_of[mb->nf] = iniparser_getstring(ini, inla_string_join(secname, "OF"), NULL);
@@ -15851,17 +16006,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	switch (mb->f_id[mb->nf]) {
 	case F_GENERIC0:
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		mb->f_id[mb->nf] = F_GENERIC0;
 		break;
 
 	case F_GENERIC1:
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		mb->f_id[mb->nf] = F_GENERIC1;
 		break;
 
 	case F_GENERIC2:
 		assert(mb->f_N[mb->nf] == 2 * mb->f_n[mb->nf]);
-		assert(mb->f_id[mb->nf] == F_GENERIC2);
+		break;
+
+	case F_GENERIC3:
+		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
 		break;
 
 	case F_COPY:
@@ -19996,9 +20152,7 @@ double extra(double *theta, int ntheta, void *argument)
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i],
-							      mb->f_Qfunc_orig[i],
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
 							      mb->f_Qfunc_arg_orig[i], NULL, mb->f_constr_orig[i],
 							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
 				switch (retval) {
@@ -20051,6 +20205,118 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			break;
 		}
+
+		case F_GENERIC3:
+		{
+			int k, kk;
+			inla_generic3_tp *a; 
+
+			a = Calloc(1, inla_generic3_tp);
+			memcpy((void *) a, (void *)mb->f_Qfunc_arg_orig[i], sizeof(inla_generic3_tp));
+			a->log_prec = Calloc(GENERIC3_MAXTHETA, double **);
+			for(k = 0; k<GENERIC3_MAXTHETA; k++){
+				if (NOT_FIXED(f_fixed[i][k])) {
+					HYPER_NEW(a->log_prec[k], theta[count]);
+					count++;
+				} else {
+					HYPER_NEW(a->log_prec[k], mb->f_theta[i][k][GMRFLib_thread_id][0]);
+				}
+			}
+			SET_GROUP_RHO(GENERIC3_MAXTHETA);
+
+			// Parts of this code is a copy from F_SPDE2
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+
+			if (problem == NULL) {
+#pragma omp critical
+				{
+					if (problem == NULL) {
+						problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+					}
+				}
+			}
+
+			/*
+			 * do a check for numerical not pos def matrix here, as it may be close to being singular 
+			 */
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+			double *cc_add = Calloc(a->n, double);
+
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
+							      mb->f_graph_orig[i],
+							      mb->f_Qfunc_orig[i],
+							      (void *)a, NULL, mb->f_constr_orig[i],
+							      (problem[i] == NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_mean));
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					int ii;
+					double eps = GMRFLib_eps(0.75);
+
+					/*
+					 * only need to add for the z-part; the last m components.
+					 */
+					for (ii = 0; ii < a->n; ii++) {
+						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+					}
+
+					/*
+					 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+					 */
+					problem[i] = NULL;
+					break;
+				}
+
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+
+				default:
+					/*
+					 * some other error 
+					 */
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
+			Free(cc_add);
+			GMRFLib_set_error_handler(old_handler);
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			for(k = 0; k < GENERIC3_MAXTHETA; k++){
+				if (NOT_FIXED(f_fixed[i][k])) {
+					log_precision = a->log_prec[k][0][0];
+					val += PRIOR_EVAL(mb->f_prior[i][k], &log_precision);
+				}
+			}
+
+			/* 
+			   Free 'a'
+			 */
+			for(k=0; k<GENERIC3_MAXTHETA; k++){
+				for(kk = 0; kk<GMRFLib_MAX_THREADS; kk++){
+					Free(a->log_prec[k][kk]);
+				}
+				Free(a->log_prec[k]);
+			}
+			Free(a->log_prec);
+			Free(a);
+
+			break;
+		}
+
 
 		case F_SLM:
 		{

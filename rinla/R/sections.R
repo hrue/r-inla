@@ -398,12 +398,13 @@
         ## f()
         nC = length(random.spec$Cmatrix)
         stopifnot(nC > 0L)
+        cat("generic3.n = ", random.spec$n, "\n", append=TRUE, sep = "", file = file)
         cat("generic3.m = ", nC, "\n", append=TRUE, sep = "", file = file)
         for(k in 1L:nC) {
             file.A = inla.tempfile(tmpdir=data.dir)
             inla.write.fmesher.file(inla.as.sparse(random.spec$Cmatrix[[k]]), filename = file.A)
             file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
-            cat("generic3.Cmatrix.", k, " = ", file.A, "\n", append=TRUE, sep = "", file = file)
+            cat("generic3.Cmatrix.", as.integer(k-1L), " = ", file.A, "\n", append=TRUE, sep = "", file = file)
         }
     }
 
