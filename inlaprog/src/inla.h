@@ -442,7 +442,7 @@ typedef enum {
 	F_REVSIGM,
 	F_RW2DIID,
 	F_SPDE3,
-	F_GENERIC3, 
+	F_GENERIC3,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1112,14 +1112,13 @@ typedef struct {
 	GMRFLib_tabulate_Qfunc_tp **Q;
 } inla_rgeneric_tp;
 
-typedef struct
-{
+typedef struct {
 	int n;						       /* size of graph */
 	int m;						       /* number of terms in the sum */
 	GMRFLib_graph_tp *graph;			       /* total graph */
 	GMRFLib_graph_tp **g;				       /* individual graphs for each of the terms */
 	GMRFLib_tabulate_Qfunc_tp **tab;		       /* Qfunc for each of the terms */
-	double ***log_prec;				       /* log_prec for each term in the sum*/
+	double ***log_prec;				       /* log_prec for each term in the sum */
 } inla_generic3_tp;
 
 typedef struct {
