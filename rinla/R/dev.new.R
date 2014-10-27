@@ -29,5 +29,5 @@
     if (exists("inla.dev.new.hook") && is.function(inla.dev.new.hook)) {
         inla.dev.new.hook()
     }
-    return (ret)
+    return (invisible(ret))
 }
