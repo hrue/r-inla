@@ -442,6 +442,7 @@ typedef enum {
 	F_REVSIGM,
 	F_RW2DIID,
 	F_SPDE3,
+	F_GENERIC3, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1111,6 +1112,15 @@ typedef struct {
 	GMRFLib_tabulate_Qfunc_tp **Q;
 } inla_rgeneric_tp;
 
+typedef struct
+{
+	int n;						       /* size of graph */
+	int m;						       /* number of terms in the sum */
+	GMRFLib_graph_tp *graph;			       /* total graph */
+	GMRFLib_graph_tp **g;				       /* individual graphs for each of the terms */
+	GMRFLib_tabulate_Qfunc_tp **tab;		       /* Qfunc for each of the terms */
+	double ***log_prec;				       /* log_prec for each term in the sum*/
+} inla_generic3_tp;
 
 typedef struct {
 	int N;
@@ -1180,6 +1190,7 @@ double Qfunc_copy_part01(int i, int j, void *arg);
 double Qfunc_copy_part11(int i, int j, void *arg);
 double Qfunc_generic1(int i, int j, void *arg);
 double Qfunc_generic2(int i, int j, void *arg);
+double Qfunc_generic3(int i, int j, void *arg);
 double Qfunc_group(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
@@ -1378,6 +1389,7 @@ int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *from_theta,
 			    const char *to_theta, const char *default_prior);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
