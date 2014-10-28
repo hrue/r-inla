@@ -110,6 +110,8 @@ model, then \verb|link=1| is a shorthand for
 \verb|link = rep(1, n.linear.predictor)|. A simple example with fix
 the idea.
 
+\subsection{A simple example: Tokyo-data}
+
 The Tokyo-example (\verb|demo(Tokyo)|) fits a cyclic smoothing spline
 to annual binary data; see \verb|?Tokyo|.
 \begin{center}
@@ -173,3 +175,76 @@ abline(v = range(which(is.na(Tokyo.mod$y))))
 \end{center}
 We have added vertical lines to mark the segment where we
 have \verb|NA| as observations.
+
+It is possible to do this ``manually'', which we do not recomend, but
+to show how this \emph{could} be done, we can compute the posterior mean
+of the fitted values directly. 
+<<>>=
+n = dim(Tokyo)[1]
+fitted.values.mean = numeric(n)
+for(i in 1:n) {
+    if (is.na(Tokyo.mod$y[i])) {
+        if (FALSE) {
+            ## either like this, which is slow
+            marg = inla.marginal.transform(
+                            function(x) exp(x)/(1+exp(x)),
+                            r$marginals.fitted.values[[i]] )
+            fitted.values.mean[i] = inla.emarginal(
+                            function(x) x, marg)
+        } else {
+            ## or like this,  which is not so slow
+            fitted.values.mean[i] = inla.emarginal(
+                            function(x) exp(x)/(1 +exp(x)),
+                            r$marginals.fitted.values[[i]])
+        }
+    } else {
+        fitted.values.mean[i] = r$summary.fitted.values[i,"mean"]
+    }
+}
+if (FALSE) plot(fitted.values.mean)
+@ 
+
+
+\subsection{A not so simple example: More than one family}
+
+We will now show how to set the argument \verb|link| in a situation
+with more than one family. For simplicity, we will use simulated data.
+<<>>=
+n = 50
+x = arima.sim(n, model=list(ar = 0.9))
+x = as.numeric(x/sd(x))
+## which are observed twice
+y.1 = 1 + x + rnorm(n)
+y.2 = rpois(n, lambda = exp(2 + x))
+## missing values
+y.1[20:25] = NA
+y.2[25:30] = NA
+@ 
+We now define a model using two likelihoods, the Gaussian and the
+Poisson, 
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+Y = matrix(NA, 2*n,2)
+Y[1:n,1] = y.1
+Y[1:n + n, 2] = y.2
+idx = rep(1:n, 2)
+link = numeric(2*n)
+link[] = NA
+link[which(is.na(y.1))] = 1
+link[which(is.na(y.2)) + n] = 2
+intercept = as.factor(c(rep(1,n), rep(2,n)))
+r = inla(Y ~ -1 + intercept + f(idx, model="ar1"),
+    family = c("gaussian", "poisson"),
+    data = list(Y=Y, idx=idx,intercept = intercept),
+    control.predictor = list(compute=TRUE, link = link))
+## results for the Gaussian part
+plot(y.1, pch=19)
+lines(r$summary.fitted.values$mean[1:n])
+abline(v = range(which(is.na(y.1))))
+## results for the Poisson part
+plot(y.2, pch=19)
+lines(r$summary.fitted.values$mean[1:n + n])
+abline(v = range(which(is.na(y.2))))
+@ 
+\end{center}
+
