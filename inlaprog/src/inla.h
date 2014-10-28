@@ -522,7 +522,7 @@ typedef struct {
 	double *eigenvalues;
 	double max_eigenvalue;
 	double min_eigenvalue;
-} Generic1_tp;
+} inla_generic1_tp;
 
 typedef struct {
 	GMRFLib_tabulate_Qfunc_tp *tab;
@@ -530,7 +530,7 @@ typedef struct {
 	double **h2_intern;
 	int n;						       /* size of graph */
 	int N;						       /* total size: N=2*n */
-} Generic2_tp;
+} inla_generic2_tp;
 
 typedef struct {
 	char *name;

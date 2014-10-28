@@ -1549,7 +1549,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 }
 double Qfunc_generic1(int i, int j, void *arg)
 {
-	Generic1_tp *a = (Generic1_tp *) arg;
+	inla_generic1_tp *a = (inla_generic1_tp *) arg;
 	double beta = map_probability(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
@@ -1561,7 +1561,7 @@ double Qfunc_generic2(int i, int j, void *arg)
 	 * [u,v], where u = v + noise. h2 = 1/prec_v / (1/prec_v + 1/prev_u). h2 in (0,1). 
 	 */
 
-	Generic2_tp *a = (Generic2_tp *) arg;
+	inla_generic2_tp *a = (inla_generic2_tp *) arg;
 
 	double prec_cmatrix = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
 	    h2 = map_probability(a->h2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), prec_unstruct;
@@ -1602,10 +1602,10 @@ double Qfunc_generic3(int i, int j, void *arg)
 {
 	inla_generic3_tp *a = (inla_generic3_tp *) arg;
 	double prec_common, prec, val = 0.0;
-	int k;
+	int k, same = (i == j);
 
 	for (k = 0; k < a->m; k++) {
-		if ((i == j) || GMRFLib_is_neighb(i, j, a->g[k])) {
+		if (same || GMRFLib_is_neighb(i, j, a->g[k])) {
 			prec = map_precision(a->log_prec[k][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 			val += prec * a->tab[k]->Qfunc(i, j, a->tab[k]->Qfunc_arg);
 		}
@@ -12738,7 +12738,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * use field: CMATRIX to set both graph and n.
 			 */
-			Generic1_tp *arg = Calloc(1, Generic1_tp);
+			inla_generic1_tp *arg = Calloc(1, inla_generic1_tp);
 			int nn = -1;
 			GMRFLib_graph_tp *g = NULL;
 
@@ -12813,7 +12813,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			/*
 			 * use field: CMATRIX to set both graph and n.
 			 */
-			Generic2_tp *arg = Calloc(1, Generic2_tp);
+			inla_generic2_tp *arg = Calloc(1, inla_generic2_tp);
 			int nn = -1, ii;
 			GMRFLib_graph_tp *g = NULL;
 
@@ -12882,7 +12882,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL));
 				assert(filename != NULL);
 				if (mb->verbose) {
-					printf("\t\tread Cmatrix[%1d] from file=[%s]\n", k, filename);
+					printf("\t\tread Cmatrix[[%1d]] from file=[%s]\n", k, filename);
 				}
 				GMRFLib_tabulate_Qfunc_from_file(&(arg->tab[k]), &(arg->g[k]), filename, arg->n, NULL, NULL, NULL);
 				GMRFLib_tabulate_Qfunc_from_file(&(arg_orig->tab[k]), &(arg_orig->g[k]), filename, arg_orig->n, NULL, NULL, NULL);
@@ -15092,7 +15092,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_theta[mb->nf] = Calloc(GENERIC3_MAXTHETA, double ***);
 
 		for (k = a->m; k < GENERIC3_MAXTHETA - 1; k++) {	/* yes, do not include the common scaling */
-			mb->f_fixed[mb->nf][k] = 1;	       /* those not used are set to fixed */
+			mb->f_fixed[mb->nf][k] = 1;			/* those not used are set to fixed */
 		}
 		for (k = 0; k < GENERIC3_MAXTHETA; k++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
@@ -20056,7 +20056,7 @@ double extra(double *theta, int ntheta, void *argument)
 			SET_GROUP_RHO(2);
 
 			double logdet_Q = 0.0;
-			Generic1_tp *a = (Generic1_tp *) mb->f_Qfunc_arg[i];
+			inla_generic1_tp *a = (inla_generic1_tp *) mb->f_Qfunc_arg[i];
 			for (j = 0; j < n_orig; j++) {
 				logdet_Q += log(1.0 - beta * a->eigenvalues[j] / a->max_eigenvalue);
 			}
