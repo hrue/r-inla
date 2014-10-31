@@ -114,7 +114,7 @@ elif [ "$cmd" = "get" ]; then
 	            if [ $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
 	                 cd \$d; \
 			 if [ -f done ]; then \
-			     if [ -f Logfile.txt]; then cp Logfile.txt results.files; fi; \
+			     if \[ -f Logfile.txt \]; then cp Logfile.txt results.files; fi; \
 			     tar cf ../$tarfile results.files; \
 			     if [ $remove -eq 1 ]; then \
                                  cd ..; rm -rf \$d; \
