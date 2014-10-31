@@ -95,4 +95,4 @@ tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     echo $INLA_SUBMIT_ID > jobid; \
     echo > working; \
     tar xfm$compress_put - ; \
-    { rm -f working; $RemoteINLA $args Model.ini && echo > done; } </dev/null > LOG 2>&1 &" &
+    { rm -f working; $RemoteINLA $args -v Model.ini && echo > done; } </dev/null > Logfile.txt 2>&1 &" &
