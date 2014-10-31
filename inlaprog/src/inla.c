@@ -18019,7 +18019,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->mode_known = iniparser_getboolean(ini, inla_string_join(secname, "MODE.KNOWN"), mb->ai_par->mode_known);
 	mb->ai_par->restart = iniparser_getint(ini, inla_string_join(secname, "RESTART"), 0);
 
-	if (mb->verbose > 1) {
+	if (mb->verbose > 2) {
 		ctmp = GMRFLib_strdup("STDOUT");
 	} else {
 		ctmp = NULL;
