@@ -152,7 +152,7 @@
     } else if (length(grep("^NUKE", output)) > 0) {
         output = gsub("^NUKE *", "", output)
     } else if (length(output) > 0 && length(strsplit(output, " ")[[1]]) == 1) {
-        r = inla.collect.results(output)
+        r = inla.collect.results(output, file.log = paste(output, "/results.files/Logfile.txt", sep=""))
         rr = c(r, ret)
         class(rr) = class(r)
         if (!is.null(ret) && ret$.args$keep == TRUE && !is.null(ret$.args$working.directory)) {
