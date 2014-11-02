@@ -34,22 +34,25 @@
     cat("\nIntegration Strategy: ")
    
     if(is.null(x$.args$control.inla$int.strategy))
-        cat("DEFAULT\n\n ")
-    else if(x$.args$control.inla$int.strategy=="EB")
+        cat("default\n\n ")
+    else if(x$.args$control.inla$int.strategy=="eb")
         cat("Empirical Bayes\n\n")
-    else if(x$.args$control.inla$int.strategy=="CCD")
+    else if(x$.args$control.inla$int.strategy=="ccd")
         cat("Central Composit Design\n\n")
-    else if(x$.args$control.inla$int.strategy=="GRID") {
+    else if(x$.args$control.inla$int.strategy=="grid") {
         cat("Integration on a regular grid\n")
-        cat("with parameters dz=", x$.args$control.inla$dz," and diff.logdens=", x$.args$control.inla$diff.logdens,"\n\n")
+        cat("with parameters dz=", x$.args$control.inla$dz,
+            " and diff.logdens=", x$.args$control.inla$diff.logdens,"\n\n")
     }
     
     cat(paste("Model contains ", x$nhyper," hyperparameters\n", sep=""))
 
-    if(!is.null(x$summary.fixed))
-        cat(paste("The model contains ", dim(x$summary.fixed)[1]," fixed effect (including a possible intercept)\n\n", sep=""))
-    else
+    if(!is.null(x$summary.fixed) && !(is.list(x$summary.fixed) && length(x$summary.fixed) == 0)) {
+        cat(paste("The model contains ", dim(x$summary.fixed)[1],
+                  " fixed effect (including a possible intercept)\n\n", sep=""))
+    } else {
         cat("The model has no fixed effects and no intercept\n\n")
+    }
     
     ## must check x$control.family that its a list of lists, so we can
     ## treat n.family = 1 the same was as for n.family > 1.
@@ -80,7 +83,8 @@
         }
         cat("\n")
     }
-    if(!is.null(x$summary.random)) {
+    if(!is.null(x$summary.random) &&
+       !(is.list(x$summary.random) && length(x$summary.random) == 0)) {
         labels <- names(x$summary.random)
         cat(paste("The model has ", length(labels)," random effects:\n", sep=""))
         for(i in 1:length(labels)) {
