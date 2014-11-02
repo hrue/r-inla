@@ -1070,6 +1070,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`generic3'}
 							 }
 						 }
