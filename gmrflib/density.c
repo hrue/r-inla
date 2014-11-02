@@ -1996,6 +1996,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 	for(i = m; i < *len_x; i++) {
 		(*x_vec)[i] = x_add[i-m];
 	}
+	qsort(*x_vec, (size_t)(*len_x), sizeof(double), GMRFLib_dcmp);
 	GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5));
 
 	return GMRFLib_SUCCESS;
