@@ -14,7 +14,7 @@
 ##!    formula,
 ##!    family = "gaussian", 
 ##!    contrasts = NULL,
-##!    data = NULL,
+##!    data,
 ##!    quantiles=c(0.025, 0.5, 0.975),
 ##!    E = NULL,
 ##!    offset=NULL,
@@ -80,7 +80,7 @@
         ##!\item{data}{ A data frame or list containing the
         ##!variables in the model.  The data frame MUST be
         ##!provided}
-        data = NULL,
+        data,
         
         ##!\item{quantiles}{ A vector of quantiles,
         ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
@@ -403,7 +403,7 @@
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
-    if (is.null(data)) {
+    if (missing(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
