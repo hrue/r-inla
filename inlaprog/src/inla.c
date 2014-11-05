@@ -3823,8 +3823,8 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, prec, w, dof, y_std, fac, ypred;
 
-	int bit_fac = GMRFLib_getbit(ds->variant, (unsigned int) 0);
-	int bit_tail = GMRFLib_getbit(ds->variant, (unsigned int) 1);
+	int bit_fac = GMRFLib_getbit((GMRFLib_uchar) ds->variant, (unsigned int) 0);
+	int bit_tail = GMRFLib_getbit((GMRFLib_uchar) ds->variant, (unsigned int) 1);
 
 	LINK_INIT;
 	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -4335,11 +4335,23 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
+	double size; 
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
+
+	switch(ds->variant){
+	case 0: 
+		size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
+		break;
+	case 1: 
+		size = E*exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
+		break;
+	default:
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+		
 
 	LINK_INIT;
 	if (m > 0) {
@@ -8555,13 +8567,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * common for all 
 	 */
-	ds->variant = (GMRFLib_uchar) iniparser_getint(ini, inla_string_join(secname, "VARIANT"), 0);
+	ds->variant = iniparser_getint(ini, inla_string_join(secname, "VARIANT"), 0);
 	if (mb->verbose) {
-		printf("\t\tuse variant [%1u]\n", (unsigned int) ds->variant);
-		unsigned int jj;
-		for (jj = 0; jj < 4; jj++) {
-			printf("\t\t\tbit %u is %s\n", jj, (GMRFLib_getbit((GMRFLib_uchar) ds->variant, jj) ? "on" : "off"));
-		}
+		printf("\t\tlikelihood.variant=[%1d]\n", ds->variant);
 	}
 
 	/*
@@ -9674,9 +9682,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
+		assert(ds->variant == 0 || ds->variant == 1);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+			printf("\t\tuse parameterization variant=[%1d]; see doc for details\n", ds->variant);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
 
