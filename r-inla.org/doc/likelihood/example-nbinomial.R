@@ -1,19 +1,20 @@
-n=100
-a = 1
-b = 1
-E = rep(1,n)
-z = rnorm(n)
-eta = a + b*z
-mu = E*exp(eta)
-size = 15
-prob = size/(size + mu)
-y = rnbinom(n, size=size, prob = prob)
+n = 1000
+x = rnorm(n,  sd = 0.2)
+eta = 1 + x
+E = runif(n, min = 0, max=10)
 
-data = list(y=y,z=z)
-formula = y ~ 1+z
-result = inla(formula, family = "nbinomial", data = data, E=E,
-              control.family = list(hyper = list(
-                                          theta = list(
-                                                  prior="gaussian",
-                                                  param = c(0,0.01)))))
-summary(result)
+mu = E * exp(eta)
+size = 3
+y = rnbinom(n, size=size, mu=mu)
+r = inla(y ~ 1 + x, data = data.frame(y, x, E),
+    family = "nbinomial", E=E)
+
+mu = E * exp(eta)
+size = E*3
+y = rnbinom(n, size=size, mu=mu)
+rr = inla(y ~ 1 + x, data = data.frame(y, x, E),
+    family = "nbinomial",
+    control.family = list(variant = 1),
+    E=E)
+
+
