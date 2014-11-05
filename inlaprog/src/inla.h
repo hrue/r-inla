@@ -160,7 +160,7 @@ typedef struct {
 	 * y ~ Neg.Binomial(n, p(x)), n=size is a hyperparameter (overdispersion)
 	 */
 	double **log_size;
-
+	
 	/*
 	 * y ~ Neg.Binomial(n, p(x)) strata2
 	 */
@@ -561,7 +561,7 @@ typedef struct inla_tp_struct inla_tp;			       /* need it like this as they poi
 
 typedef struct {
 	char *data_likelihood;
-	GMRFLib_uchar variant;
+	int variant;
 
 	inla_component_tp data_id;
 	File_tp data_file;

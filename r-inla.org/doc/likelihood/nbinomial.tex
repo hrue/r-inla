@@ -22,7 +22,7 @@ for responses $y=0, 1, 2, \ldots$, where
 
 \subsection*{Link-function}
 
-The mean and variance of $y$ are given as
+The mean and variance of $y$ are given as 
 \begin{displaymath}
     \mu = n \frac{1-p}{p} \qquad\text{and}\qquad \sigma^{2} = \mu(1 + \frac{\mu}{n})
 \end{displaymath}
@@ -36,9 +36,17 @@ is the offset of $\eta$.
 
 \subsection*{Hyperparameters}
 
-The overdispersion parameter $n$ (\emph{size}) is represented as
+The default parameterization (\verb|variant=0|) is that the
+overdispersion parameter $n$ (\emph{size}) is represented as
 \begin{displaymath}
     \theta = \log(n)
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+An alternative parameterization (\verb|variant=1|) is that the
+overdispersion parameter $n$ (\emph{size}) is represented as
+\begin{displaymath}
+    \theta = \log(n) - \log(E)
 \end{displaymath}
 and the prior is defined on $\theta$. 
 
@@ -47,6 +55,9 @@ and the prior is defined on $\theta$.
 \begin{itemize}
 \item $\text{family}=\texttt{nbinomial}$
 \item Required arguments: $y$ and $E$ (default $E=1$).
+\item Chose variant with either
+    \verb|control.family = list(variant=0)| (default) or\\
+    \verb|control.family = list(variant=1)|
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}

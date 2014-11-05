@@ -115,7 +115,7 @@
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
     }
-    
+
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
     
     ## the link-part. first make it backward-compatible...
