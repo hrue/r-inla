@@ -1,7 +1,12 @@
 ## nothing to export
 
-`inla.interpret.formula` =
-    function (gf, debug=FALSE, data.same.len = NULL, data=NULL, data.model = NULL)
+`inla.interpret.formula` = function (
+    gf,
+    debug=FALSE,
+    data.same.len = NULL,
+    data=NULL,
+    data.model = NULL,
+    parent.frame = NULL)
 {
     ## use a copy if data.model is !NULL, as we have to assign an
     ## entry to it. otherwise, just use the
@@ -15,7 +20,11 @@
         }
     } else {
         ## otherwise, just use (for read-only) this environment
-        p.env = environment(gf)
+        if (missing(parent.frame)) {
+            p.env = environment(gf)
+        } else {
+            p.env = parent.frame
+        }
     }
 
     ## argument data is here only used for infereing '.'
