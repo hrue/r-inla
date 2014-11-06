@@ -658,7 +658,7 @@
     formula = update.formula(formula, y...fake ~ .)
     ## parse the formula
     gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data,
-        data.model = data.model, pf = .parent.frame)
+        data.model = data.model, parent.frame = .parent.frame)
     call = deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
