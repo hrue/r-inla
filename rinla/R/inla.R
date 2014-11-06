@@ -43,7 +43,8 @@
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
-##!    debug = inla.getOption("debug")
+##!    debug = inla.getOption("debug"), 
+##!    .parent.frame = parent.frame()
 ##!    )
 ##!
 ##! }
@@ -235,7 +236,10 @@
         
         ##!\item{debug}{ If \code{TRUE}, then enable some debug
         ##!output.  }
-        debug = inla.getOption("debug")
+        debug = inla.getOption("debug"),
+
+        ##!\item{.parent.frame}{Internal use only}
+        .parent.frame = parent.frame()
         )
     ##!}
 
@@ -647,13 +651,14 @@
     if (debug) {
         print(c("Entries with same length:", names(data.same.len)))
     }
-    
+
     ## creates a new version of ``formula'' and keep the old one for reference
     formula.orig = formula
     ##inla.eval(paste("formula = y...fake ~ ", inla.formula2character(formula.orig[3])))
     formula = update.formula(formula, y...fake ~ .)
     ## parse the formula
-    gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data, data.model = data.model)
+    gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data,
+        data.model = data.model, pf = .parent.frame)
     call = deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
@@ -937,7 +942,7 @@
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
-    mf$inla.arg = NULL; mf$lincomb=NULL;
+    mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
 
     if (gp$n.fix > 0)
