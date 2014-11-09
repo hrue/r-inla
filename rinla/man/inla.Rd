@@ -16,7 +16,7 @@ inla(
     formula,
     family = "gaussian", 
     contrasts = NULL,
-    data = NULL,
+    data,
     quantiles=c(0.025, 0.5, 0.975),
     E = NULL,
     offset=NULL,

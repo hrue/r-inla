@@ -9,11 +9,12 @@
 \title{View documentation}
 \description{View documentation of latent, prior and likelihood models.}
 \usage{
-inla.doc(what, verbose=FALSE)
+inla.doc(what, sec, verbose=FALSE)
 }
 \arguments{
 \item{what}{What to view documentation about;
             name of latent model,  name of prior,  etc. (A regular expression.)}
+\item{sec}{An optional section to look for the documentation. If missing, all sections are used.}
 \item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
