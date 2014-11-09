@@ -115,7 +115,7 @@
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
     }
-    
+
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
     
     ## the link-part. first make it backward-compatible...
@@ -256,20 +256,20 @@
             ## model. compute the prior here.
             if (inla.one.of(random.spec$model, "bym2")) {
                 random.spec$hyper$theta2$prior = inla.pc.bym.phi(
-                        graph = random.spec$graph,
-                        rankdef = random.spec$rankdef,
-                        u = random.spec$hyper$theta2$param[1L],
-                        alpha = random.spec$hyper$theta2$param[2L],
-                        scale.model = TRUE,
-                        return.as.table = TRUE,
-                        adjust.for.con.comp = as.numeric(random.spec$adjust.for.con.comp))
+                    graph = random.spec$graph,
+                    rankdef = random.spec$rankdef,
+                    u = random.spec$hyper$theta2$param[1L],
+                    alpha = random.spec$hyper$theta2$param[2L],
+                    scale.model = TRUE,
+                    return.as.table = TRUE,
+                    adjust.for.con.comp = as.numeric(random.spec$adjust.for.con.comp))
                 random.spec$hyper$theta2$param = numeric(0)
             } else if (inla.one.of(random.spec$model, "rw2diid")) {
                 random.spec$hyper$theta2$prior = inla.pc.rw2diid.phi(
-                        size = c(random.spec$nrow,  random.spec$ncol), 
-                        u = random.spec$hyper$theta2$param[1L],
-                        alpha = random.spec$hyper$theta2$param[2L],
-                        return.as.table = TRUE)
+                    size = c(random.spec$nrow,  random.spec$ncol), 
+                    u = random.spec$hyper$theta2$param[1L],
+                    alpha = random.spec$hyper$theta2$param[2L],
+                    return.as.table = TRUE)
                 random.spec$hyper$theta2$param = numeric(0)
             } else {
                 stop("This should not happpen.")
@@ -285,7 +285,6 @@
         high = random.spec$range[2]
     }
     inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup, low = low, high = high)
-        
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
@@ -374,10 +373,10 @@
         }
         stopifnot(all(Z.m == dim(Cm)))
         B = inla.as.sparse(cBind(
-                rBind(Diagonal(Z.n, 0.0),  # n x n zero-matrix
-                      sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
-                rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
-                      Cm)))
+            rBind(Diagonal(Z.n, 0.0),                                     # n x n zero-matrix
+                  sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
+            rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
+                  Cm)))
 
         ## dimensions
         cat("z.n = ", Z.n,"\n", append=TRUE, sep = " ", file = file)
@@ -393,9 +392,25 @@
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
         cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
     }
+
+    if (inla.one.of(random.spec$model, "generic3")) {
+        ## For this model, Cmatrix is a list of matrices. Error checking have be done already in
+        ## f()
+        nC = length(random.spec$Cmatrix)
+        stopifnot(nC > 0L)
+        cat("generic3.n = ", random.spec$n, "\n", append=TRUE, sep = "", file = file)
+        cat("generic3.m = ", nC, "\n", append=TRUE, sep = "", file = file)
+        for(k in 1L:nC) {
+            file.A = inla.tempfile(tmpdir=data.dir)
+            inla.write.fmesher.file(inla.as.sparse(random.spec$Cmatrix[[k]]), filename = file.A)
+            file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
+            cat("generic3.Cmatrix.", as.integer(k-1L), " = ", file.A, "\n", append=TRUE, sep = "", file = file)
+        }
+    }
+
     ## if the Cmatrix is defined we need to process it except if its
-    ## the z-model for which this has already been done.
-    if (!inla.one.of(random.spec$model, "z") && !is.null(random.spec$Cmatrix)) {
+    ## the z/generic3-model for which this has already been done.
+    if (!inla.one.of(random.spec$model, c("z", "generic3")) && !is.null(random.spec$Cmatrix)) {
         if (is.character(random.spec$Cmatrix)) {
             fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
             cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
@@ -423,10 +438,10 @@
 
         ## matrix A1
         A1 = cBind(
-                rBind(Diagonal(slm.n),
-                      -t(X)), 
-                rBind(-X,
-                      t(X) %*% X))
+            rBind(Diagonal(slm.n),
+                  -t(X)), 
+            rBind(-X,
+                  t(X) %*% X))
         file.A1 = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A1, filename = file.A1)
         file.A1 = gsub(data.dir, "$inladatadir", file.A1, fixed=TRUE)
@@ -434,10 +449,10 @@
 
         ## matrix A2
         A2 = cBind(
-                rBind(Matrix(0, slm.n, slm.n),
-                      Matrix(0, slm.m, slm.n)),
-                rBind(Matrix(0, slm.n, slm.m),
-                      Q))
+            rBind(Matrix(0, slm.n, slm.n),
+                  Matrix(0, slm.m, slm.n)),
+            rBind(Matrix(0, slm.n, slm.m),
+                  Q))
         file.A2 = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A2, filename = file.A2)
         file.A2 = gsub(data.dir, "$inladatadir", file.A2, fixed=TRUE)
@@ -445,10 +460,10 @@
 
         ## matrix B
         B = cBind(
-                rBind(-(t(W) + W),
-                      t(X) %*% W), 
-                rBind(t(W) %*% X,
-                      Matrix(0, slm.m, slm.m)))
+            rBind(-(t(W) + W),
+                  t(X) %*% W), 
+            rBind(t(W) %*% X,
+                  Matrix(0, slm.m, slm.m)))
         file.B = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
@@ -456,10 +471,10 @@
 
         ## matrix C
         C = cBind(
-                rBind(t(W) %*% W,
-                      Matrix(0, slm.m, slm.n)), 
-                rBind(Matrix(0, slm.n, slm.m), 
-                      Matrix(0, slm.m, slm.m)))
+            rBind(t(W) %*% W,
+                  Matrix(0, slm.m, slm.n)), 
+            rBind(Matrix(0, slm.n, slm.m), 
+                  Matrix(0, slm.m, slm.m)))
         file.C = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(C, filename = file.C)
         file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
@@ -468,7 +483,7 @@
 
     ## if the Cmatrix is defined we need to process it except if its
     ## the z-model for which this has already been done.
-    if (!inla.one.of(random.spec$model, "z") && !is.null(random.spec$Cmatrix)) {
+    if (!inla.one.of(random.spec$model, c("z", "generic3")) && !is.null(random.spec$Cmatrix)) {
         if (is.character(random.spec$Cmatrix)) {
             fnm = inla.copy.file.for.section(random.spec$Cmatrix, data.dir)
             cat("Cmatrix = ", fnm, "\n", append=TRUE, sep = " ", file = file)
@@ -774,13 +789,13 @@
         cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
-    cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
-    cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
+    cat(" ###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
+    cat(" ###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
+    cat(" ###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
-    cat("#inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+    cat(" #inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
+    cat(" #inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
  
 
     cat("\n", sep = " ", file = file,  append = TRUE)
@@ -921,7 +936,7 @@
 `inla.expert.section` = function(file, args)
 {
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
-        cat("\n## If you edit this section it is assumed you know what you're doing ;-)\n", file=file, append=TRUE) #
+        cat("\n ## If you edit this section it is assumed you know what you're doing ;-)\n", file=file, append=TRUE) #
         cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
         cat("type = expert\n", sep = " ", file = file,  append = TRUE)
         inla.write.boolean.field("cpo.manual", args$cpo.manual, file)
@@ -938,13 +953,13 @@
         cat("[INLA.update]\n", sep = " ", file = file,  append = TRUE)
         cat("type = update\n", sep = " ", file = file,  append = TRUE)
         x = c(
-                length(contr$result$mode$theta),
-                contr$result$mode$theta,
-                contr$result$misc$stdev.corr.positive,
-                contr$result$misc$stdev.corr.negative,
-                1/sqrt(contr$result$misc$cov.intern.eigenvalues), ## this is what is required
-                c(contr$result$misc$cov.intern.eigenvectors) ## column-wise storage
-                )
+            length(contr$result$mode$theta),
+            contr$result$mode$theta,
+            contr$result$misc$stdev.corr.positive,
+            contr$result$misc$stdev.corr.negative,
+            1/sqrt(contr$result$misc$cov.intern.eigenvalues), ## this is what is required
+            c(contr$result$misc$cov.intern.eigenvectors)      ## column-wise storage
+            )
         x = as.matrix(x, ncol = 1L)
         inla.write.fmesher.file(x, filename = file.update)
         file.update = gsub(data.dir, "$inladatadir", file.update, fixed=TRUE)
@@ -1082,7 +1097,7 @@
     d.fnm = inla.tempfile(tmpdir=data.dir)
     inla.dir.create(d.fnm)
     files.to.copy = paste(dir.name, "/",
-            dir(dir.name, pattern = paste("^", file.prefix, sep=""), recursive=TRUE), sep="")
+        dir(dir.name, pattern = paste("^", file.prefix, sep=""), recursive=TRUE), sep="")
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
     rdir = gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE)
     rprefix = paste(rdir, "/", file.prefix, sep="")

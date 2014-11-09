@@ -1,0 +1,99 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\def\mm#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+\begin{document}
+
+\section*{Generic3 model}
+
+\subsection*{Parametrization}
+
+The generic3 model implements the following precision matrix
+\begin{equation}\label{eq1}%
+    \mathbf{Q}= \tau_{\text{common}} \sum_{i=1}^{m} \tau_i \mm{R}_i,
+    \qquad 1 < m \le 10,
+\end{equation}
+where each $\mm{R}_i \ge 0$, and $\tau_i$ is the specific precision
+parameter and $\tau_{\text{common}}$ is a shared one.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are defined as 
+\begin{eqnarray*}
+    \theta_i = \log(\tau_i), \qquad i=1, 10
+\end{eqnarray*}
+and
+\begin{displaymath}
+    \theta_{11} = \log(\tau_{\text{common}})
+\end{displaymath}
+and priors are assigned to $(\theta_1,\theta_2, \ldots)$.
+
+\subsection*{Specification}
+
+The generic3 model is specified inside the {\tt f()} function as
+\begin{verbatim}
+ f(<whatever>, model="generic3", Cmatrix = <list.of.Cmat>, hyper = <hyper>)
+\end{verbatim}
+where {\tt <list.of.Cmat>} a list of length $m$ (maximum 10) of
+$\mm{R}_i$-matrices. By default, $\theta_j$ for $j=m+1, \ldots, 11$ is
+set to fixed (this includes $\tau_{\text{common}}$).
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/generic3.tex}
+
+\subsection*{Example}
+{\small\begin{verbatim}
+make.sm = function(n, prob = 0.1)
+{
+    A = matrix(runif(n*n), n, n)
+    Patt = matrix(runif(n*n), n, n)
+    Patt[Patt > prob] = 0
+    A = A * Patt
+    diag(A) = runif(n)
+    A = A %*% t(A)
+    A = A / max(diag(A))
+    return (inla.as.sparse(A))
+}
+    
+nsim = 100
+n = 5
+m = 3
+Cmat = list()
+Q = inla.as.sparse(matrix(0, n, n))
+for(i in 1:m) {
+    Cmat[[i]] = make.sm(n)
+    Q = Q + i*Cmat[[i]]
+}
+
+yy = inla.qsample(nsim, Q)
+y = c(yy)
+idx = rep(1:n, nsim)
+r = rep(1:nsim, each = n)
+
+r = inla(y ~ -1 +
+    f(idx, model="generic3",
+      Cmatrix = Cmat, replicate = r, 
+      hyper = list(
+          prec1 = list(initial = log(1)), 
+          prec2 = list(initial = log(2)),
+          prec3 = list(initial = log(3)))), 
+    data = list(y=y, Cmat=Cmat, r=r),
+    verbose=TRUE, 
+    control.family = list(
+        hyper = list(
+            prec = list(
+                initial = 10,
+                fixed = TRUE))))
+summary(r)
+\end{verbatim}}
+
+\subsection*{Notes}
+
+\end{document}
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
