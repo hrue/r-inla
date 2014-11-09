@@ -14,7 +14,7 @@
 ##!    formula,
 ##!    family = "gaussian", 
 ##!    contrasts = NULL,
-##!    data = NULL,
+##!    data,
 ##!    quantiles=c(0.025, 0.5, 0.975),
 ##!    E = NULL,
 ##!    offset=NULL,
@@ -43,7 +43,8 @@
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
-##!    debug = inla.getOption("debug")
+##!    debug = inla.getOption("debug"), 
+##!    .parent.frame = parent.frame()
 ##!    )
 ##!
 ##! }
@@ -80,7 +81,7 @@
         ##!\item{data}{ A data frame or list containing the
         ##!variables in the model.  The data frame MUST be
         ##!provided}
-        data = NULL,
+        data,
         
         ##!\item{quantiles}{ A vector of quantiles,
         ##!\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
@@ -235,7 +236,10 @@
         
         ##!\item{debug}{ If \code{TRUE}, then enable some debug
         ##!output.  }
-        debug = inla.getOption("debug")
+        debug = inla.getOption("debug"),
+
+        ##!\item{.parent.frame}{Internal use only}
+        .parent.frame = parent.frame()
         )
     ##!}
 
@@ -403,7 +407,7 @@
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
-    if (is.null(data)) {
+    if (missing(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
@@ -517,40 +521,40 @@
         stopifnot(is.null(control.predictor$A))
         cph = inla.coxph(formula, data, control.hazard, debug = debug)
         result = inla(
-                cph$formula,
-                family = cph$family,
-                data = c(as.list(cph$data), cph$data.list), 
-                contrasts = contrasts, 
-                quantiles=quantiles,
-                E = cph$E,
-                ## these should be expanded as well???  Will give an error...
-                offset= offset,
-                scale = scale,
-                weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
-                ## 
-                Ntrials = NULL,         # Not used for the poisson
-                strata = NULL,          # Not used for the poisson
-                lincomb = lincomb,
-                verbose = verbose,
-                control.compute = control.compute,
-                control.predictor = control.predictor,
-                control.family = control.family,
-                control.inla = control.inla,
-                control.results = control.results,
-                control.fixed = control.fixed,
-                control.mode = control.mode,
-                control.expert = control.expert,
-                control.hazard = control.hazard,
-                control.lincomb = control.lincomb,
-                control.update = control.update,
-                only.hyperparam = only.hyperparam,
-                inla.call = inla.call,
-                inla.arg = inla.arg,
-                num.threads = num.threads,
-                keep = keep,
-                working.directory = working.directory,
-                silent = silent,
-                debug = debug)
+            cph$formula,
+            family = cph$family,
+            data = c(as.list(cph$data), cph$data.list), 
+            contrasts = contrasts, 
+            quantiles=quantiles,
+            E = cph$E,
+            ## these should be expanded as well???  Will give an error...
+            offset= offset,
+            scale = scale,
+            weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
+            ## 
+            Ntrials = NULL,             # Not used for the poisson
+            strata = NULL,              # Not used for the poisson
+            lincomb = lincomb,
+            verbose = verbose,
+            control.compute = control.compute,
+            control.predictor = control.predictor,
+            control.family = control.family,
+            control.inla = control.inla,
+            control.results = control.results,
+            control.fixed = control.fixed,
+            control.mode = control.mode,
+            control.expert = control.expert,
+            control.hazard = control.hazard,
+            control.lincomb = control.lincomb,
+            control.update = control.update,
+            only.hyperparam = only.hyperparam,
+            inla.call = inla.call,
+            inla.arg = inla.arg,
+            num.threads = num.threads,
+            keep = keep,
+            working.directory = working.directory,
+            silent = silent,
+            debug = debug)
 
         ## replace the argument so it can be reused, if...
         result$call.orig = deparse(match.call())
@@ -647,13 +651,14 @@
     if (debug) {
         print(c("Entries with same length:", names(data.same.len)))
     }
-    
+
     ## creates a new version of ``formula'' and keep the old one for reference
     formula.orig = formula
     ##inla.eval(paste("formula = y...fake ~ ", inla.formula2character(formula.orig[3])))
     formula = update.formula(formula, y...fake ~ .)
     ## parse the formula
-    gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data, data.model = data.model)
+    gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data,
+        data.model = data.model, parent.frame = .parent.frame)
     call = deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
@@ -700,8 +705,8 @@
         }
 
         gp$model.matrix = model.matrix(new.fix.formula,
-                data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-                contrasts.arg = contrasts)
+            data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+            contrasts.arg = contrasts)
         
         ## as NA's in factors are not set to zero in
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
@@ -768,8 +773,8 @@
     cont.predictor[names(control.predictor)] = control.predictor
 
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
-            cont.predictor$hyper, cont.predictor$initial,
-            cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
+        cont.predictor$hyper, cont.predictor$initial,
+        cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     all.hyper$predictor$hyper = cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
@@ -827,38 +832,38 @@
 
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
-                                       family[i.family],
-                                       "likelihood",
-                                       cont.family[[i.family]]$hyper, 
-                                       cont.family[[i.family]]$initial, 
-                                       cont.family[[i.family]]$fixed,
-                                       cont.family[[i.family]]$prior,
-                                       cont.family[[i.family]]$param)
+                                   family[i.family],
+                                   "likelihood",
+                                   cont.family[[i.family]]$hyper, 
+                                   cont.family[[i.family]]$initial, 
+                                   cont.family[[i.family]]$fixed,
+                                   cont.family[[i.family]]$prior,
+                                   cont.family[[i.family]]$param)
         all.hyper$family[[i.family]] = list(
-                                label = family[i.family],
-                                hyper = cont.family[[i.family]]$hyper)
+                            label = family[i.family],
+                            hyper = cont.family[[i.family]]$hyper)
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
             cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
-                                           cont.family[[i.family]]$control.mix$model,
-                                           "mix",
-                                           cont.family[[i.family]]$control.mix$hyper, 
-                                           cont.family[[i.family]]$control.mix$initial, 
-                                           cont.family[[i.family]]$control.mix$fixed,
-                                           cont.family[[i.family]]$control.mix$prior,
-                                           cont.family[[i.family]]$control.mix$param)
+                                       cont.family[[i.family]]$control.mix$model,
+                                       "mix",
+                                       cont.family[[i.family]]$control.mix$hyper, 
+                                       cont.family[[i.family]]$control.mix$initial, 
+                                       cont.family[[i.family]]$control.mix$fixed,
+                                       cont.family[[i.family]]$control.mix$prior,
+                                       cont.family[[i.family]]$control.mix$param)
             all.hyper$family[[i.family]]$mix$hyper= cont.family[[i.family]]$control.mix$hyper
         }
         cont.family[[i.family]]$control.link$hyper = inla.set.hyper(
-                                       cont.family[[i.family]]$control.link$model,
-                                       "link",
-                                       cont.family[[i.family]]$control.link$hyper, 
-                                       cont.family[[i.family]]$control.link$initial, 
-                                       cont.family[[i.family]]$control.link$fixed,
-                                       cont.family[[i.family]]$control.link$prior,
-                                       cont.family[[i.family]]$control.link$param)
+                                   cont.family[[i.family]]$control.link$model,
+                                   "link",
+                                   cont.family[[i.family]]$control.link$hyper, 
+                                   cont.family[[i.family]]$control.link$initial, 
+                                   cont.family[[i.family]]$control.link$fixed,
+                                   cont.family[[i.family]]$control.link$prior,
+                                   cont.family[[i.family]]$control.link$param)
         all.hyper$family[[i.family]]$link$hyper = cont.family[[i.family]]$control.link$hyper
     }
     
@@ -937,7 +942,7 @@
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
-    mf$inla.arg = NULL; mf$lincomb=NULL;
+    mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
 
     if (gp$n.fix > 0)
@@ -1063,8 +1068,8 @@
         }
 
         files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, 
-                weights=weights, Ntrials=Ntrials, strata=strata, 
-                family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
+            weights=weights, Ntrials=Ntrials, strata=strata, 
+            family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
         
         ## add a section to the file.ini
         prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
@@ -1527,7 +1532,7 @@
 
                 if (nrep == 1 && ngroup == 1) {
                     n = inla.ifelse(is.null(gp$random.spec[[r]]$n), length(location[[r]][!is.na(location[[r]])]),
-                            gp$random.spec[[r]]$n)
+                        gp$random.spec[[r]]$n)
                 } else {
                     if (is.null(n))
                         stop("n is NULL!!!!")
@@ -1672,7 +1677,7 @@
                 }
                 ##create a FFIELD section
                 all.hyper$random[[r]] = list(label = inla.namefix(gp$random.spec[[r]]$term),
-                                        hyper = gp$random.spec[[r]]$hyper)
+                                    hyper = gp$random.spec[[r]]$hyper)
 
                 inla.ffield.section(file=file.ini, file.loc=file.loc, file.cov=file.cov,
                                     file.id.names = file.id.names, 
@@ -1697,10 +1702,10 @@
                 file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
-                        quantiles=gp$random.spec[[r]]$quantiles,
-                        prec=gp$random.spec[[r]]$prec.linear,
-                        mean=gp$random.spec[[r]]$mean.linear,
-                        compute=gp$random.spec[[r]]$compute)
+                    quantiles=gp$random.spec[[r]]$quantiles,
+                    prec=gp$random.spec[[r]]$prec.linear,
+                    mean=gp$random.spec[[r]]$mean.linear,
+                    compute=gp$random.spec[[r]]$compute)
                 
                 if (is.null(all.hyper$linear)) {
                     lin.count = 1L
@@ -1708,9 +1713,9 @@
                     lin.count = length(all.hyper$linear) + 1L
                 }
                 all.hyper$linear[[lin.count]] = inla.linear.section(
-                                         file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
-                                         results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
-                                         control.fixed = cont, only.hyperparam=only.hyperparam)
+                                    file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
+                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
+                                    control.fixed = cont, only.hyperparam=only.hyperparam)
             } else {
                 stop("This should not happen.")
             }
@@ -1817,7 +1822,7 @@
                         tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                     } else {
                         tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
-                                inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
+                            inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
                     }
                 }
                 for (i in 1L:nrgeneric) {
@@ -1830,7 +1835,7 @@
                     echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
                 } else {
                     echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
-                            inla.ifelse(silent == 2L, " 2>/dev/null", "")))
+                        inla.ifelse(silent == 2L, " 2>/dev/null", "")))
                 }
             }
         } else if (inla.os("windows")) {
@@ -1856,10 +1861,10 @@
             } else {
                 ## remote || submit
                 echoc = try(inla.cygwin.run.command(
-                        paste(inla.cygwin.map.filename(inla.call),
-                              all.args,
-                              inla.cygwin.map.filename(file.ini)),
-                        file.log = inla.ifelse(verbose, NULL, inla.cygwin.map.filename(file.log))), silent=TRUE)
+                    paste(inla.cygwin.map.filename(inla.call),
+                          all.args,
+                          inla.cygwin.map.filename(file.ini)),
+                    file.log = inla.ifelse(verbose, NULL, inla.cygwin.map.filename(file.log))), silent=TRUE)
                 ## echoc = 0L
             }
         } else {
@@ -1875,7 +1880,7 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                        only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
+                    only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
                 if (!is.list(ret)) {
                     ret = list()
                 }
@@ -1885,10 +1890,10 @@
             
             my.time.used[4] = Sys.time()
             cpu.used = c(
-                    "Pre-processing"  = diff(my.time.used)[1],
-                    "Running inla"    = diff(my.time.used)[2],
-                    "Post-processing" = diff(my.time.used)[3],
-                    "Total" = my.time.used[4] - my.time.used[1])
+                "Pre-processing"  = diff(my.time.used)[1],
+                "Running inla"    = diff(my.time.used)[2],
+                "Post-processing" = diff(my.time.used)[3],
+                "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
             ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
@@ -1967,19 +1972,19 @@
     }
     if (is.list(data) && length(data) > 0L) {
         idx = which(sapply(
-                data, 
-                function(a, n) {
-                    if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
-                        return (TRUE)
-                    } else if (length(a) != n || inla.is.matrix(a)) {
-                        return (FALSE)
-                    } else if (length(a) == n) {
-                        return (TRUE)
-                    } else {
-                        stop("This should not happen.")
-                    }
-                },
-                n = n))
+            data, 
+            function(a, n) {
+                if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
+                    return (TRUE)
+                } else if (length(a) != n || inla.is.matrix(a)) {
+                    return (FALSE)
+                } else if (length(a) == n) {
+                    return (TRUE)
+                } else {
+                    stop("This should not happen.")
+                }
+            },
+            n = n))
         if (revert) {
             idx = (1:length(data))[-idx]
         }

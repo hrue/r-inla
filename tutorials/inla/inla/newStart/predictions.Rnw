@@ -1,4 +1,250 @@
 \chapter{Predictions} 
 <<echo=FALSE>>=
+rm(list=ls())
 library(INLA)
 @ 
+
+
+In this chapter we will dicuss how to precition using
+\verb|INLA|. This is a bit different from other tools, as there is not
+such thing as a \verb|predict|-function, but we need to include the
+``locations'' (in abstract form), from the start, as estimation and
+prediction are two sides of the same coin. 
+
+\section{The use of \texttt{NA}}
+
+Recall that setting an observation to \verb|NA| means \emph{no
+    likelihood contribution} at that location, hence \verb|NA|'s will
+be useful when doing prediction. What we need to do is to define the
+linear predictor (and the corresponding observation as \verb|NA|)
+where we want to predict. A simple example will fix the idea. 
+
+In this time-series example, we want to predict into the
+future\footnote{Who doesn't?}. First we simulate some data following
+an AR(1)-process
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+n = 200
+n.pred = 100
+y = arima.sim(n=n, model=list(ar=0.9))
+plot(y,  type="l", xlim = c(1, n+n.pred))
+@ 
+\end{center}
+and the question is what will happen in the future, like for time
+$\Sexpr{n+1}, \ldots, \Sexpr{n + n.pred}$?
+
+We can use the fitted AR(1) model to do the predictions. In order to
+this, we need to compute the predictions together with the
+estimation. Hence, we need to add linear predictors for all the
+locations we want to predictor and let the corresponding observations
+be \verb|NA|'s. 
+<<>>=
+nn = n + n.pred
+idx = 1:nn
+yy = c(y, rep(NA, n.pred))
+formula = yy ~ f(idx, model="ar1")
+r = inla(formula, data = data.frame(idx, yy),
+    ## compute posterior marginals for the linear predictors
+    control.predictor = list(compute = TRUE),
+    ## no observational noise: fix the precision to a high value.
+    control.family = list(initial = 10, fixed=TRUE)) 
+@ 
+%%
+We can know that the predictions are the last \verb|n.pred| elements
+in the linear predictor, because we put them there, hence we can
+easily plot the predictions with the prediction interval
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+pred.idx = (n+1):nn
+lp = r$summary.linear.predictor
+ylim = range(c(lp$"0.025quant", lp$"0.975quant"))
+plot(idx[1:n], lp$mean[1:n], type="l", xlim = c(1, nn), ylim = ylim)
+lines(idx[pred.idx], lp$mean[pred.idx], col="blue")
+lines(idx[pred.idx], lp$"0.025quant"[pred.idx], col="red")
+lines(idx[pred.idx], lp$"0.975quant"[pred.idx], col="red")
+@ 
+\end{center}
+We have also acccess to the posterior marginals for the linear
+predictors:
+\begin{center}
+<<out.width='7cm', out.height='7cm'>>=
+lp = r$marginals.linear.predictor
+for(i in 1:n.pred) {
+    if (i == 1) {
+        plot(inla.smarginal(lp[[n + i]]), type="l", xlim = ylim)
+    } else {
+        lines(inla.smarginal(lp[[n + i]]))
+    }
+}
+@ 
+\end{center}
+
+
+\section{Posteriors for predicted fitted values}
+
+Doing for example logistic regression, we often additionally want the
+posteriors for the so-called \emph{fitted values} which often is a
+a variable with a better/easier interpretation,
+\begin{displaymath}
+    p_i = \frac{1}{1 + \exp(-\eta_i)}
+\end{displaymath}
+Knowing the posterior marginal for each $\eta_i$, we want to compute
+the posterior of the fitted value, in this case the probability
+$p_i$. Although we can always use \verb|inla.tmarginal| to transform a
+marginal, we can directly access the posteriors for the fitted values
+using \verb|r${marginals,summary}.fitted.values|. However, we need
+inform about which family or likelihood an \verb|NA| observation
+belongs to in order to do this, otherwise \verb|inla| will use the
+identity link.  This might seems unnessesary in simple cases, but INLA
+can use many different likelihood models in the same model.
+
+The key variable is \verb|control.predictor = list(link = ...)| which
+is a vector of the same length as the linear predictor, with values
+either \verb|NA|, $1, 2, \ldots, $ up to number of families in the
+model.  If \verb|is.na(y[i])| then the fitted value corresponding to
+\verb|family[link[i]]| is used, or the identity link if
+\verb|is.na(link[i])|.  If the observation is not \verb|NA|, then we
+know already which family it is associated with and these entries in
+the \verb|link|-vector is not used.  With only one family in the
+model, then \verb|link=1| is a shorthand for
+\verb|link = rep(1, n.linear.predictor)|. A simple example with fix
+the idea.
+
+\subsection{A simple example: Tokyo-data}
+
+The Tokyo-example (\verb|demo(Tokyo)|) fits a cyclic smoothing spline
+to annual binary data; see \verb|?Tokyo|.
+\begin{center}
+<<out.width='7cm', out.height='7cm'>>=
+data(Tokyo)
+head(Tokyo)
+with(Tokyo, plot(time, y))
+@ 
+\end{center}
+The variable \verb|y| is the number of recorded days of rain above 1
+mm in Tokyo for 2 years, 1983-84, \verb|n| is the number of days
+possible, and \verb|time| is the day-number. 
+
+In this example we simply want to smooth the data using a cyclic spline
+<<>>=
+formula = y ~ f(time, model="rw2", cyclic=TRUE) -1
+r = inla(formula, family="binomial", Ntrials=n, data=Tokyo,
+    control.predictor = list(compute=TRUE, link=1))
+@
+and the smoothed spline equals the linear predictor, which is
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+lp = r$summary.linear.predictor
+ylim = range(c(lp$"0.025quant", lp$"0.975quant"))
+plot(lp$mean, type = "l", ylim = ylim)
+lines(lp$"0.025quant", lty=2) 
+lines(lp$"0.975", lty=2)
+@ 
+\end{center}
+The fitted values are the posterior expectation of the probabilities
+$p_i = 1/(1+\exp(-\eta_i))$, which are available as
+\verb|fitted.values|, like
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+lp = r$summary.fitted.values
+ylim = range(c(lp$"0.025quant", lp$"0.975quant"))
+plot(lp$mean, type = "l", ylim = ylim)
+lines(lp$"0.025quant", lty=2) 
+lines(lp$"0.975", lty=2)
+@ 
+\end{center}
+The \verb|link|-argument is strictly not needed here, since none of the
+observations are \verb|NA|. We can remove a part of the data to
+examplify this.
+<<>>=
+Tokyo.mod = Tokyo
+Tokyo.mod$y[100:150] = NA
+@ 
+If we now rerun, we get
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+r = inla(formula, family="binomial", Ntrials=n, data=Tokyo.mod,
+    control.predictor = list(compute=TRUE, link=1))
+lp = r$summary.fitted.values
+ylim = range(c(lp$"0.025quant", lp$"0.975quant"))
+plot(lp$mean, type = "l", ylim = ylim)
+lines(lp$"0.025quant", lty=2) 
+lines(lp$"0.975", lty=2)
+abline(v = range(which(is.na(Tokyo.mod$y))))
+@ 
+\end{center}
+We have added vertical lines to mark the segment where we
+have \verb|NA| as observations.
+
+It is possible to do this ``manually'', which we do not recomend, but
+to show how this \emph{could} be done, we can compute the posterior mean
+of the fitted values directly. 
+<<>>=
+n = dim(Tokyo)[1]
+fitted.values.mean = numeric(n)
+for(i in 1:n) {
+    if (is.na(Tokyo.mod$y[i])) {
+        if (FALSE) {
+            ## either like this, which is slow
+            marg = inla.marginal.transform(
+                            function(x) exp(x)/(1+exp(x)),
+                            r$marginals.fitted.values[[i]] )
+            fitted.values.mean[i] = inla.emarginal(
+                            function(x) x, marg)
+        } else {
+            ## or like this,  which is not so slow
+            fitted.values.mean[i] = inla.emarginal(
+                            function(x) exp(x)/(1 +exp(x)),
+                            r$marginals.fitted.values[[i]])
+        }
+    } else {
+        fitted.values.mean[i] = r$summary.fitted.values[i,"mean"]
+    }
+}
+if (FALSE) plot(fitted.values.mean)
+@ 
+
+
+\subsection{A not so simple example: More than one family}
+
+We will now show how to set the argument \verb|link| in a situation
+with more than one family. For simplicity, we will use simulated data.
+<<>>=
+n = 50
+x = arima.sim(n, model=list(ar = 0.9))
+x = as.numeric(x/sd(x))
+## which are observed twice
+y.1 = 1 + x + rnorm(n)
+y.2 = rpois(n, lambda = exp(2 + x))
+## missing values
+y.1[20:25] = NA
+y.2[25:30] = NA
+@ 
+We now define a model using two likelihoods, the Gaussian and the
+Poisson, 
+\begin{center} 
+<<out.width='7cm', out.height='7cm'>>=
+Y = matrix(NA, 2*n,2)
+Y[1:n,1] = y.1
+Y[1:n + n, 2] = y.2
+idx = rep(1:n, 2)
+link = numeric(2*n)
+link[] = NA
+link[which(is.na(y.1))] = 1
+link[which(is.na(y.2)) + n] = 2
+intercept = as.factor(c(rep(1,n), rep(2,n)))
+r = inla(Y ~ -1 + intercept + f(idx, model="ar1"),
+    family = c("gaussian", "poisson"),
+    data = list(Y=Y, idx=idx,intercept = intercept),
+    control.predictor = list(compute=TRUE, link = link))
+## results for the Gaussian part
+plot(y.1, pch=19)
+lines(r$summary.fitted.values$mean[1:n])
+abline(v = range(which(is.na(y.1))))
+## results for the Poisson part
+plot(y.2, pch=19)
+lines(r$summary.fitted.values$mean[1:n + n])
+abline(v = range(which(is.na(y.2))))
+@ 
+\end{center}
+
