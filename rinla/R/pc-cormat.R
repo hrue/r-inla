@@ -232,7 +232,7 @@ inla.pc.cormat.dtheta = function(theta, lambda = 1, log = TRUE)
           + lfactorial(q) 
           + (5*q/2) * log(2.0)
           - 0.5 * log(q+1) 
-          - (2*q+1) * log(d)
+          - (2*q-1) * log(d)
           - lambda * d
           + sum(log(abs(1/tan(theta)))))
     
