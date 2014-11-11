@@ -66,6 +66,9 @@
 ##!     \code{inla.pc.multvar.sphere.d} evaluate the density.
 ##!     \code{inla.pc.multvar.sphere.general.r} generate samples from the general sphere case,  and
 ##!     \code{inla.pc.multvar.sphere.general.d} evaluate the density.
+##!
+##!     \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
+##!     to code your own spesific one, if needed. 
 ##! }
 ##! \author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! \examples{
@@ -323,46 +326,4 @@ inla.pc.multvar.sphere.general.core = function(
     }
     stop("Should not happen")
     return()
-}
-
-inla.pc.multvar.testing = function(p, lambda=1)
-{
-    ## test some of the functions
-    library(cubature)
-
-    upper = inla.pc.multvar.h.default(1/lambda + 6 * 1/lambda, inverse=TRUE)
-    r = (adaptIntegrate(inla.pc.multvar.simplex.d,
-                        lowerLimit = rep(0, p),
-                        upperLimit = rep(upper, p),
-                        lambda = lambda))
-    print(paste("TEST 1: should be 1. result = ", r$integral))
-
-    b = matrix(runif(p), ncol=1)
-    b = b/max(b)
-    r = (adaptIntegrate(inla.pc.multvar.simplex.general.d,
-                        lowerLimit = rep(0, p),
-                        upperLimit = rep(upper, p),
-                        lambda = lambda, b=b))
-    print(paste("TEST 2: should be 1. result = ", r$integral))
-
-    r = (adaptIntegrate(inla.pc.multvar.sphere.d,
-                        lowerLimit = rep(0, p),
-                        upperLimit = rep(upper, p),
-                        lambda = lambda))
-    print(paste("TEST 3: should be ", 1/2^p, " result = ", r$integral))
-    
-    H = diag(runif(p))
-    H = matrix(runif(p^2), p, p)
-    H = H %*% t(H)
-    H = H/max(H)
-    print(H)
-    library(R2Cuba)
-    r = cuhre(p, 1, inla.pc.multvar.sphere.general.d,
-        lower = rep(-upper+0.01, p),
-        upper = rep(upper, p),
-        lambda = lambda, H=H,
-        rel.tol =1e-6, 
-        flags = list(verbose=1))
-    
-    print(paste("TEST 4: should be ", 1, " result = ", r$value))
 }
