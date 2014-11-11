@@ -9,6 +9,7 @@
 ## Export: inla.pc.multvar.sphere.general.r
 
 ##! \name{pc.multvar}
+##! \alias{pc.multvar}
 ##! \alias{inla.pc.multvar}
 ##! \alias{inla.pc.multvar.simplex}
 ##! \alias{inla.pc.multvar.simplex.d}
@@ -22,6 +23,20 @@
 ##! \alias{inla.pc.multvar.sphere.general}
 ##! \alias{inla.pc.multvar.sphere.general.d}
 ##! \alias{inla.pc.multvar.sphere.general.r}
+##! \alias{inla.pc.multvar.h.default}
+##! \alias{pc.multvar.simplex}
+##! \alias{pc.multvar.simplex.d}
+##! \alias{pc.multvar.simplex.r}
+##! \alias{pc.multvar.simplex.general}
+##! \alias{pc.multvar.simplex.general.d}
+##! \alias{pc.multvar.simplex.general.r}
+##! \alias{pc.multvar.sphere}
+##! \alias{pc.multvar.sphere.d}
+##! \alias{pc.multvar.sphere.r}
+##! \alias{pc.multvar.sphere.general}
+##! \alias{pc.multvar.sphere.general.d}
+##! \alias{pc.multvar.sphere.general.r}
+##! \alias{pc.multvar.h.default}
 ##!
 ##! \title{Multivariate PC priors}
 ##! 
