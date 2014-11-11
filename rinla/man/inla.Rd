@@ -45,7 +45,8 @@ inla(
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    debug = inla.getOption("debug")
+    debug = inla.getOption("debug"), 
+    .parent.frame = parent.frame()
     )
 
  }
@@ -170,6 +171,7 @@ working files.}
 \code{inla}-program.}
 \item{debug}{ If \code{TRUE}, then enable some debug
 output.  }
+\item{.parent.frame}{Internal use only}
 }
 \value{%%
 \code{inla} returns an object of class \code{"inla"}. This is a list
