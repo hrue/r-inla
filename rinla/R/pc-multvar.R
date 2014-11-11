@@ -42,13 +42,12 @@
 ##!            a vector then this is the sample.}
 ##!   \item{inverse}{Compute the inverse of the h()-function.}
 ##!   \item{derivative}{Compute the derivative of the h()-function. (derivative of the inverse
-##!                     function is not used.}
+##!                     function is not used).}
 ##!   \item{n}{Number of samples to generate.}
 ##!   \item{p}{The dimension of the PC-prior.}
 ##!   \item{lambda}{The lambda-parameter in the PC-prior.}
 ##!   \item{log}{Evaluate the density in log-scale or ordinary scale.}
 ##!   \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
-##!            for an example of how to write a user-spesific function.}
 ##!            for an example of how to write a user-spesific function.}
 ##!   \item{b}{The b-vector (gradient) in the general expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
 ##!   \item{b}{The H(essian)-matrix in the general expression for the sphere option,  \code{d(xi) =
