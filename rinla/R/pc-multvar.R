@@ -1,3 +1,4 @@
+## Export: inla.pc.multvar.h.default
 ## Export: inla.pc.multvar.simplex.d
 ## Export: inla.pc.multvar.simplex.r
 ## Export: inla.pc.multvar.sphere.d
