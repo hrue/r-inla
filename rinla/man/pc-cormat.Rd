@@ -42,7 +42,7 @@
     inla.pc.cormat.theta2r(theta)
     inla.pc.cormat.permute(R)
     inla.pc.cormat.rtheta(n=1, p, lambda = 1)
-    inla.pc.cormat.dtheta(theta, lambda = 1, log = TRUE)
+    inla.pc.cormat.dtheta(theta, lambda = 1, log = FALSE)
  }
  \arguments{
    \item{dim}{The dimension of \code{theta}, the parameterisatin of the correlation matrix}
