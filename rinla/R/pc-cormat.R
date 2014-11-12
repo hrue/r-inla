@@ -43,7 +43,7 @@
 ##!    inla.pc.cormat.theta2r(theta)
 ##!    inla.pc.cormat.permute(R)
 ##!    inla.pc.cormat.rtheta(n=1, p, lambda = 1)
-##!    inla.pc.cormat.dtheta(theta, lambda = 1, log = TRUE)
+##!    inla.pc.cormat.dtheta(theta, lambda = 1, log = FALSE)
 ##! }
 ##! \arguments{
 ##!   \item{dim}{The dimension of \code{theta}, the parameterisatin of the correlation matrix}
@@ -221,39 +221,13 @@ inla.pc.cormat.rtheta = function(n=1, p, lambda = 1)
     return (x)
 }
 
-inla.pc.cormat.dtheta = function(theta, lambda = 1, log = TRUE)
+inla.pc.cormat.dtheta = function(theta, lambda = 1, log = FALSE)
 {
-    ## q is the dimension of theta. p is the dimension of R. this is
-    ## not the notation used in the paper.
-    q = length(theta)
-    R = inla.pc.cormat.theta2R(theta)
-    d = sqrt(-log(det(R)))
-    ld = (log(lambda) 
-          + lfactorial(q) 
-          + (5*q/2) * log(2.0)
-          - 0.5 * log(q+1) 
-          - (2*q-1) * log(d)
-          - lambda * d
-          + sum(log(abs(1/tan(theta)))))
-    
-    return (if (log) ld else exp(ld))
+    ## reimplementation using the simplex function
+    p = length(theta)
+    gamma = -log(sin(theta))
+    ldens = (inla.pc.multvar.simplex.d(gamma, lambda = lambda, log = TRUE)
+             + sum(log(abs(1/tan(theta)))) - p*log(2))
+
+    return (if (log) ldens else exp(ldens))
 }    
-
-inla.pc.cormat.internal.test.1 = function(n, p, lim = 0.99)
-{
-    m = inla.pc.cormat.p2dim(p)
-    ppi = lim*pi
-    X = matrix(runif(n*m, min=-ppi, max=ppi), n, m)
-    inla.require("parallel")
-    d = mclapply(1:n,
-            function(k, lambda, log) {
-                return (inla.pc.cormat.dtheta(X[k, ], lambda = lambda, log=log))
-            }, lambda = 1, log = FALSE,
-            mc.cores = detectCores())
-    d = unlist(d)
-    mu = mean(d)
-    s = sd(d)/sqrt(n)
-    z = mu/s
-
-    return(list(mean = mu, sd = s, z = z))
-}
