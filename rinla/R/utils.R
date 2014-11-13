@@ -332,8 +332,8 @@
 
 `inla.scale` = function(x)
 {
-    ## return [(x - mean(x))/sd(x)]
-    return ((x-mean(x))/sd(x))
+    ## didn't knew about this one...
+    return (scale(x))
 }
 
 `inla.trim.family` = function(family)
