@@ -88,8 +88,6 @@ typedef enum {
 	INLA_MODE_QSAMPLE,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
-	INLA_MODE_SASPRIOR,
-	INLA_MODE_PCPRIOR_BYM_EXAMPLE,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -397,7 +395,6 @@ typedef enum {
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
-	L_SAS,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
 	L_CIRCULAR_NORMAL,
@@ -458,7 +455,6 @@ typedef enum {
 	P_LOGIFLAT,
 	P_NONE,
 	P_BETACORRELATION,
-	P_SASPRIOR,
 	P_LOGITBETA,
 	P_EXPRESSION,
 	P_TABLE,
@@ -1273,7 +1269,6 @@ double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_rho0(double *x, double *parameters);
 double priorfunc_pc_rho1(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
-double priorfunc_sasprior(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -1435,7 +1430,6 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_sas(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
