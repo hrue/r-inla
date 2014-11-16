@@ -49,7 +49,6 @@
                               "skewnormal",
                               "gev",
                               "logistic",
-                              "sas",
                               "circularnormal",
                               "wrappedcauchy",
                               "iidgamma",
