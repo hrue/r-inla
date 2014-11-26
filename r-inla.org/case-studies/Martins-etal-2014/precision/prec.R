@@ -46,8 +46,8 @@ plot(kappa, prior.new,
      xlim = c(0,  500),
      xlab = "Precision",
      ylab = "Density", 
-     type = "l", lwd = lwd, bty = bty)
-lines(kappa, prior.gamma, lwd = lwd, lty = 2)
+     type = "l", lwd = lwd, bty = bty, lty = 2)
+lines(kappa, prior.gamma, lwd = lwd, lty = 1)
 dev.print(postscript, file = "precision-priors.ps")
 
 d = 1/sqrt(kappa)
@@ -59,8 +59,8 @@ plot(d, prior.d,
      ylim = c(0, 9), 
      xlab = "Distance",
      ylab = "Density", 
-     type = "l", lwd = lwd, bty = bty)
-lines(d, prior.gamma.d, lwd = lwd, lty = 2)
+     type = "l", lwd = lwd, bty = bty, lty = 2)
+lines(d, prior.gamma.d, lwd = lwd, lty = 1)
 dev.print(postscript, file = "precision-priors-d.ps")
 
 

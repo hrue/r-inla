@@ -100,9 +100,12 @@ stopifnot(all(diff(kl) < 0.0))
 
 bty = "l"
 lwd = 2L
+cex.lab = 1.4
+cex.axis = 1.4
 idx = which(dofs < 1000)
 if (plot.figures) {
     if (new.windows) inla.dev.new()
+    par(cex.lab=cex.lab, cex.axis=cex.axis)
     plot(dofs[idx], kl[idx], log="y", xlab="Degrees of freedom",  ylab = "KLD",
          type = "l",  lwd=lwd, bty = bty)
     if (write.new.figures) {
@@ -140,6 +143,7 @@ new.prior = function(dofs, u=NULL, p=NULL, lambda)
         
 if (plot.figures) {
     if (new.windows) inla.dev.new()
+    par(cex.lab=cex.lab, cex.axis=cex.axis)
     df.star = 10
     p.star = c(0.2, 0.5, 0.8)
     k = 1
@@ -172,6 +176,7 @@ if (plot.figures) {
 
 if (plot.figures) {
     if (new.windows) inla.dev.new()
+    par(cex.lab=cex.lab, cex.axis=cex.axis)
     lambda = 1/(5-2)
     x = f.d(dofs)
     xlim = c(0, 1.5)
@@ -212,6 +217,7 @@ if (plot.figures) {
     }
 
     if (new.windows) inla.dev.new()
+    par(cex.lab=cex.lab, cex.axis=cex.axis)
     xlim = c(0, 0.3)
     ylim = c(0, 80)
     y = dunif(dofs, min = 2, max = 20) * abs(my.grad(f.dof, x))

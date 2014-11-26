@@ -1,11 +1,20 @@
 library(INLA)
 write.new.figures = TRUE
 
+inla.dev.new.hook = function()
+{
+    cex.lab = 1.4
+    cex.axis = 1.4
+    par(cex.lab=cex.lab, cex.axis=cex.axis)
+}
+inla.dev.new()
+
 g = "sardinia.graph"
 sardinia = read.table("sardinia.dat", col.names=c("y", "E", "SMR"))
 n = dim(sardinia)[1]
 sardinia$idx = 1:n
-Q = INLA:::inla.pc.bym.Q(g, scale.model=TRUE)
+Q = INLA:::inla.pc.bym.Q(g)
+Q = INLA:::inla.scale.model(Q,  constr=list(A=matrix(1, 1, n), e=0))
 u = 0.2/0.31
 alpha = 0.01
 phi.u = 0.5
@@ -124,7 +133,8 @@ if (write.new.figures)
 data(Germany)
 g = "germany.graph"
 n = dim(Germany)[1]
-Q = INLA:::inla.pc.bym.Q(g, scale.model=TRUE)
+Q = INLA:::inla.pc.bym.Q(g)
+Q = INLA:::inla.scale.model(Q, constr=list(A=matrix(1, 1, n), e=0))
 
 u = 0.2/0.31
 alpha = 0.01
