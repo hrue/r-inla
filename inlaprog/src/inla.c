@@ -4286,23 +4286,23 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double size; 
+	double size;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
-	switch(ds->variant){
-	case 0: 
+	switch (ds->variant) {
+	case 0:
 		size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
 		break;
-	case 1: 
-		size = E*exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
+	case 1:
+		size = E * exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-		
+
 
 	LINK_INIT;
 	if (m > 0) {
@@ -5445,11 +5445,10 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 
 	LINK_INIT;
 	if (m > 0) {
-		double p_upper = 0.999;
-		/* 
-		 * issues occur when x[i] is to large
-		 */
-		p = PREDICTOR_INVERSE_LINK(x[0] + OFFSET(idx));
+		// issues occur when x[i] is to large
+		double p_upper = 0.999, xmax;
+		xmax = GMRFLib_max_value(x, m, NULL) + OFFSET(idx);
+		p = PREDICTOR_INVERSE_LINK(xmax);
 		if (p < p_upper) {
 			for (i = 0; i < m; i++) {
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -5459,20 +5458,23 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 			}
 		} else {
 			// extrapolate linearly
-			double xx[3], ll[3],  h=1.0E-4, diff, dx;
+			double xx[3], ll[3], h = 1.0E-4, diff, ddiff, dx;
 			xx[1] = PREDICTOR_LINK(p_upper);
 			xx[0] = xx[1] - h;
 			xx[2] = xx[1] + h;
-			for(i = 0; i < 3; i++){
+			for (i = 0; i < 3; i++) {
 				p = PREDICTOR_INVERSE_LINK(xx[i]);
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
 				ll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
 			}
-			diff = (ll[2] - ll[0])/(2.0*h);
+			diff = (ll[2] - ll[0]) / (2.0 * h);
+			ddiff = (ll[2] - 2.0 * ll[1] + ll[0]) / SQR(h);
+			diff = DMIN(0.0, diff);		       /* must have */
+			ddiff = DMIN(0.0, ddiff);	       /* must have */
 			for (i = 0; i < m; i++) {
 				dx = (x[i] + OFFSET(idx)) - xx[1];
-				logll[i] = ll[1] + dx * diff;
+				logll[i] = ll[1] + dx * diff + 0.5 * SQR(dx) * ddiff;
 			}
 		}
 	} else {
@@ -14924,7 +14926,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_theta[mb->nf] = Calloc(GENERIC3_MAXTHETA, double **);
 
 		for (k = a->m; k < GENERIC3_MAXTHETA - 1; k++) {	/* yes, do not include the common scaling */
-			mb->f_fixed[mb->nf][k] = 1;			/* those not used are set to fixed */
+			mb->f_fixed[mb->nf][k] = 1;	       /* those not used are set to fixed */
 		}
 		for (k = 0; k < GENERIC3_MAXTHETA; k++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
@@ -18428,7 +18430,6 @@ double extra(double *theta, int ntheta, void *argument)
 		val += inla_update_density(theta, mb->update);
 		evaluate_hyper_prior = 0;
 	}
-
 	// This is for the PC-prior example
 	if (0) {
 		evaluate_hyper_prior = 0;
@@ -18437,7 +18438,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int verbose = 0;
 			double lprior = 0.0;
 			static int first = 1, fd1, fd2;
-			
+
 			if (first) {
 				if (verbose)
 					fprintf(stderr, "\nOpen FIFO-files...\n");
@@ -18451,13 +18452,13 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 
 			int ret, N = 6;
-			if (verbose){
-				for(i=0; i<N; i++) {
+			if (verbose) {
+				for (i = 0; i < N; i++) {
 					fprintf(stderr, "theta[%1d]= %g ", i, theta[i]);
 				}
 				fprintf(stderr, "\n");
 			}
-			ret = write(fd1, theta, N*sizeof(double));
+			ret = write(fd1, theta, N * sizeof(double));
 			ret = read(fd2, &lprior, sizeof(double));
 			val += lprior;
 			if (verbose)
