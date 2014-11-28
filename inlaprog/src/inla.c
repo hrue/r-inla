@@ -129,6 +129,9 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define PREDICTOR_INVERSE_LINK(xx_)  \
 	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
 
+#define PREDICTOR_LINK(xx_)  \
+	ds->predictor_invlinkfunc(xx_, MAP_BACKWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
+
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
 	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
 
@@ -5442,11 +5445,35 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			a = p * (1.0 - rho) / rho;
-			b = (p * rho - p - rho + 1.0) / rho;
-			logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+		double p_upper = 0.999;
+		/* 
+		 * issues occur when x[i] is to large
+		 */
+		p = PREDICTOR_INVERSE_LINK(x[0] + OFFSET(idx));
+		if (p < p_upper) {
+			for (i = 0; i < m; i++) {
+				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				a = p * (1.0 - rho) / rho;
+				b = (p * rho - p - rho + 1.0) / rho;
+				logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+			}
+		} else {
+			// extrapolate linearly
+			double xx[3], ll[3],  h=1.0E-4, diff, dx;
+			xx[1] = PREDICTOR_LINK(p_upper);
+			xx[0] = xx[1] - h;
+			xx[2] = xx[1] + h;
+			for(i = 0; i < 3; i++){
+				p = PREDICTOR_INVERSE_LINK(xx[i]);
+				a = p * (1.0 - rho) / rho;
+				b = (p * rho - p - rho + 1.0) / rho;
+				ll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+			}
+			diff = (ll[2] - ll[0])/(2.0*h);
+			for (i = 0; i < m; i++) {
+				dx = (x[i] + OFFSET(idx)) - xx[1];
+				logll[i] = ll[1] + dx * diff;
+			}
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
