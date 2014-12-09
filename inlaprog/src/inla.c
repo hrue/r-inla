@@ -89,6 +89,7 @@ static const char RCSId[] = HGVERSION;
 #include "re.h"
 #include "ar.h"
 #include "pc-priors.h"
+#include "R-interface.h"
 
 #define PREVIEW (20)
 #define MODEFILENAME ".inla-mode"
@@ -18260,19 +18261,16 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * do error-checking later on 
 	 */
-	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO_MANUAL"), 0);
-	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO.MANUAL"), mb->expert_cpo_manual);
-	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPOMANUAL"), mb->expert_cpo_manual);
+	mb->expert_cpo_manual = iniparser_getint(ini, inla_string_join(secname, "CPO.MANUAL"), 0);
 
 	char *str = NULL;
-	str = iniparser_getstring(ini, inla_string_join(secname, "CPO_IDX"), str);
 	str = iniparser_getstring(ini, inla_string_join(secname, "CPO.IDX"), str);
-	str = iniparser_getstring(ini, inla_string_join(secname, "CPOIDX"), str);
 
 	int n = 0;
 	int *idx = NULL;
 	inla_sread_ints_q(&idx, &n, (const char *) str);
-
+	Free(str);
+	
 	mb->expert_n_cpo_idx = n;
 	mb->expert_cpo_idx = idx;
 
@@ -18284,6 +18282,33 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\t\tcpo.idx=[%1d]\n", mb->expert_cpo_idx[i]);
 		}
 	}
+
+	/* 
+	 * joint prior?
+	 */
+	char *R_HOME = NULL, *Rfile = NULL, *func = NULL;
+
+	R_HOME = iniparser_getstring(ini, inla_string_join(secname, "JP.R_HOME"), R_HOME);
+	Rfile = iniparser_getstring(ini, inla_string_join(secname, "JP.RFILE"), Rfile);
+	func = iniparser_getstring(ini, inla_string_join(secname, "JP.FUNC"), func);
+	if (mb->verbose) {
+		printf("\t\t\tjp.R_HOME=[%s]\n", R_HOME);
+		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
+		printf("\t\t\tjp.func=[%s]\n", func);
+	}
+	if (func){
+		GMRFLib_ASSERT(Rfile && R_HOME, GMRFLib_EPARAMETER);
+		mb->jp = Calloc(1, inla_jp_tp);
+		mb->jp->R_HOME = GMRFLib_strdup(R_HOME);
+		mb->jp->Rfile = GMRFLib_strdup(Rfile);
+		mb->jp->func = GMRFLib_strdup(func);
+		
+	} else {
+		mb->jp = NULL;
+	}
+	Free(R_HOME);
+	Free(Rfile);
+	Free(func);
 
 	return INLA_OK;
 }
@@ -18430,40 +18455,33 @@ double extra(double *theta, int ntheta, void *argument)
 		val += inla_update_density(theta, mb->update);
 		evaluate_hyper_prior = 0;
 	}
-	// This is for the PC-prior example
-	if (0) {
+
+	// joint prior evaluated in R
+	if (mb->jp) {
+		static int first_time = 1;
+		assert(!(mb->update));			       /* only one at the time... */
 		evaluate_hyper_prior = 0;
-#pragma omp critical
-		{
-			int verbose = 0;
-			double lprior = 0.0;
-			static int first = 1, fd1, fd2;
-
-			if (first) {
-				if (verbose)
-					fprintf(stderr, "\nOpen FIFO-files...\n");
-				mkfifo("FIFO.FROM.INLA", 0700);
-				mkfifo("FIFO.TO.INLA", 0700);
-				fd1 = open("FIFO.FROM.INLA", O_WRONLY);
-				fd2 = open("FIFO.TO.INLA", O_RDONLY);
-				if (verbose)
-					fprintf(stderr, "\nOpen FIFO-files... done!\n");
-				first = 0;
-			}
-
-			int ret, N = 6;
-			if (verbose) {
-				for (i = 0; i < N; i++) {
-					fprintf(stderr, "theta[%1d]= %g ", i, theta[i]);
-				}
-				fprintf(stderr, "\n");
-			}
-			ret = write(fd1, theta, N * sizeof(double));
-			ret = read(fd2, &lprior, sizeof(double));
-			val += lprior;
-			if (verbose)
-				printf("got lprior = %g\n", lprior);
+		if (first_time) {
+			// the first time only, set the R_HOME variable
+			char *env = NULL;
+			GMRFLib_sprintf(&env, "R_HOME=%s", mb->jp->R_HOME);
+			my_setenv(env, 0);
+			Free(env);
+			// and source the Rfile
+			inla_R_source(mb->jp->Rfile);
+			first_time = 0;
 		}
+				
+		int verbose = 0;
+		double *lprior = NULL;
+		int n_out;
+
+		inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->func, ntheta, theta);
+		assert(n_out == 1);
+		assert(lprior);
+		val += *lprior;
+		if (verbose)
+			printf("got lprior = %g\n", *lprior);
 	}
 
 	/*
@@ -24709,10 +24727,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 #undef FUNC_ARG
 	return INLA_OK;
 }
-int my_setenv(char *str)
+int my_setenv(char *str, int prefix)
 {
 	/*
-	 * set a variable in the enviroment; prepend with inla_, so that a=b yields inla_a=b. 
+	 * set a variable in the enviroment; if PREFIX prepend with inla_, so that a=b yields inla_a=b. 
 	 */
 	char *p = NULL, *var = NULL;
 	int debug = 0;
@@ -24727,12 +24745,20 @@ int my_setenv(char *str)
 	}
 	*p = '\0';
 #if defined(WINDOWS)
-	GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
+	if (prefix){
+		GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
+	} else {
+		GMRFLib_sprintf(&var, "%s=%s", str, p + 1);
+	}
 	putenv(var);
 	if (debug)
 		printf("putenv \t%s\n", var);
 #else
-	GMRFLib_sprintf(&var, "inla_%s", str);
+	if (prefix){
+		GMRFLib_sprintf(&var, "inla_%s", str);
+	} else {
+		GMRFLib_sprintf(&var, "%s", str);
+	}
 	setenv(var, p + 1, 1);
 	if (debug)
 		printf("\tsetenv %s=%s\n", var, p + 1);
@@ -25314,6 +25340,30 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		// test the new R-interface
+
+		printf("TESTIT!\n");
+		inla_R_source("example-code.R");
+		double x[] = { 1, 2, 3 };
+		int nx = sizeof(x)/sizeof(x[1]);
+		
+		double * xx = NULL;
+		int nxx;
+		int i;
+#pragma omp parallel for private(i)
+		for(i=0; i<10; i++){
+			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", nx, x);
+		}
+		inla_R_funcall2(&nxx, &xx, "lprior2", NULL,  nx, x);
+
+		for(i = 0; i<nxx; i++){
+			printf("lprior2[%1d] = %f\n", i, xx[i]);
+		}
+
+		exit(0);
+	}
+
+	if (0) {
 		// testing spde3
 
 		inla_spde3_tp *smodel = NULL;
@@ -25579,7 +25629,7 @@ int main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 
 		case 'e':
-			my_setenv(optarg);
+			my_setenv(optarg, 1);
 			break;
 
 		case 't':

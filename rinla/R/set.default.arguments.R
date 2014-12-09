@@ -177,11 +177,19 @@
     ##:EXTRA: 
     ##:NAME: control.expert
     list(
-        ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)
+        ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)
         cpo.manual = FALSE,
 
-        ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION.)
-        cpo.idx = -1)
+        ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)
+        cpo.idx = -1,
+
+        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func} 
+        jp.Rfile = NULL,
+        
+        ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
+        jp.func = NULL
+        
+        )
 
     ##:SEEALSO: inla
 }
