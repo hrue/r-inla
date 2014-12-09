@@ -933,15 +933,23 @@
     }
 }
 
-`inla.expert.section` = function(file, args)
+`inla.expert.section` = function(file, args, data.dir)
 {
+    cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
+    cat("type = expert\n", sep = " ", file = file,  append = TRUE)
+
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
-        cat("\n ## If you edit this section it is assumed you know what you're doing ;-)\n", file=file, append=TRUE) #
-        cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
-        cat("type = expert\n", sep = " ", file = file,  append = TRUE)
         inla.write.boolean.field("cpo.manual", args$cpo.manual, file)
         ## recall to convert to 0-based index'ing
         cat("cpo.idx = ", args$cpo.idx -1,"\n", sep = " ", file = file,  append = TRUE)
+    }
+    if (!is.null(args$jp.func)) {
+        cat("jp.R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = " ", file = file, append = TRUE)
+        cat("jp.func = ", args$jp.func, "\n", sep = " ", file = file, append = TRUE)
+        if (!is.null(args$jp.Rfile)) {
+            fnm = inla.copy.file.for.section(args$jp.Rfile, data.dir)
+            cat("jp.Rfile = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        }
     }
 }
 

@@ -12,12 +12,14 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual)
+control.expert(cpo.idx, cpo.manual, jp.func, jp.Rfile)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION.)}
-\item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION.)}
+\item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
+\item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)}
+\item{jp.Rfile}{  The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func}}
+\item{jp.func}{  The R-function which returns the joint prior, to be defined in \code{jp.Rfile}}
 }
 \value{
  
