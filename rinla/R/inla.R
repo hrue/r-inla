@@ -1736,7 +1736,7 @@
     ## create expert section
     cont.expert = inla.set.control.expert.default()
     cont.expert[names(control.expert)] = control.expert
-    inla.expert.section(file=file.ini, cont.expert)
+    inla.expert.section(file=file.ini, cont.expert, data.dir = data.dir)
     
     ## create lincomb section
     cont.lincomb = inla.set.control.lincomb.default()

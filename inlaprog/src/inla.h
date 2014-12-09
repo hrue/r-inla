@@ -643,6 +643,15 @@ typedef struct {
 	gsl_matrix *eigen_vectors;
 } inla_update_tp;
 
+typedef struct 
+{
+	char *R_HOME;					       /* environment variable to be set */
+	char *Rfile;					       /* filename to be sourced */
+	char *func;					       /* function to be called: fun(theta)*/
+}
+	inla_jp_tp;
+
+
 struct inla_tp_struct {
 	/*
 	 * General stuff 
@@ -832,6 +841,12 @@ struct inla_tp_struct {
 	 * INLA 
 	 */
 	GMRFLib_ai_param_tp *ai_par;
+
+	/* 
+	 * Expermental stuff: joint prior in R.
+	 */
+	inla_jp_tp *jp;
+
 	/*
 	 * results 
 	 */
@@ -1457,7 +1472,7 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2_OLD(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int my_setenv(char *str);
+int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
