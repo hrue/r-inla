@@ -18482,6 +18482,7 @@ double extra(double *theta, int ntheta, void *argument)
 		val += *lprior;
 		if (verbose)
 			printf("got lprior = %g\n", *lprior);
+		Free(lprior);
 	}
 
 	/*
