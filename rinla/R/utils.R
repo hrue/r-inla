@@ -158,7 +158,7 @@
 {
     if (!(Sys.getenv("USER") %in%
                     c("hrue", "martino", "finnkrl", "finn",
-                      "danielsimpson", "rieblera", "ariebler")))
+                      "danielsimpson", "rieblera", "ariebler", "fuglstad")))
         warning("This function is for developers only...")
     return (invisible())
 }
@@ -177,8 +177,8 @@
         dir.default = "~/inla-project/source/inla/rinla/R"
         bin.default = "~/inla-project/compile/local/bin"
     } else if (Sys.getenv("USER") %in% c("fuglstad")) {
-        dir.default = "~/XXXXXXXXX/inla-project/source/inla/rinla/R"
-        bin.default = "~/XXXXXXXXX/inla-project/compile/local/bin"
+        dir.default = "~/build64/rinla/R"
+        bin.default = "~/build64/local/bin"
     } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
         dir.default = "~/inla/rinla/R"
         bin.default = "~/local/bin"
