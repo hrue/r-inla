@@ -31,6 +31,14 @@
 #endif
 static const char RCSId[] = HGVERSION;
 
+#include <stddef.h>
+#include <stdio.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
+#include <omp.h>
+
 #include <R.h>
 #include <Rembedded.h>
 #include <Rinternals.h>
