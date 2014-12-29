@@ -158,6 +158,9 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 }
 
 #else
+
+#include <stdlib.h>
+
 void inla_R_exit(void)
 {
 	abort(); exit(1);
