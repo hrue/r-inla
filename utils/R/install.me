@@ -135,7 +135,7 @@ if true; then
     ## not TESTING...?
     ## setup the new R-repo...
     d=$wwwR/src/contrib
-    cp -v $tgzINLA $d/INLA_$VERSION.tar.gz
+    cp -v $SRC $d/INLA_$VERSION.tar.gz
     for d in $(find $wwwR/bin/macosx -name updateBinaryPackages); do
 	cp -v $tgzINLA $d/INLA_$VERSION.tgz
     done
