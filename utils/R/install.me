@@ -113,6 +113,7 @@ mv -f $DD/$zipINLA .
 
 ls -l INLA*gz INLA*zip
 www=../www/binaries
+wwwR=../www/R
 OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
@@ -128,6 +129,28 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
     echo $bdate >  $www/build.date
     echo $bdate >  $www/testing/build.date
 fi
+
+##if [ $# -ge 1 -a "$1" == "1" ]; then
+if true; then
+    ## not TESTING...?
+    ## setup the new R-repo...
+    d=$wwwR/src/contrib
+    cp -v $tgzINLA $d/INLA_$VERSION.tar.gz
+    for d in $(find $wwwR/bin/macosx -name updateBinaryPackages); do
+	cp -v $tgzINLA $d/INLA_$VERSION.tgz
+    done
+    for d in $(find $wwwR/bin/windows -name updateBinaryPackages); do
+	cp -v $zipINLA $d/INLA_$VERSION.zip
+    done
+    for f in $(find $wwwR -name updateBinaryPackages); do
+	(
+	    echo "RUN $f..."
+	    cd $(dirname $f)
+	    ./updateBinaryPackages
+	)
+    done
+fi
+
 
 if [ $# -ge 1 -a "$1" == "2" ]; then
     cp -v $tgzINLA $OldDir/$old
