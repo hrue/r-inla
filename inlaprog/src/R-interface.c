@@ -160,6 +160,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 #else
 
 #include <stdlib.h>
+#include <stdio.h>
 #define ERROR_MESSAGE \
 	if (1) {							\
 		fprintf(stderr, "\n\n\n\t*** ERROR ***: The R-interface was not enabled at compile time: please recompile.\n\n\n"); \
