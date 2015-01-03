@@ -160,31 +160,38 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 #else
 
 #include <stdlib.h>
+#define ERROR_MESSAGE \
+	if (1) {							\
+		fprintf(stderr, "\n\n\n\t*** ERROR ***: The R-interface was not enabled at compile time: please recompile.\n\n\n"); \
+		abort();						\
+		exit(1);						\
+	}
+	
 
 void inla_R_exit(void)
 {
-	abort(); exit(1);
+	ERROR_MESSAGE;
 }
 
 int inla_R_init(void)
 {
-	abort(); exit(1);
+	ERROR_MESSAGE;
 }
 
 int inla_R_source(const char *filename)
 {
-	abort(); exit(1);
+	ERROR_MESSAGE;
 }
 
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x) 
 {
-	abort(); exit(1);
+	ERROR_MESSAGE;
 }
 
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x)
 {
-	abort(); exit(1);
+	ERROR_MESSAGE;
 }
-
+#undef ERROR_MESSAGE
 
 #endif
