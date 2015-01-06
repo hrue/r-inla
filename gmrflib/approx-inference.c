@@ -266,6 +266,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 */
 	(*ai_par)->correct = NULL;
 	(*ai_par)->correction_factor = 1.0;		       /* set but is default not used */
+	(*ai_par)->correction_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 
 	return GMRFLib_SUCCESS;
 }
@@ -404,6 +405,11 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	if (ai_par->correct) {
 		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.4f]\n", ai_par->correction_factor);
+		if (ai_par->correction_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
+		    ai_par->correction_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
+			fprintf(fp, "\t\tstrategy = [simplified.laplace]\n");
+		if (ai_par->correction_strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN)
+			fprintf(fp, "\t\tstrategy = [laplace]\n");
 	} else {
 		fprintf(fp, "\tLaplace-correction is Disabled.\n");
 	}
@@ -624,15 +630,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
 
 		memcpy(ai_par_local, ai_par, sizeof(GMRFLib_ai_param_tp));
-		/*
-		 * unless we use the laplace approx, use the mean-corrected one. we do not need the skew one as we only interested in the correction for the mean.
-		 */
-		if (ai_par_local->strategy != GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN) {
-			ai_par_local->strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
-		}
-		FIXME1("FIX ME LATER");
-		ai_par_local->strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
-		
+		ai_par_local->strategy = ai_par->correction_strategy;
 		if (debug) {
 			printf("Correct: Add Qinv...\n");
 		}
