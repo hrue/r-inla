@@ -497,6 +497,17 @@ typedef struct {
 	 * \brief Minimum value for the hessian from the likelihood used in the optimisation.
 	 */
 	double cmin;
+
+	/**
+	 * \brief List of nodes to correct LA for, if any.
+	 */
+	char *correct;
+
+	/**
+	 * \brief Ajustment-factor if we use correction
+	 */
+	double correction_factor;
+	
 } GMRFLib_ai_param_tp;
 
 /**
