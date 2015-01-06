@@ -18158,6 +18158,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->numint_abs_err = iniparser_getdouble(ini, inla_string_join(secname, "NUMINT.ABSERR"), mb->ai_par->numint_abs_err);
 
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
+	int corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
+	mb->ai_par->correction_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECTION.FACTOR"), mb->ai_par->correction_factor);
+	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -18270,7 +18274,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	int *idx = NULL;
 	inla_sread_ints_q(&idx, &n, (const char *) str);
 	Free(str);
-	
+
 	mb->expert_n_cpo_idx = n;
 	mb->expert_cpo_idx = idx;
 
@@ -18283,7 +18287,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	/* 
+	/*
 	 * joint prior?
 	 */
 	char *R_HOME = NULL, *Rfile = NULL, *func = NULL;
@@ -18296,13 +18300,13 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
 		printf("\t\t\tjp.func=[%s]\n", func);
 	}
-	if (func){
+	if (func) {
 		GMRFLib_ASSERT(Rfile && R_HOME, GMRFLib_EPARAMETER);
 		mb->jp = Calloc(1, inla_jp_tp);
 		mb->jp->R_HOME = GMRFLib_strdup(R_HOME);
 		mb->jp->Rfile = GMRFLib_strdup(Rfile);
 		mb->jp->func = GMRFLib_strdup(func);
-		
+
 	} else {
 		mb->jp = NULL;
 	}
@@ -18455,7 +18459,6 @@ double extra(double *theta, int ntheta, void *argument)
 		val += inla_update_density(theta, mb->update);
 		evaluate_hyper_prior = 0;
 	}
-
 	// joint prior evaluated in R
 	if (mb->jp) {
 		static int first_time = 1;
@@ -18471,7 +18474,7 @@ double extra(double *theta, int ntheta, void *argument)
 			inla_R_source(mb->jp->Rfile);
 			first_time = 0;
 		}
-				
+
 		int verbose = 0;
 		double *lprior = NULL;
 		int n_out;
@@ -21227,6 +21230,34 @@ int inla_INLA(inla_tp * mb)
 			assert(count == N);
 		}
 	}
+
+	// correct using fixed effects only
+	char *correct = NULL;
+	if (mb->ai_par->correct) {
+		int local_count = 0;
+		correct = Calloc(N, char);
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if (mb->f_Ntotal[i] == 1) {
+				/*
+				 * add also random effects with size 1
+				 */
+				correct[count] = (char) 1;
+				local_count++;
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			correct[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(correct);
+			correct = NULL;
+		}
+	}
+	Free(mb->ai_par->correct);
+	mb->ai_par->correct = correct;
 
 	if (G.reorder < 0) {
 		GMRFLib_sizeof_tp nnz = 0;
@@ -24746,7 +24777,7 @@ int my_setenv(char *str, int prefix)
 	}
 	*p = '\0';
 #if defined(WINDOWS)
-	if (prefix){
+	if (prefix) {
 		GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
 	} else {
 		GMRFLib_sprintf(&var, "%s=%s", str, p + 1);
@@ -24755,7 +24786,7 @@ int my_setenv(char *str, int prefix)
 	if (debug)
 		printf("putenv \t%s\n", var);
 #else
-	if (prefix){
+	if (prefix) {
 		GMRFLib_sprintf(&var, "inla_%s", str);
 	} else {
 		GMRFLib_sprintf(&var, "%s", str);
@@ -25346,18 +25377,18 @@ int testit(int argc, char **argv)
 		printf("TESTIT!\n");
 		inla_R_source("example-code.R");
 		double x[] = { 1, 2, 3 };
-		int nx = sizeof(x)/sizeof(x[1]);
-		
-		double * xx = NULL;
+		int nx = sizeof(x) / sizeof(x[1]);
+
+		double *xx = NULL;
 		int nxx;
 		int i;
 #pragma omp parallel for private(i)
-		for(i=0; i<10; i++){
+		for (i = 0; i < 10; i++) {
 			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", nx, x);
 		}
-		inla_R_funcall2(&nxx, &xx, "lprior2", NULL,  nx, x);
+		inla_R_funcall2(&nxx, &xx, "lprior2", NULL, nx, x);
 
-		for(i = 0; i<nxx; i++){
+		for (i = 0; i < nxx; i++) {
 			printf("lprior2[%1d] = %f\n", i, xx[i]);
 		}
 

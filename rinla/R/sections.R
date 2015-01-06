@@ -696,6 +696,12 @@
         cat("stupid.search.factor = ", fac, "\n", file = file,  append = TRUE)
     }
 
+    inla.write.boolean.field("correct", inla.spec$correct, file)
+    if (!is.null(inla.spec$correction.factor)) {
+        stopifnot(inla.spec$correction.factor > 0);
+        cat("correction.factor = ", inla.spec$correction.factor, "\n", file = file, append = TRUE)
+    }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
