@@ -701,6 +701,9 @@
         stopifnot(inla.spec$correction.factor > 0);
         cat("correction.factor = ", inla.spec$correction.factor, "\n", file = file, append = TRUE)
     }
+    if (!is.null(inla.spec$correction.strategy)) {
+        cat("correction.strategy = ", inla.spec$correction.strategy,"\n", sep = " ", file = file,  append = TRUE)
+    }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
