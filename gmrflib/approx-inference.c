@@ -695,7 +695,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		}
 
 #define FUNCORR(_x) (-1.0 + 2.0/(1+exp(-2.0 * (_x))))	       // makes the derivative in 0 eq to 1
-		double upper = (compute_n + 3.0 * sqrt(2.0 / compute_n)) * ai_par->correction_factor;
+		double upper = (compute_n + 3.0 * sqrt(2.0 * compute_n)) * ai_par->correction_factor;
 		*logdens += 0.5 * upper * FUNCORR(corr / upper);
 		printf("Correct: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
 #undef FUNCORR
@@ -7836,4 +7836,3 @@ computes the first term in <b>(INLA-1)</b>, <em>except</em> for any term wich is
 \verbinclude example-doxygen-approx-3.txt
 
 */
-
