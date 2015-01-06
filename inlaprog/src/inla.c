@@ -18161,6 +18161,16 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	int corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
 	mb->ai_par->correction_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECTION.FACTOR"), mb->ai_par->correction_factor);
 	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECTION.STRATEGY"), NULL));
+	if (opt) {
+		if (!strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
+			mb->ai_par->correction_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
+		} else if (!strcasecmp(opt, "LAPLACE")) {
+			mb->ai_par->correction_strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
+		} else {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "correction.strategy", opt);
+		}
+	}
 
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
